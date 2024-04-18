@@ -1,0 +1,24 @@
+node_modules
+# testing
+/coverage
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+tests-examples
+
+#docker
+*docker*
+*Docker*
+
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+firbase*.log*
+
+
+# firebase
+firebase-exported
+.firebase

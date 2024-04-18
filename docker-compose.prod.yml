@@ -1,0 +1,22 @@
+version: "3"
+
+services:
+  prod_comida_justa:
+    image: gcr.io/comida-justa/comida-justa-repo/production:v1
+    container_name: prodComidaJusta
+    build:
+      context: ./
+      dockerfile: Dockerfile.prod
+    env_file:
+      - .env.production
+    volumes:
+      - ./src:/app/src
+      - ./public:/app/public
+    restart: always
+    ports:
+      - 3000:3000
+    networks:
+      - redComidaJusta
+networks:
+  redComidaJusta:
+    external: true

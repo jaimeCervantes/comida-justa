@@ -1,0 +1,10 @@
+.ImagePreview {
+  max-inline-size: 100%;
+  block-size: auto;
+  aspect-ratio: 16/9;
+  object-fit: contain;
+
+  @media (width >= 768px) {
+    max-inline-size: 70%;
+  }
+}

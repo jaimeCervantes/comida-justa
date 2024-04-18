@@ -1,0 +1,24 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@import "./utility-patterns.css";
+
+:root {
+  --cj-bg-color: white;
+  --cj-text-color: black;
+  @media (prefers-color-scheme: dark) {
+    --cj-bg-color: black;
+    --cj-text-color: white;
+  }
+}
+
+body {
+  background-color: var(--cj-bg-color, white);
+  color: var(--cj-text-color, black);
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
