@@ -10,7 +10,7 @@ export const config = {
   },
   adapter: FirestoreAdapter(),
   providers: [Google],
-  basePath: "/auth",
+  basePath: process.env.CJ_AUTH_PATH,
 } satisfies NextAuthConfig;
 
 export const { handlers, auth, signIn, signOut } = NextAuth(config);

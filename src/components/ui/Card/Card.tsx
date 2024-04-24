@@ -20,14 +20,16 @@ export default function Card({
   return (
     <Container className={clsN} style={style ?? ""}>
       <AnchorElement {...anchorProps}>
-        <img
-          src={image.src}
-          alt={image.alt}
-          width={image.width ?? 300}
-          height={image.height ?? 300}
-          loading={image.loading ?? "lazy"}
-          className="h-auto max-w-full w-full object-cover aspect-video"
-        />
+        <picture>
+          <img
+            src={image.src}
+            alt={image.alt}
+            width={image.width ?? 300}
+            height={image.height ?? 300}
+            loading={image.loading ?? "lazy"}
+            className="h-auto max-w-full w-full object-cover aspect-video"
+          />
+        </picture>
       </AnchorElement>
 
       <section className="p-4">

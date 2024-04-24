@@ -1,4 +1,4 @@
-import { test, type PlaywrightTestArgs, expect } from "@playwright/test";
+import { test, type PlaywrightTestArgs } from "@playwright/test";
 import PublishPage from "./PublishPage";
 
 test.describe("When an user creates a post about healthy Food", () => {

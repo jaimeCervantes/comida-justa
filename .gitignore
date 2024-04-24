@@ -41,3 +41,7 @@ next-env.d.ts
 serviceAccountKey.json
 
 .firebase
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/

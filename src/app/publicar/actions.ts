@@ -4,6 +4,7 @@ import { auth } from "~/auth";
 import { redirect } from "next/navigation";
 import { PostUser } from "~/types/Posts";
 import { ActionState } from "~/types/Actions.d";
+import { SIGNIN_PATH } from "~/constants";
 
 export async function createFood(
   prevState: ActionState,
@@ -12,7 +13,7 @@ export async function createFood(
   const session = await auth();
 
   if (!session) {
-    redirect("/auth/signin");
+    redirect(SIGNIN_PATH);
   }
 
   const title = formData.get("title") as string;

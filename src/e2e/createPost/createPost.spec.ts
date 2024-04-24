@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import type { PlaywrightTestArgs } from "@playwright/test";
+import { SIGNIN_PATH } from "~/constants";
 
 test.describe("When users visit the platform", () => {
   test("Then a list of healthy food is displayed", async ({
@@ -27,7 +28,7 @@ test.describe("Given an unregistered User that opened the app", () => {
       const btnPublish = page.getByRole("link", { name: /publicar/i });
       await btnPublish.click({ button: "left" });
 
-      await expect(page).toHaveURL("/auth/signin");
+      await expect(page).toHaveURL(SIGNIN_PATH);
 
       const googleBtn = page.getByRole("button", { name: /google/i });
 

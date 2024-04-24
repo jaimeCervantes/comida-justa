@@ -1,7 +1,6 @@
-/** @type {import('next').NextConfig} */
-
 const isDevelopment = process.env.NODE_ENV === "development" ? true : false;
 
+/** @type {import('next').NextConfig} */
 const nextConfig = {
   output: "standalone",
 };
