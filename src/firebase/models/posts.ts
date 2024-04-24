@@ -1,14 +1,17 @@
-import db from "~/firebase/db";
-import type { FirestorePost } from "./Posts.d";
-import type { Post, PostUser } from "~/types/Posts.d";
 import type {
-  DocumentData,
   WhereFilterOp,
   CollectionReference,
 } from "firebase-admin/firestore";
+import type { FirestorePost } from "./Posts.d";
+import type { Post, PostUser } from "~/types/Posts.d";
 import { Timestamp } from "firebase-admin/firestore";
-import { getStorage, getDownloadURL } from "firebase-admin/storage";
 import invariant from "tiny-invariant";
+import { getStorage, getDownloadURL } from "firebase-admin/storage";
+import { getCollectionWithConverter } from "./converter";
+
+const collections = {
+  posts: () => getCollectionWithConverter<FirestorePost>("posts"),
+};
 
 const firstPage = 1;
 export async function getPosts(
@@ -17,7 +20,7 @@ export async function getPosts(
   by: null | { field: string; operator: string; value: string } = null
 ) {
   page = Math.max(Number(page), firstPage);
-  let query: any = db.collection("posts");
+  let query: any = collections.posts();
 
   if (by?.field && by?.operator && by?.value) {
     query = query.where(by.field, by.operator as WhereFilterOp, by.value);
@@ -52,7 +55,7 @@ export async function createPost(postInfo: Post, image: File, user: PostUser) {
   );
 
   try {
-    const post = await db.collection("posts").add({
+    const post = await collections.posts().add({
       ...postInfo,
       slug,
       image: await createImageInStorage(image),
@@ -93,7 +96,7 @@ function validateFields(postInfo: Post, image: File, user: PostUser) {
 
 async function defineSlug(title: string, slug?: string): Promise<string> {
   if (!slug || slug?.trim() === "") {
-    slug = await createSlug(title, db.collection("posts"));
+    slug = await createSlug(title, collections.posts());
   }
 
   return slug;
@@ -101,7 +104,7 @@ async function defineSlug(title: string, slug?: string): Promise<string> {
 
 export async function createSlug(
   title: string,
-  collection: CollectionReference<DocumentData> = db.collection("posts")
+  collection: CollectionReference<FirestorePost> = collections.posts()
 ) {
   const slug = title
     .toLowerCase()
@@ -134,7 +137,7 @@ async function createImageInStorage(image: File): Promise<string> {
 
 export async function getPost(
   slug: string,
-  collection: CollectionReference<DocumentData> = db.collection("posts")
+  collection: CollectionReference<FirestorePost> = collections.posts()
 ) {
   try {
     const queryResult = await collection.where("slug", "==", slug).get();

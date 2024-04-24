@@ -4,7 +4,4 @@ export type FirestorePost = Post &
   DocumentData & {
     image: string;
     user: PostUser;
-    modifiedBy?: PostUser;
-    modifiedAt?: Timestamp;
-    createdAt: Timestamp;
   };
