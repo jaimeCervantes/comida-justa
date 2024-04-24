@@ -10,35 +10,40 @@ describe("TextArea Component", () => {
     cleanup();
   });
 
+  const labelText = "description";
+
   it("should render component without crashing when no props are provided", () => {
     render(<TextArea />);
   });
 
   it("should renders label if provided", () => {
-    const label = "Test Label";
+    render(<TextArea label={labelText} />);
 
-    render(<TextArea label={label} />);
-
-    expect(screen.getByText(label)).toBeInTheDocument();
+    expect(
+      screen.getByRole("textbox", { name: labelText })
+    ).toBeInTheDocument();
   });
 
   it("should render textarea with correct props", () => {
     const maxLength = 100;
     const placeholder = "Test placeholder";
     const rows = 10;
-    const name = "Test name";
+    const name = "description";
 
     render(
       <TextArea
         maxLength={maxLength}
         placeholder={placeholder}
         rows={rows}
+        label={labelText}
         name={name}
         required
-      />,
+      />
     );
 
-    const textarea = screen.getByTestId("TextArea");
+    const textarea: HTMLTextAreaElement = screen.getByRole("textbox", {
+      name: labelText,
+    });
 
     expect(textarea).toHaveAttribute("maxlength", maxLength.toString());
     expect(textarea).toHaveAttribute("placeholder", placeholder);
@@ -51,9 +56,11 @@ describe("TextArea Component", () => {
     const user = userEvent.setup();
     const text = "Hola";
 
-    render(<TextArea />);
+    render(<TextArea label={labelText} />);
 
-    const textarea = await screen.findByTestId("TextArea");
+    const textarea: HTMLTextAreaElement = screen.getByRole("textbox", {
+      name: labelText,
+    });
 
     await act(async () => {
       await user.type(textarea, text);
@@ -62,19 +69,22 @@ describe("TextArea Component", () => {
     expect(textarea).toHaveValue(text);
   });
 
-  it("the maximum number of characters will be the total of the maxlength property", async () => {
+  it("the maximum number of characters should be the total of the maxlength property", async () => {
     const text = "test maxlength";
     const maxLength = 15;
 
     const user = userEvent.setup();
 
-    render(<TextArea maxLength={maxLength} />);
+    render(<TextArea maxLength={maxLength} label={labelText} />);
 
-    const textarea = await screen.findByTestId("TextArea");
+    const textarea: HTMLTextAreaElement = screen.getByRole("textbox", {
+      name: labelText,
+    });
     await act(async () => {
       await user.type(textarea, text);
     });
 
-    expect(textarea.value.length).toBeLessThanOrEqual(textarea.maxLength);
+    expect(textarea).toHaveValue(text);
+    expect(textarea.value.length).toBeLessThanOrEqual(maxLength);
   });
 });

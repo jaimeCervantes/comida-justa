@@ -17,7 +17,7 @@ type TextAreaProps = Partial<{
 }>;
 
 const inputClassName =
-  "w-full rounded border border-black focus:border-pw-green focus:outline focus:outline-pw-green px-2 py-1 text-lg dark:text-white bg-pw-gray";
+  "w-full rounded border border-black focus:border-pw-green focus:outline focus:outline-pw-green px-2 py-1 dark:text-white bg-pw-gray";
 const errorClassName =
   "pt-1 flex items-center gap-1 text-red-700 dark:text-red-400";
 
@@ -42,17 +42,16 @@ export default function TextArea({
   return (
     <div className="mt-6">
       {label && (
-        <label htmlFor={textAreaId} className="block text-lg font-medium">
+        <label htmlFor={textAreaId} className="block">
           {label}
         </label>
       )}
       <textarea
-        data-testid="TextArea"
         id={textAreaId}
         ref={ref}
         required={required || false}
         onChange={(evt) => setText(evt.target.value)}
-        className={`${inputClassName} ${className}`}
+        className={`${inputClassName} ${className ?? ""}`}
         name={name}
         maxLength={maxLength || 250}
         placeholder={placeholder}
@@ -66,7 +65,7 @@ export default function TextArea({
           {error}
         </div>
       ) : (
-        <span className="block mb-2 text-right mt-1 text-sm text-gray-500">
+        <span className="block mb-2 text-right mt-1 text-gray-500">
           {text.length}/{maxLength || 250}
         </span>
       )}
