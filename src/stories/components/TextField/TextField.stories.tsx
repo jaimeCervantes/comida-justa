@@ -56,9 +56,9 @@ export const WithIconEnd: Story = {
   args: { ...Default.args, iconEnd: <FaUser /> },
 };
 
-export const RequiredValue: Story = {
+export const RequiredValueInteraction: Story = {
   args: { ...WithIconEnd.args, required: true },
-  async play({ args, canvasElement, step }) {
+  async play({ canvasElement }) {
     const canvas = within(canvasElement);
 
     const field = await canvas.findByRole("textbox", { name: "Nombre" });
@@ -70,12 +70,12 @@ export const RequiredValue: Story = {
   },
 };
 
-export const TriggerOnChangeEvent: Story = {
+export const TriggerOnChangeEventInteraction: Story = {
   args: {
     ...Default.args,
     onChange: fn(),
   },
-  async play({ args, canvasElement, step }) {
+  async play({ args, canvasElement }) {
     const canvas = within(canvasElement);
 
     const field = await canvas.findByRole("textbox", { name: "Nombre" });
