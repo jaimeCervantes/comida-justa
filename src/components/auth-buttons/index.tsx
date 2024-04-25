@@ -6,7 +6,7 @@ export function SignIn({
   provider,
   children,
   ...props
-}: { provider?: string } & React.ComponentPropsWithRef<typeof Button>) {
+}: { provider?: string } & React.ComponentProps<typeof Button>) {
   return (
     <form
       action={async () => {
@@ -24,7 +24,7 @@ export function SignIn({
 export function SignOut({
   children,
   ...props
-}: React.ComponentPropsWithRef<typeof Button>) {
+}: React.ComponentProps<typeof Button>) {
   return (
     <form
       action={async () => {

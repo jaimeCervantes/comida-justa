@@ -1,8 +1,7 @@
-import TextField from "../../../components/ui/TextField/TextField";
+import TextField from "~/components/ui/TextField";
+import { userEvent, within, fn, expect } from "@storybook/test";
 import type { Meta, StoryObj } from "@storybook/react";
 import { FaUser } from "react-icons/fa";
-import { userEvent, within } from "@storybook/test";
-import { fn, expect } from "@storybook/test";
 
 const meta = {
   component: TextField,

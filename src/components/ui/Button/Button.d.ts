@@ -5,10 +5,10 @@ export type ButtonProps = {
   disabled: boolean;
   size: "xs" | "sm" | "md" | "lg" | "xl";
   color: "green" | "orange" | "black";
-  type: "button" | "submit" | "reset";
+  type?: "button" | "submit" | "reset";
   children: ReactNode;
   onClick: MouseEventHandler<HTMLButtonElement>;
   startIcon: ReactNode;
   endIcon: ReactNode;
-  text: string;
+  isLoading: boolean;
 };

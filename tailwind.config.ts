@@ -58,6 +58,14 @@ const config: Config = {
           from: { opacity: "1" },
           to: { opacity: "0" },
         },
+        spin: {
+          from: {
+            transform: "rotate(0deg)",
+          },
+          to: {
+            transform: "rotate(360deg)",
+          },
+        },
       },
     },
     animation: {
@@ -69,6 +77,7 @@ const config: Config = {
       enterFromRight: "enterFromRight 250ms ease",
       exitToLeft: "exitToLeft 250ms ease",
       exitToRight: "exitToRight 250ms ease",
+      spin: "spin 1s linear infinite",
     },
   },
   plugins: [

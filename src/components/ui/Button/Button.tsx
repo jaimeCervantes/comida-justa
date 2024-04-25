@@ -1,6 +1,7 @@
 "use client";
 import type { ButtonProps } from "./Button.d";
 import classNames from "classnames";
+import { BiLoaderAlt } from "react-icons/bi";
 
 const styleBtn = {
   green: "bg-pw-green text-white hover:bg-pw-green/80",
@@ -28,24 +29,42 @@ export default function Button({
   children,
   startIcon,
   endIcon,
+  isLoading,
   ...moreProps
 }: Partial<ButtonProps>) {
-  const buttonClassName = `relative rounded-sm ${className ? className : ""} ${
-    styleBtn[color || "default"]
-  } ${styleSizeBtn[size]}`;
+  const buttonClassName = classNames(
+    "relative rounded-sm",
+    className,
+    styleBtn[color || "default"],
+    styleSizeBtn[size]
+  );
 
-  const btnContentClasses = classNames({ "ml-1": startIcon, "mr-1": endIcon });
+  const btnContentClasses = classNames("flex gap-2 items-center", {
+    "ml-1": startIcon,
+    "mr-1": endIcon,
+  });
 
   return (
     <button
       onClick={onClick}
       className={buttonClassName}
-      disabled={disabled}
+      disabled={disabled || isLoading}
       type={type}
       {...moreProps}
     >
       {startIcon && startIcon}
-      <span className={btnContentClasses}>{children}</span>
+      <span className={btnContentClasses}>
+        {children}
+        {isLoading ? (
+          <BiLoaderAlt
+            className="motion-safe:animate-spin h-5 w-5"
+            title="Cargando..."
+          />
+        ) : (
+          ""
+        )}
+      </span>
+
       {endIcon && endIcon}
     </button>
   );

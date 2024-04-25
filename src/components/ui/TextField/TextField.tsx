@@ -13,9 +13,10 @@ import {
   errorClassName,
 } from "./classNames";
 
-export default forwardRef(TextField);
+const TextField = forwardRef(TextFieldInner);
+export default TextField;
 
-function TextField(
+function TextFieldInner(
   {
     isInvalid,
     label,
