@@ -66,6 +66,11 @@ const config: Config = {
             transform: "rotate(360deg)",
           },
         },
+        shine: {
+          "100%": {
+            transform: "translateX(100%)",
+          },
+        },
       },
     },
     animation: {
