@@ -1,14 +1,14 @@
 import NextAuth from "next-auth";
 import type { NextAuthConfig } from "next-auth";
 import { FirestoreAdapter } from "@auth/firebase-adapter";
-
 import createGoogleProvider from "next-auth/providers/google";
+import { db } from "~/firebase/init"
 
 export const config = {
   theme: {
     logo: "/logo.png",
   },
-  adapter: FirestoreAdapter(),
+  adapter: FirestoreAdapter(db),
   providers: [createGoogleProvider],
   callbacks: {
     signIn(params) {
