@@ -1,12 +1,13 @@
-export type ActionState = {
-  error: boolean;
-  messages: Partial<{
+export type ActionState = Partial<{
+  errors: Partial<{
+    errorMessage?: string;
     title: string | null;
     price: string | null;
+    phone: string | null;
     content: string | null;
     image: string | null;
     errorMessage: string;
-  }>;
+  }>,
   id?: string | null;
   slug?: string | null;
-};
+}>;

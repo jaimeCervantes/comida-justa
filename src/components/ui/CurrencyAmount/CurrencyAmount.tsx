@@ -9,7 +9,7 @@ export default function AmountCurrency({
   currency?: string;
   className?: string;
 }) {
-  const clsName = `mb-4 font-bold text-pw-lightgreen ${className ?? ""}`.trim();
+  const clsName = `font-bold text-pw-lightgreen ${className ?? ""}`.trim();
 
   return (
     <span className={clsName}>

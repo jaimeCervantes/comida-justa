@@ -12,8 +12,8 @@ const styleBtn = {
 };
 
 const styleSizeBtn = {
-  xs: "btn-xs px-3 py-2 text-xs",
-  sm: "btn-sm px-3 py-2 text-sm",
+  xs: "btn-xs px-2 py-2 text-xs",
+  sm: "btn-sm px-2 py-2 text-sm",
   md: "btn-md px-5 py-3 text-base",
   lg: "btn-lg px-6 py-4 text-base",
   xl: "btn-xl px-7 py-5 text-base",

@@ -20,18 +20,20 @@ export async function createFood(
   const content = formData.get("content") as string;
   const image = formData.get("image") as File;
   const price = formData.get("price");
+  const phone = formData.get("phone") as string;
 
   const errors = {
-    title: title ? null : "Title is required",
-    content: content ? null : "Content is required",
-    price: price ? null : "Precio es obligatorio",
-    image: image ? null : "La imagen es obligatoria",
+    title: title ? null : "El título es obligatorio.",
+    content: content ? null : "El contenido es obligatorio",
+    phone: phone ? null : "El Télefono es obligatorio.",
+    price: price ? null : "Precio es obligatorio.",
+    image: image.size > 0 ? null : "La imagen es obligatoria.",
   };
 
   const hasErrors = Object.values(errors).some((errMsg) => errMsg);
 
   if (hasErrors) {
-    return { messages: errors, error: true };
+    return { errors: errors };
   }
 
   let result;
@@ -40,6 +42,9 @@ export async function createFood(
       {
         title,
         content,
+        contactInfo: {
+          phone
+        },
         price: Number(price),
       },
       image || null,
@@ -47,18 +52,17 @@ export async function createFood(
     );
   } catch (err: any) {
     return {
-      error: true,
-      messages: {
+      errors: {
         errorMessage:
           process.env.NODE_ENV === "development"
             ? err?.message
-            : "Sucedio un error al tratar de crear tu publicacion. No eres tu, soy yo :(.",
-      },
+            : "Sucedio un error al tratar de crear tu publicación. No eres tu, soy yo, tu servidor :(.",
+      }
     };
   }
 
   if (result?.error) {
-    return { messages: { errorMessage: result.errorMessage }, error: true };
+    return { errors: { errorMessage: result.errorMessage } };
   }
 
   redirect(`/${result?.slug}`);
