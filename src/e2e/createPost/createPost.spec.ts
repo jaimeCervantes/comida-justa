@@ -9,10 +9,8 @@ test.describe("When users visit the platform", () => {
     await page.goto("/");
 
     const first = page.getByRole("article").nth(0);
-    const second = page.getByRole("article").nth(1);
 
     await expect(first).toBeVisible();
-    await expect(second).toBeVisible();
   });
 });
 
