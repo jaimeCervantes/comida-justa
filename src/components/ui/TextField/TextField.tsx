@@ -87,6 +87,7 @@ function TextFieldInner(
           aria-describedby={id}
           className={`${inputClassName}`}
           placeholder={placeholder}
+          pattern={pattern}
           {...moreProps}
         />
 

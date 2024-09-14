@@ -10,6 +10,11 @@ export type Post =
       id: string;
       title: string;
       summary: string;
+      contactInfo: {
+        phone: string;
+        email?: string
+        whatsapp?: string,
+      },
       content: string;
       price: number;
       slug: string;

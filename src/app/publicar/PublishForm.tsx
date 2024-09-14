@@ -4,6 +4,7 @@ import TextArea from "~/components/ui/TextArea";
 import Button from "~/components/ui/Button";
 import Link from "next/link";
 import ImagePicker from "~/components/ui/ImagePicker";
+import { MdPhone, MdTitle, MdTextSnippet, MdOutlinePriceChange    } from "react-icons/md";
 
 import { useFormState } from "react-dom";
 import { ActionState } from "~/types/Actions";
@@ -16,20 +17,19 @@ export default function PublishForm({
   const [state, createFoodAction] = useFormState<ActionState, FormData>(
     action,
     {
-      messages: {},
-      error: false,
+      errors: {},
       id: null,
       slug: null,
     }
   );
-
+  
   return (
     <section className="p-4">
       <h1 className="text-xl mb-4">Publica tu nueva comida sana</h1>
 
-      {state?.messages?.errorMessage ? (
+      {state?.errors?.errorMessage ? (
         <h2 className="pt-1 flex items-center gap-1 text-red-700 dark:text-red-400">
-          {state.messages.errorMessage}
+          {state.errors.errorMessage}
         </h2>
       ) : null}
 
@@ -45,7 +45,8 @@ export default function PublishForm({
           name="title"
           type="text"
           label="Titulo de la publicación:"
-          error={state?.messages?.title}
+          icon={<MdTitle />}
+          error={state?.errors?.title}
         />
 
         <TextField
@@ -53,21 +54,37 @@ export default function PublishForm({
           name="price"
           type="number"
           label="Precio:"
-          error={state?.messages?.price}
+          icon={<MdOutlinePriceChange />}
+          error={state?.errors?.price}
         />
 
         <ImagePicker
           name="image"
           label="Selecciona tu mejor imagen"
+          className="mb-6"
+          error={state.errors?.image}
+          required
         ></ImagePicker>
-
+  
+        <TextField
+          required
+          name="phone"
+          type="tel"
+          label="Télefono"
+          pattern={'^\\+?(\\d{1,3})?[0-9]{10}$'}
+          placeholder="Ej: 278109216 o +522781092116"
+          icon={<MdPhone/>}
+          error={state.errors?.phone}
+        >
+        </TextField>
+        
         <TextArea
           name="content"
           required
           label="Descripción del producto:"
           rows={8}
           maxLength={250}
-          error={state?.messages?.content as string}
+          error={state?.errors?.content as string}
         />
         <footer className="flex justify-center gap-5 mt-4">
           <Link href="/">

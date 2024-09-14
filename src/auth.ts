@@ -12,7 +12,7 @@ export const config = {
   providers: [createGoogleProvider],
   callbacks: {
     signIn(params) {
-      console.log(params);
+      console.log("callback signin", params);
       return true;
     },
   },

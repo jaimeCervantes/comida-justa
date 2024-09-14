@@ -12,7 +12,7 @@ export default async function Header() {
 
   return (
     <header className="relative z-10 pb-2 sm:pb-0 flex flex-col sm:flex-row items-center justify-between px-4 gap-4 bg-pw-white dark:bg-pw-gray shadow-blackA4 dark:shadow-none shadow-[0_2px_10px]">
-      <div className="flex gap-2">
+      <div className="flex gap-2 items-center">
         <Link href="/">
           <Image
             src="/logo.png"
@@ -24,7 +24,7 @@ export default async function Header() {
         </Link>
         <Nav />
       </div>
-      <div className="flex gap-2">
+      <div className="flex gap-2 items-center">
         <Link href="/publicar">
           <Button color="green" startIcon={<LuSalad title="Publicar" />}>
             Publicar
