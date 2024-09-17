@@ -4,9 +4,14 @@ import TextArea from "~/components/ui/TextArea";
 import Button from "~/components/ui/Button";
 import Link from "next/link";
 import ImagePicker from "~/components/ui/ImagePicker";
-import { MdPhone, MdTitle, MdTextSnippet, MdOutlinePriceChange    } from "react-icons/md";
+import {
+  MdPhone,
+  MdTitle,
+  MdOutlinePriceChange,
+} from "react-icons/md";
 
-import { useFormState } from "react-dom";
+import { useFormState, useFormStatus } from "react-dom";
+import { useState } from "react";
 import { ActionState } from "~/types/Actions";
 
 export default function PublishForm({
@@ -18,10 +23,12 @@ export default function PublishForm({
     action,
     {
       errors: {},
+      success: false,
       id: null,
       slug: null,
     }
   );
+  const [pending, setPending] = useState(false);
   
   return (
     <section className="p-4">
@@ -36,6 +43,9 @@ export default function PublishForm({
       <form
         method="POST"
         action={createFoodAction}
+        onSubmit={(e) => {
+          setPending(true);
+        }}
         className=""
         aria-label="Publica tu nueva comida sana"
       >
@@ -65,19 +75,18 @@ export default function PublishForm({
           error={state.errors?.image}
           required
         ></ImagePicker>
-  
+
         <TextField
           required
           name="phone"
           type="tel"
           label="Télefono"
-          pattern={'^\\+?(\\d{1,3})?[0-9]{10}$'}
+          pattern={"^\\+?(\\d{1,3})?[0-9]{10}$"}
           placeholder="Ej: 278109216 o +522781092116"
-          icon={<MdPhone/>}
+          icon={<MdPhone />}
           error={state.errors?.phone}
-        >
-        </TextField>
-        
+        ></TextField>
+
         <TextArea
           name="content"
           required
@@ -91,8 +100,13 @@ export default function PublishForm({
             <Button>Cancelar</Button>
           </Link>
 
-          <Button type="submit" color="green">
-            Publicar
+          <Button
+            type="submit"
+            color="green"
+            isLoading={pending && !state.success}
+            disabled={pending && !state.success}
+          >
+            {pending && !state.success ? 'Publicando...' : 'Publicar'}
           </Button>
         </footer>
       </form>

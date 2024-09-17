@@ -8,6 +8,7 @@ export type ActionState = Partial<{
     image: string | null;
     errorMessage: string;
   }>,
+  success: boolean;
   id?: string | null;
   slug?: string | null;
 }>;

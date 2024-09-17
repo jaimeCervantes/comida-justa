@@ -26,6 +26,8 @@ test.describe("Given an unregistered User that opened the app", () => {
       const btnPublish = page.getByRole("link", { name: /publicar/i });
       await btnPublish.click({ button: "left" });
 
+      await page.waitForURL(`**${SIGNIN_PATH}`);
+
       await expect(page).toHaveURL(SIGNIN_PATH);
 
       const googleBtn = page.getByRole("button", { name: /google/i });
