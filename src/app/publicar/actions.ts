@@ -33,7 +33,7 @@ export async function createFood(
   const hasErrors = Object.values(errors).some((errMsg) => errMsg);
 
   if (hasErrors) {
-    return { errors: errors };
+    return { errors: errors, success: false, id: null, slug: null };
   }
 
   let result;
@@ -43,7 +43,7 @@ export async function createFood(
         title,
         content,
         contactInfo: {
-          phone
+          phone,
         },
         price: Number(price),
       },
@@ -57,12 +57,14 @@ export async function createFood(
           process.env.NODE_ENV === "development"
             ? err?.message
             : "Sucedio un error al tratar de crear tu publicación. No eres tu, soy yo, tu servidor :(.",
-      }
+      },
+      id: null,
+      slug: null,
     };
   }
 
   if (result?.error) {
-    return { errors: { errorMessage: result.errorMessage } };
+    return { errors: { errorMessage: result.errorMessage }, success: false };
   }
 
   redirect(`/${result?.slug}`);
