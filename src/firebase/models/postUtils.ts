@@ -1,5 +1,4 @@
 import type {
-    WhereFilterOp,
     CollectionReference,
 } from "firebase-admin/firestore";
 import type { FirestorePost } from "./Posts.d";

@@ -23,5 +23,7 @@ export type Post =
       modifiedAt: string;
       createdAt: string;
       user: PostUser;
+      comments: Comment[];
+      lastVisibleComment: Any
     }>
   | { [k: string]: any };
