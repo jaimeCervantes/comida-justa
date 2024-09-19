@@ -39,6 +39,64 @@ Las comunidades saludables son pilares de sociedades fuertes. Iniciativas como l
 Justicia para las familias, tanto de productores locales como de consumidores y además un trato justo a nuestro planeta. Abordar la justicia local en términos de nutrición implica garantizar el acceso a alimentos nutritivos y asequibles. El “Panorama regional de la seguridad alimentaria y nutricional 2021” resalta la importancia de asegurar la disponibilidad de alimentos saludables, lo que reduce el gasto familiar en alimentos y promueve opciones locales y sostenibles. Fuente Naciones Unidas, México​. Esto no solo ayuda a las familias a ahorrar dinero, sino que también contribuye a un entorno más saludable, reduciendo los costos ambientales y de salud a largo plazo. Al promover la justicia alimentaria, se crea un ciclo de beneficios que incluye la mejora de la salud comunitaria, el fortalecimiento de la economía local y la protección del medio ambiente. Healthy Eating Research destaca la importa.ncia de las comidas escolares saludables y cómo pueden afectar positivamente la nutrición y el rendimiento académico de los estudiantes, lo que tiene implicaciones para el apoyo a la economía local y la sostenibilidad.
 
 
+# Development
+
+## Playwright test with Google Sigin Provider
+
+Just use page.waitForURL() to get the correct url path, this function waits until the correct url is available. In this case if there is redirects like google sign in, it waits anyway until google sign in url is available.
+
+- http://127.0.0.1:3000
+- http://127.0.0.1:3000/api/auth/callback/google
+
+
+Doing this, avoid the this kind of flaky test:
+
+```bash
+1) [chromium] › createPost/createPost.spec.ts:23:9 › Given an unregistered User that opened the app › When this anonymous user wants to publish a healthy food › Then a Google Sigin provider should be presented 
+
+    Error: Timed out 5000ms waiting for expect(locator).toHaveURL(expected)
+
+    Locator: locator(':root')
+    Expected string: "http://127.0.0.1:3000/api/auth/signin"
+    Received string: "http://127.0.0.1:3000/"
+    Call log:
+      - expect.toHaveURL with timeout 5000ms
+      - waiting for locator(':root')
+      -   locator resolved to <html lang="es-MX">…</html>
+      -   unexpected value "http://127.0.0.1:3000/"
+      -   locator resolved to <html lang="es-MX">…</html>
+      -   unexpected value "http://127.0.0.1:3000/"
+      -   locator resolved to <html lang="es-MX">…</html>
+      -   unexpected value "http://127.0.0.1:3000/"
+      -   locator resolved to <html lang="es-MX">…</html>
+      -   unexpected value "http://127.0.0.1:3000/"
+      -   locator resolved to <html lang="es-MX">…</html>
+      -   unexpected value "http://127.0.0.1:3000/"
+      -   locator resolved to <html lang="es-MX">…</html>
+      -   unexpected value "http://127.0.0.1:3000/"
+      -   locator resolved to <html lang="es-MX">…</html>
+      -   unexpected value "http://127.0.0.1:3000/"
+      -   locator resolved to <html lang="es-MX">…</html>
+      -   unexpected value "http://127.0.0.1:3000/"
+      -   locator resolved to <html lang="es-MX">…</html>
+      -   unexpected value "http://127.0.0.1:3000/"
+
+
+      27 |       await btnPublish.click({ button: "left" });
+      28 |
+    > 29 |       await expect(page).toHaveURL(SIGNIN_PATH);
+         |                          ^
+      30 |
+      31 |       const googleBtn = page.getByRole("button", { name: /google/i });
+      32 |
+
+        at /__w/comida-justa/comida-justa/src/e2e/createPost/createPost.spec.ts:29:26
+
+  1 flaky
+    [chromium] › createPost/createPost.spec.ts:23:9 › Given an unregistered User that opened the app › When this anonymous user wants to publish a healthy food › Then a Google Sigin provider should be presented 
+  3 skipped
+  5 passed (30.6s)
+```
 ## TODO
 
 [] Crear componente UI de error con icono de error, tal vez llamado ErrorMessage

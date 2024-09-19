@@ -16,6 +16,9 @@ export const config = {
       return true;
     },
   },
+  session: {
+    strategy: 'database', // this is default when using adapter
+  },
   basePath: process.env.CJ_AUTH_PATH,
   debug: process.env.NODE_ENV !== "production" ? true : false,
   logger: {
