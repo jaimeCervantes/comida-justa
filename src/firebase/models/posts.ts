@@ -54,6 +54,7 @@ export async function createPost(postInfo: Post, image: File, user: PostUser) {
       slug,
       image: await createImageInStorage(image),
       user,
+      category: postInfo.category,
       createdAt: Timestamp.now(),
     });
 

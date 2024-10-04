@@ -21,6 +21,7 @@ export async function createFood(
   const image = formData.get("image") as File;
   const price = formData.get("price");
   const phone = formData.get("phone") as string;
+  const category = formData.get("category") as string; //Nuevo campo de categoria agregado
 
   const errors = {
     title: title ? null : "El título es obligatorio.",
@@ -28,6 +29,7 @@ export async function createFood(
     phone: phone ? null : "El Télefono es obligatorio.",
     price: price ? null : "Precio es obligatorio.",
     image: image.size > 0 ? null : "La imagen es obligatoria.",
+    category: category ? null: "La categoria es obligatoria", //Se valida la categoria 
   };
 
   const hasErrors = Object.values(errors).some((errMsg) => errMsg);
@@ -42,6 +44,7 @@ export async function createFood(
       {
         title,
         content,
+        category: JSON.parse(category), //Se agrega categoria para que se envie a Firebase
         contactInfo: {
           phone,
         },

@@ -4,6 +4,7 @@ import TextArea from "~/components/ui/TextArea";
 import Button from "~/components/ui/Button";
 import Link from "next/link";
 import ImagePicker from "~/components/ui/ImagePicker";
+import { categories } from "./categories";
 import {
   MdPhone,
   MdTitle,
@@ -29,7 +30,18 @@ export default function PublishForm({
     }
   );
   const [pending, setPending] = useState(false);
-  
+
+  const [formData, setFormData] = useState({
+    category: "1", //Se establece el valor predeterminado para la categoria
+  })
+
+  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setFormData({
+      ...formData,
+      category: e.target.value,
+    });
+  };
+
   return (
     <section className="p-4">
       <h1 className="text-xl mb-4">Publica tu nueva comida sana</h1>
@@ -67,6 +79,24 @@ export default function PublishForm({
           icon={<MdOutlinePriceChange />}
           error={state?.errors?.price}
         />
+
+        {/* Campo de categoría */}
+        <label htmlFor="category" className="block text-sm font-medium text-gray-700">
+          Categoría:
+        </label>
+        <select
+          id="category"
+          name="category"
+          required
+          className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+        >
+          <option value="">Selecciona una categoría</option>
+            {categories.map((category) => (
+              <option key={category.id} value={JSON.stringify(category)}>
+                {category.name}
+              </option>
+            ))}
+        </select>
 
         <ImagePicker
           name="image"
