@@ -16,12 +16,13 @@ export default async function FoodDetail({
   className: string;
 }) {
   const details: Post = await getFoodDetails(slug);
-  const { title, image, price, content, contactInfo } = details;
-
+  const { title, image, price, content, contactInfo, category } = details;
+console.log(category);
   return (
     <article className={className}>
       <h1 className="text-3xl mb-4">{title}</h1>
       <picture className="sm:w-[1000px]">
+
         <img
           src={image}
           alt={title}
@@ -31,6 +32,8 @@ export default async function FoodDetail({
           className="h-auto w-full rounded-xl mb-4"
         />
       </picture>
+      <label htmlFor="">Categoria: </label>
+      <p className="">{category.name}</p>
       <p className="flex items-center mb-2">
         <FaDollarSign className="mr-2" size="24" />
         <CurrencyAmount value={price} locale="es-MX" currency="MXN" />
