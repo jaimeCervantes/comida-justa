@@ -1,23 +1,40 @@
-import { getPost } from "~/firebase/models/posts";
 import CurrencyAmount from "~/components/ui/CurrencyAmount";
 import { Post } from "~/types/Posts";
 import { MdPhone } from "react-icons/md";
 import { FaDollarSign } from "react-icons/fa";
+import { getPostWithPaginatedComments } from "~/firebase/models/postWithComments";
+import { Suspense } from "react";
+import CommentList from "../loadComments/CommentList";
+import type { PostUser } from "~/types/Posts";
 
 async function getFoodDetails(slug: string) {
-  return await getPost(slug);
+  return await getPostWithPaginatedComments(slug, 10);
 }
 
 export default async function FoodDetail({
   slug,
   className,
+  user,
 }: {
   slug: string;
   className: string;
+  user: PostUser | undefined;
 }) {
   const details: Post = await getFoodDetails(slug);
-  const { title, image, price, content, contactInfo, category } = details;
-console.log(category);
+
+  const {
+    title,
+    image,
+    price,
+    content,
+    contactInfo,
+    category,
+    comments,
+    firstVisibleComment,
+    lastVisibleComment,
+    id,
+  } = details;
+
   return (
     <article className={className}>
       <h1 className="text-3xl mb-4">{title}</h1>
@@ -48,6 +65,18 @@ console.log(category);
         </a>
       </p>
       <p className="whitespace-pre-wrap mt-6">{content}</p>
+      <section className="mt-14">
+        <Suspense>
+          <CommentList
+            postId={id}
+            slug={slug}
+            user={user}
+            initialComments={comments}
+            firstVisibleComment={firstVisibleComment}
+            lastVisibleComment={lastVisibleComment}
+          />
+        </Suspense>
+      </section>
     </article>
   );
 }

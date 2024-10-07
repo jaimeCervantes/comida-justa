@@ -33,10 +33,10 @@ export default async function Header() {
         {session ? (
           <>
             <Avatar user={session?.user} />
-            <SignOut>Cerrar sesion</SignOut>
+            <SignOut>Cerrar sesión</SignOut>
           </>
         ) : (
-          <SignIn>Iniciar sesion</SignIn>
+          <SignIn>Iniciar sesión</SignIn>
         )}
       </div>
     </header>
