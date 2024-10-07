@@ -9,7 +9,7 @@ import {
   doc,
 } from "firebase/firestore";
 import { db } from "~/firebase/init.client";
-import type { FirestoreComment } from "~/firebase/models/Posts.d";
+import type { Comment } from "~/types/Posts.d";
 import { mapSnapshotComments } from "../mapper";
 
 export function createOnLoadMoreComments({
@@ -21,16 +21,16 @@ export function createOnLoadMoreComments({
   setLastComment,
 }: {
   postId: string;
-  lastComment: FirestoreComment | null;
+  lastComment: Comment | null;
   setLoading: (isLoading: boolean) => void;
   setLoadMoreMessage: (message: string) => void;
-  setComments: (comments: FirestoreComment[]) => void;
-  setLastComment: (lastComment: FirestoreComment) => void;
+  setComments: (comments: (comment: Comment[]) => Comment[]) => void;
+  setLastComment: (lastComment: Comment) => void;
 }) {
   return async function () {
     setLoading(true);
     const lastCommentSnapshot = await getDoc(
-      doc(db, "posts", postId, "comments", lastComment?.id)
+      doc(db, "posts", postId, "comments", lastComment?.id as string)
     );
 
     const moreQuery = query(
@@ -48,10 +48,10 @@ export function createOnLoadMoreComments({
       setLoadMoreMessage("Ya no hay más comentarios.");
     } else {
       const moreComments = mapSnapshotComments(querySnapshot);
-      setComments((prevComments: FirestoreComment[]) => [
+      setComments((prevComments: Comment[]) => ([
         ...prevComments,
-        ...moreComments,
-      ]);
+        ...moreComments
+      ]))
 
       setLastComment(moreComments[moreComments.length - 1]);
     }

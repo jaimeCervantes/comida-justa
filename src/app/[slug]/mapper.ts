@@ -1,5 +1,6 @@
-import type { FirestoreComment } from "~/firebase/models/Posts.d";
 import { QuerySnapshot } from "firebase/firestore";
+import type { FirestoreComment } from "~/firebase/models/Posts.d";
+import type { Comment } from "~/types/Posts";
 
 export function mapSnapshotComments(snapshot: QuerySnapshot) {
   if (!snapshot.empty) {
@@ -11,7 +12,7 @@ export function mapSnapshotComments(snapshot: QuerySnapshot) {
         ...data,
         createdAt: data.createdAt.toDate(),
       };
-    }) as FirestoreComment[];
+    }) as Comment[];
 
     return newComments;
   }
@@ -19,8 +20,8 @@ export function mapSnapshotComments(snapshot: QuerySnapshot) {
   return [];
 }
 
-export function sortByCreatedAt(items: FirestoreComment[]): FirestoreComment[] {
+export function sortByCreatedAt(items: Comment[]): Comment[] {
   return items.toSorted(
-    (a, b) => b.createdAt.toMillis() - a.createdAt.toMillis()
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   );
 }

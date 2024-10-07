@@ -10,16 +10,17 @@ import {
   DocumentSnapshot,
 } from "firebase/firestore";
 import { db } from "~/firebase/init.client";
-import type { FirestoreComment } from "~/firebase/models/Posts.d";
+import type { Comment } from "~/types/Posts.d";
 import { mapSnapshotComments, sortByCreatedAt } from "../mapper";
+
 
 export function useRealTimeComments(
   postId: string,
-  initialComments: FirestoreComment[],
-  firstVisibleComment: FirestoreComment
+  initialComments: Comment[],
+  firstVisibleComment: Comment
 ) {
-  const [comments, setComments] = useState<FirestoreComment[]>(initialComments);
-  const [firstComment, setFirstComment] = useState<FirestoreComment | null>(
+  const [comments, setComments] = useState<Comment[]>(initialComments);
+  const [firstComment, setFirstComment] = useState<Comment | null>(
     firstVisibleComment
   );
   const [addCommentError, setAddCommentError] = useState<string | null>(null);
@@ -36,7 +37,7 @@ export function useRealTimeComments(
       }
 
       const snapshot = await getDoc(
-        doc(db, "posts", postId, "comments", firstComment.id)
+        doc(db, "posts", postId, "comments", firstComment.id as string)
       );
 
       setFirstCommentSnapshot(snapshot);
