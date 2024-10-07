@@ -10,6 +10,7 @@ import invariant from "tiny-invariant";
 
 export const collections = {
     posts: () => getCollectionWithConverter<FirestorePost>("posts"),
+    categories: () => getCollectionWithConverter<{ id : string, name : string }> ("categories"), //Definicion de la coleccion categorias
 };
 
 export function validateFields(postInfo: Post, image: File, user: PostUser) {
