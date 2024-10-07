@@ -32,7 +32,7 @@ export default class CommentPage {
   }
 
   async verifyCommentAuthor(author: string) {
-    const commentAuthor = this.commentsList.getByText(author);
+    const commentAuthor = this.commentsList.getByText(author).first();
     await expect(commentAuthor).toBeVisible();
   }
 }
