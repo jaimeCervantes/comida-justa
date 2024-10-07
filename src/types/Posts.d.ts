@@ -27,5 +27,17 @@ export type Post =
         id: string;
         nombre: string;
       }
+      comments: Comment[];
+      lastVisibleComment: Any;
+      firstVisibleComment: Any;
     }>
   | { [k: string]: any };
+
+
+export type Comment = {
+    id?: string;
+    content: string;
+    createdAt: string;
+    user: PostUser;
+    postId: string;
+};

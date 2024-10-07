@@ -19,7 +19,7 @@
     "test:coverage": "vitest run --coverage",
     "test:ui": "vitest --ui",
     "prepare": "husky",
-    "validate": "run-p lint test:run"
+    "validate": "run-p lint test:run test:e2e:run"
   },
   "dependencies": {
     "@auth/firebase-adapter": "^1.5.2",

@@ -45,3 +45,5 @@ serviceAccountKey.json
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+
+/src/e2e/.auth/auth.json
