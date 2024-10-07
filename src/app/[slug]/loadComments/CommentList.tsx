@@ -1,11 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import AddCommentForm from "../addComments/AddCommentForm";
-import type { PostUser } from "~/types/Posts";
+import type { Comment, PostUser } from "~/types/Posts";
 import { useRealTimeComments } from "../addComments/useRealTimeComments";
 import { createOnLoadMoreComments } from "./createOnLoadMoreComments";
-import type { FirestoreComment } from "~/firebase/models/Posts.d";
 import Avatar from "~/components/ui/Avatar/Avatar";
 
 export default function CommentList({
@@ -20,10 +19,10 @@ export default function CommentList({
   slug: string;
   user: PostUser | undefined;
   initialComments: any[];
-  firstVisibleComment: any;
-  lastVisibleComment: any;
+  firstVisibleComment: Comment;
+  lastVisibleComment: Comment;
 }) {
-  const [lastComment, setLastComment] = useState<FirestoreComment | null>(lastVisibleComment);
+  const [lastComment, setLastComment] = useState<Comment | null>(lastVisibleComment);
   const [loading, setLoading] = useState<boolean>(false);
   const [loadMoreMessage, setLoadMoreMessage] = useState<string | null>(null);
 

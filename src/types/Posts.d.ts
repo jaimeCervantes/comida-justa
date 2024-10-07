@@ -24,6 +24,16 @@ export type Post =
       createdAt: string;
       user: PostUser;
       comments: Comment[];
-      lastVisibleComment: Any
+      lastVisibleComment: Any;
+      firstVisibleComment: Any;
     }>
   | { [k: string]: any };
+
+
+export type Comment = {
+    id?: string;
+    content: string;
+    createdAt: string;
+    user: PostUser;
+    postId: string;
+};
