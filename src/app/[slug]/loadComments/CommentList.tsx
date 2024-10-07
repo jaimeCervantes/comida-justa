@@ -22,7 +22,9 @@ export default function CommentList({
   firstVisibleComment: Comment;
   lastVisibleComment: Comment;
 }) {
-  const [lastComment, setLastComment] = useState<Comment | null>(lastVisibleComment);
+  const [lastComment, setLastComment] = useState<Comment | null>(
+    lastVisibleComment
+  );
   const [loading, setLoading] = useState<boolean>(false);
   const [loadMoreMessage, setLoadMoreMessage] = useState<string | null>(null);
 
@@ -66,10 +68,7 @@ export default function CommentList({
             >
               <header className="flex gap-4 mb-3">
                 <Avatar user={comment?.user} />
-                <p
-                  className="flex flex-col text-sm"
-                  rel="author"
-                >
+                <p className="flex flex-col text-sm" rel="author">
                   {comment.user.name}
                   <time
                     dateTime={comment.createdAt}
@@ -79,7 +78,9 @@ export default function CommentList({
                   </time>
                 </p>
               </header>
-              <p>{comment.content}</p>
+              <section className="whitespace-pre-wrap">
+                {comment.content}
+              </section>
             </article>
           ))
         ) : (
