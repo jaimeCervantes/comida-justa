@@ -59,7 +59,7 @@ export default async function FoodDetail({
           {contactInfo?.phone}
         </a>
       </p>
-      <p className="whitespace-pre-wrap mt-6">{content}</p>
+      <section className="whitespace-pre-wrap mt-6">{content}</section>
       <section className="mt-14">
         <Suspense>
           <CommentList
