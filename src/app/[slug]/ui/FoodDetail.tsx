@@ -10,7 +10,6 @@ import type { PostUser } from "~/types/Posts";
 async function getFoodDetails(slug: string) {
   return await getPostWithPaginatedComments(slug, 10);
 }
-
 export default async function FoodDetail({
   slug,
   className,
@@ -21,7 +20,6 @@ export default async function FoodDetail({
   user: PostUser | undefined;
 }) {
   const details: Post = await getFoodDetails(slug);
-
   const {
     title,
     image,
@@ -49,8 +47,10 @@ export default async function FoodDetail({
           className="h-auto w-full rounded-xl mb-4"
         />
       </picture>
-      <label htmlFor="">Categoria: </label>
-      <p className="">{category.name}</p>
+      <section className="flex items-center mb-5">
+        <p className="mr-2">Categoria: </p>
+        <p className="">{category.name}</p>
+      </section>
       <p className="flex items-center mb-2">
         <FaDollarSign className="mr-2" size="24" />
         <CurrencyAmount value={price} locale="es-MX" currency="MXN" />
