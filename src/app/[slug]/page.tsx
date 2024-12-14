@@ -6,7 +6,6 @@ import type { PostUser } from "~/types/Posts";
 
 export default async function Slug({ params }: { params: { slug: string } }) {
   const session = await auth();
-  console.log(session);
 
   return (
     <section className="sm:flex sm:gap-4">
