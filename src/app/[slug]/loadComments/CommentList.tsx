@@ -28,12 +28,8 @@ export default function CommentList({
   const [loading, setLoading] = useState<boolean>(false);
   const [loadMoreMessage, setLoadMoreMessage] = useState<string | null>(null);
 
-  const { comments, setComments, setHasAddedComment, addCommentError } =
+  const { comments, setComments, commentError } =
     useRealTimeComments(postId, initialComments, firstVisibleComment);
-
-  function onAddComment() {
-    setHasAddedComment(true);
-  }
 
   const onLoadMoreComments = createOnLoadMoreComments({
     postId,
@@ -51,11 +47,10 @@ export default function CommentList({
         postId={postId}
         slug={slug}
         user={user}
-        onAdd={onAddComment}
       />
 
-      {addCommentError && (
-        <p className="text-red-500 mt-2">{addCommentError}</p>
+      {commentError && (
+        <p className="text-red-500 mt-2">{commentError}</p>
       )}
 
       <div role="list" aria-label="comentarios">
