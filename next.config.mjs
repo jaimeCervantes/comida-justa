@@ -3,6 +3,9 @@ const isDevelopment = process.env.NODE_ENV === "development" ? true : false;
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: "standalone",
+  env: {
+    NEXT_PUBLIC_LOGIN_PATH: process.env.NEXT_PUBLIC_LOGIN_PATH,
+  },
   images: {
     remotePatterns: [
       {
