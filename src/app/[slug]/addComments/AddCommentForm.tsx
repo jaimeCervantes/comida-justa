@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation"
 import { addCommentToPost } from "../data-access/actions"; // Función para agregar un comentario
 import type { PostUser } from "~/types/Posts.d.ts";
 
@@ -15,15 +16,16 @@ export default function AddCommentForm({
   user: PostUser | undefined;
   onAdd?: () => void;
 }) {
+  const router = useRouter();
   const [newComment, setNewComment] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleAddComment = async () => {
-    if (!user) return;
+    if (!user) router.push(process.env.NEXT_PUBLIC_LOGIN_PATH as string);
     if (!newComment.trim()) return;
     setLoading(true);
-    const result = await addCommentToPost(postId, newComment, user);
+    const result = await addCommentToPost(postId, newComment, user as PostUser);
     onAdd?.();
     setLoading(false);
 
