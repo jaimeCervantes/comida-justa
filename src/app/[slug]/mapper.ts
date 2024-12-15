@@ -4,15 +4,17 @@ import type { Comment } from "~/types/Posts";
 
 export function mapSnapshotComments(snapshot: QuerySnapshot) {
   if (!snapshot.empty) {
-    const newComments = snapshot.docs.map((doc) => {
-      const data = doc.data();
+
+    const newComments = snapshot.docChanges()
+    .filter(change => change.type === "added").map((change) => {
+      const data = change.doc.data();
 
       return {
-        id: doc.id,
+        id: change.doc.id,
         ...data,
         createdAt: data.createdAt.toDate(),
       };
-    }) as Comment[];
+    }) as Comment[]
 
     return newComments;
   }
@@ -20,8 +22,14 @@ export function mapSnapshotComments(snapshot: QuerySnapshot) {
   return [];
 }
 
-export function sortByCreatedAt(items: Comment[]): Comment[] {
+export function sortByCreatedAt(items: Comment[], order: string): Comment[] {
   return items.toSorted(
-    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    (a: Comment, b: Comment) => {
+      if (order !== 'desc') {
+        [a, b] = [b, a]
+      }
+
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    }
   );
 }

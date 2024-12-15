@@ -1,3 +1,4 @@
+"use client"
 import { useState, useEffect } from "react";
 import {
   query,
@@ -23,13 +24,52 @@ export function useRealTimeComments(
   const [firstComment, setFirstComment] = useState<Comment | null>(
     firstVisibleComment
   );
-  const [addCommentError, setAddCommentError] = useState<string | null>(null);
-  const [hasAddedComment, setHasAddedComment] = useState(false);
-  const [firstCommentSnapshot, setFirstCommentSnapshot] =
-    useState<DocumentSnapshot | null>(null);
+  const [commentError, setCommentError] = useState<string | null>(null);
+  const firstCommentSnapshot = useFirstCommentSnapshotForCommentsQuery(postId, firstComment);
 
-  const [firstTime, setFirstTime] = useState(false);
+  useEffect(() => {
+    const commentsQuery = query(
+      collection(db, "posts", postId, "comments"),
+      orderBy("createdAt", "asc"),
+      startAfter(firstCommentSnapshot)
+    );
 
+    let initialLoad = true;
+
+    const unsubscribe = onSnapshot(
+      commentsQuery,
+      (snapshot) => {
+
+        if (initialLoad) {
+          initialLoad = false;
+          return;
+        }
+
+        const newComments = mapSnapshotComments(snapshot);
+
+        setComments((prevComments) => [
+          ...sortByCreatedAt(newComments, 'desc'),
+          ...prevComments,
+        ]);
+        setFirstComment(newComments[0]);
+      },
+      (error) => {
+        console.error("Error al escuchar comentarios en tiempo real: ", error);
+        setCommentError("Error al cargar comentarios en tiempo real.");
+      }
+    );
+
+    return () => {
+      unsubscribe();
+    };
+  }, [postId, firstCommentSnapshot]);
+
+  return { comments, setComments, commentError, firstComment };
+}
+
+function useFirstCommentSnapshotForCommentsQuery(postId: string, firstComment: Comment | null) {
+  const [firstCommentSnapshot, setFirstCommentSnapshot] = useState<DocumentSnapshot | null>(null);
+  
   useEffect(() => {
     (async () => {
       if (!firstComment) {
@@ -44,39 +84,5 @@ export function useRealTimeComments(
     })();
   }, [postId, firstComment]);
 
-  useEffect(() => {
-    if (!hasAddedComment) {
-      return;
-    }
-
-    const commentsQuery = query(
-      collection(db, "posts", postId, "comments"),
-      orderBy("createdAt", "asc"),
-      startAfter(firstCommentSnapshot)
-    );
-
-    const unsubscribe = onSnapshot(
-      commentsQuery,
-      (snapshot) => {
-        const newComments = mapSnapshotComments(snapshot);
-
-        setComments((prevComments) => [
-          ...sortByCreatedAt(newComments),
-          ...prevComments,
-        ]);
-        setFirstComment(newComments[0]);
-        setHasAddedComment(false);
-      },
-      (error) => {
-        console.error("Error al escuchar comentarios en tiempo real: ", error);
-        setAddCommentError("Error al cargar comentarios en tiempo real.");
-      }
-    );
-
-    return () => {
-      unsubscribe();
-    };
-  }, [postId, firstCommentSnapshot, hasAddedComment]);
-
-  return { comments, setComments, setHasAddedComment, addCommentError };
+  return firstCommentSnapshot;
 }

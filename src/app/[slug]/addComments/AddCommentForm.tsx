@@ -13,7 +13,7 @@ export default function AddCommentForm({
   postId: string;
   slug: string;
   user: PostUser | undefined;
-  onAdd: () => void;
+  onAdd?: () => void;
 }) {
   const [newComment, setNewComment] = useState("");
   const [loading, setLoading] = useState(false);
@@ -24,7 +24,7 @@ export default function AddCommentForm({
     if (!newComment.trim()) return;
     setLoading(true);
     const result = await addCommentToPost(postId, newComment, user);
-    onAdd();
+    onAdd?.();
     setLoading(false);
 
     if (result.errorMessage) {
