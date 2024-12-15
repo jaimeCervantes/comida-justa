@@ -6,7 +6,7 @@ import ListItem from "./ListItem";
 export default function Nav() {
   return (
     <NavigationMenu.Root className="flex justify-center">
-      <NavigationMenu.List className="center m-0 flex list-none rounded-[6px] bg-white dark:bg-pw-gray p-1">
+      <NavigationMenu.List className="center m-0 flex flex-wrap list-none rounded-[6px] bg-white dark:bg-pw-gray p-1">
         <NavigationMenu.Item className="dark:bg-pw-gray">
           <NavigationMenu.Trigger className="text-pw-green mr-1 hover:bg-violet3 focus:shadow-violet7 group flex select-none items-center justify-between gap-[2px] rounded-[2px] px-3 py-4 text-[15px] font-medium leading-none outline-none focus:shadow-[0_0_0_1px]">
             Comida sana
