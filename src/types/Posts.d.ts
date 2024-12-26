@@ -37,3 +37,9 @@ export type Comment = {
     user: PostUser;
     postId: string;
 };
+
+export type PostForFavorites = {
+  id: string;
+  title: string;
+  slug: string;
+}

@@ -6,6 +6,7 @@ import { getPostWithPaginatedComments } from "~/firebase/models/postWithComments
 import { Suspense } from "react";
 import CommentList from "../loadComments/CommentList";
 import type { PostUser } from "~/types/Posts";
+import UserPostActions from "./UserPostActions";
 
 async function getFoodDetails(slug: string) {
   return await getPostWithPaginatedComments(slug, 10);
@@ -59,6 +60,11 @@ export default async function FoodDetail({
           {contactInfo?.phone}
         </a>
       </p>
+      <UserPostActions post={{
+        id: id, 
+        title: title,
+        slug: slug 
+      }} />
       <section className="whitespace-pre-wrap mt-6">{content}</section>
       <section className="mt-14">
         <Suspense>

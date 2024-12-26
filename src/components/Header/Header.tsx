@@ -6,6 +6,7 @@ import { auth } from "~/auth";
 import Link from "next/link";
 import { LuSalad } from "react-icons/lu";
 import Button from "~/components/ui/Button/Button";
+import Favorites from './Favorites'
 
 export default async function Header() {
   const session = await auth();
@@ -33,6 +34,7 @@ export default async function Header() {
         {session ? (
           <>
             <Avatar user={session?.user} />
+            <Favorites/>
             <SignOut>Cerrar sesión</SignOut>
           </>
         ) : (
