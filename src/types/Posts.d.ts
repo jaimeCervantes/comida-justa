@@ -23,6 +23,10 @@ export type Post =
       modifiedAt: string;
       createdAt: string;
       user: PostUser;
+      category: {
+        id: string;
+        nombre: string;
+      }
       comments: Comment[];
       lastVisibleComment: Any;
       firstVisibleComment: Any;

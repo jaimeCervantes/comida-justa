@@ -10,7 +10,6 @@ import type { PostUser } from "~/types/Posts";
 async function getFoodDetails(slug: string) {
   return await getPostWithPaginatedComments(slug, 10);
 }
-
 export default async function FoodDetail({
   slug,
   className,
@@ -27,6 +26,7 @@ export default async function FoodDetail({
     price,
     content,
     contactInfo,
+    category,
     comments,
     firstVisibleComment,
     lastVisibleComment,
@@ -37,6 +37,7 @@ export default async function FoodDetail({
     <article className={className}>
       <h1 className="text-3xl mb-4">{title}</h1>
       <picture className="sm:w-[1000px]">
+
         <img
           src={image}
           alt={title}
@@ -46,6 +47,10 @@ export default async function FoodDetail({
           className="h-auto w-full rounded-xl mb-4"
         />
       </picture>
+      <section className="flex items-center mb-5">
+        <p className="mr-2">Categoria: </p>
+        <p className="">{category.name}</p>
+      </section>
       <p className="flex items-center mb-2">
         <FaDollarSign className="mr-2" size="24" />
         <CurrencyAmount value={price} locale="es-MX" currency="MXN" />

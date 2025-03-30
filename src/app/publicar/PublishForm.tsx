@@ -4,20 +4,21 @@ import TextArea from "~/components/ui/TextArea";
 import Button from "~/components/ui/Button";
 import Link from "next/link";
 import ImagePicker from "~/components/ui/ImagePicker";
-import {
-  MdPhone,
-  MdTitle,
-  MdOutlinePriceChange,
-} from "react-icons/md";
 
-import { useFormState, useFormStatus } from "react-dom";
+import { MdPhone, MdTitle, MdOutlinePriceChange } from "react-icons/md";
+
+import { useFormState } from "react-dom";
 import { useState } from "react";
 import { ActionState } from "~/types/Actions";
+import CategorySelect from "~/components/form/CategorySelect";
+
 
 export default function PublishForm({
   action,
+  categories,
 }: {
   action: (state: ActionState, data: FormData) => Promise<typeof state>;
+  categories : {id: string; name: string}[]
 }) {
   const [state, createFoodAction] = useFormState<ActionState, FormData>(
     action,
@@ -29,7 +30,7 @@ export default function PublishForm({
     }
   );
   const [pending, setPending] = useState(false);
-  
+
   return (
     <section className="p-4">
       <h1 className="text-xl mb-4">Publica tu nueva comida sana</h1>
@@ -39,7 +40,6 @@ export default function PublishForm({
           {state.errors.errorMessage}
         </h2>
       ) : null}
-
       <form
         method="POST"
         action={createFoodAction}
@@ -67,7 +67,14 @@ export default function PublishForm({
           icon={<MdOutlinePriceChange />}
           error={state?.errors?.price}
         />
-
+        <label
+          htmlFor="category"
+          className="block"
+        >
+          Categoría:
+        </label>
+        <CategorySelect categories={categories}
+        />
         <ImagePicker
           name="image"
           label="Selecciona tu mejor imagen"
@@ -106,7 +113,7 @@ export default function PublishForm({
             isLoading={pending && !state.success}
             disabled={pending && !state.success}
           >
-            {pending && !state.success ? 'Publicando...' : 'Publicar'}
+            {pending && !state.success ? "Publicando..." : "Publicar"}
           </Button>
         </footer>
       </form>
