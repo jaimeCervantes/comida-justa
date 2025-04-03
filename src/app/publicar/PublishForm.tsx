@@ -40,6 +40,8 @@ export default function PublishForm({
         </h2>
       ) : null}
 
+      
+
       <form
         method="POST"
         action={createFoodAction}
@@ -60,7 +62,6 @@ export default function PublishForm({
         />
 
         <TextField
-          required
           name="price"
           type="number"
           label="Precio:"
@@ -70,11 +71,13 @@ export default function PublishForm({
 
         <ImagePicker
           name="image"
-          label="Selecciona tu mejor imagen"
+          label="Seleccionar imagen"
           className="mb-6"
           error={state.errors?.image}
           required
-        ></ImagePicker>
+          >       
+          <button className="cursor-pointer">Seleccionar imagen</button>
+        </ImagePicker>
 
         <TextField
           required
