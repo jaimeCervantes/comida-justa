@@ -72,11 +72,10 @@ export default function PublishForm({
         <ImagePicker
           name="image"
           label="Seleccionar imagen"
-          className="mb-6"
+          className="mb-6 cursor-pointer"
           error={state.errors?.image}
           required
           >       
-          <button className="cursor-pointer">Seleccionar imagen</button>
         </ImagePicker>
 
         <TextField
