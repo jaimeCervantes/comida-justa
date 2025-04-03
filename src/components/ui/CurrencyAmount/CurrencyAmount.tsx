@@ -10,13 +10,17 @@ export default function AmountCurrency({
   className?: string;
 }) {
   const clsName = `font-bold text-pw-lightgreen ${className ?? ""}`.trim();
-
+  console.log(value);
+  if (Boolean(value) === false){
+    return null; 
+  }
   return (
     <span className={clsName}>
       {new Intl.NumberFormat(locale, {
         style: "currency",
         currency: currency,
-      }).format(Number(value))}
+      }).format(Number(value))} 
+      
     </span>
   );
 }

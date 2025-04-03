@@ -6,6 +6,7 @@ import { PostUser } from "~/types/Posts";
 import { ActionState } from "~/types/Actions.d";
 import { SIGNIN_PATH } from "~/constants";
 
+
 export async function createFood(
   prevState: ActionState,
   formData: FormData
@@ -15,7 +16,7 @@ export async function createFood(
   if (!session) {
     redirect(SIGNIN_PATH);
   }
-
+  
   const title = formData.get("title") as string;
   const content = formData.get("content") as string;
   const image = formData.get("image") as File;
@@ -26,7 +27,6 @@ export async function createFood(
     title: title ? null : "El título es obligatorio.",
     content: content ? null : "El contenido es obligatorio",
     phone: phone ? null : "El Télefono es obligatorio.",
-    price: price ? null : "Precio es obligatorio.",
     image: image.size > 0 ? null : "La imagen es obligatoria.",
   };
 
@@ -45,7 +45,7 @@ export async function createFood(
         contactInfo: {
           phone,
         },
-        price: Number(price),
+        price: Number(price) || null
       },
       image || null,
       session.user as PostUser
