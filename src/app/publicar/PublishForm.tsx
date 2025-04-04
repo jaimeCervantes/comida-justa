@@ -71,8 +71,9 @@ export default function PublishForm({
 
         <ImagePicker
           name="image"
-          label="Seleccionar imagen"
-          className="mb-6 cursor-pointer"
+          // label="Seleccionar tu mejor imagen" ****comento esta linea para que no tenga efecto 
+          // y no se repita nuevamnete el string
+          className="mb-6"
           error={state.errors?.image}
           required
           >       
