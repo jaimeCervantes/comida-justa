@@ -48,7 +48,7 @@ export default function ImagePicker({
       <label htmlFor={inputId}>
         <Button startIcon={<MdImageIcon size={32} color={"white"} />} size="sm">
           <input
-            className="opacity-0 absolute w-full h-full top-0 left-0"
+            className="opacity-0 absolute w-full h-full top-0 left-0 cursor-pointer"
             required={required}
             ref={fileInput}
             name={name}
@@ -62,6 +62,9 @@ export default function ImagePicker({
             {...moreProps}
           />
           {label}
+          {/*no sabia que asi era la sintaxis para hacer un comentario XD*/}
+          { /*no se si era asi pero asi salio*/}
+        &nbsp;{fileName ? "Cambia tu mejor imagen" : label || "Seleccionar tu mejor imagen"} 
         </Button>
       </label>
 
