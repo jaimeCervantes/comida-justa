@@ -19,6 +19,7 @@ export default function PublishForm({
 }: {
   action: (state: ActionState, data: FormData) => Promise<typeof state>;
 }) {
+  console.log('Invocacion o render de PublishForm')
   const [state, createFoodAction] = useFormState<ActionState, FormData>(
     action,
     {
@@ -29,6 +30,11 @@ export default function PublishForm({
     }
   );
   const [pending, setPending] = useState(false);
+  const [imagePickerLabel, setImagePickerLabel] = useState("Selecciona tu mejor imagen")
+  function onChangeImagePicker() {
+    console.log("onChangeImagePicker")
+    setImagePickerLabel("Cambia tu mejor imagen")
+  }
   
   return (
     <section className="p-4">
@@ -71,8 +77,8 @@ export default function PublishForm({
 
         <ImagePicker
           name="image"
-          // label="Seleccionar tu mejor imagen" ****comento esta linea para que no tenga efecto 
-          // y no se repita nuevamnete el string
+          label={imagePickerLabel}
+          onChange={onChangeImagePicker}
           className="mb-6"
           error={state.errors?.image}
           required
