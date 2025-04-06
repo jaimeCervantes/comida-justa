@@ -16,9 +16,10 @@ export default function ImagePicker({
   className,
   onChange,
   error,
-  required,
+  required,  
   ...moreProps
 }: ImagePickerProps) {
+  console.log("ImagePicker" + label)
   const [fileName, setFileName] = useState<string>("");
   const [srcImage, setSrcImage] = useState<string>("");
   const fileInput = useRef(null as HTMLInputElement | null);
@@ -62,9 +63,6 @@ export default function ImagePicker({
             {...moreProps}
           />
           {label}
-          {/*no sabia que asi era la sintaxis para hacer un comentario XD*/}
-          { /*no se si era asi pero asi salio*/}
-        &nbsp;{fileName ? "Cambia tu mejor imagen" : label || "Seleccionar tu mejor imagen"} 
         </Button>
       </label>
 
