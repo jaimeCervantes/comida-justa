@@ -68,6 +68,14 @@ export async function createPost(postInfo: Post, image: File, user: PostUser) {
 }
 
 export async function getPost(
+
+// se que debo editar aqui el getPost pero no me sale :( 
+
+
+
+
+
+  
   slug: string,
   collection: CollectionReference<FirestorePost> = collections.posts()
 ) {
