@@ -16,9 +16,10 @@ export default function ImagePicker({
   className,
   onChange,
   error,
-  required,
+  required,  
   ...moreProps
 }: ImagePickerProps) {
+  console.log("ImagePicker" + label)
   const [fileName, setFileName] = useState<string>("");
   const [srcImage, setSrcImage] = useState<string>("");
   const fileInput = useRef(null as HTMLInputElement | null);
@@ -48,7 +49,7 @@ export default function ImagePicker({
       <label htmlFor={inputId}>
         <Button startIcon={<MdImageIcon size={32} color={"white"} />} size="sm">
           <input
-            className="opacity-0 absolute w-full h-full top-0 left-0"
+            className="opacity-0 absolute w-full h-full top-0 left-0 cursor-pointer"
             required={required}
             ref={fileInput}
             name={name}

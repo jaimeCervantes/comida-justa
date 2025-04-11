@@ -1,4 +1,5 @@
 import Link from "next/link";
+import FoodListClient from "~/components/FoodListClient";
 
 import Card from "~/components/ui/Card";
 import CurrencyAmount from "~/components/ui/CurrencyAmount";
