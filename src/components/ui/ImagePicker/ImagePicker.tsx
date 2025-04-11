@@ -21,7 +21,8 @@ export default function ImagePicker({
 }: ImagePickerProps) {
   console.log("ImagePicker" + label)
   const [fileName, setFileName] = useState<string>("");
-  const [srcImage, setSrcImage] = useState<string>("");
+  const [srcFile, setSrcFile] = useState<string>("");
+  const [fileType, setFileType] = useState<string>("");
   const fileInput = useRef(null as HTMLInputElement | null);
   const id = useId();
   const inputId = `${id}-${name}`;
@@ -32,17 +33,21 @@ export default function ImagePicker({
     const reader = new FileReader();
 
     setFileName(file.name);
+    setFileType(file.type);
 
     reader.onload = onReadingCompleted;
     reader.readAsDataURL(file!);
   }
 
   function onReadingCompleted(evt: ProgressEvent<FileReader>) {
-    const imageUrl = evt.target?.result;
-    if (imageUrl) {
-      setSrcImage(imageUrl as string);
+    const fileUrl = evt.target?.result;
+    if (fileUrl) {
+      setSrcFile(fileUrl as string);
     }
   }
+
+  const isImage = fileType.startsWith("image/");
+  const isVideo = fileType.startsWith("video/")
 
   return (
     <section className={className}>
@@ -55,7 +60,7 @@ export default function ImagePicker({
             name={name}
             id={inputId}
             type="file"
-            accept="image/*"
+            accept="image/*,video/*"
             onChange={(e) => {
               readFile(e.target.files);
               onChange?.(e.target.files);
@@ -73,13 +78,23 @@ export default function ImagePicker({
         </div>
       )}
 
-      <footer className="flex flex-col items-center justify-start gap-4">
-        {srcImage && (
+      <footer className="flex flex-col items-center justify-start gap-4 mt-4">
+        {srcFile &&  isImage && (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={srcImage} alt={srcImage} className={styles.ImagePreview} />
+          <img src={srcFile} alt={fileName} className={styles.ImagePreview} />
         )}
 
-        {fileName}
+        {srcFile && isVideo && (
+          <video
+          controls
+          src={srcFile}
+          className={styles.ImagePreview}
+          >
+            Tu navegador no soporta la reproduccion de video
+          </video>
+        )}
+
+        {fileName && <span className="text-sm text-gray-600">{fileName}</span>}
       </footer>
     </section>
   );
