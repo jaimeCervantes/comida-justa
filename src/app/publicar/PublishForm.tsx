@@ -30,7 +30,7 @@ export default function PublishForm({
     }
   );
   const [pending, setPending] = useState(false);
-  const [imagePickerLabel, setImagePickerLabel] = useState("Selecciona tu mejor imagen y/o tu mejor video")
+  const [imagePickerLabel, setImagePickerLabel] = useState("Sube tu mejor imagen o sube tu mejor video")
   function onChangeImagePicker() {
     console.log("onChangeImagePicker")
     setImagePickerLabel("Cambia tu mejor imagen o Cambia tu mejor video")
