@@ -1,5 +1,6 @@
 import Avatar from "../Avatar";
 import type { CardProps } from "./Card.d";
+import MediaContent from '~/components/ui/MediaContent';
 
 export default function Card({
   title,
@@ -21,28 +22,7 @@ export default function Card({
 
   return (
     <Container className={clsN} style={style ?? ""}>
-      <AnchorElement {...anchorProps}>
-        {fileType?.includes("video") ? (
-          <video
-          src={image.src}
-          controls
-          className="h-auto max-w-full w-full object-cover aspect-video"
-          >
-            Tu navegador no soporta video HTML5
-          </video>
-        ) : (
-        <picture>
-          <img
-            src={image.src}
-            alt={image.alt}
-            width={image.width ?? 300}
-            height={image.height ?? 300}
-            loading={image.loading ?? "lazy"}
-            className="h-auto max-w-full w-full object-cover aspect-video"
-          />
-        </picture>
-      )}
-      </AnchorElement>
+      {mediaContent}
 
       <section className="p-4">
         <h3 className="mb-4">
