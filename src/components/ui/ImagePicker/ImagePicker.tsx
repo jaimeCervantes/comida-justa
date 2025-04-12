@@ -84,16 +84,6 @@ export default function ImagePicker({
           <img src={srcFile} alt={fileName} className={styles.ImagePreview} />
         )}
 
-        {srcFile && isVideo && (
-          <video
-          controls
-          src={srcFile}
-          className={styles.ImagePreview}
-          >
-            Tu navegador no soporta la reproduccion de video
-          </video>
-        )}
-
         {fileName && <span className="text-sm text-gray-600">{fileName}</span>}
       </footer>
     </section>
