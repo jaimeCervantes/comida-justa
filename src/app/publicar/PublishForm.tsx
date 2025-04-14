@@ -3,7 +3,7 @@ import TextField from "~/components/ui/TextField";
 import TextArea from "~/components/ui/TextArea";
 import Button from "~/components/ui/Button";
 import Link from "next/link";
-import ImagePicker from "~/components/ui/ImagePicker";
+import ImageVideoPicker from "~/components/ui/ImageVideoPicker";
 import {
   MdPhone,
   MdTitle,
@@ -19,7 +19,6 @@ export default function PublishForm({
 }: {
   action: (state: ActionState, data: FormData) => Promise<typeof state>;
 }) {
-  console.log('Invocacion o render de PublishForm')
   const [state, createFoodAction] = useFormState<ActionState, FormData>(
     action,
     {
@@ -31,8 +30,7 @@ export default function PublishForm({
   );
   const [pending, setPending] = useState(false);
   const [imagePickerLabel, setImagePickerLabel] = useState("Sube tu mejor imagen o sube tu mejor video")
-  function onChangeImagePicker() {
-    console.log("onChangeImagePicker")
+  function onChangeImageVideoPicker() {
     setImagePickerLabel("Cambia tu mejor imagen o Cambia tu mejor video")
   }
   
@@ -49,7 +47,6 @@ export default function PublishForm({
       
 
       <form
-        method="POST"
         action={createFoodAction}
         onSubmit={(e) => {
           setPending(true);
@@ -75,15 +72,15 @@ export default function PublishForm({
           error={state?.errors?.price}
         />
 
-        <ImagePicker
+        <ImageVideoPicker
           name="image"
           label={imagePickerLabel}
-          onChange={onChangeImagePicker}
+          onChange={onChangeImageVideoPicker}
           className="mb-6"
           error={state.errors?.image}
           required
           >       
-        </ImagePicker>
+        </ImageVideoPicker>
 
         <TextField
           required

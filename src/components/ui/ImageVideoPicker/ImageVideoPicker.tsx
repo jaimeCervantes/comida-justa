@@ -2,7 +2,7 @@
 import { useState, useId, useRef } from "react";
 import Button from "../Button/Button";
 import { MdImage as MdImageIcon } from "react-icons/md";
-import type { ImagePickerProps } from "./ImagePicker.d";
+import type { ImagePickerProps } from "./ImageVideoPicker.d";
 import { MdError } from "react-icons/md";
 
 import styles from "./ImagePicker.module.css";
@@ -10,16 +10,16 @@ import styles from "./ImagePicker.module.css";
 export const errorClassName =
   "pt-1 flex items-center gap-1 text-red-700 dark:text-red-400";
 
-export default function ImagePicker({
+export default function ImageVideoPicker({
   label,
   name,
   className,
   onChange,
   error,
   required,  
+  accept = "image/*, video/*",
   ...moreProps
 }: ImagePickerProps) {
-  console.log("ImagePicker" + label)
   const [fileName, setFileName] = useState<string>("");
   const [srcFile, setSrcFile] = useState<string>("");
   const [fileType, setFileType] = useState<string>("");
@@ -60,7 +60,7 @@ export default function ImagePicker({
             name={name}
             id={inputId}
             type="file"
-            accept="image/*,video/*"
+            accept={accept}
             onChange={(e) => {
               readFile(e.target.files);
               onChange?.(e.target.files);
@@ -79,7 +79,7 @@ export default function ImagePicker({
       )}
 
       <footer className="flex flex-col items-center justify-start gap-4 mt-4">
-        {srcFile &&  isImage && (
+        {srcFile && isImage && (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={srcFile} alt={fileName} className={styles.ImagePreview} />
         )}

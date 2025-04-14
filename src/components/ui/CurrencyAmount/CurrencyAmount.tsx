@@ -10,7 +10,6 @@ export default function AmountCurrency({
   className?: string;
 }) {
   const clsName = `font-bold text-pw-lightgreen ${className ?? ""}`.trim();
-  console.log(value);
   if (Boolean(value) === false){
     return null; 
   }

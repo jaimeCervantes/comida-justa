@@ -16,7 +16,6 @@ export default function Card({
   anchorProps = {},
   children,
 }: CardProps) {
-  console.log("fileType:", fileType);
   const clsN = `border bg-white-300 shadow-md ${className ?? ""}`.trim();
 
   return (
