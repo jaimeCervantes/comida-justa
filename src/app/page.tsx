@@ -56,12 +56,27 @@ export default async function Inicio() {
                     className="flex flex-col justify-between bg-white dark:bg-pw-gray rounded-3xl overflow-hidden hover:border-b-pw-lightgreen dark:border-t-0 dark:border-r-0 dark:border-l-0 border-b-8 border-b-transparent"
                     AnchorElement={Link}
                     anchorProps={{ href: to, title: title }}
-                  >
-                    <CurrencyAmount
+                    middleFooter={<CurrencyAmount
                       value={price}
                       locale="es-MX"
-                      currency="MXN"
-                    ></CurrencyAmount>
+                      currency="MNX"
+                    ></CurrencyAmount>}
+                    
+                    >
+
+                    </MediaContent src="">
+                    ) : ( 
+                    <picture>
+                      <img 
+                      src={image.src} 
+                      alt={image.alt}
+                      width={image.width ?? 300}
+                      height={image.height ?? 300}
+                      loading={image.loading ?? "lazy"}
+                      className="h-auto max-w-full w-full object-cover aspect-video"
+                      />
+                    </picture>
+                    
                   </Card>
                 );
               }
