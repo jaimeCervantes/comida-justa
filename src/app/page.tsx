@@ -44,7 +44,11 @@ export default async function Inicio() {
                   <Card
                     key={id}
                     title={title}
-                    image={image}
+                    image={{ 
+                      src: image.src,
+                      alt: title,
+                    }}
+                    fileType={image.src.includes(".mp4") ? "video/mp4" : "image/jpeg"}
                     createdAt={createdAt}
                     createdAtLocale={createdAtLocale}
                     user={user}
