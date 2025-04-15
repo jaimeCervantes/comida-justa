@@ -4,6 +4,7 @@ import type { CardProps } from "./Card.d";
 export default function Card({
   title,
   image,
+  fileType,
   createdAt,
   createdAtLocale,
   className,
@@ -20,6 +21,15 @@ export default function Card({
   return (
     <Container className={clsN} style={style ?? ""}>
       <AnchorElement {...anchorProps}>
+      {fileType?.includes("video") ? ( 
+           <video
+           src={image.src}
+           controls
+           className="h-auto max-w-full w-full object-cover aspect-video"
+           >
+             Tu navegador no soporta video HTML5
+           </video>
+         ) : (
         <picture>
           <img
             src={image.src}
@@ -30,6 +40,7 @@ export default function Card({
             className="h-auto max-w-full w-full object-cover aspect-video"
           />
         </picture>
+         )}
       </AnchorElement>
 
       <section className="p-4">
