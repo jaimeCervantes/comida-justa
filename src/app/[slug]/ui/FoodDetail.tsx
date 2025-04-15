@@ -47,7 +47,7 @@ export default async function FoodDetail({
         />
       </picture>
       <p className="flex items-center mb-2">
-        <FaDollarSign className="mr-2" size="24" />
+        {price ? <FaDollarSign className="mr-2" size="24" /> : null}  {/*modi*/}
         <CurrencyAmount value={price} locale="es-MX" currency="MXN" />
       </p>
       <p className="flex items-center">
