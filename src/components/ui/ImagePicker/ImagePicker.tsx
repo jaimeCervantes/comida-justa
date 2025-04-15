@@ -73,7 +73,7 @@ export default function ImagePicker({
         </div>
       )}
 
-      <footer className="flex flex-col items-center justify-start gap-4">
+      <footer className="flex flex-col items-center justify-start gap-4 mt-4">
         {srcImage && (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={srcImage} alt={srcImage} className={styles.ImagePreview} />
