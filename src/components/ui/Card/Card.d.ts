@@ -3,6 +3,7 @@ import type { ElementType } from "react";
 export type CardProps = {
   title: string;
   image: ImageCardProp;
+  fileType?: string;
   createdAt: Date;
   createdAtLocale: string;
   className?: string;
