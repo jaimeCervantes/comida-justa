@@ -60,7 +60,6 @@ export default function PublishForm({
         />
 
         <TextField
-                        //modi
           name="price"
           type="number"
           label="Precio:"
