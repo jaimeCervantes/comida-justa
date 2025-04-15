@@ -26,7 +26,7 @@ export async function createFood(
     title: title ? null : "El título es obligatorio.",
     content: content ? null : "El contenido es obligatorio",
     phone: phone ? null : "El Télefono es obligatorio.",
-                                                                //modi
+                                                                
     image: image.size > 0 ? null : "La imagen es obligatoria.",
   };
 
