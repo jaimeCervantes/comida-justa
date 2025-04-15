@@ -49,10 +49,13 @@ export async function createPost(postInfo: Post, image: File, user: PostUser) {
   );
 
   try {
+    const fileType = image.type; // modi
+
     const post = await collections.posts().add({
       ...postInfo,
       slug,
       image: await createImageInStorage(image),
+      fileType,
       user,
       createdAt: Timestamp.now(),
     });
@@ -91,6 +94,7 @@ export async function getPost(
     const postInfo = {
       ...queryResult.docs[0]?.data(),
       id: queryResult.docs[0]?.id, // at the if by error we insert an empty id field in the post, so this return the real id from firebase
+      fileType: queryResult.docs[0]?.data()?.fileType || "", //modif
     };
 
     return postInfo;

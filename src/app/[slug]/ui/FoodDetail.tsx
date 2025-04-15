@@ -7,6 +7,12 @@ import { Suspense } from "react";
 import CommentList from "../loadComments/CommentList";
 import type { PostUser } from "~/types/Posts";
 
+
+function isVideo(url: string): boolean {
+  const ext = url.split(".").pop()?.split("?")[0].toLowerCase();
+  return ["mp4", "webm", "ogg"].includes(ext || "");
+}
+
 async function getFoodDetails(slug: string) {
   return await getPostWithPaginatedComments(slug, 10);
 }
@@ -37,7 +43,16 @@ export default async function FoodDetail({
     <article className={className}>
       <h1 className="text-3xl mb-4">{title}</h1>
       <picture className="sm:w-[1000px]">
-        <img
+        {isVideo(image) ? (
+          <video
+        src={image}
+        controls
+        className="h-auto w-full rounded-xl mb-4"
+        >
+          Tu navegador no soporta HTML5   
+        </video>
+        ) : (   
+           <img
           src={image}
           alt={title}
           width={1000}
@@ -45,6 +60,8 @@ export default async function FoodDetail({
           loading="lazy"
           className="h-auto w-full rounded-xl mb-4"
         />
+        )}
+      
       </picture>
       <p className="flex items-center mb-2">
         {price ? <FaDollarSign className="mr-2" size="24" /> : null}

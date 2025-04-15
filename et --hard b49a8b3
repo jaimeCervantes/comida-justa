@@ -1,0 +1,20 @@
+[33m1f6ade3[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mscroll[m[33m, [m[1;31morigin/scroll[m[33m)[m me perdi trate de separar en un nuevo archivo porque pense que seria una mejor idea pero no me salio
+[33mb49a8b3[m Se habilito la carga para video y se habilito tambien la visualizacion previa del video en el mismo apartado de la publicion osea antes de que se mande a publicar, tambien se habilito lla vista previa desde el home para que el usuario pueda ver el video desde ahi, si el lo desea, con sus respectivos controles de video, se estan puliendo detalles
+[33md633ad2[m Se habilito la carga para video y se habilito tambien la visualizacion previo del video
+[33mff8c037[m[33m ([m[1;31morigin/refactor/imagepicker-button[m[33m, [m[1;32mrefactor/imagepicker-button[m[33m)[m refactot: se creo un nuevo archivo FoodListClient.tsx se importo en page.tsx pero no funciona XD se intento modificar el getPost pero no funciono :(
+[33m50eed87[m refactor:change image picker label when user select a file
+[33m750c0e2[m mensaje
+[33md97e4df[m mensaje
+[33mc9fe428[m mensaje
+[33mf138a07[m[33m ([m[1;31morigin/dev[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mrefactor/optionalPrice[m[33m, [m[1;32mdev[m[33m)[m refactor: change styling for header and nav elements
+[33m5a264e9[m refactor: redirect to login when unsigned user try to comment
+[33m758617b[m refactor: load new comments in real time, post detail page
+[33m1915176[m refactor: delete unused console.log
+[33ma7583b8[m refactor: replace p tag by section tag
+[33m188562c[m ci: update env vars for github actions
+[33me96d119[m refactor: add styling to preserve white spaces in comments
+[33m2432d74[m fix: corret types for comments
+[33meb013a6[m fix: corret e2e tests for adding comments
+[33mc48c55f[m[33m ([m[1;31morigin/feature/addCommentToPost[m[33m)[m feature: add comment to a post, and list post comments
+[33m3c34a66[m refactor: add loader to 'Publicar' button on /publicar page
+[33ma4b2f36[m refactor: separate functions about posts model
