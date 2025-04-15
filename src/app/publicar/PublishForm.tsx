@@ -60,7 +60,6 @@ export default function PublishForm({
         />
 
         <TextField
-          required
           name="price"
           type="number"
           label="Precio:"

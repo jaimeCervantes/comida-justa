@@ -26,7 +26,7 @@ export async function createFood(
     title: title ? null : "El título es obligatorio.",
     content: content ? null : "El contenido es obligatorio",
     phone: phone ? null : "El Télefono es obligatorio.",
-    price: price ? null : "Precio es obligatorio.",
+                                                                
     image: image.size > 0 ? null : "La imagen es obligatoria.",
   };
 
@@ -45,7 +45,7 @@ export async function createFood(
         contactInfo: {
           phone,
         },
-        price: Number(price),
+        price: Number(price) || null
       },
       image || null,
       session.user as PostUser
