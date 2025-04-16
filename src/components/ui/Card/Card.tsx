@@ -25,7 +25,7 @@ export default function Card({
            <video
            src={image.src}
            controls
-           className="h-auto max-w-full w-full object-cover aspect-video"
+           className="h-auto max-w-full w-full aspect-video"
            >
              Tu navegador no soporta video HTML5
            </video>

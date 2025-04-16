@@ -3,7 +3,7 @@ import TextField from "~/components/ui/TextField";
 import TextArea from "~/components/ui/TextArea";
 import Button from "~/components/ui/Button";
 import Link from "next/link";
-import ImagePicker from "~/components/ui/ImagePicker";
+import ImageVideoPicker from "~/components/ui/ImageVideoPicker";
 import {
   MdPhone,
   MdTitle,
@@ -29,9 +29,9 @@ export default function PublishForm({
     }
   );
   const [pending, setPending] = useState(false);
-  const [imagePickerLabel, setImagePickerLabel] = useState("Sube tu mejor imagen o sube tu mejor video")
-  function onChangeImagePicker(){
-    setImagePickerLabel("Cambia tu mejor imagen o cambia tu mejor video")
+  const [imagePickerLabel, setImageVideoPickerLabel] = useState("Sube tu mejor imagen o sube tu mejor video")
+  function onChangeImageVideoPicker(){
+    setImageVideoPickerLabel("Cambia tu mejor imagen o cambia tu mejor video")
   }  
   return (
     <section className="p-4">
@@ -70,14 +70,14 @@ export default function PublishForm({
           error={state?.errors?.price}
         />
 
-        <ImagePicker
+        <ImageVideoPicker
           name="image"
           label={imagePickerLabel}
-          onChange={onChangeImagePicker}
+          onChange={onChangeImageVideoPicker}
           className="mb-6"
           error={state.errors?.image}
           required
-        ></ImagePicker>
+        ></ImageVideoPicker>
 
         <TextField
           required
