@@ -23,24 +23,24 @@ export default function Card({
       <AnchorElement {...anchorProps}>
         {fileType?.includes("video") ? (
           <video
-          src={image.src}
-          controls
-          className="h-auto max-w-full w-full object-cover aspect-video"
+            src={image.src}
+            controls
+            className="h-auto max-w-full w-full aspect-video"
           >
             Tu navegador no soporta video HTML5
           </video>
         ) : (
-        <picture>
-          <img
-            src={image.src}
-            alt={image.alt}
-            width={image.width ?? 300}
-            height={image.height ?? 300}
-            loading={image.loading ?? "lazy"}
-            className="h-auto max-w-full w-full object-cover aspect-video"
-          />
-        </picture>
-      )}
+          <picture>
+            <img
+              src={image.src}
+              alt={image.alt}
+              width={image.width ?? 300}
+              height={image.height ?? 300}
+              loading={image.loading ?? "lazy"}
+              className="h-auto max-w-full w-full object-cover aspect-video"
+            />
+          </picture>
+        )}
       </AnchorElement>
 
       <section className="p-4">

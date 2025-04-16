@@ -5,7 +5,7 @@ import { MdImage as MdImageIcon } from "react-icons/md";
 import type { ImageVideoPickerProps } from "./ImageVideoPicker.d";
 import { MdError } from "react-icons/md";
 
-import styles from "./ImagePicker.module.css";
+import styles from "./ImageVideoPicker.module.css";
 
 export const errorClassName =
   "pt-1 flex items-center gap-1 text-red-700 dark:text-red-400";
@@ -17,7 +17,7 @@ export default function ImageVideoPicker({
   onChange,
   error,
   required,  
-  accept = "image/*, video/*",
+  accept,
   ...moreProps
 }: ImageVideoPickerProps) {
   const [fileName, setFileName] = useState<string>("");
@@ -79,7 +79,7 @@ export default function ImageVideoPicker({
       )}
 
       <footer className="flex flex-col items-center justify-start gap-4 mt-4">
-        {srcFile && isImage && (
+        {srcFile && isImage &&(
           // eslint-disable-next-line @next/next/no-img-element
           <img src={srcFile} alt={fileName} className={styles.ImagePreview} />
         )}

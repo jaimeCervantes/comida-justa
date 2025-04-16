@@ -10,9 +10,11 @@ export default function AmountCurrency({
   className?: string;
 }) {
   const clsName = `font-bold text-pw-lightgreen ${className ?? ""}`.trim();
+
   if (Boolean(value) === false){
-    return null; 
+    return null;
   }
+  
   return (
     <span className={clsName}>
       {new Intl.NumberFormat(locale, {

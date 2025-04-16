@@ -1,6 +1,5 @@
 import type { Post } from "~/types/Posts.d";
 
-
 function getFileTypeFromUrl(url: string): string {
   const ext = url.split(".").pop()?.split("?")[0].toLocaleLowerCase();
   switch (ext) {
@@ -18,6 +17,7 @@ function getFileTypeFromUrl(url: string): string {
       return "unknown";
   }
 }
+
 export function mapPostsToCards(posts: Post[]) {
   return posts.map((item: Post) => {
     return {

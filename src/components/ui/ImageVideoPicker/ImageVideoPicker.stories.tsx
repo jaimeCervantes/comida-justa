@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { within, userEvent, expect, fn } from '@storybook/test';
-import ImageVideoPicker from './ImageVideoPicker';
+import ImageVideoPicker from '~/components/ui/ImageVideoPicker/ImageVideoPicker';
 
 
 const createMockFile = (name: string, type: string, size: number): File => {
