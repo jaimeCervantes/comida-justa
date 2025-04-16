@@ -1,3 +1,4 @@
+import Image from "next/image";
 import CurrencyAmount from "~/components/ui/CurrencyAmount";
 import { Post } from "~/types/Posts";
 import { MdPhone } from "react-icons/md";
@@ -51,7 +52,7 @@ export default async function FoodDetail({
             Tu navegador no soporta HTML5.
           </video>
         ) : (
-        <img
+        <Image
           src={image}
           alt={title}
           width={1000}

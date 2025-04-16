@@ -2,10 +2,10 @@
 import { useState, useId, useRef } from "react";
 import Button from "../Button/Button";
 import { MdImage as MdImageIcon } from "react-icons/md";
-import type { ImagePickerProps } from "./ImagePicker.d";
+import type { ImageVideoPickerProps } from "./ImageVideoPicker.d";
 import { MdError } from "react-icons/md";
 
-import styles from "./ImagePicker.module.css";
+import styles from "./ImageVideoPicker.module.css";
 
 export const errorClassName =
   "pt-1 flex items-center gap-1 text-red-700 dark:text-red-400";
@@ -18,7 +18,7 @@ export default function ImagePicker({
   error,
   required,
   ...moreProps
-}: ImagePickerProps) {
+}: ImageVideoPickerProps) {
   const [fileName, setFileName] = useState<string>("");
   const [srcFile, setSrcFile] = useState<string>("");
   const [fileType, setFileType] = useState<string>("");
