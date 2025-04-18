@@ -57,7 +57,7 @@ export default function PublishForm({
           required
           name="title"
           type="text"
-          label="Titulo de la publicación:"
+          label="Título de la publicación:"
           icon={<MdTitle />}
           error={state?.errors?.title}
         />
@@ -76,8 +76,9 @@ export default function PublishForm({
           onChange={onChangeImageVideoPicker}
           className="mb-6"
           error={state.errors?.image}
+          accept="image/*,video/*"
           required
-        ></ImageVideoPicker>
+        />
 
         <TextField
           required

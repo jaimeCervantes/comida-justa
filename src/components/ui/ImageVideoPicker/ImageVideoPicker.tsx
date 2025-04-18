@@ -17,7 +17,8 @@ export default function ImagePicker({
   onChange,
   error,
   required,
-  ...moreProps
+  accept,
+  multiple,
 }: ImageVideoPickerProps) {
   const [fileName, setFileName] = useState<string>("");
   const [srcFile, setSrcFile] = useState<string>("");
@@ -53,18 +54,19 @@ export default function ImagePicker({
       <label htmlFor={inputId}>
         <Button startIcon={<MdImageIcon size={32} color={"white"} />} size="sm">
           <input
-            className="opacity-0 absolute w-full h-full top-0 left-0"
+            className="opacity-0 absolute w-full h-full top-0 left-0 cursor-pointer [&::-webkit-file-upload-button]:cursor-pointer"
             required={required}
             ref={fileInput}
             name={name}
             id={inputId}
             type="file"
-            accept="image/*,video/*"
+            accept={accept}
             onChange={(e) => {
               readFile(e.target.files);
               onChange?.(e.target.files);
             }}
-            {...moreProps}
+            multiple={multiple}
+            aria-label={label}
           />
           {label}
         </Button>
@@ -78,16 +80,17 @@ export default function ImagePicker({
       )}
 
       <footer className="flex flex-col items-center justify-start gap-4 mt-4">
-        {srcFile && isImage &&(
+        {srcFile && isImage && (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={srcFile} alt={fileName} className={styles.ImagePreview} />
         )}
 
         {srcFile && isVideo && (
           <video
-          controls
-          src={srcFile}
-          className={styles.ImagePreview}
+            role="video"
+            controls
+            src={srcFile}
+            className={styles.ImagePreview}
           >
             Tu navegador no soporta HTML5
           </video>

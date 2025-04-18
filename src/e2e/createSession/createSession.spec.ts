@@ -14,7 +14,7 @@ test.describe.skip("Simulate login", () => {
 
   test("Create a session for test user", async ({ page, browserName }) => {
     await page.goto("http://localhost:3000/publicar");
-    const title = page.getByRole("heading", { name: /comida sana/i });
+    const title = page.getByRole("heading", { name: /Título de la publicación/i });
     expect(title).toBeAttached();
   });
 });
