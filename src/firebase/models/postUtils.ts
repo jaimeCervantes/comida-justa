@@ -61,15 +61,16 @@ export function validateFields(postInfo: Post, image: File, user: PostUser) {
     return slug;
   }
   
-  export async function createImageInStorage(image: File): Promise<string> {
+  export async function createFileInStorage(file: File): Promise<string> {
     const bucket = getStorage().bucket();
-    const buffer = Buffer.from(await image.arrayBuffer());
+    const buffer = Buffer.from(await file.arrayBuffer());
+    const type = file.type;
   
     await bucket
-      .file(`posts/${image.name}`)
-      .save(buffer, { contentType: image.type });
+      .file(`posts/${type}/${file.name}`)
+      .save(buffer, { contentType: type });
   
-    const imageUrl = await getDownloadURL(bucket.file(`posts/${image.name}`));
+    const fileUrl = await getDownloadURL(bucket.file(`posts/${file.name}`));
   
-    return imageUrl;
+    return fileUrl;
   }

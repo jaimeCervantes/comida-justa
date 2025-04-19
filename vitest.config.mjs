@@ -2,18 +2,29 @@
 /// <reference types="vite/client" />
 
 import react from "@vitejs/plugin-react";
-import { defineConfig } from "vite";
+import { defineConfig, loadEnv } from "vite";
+
 
 // https://vitejs.dev/config/
-export default defineConfig({
-  plugins: [react()],
-  test: {
-    include: ["src/components/**/*.{test,spec}.?(c|m)[jt]s?(x)"],
-    globals: true,
-    environment: "jsdom",
-    setupFiles: "./vitest-setup.ts",
-    // you might want to disable it, if you don't have tests that rely on CSS
-    // since parsing CSS is slow
-    css: false,
-  },
+export default defineConfig(({ mode }) => {
+  const isLocal = process.env.CI !== 'true'
+  const env = isLocal ? loadEnv(mode, process.cwd(), '') : process.env
+
+  process.env = { ...process.env, ...env }
+
+  return {
+    plugins: [react()],
+    test: {
+      include: ["src/**/*.test.?(c|m)[jt]s?(x)"],
+      globals: true,
+      environment: "jsdom",
+      setupFiles: "./vitest-setup.ts",
+      // you might want to disable it, if you don't have tests that rely on CSS
+      // since parsing CSS is slow
+      css: false,
+    },
+    define: {
+      'process.env': process.env
+    },
+  }
 });
