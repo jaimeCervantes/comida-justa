@@ -1,15 +1,10 @@
 // postUtils.test.ts
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { createFileInStorage } from "./postUtils";
-import { getStorage } from "firebase-admin/storage";
-import { getDownloadURL } from "firebase-admin/storage";
+import { getStorage, getDownloadURL } from "firebase-admin/storage";
 
-vi.mock("firebase-admin/storage", () => {
-    return {
-        getStorage: vi.fn(),
-        getDownloadURL: vi.fn(),
-    };
-});
+vi.mock("firebase-admin");
+vi.mock("firebase-admin/storage")
 
 describe("createFileInStorage", () => {
     const saveMock = vi.fn().mockResolvedValue(undefined);
@@ -23,12 +18,13 @@ describe("createFileInStorage", () => {
 
     beforeEach(() => {
         vi.clearAllMocks();
-        (getStorage as any).mockReturnValue({ bucket: () => bucketMock });
     });
 
     it("debe guardar el archivo en la ruta correcta y devolver la URL", async () => {
         const file = createMockFile("post.jpg", "image/jpeg", "contenido");
         const urlPathInStorage = `https://mocked.url/${file.type}/${file.name}`;
+        console.log(getStorage);
+        (getStorage as any).mockReturnValue({ bucket: () => bucketMock });
         (getDownloadURL as any).mockResolvedValue(urlPathInStorage);
 
         const url = await createFileInStorage(file);
