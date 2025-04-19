@@ -5,7 +5,7 @@ import type {
 import type { FirestorePost } from "./Posts.d";
 import type { Post, PostUser } from "~/types/Posts.d";
 import { Timestamp } from "firebase-admin/firestore";
-import { createImageInStorage, validateFields, collections, defineSlug} from "./postUtils"
+import { createFileInStorage, validateFields, collections, defineSlug} from "./postUtils"
 
 const firstPage = 1;
 export async function getPosts(
@@ -52,7 +52,7 @@ export async function createPost(postInfo: Post, image: File, user: PostUser) {
     const post = await collections.posts().add({
       ...postInfo,
       slug,
-      image: await createImageInStorage(image),
+      image: await createFileInStorage(image),
       user,
       createdAt: Timestamp.now(),
     });

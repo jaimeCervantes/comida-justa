@@ -16,6 +16,7 @@
     "test:e2e:run": "playwright test",
     "test": "vitest",
     "test:run": "vitest --run",
+    "test:run:local": "vitest --run --mode test",
     "test:coverage": "vitest run --coverage",
     "test:ui": "vitest --ui",
     "prepare": "husky",
