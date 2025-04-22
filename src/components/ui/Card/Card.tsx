@@ -1,6 +1,6 @@
 import Avatar from "../Avatar";
 import type { CardProps } from "./Card.d";
-import MediaContent from '~/components/ui/MediaContent';
+import MediaContent from "./MediaContent";
 
 export default function Card({
   title,
@@ -16,36 +16,59 @@ export default function Card({
   AnchorElement = "a",
   anchorProps = {},
   children,
+  middleFooter,
 }: CardProps) {
   console.log("fileType:", fileType);
   const clsN = `border bg-white-300 shadow-md ${className ?? ""}`.trim();
 
-  return (
-    <Container className={clsN} style={style ?? ""}>
-      {mediaContent}
-
-      <section className="p-4">
-        <h3 className="mb-4">
-          <AnchorElement {...anchorProps}>{title}</AnchorElement>
-        </h3>
-        {children}
-        <div className="flex justify-start gap-2 items-center">
-          <Avatar user={user} />
-          <p className="flex flex-col">
-            {user.displayName}
-            <time
-              dateTime={createdAt?.toString()}
-              className="first-letter:uppercase text-sm text-gray-500 dark:text-pw-white"
-            >
-              {createdAtLocale}
-            </time>
-          </p>
-        </div>
-      </section>
-
-      {footerChildren && (
-        <footer className="flex flex-wrap p-2">{footerChildren}</footer>
-      )}
-    </Container>
-  );
-}
+    // Definir mediaContent
+    const mediaContent = image?.src ? (
+      <MediaContent
+        src={image.src}
+        alt={image.alt || title}
+        width={Number(image.width) || 300}
+        height={Number(image.height) || 300}
+        loading={image.loading ?? "lazy"}
+        className="h-auto max-w-full w-full object-cover aspect-video"
+      />
+    ) : null;
+  
+    return (
+      <Container className={clsN} style={style ?? {}}>
+        {/* Contenido multimedia */}
+        {mediaContent}
+  
+        {/* Contenido principal */}
+        <section className="p-4">
+          <h3 className="mb-4">
+            <AnchorElement {...anchorProps}>{title}</AnchorElement>
+          </h3>
+  
+          {/* Footer intermedio */}
+          {middleFooter && (
+            <div className="mb-4 text-base text-gray-800 dark:text-gray-200">
+              {middleFooter}
+            </div>
+          )}
+  
+          <div className="flex justify-start gap-2 items-center">
+            <Avatar user={user} />
+            <p className="flex flex-col">
+              {user.displayName}
+              <time
+                dateTime={createdAt?.toString()}
+                className="first-letter:uppercase text-sm text-gray-500 dark:text-pw-white"
+              >
+                {createdAtLocale}
+              </time>
+            </p>
+          </div>
+        </section>
+  
+        {/* Footer adicional */}
+        {footerChildren && (
+          <footer className="flex flex-wrap p-2">{footerChildren}</footer>
+        )}
+      </Container>
+    );
+  }

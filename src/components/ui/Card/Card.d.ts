@@ -16,6 +16,7 @@ export type CardProps = {
     phoneNumber?: string;
   };
   footerChildren?: JSX.Element | string | null | undefined;
+  middleFooter?: JSX.Element | string | null;
   AnchorElement?: ElementType;
   anchorProps: { [key: string]: string };
   children: React.ReactNode;
