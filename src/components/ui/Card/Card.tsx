@@ -22,7 +22,7 @@ export default function Card({
   return (
     <Container className={clsN} style={style ?? ""}>
       <AnchorElement {...anchorProps}>
-        {fileType?.includes("video") ? ( // inic modi
+        {fileType?.includes("video") ? ( 
           <video
           src={image.src}
           controls
@@ -40,7 +40,7 @@ export default function Card({
             loading={image.loading ?? "lazy"}
             className="h-auto max-w-full w-full object-cover aspect-video"
           />
-        </picture>                                                               // fin modi
+        </picture>                                                               
       )}
       </AnchorElement>
 

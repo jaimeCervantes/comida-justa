@@ -19,9 +19,11 @@ export type Post =
       price: number;
       slug: string;
       image: string;
+      fileType?: string;
       modifiedBy: PostUser;
       modifiedAt: string;
-      createdAt: string;
+      createdAt?: string;
+      createdAtLocale?: string;
       user: PostUser;
       comments: Comment[];
       lastVisibleComment: Any;

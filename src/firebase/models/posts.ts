@@ -1,107 +1,45 @@
 import type {
   WhereFilterOp,
   CollectionReference,
+  DocumentSnapshot,
 } from "firebase-admin/firestore";
 import type { FirestorePost } from "./Posts.d";
 import type { Post, PostUser } from "~/types/Posts.d";
 import { Timestamp } from "firebase-admin/firestore";
 import { createImageInStorage, validateFields, collections, defineSlug} from "./postUtils"
 
-const firstPage = 1;
-export async function getPosts(
-  page: number = 1,
-  pageSize: number = 10,
-  by: null | { field: string; operator: string; value: string } = null
-) {
-  page = Math.max(Number(page), firstPage);
-  let query: any = collections.posts();
+export async function getPosts({
+  limit = 6,
+  startAfter = null,
+  by = null,
+}: {
+  limit?: number;
+  startAfter?: DocumentSnapshot | null;
+  by?: { field: string; operator: WhereFilterOp; value: string } | null;
+}) {
+  let query: FirebaseFirestore.Query = collections.posts();
 
   if (by?.field && by?.operator && by?.value) {
-    query = query.where(by.field, by.operator as WhereFilterOp, by.value);
+    query = query.where(by.field, by.operator, by.value);
   }
 
-  const total = (await query.count().get()).data().count;
+  query = query.orderBy("createdAt", "desc").limit(limit);
 
-  const posts = await query
-    .orderBy("createdAt", "desc")
-    .limit(pageSize)
-    .offset(page === firstPage ? 0 : Number(page - 1) * pageSize)
-    .get();
+  if (startAfter) {
+    query = query.startAfter(startAfter);
+  }
 
-  const postData = posts.docs.map((doc: FirestorePost) => {
-    return { ...doc.data(), id: doc.id };
-  });
+  const snapshot = await query.get();
+
+  const posts = snapshot.docs.map((doc) => ({
+    ...doc.data(),
+    id: doc.id,
+  })) as Post[];
+
+  const lastItem = snapshot.docs[snapshot.docs.length - 1] ?? null;
 
   return {
-    posts: postData,
-    nextPage: page + 1,
-    prevPage: page === firstPage ? firstPage : page - 1,
-    total: total,
+    posts,
+    lastItem,
   };
-}
-
-export async function createPost(postInfo: Post, image: File, user: PostUser) {
-  validateFields(postInfo, image, user);
-
-  const slug = await defineSlug(
-    postInfo.title as string,
-    postInfo.slug as string
-  );
-
-  try {
-    const fileType = image.type; // modi
-
-    const post = await collections.posts().add({
-      ...postInfo,
-      slug,
-      image: await createImageInStorage(image),
-      fileType,
-      user,
-      createdAt: Timestamp.now(),
-    });
-
-    return { id: post.id, slug };
-  } catch (error: any) {
-    console.log(error);
-    return {
-      error,
-      errorMessage: "Algo salio mal al crear el post",
-    };
-  }
-}
-
-export async function getPost(
-
-// se que debo editar aqui el getPost pero no me sale :( 
-
-
-
-
-
-  
-  slug: string,
-  collection: CollectionReference<FirestorePost> = collections.posts()
-) {
-  try {
-    const queryResult = await collection.where("slug", "==", slug).get();
-
-    if (queryResult.empty) {
-      return {
-        errorMessage: "No se encontró el post",
-      };
-    }
-
-    const postInfo = {
-      ...queryResult.docs[0]?.data(),
-      id: queryResult.docs[0]?.id, // at the if by error we insert an empty id field in the post, so this return the real id from firebase
-      fileType: queryResult.docs[0]?.data()?.fileType || "", //modif
-    };
-
-    return postInfo;
-  } catch (error: any) {
-    return {
-      error,
-      errorMessage: "Algo salio mal al buscar/obtener el post",
-    };
-  }
 }
