@@ -2,7 +2,7 @@ import type { ElementType } from "react";
 
 export type CardProps = {
   title: string;
-  image: ImageCardProp;
+  media: MediaCardProp;
   fileType?: string;
   createdAt: Date;
   createdAtLocale: string;
@@ -22,11 +22,10 @@ export type CardProps = {
   children: React.ReactNode;
 };
 
-export type ImageCardProp = {
-  src: string;
-  alt: string;
+export type MediaCardProp = {
+  url: string;
+  alt?: string;
   width?: number | `${number}`;
   height?: number | `${number}`;
-  priority?: boolean;
   loading?: "eager" | "lazy";
 };

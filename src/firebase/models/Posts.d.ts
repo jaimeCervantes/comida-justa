@@ -1,14 +1,37 @@
 import type { Timestamp, DocumentData } from "firebase-admin/firestore";
-import type { Post, PostUser } from "~/types/Posts.d.ts";
-export type FirestorePost = Post & DocumentData & {
-    image: string;
-    user: PostUser;
-  };
+import type { Post, PostUser } from "~/types/Posts.d";
 
-export type FirestoreComment = DocumentData & {
-  id?: string;
-  content: string;
+export type PostUser = {
+  id: string;
+  name: string;
+  avatar?: string;
+};
+
+
+export type Post = {
+  id: string;
+  title: string;
+  media: {  
+    url: string;
+    alt?: string;
+    width?: number;
+    height?: number;
+    loading?: "lazy" | "eager";
+  };
   createdAt: Timestamp;
   user: PostUser;
-  postId: string;
+  price?: number;
+  slug?: string;
+};
+
+
+export type FirestorePost = Post & DocumentData & {
+  media: { 
+    url: string;
+    alt?: string;
+    width?: number;
+    height?: number;
+    loading?: "lazy" | "eager";
+  };
+  user: PostUser;
 };

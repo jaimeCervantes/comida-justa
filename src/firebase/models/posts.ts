@@ -12,7 +12,12 @@ export async function getPosts(
   page: number = 1,
   pageSize: number = 10,
   by: null | { field: string; operator: string; value: string } = null
-) {
+): Promise<{
+  posts: FirestorePost[];
+  nextPage: number;
+  prevPage: number;
+  total: number;
+}> {
   page = Math.max(Number(page), firstPage);
   let query: any = collections.posts();
 
@@ -29,7 +34,18 @@ export async function getPosts(
     .get();
 
   const postData = posts.docs.map((doc: FirestorePost) => {
-    return { ...doc.data(), id: doc.id };
+    const data = doc.data();
+    return { 
+      ...doc.data(), 
+      id: doc.id,
+      media: {
+        url: data.media?.src || "", 
+        alt: data.media?.alt || "",
+        width: data.media?.width,
+        height: data.media?.height,
+        loading: data.media?.loading,
+      },
+     };
   });
 
   return {
@@ -49,15 +65,26 @@ export async function createPost(postInfo: Post, image: File, user: PostUser) {
   );
 
   try {
-    const post = await collections.posts().add({
+    const media = {
+      url: await createImageInStorage(image), 
+      alt: postInfo.title ?? "", 
+      width: 300, 
+      height: 300, 
+      loading: "lazy" as "lazy",
+    };
+
+    const postData = {
       ...postInfo,
       slug,
-      image: await createImageInStorage(image),
+      media,
       user,
-      createdAt: Timestamp.now(),
-    });
+      createdAt: Timestamp.now(), 
+    };
+
+    const post = await collections.posts().add(postData);
 
     return { id: post.id, slug };
+
   } catch (error: any) {
     console.log(error);
     return {
@@ -67,14 +94,8 @@ export async function createPost(postInfo: Post, image: File, user: PostUser) {
   }
 }
 
+
 export async function getPost(
-
-// se que debo editar aqui el getPost pero no me sale :( 
-
-
-
-
-
   
   slug: string,
   collection: CollectionReference<FirestorePost> = collections.posts()

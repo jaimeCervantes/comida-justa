@@ -20,16 +20,20 @@ function getFileTypeFromUrl(url: string): string {
 }
 export function mapPostsToCards(posts: Post[]) {
   return posts.map((item: Post) => {
+    const fileType = getFileTypeFromUrl(item.media?.url ?? item.image);
     return {
       id: item.id,
       title: item.title,
       price: item.price,
       content: item.content,
-      image: {
-        src: item.image,
-        alt: item.title,
+      media: {
+        url: item.media?.url ?? item.image,
+        alt: item.media?.alt ?? item.title,
+        width: item.media?.width,
+        height: item.media?.height,
+        loading: item.media?.loading,
       },
-      fileType: getFileTypeFromUrl(item.image),
+      fileType: getFileTypeFromUrl(item.media.url),
       // for initial versions, we will only be focused in Mexico
       createdAt: item.createdAt?.toDate(),
       createdAtLocale: item.createdAt?.toDate()?.toLocaleString("es-MX", {

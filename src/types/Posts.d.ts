@@ -19,6 +19,13 @@ export type Post =
       price: number;
       slug: string;
       image: string;
+      media: {
+        url: string;
+        alt?: string;
+        width?: number;
+        height?: number;
+        loading?: "lazy" | "eager";
+      };
       modifiedBy: PostUser;
       modifiedAt: string;
       createdAt: string;

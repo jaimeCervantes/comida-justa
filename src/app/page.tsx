@@ -3,7 +3,7 @@ import FoodListClient from "~/components/FoodListClient";
 
 import Card from "~/components/ui/Card";
 import CurrencyAmount from "~/components/ui/CurrencyAmount";
-import MediaContent from "~/components/ui/Card/MediaContent";
+import MediaContent from "~/components/ui/MediaContent/MediaContent";
 import { getPosts } from "~/firebase/models/posts";
 import { mapPostsToCards } from "~/mappers/posts/mapPostsToCards";
 import { Post } from "~/types/Posts";
@@ -31,22 +31,23 @@ export default function Inicio() {
               ({
                 id,
                 title,
-                image,
+                media,
                 createdAt,
                 createdAtLocale,
-                price,
+                price, 
                 user,
                 to,
               }: Post & { createdAtLocale: string; to: string }) => {
+                const isVideo = media.url.includes(".mp4");
                 return (
                   <Card
                     key={id}
                     title={title}
-                    image={{
-                      src: image.src,
-                      alt: title,
+                    media={{
+                      url: media.url,
+                      alt: media.alt,
                     }}
-                    fileType={image.src.includes(".mp4") ? "video/mp4" : "image/jpeg" }
+                    fileType={isVideo ? "video/mp4" : "image/jpeg" }
                     createdAt={createdAt}
                     createdAtLocale={createdAtLocale}
                     user={user}
@@ -57,19 +58,32 @@ export default function Inicio() {
                     <CurrencyAmount
                       value={price}
                       locale="es-MX"
-                      currency="MNX"
+                      currency="MXN"
                     />
                     }
                   > 
                 
                     <MediaContent
                      
-                      src={image.src} 
-                      alt={image.alt}
-                      width={image.width ?? 300}
-                      height={image.height ?? 300}
-                      loading={image.loading ?? "lazy"}
-                      className="h-auto max-w-full w-full object-cover aspect-video"
+                     media={{
+                      type: isVideo ? "video" : "image",
+                      url: media.url,
+                      alt: media.alt,
+                    }}
+                    options={{
+                      imageProps: {
+                        width: media.width ?? 300,
+                        height: media.height ?? 300,
+                        loading: media.loading ?? "lazy",
+                        className: "h-auto max-w-full w-full object-cover aspect-video"
+                      },
+                      videoProps: {
+                        width: media.width ?? 300,
+                        height: media.height ?? 300,
+                        className: "h-auto max-w-full w-full object-cover aspect-video",
+                        controls: true
+                      }
+                    }}
                       />                
                   </Card>
                 )

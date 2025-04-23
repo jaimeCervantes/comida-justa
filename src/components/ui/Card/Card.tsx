@@ -1,10 +1,10 @@
 import Avatar from "../Avatar";
 import type { CardProps } from "./Card.d";
-import MediaContent from "./MediaContent";
+import MediaContent from "../MediaContent/MediaContent";
 
 export default function Card({
   title,
-  image,
+  media,
   fileType,
   createdAt,
   createdAtLocale,
@@ -22,14 +22,27 @@ export default function Card({
   const clsN = `border bg-white-300 shadow-md ${className ?? ""}`.trim();
 
     // Definir mediaContent
-    const mediaContent = image?.src ? (
+    const mediaContent = media?.url ? (
       <MediaContent
-        src={image.src}
-        alt={image.alt || title}
-        width={Number(image.width) || 300}
-        height={Number(image.height) || 300}
-        loading={image.loading ?? "lazy"}
-        className="h-auto max-w-full w-full object-cover aspect-video"
+      media={{
+        type: fileType?.startsWith("video") ? "video" : "image",
+        url: media.url,
+        alt: media.alt || title,
+      }}
+      options={{
+        imageProps: {
+          width: Number(media.width) || 300,
+          height: Number(media.height) || 300,
+          loading: media.loading ?? "lazy",
+          className: "h-auto max-w-full w-full object-cover aspect-video",
+        },
+        videoProps: {
+          width: Number(media.width) || 300,
+          height: Number(media.height) || 300,
+          controls: true,
+          className: "h-auto max-w-full w-full object-cover aspect-video",
+        },
+      }}
       />
     ) : null;
   
