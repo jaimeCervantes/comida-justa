@@ -15,7 +15,7 @@ export const posts: Post[] = [
       email: faker.internet.email(),
       displayName: faker.person.fullName(),
       phoneNumber: faker.phone.number(),
-      photoURL: faker.internet.avatar(),
+      photoURL: faker.image.avatar(),
     },
   },
   {
@@ -30,7 +30,7 @@ export const posts: Post[] = [
       email: faker.internet.email(),
       displayName: faker.person.fullName(),
       phoneNumber: faker.phone.number(),
-      photoURL: faker.internet.avatar(),
+      photoURL: faker.image.avatar(),
     },
   },
 ];

@@ -40,29 +40,38 @@ export async function getPosts(
   };
 }
 
-export async function createPost(postInfo: Post, image: File, user: PostUser) {
-  validateFields(postInfo, image, user);
+export async function createPost(postInfo: Post, file: File, user: PostUser) {
+  validateFields(postInfo, file, user);
 
   const slug = await defineSlug(
     postInfo.title as string,
     postInfo.slug as string
   );
 
+  let fileUrl = '';
+  try {
+    fileUrl = await createFileInStorage(file)
+  } catch (error: any) {
+    return {
+      error,
+      errorMessage: "Algo salió mal al crear y/o obtener el archivo del post en el storage",
+    };
+  }
+
   try {
     const post = await collections.posts().add({
       ...postInfo,
       slug,
-      image: await createFileInStorage(image),
+      file: fileUrl,
       user,
       createdAt: Timestamp.now(),
     });
 
     return { id: post.id, slug };
   } catch (error: any) {
-    console.log(error);
     return {
       error,
-      errorMessage: "Algo salio mal al crear el post",
+      errorMessage: "Algo salió mal al crear el post",
     };
   }
 }
@@ -89,7 +98,7 @@ export async function getPost(
   } catch (error: any) {
     return {
       error,
-      errorMessage: "Algo salio mal al buscar/obtener el post",
+      errorMessage: "Algo salió mal al buscar/obtener el post",
     };
   }
 }
