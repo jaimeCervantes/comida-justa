@@ -52,25 +52,30 @@ export function validateFields(postInfo: Post, image: File, user: PostUser) {
       .replace(/[^a-z0-9]+/g, "-") // Remueve los carácteres que no sean letras o números, (incluyendo acentos)
       .replace(/(^-|-$)+/g, ""); // Remueve los guiones al inicio y al final
   
-    const doc = await collection.where("slug", "==", slug).get();
+    const querySnapshot = await collection.where("slug", "==", slug).get();
   
-    if (doc.size) {
-      return `${slug}-${doc.size}`;
+    if (querySnapshot.size) {
+      return `${slug}-${querySnapshot.size}`;
     }
   
     return slug;
   }
   
-  export async function createFileInStorage(file: File): Promise<string> {
-    const bucket = getStorage().bucket();
-    const buffer = Buffer.from(await file.arrayBuffer());
-    const type = file.type;
-  
-    await bucket
-      .file(`posts/${type}/${file.name}`)
-      .save(buffer, { contentType: type });
-  
-    const fileUrl = await getDownloadURL(bucket.file(`posts/${file.name}`));
-  
-    return fileUrl;
-  }
+export function createFilePath(type: string, fileName: string): string {
+  return `posts/${type}/${fileName}`;
+}
+
+export async function createFileInStorage(file: File): Promise<string> {
+  const bucket = getStorage().bucket();
+  const buffer = Buffer.from(await file.arrayBuffer());
+  const type = file.type;
+  const filePath = createFilePath(type, file.name);
+
+  await bucket
+    .file(filePath)
+    .save(buffer, { contentType: type });
+
+  const fileUrl = await getDownloadURL(bucket.file(filePath));
+
+  return fileUrl;
+}

@@ -26,10 +26,10 @@ export function mapPostsToCards(posts: Post[]) {
       price: item.price,
       content: item.content,
       image: {
-        src: item.image,
+        src: item.image || item.file,
         alt: item.title,
       },
-      fileType: getFileTypeFromUrl(item.image),
+      fileType: getFileTypeFromUrl(item.image || item.file),
       // for initial versions, we will only be focused in Mexico
       createdAt: item.createdAt?.toDate(),
       createdAtLocale: item.createdAt?.toDate()?.toLocaleString("es-MX", {

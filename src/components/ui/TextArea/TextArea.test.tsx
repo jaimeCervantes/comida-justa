@@ -3,7 +3,7 @@ import { cleanup, render } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import userEvent from "@testing-library/user-event";
 import TextArea from "./TextArea";
-import { act } from "react-dom/test-utils";
+import { act } from "react";
 
 describe("TextArea Component", () => {
   afterEach(() => {

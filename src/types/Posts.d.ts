@@ -18,7 +18,8 @@ export type Post =
       content: string;
       price: number;
       slug: string;
-      image: string;
+      image?: string
+      file?: string;
       modifiedBy: PostUser;
       modifiedAt: string;
       createdAt: string;

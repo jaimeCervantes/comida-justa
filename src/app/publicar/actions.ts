@@ -18,16 +18,15 @@ export async function createFood(
 
   const title = formData.get("title") as string;
   const content = formData.get("content") as string;
-  const image = formData.get("image") as File;
+  const file = formData.get("file") as File;
   const price = formData.get("price");
   const phone = formData.get("phone") as string;
 
   const errors = {
     title: title ? null : "El título es obligatorio.",
     content: content ? null : "El contenido es obligatorio",
-    phone: phone ? null : "El Télefono es obligatorio.",
-                                                                
-    image: image.size > 0 ? null : "La imagen es obligatoria.",
+    phone: phone ? null : "El Télefono es obligatorio.",                                                          
+    file: file.size > 0 ? null : "El archivo de imagen o video es obligatorio.",
   };
 
   const hasErrors = Object.values(errors).some((errMsg) => errMsg);
@@ -47,7 +46,7 @@ export async function createFood(
         },
         price: Number(price) || null
       },
-      image || null,
+      file || null,
       session.user as PostUser
     );
   } catch (err: any) {

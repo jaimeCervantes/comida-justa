@@ -71,7 +71,7 @@ export default function PublishForm({
         />
 
         <ImageVideoPicker
-          name="image"
+          name="file"
           label={imagePickerLabel}
           onChange={onChangeImageVideoPicker}
           className="mb-6"
