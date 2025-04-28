@@ -41,7 +41,7 @@ export default async function FoodDetail({
       {media.type === 'video' ? (
           <video
             src={media.url}
-            title={media.name}
+            title={media.alt}
             controls
             className="h-auto w-full rounded-xl mb-4"
           >
@@ -50,7 +50,7 @@ export default async function FoodDetail({
         ) : (
         <Image
           src={media.url}
-          alt={media.name}
+          alt={media.alt}
           width={1000}
           height={1000}
           loading="lazy"
