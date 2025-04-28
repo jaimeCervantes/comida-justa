@@ -1,9 +1,8 @@
 import type { Timestamp, DocumentData } from "firebase-admin/firestore";
 import type { Post, PostUser } from "~/types/Posts.d.ts";
 export type FirestorePost = Post & DocumentData & {
-    file: string;
-    user: PostUser;
-  };
+  user: PostUser;
+};
 
 export type FirestoreComment = DocumentData & {
   id?: string;

@@ -1,23 +1,5 @@
 import type { Post } from "~/types/Posts.d";
 
-function getFileTypeFromUrl(url: string): string {
-  const ext = url.split(".").pop()?.split("?")[0].toLocaleLowerCase();
-  switch (ext) {
-    case "mp4":
-    case "webm":
-    case "ogg":
-      return `video/${ext}`;
-    case "jpg":
-    case "jpeg":
-    case "png":
-    case "gif":
-    case "webp":
-      return `image/${ext === "jpg" ? "jpeg" : ext}`;
-    default:
-      return "unknown";
-  }
-}
-
 export function mapPostsToCards(posts: Post[]) {
   return posts.map((item: Post) => {
     return {
@@ -25,13 +7,9 @@ export function mapPostsToCards(posts: Post[]) {
       title: item.title,
       price: item.price,
       content: item.content,
-      image: {
-        src: item.image || item.file,
-        alt: item.title,
-      },
-      fileType: getFileTypeFromUrl(item.image || item.file),
-      // for initial versions, we will only be focused in Mexico
+      media: item.media,
       createdAt: item.createdAt?.toDate(),
+      // for initial versions, we will only be focused in Mexico
       createdAtLocale: item.createdAt?.toDate()?.toLocaleString("es-MX", {
         weekday: "long",
         year: "numeric",

@@ -33,7 +33,7 @@ export default async function Inicio() {
               ({
                 id,
                 title,
-                image,
+                media,
                 createdAt,
                 createdAtLocale,
                 price,
@@ -44,17 +44,33 @@ export default async function Inicio() {
                   <Card
                     key={id}
                     title={title}
-                    image={{ 
-                      src: image.src,
-                      alt: title,
-                    }}
-                    fileType={image.src.includes(".mp4") ? "video/mp4" : "image/jpeg"}
                     createdAt={createdAt}
                     createdAtLocale={createdAtLocale}
                     user={user}
                     className="flex flex-col justify-between bg-white dark:bg-pw-gray rounded-3xl overflow-hidden hover:border-b-pw-lightgreen dark:border-t-0 dark:border-r-0 dark:border-l-0 border-b-8 border-b-transparent"
                     AnchorElement={Link}
                     anchorProps={{ href: to, title: title }}
+                    media={
+                      media.type === "video" ? (
+                        <video
+                          src={media.src}
+                          controls
+                          className="h-auto max-w-full w-full aspect-video"
+                        >
+                          Tu navegador no soporta video HTML5
+                        </video>
+                      ) : (
+                        <picture>
+                          <img
+                            src={media.url}
+                            alt={media.name}
+                            width={300}
+                            height={300}
+                            loading={"lazy"}
+                            className="h-auto max-w-full w-full object-cover aspect-video"
+                          />
+                        </picture>)
+                    }
                   >
                     <CurrencyAmount
                       value={price}

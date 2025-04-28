@@ -2,8 +2,7 @@ import type { ElementType } from "react";
 
 export type CardProps = {
   title: string;
-  image: ImageCardProp;
-  fileType?: string;
+  media: ElementType | JSX.Element | string | undefined | null;
   createdAt: Date;
   createdAtLocale: string;
   className?: string;
@@ -15,7 +14,7 @@ export type CardProps = {
     photoURL?: string;
     phoneNumber?: string;
   };
-  footerChildren?: JSX.Element | string | null | undefined;
+  footerChildren?: JSX.Element | string | undefined | null;
   AnchorElement?: ElementType;
   anchorProps: { [key: string]: string };
   children: React.ReactNode;
