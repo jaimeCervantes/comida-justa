@@ -5,7 +5,7 @@ import type {
 import type { FirestorePost } from "./Posts.d";
 import type { Post, PostUser } from "~/types/Posts.d";
 import { Timestamp } from "firebase-admin/firestore";
-import { createFileInStorage, validateFields, collections, defineSlug} from "./postUtils"
+import { createFileInStorage, validateFields, collections, defineSlug, validateFileAnGetType } from "./postUtils"
 
 const firstPage = 1;
 export async function getPosts(
@@ -48,6 +48,16 @@ export async function createPost(postInfo: Post, file: File, user: PostUser) {
     postInfo.slug as string
   );
 
+  let type: string | null = null;
+  try {
+    type = await validateFileAnGetType(file);
+  } catch (error: any) {
+    return {
+      error,
+      errorMessage: "El archivo no es un tipo de archivo válido",
+    };
+  }
+
   let fileUrl = '';
   try {
     fileUrl = await createFileInStorage(file)
@@ -62,7 +72,11 @@ export async function createPost(postInfo: Post, file: File, user: PostUser) {
     const post = await collections.posts().add({
       ...postInfo,
       slug,
-      file: fileUrl,
+      media: {
+        url: fileUrl,
+        type: type,
+        name: file.name,
+      },
       user,
       createdAt: Timestamp.now(),
     });

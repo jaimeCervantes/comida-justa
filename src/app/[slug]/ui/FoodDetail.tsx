@@ -12,11 +12,6 @@ async function getFoodDetails(slug: string) {
   return await getPostWithPaginatedComments(slug, 10);
 }
 
-function isVideo(url: string): boolean {
-  const ext = url.split(".").pop()?.split("?")[0].toLowerCase();
-  return ["mp4", "webm", "ogg"].includes(ext || "");
-}
-
 export default async function FoodDetail({
   slug,
   className,
@@ -29,7 +24,7 @@ export default async function FoodDetail({
   const details: Post = await getFoodDetails(slug);
   const {
     title,
-    image,
+    media,
     price,
     content,
     contactInfo,
@@ -43,9 +38,10 @@ export default async function FoodDetail({
     <article className={className}>
       <h1 className="text-3xl mb-4">{title}</h1>
       <picture className="sm:w-[1000px]">
-      {isVideo(image) ? (
+      {media.type === 'video' ? (
           <video
-            src={image}
+            src={media.url}
+            title={media.name}
             controls
             className="h-auto w-full rounded-xl mb-4"
           >
@@ -53,8 +49,8 @@ export default async function FoodDetail({
           </video>
         ) : (
         <Image
-          src={image}
-          alt={title}
+          src={media.url}
+          alt={media.name}
           width={1000}
           height={1000}
           loading="lazy"

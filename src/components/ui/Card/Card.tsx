@@ -3,8 +3,7 @@ import type { CardProps } from "./Card.d";
 
 export default function Card({
   title,
-  image,
-  fileType,
+  media,
   createdAt,
   createdAtLocale,
   className,
@@ -21,26 +20,7 @@ export default function Card({
   return (
     <Container className={clsN} style={style ?? ""}>
       <AnchorElement {...anchorProps}>
-      {fileType?.includes("video") ? ( 
-           <video
-           src={image.src}
-           controls
-           className="h-auto max-w-full w-full aspect-video"
-           >
-             Tu navegador no soporta video HTML5
-           </video>
-         ) : (
-        <picture>
-          <img
-            src={image.src}
-            alt={image.alt}
-            width={image.width ?? 300}
-            height={image.height ?? 300}
-            loading={image.loading ?? "lazy"}
-            className="h-auto max-w-full w-full object-cover aspect-video"
-          />
-        </picture>
-         )}
+      {media}
       </AnchorElement>
 
       <section className="p-4">
