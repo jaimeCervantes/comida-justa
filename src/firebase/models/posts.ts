@@ -75,7 +75,7 @@ export async function createPost(postInfo: Post, file: File, user: PostUser) {
       media: {
         url: fileUrl,
         type: type,
-        name: file.name,
+        alt: postInfo.title,
       },
       user,
       createdAt: Timestamp.now(),

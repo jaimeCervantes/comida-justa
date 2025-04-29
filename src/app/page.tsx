@@ -63,7 +63,7 @@ export default async function Inicio() {
                         <picture>
                           <img
                             src={media.url}
-                            alt={media.name}
+                            alt={media.alt || title}
                             width={300}
                             height={300}
                             loading={"lazy"}
