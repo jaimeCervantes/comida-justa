@@ -53,7 +53,7 @@ export default async function Inicio() {
                     media={
                       media.type === "video" ? (
                         <video
-                          src={media.src}
+                          src={media.url}
                           controls
                           className="h-auto max-w-full w-full aspect-video"
                         >
