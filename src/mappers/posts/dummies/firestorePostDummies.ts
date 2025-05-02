@@ -8,7 +8,11 @@ export const posts: Post[] = [
     title: faker.lorem.words(5),
     description: faker.lorem.words(10),
     price: faker.number.int(100),
-    image: faker.image.url(),
+    media: {
+      type: "image",
+      url: faker.image.url(),
+      alt: faker.lorem.words(3),
+    },
     createdAt: Timestamp.fromDate(faker.date.past()),
     user: {
       uid: faker.string.uuid(),
@@ -23,7 +27,11 @@ export const posts: Post[] = [
     title: faker.lorem.words(5),
     description: faker.lorem.words(10),
     price: faker.number.int(100),
-    image: faker.image.url(),
+    media: {
+      type: "image",
+      url: faker.image.url(),
+      alt: faker.lorem.words(3),
+    },
     createdAt: Timestamp.fromDate(faker.date.past()),
     user: {
       uid: faker.string.uuid(),

@@ -7,6 +7,7 @@ import { getPostWithPaginatedComments } from "~/firebase/models/postWithComments
 import { Suspense } from "react";
 import CommentList from "../loadComments/CommentList";
 import type { PostUser } from "~/types/Posts";
+import MediaContent from "~/components/ui/MediaContent/MediaContent";
 
 async function getFoodDetails(slug: string) {
   return await getPostWithPaginatedComments(slug, 10);
@@ -37,27 +38,7 @@ export default async function FoodDetail({
   return (
     <article className={className}>
       <h1 className="text-3xl mb-4">{title}</h1>
-      <picture className="sm:w-[1000px]">
-      {media.type === 'video' ? (
-          <video
-            src={media.url}
-            title={media.alt}
-            controls
-            className="h-auto w-full rounded-xl mb-4"
-          >
-            Tu navegador no soporta HTML5.
-          </video>
-        ) : (
-        <Image
-          src={media.url}
-          alt={media.alt}
-          width={1000}
-          height={1000}
-          loading="lazy"
-          className="h-auto w-full rounded-xl mb-4"
-        />
-        )}
-      </picture>
+      <MediaContent media={media} className="h-auto mb-4" />
       <p className="flex items-center mb-2">
         {price ? <FaDollarSign className="mr-2" size="24" /> : null}
         <CurrencyAmount value={price} locale="es-MX" currency="MXN" />

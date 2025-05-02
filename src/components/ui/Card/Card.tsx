@@ -19,10 +19,7 @@ export default function Card({
 
   return (
     <Container className={clsN} style={style ?? ""}>
-      <AnchorElement {...anchorProps}>
       {media}
-      </AnchorElement>
-
       <section className="p-4">
         <h3 className="mb-4">
           <AnchorElement {...anchorProps}>{title}</AnchorElement>

@@ -4,10 +4,6 @@ export const props = {
   title: "Ensala con frutas",
   description:
     "Ensalada de lechuga italiana, cebolla morada, agucate, mango, piña, almendras, chia, semilla de calabaza y arandanos",
-  image: {
-    src: "https://ruta/de/imagen/1.webp",
-    alt: "Ensalada con frutas",
-  },
   price: 50,
   createdAt: date,
   createdAtLocale: date.toLocaleString("es-MX", {

@@ -2,6 +2,7 @@ import { test, expect } from "@playwright/test";
 import CommentPage from "./CommentPage";
 import { simulateLogin, deleteSession, type DbSession } from "../simulateLogin";
 import { dummyDbUser } from "../dummies/session";
+import { deleteCommentsByPostSlug } from "../deleteComments";
 
 // test.use({
 //   storageState: './src/e2e/.auth/auth.json'
@@ -10,15 +11,17 @@ import { dummyDbUser } from "../dummies/session";
 test.describe("Given an authenticated user viewing a post", () => {
   let commentPage: CommentPage;
   let dbSession: DbSession | undefined;
+  const postSlug = 'verduras-y-semillas-frescas'
 
   test.beforeEach(async ({ page, browserName }) => {
     dbSession = await simulateLogin(page, browserName)
     commentPage = new CommentPage(page);
-    await commentPage.goToPost('verduras-y-semillas-frescas');
+    await commentPage.goToPost(postSlug);
   });
 
   test.afterEach(async () => {
     await deleteSession(dbSession.id)
+    await deleteCommentsByPostSlug(postSlug)
   });
 
   test.describe("When the user writes a comment", () => {

@@ -2,7 +2,7 @@ import type { ElementType } from "react";
 
 export type CardProps = {
   title: string;
-  media: ElementType | JSX.Element | string | undefined | null;
+  media?: ElementType | JSX.Element | string | undefined | null;
   createdAt: Date;
   createdAtLocale: string;
   className?: string;
@@ -16,8 +16,8 @@ export type CardProps = {
   };
   footerChildren?: JSX.Element | string | undefined | null;
   AnchorElement?: ElementType;
-  anchorProps: { [key: string]: string };
-  children: React.ReactNode;
+  anchorProps?: { [key: string]: string };
+  children?: React.ReactNode;
 };
 
 export type ImageCardProp = {

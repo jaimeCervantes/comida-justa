@@ -1,6 +1,8 @@
 import { describe, beforeEach, it, expect } from "vitest";
 import { render } from "@testing-library/react";
 import type { RenderResult } from "@testing-library/react";
+import Link from "next/link";
+import MediaContent from "@/components/ui/MediaContent/MediaContent";
 import Card from "./Card";
 import { props } from "./dummies/props";
 
@@ -8,7 +10,15 @@ describe("When a Card is rendered", () => {
   let cardView: RenderResult;
 
   beforeEach(() => {
-    cardView = render(<Card {...props}></Card>);
+    cardView = render(<Card {...props} media={
+      <Link {...props.anchorProps}>
+        <MediaContent media={{
+          url: "https://ruta/de/imagen/1.webp",
+          type: "image",
+          alt: "Ensalada con frutas",
+        }} />
+      </Link>
+    }></Card>);
   });
 
   it("Then the title should be shown", async () => {
