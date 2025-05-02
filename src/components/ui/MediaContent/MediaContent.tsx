@@ -51,7 +51,7 @@ function ImageContent({ media, className }: MediaContentProps) {
       width={1000}
       height={1000}
       loading="lazy"
-      className={`w-full aspect-video ${className || ''}`}
+      className={`w-full ${className || ''}`}
     />
   );
 }
