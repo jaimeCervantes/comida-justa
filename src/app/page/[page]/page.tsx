@@ -38,7 +38,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 async function getPosts(page: number) {
   const pageNum = Math.max(PAGINATION_INIT_PAGE, page);
-  const result = await getMultiplePosts(pageNum, 4);
+  const result = await getMultiplePosts(pageNum, PAGINATION_PAGE_SIZE);
 
   return {
     ...result,

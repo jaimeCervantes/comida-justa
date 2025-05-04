@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 import { getMultiplePosts } from "~/firebase/getMultiplePosts";
 import { mapPostsToCards } from "~/mappers/posts/mapPostsToCards";
 import PostsWithLoadMore from "./(home)/PostsWithLoadMore";
-import { CANONICAL_URL } from '~/constants';
+import { CANONICAL_URL, PAGINATION_PAGE_SIZE, PAGINATION_INIT_PAGE } from '~/constants';
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
@@ -21,13 +21,13 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 async function getPosts() {
-  const result = await getMultiplePosts(1, 4);
+  const result = await getMultiplePosts(PAGINATION_INIT_PAGE, PAGINATION_PAGE_SIZE);
 
   return { ...result, posts: mapPostsToCards(result.posts) };
 }
 
 export default async function Inicio() {
-  const { posts, total } = await getPosts();
+  const { posts, total, totalPages } = await getPosts();
 
   return (
     <main className="">
@@ -39,6 +39,7 @@ export default async function Inicio() {
       <PostsWithLoadMore
         initialPosts={posts}
         totalPosts={total}
+        totalPages={totalPages}
       />
     </main>
   );

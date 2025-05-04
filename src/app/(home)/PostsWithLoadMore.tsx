@@ -10,11 +10,13 @@ import { PAGINATION_INIT_PAGE, PAGINATION_PAGE_SIZE } from '~/constants';
 export default function PostsWithLoadMore({
   initialPosts,
   totalPosts,
-  initialPage = PAGINATION_INIT_PAGE
+  initialPage = PAGINATION_INIT_PAGE,
+  totalPages = Math.ceil(totalPosts / PAGINATION_PAGE_SIZE)
 }: {
   initialPosts: Post[],
   totalPosts: number,
-  initialPage?: number
+  initialPage?: number,
+  totalPages: number
 }) {
   const [posts, setPosts] = useState<Post[]>(initialPosts);
   const [loading, setLoading] = useState(false);
@@ -103,7 +105,7 @@ export default function PostsWithLoadMore({
       {/* Enlaces de paginación ocultos para SEO */}
       <nav aria-label="Paginación" className="sr-only">
         <ul>
-          {Array.from({ length: Math.ceil(totalPosts / PAGINATION_PAGE_SIZE) }, (_, i) => i + 1).map(page => (
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
             <li key={`page-${page}`}>
               <Link href={`/page/${page}`}>Página {page}</Link>
             </li>

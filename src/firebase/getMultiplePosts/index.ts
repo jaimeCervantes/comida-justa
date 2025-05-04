@@ -36,7 +36,8 @@ export async function getMultiplePosts(
     nextPage: hasNextPage ? page + 1 : null,
     prevPage: page === firstPage ? firstPage : page - 1,
     total: total,
-    lastVisible: posts.docs.length > 0 ? posts.docs[posts.docs.length - 1] : null
+    lastVisible: posts.docs.length > 0 ? posts.docs[posts.docs.length - 1] : null,
+    totalPages: Math.ceil(total / pageSize)
   };
 }
 
