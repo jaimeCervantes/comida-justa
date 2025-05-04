@@ -1,7 +1,12 @@
 import type { Post } from "~/types/Posts.d";
+import { createAbsoluteUrl } from "../createAbsoluteUrl";
+
 
 export function mapPostsToCards(posts: Post[]) {
   return posts.map((item: Post) => {
+    const slug = item.slug ?? `${item.title?.toLowerCase()?.replace(/\s/g, "-")}-${item.id}`;
+    const to = `/${slug}`;
+
     return {
       id: item.id,
       title: item.title,
@@ -21,9 +26,7 @@ export function mapPostsToCards(posts: Post[]) {
       }),
       user: item.user,
       summary: item.summary,
-      to:
-        item.slug ??
-        `${item.title?.toLowerCase()?.replace(/\s/g, "-")}-${item.id}`,
+      to: createAbsoluteUrl(to)
     };
   });
 }

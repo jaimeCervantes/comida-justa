@@ -1,6 +1,6 @@
-Feature: Write comments on healthy food posts
+Feature: Write comments on healthy post posts
   As an authenticated user
-  I want to write, edit, and delete comments on a healthy food post
+  I want to write, edit, and delete comments on a healthy post post
   To share my opinion with other users
 
   Scenario: Write a comment on a post

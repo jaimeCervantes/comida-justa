@@ -1,12 +1,12 @@
 "use server";
-import { createPost } from "~/firebase/createOnePost";
+import { createOnePost } from "~/firebase/createOnePost";
 import { auth } from "~/auth";
 import { redirect } from "next/navigation";
 import type { PostUser } from "~/types/Posts";
 import { ActionState } from "~/types/Actions.d";
 import { SIGNIN_PATH } from "~/constants";
 
-export async function createFood(
+export async function createPost(
   prevState: ActionState,
   formData: FormData
 ): Promise<ActionState> {
@@ -37,7 +37,7 @@ export async function createFood(
 
   let result;
   try {
-    result = await createPost(
+    result = await createOnePost(
       {
         title,
         content,

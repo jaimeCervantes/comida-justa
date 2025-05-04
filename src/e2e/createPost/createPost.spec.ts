@@ -6,7 +6,7 @@ import { simulateLogin, deleteSession, type DbSession } from '../testUtils/simul
 import { deleteOnePostBySlug } from '../testUtils/deleteOnePost';
 
 test.describe('When users visit the platform', () => {
-  test('Then a list of healthy food is displayed', async ({
+  test('Then a list of healthy post is displayed', async ({
     page,
   }: PlaywrightTestArgs) => {
     await page.goto('/');
@@ -24,7 +24,7 @@ test.describe('Given an unregistered User that opened the app', () => {
   });
 
 
-  test.describe('When this anonymous user wants to publish a healthy food', () => {
+  test.describe('When this anonymous user wants to publish a healthy post', () => {
     test('Then a Google Sigin provider should be presented', async ({
       page,
     }: PlaywrightTestArgs) => {
@@ -66,7 +66,7 @@ test.describe('When a signed users publish a new healthy post', () => {
       description: `La ensalada griega es una opción saludable y deliciosa para el desayuno o como plato principal en un menú diario.`,
       price: "80",
       phone: '2781092116',
-      file: "./src/e2e/dummies/food.jpg",
+      file: "./src/e2e/dummies/post.jpg",
     });
 
     await publishPage.verifyForm();

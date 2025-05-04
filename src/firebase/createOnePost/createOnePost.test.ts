@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { vi, expect, it, describe } from "vitest";
-import { createPost } from "./";
+import { createOnePost } from "./";
 import { faker } from "@faker-js/faker";
 
 vi.mock("~/firebase/converter");
@@ -22,7 +22,7 @@ describe("createPost", () => {
       photoURL: faker.image.avatar(),
     };
 
-    const postId = await createPost(postInfo, fileImage, user);
+    const postId = await createOnePost(postInfo, fileImage, user);
 
     expect(postId).toBeTruthy();
   });
@@ -32,7 +32,7 @@ describe("createPost", () => {
     const image = new File([""], "test.png", { type: "image/png" });
     const user = {};
     try {
-      await createPost(postInfo, image, user);
+      await createOnePost(postInfo, image, user);
     } catch (error) {
       expect(error.message).toContain("debe ser un objeto");
     }
@@ -43,7 +43,7 @@ describe("createPost", () => {
     const image = new File([""], "test.png", { type: "image/png" });
     const user = {};
     try {
-      await createPost(postInfo, image, user);
+      await createOnePost(postInfo, image, user);
     } catch (error) {
       expect(error.message).toContain("debe ser un objeto");
     }
@@ -58,7 +58,7 @@ describe("createPost", () => {
     const file = null;
     const user = {};
     try {
-      await createPost(postInfo, file, user);
+      await createOnePost(postInfo, file, user);
     } catch (error) {
       expect(error.message).toContain("debe ser un File");
     }
@@ -69,7 +69,7 @@ describe("createPost", () => {
     const postInfo = {};
     const user = {};
     try {
-      await createPost(postInfo, file, user);
+      await createOnePost(postInfo, file, user);
     } catch (error) {
       expect(error.message).toContain("debe ser un File");
     }
@@ -80,7 +80,7 @@ describe("createPost", () => {
     const image = new File([""], "test.png", { type: "image/png" });
     const user = null;
     try {
-      await createPost(postInfo, image, user);
+      await createOnePost(postInfo, image, user);
     } catch (error) {
       expect(error.message).toContain("debe ser un objeto");
     }
@@ -91,7 +91,7 @@ describe("createPost", () => {
     const image = new File([""], "test.png", { type: "image/png" });
     const user = [];
     try {
-      await createPost(postInfo, image, user);
+      await createOnePost(postInfo, image, user);
     } catch (error) {
       expect(error.message).toContain("debe ser un objeto");
     }

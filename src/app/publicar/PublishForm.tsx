@@ -19,7 +19,7 @@ export default function PublishForm({
 }: {
   action: (state: ActionState, data: FormData) => Promise<typeof state>;
 }) {
-  const [state, createFoodAction] = useFormState<ActionState, FormData>(
+  const [state, createPostAction] = useFormState<ActionState, FormData>(
     action,
     {
       errors: {},
@@ -45,7 +45,7 @@ export default function PublishForm({
 
       <form
         method="POST"
-        action={createFoodAction}
+        action={createPostAction}
         onSubmit={(e) => {
           setPending(true);
         }}

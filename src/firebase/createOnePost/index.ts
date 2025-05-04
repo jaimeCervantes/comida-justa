@@ -2,7 +2,7 @@ import type { Post, PostUser } from "~/types/Posts.d";
 import { Timestamp } from "firebase-admin/firestore";
 import { createFileInStorage, validateFields, collections, defineSlug, validateFileAnGetType } from "~/firebase/postUtils"
 
-export async function createPost(postInfo: Post, file: File, user: PostUser) {
+export async function createOnePost(postInfo: Post, file: File, user: PostUser) {
   validateFields(postInfo, file, user);
 
   const slug = await defineSlug(

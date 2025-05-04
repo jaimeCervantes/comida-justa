@@ -1,6 +1,6 @@
 import { Suspense } from "react";
-import FoodDetail from "./ui/FoodDetail";
-import FoodDetailSkeleton from "./ui/FoodDetailSkeleton";
+import PostDetail from "./ui/PostDetail";
+import PostDetailSkeleton from "./ui/PostDetailSkeleton";
 import { auth } from "~/auth";
 import type { PostUser } from "~/types/Posts";
 
@@ -11,10 +11,10 @@ export default async function Slug({ params }: { params: { slug: string } }) {
     <section className="sm:flex sm:gap-4">
       <Suspense
         fallback={
-          <FoodDetailSkeleton className="w-full sm:w-[50%]  h-[70vb] sm:h-[85vb] mb-4" />
+          <PostDetailSkeleton className="w-full sm:w-[50%]  h-[70vb] sm:h-[85vb] mb-4" />
         }
       >
-        <FoodDetail
+        <PostDetail
           slug={params.slug}
           className="sm:w-[50%] mb-4"
           user={session?.user as PostUser}

@@ -1,6 +1,6 @@
 import PublishForm from "./PublishForm";
 import { auth } from "~/auth";
-import { createFood } from "./actions";
+import { createPost } from "./actions";
 import { redirect } from "next/navigation";
 import { SIGNIN_PATH } from "~/constants";
 
@@ -11,5 +11,5 @@ export default async function PublicarPage() {
     return redirect(SIGNIN_PATH);
   }
 
-  return <PublishForm action={createFood}></PublishForm>;
+  return <PublishForm action={createPost}></PublishForm>;
 }

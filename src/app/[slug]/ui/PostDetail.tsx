@@ -8,11 +8,11 @@ import CommentList from "../loadComments/CommentList";
 import type { PostUser } from "~/types/Posts";
 import MediaContent from "~/components/ui/MediaContent/MediaContent";
 
-async function getFoodDetails(slug: string) {
+async function getPostDetails(slug: string) {
   return await getOnePostWithPaginatedComments(slug, 10);
 }
 
-export default async function FoodDetail({
+export default async function PostDetail({
   slug,
   className,
   user,
@@ -21,7 +21,7 @@ export default async function FoodDetail({
   className: string;
   user: PostUser | undefined;
 }) {
-  const details: Post = await getFoodDetails(slug);
+  const details: Post = await getPostDetails(slug);
   const {
     title,
     media,

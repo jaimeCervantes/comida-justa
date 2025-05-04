@@ -1,7 +1,7 @@
 const animatedIndicator =
   "before:absolute before:inset-0 before:-translate-x-full before:animate-[shine_2s_infinite] before:bg-gradient-to-r before:from-transparent before:via-pw-white/60 dark:before:via-pw-white/20 before:to-transparent";
 
-export default function FoodDetailSkeleton({
+export default function PostDetailSkeleton({
   className,
 }: {
   className: string;
