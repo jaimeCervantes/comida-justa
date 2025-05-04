@@ -1,8 +1,8 @@
 'use server'
 
 import { Timestamp, FieldValue } from "firebase-admin/firestore";
-import type { FirestoreComment } from "~/firebase/models/Posts.d";
-import { collections } from "~/firebase/models/postUtils"
+import type { FirestoreComment } from "~/firebase/Posts";
+import { collections } from "~/firebase/postUtils"
 import { PostUser } from "~/types/Posts";
 import { getFirestore } from "firebase-admin/firestore";
 

@@ -1,9 +1,9 @@
 // @vitest-environment node
 import { vi, expect, it, describe } from "vitest";
-import { createPost } from "./posts";
+import { createPost } from "./";
 import { faker } from "@faker-js/faker";
 
-vi.mock("./converter");
+vi.mock("~/firebase/converter");
 vi.mock("firebase-admin/storage");
 
 describe("createPost", () => {

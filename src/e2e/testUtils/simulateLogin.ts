@@ -1,8 +1,8 @@
 import { Page, PlaywrightWorkerOptions } from '@playwright/test';
-import type {  Cookie } from '~/e2e/types/cookies.d';
+import type { Cookie } from '~/e2e/types/cookies.d';
 import { db } from '~/firebase/init';
 
-export async function simulateLogin(page: Page, browserName: PlaywrightWorkerOptions['browserName']) {
+export async function simulateLogin(page: Page, browserName: PlaywrightWorkerOptions['browserName']): Promise<DbSession> {
   const dbSession = await createDbSession();
   const cookie: Cookie = {
     name: 'authjs.session-token',
@@ -24,7 +24,7 @@ export async function simulateLogin(page: Page, browserName: PlaywrightWorkerOpt
 }
 
 export async function deleteSession(sessionId: string) {
-    await db.collection('sessions').doc(sessionId).delete();
+  await db.collection('sessions').doc(sessionId).delete();
 }
 
 function generateRandomToken() {
@@ -49,7 +49,9 @@ async function createDbSession() {
   return { ...sessionData, id: sessionRef.id } // Retorna el ID de la sesión creada
 }
 
-
-
-
-
+export type DbSession = {
+  id: string;
+  userId: string;
+  sessionToken: string;
+  expires: string;
+}

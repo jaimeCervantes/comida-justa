@@ -1,5 +1,5 @@
 import type { QueryDocumentSnapshot } from "firebase-admin/firestore";
-import { db } from "../init";
+import { db } from "./init";
 
 const converter = <T>() => ({
   toFirestore: (data: T) => data,

@@ -17,7 +17,7 @@ export default defineConfig(({ mode }) => {
       // since parsing CSS is slow
       css: false,
       alias: {
-        "@": "/src",
+        "~": "/src",
       },
     },
   }

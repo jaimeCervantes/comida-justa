@@ -1,8 +1,8 @@
 // postUtils.test.ts
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import * as postUtils from "./postUtils";
+import * as postUtils from ".";
 import { getStorage, getDownloadURL } from "firebase-admin/storage";
-import { createMockFile } from "./testUtils";
+import { createMockFile } from "~/firebase/testUtils";
 
 vi.mock("firebase-admin");
 vi.mock("firebase-admin/storage")

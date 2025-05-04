@@ -1,10 +1,10 @@
 import { test, expect } from "@playwright/test";
-import { deleteSession, simulateLogin } from "../simulateLogin";
+import { deleteSession, simulateLogin } from "../testUtils/simulateLogin";
 
 test.describe.skip("Simulate login", () => {
   let dbSession;
 
-  test.beforeEach(async ({ page, browserName}) => {
+  test.beforeEach(async ({ page, browserName }) => {
     dbSession = await simulateLogin(page, browserName);
   });
 

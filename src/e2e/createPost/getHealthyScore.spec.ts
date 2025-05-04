@@ -11,7 +11,8 @@ test.describe.skip("When an user creates a post about healthy Food", () => {
       title: "Ensalada griega",
       description: `La ensalada griega es una opción saludable y deliciosa para el desayuno o como plato principal en un menú diario.`,
       price: "80",
-      image: "./e2e/dummies/food.jpg",
+      phone: "2781092116",
+      file: "./src/e2e/dummies/food.jpg",
     });
     await publishPage.verifyForm();
 

@@ -1,8 +1,8 @@
 import { test, expect } from "@playwright/test";
 import CommentPage from "./CommentPage";
-import { simulateLogin, deleteSession, type DbSession } from "../simulateLogin";
+import { simulateLogin, deleteSession, type DbSession } from "../testUtils/simulateLogin";
 import { dummyDbUser } from "../dummies/session";
-import { deleteCommentsByPostSlug } from "../deleteComments";
+import { deleteCommentsByPostSlug } from "../testUtils/deleteComments";
 
 // test.use({
 //   storageState: './src/e2e/.auth/auth.json'
@@ -20,8 +20,10 @@ test.describe("Given an authenticated user viewing a post", () => {
   });
 
   test.afterEach(async () => {
-    await deleteSession(dbSession.id)
-    await deleteCommentsByPostSlug(postSlug)
+    if (dbSession?.id) {
+      await deleteSession(dbSession?.id)
+      await deleteCommentsByPostSlug(postSlug)
+    }
   });
 
   test.describe("When the user writes a comment", () => {

@@ -2,10 +2,10 @@ import type {
   CollectionReference,
   QueryDocumentSnapshot,
 } from "firebase-admin/firestore";
-import type { FirestorePost, FirestoreComment } from "./Posts.d";
-import { collections } from "./postUtils";
+import type { FirestorePost, FirestoreComment } from "~/firebase/Posts";
+import { collections } from "~/firebase/postUtils";
 
-export async function getPostWithPaginatedComments(
+export async function getOnePostWithPaginatedComments(
   slug: string,
   limit = 10, // Número de comentarios por página
   lastCommentSnapshot?: QueryDocumentSnapshot<FirestoreComment>, // Para la paginación

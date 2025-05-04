@@ -30,12 +30,12 @@ export default function PublishForm({
   );
   const [pending, setPending] = useState(false);
   const [imagePickerLabel, setImageVideoPickerLabel] = useState("Sube tu mejor imagen o sube tu mejor video")
-  function onChangeImageVideoPicker(){
+  function onChangeImageVideoPicker() {
     setImageVideoPickerLabel("Cambia tu mejor imagen o cambia tu mejor video")
-  }  
+  }
   return (
     <section className="p-4">
-      <h1 className="text-xl mb-4">Publica tu nueva comida sana</h1>
+      <h1 className="text-xl mb-4">Publica algo sano</h1>
 
       {state?.errors?.errorMessage ? (
         <h2 className="pt-1 flex items-center gap-1 text-red-700 dark:text-red-400">

@@ -1,13 +1,13 @@
 import Link from "next/link";
 import Card from "~/components/ui/Card";
 import CurrencyAmount from "~/components/ui/CurrencyAmount";
-import { getPosts } from "~/firebase/models/posts";
+import { getMultiplePosts } from "~/firebase/getMultiplePosts";
 import { mapPostsToCards } from "~/mappers/posts/mapPostsToCards";
 import { Post } from "~/types/Posts";
 import MediaContent from "~/components/ui/MediaContent/MediaContent";
 
 async function getFoods() {
-  const result = await getPosts();
+  const result = await getMultiplePosts(1, 4);
 
   return { ...result, foods: mapPostsToCards(result.posts) };
 }
@@ -52,7 +52,7 @@ function CardForList(props: Post) {
       anchorProps={anchorProps}
       media={
         <Link {...anchorProps}>
-          <MediaContent media={media} />
+          <MediaContent media={media} className="h-64" />
         </Link>
       }
     >

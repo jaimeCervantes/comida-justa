@@ -1,20 +1,20 @@
 import { QuerySnapshot } from "firebase/firestore";
-import type { FirestoreComment } from "~/firebase/models/Posts.d";
+import type { FirestoreComment } from "~/firebase/Posts";
 import type { Comment } from "~/types/Posts";
 
 export function mapSnapshotComments(snapshot: QuerySnapshot) {
   if (!snapshot.empty) {
 
     const newComments = snapshot.docChanges()
-    .filter(change => change.type === "added").map((change) => {
-      const data = change.doc.data();
+      .filter(change => change.type === "added").map((change) => {
+        const data = change.doc.data();
 
-      return {
-        id: change.doc.id,
-        ...data,
-        createdAt: data.createdAt.toDate(),
-      };
-    }) as Comment[]
+        return {
+          id: change.doc.id,
+          ...data,
+          createdAt: data.createdAt.toDate(),
+        };
+      }) as Comment[]
 
     return newComments;
   }

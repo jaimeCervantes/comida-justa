@@ -1,8 +1,8 @@
 "use server";
-import { createPost } from "~/firebase/models/posts";
+import { createPost } from "~/firebase/createOnePost";
 import { auth } from "~/auth";
 import { redirect } from "next/navigation";
-import { PostUser } from "~/types/Posts";
+import type { PostUser } from "~/types/Posts";
 import { ActionState } from "~/types/Actions.d";
 import { SIGNIN_PATH } from "~/constants";
 
@@ -25,7 +25,7 @@ export async function createFood(
   const errors = {
     title: title ? null : "El título es obligatorio.",
     content: content ? null : "El contenido es obligatorio",
-    phone: phone ? null : "El Télefono es obligatorio.",                                                          
+    phone: phone ? null : "El Télefono es obligatorio.",
     file: file.size > 0 ? null : "El archivo de imagen o video es obligatorio.",
   };
 
@@ -47,7 +47,7 @@ export async function createFood(
         price: Number(price) || null
       },
       file || null,
-      session.user as PostUser
+      session?.user as PostUser
     );
   } catch (err: any) {
     return {

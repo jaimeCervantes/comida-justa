@@ -1,16 +1,15 @@
-import Image from "next/image";
 import CurrencyAmount from "~/components/ui/CurrencyAmount";
 import { Post } from "~/types/Posts";
 import { MdPhone } from "react-icons/md";
 import { FaDollarSign } from "react-icons/fa";
-import { getPostWithPaginatedComments } from "~/firebase/models/postWithComments";
+import { getOnePostWithPaginatedComments } from "~/firebase/getOnePostWithPaginatedComments";
 import { Suspense } from "react";
 import CommentList from "../loadComments/CommentList";
 import type { PostUser } from "~/types/Posts";
 import MediaContent from "~/components/ui/MediaContent/MediaContent";
 
 async function getFoodDetails(slug: string) {
-  return await getPostWithPaginatedComments(slug, 10);
+  return await getOnePostWithPaginatedComments(slug, 10);
 }
 
 export default async function FoodDetail({
