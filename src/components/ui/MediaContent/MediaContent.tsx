@@ -51,7 +51,7 @@ function ImageContent({ media, className }: MediaContentProps) {
       width={1000}
       height={1000}
       loading="lazy"
-      className={`w-full ${className || ''}`}
+      className={`w-full object-cover ${className || ''}`}
     />
   );
 }
