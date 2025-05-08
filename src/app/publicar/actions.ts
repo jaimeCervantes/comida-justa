@@ -1,10 +1,10 @@
 "use server";
-import { createOnePost } from "~/firebase/createOnePost";
-import { auth } from "~/auth";
+import { createOnePost } from "~/infra/dataAccess/createOnePost";
+import { auth } from "~/infra/auth";
 import { redirect } from "next/navigation";
-import type { PostUser } from "~/types/Posts";
-import { ActionState } from "~/types/Actions.d";
-import { SIGNIN_PATH } from "~/constants";
+import type { PostUser } from "~/infra/types/Posts";
+import { ActionState } from "~/infra/types/Actions";
+import { SIGNIN_PATH } from "~/infra/constants";
 
 export async function createPost(
   prevState: ActionState,

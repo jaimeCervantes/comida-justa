@@ -1,4 +1,4 @@
-import { db } from '~/firebase/init';
+import { db } from '~/infra/dataAccess/init';
 
 export async function deleteCommentsByPostSlug(postSlug: string) {
   const result = await db.collection('posts').where("slug", "==", postSlug).get();

@@ -1,8 +1,8 @@
 import { Suspense } from "react";
 import PostDetail from "./ui/PostDetail";
 import PostDetailSkeleton from "./ui/PostDetailSkeleton";
-import { auth } from "~/auth";
-import type { PostUser } from "~/types/Posts";
+import { auth } from "~/infra/auth";
+import type { PostUser } from "~/infra/types/Posts";
 
 export default async function Slug({ params }: { params: { slug: string } }) {
   const session = await auth();

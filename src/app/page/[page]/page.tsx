@@ -1,12 +1,12 @@
 import { Metadata } from 'next';
 import Link from "next/link";
-import { getMultiplePosts, getTotalPosts } from "~/firebase/getMultiplePosts";
-import { mapPostsToCards } from "~/mappers/posts/mapPostsToCards";
-import { Post } from "~/types/Posts";
+import { getMultiplePosts, getTotalPosts } from "~/infra/dataAccess/getMultiplePosts";
+import { mapPostsToCards } from "~/infra/mappers/posts/mapPostsToCards";
+import { Post } from "~/infra/types/Posts";
 import { notFound } from 'next/navigation';
-import { PAGINATION_INIT_PAGE, PAGINATION_PAGE_SIZE } from '~/constants';
-import CardForList from '~/components/ui/CardForList/CardForList';
-import { CANONICAL_URL } from '~/constants';
+import { PAGINATION_INIT_PAGE, PAGINATION_PAGE_SIZE } from '~/infra/constants';
+import CardForList from '~/infra/components/ui/CardForList/CardForList';
+import { CANONICAL_URL } from '~/infra/constants';
 
 type Props = {
   params: { page: string }

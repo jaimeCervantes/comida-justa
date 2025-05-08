@@ -8,8 +8,8 @@ import {
   getDoc,
   doc,
 } from "firebase/firestore";
-import { db } from "~/firebase/init.client";
-import type { Comment } from "~/types/Posts.d";
+import { db } from "~/infra/dataAccess/init.client";
+import type { Comment } from "~/infra/types/Posts";
 import { mapSnapshotComments } from "../mapper";
 
 export function createOnLoadMoreComments({

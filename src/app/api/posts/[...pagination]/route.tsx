@@ -1,6 +1,6 @@
-import { getMultiplePosts } from "~/firebase/getMultiplePosts";
-import { mapPostsToCards } from "~/mappers/posts/mapPostsToCards";
-import { PAGINATION_INIT_PAGE, PAGINATION_PAGE_SIZE } from "~/constants";
+import { getMultiplePosts } from "~/infra/dataAccess/getMultiplePosts";
+import { mapPostsToCards } from "~/infra/mappers/posts/mapPostsToCards";
+import { PAGINATION_INIT_PAGE, PAGINATION_PAGE_SIZE } from "~/infra/constants";
 
 export async function GET(request: Request, { params }: { params: { pagination: string[] } }) {
   let { page, pageSize } = getSlugParams(params?.pagination);

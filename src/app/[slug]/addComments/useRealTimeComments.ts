@@ -10,8 +10,8 @@ import {
   doc,
   DocumentSnapshot,
 } from "firebase/firestore";
-import { db } from "~/firebase/init.client";
-import type { Comment } from "~/types/Posts.d";
+import { db } from "~/infra/dataAccess/init.client";
+import type { Comment } from "~/infra/types/Posts";
 import { mapSnapshotComments, sortByCreatedAt } from "../mapper";
 
 
@@ -69,7 +69,7 @@ export function useRealTimeComments(
 
 function useFirstCommentSnapshotForCommentsQuery(postId: string, firstComment: Comment | null) {
   const [firstCommentSnapshot, setFirstCommentSnapshot] = useState<DocumentSnapshot | null>(null);
-  
+
   useEffect(() => {
     (async () => {
       if (!firstComment) {

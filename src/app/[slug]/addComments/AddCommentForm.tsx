@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation"
 import { addCommentToPost } from "../data-access/actions"; // Función para agregar un comentario
-import type { PostUser } from "~/types/Posts.d.ts";
+import type { PostUser } from "~/infra/types/Posts";
 
 export default function AddCommentForm({
   postId,

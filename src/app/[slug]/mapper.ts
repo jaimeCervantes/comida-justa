@@ -1,6 +1,6 @@
 import { QuerySnapshot } from "firebase/firestore";
-import type { FirestoreComment } from "~/firebase/Posts";
-import type { Comment } from "~/types/Posts";
+import type { FirestoreComment } from "~/infra/dataAccess/Posts";
+import type { Comment } from "~/infra/types/Posts";
 
 export function mapSnapshotComments(snapshot: QuerySnapshot) {
   if (!snapshot.empty) {

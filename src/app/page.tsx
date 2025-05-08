@@ -1,8 +1,8 @@
 import { Metadata } from 'next';
-import { getMultiplePosts } from "~/firebase/getMultiplePosts";
-import { mapPostsToCards } from "~/mappers/posts/mapPostsToCards";
+import { getMultiplePosts } from "~/infra/dataAccess/getMultiplePosts";
+import { mapPostsToCards } from "~/infra/mappers/posts/mapPostsToCards";
 import PostsWithLoadMore from "./(home)/PostsWithLoadMore";
-import { CANONICAL_URL, PAGINATION_PAGE_SIZE, PAGINATION_INIT_PAGE } from '~/constants';
+import { CANONICAL_URL, PAGINATION_PAGE_SIZE, PAGINATION_INIT_PAGE } from '~/infra/constants';
 
 export async function generateMetadata(): Promise<Metadata> {
   return {

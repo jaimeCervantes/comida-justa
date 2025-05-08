@@ -1,8 +1,6 @@
-'use server'
-
 import { Timestamp, FieldValue } from "firebase-admin/firestore";
 import type { FirestoreComment } from "~/infra/dataAccess/Posts";
-import { collections } from "~/infra/dataAccess/postUtils"
+import { collections } from "~/infra/dataAccess//postUtils"
 import { PostUser } from "~/infra/types/Posts";
 import { getFirestore } from "firebase-admin/firestore";
 
@@ -14,7 +12,6 @@ export async function addCommentToPost(
   try {
     const postRef = collections.posts().doc(postId);
 
-    // Verificar si el post existe
     const postSnapshot = await postRef.get();
     if (!postSnapshot.exists) {
       return {
@@ -22,7 +19,6 @@ export async function addCommentToPost(
       };
     }
 
-    // Crear el comentario
     const newComment: FirestoreComment = {
       content: commentContent,
       createdAt: FieldValue.serverTimestamp() as Timestamp,
@@ -30,26 +26,14 @@ export async function addCommentToPost(
       postId: postId
     };
 
-    // Guardar el comentario en la subcolección 'comments' del post
     const commentsRef = postRef.collection("comments");
-    const newCommentRef = await commentsRef.add(newComment);
-
-    const newCommentSnapshot = await newCommentRef.get()
-    const addedComment = newCommentSnapshot.data();
-
-    const timestamp = addedComment?.timestamp as Timestamp | null;
-    const timestampDate = timestamp ? timestamp.toDate() : null;
+    await commentsRef.add(newComment);
 
     return {
       successMessage: "Comentario agregado exitosamente",
-      comment: {
-        ...addedComment,
-        id: newCommentRef.id,
-        createdAt: timestampDate,
-      }
+      comment: newComment,
     };
   } catch (error: any) {
-    console.log(error);
     return {
       error,
       errorMessage: "Ocurrió un error al agregar el comentario",
@@ -64,7 +48,6 @@ export async function getMoreComments(postId: string, lastVisibleComment: any, p
       .orderBy("createdAt", "desc")
       .limit(pageSize);
 
-    // Si hay un último comentario visible, lo usamos como cursor para la paginación
     let query;
     if (lastVisibleComment) {
       query = commentsRef.startAfter(lastVisibleComment);
@@ -81,7 +64,6 @@ export async function getMoreComments(postId: string, lastVisibleComment: any, p
       comments.push({ id: doc.id, ...doc.data() } as FirestoreComment);
     });
 
-    // Si hay comentarios, obtenemos el último visible para usarlo en la siguiente paginación
     if (!querySnapshot.empty) {
       lastVisible = comments[comments.length - 1];
     }

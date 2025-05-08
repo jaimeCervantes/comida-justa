@@ -2,9 +2,9 @@
 
 import { useEffect, useState, useRef, useCallback } from 'react';
 import Link from "next/link";
-import CardForList from '~/components/ui/CardForList/CardForList';
-import { Post } from "~/types/Posts";
-import { PAGINATION_INIT_PAGE, PAGINATION_PAGE_SIZE } from '~/constants';
+import CardForList from '~/infra/components/ui/CardForList/CardForList';
+import { Post } from "~/infra/types/Posts";
+import { PAGINATION_INIT_PAGE, PAGINATION_PAGE_SIZE } from '~/infra/constants';
 
 // Este componente maneja la carga dinámica del lado del cliente
 export default function PostsWithLoadMore({
