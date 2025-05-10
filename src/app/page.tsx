@@ -32,8 +32,7 @@ export default async function Inicio() {
   return (
     <main className="">
       <h1 className="text-xl font-bold">
-        Comida Justa: ¿Como evitar enfermedades, ahorrar tiempo y dinero, al
-        mismo tiempo que apoyas al medio ambiente y a tu comunidad?
+        Salud Justa: Logra salud, belleza y longevidad, 10 minutos de tu ocupado día, cuidando tu entorno y a tu comunidad
       </h1>
 
       <PostsWithLoadMore

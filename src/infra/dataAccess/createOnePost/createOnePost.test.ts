@@ -34,7 +34,7 @@ describe("createPost", () => {
     try {
       await createOnePost(postInfo, image, user);
     } catch (error) {
-      expect(error.message).toContain("debe ser un objeto");
+      expect(error.message).toContain("Missing");
     }
   });
 
@@ -45,7 +45,7 @@ describe("createPost", () => {
     try {
       await createOnePost(postInfo, image, user);
     } catch (error) {
-      expect(error.message).toContain("debe ser un objeto");
+      expect(error.message).toContain("Missing");
     }
   });
 
@@ -60,7 +60,7 @@ describe("createPost", () => {
     try {
       await createOnePost(postInfo, file, user);
     } catch (error) {
-      expect(error.message).toContain("debe ser un File");
+      expect(error.message).toContain("file prop must be a File");
     }
   });
 
@@ -71,7 +71,7 @@ describe("createPost", () => {
     try {
       await createOnePost(postInfo, file, user);
     } catch (error) {
-      expect(error.message).toContain("debe ser un File");
+      expect(error.message).toContain("Missing");
     }
   });
 
@@ -82,7 +82,7 @@ describe("createPost", () => {
     try {
       await createOnePost(postInfo, image, user);
     } catch (error) {
-      expect(error.message).toContain("debe ser un objeto");
+      expect(error.message).toContain("Missing");
     }
   });
 
@@ -93,7 +93,7 @@ describe("createPost", () => {
     try {
       await createOnePost(postInfo, image, user);
     } catch (error) {
-      expect(error.message).toContain("debe ser un objeto");
+      expect(error.message).toContain("Missing ");
     }
   });
 });

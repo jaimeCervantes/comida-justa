@@ -1,8 +1,10 @@
-// postUtils.test.ts
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import * as postUtils from ".";
 import { getStorage, getDownloadURL } from "firebase-admin/storage";
 import { createMockFile } from "~/infra/dataAccess/testUtils";
+import PostValidator from "~/domain/PostValidator";
+import PostEntity from "~/entities/post/Post";
+import { createFileInStorage } from ".";
+const postEntity = new PostEntity(new PostValidator())
 
 vi.mock("firebase-admin");
 vi.mock("firebase-admin/storage")
@@ -23,13 +25,13 @@ describe("createFileInStorage", () => {
 
     it("debe guardar el archivo en la ruta correcta y devolver la URL", async () => {
         const file = createMockFile("post.jpg", "image/jpeg", "contenido");
-        const createFilePathSpy = vi.spyOn(postUtils, 'createFilePath');
-        const filePath = postUtils.createFilePath(file.type, file.name);
+        const createFilePathSpy = vi.spyOn(postEntity, 'createFilePath');
+        const filePath = postEntity.createFilePath(file.type, file.name);
         const urlPathInStorage = `https://mocked.url/${filePath}`;
         (getStorage as any).mockReturnValue({ bucket: () => bucketMock });
         (getDownloadURL as any).mockResolvedValue(urlPathInStorage);
 
-        const url = await postUtils.createFileInStorage(file);
+        const url = await createFileInStorage(file);
 
         expect(saveMock).toHaveBeenCalled();
         expect(createFilePathSpy).toHaveBeenCalledWith(file.type, file.name);
