@@ -1,9 +1,9 @@
 "use client";
-import TextField from "~/infra/components/ui/TextField";
-import TextArea from "~/infra/components/ui/TextArea";
-import Button from "~/infra/components/ui/Button";
+import TextField from "~/infrastructure/components/ui/TextField";
+import TextArea from "~/infrastructure/components/ui/TextArea";
+import Button from "~/infrastructure/components/ui/Button";
 import Link from "next/link";
-import ImageVideoPicker from "~/infra/components/ui/ImageVideoPicker";
+import ImageVideoPicker from "~/infrastructure/components/ui/ImageVideoPicker";
 import {
   MdPhone,
   MdTitle,
@@ -12,7 +12,7 @@ import {
 
 import { useFormState, useFormStatus } from "react-dom";
 import { useState } from "react";
-import { ActionState } from "~/infra/types/Actions";
+import { ActionState } from "~/infrastructure/types/Actions";
 
 export default function PublishForm({
   action,

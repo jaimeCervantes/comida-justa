@@ -1,6 +1,6 @@
 import { Page, PlaywrightWorkerOptions } from '@playwright/test';
 import type { Cookie } from '~/e2e/types/cookies';
-import { db } from '~/infra/dataAccess/init';
+import { db } from '~/infrastructure/dataAccess/init';
 
 export async function simulateLogin(page: Page, browserName: PlaywrightWorkerOptions['browserName']): Promise<DbSession> {
   const dbSession = await createDbSession();

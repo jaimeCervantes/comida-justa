@@ -1,9 +1,6 @@
-export default class PostEntity {
-  createFilePath(type: string, fileName: string, sourceDir = "posts"): string {
-    return `${sourceDir}/${type}/${fileName}`;
-  }
-
-  generateSlug(title: string) {
+import { IPostEntity } from "~/entities/post/types"
+export default class PostEntity implements IPostEntity {
+  generateSlug(title: string): string {
     const slug = title
       .toLowerCase()
       .normalize("NFD") // Normal Form Decomposition, convierte un character en dos o más, por ejemplo, su forma base y su acento

@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import AddCommentForm from "../addComments/AddCommentForm";
-import type { Comment, PostUser } from "~/infra/types/Posts";
+import type { Comment, PostUser } from "~/infrastructure/types/Posts";
 import { useRealTimeComments } from "../addComments/useRealTimeComments";
 import { createOnLoadMoreComments } from "./createOnLoadMoreComments";
-import Avatar from "~/infra/components/ui/Avatar/Avatar";
+import Avatar from "~/infrastructure/components/ui/Avatar/Avatar";
 
 export default function CommentList({
   postId,

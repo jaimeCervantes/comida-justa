@@ -1,6 +1,6 @@
-import { getMultiplePosts } from "~/infra/dataAccess/getMultiplePosts";
-import { mapPostsToCards } from "~/infra/mappers/posts/mapPostsToCards";
-import { PAGINATION_INIT_PAGE, PAGINATION_PAGE_SIZE } from "~/infra/constants";
+import { getMultiplePosts } from "~/infrastructure/dataAccess/getMultiplePosts";
+import { mapPostsToCards } from "~/infrastructure/mappers/posts/mapPostsToCards";
+import { PAGINATION_INIT_PAGE, PAGINATION_PAGE_SIZE } from "~/infrastructure/constants";
 
 export async function GET(request: Request, { params }: { params: { pagination: string[] } }) {
   let { page, pageSize } = getSlugParams(params?.pagination);

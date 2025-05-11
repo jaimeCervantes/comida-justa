@@ -1,4 +1,4 @@
-import { db } from '~/infra/dataAccess/init';
+import { db } from '~/infrastructure/dataAccess/init';
 
 export async function deleteCommentsByPostSlug(postSlug: string) {
   const result = await db.collection('posts').where("slug", "==", postSlug).get();

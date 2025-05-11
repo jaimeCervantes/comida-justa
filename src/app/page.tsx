@@ -1,8 +1,8 @@
 import { Metadata } from 'next';
-import { getMultiplePosts } from "~/infra/dataAccess/getMultiplePosts";
-import { mapPostsToCards } from "~/infra/mappers/posts/mapPostsToCards";
+import { getMultiplePosts } from "~/infrastructure/dataAccess/getMultiplePosts";
+import { mapPostsToCards } from "~/infrastructure/mappers/posts/mapPostsToCards";
 import PostsWithLoadMore from "./(home)/PostsWithLoadMore";
-import { CANONICAL_URL, PAGINATION_PAGE_SIZE, PAGINATION_INIT_PAGE } from '~/infra/constants';
+import { CANONICAL_URL, PAGINATION_PAGE_SIZE, PAGINATION_INIT_PAGE } from '~/infrastructure/constants';
 
 export async function generateMetadata(): Promise<Metadata> {
   return {

@@ -10,7 +10,8 @@ export type Post = {
     whatsapp?: string,
   },
   file: File,
-  user: User
+  user: User,
+  createdAt: Date
 }
 
 export type User = {
@@ -29,4 +30,8 @@ export interface IPostValidator {
   validateNumberOnPost(value: number, name: string): VoidOrError;
   validateFile(file: File): VoidOrError;
   validateUser(user: User): VoidOrError;
+}
+
+export interface IPostEntity {
+  generateSlug(title: string): string;
 }

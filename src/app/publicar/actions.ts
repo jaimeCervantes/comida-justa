@@ -1,10 +1,21 @@
 "use server";
-import { createOnePost } from "~/infra/dataAccess/createOnePost";
-import { auth } from "~/infra/auth";
+import { auth } from "~/infrastructure/auth";
 import { redirect } from "next/navigation";
-import type { PostUser } from "~/infra/types/Posts";
-import { ActionState } from "~/infra/types/Actions";
-import { SIGNIN_PATH } from "~/infra/constants";
+import { ActionState } from "~/infrastructure/types/Actions";
+import { SIGNIN_PATH } from "~/infrastructure/constants";
+import PostEntity from "~/entities/post/Post";
+import { Post, User } from "~/entities/post/types";
+import CreatePostUseCase from "~/domain/createOnePost";
+import PostValidator from "~/domain/PostValidator";
+import FirebaseMediaStorageService from "~/infrastructure/storage/FirebaseMediaStorageService";
+import FirebasePostsRespository from "~/infrastructure/dataAccess/createOnePost/FirebasePostRepository";
+
+const useCase = new CreatePostUseCase(
+  new PostValidator(),
+  new PostEntity(),
+  new FirebasePostsRespository(),
+  new FirebaseMediaStorageService()
+)
 
 export async function createPost(
   prevState: ActionState,
@@ -37,17 +48,19 @@ export async function createPost(
 
   let result;
   try {
-    result = await createOnePost(
+    result = await useCase.execute(
       {
         title,
+        slug: '',
         content,
         contactInfo: {
           phone,
         },
-        price: Number(price) || null
+        price: Number(price) || null,
+        createdAt: new Date(),
+        file: file as File,
+        user: session?.user as User
       },
-      file || null,
-      session?.user as PostUser
     );
   } catch (err: any) {
     return {

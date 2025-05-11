@@ -1,12 +1,12 @@
-import CurrencyAmount from "~/infra/components/ui/CurrencyAmount";
-import { Post } from "~/infra/types/Posts";
+import CurrencyAmount from "~/infrastructure/components/ui/CurrencyAmount";
+import { Post } from "~/infrastructure/types/Posts";
 import { MdPhone } from "react-icons/md";
 import { FaDollarSign } from "react-icons/fa";
-import { getOnePostWithPaginatedComments } from "~/infra/dataAccess/getOnePostWithPaginatedComments";
+import { getOnePostWithPaginatedComments } from "~/infrastructure/dataAccess/getOnePostWithPaginatedComments";
 import { Suspense } from "react";
 import CommentList from "../loadComments/CommentList";
-import type { PostUser } from "~/infra/types/Posts";
-import MediaContent from "~/infra/components/ui/MediaContent/MediaContent";
+import type { PostUser } from "~/infrastructure/types/Posts";
+import MediaContent from "~/infrastructure/components/ui/MediaContent/MediaContent";
 
 async function getPostDetails(slug: string) {
   return await getOnePostWithPaginatedComments(slug, 10);
