@@ -25,6 +25,7 @@ const nextConfig = {
 };
 
 // Allow live reloading on docker development
+// @TODO: probar watchOptions sin webpack en docker, aún no pruebo turbopack en docker con live reloading
 if (isDevelopment) {
   nextConfig.webpack = (config, _) => ({
     ...config,

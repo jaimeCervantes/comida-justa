@@ -9,14 +9,14 @@ import CardForList from '~/infrastructure/components/ui/CardForList/CardForList'
 import { CANONICAL_URL } from '~/infrastructure/constants';
 
 type Props = {
-  params: { page: string }
+  params: Promise<{ page: string }>
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const page = parseInt(params.page);
+  const { page: pageStr } = await params;
   const totalPosts = await getTotalPosts();
   const totalPages = Math.ceil(totalPosts / PAGINATION_PAGE_SIZE);
-
+  const page = parseInt(pageStr)
   // Si la página no existe, no generamos metadata (notFound se manejará en el componente)
   if (isNaN(page) || page < 1 || page > totalPages) {
     return {};
@@ -48,7 +48,8 @@ async function getPosts(page: number) {
 }
 
 export default async function PaginatedPage({ params }: Props) {
-  const page = parseInt(params.page);
+  const { page: pageStr } = await params;
+  const page = parseInt(pageStr);
 
   // Validar que la página sea válida
   if (isNaN(page) || page < 1) {

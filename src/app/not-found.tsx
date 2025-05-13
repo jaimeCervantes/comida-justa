@@ -2,7 +2,7 @@ import Link from "next/link";
 import { headers } from "next/headers";
 
 export default async function NotFound() {
-  const headersList = headers();
+  const headersList = await headers();
   const mappedHeaders = Array.from(headersList);
 
   return (

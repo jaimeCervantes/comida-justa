@@ -32,7 +32,7 @@ export default class PublishPage {
       name: /descripci[oó]n/i,
     });
     // input con label que contiene el texto "image"
-    this.file = this.page.getByRole("textbox", { name: /image/i });
+    this.file = this.page.getByRole("button", { name: /sube tu mejor/i }).nth(1);
     this.phone = this.page.getByRole("textbox", { name: /t[eé]lefono/i });
     this.score = this.page.getByRole("article").getByText(/saludable/i);
   }

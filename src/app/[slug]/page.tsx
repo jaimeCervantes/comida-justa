@@ -4,8 +4,9 @@ import PostDetailSkeleton from "./ui/PostDetailSkeleton";
 import { auth } from "~/infrastructure/auth";
 import type { PostUser } from "~/infrastructure/types/Posts";
 
-export default async function Slug({ params }: { params: { slug: string } }) {
+export default async function Slug({ params }: { params: Promise<{ slug: string }> }) {
   const session = await auth();
+  const { slug } = await params;
 
   return (
     <section className="sm:flex sm:gap-4">
@@ -15,7 +16,7 @@ export default async function Slug({ params }: { params: { slug: string } }) {
         }
       >
         <PostDetail
-          slug={params.slug}
+          slug={slug}
           className="sm:w-[50%] mb-4"
           user={session?.user as PostUser}
         />

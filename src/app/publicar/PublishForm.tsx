@@ -10,8 +10,7 @@ import {
   MdOutlinePriceChange,
 } from "react-icons/md";
 
-import { useFormState, useFormStatus } from "react-dom";
-import { useState } from "react";
+import { useActionState, useState } from "react";
 import { ActionState } from "~/infrastructure/types/Actions";
 
 export default function PublishForm({
@@ -19,7 +18,7 @@ export default function PublishForm({
 }: {
   action: (state: ActionState, data: FormData) => Promise<typeof state>;
 }) {
-  const [state, createPostAction] = useFormState<ActionState, FormData>(
+  const [state, createPostAction, isPending] = useActionState<ActionState, FormData>(
     action,
     {
       errors: {},
@@ -28,7 +27,6 @@ export default function PublishForm({
       slug: null,
     }
   );
-  const [pending, setPending] = useState(false);
   const [imagePickerLabel, setImageVideoPickerLabel] = useState("Sube tu mejor imagen o sube tu mejor video")
   function onChangeImageVideoPicker() {
     setImageVideoPickerLabel("Cambia tu mejor imagen o cambia tu mejor video")
@@ -44,11 +42,7 @@ export default function PublishForm({
       ) : null}
 
       <form
-        method="POST"
         action={createPostAction}
-        onSubmit={(e) => {
-          setPending(true);
-        }}
         className=""
         aria-label="Publica tu nueva comida sana"
       >
@@ -96,7 +90,7 @@ export default function PublishForm({
           required
           label="Descripción del producto:"
           rows={8}
-          maxLength={250}
+          maxLength={2500}
           error={state?.errors?.content as string}
         />
         <footer className="flex justify-center gap-5 mt-4">
@@ -107,10 +101,10 @@ export default function PublishForm({
           <Button
             type="submit"
             color="green"
-            isLoading={pending && !state.success}
-            disabled={pending && !state.success}
+            isLoading={isPending && !state.success}
+            disabled={isPending && !state.success}
           >
-            {pending && !state.success ? 'Publicando...' : 'Publicar'}
+            {isPending && !state.success ? 'Publicando...' : 'Publicar'}
           </Button>
         </footer>
       </form>
