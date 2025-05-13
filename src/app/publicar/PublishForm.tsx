@@ -12,6 +12,7 @@ import {
 
 import { useActionState, useState } from "react";
 import { ActionState } from "~/infrastructure/types/Actions";
+import { POST_CONTENT_MAX_LENGTH } from "~/infrastructure/constants";
 
 export default function PublishForm({
   action,
@@ -90,7 +91,7 @@ export default function PublishForm({
           required
           label="Descripción del producto:"
           rows={8}
-          maxLength={2500}
+          maxLength={Number(POST_CONTENT_MAX_LENGTH)}
           error={state?.errors?.content as string}
         />
         <footer className="flex justify-center gap-5 mt-4">
