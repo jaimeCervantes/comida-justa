@@ -18,7 +18,7 @@ export default class FirebasePostsRespository implements IPostRepository {
   async createUniqueSlug(slug: string): Promise<string> {
     const querySnapshot = await collections.posts().where("slug", "==", slug).get();
 
-    if (querySnapshot.size) {
+    if (querySnapshot.size > 0) {
       return `${slug}-${querySnapshot.size}`;
     }
 

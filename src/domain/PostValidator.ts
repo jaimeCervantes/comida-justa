@@ -6,9 +6,9 @@ export default class PostValidator implements IPostValidator {
 
   validate(post: Post): VoidOrError {
     this.validateStringOnPost(post.title, "title", this.MIN_LENGTH_TITLE);
-    this.validateStringOnPost(post.content, "content", this.MIN_LENGTH_CONTENT);
     this.validateNumberOnPost(post.price, "price");
     this.validateFile(post.file)
+    this.validateStringOnPost(post.content, "content", this.MIN_LENGTH_CONTENT);
     this.validateUser(post.user);
   }
 
@@ -37,7 +37,8 @@ export default class PostValidator implements IPostValidator {
   }
 
   validateNumberOnPost(value: number | null | undefined, name: string): VoidOrError {
-    if (typeof value === 'undefined' || typeof value === null) return;
+    if (typeof value === 'undefined' || value === null) return;
+
     if (typeof value !== "number") {
       throw new Error(`${name} must be a number.`);
     }
