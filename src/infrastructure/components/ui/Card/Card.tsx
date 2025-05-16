@@ -15,7 +15,7 @@ export default function Card({
   anchorProps = {},
   children,
 }: CardProps) {
-  const clsN = `border bg-white-300 shadow-md ${className ?? ""}`.trim();
+  const clsN = `border bg-white-300 shadow-md rounded-xl transition-shadow duration-300 hover:shadow-[0_0_0_1px_#00c853] ${className ?? ""}`.trim();
 
   return (
     <Container className={clsN} style={style ?? ""}>
