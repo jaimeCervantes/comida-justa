@@ -16,6 +16,7 @@ export async function getOnePostWithPaginatedComments(
 
     if (queryResult.empty) {
       return {
+        error: true,
         errorMessage: "No se encontró el post",
       };
     }

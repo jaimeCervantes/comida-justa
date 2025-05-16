@@ -7,6 +7,7 @@ import { Suspense } from "react";
 import CommentList from "../loadComments/CommentList";
 import type { PostUser } from "~/infrastructure/types/Posts";
 import MediaContent from "~/infrastructure/components/ui/MediaContent/MediaContent";
+import { notFound } from "next/navigation";
 
 async function getPostDetails(slug: string) {
   return await getOnePostWithPaginatedComments(slug, 10);
@@ -23,6 +24,8 @@ export default async function PostDetail({
 }) {
   const details: Post = await getPostDetails(slug);
   const {
+    error,
+    errorMessage,
     title,
     media,
     price,
@@ -33,6 +36,10 @@ export default async function PostDetail({
     lastVisibleComment,
     id,
   } = details;
+
+  if (error === true) {
+    notFound();
+  }
 
   return (
     <article className={className}>
