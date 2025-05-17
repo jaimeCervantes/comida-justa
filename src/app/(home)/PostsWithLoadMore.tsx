@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef, useCallback } from 'react';
 import Link from "next/link";
-import CardForList from '~/infrastructure/components/ui/CardForList/CardForList';
+import CardForList from '~/infrastructure/UI/components/CardForList/CardForList';
 import { Post } from "~/infrastructure/types/Posts";
 import { PAGINATION_INIT_PAGE, PAGINATION_PAGE_SIZE } from '~/infrastructure/constants';
 

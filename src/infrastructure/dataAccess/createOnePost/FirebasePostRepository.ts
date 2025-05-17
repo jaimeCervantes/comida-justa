@@ -1,6 +1,6 @@
 import { Timestamp } from "firebase-admin/firestore";
-import IPostCreationDTO from "~/domain/createOnePost/dtos/IPostCreationDTO";
-import IPostRepository from "~/domain/createOnePost/ports/IPostRepository";
+import IPostCreationDTO from "~/business/createOnePost/dtos/IPostCreationDTO";
+import IPostRepository from "~/business/createOnePost/ports/IPostRepository";
 import { collections } from "../postUtils";
 
 export default class FirebasePostsRespository implements IPostRepository {

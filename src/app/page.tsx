@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import { getMultiplePosts } from "~/infrastructure/dataAccess/getMultiplePosts";
-import { mapPostsToCards } from "~/infrastructure/mappers/posts/mapPostsToCards";
+import { mapPostsToCards } from "~/infrastructure/UI/mappers/posts/mapPostsToCards";
 import PostsWithLoadMore from "./(home)/PostsWithLoadMore";
 import { CANONICAL_URL, PAGINATION_PAGE_SIZE, PAGINATION_INIT_PAGE } from '~/infrastructure/constants';
 

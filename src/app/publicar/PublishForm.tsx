@@ -1,9 +1,9 @@
 "use client";
-import TextField from "~/infrastructure/components/ui/TextField";
-import TextArea from "~/infrastructure/components/ui/TextArea";
-import Button from "~/infrastructure/components/ui/Button";
+import TextField from "~/infrastructure/UI/components/TextField";
+import TextArea from "~/infrastructure/UI/components/TextArea";
+import Button from "~/infrastructure/UI/components/Button";
 import Link from "next/link";
-import ImageVideoPicker from "~/infrastructure/components/ui/ImageVideoPicker";
+import ImageVideoPicker from "~/infrastructure/UI/components/ImageVideoPicker";
 import {
   MdPhone,
   MdTitle,
@@ -30,7 +30,8 @@ export default function PublishForm({
   );
   const [imagePickerLabel, setImageVideoPickerLabel] = useState("Sube tu mejor imagen o sube tu mejor video")
   function onChangeImageVideoPicker() {
-    setImageVideoPickerLabel("Cambia tu mejor imagen o cambia tu mejor video")
+    setImageVideoPickerLabel("Cambia tu mejor imagen o cambia tu mejor video");
+
   }
   return (
     <section className="p-4">

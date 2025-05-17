@@ -1,5 +1,5 @@
 import { getStorage, getDownloadURL } from "firebase-admin/storage";
-import IMediaStorageService from "~/domain/createOnePost/ports/IMediaStorageService";
+import IMediaStorageService from "~/business/createOnePost/ports/IMediaStorageService";
 import { fileTypeFromStream, type FileTypeResult } from "file-type";
 
 export default class FirebaseMediaStorageService implements IMediaStorageService {

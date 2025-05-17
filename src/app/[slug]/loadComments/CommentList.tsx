@@ -5,7 +5,7 @@ import AddCommentForm from "../addComments/AddCommentForm";
 import type { Comment, PostUser } from "~/infrastructure/types/Posts";
 import { useRealTimeComments } from "../addComments/useRealTimeComments";
 import { createOnLoadMoreComments } from "./createOnLoadMoreComments";
-import Avatar from "~/infrastructure/components/ui/Avatar/Avatar";
+import Avatar from "~/infrastructure/UI/components/Avatar/Avatar";
 
 export default function CommentList({
   postId,

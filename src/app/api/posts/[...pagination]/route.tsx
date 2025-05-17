@@ -1,5 +1,5 @@
 import { getMultiplePosts } from "~/infrastructure/dataAccess/getMultiplePosts";
-import { mapPostsToCards } from "~/infrastructure/mappers/posts/mapPostsToCards";
+import { mapPostsToCards } from "~/infrastructure/UI/mappers/posts/mapPostsToCards";
 import { PAGINATION_INIT_PAGE, PAGINATION_PAGE_SIZE } from "~/infrastructure/constants";
 
 export async function GET(request: Request, { params }: { params: Promise<{ pagination: string[] }> }) {

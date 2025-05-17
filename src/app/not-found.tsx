@@ -1,12 +1,11 @@
 import Link from "next/link";
 import { headers } from "next/headers";
 import Image from "next/image";
+import Button from "~/infrastructure/UI/components/Button";
 
 export default async function NotFound() {
   const headersList = await headers();
   const mappedHeaders = Array.from(headersList);
-  // tailwind clases to center content
-
 
   return (
 
@@ -27,8 +26,10 @@ export default async function NotFound() {
       <h4 className="md:tex-3xl font-bold">Mientras se recupera, tú puedes continuar cuidando tu salud, tu tiempo. Encuentra lo que necesitas aquí:</h4>
 
       <p>
-        <Link href="/" className="relative rounded-sm bg-pw-green text-white hover:bg-pw-green/80 btn-md px-5 py-3 text-base">Ir al inicio</Link>
+        <Link href="/" >
+          <Button color="green">Ir al inicio</Button>
+        </Link>
       </p>
-    </section>
+    </section >
   );
 }

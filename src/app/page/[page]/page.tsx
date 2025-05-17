@@ -1,11 +1,11 @@
 import { Metadata } from 'next';
 import Link from "next/link";
 import { getMultiplePosts, getTotalPosts } from "~/infrastructure/dataAccess/getMultiplePosts";
-import { mapPostsToCards } from "~/infrastructure/mappers/posts/mapPostsToCards";
+import { mapPostsToCards } from "~/infrastructure/UI/mappers/posts/mapPostsToCards";
 import { Post } from "~/infrastructure/types/Posts";
 import { notFound } from 'next/navigation';
 import { PAGINATION_INIT_PAGE, PAGINATION_PAGE_SIZE } from '~/infrastructure/constants';
-import CardForList from '~/infrastructure/components/ui/CardForList/CardForList';
+import CardForList from '~/infrastructure/UI/components/CardForList/CardForList';
 import { CANONICAL_URL } from '~/infrastructure/constants';
 
 type Props = {

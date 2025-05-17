@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import Header from "~/infrastructure/components/Header/Header";
+import Header from "~/infrastructure/UI/components/Header/Header";
 import "./styles/globals.css";
 import { GoogleAnalytics } from "@next/third-parties/google"
 

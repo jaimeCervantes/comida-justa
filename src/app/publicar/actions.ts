@@ -3,10 +3,10 @@ import { auth } from "~/infrastructure/auth";
 import { redirect } from "next/navigation";
 import { ActionState } from "~/infrastructure/types/Actions";
 import { SIGNIN_PATH } from "~/infrastructure/constants";
-import PostEntity from "~/entities/post/Post";
-import { Post, User } from "~/entities/post/types";
-import CreatePostUseCase from "~/domain/createOnePost";
-import PostValidator from "~/domain/PostValidator";
+import PostEntity from "~/business/entities/post/Post";
+import { Post, User } from "~/business/entities/post/types";
+import CreatePostUseCase from "~/business/createOnePost";
+import PostValidator from "~/business/PostValidator";
 import FirebaseMediaStorageService from "~/infrastructure/storage/FirebaseMediaStorageService";
 import FirebasePostsRespository from "~/infrastructure/dataAccess/createOnePost/FirebasePostRepository";
 
