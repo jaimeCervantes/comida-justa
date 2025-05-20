@@ -22,3 +22,16 @@ body {
     text-wrap: balance;
   }
 }
+
+@keyframes flash-border {
+  0%, 100% {
+    border-color: red;
+  }
+  50% {
+    border-color: transparent;
+  }
+}
+
+.flash-border {
+  animation: flash-border 1.2s ease-in-out 10;
+}

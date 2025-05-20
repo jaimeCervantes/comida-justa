@@ -1,4 +1,5 @@
 "use client";
+import React, { useEffect, useState, useActionState } from "react";
 import TextField from "~/infrastructure/components/ui/TextField";
 import TextArea from "~/infrastructure/components/ui/TextArea";
 import Button from "~/infrastructure/components/ui/Button";
@@ -10,9 +11,10 @@ import {
   MdOutlinePriceChange,
 } from "react-icons/md";
 
-import { useActionState, useState } from "react";
 import { ActionState } from "~/infrastructure/types/Actions";
 import { POST_CONTENT_MAX_LENGTH } from "~/infrastructure/constants";
+import ErrorModal from "~/infrastructure/components/ui/ErrorModal";
+
 
 export default function PublishForm({
   action,
@@ -29,18 +31,69 @@ export default function PublishForm({
     }
   );
   const [imagePickerLabel, setImageVideoPickerLabel] = useState("Sube tu mejor imagen o sube tu mejor video")
-  function onChangeImageVideoPicker() {
-    setImageVideoPickerLabel("Cambia tu mejor imagen o cambia tu mejor video")
-  }
+  const [showError, setShowError] = useState(true);
+  const [titleError, setTitleError] = useState<string | null>(null);
+
+    useEffect(() => {
+    const titleInput = document.querySelector<HTMLInputElement>('input[name="title"]');
+
+    const validateTitle = () => {
+      const value = titleInput?.value.trim() || "";
+
+      if (value.length > 0 && value.length < 4) {
+        setTitleError("El título debe tener al menos 4 caracteres");
+
+        if (titleInput && !titleInput.classList.contains("flash-border")) {
+          titleInput.classList.add("flash-border");
+          setTimeout(() => {
+            titleInput.classList.remove("flash-border");
+          }, 1800);
+        }
+      } else {
+        setTitleError(null);
+      }
+    };
+
+    titleInput?.addEventListener("input", validateTitle);
+
+    return () => {
+      titleInput?.removeEventListener("input", validateTitle);
+    };
+  }, []);
+
+   useEffect(() => {
+    if (state?.errors) {
+      const firstErrorKey = Object.keys(state.errors).find(
+        (key) => state.errors?.[key as keyof typeof state.errors]
+      );
+      if (firstErrorKey) {
+        const inputWithError = document.querySelector(
+          `[name="${firstErrorKey}"]`
+        ) as HTMLElement | null;
+
+        if (inputWithError) {
+          inputWithError.scrollIntoView({ behavior: "smooth", block: "center" });
+          inputWithError.focus();
+          inputWithError.classList.add("flash-border");
+
+          setTimeout(() => {
+            inputWithError.classList.remove("flash-border");
+          }, 1800);
+        }
+      }
+    }
+  }, [state?.errors]);
+
   return (
     <section className="p-4">
       <h1 className="text-xl mb-4">Publica algo sano</h1>
 
-      {state?.errors?.errorMessage ? (
-        <h2 className="pt-1 flex items-center gap-1 text-red-700 dark:text-red-400">
-          {state.errors.errorMessage}
-        </h2>
-      ) : null}
+      {state?.errors?.errorMessage && (
+        <ErrorModal 
+        message={state.errors.errorMessage} 
+        onClose={() => setShowError(false)}
+        />
+)}
 
       <form
         action={createPostAction}
@@ -49,12 +102,13 @@ export default function PublishForm({
       >
         <TextField
           autoFocus
-          required
           name="title"
           type="text"
           label="Título de la publicación:"
           icon={<MdTitle />}
+          minLength={4}
           error={state?.errors?.title}
+         
         />
 
         <TextField
@@ -68,30 +122,27 @@ export default function PublishForm({
         <ImageVideoPicker
           name="file"
           label={imagePickerLabel}
-          onChange={onChangeImageVideoPicker}
+          onChange={() => setImageVideoPickerLabel("Cambia tu imagen o video")}
           className="mb-6"
-          error={state.errors?.image}
+          error={state.errors?.file}
           accept="image/*,video/*"
-          required
         />
 
         <TextField
-          required
           name="phone"
           type="tel"
           label="Télefono"
-          pattern={"^\\+?(\\d{1,3})?[0-9]{10}$"}
           placeholder="Ej: 278109216 o +522781092116"
           icon={<MdPhone />}
           error={state.errors?.phone}
-        ></TextField>
+          pattern="\d+"
+          title="El campo solo debe contener números"
+        />
 
         <TextArea
           name="content"
-          required
           label="Descripción del producto:"
           rows={8}
-          maxLength={Number(POST_CONTENT_MAX_LENGTH)}
           error={state?.errors?.content as string}
         />
         <footer className="flex justify-center gap-5 mt-4">

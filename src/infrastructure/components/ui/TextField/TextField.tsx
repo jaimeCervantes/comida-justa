@@ -84,7 +84,7 @@ function TextFieldInner(
           autoComplete={autoComplete}
           aria-invalid={isInvalid}
           aria-describedby={id}
-          className={`${inputClassName}`}
+          className={`${inputClassName} ${error ? "border-red-500 bg-red-50 ring-red-300" : ""}`}
           placeholder={placeholder}
           pattern={pattern}
           {...moreProps}

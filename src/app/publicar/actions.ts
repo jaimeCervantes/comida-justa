@@ -29,15 +29,27 @@ export async function createPost(
 
   const title = formData.get("title") as string;
   const content = formData.get("content") as string;
-  const file = formData.get("file") as File;
-  const price = formData.get("price");
+  const priceRaw = formData.get("price");
+  const price = priceRaw ? Number(priceRaw): null;
   const phone = formData.get("phone") as string;
 
+  const fileEntry = formData.get("file");
+  const file = fileEntry instanceof File && fileEntry.size > 0 ? fileEntry : null;
+
   const errors = {
-    title: title ? null : "El título es obligatorio.",
-    content: content ? null : "El contenido es obligatorio",
-    phone: phone ? null : "El Télefono es obligatorio.",
-    file: file.size > 0 ? null : "El archivo de imagen o video es obligatorio.",
+    title: !title
+    ? "El título es obligatorio."
+    : title.length < 4
+    ? "El título es demasiado corto. Debe tener al menos 4 caracteres."
+    : null,
+    content: content ? null : "La descripción es obligatoria.",
+    phone: !phone 
+      ? "El Télefono es obligatorio."
+      : !/^\d+$/.test(phone)
+      ? "Elcampo solo debe contener números."
+      : null,
+    price: price !== null && !isNaN(price) ? null : "El precio es obligatorio.",
+    file: file ? null : "El archivo de imagen o video es obligatorio.",
   };
 
   const hasErrors = Object.values(errors).some((errMsg) => errMsg);
@@ -56,7 +68,7 @@ export async function createPost(
         contactInfo: {
           phone,
         },
-        price: Number(price) || null,
+        price,
         createdAt: new Date(),
         file: file as File,
         user: session?.user as User

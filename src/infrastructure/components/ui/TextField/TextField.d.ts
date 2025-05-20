@@ -16,7 +16,7 @@ export type TextFieldProps = {
   onChange?: ChangeEventHandler<HTMLInputElement>;
   placeholder?: string;
   pattern?: string;
-};
+} & React.InputHTMLAttributes<HTMLInputElement>; 
 
 export type TextFieldRefType = {
   focus: () => void;
