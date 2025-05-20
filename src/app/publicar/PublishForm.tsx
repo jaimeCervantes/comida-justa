@@ -1,6 +1,9 @@
 "use client";
+import type { ImageVideoPickerRefType } from "~/infrastructure/components/ui/ImageVideoPicker";
+import { useRef, useEffect } from "react";
+import type { TextFieldRefType } from "~/infrastructure/components/ui/TextField/TextField.d";
 import TextField from "~/infrastructure/components/ui/TextField";
-import TextArea from "~/infrastructure/components/ui/TextArea";
+import TextArea, { type TextAreaRefType } from "~/infrastructure/components/ui/TextArea";
 import Button from "~/infrastructure/components/ui/Button";
 import Link from "next/link";
 import ImageVideoPicker from "~/infrastructure/components/ui/ImageVideoPicker";
@@ -29,9 +32,40 @@ export default function PublishForm({
     }
   );
   const [imagePickerLabel, setImageVideoPickerLabel] = useState("Sube tu mejor imagen o sube tu mejor video")
+  
   function onChangeImageVideoPicker() {
     setImageVideoPickerLabel("Cambia tu mejor imagen o cambia tu mejor video")
   }
+
+  const imagePickerRef = useRef<ImageVideoPickerRefType>(null);
+  const titleRef = useRef<TextFieldRefType>(null);
+  const priceRef = useRef<TextFieldRefType>(null);
+  const phoneRef = useRef<TextFieldRefType>(null);
+  const contentRef = useRef<TextAreaRefType>(null);
+
+   useEffect(() => {
+    const errors = state?.errors;
+    if (!errors) return;
+
+    if (errors.title) {
+      titleRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      titleRef.current?.focus();
+    } else if (errors.price) {
+      priceRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      priceRef.current?.focus();
+    } else if (errors.phone) {
+      phoneRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      phoneRef.current?.focus();
+    } else if (errors.content) {
+      contentRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      contentRef.current?.focus();
+    }
+      else if (errors.image) {
+     imagePickerRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [state?.errors]);
+
+
   return (
     <section className="p-4">
       <h1 className="text-xl mb-4">Publica algo sano</h1>
@@ -55,6 +89,7 @@ export default function PublishForm({
           label="Título de la publicación:"
           icon={<MdTitle />}
           error={state?.errors?.title}
+          ref={titleRef}
         />
 
         <TextField
@@ -63,9 +98,11 @@ export default function PublishForm({
           label="Precio:"
           icon={<MdOutlinePriceChange />}
           error={state?.errors?.price}
+          ref={priceRef}
         />
 
         <ImageVideoPicker
+          ref={imagePickerRef}
           name="file"
           label={imagePickerLabel}
           onChange={onChangeImageVideoPicker}
@@ -84,7 +121,8 @@ export default function PublishForm({
           placeholder="Ej: 278109216 o +522781092116"
           icon={<MdPhone />}
           error={state.errors?.phone}
-        ></TextField>
+          ref={phoneRef}
+        />
 
         <TextArea
           name="content"
@@ -93,6 +131,7 @@ export default function PublishForm({
           rows={8}
           maxLength={Number(POST_CONTENT_MAX_LENGTH)}
           error={state?.errors?.content as string}
+          ref={contentRef}
         />
         <footer className="flex justify-center gap-5 mt-4">
           <Link href="/">

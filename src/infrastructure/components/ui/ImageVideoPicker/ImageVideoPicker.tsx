@@ -1,5 +1,6 @@
 "use client";
-import { useState, useId, useRef } from "react";
+import { useState, useId, useRef, forwardRef, useImperativeHandle } from "react";
+import type { ForwardedRef } from "react";
 import Button from "../Button/Button";
 import { MdImage as MdImageIcon } from "react-icons/md";
 import type { ImageVideoPickerProps } from "./ImageVideoPicker.d";
@@ -7,10 +8,16 @@ import { MdError } from "react-icons/md";
 
 import styles from "./ImageVideoPicker.module.css";
 
+type ImageVideoPickerRefType = {
+  scrollIntoView: (options?: boolean | ScrollIntoViewOptions) => void;
+};
+
+export type { ImageVideoPickerRefType };
+
 export const errorClassName =
   "pt-1 flex items-center gap-1 text-red-700 dark:text-red-400";
 
-export default function ImagePicker({
+const ImagePicker = forwardRef(function ImagePicker({
   label,
   name,
   className,
@@ -19,11 +26,16 @@ export default function ImagePicker({
   required,
   accept,
   multiple,
-}: ImageVideoPickerProps) {
+}: ImageVideoPickerProps, 
+ref: ForwardedRef<ImageVideoPickerRefType>
+){
   const [fileName, setFileName] = useState<string>("");
   const [srcFile, setSrcFile] = useState<string>("");
   const [fileType, setFileType] = useState<string>("");
-  const fileInput = useRef(null as HTMLInputElement | null);
+  const fileInput = useRef<HTMLInputElement | null>(null);
+  useImperativeHandle(ref, () => ({
+     scrollIntoView: (options) => fileInput.current?.scrollIntoView(options),
+  }));
   const id = useId();
   const inputId = `${id}-${name}`;
 
@@ -100,4 +112,8 @@ export default function ImagePicker({
       </footer>
     </section>
   );
-}
+});
+
+
+export default ImagePicker;
+
