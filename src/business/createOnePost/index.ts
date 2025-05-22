@@ -2,7 +2,6 @@ import type { IPostEntity, IPostValidator } from "~/business/entities/post/types
 import { Post, User } from "~/business/entities/post/types";
 import IPostRepository from "./ports/IPostRepository";
 import IPostCreationDTO from "./dtos/IPostCreationDTO";
-import IMediaStorageService from "./ports/IMediaStorageService";
 
 interface CreatePostResult {
   id?: string;
@@ -15,18 +14,15 @@ export default class CreatePostUseCase {
   private postValidator: IPostValidator;
   private postEntity: IPostEntity;
   private postRepository: IPostRepository;
-  private mediaStorageService: IMediaStorageService;
 
   constructor(
     postValidator: IPostValidator,
     postEntity: IPostEntity,
     postRepository: IPostRepository,
-    mediaStorageService: IMediaStorageService
   ) {
     this.postValidator = postValidator;
     this.postEntity = postEntity;
     this.postRepository = postRepository;
-    this.mediaStorageService = mediaStorageService;
   }
 
   public async execute(
@@ -54,40 +50,12 @@ export default class CreatePostUseCase {
       };
     }
 
-    const file = postInfo.file
-
-    let fileType: string | null; // e.g., "image", "video", "audio"
-    try {
-      fileType = await this.mediaStorageService.validateFileAndGetType(file);
-    } catch (error: any) {
-      console.error("Error validating file type:", error);
-      return {
-        error,
-        errorMessage: error.message,
-      };
-    }
-
-    let fileUrl = '';
-    try {
-      fileUrl = await this.mediaStorageService.uploadFile(file);
-    } catch (error: any) {
-      console.error("Error uploading file to storage:", error);
-      return {
-        error,
-        errorMessage: error.message || "Algo salió mal al subir el archivo al almacenamiento.",
-      };
-    }
-
     const finalPostData: IPostCreationDTO = {
       title: postTitle,
       content: postInfo.content,
       contactInfo: postInfo.contactInfo,
       slug,
-      media: {
-        url: fileUrl,
-        type: fileType as string,
-        alt: postTitle,
-      },
+      media: postInfo.media as IPostCreationDTO['media'],
       user: postInfo.user,
       createdAt: new Date()
     };

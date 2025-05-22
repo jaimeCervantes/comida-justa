@@ -19,6 +19,7 @@ export default class PublishPage {
   readonly phone: Locator;
   readonly score: Locator;
   private values: Partial<PublishValues> = {};
+  private uploaded: Locator
 
   constructor(page: Page) {
     this.page = page;
@@ -35,6 +36,7 @@ export default class PublishPage {
     this.file = this.page.getByRole("button", { name: /sube tu mejor/i }).nth(1);
     this.phone = this.page.getByRole("textbox", { name: /t[eé]lefono/i });
     this.score = this.page.getByRole("article").getByText(/saludable/i);
+    this.uploaded = this.page.getByText(/subido/i);
   }
 
   async goToPublish() {
@@ -61,6 +63,8 @@ export default class PublishPage {
   }
 
   async send() {
+    await expect(this.uploaded).toBeVisible({ timeout: 15_000 });
+    await expect(this.submitButton).toBeEnabled();
     await this.submitButton.click();
   }
 

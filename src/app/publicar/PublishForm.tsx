@@ -3,16 +3,16 @@ import TextField from "~/infrastructure/UI/components/TextField";
 import TextArea from "~/infrastructure/UI/components/TextArea";
 import Button from "~/infrastructure/UI/components/Button";
 import Link from "next/link";
-import ImageVideoPicker from "~/infrastructure/UI/components/ImageVideoPicker";
 import {
   MdPhone,
   MdTitle,
   MdOutlinePriceChange,
 } from "react-icons/md";
 
-import { useActionState, useState } from "react";
+import { useActionState, useCallback, useState } from "react";
 import { ActionState } from "~/infrastructure/types/Actions";
 import { POST_CONTENT_MAX_LENGTH } from "~/infrastructure/constants";
+import ImageVideoUploader from "./ui/ImageVideoUploader";
 
 export default function PublishForm({
   action,
@@ -28,11 +28,20 @@ export default function PublishForm({
       slug: null,
     }
   );
-  const [imagePickerLabel, setImageVideoPickerLabel] = useState("Sube tu mejor imagen o sube tu mejor video")
-  function onChangeImageVideoPicker() {
-    setImageVideoPickerLabel("Cambia tu mejor imagen o cambia tu mejor video");
+  const [mediaJSON, setMediaJSON] = useState<string>('');
+  const [isLoadingMedia, setIsLoadingMedia] = useState<boolean | null>(null);
+  const [imagePickerLabel, setImageVideoPickerLabel] = useState("Sube tu mejor imagen o sube tu mejor video");
 
-  }
+  const onUploadedCallback = useCallback(async function (data: Record<string, any> | null) {
+    setImageVideoPickerLabel("Cambia tu mejor imagen o cambia tu mejor video");
+    try {
+      setMediaJSON(JSON.stringify(data?.media));
+      setIsLoadingMedia(data?.isLoading);
+    } catch (error) {
+      console.log(error);
+    }
+  }, []);
+
   return (
     <section className="p-4">
       <h1 className="text-xl mb-4">Publica algo sano</h1>
@@ -66,15 +75,18 @@ export default function PublishForm({
           error={state?.errors?.price}
         />
 
-        <ImageVideoPicker
-          name="file"
+        <ImageVideoUploader
           label={imagePickerLabel}
-          onChange={onChangeImageVideoPicker}
+          name={''}
+          onUploaded={onUploadedCallback}
           className="mb-6"
-          error={state.errors?.image}
           accept="image/*,video/*"
-          required
+          required={false}
         />
+
+        {mediaJSON}
+
+        <input name="media" hidden defaultValue={mediaJSON} required={true}></input>
 
         <TextField
           required
@@ -106,7 +118,7 @@ export default function PublishForm({
             isLoading={isPending && !state.success}
             disabled={isPending && !state.success}
           >
-            {isPending && !state.success ? 'Publicando...' : 'Publicar'}
+            {isPending && !state.success && isLoadingMedia ? 'Publicando...' : 'Publicar'}
           </Button>
         </footer>
       </form>

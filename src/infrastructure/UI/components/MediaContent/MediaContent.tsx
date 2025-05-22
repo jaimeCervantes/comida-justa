@@ -20,7 +20,7 @@ export default function MediaContent({ media, className }: MediaContentProps) {
     default: DefaultContent
   };
 
-  const ContentRenderer = contentTypes[media.type] || contentTypes.default;
+  const ContentRenderer = contentTypes[media?.type] || contentTypes.default;
 
   return (
     <div className="sj-media-wrapper">

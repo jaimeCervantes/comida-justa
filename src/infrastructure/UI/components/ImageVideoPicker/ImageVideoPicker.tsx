@@ -19,6 +19,7 @@ export default function ImagePicker({
   required,
   accept,
   multiple,
+  disabled = false
 }: ImageVideoPickerProps) {
   const [fileName, setFileName] = useState<string>("");
   const [srcFile, setSrcFile] = useState<string>("");
@@ -29,11 +30,12 @@ export default function ImagePicker({
 
   function readFile(files: FileList | null) {
     if (files === null) return;
-    const file = files[0];
+    const file = files.item(0);
+    if (file === null) return;
     const reader = new FileReader();
 
-    setFileName(file.name);
-    setFileType(file.type);
+    setFileName(file?.name);
+    setFileType(file?.type);
 
     reader.onload = onReadingCompleted;
     reader.readAsDataURL(file!);
@@ -67,6 +69,7 @@ export default function ImagePicker({
             }}
             multiple={multiple}
             aria-label={label}
+            disabled={disabled}
           />
           {label}
         </Button>

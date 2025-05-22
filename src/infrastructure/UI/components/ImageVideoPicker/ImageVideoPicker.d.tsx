@@ -10,4 +10,5 @@ export type ImageVideoPickerProps = Partial<{
   accept: string;
   error: string | undefined | null;
   required: boolean;
+  disabled: boolean;
 }>;

@@ -7,7 +7,6 @@ export default class PostValidator implements IPostValidator {
   validate(post: Post): VoidOrError {
     this.validateStringOnPost(post.title, "title", this.MIN_LENGTH_TITLE);
     this.validateNumberOnPost(post.price, "price");
-    this.validateFile(post.file)
     this.validateStringOnPost(post.content, "content", this.MIN_LENGTH_CONTENT);
     this.validateUser(post.user);
   }

@@ -9,7 +9,11 @@ export type Post = {
     email?: string
     whatsapp?: string,
   },
-  file: File,
+  media: {
+    url: string,
+    type: 'image' | 'video' | string,
+    alt?: string
+  },
   user: User,
   createdAt: Date
 }

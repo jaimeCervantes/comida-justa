@@ -8,7 +8,11 @@ export const samplePostInfo: Post = {
     phone: "1234567890",
     email: "test@example.com"
   },
-  file: new File(['dummy content'], 'test.jpg', { type: 'image/jpeg' }),
+  media: {
+    url: "http://saludjusta.com/files/test.jpg",
+    type: 'image',
+    alt: 'Test Post Title'
+  },
   user: { id: 'user123', name: 'Test User' } as User, // Cast as User
   createdAt: new Date()
 };

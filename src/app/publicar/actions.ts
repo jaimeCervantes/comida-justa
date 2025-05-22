@@ -14,7 +14,6 @@ const useCase = new CreatePostUseCase(
   new PostValidator(),
   new PostEntity(),
   new FirebasePostsRespository(),
-  new FirebaseMediaStorageService()
 )
 
 export async function createPost(
@@ -29,7 +28,7 @@ export async function createPost(
 
   const title = formData.get("title") as string;
   const content = formData.get("content") as string;
-  const file = formData.get("file") as File;
+  const mediaJSON = formData.get("media") as string;
   const price = formData.get("price");
   const phone = formData.get("phone") as string;
 
@@ -37,8 +36,15 @@ export async function createPost(
     title: title ? null : "El título es obligatorio.",
     content: content ? null : "El contenido es obligatorio",
     phone: phone ? null : "El Télefono es obligatorio.",
-    file: file.size > 0 ? null : "El archivo de imagen o video es obligatorio.",
+    media: mediaJSON ? null : "Los datos del recourso(video, imagen) son obligatorios"
   };
+
+  let media = { url: '', type: '', alt: '' };
+  try {
+    media = JSON.parse(mediaJSON);
+  } catch (error) {
+    console.log(error);
+  }
 
   const hasErrors = Object.values(errors).some((errMsg) => errMsg);
 
@@ -58,7 +64,11 @@ export async function createPost(
         },
         price: Number(price) || null,
         createdAt: new Date(),
-        file: file as File,
+        media: {
+          url: media.url,
+          type: media.type.split("/")[0],
+          alt: title
+        },
         user: session?.user as User
       },
     );
