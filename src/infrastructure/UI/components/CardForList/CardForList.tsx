@@ -16,7 +16,7 @@ export default function CardForList(props: Post) {
       createdAt={createdAt}
       createdAtLocale={createdAtLocale}
       user={user}
-      className="flex flex-col justify-between bg-white dark:bg-pw-gray rounded-3xl overflow-hidden hover:border-b-pw-lightgreen dark:border-t-0 dark:border-r-0 dark:border-l-0 border-b-8 border-b-transparent"
+      className="flex flex-col justify-between"
       AnchorElement={Link}
       anchorProps={anchorProps}
       media={

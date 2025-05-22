@@ -84,8 +84,6 @@ export default function PublishForm({
           required={false}
         />
 
-        {mediaJSON}
-
         <input name="media" hidden defaultValue={mediaJSON} required={true}></input>
 
         <TextField
