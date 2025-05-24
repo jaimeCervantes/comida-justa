@@ -31,9 +31,20 @@ export default async function Inicio() {
 
   return (
     <main className="">
-      <h1 className="text-xl font-bold">
-        Salud Justa: Logra salud, belleza y longevidad, 10 minutos de tu ocupado día, cuidando tu entorno y a tu comunidad
+      <h1 className="text-xl font-bold mb-2">
+        ❤️💚 Salud Justa: Cuando cuidas tu salud, también estás cuidando lo más valioso que tienes: tu tiempo. Tu recurso máximo no renovable.
       </h1>
+
+      <p className="mb-2">
+        🕒 No se compra. No se recupera.
+        Pero con solo 10 minutos al día ⏳, puedes ganar salud 🧘‍♂️, belleza ✨ y longevidad 🌸…
+        🌍 mejorar tu entorno, fortalecer tu comunidad 🤝
+        y convertirte en inspiración para los demás 🔥.
+      </p>
+
+      <p>
+        💫 Vivir bien no es un lujo. Es un acto de amor propio… que se contagia.
+      </p>
 
       <PostsWithLoadMore
         initialPosts={posts}
