@@ -16,7 +16,21 @@ export type Post = {
   },
   user: User,
   createdAt: Date
-}
+
+  seo?: {
+    title: string;
+    description: {
+      content: string;
+      name: string;
+    };
+    metas: {
+      content: string;
+      name: string;
+    }[];
+  };
+};
+
+
 
 export type User = {
   id: string;
