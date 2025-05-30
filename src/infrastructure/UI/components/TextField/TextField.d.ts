@@ -16,6 +16,8 @@ export type TextFieldProps = {
   onChange?: ChangeEventHandler<HTMLInputElement>;
   placeholder?: string;
   pattern?: string;
+  className?: string;
+  containerClassName?: string;
 };
 
 export type TextFieldRefType = {

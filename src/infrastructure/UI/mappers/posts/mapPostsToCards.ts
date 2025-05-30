@@ -13,9 +13,9 @@ export function mapPostsToCards(posts: Post[]) {
       price: item.price,
       content: item.content,
       media: item.media,
-      createdAt: item.createdAt?.toDate(),
+      createdAt: item.createdAt?.toDate?.(),
       // for initial versions, we will only be focused in Mexico
-      createdAtLocale: item.createdAt?.toDate()?.toLocaleString("es-MX", {
+      createdAtLocale: item.createdAt?.toDate?.()?.toLocaleString("es-MX", {
         weekday: "long",
         year: "numeric",
         month: "long",

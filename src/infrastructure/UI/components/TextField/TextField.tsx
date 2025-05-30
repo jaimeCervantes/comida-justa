@@ -32,6 +32,8 @@ function TextFieldInner(
     children,
     placeholder,
     pattern,
+    className,
+    containerClassName = "",
     ...moreProps
   }: TextFieldProps,
   ref: ForwardedRef<TextFieldRefType>
@@ -55,11 +57,10 @@ function TextFieldInner(
   const id = useId();
   let inputClassName: string;
 
-  inputClassName = `${inputClassNameDefault} ${icon && "pl-10"} ${iconEnd && "pr-10"
-    }`;
+  inputClassName = `${inputClassNameDefault} ${icon && "pl-10"} ${iconEnd && "pr-10"} ${className}`;
 
   return (
-    <div data-testid="TextField" className="mb-6 text-black dark:text-white">
+    <div data-testid="TextField" className={`mb-6 text-black dark:text-white ${containerClassName}`}>
       {label ? (
         <label htmlFor={id} className={`${labelClassNameDefault}`}>
           {label}

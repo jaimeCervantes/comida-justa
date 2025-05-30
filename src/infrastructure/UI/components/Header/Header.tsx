@@ -6,6 +6,7 @@ import { auth } from "~/infrastructure/auth";
 import Link from "next/link";
 import { LuSalad } from "react-icons/lu";
 import Button from "../Button/Button";
+import SearchBar from "../SearchBar";
 
 export default async function Header() {
   const session = await auth();
@@ -23,6 +24,9 @@ export default async function Header() {
           />
         </Link>
         <Nav />
+      </div>
+      <div className="flex gap-2 items-center">
+        <SearchBar />
       </div>
       <div className="flex gap-2 items-center">
         <Link href="/publicar">

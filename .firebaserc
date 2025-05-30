@@ -1,5 +1,8 @@
 {
   "projects": {
-    "default": "healthy-food-habits"
-  }
+    "default": "healthy-food-habits",
+    "dev": "healthy-food-habits"
+  },
+  "targets": {},
+  "etags": {}
 }
