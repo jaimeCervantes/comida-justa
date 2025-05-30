@@ -6,6 +6,11 @@ vi.mock('firebase-admin/firestore', () => ({
   getFirestore: vi.fn(),
 }));
 
+// Mock del console.error para evitar logs en las pruebas
+vi.mock('console', () => ({
+  error: vi.fn(),
+}));
+
 describe('saveSeo', () => {
   // Mocks para simular Firestore
   const mockUpdate = vi.fn();
@@ -203,6 +208,16 @@ describe('saveSeo', () => {
     expect(customWriteResult.writeTime.toDate).toHaveBeenCalledOnce();
   });
 
+  it('debería logear errores en la consola', async () => {
+    const testError = new Error('Test error');
+    mockUpdate.mockRejectedValue(testError);
+
+    await saveSeo('posts', 'doc123', mockSeoData);
+
+    const consoleError = await import('console');
+    expect(consoleError.error).toHaveBeenCalledWith('Error al guardar SEO:', testError);
+  });
+
   it('debería manejar datos SEO con estructura compleja', async () => {
     const complexSeoData = {
       es: {
@@ -226,7 +241,7 @@ describe('saveSeo', () => {
 
     const result = await saveSeo('posts', 'complex-doc', complexSeoData);
 
-    //expect(result.success).toBe(true);
+    expect(result.success).toBe(true);
     expect(mockUpdate).toHaveBeenCalledWith({
       seo: complexSeoData,
       updatedAt: expect.any(Date)
