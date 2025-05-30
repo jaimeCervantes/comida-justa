@@ -1,4 +1,5 @@
 "use server";
+import { generateSeo } from "./generateSeo";
 import { auth } from "~/infrastructure/auth";
 import { redirect } from "next/navigation";
 import { ActionState } from "~/infrastructure/types/Actions";
@@ -52,6 +53,13 @@ export async function createPost(
     return { errors: errors, success: false, id: null, slug: null };
   }
 
+  const seo = generateSeo({
+  title,
+  description: content,
+  media: media.url,
+});
+ 
+
   let result;
   try {
     result = await useCase.execute(
@@ -72,6 +80,7 @@ export async function createPost(
         user: session?.user as User
       },
     );
+
   } catch (err: any) {
     return {
       errors: {
