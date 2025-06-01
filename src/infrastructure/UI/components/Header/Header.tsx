@@ -6,8 +6,9 @@ import { auth } from "~/infrastructure/auth";
 import Link from "next/link";
 import { LuSalad } from "react-icons/lu";
 import Button from "../Button/Button";
+import LanguageSwitcher from "../LanguageSwitcher/LanguageSwitcher";
 
-export default async function Header() {
+export default async function Header({ locale }: { locale: string }) {
   const session = await auth();
 
   return (
@@ -38,6 +39,7 @@ export default async function Header() {
         ) : (
           <SignIn>Iniciar sesión</SignIn>
         )}
+        <LanguageSwitcher />
       </div>
     </header>
   );

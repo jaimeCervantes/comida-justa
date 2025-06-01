@@ -4,15 +4,16 @@ import type {
 } from "firebase-admin/firestore";
 import type { FirestorePost, FirestoreComment } from "~/infrastructure/dataAccess/Posts";
 import { collections } from "~/infrastructure/dataAccess/postUtils";
+import { Post } from "~/infrastructure/types/Posts";
 
 export async function getOnePostWithPaginatedComments(
   slug: string,
   limit = 10, // Número de comentarios por página
   lastCommentSnapshot?: QueryDocumentSnapshot<FirestoreComment>, // Para la paginación
   collection: CollectionReference<FirestorePost> = collections.posts()
-) {
+): Promise<Post | { error: boolean; errorMessage: string }> {
   try {
-    const queryResult = await collection.where("slug", "==", slug).get();
+    const queryResult = await collection.where("translations.es.slug", "==", slug).get();
 
     if (queryResult.empty) {
       return {

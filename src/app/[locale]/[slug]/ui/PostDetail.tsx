@@ -8,6 +8,7 @@ import CommentList from "../loadComments/CommentList";
 import type { PostUser } from "~/infrastructure/types/Posts";
 import MediaContent from "~/infrastructure/UI/components/MediaContent/MediaContent";
 import { notFound } from "next/navigation";
+import { mapOnePostToCard } from "~/infrastructure/UI/mappers/posts/mapPostsToCards";
 
 async function getPostDetails(slug: string) {
   return await getOnePostWithPaginatedComments(slug, 10);
@@ -22,24 +23,26 @@ export default async function PostDetail({
   className: string;
   user: PostUser | undefined;
 }) {
-  const details: Post = await getPostDetails(slug);
-  const {
-    error,
-    errorMessage,
-    title,
-    media,
-    price,
-    content,
-    contactInfo,
-    comments,
-    firstVisibleComment,
-    lastVisibleComment,
-    id,
-  } = details;
+  const postDetails: Post | { error: boolean; errorMessage: string } = await getPostDetails(slug);
 
-  if (error === true) {
+
+  if (postDetails.error === true) {
     notFound();
   }
+
+  const details = {
+    title: postDetails.translations?.es?.title ?? postDetails.title,
+    content: postDetails.translations?.es?.content ?? postDetails.content,
+    media: postDetails.media,
+    price: postDetails.price,
+    contactInfo: postDetails.contactInfo,
+    comments: postDetails.comments,
+    firstVisibleComment: postDetails.firstVisibleComment,
+    lastVisibleComment: postDetails.lastVisibleComment,
+    id: postDetails.id,
+  };
+
+  const { title, content, media, price, contactInfo, comments, firstVisibleComment, lastVisibleComment, id } = details;
 
   return (
     <article className={className}>

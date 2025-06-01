@@ -1,3 +1,6 @@
+import createNextIntlPlugin from 'next-intl/plugin';
+
+const nextIntlPlugin = createNextIntlPlugin();
 const isDevelopment = process.env.NODE_ENV === "development" ? true : false;
 
 /** @type {import('next').NextConfig} */
@@ -37,4 +40,4 @@ if (isDevelopment) {
   });
 }
 
-export default nextConfig;
+export default nextIntlPlugin(nextConfig);

@@ -27,10 +27,10 @@ describe('CreatePostUseCase', () => {
     mockPostRepository.createUniqueSlug.mockResolvedValue(expectedSlug);
     mockPostRepository.save.mockResolvedValue(expectedPostId);
 
-    const result = await createPostUseCase.execute(samplePostInfo);
+    const result = await createPostUseCase.execute(samplePostInfo, 'es');
 
     expect(mockPostValidator.validate).toHaveBeenCalledWith(samplePostInfo);
-    expect(mockPostRepository.createUniqueSlug).toHaveBeenCalledWith(samplePostInfo.slug);
+    expect(mockPostRepository.createUniqueSlug).toHaveBeenCalledWith(samplePostInfo.slug, 'es');
     expect(mockPostRepository.save).toHaveBeenCalledWith({
       title: samplePostInfo.title,
       content: samplePostInfo.content,
@@ -43,7 +43,7 @@ describe('CreatePostUseCase', () => {
       },
       user: samplePostInfo.user,
       createdAt: expect.any(Date)
-    });
+    }, 'es'); // Assuming 'es' is the default language
     expect(result).toEqual({ id: expectedPostId, slug: expectedSlug });
     expect(result.error).toBeUndefined();
     expect(result.errorMessage).toBeUndefined();
@@ -55,7 +55,7 @@ describe('CreatePostUseCase', () => {
       throw validationError;
     });
 
-    const result = await createPostUseCase.execute(samplePostInfo);
+    const result = await createPostUseCase.execute(samplePostInfo, 'es');
 
     expect(mockPostValidator.validate).toHaveBeenCalledWith(samplePostInfo);
     expect(result).toEqual({
@@ -74,10 +74,10 @@ describe('CreatePostUseCase', () => {
     // Mocking the private method 'defineSlug' indirectly by making createUniqueSlug throw
     mockPostRepository.createUniqueSlug.mockRejectedValue(slugError);
 
-    const result = await createPostUseCase.execute(samplePostInfo);
+    const result = await createPostUseCase.execute(samplePostInfo, 'es');
 
     expect(mockPostValidator.validate).toHaveBeenCalledWith(samplePostInfo);
-    expect(mockPostRepository.createUniqueSlug).toHaveBeenCalledWith(samplePostInfo.slug);
+    expect(mockPostRepository.createUniqueSlug).toHaveBeenCalledWith(samplePostInfo.slug, 'es');
     expect(result).toEqual({
       error: slugError,
       errorMessage: "Slug generation failed", // Assuming defineSlug propagates the error message
@@ -95,10 +95,10 @@ describe('CreatePostUseCase', () => {
     mockPostRepository.createUniqueSlug.mockResolvedValue(expectedSlug); // Returns a unique slug
     mockPostRepository.save.mockRejectedValue(repositoryError); // Saving fails
 
-    const result = await createPostUseCase.execute(samplePostInfo);
+    const result = await createPostUseCase.execute(samplePostInfo, 'es');
 
     expect(mockPostValidator.validate).toHaveBeenCalledWith(samplePostInfo);
-    expect(mockPostRepository.createUniqueSlug).toHaveBeenCalledWith(samplePostInfo.slug);
+    expect(mockPostRepository.createUniqueSlug).toHaveBeenCalledWith(samplePostInfo.slug, 'es');
     expect(mockPostRepository.save).toHaveBeenCalledWith({
       title: samplePostInfo.title,
       content: samplePostInfo.content,
@@ -111,7 +111,7 @@ describe('CreatePostUseCase', () => {
       },
       user: samplePostInfo.user,
       createdAt: expect.any(Date)
-    });
+    }, 'es'); // Assuming 'es' is the default language
     expect(result).toEqual({
       error: repositoryError,
       errorMessage: "Algo salió mal al guardar el post en la base de datos.", // Use case returns a default message
@@ -127,13 +127,14 @@ describe('CreatePostUseCase', () => {
       mockPostEntity.generateSlug.mockReturnValue(generatedSlug);
       mockPostRepository.save.mockResolvedValue('postId');
 
-      const result = await createPostUseCase.execute(postInfoWithoutSlug);
+      const result = await createPostUseCase.execute(postInfoWithoutSlug, 'es');
 
       expect(mockPostValidator.validate).toHaveBeenCalledWith(postInfoWithoutSlug);
       expect(mockPostEntity.generateSlug).toHaveBeenCalledWith(postInfoWithoutSlug.title);
       expect(mockPostRepository.createUniqueSlug).not.toHaveBeenCalled(); // Important: not called when slug is empty
       expect(mockPostRepository.save).toHaveBeenCalledWith(
-        expect.objectContaining({ slug: generatedSlug }) // Check if the generated slug is used
+        expect.objectContaining({ slug: generatedSlug }),
+        'es'// Check if the generated slug is used
       );
       expect(result.slug).toBe(generatedSlug);
     });
@@ -147,13 +148,14 @@ describe('CreatePostUseCase', () => {
       mockPostRepository.createUniqueSlug.mockResolvedValue(uniqueSlug);
       mockPostRepository.save.mockResolvedValue('postId');
 
-      const result = await createPostUseCase.execute(postInfoWithSlug);
+      const result = await createPostUseCase.execute(postInfoWithSlug, 'es');
 
       expect(mockPostValidator.validate).toHaveBeenCalledWith(postInfoWithSlug);
       expect(mockPostEntity.generateSlug).not.toHaveBeenCalled(); // Important: not called when slug is provided
-      expect(mockPostRepository.createUniqueSlug).toHaveBeenCalledWith(postInfoWithSlug.slug);
+      expect(mockPostRepository.createUniqueSlug).toHaveBeenCalledWith(postInfoWithSlug.slug, 'es');
       expect(mockPostRepository.save).toHaveBeenCalledWith(
-        expect.objectContaining({ slug: uniqueSlug }) // Check if the unique slug is used
+        expect.objectContaining({ slug: uniqueSlug }), // Check if the unique slug is used
+        'es' // Assuming 'es' is the default language
       );
       expect(result.slug).toBe(uniqueSlug);
     });
