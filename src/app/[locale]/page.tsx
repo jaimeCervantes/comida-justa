@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
-import { hasLocale } from git;
+import { hasLocale } from 'next-intl';
 import { routing } from '~/i18n/routing';
 import { getMultiplePosts } from "~/infrastructure/dataAccess/getMultiplePosts";
 import { mapPostsToCards } from "~/infrastructure/UI/mappers/posts/mapPostsToCards";
@@ -31,8 +31,8 @@ async function getPosts() {
   return { ...result, posts: mapPostsToCards(result.posts) };
 }
 
-export default async function Inicio({ params }: { params: { locale: string } }) {
-  const { locale } = params;
+export default async function Inicio({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
   const t = await getTranslations({ locale, namespace: 'home' });
   const { posts, total, totalPages } = await getPosts();
 
