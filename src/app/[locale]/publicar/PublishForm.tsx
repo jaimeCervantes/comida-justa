@@ -14,6 +14,9 @@ import { ActionState } from "~/infrastructure/types/Actions";
 import { POST_CONTENT_MAX_LENGTH } from "~/infrastructure/constants";
 import ImageVideoUploader from "./ui/ImageVideoUploader";
 
+import BasicImageVideoUploader from './ui/media/BasicImageVideoUploader';
+import { COMPRESSION_PRESETS } from '../publicar/ui/types/media.types';
+
 export default function PublishForm({
   action,
 }: {
@@ -76,14 +79,26 @@ export default function PublishForm({
         />
 
         <ImageVideoUploader
+          mode="upload"
           label={imagePickerLabel}
-          name={''}
+          name=""
           onUploaded={onUploadedCallback}
           className="mb-6"
           accept="image/*,video/*"
           required={false}
         />
-
+            
+        <ImageVideoUploader
+          mode="compress"
+          label={imagePickerLabel}
+          name=""
+          onUploaded={onUploadedCallback}
+          className="mb-6"
+          accept="image/*,video/*"
+          required={false}
+          maxImageSize={10}
+          maxVideoSize={120}
+        />
         <input name="media" hidden defaultValue={mediaJSON} required={true}></input>
 
         <TextField
