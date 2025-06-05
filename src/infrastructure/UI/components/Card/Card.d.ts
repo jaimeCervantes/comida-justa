@@ -3,8 +3,7 @@ import type { ElementType } from "react";
 export type CardProps = {
   title: string;
   media?: ElementType | JSX.Element | string | undefined | null;
-  createdAt: Date;
-  createdAtLocale: string;
+  createdAt: string;
   className?: string;
   Container?: ElementType;
   style?: Object;
