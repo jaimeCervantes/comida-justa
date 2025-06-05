@@ -2,7 +2,7 @@ export interface MediaFile {
   type: string;
   name: string;
   size: number;
-  data: string; // base64
+  data: File | string; // base64
   thumbnail?: string;
   duration?: number; // para videos en segundos
   dimensions?: { 

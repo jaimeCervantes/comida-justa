@@ -25,6 +25,11 @@ const nextConfig = {
       },
     ],
   },
+
+
+serverActions: {
+    bodySizeLimit: '120mb',
+  },
 };
 
 // Allow live reloading on docker development

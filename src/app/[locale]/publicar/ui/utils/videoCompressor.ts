@@ -39,9 +39,9 @@ export async function compressVideo(
 ): Promise<File> {
   const {
     quality = 'medium',
-    maxWidth = 720,
-    maxHeight = 720,
-    maxBitrate = '1M',
+    maxWidth = 640,
+    maxHeight = 640,
+    maxBitrate = '700k',
     onProgress
   } = options;
 
@@ -63,9 +63,9 @@ export async function compressVideo(
 
     // Configurar parámetros según calidad
     const qualitySettings = {
-      low: { crf: '32', preset: 'ultrafast' },
-      medium: { crf: '28', preset: 'fast' },
-      high: { crf: '23', preset: 'medium' }
+      low: { crf: '32', preset: 'superfast' },
+      medium: { crf: '30', preset: 'veryfast' },
+      high: { crf: '26', preset: 'fast' }
     };
 
     const settings = qualitySettings[quality];
@@ -77,7 +77,7 @@ export async function compressVideo(
       '-preset', settings.preset,           // Velocidad de encoding
       '-crf', settings.crf,                 // Factor de calidad
       '-maxrate', maxBitrate,               // Bitrate máximo
-      '-bufsize', '2M',                     // Buffer size
+      '-bufsize', '1M',                     // Buffer size
       '-vf', `scale=${maxWidth}:${maxHeight}:force_original_aspect_ratio=decrease`, // Escalar manteniendo aspecto
       '-c:a', 'aac',                        // Codec audio
       '-b:a', '128k',                       // Bitrate audio
@@ -95,13 +95,12 @@ export async function compressVideo(
     const uint8Data = new Uint8Array(Uint8Array.from(data as any).buffer);
     const compressedBlob = new Blob([uint8Data], { type: 'video/mp4' });
 
-    // Crear archivo con nombre original
-    const compressedFile = new File([compressedBlob], file.name, {
+
+     return new File([compressedBlob], file.name, {
       type: 'video/mp4',
       lastModified: Date.now()
     });
 
-    return compressedFile;
 
   } finally {
     // Limpiar archivos temporales

@@ -52,7 +52,7 @@ export function useMediaUploader(options: Partial<MediaUploaderOptions> = {}) {
             type: processedFile.type,
             name: processedFile.name,
             size: processedFile.size,
-            data: reader.result as string
+            data: processedFile,
           });
         };
         reader.readAsDataURL(processedFile);
