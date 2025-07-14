@@ -1,3 +1,5 @@
+import { CANONICAL_URL } from '~/infrastructure/constants'
+
 type GenerateSeoInput = {
 	title: string;
 	description: string;
@@ -91,7 +93,7 @@ export function generateSeo({
 				name: "twitter:image",
 			},
 			{
-				content: "https://saludjusta.site",
+				content: CANONICAL_URL,
 				name: "twitter:domain",
 			},
 		]
