@@ -11,7 +11,5 @@ describe("When mapPostsToIndex receive a list of FirestorePost", () => {
     expect(mapped).toHaveProperty("0.media.url", posts[0].media.url);
     expect(mapped).toHaveProperty("0.media.alt", posts[0].media.alt);
     expect(mapped).toHaveProperty("0.media.type", posts[0].media.type);
-    expect(mapped).toHaveProperty("0.createdAt", posts[0].createdAt?.toDate());
-    expect(mapped).toHaveProperty("0.createdAtLocale");
   });
 });

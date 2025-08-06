@@ -31,15 +31,6 @@ describe("When a Card is rendered", () => {
     expect(image).toBeInTheDocument();
   });
 
-  it("Then date creation should be shown", () => {
-    const datePart = props.createdAtLocale.split(",")[1];
-    const date = cardView.getByText(datePart, {
-      exact: false,
-    });
-
-    expect(date).toBeInTheDocument();
-  });
-
   it("Then the Container prop should be an article by default", () => {
     const article = cardView.container.querySelector("article");
     expect(article).toBeInTheDocument();

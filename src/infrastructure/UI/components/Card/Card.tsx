@@ -1,11 +1,11 @@
 import Avatar from "../Avatar";
 import type { CardProps } from "./Card.d";
+import FormattedDate from "./FormattedDate";
 
 export default function Card({
   title,
   media,
   createdAt,
-  createdAtLocale,
   className,
   Container = "article",
   style = {},
@@ -29,12 +29,7 @@ export default function Card({
           <Avatar user={user} />
           <p className="flex flex-col">
             {user.displayName}
-            <time
-              dateTime={createdAt?.toString()}
-              className="first-letter:uppercase text-sm text-gray-500 dark:text-pw-white"
-            >
-              {createdAtLocale}
-            </time>
+            <FormattedDate isoDateString={createdAt} />
           </p>
         </div>
       </section>

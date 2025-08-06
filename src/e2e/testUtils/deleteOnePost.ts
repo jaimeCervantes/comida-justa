@@ -8,7 +8,8 @@ import { db } from '~/infrastructure/dataAccess/init';
  * @returns 
  */
 export async function deleteOnePostBySlug(postSlug: string) {
-  const result = await db.collection('posts').where("slug", "==", postSlug).get();
+  const result = await db.collection('posts')
+    .where("translations.es.slug", "==", postSlug).get();
 
   if (!result.empty) {
     const doc = result.docs[0];

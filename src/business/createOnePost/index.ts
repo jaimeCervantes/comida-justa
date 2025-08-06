@@ -26,7 +26,7 @@ export default class CreatePostUseCase {
   }
 
   public async execute(
-    postInfo: Post
+    postInfo: Post, lang: string = "es"
   ): Promise<CreatePostResult> {
     try {
       this.postValidator.validate(postInfo);
@@ -41,7 +41,7 @@ export default class CreatePostUseCase {
 
     let slug: string;
     try {
-      slug = await this.defineSlug(postTitle, postInfo.slug as string);
+      slug = await this.defineSlug(postTitle, postInfo.slug as string, lang);
     } catch (error: any) {
       console.error("Error generating slug:", error);
       return {
@@ -62,7 +62,7 @@ export default class CreatePostUseCase {
 
 
     try {
-      const postId = await this.postRepository.save(finalPostData);
+      const postId = await this.postRepository.save(finalPostData, lang);
 
       return { id: postId, slug };
 
@@ -76,13 +76,13 @@ export default class CreatePostUseCase {
   }
 
 
-  private async defineSlug(title: string, slug?: string): Promise<string> {
+  private async defineSlug(title: string, slug?: string, lang?: string): Promise<string> {
     if (!slug || slug.trim() === "") {
       return this.postEntity.generateSlug(title);
     }
 
     // At the moment just add a suffix number if the same slug string is found
-    const finalSlug = await this.postRepository.createUniqueSlug(slug);
+    const finalSlug = await this.postRepository.createUniqueSlug(slug, lang);
 
     return finalSlug;
   }

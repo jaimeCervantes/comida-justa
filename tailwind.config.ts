@@ -26,6 +26,14 @@ const config: Config = {
         ...indigo,
       },
       keyframes: {
+        shimmer: {
+          '0%': {
+            transform: 'translateX(-100 %)'
+          },
+          '100%': {
+            transform: 'translateX(280%)'
+          },
+        },
         enterFromRight: {
           from: { opacity: "0", transform: "translateX(200px)" },
           to: { opacity: "1", transform: "translateX(0)" },
@@ -83,6 +91,7 @@ const config: Config = {
       exitToLeft: "exitToLeft 250ms ease",
       exitToRight: "exitToRight 250ms ease",
       spin: "spin 1s linear infinite",
+      pulse: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
     },
   },
   plugins: [

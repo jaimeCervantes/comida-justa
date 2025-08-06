@@ -1,6 +1,6 @@
 [
   {
-    "origin": ["http://localhost:3000", "https://www.saludjusta.site"],
+    "origin": ["http://localhost:3000", "https://www.yoliconsciencia"],
     "method": ["PUT"],
     "responseHeader": ["Content-Type"],
     "maxAgeSeconds": 3600

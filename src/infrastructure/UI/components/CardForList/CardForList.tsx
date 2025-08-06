@@ -6,7 +6,8 @@ import MediaContent from "~/infrastructure/UI/components/MediaContent/MediaConte
 
 
 export default function CardForList(props: Post) {
-  const { id, title, media, createdAt, createdAtLocale, price, user, to } = props;
+  // const userLocale = typeof window !== 'undefined' ? navigator.language : 'es-MX';
+  const { id, title, media, createdAt, price, user, to } = props;
   const anchorProps = { href: to, title: title };
 
   return (
@@ -14,7 +15,6 @@ export default function CardForList(props: Post) {
       key={id}
       title={title}
       createdAt={createdAt}
-      createdAtLocale={createdAtLocale}
       user={user}
       className="flex flex-col justify-between"
       AnchorElement={Link}
