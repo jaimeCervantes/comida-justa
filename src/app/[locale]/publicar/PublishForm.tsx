@@ -3,11 +3,7 @@ import TextField from "~/infrastructure/UI/components/TextField";
 import TextArea from "~/infrastructure/UI/components/TextArea";
 import Button from "~/infrastructure/UI/components/Button";
 import Link from "next/link";
-import {
-  MdPhone,
-  MdTitle,
-  MdOutlinePriceChange,
-} from "react-icons/md";
+import { MdPhone, MdTitle, MdOutlinePriceChange } from "react-icons/md";
 
 import { useActionState, useCallback, useState } from "react";
 import { ActionState } from "~/infrastructure/types/Actions";
@@ -19,20 +15,24 @@ export default function PublishForm({
 }: {
   action: (state: ActionState, data: FormData) => Promise<typeof state>;
 }) {
-  const [state, createPostAction, isPending] = useActionState<ActionState, FormData>(
-    action,
-    {
-      errors: {},
-      success: false,
-      id: null,
-      slug: null,
-    }
-  );
-  const [mediaJSON, setMediaJSON] = useState<string>('');
+  const [state, createPostAction, isPending] = useActionState<
+    ActionState,
+    FormData
+  >(action, {
+    errors: {},
+    success: false,
+    id: null,
+    slug: null,
+  });
+  const [mediaJSON, setMediaJSON] = useState<string>("");
   const [isLoadingMedia, setIsLoadingMedia] = useState<boolean | null>(null);
-  const [imagePickerLabel, setImageVideoPickerLabel] = useState("Sube tu mejor imagen o sube tu mejor video");
+  const [imagePickerLabel, setImageVideoPickerLabel] = useState(
+    "Sube tu mejor imagen o sube tu mejor video"
+  );
 
-  const onUploadedCallback = useCallback(async function (data: Record<string, any> | null) {
+  const onUploadedCallback = useCallback(async function (
+    data: Record<string, any> | null
+  ) {
     setImageVideoPickerLabel("Cambia tu mejor imagen o cambia tu mejor video");
     try {
       setMediaJSON(JSON.stringify(data?.media));
@@ -40,7 +40,8 @@ export default function PublishForm({
     } catch (error) {
       console.log(error);
     }
-  }, []);
+  },
+  []);
 
   return (
     <section className="p-4">
@@ -65,6 +66,7 @@ export default function PublishForm({
           label="Título de la publicación:"
           icon={<MdTitle />}
           error={state?.errors?.title}
+          containerClassName="mb-6"
         />
 
         <TextField
@@ -73,18 +75,24 @@ export default function PublishForm({
           label="Precio:"
           icon={<MdOutlinePriceChange />}
           error={state?.errors?.price}
+          containerClassName="mb-6"
         />
 
         <ImageVideoUploader
           label={imagePickerLabel}
-          name={''}
+          name={""}
           onUploaded={onUploadedCallback}
           className="mb-6"
           accept="image/*,video/*"
           required={false}
         />
 
-        <input name="media" hidden defaultValue={mediaJSON} required={true}></input>
+        <input
+          name="media"
+          hidden
+          defaultValue={mediaJSON}
+          required={true}
+        ></input>
 
         <TextField
           required
@@ -95,6 +103,7 @@ export default function PublishForm({
           placeholder="Ej: 278109216 o +522781092116"
           icon={<MdPhone />}
           error={state.errors?.phone}
+          containerClassName="mb-6"
         ></TextField>
 
         <TextArea
@@ -104,6 +113,7 @@ export default function PublishForm({
           rows={8}
           maxLength={Number(POST_CONTENT_MAX_LENGTH)}
           error={state?.errors?.content as string}
+          className="mb-6"
         />
         <footer className="flex justify-center gap-5 mt-4">
           <Link href="/">
@@ -116,7 +126,9 @@ export default function PublishForm({
             isLoading={isPending && !state.success}
             disabled={isPending && !state.success}
           >
-            {isPending && !state.success && isLoadingMedia ? 'Publicando...' : 'Publicar'}
+            {isPending && !state.success && isLoadingMedia
+              ? "Publicando..."
+              : "Publicar"}
           </Button>
         </footer>
       </form>

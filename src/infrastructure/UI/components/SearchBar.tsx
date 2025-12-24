@@ -1,4 +1,4 @@
-'use client'
+"use client";
 import React, { useState, useRef, useEffect } from "react";
 import TextField from "./TextField/TextField";
 import { useRouter } from "next/navigation";
@@ -33,7 +33,9 @@ const SearchBar: React.FC<SearchBarProps> = ({ placeholder = "Buscar..." }) => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
     timeoutRef.current = setTimeout(async () => {
       try {
-        const res = await fetch(`/api/search?q=${encodeURIComponent(query)}&limit=5`);
+        const res = await fetch(
+          `/api/search?q=${encodeURIComponent(query)}&limit=5`
+        );
         const data = await res.json();
         setResults(data.results || []);
         setShowDropdown(true);
@@ -52,7 +54,10 @@ const SearchBar: React.FC<SearchBarProps> = ({ placeholder = "Buscar..." }) => {
   // Hide dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
+      if (
+        wrapperRef.current &&
+        !wrapperRef.current.contains(event.target as Node)
+      ) {
         setShowDropdown(false);
       }
     }
@@ -69,13 +74,13 @@ const SearchBar: React.FC<SearchBarProps> = ({ placeholder = "Buscar..." }) => {
     <div className="w-64" ref={wrapperRef}>
       <TextField
         value={query}
-        onChange={e => setQuery(e.target.value)}
+        onChange={(e) => setQuery(e.target.value)}
         placeholder={placeholder}
         type="search"
         autoComplete="off"
         icon={<MdSearch className="text-xl text-gray-400" />}
         className="rounded-full border border-gray-300 focus:border-pw-green focus:ring-2 focus:ring-pw-green bg-white dark:bg-pw-gray"
-        containerClassName="mb-0"
+        containerClassName=""
         name="search"
       />
       {showDropdown && (
@@ -89,19 +94,22 @@ const SearchBar: React.FC<SearchBarProps> = ({ placeholder = "Buscar..." }) => {
               {results.map((result, idx) => (
                 <li
                   key={result.id}
-                  className={
-                    `p-2 border-b last:border-b-0 border-gray-200 dark:border-pw-gray cursor-pointer transition-colors hover:bg-pw-lightgreen/20 focus:bg-pw-lightgreen/30 outline-none`
-                  }
+                  className={`p-2 border-b last:border-b-0 border-gray-200 dark:border-pw-gray cursor-pointer transition-colors hover:bg-pw-lightgreen/20 focus:bg-pw-lightgreen/30 outline-none`}
                   tabIndex={0}
                   onMouseDown={() => router.push(`/post/${result.id}`)}
                 >
                   <div className="font-semibold">{result.title}</div>
-                  <div className="text-xs text-gray-500">{result.description}</div>
+                  <div className="text-xs text-gray-500">
+                    {result.description}
+                  </div>
                 </li>
               ))}
             </ul>
           )}
-          <button className="w-full text-left p-2 border-t border-gray-100 dark:border-pw-gray text-pw-green hover:bg-gray-50 dark:hover:bg-pw-gray font-semibold" onMouseDown={handleSeeAll}>
+          <button
+            className="w-full text-left p-2 border-t border-gray-100 dark:border-pw-gray text-pw-green hover:bg-gray-50 dark:hover:bg-pw-gray font-semibold"
+            onMouseDown={handleSeeAll}
+          >
             Ver todos los resultados
           </button>
         </div>
@@ -110,4 +118,4 @@ const SearchBar: React.FC<SearchBarProps> = ({ placeholder = "Buscar..." }) => {
   );
 };
 
-export default SearchBar; 
+export default SearchBar;

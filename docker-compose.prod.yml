@@ -1,5 +1,3 @@
-version: "3"
-
 services:
   prod_comida_justa:
     image: gcr.io/comida-justa/comida-justa-repo/production:v1
