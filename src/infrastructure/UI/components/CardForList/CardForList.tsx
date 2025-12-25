@@ -4,7 +4,6 @@ import CurrencyAmount from "~/infrastructure/UI/components/CurrencyAmount";
 import { Post } from "~/infrastructure/types/Posts";
 import MediaContent from "~/infrastructure/UI/components/MediaContent/MediaContent";
 
-
 export default function CardForList(props: Post) {
   // const userLocale = typeof window !== 'undefined' ? navigator.language : 'es-MX';
   const { id, title, media, createdAt, price, user, to } = props;
@@ -29,6 +28,7 @@ export default function CardForList(props: Post) {
         value={price}
         locale="es-MX"
         currency="MXN"
+        className="text-xl text-pw-green block mt-1"
       ></CurrencyAmount>
     </Card>
   );

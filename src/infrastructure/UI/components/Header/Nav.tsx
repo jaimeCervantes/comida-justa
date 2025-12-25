@@ -5,18 +5,18 @@ import ListItem from "./ListItem";
 
 export default function Nav() {
   return (
-    <NavigationMenu.Root className="flex justify-center">
-      <NavigationMenu.List className="center m-0 flex flex-wrap list-none rounded-[6px] bg-white dark:bg-pw-gray p-1">
-        <NavigationMenu.Item className="dark:bg-pw-gray">
-          <NavigationMenu.Trigger className="text-pw-green mr-1 hover:bg-violet3 focus:shadow-violet7 group flex select-none items-center justify-between gap-[2px] rounded-[2px] px-3 py-4 text-[15px] font-medium leading-none outline-none focus:shadow-[0_0_0_1px]">
+    <NavigationMenu.Root className="relative z-20 flex justify-center">
+      <NavigationMenu.List className="center m-0 flex list-none rounded-full bg-white/50 dark:bg-black/50 px-2 py-1 shadow-sm backdrop-blur-sm">
+        <NavigationMenu.Item>
+          <NavigationMenu.Trigger className="text-gray-700 dark:text-gray-200 hover:text-pw-green focus:text-pw-green group flex select-none items-center justify-between gap-[2px] rounded-[4px] px-3 py-2 text-[15px] font-medium leading-none outline-none transition-colors">
             Comida sana
             <CaretDownIcon
-              className="pw-green  relative top-[1px] transition-transform duration-[250] ease-in group-data-[state=open]:-rotate-180"
+              className="text-pw-green relative top-[1px] transition-transform duration-[250] ease-in group-data-[state=open]:-rotate-180"
               aria-hidden
             />
           </NavigationMenu.Trigger>
-          <NavigationMenu.Content className="dark:bg-pw-gray data-[motion=from-start]:animate-enterFromLeft data-[motion=from-end]:animate-enterFromRight data-[motion=to-start]:animate-exitToLeft data-[motion=to-end]:animate-exitToRight absolute top-0 left-0 w-full sm:w-auto">
-            <ul className="dark:bg-pw-gray one m-0 grid list-none gap-x-[10px] p-[22px] sm:w-[500px] sm:grid-cols-[0.75fr_1fr]">
+          <NavigationMenu.Content className="absolute top-0 left-0 w-auto">
+            <ul className="m-0 grid list-none gap-x-[10px] p-[22px] w-[300px] md:w-[500px] lg:w-[600px] grid-cols-[0.75fr_1fr]">
               <ListItem href="/platillos" title="Platillos">
                 Platillos locales con ingredientes locales
               </ListItem>
@@ -33,26 +33,24 @@ export default function Nav() {
           </NavigationMenu.Content>
         </NavigationMenu.Item>
 
-        <NavigationMenu.Item className="dark:bg-pw-gray">
-          <NavigationMenu.Trigger className="text-pw-green mr-1 hover:bg-violet3 focus:shadow-violet7 group flex select-none items-center justify-between gap-[2px] rounded-[2px] px-3 py-4 text-[15px] font-medium leading-none outline-none focus:shadow-[0_0_0_1px]">
+        <NavigationMenu.Item>
+          <NavigationMenu.Trigger className="text-gray-700 dark:text-gray-200 hover:text-pw-green focus:text-pw-green group flex select-none items-center justify-between gap-[2px] rounded-[4px] px-3 py-2 text-[15px] font-medium leading-none outline-none transition-colors">
             Comunidad
             <CaretDownIcon
-              className="pw-green  relative top-[1px] transition-transform duration-[250] ease-in group-data-[state=open]:-rotate-180"
+              className="text-pw-green relative top-[1px] transition-transform duration-[250] ease-in group-data-[state=open]:-rotate-180"
               aria-hidden
             />
           </NavigationMenu.Trigger>
-          <NavigationMenu.Content className="dark:bg-pw-gray absolute top-0 left-0 w-full sm:w-auto">
-            <ul className="m-0 grid list-none gap-x-[10px] p-[22px] sm:w-[600px] sm:grid-flow-col sm:grid-rows-2">
+          <NavigationMenu.Content className="absolute top-0 left-0 w-auto">
+            <ul className="m-0 grid list-none gap-x-[10px] p-[22px] w-[300px] md:w-[600px] grid-flow-row md:grid-flow-col md:grid-rows-2">
               <ListItem title="Hábitos" href="/habitos">
                 Hábitos saludables
               </ListItem>
               <ListItem title="Grupos" href="/habitos/grupos">
-                Grupos locales, donde te apoyan a alcanzar tus metas de salud y
-                bienestar
+                Grupos locales, donde te apoyan a alcanzar tus metas
               </ListItem>
               <ListItem title="Deportes" href="/deportes">
-                Dónde practicar deportes con personas que te animan y no te
-                dejan solo
+                Dónde practicar deportes con personas que te animan
               </ListItem>
               <ListItem title="Aprendizaje" href="/aprendizaje">
                 Cómo aprender más con hábitos saludables
@@ -61,41 +59,39 @@ export default function Nav() {
           </NavigationMenu.Content>
         </NavigationMenu.Item>
 
-        <NavigationMenu.Item className="dark:bg-pw-gray">
-          <NavigationMenu.Trigger className="text-pw-green  hover:bg-violet3 focus:shadow-violet7 group flex select-none items-center justify-between gap-[2px] rounded-[2px] px-3 py-4 text-[15px] font-medium leading-none outline-none focus:shadow-[0_0_0_1px]">
+        <NavigationMenu.Item>
+          <NavigationMenu.Trigger className="text-gray-700 dark:text-gray-200 hover:text-pw-green focus:text-pw-green group flex select-none items-center justify-between gap-[2px] rounded-[4px] px-3 py-2 text-[15px] font-medium leading-none outline-none transition-colors">
             Justicia
             <CaretDownIcon
-              className="pw-green  relative top-[1px] transition-transform duration-[250] ease-in group-data-[state=open]:-rotate-180"
+              className="text-pw-green relative top-[1px] transition-transform duration-[250] ease-in group-data-[state=open]:-rotate-180"
               aria-hidden
             />
           </NavigationMenu.Trigger>
-          <NavigationMenu.Content className="dark:bg-pw-gray data-[motion=from-start]:animate-enterFromLeft data-[motion=from-end]:animate-enterFromRight data-[motion=to-start]:animate-exitToLeft data-[motion=to-end]:animate-exitToRight absolute top-0 left-0 w-full sm:w-auto">
-            <ul className="dark:bg-pw-gray one m-0 grid list-none gap-x-[10px] p-[22px] sm:w-[500px] sm:grid-cols-[0.75fr_1fr]">
+          <NavigationMenu.Content className="absolute top-0 left-0 w-auto">
+            <ul className="m-0 grid list-none gap-x-[10px] p-[22px] w-[300px] md:w-[500px] lg:w-[600px] grid-cols-[0.75fr_1fr]">
               <ListItem href="/salud-infantil" title="Salud infantil">
-                Es injusto fomentar una alimentación que les provocará
-                enfermedades a los niños
+                Es injusto fomentar una alimentación dañina
               </ListItem>
               <ListItem href="/medio-ambiente" title="Medio ambiente">
-                Nuestras actividades diarias generan un impacto ambiental
-                negativo, es hora de pensar en los demás.
+                Impacto para las generaciones futuras
               </ListItem>
               <ListItem title="Productores" href="/productores-locales">
-                Grupos de personas para el apoyo a la producción local
+                Apoyo a la producción local
               </ListItem>
               <ListItem title="Negocios locales" href="/negocios-locales">
-                Apoyo, guía a negocios locales que fomentan la comida justa
+                Guía a negocios locales de comida justa
               </ListItem>
             </ul>
           </NavigationMenu.Content>
         </NavigationMenu.Item>
 
         <NavigationMenu.Indicator className="data-[state=visible]:animate-fadeIn data-[state=hidden]:animate-fadeOut top-full z-[1] flex h-[10px] items-end justify-center overflow-hidden transition-[width,transform_250ms_ease]">
-          <div className="relative top-[70%] h-[10px] w-[10px] rotate-[45deg] rounded-tl-[2px] bg-white dark:bg-pw-gray" />
+          <div className="relative top-[70%] h-[10px] w-[10px] rotate-[45deg] rounded-tl-[2px] bg-white dark:bg-gray-900 border-t border-l border-gray-200 dark:border-gray-800" />
         </NavigationMenu.Indicator>
       </NavigationMenu.List>
 
-      <div className="perspective-[2000px] absolute top-full left-0 flex w-full justify-center sm:justify-start">
-        <NavigationMenu.Viewport className="data-[state=open]:animate-scaleIn data-[state=closed]:animate-scaleOut relative mt-[10px] h-[var(--radix-navigation-menu-viewport-height)] w-full origin-[top_center] overflow-hidden rounded-[6px] bg-white dark:bg-pw-gray transition-[width,_height] duration-300 sm:w-[var(--radix-navigation-menu-viewport-width)]" />
+      <div className="absolute top-full left-0 pt-2">
+        <NavigationMenu.Viewport className="data-[state=open]:animate-scaleIn data-[state=closed]:animate-scaleOut relative mt-[10px] h-[var(--radix-navigation-menu-viewport-height)] w-[var(--radix-navigation-menu-viewport-width)] origin-[top_center] overflow-hidden rounded-[10px] bg-white dark:bg-gray-900 shadow-[0_10px_38px_-10px_hsla(206,22%,7%,.35),0_10px_20px_-15px_hsla(206,22%,7%,.2)] transition-[width,_height] duration-300 border border-gray-200 dark:border-gray-800" />
       </div>
     </NavigationMenu.Root>
   );

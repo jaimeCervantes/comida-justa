@@ -3,7 +3,8 @@
     "origin": [
       "http://localhost:3000",
       "https://www.yoliconsciencia",
-      "https://www.hazlosano.com"
+      "https://www.hazlosano.com",
+      "https://hazlosano.com"
     ],
     "method": ["PUT"],
     "responseHeader": ["Content-Type"],

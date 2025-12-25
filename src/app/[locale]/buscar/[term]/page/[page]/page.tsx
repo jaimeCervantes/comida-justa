@@ -28,15 +28,21 @@ export default async function SearchPage({
 
   return (
     <main>
-      <h1 className="text-2xl font-bold my-4">Resultados de búsqueda</h1>
+      <h1 className="text-4xl font-extrabold mb-6 mt-4 text-gray-900 dark:text-gray-100">
+        Resultados de búsqueda
+      </h1>
       {term && (
-        <div className="mb-4 text-gray-600">
+        <div className="mb-8 text-lg text-gray-600 dark:text-gray-400">
           Mostrando resultados para:{" "}
-          <span className="font-semibold text-pw-green">{term}</span>
+          <span className="font-bold text-pw-green">{term}</span>
         </div>
       )}
-      {term && cards.length === 0 && <div>No se encontraron resultados.</div>}
-      <section className="grid grid-flow-dense gap-4 pt-6 max-sm:grid-cols-[repeat(auto-fill,_minmax(300px,_1fr))] sm:grid-cols-[repeat(auto-fill,_minmax(300px,_1fr))]">
+      {term && cards.length === 0 && (
+        <div className="text-xl text-gray-500 text-center py-20">
+          No se encontraron resultados para tu búsqueda.
+        </div>
+      )}
+      <section className="grid gap-8 pt-2 pb-10 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {cards.map((card: any) => (
           <CardForList key={card.id} {...card} />
         ))}

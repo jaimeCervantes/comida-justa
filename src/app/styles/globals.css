@@ -4,21 +4,45 @@
 @import "./utility-patterns.css";
 
 :root {
-  --cj-bg-color: white;
-  --cj-text-color: black;
-  @media (prefers-color-scheme: dark) {
-    --cj-bg-color: black;
-    --cj-text-color: white;
+  --cj-bg-color: #fafafa; /* Softer white */
+  --cj-text-color: #1a1a1a; /* Softer black */
+  --highlight: #2abf40;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --cj-bg-color: #0d0d0d; /* Deep rich black */
+    --cj-text-color: #ededed;
   }
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
-  background-color: var(--cj-bg-color, white);
-  color: var(--cj-text-color, black);
+  background-color: var(--cj-bg-color);
+  color: var(--cj-text-color);
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background-color: var(--highlight);
+  color: white;
 }
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+
+  .glass {
+    @apply bg-white/70 dark:bg-black/70 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800;
+  }
+
+  .container-width {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
   }
 }
