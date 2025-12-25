@@ -14,15 +14,17 @@ async function fetchResults(q: string, page: number, pageSize: number) {
 
 export default async function SearchPage({
   searchParams,
+  params,
 }: {
-  searchParams: { q?: string; page?: string };
+  searchParams: Promise<{ q?: string; page?: string }>;
+  params: Promise<{ locale: string }>;
 }) {
-  const q = (await searchParams).q || "";
-  const pageAwaited = (await searchParams).page || "1";
-  const page = parseInt(pageAwaited, 10);
+  const { q = "", page = "1" } = await searchParams;
+  const { locale } = await params;
+  const pageInt = parseInt(page, 10);
   const pageSize = 5;
   const data = q
-    ? await fetchResults(q, page, pageSize)
+    ? await fetchResults(q, pageInt, pageSize)
     : { results: [], total: 0 };
   const cards = mapPostsToCards(data.results || []);
   const totalPages = Math.ceil((data.total || 0) / pageSize);
@@ -44,9 +46,9 @@ export default async function SearchPage({
       </section>
       {/* Pagination */}
       <Pagination
-        currentPage={page}
+        currentPage={pageInt}
         totalPages={totalPages}
-        basePath={`/search/${encodeURIComponent(q)}/page`}
+        basePath={`/${locale}/search/${encodeURIComponent(q)}/page`}
       />
     </>
   );

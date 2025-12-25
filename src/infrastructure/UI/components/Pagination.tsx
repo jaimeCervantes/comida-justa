@@ -7,7 +7,11 @@ interface PaginationProps {
   basePath: string; // e.g. "/page" or "/search/{term}/page"
 }
 
-export default function Pagination({ currentPage, totalPages, basePath }) {
+export default function Pagination({
+  currentPage,
+  totalPages,
+  basePath,
+}: PaginationProps) {
   if (totalPages <= 1) return null;
 
   // Calculate page range (max 5 pages, centered)
@@ -31,11 +35,15 @@ export default function Pagination({ currentPage, totalPages, basePath }) {
         </Link>
       )}
       <div className="flex space-x-2">
-        {pages.map(pageNum => (
+        {pages.map((pageNum) => (
           <Link
             key={`page-link-${pageNum}`}
             href={`${basePath}/${pageNum}`}
-            className={`px-4 py-2 border rounded-full ${pageNum === currentPage ? 'bg-pw-lightgreen text-white' : 'bg-white dark:text-black hover:bg-gray-300'}`}
+            className={`px-4 py-2 border rounded-full ${
+              pageNum === currentPage
+                ? "bg-pw-lightgreen text-white"
+                : "bg-white dark:text-black hover:bg-gray-300"
+            }`}
           >
             {pageNum}
           </Link>

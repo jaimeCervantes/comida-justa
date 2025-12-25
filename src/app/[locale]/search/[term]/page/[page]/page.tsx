@@ -15,13 +15,13 @@ async function fetchResults(term: string, page: number, pageSize: number) {
 export default async function SearchPage({
   params,
 }: {
-  params: { term: string; page: string };
+  params: Promise<{ term: string; page: string }>;
 }) {
-  const term = (await params).term || "";
-  const page = parseInt((await params).page || "1", 10);
+  const { term, page } = await params;
+  const pageInt = parseInt(page || "1", 10);
   const pageSize = 2;
   const data = term
-    ? await fetchResults(term, page, pageSize)
+    ? await fetchResults(term, pageInt, pageSize)
     : { results: [], total: 0 };
   const cards = mapPostsToCards(data.results || []);
   const totalPages = Math.ceil((data.total || 0) / pageSize);
@@ -42,7 +42,7 @@ export default async function SearchPage({
         ))}
       </section>
       <Pagination
-        currentPage={page}
+        currentPage={pageInt}
         totalPages={totalPages}
         basePath={`/search/${encodeURIComponent(term)}/page`}
       />
