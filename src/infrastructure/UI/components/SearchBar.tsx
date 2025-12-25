@@ -8,6 +8,7 @@ interface SearchResult {
   id: string;
   title: string;
   description: string;
+  slug: string;
 }
 
 interface SearchBarProps {
@@ -94,12 +95,14 @@ const SearchBar: React.FC<SearchBarProps> = ({ placeholder = "Buscar..." }) => {
               {results.map((result, idx) => (
                 <li
                   key={result.id}
-                  className={`p-2 border-b last:border-b-0 border-gray-200 dark:border-pw-gray cursor-pointer transition-colors hover:bg-pw-lightgreen/20 focus:bg-pw-lightgreen/30 outline-none`}
+                  className={`p-3 border-b last:border-b-0 border-gray-100 dark:border-gray-700 cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-gray-800 focus:bg-gray-100 dark:focus:bg-gray-700 outline-none`}
                   tabIndex={0}
-                  onMouseDown={() => router.push(`/post/${result.id}`)}
+                  onMouseDown={() => router.push(`/${result.slug}`)}
                 >
-                  <div className="font-semibold">{result.title}</div>
-                  <div className="text-xs text-gray-500">
+                  <div className="font-bold text-gray-800 dark:text-gray-200 text-sm">
+                    {result.title}
+                  </div>
+                  <div className="text-xs text-gray-500 mt-1 line-clamp-1">
                     {result.description}
                   </div>
                 </li>
