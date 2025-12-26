@@ -17,10 +17,7 @@ export default function LinkButton({
 
   const handleClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
     if (onClick) {
-      const result = onClick(e);
-      if (result && typeof (result as any).then === "function") {
-        await result;
-      }
+      await Promise.resolve(onClick(e));
     }
     // Artificial delay to show the loader briefly if navigation is instant,
     // or to ensure the user sees the feedback.
