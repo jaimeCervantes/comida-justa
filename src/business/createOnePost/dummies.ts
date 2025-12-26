@@ -6,13 +6,13 @@ export const samplePostInfo: Post = {
   content: "This is the content of the test post.",
   contactInfo: {
     phone: "1234567890",
-    email: "test@example.com"
+    email: "test@example.com",
   },
   media: {
-    url: "http://saludjusta.com/files/test.jpg",
-    type: 'image',
-    alt: 'Test Post Title'
+    url: "http://hazlosano.com/files/test.jpg",
+    type: "image",
+    alt: "Test Post Title",
   },
-  user: { id: 'user123', name: 'Test User' } as User, // Cast as User
-  createdAt: new Date()
+  user: { id: "user123", name: "Test User" } as User, // Cast as User
+  createdAt: new Date(),
 };
