@@ -2,6 +2,7 @@
 import type { ButtonProps } from "./Button.d";
 import classNames from "classnames";
 import { BiLoaderAlt } from "react-icons/bi";
+import { useState } from "react";
 
 const styleBtn = {
   green: "bg-pw-green text-white hover:bg-pw-green/80",
@@ -30,8 +31,24 @@ export default function Button({
   startIcon,
   endIcon,
   isLoading,
+  showLoader,
   ...moreProps
 }: Partial<ButtonProps>) {
+  const [internalLoading, setInternalLoading] = useState(false);
+
+  const handleClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    if (showLoader && onClick) {
+      setInternalLoading(true);
+      try {
+        await onClick(e);
+      } finally {
+        setInternalLoading(false);
+      }
+    } else if (onClick) {
+      onClick(e);
+    }
+  };
+
   const buttonClassName = classNames(
     "relative rounded-sm",
     className,
@@ -44,18 +61,20 @@ export default function Button({
     "mr-1": endIcon,
   });
 
+  const isBtnLoading = isLoading || internalLoading;
+
   return (
     <button
-      onClick={onClick}
+      onClick={handleClick}
       className={buttonClassName}
-      disabled={disabled || isLoading}
+      disabled={disabled || isBtnLoading}
       type={type}
       {...moreProps}
     >
       {startIcon && startIcon}
       <span className={btnContentClasses}>
         {children}
-        {isLoading ? (
+        {isBtnLoading ? (
           <BiLoaderAlt
             className="motion-safe:animate-spin h-5 w-5"
             title="Cargando..."

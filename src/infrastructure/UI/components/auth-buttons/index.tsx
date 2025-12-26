@@ -1,40 +1,46 @@
 import { signIn, signOut } from "~/infrastructure/auth";
-import Button from "~/infrastructure/UI/components/Button";
 import { PersonIcon, ExitIcon } from "@radix-ui/react-icons";
+import AuthActionButton from "./AuthActionButton";
+import { Suspense } from "react";
 
 export function SignIn({
   provider,
   children,
   ...props
-}: { provider?: string } & React.ComponentProps<typeof Button>) {
+}: { provider?: string } & Omit<
+  React.ComponentProps<typeof AuthActionButton>,
+  "action"
+>) {
   return (
-    <form
+    <AuthActionButton
+      color="green"
+      startIcon={<PersonIcon />}
+      {...props}
       action={async () => {
         "use server";
         await signIn(provider);
       }}
     >
-      <Button color="green" startIcon={<PersonIcon />} {...props}>
-        {children}
-      </Button>
-    </form>
+      {children}
+    </AuthActionButton>
   );
 }
 
 export function SignOut({
   children,
   ...props
-}: React.ComponentProps<typeof Button>) {
+}: Omit<React.ComponentProps<typeof AuthActionButton>, "action">) {
   return (
-    <form
+    <AuthActionButton
+      color="black"
+      startIcon={<ExitIcon />}
+      {...props}
       action={async () => {
         "use server";
         await signOut();
       }}
     >
-      <Button color="black" startIcon={<ExitIcon />} {...props}>
-        {children}
-      </Button>
-    </form>
+      {children}
+    </AuthActionButton>
   );
 }

@@ -11,6 +11,8 @@ import LanguageSwitcher from "../LanguageSwitcher/LanguageSwitcher";
 import MobileNav from "./MobileNav";
 import { PUBLIC_BRAND_NAME } from "~/infrastructure/constants";
 
+import LinkButton from "../LinkButton/LinkButton";
+
 export default async function Header({ locale }: { locale: string }) {
   const session = await auth();
 
@@ -19,15 +21,15 @@ export default async function Header({ locale }: { locale: string }) {
       <div className="container-width flex h-16 items-center justify-between">
         <div className="flex gap-4 sm:gap-6 items-center">
           <MobileNav>
-            <Link href="/publicar" className="w-full">
-              <Button
-                color="green"
-                startIcon={<LuSalad />}
-                className="w-full justify-center"
-              >
-                Publicar
-              </Button>
-            </Link>
+            <LinkButton
+              href="/publicar"
+              color="green"
+              startIcon={<LuSalad />}
+              className="w-full justify-center"
+              showLoader
+            >
+              Publicar
+            </LinkButton>
             {session ? (
               <div className="flex flex-col gap-4">
                 <div className="flex items-center gap-3 px-2 py-2 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
@@ -41,12 +43,14 @@ export default async function Header({ locale }: { locale: string }) {
                     </span>
                   </div>
                 </div>
-                <SignOut className="w-full justify-center">
+                <SignOut className="w-full justify-center" showLoader>
                   Cerrar sesión
                 </SignOut>
               </div>
             ) : (
-              <SignIn className="w-full justify-center">Iniciar sesión</SignIn>
+              <SignIn className="w-full justify-center" showLoader>
+                Iniciar sesión
+              </SignIn>
             )}
           </MobileNav>
           <Link
@@ -72,21 +76,23 @@ export default async function Header({ locale }: { locale: string }) {
         </div>
 
         <div className="flex gap-4 items-center">
-          <Link href="/publicar">
-            <Button
-              color="green"
-              startIcon={<LuSalad title="Publicar" />}
-              aria-label="Publicar"
-            >
-              <span className="hidden sm:block">Publicar</span>
-            </Button>
-          </Link>
+          <LinkButton
+            href="/publicar"
+            color="green"
+            startIcon={<LuSalad title="Publicar" />}
+            aria-label="Publicar"
+            showLoader
+          >
+            <span className="hidden sm:block">Publicar</span>
+          </LinkButton>
 
           {session ? (
             <div className="flex items-center gap-3">
               <Avatar user={session?.user} />
               <div className="hidden lg:block text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors">
-                <SignOut aria-label="Cerrar sesión">Salir</SignOut>
+                <SignOut aria-label="Cerrar sesión" showLoader>
+                  Salir
+                </SignOut>
               </div>
             </div>
           ) : (
