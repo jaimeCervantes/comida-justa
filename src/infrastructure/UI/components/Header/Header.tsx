@@ -9,6 +9,7 @@ import Button from "../Button/Button";
 import SearchBar from "../SearchBar";
 import LanguageSwitcher from "../LanguageSwitcher/LanguageSwitcher";
 import MobileNav from "./MobileNav";
+import { PUBLIC_BRAND_NAME } from "~/infrastructure/constants";
 
 export default async function Header({ locale }: { locale: string }) {
   const session = await auth();
@@ -56,7 +57,7 @@ export default async function Header({ locale }: { locale: string }) {
               src="/logo.png"
               width={40}
               height={40}
-              alt="Logo Comida Justa"
+              alt={`Logo ${PUBLIC_BRAND_NAME}`}
               priority
               className="rounded-full"
             />

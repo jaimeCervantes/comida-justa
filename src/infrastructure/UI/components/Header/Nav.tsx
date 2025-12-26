@@ -2,6 +2,7 @@
 import * as NavigationMenu from "@radix-ui/react-navigation-menu";
 import { CaretDownIcon } from "@radix-ui/react-icons";
 import ListItem from "./ListItem";
+import { PUBLIC_BRAND_NAME } from "~/infrastructure/constants";
 
 export default function Nav() {
   return (
@@ -79,7 +80,7 @@ export default function Nav() {
                 Apoyo a la producción local
               </ListItem>
               <ListItem title="Negocios locales" href="/negocios-locales">
-                Guía a negocios locales de comida justa
+                Guía a negocios locales de {PUBLIC_BRAND_NAME}
               </ListItem>
             </ul>
           </NavigationMenu.Content>

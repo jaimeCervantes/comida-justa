@@ -3,11 +3,12 @@ import { Inter } from "next/font/google";
 import Header from "~/infrastructure/UI/components/Header/Header";
 import "~/app/styles/globals.css";
 import { GoogleAnalytics } from "@next/third-parties/google";
+import { PUBLIC_BRAND_NAME } from "~/infrastructure/constants";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Comida Justa",
+  title: PUBLIC_BRAND_NAME,
   description:
     "¿Como evitar enfermedades, ahorrar tiempo y dinero, al mismo tiempo que apoyas al medio ambiente y a tu comunidad?",
 };

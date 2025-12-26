@@ -1,38 +1,44 @@
-import { Metadata } from 'next';
+import { Metadata } from "next";
 import Link from "next/link";
-import { getMultiplePosts, getTotalPosts } from "~/infrastructure/dataAccess/getMultiplePosts";
+import {
+  getMultiplePosts,
+  getTotalPosts,
+} from "~/infrastructure/dataAccess/getMultiplePosts";
 import { mapPostsToCards } from "~/infrastructure/UI/mappers/posts/mapPostsToCards";
 import { Post } from "~/infrastructure/types/Posts";
-import { notFound } from 'next/navigation';
-import { PAGINATION_INIT_PAGE, PAGINATION_PAGE_SIZE } from '~/infrastructure/constants';
-import CardForList from '~/infrastructure/UI/components/CardForList/CardForList';
-import { CANONICAL_URL } from '~/infrastructure/constants';
+import { notFound } from "next/navigation";
+import {
+  PAGINATION_INIT_PAGE,
+  PAGINATION_PAGE_SIZE,
+} from "~/infrastructure/constants";
+import CardForList from "~/infrastructure/UI/components/CardForList/CardForList";
+import { CANONICAL_URL, PUBLIC_BRAND_NAME } from "~/infrastructure/constants";
 
 type Props = {
-  params: Promise<{ page: string }>
+  params: Promise<{ page: string }>;
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { page: pageStr } = await params;
   const totalPosts = await getTotalPosts();
   const totalPages = Math.ceil(totalPosts / PAGINATION_PAGE_SIZE);
-  const page = parseInt(pageStr)
+  const page = parseInt(pageStr);
   // Si la página no existe, no generamos metadata (notFound se manejará en el componente)
   if (isNaN(page) || page < 1 || page > totalPages) {
     return {};
   }
 
   return {
-    title: `Comida Justa - Página ${page}`,
+    title: `${PUBLIC_BRAND_NAME} - Página ${page}`,
     description: `Explora nuestra selección de alimentos en la página ${page}. Comida saludable para ti y tu comunidad.`,
     openGraph: {
-      title: `Comida Justa - Página ${page}`,
+      title: `${PUBLIC_BRAND_NAME} - Página ${page}`,
       description: `Explora nuestra selección de alimentos en la página ${page}. Comida saludable para ti y tu comunidad.`,
-      images: ['/og-image.jpg'],
+      images: ["/og-image.jpg"],
     },
     alternates: {
       canonical: `${CANONICAL_URL}/page/${page}`,
-    }
+    },
   };
 }
 
@@ -43,7 +49,7 @@ async function getPosts(page: number) {
   return {
     ...result,
     posts: mapPostsToCards(result.posts),
-    totalPages: Math.ceil(result.total / PAGINATION_PAGE_SIZE)
+    totalPages: Math.ceil(result.total / PAGINATION_PAGE_SIZE),
   };
 }
 
@@ -66,8 +72,8 @@ export default async function PaginatedPage({ params }: Props) {
   return (
     <main>
       <h1 className="text-xl font-bold">
-        Comida Justa: ¿Como evitar enfermedades, ahorrar tiempo y dinero, al
-        mismo tiempo que apoyas al medio ambiente y a tu comunidad?
+        {PUBLIC_BRAND_NAME}: ¿Como evitar enfermedades, ahorrar tiempo y dinero,
+        al mismo tiempo que apoyas al medio ambiente y a tu comunidad?
       </h1>
 
       <section className="grid grid-flow-dense gap-4 pt-6 max-sm:grid-cols-[repeat(auto-fill,_minmax(300px,_1fr))] sm:grid-cols-[repeat(auto-fill,_minmax(300px,_1fr))]">
@@ -81,7 +87,10 @@ export default async function PaginatedPage({ params }: Props) {
       </section>
 
       {/* Paginación visible para SEO y usabilidad */}
-      <nav aria-label="Paginación" className="flex justify-center mt-8 space-x-4">
+      <nav
+        aria-label="Paginación"
+        className="flex justify-center mt-8 space-x-4"
+      >
         {prevPage && page > 1 && (
           <Link
             href={`/page/${prevPage}`}
@@ -95,9 +104,10 @@ export default async function PaginatedPage({ params }: Props) {
         <div className="flex space-x-2">
           {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
             // Crear un rango de páginas centrado en la actual cuando sea posible
-            const pageNum = page <= 3
-              ? i + 1
-              : page > totalPages - 2
+            const pageNum =
+              page <= 3
+                ? i + 1
+                : page > totalPages - 2
                 ? totalPages - 4 + i
                 : page - 2 + i;
 
@@ -106,8 +116,11 @@ export default async function PaginatedPage({ params }: Props) {
                 <Link
                   key={`page-link-${pageNum}`}
                   href={`/page/${pageNum}`}
-                  className={`px-4 py-2 border rounded-full ${pageNum === page ? 'bg-pw-lightgreen text-white' : 'bg-white dark:text-black hover:bg-gray-300'
-                    }`}
+                  className={`px-4 py-2 border rounded-full ${
+                    pageNum === page
+                      ? "bg-pw-lightgreen text-white"
+                      : "bg-white dark:text-black hover:bg-gray-300"
+                  }`}
                 >
                   {pageNum}
                 </Link>

@@ -8,6 +8,7 @@ import {
 } from "@radix-ui/react-icons";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { PUBLIC_BRAND_NAME } from "~/infrastructure/constants";
 
 interface MenuItem {
   title: string;
@@ -155,7 +156,7 @@ export default function MobileNav({ children }: { children: React.ReactNode }) {
         </div>
 
         <nav className="flex-1 pr-2">
-          <ul className="space-y-2 pb-20">
+          <ul className="space-y-2">
             {MENU_ITEMS.map((section) => (
               <li
                 key={section.title}
@@ -202,7 +203,7 @@ export default function MobileNav({ children }: { children: React.ReactNode }) {
         </div>
 
         <div className="py-6 border-t border-gray-100 dark:border-gray-800 text-center text-sm text-gray-500 flex-shrink-0">
-          Comida Justa &copy; {new Date().getFullYear()}
+          {PUBLIC_BRAND_NAME} &copy; {new Date().getFullYear()}
         </div>
       </div>
     </div>
