@@ -88,7 +88,9 @@ const MENU_ITEMS: MenuItem[] = [
   },
 ];
 
-export default function MobileNav() {
+import Image from "next/image";
+
+export default function MobileNav({ children }: { children: React.ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
   const [openSubmenu, setOpenSubmenu] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
@@ -127,9 +129,22 @@ export default function MobileNav() {
     >
       <div className="flex flex-col h-full container-width py-4 overflow-hidden">
         <div className="flex justify-between items-center mb-8 flex-shrink-0">
-          <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-pw-green to-teal-500">
-            Menú
-          </span>
+          <Link
+            href="/"
+            onClick={() => setIsOpen(false)}
+            className="flex items-center gap-2"
+          >
+            <Image
+              src="/logo.png"
+              width={40}
+              height={40}
+              alt="Logo"
+              className="rounded-full"
+            />
+            <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-pw-green to-teal-500">
+              Comida Justa
+            </span>
+          </Link>
           <button
             onClick={() => setIsOpen(false)}
             className="p-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
@@ -139,7 +154,7 @@ export default function MobileNav() {
           </button>
         </div>
 
-        <nav className="flex-1 overflow-y-auto pr-2">
+        <nav className="flex-1 pr-2">
           <ul className="space-y-2 pb-20">
             {MENU_ITEMS.map((section) => (
               <li
@@ -182,7 +197,11 @@ export default function MobileNav() {
           </ul>
         </nav>
 
-        <div className="mt-auto py-6 border-t border-gray-100 dark:border-gray-800 text-center text-sm text-gray-500 flex-shrink-0">
+        <div className="flex flex-col gap-4 px-2 pb-6 border-t border-gray-100 dark:border-gray-800 pt-6">
+          {children}
+        </div>
+
+        <div className="py-6 border-t border-gray-100 dark:border-gray-800 text-center text-sm text-gray-500 flex-shrink-0">
           Comida Justa &copy; {new Date().getFullYear()}
         </div>
       </div>

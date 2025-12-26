@@ -17,7 +17,37 @@ export default async function Header({ locale }: { locale: string }) {
     <header className="sticky top-0 z-50 w-full glass transition-all duration-300">
       <div className="container-width flex h-16 items-center justify-between">
         <div className="flex gap-4 sm:gap-6 items-center">
-          <MobileNav />
+          <MobileNav>
+            <Link href="/publicar" className="w-full">
+              <Button
+                color="green"
+                startIcon={<LuSalad />}
+                className="w-full justify-center"
+              >
+                Publicar
+              </Button>
+            </Link>
+            {session ? (
+              <div className="flex flex-col gap-4">
+                <div className="flex items-center gap-3 px-2 py-2 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                  <Avatar user={session?.user} />
+                  <div className="flex flex-col">
+                    <span className="font-medium text-gray-900 dark:text-gray-100">
+                      {session.user?.name}
+                    </span>
+                    <span className="text-xs text-gray-500 truncate max-w-[200px]">
+                      {session.user?.email}
+                    </span>
+                  </div>
+                </div>
+                <SignOut className="w-full justify-center">
+                  Cerrar sesión
+                </SignOut>
+              </div>
+            ) : (
+              <SignIn className="w-full justify-center">Iniciar sesión</SignIn>
+            )}
+          </MobileNav>
           <Link
             href="/"
             className="flex-shrink-0 transition-transform hover:scale-105"
@@ -41,9 +71,13 @@ export default async function Header({ locale }: { locale: string }) {
         </div>
 
         <div className="flex gap-4 items-center">
-          <Link href="/publicar" className="hidden sm:block">
-            <Button color="green" startIcon={<LuSalad title="Publicar" />}>
-              Publicar
+          <Link href="/publicar">
+            <Button
+              color="green"
+              startIcon={<LuSalad title="Publicar" />}
+              aria-label="Publicar"
+            >
+              <span className="hidden sm:block">Publicar</span>
             </Button>
           </Link>
 
@@ -51,11 +85,13 @@ export default async function Header({ locale }: { locale: string }) {
             <div className="flex items-center gap-3">
               <Avatar user={session?.user} />
               <div className="hidden lg:block text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors">
-                <SignOut>Salir</SignOut>
+                <SignOut aria-label="Cerrar sesión">Salir</SignOut>
               </div>
             </div>
           ) : (
-            <SignIn>Iniciar sesión</SignIn>
+            <SignIn aria-label="Iniciar sesión">
+              <span className="hidden sm:block">Iniciar sesión</span>
+            </SignIn>
           )}
           <LanguageSwitcher />
         </div>

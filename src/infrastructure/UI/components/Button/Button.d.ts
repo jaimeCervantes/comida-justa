@@ -1,6 +1,6 @@
-import type { ReactNode } from "react";
+import type { ReactNode, ButtonHTMLAttributes } from "react";
 
-export type ButtonProps = {
+export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   className: string;
   disabled: boolean;
   size: "xs" | "sm" | "md" | "lg" | "xl";
