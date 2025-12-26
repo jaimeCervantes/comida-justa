@@ -143,7 +143,7 @@ export default function MobileNav({ children }: { children: React.ReactNode }) {
               className="rounded-full"
             />
             <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-pw-green to-teal-500">
-              Comida Justa
+              {PUBLIC_BRAND_NAME}
             </span>
           </Link>
           <button
