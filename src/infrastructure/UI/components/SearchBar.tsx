@@ -30,13 +30,32 @@ const SearchBar: React.FC<SearchBarProps> = ({ placeholder = "Buscar..." }) => {
       setShowDropdown(false);
       return;
     }
+
+    // Rules: only search when length >= 3, or when user completes a word (space)
+    const trimmed = query.trim();
+    const lastCharIsSpace = query.endsWith(" ");
+    const minLen = 3;
+
+    const shouldSearchNow = () => {
+      if (trimmed.length === 0) return false;
+      if (lastCharIsSpace && trimmed.length >= 1) return true; // search by-word when user types a space
+      return trimmed.length >= minLen;
+    };
+
+    if (!shouldSearchNow()) {
+      setResults([]);
+      setShowDropdown(false);
+      return;
+    }
+
     setLoading(true);
+    // show the dropdown immediately so the skeleton is visible while fetching
+    setShowDropdown(true);
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    timeoutRef.current = setTimeout(async () => {
+
+    const doFetch = async () => {
       try {
-        const res = await fetch(
-          `/api/search?q=${encodeURIComponent(query)}&limit=5`
-        );
+        const res = await fetch(`/api/search?q=${encodeURIComponent(query)}&limit=5`);
         const data = await res.json();
         setResults(data.results || []);
         setShowDropdown(true);
@@ -46,7 +65,15 @@ const SearchBar: React.FC<SearchBarProps> = ({ placeholder = "Buscar..." }) => {
       } finally {
         setLoading(false);
       }
-    }, 300);
+    };
+
+    // If user just typed a space, run search immediately (word boundary), otherwise debounce
+    if (lastCharIsSpace) {
+      doFetch();
+    } else {
+      timeoutRef.current = setTimeout(doFetch, 500);
+    }
+
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
@@ -87,7 +114,18 @@ const SearchBar: React.FC<SearchBarProps> = ({ placeholder = "Buscar..." }) => {
       {showDropdown && (
         <div className="absolute left-0 right-0 mt-1 bg-white dark:bg-pw-gray border border-gray-200 dark:border-pw-gray rounded shadow-lg z-50">
           {loading ? (
-            <div className="p-2 text-center text-gray-500">Buscando...</div>
+            <div className="p-2">
+              <ul className="animate-pulse">
+                {[1, 2, 3].map((i) => (
+                  <li key={i} className="px-1 py-3 border-b last:border-b-0 border-gray-100 dark:border-gray-700">
+                    <div>
+                      <div className="h-3 bg-gray-200 dark:bg-gray-200 rounded w-3/4 mb-2" />
+                      <div className="h-2 bg-gray-200 dark:bg-gray-200 rounded w-1/2" />
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
           ) : results.length === 0 ? (
             <div className="p-2 text-center text-gray-500">Sin resultados</div>
           ) : (
@@ -110,7 +148,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ placeholder = "Buscar..." }) => {
             </ul>
           )}
           <button
-            className="w-full text-left p-2 border-t border-gray-100 dark:border-pw-gray text-pw-green hover:bg-gray-50 dark:hover:bg-pw-gray font-semibold"
+            className="w-full text-left p-3 border-t border-gray-100 dark:border-pw-gray text-pw-green hover:bg-gray-50 dark:hover:bg-pw-gray font-semibold"
             onMouseDown={handleSeeAll}
           >
             Ver todos los resultados

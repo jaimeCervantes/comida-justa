@@ -9,17 +9,28 @@ export async function getPost(
   collection: CollectionReference<FirestorePost> = collections.posts()
 ) {
   try {
-    const queryResult = await collection.where("slug", "==", slug).get();
+    const queryResult = await collection.where("translations.es.slug", "==", slug).get();
 
     if (queryResult.empty) {
       return {
         errorMessage: "No se encontró el post",
       };
     }
-
+    const post = queryResult.docs[0];
     const postInfo = {
-      ...queryResult.docs[0]?.data(),
-      id: queryResult.docs[0]?.id, // at the if by error we insert an empty id field in the post, so this return the real id from firebase
+      translations: {
+        es: {
+          title: post?.data().translations?.es?.title,
+          content: post?.data().translations?.es?.content,
+          slug: post?.data().translations?.es?.slug,
+        }
+      },
+      createdAt: post?.data().createdAt,
+      user: post?.data().user,
+      price: post?.data().price,
+      media: post?.data().media,
+      contactInfo: post?.data().contactInfo,
+      id: post?.id, // at the if by error we insert an empty id field in the post, so this return the real id from firebase
     };
 
     return postInfo;

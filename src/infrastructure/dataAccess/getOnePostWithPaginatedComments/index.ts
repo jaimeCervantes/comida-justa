@@ -24,7 +24,18 @@ export async function getOnePostWithPaginatedComments(
 
     const postDoc = queryResult.docs[0];
     const postInfo = {
-      ...postDoc.data(),
+      translations: {
+        es: {
+          title: postDoc?.data().translations?.es?.title,
+          content: postDoc?.data().translations?.es?.content,
+          slug: postDoc?.data().translations?.es?.slug,
+        }
+      },
+      createdAt: postDoc?.data().createdAt,
+      user: postDoc?.data().user,
+      price: postDoc?.data().price,
+      media: postDoc?.data().media,
+      contactInfo: postDoc?.data().contactInfo,
       id: postDoc.id,
     };
 

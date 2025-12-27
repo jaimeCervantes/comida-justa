@@ -26,7 +26,21 @@ export async function getMultiplePosts(
     .get();
 
   const postData = posts.docs.map((doc: FirestorePost) => {
-    return { ...doc.data(), id: doc.id };
+    return {
+      id: doc.id,
+      translations: {
+        es: {
+          title: doc.data().translations?.es?.title,
+          content: doc.data().translations?.es?.content,
+          slug: doc.data().translations?.es?.slug,
+        }
+      },
+      createdAt: doc.data().createdAt,
+      user: doc.data().user,
+      price: doc.data().price,
+      media: doc.data().media,
+      contactInfo: doc.data().contactInfo,
+    };
   });
 
   const hasNextPage = total > page * pageSize;

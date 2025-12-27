@@ -1,9 +1,6 @@
 export type VoidOrError = void | never;
 export type Post = {
-  title: string;
-  slug: string;
   translations?: Record<string, any>;
-  content: string;
   price?: number | null;
   contactInfo: {
     phone: string;
