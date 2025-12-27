@@ -1,4 +1,4 @@
-import { CANONICAL_URL } from "~/infrastructure/constants";
+import { CANONICAL_URL, PUBLIC_BRAND_NAME } from "~/infrastructure/constants";
 
 type GenerateSeoInput = {
   title: string;
@@ -44,7 +44,7 @@ export function generateSeo({
       : trimedDescription;
 
   return {
-    title: `${title} | Hazlo sano`,
+    title: `${title} | ${PUBLIC_BRAND_NAME}`,
     metas: [
       // Meta tags básicas
       {
