@@ -1,5 +1,5 @@
 {
-  "name": "comida-justa",
+  "name": "hazlo-sano",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -24,7 +24,7 @@
     "backfill-embeddings": "ts-node src/scripts/backfillEmbeddings.ts"
   },
   "dependencies": {
-    "@auth/firebase-adapter": "^1.5.2",
+    "@auth/firebase-adapter": "^2.11.1",
     "@google-cloud/aiplatform": "^6.0.0",
     "@next/third-parties": "^15.3.2",
     "@radix-ui/colors": "^3.0.0",
