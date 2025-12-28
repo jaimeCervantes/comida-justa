@@ -1,7 +1,14 @@
-export default async function SignInPage() {
-  const base = process.env.NEXTAUTH_URL ?? process.env.NEXT_PUBLIC_VERCEL_URL ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}` : "http://localhost:3000";
-  const res = await fetch(`${base}/api/auth/providers`, { cache: "no-store" });
-  const providers = (await res.json()) as Record<string, { id: string; name: string }> | null;
+"use client";
+
+import { useEffect, useState } from "react";
+import { getProviders, signIn, ClientSafeProvider } from "next-auth/react";
+
+export default function SignInPage() {
+  const [providers, setProviders] = useState<Record<string, ClientSafeProvider> | null>(null);
+
+  useEffect(() => {
+    getProviders().then((p) => setProviders(p));
+  }, []);
 
   return (
     <div className="w-full max-w-lg flex items-center justify-center align-items-center mx-auto">
@@ -18,9 +25,9 @@ export default async function SignInPage() {
           <div className="w-full mt-6 space-y-3">
             {providers &&
               Object.values(providers).map((provider) => (
-                <a
+                <button
                   key={provider.id}
-                  href={`/api/auth/signin/${provider.id}?callbackUrl=/`}
+                  onClick={() => signIn(provider.id)}
                   aria-label={`Sign in with ${provider.name}`}
                   className="w-full flex items-center justify-between gap-3 py-3 px-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:shadow-md transition-shadow focus:outline-none focus:ring-2 focus:ring-pw-lightgreen/40"
                 >
@@ -38,7 +45,7 @@ export default async function SignInPage() {
                   <svg className="h-5 w-5 text-pw-green" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
                   </svg>
-                </a>
+                </button>
               ))}
           </div>
 
