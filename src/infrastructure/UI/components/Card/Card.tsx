@@ -16,15 +16,14 @@ export default function Card({
   children,
 }: CardProps) {
   const clsN =
-    `bg-white dark:bg-pw-gray rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-gray-100 dark:border-gray-800 ${
-      className ?? ""
-    }`.trim();
+    `bg-white dark:bg-pw-gray rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-gray-100 dark:border-gray-800 group hover:ring-2 hover:ring-pw-orange ${className ?? ""
+      }`.trim();
 
   return (
     <Container className={clsN} style={style ?? ""}>
       {media}
       <section className="p-5 flex flex-col flex-grow">
-        <h3 className="mb-3 text-lg font-bold leading-tight text-gray-900 dark:text-gray-100 group-hover:text-pw-green transition-colors">
+        <h3 className="mb-3 text-lg font-bold leading-tight text-gray-900 dark:text-gray-100 group-hover:text-pw-lightgreen transition-colors">
           <AnchorElement {...anchorProps}>{title}</AnchorElement>
         </h3>
         {children}

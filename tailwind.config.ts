@@ -12,10 +12,10 @@ const config: Config = {
           "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
       },
       colors: {
-        "pw-green": "#2ABF40",
+        "pw-green": "#538f39",
         "pw-lightgreen": "#5DBF17",
         "pw-lightorange": "#F2B705",
-        "pw-orange": "#F28705",
+        "pw-orange": "#f0380e",
         "pw-gray": "#334155",
         "pw-black": "#000000",
         "pw-white": "#ffffff",

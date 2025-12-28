@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     openGraph: {
       title: t('title'),
       description: t('description'),
-      images: ['https://lh3.googleusercontent.com/a/ACg8ocLcEstYUNw2NCAt88O6caTmUPrMMU6ywjcGeLQFBDONk2B1Tg=s96-c'],
+      images: ['https://hazlosano.com/logo.svg'],
       type: 'website',
     },
     alternates: {
