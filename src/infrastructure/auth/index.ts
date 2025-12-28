@@ -16,6 +16,10 @@ export const config = {
       console.log("callback signin", params);
       return true;
     },
+    redirect({ url, baseUrl }) {
+      console.log("callback redirect", { url, baseUrl });
+      return baseUrl;
+    }
   },
   session: {
     strategy: "database", // this is default when using adapter
