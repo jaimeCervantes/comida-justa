@@ -20,6 +20,9 @@ export const config = {
   session: {
     strategy: "database", // this is default when using adapter
   },
+  pages: {
+    signIn: "/auth/signin",
+  },
   basePath: process.env.CJ_AUTH_PATH,
   debug: process.env.NODE_ENV !== "production" ? true : false,
   logger: {
