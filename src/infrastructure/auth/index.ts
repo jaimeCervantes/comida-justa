@@ -2,14 +2,15 @@ import NextAuth from "next-auth";
 import type { NextAuthConfig } from "next-auth";
 import { FirestoreAdapter } from "@auth/firebase-adapter";
 import createGoogleProvider from "next-auth/providers/google";
-import { db } from "~/infrastructure/dataAccess/init"
+import createMicrosoftEntraIDProvider from "next-auth/providers/microsoft-entra-id";
+import { db } from "~/infrastructure/dataAccess/init";
 
 export const config = {
   theme: {
     logo: "/logo.png",
   },
   adapter: FirestoreAdapter(db),
-  providers: [createGoogleProvider],
+  providers: [createGoogleProvider, createMicrosoftEntraIDProvider],
   callbacks: {
     signIn(params) {
       console.log("callback signin", params);
@@ -17,7 +18,7 @@ export const config = {
     },
   },
   session: {
-    strategy: 'database', // this is default when using adapter
+    strategy: "database", // this is default when using adapter
   },
   basePath: process.env.CJ_AUTH_PATH,
   debug: process.env.NODE_ENV !== "production" ? true : false,
