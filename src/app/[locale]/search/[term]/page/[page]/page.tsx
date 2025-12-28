@@ -5,8 +5,7 @@ import Pagination from "~/infrastructure/UI/components/Pagination";
 
 async function fetchResults(term: string, page: number, pageSize: number) {
   const res = await fetch(
-    `${
-      process.env.NEXT_PUBLIC_BASE_URL || ""
+    `${process.env.NEXT_PUBLIC_BASE_URL || ""
     }/api/search?q=${encodeURIComponent(term)}&limit=${pageSize}&page=${page}`
   );
   return res.json();
@@ -19,7 +18,7 @@ export default async function SearchPage({
 }) {
   const { term, page } = await params;
   const pageInt = parseInt(page || "1", 10);
-  const pageSize = 2;
+  const pageSize = 6;
   const data = term
     ? await fetchResults(term, pageInt, pageSize)
     : { results: [], total: 0 };
@@ -32,7 +31,7 @@ export default async function SearchPage({
       {term && (
         <div className="mb-4 text-gray-600">
           Mostrando resultados para:{" "}
-          <span className="font-semibold text-pw-green">{term}</span>
+          <span className="font-semibold text-pw-green">{decodeURIComponent(term)}</span>
         </div>
       )}
       {term && cards.length === 0 && <div>No se encontraron resultados.</div>}
@@ -44,7 +43,7 @@ export default async function SearchPage({
       <Pagination
         currentPage={pageInt}
         totalPages={totalPages}
-        basePath={`/search/${encodeURIComponent(term)}/page`}
+        basePath={`/search/${term}/page`}
       />
     </main>
   );

@@ -10,8 +10,7 @@ async function fetchResults(
   locale: string
 ) {
   const res = await fetch(
-    `${
-      process.env.NEXT_PUBLIC_BASE_URL || ""
+    `${process.env.NEXT_PUBLIC_BASE_URL || ""
     }/api/search?q=${encodeURIComponent(
       q
     )}&limit=${pageSize}&page=${page}&locale=${locale}`
@@ -29,7 +28,7 @@ export default async function SearchPage({
   const { q = "", page = "1" } = await searchParams;
   const { locale } = await params;
   const pageInt = parseInt(page, 10);
-  const pageSize = 5;
+  const pageSize = 6;
   const data = q
     ? await fetchResults(q, pageInt, pageSize, locale)
     : { results: [], total: 0 };
@@ -42,7 +41,7 @@ export default async function SearchPage({
       {q && (
         <div className="mb-4 text-gray-600">
           Mostrando resultados para:{" "}
-          <span className="font-semibold text-pw-green">{q}</span>
+          <span className="font-semibold text-pw-green">{decodeURIComponent(q)}</span>
         </div>
       )}
       {q && cards.length === 0 && <div>No se encontraron resultados.</div>}
@@ -55,7 +54,7 @@ export default async function SearchPage({
       <Pagination
         currentPage={pageInt}
         totalPages={totalPages}
-        basePath={`/${locale}/search/${encodeURIComponent(q)}/page`}
+        basePath={`/${locale}/search/${q}/page`}
       />
     </>
   );

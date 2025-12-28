@@ -5,8 +5,7 @@ import Pagination from "~/infrastructure/UI/components/Pagination";
 
 async function fetchResults(q: string, page: number, pageSize: number) {
   const res = await fetch(
-    `${
-      process.env.NEXT_PUBLIC_BASE_URL || ""
+    `${process.env.NEXT_PUBLIC_BASE_URL || ""
     }/api/search?q=${encodeURIComponent(q)}&limit=${pageSize}&page=${page}`
   );
   return res.json();
@@ -22,7 +21,7 @@ export default async function SearchPage({
   const { q = "", page = "1" } = await searchParams;
   const { locale } = await params;
   const pageInt = parseInt(page, 10);
-  const pageSize = 5;
+  const pageSize = 6;
   const data = q
     ? await fetchResults(q, pageInt, pageSize)
     : { results: [], total: 0 };

@@ -3,8 +3,6 @@ import { collections } from "~/infrastructure/dataAccess/postUtils";
 import { FirestorePost } from "~/infrastructure/dataAccess/Posts";
 import { ISearchPostResultDTO } from "~/business/searchPosts/dtos/ISearchPostResultDTO";
 import VertexEmbeddingService from "~/infrastructure/services/VertexEmbeddingService";
-import { title } from "process";
-import { Post } from "~/infrastructure/types/Posts";
 
 export class FirebaseSearchPostRepository implements ISearchPostRepository {
   async search(
@@ -22,6 +20,11 @@ export class FirebaseSearchPostRepository implements ISearchPostRepository {
         id: doc.id,
         title: data.translations?.[locale]?.title || "",
         slug: data.translations?.[locale]?.slug || "",
+        content: data.translations?.[locale]?.content || "",
+        media: data.media,
+        createdAt: data.createdAt,
+        price: data.price || 0,
+        user: data.user,
       } as unknown as ISearchPostResultDTO;
     };
 
@@ -83,7 +86,7 @@ export class FirebaseSearchPostRepository implements ISearchPostRepository {
        *
        * Limit: We cap this at MAX_VECTOR_RESULTS to prevent performance issues on deep pages.
        */
-      const MAX_VECTOR_RESULTS = 20; // Cap search depth
+      const MAX_VECTOR_RESULTS = 60; // Cap search depth
       const limit = Math.min(page * pageSize, MAX_VECTOR_RESULTS);
       const vectorFieldPath = `translations.${locale}.embedding`;
       console.log("vectorFieldPath:", vectorFieldPath, "locale:", locale);
@@ -124,7 +127,11 @@ export class FirebaseSearchPostRepository implements ISearchPostRepository {
           title: data.translations?.[locale]?.title || "",
           slug: data.translations?.[locale]?.slug || "",
           content: data.translations?.[locale]?.content || "",
-        };
+          media: data.media,
+          createdAt: data.createdAt,
+          price: data.price || 0,
+          user: data.user,
+        } as unknown as ISearchPostResultDTO;
       });
 
       const filtered = allPosts.filter((post) => {
