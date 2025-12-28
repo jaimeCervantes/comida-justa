@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getProviders, signIn, ClientSafeProvider } from "next-auth/react";
+import { getProviders, signIn } from "next-auth/react";
 
 export default function SignInPage() {
-  const [providers, setProviders] = useState<Record<string, ClientSafeProvider> | null>(null);
+  const [providers, setProviders] = useState<Record<string, any> | null>(null);
 
   useEffect(() => {
     getProviders().then((p) => setProviders(p));
