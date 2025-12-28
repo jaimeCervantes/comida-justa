@@ -37,7 +37,7 @@ export default class CreatePostUseCase {
       };
     }
 
-    const postTitle = postInfo.title;
+    const postTitle = postInfo.title as string;
 
     let slug: string;
     try {

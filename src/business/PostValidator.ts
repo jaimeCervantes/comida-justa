@@ -5,9 +5,9 @@ export default class PostValidator implements IPostValidator {
   MIN_LENGTH_CONTENT = 15;
 
   validate(post: Post): VoidOrError {
-    this.validateStringOnPost(post.title, "title", this.MIN_LENGTH_TITLE);
+    this.validateStringOnPost(post.title as string, "title", this.MIN_LENGTH_TITLE);
     this.validateNumberOnPost(post.price, "price");
-    this.validateStringOnPost(post.content, "content", this.MIN_LENGTH_CONTENT);
+    this.validateStringOnPost(post.content as string, "content", this.MIN_LENGTH_CONTENT);
     this.validateUser(post.user);
   }
 

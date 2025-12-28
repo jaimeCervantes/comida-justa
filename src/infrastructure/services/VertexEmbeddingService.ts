@@ -59,11 +59,16 @@ export default class VertexEmbeddingService implements IEmbeddingService {
       throw new Error("No predictions returned from Vertex AI.");
     }
 
-    const createEmbeddingResponse = helpers.fromValue(predictions[0]);
-    if (!createEmbeddingResponse?.embeddings?.values) {
+    const createEmbeddingResponse = helpers.fromValue(predictions[0] as any);
+    if (
+      typeof createEmbeddingResponse !== "object" ||
+      !createEmbeddingResponse ||
+      !("embeddings" in createEmbeddingResponse) ||
+      !("values" in (createEmbeddingResponse.embeddings as any))
+    ) {
       throw new Error("Invalid embedding response format.");
     }
 
-    return createEmbeddingResponse.embeddings.values;
+    return (createEmbeddingResponse.embeddings as any).values;
   }
 }
