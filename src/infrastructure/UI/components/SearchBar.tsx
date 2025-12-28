@@ -3,12 +3,10 @@ import React, { useState, useRef, useEffect } from "react";
 import TextField from "./TextField/TextField";
 import { useRouter } from "next/navigation";
 import { MdSearch } from "react-icons/md";
+import { Post } from "~/business/entities/post/types";
 
-interface SearchResult {
+interface SearchResult extends Post {
   id: string;
-  title: string;
-  description: string;
-  slug: string;
 }
 
 interface SearchBarProps {
@@ -135,13 +133,10 @@ const SearchBar: React.FC<SearchBarProps> = ({ placeholder = "Buscar..." }) => {
                   key={result.id}
                   className={`p-3 border-b last:border-b-0 border-gray-100 dark:border-gray-700 cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-gray-800 focus:bg-gray-100 dark:focus:bg-gray-700 outline-none`}
                   tabIndex={0}
-                  onMouseDown={() => router.push(`/${result.slug}`)}
+                  onMouseDown={() => router.push(`/${result.translations?.es.slug}`)}
                 >
                   <div className="font-bold text-gray-800 dark:text-gray-200 text-sm">
-                    {result.title}
-                  </div>
-                  <div className="text-xs text-gray-500 mt-1 line-clamp-1">
-                    {result.description}
+                    {result.translations?.es.title}
                   </div>
                 </li>
               ))}

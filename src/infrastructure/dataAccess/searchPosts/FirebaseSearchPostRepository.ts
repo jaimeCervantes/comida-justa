@@ -18,14 +18,15 @@ export class FirebaseSearchPostRepository implements ISearchPostRepository {
       const data = doc.data() as FirestorePost;
       return {
         id: doc.id,
-        title: data.translations?.[locale]?.title || "",
-        slug: data.translations?.[locale]?.slug || "",
-        content: data.translations?.[locale]?.content || "",
-        media: data.media,
-        createdAt: data.createdAt,
-        price: data.price || 0,
-        user: data.user,
-      } as unknown as ISearchPostResultDTO;
+        ...data,
+        translations: {
+          [locale]: {
+            title: data.translations?.[locale]?.title || "",
+            slug: data.translations?.[locale]?.slug || "",
+            content: data.translations?.[locale]?.content || "",
+          }
+        }
+      };
     };
 
     // Optimization: If no search query is provided, use Firestore's native pagination capabilities.
@@ -46,7 +47,7 @@ export class FirebaseSearchPostRepository implements ISearchPostRepository {
 
     // Vector Search Implementation
     try {
-      // throw new Error("Force fallback to text search"); // TEMPORARY: Disable vector search until fully tested
+      throw new Error("Force fallback to text search"); // TEMPORARY: Disable vector search until fully tested
       // Try to reuse a cached embedding for this exact search term to avoid
       // calling the embedding service on every request.
       const normalizedQuery = query.trim().toLowerCase();
@@ -120,23 +121,11 @@ export class FirebaseSearchPostRepository implements ISearchPostRepository {
 
       // Fallback to legacy in-memory filter if vector search fails (temporarily)
       const snapshot = await postsRef.get();
-      const allPosts = snapshot.docs.map((doc: any) => {
-        const data = doc.data() as FirestorePost;
-        return {
-          id: doc.id,
-          title: data.translations?.[locale]?.title || "",
-          slug: data.translations?.[locale]?.slug || "",
-          content: data.translations?.[locale]?.content || "",
-          media: data.media,
-          createdAt: data.createdAt,
-          price: data.price || 0,
-          user: data.user,
-        } as unknown as ISearchPostResultDTO;
-      });
+      const allPosts = snapshot.docs.map(mapToDTO);
 
       const filtered = allPosts.filter((post) => {
-        const title = post.title?.toLowerCase() || "";
-        const content = post.content?.toLowerCase() || "";
+        const title = post.translations[locale]?.title?.toLowerCase() || "";
+        const content = post.translations[locale]?.content?.toLowerCase() || "";
         const q = query.toLowerCase();
         return title.includes(q) || content.includes(q);
       });
