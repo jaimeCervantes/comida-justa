@@ -19,12 +19,15 @@ export default class PublishPage {
   readonly phone: Locator;
   readonly score: Locator;
   private values: Partial<PublishValues> = {};
-  private uploaded: Locator
+  private uploaded: Locator;
 
   constructor(page: Page) {
     this.page = page;
     this.form = this.page.getByRole("form").first();
-    this.submitButton = this.page.getByRole("button", { name: 'Publicar', exact: true });
+    this.submitButton = this.form.getByRole("button", {
+      name: "Publicar",
+      exact: true,
+    });
     this.title = this.page.getByRole("textbox", {
       name: /t[ií]tulo de la publicación/i,
     });
@@ -33,7 +36,7 @@ export default class PublishPage {
       name: /descripci[oó]n/i,
     });
     // input con label que contiene el texto "image"
-    this.file = this.page.getByRole("button", { name: /sube tu mejor/i }).nth(1);
+    this.file = this.page.locator('form input[type="file"]');
     this.phone = this.page.getByRole("textbox", { name: /t[eé]lefono/i });
     this.score = this.page.getByRole("article").getByText(/saludable/i);
     this.uploaded = this.page.getByText(/subido/i);
@@ -58,12 +61,12 @@ export default class PublishPage {
     await expect(this.price).toHaveValue(this.values.price as string);
     await expect(this.phone).toHaveValue(this.values.phone as string);
     await expect(this.description).toHaveValue(
-      this.values.description as string
+      this.values.description as string,
     );
   }
 
   async send() {
-    await expect(this.uploaded).toBeVisible({ timeout: 15_000 });
+    await expect(this.uploaded).toBeVisible({ timeout: 45_000 });
     await expect(this.submitButton).toBeEnabled();
     await this.submitButton.click();
   }

@@ -1,0 +1,84 @@
+{
+  "title": "Política de Privacidad | Hazlo Sano",
+  "description": "Política de Privacidad de Hazlo Sano - Chatbot de Bienestar",
+  "h1": "POLÍTICA DE PRIVACIDAD",
+  "subtitle": "Hazlo Sano – Chatbot de Bienestar",
+  "lastUpdate": "Última actualización: {date}",
+  "intro": "En Hazlo Sano valoramos tu privacidad y nos comprometemos a proteger tu información personal. La presente Política de Privacidad describe cómo recopilamos, utilizamos y protegemos la información cuando interactúas con nuestro chatbot a través de WhatsApp.",
+  "section1": {
+    "title": "Información que recopilamos",
+    "intro": "Cuando utilizas nuestro chatbot, podemos recopilar la siguiente información:",
+    "items": [
+      "Tu número de teléfono.",
+      "Los mensajes que envías al chatbot.",
+      "Información que compartas voluntariamente relacionada con hábitos de sueño, alimentación, ejercicio o bienestar emocional.",
+      "Datos técnicos básicos necesarios para el funcionamiento del servicio (como fecha y hora de interacción)."
+    ],
+    "warning": "No solicitamos intencionalmente información médica sensible ni datos financieros a través del chatbot."
+  },
+  "section2": {
+    "title": "Cómo utilizamos tu información",
+    "intro": "Utilizamos la información recopilada para:",
+    "items": [
+      "Responder tus consultas.",
+      "Proporcionar contenido educativo sobre los 4 pilares de la salud: sueño, alimentación saludable, ejercicio y bienestar emocional.",
+      "Recomendar productos o servicios relacionados con hábitos saludables.",
+      "Mejorar la experiencia del usuario y el funcionamiento del chatbot.",
+      "Cumplir con las obligaciones legales aplicables."
+    ]
+  },
+  "section3": {
+    "title": "Naturaleza informativa del servicio",
+    "items": [
+      "El chatbot de Hazlo Sano proporciona información con fines educativos y de bienestar general.",
+      "No ofrecemos diagnósticos médicos, tratamientos ni asesoramiento profesional de salud.",
+      "El uso del chatbot no crea una relación médico–paciente."
+    ],
+    "warning": "Si estás experimentando una emergencia médica o psicológica, te recomendamos acudir a un profesional de la salud calificado."
+  },
+  "section4": {
+    "title": "Compartición de información",
+    "boldText": "No vendemos tu información personal.",
+    "intro": "Podemos compartir información únicamente con:",
+    "items": [
+      "Proveedores tecnológicos necesarios para operar el servicio (por ejemplo, infraestructura en la nube).",
+      "Plataformas oficiales de mensajería como WhatsApp, propiedad de Meta.",
+      "Autoridades competentes cuando la ley lo requiera."
+    ]
+  },
+  "section5": {
+    "title": "Almacenamiento y seguridad",
+    "p1": "Implementamos medidas razonables de seguridad técnicas y administrativas para proteger tu información contra acceso no autorizado, pérdida o uso indebido.",
+    "p2": "Sin embargo, ningún sistema digital es completamente seguro, por lo que no podemos garantizar seguridad absoluta."
+  },
+  "section6": {
+    "title": "Conservación de datos",
+    "p1": "Conservamos la información únicamente durante el tiempo necesario para cumplir con los fines descritos en esta política o según lo requiera la ley."
+  },
+  "section7": {
+    "title": "Derechos del usuario",
+    "intro": "Puedes solicitar en cualquier momento:",
+    "items": [
+      "Acceso a la información que tenemos sobre ti.",
+      "Corrección de datos incorrectos.",
+      "Eliminación de tus datos personales."
+    ],
+    "actionIntro": "Para ejercer estos derechos, puedes enviar un mensaje con la palabra ",
+    "actionWord": "ELIMINAR",
+    "actionOutro": " al chatbot o escribirnos a:"
+  },
+  "section8": {
+    "title": "Uso por menores de edad",
+    "p1": "El servicio está dirigido a personas mayores de 18 años. No recopilamos intencionalmente información de menores de edad."
+  },
+  "section9": {
+    "title": "Cambios a esta política",
+    "p1": "Nos reservamos el derecho de actualizar esta Política de Privacidad en cualquier momento. Las modificaciones serán publicadas en esta misma página con fecha de actualización."
+  },
+  "section10": {
+    "title": "Contacto",
+    "intro": "Si tienes preguntas sobre esta Política de Privacidad, puedes contactarnos en:",
+    "companyName": "Hazlo Sano",
+    "location": "Tezonapa, Veracruz, México"
+  }
+}

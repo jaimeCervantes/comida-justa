@@ -33,7 +33,7 @@ describe("generateSeo", () => {
   it("debería truncar la descripción si excede 160 caracteres y omitir espacios en blanco al inicio y final", () => {
     const result = generateSeo(longDescriptionInput);
     const descriptionMeta = result.metas.find(
-      (meta) => meta.name === "description"
+      (meta) => meta.name === "description",
     );
     expect(descriptionMeta?.content.length).toBeLessThanOrEqual(160);
   });
@@ -41,11 +41,11 @@ describe("generateSeo", () => {
   it("debería mantener la descripción original si es menor a 160 caracteres", () => {
     const result = generateSeo(shortDescriptionInput);
     const descriptionMeta = result.metas.find(
-      (meta) => meta.name === "description"
+      (meta) => meta.name === "description",
     );
     expect(descriptionMeta?.content).toBe(shortDescriptionInput.description);
     expect(descriptionMeta?.content).toHaveLength(
-      shortDescriptionInput.description.length
+      shortDescriptionInput.description.length,
     );
   });
 
@@ -79,13 +79,13 @@ describe("generateSeo", () => {
 
   it("debería manejar strings vacíos", () => {
     const result = generateSeo(emptyInput);
-    expect(result.title).toBe(" | Hazlo sano");
+    expect(result.title).toBe(" | Hazlo Sano");
 
     const keywordsMeta = result.metas.find((meta) => meta.name === "keywords");
     expect(keywordsMeta?.content).toBe("");
 
     const descriptionMeta = result.metas.find(
-      (meta) => meta.name === "description"
+      (meta) => meta.name === "description",
     );
     expect(descriptionMeta?.content).toBe("");
   });

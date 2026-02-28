@@ -9,9 +9,15 @@ export default class CommentPage {
 
   constructor(page: Page) {
     this.page = page;
-    this.loginButton = this.page.getByRole("button", { name: /iniciar sesión/i })
-    this.commentInput = this.page.getByRole("textbox", { name: /Escribe tu comentario/i });
-    this.submitButton = this.page.getByRole("button", { name: /Agregar Comentario/i });
+    this.loginButton = this.page.getByRole("button", {
+      name: /iniciar sesión/i,
+    });
+    this.commentInput = this.page.getByRole("textbox", {
+      name: /Escribe tu comentario/i,
+    });
+    this.submitButton = this.page.getByRole("button", {
+      name: /Agregar Comentario/i,
+    });
     this.commentsList = this.page.getByRole("list", { name: /Comentarios/i });
   }
 

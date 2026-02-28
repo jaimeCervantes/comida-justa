@@ -4,7 +4,7 @@ export const basicInput = {
 };
 
 export const basicExpectedOutput = {
-  title: "Receta Saludable | Hazlo sano",
+  title: "Receta Saludable | Hazlo Sano",
   metas: [
     {
       content:

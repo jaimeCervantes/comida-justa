@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation"
+import { useRouter } from "next/navigation";
 import { addCommentToPost } from "../data-access/actions"; // Función para agregar un comentario
 import type { PostUser } from "~/infrastructure/types/Posts";
 
@@ -9,7 +9,7 @@ export default function AddCommentForm({
   postId,
   slug,
   user,
-  onAdd
+  onAdd,
 }: {
   postId: string;
   slug: string;
@@ -44,6 +44,7 @@ export default function AddCommentForm({
         className="w-full p-2 border rounded dark:text-black"
         rows={4}
         placeholder="Escribe tu comentario..."
+        aria-label="Escribe tu comentario"
       />
       <button
         type="submit"

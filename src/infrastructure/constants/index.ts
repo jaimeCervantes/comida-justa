@@ -1,4 +1,4 @@
-export const SIGNIN_PATH = process.env.CJ_AUTH_PATH + "/signin";
+export const SIGNIN_PATH = "/auth/signin";
 export const PAGINATION_INIT_PAGE =
   Number(process.env.NEXT_PUBLIC_PAGINATION_INIT_PAGE) || 1;
 export const PAGINATION_PAGE_SIZE =
