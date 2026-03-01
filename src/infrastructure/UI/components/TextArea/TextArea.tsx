@@ -15,9 +15,8 @@ type TextAreaProps = Partial<{
   required: boolean;
   children: ReactNode;
 }>;
-
 const inputClassName =
-  "w-full rounded border border-black focus:border-pw-green focus:outline focus:outline-pw-green px-2 py-1 dark:text-white bg-pw-gray";
+  "bg-hite dark:bg-slate-700 w-full border border-black focus:border-pw-green focus:outline focus:outline-pw-green px-2 py-1 dark:text-white";
 const errorClassName =
   "pt-1 flex items-center gap-1 text-red-700 dark:text-red-400";
 
