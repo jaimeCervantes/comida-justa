@@ -1,13 +1,13 @@
 "use client";
-import TextField from "~/infrastructure/UI/components/TextField";
-import TextArea from "~/infrastructure/UI/components/TextArea";
-import Button from "~/infrastructure/UI/components/Button";
+import TextField from "~/infra/UI/components/TextField";
+import TextArea from "~/infra/UI/components/TextArea";
+import Button from "~/infra/UI/components/Button";
 import Link from "next/link";
 import { MdPhone, MdTitle, MdOutlinePriceChange } from "react-icons/md";
 
 import { useActionState, useCallback, useState } from "react";
-import { ActionState } from "~/infrastructure/types/Actions";
-import { POST_CONTENT_MAX_LENGTH } from "~/infrastructure/constants";
+import { ActionState } from "~/infra/types/Actions";
+import { POST_CONTENT_MAX_LENGTH } from "~/infra/constants";
 import ImageVideoUploader from "./ui/ImageVideoUploader";
 
 export default function PublishForm({
@@ -27,11 +27,11 @@ export default function PublishForm({
   const [mediaJSON, setMediaJSON] = useState<string>("");
   const [isLoadingMedia, setIsLoadingMedia] = useState<boolean | null>(null);
   const [imagePickerLabel, setImageVideoPickerLabel] = useState(
-    "Sube tu mejor imagen o sube tu mejor video"
+    "Sube tu mejor imagen o sube tu mejor video",
   );
 
   const onUploadedCallback = useCallback(async function (
-    data: Record<string, any> | null
+    data: Record<string, any> | null,
   ) {
     setImageVideoPickerLabel("Cambia tu mejor imagen o cambia tu mejor video");
     try {
@@ -40,8 +40,7 @@ export default function PublishForm({
     } catch (error) {
       console.log(error);
     }
-  },
-  []);
+  }, []);
 
   return (
     <section className="p-4">

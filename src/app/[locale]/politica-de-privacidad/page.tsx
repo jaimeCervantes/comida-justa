@@ -3,7 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { hasLocale } from "next-intl";
 import { routing } from "~/i18n/routing";
-import { CANONICAL_URL } from "~/infrastructure/constants";
+import { CANONICAL_URL } from "~/infra/constants";
 
 export async function generateMetadata({
   params,

@@ -1,12 +1,13 @@
 import React from "react";
-import CardForList from "~/infrastructure/UI/components/CardForList/CardForList";
-import { mapPostsToCards } from "~/infrastructure/UI/mappers/posts/mapPostsToCards";
-import Pagination from "~/infrastructure/UI/components/Pagination";
+import CardForList from "~/infra/UI/components/CardForList/CardForList";
+import { mapPostsToCards } from "~/infra/UI/mappers/posts/mapPostsToCards";
+import Pagination from "~/infra/UI/components/Pagination";
 
 async function fetchResults(q: string, page: number, pageSize: number) {
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_URL || ""
-    }/api/search?q=${encodeURIComponent(q)}&limit=${pageSize}&page=${page}`
+    `${
+      process.env.NEXT_PUBLIC_BASE_URL || ""
+    }/api/search?q=${encodeURIComponent(q)}&limit=${pageSize}&page=${page}`,
   );
   return res.json();
 }

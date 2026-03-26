@@ -1,16 +1,29 @@
-import classNames from 'classnames';
-import useStorageUpload from './hooks/useStorageUpload';
-import ImageVideoPicker from "~/infrastructure/UI/components/ImageVideoPicker";
-import { InputFiles, ImageVideoPickerProps } from '~/infrastructure/UI/components/ImageVideoPicker/ImageVideoPicker.d';
-import { useCallback, useEffect } from 'react';
-import { on } from 'events';
+import classNames from "classnames";
+import useStorageUpload from "./hooks/useStorageUpload";
+import ImageVideoPicker from "~/infra/UI/components/ImageVideoPicker";
+import {
+  InputFiles,
+  ImageVideoPickerProps,
+} from "~/infra/UI/components/ImageVideoPicker/ImageVideoPicker.d";
+import { useCallback, useEffect } from "react";
+import { on } from "events";
 
-type ImageVideoUploaderProps = Omit<ImageVideoPickerProps, "onChange"> & { onUploaded: (params: Record<string, any> | null) => void; }
+type ImageVideoUploaderProps = Omit<ImageVideoPickerProps, "onChange"> & {
+  onUploaded: (params: Record<string, any> | null) => void;
+};
 
-export default function ImageVideoUploader({ label, name, onUploaded, accept, required, className }: ImageVideoUploaderProps) {
-  const { uploadFile, progress, isLoading, media, error, isCompleted } = useStorageUpload({
-    directory: 'posts'
-  });
+export default function ImageVideoUploader({
+  label,
+  name,
+  onUploaded,
+  accept,
+  required,
+  className,
+}: ImageVideoUploaderProps) {
+  const { uploadFile, progress, isLoading, media, error, isCompleted } =
+    useStorageUpload({
+      directory: "posts",
+    });
 
   const handleUpload = async (files: InputFiles) => {
     const file = files?.item(0);
@@ -23,9 +36,7 @@ export default function ImageVideoUploader({ label, name, onUploaded, accept, re
     if (!isLoading && isCompleted && media?.url) {
       onUploaded({ media, isLoading, isCompleted });
     }
-
   }, [isLoading, isCompleted, media, onUploaded]);
-
 
   return (
     <div className={className}>

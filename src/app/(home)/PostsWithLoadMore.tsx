@@ -1,22 +1,22 @@
-'use client';
+"use client";
 
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useRef, useCallback } from "react";
 import Link from "next/link";
-import CardForList from '~/infrastructure/UI/components/CardForList/CardForList';
-import { Post } from "~/infrastructure/types/Posts";
-import { PAGINATION_INIT_PAGE, PAGINATION_PAGE_SIZE } from '~/infrastructure/constants';
+import CardForList from "~/infra/UI/components/CardForList/CardForList";
+import { Post } from "~/infra/types/Posts";
+import { PAGINATION_INIT_PAGE, PAGINATION_PAGE_SIZE } from "~/infra/constants";
 
 // Este componente maneja la carga dinámica del lado del cliente
 export default function PostsWithLoadMore({
   initialPosts,
   totalPosts,
   initialPage = PAGINATION_INIT_PAGE,
-  totalPages = Math.ceil(totalPosts / PAGINATION_PAGE_SIZE)
+  totalPages = Math.ceil(totalPosts / PAGINATION_PAGE_SIZE),
 }: {
-  initialPosts: Post[],
-  totalPosts: number,
-  initialPage?: number,
-  totalPages: number
+  initialPosts: Post[];
+  totalPosts: number;
+  initialPage?: number;
+  totalPages: number;
 }) {
   const [posts, setPosts] = useState<Post[]>(initialPosts);
   const [loading, setLoading] = useState(false);
@@ -31,27 +31,28 @@ export default function PostsWithLoadMore({
       setLoading(true);
       const nextPage = currentPage + 1;
 
-      const response = await fetch(`/api/posts/page/${nextPage}/pageSize/${PAGINATION_PAGE_SIZE}`);
+      const response = await fetch(
+        `/api/posts/page/${nextPage}/pageSize/${PAGINATION_PAGE_SIZE}`,
+      );
       const data = await response.json();
 
       if (data.posts && data.posts.length > 0) {
-        setPosts(prevPosts => [...prevPosts, ...data.posts]);
+        setPosts((prevPosts) => [...prevPosts, ...data.posts]);
         setCurrentPage(nextPage);
         setHasMore(data.nextPage !== null);
       } else {
         setHasMore(false);
       }
     } catch (error) {
-      console.error('Error cargando más publicaciones:', error);
+      console.error("Error cargando más publicaciones:", error);
     } finally {
       setLoading(false);
     }
   }, [currentPage, hasMore, loading]);
 
-
   useEffect(() => {
     if (!loaderRef.current || !hasMore) return;
-    const current = loaderRef.current
+    const current = loaderRef.current;
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -60,7 +61,7 @@ export default function PostsWithLoadMore({
           loadMorePosts();
         }
       },
-      { threshold: 0.5 }
+      { threshold: 0.5 },
     );
 
     observer.observe(current);
@@ -84,10 +85,7 @@ export default function PostsWithLoadMore({
         )}
       </section>
 
-      <div
-        ref={loaderRef}
-        className="flex justify-center mt-8 py-4"
-      >
+      <div ref={loaderRef} className="flex justify-center mt-8 py-4">
         {loading ? (
           <p className="text-gray-500">Cargando más...</p>
         ) : hasMore ? (
@@ -97,15 +95,19 @@ export default function PostsWithLoadMore({
           >
             Cargar más
           </button>
-        ) : posts.length > initialPosts.length && (
-          <p className="text-gray-500">No hay más publicaciones disponibles</p>
+        ) : (
+          posts.length > initialPosts.length && (
+            <p className="text-gray-500">
+              No hay más publicaciones disponibles
+            </p>
+          )
         )}
       </div>
 
       {/* Enlaces de paginación ocultos para SEO */}
       <nav aria-label="Paginación" className="sr-only">
         <ul>
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
             <li key={`page-${page}`}>
               <Link href={`/page/${page}`}>Página {page}</Link>
             </li>

@@ -1,4 +1,4 @@
-import { CANONICAL_URL, PUBLIC_BRAND_NAME } from "~/infrastructure/constants";
+import { CANONICAL_URL, PUBLIC_BRAND_NAME } from "~/infra/constants";
 
 type GenerateSeoInput = {
   title: string;

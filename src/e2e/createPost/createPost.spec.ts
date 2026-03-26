@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import type { PlaywrightTestArgs } from "@playwright/test";
-import { SIGNIN_PATH } from "~/infrastructure/constants";
+import { SIGNIN_PATH } from "~/infra/constants";
 import PublishPage from "./PublishPage";
 import {
   simulateLogin,

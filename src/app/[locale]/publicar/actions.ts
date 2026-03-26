@@ -1,24 +1,24 @@
 "use server";
-import { auth } from "~/infrastructure/auth";
+import { auth } from "~/infra/auth";
 import { redirect } from "next/navigation";
-import { ActionState } from "~/infrastructure/types/Actions";
-import { SIGNIN_PATH } from "~/infrastructure/constants";
-import PostEntity from "~/business/entities/post/Post";
-import { Post, User } from "~/business/entities/post/types";
-import CreatePostUseCase from "~/business/createOnePost";
-import PostValidator from "~/business/PostValidator";
-import FirebaseMediaStorageService from "~/infrastructure/storage/FirebaseMediaStorageService";
-import FirebasePostsRespository from "~/infrastructure/dataAccess/createOnePost/FirebasePostRepository";
+import { ActionState } from "~/infra/types/Actions";
+import { SIGNIN_PATH } from "~/infra/constants";
+import PostEntity from "~/domain/entities/post/Post";
+import { Post, User } from "~/domain/entities/post/types";
+import CreatePostUseCase from "~/use_cases/createOnePost";
+import PostValidator from "~/domain/schemas/PostValidator";
+import FirebaseMediaStorageService from "~/infra/storage/FirebaseMediaStorageService";
+import FirebasePostsRespository from "~/infra/dataAccess/createOnePost/FirebasePostRepository";
 
 const useCase = new CreatePostUseCase(
   new PostValidator(),
   new PostEntity(),
   new FirebasePostsRespository(),
-)
+);
 
 export async function createPost(
   prevState: ActionState,
-  formData: FormData
+  formData: FormData,
 ): Promise<ActionState> {
   const session = await auth();
 
@@ -36,10 +36,12 @@ export async function createPost(
     title: title ? null : "El título es obligatorio.",
     content: content ? null : "El contenido es obligatorio",
     phone: phone ? null : "El Télefono es obligatorio.",
-    media: mediaJSON ? null : "Los datos del recourso(video, imagen) son obligatorios"
+    media: mediaJSON
+      ? null
+      : "Los datos del recourso(video, imagen) son obligatorios",
   };
 
-  let media = { url: '', type: '', alt: '' };
+  let media = { url: "", type: "", alt: "" };
   try {
     media = JSON.parse(mediaJSON);
   } catch (error) {
@@ -54,24 +56,22 @@ export async function createPost(
 
   let result;
   try {
-    result = await useCase.execute(
-      {
-        title,
-        slug: '',
-        content,
-        contactInfo: {
-          phone,
-        },
-        price: Number(price) || null,
-        createdAt: new Date(),
-        media: {
-          url: media.url,
-          type: media.type.split("/")[0],
-          alt: title
-        },
-        user: session?.user as User
+    result = await useCase.execute({
+      title,
+      slug: "",
+      content,
+      contactInfo: {
+        phone,
       },
-    );
+      price: Number(price) || null,
+      createdAt: new Date(),
+      media: {
+        url: media.url,
+        type: media.type.split("/")[0],
+        alt: title,
+      },
+      user: session?.user as User,
+    });
   } catch (err: any) {
     return {
       errors: {

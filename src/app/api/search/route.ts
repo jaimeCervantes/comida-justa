@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
-import { SearchPostsUseCase } from "~/business/searchPosts/SearchPostsUseCase";
-import { FirebaseSearchPostRepository } from "~/infrastructure/dataAccess/searchPosts/FirebaseSearchPostRepository";
+import { SearchPostsUseCase } from "~/use_cases/searchPosts/SearchPostsUseCase";
+import { FirebaseSearchPostRepository } from "~/infra/dataAccess/searchPosts/FirebaseSearchPostRepository";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);

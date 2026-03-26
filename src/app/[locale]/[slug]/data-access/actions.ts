@@ -1,15 +1,15 @@
-'use server'
+"use server";
 
 import { Timestamp, FieldValue } from "firebase-admin/firestore";
-import type { FirestoreComment } from "~/infrastructure/dataAccess/Posts";
-import { collections } from "~/infrastructure/dataAccess/postUtils"
-import { PostUser } from "~/infrastructure/types/Posts";
+import type { FirestoreComment } from "~/infra/dataAccess/Posts";
+import { collections } from "~/infra/dataAccess/postUtils";
+import { PostUser } from "~/infra/types/Posts";
 import { getFirestore } from "firebase-admin/firestore";
 
 export async function addCommentToPost(
   postId: string,
   commentContent: string,
-  user: PostUser
+  user: PostUser,
 ) {
   try {
     const postRef = collections.posts().doc(postId);
@@ -27,14 +27,14 @@ export async function addCommentToPost(
       content: commentContent,
       createdAt: FieldValue.serverTimestamp() as Timestamp,
       user: user,
-      postId: postId
+      postId: postId,
     };
 
     // Guardar el comentario en la subcolección 'comments' del post
     const commentsRef = postRef.collection("comments");
     const newCommentRef = await commentsRef.add(newComment);
 
-    const newCommentSnapshot = await newCommentRef.get()
+    const newCommentSnapshot = await newCommentRef.get();
     const addedComment = newCommentSnapshot.data();
 
     const timestamp = addedComment?.timestamp as Timestamp | null;
@@ -46,7 +46,7 @@ export async function addCommentToPost(
         ...addedComment,
         id: newCommentRef.id,
         createdAt: timestampDate,
-      }
+      },
     };
   } catch (error: any) {
     console.log(error);
@@ -57,10 +57,15 @@ export async function addCommentToPost(
   }
 }
 
-export async function getMoreComments(postId: string, lastVisibleComment: any, pageSize: number = 10) {
+export async function getMoreComments(
+  postId: string,
+  lastVisibleComment: any,
+  pageSize: number = 10,
+) {
   try {
     const db = getFirestore();
-    const commentsRef = db.collection(`posts/${postId}/comments`)
+    const commentsRef = db
+      .collection(`posts/${postId}/comments`)
       .orderBy("createdAt", "desc")
       .limit(pageSize);
 

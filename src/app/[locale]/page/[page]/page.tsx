@@ -3,16 +3,13 @@ import Link from "next/link";
 import {
   getMultiplePosts,
   getTotalPosts,
-} from "~/infrastructure/dataAccess/getMultiplePosts";
-import { mapPostsToCards } from "~/infrastructure/UI/mappers/posts/mapPostsToCards";
-import { Post } from "~/infrastructure/types/Posts";
+} from "~/infra/dataAccess/getMultiplePosts";
+import { mapPostsToCards } from "~/infra/UI/mappers/posts/mapPostsToCards";
+import { Post } from "~/infra/types/Posts";
 import { notFound } from "next/navigation";
-import {
-  PAGINATION_INIT_PAGE,
-  PAGINATION_PAGE_SIZE,
-} from "~/infrastructure/constants";
-import CardForList from "~/infrastructure/UI/components/CardForList/CardForList";
-import { CANONICAL_URL, PUBLIC_BRAND_NAME } from "~/infrastructure/constants";
+import { PAGINATION_INIT_PAGE, PAGINATION_PAGE_SIZE } from "~/infra/constants";
+import CardForList from "~/infra/UI/components/CardForList/CardForList";
+import { CANONICAL_URL, PUBLIC_BRAND_NAME } from "~/infra/constants";
 
 type Props = {
   params: Promise<{ page: string }>;
@@ -108,8 +105,8 @@ export default async function PaginatedPage({ params }: Props) {
               page <= 3
                 ? i + 1
                 : page > totalPages - 2
-                ? totalPages - 4 + i
-                : page - 2 + i;
+                  ? totalPages - 4 + i
+                  : page - 2 + i;
 
             if (pageNum > 0 && pageNum <= totalPages) {
               return (

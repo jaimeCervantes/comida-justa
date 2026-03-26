@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import AddCommentForm from "../addComments/AddCommentForm";
-import type { Comment, PostUser } from "~/infrastructure/types/Posts";
+import type { Comment, PostUser } from "~/infra/types/Posts";
 import { useRealTimeComments } from "../addComments/useRealTimeComments";
 import { createOnLoadMoreComments } from "./createOnLoadMoreComments";
-import Avatar from "~/infrastructure/UI/components/Avatar/Avatar";
+import Avatar from "~/infra/UI/components/Avatar/Avatar";
 
 export default function CommentList({
   postId,
@@ -23,13 +23,16 @@ export default function CommentList({
   lastVisibleComment: Comment;
 }) {
   const [lastComment, setLastComment] = useState<Comment | null>(
-    lastVisibleComment
+    lastVisibleComment,
   );
   const [loading, setLoading] = useState<boolean>(false);
   const [loadMoreMessage, setLoadMoreMessage] = useState<string | null>(null);
 
-  const { comments, setComments, commentError } =
-    useRealTimeComments(postId, initialComments, firstVisibleComment);
+  const { comments, setComments, commentError } = useRealTimeComments(
+    postId,
+    initialComments,
+    firstVisibleComment,
+  );
 
   const onLoadMoreComments = createOnLoadMoreComments({
     postId,
@@ -43,15 +46,9 @@ export default function CommentList({
   return (
     <>
       <h2 className="text-2xl font-bold mb-4">Comentarios</h2>
-      <AddCommentForm
-        postId={postId}
-        slug={slug}
-        user={user}
-      />
+      <AddCommentForm postId={postId} slug={slug} user={user} />
 
-      {commentError && (
-        <p className="text-red-500 mt-2">{commentError}</p>
-      )}
+      {commentError && <p className="text-red-500 mt-2">{commentError}</p>}
 
       <div role="list" aria-label="comentarios">
         {comments?.length > 0 ? (

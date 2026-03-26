@@ -1,8 +1,11 @@
-import { getMultiplePosts } from "~/infrastructure/dataAccess/getMultiplePosts";
-import { mapPostsToCards } from "~/infrastructure/UI/mappers/posts/mapPostsToCards";
-import { PAGINATION_INIT_PAGE, PAGINATION_PAGE_SIZE } from "~/infrastructure/constants";
+import { getMultiplePosts } from "~/infra/dataAccess/getMultiplePosts";
+import { mapPostsToCards } from "~/infra/UI/mappers/posts/mapPostsToCards";
+import { PAGINATION_INIT_PAGE, PAGINATION_PAGE_SIZE } from "~/infra/constants";
 
-export async function GET(request: Request, { params }: { params: Promise<{ pagination: string[] }> }) {
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<{ pagination: string[] }> },
+) {
   const { pagination } = await params;
   let { page, pageSize } = getSlugParams(pagination);
 
@@ -20,17 +23,19 @@ export async function GET(request: Request, { params }: { params: Promise<{ pagi
     return new Response(json, {
       status: 200,
       headers: {
-        'Content-Type': 'application/json'
-      }
+        "Content-Type": "application/json",
+      },
     });
   } catch (error) {
-    console.error('Error fetching posts:', error);
-    const json: string = JSON.stringify({ error: 'Error al cargar publicaciones' });
+    console.error("Error fetching posts:", error);
+    const json: string = JSON.stringify({
+      error: "Error al cargar publicaciones",
+    });
     return new Response(json, {
       status: 500,
       headers: {
-        'Content-Type': 'application/json'
-      }
+        "Content-Type": "application/json",
+      },
     });
   }
 }
@@ -43,9 +48,9 @@ function getSlugParams(slugParams: string[]) {
     const key = slugParams[i];
     const value = slugParams[i + 1];
 
-    if (key === 'page' && value) {
+    if (key === "page" && value) {
       page = parseInt(value, 10);
-    } else if (key === 'pageSize' && value) {
+    } else if (key === "pageSize" && value) {
       pageSize = parseInt(value, 10);
     }
   }

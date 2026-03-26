@@ -1,14 +1,14 @@
-import CurrencyAmount from "~/infrastructure/UI/components/CurrencyAmount";
-import { Post } from "~/infrastructure/types/Posts";
+import CurrencyAmount from "~/infra/UI/components/CurrencyAmount";
+import { Post } from "~/infra/types/Posts";
 import { MdPhone } from "react-icons/md";
 import { FaDollarSign } from "react-icons/fa";
-import { getOnePostWithPaginatedComments } from "~/infrastructure/dataAccess/getOnePostWithPaginatedComments";
+import { getOnePostWithPaginatedComments } from "~/infra/dataAccess/getOnePostWithPaginatedComments";
 import { Suspense } from "react";
 import CommentList from "../loadComments/CommentList";
-import type { PostUser } from "~/infrastructure/types/Posts";
-import MediaContent from "~/infrastructure/UI/components/MediaContent/MediaContent";
+import type { PostUser } from "~/infra/types/Posts";
+import MediaContent from "~/infra/UI/components/MediaContent/MediaContent";
 import { notFound } from "next/navigation";
-import { mapOnePostToCard } from "~/infrastructure/UI/mappers/posts/mapPostsToCards";
+import { mapOnePostToCard } from "~/infra/UI/mappers/posts/mapPostsToCards";
 
 async function getPostDetails(slug: string) {
   return await getOnePostWithPaginatedComments(slug, 10);
@@ -23,8 +23,8 @@ export default async function PostDetail({
   className: string;
   user: PostUser | undefined;
 }) {
-  const postDetails: Post | { error: boolean; errorMessage: string } = await getPostDetails(slug);
-
+  const postDetails: Post | { error: boolean; errorMessage: string } =
+    await getPostDetails(slug);
 
   if (postDetails.error === true) {
     notFound();
@@ -42,7 +42,17 @@ export default async function PostDetail({
     id: postDetails.id,
   };
 
-  const { title, content, media, price, contactInfo, comments, firstVisibleComment, lastVisibleComment, id } = details;
+  const {
+    title,
+    content,
+    media,
+    price,
+    contactInfo,
+    comments,
+    firstVisibleComment,
+    lastVisibleComment,
+    id,
+  } = details;
 
   return (
     <article className={className}>

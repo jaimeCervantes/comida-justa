@@ -1,20 +1,23 @@
-import { Page, PlaywrightWorkerOptions } from '@playwright/test';
-import type { Cookie } from '~/e2e/types/cookies';
-import { db } from '~/infrastructure/dataAccess/init';
+import { Page, PlaywrightWorkerOptions } from "@playwright/test";
+import type { Cookie } from "~/e2e/types/cookies";
+import { db } from "~/infra/dataAccess/init";
 
-export async function simulateLogin(page: Page, browserName: PlaywrightWorkerOptions['browserName']): Promise<DbSession> {
+export async function simulateLogin(
+  page: Page,
+  browserName: PlaywrightWorkerOptions["browserName"],
+): Promise<DbSession> {
   const dbSession = await createDbSession();
   const cookie: Cookie = {
-    name: 'authjs.session-token',
+    name: "authjs.session-token",
     value: dbSession.sessionToken,
-    domain: 'localhost',
-    path: '/',
+    domain: "localhost",
+    path: "/",
     httpOnly: true,
-    sameSite: 'Lax',
+    sameSite: "Lax",
     expires: Math.floor(new Date(dbSession.expires).getTime() / 1000),
   };
 
-  if (browserName !== 'webkit') {
+  if (browserName !== "webkit") {
     cookie.secure = true;
   }
 
@@ -24,12 +27,13 @@ export async function simulateLogin(page: Page, browserName: PlaywrightWorkerOpt
 }
 
 export async function deleteSession(sessionId: string) {
-  await db.collection('sessions').doc(sessionId).delete();
+  await db.collection("sessions").doc(sessionId).delete();
 }
 
 function generateRandomToken() {
-  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let result = '';
+  const characters =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  let result = "";
   const charactersLength = characters.length;
   for (let i = 0; i < 32; i++) {
     result += characters.charAt(Math.floor(Math.random() * charactersLength));
@@ -38,15 +42,15 @@ function generateRandomToken() {
 }
 
 async function createDbSession() {
-  const sessionRef = db.collection('sessions').doc(); // Crea un nuevo documento en la colección 'sessions'
+  const sessionRef = db.collection("sessions").doc(); // Crea un nuevo documento en la colección 'sessions'
   const sessionData = {
-    userId: '44pZIIJ5w1vSYkDQ6gfb',
+    userId: "44pZIIJ5w1vSYkDQ6gfb",
     sessionToken: generateRandomToken(),
     expires: new Date(new Date().getTime() + 60 * 60 * 1000).toISOString(),
   };
   await sessionRef.set(sessionData);
 
-  return { ...sessionData, id: sessionRef.id } // Retorna el ID de la sesión creada
+  return { ...sessionData, id: sessionRef.id }; // Retorna el ID de la sesión creada
 }
 
 export type DbSession = {
@@ -54,4 +58,4 @@ export type DbSession = {
   userId: string;
   sessionToken: string;
   expires: string;
-}
+};

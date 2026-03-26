@@ -1,19 +1,20 @@
 import React from "react";
-import CardForList from "~/infrastructure/UI/components/CardForList/CardForList";
-import { mapPostsToCards } from "~/infrastructure/UI/mappers/posts/mapPostsToCards";
-import Pagination from "~/infrastructure/UI/components/Pagination";
+import CardForList from "~/infra/UI/components/CardForList/CardForList";
+import { mapPostsToCards } from "~/infra/UI/mappers/posts/mapPostsToCards";
+import Pagination from "~/infra/UI/components/Pagination";
 
 async function fetchResults(
   q: string,
   page: number,
   pageSize: number,
-  locale: string
+  locale: string,
 ) {
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_URL || ""
+    `${
+      process.env.NEXT_PUBLIC_BASE_URL || ""
     }/api/search?q=${encodeURIComponent(
-      q
-    )}&limit=${pageSize}&page=${page}&locale=${locale}`
+      q,
+    )}&limit=${pageSize}&page=${page}&locale=${locale}`,
   );
   return res.json();
 }
@@ -41,7 +42,9 @@ export default async function SearchPage({
       {q && (
         <div className="mb-4 text-gray-600">
           Mostrando resultados para:{" "}
-          <span className="font-semibold text-pw-green">{decodeURIComponent(q)}</span>
+          <span className="font-semibold text-pw-green">
+            {decodeURIComponent(q)}
+          </span>
         </div>
       )}
       {q && cards.length === 0 && <div>No se encontraron resultados.</div>}

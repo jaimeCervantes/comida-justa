@@ -11,17 +11,16 @@ async function backfillEmbeddings() {
   if (!process.env.FIREBASE_SERVICE_ACCOUNT) {
     console.error("ERROR: FIREBASE_SERVICE_ACCOUNT is missing.");
     console.error(
-      "Make sure .env.production exists and contains the service account JSON."
+      "Make sure .env.production exists and contains the service account JSON.",
     );
     process.exit(1);
   }
 
   // 3. Dynamic Import (Ensures init.ts runs AFTER config())
   console.log("Initializing Firebase...");
-  const { db } = await import("~/infrastructure/dataAccess/init");
-  const { default: VertexEmbeddingService } = await import(
-    "~/infrastructure/services/VertexEmbeddingService"
-  );
+  const { db } = await import("~/infra/dataAccess/init");
+  const { default: VertexEmbeddingService } =
+    await import("~/infra/services/VertexEmbeddingService");
 
   console.log("Starting backfill of embeddings...");
 
@@ -61,7 +60,7 @@ async function backfillEmbeddings() {
 
       if (!postContent.title && !postContent.content) {
         console.warn(
-          `  - Language '${lang}': SKIPPING - Missing title/content.`
+          `  - Language '${lang}': SKIPPING - Missing title/content.`,
         );
         continue;
       }
@@ -69,8 +68,9 @@ async function backfillEmbeddings() {
       console.log(`  - Language '${lang}': Generating embedding...`);
 
       try {
-        const textToEmbed = `${postContent.title || ""}\n${postContent.content || ""
-          }`.trim();
+        const textToEmbed = `${postContent.title || ""}\n${
+          postContent.content || ""
+        }`.trim();
 
         if (!textToEmbed) continue;
 
@@ -85,7 +85,7 @@ async function backfillEmbeddings() {
       } catch (error) {
         console.error(
           `  - Language '${lang}': FAILED to generate embedding.`,
-          error
+          error,
         );
         errorCount++;
       }

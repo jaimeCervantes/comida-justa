@@ -1,17 +1,21 @@
-import { NextResponse } from 'next/server';
-import { v4 as uuidv4 } from 'uuid';
-import { auth } from "~/infrastructure/auth"
-import { getFirebaseAdmin } from '~/infrastructure/dataAccess/init';
+import { NextResponse } from "next/server";
+import { v4 as uuidv4 } from "uuid";
+import { auth } from "~/infra/auth";
+import { getFirebaseAdmin } from "~/infra/dataAccess/init";
 
 export async function POST(req: Request) {
   const session = await auth();
   if (!session || !session.user) {
-    return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+    return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   }
 
   try {
     const { path } = await req.json();
-    if (!path) return NextResponse.json({ error: 'Falta el path del archivo' }, { status: 400 });
+    if (!path)
+      return NextResponse.json(
+        { error: "Falta el path del archivo" },
+        { status: 400 },
+      );
 
     const bucket = getFirebaseAdmin().storage().bucket();
     const file = bucket.file(path);
