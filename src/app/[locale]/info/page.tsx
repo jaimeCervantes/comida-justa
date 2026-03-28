@@ -265,10 +265,7 @@ export default function InfoPage() {
               </li>
               <li className="flex justify-between border-b border-gray-100 dark:border-gray-800 pb-2">
                 <span className="leading-tight">
-                  🌻 Semillas / Hierbas / <br />
-                  <span className="text-sm text-gray-500">
-                    Arándanos / Canela
-                  </span>
+                  🌻 Semillas / Hierbas finas / Arándanos / Canela
                 </span>
                 <span className="font-semibold text-[var(--highlight)]">
                   $125
