@@ -20,7 +20,7 @@
     "test:coverage": "vitest run --coverage",
     "test:ui": "vitest --ui",
     "prepare": "husky",
-    "validate": "run-p lint test:run test:e2e:run",
+    "validate": "eslint . && npm run typecheck && npm run test:run && npm run test:e2e:run",
     "backfill-embeddings": "ts-node src/scripts/backfillEmbeddings.ts"
   },
   "dependencies": {
