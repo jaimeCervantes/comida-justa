@@ -23,6 +23,7 @@ export default function SignInPage() {
               className="h-40"
               width={100}
               height={100}
+              style={{ width: "auto", height: "auto" }}
             />
           </div>
 
@@ -46,7 +47,7 @@ export default function SignInPage() {
                       width={28}
                       height={28}
                       src={`https://authjs.dev/img/providers/${provider.id}.svg`}
-                      alt=""
+                      alt="Hazlo Sano"
                       className="h-7 w-7"
                     />
                     <span className="text-sm font-medium text-pw-gray dark:text-pw-white">
