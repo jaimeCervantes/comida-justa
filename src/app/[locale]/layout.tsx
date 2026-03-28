@@ -24,7 +24,7 @@ export default async function RootLayout({
   const gaId = process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID;
 
   return (
-    <html lang={locale}>
+    <html lang={locale} data-scroll-behavior="smooth">
       <body className={inter.className}>
         <Header locale={locale} />
         <main className="min-h-screen pt-4 pb-12">
