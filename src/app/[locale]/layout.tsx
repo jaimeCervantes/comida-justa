@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import Header from "~/infra/UI/components/Header/Header";
+import Footer from "~/infra/UI/components/Footer/Footer";
 import "~/app/styles/globals.css";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import { PUBLIC_BRAND_NAME } from "~/infra/constants";
@@ -26,10 +27,13 @@ export default async function RootLayout({
   return (
     <html lang={locale} data-scroll-behavior="smooth">
       <body className={inter.className}>
-        <Header locale={locale} />
-        <main className="min-h-screen pt-4 pb-12">
-          <div className="container-width">{children}</div>
-        </main>
+        <div className="flex flex-col min-h-screen">
+          <Header locale={locale} />
+          <main className="flex-1 pt-4 pb-12">
+            <div className="container-width">{children}</div>
+          </main>
+          <Footer />
+        </div>
       </body>
       {process.env.NODE_ENV === "production" && gaId && (
         <GoogleAnalytics gaId={gaId} />
