@@ -30,7 +30,7 @@ export async function generateMetadata({
     openGraph: {
       title: t("title"),
       description: t("description"),
-      images: ["https://hazlosano.com/logo.svg"],
+      images: ["https://hazlosano.com/logo.webp"],
       type: "website",
     },
     alternates: {

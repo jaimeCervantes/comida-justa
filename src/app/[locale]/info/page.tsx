@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import Image from "next/image";
 
 export const metadata: Metadata = {
   title: "Información - Hazlo Sano",
@@ -7,7 +8,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Información - Hazlo Sano",
     description: "Información sobre nuestros productos naturales.",
-    images: ["https://hazlosano.com/logo.svg"],
+    images: ["https://hazlosano.com/logo.webp"],
     type: "website",
   },
 };
@@ -15,7 +16,15 @@ export const metadata: Metadata = {
 export default function InfoPage() {
   return (
     <main className="container-width py-12 space-y-16 max-w-4xl mx-auto">
-      <header className="text-center space-y-4">
+      <header className="text-center space-y-6">
+        <Image
+          src="/logo.webp"
+          alt="Logo Hazlo Sano"
+          width={100}
+          height={100}
+          className="mx-auto hover:scale-105 transition-transform"
+          priority
+        />
         <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-balance">
           Información y Productos Naturales
         </h1>

@@ -7,7 +7,7 @@ import { db } from "~/infra/dataAccess/init";
 
 export const config = {
   theme: {
-    logo: "/logo.png",
+    logo: "/logo.webp",
   },
   adapter: FirestoreAdapter(db),
   providers: [createGoogleProvider, createMicrosoftEntraIDProvider],

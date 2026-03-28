@@ -58,12 +58,11 @@ export default async function Header({ locale }: { locale: string }) {
             className="flex-shrink-0 transition-transform hover:scale-105"
           >
             <Image
-              src="/logo.png"
+              src="/logo.webp"
               width={40}
               height={40}
               alt={`Logo ${PUBLIC_BRAND_NAME}`}
               priority
-              className="rounded-full"
             />
           </Link>
           <div className="hidden lg:block">

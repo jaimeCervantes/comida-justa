@@ -15,10 +15,10 @@ export default function SignInPage() {
     <div className="w-full max-w-lg flex items-center justify-center align-items-center mx-auto">
       <div className="mx-auto bg-white/60 dark:bg-slate-900/60 backdrop-blur-md rounded-2xl shadow-xl ring-1 ring-black/5 dark:ring-white/6 overflow-hidden">
         <div className="p-8 md:p-10 flex flex-col items-center text-center">
-          <div className="h-40 rounded-full bg-white flex items-center justify-center shadow-sm mb-4">
+          <div className="h-40 bg-white flex items-center justify-center mb-4">
             <Image
               loading="eager"
-              src="/logo.svg"
+              src="/logo.webp"
               alt="Logo"
               className="h-40"
               width={100}

@@ -160,14 +160,8 @@ export default function MobileNav({ children }: { children: React.ReactNode }) {
             onClick={() => setIsOpen(false)}
             className="flex items-center gap-2"
           >
-            <Image
-              src="/logo.png"
-              width={40}
-              height={40}
-              alt="Logo"
-              className="rounded-full"
-            />
-            <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-pw-green to-teal-500">
+            <Image src="/logo.webp" width={40} height={40} alt="Logo" />
+            <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[var(--highlight)] to-green-600">
               {PUBLIC_BRAND_NAME}
             </span>
           </Link>

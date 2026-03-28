@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { PUBLIC_BRAND_NAME } from "~/infra/constants";
 
 export default function Footer() {
@@ -11,9 +12,17 @@ export default function Footer() {
         <div className="md:col-span-2 space-y-6">
           <Link
             href="/"
-            className="inline-block text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[var(--highlight)] to-green-600"
+            className="inline-flex items-center gap-3 text-2xl font-bold"
           >
-            {PUBLIC_BRAND_NAME}
+            <Image
+              src="/logo.webp"
+              alt={`Logo ${PUBLIC_BRAND_NAME}`}
+              width={40}
+              height={40}
+            />
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-[var(--highlight)] to-green-600">
+              {PUBLIC_BRAND_NAME}
+            </span>
           </Link>
           <p className="text-gray-600 dark:text-gray-400 text-sm max-w-sm leading-relaxed">
             No somos solo una aplicación, somos todo un ecosistema de
