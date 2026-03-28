@@ -69,7 +69,7 @@ export default function CommentList({
                 <p className="flex flex-col text-sm" rel="author">
                   {comment.user.name}
                   <time
-                    dateTime={comment.createdAt}
+                    dateTime={new Date(comment.createdAt).toISOString()}
                     className="text-sm text-gray-500"
                   >
                     {isClient
