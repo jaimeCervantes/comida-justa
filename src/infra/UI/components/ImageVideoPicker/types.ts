@@ -1,4 +1,3 @@
-import { useState, useId, useRef } from "react";
 export type InputFiles = FileList | null;
 
 export type ImageVideoPickerProps = Partial<{

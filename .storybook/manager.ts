@@ -1,6 +1,6 @@
-import { addons } from "@storybook/manager-api";
-import { create } from "@storybook/theming";
-import { PUBLIC_BRAND_NAME } from "../src/infrastructure/constants";
+import { addons } from "storybook/manager-api";
+import { create } from "storybook/theming";
+import { PUBLIC_BRAND_NAME } from "../src/infra/constants";
 
 addons.setConfig({
   theme: create({

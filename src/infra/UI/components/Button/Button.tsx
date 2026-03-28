@@ -1,5 +1,5 @@
 "use client";
-import type { ButtonProps } from "./Button";
+import type { ButtonProps } from "./types";
 import classNames from "classnames";
 import { BiLoaderAlt } from "react-icons/bi";
 import { useState } from "react";

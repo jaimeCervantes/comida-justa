@@ -1,6 +1,6 @@
 import TextField from "~/infra/UI/components/TextField";
-import { userEvent, within, fn, expect } from "@storybook/test";
-import type { Meta, StoryObj } from "@storybook/react";
+import { userEvent, within, fn, expect } from "storybook/test";
+import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { FaUser } from "react-icons/fa";
 
 const meta = {
@@ -58,7 +58,7 @@ export const WithIconEnd: Story = {
 
 export const RequiredValueInteraction: Story = {
   args: { ...WithIconEnd.args, required: true },
-  async play({ canvasElement }) {
+  async play({ canvasElement }: { canvasElement: HTMLElement }) {
     const canvas = within(canvasElement);
 
     const field = await canvas.findByRole("textbox", { name: "Nombre" });
@@ -75,7 +75,13 @@ export const TriggerOnChangeEventInteraction: Story = {
     ...Default.args,
     onChange: fn(),
   },
-  async play({ args, canvasElement }) {
+  async play({
+    args,
+    canvasElement,
+  }: {
+    args: any;
+    canvasElement: HTMLElement;
+  }) {
     const canvas = within(canvasElement);
 
     const field = await canvas.findByRole("textbox", { name: "Nombre" });

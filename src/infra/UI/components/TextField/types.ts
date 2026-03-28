@@ -1,10 +1,11 @@
 import type { ChangeEventHandler, ReactNode } from "react";
+import React from "react";
 
 export type TextFieldProps = {
   isInvalid?: true | false;
   label?: string;
-  icon?: JSX.Element;
-  iconEnd?: JSX.Element;
+  icon?: React.JSX.Element;
+  iconEnd?: React.JSX.Element;
   required?: true | false;
   autoFocus?: true | false;
   name: string;

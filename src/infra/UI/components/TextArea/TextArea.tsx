@@ -20,7 +20,6 @@ const inputClassName =
 const errorClassName =
   "pt-1 flex items-center gap-1 text-red-700 dark:text-red-400";
 
-/* eslint-disable react/prop-types */
 export default function TextArea({
   label,
   maxLength,

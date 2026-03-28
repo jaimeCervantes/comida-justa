@@ -1,5 +1,5 @@
 import Avatar from "../Avatar";
-import type { CardProps } from "./Card";
+import type { CardProps } from "./types";
 import FormattedDate from "./FormattedDate";
 
 export default function Card({

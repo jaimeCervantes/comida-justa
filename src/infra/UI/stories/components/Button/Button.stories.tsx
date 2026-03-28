@@ -1,6 +1,6 @@
 import Button from "~/infra/UI/components/Button/Button";
-import { within, expect } from "@storybook/test";
-import type { Meta, StoryObj } from "@storybook/react";
+import { within, expect } from "storybook/test";
+import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 
 const meta = {
   component: Button,
@@ -35,7 +35,13 @@ export const LoadingInteraction: StoryObj<typeof meta> = {
     isLoading: true,
     children: "Publicar",
   },
-  async play({ args, canvasElement }) {
+  async play({
+    args,
+    canvasElement,
+  }: {
+    args: any;
+    canvasElement: HTMLElement;
+  }) {
     const canvas = within(canvasElement);
 
     const icon = canvas.getByTitle(/cargando/i);

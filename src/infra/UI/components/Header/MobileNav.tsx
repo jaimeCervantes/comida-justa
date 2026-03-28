@@ -91,19 +91,44 @@ const MENU_ITEMS: MenuItem[] = [
 
 import Image from "next/image";
 
+function useClientSideMounted() {
+  const [isMounted, setIsMounted] = useState(false);
+
+  // Next.js hydration workaround:
+  // createPortal can only be used on the client-side (requires document.body).
+  // We use this effect to track when the component has mounted in the browser.
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setIsMounted(true);
+  }, []);
+
+  return isMounted;
+}
+
+function useCloseMenuOnNavigation(
+  isOpen: boolean,
+  setIsOpen: (isOpen: boolean) => void,
+  setOpenSubmenu: (submenu: string | null) => void,
+) {
+  const pathname = usePathname();
+  const [prevPathname, setPrevPathname] = useState(pathname);
+
+  // This smoothly resets the mobile navigation states whenever the route changes.
+  if (pathname !== prevPathname) {
+    setPrevPathname(pathname);
+    if (isOpen) {
+      setIsOpen(false);
+      setOpenSubmenu(null);
+    }
+  }
+}
+
 export default function MobileNav({ children }: { children: React.ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
   const [openSubmenu, setOpenSubmenu] = useState<string | null>(null);
-  const [mounted, setMounted] = useState(false);
-  const pathname = usePathname();
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    setIsOpen(false);
-  }, [pathname]);
+  const isClientMounted = useClientSideMounted();
+  useCloseMenuOnNavigation(isOpen, setIsOpen, setOpenSubmenu);
 
   useEffect(() => {
     if (isOpen) {
@@ -219,7 +244,7 @@ export default function MobileNav({ children }: { children: React.ReactNode }) {
         <HamburgerMenuIcon className="w-6 h-6" />
       </button>
 
-      {mounted &&
+      {isClientMounted &&
         typeof document !== "undefined" &&
         createPortal(menuContent, document.body)}
     </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AddCommentForm from "../addComments/AddCommentForm";
 import type { Comment, PostUser } from "~/infra/types/Posts";
 import { useRealTimeComments } from "../addComments/useRealTimeComments";
@@ -27,6 +27,12 @@ export default function CommentList({
   );
   const [loading, setLoading] = useState<boolean>(false);
   const [loadMoreMessage, setLoadMoreMessage] = useState<string | null>(null);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    // eslint-disable-next-line
+    setIsClient(true);
+  }, []);
 
   const { comments, setComments, commentError } = useRealTimeComments(
     postId,
@@ -66,7 +72,9 @@ export default function CommentList({
                     dateTime={comment.createdAt}
                     className="text-sm text-gray-500"
                   >
-                    {new Date(comment.createdAt).toLocaleString()}
+                    {isClient
+                      ? new Date(comment.createdAt).toLocaleString()
+                      : ""}
                   </time>
                 </p>
               </header>

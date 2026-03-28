@@ -80,7 +80,7 @@ export async function getMoreComments(
     const querySnapshot = await query.get();
 
     const comments: FirestoreComment[] = [];
-    let lastVisible = null;
+    let lastVisible: FirestoreComment | null = null;
 
     querySnapshot.forEach((doc) => {
       comments.push({ id: doc.id, ...doc.data() } as FirestoreComment);

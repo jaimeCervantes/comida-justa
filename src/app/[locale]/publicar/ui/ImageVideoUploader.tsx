@@ -4,7 +4,7 @@ import ImageVideoPicker from "~/infra/UI/components/ImageVideoPicker";
 import {
   InputFiles,
   ImageVideoPickerProps,
-} from "~/infra/UI/components/ImageVideoPicker/ImageVideoPicker.d";
+} from "~/infra/UI/components/ImageVideoPicker/types";
 import { useCallback, useEffect } from "react";
 import { on } from "events";
 

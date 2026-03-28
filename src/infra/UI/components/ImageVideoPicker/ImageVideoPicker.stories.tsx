@@ -1,5 +1,5 @@
-import type { Meta, StoryObj } from "@storybook/react";
-import { within, userEvent, expect, fn } from "@storybook/test";
+import type { Meta, StoryObj } from "@storybook/nextjs-vite";
+import { within, userEvent, expect, fn } from "storybook/test";
 import ImageVideoPicker from "~/infra/UI/components/ImageVideoPicker/ImageVideoPicker";
 import { createMockFile } from "~/infra/UI/stories/utils";
 
@@ -48,7 +48,7 @@ export const WithError: Story = {
   args: {
     error: "Please select a valid file.",
   },
-  play: async ({ canvasElement }) => {
+  play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
     const canvas = within(canvasElement);
 
     const errorIcon = canvas.getByLabelText("iconError");

@@ -1,7 +1,7 @@
+@import "./utility-patterns.css";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-@import "./utility-patterns.css";
 
 :root {
   --cj-bg-color: #fafafa; /* Softer white */

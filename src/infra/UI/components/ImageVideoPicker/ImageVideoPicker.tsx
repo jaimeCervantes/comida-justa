@@ -2,7 +2,7 @@
 import { useState, useId, useRef } from "react";
 import Button from "../Button/Button";
 import { MdImage as MdImageIcon } from "react-icons/md";
-import type { ImageVideoPickerProps } from "./ImageVideoPicker.d";
+import type { ImageVideoPickerProps } from "./types";
 import { MdError } from "react-icons/md";
 
 import styles from "./ImageVideoPicker.module.css";
@@ -19,7 +19,7 @@ export default function ImagePicker({
   required,
   accept,
   multiple,
-  disabled = false
+  disabled = false,
 }: ImageVideoPickerProps) {
   const [fileName, setFileName] = useState<string>("");
   const [srcFile, setSrcFile] = useState<string>("");
@@ -49,7 +49,7 @@ export default function ImagePicker({
   }
 
   const isImage = fileType.startsWith("image/");
-  const isVideo = fileType.startsWith("video/")
+  const isVideo = fileType.startsWith("video/");
 
   return (
     <section className={className}>

@@ -3,7 +3,7 @@
 import { useId, forwardRef, useRef } from "react";
 import type { ForwardedRef } from "react";
 import { MdError } from "react-icons/md";
-import type { TextFieldProps, TextFieldRefType } from "./TextField";
+import type { TextFieldProps, TextFieldRefType } from "./types";
 import { useImperativeHandle } from "react";
 import {
   inputClassNameDefault,

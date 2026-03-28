@@ -19,7 +19,7 @@ export default function Pagination({
   let end = Math.min(totalPages, start + 4);
   if (end - start < 4) start = Math.max(1, end - 4);
 
-  const pages = [];
+  const pages: number[] = [];
   for (let i = start; i <= end; i++) {
     pages.push(i);
   }

@@ -1,7 +1,7 @@
 "use client";
 
 import Button from "~/infra/UI/components/Button/Button";
-import type { ButtonProps } from "~/infra/UI/components/Button/Button";
+import type { ButtonProps } from "~/infra/UI/components/Button/types";
 
 type AuthActionButtonProps = ButtonProps & {
   action: () => Promise<void>;
