@@ -204,22 +204,52 @@ export default function InfoPage() {
       </section>
 
       {/* 3. Pan de Masa Madre */}
-      <section className="space-y-8">
+      <section className="space-y-8" id="pan-de-masa-madre-mmnaturalmente">
         <div className="space-y-4">
           <h2 className="text-3xl font-bold flex items-center gap-3">
             <span className="text-4xl">🥖</span> Pan de Masa Madre
           </h2>
           <h3 className="text-xl font-medium text-gray-700 dark:text-gray-300">
-            ¿Te inflama el pan comercial? Pásate a la Masa Madre de Hazlo Sano.
+            ¿Te inflama el pan comercial? Pásate a la Masa Madre en Hazlo Sano.
           </h3>
           <p className="text-lg leading-relaxed text-gray-600 dark:text-gray-400">
-            Nuestro pan no es solo pan. Es un{" "}
+            El pan de{" "}
+            <strong className="text-gray-900 dark:text-white">
+              MMNaturalmente
+            </strong>{" "}
+            no es solo pan. Es un{" "}
             <strong className="text-gray-900 dark:text-white">
               ecosistema vivo
             </strong>{" "}
             que cuida tu salud, elaborado sin químicos ni levaduras
             industriales. Es pan vivo. Es pan que nutre. ✨
           </p>
+
+          <div className="bg-orange-50/80 dark:bg-orange-950/30 p-5 rounded-2xl text-orange-900 dark:text-orange-200 border border-orange-200/60 dark:border-orange-900/40 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <p>
+              📍 Hazlo Sano es <strong>punto de venta oficial</strong> del pan
+              elaborado por{" "}
+              <strong className="font-bold">MMNaturalmente</strong>.
+            </p>
+            <div className="flex flex-shrink-0 items-center justify-start gap-4 font-medium text-sm">
+              <a
+                href="https://www.instagram.com/mmnaturalmente/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-white dark:bg-[#1a1a1a] px-3 py-1.5 rounded-full shadow-sm hover:shadow-md hover:text-orange-600 dark:hover:text-orange-400 border border-orange-100 dark:border-orange-900/50 transition-all flex items-center gap-1.5"
+              >
+                📸 Instagram
+              </a>
+              <a
+                href="https://www.facebook.com/profile.php?id=61575188279449"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-white dark:bg-[#1a1a1a] px-3 py-1.5 rounded-full shadow-sm hover:shadow-md hover:text-blue-600 dark:hover:text-blue-400 border border-orange-100 dark:border-orange-900/50 transition-all flex items-center gap-1.5"
+              >
+                🔵 Facebook
+              </a>
+            </div>
+          </div>
         </div>
 
         <div className="grid sm:grid-cols-2 gap-6">
