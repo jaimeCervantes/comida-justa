@@ -68,18 +68,20 @@ export default function Nav() {
         </NavigationMenu.Item>
 
         <NavigationMenu.Item>
-          <Link href="/info" legacyBehavior passHref>
-            <NavigationMenu.Link className="text-gray-700 dark:text-gray-200 hover:text-pw-green focus:text-pw-green block select-none rounded-[4px] px-3 py-2 text-[15px] font-medium leading-none outline-none transition-colors">
+          <NavigationMenu.Link asChild>
+            <Link
+              href="/info"
+              className="text-gray-700 dark:text-gray-200 hover:text-pw-green focus:text-pw-green block select-none rounded-[4px] px-3 py-2 text-[15px] font-medium leading-none outline-none transition-colors"
+            >
               Productos
-            </NavigationMenu.Link>
-          </Link>
+            </Link>
+          </NavigationMenu.Link>
         </NavigationMenu.Item>
 
         <NavigationMenu.Indicator className="data-[state=visible]:animate-fadeIn data-[state=hidden]:animate-fadeOut top-full z-[1] flex h-[10px] items-end justify-center overflow-hidden transition-[width,transform_250ms_ease]">
           <div className="relative top-[70%] h-[10px] w-[10px] rotate-[45deg] rounded-tl-[2px] bg-white dark:bg-gray-900 border-t border-l border-gray-200 dark:border-gray-800" />
         </NavigationMenu.Indicator>
       </NavigationMenu.List>
-
       <div className="absolute top-full left-0 pt-2">
         <NavigationMenu.Viewport className="data-[state=open]:animate-scaleIn data-[state=closed]:animate-scaleOut relative mt-[10px] h-[var(--radix-navigation-menu-viewport-height)] w-[var(--radix-navigation-menu-viewport-width)] origin-[top_center] overflow-hidden rounded-[10px] bg-white dark:bg-gray-900 shadow-[0_10px_38px_-10px_hsla(206,22%,7%,.35),0_10px_20px_-15px_hsla(206,22%,7%,.2)] transition-[width,_height] duration-300 border border-gray-200 dark:border-gray-800" />
       </div>

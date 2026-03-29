@@ -2,6 +2,7 @@ import React from "react";
 import * as NavigationMenu from "@radix-ui/react-navigation-menu";
 import classNames from "classnames";
 import type { ReactNode, ForwardedRef } from "react";
+import Link from "next/link";
 
 export default React.forwardRef(function ListItem(
   {
@@ -16,7 +17,7 @@ export default React.forwardRef(function ListItem(
   return (
     <li>
       <NavigationMenu.Link asChild>
-        <a
+        <Link
           className={classNames(
             "group focus:shadow-[0_0_0_2px] focus:shadow-violet7 hover:bg-mauve3 hover:text-pw-black block select-none rounded-[6px] p-3 text-[15px] leading-none no-underline outline-none transition-colors",
             className
@@ -31,7 +32,7 @@ export default React.forwardRef(function ListItem(
           <p className="text-mauve11 dark:text-pw-white group-hover:text-pw-black leading-[1.4]">
             {children}
           </p>
-        </a>
+        </Link>
       </NavigationMenu.Link>
     </li>
   );
