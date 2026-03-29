@@ -17,54 +17,38 @@ interface MenuItem {
 
 const MENU_ITEMS: MenuItem[] = [
   {
-    title: "Comida sana",
+    title: "4 Pilares",
     items: [
       {
-        title: "Platillos",
-        href: "/platillos",
-        description: "Platillos locales con ingredientes locales",
+        title: "Sueño y Descanso",
+        href: "/pilares/sueno",
+        description: "Optimizar la higiene del sueño para tu recuperación biológica",
       },
       {
-        title: "Frutas",
-        href: "/frutas",
-        description: "Frutas locales sin químicos",
+        title: "Alimentación natural y nutritiva",
+        href: "/pilares/alimentacion",
+        description: "Conexión con el origen, alimentos locales y reales",
       },
       {
-        title: "Verduras",
-        href: "/verduras",
-        description: "Verduras locales sin químicos",
+        title: "Ejercicio y Movimiento",
+        href: "/pilares/movimiento",
+        description: "Combatir el sedentarismo con actividad física funcional",
       },
       {
-        title: "Semillas",
-        href: "/semillas",
-        description: "Semillas sin químicos",
+        title: "Emociones, Mente, Espíritu y Comunidad",
+        href: "/pilares/mente-espiritu",
+        description: "Gestión emocional, mental y conexión con los demás",
       },
     ],
   },
   {
     title: "Comunidad",
     items: [
-      { title: "Hábitos", href: "/habitos", description: "Hábitos saludables" },
       {
         title: "Grupos",
         href: "/habitos/grupos",
         description: "Grupos locales de apoyo",
       },
-      {
-        title: "Deportes",
-        href: "/deportes",
-        description: "Dónde practicar deportes",
-      },
-      {
-        title: "Aprendizaje",
-        href: "/aprendizaje",
-        description: "Aprender más con hábitos saludables",
-      },
-    ],
-  },
-  {
-    title: "Justicia",
-    items: [
       {
         title: "Salud infantil",
         href: "/salud-infantil",
@@ -76,7 +60,7 @@ const MENU_ITEMS: MenuItem[] = [
         description: "Impacto ambiental positivo",
       },
       {
-        title: "Productores",
+        title: "Productores locales",
         href: "/productores-locales",
         description: "Apoyo a la producción local",
       },
@@ -84,6 +68,11 @@ const MENU_ITEMS: MenuItem[] = [
         title: "Negocios locales",
         href: "/negocios-locales",
         description: "Guía de negocios locales",
+      },
+      {
+        title: "Deportes",
+        href: "/deportes",
+        description: "Dónde practicar deportes",
       },
     ],
   },
@@ -214,6 +203,15 @@ export default function MobileNav({ children }: { children: React.ReactNode }) {
                 </div>
               </li>
             ))}
+            <li className="border-b border-gray-100 dark:border-gray-800 last:border-0">
+              <Link
+                href="/info"
+                onClick={() => setIsOpen(false)}
+                className="w-full flex items-center justify-between py-4 text-lg font-medium text-gray-900 dark:text-gray-100"
+              >
+                Productos
+              </Link>
+            </li>
           </ul>
         </nav>
 

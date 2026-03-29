@@ -3,6 +3,7 @@ import * as NavigationMenu from "@radix-ui/react-navigation-menu";
 import { CaretDownIcon } from "@radix-ui/react-icons";
 import ListItem from "./ListItem";
 import { PUBLIC_BRAND_NAME } from "~/infra/constants";
+import Link from "next/link";
 
 export default function Nav() {
   return (
@@ -10,25 +11,25 @@ export default function Nav() {
       <NavigationMenu.List className="center m-0 flex list-none rounded-full bg-white/50 dark:bg-black/50 px-2 py-1 shadow-sm backdrop-blur-sm">
         <NavigationMenu.Item>
           <NavigationMenu.Trigger className="text-gray-700 dark:text-gray-200 hover:text-pw-green focus:text-pw-green group flex select-none items-center justify-between gap-[2px] rounded-[4px] px-3 py-2 text-[15px] font-medium leading-none outline-none transition-colors">
-            Comida sana
+            4 Pilares
             <CaretDownIcon
               className="text-pw-green relative top-[1px] transition-transform duration-[250] ease-in group-data-[state=open]:-rotate-180"
               aria-hidden
             />
           </NavigationMenu.Trigger>
           <NavigationMenu.Content className="absolute top-0 left-0 w-auto">
-            <ul className="m-0 grid list-none gap-x-[10px] p-[22px] w-[300px] md:w-[500px] lg:w-[600px] grid-cols-[0.75fr_1fr]">
-              <ListItem href="/platillos" title="Platillos">
-                Platillos locales con ingredientes locales
+            <ul className="m-0 grid list-none gap-x-[10px] p-[22px] w-[300px] md:w-[600px] lg:w-[700px] grid-cols-[1fr_1fr]">
+              <ListItem href="/pilares/sueno" title="Sueño y Descanso">
+                Optimizar la higiene del sueño para tu recuperación biológica
               </ListItem>
-              <ListItem href="/frutas" title="Frutas">
-                Frutas locales sin químicos
+              <ListItem href="/pilares/alimentacion" title="Alimentación natural y nutritiva">
+                Conexión con el origen, alimentos locales y reales
               </ListItem>
-              <ListItem href="/verduras" title="Verduras">
-                Verduras locales sin químicos
+              <ListItem href="/pilares/movimiento" title="Ejercicio y Movimiento">
+                Combatir el sedentarismo con actividad física funcional
               </ListItem>
-              <ListItem href="/semillas" title="Semillas">
-                Semillas sin químicos
+              <ListItem href="/pilares/mente-espiritu" title="Emociones, Mente, Espíritu y Comunidad">
+                Gestión emocional, mental y una clara conexión con los demás
               </ListItem>
             </ul>
           </NavigationMenu.Content>
@@ -43,47 +44,35 @@ export default function Nav() {
             />
           </NavigationMenu.Trigger>
           <NavigationMenu.Content className="absolute top-0 left-0 w-auto">
-            <ul className="m-0 grid list-none gap-x-[10px] p-[22px] w-[300px] md:w-[600px] grid-flow-row md:grid-flow-col md:grid-rows-2">
-              <ListItem title="Hábitos" href="/habitos">
-                Hábitos saludables
-              </ListItem>
+            <ul className="m-0 grid list-none gap-[10px] p-[22px] w-[300px] md:w-[600px] grid-cols-2">
               <ListItem title="Grupos" href="/habitos/grupos">
                 Grupos locales, donde te apoyan a alcanzar tus metas
               </ListItem>
-              <ListItem title="Deportes" href="/deportes">
-                Dónde practicar deportes con personas que te animan
-              </ListItem>
-              <ListItem title="Aprendizaje" href="/aprendizaje">
-                Cómo aprender más con hábitos saludables
-              </ListItem>
-            </ul>
-          </NavigationMenu.Content>
-        </NavigationMenu.Item>
-
-        <NavigationMenu.Item>
-          <NavigationMenu.Trigger className="text-gray-700 dark:text-gray-200 hover:text-pw-green focus:text-pw-green group flex select-none items-center justify-between gap-[2px] rounded-[4px] px-3 py-2 text-[15px] font-medium leading-none outline-none transition-colors">
-            Justicia
-            <CaretDownIcon
-              className="text-pw-green relative top-[1px] transition-transform duration-[250] ease-in group-data-[state=open]:-rotate-180"
-              aria-hidden
-            />
-          </NavigationMenu.Trigger>
-          <NavigationMenu.Content className="absolute top-0 left-0 w-auto">
-            <ul className="m-0 grid list-none gap-x-[10px] p-[22px] w-[300px] md:w-[500px] lg:w-[600px] grid-cols-[0.75fr_1fr]">
               <ListItem href="/salud-infantil" title="Salud infantil">
                 Es injusto fomentar una alimentación dañina
               </ListItem>
               <ListItem href="/medio-ambiente" title="Medio ambiente">
                 Impacto para las generaciones futuras
               </ListItem>
-              <ListItem title="Productores" href="/productores-locales">
+              <ListItem title="Productores locales" href="/productores-locales">
                 Apoyo a la producción local
               </ListItem>
               <ListItem title="Negocios locales" href="/negocios-locales">
                 Guía a negocios locales de {PUBLIC_BRAND_NAME}
               </ListItem>
+              <ListItem title="Deportes" href="/deportes">
+                Dónde practicar deportes con personas que te animan
+              </ListItem>
             </ul>
           </NavigationMenu.Content>
+        </NavigationMenu.Item>
+
+        <NavigationMenu.Item>
+          <Link href="/info" legacyBehavior passHref>
+            <NavigationMenu.Link className="text-gray-700 dark:text-gray-200 hover:text-pw-green focus:text-pw-green block select-none rounded-[4px] px-3 py-2 text-[15px] font-medium leading-none outline-none transition-colors">
+              Productos
+            </NavigationMenu.Link>
+          </Link>
         </NavigationMenu.Item>
 
         <NavigationMenu.Indicator className="data-[state=visible]:animate-fadeIn data-[state=hidden]:animate-fadeOut top-full z-[1] flex h-[10px] items-end justify-center overflow-hidden transition-[width,transform_250ms_ease]">
