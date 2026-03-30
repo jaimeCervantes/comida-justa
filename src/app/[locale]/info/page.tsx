@@ -17,21 +17,9 @@ export default function InfoPage() {
   return (
     <main className="container-width py-12 space-y-16 max-w-4xl mx-auto">
       <header className="text-center space-y-6">
-        <Image
-          src="/logo.webp"
-          alt="Logo Hazlo Sano"
-          width={100}
-          height={100}
-          className="mx-auto hover:scale-105 transition-transform"
-          priority
-        />
         <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-balance">
           Información y Productos Naturales
         </h1>
-        <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-          En Hazlo Sano, creemos en una salud verdadera e integral. Descubre más
-          sobre lo que hacemos y cómo cuidar mejor de tu salud.
-        </p>
       </header>
 
       {/* 1. Ecosistema Hazlo Sano / Chatbot */}
@@ -39,15 +27,23 @@ export default function InfoPage() {
         <div className="relative z-10 flex flex-col sm:flex-row items-center sm:items-start sm:justify-between gap-8">
           <div className="space-y-6 flex-1">
             <div className="space-y-4">
-              <h2 className="text-3xl font-bold text-blue-900 dark:text-blue-100 flex items-center gap-3">
-                <span className="text-4xl">🌱</span> El Ecosistema &quot;Hazlo
-                Sano&quot;
-              </h2>
+              <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-4 sm:gap-6 text-center sm:text-left">
+                <Image
+                  src="/logo.webp"
+                  alt="Logo Hazlo Sano"
+                  width={100}
+                  height={100}
+                  className="hover:scale-105 transition-transform flex-shrink-0"
+                  priority
+                />
+                <h2 className="text-3xl sm:text-4xl font-bold text-blue-900 dark:text-blue-100">
+                  El Ecosistema &quot;Hazlo Sano&quot;
+                </h2>
+              </div>
               <p className="text-blue-800 dark:text-blue-200 text-lg leading-relaxed">
-                <strong>Hazlo Sano</strong> no es solo un chatbot o una
-                aplicación; es todo un ecosistema de iniciativas y sistemas (No
-                solo computacionales) diseñados para que vivir sano sea la
-                opción más fácil para todos.
+                <strong>Hazlo Sano</strong> es todo un ecosistema de iniciativas
+                y sistemas (No solo computacionales) diseñados para que vivir
+                sano sea la opción más fácil para todos.
               </p>
               <p className="text-blue-800 dark:text-blue-200 text-lg leading-relaxed font-medium">
                 Hablamos de acciones concretas basadas en nuestros 4 pilares:
