@@ -50,7 +50,7 @@ export default function Button({
   };
 
   const buttonClassName = classNames(
-    "relative rounded-sm",
+    "relative rounded-lg",
     className,
     styleBtn[color || "default"],
     styleSizeBtn[size],
