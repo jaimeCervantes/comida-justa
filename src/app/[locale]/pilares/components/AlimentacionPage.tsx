@@ -4,17 +4,17 @@ export default function AlimentacionPage() {
   return (
     <article className="">
       <header className="mb-10">
-        <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-slate-900 mb-4">
+        <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-pw-orange mb-4">
           2. Alimentación natural y nutritiva
         </h1>
-        <p className="text-xl text-slate-600">
+        <p className="text-xl text-slate-600 dark:text-slate-400">
           Reconectando con el origen y la comida real.
         </p>
       </header>
 
-      <div className="space-y-8 text-lg text-slate-800 leading-relaxed">
+      <div className="space-y-8 text-lg text-slate-800 dark:text-slate-200 leading-relaxed">
         <section>
-          <h2 className="text-2xl font-bold text-slate-900 mb-4">
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-50 mb-4">
             La Revolución Verde y los Ultraprocesados (Post-Segunda Guerra
             Mundial)
           </h2>
@@ -24,22 +24,22 @@ export default function AlimentacionPage() {
             optó por la cantidad sobre la calidad.
           </p>
 
-          <div className="bg-slate-50 rounded-2xl p-6 sm:p-8 my-8 border border-slate-100 shadow-sm">
+          <div className="bg-orange-50/50 dark:bg-orange-900/10 rounded-2xl p-6 sm:p-8 my-8 border border-orange-100 dark:border-orange-800/30 shadow-sm">
             <ul className="space-y-6">
               <li className="flex flex-col sm:flex-row gap-2 sm:gap-4">
-                <span className="font-bold text-slate-900 shrink-0 sm:w-28 text-xl">
+                <span className="font-bold text-slate-900 dark:text-slate-50 shrink-0 sm:w-28 text-xl">
                   El cambio:
                 </span>
-                <span className="text-slate-700 text-lg">
+                <span className="text-slate-700 dark:text-slate-300 text-lg">
                   Aparecieron los aceites vegetales refinados, las harinas
                   blancas masivas y el azúcar en todo.
                 </span>
               </li>
               <li className="flex flex-col sm:flex-row gap-2 sm:gap-4">
-                <span className="font-bold text-slate-900 shrink-0 sm:w-28 text-xl">
+                <span className="font-bold text-slate-900 dark:text-slate-50 shrink-0 sm:w-28 text-xl">
                   El impacto:
                 </span>
-                <span className="text-slate-700 text-lg">
+                <span className="text-slate-700 dark:text-slate-300 text-lg">
                   Pasamos de comer &quot;comida de la tierra&quot; (como la de
                   tu proyecto) a &quot;productos comestibles&quot; diseñados en
                   laboratorios para ser adictivos pero nutricionalmente nulos.
@@ -62,8 +62,8 @@ export default function AlimentacionPage() {
             humana y planetaria.
           </p>
 
-          <div className="bg-green-50/50 border-l-4 border-green-500 p-6 rounded-r-xl my-8">
-            <p className="text-green-900 text-lg m-0">
+          <div className="bg-orange-50/80 dark:bg-orange-900/20 border-l-4 border-orange-500 dark:border-orange-400 p-6 rounded-r-xl my-8">
+            <p className="text-orange-900 dark:text-orange-100 text-lg m-0">
               Más allá de una dieta, este pilar se enfoca en la conexión con el
               origen. Promueve el consumo de alimentos reales y locales,
               facilitando el puente entre los agricultores y el consumidor
@@ -73,8 +73,10 @@ export default function AlimentacionPage() {
         </section>
 
         <section>
-          <h3 className="text-2xl font-bold text-slate-900 mb-4">Incluye:</h3>
-          <ul className="list-disc pl-6 space-y-3 text-slate-700 text-lg">
+          <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-50 mb-4">
+            Incluye:
+          </h3>
+          <ul className="list-disc pl-6 space-y-3 text-slate-700 dark:text-slate-300 text-lg">
             <li>El apoyo a restaurantes que ofrecen opciones nutritivas.</li>
             <li>
               La promoción de la siembra propia de insumos (huertos urbanos o
@@ -88,14 +90,16 @@ export default function AlimentacionPage() {
         </section>
 
         <section>
-          <h3 className="text-xl font-bold text-slate-900 mb-4">Referencias</h3>
-          <ul className="list-disc pl-6 space-y-2 text-slate-700 text-base break-all">
+          <h3 className="text-xl font-bold text-slate-900 dark:text-slate-50 mb-4">
+            Referencias
+          </h3>
+          <ul className="list-disc pl-6 space-y-2 text-slate-700 dark:text-slate-300 text-base break-all">
             <li>
               <a
                 href="https://doi.org/10.1111/obr.13126"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-green-600 underline"
+                className="text-orange-600 dark:text-orange-400 hover:text-orange-800 dark:hover:text-orange-300 underline transition-colors"
               >
                 https://doi.org/10.1111/obr.13126
               </a>
@@ -105,7 +109,7 @@ export default function AlimentacionPage() {
                 href="https://doi.org/10.1017/s1368980017000234"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-green-600 underline"
+                className="text-orange-600 dark:text-orange-400 hover:text-orange-800 dark:hover:text-orange-300 underline transition-colors"
               >
                 https://doi.org/10.1017/s1368980017000234
               </a>
@@ -115,7 +119,7 @@ export default function AlimentacionPage() {
                 href="https://doi.org/10.1111/1541-4337.13204"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-green-600 underline"
+                className="text-orange-600 dark:text-orange-400 hover:text-orange-800 dark:hover:text-orange-300 underline transition-colors"
               >
                 https://doi.org/10.1111/1541-4337.13204
               </a>
@@ -125,7 +129,7 @@ export default function AlimentacionPage() {
                 href="https://doi.org/10.3389/fnut.2021.748847"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-green-600 underline"
+                className="text-orange-600 dark:text-orange-400 hover:text-orange-800 dark:hover:text-orange-300 underline transition-colors"
               >
                 https://doi.org/10.3389/fnut.2021.748847
               </a>
@@ -135,7 +139,7 @@ export default function AlimentacionPage() {
                 href="https://doi.org/10.3389/fsufs.2021.644559"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-green-600 underline"
+                className="text-orange-600 dark:text-orange-400 hover:text-orange-800 dark:hover:text-orange-300 underline transition-colors"
               >
                 https://doi.org/10.3389/fsufs.2021.644559
               </a>
@@ -145,7 +149,7 @@ export default function AlimentacionPage() {
                 href="https://doi.org/10.1016/s0140-6736(25)01565-x"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-green-600 underline"
+                className="text-orange-600 dark:text-orange-400 hover:text-orange-800 dark:hover:text-orange-300 underline transition-colors"
               >
                 https://doi.org/10.1016/s0140-6736(25)01565-x
               </a>
@@ -155,7 +159,7 @@ export default function AlimentacionPage() {
                 href="https://doi.org/10.1108/bfj-07-2016-0321"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-green-600 underline"
+                className="text-orange-600 dark:text-orange-400 hover:text-orange-800 dark:hover:text-orange-300 underline transition-colors"
               >
                 https://doi.org/10.1108/bfj-07-2016-0321
               </a>
@@ -165,7 +169,7 @@ export default function AlimentacionPage() {
                 href="https://doi.org/10.1146/annurev-food-111523-122028"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-green-600 underline"
+                className="text-orange-600 dark:text-orange-400 hover:text-orange-800 dark:hover:text-orange-300 underline transition-colors"
               >
                 https://doi.org/10.1146/annurev-food-111523-122028
               </a>
@@ -175,7 +179,7 @@ export default function AlimentacionPage() {
                 href="https://doi.org/10.1016/s2542-5196(20)30177-7"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-green-600 underline"
+                className="text-orange-600 dark:text-orange-400 hover:text-orange-800 dark:hover:text-orange-300 underline transition-colors"
               >
                 https://doi.org/10.1016/s2542-5196(20)30177-7
               </a>
@@ -185,7 +189,7 @@ export default function AlimentacionPage() {
                 href="https://doi.org/10.1136/bmjopen-2015-009892"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-green-600 underline"
+                className="text-orange-600 dark:text-orange-400 hover:text-orange-800 dark:hover:text-orange-300 underline transition-colors"
               >
                 https://doi.org/10.1136/bmjopen-2015-009892
               </a>
@@ -195,7 +199,7 @@ export default function AlimentacionPage() {
                 href="https://doi.org/10.1002/fft2.173"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-green-600 underline"
+                className="text-orange-600 dark:text-orange-400 hover:text-orange-800 dark:hover:text-orange-300 underline transition-colors"
               >
                 https://doi.org/10.1002/fft2.173
               </a>
@@ -205,7 +209,7 @@ export default function AlimentacionPage() {
                 href="https://doi.org/10.1093/cdn/nzy077"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-green-600 underline"
+                className="text-orange-600 dark:text-orange-400 hover:text-orange-800 dark:hover:text-orange-300 underline transition-colors"
               >
                 https://doi.org/10.1093/cdn/nzy077
               </a>
@@ -215,7 +219,7 @@ export default function AlimentacionPage() {
                 href="https://doi.org/10.1098/rstb.2022.0214"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-green-600 underline"
+                className="text-orange-600 dark:text-orange-400 hover:text-orange-800 dark:hover:text-orange-300 underline transition-colors"
               >
                 https://doi.org/10.1098/rstb.2022.0214
               </a>
@@ -225,7 +229,7 @@ export default function AlimentacionPage() {
                 href="https://doi.org/10.1111/obr.12174"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-green-600 underline"
+                className="text-orange-600 dark:text-orange-400 hover:text-orange-800 dark:hover:text-orange-300 underline transition-colors"
               >
                 https://doi.org/10.1111/obr.12174
               </a>
@@ -235,7 +239,7 @@ export default function AlimentacionPage() {
                 href="https://doi.org/10.1016/j.jclepro.2022.133155"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-green-600 underline"
+                className="text-orange-600 dark:text-orange-400 hover:text-orange-800 dark:hover:text-orange-300 underline transition-colors"
               >
                 https://doi.org/10.1016/j.jclepro.2022.133155
               </a>
@@ -245,7 +249,7 @@ export default function AlimentacionPage() {
                 href="https://doi.org/10.1093/advances/nmab049"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-green-600 underline"
+                className="text-orange-600 dark:text-orange-400 hover:text-orange-800 dark:hover:text-orange-300 underline transition-colors"
               >
                 https://doi.org/10.1093/advances/nmab049
               </a>
@@ -255,7 +259,7 @@ export default function AlimentacionPage() {
                 href="https://doi.org/10.34172/ijhpm.2022.6443"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-green-600 underline"
+                className="text-orange-600 dark:text-orange-400 hover:text-orange-800 dark:hover:text-orange-300 underline transition-colors"
               >
                 https://doi.org/10.34172/ijhpm.2022.6443
               </a>
@@ -265,7 +269,7 @@ export default function AlimentacionPage() {
                 href="https://doi.org/10.1111/1541-4337.13331"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-green-600 underline"
+                className="text-orange-600 dark:text-orange-400 hover:text-orange-800 dark:hover:text-orange-300 underline transition-colors"
               >
                 https://doi.org/10.1111/1541-4337.13331
               </a>
@@ -275,7 +279,7 @@ export default function AlimentacionPage() {
                 href="https://doi.org/10.1155/2022/6627013"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-green-600 underline"
+                className="text-orange-600 dark:text-orange-400 hover:text-orange-800 dark:hover:text-orange-300 underline transition-colors"
               >
                 https://doi.org/10.1155/2022/6627013
               </a>
@@ -285,7 +289,7 @@ export default function AlimentacionPage() {
                 href="https://doi.org/10.3390/su12156280"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-green-600 underline"
+                className="text-orange-600 dark:text-orange-400 hover:text-orange-800 dark:hover:text-orange-300 underline transition-colors"
               >
                 https://doi.org/10.3390/su12156280
               </a>

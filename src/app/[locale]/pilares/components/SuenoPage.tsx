@@ -4,7 +4,7 @@ export default function SuenoPage() {
   return (
     <article className="">
       <header className="mb-10">
-        <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-slate-50 mb-4">
+        <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-violet-500 mb-4">
           1. Sueño y Descanso
         </h1>
         <p className="text-xl text-slate-600 dark:text-slate-400">
@@ -24,7 +24,7 @@ export default function SuenoPage() {
             el sol.
           </p>
 
-          <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-6 sm:p-8 my-8 border border-slate-100 dark:border-slate-700 shadow-sm">
+          <div className="bg-violet-50/50 dark:bg-violet-900/10 rounded-2xl p-6 sm:p-8 my-8 border border-violet-500 dark:border-violet-800 shadow-sm">
             <ul className="space-y-6">
               <li className="flex flex-col sm:flex-row gap-2 sm:gap-4">
                 <span className="font-bold text-slate-900 dark:text-slate-50 shrink-0 sm:w-28 text-xl">
@@ -54,7 +54,8 @@ export default function SuenoPage() {
             ¿Cuántos procesos dependen del sueño?
           </h2>
           <p className="mb-4">
-            El sueño participa en múltiples funciones esenciales, no en solo una:
+            El sueño participa en múltiples funciones esenciales, no en solo
+            una:
           </p>
           <ul className="list-disc pl-6 space-y-3 text-slate-700 dark:text-slate-300 text-lg mb-8">
             <li>
@@ -63,8 +64,8 @@ export default function SuenoPage() {
             </li>
             <li>
               <strong>Metabolismo y energía:</strong> regulación del gasto y
-              reposición de energía, anabolismo, mantenimiento celular y limpieza
-              de &quot;desechos&quot; cerebrales (sistema glinfático).
+              reposición de energía, anabolismo, mantenimiento celular y
+              limpieza de &quot;desechos&quot; cerebrales (sistema glinfático).
             </li>
             <li>
               <strong>Sistema inmune e inflamación:</strong> defensa frente a
@@ -92,8 +93,8 @@ export default function SuenoPage() {
             cardiovascular a largo plazo.
           </p>
 
-          <div className="bg-green-50/50 dark:bg-green-900/30 border-l-4 border-green-500 dark:border-green-400 p-6 rounded-r-xl my-8">
-            <p className="text-green-900 dark:text-green-100 text-lg m-0">
+          <div className="bg-violet-50/dark:bg-violet-900 border-l-4 border-violet-500 dark:border-violet-400 p-6 rounded-r-xl my-8">
+            <p className="text-violet-900rk:text-violet-100xt-lg m-0">
               Este pilar es la base de la recuperación biológica. No se trata
               solo de &quot;dormir&quot;, sino de optimizar la{" "}
               <strong>higiene del sueño</strong> para garantizar que el cuerpo y
@@ -105,14 +106,16 @@ export default function SuenoPage() {
         </section>
 
         <section>
-          <h3 className="text-xl font-bold text-slate-900 dark:text-slate-50 mb-4">Referencias</h3>
+          <h3 className="text-xl font-bold text-slate-900 dark:text-slate-50 mb-4">
+            Referencias
+          </h3>
           <ul className="list-disc pl-6 space-y-2 text-slate-700 dark:text-slate-300 text-base break-all">
             <li>
               <a
                 href="https://doi.org/10.1038/tp.2016.262"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-green-600 dark:hover:text-green-400 underline"
+                className="text-violet-600rk:text-violet-400ver:text-violet-800rk:hover:text-violet-300derline transition-colors"
               >
                 https://doi.org/10.1038/tp.2016.262
               </a>
@@ -122,7 +125,7 @@ export default function SuenoPage() {
                 href="https://doi.org/10.1177/23727322231193967"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-green-600 dark:hover:text-green-400 underline"
+                className="text-violet-600rk:text-violet-400ver:text-violet-800rk:hover:text-violet-300derline transition-colors"
               >
                 https://doi.org/10.1177/23727322231193967
               </a>
@@ -132,7 +135,7 @@ export default function SuenoPage() {
                 href="https://doi.org/10.1016/j.lfs.2017.02.008"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-green-600 dark:hover:text-green-400 underline"
+                className="text-violet-600rk:text-violet-400ver:text-violet-800rk:hover:text-violet-300derline transition-colors"
               >
                 https://doi.org/10.1016/j.lfs.2017.02.008
               </a>
@@ -142,7 +145,7 @@ export default function SuenoPage() {
                 href="https://doi.org/10.1098/rstb.2014.0120"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-green-600 dark:hover:text-green-400 underline"
+                className="text-violet-600rk:text-violet-400ver:text-violet-800rk:hover:text-violet-300derline transition-colors"
               >
                 https://doi.org/10.1098/rstb.2014.0120
               </a>
@@ -152,7 +155,7 @@ export default function SuenoPage() {
                 href="https://doi.org/10.2174/0122106766390602251012162712"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-green-600 dark:hover:text-green-400 underline"
+                className="text-violet-600rk:text-violet-400ver:text-violet-800rk:hover:text-violet-300derline transition-colors"
               >
                 https://doi.org/10.2174/0122106766390602251012162712
               </a>
@@ -162,7 +165,7 @@ export default function SuenoPage() {
                 href="https://doi.org/10.1073/pnas.1901824116"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-green-600 dark:hover:text-green-400 underline"
+                className="text-violet-600rk:text-violet-400ver:text-violet-800rk:hover:text-violet-300derline transition-colors"
               >
                 https://doi.org/10.1073/pnas.1901824116
               </a>
@@ -172,7 +175,7 @@ export default function SuenoPage() {
                 href="https://doi.org/10.1093/sleep/zsz067.037"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-green-600 dark:hover:text-green-400 underline"
+                className="text-violet-600rk:text-violet-400ver:text-violet-800rk:hover:text-violet-300derline transition-colors"
               >
                 https://doi.org/10.1093/sleep/zsz067.037
               </a>
@@ -182,7 +185,7 @@ export default function SuenoPage() {
                 href="https://doi.org/10.1007/s11818-019-00215-x"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-green-600 dark:hover:text-green-400 underline"
+                className="text-violet-600rk:text-violet-400ver:text-violet-800rk:hover:text-violet-300derline transition-colors"
               >
                 https://doi.org/10.1007/s11818-019-00215-x
               </a>
@@ -192,7 +195,7 @@ export default function SuenoPage() {
                 href="https://doi.org/10.1038/s41598-020-75622-4"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-green-600 dark:hover:text-green-400 underline"
+                className="text-violet-600rk:text-violet-400ver:text-violet-800rk:hover:text-violet-300derline transition-colors"
               >
                 https://doi.org/10.1038/s41598-020-75622-4
               </a>
@@ -202,7 +205,7 @@ export default function SuenoPage() {
                 href="https://doi.org/10.1080/09291016.2022.2151763"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-green-600 dark:hover:text-green-400 underline"
+                className="text-violet-600rk:text-violet-400ver:text-violet-800rk:hover:text-violet-300derline transition-colors"
               >
                 https://doi.org/10.1080/09291016.2022.2151763
               </a>
@@ -212,7 +215,7 @@ export default function SuenoPage() {
                 href="https://doi.org/10.3390/ijms24043392"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-green-600 dark:hover:text-green-400 underline"
+                className="text-violet-600rk:text-violet-400ver:text-violet-800rk:hover:text-violet-300derline transition-colors"
               >
                 https://doi.org/10.3390/ijms24043392
               </a>
@@ -222,7 +225,7 @@ export default function SuenoPage() {
                 href="https://doi.org/10.1016/j.ygcen.2025.114822"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-green-600 dark:hover:text-green-400 underline"
+                className="text-violet-600rk:text-violet-400ver:text-violet-800rk:hover:text-violet-300derline transition-colors"
               >
                 https://doi.org/10.1016/j.ygcen.2025.114822
               </a>
@@ -232,7 +235,7 @@ export default function SuenoPage() {
                 href="https://doi.org/10.1021/acsomega.3c05620"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-green-600 dark:hover:text-green-400 underline"
+                className="text-violet-600rk:text-violet-400ver:text-violet-800rk:hover:text-violet-300derline transition-colors"
               >
                 https://doi.org/10.1021/acsomega.3c05620
               </a>
@@ -242,7 +245,7 @@ export default function SuenoPage() {
                 href="https://doi.org/10.1016/j.envpol.2023.121321"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-green-600 dark:hover:text-green-400 underline"
+                className="text-violet-600rk:text-violet-400ver:text-violet-800rk:hover:text-violet-300derline transition-colors"
               >
                 https://doi.org/10.1016/j.envpol.2023.121321
               </a>
@@ -252,7 +255,7 @@ export default function SuenoPage() {
                 href="https://doi.org/10.1016/j.scitotenv.2020.139334"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-green-600 dark:hover:text-green-400 underline"
+                className="text-violet-600rk:text-violet-400ver:text-violet-800rk:hover:text-violet-300derline transition-colors"
               >
                 https://doi.org/10.1016/j.scitotenv.2020.139334
               </a>
@@ -262,7 +265,7 @@ export default function SuenoPage() {
                 href="https://doi.org/10.3109/07420528.2015.1073158"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-green-600 dark:hover:text-green-400 underline"
+                className="text-violet-600rk:text-violet-400ver:text-violet-800rk:hover:text-violet-300derline transition-colors"
               >
                 https://doi.org/10.3109/07420528.2015.1073158
               </a>
@@ -272,7 +275,7 @@ export default function SuenoPage() {
                 href="https://doi.org/10.3322/caac.21218"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-green-600 dark:hover:text-green-400 underline"
+                className="text-violet-600rk:text-violet-400ver:text-violet-800rk:hover:text-violet-300derline transition-colors"
               >
                 https://doi.org/10.3322/caac.21218
               </a>
@@ -282,7 +285,7 @@ export default function SuenoPage() {
                 href="https://doi.org/10.1002/jez.70023"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-green-600 dark:hover:text-green-400 underline"
+                className="text-violet-600rk:text-violet-400ver:text-violet-800rk:hover:text-violet-300derline transition-colors"
               >
                 https://doi.org/10.1002/jez.70023
               </a>
@@ -292,7 +295,7 @@ export default function SuenoPage() {
                 href="https://doi.org/10.3390/ijerph19031849"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-green-600 dark:hover:text-green-400 underline"
+                className="text-violet-600rk:text-violet-400ver:text-violet-800rk:hover:text-violet-300derline transition-colors"
               >
                 https://doi.org/10.3390/ijerph19031849
               </a>
@@ -302,7 +305,7 @@ export default function SuenoPage() {
                 href="https://doi.org/10.1007/s00281-021-00899-0"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-green-600 dark:hover:text-green-400 underline"
+                className="text-violet-600rk:text-violet-400ver:text-violet-800rk:hover:text-violet-300derline transition-colors"
               >
                 https://doi.org/10.1007/s00281-021-00899-0
               </a>
@@ -312,7 +315,7 @@ export default function SuenoPage() {
                 href="https://doi.org/10.1016/j.arr.2024.102457"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-green-600 dark:hover:text-green-400 underline"
+                className="text-violet-600rk:text-violet-400ver:text-violet-800rk:hover:text-violet-300derline transition-colors"
               >
                 https://doi.org/10.1016/j.arr.2024.102457
               </a>
@@ -322,7 +325,7 @@ export default function SuenoPage() {
                 href="https://doi.org/10.1098/rsfs.2019.0092"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-green-600 dark:hover:text-green-400 underline"
+                className="text-violet-600rk:text-violet-400ver:text-violet-800rk:hover:text-violet-300derline transition-colors"
               >
                 https://doi.org/10.1098/rsfs.2019.0092
               </a>
@@ -332,7 +335,7 @@ export default function SuenoPage() {
                 href="https://doi.org/10.1111/jsr.12371"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-green-600 dark:hover:text-green-400 underline"
+                className="text-violet-600rk:text-violet-400ver:text-violet-800rk:hover:text-violet-300derline transition-colors"
               >
                 https://doi.org/10.1111/jsr.12371
               </a>
@@ -342,7 +345,7 @@ export default function SuenoPage() {
                 href="https://doi.org/10.1016/j.pcad.2023.02.005"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-green-600 dark:hover:text-green-400 underline"
+                className="text-violet-600rk:text-violet-400ver:text-violet-800rk:hover:text-violet-300derline transition-colors"
               >
                 https://doi.org/10.1016/j.pcad.2023.02.005
               </a>
@@ -352,7 +355,7 @@ export default function SuenoPage() {
                 href="https://doi.org/10.1177/15598276251346752"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-green-600 dark:hover:text-green-400 underline"
+                className="text-violet-600rk:text-violet-400ver:text-violet-800rk:hover:text-violet-300derline transition-colors"
               >
                 https://doi.org/10.1177/15598276251346752
               </a>
@@ -362,7 +365,7 @@ export default function SuenoPage() {
                 href="https://doi.org/10.1038/s41583-023-00764-z"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-green-600 dark:hover:text-green-400 underline"
+                className="text-violet-600rk:text-violet-400ver:text-violet-800rk:hover:text-violet-300derline transition-colors"
               >
                 https://doi.org/10.1038/s41583-023-00764-z
               </a>
@@ -372,7 +375,7 @@ export default function SuenoPage() {
                 href="https://doi.org/10.5664/jcsm.9476"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-green-600 dark:hover:text-green-400 underline"
+                className="text-violet-600rk:text-violet-400ver:text-violet-800rk:hover:text-violet-300derline transition-colors"
               >
                 https://doi.org/10.5664/jcsm.9476
               </a>
@@ -382,7 +385,7 @@ export default function SuenoPage() {
                 href="https://doi.org/10.1016/j.sleep.2016.08.006"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-green-600 dark:hover:text-green-400 underline"
+                className="text-violet-600rk:text-violet-400ver:text-violet-800rk:hover:text-violet-300derline transition-colors"
               >
                 https://doi.org/10.1016/j.sleep.2016.08.006
               </a>
@@ -392,7 +395,7 @@ export default function SuenoPage() {
                 href="https://doi.org/10.1111/jsr.13598"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-green-600 dark:hover:text-green-400 underline"
+                className="text-violet-600rk:text-violet-400ver:text-violet-800rk:hover:text-violet-300derline transition-colors"
               >
                 https://doi.org/10.1111/jsr.13598
               </a>
@@ -402,7 +405,7 @@ export default function SuenoPage() {
                 href="https://doi.org/10.3390/children8070542"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-green-600 dark:hover:text-green-400 underline"
+                className="text-violet-600rk:text-violet-400ver:text-violet-800rk:hover:text-violet-300derline transition-colors"
               >
                 https://doi.org/10.3390/children8070542
               </a>
@@ -412,7 +415,7 @@ export default function SuenoPage() {
                 href="https://doi.org/10.1016/j.jsmc.2022.03.001"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-green-600 dark:hover:text-green-400 underline"
+                className="text-violet-600rk:text-violet-400ver:text-violet-800rk:hover:text-violet-300derline transition-colors"
               >
                 https://doi.org/10.1016/j.jsmc.2022.03.001
               </a>
@@ -422,7 +425,7 @@ export default function SuenoPage() {
                 href="https://doi.org/10.1016/j.biopsych.2025.06.002"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-green-600 dark:hover:text-green-400 underline"
+                className="text-violet-600rk:text-violet-400ver:text-violet-800rk:hover:text-violet-300derline transition-colors"
               >
                 https://doi.org/10.1016/j.biopsych.2025.06.002
               </a>
@@ -432,7 +435,7 @@ export default function SuenoPage() {
                 href="https://doi.org/10.1146/annurev-psych-010213-115205"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-green-600 dark:hover:text-green-400 underline"
+                className="text-violet-600rk:text-violet-400ver:text-violet-800rk:hover:text-violet-300derline transition-colors"
               >
                 https://doi.org/10.1146/annurev-psych-010213-115205
               </a>
@@ -442,7 +445,7 @@ export default function SuenoPage() {
                 href="https://doi.org/10.1164/rccm.1996p11"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-green-600 dark:hover:text-green-400 underline"
+                className="text-violet-600rk:text-violet-400ver:text-violet-800rk:hover:text-violet-300derline transition-colors"
               >
                 https://doi.org/10.1164/rccm.1996p11
               </a>
@@ -452,7 +455,7 @@ export default function SuenoPage() {
                 href="https://doi.org/10.3934/neuroscience.2016.1.67"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-green-600 dark:hover:text-green-400 underline"
+                className="text-violet-600rk:text-violet-400ver:text-violet-800rk:hover:text-violet-300derline transition-colors"
               >
                 https://doi.org/10.3934/neuroscience.2016.1.67
               </a>
@@ -462,7 +465,7 @@ export default function SuenoPage() {
                 href="https://doi.org/10.1016/j.pcad.2008.10.003"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-green-600 dark:hover:text-green-400 underline"
+                className="text-violet-600rk:text-violet-400ver:text-violet-800rk:hover:text-violet-300derline transition-colors"
               >
                 https://doi.org/10.1016/j.pcad.2008.10.003
               </a>
@@ -472,7 +475,7 @@ export default function SuenoPage() {
                 href="https://doi.org/10.22289/2446-922x.v10n1a30"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-green-600 dark:hover:text-green-400 underline"
+                className="text-violet-600rk:text-violet-400ver:text-violet-800rk:hover:text-violet-300derline transition-colors"
               >
                 https://doi.org/10.22289/2446-922x.v10n1a30
               </a>
@@ -482,7 +485,7 @@ export default function SuenoPage() {
                 href="https://doi.org/10.1007/164_2018_140"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-green-600 dark:hover:text-green-400 underline"
+                className="text-violet-600rk:text-violet-400ver:text-violet-800rk:hover:text-violet-300derline transition-colors"
               >
                 https://doi.org/10.1007/164_2018_140
               </a>
@@ -492,7 +495,7 @@ export default function SuenoPage() {
                 href="https://doi.org/10.1016/s2468-2667(23)00182-2"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-green-600 dark:hover:text-green-400 underline"
+                className="text-violet-600rk:text-violet-400ver:text-violet-800rk:hover:text-violet-300derline transition-colors"
               >
                 https://doi.org/10.1016/s2468-2667(23)00182-2
               </a>
@@ -502,7 +505,7 @@ export default function SuenoPage() {
                 href="https://doi.org/10.1016/j.sleep.2020.07.048"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-green-600 dark:hover:text-green-400 underline"
+                className="text-violet-600rk:text-violet-400ver:text-violet-800rk:hover:text-violet-300derline transition-colors"
               >
                 https://doi.org/10.1016/j.sleep.2020.07.048
               </a>
