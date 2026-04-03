@@ -1,5 +1,5 @@
-import { screen } from "@testing-library/dom";
-import { cleanup, render } from "@testing-library/react";
+import "@testing-library/jest-dom/vitest";
+import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import userEvent from "@testing-library/user-event";
 import TextArea from "./TextArea";
@@ -20,7 +20,7 @@ describe("TextArea Component", () => {
     render(<TextArea label={labelText} />);
 
     expect(
-      screen.getByRole("textbox", { name: labelText })
+      screen.getByRole("textbox", { name: labelText }),
     ).toBeInTheDocument();
   });
 
@@ -38,7 +38,7 @@ describe("TextArea Component", () => {
         label={labelText}
         name={name}
         required
-      />
+      />,
     );
 
     const textarea: HTMLTextAreaElement = screen.getByRole("textbox", {
