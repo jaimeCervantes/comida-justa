@@ -5,12 +5,12 @@ import { ActionState } from "~/infra/types/Actions";
 import { SIGNIN_PATH } from "~/infra/constants";
 import PostEntity from "~/domain/entities/post/Post";
 import { Post, User } from "~/domain/entities/post/types";
-import CreatePostUseCase from "~/use_cases/createOnePost";
+import CreateOnePostUseCase from "~/use_cases/createOnePost/createOnePostUseCase";
 import PostValidator from "~/domain/schemas/PostValidator";
 import FirebaseMediaStorageService from "~/infra/storage/FirebaseMediaStorageService";
 import FirebasePostsRespository from "~/infra/dataAccess/createOnePost/FirebasePostRepository";
 
-const useCase = new CreatePostUseCase(
+const useCase = new CreateOnePostUseCase(
   new PostValidator(),
   new PostEntity(),
   new FirebasePostsRespository(),

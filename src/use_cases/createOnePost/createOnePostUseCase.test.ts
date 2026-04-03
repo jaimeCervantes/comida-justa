@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import CreatePostUseCase from "./index";
+import CreatePostUseCase from "./createOnePostUseCase";
 import type { Post } from "~/domain/entities/post/types";
 import { mockPostValidator, mockPostEntity, mockPostRepository } from "./mocks";
 import { samplePostInfo } from "./dummies";

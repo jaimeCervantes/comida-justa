@@ -10,7 +10,7 @@ interface CreatePostResult {
   errorMessage?: string;
 }
 
-export default class CreatePostUseCase {
+export default class CreateOnePostUseCase {
   private postValidator: IPostValidator;
   private postEntity: IPostEntity;
   private postRepository: IPostRepository;
