@@ -40,9 +40,9 @@ export default function AlimentacionPage() {
                   El impacto:
                 </span>
                 <span className="text-slate-700 dark:text-slate-300 text-lg">
-                  Pasamos de comer &quot;comida de la tierra&quot; (como la de
-                  tu proyecto) a &quot;productos comestibles&quot; diseñados en
-                  laboratorios para ser adictivos pero nutricionalmente nulos.
+                  Pasamos de comer &quot;comida de la tierra&quot; a
+                  &quot;productos comestibles&quot; diseñados en laboratorios
+                  para ser adictivos pero nutricionalmente nulos.
                 </span>
               </li>
             </ul>
