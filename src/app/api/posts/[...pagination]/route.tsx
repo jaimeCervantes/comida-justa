@@ -1,4 +1,6 @@
-import { getMultiplePosts } from "~/infra/dataAccess/getMultiplePosts";
+import { createPostQueryRepository } from "~/infra/dataAccess/getMultiplePosts";
+import { assemblePostsWithUsers } from "~/infra/dataAccess/getMultiplePosts";
+import { FirebaseUserRepository } from "~/infra/dataAccess/getMultiplePosts";
 import { mapPostsToCards } from "~/infra/UI/mappers/posts/mapPostsToCards";
 import { PAGINATION_INIT_PAGE, PAGINATION_PAGE_SIZE } from "~/infra/constants";
 
@@ -10,9 +12,13 @@ export async function GET(
   let { page, pageSize } = getSlugParams(pagination);
 
   try {
-    const result = await getMultiplePosts(page, pageSize);
+    const postRepo = createPostQueryRepository();
+    const userRepo = new FirebaseUserRepository();
 
-    const posts = mapPostsToCards(result.posts);
+    const result = await postRepo.getMultiplePosts(page, pageSize);
+    const postsWithUsers = await assemblePostsWithUsers(result.posts, userRepo);
+
+    const posts = mapPostsToCards(postsWithUsers);
     const json: string = JSON.stringify({
       posts: posts,
       nextPage: result.nextPage,

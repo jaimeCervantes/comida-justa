@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Recurse -File \"C:\\\\Users\\\\S2G52\\\\personal\\\\DEV\\\\salud-justa\\\\comida-justa\\\\src\\\\infra\\\\dataAccess\")",
+      "Bash(Select-Object FullName)",
+      "Bash(Format-Table -AutoSize -Wrap)",
+      "Bash(pnpm add *)",
+      "Bash(pnpm typecheck *)",
+      "Bash(pnpm drizzle-kit *)",
+      "Bash(Remove-Item -Recurse -Force src/infra/dataAccess/db/migrations/0000_violet_gargoyle.sql)",
+      "Bash(pnpm test:run *)"
+    ]
+  }
+}

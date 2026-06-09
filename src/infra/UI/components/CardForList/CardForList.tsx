@@ -20,7 +20,7 @@ export default function CardForList(props: Post) {
       anchorProps={anchorProps}
       media={
         <Link {...anchorProps}>
-          <MediaContent media={media} className="h-64" />
+          <MediaContent media={media[0]} className="h-64" />
         </Link>
       }
     >

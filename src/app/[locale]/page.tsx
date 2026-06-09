@@ -3,7 +3,9 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { hasLocale } from "next-intl";
 import { routing } from "~/i18n/routing";
-import { getMultiplePosts } from "~/infra/dataAccess/getMultiplePosts";
+import { createPostQueryRepository } from "~/infra/dataAccess/getMultiplePosts";
+import { assemblePostsWithUsers } from "~/infra/dataAccess/getMultiplePosts";
+import { FirebaseUserRepository } from "~/infra/dataAccess/getMultiplePosts";
 import { mapPostsToCards } from "~/infra/UI/mappers/posts/mapPostsToCards";
 import PostsWithLoadMore from "~/app/(home)/PostsWithLoadMore";
 import {
@@ -40,12 +42,16 @@ export async function generateMetadata({
 }
 
 async function getPosts() {
-  const result = await getMultiplePosts(
+  const postRepo = createPostQueryRepository();
+  const userRepo = new FirebaseUserRepository();
+
+  const result = await postRepo.getMultiplePosts(
     PAGINATION_INIT_PAGE,
     PAGINATION_PAGE_SIZE,
   );
+  const postsWithUsers = await assemblePostsWithUsers(result.posts, userRepo);
 
-  return { ...result, posts: mapPostsToCards(result.posts) };
+  return { ...result, posts: mapPostsToCards(postsWithUsers) };
 }
 
 export default async function Inicio({

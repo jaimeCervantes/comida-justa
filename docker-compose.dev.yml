@@ -6,14 +6,45 @@ services:
       dockerfile: Dockerfile.dev
     env_file:
       - .env.development
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/comida_justa
+      - WATCHPACK_POLLING=true
+      - CHOKIDAR_USEPOLLING=true
     volumes:
-      - ./src:/app/src
-      - ./public:/app/public
+      - .:/app
+      - /app/node_modules
+      - /app/.next
     restart: unless-stopped
     ports:
       - 3000:3000
     networks:
       - redComidaJusta
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: devPostgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: comida_justa
+    ports:
+      - "6666:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - redComidaJusta
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:
+
 networks:
   redComidaJusta:
     external: true
