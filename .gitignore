@@ -47,3 +47,7 @@ serviceAccountKey.json
 /playwright/.cache/
 
 /src/e2e/.auth/auth.json
+
+.pnpm-debug.log*
+.pnpm-error.log*
+.pnpm-store

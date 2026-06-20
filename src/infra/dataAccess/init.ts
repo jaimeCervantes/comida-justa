@@ -19,4 +19,5 @@ export function getFirebaseAdmin() {
 
 export const storage = getFirebaseAdmin().storage()
 export const auth = getFirebaseAdmin().auth()
+console.log("valor de auth, desde init.ts", auth)
 export const db = getFirebaseAdmin().firestore();

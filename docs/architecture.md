@@ -7,7 +7,7 @@ El proyecto usa **dos bases de datos** que coexisten durante la transicion de Fi
 | Base de datos | Proposito | Estado |
 |---|---|---|
 | **Firestore** | Autenticacion, usuarios, creacion de posts, busqueda, comentarios | Activo (por defecto) |
-| **PostgreSQL (Supabase)** | Lectura de posts (listado, paginacion) | Nuevo |
+| **PostgreSQL (Supabase)** | Autenticacion (NextAuth), usuarios, cuentas, sesiones, lectura de posts | Nuevo |
 
 La variable `DB_PROVIDER` en el `.env` controla cual se usa para lectura de posts:
 
@@ -20,11 +20,13 @@ Esto permite ir migrando funcionalidades incrementalmente sin romper nada.
 
 ## Autenticacion y usuarios
 
-La autenticacion **siempre** se maneja en Firebase Auth (Google, Microsoft Entra ID, SAML). No hay tabla `users` en PostgreSQL.
+La autenticacion usa **NextAuth v5** con `DrizzleAdapter`, que almacena `users`, `accounts`, `sessions` y `verification_tokens` en PostgreSQL. Los proveedores OAuth (Google, Microsoft Entra ID) estan configurados en NextAuth.
 
-Los posts en PostgreSQL solo guardan `user_id` (Firebase UID). Al momento de mostrar un listado, el `FirebaseUserRepository` resuelve los datos de usuario llamando a `auth.getUsers()` en lote. Esto mantiene una unica fuente de verdad para usuarios y evita sincronizacion entre sistemas.
+Los usuarios de Firebase Auth fueron exportados a PostgreSQL mediante el script `seedUsers.ts`, que preserva los Firebase UIDs como IDs de usuario en PostgreSQL y enlaza las cuentas OAuth a traves de la tabla `accounts`. Cuando un usuario inicia sesion con NextAuth, el adapter encuentra la cuenta existente y reutiliza el usuario con su Firebase UID original, manteniendo compatibilidad con los `user_id` existentes en los posts.
 
-Si en el futuro se necesita buscar/filtrar por atributos de usuario, se puede agregar una tabla `users` en PostgreSQL sincronizada desde Firebase Auth.
+Al mostrar un listado, el factory `createUserRepository()` elige entre:
+- **PostgresUserRepository** (`DB_PROVIDER=postgres`) — consulta la tabla `users` via Drizzle
+- **FirebaseUserRepository** (default) — llama a `auth.getUsers()` de Firebase Admin
 
 ## Capas
 
@@ -36,10 +38,8 @@ Pages / API Routes          ← ensambla posts + usuarios, mapea a cards
 IPostQuery   IUser
 Repository   Repository
    │            │
-   ├─ PostgresImpl (Drizzle ORM → Supabase)
-   ├─ FirestoreImpl (Firebase Admin SDK)
-   │            │
-   └────────────┴── FirebaseUserRepository (Firebase Auth)
+   ├─ PostgresImpl       ├─ PostgresUserRepository (Drizzle → users table)
+   ├─ FirestoreImpl      └─ FirebaseUserRepository (Firebase Auth)
 ```
 
 ### IPostQueryRepository
@@ -53,9 +53,12 @@ Ambas devuelven exactamente el mismo tipo (`PostData[]`), asi que el codigo que 
 
 ### IUserRepository
 
-Interfaz para resolver datos de usuario. Una sola implementacion:
+Interfaz para resolver datos de usuario. Dos implementaciones:
 
+- **PostgresUserRepository** — consulta la tabla `users` via Drizzle (`WHERE id IN (...)`), devuelve `Map<uid, PostUser>`
 - **FirebaseUserRepository** — llama a `auth.getUsers(identifiers)` de Firebase Admin, devuelve `Map<uid, PostUser>`
+
+El factory `createUserRepository()` elige la implementacion segun `DB_PROVIDER`, igual que `createPostQueryRepository()`.
 
 ### Ensamblaje (application layer)
 

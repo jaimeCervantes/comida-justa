@@ -1,15 +1,15 @@
 import NextAuth from "next-auth";
 import type { NextAuthConfig } from "next-auth";
-import { FirestoreAdapter } from "@auth/firebase-adapter";
 import createGoogleProvider from "next-auth/providers/google";
 import createMicrosoftEntraIDProvider from "next-auth/providers/microsoft-entra-id";
-import { db } from "~/infra/dataAccess/init";
+import { DrizzleAdapter } from "@auth/drizzle-adapter";
+import { db } from "~/infra/dataAccess/db/connection";
 
 export const config = {
   theme: {
     logo: "/logo.webp",
   },
-  adapter: FirestoreAdapter(db),
+  adapter: DrizzleAdapter(db),
   providers: [createGoogleProvider, createMicrosoftEntraIDProvider],
   callbacks: {
     signIn(params) {

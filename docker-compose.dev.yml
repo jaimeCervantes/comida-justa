@@ -10,6 +10,8 @@ services:
       - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/comida_justa
       - WATCHPACK_POLLING=true
       - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING_INTERVAL=1000
+      - CHOKIDAR_INTERVAL=1000
     volumes:
       - .:/app
       - /app/node_modules
