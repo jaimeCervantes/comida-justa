@@ -1,4 +1,3 @@
-export { FirestorePostQueryRepository } from "~/infra/dataAccess/posts/FirestorePostQueryRepository";
 export { createPostQueryRepository } from "~/infra/dataAccess/posts/factory";
 export { assemblePostsWithUsers } from "~/infra/dataAccess/posts/assemblePostsWithUsers";
 export { createUserRepository } from "~/infra/dataAccess/users/factory";

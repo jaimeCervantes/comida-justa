@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { SearchPostsUseCase } from "~/use_cases/searchPosts/SearchPostsUseCase";
-import { FirebaseSearchPostRepository } from "~/infra/dataAccess/searchPosts/FirebaseSearchPostRepository";
+import { createSearchPostRepository } from "~/infra/dataAccess/searchPosts/factory";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
   const page = parseInt(searchParams.get("page") || "1", 10);
   const locale = searchParams.get("locale") || "es";
 
-  const repository = new FirebaseSearchPostRepository();
+  const repository = createSearchPostRepository();
   const useCase = new SearchPostsUseCase(repository);
 
   const { results, total } = await useCase.execute({

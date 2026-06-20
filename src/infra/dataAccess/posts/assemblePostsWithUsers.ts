@@ -12,9 +12,7 @@ export async function assemblePostsWithUsers(
   if (posts.length === 0) return [];
 
   const userIds = posts.map((p) => p.userId).filter(Boolean);
-  console.log(userIds, "User IDs to fetch for posts");
   const userMap = await userRepo.getUsersByIds(userIds);
-  console.log(userMap, "Fetched user map for posts");
   return posts.map((post) => {
     const user = userMap.get(post.userId) ?? {
       id: post.userId,
