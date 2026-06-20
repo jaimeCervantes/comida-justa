@@ -1,6 +1,8 @@
+import type { PostUser } from "../users/IUserRepository";
+
 export interface PostData {
   id: string;
-  userId: string;
+  user: PostUser;
   price: number | null;
   contactInfo: {
     phone: string;

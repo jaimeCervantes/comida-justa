@@ -4,8 +4,6 @@ import { getTranslations } from "next-intl/server";
 import { hasLocale } from "next-intl";
 import { routing } from "~/i18n/routing";
 import { createPostQueryRepository } from "~/infra/dataAccess/getMultiplePosts";
-import { assemblePostsWithUsers } from "~/infra/dataAccess/getMultiplePosts";
-import { createUserRepository } from "~/infra/dataAccess/getMultiplePosts";
 import { mapPostsToCards } from "~/infra/UI/mappers/posts/mapPostsToCards";
 import PostsWithLoadMore from "~/app/(home)/PostsWithLoadMore";
 import {
@@ -43,15 +41,13 @@ export async function generateMetadata({
 
 async function getPosts() {
   const postRepo = createPostQueryRepository();
-  const userRepo = createUserRepository();
 
   const result = await postRepo.getMultiplePosts(
     PAGINATION_INIT_PAGE,
     PAGINATION_PAGE_SIZE,
   );
-  const postsWithUsers = await assemblePostsWithUsers(result.posts, userRepo);
 
-  return { ...result, posts: mapPostsToCards(postsWithUsers) };
+  return { ...result, posts: mapPostsToCards(result.posts) };
 }
 
 export default async function Inicio({

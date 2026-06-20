@@ -1,7 +1,23 @@
-import { desc, eq, inArray, sql } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 import { db } from "~/infra/dataAccess/db/connection";
-import { posts, postTranslations, postMedia } from "~/infra/dataAccess/db/schema/posts";
 import type { IPostQueryRepository, PostData, PaginatedPostsResult } from "./IPostQueryRepository";
+
+interface PostRow {
+  id: string;
+  user_id: string;
+  price: string | null;
+  contact_phone: string | null;
+  contact_email: string | null;
+  contact_whatsapp: string | null;
+  created_at: Date;
+  user_name: string | null;
+  user_email: string | null;
+  user_image: string | null;
+  translations: Array<{ locale: string; title: string; slug: string; content: string }>;
+  media: Array<{ url: string; type: string; alt: string | null }>;
+  total_count: number;
+  [key: string]: unknown;
+}
 
 export class PostgresPostQueryRepository implements IPostQueryRepository {
   async getMultiplePosts(
@@ -10,90 +26,115 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
   ): Promise<PaginatedPostsResult> {
     const offset = (page - 1) * pageSize;
 
-    const postRows = await db
-      .select()
-      .from(posts)
-      .orderBy(desc(posts.createdAt))
-      .limit(pageSize)
-      .offset(offset);
+    const raw = await db.execute(sql`
+      SELECT
+        p.id,
+        p.user_id,
+        p.price::text,
+        p.contact_phone,
+        p.contact_email,
+        p.contact_whatsapp,
+        p.created_at,
+        u.name AS user_name,
+        u.email AS user_email,
+        u.image AS user_image,
+        COALESCE(t.translations, '[]'::jsonb) AS translations,
+        COALESCE(m.media, '[]'::jsonb)        AS media,
+        COUNT(*) OVER()::int                  AS total_count
+      FROM posts p
+      LEFT JOIN users u
+        ON u.id = p.user_id
+      LEFT JOIN LATERAL (
+        SELECT jsonb_agg(
+          jsonb_build_object(
+            'locale',  locale,
+            'title',   title,
+            'slug',    slug,
+            'content', content
+          )
+        ) AS translations
+        FROM post_translations
+        WHERE post_id = p.id
+      ) t ON TRUE
+      LEFT JOIN LATERAL (
+        SELECT jsonb_agg(
+          jsonb_build_object(
+            'url',  url,
+            'type', type,
+            'alt',  alt
+          )
+          ORDER BY sort_order
+        ) AS media
+        FROM post_media
+        WHERE post_id = p.id
+      ) m ON TRUE
+      ORDER BY p.created_at DESC
+      LIMIT ${pageSize} OFFSET ${offset}
+    `);
+    const rows = raw.rows as unknown as PostRow[];
 
-    if (postRows.length === 0) {
+    const total = rows.length > 0
+      ? Number(rows[0].total_count)
+      : 0;
+
+    if (rows.length === 0) {
       return {
         posts: [],
         nextPage: null,
         prevPage: page > 1 ? page - 1 : 1,
-        total: 0,
+        total,
         totalPages: 0,
       };
     }
 
-    const postIds = postRows.map((p) => p.id);
-
-    const translationRows = await db
-      .select()
-      .from(postTranslations)
-      .where(inArray(postTranslations.postId, postIds));
-
-    const mediaRows = await db
-      .select()
-      .from(postMedia)
-      .where(inArray(postMedia.postId, postIds))
-      .orderBy(postMedia.sortOrder);
-
-    const translationsByPost = new Map<
-      string,
-      Record<string, { title: string; slug: string; content: string }>
-    >();
-    for (const t of translationRows) {
-      if (!translationsByPost.has(t.postId)) {
-        translationsByPost.set(t.postId, {});
+    const postData: PostData[] = rows.map((row) => {
+      const translations: Record<string, { title: string; slug: string; content: string }> = {};
+      const translationsArr = Array.isArray(row.translations) ? row.translations : [];
+      for (const t of translationsArr) {
+        if (t.locale) {
+          translations[t.locale] = {
+            title: t.title ?? "",
+            slug: t.slug ?? "",
+            content: t.content ?? "",
+          };
+        }
       }
-      translationsByPost.get(t.postId)![t.locale] = {
-        title: t.title,
-        slug: t.slug,
-        content: t.content,
+
+      const mediaArr: Array<{ url: string; type: string; alt?: string }> = [];
+      const rawMedia = Array.isArray(row.media) ? row.media : [];
+      for (const m of rawMedia) {
+        if (m.url) {
+          mediaArr.push({
+            url: m.url,
+            type: m.type ?? "image",
+            alt: m.alt ?? undefined,
+          });
+        }
+      }
+
+      return {
+        id: row.id,
+        user: {
+          id: row.user_id,
+          name: row.user_name ?? undefined,
+          email: row.user_email ?? undefined,
+          image: row.user_image ?? undefined,
+        },
+        price: row.price ? Number(row.price) : null,
+        contactInfo: {
+          phone: row.contact_phone ?? "",
+          email: row.contact_email ?? undefined,
+          whatsapp: row.contact_whatsapp ?? undefined,
+        },
+        translations,
+        media: mediaArr,
+        createdAt: row.created_at,
       };
-    }
-
-    const mediaByPost = new Map<
-      string,
-      Array<{ url: string; type: string; alt?: string }>
-    >();
-    for (const m of mediaRows) {
-      if (!mediaByPost.has(m.postId)) {
-        mediaByPost.set(m.postId, []);
-      }
-      mediaByPost.get(m.postId)!.push({
-        url: m.url,
-        type: m.type,
-        alt: m.alt ?? undefined,
-      });
-    }
-
-    const totalResult = await db
-      .select({ count: sql<number>`count(*)` })
-      .from(posts);
-    const total = Number(totalResult[0].count);
-
-    const postData: PostData[] = postRows.map((row) => ({
-      id: row.id,
-      userId: row.userId,
-      price: row.price ? Number(row.price) : null,
-      contactInfo: {
-        phone: row.contactPhone ?? "",
-        email: row.contactEmail ?? undefined,
-        whatsapp: row.contactWhatsapp ?? undefined,
-      },
-      translations: translationsByPost.get(row.id) ?? {},
-      media: mediaByPost.get(row.id) ?? [],
-      createdAt: row.createdAt,
-    }));
-
-    const hasNextPage = total > page * pageSize;
+    });
 
     return {
       posts: postData,
-      nextPage: hasNextPage ? page + 1 : null,
+      nextPage: total > page * pageSize ? page + 1 : null,
       prevPage: page === 1 ? 1 : page - 1,
       total,
       totalPages: Math.ceil(total / pageSize),
@@ -101,9 +142,10 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
   }
 
   async getTotalPosts(): Promise<number> {
-    const result = await db
-      .select({ count: sql<number>`count(*)` })
-      .from(posts);
-    return Number(result[0].count);
+    const raw = await db.execute(sql`
+      SELECT COUNT(*)::int AS count FROM posts
+    `);
+    const row = raw.rows[0] as { count: number };
+    return Number(row.count);
   }
 }

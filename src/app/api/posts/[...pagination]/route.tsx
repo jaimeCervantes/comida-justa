@@ -1,6 +1,4 @@
 import { createPostQueryRepository } from "~/infra/dataAccess/getMultiplePosts";
-import { assemblePostsWithUsers } from "~/infra/dataAccess/getMultiplePosts";
-import { createUserRepository } from "~/infra/dataAccess/getMultiplePosts";
 import { mapPostsToCards } from "~/infra/UI/mappers/posts/mapPostsToCards";
 import { PAGINATION_INIT_PAGE, PAGINATION_PAGE_SIZE } from "~/infra/constants";
 
@@ -13,12 +11,10 @@ export async function GET(
 
   try {
     const postRepo = createPostQueryRepository();
-    const userRepo = createUserRepository();
 
     const result = await postRepo.getMultiplePosts(page, pageSize);
-    const postsWithUsers = await assemblePostsWithUsers(result.posts, userRepo);
 
-    const posts = mapPostsToCards(postsWithUsers);
+    const posts = mapPostsToCards(result.posts);
     const json: string = JSON.stringify({
       posts: posts,
       nextPage: result.nextPage,

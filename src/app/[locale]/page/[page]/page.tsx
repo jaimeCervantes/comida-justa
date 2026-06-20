@@ -1,10 +1,6 @@
 import { Metadata } from "next";
 import Link from "next/link";
-import {
-  createPostQueryRepository,
-} from "~/infra/dataAccess/getMultiplePosts";
-import { assemblePostsWithUsers } from "~/infra/dataAccess/getMultiplePosts";
-import { createUserRepository } from "~/infra/dataAccess/getMultiplePosts";
+import { createPostQueryRepository } from "~/infra/dataAccess/getMultiplePosts";
 import { mapPostsToCards } from "~/infra/UI/mappers/posts/mapPostsToCards";
 import { Post } from "~/infra/types/Posts";
 import { notFound } from "next/navigation";
@@ -44,14 +40,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 async function getPosts(page: number) {
   const pageNum = Math.max(PAGINATION_INIT_PAGE, page);
   const postRepo = createPostQueryRepository();
-  const userRepo = createUserRepository();
 
   const result = await postRepo.getMultiplePosts(pageNum, PAGINATION_PAGE_SIZE);
-  const postsWithUsers = await assemblePostsWithUsers(result.posts, userRepo);
 
   return {
     ...result,
-    posts: mapPostsToCards(postsWithUsers),
+    posts: mapPostsToCards(result.posts),
     totalPages: Math.ceil(result.total / PAGINATION_PAGE_SIZE),
   };
 }
