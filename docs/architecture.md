@@ -6,10 +6,10 @@ El proyecto usa **dos bases de datos** que coexisten durante la transicion de Fi
 
 | Base de datos | Proposito | Estado |
 |---|---|---|
-| **Firestore** | Creacion de posts, comentarios, archivos multimedia | Activo (pendiente de migrar) |
-| **PostgreSQL (Supabase)** | Autenticacion (NextAuth), usuarios, cuentas, sesiones, lectura de posts, busqueda | Principal |
+| **Firestore** | Comentarios, archivos multimedia | Activo (pendiente de migrar) |
+| **PostgreSQL (Supabase)** | Autenticacion (NextAuth), usuarios, cuentas, sesiones, lectura y creacion de posts, busqueda | Principal |
 
-La mayoria de las lecturas ya usan exclusivamente PostgreSQL. Solo la creacion de posts, los comentarios y el almacenamiento de archivos siguen en Firestore/Firebase.
+Posts se leen y escriben directamente en PostgreSQL. Solo comentarios y almacenamiento de archivos siguen en Firestore/Firebase.
 
 ## Autenticacion y usuarios
 
@@ -54,6 +54,14 @@ Interfaz para listado paginado de posts. `PostData` incluye el objeto `user` com
   - Sin `GROUP BY` ni `DISTINCT` — las subconsultas laterales evitan la explosion de filas
   - Media ordenada por `sort_order` directamente en SQL
   - Cada subconsulta solo ve las filas de su post (`WHERE post_id = p.id`)
+
+### IPostRepository (write)
+
+Interfaz para creacion de posts. `PostgresPostRepository` implementa:
+
+- `save(postData, lang)` — inserta en `posts`, `post_translations` y `post_media` dentro de una **transaccion**. Si falla cualquier insert, hace rollback.
+- `createUniqueSlug(slug, lang)` — cuenta slugs existentes en `post_translations`, si hay coincidencia retorna `slug-N`.
+- El ID del post se genera con `crypto.randomUUID()`.
 
 ### IUserRepository
 

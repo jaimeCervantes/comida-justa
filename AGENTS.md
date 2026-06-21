@@ -2,10 +2,14 @@
 
 This repository is a Next.js full-stack application. Keep instructions here focused on persistent repository norms. Use the dedicated skills for scaffolding and feature-delivery workflows.
 
-## Use the right instruction source
+## Skill invocation (mandatory, no exceptions)
 
-- Use `.agents/skills/nextjs-scaffold/` when the task is project initialization, missing boilerplate, repo restructuring, dependency setup, Docker setup, or test-environment setup.
-- Use `.agents/skills/nextjs-bdd-feature/` when the task is a feature, bugfix, component change, endpoint change, use-case change, or a behavior change that should start from a scenario and tests.
+**Before ANY feature/behavior work**, invoke the relevant skill via the `Skill` tool so its rules load as active context:
+
+- `Skill("nextjs-scaffold")` — project initialization, boilerplate, repo restructure, dependencies, Docker, test setup.
+- `Skill("nextjs-bdd-feature")` — feature, bugfix, component change, endpoint change, use-case change, refactor with behavior impact.
+
+**Do NOT start implementation until the skill's context is loaded.** The skill enforces its own workflow (alignment gate, tests first, step-by-step acceptance). Without it, you are operating with incomplete instructions.
 
 ## Feature alignment gate (mandatory)
 

@@ -7,13 +7,12 @@ import PostEntity from "~/domain/entities/post/Post";
 import { Post, User } from "~/domain/entities/post/types";
 import CreateOnePostUseCase from "~/use_cases/createOnePost/createOnePostUseCase";
 import PostValidator from "~/domain/schemas/PostValidator";
-import FirebaseMediaStorageService from "~/infra/storage/FirebaseMediaStorageService";
-import FirebasePostsRespository from "~/infra/dataAccess/createOnePost/FirebasePostRepository";
+import { createPostRepository } from "~/infra/dataAccess/createOnePost/factory";
 
 const useCase = new CreateOnePostUseCase(
   new PostValidator(),
   new PostEntity(),
-  new FirebasePostsRespository(),
+  createPostRepository(),
 );
 
 export async function createPost(
