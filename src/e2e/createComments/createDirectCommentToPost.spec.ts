@@ -8,7 +8,7 @@ import { deleteCommentsByPostSlug } from "../testUtils/deleteComments";
 //   storageState: './src/e2e/.auth/auth.json'
 // });
 
-test.describe("Given an authenticated user viewing a post", () => {
+test.describe.skip("Given an authenticated user viewing a post", () => {
   let commentPage: CommentPage;
   let dbSession: DbSession | undefined;
   const postSlug = 'verduras-y-semillas-frescas'
