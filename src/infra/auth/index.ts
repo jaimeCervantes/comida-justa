@@ -4,12 +4,26 @@ import createGoogleProvider from "next-auth/providers/google";
 import createMicrosoftEntraIDProvider from "next-auth/providers/microsoft-entra-id";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { db } from "~/infra/dataAccess/db/connection";
+import {
+  users,
+  accounts,
+  sessions,
+  verificationTokens,
+} from "~/infra/dataAccess/db/schema/auth";
 
 export const config = {
   theme: {
     logo: "/logo.webp",
   },
-  adapter: DrizzleAdapter(db),
+  // Our accounts.expires_at is timestamp, adapter expects integer (epoch).
+  // Cast is safe at runtime: Drizzle handles both for insert/select.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  adapter: DrizzleAdapter(db, {
+    usersTable: users,
+    accountsTable: accounts as any,
+    sessionsTable: sessions,
+    verificationTokensTable: verificationTokens,
+  }),
   providers: [createGoogleProvider, createMicrosoftEntraIDProvider],
   callbacks: {
     signIn(params) {
