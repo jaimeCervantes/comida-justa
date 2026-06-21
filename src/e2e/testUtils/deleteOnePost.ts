@@ -1,35 +1,20 @@
-import { db } from "~/infra/dataAccess/init";
+import { sql } from "drizzle-orm";
+import { db } from "~/infra/dataAccess/db/connection";
 
 /**
- * Delete a post by its slug. If the post does not exist, it returns false.
- * If the post exists and is deleted, it returns true.
- * If the doc contains subcollections, it will delete them.
+ * Delete a post by its slug from PostgreSQL.
+ * Cascades to post_translations, post_media, and comments.
  * @param postSlug the slug of the post to delete
- * @returns
+ * @returns true if a post was deleted, false otherwise
  */
 export async function deleteOnePostBySlug(postSlug: string) {
-  const result = await db
-    .collection("posts")
-    .where("translations.es.slug", "==", postSlug)
-    .get();
+  const result = await db.execute(sql`
+    DELETE FROM posts
+    WHERE id = (
+      SELECT post_id FROM post_translations WHERE slug = ${postSlug} LIMIT 1
+    )
+    RETURNING id
+  `);
 
-  if (!result.empty) {
-    const doc = result.docs[0];
-    await doc.ref.delete();
-    // Check if the document has subcollections and delete them
-    // Note: This will delete all documents in the subcollection
-    const subcollections = await doc.ref.listCollections();
-    for (const subcollection of subcollections) {
-      await subcollection.get().then((snapshot) => {
-        const batch = db.batch();
-        snapshot.docs.forEach((doc) => {
-          batch.delete(doc.ref);
-        });
-        return batch.commit();
-      });
-    }
-    return true;
-  }
-
-  return false;
+  return (result.rows as unknown as Array<{ id: string }>).length > 0;
 }

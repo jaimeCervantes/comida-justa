@@ -137,7 +137,8 @@ async function seedUsers() {
             data.providerAccountId ?? data.provider_account_id ?? "",
           refresh_token: data.refresh_token ?? data.refreshToken ?? null,
           access_token: data.access_token ?? data.accessToken ?? null,
-          expires_at: toDate(data.expires_at ?? data.expiresAt),
+          // expires_at is integer (epoch seconds) per NextAuth adapter spec
+          expires_at: (data.expires_at ?? data.expiresAt ?? null) as number | null,
           token_type: data.token_type ?? data.tokenType ?? null,
           scope: data.scope ?? null,
           id_token: data.id_token ?? data.idToken ?? null,

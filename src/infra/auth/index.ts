@@ -15,12 +15,9 @@ export const config = {
   theme: {
     logo: "/logo.webp",
   },
-  // Our accounts.expires_at is timestamp, adapter expects integer (epoch).
-  // Cast is safe at runtime: Drizzle handles both for insert/select.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   adapter: DrizzleAdapter(db, {
     usersTable: users,
-    accountsTable: accounts as any,
+    accountsTable: accounts,
     sessionsTable: sessions,
     verificationTokensTable: verificationTokens,
   }),

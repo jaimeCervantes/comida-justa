@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import AddCommentForm from "../addComments/AddCommentForm";
 import type { Comment, PostUser } from "~/infra/types/Posts";
 import { useRealTimeComments } from "../addComments/useRealTimeComments";
 import { createOnLoadMoreComments } from "./createOnLoadMoreComments";
 import Avatar from "~/infra/UI/components/Avatar/Avatar";
+import { useIsClient } from "~/infra/UI/hooks/useIsClient";
 
 export default function CommentList({
   postId,
@@ -21,11 +22,7 @@ export default function CommentList({
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [loadMoreMessage, setLoadMoreMessage] = useState<string | null>(null);
-  const [isClient, setIsClient] = useState(false);
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
+  const isClient = useIsClient();
 
   const { comments, setComments, commentError } = useRealTimeComments(
     postId,

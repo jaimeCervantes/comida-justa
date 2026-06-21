@@ -1,6 +1,8 @@
 import { Page, PlaywrightWorkerOptions } from "@playwright/test";
+import { eq } from "drizzle-orm";
 import type { Cookie } from "~/e2e/types/cookies";
-import { db } from "~/infra/dataAccess/init";
+import { db } from "~/infra/dataAccess/db/connection";
+import { sessions, users } from "~/infra/dataAccess/db/schema/auth";
 
 export async function simulateLogin(
   page: Page,
@@ -26,8 +28,8 @@ export async function simulateLogin(
   return dbSession;
 }
 
-export async function deleteSession(sessionId: string) {
-  await db.collection("sessions").doc(sessionId).delete();
+export async function deleteSession(sessionToken: string) {
+  await db.delete(sessions).where(eq(sessions.sessionToken, sessionToken));
 }
 
 function generateRandomToken() {
@@ -42,15 +44,29 @@ function generateRandomToken() {
 }
 
 async function createDbSession() {
-  const sessionRef = db.collection("sessions").doc(); // Crea un nuevo documento en la colección 'sessions'
-  const sessionData = {
-    userId: "44pZIIJ5w1vSYkDQ6gfb",
-    sessionToken: generateRandomToken(),
-    expires: new Date(new Date().getTime() + 60 * 60 * 1000).toISOString(),
-  };
-  await sessionRef.set(sessionData);
+  // Use the first available user from the users table
+  const userRows = await db.select({ id: users.id }).from(users).limit(1);
 
-  return { ...sessionData, id: sessionRef.id }; // Retorna el ID de la sesión creada
+  const userId =
+    userRows.length > 0
+      ? userRows[0].id
+      : "00000000-0000-0000-0000-000000000000";
+
+  const sessionToken = generateRandomToken();
+  const expires = new Date(Date.now() + 60 * 60 * 1000);
+
+  await db.insert(sessions).values({
+    sessionToken,
+    userId,
+    expires,
+  });
+
+  return {
+    id: sessionToken, // sessionToken is the PK
+    userId,
+    sessionToken,
+    expires: expires.toISOString(),
+  };
 }
 
 export type DbSession = {
