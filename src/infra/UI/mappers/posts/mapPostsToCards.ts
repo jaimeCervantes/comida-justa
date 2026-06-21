@@ -7,6 +7,19 @@ export function mapPostsToCards(posts: Post[]) {
   });
 }
 
+function normalizeCreatedAt(value: unknown): string {
+  if (value instanceof Date) return value.toISOString();
+  if (typeof value === "string") return value; // ya es ISO desde JSON
+  if (typeof value === "number") return new Date(value * 1000).toISOString(); // epoch seconds
+  if (value && typeof value === "object" && "toDate" in value) {
+    return (value as { toDate(): Date }).toDate().toISOString(); // Firestore Timestamp
+  }
+  if (value && typeof value === "object" && "_seconds" in value) {
+    return new Date((value as { _seconds: number })._seconds * 1000).toISOString();
+  }
+  return "";
+}
+
 export function mapOnePostToCard(item: Post) {
   const slug =
     item.translations?.es?.slug ??
@@ -21,11 +34,7 @@ export function mapOnePostToCard(item: Post) {
     price: item.price,
     content: item.translations?.es?.content ?? item.content,
     media: item.media,
-    createdAt:
-      item.createdAt instanceof Date
-        ? item.createdAt.toISOString()
-        : item.createdAt?.toDate?.()?.toISOString() ??
-          item.createdAt?._seconds * 1000,
+    createdAt: normalizeCreatedAt(item.createdAt),
     user: item.user,
     summary: item.summary,
     contactInfo: item.contactInfo,

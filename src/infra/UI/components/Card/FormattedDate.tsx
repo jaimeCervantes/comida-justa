@@ -13,7 +13,7 @@ export default function FormattedDateComponent({
     setIsClient(true);
   }, []);
 
-  if (!isClient || !isoDateString) {
+  if (!isClient) {
     return (
       <span
         className="relative inline-block bg-gray-200 rounded overflow-hidden"
@@ -30,7 +30,14 @@ export default function FormattedDateComponent({
     );
   }
 
+  if (!isoDateString) {
+    return null;
+  }
+
   const dateObject = new Date(isoDateString);
+  if (isNaN(dateObject.getTime())) {
+    return null;
+  }
   const userLocale = navigator.language;
 
   const formattedDate = dateObject.toLocaleString(userLocale, {
