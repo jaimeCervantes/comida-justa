@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import { db } from "~/infra/dataAccess/db/connection";
+import { COMMENTS_PAGE_SIZE } from "~/infra/constants";
 import type { PostUser } from "~/infra/types/Posts";
 
 interface PostRow {
@@ -17,6 +18,15 @@ interface PostRow {
   contact_whatsapp: string | null;
   created_at: Date;
   media: Array<{ url: string; type: string; alt: string | null }>;
+  comments: Array<{
+    id: string;
+    content: string;
+    created_at: string;
+    user_id: string;
+    user_name: string | null;
+    user_email: string | null;
+    user_image: string | null;
+  }> | null;
 }
 
 export async function getPostBySlug(slug: string) {
@@ -49,7 +59,29 @@ export async function getPostBySlug(slug: string) {
           WHERE pm.post_id = p.id
         ),
         '[]'::jsonb
-      ) AS media
+      ) AS media,
+      COALESCE(
+        (
+          SELECT jsonb_agg(data)
+          FROM (
+            SELECT jsonb_build_object(
+              'id',         c.id,
+              'content',    c.content,
+              'created_at', c.created_at,
+              'user_id',    cu.id,
+              'user_name',  cu.name,
+              'user_email', cu.email,
+              'user_image', cu.image
+            ) AS data
+            FROM comments c
+            LEFT JOIN users cu ON cu.id = c.user_id
+            WHERE c.post_id = p.id
+            ORDER BY c.created_at DESC
+            LIMIT ${COMMENTS_PAGE_SIZE}
+          ) limited
+        ),
+        '[]'::jsonb
+      ) AS comments
     FROM posts p
     JOIN post_translations pt
       ON pt.post_id = p.id
@@ -81,6 +113,20 @@ export async function getPostBySlug(slug: string) {
       alt: m.alt ?? undefined,
     }));
 
+  const commentsArr = (Array.isArray(row.comments) ? row.comments : [])
+    .map((c) => ({
+      id: c.id,
+      postId: row.id,
+      content: c.content,
+      createdAt: new Date(c.created_at),
+      user: {
+        id: c.user_id,
+        name: c.user_name ?? undefined,
+        email: c.user_email ?? undefined,
+        image: c.user_image ?? undefined,
+      },
+    }));
+
   return {
     id: row.id,
     translations: {
@@ -99,9 +145,6 @@ export async function getPostBySlug(slug: string) {
       email: row.contact_email ?? undefined,
       whatsapp: row.contact_whatsapp ?? undefined,
     },
-    // Comments still live in Firestore. Return empty for now.
-    comments: [],
-    firstVisibleComment: null,
-    lastVisibleComment: null,
+    comments: commentsArr,
   };
 }

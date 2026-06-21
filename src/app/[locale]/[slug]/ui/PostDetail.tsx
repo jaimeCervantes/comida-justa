@@ -85,8 +85,6 @@ export default async function PostDetail({
             slug={slug}
             user={user}
             initialComments={comments}
-            firstVisibleComment={firstVisibleComment}
-            lastVisibleComment={lastVisibleComment}
           />
         </Suspense>
       </section>

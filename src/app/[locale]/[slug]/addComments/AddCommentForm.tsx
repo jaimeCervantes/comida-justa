@@ -29,7 +29,7 @@ export default function AddCommentForm({
     onAdd?.();
     setLoading(false);
 
-    if (result.errorMessage) {
+    if ("errorMessage" in result) {
       setErrorMessage(result.errorMessage);
     } else {
       setNewComment("");

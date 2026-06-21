@@ -12,41 +12,33 @@ export default function CommentList({
   slug,
   user,
   initialComments,
-  firstVisibleComment,
-  lastVisibleComment,
 }: {
   postId: string;
   slug: string;
   user: PostUser | undefined;
-  initialComments: any[];
-  firstVisibleComment: Comment;
-  lastVisibleComment: Comment;
+  initialComments: Comment[];
 }) {
-  const [lastComment, setLastComment] = useState<Comment | null>(
-    lastVisibleComment,
-  );
-  const [loading, setLoading] = useState<boolean>(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [loading, setLoading] = useState(false);
   const [loadMoreMessage, setLoadMoreMessage] = useState<string | null>(null);
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
-    // eslint-disable-next-line
     setIsClient(true);
   }, []);
 
   const { comments, setComments, commentError } = useRealTimeComments(
     postId,
     initialComments,
-    firstVisibleComment,
   );
 
   const onLoadMoreComments = createOnLoadMoreComments({
     postId,
-    lastComment,
+    currentPage,
     setLoading,
     setLoadMoreMessage,
     setComments,
-    setLastComment,
+    setCurrentPage,
   });
 
   return (
@@ -87,15 +79,13 @@ export default function CommentList({
           <p>No hay comentarios aún.</p>
         )}
 
-        {lastComment && (
-          <button
-            onClick={onLoadMoreComments}
-            className="mt-4 bg-blue-500 text-white px-4 py-2 rounded"
-            disabled={loading}
-          >
-            {loading ? "Cargando más comentarios..." : "Cargar más comentarios"}
-          </button>
-        )}
+        <button
+          onClick={onLoadMoreComments}
+          className="mt-4 bg-blue-500 text-white px-4 py-2 rounded"
+          disabled={loading}
+        >
+          {loading ? "Cargando más comentarios..." : "Cargar más comentarios"}
+        </button>
 
         {loadMoreMessage && <p className="mt-2">{loadMoreMessage}</p>}
       </div>

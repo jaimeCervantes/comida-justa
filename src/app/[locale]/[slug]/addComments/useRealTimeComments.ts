@@ -1,93 +1,18 @@
 "use client";
-import { useState, useEffect } from "react";
-import {
-  query,
-  collection,
-  orderBy,
-  startAfter,
-  onSnapshot,
-  getDoc,
-  doc,
-  DocumentSnapshot,
-} from "firebase/firestore";
-import { db } from "~/infra/dataAccess/init.client";
+import { useState } from "react";
 import type { Comment } from "~/infra/types/Posts";
-import { mapSnapshotComments, sortByCreatedAt } from "../mapper";
 
+/**
+ * Holds comment state. Initial comments come from the server (first page).
+ * Load-more is handled by createOnLoadMoreComments (page-based pagination).
+ * Real-time updates will be added later via Supabase Realtime or SSE.
+ */
 export function useRealTimeComments(
-  postId: string,
+  _postId: string,
   initialComments: Comment[],
-  firstVisibleComment: Comment,
 ) {
   const [comments, setComments] = useState<Comment[]>(initialComments);
-  const [firstComment, setFirstComment] = useState<Comment | null>(
-    firstVisibleComment,
-  );
-  const [commentError, setCommentError] = useState<string | null>(null);
-  const firstCommentSnapshot = useFirstCommentSnapshotForCommentsQuery(
-    postId,
-    firstComment,
-  );
+  const commentError = null;
 
-  useEffect(() => {
-    const commentsQuery = query(
-      collection(db, "posts", postId, "comments"),
-      orderBy("createdAt", "asc"),
-      startAfter(firstCommentSnapshot),
-    );
-
-    let initialLoad = true;
-
-    const unsubscribe = onSnapshot(
-      commentsQuery,
-      (snapshot) => {
-        if (initialLoad) {
-          initialLoad = false;
-          return;
-        }
-
-        const newComments = mapSnapshotComments(snapshot);
-
-        setComments((prevComments) => [
-          ...sortByCreatedAt(newComments, "desc"),
-          ...prevComments,
-        ]);
-        setFirstComment(newComments[0]);
-      },
-      (error) => {
-        console.error("Error al escuchar comentarios en tiempo real: ", error);
-        setCommentError("Error al cargar comentarios en tiempo real.");
-      },
-    );
-
-    return () => {
-      unsubscribe();
-    };
-  }, [postId, firstCommentSnapshot]);
-
-  return { comments, setComments, commentError, firstComment };
-}
-
-function useFirstCommentSnapshotForCommentsQuery(
-  postId: string,
-  firstComment: Comment | null,
-) {
-  const [firstCommentSnapshot, setFirstCommentSnapshot] =
-    useState<DocumentSnapshot | null>(null);
-
-  useEffect(() => {
-    (async () => {
-      if (!firstComment) {
-        return;
-      }
-
-      const snapshot = await getDoc(
-        doc(db, "posts", postId, "comments", firstComment.id as string),
-      );
-
-      setFirstCommentSnapshot(snapshot);
-    })();
-  }, [postId, firstComment]);
-
-  return firstCommentSnapshot;
+  return { comments, setComments, commentError };
 }

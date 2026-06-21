@@ -1,59 +1,35 @@
-import {
-  query,
-  collection,
-  orderBy,
-  startAfter,
-  limit,
-  getDocs,
-  getDoc,
-  doc,
-} from "firebase/firestore";
-import { db } from "~/infra/dataAccess/init.client";
 import type { Comment } from "~/infra/types/Posts";
-import { mapSnapshotComments } from "../mapper";
+import { COMMENTS_PAGE_SIZE } from "~/infra/constants";
+import { getMoreComments } from "../data-access/actions";
 
 export function createOnLoadMoreComments({
   postId,
-  lastComment,
+  currentPage,
   setLoading,
   setLoadMoreMessage,
   setComments,
-  setLastComment,
+  setCurrentPage,
 }: {
   postId: string;
-  lastComment: Comment | null;
+  currentPage: number;
   setLoading: (isLoading: boolean) => void;
   setLoadMoreMessage: (message: string) => void;
   setComments: (comments: (comment: Comment[]) => Comment[]) => void;
-  setLastComment: (lastComment: Comment) => void;
+  setCurrentPage: (page: number) => void;
 }) {
   return async function () {
     setLoading(true);
-    const lastCommentSnapshot = await getDoc(
-      doc(db, "posts", postId, "comments", lastComment?.id as string),
-    );
+    const nextPage = currentPage + 1;
 
-    const moreQuery = query(
-      collection(db, "posts", postId, "comments"),
-      orderBy("createdAt", "desc"),
-      startAfter(lastCommentSnapshot),
-      limit(10),
-    );
-
-    const querySnapshot = await getDocs(moreQuery);
+    const result = await getMoreComments(postId, nextPage, COMMENTS_PAGE_SIZE);
 
     setLoading(false);
 
-    if (querySnapshot.empty) {
+    if (result.comments.length === 0) {
       setLoadMoreMessage("Ya no hay más comentarios.");
     } else {
-      const moreComments = mapSnapshotComments(querySnapshot);
-      setComments((prevComments: Comment[]) => [
-        ...prevComments,
-        ...moreComments,
-      ]);
-
-      setLastComment(moreComments[moreComments.length - 1]);
+      setComments((prev: Comment[]) => [...prev, ...result.comments]);
+      setCurrentPage(nextPage);
     }
   };
 }
