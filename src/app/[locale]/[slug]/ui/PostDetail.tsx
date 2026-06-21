@@ -3,14 +3,20 @@ import { Post } from "~/infra/types/Posts";
 import { MdPhone } from "react-icons/md";
 import { FaDollarSign } from "react-icons/fa";
 import { getOnePostWithPaginatedComments } from "~/infra/dataAccess/getOnePostWithPaginatedComments";
+import { getPostBySlug } from "~/infra/dataAccess/getOnePostWithPaginatedComments/PostgresGetOnePost";
 import { Suspense } from "react";
 import CommentList from "../loadComments/CommentList";
 import type { PostUser } from "~/infra/types/Posts";
 import MediaContent from "~/infra/UI/components/MediaContent/MediaContent";
 import { notFound } from "next/navigation";
-import { mapOnePostToCard } from "~/infra/UI/mappers/posts/mapPostsToCards";
 
 async function getPostDetails(slug: string) {
+  // Try PostgreSQL first (post creation is now PG-only)
+  const pgResult = await getPostBySlug(slug);
+  if (!("errorMessage" in pgResult)) {
+    return pgResult;
+  }
+  // Fallback to Firestore for posts not yet migrated
   return await getOnePostWithPaginatedComments(slug, 10);
 }
 
@@ -33,7 +39,7 @@ export default async function PostDetail({
   const details = {
     title: postDetails.translations?.es?.title ?? postDetails.title,
     content: postDetails.translations?.es?.content ?? postDetails.content,
-    media: postDetails.media,
+    media: postDetails.media[0] ?? { url: "", type: "", alt: "" },
     price: postDetails.price,
     contactInfo: postDetails.contactInfo,
     comments: postDetails.comments,
