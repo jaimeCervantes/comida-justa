@@ -3,6 +3,7 @@ import SuenoPage from "../components/SuenoPage";
 import AlimentacionPage from "../components/AlimentacionPage";
 import MovimientoPage from "../components/MovimientoPage";
 import MenteEspirituPage from "../components/MenteEspirituPage";
+import PilaresOverviewPage from "../components/PilaresOverviewPage";
 
 type Props = {
   params: Promise<{
@@ -15,7 +16,7 @@ export default async function PilaresPage({ params }: Props) {
   const { slug } = await params;
 
   if (!slug || slug.length === 0) {
-    return notFound();
+    return <PilaresOverviewPage />;
   }
 
   const pillarSlug = slug[0];
