@@ -3,6 +3,7 @@ import {
   text,
   timestamp,
   integer,
+  doublePrecision,
   primaryKey,
 } from "drizzle-orm/pg-core";
 
@@ -12,6 +13,11 @@ export const users = pgTable("users", {
   email: text("email").unique(),
   emailVerified: timestamp("email_verified"),
   image: text("image"),
+  externalId: text("external_id").notNull().unique(),
+  lastLatitude: doublePrecision("last_latitude"),
+  lastLongitude: doublePrecision("last_longitude"),
+  locationUpdatedAt: timestamp("location_updated_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
 export const accounts = pgTable(

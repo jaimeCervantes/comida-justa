@@ -27,7 +27,6 @@
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^1.11.2",
-    "@auth/firebase-adapter": "^2.11.1",
     "@google-cloud/aiplatform": "^6.0.0",
     "@next/third-parties": "16.2.1",
     "@radix-ui/colors": "^3.0.0",

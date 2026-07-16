@@ -85,6 +85,7 @@ async function seedUsers() {
           email: data.email,
           emailVerified: toDate(data.emailVerified ?? data.email_verified),
           image: data.image ?? data.photoURL ?? data.picture ?? null,
+          externalId: data.id ?? docId,
         })
         .onConflictDoUpdate({
           target: users.email,
