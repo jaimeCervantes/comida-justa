@@ -58,19 +58,30 @@ src/infra/dataAccess/db/
     0001_good_chat.sql   — migracion inicial autogenerada
 ```
 
-## Migraciones
+## Migraciones — Alembic es la fuente de verdad (⚠️ IMPORTANTE)
 
-Se usa **Drizzle Kit** para generar y aplicar migraciones.
+La base de datos es **compartida** con el backend de Python (bot de WhatsApp), ubicado en
+`C:\Users\S2G52\Desktop\jaimito\HazloSano\bot-whatsapp\backend`. Ese backend administra el schema
+con **Alembic**, y es la **única** fuente de verdad de migraciones.
 
-```sh
-# Generar migracion a partir del schema
-pnpm drizzle-kit generate
+Las tablas que usa este app (`posts`, `post_translations`, `post_media`, `comments`, `users`,
+`accounts`, `sessions`, `verification_tokens`) fueron creadas por Alembic (ver `alembic/versions/`,
+p. ej. `0020_..._unify_users_for_nextauth.py` y `0021_..._add_comida_justa_tables.py`).
 
-# Aplicar migraciones pendientes
-pnpm drizzle-kit migrate
-```
+### NO migrar la BD con Drizzle
 
-Las migraciones se generan en `src/infra/dataAccess/db/migrations/`.
+`drizzle-kit generate/migrate` **no debe usarse** contra esta BD. El schema Drizzle en
+`src/infra/dataAccess/db/schema/` es solo un **espejo de consulta/tipos** para el app Next.js; no
+conoce las columnas que Alembic administra (p. ej. `users.external_id`), así que `generate` produce
+migraciones entrelazadas y potencialmente destructivas. Regla:
+
+- **Cambio de schema** → nueva migración **Alembic** en el backend, encadenada desde el head actual,
+  y luego `alembic upgrade head`.
+- **Espejo Drizzle** → actualiza a mano `src/infra/dataAccess/db/schema/*.ts` para que los tipos y
+  consultas del app coincidan con lo que Alembic creó. Nunca corras `drizzle-kit generate`.
+
+> Nota: el backend además tiene su propio dominio de comercio (`products`, `sellers`, `branches`,
+> `ads`, `seller_membership`) para el bot; es distinto de los `posts` de comida-justa.
 
 ## Seed de datos (Firestore → PostgreSQL)
 
@@ -92,8 +103,8 @@ El script:
 # Iniciar PostgreSQL local
 docker compose -f docker-compose.dev.yml up -d postgres
 
-# Aplicar migraciones
-pnpm drizzle-kit migrate
+# Aplicar migraciones (desde el backend de Python, NO Drizzle)
+#   cd .../bot-whatsapp/backend && alembic upgrade head
 
 # Seed de datos (opcional)
 npx tsx src/scripts/seedPosts.ts

@@ -66,6 +66,8 @@ test.describe("When a signed users publish a new healthy post", () => {
     const publishPage = new PublishPage(page);
     const postTitle = "Ensalada griega";
     const slug = "ensalada-griega";
+
+    await publishPage.stubStorageUpload();
     await publishPage.fillFields({
       title: postTitle,
       description: `La ensalada griega es una opción saludable y deliciosa para el desayuno o como plato principal en un menú diario.`,

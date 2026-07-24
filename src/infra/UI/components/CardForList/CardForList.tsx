@@ -3,10 +3,11 @@ import Card from "~/infra/UI/components/Card";
 import CurrencyAmount from "~/infra/UI/components/CurrencyAmount";
 import { Post } from "~/infra/types/Posts";
 import MediaContent from "~/infra/UI/components/MediaContent/MediaContent";
+import ProvenanceBadge from "~/infra/UI/components/ProvenanceBadge";
 
 export default function CardForList(props: Post) {
   // const userLocale = typeof window !== 'undefined' ? navigator.language : 'es-MX';
-  const { id, title, media, createdAt, price, user, to } = props;
+  const { id, title, media, createdAt, price, user, to, origin } = props;
   const anchorProps = { href: to, title: title };
 
   return (
@@ -24,6 +25,8 @@ export default function CardForList(props: Post) {
         </Link>
       }
     >
+      <ProvenanceBadge origin={origin} className="mt-1" />
+
       <CurrencyAmount
         value={price}
         locale="es-MX"

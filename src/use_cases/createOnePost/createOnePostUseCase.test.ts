@@ -40,6 +40,9 @@ describe("CreatePostUseCase", () => {
         content: samplePostInfo.content,
         contactInfo: samplePostInfo.contactInfo,
         slug: expectedSlug,
+        price: null,
+        kind: "anuncio",
+        origin: null,
         media: {
           url: expectedFileUrl,
           type: expectedFileType,
@@ -53,6 +56,31 @@ describe("CreatePostUseCase", () => {
     expect(result).toEqual({ id: expectedPostId, slug: expectedSlug });
     expect(result.error).toBeUndefined();
     expect(result.errorMessage).toBeUndefined();
+  });
+
+  it("should forward kind, origin and price when saving a product", async () => {
+    const expectedSlug = "test-post-title-unique";
+    const productInfo: Post = {
+      ...samplePostInfo,
+      kind: "producto",
+      price: 120,
+      origin: "hazlo_sano_propio",
+    };
+
+    mockPostValidator.validate.mockReturnValue(undefined);
+    mockPostRepository.createUniqueSlug.mockResolvedValue(expectedSlug);
+    mockPostRepository.save.mockResolvedValue("post123");
+
+    await createPostUseCase.execute(productInfo, "es");
+
+    expect(mockPostRepository.save).toHaveBeenCalledWith(
+      expect.objectContaining({
+        kind: "producto",
+        origin: "hazlo_sano_propio",
+        price: 120,
+      }),
+      "es",
+    );
   });
 
   it("should return a validation error if post validation fails", async () => {
@@ -117,6 +145,9 @@ describe("CreatePostUseCase", () => {
         content: samplePostInfo.content,
         contactInfo: samplePostInfo.contactInfo,
         slug: expectedSlug,
+        price: null,
+        kind: "anuncio",
+        origin: null,
         media: {
           url: expectedFileUrl,
           type: expectedFileType,

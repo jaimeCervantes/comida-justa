@@ -4,6 +4,8 @@ import {
   User,
   IPostValidator,
 } from "~/domain/entities/post/types";
+import { isValidKind } from "~/domain/entities/post/kind";
+import { isValidOrigin } from "~/domain/entities/post/origin";
 
 export default class PostValidator implements IPostValidator {
   MIN_LENGTH_TITLE = 5;
@@ -22,6 +24,46 @@ export default class PostValidator implements IPostValidator {
       this.MIN_LENGTH_CONTENT,
     );
     this.validateUser(post.user);
+    this.validateKindAndOrigin(post);
+  }
+
+  /**
+   * Valida los ejes de clasificación del post:
+   * - `kind` (si viene) debe estar en la allowlist.
+   * - un `producto` exige `price` numérico y mayor a cero.
+   * - `origin` (si viene) debe estar en la allowlist. El gate de admin para `hazlo_sano_*`
+   *   NO vive aquí (es autorización de la capa de aplicación, no forma del dato).
+   */
+  private validateKindAndOrigin(post: Post): VoidOrError {
+    if (post.kind !== undefined && !isValidKind(post.kind)) {
+      throw new PostClassificationError(
+        `Invalid kind "${String(post.kind)}".`,
+      );
+    }
+
+    if (post.kind === "producto") {
+      if (
+        post.price === null ||
+        post.price === undefined ||
+        typeof post.price !== "number" ||
+        Number.isNaN(post.price) ||
+        post.price <= 0
+      ) {
+        throw new PostClassificationError(
+          "Un producto necesita un precio mayor a cero.",
+        );
+      }
+    }
+
+    if (
+      post.origin !== undefined &&
+      post.origin !== null &&
+      !isValidOrigin(post.origin)
+    ) {
+      throw new PostClassificationError(
+        `Invalid origin "${String(post.origin)}".`,
+      );
+    }
   }
 
   validateStringOnPost(
@@ -76,6 +118,14 @@ export default class PostValidator implements IPostValidator {
     if (typeof user?.id !== "string") {
       throw new UserOnPostError(user, "user.id should be an string");
     }
+  }
+}
+
+class PostClassificationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "PostClassificationError";
+    this.message = message;
   }
 }
 

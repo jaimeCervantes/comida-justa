@@ -13,6 +13,8 @@ interface PostRow {
   user_email: string | null;
   user_image: string | null;
   price: string | null;
+  kind: string | null;
+  origin: string | null;
   contact_phone: string | null;
   contact_email: string | null;
   contact_whatsapp: string | null;
@@ -41,6 +43,8 @@ export async function getPostBySlug(slug: string) {
       u.email AS user_email,
       u.image AS user_image,
       p.price::text,
+      p.kind,
+      p.origin,
       p.contact_phone,
       p.contact_email,
       p.contact_whatsapp,
@@ -139,6 +143,8 @@ export async function getPostBySlug(slug: string) {
     createdAt: row.created_at,
     user,
     price: row.price ? Number(row.price) : null,
+    kind: row.kind ?? "anuncio",
+    origin: row.origin ?? null,
     media: mediaArr,
     contactInfo: {
       phone: row.contact_phone ?? "",

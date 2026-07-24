@@ -1,9 +1,14 @@
+import type { OriginCount } from "~/domain/entities/post/originReport";
 import type { PostUser } from "../users/IUserRepository";
 
 export interface PostData {
   id: string;
   user: PostUser;
   price: number | null;
+  /** Qué es: "anuncio" (default) o "producto". */
+  kind?: string;
+  /** De dónde/quién viene. `null` = comunidad sin especificar. */
+  origin: string | null;
   contactInfo: {
     phone: string;
     email?: string;
@@ -27,5 +32,12 @@ export interface IPostQueryRepository {
     page: number,
     pageSize: number,
   ): Promise<PaginatedPostsResult>;
+  /** Solo lo que vende Hazlo Sano: `kind = producto` con `origin` `hazlo_sano_*`. */
+  getHazloSanoProducts(
+    page: number,
+    pageSize: number,
+  ): Promise<PaginatedPostsResult>;
   getTotalPosts(): Promise<number>;
+  /** Cuántos productos hay por `origin` (`null` incluido). Base del reporte de procedencia. */
+  getProductCountsByOrigin(): Promise<OriginCount[]>;
 }

@@ -1,5 +1,6 @@
 import PublishForm from "./PublishForm";
 import { auth } from "~/infra/auth";
+import { isAdmin } from "~/infra/auth/isAdmin";
 import { createPost } from "./actions";
 import { redirect } from "next/navigation";
 import { SIGNIN_PATH } from "~/infra/constants";
@@ -11,5 +12,7 @@ export default async function PublicarPage() {
     return redirect(SIGNIN_PATH);
   }
 
-  return <PublishForm action={createPost}></PublishForm>;
+  return (
+    <PublishForm action={createPost} isAdmin={isAdmin(session.user?.email)} />
+  );
 }

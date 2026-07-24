@@ -13,6 +13,8 @@ export default class PostgresPostRepository implements IPostRepository {
         id: postId,
         userId: postData.user.id,
         price: postData.price?.toString() ?? null,
+        kind: postData.kind ?? "anuncio",
+        origin: postData.origin ?? null,
         contactPhone: postData.contactInfo.phone,
         contactEmail: postData.contactInfo.email ?? null,
         contactWhatsapp: postData.contactInfo.whatsapp ?? null,

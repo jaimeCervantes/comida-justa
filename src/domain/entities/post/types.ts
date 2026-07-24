@@ -1,3 +1,6 @@
+import type { PostKind } from "./kind";
+import type { PostOrigin } from "./origin";
+
 export type VoidOrError = void | never;
 export type Post = {
   title?: string;
@@ -5,6 +8,10 @@ export type Post = {
   content?: string;
   translations?: Record<string, any>;
   price?: number | null;
+  /** Qué es: "anuncio" (default) o "producto" (requiere precio). */
+  kind?: PostKind;
+  /** De dónde/quién viene. `null`/ausente = comunidad sin especificar. */
+  origin?: PostOrigin | null;
   contactInfo: {
     phone: string;
     email?: string;

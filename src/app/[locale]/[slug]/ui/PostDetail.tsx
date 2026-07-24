@@ -8,6 +8,7 @@ import { Suspense } from "react";
 import CommentList from "../loadComments/CommentList";
 import type { PostUser } from "~/infra/types/Posts";
 import MediaContent from "~/infra/UI/components/MediaContent/MediaContent";
+import ProvenanceBadge from "~/infra/UI/components/ProvenanceBadge";
 import { notFound } from "next/navigation";
 
 async function getPostDetails(slug: string) {
@@ -41,6 +42,7 @@ export default async function PostDetail({
     content: postDetails.translations?.es?.content ?? postDetails.content,
     media: postDetails.media[0] ?? { url: "", type: "", alt: "" },
     price: postDetails.price,
+    origin: postDetails.origin,
     contactInfo: postDetails.contactInfo,
     comments: postDetails.comments,
     firstVisibleComment: postDetails.firstVisibleComment,
@@ -53,6 +55,7 @@ export default async function PostDetail({
     content,
     media,
     price,
+    origin,
     contactInfo,
     comments,
     firstVisibleComment,
@@ -63,6 +66,7 @@ export default async function PostDetail({
   return (
     <article className={className}>
       <h1 className="text-3xl mb-4">{title}</h1>
+      <ProvenanceBadge origin={origin} className="mb-4" />
       <MediaContent media={media} className="h-auto mb-4" />
       <p className="flex items-center mb-2">
         {price ? <FaDollarSign className="mr-2" size="24" /> : null}

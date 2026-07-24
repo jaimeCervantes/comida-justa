@@ -205,7 +205,7 @@ export default function MobileNav({ children }: { children: React.ReactNode }) {
             ))}
             <li className="border-b border-gray-100 dark:border-gray-800 last:border-0">
               <Link
-                href="/info"
+                href="/productos"
                 onClick={() => setIsOpen(false)}
                 className="w-full flex items-center justify-between py-4 text-lg font-medium text-gray-900 dark:text-gray-100"
               >

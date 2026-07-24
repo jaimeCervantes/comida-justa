@@ -1,4 +1,5 @@
 import { expect, Locator, type Page } from "@playwright/test";
+import { stubStorageUpload } from "../testUtils/stubStorageUpload";
 
 type PublishValues = {
   title: string;
@@ -42,6 +43,11 @@ export default class PublishPage {
     this.uploaded = this.page.getByText(/subido/i);
   }
 
+  /** @see stubStorageUpload — keeps the publish flow off Google Cloud Storage. */
+  async stubStorageUpload() {
+    await stubStorageUpload(this.page);
+  }
+
   async goToPublish() {
     await this.page.goto("/publicar");
   }
@@ -50,9 +56,13 @@ export default class PublishPage {
     this.values = values;
     await this.title.fill(values.title);
     await this.price.fill(values.price);
-    await this.file.setInputFiles(values.file);
     await this.phone.fill(values.phone);
     await this.description.fill(values.description);
+    // Set the file last: it fires a native `change` event that only starts the upload
+    // once React has hydrated and attached its onChange handler. Filling the controlled
+    // fields above guarantees hydration happened, so the event isn't dropped and the
+    // "Subido" state actually appears.
+    await this.file.setInputFiles(values.file);
   }
 
   async verifyForm() {

@@ -70,7 +70,7 @@ export default function Nav() {
         <NavigationMenu.Item>
           <NavigationMenu.Link asChild>
             <Link
-              href="/info"
+              href="/productos"
               className="text-gray-700 dark:text-gray-200 hover:text-pw-green focus:text-pw-green block select-none rounded-[4px] px-3 py-2 text-[15px] font-medium leading-none outline-none transition-colors"
             >
               Productos

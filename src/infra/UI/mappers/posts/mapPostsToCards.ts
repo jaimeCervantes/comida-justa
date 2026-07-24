@@ -32,6 +32,8 @@ export function mapOnePostToCard(item: Post) {
     id: item.id,
     title: item.translations?.es?.title ?? item.title,
     price: item.price,
+    kind: item.kind,
+    origin: item.origin ?? null,
     content: item.translations?.es?.content ?? item.content,
     media: item.media,
     createdAt: normalizeCreatedAt(item.createdAt),

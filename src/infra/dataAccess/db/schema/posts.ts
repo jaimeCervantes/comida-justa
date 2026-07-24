@@ -6,6 +6,8 @@ export const posts = pgTable(
     id: text("id").primaryKey(),
     userId: text("user_id").notNull(),
     price: numeric("price"),
+    kind: text("kind").notNull().default("anuncio"),
+    origin: text("origin"),
     contactPhone: text("contact_phone"),
     contactEmail: text("contact_email"),
     contactWhatsapp: text("contact_whatsapp"),

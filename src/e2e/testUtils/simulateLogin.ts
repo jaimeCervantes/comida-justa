@@ -7,8 +7,9 @@ import { sessions, users } from "~/infra/dataAccess/db/schema/auth";
 export async function simulateLogin(
   page: Page,
   browserName: PlaywrightWorkerOptions["browserName"],
+  options: SimulateLoginOptions = {},
 ): Promise<DbSession> {
-  const dbSession = await createDbSession();
+  const dbSession = await createDbSession(options.email);
   const cookie: Cookie = {
     name: "authjs.session-token",
     value: dbSession.sessionToken,
@@ -43,9 +44,23 @@ function generateRandomToken() {
   return result;
 }
 
-async function createDbSession() {
-  // Use the first available user from the users table
-  const userRows = await db.select({ id: users.id }).from(users).limit(1);
+async function createDbSession(email?: string) {
+  // Without an email, use the first available user from the users table. Note that
+  // user may have a null email, so any test that depends on the session's email
+  // (e.g. the admin gate) must pass one explicitly.
+  const userRows = email
+    ? await db
+        .select({ id: users.id })
+        .from(users)
+        .where(eq(users.email, email))
+        .limit(1)
+    : await db.select({ id: users.id }).from(users).limit(1);
+
+  if (email && userRows.length === 0) {
+    throw new Error(
+      `simulateLogin: no user with email "${email}" exists in the users table.`,
+    );
+  }
 
   const userId =
     userRows.length > 0
@@ -68,6 +83,11 @@ async function createDbSession() {
     expires: expires.toISOString(),
   };
 }
+
+export type SimulateLoginOptions = {
+  /** Log in as this specific user instead of the first one found. */
+  email?: string;
+};
 
 export type DbSession = {
   id: string;

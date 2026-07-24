@@ -1,11 +1,16 @@
-import { sql } from "drizzle-orm";
+import { sql, type SQL } from "drizzle-orm";
 import { db } from "~/infra/dataAccess/db/connection";
+import { PRODUCT_KIND } from "~/domain/entities/post/hazloSanoProduct";
+import { HAZLO_SANO_ORIGIN_PREFIX } from "~/domain/entities/post/origin";
+import type { OriginCount } from "~/domain/entities/post/originReport";
 import type { IPostQueryRepository, PostData, PaginatedPostsResult } from "./IPostQueryRepository";
 
 interface PostRow {
   id: string;
   user_id: string;
   price: string | null;
+  kind: string | null;
+  origin: string | null;
   contact_phone: string | null;
   contact_email: string | null;
   contact_whatsapp: string | null;
@@ -19,8 +24,56 @@ interface PostRow {
   [key: string]: unknown;
 }
 
+/** Publicaciones vendidas por Hazlo Sano: `kind = producto` + `origin` `hazlo_sano_*`. */
+const HAZLO_SANO_PRODUCTS_WHERE: SQL = sql`p.kind = ${PRODUCT_KIND} AND p.origin LIKE ${`${HAZLO_SANO_ORIGIN_PREFIX}%`}`;
+
+const ALL_POSTS_WHERE: SQL = sql`TRUE`;
+
 export class PostgresPostQueryRepository implements IPostQueryRepository {
   async getMultiplePosts(
+    page: number,
+    pageSize: number,
+  ): Promise<PaginatedPostsResult> {
+    return this.getPaginatedPosts(ALL_POSTS_WHERE, page, pageSize);
+  }
+
+  async getHazloSanoProducts(
+    page: number,
+    pageSize: number,
+  ): Promise<PaginatedPostsResult> {
+    return this.getPaginatedPosts(HAZLO_SANO_PRODUCTS_WHERE, page, pageSize);
+  }
+
+  async getTotalPosts(): Promise<number> {
+    const raw = await db.execute(sql`
+      SELECT COUNT(*)::int AS count FROM posts
+    `);
+    const row = raw.rows[0] as { count: number };
+    return Number(row.count);
+  }
+
+  async getProductCountsByOrigin(): Promise<OriginCount[]> {
+    const raw = await db.execute(sql`
+      SELECT p.origin, COUNT(*)::int AS count
+      FROM posts p
+      WHERE p.kind = ${PRODUCT_KIND}
+      GROUP BY p.origin
+    `);
+    const rows = raw.rows as unknown as Array<{ origin: string | null; count: number }>;
+
+    return rows.map((row) => ({
+      origin: row.origin,
+      count: Number(row.count),
+    }));
+  }
+
+  /**
+   * Consulta paginada de posts con sus traducciones, media y autor. El `where` se recibe
+   * como fragmento para que cada listado (todos, productos de Hazlo Sano, …) reutilice
+   * exactamente la misma proyección y paginación.
+   */
+  private async getPaginatedPosts(
+    where: SQL,
     page: number,
     pageSize: number,
   ): Promise<PaginatedPostsResult> {
@@ -31,6 +84,8 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
         p.id,
         p.user_id,
         p.price::text,
+        p.kind,
+        p.origin,
         p.contact_phone,
         p.contact_email,
         p.contact_whatsapp,
@@ -68,6 +123,7 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
         FROM post_media
         WHERE post_id = p.id
       ) m ON TRUE
+      WHERE ${where}
       ORDER BY p.created_at DESC
       LIMIT ${pageSize} OFFSET ${offset}
     `);
@@ -121,6 +177,8 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
           image: row.user_image ?? undefined,
         },
         price: row.price ? Number(row.price) : null,
+        kind: row.kind ?? undefined,
+        origin: row.origin ?? null,
         contactInfo: {
           phone: row.contact_phone ?? "",
           email: row.contact_email ?? undefined,
@@ -139,13 +197,5 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
       total,
       totalPages: Math.ceil(total / pageSize),
     };
-  }
-
-  async getTotalPosts(): Promise<number> {
-    const raw = await db.execute(sql`
-      SELECT COUNT(*)::int AS count FROM posts
-    `);
-    const row = raw.rows[0] as { count: number };
-    return Number(row.count);
   }
 }

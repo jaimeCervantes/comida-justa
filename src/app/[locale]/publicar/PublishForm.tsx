@@ -9,11 +9,17 @@ import { useActionState, useCallback, useState } from "react";
 import { ActionState } from "~/infra/types/Actions";
 import { POST_CONTENT_MAX_LENGTH } from "~/infra/constants";
 import ImageVideoUploader from "./ui/ImageVideoUploader";
+import { ORIGIN_OPTIONS } from "~/infra/UI/labels/postOriginLabels";
+
+const selectClassName =
+  "w-full rounded border border-gray-300 bg-white px-3 py-2 text-black dark:bg-gray-800 dark:text-white";
 
 export default function PublishForm({
   action,
+  isAdmin = false,
 }: {
   action: (state: ActionState, data: FormData) => Promise<typeof state>;
+  isAdmin?: boolean;
 }) {
   const [state, createPostAction, isPending] = useActionState<
     ActionState,
@@ -67,6 +73,42 @@ export default function PublishForm({
           error={state?.errors?.title}
           containerClassName="mb-6"
         />
+
+        <div className="mb-6 text-black dark:text-white">
+          <label htmlFor="kind" className="block mb-1">
+            Tipo de publicación:
+          </label>
+          <select
+            id="kind"
+            name="kind"
+            defaultValue="anuncio"
+            className={selectClassName}
+          >
+            <option value="anuncio">Anuncio</option>
+            <option value="producto">Producto</option>
+          </select>
+        </div>
+
+        {isAdmin ? (
+          <div className="mb-6 text-black dark:text-white">
+            <label htmlFor="origin" className="block mb-1">
+              Procedencia (Hazlo Sano):
+            </label>
+            <select
+              id="origin"
+              name="origin"
+              defaultValue=""
+              className={selectClassName}
+            >
+              <option value="">— Sin especificar —</option>
+              {ORIGIN_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        ) : null}
 
         <TextField
           name="price"

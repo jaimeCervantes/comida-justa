@@ -20,12 +20,33 @@ This repository is a Next.js full-stack application. Keep instructions here focu
 - Propose the smallest valuable first slice and ask for explicit approval.
 - Do not write feature code/tests until the user approves that first slice.
 
-## Tooling baseline (pnpm, npm or yarn)
+## Autonomous delivery mode (default)
 
-- Use standard Node.js tooling: verify package manager through `package-lock.json`, `pnpm-lock.yaml`, or `yarn.lock`. Assume `npm` or `pnpm` if unsure, based on local settings.
-- Add packages using the detected package manager (e.g. `npm install <package>`).
-- Add development/test dependencies (e.g. `npm install -D <package>`).
-- Run project validation with `npm run <command>` (or equivalent).
+Deliver features end-to-end without stopping for per-step validation. This is the default, and it **overrides** the per-step gates in `nextjs-bdd-feature`: workflow steps 6–7, the "Artifact checkpoint gate (mandatory)" section, and the ask-to-continue in "Blocker handling".
+
+- Before the first slice, write a **slice roadmap** to `docs/features/<feature>.md`: the ordered slices, each slice's scope, and its acceptance criteria. This is the single review checkpoint that replaces per-step gates.
+- Write **all planned scenarios as Gherkin up front** for the roadmap review, but:
+  - Tag each scenario by slice (`@slice-1`, `@slice-2`, …) and mark not-yet-implemented ones `@future` so they do NOT run in CI or block.
+  - Only the **current** slice's scenarios are detailed and wired to executable tests; future slices stay as skeletons (title + coarse Given/When/Then). Do not add fine detail you will likely rewrite once the current slice teaches you something.
+  - Never implement future slices before the current one is green (specs up front ≠ implementation up front).
+- **The ONLY approval checkpoints, in order:**
+  1. The **alignment gate** (Problem / Savings / Why + agreed model + smallest-slice agreement).
+  2. The **slice roadmap + the `.feature` with its scenarios** — one combined review before coding starts.
+- **After checkpoint 2 is approved, do NOT ask for validation or authorization for anything else.** Writing/editing any files (new modules, refactors, migrations-as-code), running tests/lint/typecheck, generating fixtures — just do it and run to completion. When the slice is green, **report** the outcome (with numbers) — that is a report, not a gate; do not wait for approval.
+- Between checkpoints, implement in a single run: tests first, then inner-to-outer layers, running `pnpm run test:run`, `pnpm run typecheck`, and `pnpm run lint` yourself.
+- Run the Playwright e2e (`pnpm run test:e2e:run`) too when the app stack is available (dev server + a reachable DB with pending migrations applied). **Run it without asking, including against the shared DB**: the suite seeds its own data and cleans it up in `afterEach`. If it cannot run in the current environment, say so explicitly and leave it as a pending validation; never imply e2e passed when it was not executed.
+- After each slice, append an entry to `docs/features/<feature>-bitacora.md` (append-only). Narrate the WHY, do not duplicate the diff (git log already has the what). Each entry: objective, decisions + rationale, files touched (grouped), key commands, validation results (with numbers), deviations from roadmap, follow-ups. **Every entry MUST end with two sections:** a **Recap** (one-paragraph current state) and **Próximos pasos (opciones)** — the concrete choices for what to do next, plus any actions pending on the user. This is mandatory for every slice, not optional.
+- **Interrupt mid-run ONLY for something very grave** — otherwise keep going and decide with best judgment, and run every command yourself until the slice is finished.
+  - **Grave (stop and ask):** something **irreversible** — destroying or overwriting data that isn't yours (dropping/altering populated columns, `DELETE`/`UPDATE` over real user records, restoring a dump), a schema migration on the shared DB (`alembic upgrade`), `git push --force`, rotating/exposing secrets, publishing to an external service, or a discovery that invalidates the agreed model/scope.
+  - **NOT grave (just do it and report):** running any test suite (`test:run`, `test:e2e:run`) even against the shared DB, running seed/fixture scripts that are scoped and reversible, creating and deleting your own test/dummy records, and every routine blocker, tooling hiccup, unclear-but-decidable scope, or "which option" choice — pick the sensible default and note it in the report.
+  - When a run wrote to a shared resource, say so plainly in the report (what was written, how to undo it). The report replaces the question; do not ask permission first.
+- If the user says "modo paso a paso" / "pregúntame en cada paso", revert to the skill's per-step gate for that task.
+
+## Tooling baseline (pnpm)
+
+- **This repo uses `pnpm`** (`pnpm-lock.yaml`, `pnpm-workspace.yaml`). Use `pnpm` for everything — never `npm`/`yarn` here.
+- Add packages with `pnpm add <package>` (dev/test deps: `pnpm add -D <package>`).
+- Run project validation with `pnpm run <command>`.
 
 ## Repository structure
 
@@ -66,12 +87,11 @@ This repository is a Next.js full-stack application. Keep instructions here focu
 
 ## Default validation commands
 
-- `npm run dev`
-- `npm run build`
-- `npm run lint`
-- `npm run test` (Vitest)
-
-If the repository already defines wrappers such as `make test` or `just test`, prefer the repository-native command instead of replacing it.
+- `pnpm run dev`
+- `pnpm run build`
+- `pnpm run lint`
+- `pnpm run typecheck`
+- `pnpm run test:run` (Vitest, non-watch) / `pnpm run test:e2e:run` (Playwright)
 
 ## Non-Negotiable Engineering Rules
 

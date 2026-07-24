@@ -9,6 +9,8 @@ export type Post =
   | Post & Partial<{
     id: string;
     summary: string;
+    kind: "anuncio" | "producto";
+    origin: string | null;
     contactInfo: {
       phone: string;
       email?: string

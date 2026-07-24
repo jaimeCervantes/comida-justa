@@ -8,6 +8,7 @@ export async function publishTestPost(page: Page) {
   const publishPage = new PublishPage(page);
   const postTitle = 'Ensalada griega ' + time;
 
+  await publishPage.stubStorageUpload();
   await publishPage.fillFields({
     title: postTitle,
     description: `La ensalada griega es una opción saludable y deliciosa para el desayuno o como plato principal en un menú diario.`,

@@ -23,7 +23,8 @@
     "validate": "eslint . && pnpm run typecheck && pnpm run test:run && pnpm run test:e2e:run",
     "backfill-embeddings": "ts-node src/scripts/backfillEmbeddings.ts",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate"
+    "db:migrate": "drizzle-kit migrate",
+    "seed:products": "tsx src/scripts/seedHazloSanoProducts.ts"
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^1.11.2",

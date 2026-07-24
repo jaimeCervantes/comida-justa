@@ -8,7 +8,27 @@
       "Bash(pnpm typecheck *)",
       "Bash(pnpm drizzle-kit *)",
       "Bash(Remove-Item -Recurse -Force src/infra/dataAccess/db/migrations/0000_violet_gargoyle.sql)",
-      "Bash(pnpm test:run *)"
-    ]
+      "Bash(pnpm test:run *)",
+      "Edit",
+      "Write",
+      "Bash(pnpm lint *)",
+      "Bash(pnpm run lint *)",
+      "Bash(pnpm run typecheck *)",
+      "Bash(pnpm run test:run *)",
+      "Bash(pnpm test *)",
+      "Bash(pnpm run db:generate *)",
+      "Bash(pnpm run db:migrate *)",
+      "Bash(pnpm exec tsc *)",
+      "Bash(pnpm tsc *)",
+      "Bash(pnpm exec *)",
+      "Bash(node -e \"const p=require\\('./package.json'\\);console.log\\(JSON.stringify\\(p.scripts,null,2\\)\\)\")",
+      "Bash(grep -oE \"^\\(DATABASE_URL|POSTGRES[A-Z_]*\\)=.{0,40}\" .env.development)",
+      "PowerShell(Get-Content *)",
+      "Bash(node -e ' *)",
+      "PowerShell(Remove-Item *)",
+      "Bash(node *)",
+      "Bash(pnpm run *)"
+    ],
+    "defaultMode": "acceptEdits"
   }
 }

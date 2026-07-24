@@ -8,6 +8,9 @@ import { Post, User } from "~/domain/entities/post/types";
 import CreateOnePostUseCase from "~/use_cases/createOnePost/createOnePostUseCase";
 import PostValidator from "~/domain/schemas/PostValidator";
 import { createPostRepository } from "~/infra/dataAccess/createOnePost/factory";
+import { isAdmin } from "~/infra/auth/isAdmin";
+import { resolveOriginForUser } from "~/domain/entities/post/origin";
+import { DEFAULT_POST_KIND, type PostKind } from "~/domain/entities/post/kind";
 
 const useCase = new CreateOnePostUseCase(
   new PostValidator(),
@@ -30,6 +33,14 @@ export async function createPost(
   const mediaJSON = formData.get("media") as string;
   const price = formData.get("price");
   const phone = formData.get("phone") as string;
+  const kind: PostKind =
+    (formData.get("kind") as string) === "producto"
+      ? "producto"
+      : DEFAULT_POST_KIND;
+
+  // Server-side defense: only an admin may assign a "hazlo_sano_*" origin.
+  const admin = isAdmin(session?.user?.email);
+  const origin = resolveOriginForUser(formData.get("origin") as string, admin);
 
   const errors = {
     title: title ? null : "El título es obligatorio.",
@@ -63,6 +74,8 @@ export async function createPost(
         phone,
       },
       price: Number(price) || null,
+      kind,
+      origin,
       createdAt: new Date(),
       media: {
         url: media.url,
