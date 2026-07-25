@@ -11,6 +11,10 @@ import { createPostRepository } from "~/infra/dataAccess/createOnePost/factory";
 import { isAdmin } from "~/infra/auth/isAdmin";
 import { resolveOriginForUser } from "~/domain/entities/post/origin";
 import { DEFAULT_POST_KIND, type PostKind } from "~/domain/entities/post/kind";
+import {
+  resolveCategory,
+  resolveSubCategory,
+} from "~/domain/entities/post/category";
 
 const useCase = new CreateOnePostUseCase(
   new PostValidator(),
@@ -41,6 +45,10 @@ export async function createPost(
   // Server-side defense: only an admin may assign a "hazlo_sano_*" origin.
   const admin = isAdmin(session?.user?.email);
   const origin = resolveOriginForUser(formData.get("origin") as string, admin);
+
+  // Fuera de la allowlist se ignora (queda `null`) en vez de romper la publicación.
+  const category = resolveCategory(formData.get("category") as string);
+  const subCategory = resolveSubCategory(formData.get("subCategory") as string);
 
   const errors = {
     title: title ? null : "El título es obligatorio.",
@@ -76,6 +84,8 @@ export async function createPost(
       price: Number(price) || null,
       kind,
       origin,
+      category,
+      subCategory,
       createdAt: new Date(),
       media: {
         url: media.url,

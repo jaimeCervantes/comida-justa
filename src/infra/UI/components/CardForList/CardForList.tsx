@@ -4,10 +4,23 @@ import CurrencyAmount from "~/infra/UI/components/CurrencyAmount";
 import { Post } from "~/infra/types/Posts";
 import MediaContent from "~/infra/UI/components/MediaContent/MediaContent";
 import ProvenanceBadge from "~/infra/UI/components/ProvenanceBadge";
+import CategoryTag from "~/infra/UI/components/CategoryTag/CategoryTag";
 
 export default function CardForList(props: Post) {
   // const userLocale = typeof window !== 'undefined' ? navigator.language : 'es-MX';
-  const { id, title, media, createdAt, price, user, to, origin } = props;
+  const {
+    id,
+    title,
+    media,
+    createdAt,
+    price,
+    user,
+    to,
+    origin,
+    category,
+    subCategory,
+    locale,
+  } = props;
   const anchorProps = { href: to, title: title };
 
   return (
@@ -25,7 +38,14 @@ export default function CardForList(props: Post) {
         </Link>
       }
     >
-      <ProvenanceBadge origin={origin} className="mt-1" />
+      <span className="flex flex-wrap items-center gap-2 mt-1">
+        <ProvenanceBadge origin={origin} />
+        <CategoryTag
+          category={category}
+          subCategory={subCategory}
+          locale={locale}
+        />
+      </span>
 
       <CurrencyAmount
         value={price}

@@ -1,6 +1,10 @@
 import { db } from "~/infra/dataAccess/db/connection";
 import { users } from "~/infra/dataAccess/db/schema/auth";
 import PostgresPostRepository from "~/infra/dataAccess/createOnePost/PostgresPostRepository";
+import type {
+  PostCategory,
+  PostSubCategory,
+} from "~/domain/entities/post/category";
 
 /**
  * Media host allowed by `next.config` `images.remotePatterns`; a URL outside that list
@@ -15,6 +19,8 @@ export type SeedPostInput = {
   kind: "anuncio" | "producto";
   origin: string | null;
   price?: number | null;
+  category?: PostCategory | null;
+  subCategory?: PostSubCategory | null;
 };
 
 /**
@@ -32,6 +38,8 @@ export async function seedPost(input: SeedPostInput): Promise<string> {
     price: input.price ?? 100,
     kind: input.kind,
     origin: input.origin,
+    category: input.category ?? null,
+    subCategory: input.subCategory ?? null,
     contactInfo: { phone: "2781092116" },
     media: { url: SEED_MEDIA_URL, type: "image", alt: input.title },
     user: { id: userId },

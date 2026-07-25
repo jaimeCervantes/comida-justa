@@ -4,7 +4,7 @@ import { resolve } from "path";
 config({ path: resolve(process.cwd(), ".env.development") });
 
 /**
- * Productos dummy de Hazlo Sano para poblar `/productos`, tomados de la página `/info`:
+ * Productos dummy de Hazlo Sano para poblar `/productos`, tomados de la página `/nosotros`:
  * el pan de masa madre de MMNaturalmente (Hazlo Sano es punto de venta oficial → reventa)
  * y la crema de cacahuate que hace Hazlo Sano (→ propio).
  *

@@ -211,6 +211,15 @@ export default function MobileNav({
             ))}
             <li className="border-b border-gray-100 dark:border-gray-800 last:border-0">
               <Link
+                href="/nosotros"
+                onClick={() => setIsOpen(false)}
+                className="w-full flex items-center justify-between py-4 text-lg font-medium text-gray-900 dark:text-gray-100"
+              >
+                Nosotros
+              </Link>
+            </li>
+            <li className="border-b border-gray-100 dark:border-gray-800 last:border-0">
+              <Link
                 href="/productos"
                 onClick={() => setIsOpen(false)}
                 className="w-full flex items-center justify-between py-4 text-lg font-medium text-gray-900 dark:text-gray-100"

@@ -70,10 +70,10 @@ export default function Footer() {
             </li>
             <li>
               <Link
-                href="/info"
+                href="/nosotros"
                 className="hover:text-[var(--highlight)] transition-colors inline-block font-medium"
               >
-                Productos Naturales
+                Qué es {PUBLIC_BRAND_NAME}
               </Link>
             </li>
             <li>

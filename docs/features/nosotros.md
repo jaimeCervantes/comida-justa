@@ -1,0 +1,55 @@
+# Feature: Página de marca en el menú (`/info` → `/nosotros`)
+
+Roadmap de slices para **darle a la página de marca una URL semántica y un lugar en el menú
+principal**. Este documento es el checkpoint de revisión que reemplaza las pausas paso a paso
+(ver "Autonomous delivery mode" en `AGENTS.md`). La bitácora por slice vive en
+`docs/features/nosotros-bitacora.md`.
+
+## Problema / Savings / Why
+
+- **Problema:** la página que explica el ecosistema (4 pilares, chatbot, contacto) no estaba en el
+  menú — solo la alcanzaba un link del footer — y su URL, `/info`, no comunicaba nada. Peor: su
+  anchor text era "Productos Naturales", compitiendo con `/productos` por la misma intención de
+  búsqueda, cuando `/productos` **ya es** el catálogo de esos mismos productos
+  (`src/scripts/seedHazloSanoProducts.ts` documenta que se sembró desde esta página).
+- **Savings:** una entrada de menú en vez de una página que nadie encuentra, y ninguna
+  canibalización de keywords que deshacer después: `/nosotros` se queda con la intención de marca
+  y `/productos` con la transaccional.
+- **Why:** quien llega por el catálogo necesita saber quién está detrás, y quien busca
+  "Hazlo Sano" tiene que aterrizar en una página que lo explique.
+
+## Decisión de naming
+
+Se descartó `/productos-naturales` — pega más keyword, pero pelea contra `/productos` y contra los
+posts de cada producto por la misma consulta. `/nosotros` es la convención esperada para una página
+de marca y no compite con nada. El `<title>` sí carga la keyword secundaria:
+**"Qué es Hazlo Sano - Ecosistema de vida sana"**.
+
+## Slices
+
+### Slice 1 — renombrar y entrar al menú (implementado)
+
+**Alcance**
+
+- `src/app/[locale]/info/` → `src/app/[locale]/nosotros/` (con `git mv`, historia preservada).
+- `src/app/[locale]/nosotros/metadata.ts` nuevo, espejo de `src/app/[locale]/productos/metadata.ts`:
+  título, descripción y `alternates.canonical` en `${CANONICAL_URL}/nosotros`.
+- H1 "Qué es Hazlo Sano" + subtítulo, en lugar de "Información y Productos Naturales".
+- Redirect **308** de `/info` (y `/:locale(es|en)/info`) en `next.config.mjs`.
+- Entrada "Nosotros" en `Nav.tsx` (antes de "Productos") y en `MobileNav.tsx`.
+- `Footer.tsx`: apunta a `/nosotros` con anchor "Qué es Hazlo Sano".
+
+**Criterios de aceptación**
+
+- Desde la home, "Nosotros" en el menú lleva a `/nosotros` y se ve el H1.
+- `/info` responde 308 con `Location: /nosotros` — ningún enlace externo o indexado se pierde.
+- `pnpm run build` no reporta rutas rotas y `/[locale]/nosotros` aparece en el árbol de rutas.
+
+Escenarios en `src/e2e/about/about.feature`, ejecutables en `src/e2e/about/about.spec.ts`.
+
+### Slice 2 — mover el detalle de producto a sus posts (`@future`)
+
+Las fichas de crema de cacahuate y pan de masa madre, con sus tips de conservación, viven hoy
+duplicadas: en esta página y en los posts de `/productos`. Consolidarlas en los posts dejaría a
+`/nosotros` como página de marca pura y eliminaría el contenido duplicado que ve el buscador.
+No se hizo aún porque implica reescribir contenido, no mover archivos.

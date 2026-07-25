@@ -43,6 +43,8 @@ describe("CreatePostUseCase", () => {
         price: null,
         kind: "anuncio",
         origin: null,
+        category: null,
+        subCategory: null,
         media: {
           url: expectedFileUrl,
           type: expectedFileType,
@@ -58,13 +60,17 @@ describe("CreatePostUseCase", () => {
     expect(result.errorMessage).toBeUndefined();
   });
 
-  it("should forward kind, origin and price when saving a product", async () => {
+  // El caso de uso arma el DTO campo por campo: lo que no copie aquí no llega nunca al
+  // repositorio, y `Post` los declara opcionales, así que TypeScript no avisa del olvido.
+  it("should forward kind, origin, price and category when saving a product", async () => {
     const expectedSlug = "test-post-title-unique";
     const productInfo: Post = {
       ...samplePostInfo,
       kind: "producto",
       price: 120,
       origin: "hazlo_sano_propio",
+      category: "alimentacion",
+      subCategory: "jugos",
     };
 
     mockPostValidator.validate.mockReturnValue(undefined);
@@ -78,6 +84,8 @@ describe("CreatePostUseCase", () => {
         kind: "producto",
         origin: "hazlo_sano_propio",
         price: 120,
+        category: "alimentacion",
+        subCategory: "jugos",
       }),
       "es",
     );
@@ -148,6 +156,8 @@ describe("CreatePostUseCase", () => {
         price: null,
         kind: "anuncio",
         origin: null,
+        category: null,
+        subCategory: null,
         media: {
           url: expectedFileUrl,
           type: expectedFileType,

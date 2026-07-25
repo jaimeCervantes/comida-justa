@@ -102,6 +102,43 @@ Feature: [Feature Name]
     Then [the observable outcome on the page/API]
 ```
 
+### Scenario writing rules (mandatory)
+
+- **The `Context:` block lives inside the `.feature` itself**, not only in `docs/features/<feature>.md`.
+  A reader who never opens another document must still know the Problem, the Savings and the Why.
+- **Use concrete, real data — never placeholders.** Take the values from the shared/production
+  database, the seeds or the existing UI: `"Jugo Verde"` at `40`, not `"a product"` at `"some price"`.
+  Concrete data exposes disagreements about the model that abstract wording hides.
+- **Use `Scenario Outline` + `Examples` whenever the rule has more than one case.** This is the desk
+  check ("corrida de escritorio"): input columns and the expected result, so the rule can be verified
+  by reading the table. Reach for it for allowlists, per-locale labels, boundary values, field-by-field
+  mappings, and scoring or ranking rules.
+
+```gherkin
+@slice-1
+Scenario Outline: The label follows the visitor's locale, never the database
+  Given a product published with sub-category "<key>"
+  When a visitor opens its detail page in locale "<locale>"
+  Then the sub-category is shown as "<label>"
+
+  Examples:
+    | key       | locale | label     |
+    | jugos     | es     | Jugos     |
+    | jugos     | en     | Juices    |
+    | panaderia | en     | Bakery    |
+```
+
+- **Name the `Examples` blocks** when one outline covers accepted and rejected input
+  (`Examples: rejected — labels and unknown keys never reach the database`). A trailing `reason`
+  column that no step consumes is fine: it documents why each row exists.
+- **Use a data table in a `Then`** to desk-check stored state — field/value rows read better than a
+  chain of `And the X is Y`.
+- **Tag every scenario by slice** (`@slice-1`, `@slice-2`, …). Scenarios of slices not built yet carry
+  `@future` so they neither run in CI nor block. Only the current slice's scenarios are detailed and
+  wired to executable tests; future slices stay coarse — do not add detail you will rewrite once the
+  current slice teaches you something. Add `@component` when Vitest covers the scenario instead of
+  Playwright, with a comment saying why.
+
 The `.feature` file is the authoritative scenario spec. Pair it with a Playwright spec of the same name that implements those exact Given/When/Then steps. If the repository later adopts a Gherkin step-runner (e.g. `playwright-bdd`), wire the `.feature` file directly into Playwright instead of duplicating it as prose plus a hand-written spec.
 
 Do not skip this framing stage for end-to-end scenarios. If context is incomplete, ask concise clarification questions and wait for explicit agreement on feature scope and the first scenario.

@@ -10,6 +10,10 @@ import { ActionState } from "~/infra/types/Actions";
 import { POST_CONTENT_MAX_LENGTH } from "~/infra/constants";
 import ImageVideoUploader from "./ui/ImageVideoUploader";
 import { ORIGIN_OPTIONS } from "~/infra/UI/labels/postOriginLabels";
+import {
+  categoryOptions,
+  subCategoryOptions,
+} from "~/infra/UI/labels/postCategoryLabels";
 
 const selectClassName =
   "w-full rounded border border-gray-300 bg-white px-3 py-2 text-black dark:bg-gray-800 dark:text-white";
@@ -30,6 +34,7 @@ export default function PublishForm({
     id: null,
     slug: null,
   });
+  const [kind, setKind] = useState<string>("anuncio");
   const [mediaJSON, setMediaJSON] = useState<string>("");
   const [isLoadingMedia, setIsLoadingMedia] = useState<boolean | null>(null);
   const [imagePickerLabel, setImageVideoPickerLabel] = useState(
@@ -81,13 +86,57 @@ export default function PublishForm({
           <select
             id="kind"
             name="kind"
-            defaultValue="anuncio"
+            value={kind}
+            onChange={(event) => setKind(event.target.value)}
             className={selectClassName}
           >
             <option value="anuncio">Anuncio</option>
             <option value="producto">Producto</option>
           </select>
         </div>
+
+        {/* La categoría solo aplica a lo que se vende; en un anuncio sería ruido. */}
+        {kind === "producto" ? (
+          <>
+            <div className="mb-6 text-black dark:text-white">
+              <label htmlFor="category" className="block mb-1">
+                Categoría:
+              </label>
+              <select
+                id="category"
+                name="category"
+                defaultValue=""
+                className={selectClassName}
+              >
+                <option value="">— Sin especificar —</option>
+                {categoryOptions("es").map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="mb-6 text-black dark:text-white">
+              <label htmlFor="subCategory" className="block mb-1">
+                Sub-categoría:
+              </label>
+              <select
+                id="subCategory"
+                name="subCategory"
+                defaultValue=""
+                className={selectClassName}
+              >
+                <option value="">— Sin especificar —</option>
+                {subCategoryOptions("es").map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </>
+        ) : null}
 
         {isAdmin ? (
           <div className="mb-6 text-black dark:text-white">

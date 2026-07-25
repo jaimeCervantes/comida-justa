@@ -1,25 +1,21 @@
-import { Metadata } from "next";
+import type { Metadata } from "next";
 import Image from "next/image";
+import { ABOUT_SUBTITLE, ABOUT_TITLE, buildAboutMetadata } from "./metadata";
 
-export const metadata: Metadata = {
-  title: "Información - Hazlo Sano",
-  description:
-    "Información sobre nuestros productos naturales: Pan de Masa Madre, Crema de Cacahuate y nuestro Chatbot.",
-  openGraph: {
-    title: "Información - Hazlo Sano",
-    description: "Información sobre nuestros productos naturales.",
-    images: ["https://hazlosano.com/logo.webp"],
-    type: "website",
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return buildAboutMetadata();
+}
 
-export default function InfoPage() {
+export default function NosotrosPage() {
   return (
     <main className="container-width py-12 space-y-16 max-w-4xl mx-auto">
       <header className="text-center space-y-6">
         <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-balance">
-          Información y Productos Naturales
+          {ABOUT_TITLE}
         </h1>
+        <p className="text-lg sm:text-xl text-gray-600 dark:text-gray-400 text-balance max-w-2xl mx-auto">
+          {ABOUT_SUBTITLE}
+        </p>
       </header>
 
       {/* 1. Ecosistema Hazlo Sano / Chatbot */}

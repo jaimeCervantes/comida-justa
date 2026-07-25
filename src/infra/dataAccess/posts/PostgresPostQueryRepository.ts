@@ -11,6 +11,8 @@ interface PostRow {
   price: string | null;
   kind: string | null;
   origin: string | null;
+  category: string | null;
+  sub_category: string | null;
   contact_phone: string | null;
   contact_email: string | null;
   contact_whatsapp: string | null;
@@ -86,6 +88,8 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
         p.price::text,
         p.kind,
         p.origin,
+        p.category,
+        p.sub_category,
         p.contact_phone,
         p.contact_email,
         p.contact_whatsapp,
@@ -179,6 +183,8 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
         price: row.price ? Number(row.price) : null,
         kind: row.kind ?? undefined,
         origin: row.origin ?? null,
+        category: row.category ?? null,
+        subCategory: row.sub_category ?? null,
         contactInfo: {
           phone: row.contact_phone ?? "",
           email: row.contact_email ?? undefined,
