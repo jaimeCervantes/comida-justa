@@ -2,41 +2,27 @@ import CurrencyAmount from "~/infra/UI/components/CurrencyAmount";
 import { Post } from "~/infra/types/Posts";
 import { MdPhone } from "react-icons/md";
 import { FaDollarSign } from "react-icons/fa";
-import { getOnePostWithPaginatedComments } from "~/infra/dataAccess/getOnePostWithPaginatedComments";
-import { getPostBySlug } from "~/infra/dataAccess/getOnePostWithPaginatedComments/PostgresGetOnePost";
 import { Suspense } from "react";
 import CommentList from "../loadComments/CommentList";
 import type { PostUser } from "~/infra/types/Posts";
 import MediaContent from "~/infra/UI/components/MediaContent/MediaContent";
 import ProvenanceBadge from "~/infra/UI/components/ProvenanceBadge";
-import { notFound } from "next/navigation";
 
-async function getPostDetails(slug: string) {
-  // Try PostgreSQL first (post creation is now PG-only)
-  const pgResult = await getPostBySlug(slug);
-  if (!("errorMessage" in pgResult)) {
-    return pgResult;
-  }
-  // Fallback to Firestore for posts not yet migrated
-  return await getOnePostWithPaginatedComments(slug, 10);
-}
-
-export default async function PostDetail({
+/**
+ * Presenta una publicación ya cargada. La búsqueda (y el 404 si no existe) vive en la página,
+ * fuera de cualquier `<Suspense>`, para que el status HTTP sea el correcto.
+ */
+export default function PostDetail({
+  post: postDetails,
   slug,
   className,
   user,
 }: {
+  post: Post;
   slug: string;
   className: string;
   user: PostUser | undefined;
 }) {
-  const postDetails: Post | { error: boolean; errorMessage: string } =
-    await getPostDetails(slug);
-
-  if (postDetails.error === true) {
-    notFound();
-  }
-
   const details = {
     title: postDetails.translations?.es?.title ?? postDetails.title,
     content: postDetails.translations?.es?.content ?? postDetails.content,

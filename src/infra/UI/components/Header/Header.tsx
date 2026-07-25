@@ -3,6 +3,7 @@ import { SignIn, SignOut } from "../auth-buttons";
 import Avatar from "../Avatar/Avatar";
 import Nav from "./Nav";
 import { auth } from "~/infra/auth";
+import { isAdmin } from "~/infra/auth/isAdmin";
 import Link from "next/link";
 import { LuSalad } from "react-icons/lu";
 import Button from "../Button/Button";
@@ -15,12 +16,14 @@ import LinkButton from "../LinkButton/LinkButton";
 
 export default async function Header({ locale }: { locale: string }) {
   const session = await auth();
+  // El acceso al reporte interno solo se muestra a admins; el gate real está en la página.
+  const showAdminLinks = isAdmin(session?.user?.email);
 
   return (
     <header className="sticky top-0 z-50 w-full glass transition-all duration-300">
       <div className="container-width flex h-16 items-center justify-between">
         <div className="flex gap-4 sm:gap-6 items-center">
-          <MobileNav>
+          <MobileNav isAdmin={showAdminLinks}>
             <LinkButton
               href="/publicar"
               color="green"
@@ -66,7 +69,7 @@ export default async function Header({ locale }: { locale: string }) {
             />
           </Link>
           <div className="hidden lg:block">
-            <Nav />
+            <Nav isAdmin={showAdminLinks} />
           </div>
         </div>
 

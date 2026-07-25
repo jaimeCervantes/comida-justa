@@ -93,12 +93,14 @@ Feature: Publish Hazlo Sano product
     When this admin opens "/admin/productos"
     Then a row is shown for every known origin, plus one for products without origin
     And publishing one more product with origin "hazlo_sano_propio" raises that row's count by one
+    And the navigation shows a "Reporte" entry
 
   @slice-3
   Scenario: The report is admin-only
     Given a signed-in non-admin user
     When this user opens "/admin/productos"
-    Then the report is not shown
+    Then the response status is 404
+    And neither the report nor its "Reporte" navigation entry is shown
 
   # Covered at unit level (Vitest): the report always lists every origin in the
   # allowlist, even the ones with no products yet.

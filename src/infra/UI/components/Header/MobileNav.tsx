@@ -112,7 +112,13 @@ function useCloseMenuOnNavigation(
   }
 }
 
-export default function MobileNav({ children }: { children: React.ReactNode }) {
+export default function MobileNav({
+  children,
+  isAdmin = false,
+}: {
+  children: React.ReactNode;
+  isAdmin?: boolean;
+}) {
   const [isOpen, setIsOpen] = useState(false);
   const [openSubmenu, setOpenSubmenu] = useState<string | null>(null);
 
@@ -212,6 +218,17 @@ export default function MobileNav({ children }: { children: React.ReactNode }) {
                 Productos
               </Link>
             </li>
+            {isAdmin && (
+              <li className="border-b border-gray-100 dark:border-gray-800 last:border-0">
+                <Link
+                  href="/admin/productos"
+                  onClick={() => setIsOpen(false)}
+                  className="w-full flex items-center justify-between py-4 text-lg font-medium text-gray-900 dark:text-gray-100"
+                >
+                  Reporte
+                </Link>
+              </li>
+            )}
           </ul>
         </nav>
 

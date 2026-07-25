@@ -1,6 +1,6 @@
-import { Suspense } from "react";
+import { notFound } from "next/navigation";
 import PostDetail from "./ui/PostDetail";
-import PostDetailSkeleton from "./ui/PostDetailSkeleton";
+import { getPostDetails } from "./data";
 import { auth } from "~/infra/auth";
 import type { PostUser } from "~/infra/types/Posts";
 
@@ -12,19 +12,23 @@ export default async function Slug({
   const session = await auth();
   const { slug } = await params;
 
+  // Se resuelve aquí, fuera de cualquier `<Suspense>`: si la publicación no existe, la respuesta
+  // debe salir con status 404 y no con un 200 que solo "parece" un 404. Dentro de un boundary,
+  // el shell ya se envió y el status queda congelado en 200.
+  const post = await getPostDetails(slug);
+
+  if (!post) {
+    notFound();
+  }
+
   return (
     <section className="sm:flex sm:gap-4">
-      <Suspense
-        fallback={
-          <PostDetailSkeleton className="w-full sm:w-[50%]  h-[70vb] sm:h-[85vb] mb-4" />
-        }
-      >
-        <PostDetail
-          slug={slug}
-          className="sm:w-[50%] mb-4"
-          user={session?.user as PostUser}
-        />
-      </Suspense>
+      <PostDetail
+        post={post}
+        slug={slug}
+        className="sm:w-[50%] mb-4"
+        user={session?.user as PostUser}
+      />
       <aside>
         <h2 className="text-3xl font-bold">Comida Relacionada</h2>
       </aside>
