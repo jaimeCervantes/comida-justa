@@ -74,7 +74,7 @@ Alcance end-to-end mínimo con valor.
 3. Publicar `kind = producto` sin `price` falla con error de validación claro.
 4. Publicaciones existentes siguen funcionando como `anuncio` sin badge.
 
-### Slice 2 — Listado de productos  *(actual)*
+### Slice 2 — Listado de productos  *(entregado)*
 
 - **De momento la página de productos solo muestra productos de Hazlo Sano** (`kind = "producto"`
   y `origin` de tipo `hazlo_sano_*`). El listado general de todos los productos y el filtro por
@@ -89,11 +89,20 @@ Alcance end-to-end mínimo con valor.
 2. Cada tarjeta del listado muestra su badge de procedencia.
 3. Sin productos de Hazlo Sano, la página muestra un estado vacío en vez del grid.
 
-### Slice 3 — Reportes por `origin`  *(futuro)*
+### Slice 3 — Reportes por `origin`  *(actual)*
 
-- Vista/consulta admin con conteos y agregados por `origin` (cuántos propios, reventa, locales…).
+- Vista admin en `/admin/productos` con el conteo de **productos** (`kind = "producto"`) agrupado por
+  `origin`, más su participación sobre el total. Los anuncios no se cuentan.
+- El armado del reporte vive en el dominio (`buildOriginReport`): lista **todos** los `origin` de la
+  allowlist aunque estén en cero, más una fila para los que no lo tienen especificado.
+- Acceso por el mismo gate del Slice 1 (`isAdmin` contra `HAZLO_SANO_ADMIN_EMAILS`); a un no-admin la
+  página le responde 404, no 403.
 
-**Criterio (esbozo):** un admin ve el conteo de productos agrupados por `origin`.
+**Criterios de aceptación:**
+1. Un admin ve en `/admin/productos` el conteo de productos por `origin`, con total y participación.
+2. Publicar un producto más con un `origin` sube en uno **solo** esa fila.
+3. Los `origin` sin productos siguen listados en cero.
+4. Un usuario no-admin no ve el reporte.
 
 ## Fuera de alcance (por ahora)
 

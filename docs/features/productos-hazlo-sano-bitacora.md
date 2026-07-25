@@ -231,3 +231,104 @@ detalle de 2 de ellos → 200 con badge · `typecheck` ✅ · `lint` ✅.
 
 **Ojo (visibilidad):** los 4 productos viven en la BD compartida, así que también salen en el feed del
 home y son públicos. Para quitarlos: `pnpm run seed:products -- --remove`.
+
+## Slice 3 — Reportes por `origin` (2026-07-24)
+
+**Objetivo:** que un admin vea cuántos productos hay de cada procedencia, para saber qué parte del
+catálogo es propio, cuál reventa y cuánto viene de la comunidad.
+
+**Decisiones y porqué:**
+- **El armado del reporte es dominio, no SQL.** `entities/post/originReport.ts` (`buildOriginReport`)
+  toma conteos crudos y devuelve **todas** las filas de la allowlist —incluidas las de cero— más una
+  de "sin especificar". Si el `GROUP BY` mandara las filas, el reporte cambiaría de forma según los
+  datos (aparecen y desaparecen filas) y los huecos, que es justo lo que interesa ver, quedarían
+  invisibles. Los `origin` fuera de la allowlist (datos viejos) se pliegan a "sin especificar" en vez
+  de romper el reporte.
+- **`share` calculado en dominio, formateado en UI.** El dominio devuelve una proporción 0–1; la tabla
+  la formatea con `Intl.NumberFormat`. Nada de porcentajes como string en la capa de datos.
+- **Solo productos.** El reporte cuenta `kind = 'producto'`; los anuncios no entran. Es la pregunta que
+  el slice responde ("cuántos propios, reventa, locales…") y mantiene una sola condición en el `WHERE`.
+- **404 y no 403 para el no-admin.** Una página interna no revela que existe. Se reutiliza `isAdmin`
+  del Slice 1: no se introdujo ningún sistema de roles.
+- **Etiquetas de `origin` extraídas a un módulo compartido.** Estaban embebidas en `PublishForm`;
+  ahora `infra/UI/labels/postOriginLabels.ts` es la única lista (`ORIGIN_LABELS`, `ORIGIN_OPTIONS`,
+  `originLabel`), derivada del orden canónico del dominio. El formulario y el reporte ya no pueden
+  desincronizarse.
+- **El e2e asegura deltas, no números absolutos.** La BD contra la que corre la suite ya tiene
+  publicaciones reales (y los 4 dummies), así que el test lee el conteo, siembra un producto y verifica
+  `+1` en esa fila y `+0` en otra. Es determinista sin depender del estado previo.
+
+**Archivos tocados (agrupados):**
+- Dominio: `entities/post/originReport.ts` (+ test).
+- Infra (datos): `dataAccess/posts/{IPostQueryRepository,PostgresPostQueryRepository}.ts`
+  (`getProductCountsByOrigin`).
+- Infra (UI): `UI/labels/postOriginLabels.ts` (nuevo, extraído de `PublishForm`).
+- App: `[locale]/admin/productos/page.tsx`, `ui/OriginReportTable.tsx` (+ test);
+  `[locale]/publicar/PublishForm.tsx` (usa las etiquetas compartidas).
+- Tests e2e: `e2e/productsReport/{ProductsReportPage.ts,productsReport.spec.ts}`;
+  `publishProduct.feature` (escenarios del Slice 3 detallados).
+
+**Comandos clave:** `pnpm run test:run`, `pnpm run typecheck`, `pnpm run lint`, `pnpm run test:e2e:run`.
+
+**Validaciones:** `test:run` ✅ **102/102** (19 archivos, +9 tests) · `typecheck` ✅ · `lint` ✅ ·
+**suite e2e completa ✅ 7 passed, 3 skipped** (los skipped son los preexistentes que dependen de
+AI/recursos externos). Los dos escenarios nuevos —conteo con delta y el no-admin sin reporte— pasan.
+La corrida sembró y borró un producto de prueba en la BD compartida (limpieza en `afterEach`).
+
+**Desviaciones del roadmap:** ninguna. Se sumó la extracción de las etiquetas de `origin` (no estaba
+planeada) porque el reporte las necesitaba y duplicarlas habría dejado dos listas que se desincronizan.
+
+**Pendientes / follow-ups:**
+- `/admin/productos` **no está enlazada** en ninguna navegación: se llega por URL. Falta decidir si el
+  header muestra un acceso solo a admins.
+- Sigue pendiente el 200 de `notFound()` en toda la app (afecta también a esta página cuando rechaza a
+  un no-admin: el contenido correcto, el status no).
+- Sigue pendiente decidir los correos de `HAZLO_SANO_ADMIN_EMAILS` que no existen en la BD.
+
+**Recap:** la feature queda completa de punta a punta: se marca la procedencia al publicar (Slice 1),
+`/productos` lista solo lo de Hazlo Sano con su badge (Slice 2) y `/admin/productos` responde cuánto
+hay de cada procedencia con total y participación (Slice 3). Todo verde: 102 unit tests, typecheck,
+lint y la suite e2e completa. El reporte se alimenta de la misma allowlist del dominio, así que agregar
+una procedencia nueva sigue siendo editar una constante —sin migración— y aparece sola en el formulario
+y en el reporte.
+
+**Acciones pendientes del usuario:** ninguna para cerrar el slice.
+
+**Próximos pasos (opciones):**
+1. Enlazar `/admin/productos` desde el header solo para admins (o dejarlo por URL a propósito).
+2. Arreglar el 200 de `notFound()` en toda la app (SEO + semántica de los 404).
+3. Ampliar el reporte: agregados por precio (valor del catálogo por procedencia) o rango de fechas.
+4. Abrir `/productos` al listado general con filtro por `origin` (hoy es solo Hazlo Sano, por diseño).
+
+### Adenda — navegación admin y 404 reales (2026-07-24)
+
+Se cerraron los dos follow-ups abiertos del Slice 3 (opciones 1 y 2 de arriba).
+
+**Navegación:** `Header` (server component, ya tenía la sesión) calcula `isAdmin(session?.user?.email)`
+y lo pasa a `Nav` y `MobileNav`, que muestran una entrada **"Reporte"** → `/admin/productos` solo para
+admins. Es únicamente visibilidad: el gate real sigue siendo el de la página (mismo criterio que el
+selector de procedencia del Slice 1). El e2e lo verifica en ambos sentidos: el admin ve el enlace, el
+no-admin no.
+
+**El 404 que respondía 200 — causa raíz.** No era next-intl: era **streaming**. Dos boundaries hacían
+que la respuesta se enviara (con status 200) antes de que `notFound()` decidiera:
+1. `src/app/loading.tsx` y `src/app/[locale]/loading.tsx` — un `loading.tsx` envuelve todo el segmento
+   en `<Suspense>`, así que el shell se manda de inmediato y el status ya no se puede cambiar. Afectaba
+   a **todas** las rutas (`/page/9999`, `/productores-locales`, `/admin/productos`…).
+2. El `<Suspense>` de `[locale]/[slug]/page.tsx`: el `notFound()` del post inexistente vivía dentro de
+   `PostDetail`, o sea dentro del boundary.
+
+**Fix:**
+- Se eliminaron los dos `loading.tsx` globales (eran un `<h2>Cargando...</h2>`, poco valor a cambio de
+  romper el status de toda la app). **Trade-off:** ya no hay feedback global de navegación; si se
+  quiere de vuelta, debe ir en segmentos que no decidan 404.
+- `[locale]/[slug]`: la búsqueda se movió a `data.ts` (`getPostDetails` → `Post | null`) y el
+  `notFound()` a la página, **fuera** del `<Suspense>`. `PostDetail` pasó a recibir el post ya cargado
+  y dejó de ser async (UI más tonta, que además es lo que pedían las reglas del repo). Se perdió el
+  `PostDetailSkeleton` de esa ruta: el precio de un status correcto.
+- Regresión cubierta por `e2e/notFound/notFound.spec.ts`: publicación inexistente → **404**, página
+  fuera de rango → **404**, y no-admin en `/admin/productos` → **404** sin reporte.
+
+**Validaciones:** `test:run` ✅ 102/102 · `typecheck` ✅ · `lint` ✅ · **e2e ✅ 10 passed, 3 skipped**
+(antes 7 passed: +3 escenarios de 404). Verificado además contra el dev server: `/productos`, `/` y los
+detalles siguen en 200.
