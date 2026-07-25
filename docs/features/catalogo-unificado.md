@@ -98,7 +98,7 @@ sucursales). Separados, un proveedor local puede darse de alta sin cuenta en el 
 
 ## Slices
 
-### Slice 1 — Esquema unificado y categoría en la publicación  *(actual)*
+### Slice 1 — Esquema unificado y categoría en la publicación  *(entregado)*
 
 Aditivo y reversible. `products` no se toca todavía.
 
@@ -118,7 +118,7 @@ Aditivo y reversible. `products` no se toca todavía.
 3. Las publicaciones existentes siguen funcionando: `is_available = true`, resto de campos nulos.
 4. La etiqueta de categoría se muestra en español o inglés según el locale, sin cadenas en BD.
 
-### Slice 2 — Migrar los 9 productos a `posts`  *(futuro)*
+### Slice 2 — Migrar los 9 productos a `posts`  *(entregado)*
 
 - Script de migración de datos que copia cada `products` a `posts` + `post_translations` (`es`) +
   `post_media`, **conservando el `id`** (uuid → text) para no invalidar los 69 registros históricos de
@@ -135,7 +135,7 @@ Aditivo y reversible. `products` no se toca todavía.
 3. El script es idempotente y tiene modo `--dry-run` y `--remove`.
 4. `/productos` los lista junto a los 4 productos que ya había.
 
-### Slice 3 — El bot lee de `posts` vía la función SQL  *(futuro)*
+### Slice 3 — El bot lee de `posts` vía la función SQL  *(actual)*
 
 El slice de mayor riesgo: reescribe el dominio de producto del backend.
 

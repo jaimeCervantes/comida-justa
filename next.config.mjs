@@ -23,6 +23,14 @@ const nextConfig = {
         port: "",
         pathname: "/**",
       },
+      // Imágenes del catálogo que administra el backend del chatbot; sin este host,
+      // `next/image` lanza "hostname not configured" y la tarjeta no renderiza.
+      {
+        protocol: "https",
+        hostname: "storage.googleapis.com",
+        port: "",
+        pathname: "/**",
+      },
     ],
   },
   // `/info` se renombró a `/nosotros`. El 308 conserva los enlaces externos y lo ya indexado.

@@ -119,41 +119,55 @@ Feature: Unified catalog
       | alimentacion | "alimentacion" | exact allowlist key |
 
   # ---------------------------------------------------------------------------
-  # Slice 2 — migrate the 9 products into posts
+  # Slice 2 — migrate the 9 products into posts (implemented)
+  # Script: src/scripts/migrateProductsToPosts.ts  (pnpm run migrate:products)
+  # Mapping rules covered by Vitest: src/domain/entities/post/legacyCatalog.test.ts
+  # The run itself is verified against the shared database; numbers in
+  # docs/features/catalogo-unificado-bitacora.md
   # ---------------------------------------------------------------------------
 
-  @slice-2 @future
+  @slice-2
   Scenario Outline: Each legacy product becomes a publication, field by field
-    Given the legacy product "<name>" priced <price> with seller "Hazlo Sano"
+    Given the legacy product "<name>" priced <price> in "Alimentación" / "<legacy_sub>"
+    And its seller "Hazlo Sano" with phone "2781126948"
     When the migration script runs
     Then a post exists with the same id and:
-      | field              | value                |
-      | kind               | producto             |
-      | title (es)         | <name>               |
-      | price              | <price>              |
-      | origin             | hazlo_sano_propio    |
-      | sub_category       | <sub_category>       |
-      | contact_whatsapp   | 522781126948         |
-    And its embedding is the one the product already had, not a regenerated vector
+      | field            | value             |
+      | kind             | producto          |
+      | title (es)       | <name>            |
+      | price            | <price>           |
+      | origin           | hazlo_sano_propio |
+      | category         | alimentacion      |
+      | sub_category     | <sub_category>    |
+      | contact_whatsapp | 522781126948      |
+    And its slug is "<slug>"
+    And its embedding is the very vector the product already had, not a regenerated one
 
     Examples:
-      | name                     | price | sub_category |
-      | Jugo Verde               | 40    | jugos        |
-      | Pechuga de pollo asada   | 105   | comidas      |
-      | Agua de Avena con canela | 20    | bebidas      |
+      | name                     | price | legacy_sub | sub_category | slug                     |
+      | Jugo Verde               | 40    | Jugos      | jugos        | jugo-verde               |
+      | Omelet con ensalada      | 95    | Comidas    | comidas      | omelet-con-ensalada      |
+      | Agua de Avena con canela | 20    | Bebidas    | bebidas      | agua-de-avena-con-canela |
 
-  @slice-2 @future
+  @slice-2
   Scenario: The migration can be run twice without duplicating
     Given the 9 legacy products have already been migrated
     When the migration script runs again
-    Then the total of posts with kind "producto" stays at 13
-    And no duplicate title is created
+    Then it reports 0 migrated and 9 skipped
+    And the total of posts with kind "producto" stays at 13
+    And no post ends up with duplicated media
 
-  @slice-2 @future
+  @slice-2
+  Scenario: The image of a migrated product renders instead of being rejected
+    Given the migrated product "Jugo Verde" whose image lives on storage.googleapis.com
+    When its card is rendered on "/productos"
+    Then next.config allows that host and the image is not rejected
+
+  @slice-2
   Scenario: The recommendation history still resolves after the migration
     Given a stored recommendation pointing at the id of "Jugo Verde"
     When that id is looked up after the migration
-    Then it resolves to the migrated post
+    Then it resolves to the migrated post, because the id was preserved
 
   # ---------------------------------------------------------------------------
   # Slice 3 — the chatbot reads from posts through the SQL function

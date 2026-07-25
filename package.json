@@ -24,7 +24,8 @@
     "backfill-embeddings": "ts-node src/scripts/backfillEmbeddings.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "seed:products": "tsx src/scripts/seedHazloSanoProducts.ts"
+    "seed:products": "tsx src/scripts/seedHazloSanoProducts.ts",
+    "migrate:products": "tsx src/scripts/migrateProductsToPosts.ts"
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^1.11.2",
