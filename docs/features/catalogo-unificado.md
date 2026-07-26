@@ -135,7 +135,7 @@ Aditivo y reversible. `products` no se toca todavía.
 3. El script es idempotente y tiene modo `--dry-run` y `--remove`.
 4. `/productos` los lista junto a los 4 productos que ya había.
 
-### Slice 3 — El bot lee de `posts` vía la función SQL  *(actual)*
+### Slice 3 — El bot lee de `posts` vía la función SQL  *(entregado)*
 
 El slice de mayor riesgo: reescribe el dominio de producto del backend.
 
@@ -152,13 +152,16 @@ El slice de mayor riesgo: reescribe el dominio de producto del backend.
 3. El flujo de Telegram/WhatsApp responde con nombre, precio e imagen correctos.
 4. Con `locale` sin traducción disponible, cae al idioma por defecto en vez de no devolver nada.
 
-### Slice 4 — Embedding al publicar desde la web  *(futuro)*
+### Slice 4 — Embedding al publicar desde la web  *(entregado)*
 
 - Al publicar o editar, la web genera el embedding con Gemini (768 dims) y lo guarda en
   `post_translations.embedding`.
 - **Fuera del camino crítico:** si Gemini falla, la publicación se guarda igual con `embedding = null`
   y queda pendiente de indexar; script de backfill para reintentar.
 - El panel admin muestra cuántas publicaciones están pendientes de indexar.
+- El sitio llama a `gemini-embedding-001` (768 dims) por REST, **el mismo modelo que el bot**, y
+  compone el texto igual que `_build_embedding_text` del backend. Comprobado con
+  `pnpm run verify:embedding-space`.
 
 **Criterios de aceptación:**
 1. Publicar un producto deja su embedding guardado.
