@@ -1,4 +1,5 @@
 import type { OriginCount } from "~/domain/entities/post/originReport";
+import type { IndexingCounts } from "~/domain/entities/post/indexingReport";
 import type { PostUser } from "../users/IUserRepository";
 
 export interface PostData {
@@ -40,4 +41,6 @@ export interface IPostQueryRepository {
   getTotalPosts(): Promise<number>;
   /** Cuántos productos hay por `origin` (`null` incluido). Base del reporte de procedencia. */
   getProductCountsByOrigin(): Promise<OriginCount[]>;
+  /** Traducciones de producto con y sin vector: lo que el chatbot puede y no puede ver. */
+  getProductIndexingCounts(): Promise<IndexingCounts>;
 }

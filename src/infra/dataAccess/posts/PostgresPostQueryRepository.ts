@@ -3,6 +3,7 @@ import { db } from "~/infra/dataAccess/db/connection";
 import { PRODUCT_KIND } from "~/domain/entities/post/hazloSanoProduct";
 import { HAZLO_SANO_ORIGIN_PREFIX } from "~/domain/entities/post/origin";
 import type { OriginCount } from "~/domain/entities/post/originReport";
+import type { IndexingCounts } from "~/domain/entities/post/indexingReport";
 import type { IPostQueryRepository, PostData, PaginatedPostsResult } from "./IPostQueryRepository";
 
 interface PostRow {
@@ -67,6 +68,25 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
       origin: row.origin,
       count: Number(row.count),
     }));
+  }
+
+  /**
+   * Cuántas traducciones de producto tienen vector y cuántas no. Se cuenta sobre
+   * `post_translations` porque el vector vive por idioma: un producto traducido al inglés sin
+   * indexar sigue siendo un hueco, aunque su versión en español ya esté indexada.
+   */
+  async getProductIndexingCounts(): Promise<IndexingCounts> {
+    const raw = await db.execute(sql`
+      SELECT
+        COUNT(*) FILTER (WHERE t.embedding IS NOT NULL)::int AS indexed,
+        COUNT(*) FILTER (WHERE t.embedding IS NULL)::int     AS pending
+      FROM post_translations t
+      JOIN posts p ON p.id = t.post_id
+      WHERE p.kind = ${PRODUCT_KIND}
+    `);
+    const row = raw.rows[0] as { indexed: number; pending: number };
+
+    return { indexed: Number(row.indexed), pending: Number(row.pending) };
   }
 
   /**
