@@ -1,116 +1,85 @@
 import { config } from "dotenv";
 import { resolve } from "path";
-import { FieldValue } from "firebase-admin/firestore";
 
-// 1. Load Environment Variables BEFORE importing anything that uses them
-console.log("Loading environment variables...");
-config({ path: resolve(process.cwd(), ".env.production") });
+config({ path: resolve(process.cwd(), ".env.development") });
 
-async function backfillEmbeddings() {
-  // 2. Validate Env
-  if (!process.env.FIREBASE_SERVICE_ACCOUNT) {
-    console.error("ERROR: FIREBASE_SERVICE_ACCOUNT is missing.");
-    console.error(
-      "Make sure .env.production exists and contains the service account JSON.",
-    );
+/**
+ * Slice 4 de `docs/features/catalogo-unificado.md`: indexa lo que quedó sin vector.
+ *
+ * Dos poblaciones caen aquí: las publicaciones anteriores a este slice (que nacieron sin
+ * embedding y por eso el chatbot no las ve) y las que se crearon mientras Gemini estaba caído
+ * —publicar nunca falla por el proveedor, se deja pendiente y se reintenta desde acá—.
+ *
+ * Modos: `--dry-run` (solo lista lo pendiente) y `--limit=N` (por defecto 200).
+ */
+
+type Options = {
+  dryRun: boolean;
+  limit: number;
+};
+
+const DEFAULT_LIMIT = 200;
+
+function parseOptions(argv: string[]): Options {
+  const limitArg = argv.find((arg) => arg.startsWith("--limit="));
+  const limit = limitArg ? Number(limitArg.split("=")[1]) : DEFAULT_LIMIT;
+
+  return {
+    dryRun: argv.includes("--dry-run"),
+    limit: Number.isFinite(limit) && limit > 0 ? limit : DEFAULT_LIMIT,
+  };
+}
+
+async function backfillEmbeddings(): Promise<void> {
+  const options = parseOptions(process.argv.slice(2));
+
+  if (!process.env.DATABASE_URL) {
+    console.error("ERROR: DATABASE_URL is missing.");
     process.exit(1);
   }
 
-  // 3. Dynamic Import (Ensures init.ts runs AFTER config())
-  console.log("Initializing Firebase...");
-  const { db } = await import("~/infra/dataAccess/init");
-  const { default: VertexEmbeddingService } =
-    await import("~/infra/services/VertexEmbeddingService");
+  if (!process.env.GEMINI_API_KEY) {
+    console.error("ERROR: GEMINI_API_KEY is missing (mismo valor que usa el bot).");
+    process.exit(1);
+  }
 
-  console.log("Starting backfill of embeddings...");
+  const {
+    createBackfillPostEmbeddingsUseCase,
+    createPostEmbeddingRepository,
+  } = await import("~/infra/dataAccess/indexPostEmbedding/factory");
 
-  const postsRef = db.collection("posts");
-  const embeddingService = new VertexEmbeddingService();
+  if (options.dryRun) {
+    const pending = await createPostEmbeddingRepository().findPendingIndexing(
+      options.limit,
+    );
 
-  const snapshot = await postsRef.get();
-
-  if (snapshot.empty) {
-    console.log("No posts found.");
+    console.log("DRY RUN — no se escribe nada en la base de datos.\n");
+    console.table(pending);
+    console.log(`\n${pending.length} traducciones pendientes de indexar.`);
     return;
   }
 
-  console.log(`Found ${snapshot.size} posts. Processing...`);
+  console.log(`Indexando hasta ${options.limit} traducciones pendientes...`);
 
-  let updatedCount = 0;
-  let skippedCount = 0;
-  let errorCount = 0;
-
-  for (const doc of snapshot.docs) {
-    const data = doc.data();
-    const translations = data.translations || {};
-    const updates: any = {};
-    let needsUpdate = false;
-
-    console.log(`Processing post: ${doc.id}`);
-
-    // Loop through each language (e.g., 'es', 'en')
-    for (const [lang, content] of Object.entries(translations)) {
-      const postContent = content as any;
-
-      // Skip if embedding already exists
-      if (postContent.embedding) {
-        // console.log(`  - Language '${lang}': Embedding already exists.`);
-        continue;
-      }
-
-      if (!postContent.title && !postContent.content) {
-        console.warn(
-          `  - Language '${lang}': SKIPPING - Missing title/content.`,
-        );
-        continue;
-      }
-
-      console.log(`  - Language '${lang}': Generating embedding...`);
-
-      try {
-        const textToEmbed = `${postContent.title || ""}\n${
-          postContent.content || ""
-        }`.trim();
-
-        if (!textToEmbed) continue;
-
-        const vector = await embeddingService.generateEmbedding(textToEmbed);
-
-        // Prepare update path: "translations.es.embedding"
-        updates[`translations.${lang}.embedding`] = FieldValue.vector(vector);
-        needsUpdate = true;
-
-        // Small delay to avoid hitting rate limits effectively
-        await new Promise((resolve) => setTimeout(resolve, 100));
-      } catch (error) {
-        console.error(
-          `  - Language '${lang}': FAILED to generate embedding.`,
-          error,
-        );
-        errorCount++;
-      }
-    }
-
-    if (needsUpdate) {
-      try {
-        await doc.ref.update(updates);
-        console.log(`  -> Updated post ${doc.id}`);
-        updatedCount++;
-      } catch (error) {
-        console.error(`  -> Failed to update post ${doc.id}`, error);
-        errorCount++;
-      }
-    } else {
-      skippedCount++;
-    }
-  }
+  const summary = await createBackfillPostEmbeddingsUseCase().execute(options.limit);
 
   console.log("------------------------------------------------");
-  console.log("Backfill Complete.");
-  console.log(`Total Posts: ${snapshot.size}`);
-  console.log(`Updated: ${updatedCount}`);
-  console.log(`Skipped (Already had embeddings): ${skippedCount}`);
-  console.log(`Errors: ${errorCount}`);
+  console.log(`Intentadas: ${summary.attempted}`);
+  console.log(`Indexadas:  ${summary.indexed}`);
+  console.log(`Fallidas:   ${summary.failed}`);
+
+  if (summary.failed > 0) {
+    console.log("Motivos:", summary.reasons);
+    console.log("Las fallidas siguen pendientes; vuelve a correr el script.");
+  }
 }
 
-backfillEmbeddings().catch(console.error);
+backfillEmbeddings()
+  .then(() => {
+    console.log("Done.");
+    process.exit(0);
+  })
+  .catch((err) => {
+    console.error("Backfill failed:", err);
+    process.exit(1);
+  });

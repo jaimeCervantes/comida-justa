@@ -21,11 +21,12 @@
     "test:ui": "vitest --ui",
     "prepare": "husky",
     "validate": "eslint . && pnpm run typecheck && pnpm run test:run && pnpm run test:e2e:run",
-    "backfill-embeddings": "ts-node src/scripts/backfillEmbeddings.ts",
+    "backfill-embeddings": "tsx src/scripts/backfillEmbeddings.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "seed:products": "tsx src/scripts/seedHazloSanoProducts.ts",
-    "migrate:products": "tsx src/scripts/migrateProductsToPosts.ts"
+    "migrate:products": "tsx src/scripts/migrateProductsToPosts.ts",
+    "verify:embedding-space": "tsx src/scripts/verifyEmbeddingSpace.ts"
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^1.11.2",
