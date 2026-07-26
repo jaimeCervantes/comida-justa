@@ -1,6 +1,7 @@
 "use server";
 import { auth } from "~/infra/auth";
 import { redirect } from "next/navigation";
+import { after } from "next/server";
 import { ActionState } from "~/infra/types/Actions";
 import { SIGNIN_PATH } from "~/infra/constants";
 import PostEntity from "~/domain/entities/post/Post";
@@ -15,12 +16,39 @@ import {
   resolveCategory,
   resolveSubCategory,
 } from "~/domain/entities/post/category";
+import { createIndexPostEmbeddingUseCase } from "~/infra/dataAccess/indexPostEmbedding/factory";
 
 const useCase = new CreateOnePostUseCase(
   new PostValidator(),
   new PostEntity(),
   createPostRepository(),
 );
+
+/** El idioma en el que se escribe hoy toda publicación; la traducción vive bajo esa clave. */
+const PUBLISH_LOCALE = "es";
+
+/**
+ * Deja la publicación indexada para el chatbot **después** de responderle a quien publicó.
+ *
+ * `after()` es lo que mantiene a Gemini fuera del camino crítico: el redirect al detalle no
+ * espera al proveedor, y si el proveedor falla la publicación ya existe — queda pendiente de
+ * indexar y el backfill la recoge. Publicar nunca se rompe por un embedding.
+ */
+function indexAfterResponse(postId: string): void {
+  after(async () => {
+    const result = await createIndexPostEmbeddingUseCase().execute({
+      postId,
+      locale: PUBLISH_LOCALE,
+    });
+
+    if (!result.indexed) {
+      console.warn(
+        `[embeddings] post ${postId} queda pendiente de indexar: ${result.reason}`,
+        result.error,
+      );
+    }
+  });
+}
 
 export async function createPost(
   prevState: ActionState,
@@ -109,6 +137,10 @@ export async function createPost(
 
   if (result?.error) {
     return { errors: { errorMessage: result.errorMessage }, success: false };
+  }
+
+  if (result?.id) {
+    indexAfterResponse(result.id);
   }
 
   redirect(`/${result?.slug}`);

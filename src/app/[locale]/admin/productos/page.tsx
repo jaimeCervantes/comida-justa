@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { buildIndexingReport } from "~/domain/entities/post/indexingReport";
 import { buildOriginReport } from "~/domain/entities/post/originReport";
 import { auth } from "~/infra/auth";
 import { isAdmin } from "~/infra/auth/isAdmin";
 import { createPostQueryRepository } from "~/infra/dataAccess/getMultiplePosts";
+import IndexingStatusPanel from "./ui/IndexingStatusPanel";
 import OriginReportTable from "./ui/OriginReportTable";
 
 export const metadata: Metadata = {
@@ -21,7 +23,10 @@ export default async function ProductosPorProcedenciaPage() {
   }
 
   const postRepo = createPostQueryRepository();
-  const report = buildOriginReport(await postRepo.getProductCountsByOrigin());
+  const [originCounts, indexingCounts] = await Promise.all([
+    postRepo.getProductCountsByOrigin(),
+    postRepo.getProductIndexingCounts(),
+  ]);
 
   return (
     <main>
@@ -32,7 +37,11 @@ export default async function ProductosPorProcedenciaPage() {
         Los anuncios no se cuentan aquí.
       </p>
 
-      <OriginReportTable {...report} />
+      <OriginReportTable {...buildOriginReport(originCounts)} />
+
+      <hr className="my-8 border-gray-200 dark:border-gray-800" />
+
+      <IndexingStatusPanel {...buildIndexingReport(indexingCounts)} />
     </main>
   );
 }
