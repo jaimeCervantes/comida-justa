@@ -206,22 +206,69 @@ Feature: Unified catalog
     Then the product is still found through its "es" translation
 
   # ---------------------------------------------------------------------------
-  # Slice 4 — embedding generated when publishing
+  # Slice 4 — embedding generated when publishing (implemented)
+  # Playwright: src/e2e/unifiedCatalog/unifiedCatalogIndexing.spec.ts
+  # Covered by Vitest (no browser involved, the provider is a port):
+  #   src/domain/entities/post/embedding.test.ts
+  #   src/use_cases/indexPostEmbedding/indexPostEmbeddingUseCase.test.ts
+  #   src/use_cases/indexPostEmbedding/backfillPostEmbeddingsUseCase.test.ts
+  #   src/infra/services/GeminiEmbeddingService.test.ts
   # ---------------------------------------------------------------------------
 
-  @slice-4 @future
+  @slice-4
   Scenario: Publishing a product stores its embedding
-    Given a signed-in user publishing "Suero natural" at 35
-    When the publication succeeds
-    Then its "es" translation holds a 768-dimension embedding
+    Given a signed-in admin on "/publicar"
+    When this admin publishes the product "Suero natural" at 35 in "alimentacion" / "bebidas"
+    Then the redirect to its detail page does not wait for the embedding provider
+    And shortly after, its "es" translation holds a 768-dimension embedding
+    And the chatbot's search function returns it for its own vector
 
-  @slice-4 @future
-  Scenario: Publishing survives the embedding provider being down
-    Given the embedding provider returns an error
-    When a user publishes "Eléctrolitos de frutos rojos" at 35
-    Then the publication is created with embedding null
-    And it is reported as pending indexing
-    And the backfill stores its embedding on the next run
+  # El texto que se vectoriza es la única pieza que decide si el sitio y el bot comparten
+  # espacio vectorial. Se fija aquí campo por campo, igual que `_build_embedding_text` en Python.
+  @slice-4 @component
+  Scenario Outline: The document sent to the model is the same one the chatbot indexed
+    Given a publication with title "<title>", category "<category>", sub-category "<sub_category>", description "<description>" and price <price>
+    When the embedding text is built
+    Then it reads "<text>"
+
+    Examples:
+      | title      | category     | sub_category | description                 | price | text                                                                                        |
+      | Jugo Verde | Alimentación | Jugos        | Espinaca, apio y limón      | 40    | Nombre: Jugo Verde\nCategoría: Alimentación\nSub-categoría: Jugos\nDescripción: Espinaca, apio y limón\nPrecio: $40.00 |
+      | Suero natural |           |              | Agua, limón y sal de mar    | 35    | Nombre: Suero natural\nDescripción: Agua, limón y sal de mar\nPrecio: $35.00                |
+      | Pan de masa madre |       |              |                             |       | Nombre: Pan de masa madre                                                                   |
+
+  @slice-4 @component
+  Scenario Outline: Publishing survives the embedding provider being down
+    Given the embedding provider <provider_state>
+    When "Electrolitos de frutos rojos" at 35 is published
+    Then the publication exists either way
+    And its embedding is <embedding>
+    And the indexing result is <result>
+
+    Examples:
+      | provider_state        | embedding   | result                              |
+      | answers with a vector | stored      | indexed                             |
+      | answers 429           | null        | pending, reason "provider-error"    |
+      | is unreachable        | null        | pending, reason "provider-error"    |
+      | returns 512 dimensions| null        | pending, reason "unexpected-dimensions" |
+
+  @slice-4
+  Scenario: The backfill indexes what was left pending
+    Given the product "Electrolitos de frutos rojos" stored with embedding null
+    When the backfill runs
+    Then its "es" translation holds a 768-dimension embedding
+    And a second run reports 0 attempted, because nothing is pending anymore
+
+  @slice-4
+  Scenario Outline: The admin panel names the gap nobody else shows
+    Given <indexed> product translations with a vector and <pending> without one
+    When an admin opens "/admin/productos"
+    Then the panel reports <pending> pending and a coverage of "<coverage>"
+
+    Examples:
+      | indexed | pending | coverage |
+      | 9       | 4       | 69.2%    |
+      | 13      | 0       | 100%     |
 
   # ---------------------------------------------------------------------------
   # Slice 5 — semantic search on the website
