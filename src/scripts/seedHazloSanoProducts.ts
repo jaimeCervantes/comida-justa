@@ -54,7 +54,7 @@ const DUMMY_PRODUCTS = [
   },
 ] as const;
 
-const MEDIA_URL = "/logo.webp";
+const MEDIA_URL = "https://storage.googleapis.com/products_and_services/images/pan-de-masa-madre.jpg";
 const CONTACT = {
   phone: "2781126948",
   whatsapp: "522781126948",
