@@ -17,9 +17,9 @@ jobs:
         run: apt-get update && apt-get install -y git
       - name: Configure git safe directory
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+      # Sin `version`, action-setup toma la de `packageManager` en package.json. Con `latest`, CI
+      # usaba una pnpm distinta a la de desarrollo y podía resolver dependencias de otra forma.
       - uses: pnpm/action-setup@v4
-        with:
-          version: latest
       - uses: actions/setup-node@v4
         with:
           node-version: lts/*
