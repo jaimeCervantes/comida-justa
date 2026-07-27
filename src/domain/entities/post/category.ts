@@ -14,6 +14,14 @@ export const POST_SUB_CATEGORIES = [
   "bebidas",
   "panaderia",
   "abarrotes",
+  /**
+   * Cacahuate, ajonjolí (tahini), garbanzo, almendra… y mañana mermeladas.
+   *
+   * Se llama por el **uso**, no por el ingrediente, y por eso absorbe productos nuevos sin
+   * forzarlos. "Cremas" habría sido ambiguo: en español también significa lácteo (crema ácida,
+   * crema para café), justo lo que este catálogo no vende.
+   */
+  "untables",
 ] as const;
 
 export type PostCategory = (typeof POST_CATEGORIES)[number];

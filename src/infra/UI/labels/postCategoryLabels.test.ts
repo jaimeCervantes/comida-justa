@@ -14,6 +14,9 @@ describe("category labels", () => {
     ["jugos", "en", "Juices"],
     ["panaderia", "es", "Panadería"],
     ["panaderia", "en", "Bakery"],
+    // La repisa de cacahuate, tahini y garbanzo: en inglés es "Spreads", no una traducción literal.
+    ["untables", "es", "Untables"],
+    ["untables", "en", "Spreads"],
   ] as const)("subCategoryLabel(%j, %j)", (key, locale, expected) => {
     it(`is "${expected}"`, () => {
       expect(subCategoryLabel(key, locale)).toBe(expected);

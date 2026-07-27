@@ -29,6 +29,7 @@ const SUB_CATEGORY_LABELS: Record<
     bebidas: "Bebidas",
     panaderia: "Panadería",
     abarrotes: "Abarrotes",
+    untables: "Untables",
   },
   en: {
     jugos: "Juices",
@@ -36,6 +37,7 @@ const SUB_CATEGORY_LABELS: Record<
     bebidas: "Drinks",
     panaderia: "Bakery",
     abarrotes: "Groceries",
+    untables: "Spreads",
   },
 };
 

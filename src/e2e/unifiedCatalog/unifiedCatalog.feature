@@ -32,6 +32,7 @@ Feature: Unified catalog
       | bebidas   | Bebidas   | Drinks    |
       | panaderia | Panadería | Bakery    |
       | abarrotes | Abarrotes | Groceries |
+      | untables  | Untables  | Spreads   |
 
   # ---------------------------------------------------------------------------
   # Slice 1 — unified schema & category on publishing (implemented)
@@ -63,7 +64,7 @@ Feature: Unified catalog
       | Jugo Verde                 | Espinaca, apio, pepino y limón. Sin azúcar | 40    | alimentacion | jugos        | Jugos     |
       | Pechuga de pollo asada     | Pechuga en bistec con ensalada             | 105   | alimentacion | comidas      | Comidas   |
       | Agua de Avena con canela   | Agua fresca de avena, endulzada con dátil  | 20    | alimentacion | bebidas      | Bebidas   |
-      | Crema de Cacahuate Natural | Solo cacahuate, sin azúcar ni aceites      | 110   | alimentacion | abarrotes    | Abarrotes |
+      | Crema de Cacahuate Natural | Solo cacahuate, sin azúcar ni aceites      | 110   | alimentacion | untables     | Untables  |
 
   @slice-1
   Scenario Outline: The label follows the visitor's locale, never the database
