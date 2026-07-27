@@ -43,10 +43,27 @@ export function legacyCategory(
   return resolveCategory(legacyLabelToKey(label));
 }
 
+/**
+ * Renombres de la allowlist que la normalización por sí sola ya no alcanza.
+ *
+ * `products` guarda la etiqueta vieja "Comidas", que normaliza a `comidas`; esa clave se renombró
+ * a `platillos`. Sin este alias, volver a correr la migración dejaría esos productos sin
+ * subcategoría en vez de clasificarlos, y el fallo sería mudo: `resolveSubCategory` devuelve
+ * `null` por diseño, no lanza. Se resuelve aquí y no en la allowlist porque es deuda del catálogo
+ * heredado, y muere el día que se elimine la tabla `products`.
+ */
+const LEGACY_SUB_CATEGORY_ALIASES: Readonly<Record<string, PostSubCategory>> = {
+  comidas: "platillos",
+};
+
 export function legacySubCategory(
   label: string | null | undefined,
 ): PostSubCategory | null {
-  return resolveSubCategory(legacyLabelToKey(label));
+  const key = legacyLabelToKey(label);
+
+  if (!key) return null;
+
+  return resolveSubCategory(LEGACY_SUB_CATEGORY_ALIASES[key] ?? key);
 }
 
 /**

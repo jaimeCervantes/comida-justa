@@ -11,7 +11,9 @@ describe("legacy catalog mapping", () => {
   // Escenario "Each legacy product becomes a publication, field by field" (@slice-2)
   describe.each([
     ["Jugo Verde", "Jugos", "jugos"],
-    ["Pechuga de pollo asada", "Comidas", "comidas"],
+    // "Comidas" ya no normaliza a una clave válida: la allowlist la renombró a `platillos`.
+    // El alias es lo único que evita que re-migrar deje estos productos sin subcategoría.
+    ["Pechuga de pollo asada", "Comidas", "platillos"],
     ["Agua de Avena con canela", "Bebidas", "bebidas"],
   ])("%s", (_name, legacyLabel, expectedKey) => {
     it(`maps sub-category "${legacyLabel}" to "${expectedKey}"`, () => {

@@ -17,6 +17,10 @@ describe("category labels", () => {
     // La repisa de cacahuate, tahini y garbanzo: en inglés es "Spreads", no una traducción literal.
     ["untables", "es", "Untables"],
     ["untables", "en", "Spreads"],
+    // El plato preparado. En inglés es "Dishes"; "Meals" nombraba la comida completa del día,
+    // que es justo la distinción que se perdía cuando la clave se llamaba "comidas".
+    ["platillos", "es", "Platillos"],
+    ["platillos", "en", "Dishes"],
   ] as const)("subCategoryLabel(%j, %j)", (key, locale, expected) => {
     it(`is "${expected}"`, () => {
       expect(subCategoryLabel(key, locale)).toBe(expected);

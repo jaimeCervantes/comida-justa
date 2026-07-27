@@ -28,7 +28,7 @@ Feature: Unified catalog
     And the sub-category allowlist is:
       | key       | label es  | label en  |
       | jugos     | Jugos     | Juices    |
-      | comidas   | Comidas   | Meals     |
+      | platillos | Platillos | Dishes    |
       | bebidas   | Bebidas   | Drinks    |
       | panaderia | Panadería | Bakery    |
       | abarrotes | Abarrotes | Groceries |
@@ -62,7 +62,7 @@ Feature: Unified catalog
     Examples:
       | title                      | description                                | price | category     | sub_category | label_es  |
       | Jugo Verde                 | Espinaca, apio, pepino y limón. Sin azúcar | 40    | alimentacion | jugos        | Jugos     |
-      | Pechuga de pollo asada     | Pechuga en bistec con ensalada             | 105   | alimentacion | comidas      | Comidas   |
+      | Pechuga de pollo asada     | Pechuga en bistec con ensalada             | 105   | alimentacion | platillos    | Platillos |
       | Agua de Avena con canela   | Agua fresca de avena, endulzada con dátil  | 20    | alimentacion | bebidas      | Bebidas   |
       | Crema de Cacahuate Natural | Solo cacahuate, sin azúcar ni aceites      | 110   | alimentacion | untables     | Untables  |
 
@@ -147,7 +147,7 @@ Feature: Unified catalog
     Examples:
       | name                     | price | legacy_sub | sub_category | slug                     |
       | Jugo Verde               | 40    | Jugos      | jugos        | jugo-verde               |
-      | Omelet con ensalada      | 95    | Comidas    | comidas      | omelet-con-ensalada      |
+      | Omelet con ensalada      | 95    | Comidas    | platillos    | omelet-con-ensalada      |
       | Agua de Avena con canela | 20    | Bebidas    | bebidas      | agua-de-avena-con-canela |
 
   @slice-2

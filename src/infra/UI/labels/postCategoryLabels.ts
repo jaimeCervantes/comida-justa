@@ -25,7 +25,7 @@ const SUB_CATEGORY_LABELS: Record<
 > = {
   es: {
     jugos: "Jugos",
-    comidas: "Comidas",
+    platillos: "Platillos",
     bebidas: "Bebidas",
     panaderia: "Panadería",
     abarrotes: "Abarrotes",
@@ -33,7 +33,7 @@ const SUB_CATEGORY_LABELS: Record<
   },
   en: {
     jugos: "Juices",
-    comidas: "Meals",
+    platillos: "Dishes",
     bebidas: "Drinks",
     panaderia: "Bakery",
     abarrotes: "Groceries",

@@ -10,7 +10,14 @@ export const POST_CATEGORIES = ["alimentacion"] as const;
 
 export const POST_SUB_CATEGORIES = [
   "jugos",
-  "comidas",
+  /**
+   * El plato preparado y listo para comerse, frente a jugos, bebidas, panadería o untables.
+   *
+   * Se llamaba "comidas" y se renombró en la base: en un catálogo donde todo es comida, la
+   * palabra no distinguía nada. La allowlist sigue al dato, no al revés — mientras no coincidan,
+   * `resolveSubCategory` devuelve `null` y la publicación se queda sin etiqueta en silencio.
+   */
+  "platillos",
   "bebidas",
   "panaderia",
   "abarrotes",
