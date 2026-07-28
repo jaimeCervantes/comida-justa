@@ -33,13 +33,16 @@ traducida. Todo aditivo: `products` no se toca y nada se borra.
 ### Archivos tocados
 
 **Backend Python (Alembic — dueño del esquema)**
+
 - `alembic/versions/0023_2026-07-25_unify_catalog_into_posts.py` (nuevo)
 
 **Dominio**
+
 - `src/domain/entities/post/category.ts` (nuevo) + `category.test.ts`
 - `src/domain/entities/post/types.ts`
 
 **Infra**
+
 - `src/infra/dataAccess/db/schema/posts.ts` (espejo manual del esquema)
 - `src/infra/dataAccess/createOnePost/PostgresPostRepository.ts`
 - `src/infra/dataAccess/getOnePostWithPaginatedComments/PostgresGetOnePost.ts`
@@ -50,12 +53,14 @@ traducida. Todo aditivo: `products` no se toca y nada se borra.
 - `src/infra/UI/mappers/posts/mapPostsToCards.ts`
 
 **App**
+
 - `src/app/[locale]/publicar/actions.ts`
 - `src/app/[locale]/publicar/PublishForm.tsx`
 - `src/app/[locale]/[slug]/page.tsx`
 - `src/app/[locale]/[slug]/ui/PostDetail.tsx`
 
 **Pruebas**
+
 - `src/e2e/unifiedCatalog/unifiedCatalog.feature`, `unifiedCatalog.spec.ts`, `UnifiedCatalogPage.ts`
 - `src/e2e/testUtils/seedPost.ts`, `readPostRow.ts` (nuevo)
 
@@ -210,7 +215,7 @@ respuestas. Es el slice de mayor riesgo: toca el dominio de producto del backend
 
 ### Decisiones y por qué
 
-- **Golden del *candidate pool*, no de la selección final.** El ranking final aplica
+- **Golden del _candidate pool_, no de la selección final.** El ranking final aplica
   `membership*0.15 + ads*0.10 + RANDOM()`: compararlo sería una prueba intermitente. El pool
   (los más cercanos por distancia coseno) es determinista y es donde vive el riesgo real.
 - **Cada producto es su propia consulta.** Se usa su embedding ya guardado como vector de
@@ -296,11 +301,11 @@ se retoma.
 
 ### Lo que ya está aplicado en la base compartida (sobrevive al reinicio)
 
-| Migración | Qué hizo | Cómo se revierte |
-|---|---|---|
+| Migración         | Qué hizo                                                   | Cómo se revierte                    |
+| ----------------- | ---------------------------------------------------------- | ----------------------------------- |
 | `0023_2026_07_25` | Columnas nuevas en `posts`, `post_translations`, `sellers` | `alembic downgrade 0022_2026_07_23` |
-| `0024_2026_07_25` | Funciones `search_posts_semantic` y `recommend_posts` | `alembic downgrade 0023_2026_07_25` |
-| `0025_2026_07_25` | LEFT JOIN a `sellers` para recomendar sin vendedor | `alembic downgrade 0024_2026_07_25` |
+| `0024_2026_07_25` | Funciones `search_posts_semantic` y `recommend_posts`      | `alembic downgrade 0023_2026_07_25` |
+| `0025_2026_07_25` | LEFT JOIN a `sellers` para recomendar sin vendedor         | `alembic downgrade 0024_2026_07_25` |
 
 Datos: los 9 productos migrados siguen en `posts` (13 con `kind='producto'` en total).
 Se deshace con `pnpm run migrate:products -- --remove` desde el repo del sitio.
@@ -421,17 +426,20 @@ prueba que exige lo contrario: que algo publicado desde el sitio entre efectivam
 ### Archivos tocados
 
 **Dominio**
+
 - `src/domain/entities/post/embedding.ts` (nuevo) + `embedding.test.ts`
 - `src/domain/entities/post/indexingReport.ts` (nuevo) + `indexingReport.test.ts`
 - `src/domain/errors/EmbeddingProviderError.ts` (nuevo)
 
 **Casos de uso**
+
 - `src/use_cases/indexPostEmbedding/indexPostEmbeddingUseCase.ts` (nuevo) + test
 - `src/use_cases/indexPostEmbedding/backfillPostEmbeddingsUseCase.ts` (nuevo) + test
 - `src/use_cases/indexPostEmbedding/ports/IPostEmbeddingRepository.ts` (nuevo)
 - `src/use_cases/indexPostEmbedding/testDoubles.ts` (nuevo)
 
 **Infra**
+
 - `src/infra/services/GeminiEmbeddingService.ts` (nuevo) + test
 - `src/infra/services/factory.ts` (nuevo)
 - `src/infra/dataAccess/indexPostEmbedding/PostgresPostEmbeddingRepository.ts` (nuevo)
@@ -439,22 +447,26 @@ prueba que exige lo contrario: que algo publicado desde el sitio entre efectivam
 - `src/infra/dataAccess/posts/PostgresPostQueryRepository.ts` + `IPostQueryRepository.ts`
 
 **App**
+
 - `src/app/[locale]/publicar/actions.ts` (indexado en `after()`)
 - `src/app/[locale]/admin/productos/page.tsx`
 - `src/app/[locale]/admin/productos/ui/IndexingStatusPanel.tsx` (nuevo) + test
 
 **Scripts y config**
+
 - `src/scripts/backfillEmbeddings.ts` (reescrito: Firestore → Postgres)
 - `src/scripts/verifyEmbeddingSpace.ts` (nuevo)
 - `package.json` (`backfill-embeddings` a `tsx`, `verify:embedding-space`)
 - `.env.development` / `.env.production`: `GEMINI_API_KEY` (mismo valor que el bot)
 
 **Pruebas**
+
 - `src/e2e/unifiedCatalog/unifiedCatalog.feature` (slice 4 detallado, sin `@future`)
 - `src/e2e/unifiedCatalog/unifiedCatalogIndexing.spec.ts` (nuevo)
 - `src/e2e/testUtils/readEmbedding.ts` (nuevo)
 
 **Backend Python**
+
 - `tests/test_search_golden.py` (aserción del golden + prueba nueva)
 
 ### Comandos
