@@ -2,9 +2,9 @@ import type {
   CollectionReference,
   QueryDocumentSnapshot,
 } from "firebase-admin/firestore";
-import type { FirestorePost, FirestoreComment } from "~/infra/dataAccess/Posts";
+import type { FirestoreComment, FirestorePost } from "~/infra/dataAccess/Posts";
 import { collections } from "~/infra/dataAccess/postUtils";
-import { Post } from "~/infra/types/Posts";
+import type { Post } from "~/infra/types/Posts";
 
 export async function getOnePostWithPaginatedComments(
   slug: string,

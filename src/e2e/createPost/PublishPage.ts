@@ -1,4 +1,4 @@
-import { expect, Locator, type Page } from "@playwright/test";
+import { expect, type Locator, type Page } from "@playwright/test";
 import { stubStorageUpload } from "../testUtils/stubStorageUpload";
 
 type PublishValues = {

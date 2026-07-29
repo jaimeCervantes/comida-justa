@@ -1,7 +1,7 @@
 import type { IPostEntity, IPostValidator } from "~/domain/entities/post/types";
-import { Post, User } from "~/domain/entities/post/types";
-import IPostRepository from "./ports/IPostRepository";
-import IPostCreationDTO from "./dtos/IPostCreationDTO";
+import { type Post, User } from "~/domain/entities/post/types";
+import type IPostCreationDTO from "./dtos/IPostCreationDTO";
+import type IPostRepository from "./ports/IPostRepository";
 
 interface CreatePostResult {
   id?: string;

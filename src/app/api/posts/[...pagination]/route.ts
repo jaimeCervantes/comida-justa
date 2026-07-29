@@ -1,13 +1,13 @@
+import { PAGINATION_INIT_PAGE, PAGINATION_PAGE_SIZE } from "~/infra/constants";
 import { createPostQueryRepository } from "~/infra/dataAccess/getMultiplePosts";
 import { mapPostsToCards } from "~/infra/UI/mappers/posts/mapPostsToCards";
-import { PAGINATION_INIT_PAGE, PAGINATION_PAGE_SIZE } from "~/infra/constants";
 
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ pagination: string[] }> },
 ) {
   const { pagination } = await params;
-  let { page, pageSize } = getSlugParams(pagination);
+  const { page, pageSize } = getSlugParams(pagination);
 
   try {
     const postRepo = createPostQueryRepository();

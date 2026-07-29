@@ -54,7 +54,8 @@ const DUMMY_PRODUCTS = [
   },
 ] as const;
 
-const MEDIA_URL = "https://storage.googleapis.com/products_and_services/images/pan-de-masa-madre.jpg";
+const MEDIA_URL =
+  "https://storage.googleapis.com/products_and_services/images/pan-de-masa-madre.jpg";
 const CONTACT = {
   phone: "2781126948",
   whatsapp: "522781126948",
@@ -85,7 +86,9 @@ async function seedHazloSanoProducts() {
         `  ${product.title}\n    slug: ${product.slug} | $${product.price} | kind: producto | origin: ${product.origin}`,
       );
     }
-    console.log(`\nDueño: ${adminEmail() ?? "(primer usuario de la tabla users)"}`);
+    console.log(
+      `\nDueño: ${adminEmail() ?? "(primer usuario de la tabla users)"}`,
+    );
     return;
   }
 
@@ -118,7 +121,9 @@ async function seedHazloSanoProducts() {
       console.log(`  borrado: ${product.slug}`);
       removed++;
     }
-    console.log(`\nEliminados ${removed} de ${DUMMY_PRODUCTS.length} productos dummy.`);
+    console.log(
+      `\nEliminados ${removed} de ${DUMMY_PRODUCTS.length} productos dummy.`,
+    );
     return;
   }
 
@@ -128,7 +133,11 @@ async function seedHazloSanoProducts() {
 
   const email = adminEmail();
   const ownerRows = email
-    ? await db.select({ id: users.id }).from(users).where(eq(users.email, email)).limit(1)
+    ? await db
+        .select({ id: users.id })
+        .from(users)
+        .where(eq(users.email, email))
+        .limit(1)
     : await db.select({ id: users.id }).from(users).limit(1);
 
   if (ownerRows.length === 0) {
@@ -171,7 +180,9 @@ async function seedHazloSanoProducts() {
       createdAt: new Date(),
     });
 
-    console.log(`  creado: ${product.slug} ($${product.price}, ${product.origin})`);
+    console.log(
+      `  creado: ${product.slug} ($${product.price}, ${product.origin})`,
+    );
     inserted++;
   }
 

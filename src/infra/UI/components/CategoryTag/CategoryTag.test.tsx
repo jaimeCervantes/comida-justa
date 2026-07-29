@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
+import { describe, expect, it } from "vitest";
 import CategoryTag from "./CategoryTag";
 
 describe("CategoryTag", () => {
@@ -18,7 +18,9 @@ describe("CategoryTag", () => {
   it("falls back to the category when there is no sub-category", () => {
     render(<CategoryTag category="alimentacion" locale="es" />);
 
-    expect(screen.getByTestId("category-tag")).toHaveTextContent("Alimentación");
+    expect(screen.getByTestId("category-tag")).toHaveTextContent(
+      "Alimentación",
+    );
   });
 
   // Escenario "The category is optional in this slice" (@slice-1)

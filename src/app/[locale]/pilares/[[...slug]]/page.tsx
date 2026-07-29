@@ -1,9 +1,9 @@
 import { notFound } from "next/navigation";
-import SuenoPage from "../components/SuenoPage";
 import AlimentacionPage from "../components/AlimentacionPage";
-import MovimientoPage from "../components/MovimientoPage";
 import MenteEspirituPage from "../components/MenteEspirituPage";
+import MovimientoPage from "../components/MovimientoPage";
 import PilaresOverviewPage from "../components/PilaresOverviewPage";
+import SuenoPage from "../components/SuenoPage";
 
 type Props = {
   params: Promise<{

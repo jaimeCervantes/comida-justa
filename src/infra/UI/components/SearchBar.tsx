@@ -1,9 +1,10 @@
 "use client";
-import React, { useState, useRef, useEffect } from "react";
-import TextField from "./TextField/TextField";
 import { useRouter } from "next/navigation";
+import type React from "react";
+import { useEffect, useRef, useState } from "react";
 import { MdSearch } from "react-icons/md";
-import { Post } from "~/domain/entities/post/types";
+import type { Post } from "~/domain/entities/post/types";
+import TextField from "./TextField/TextField";
 
 interface SearchResult extends Post {
   id: string;
@@ -112,7 +113,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ placeholder = "Buscar..." }) => {
         name="search"
       />
       {showDropdown && (
-        <div className="absolute left-0 right-0 mt-1 bg-white dark:bg-pw-gray border border-gray-200 dark:border-pw-gray rounded shadow-lg z-50">
+        <div className="absolute left-0 right-0 mt-1 bg-white dark:bg-pw-gray border border-gray-200 dark:border-pw-gray rounded-sm shadow-lg z-50">
           {loading ? (
             <div className="p-2">
               <ul className="animate-pulse">
@@ -122,8 +123,8 @@ const SearchBar: React.FC<SearchBarProps> = ({ placeholder = "Buscar..." }) => {
                     className="px-1 py-3 border-b last:border-b-0 border-gray-100 dark:border-gray-700"
                   >
                     <div>
-                      <div className="h-3 bg-gray-200 dark:bg-gray-200 rounded w-3/4 mb-2" />
-                      <div className="h-2 bg-gray-200 dark:bg-gray-200 rounded w-1/2" />
+                      <div className="h-3 bg-gray-200 dark:bg-gray-200 rounded-sm w-3/4 mb-2" />
+                      <div className="h-2 bg-gray-200 dark:bg-gray-200 rounded-sm w-1/2" />
                     </div>
                   </li>
                 ))}
@@ -136,7 +137,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ placeholder = "Buscar..." }) => {
               {results.map((result, idx) => (
                 <li
                   key={result.id}
-                  className={`p-3 border-b last:border-b-0 border-gray-100 dark:border-gray-700 cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-gray-800 focus:bg-gray-100 dark:focus:bg-gray-700 outline-none`}
+                  className={`p-3 border-b last:border-b-0 border-gray-100 dark:border-gray-700 cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-gray-800 focus:bg-gray-100 dark:focus:bg-gray-700 outline-hidden`}
                   tabIndex={0}
                   onMouseDown={() =>
                     router.push(`/${result.translations?.es.slug}`)

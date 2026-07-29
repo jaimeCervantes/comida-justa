@@ -45,7 +45,7 @@ export interface IPostValidator {
   validateStringOnPost(
     value: string,
     name: string,
-    minLength: number
+    minLength: number,
   ): VoidOrError;
   validateNumberOnPost(value: number, name: string): VoidOrError;
   validateFile(file: File): VoidOrError;

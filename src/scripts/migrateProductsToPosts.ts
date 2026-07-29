@@ -76,7 +76,9 @@ async function migrateProductsToPosts() {
       RETURNING id
     `);
     const count = (removed.rows as unknown as Array<{ id: string }>).length;
-    console.log(`Eliminados ${count} posts migrados (translations y media caen por cascada).`);
+    console.log(
+      `Eliminados ${count} posts migrados (translations y media caen por cascada).`,
+    );
     return;
   }
 
@@ -123,7 +125,11 @@ async function migrateProductsToPosts() {
 
   const email = adminEmail();
   const ownerRows = email
-    ? await db.select({ id: users.id }).from(users).where(eq(users.email, email)).limit(1)
+    ? await db
+        .select({ id: users.id })
+        .from(users)
+        .where(eq(users.email, email))
+        .limit(1)
     : await db.select({ id: users.id }).from(users).limit(1);
 
   if (ownerRows.length === 0) {
@@ -151,7 +157,9 @@ async function migrateProductsToPosts() {
     }
 
     const slug = await uniqueSlug(postEntity.generateSlug(product.name));
-    const tagsJson = JSON.stringify(Array.isArray(product.tags) ? product.tags : []);
+    const tagsJson = JSON.stringify(
+      Array.isArray(product.tags) ? product.tags : [],
+    );
 
     await db.transaction(async (tx) => {
       await tx.execute(sql`
@@ -200,7 +208,9 @@ async function migrateProductsToPosts() {
     inserted++;
   }
 
-  console.log(`\nMigrados ${inserted}, omitidos ${skipped}. Revisa /productos.`);
+  console.log(
+    `\nMigrados ${inserted}, omitidos ${skipped}. Revisa /productos.`,
+  );
   console.log("Para deshacer: pnpm run migrate:products -- --remove");
 
   async function uniqueSlug(base: string): Promise<string> {

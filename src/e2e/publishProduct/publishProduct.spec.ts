@@ -1,11 +1,11 @@
-import { test, expect } from "@playwright/test";
-import PublishProductPage from "./PublishProductPage";
-import {
-  simulateLogin,
-  deleteSession,
-  type DbSession,
-} from "../testUtils/simulateLogin";
+import { expect, test } from "@playwright/test";
 import { deleteOnePostBySlug } from "../testUtils/deleteOnePost";
+import {
+  type DbSession,
+  deleteSession,
+  simulateLogin,
+} from "../testUtils/simulateLogin";
+import PublishProductPage from "./PublishProductPage";
 
 // Slice 1 — admin publishes a Hazlo Sano product and the badge is shown.
 // Requires the running stack (PostgreSQL) and that the first email in
@@ -34,7 +34,9 @@ test.describe("When an admin publishes a Hazlo Sano product", () => {
     }
   });
 
-  test("Then the product detail shows the Hazlo Sano badge", async ({ page }) => {
+  test("Then the product detail shows the Hazlo Sano badge", async ({
+    page,
+  }) => {
     const publishPage = new PublishProductPage(page);
     const title = "Crema de cacahuate artesanal";
 

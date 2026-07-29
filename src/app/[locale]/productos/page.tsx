@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
 import { PAGINATION_INIT_PAGE } from "~/infra/constants";
 import { getHazloSanoProducts } from "./data";
-import { buildProductsMetadata, PRODUCTS_DESCRIPTION, PRODUCTS_TITLE } from "./metadata";
+import {
+  buildProductsMetadata,
+  PRODUCTS_DESCRIPTION,
+  PRODUCTS_TITLE,
+} from "./metadata";
 import ProductsList from "./ui/ProductsList";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -9,9 +13,8 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function ProductosPage() {
-  const { products, totalPages } = await getHazloSanoProducts(
-    PAGINATION_INIT_PAGE,
-  );
+  const { products, totalPages } =
+    await getHazloSanoProducts(PAGINATION_INIT_PAGE);
 
   return (
     <main>

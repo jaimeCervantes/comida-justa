@@ -1,5 +1,5 @@
 import { helpers, PredictionServiceClient } from "@google-cloud/aiplatform";
-import IEmbeddingService from "~/use_cases/common/ports/IEmbeddingService";
+import type IEmbeddingService from "~/use_cases/common/ports/IEmbeddingService";
 
 const clientOptions: any = {
   apiEndpoint: "us-central1-aiplatform.googleapis.com",

@@ -1,7 +1,7 @@
-import TextField from "~/infra/UI/components/TextField";
-import { userEvent, within, fn, expect } from "storybook/test";
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { FaUser } from "react-icons/fa";
+import { expect, fn, userEvent, within } from "storybook/test";
+import TextField from "~/infra/UI/components/TextField";
 
 const meta = {
   component: TextField,

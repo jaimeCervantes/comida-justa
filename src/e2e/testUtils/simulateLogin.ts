@@ -1,4 +1,4 @@
-import { Page, PlaywrightWorkerOptions } from "@playwright/test";
+import type { Page, PlaywrightWorkerOptions } from "@playwright/test";
 import { eq } from "drizzle-orm";
 import type { Cookie } from "~/e2e/types/cookies";
 import { db } from "~/infra/dataAccess/db/connection";

@@ -10,13 +10,10 @@ if (dotenvResult.error) {
   process.exit(1);
 }
 console.log("Environment loaded. Checking key vars...");
-console.log(
-  "  DATABASE_URL:",
-  process.env.DATABASE_URL ? "set" : "MISSING"
-);
+console.log("  DATABASE_URL:", process.env.DATABASE_URL ? "set" : "MISSING");
 console.log(
   "  FIREBASE_SERVICE_ACCOUNT:",
-  process.env.FIREBASE_SERVICE_ACCOUNT ? "set" : "MISSING"
+  process.env.FIREBASE_SERVICE_ACCOUNT ? "set" : "MISSING",
 );
 
 /** Parse a value that could be a Firestore Timestamp, a Unix epoch (seconds), or a Date */
@@ -29,7 +26,10 @@ function toDate(value: unknown): Date | null {
     return isNaN(d.getTime()) ? null : d;
   }
   // Firestore Timestamp object: { _seconds: number, _nanoseconds: number }
-  if (typeof value === "object" && "_seconds" in (value as Record<string, unknown>)) {
+  if (
+    typeof value === "object" &&
+    "_seconds" in (value as Record<string, unknown>)
+  ) {
     return new Date((value as { _seconds: number })._seconds * 1000);
   }
   return null;
@@ -43,11 +43,9 @@ async function seedUsers() {
 
   console.log("Connecting to PostgreSQL...");
   const { db } = await import("~/infra/dataAccess/db/connection");
-  const {
-    users,
-    accounts,
-    sessions,
-  } = await import("~/infra/dataAccess/db/schema/auth");
+  const { users, accounts, sessions } = await import(
+    "~/infra/dataAccess/db/schema/auth"
+  );
 
   console.log("Initializing Firestore...");
   const { db: firestore } = await import("~/infra/dataAccess/init");
@@ -67,7 +65,10 @@ async function seedUsers() {
     // Print first doc shape for debugging
     if (insertedUsers === 0 && skippedUsers === 0) {
       console.log("  First user doc keys:", Object.keys(data));
-      console.log("  First user doc sample:", JSON.stringify(data, null, 2).slice(0, 400));
+      console.log(
+        "  First user doc sample:",
+        JSON.stringify(data, null, 2).slice(0, 400),
+      );
     }
 
     if (!data.email) {
@@ -118,7 +119,10 @@ async function seedUsers() {
     // Print first doc shape for debugging
     if (insertedAccounts === 0 && skippedAccounts === 0) {
       console.log("  First account doc keys:", Object.keys(data));
-      console.log("  First account doc sample:", JSON.stringify(data, null, 2).slice(0, 400));
+      console.log(
+        "  First account doc sample:",
+        JSON.stringify(data, null, 2).slice(0, 400),
+      );
     }
 
     if (!data.userId && !data.user_id) {
@@ -139,7 +143,9 @@ async function seedUsers() {
           refresh_token: data.refresh_token ?? data.refreshToken ?? null,
           access_token: data.access_token ?? data.accessToken ?? null,
           // expires_at is integer (epoch seconds) per NextAuth adapter spec
-          expires_at: (data.expires_at ?? data.expiresAt ?? null) as number | null,
+          expires_at: (data.expires_at ?? data.expiresAt ?? null) as
+            | number
+            | null,
           token_type: data.token_type ?? data.tokenType ?? null,
           scope: data.scope ?? null,
           id_token: data.id_token ?? data.idToken ?? null,
@@ -157,7 +163,7 @@ async function seedUsers() {
   }
 
   console.log(
-    `  Accounts inserted: ${insertedAccounts}, skipped: ${skippedAccounts}`
+    `  Accounts inserted: ${insertedAccounts}, skipped: ${skippedAccounts}`,
   );
 
   // ── SESSIONS ───────────────────────────────────────────────────────
@@ -174,7 +180,10 @@ async function seedUsers() {
     // Print first doc shape for debugging
     if (insertedSessions === 0 && skippedSessions === 0) {
       console.log("  First session doc keys:", Object.keys(data));
-      console.log("  First session doc sample:", JSON.stringify(data, null, 2).slice(0, 400));
+      console.log(
+        "  First session doc sample:",
+        JSON.stringify(data, null, 2).slice(0, 400),
+      );
     }
 
     const sessionToken = data.sessionToken ?? data.session_token;
@@ -214,15 +223,19 @@ async function seedUsers() {
   }
 
   console.log(
-    `  Sessions inserted: ${insertedSessions}, skipped: ${skippedSessions}`
+    `  Sessions inserted: ${insertedSessions}, skipped: ${skippedSessions}`,
   );
 
   // ── SUMMARY ────────────────────────────────────────────────────────
   console.log("\n═══════════════════════════════════════");
   console.log("Seed complete!");
   console.log(`  Users:    ${insertedUsers} inserted, ${skippedUsers} skipped`);
-  console.log(`  Accounts: ${insertedAccounts} inserted, ${skippedAccounts} skipped`);
-  console.log(`  Sessions: ${insertedSessions} inserted, ${skippedSessions} skipped`);
+  console.log(
+    `  Accounts: ${insertedAccounts} inserted, ${skippedAccounts} skipped`,
+  );
+  console.log(
+    `  Sessions: ${insertedSessions} inserted, ${skippedSessions} skipped`,
+  );
   console.log("═══════════════════════════════════════");
 }
 

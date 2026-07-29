@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import AboutPage from "./AboutPage";
 
 // Slice 1 — `/info` became `/nosotros` and entered the main menu.

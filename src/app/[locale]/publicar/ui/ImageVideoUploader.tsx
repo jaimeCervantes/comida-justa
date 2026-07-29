@@ -1,12 +1,12 @@
 import classNames from "classnames";
-import useStorageUpload from "./hooks/useStorageUpload";
-import ImageVideoPicker from "~/infra/UI/components/ImageVideoPicker";
-import {
-  InputFiles,
-  ImageVideoPickerProps,
-} from "~/infra/UI/components/ImageVideoPicker/types";
-import { useCallback, useEffect } from "react";
 import { on } from "events";
+import { useCallback, useEffect } from "react";
+import ImageVideoPicker from "~/infra/UI/components/ImageVideoPicker";
+import type {
+  ImageVideoPickerProps,
+  InputFiles,
+} from "~/infra/UI/components/ImageVideoPicker/types";
+import useStorageUpload from "./hooks/useStorageUpload";
 
 type ImageVideoUploaderProps = Omit<ImageVideoPickerProps, "onChange"> & {
   onUploaded: (params: Record<string, any> | null) => void;

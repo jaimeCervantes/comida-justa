@@ -1,4 +1,4 @@
-import { Post, User } from "~/domain/entities/post/types";
+import type { Post, User } from "~/domain/entities/post/types";
 
 export const samplePostInfo: Post = {
   title: "Test Post Title",

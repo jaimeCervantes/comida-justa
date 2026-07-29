@@ -1,7 +1,7 @@
-import { describe, beforeEach, it, expect } from "vitest";
-import { render } from "@testing-library/react";
 import type { RenderResult } from "@testing-library/react";
+import { render } from "@testing-library/react";
 import Link from "next/link";
+import { beforeEach, describe, expect, it } from "vitest";
 import MediaContent from "~/infra/UI/components/MediaContent/MediaContent";
 import Card from "./Card";
 import { props } from "./dummies/props";

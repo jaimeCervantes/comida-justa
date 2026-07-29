@@ -1,8 +1,8 @@
 import { notFound } from "next/navigation";
-import PostDetail from "./ui/PostDetail";
-import { getPostDetails } from "./data";
 import { auth } from "~/infra/auth";
 import type { PostUser } from "~/infra/types/Posts";
+import { getPostDetails } from "./data";
+import PostDetail from "./ui/PostDetail";
 
 export default async function Slug({
   params,

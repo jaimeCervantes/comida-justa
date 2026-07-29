@@ -26,7 +26,8 @@ export default class BackfillPostEmbeddingsUseCase {
   ) {}
 
   async execute(limit: number = DEFAULT_LIMIT): Promise<BackfillSummary> {
-    const pending = await this.postEmbeddingRepository.findPendingIndexing(limit);
+    const pending =
+      await this.postEmbeddingRepository.findPendingIndexing(limit);
 
     const summary: BackfillSummary = {
       attempted: pending.length,
@@ -44,7 +45,8 @@ export default class BackfillPostEmbeddingsUseCase {
       }
 
       summary.failed++;
-      summary.reasons[result.reason] = (summary.reasons[result.reason] ?? 0) + 1;
+      summary.reasons[result.reason] =
+        (summary.reasons[result.reason] ?? 0) + 1;
     }
 
     return summary;

@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
 import { render } from "@testing-library/react";
+import { describe, expect, it } from "vitest";
 import { buildOriginReport } from "~/domain/entities/post/originReport";
 import OriginReportTable from "./OriginReportTable";
 
@@ -10,10 +10,16 @@ describe("When the origin report is rendered", () => {
       { origin: "hazlo_sano_reventa", count: 1 },
     ]);
 
-    const { getByTestId, getByText } = render(<OriginReportTable {...report} />);
+    const { getByTestId, getByText } = render(
+      <OriginReportTable {...report} />,
+    );
 
-    expect(getByTestId("origin-count-hazlo_sano_propio")).toHaveTextContent("3");
-    expect(getByTestId("origin-count-hazlo_sano_reventa")).toHaveTextContent("1");
+    expect(getByTestId("origin-count-hazlo_sano_propio")).toHaveTextContent(
+      "3",
+    );
+    expect(getByTestId("origin-count-hazlo_sano_reventa")).toHaveTextContent(
+      "1",
+    );
     expect(getByTestId("origin-count-reventa_local")).toHaveTextContent("0");
     expect(getByTestId("origin-count-total")).toHaveTextContent("4");
     expect(getByText("Hazlo Sano — propio")).toBeInTheDocument();
@@ -22,7 +28,9 @@ describe("When the origin report is rendered", () => {
   it("labels the products with no origin as unspecified", () => {
     const report = buildOriginReport([{ origin: null, count: 2 }]);
 
-    const { getByTestId, getByText } = render(<OriginReportTable {...report} />);
+    const { getByTestId, getByText } = render(
+      <OriginReportTable {...report} />,
+    );
 
     expect(getByTestId("origin-count-sin_especificar")).toHaveTextContent("2");
     expect(getByText("Sin especificar")).toBeInTheDocument();

@@ -1,6 +1,6 @@
 import Avatar from "../Avatar";
-import type { CardProps } from "./types";
 import FormattedDate from "./FormattedDate";
+import type { CardProps } from "./types";
 
 export default function Card({
   title,
@@ -23,7 +23,7 @@ export default function Card({
   return (
     <Container className={clsN} style={style ?? ""}>
       {media}
-      <section className="p-5 flex flex-col flex-grow">
+      <section className="p-5 flex flex-col grow">
         <h3 className="mb-3 text-lg font-bold leading-tight text-gray-900 dark:text-gray-100 group-hover:text-pw-lightgreen transition-colors">
           <AnchorElement {...anchorProps}>{title}</AnchorElement>
         </h3>

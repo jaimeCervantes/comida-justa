@@ -1,13 +1,12 @@
-import CurrencyAmount from "~/infra/UI/components/CurrencyAmount";
-import { Post } from "~/infra/types/Posts";
-import { MdPhone } from "react-icons/md";
-import { FaDollarSign } from "react-icons/fa";
 import { Suspense } from "react";
-import CommentList from "../loadComments/CommentList";
-import type { PostUser } from "~/infra/types/Posts";
+import { FaDollarSign } from "react-icons/fa";
+import { MdPhone } from "react-icons/md";
+import type { Post, PostUser } from "~/infra/types/Posts";
+import CategoryTag from "~/infra/UI/components/CategoryTag/CategoryTag";
+import CurrencyAmount from "~/infra/UI/components/CurrencyAmount";
 import MediaContent from "~/infra/UI/components/MediaContent/MediaContent";
 import ProvenanceBadge from "~/infra/UI/components/ProvenanceBadge";
-import CategoryTag from "~/infra/UI/components/CategoryTag/CategoryTag";
+import CommentList from "../loadComments/CommentList";
 
 /**
  * Presenta una publicación ya cargada. La búsqueda (y el 404 si no existe) vive en la página,

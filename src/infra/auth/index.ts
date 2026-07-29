@@ -1,13 +1,13 @@
-import NextAuth from "next-auth";
+import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import type { NextAuthConfig } from "next-auth";
+import NextAuth from "next-auth";
 import createGoogleProvider from "next-auth/providers/google";
 import createMicrosoftEntraIDProvider from "next-auth/providers/microsoft-entra-id";
-import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { db } from "~/infra/dataAccess/db/connection";
 import {
-  users,
   accounts,
   sessions,
+  users,
   verificationTokens,
 } from "~/infra/dataAccess/db/schema/auth";
 

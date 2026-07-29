@@ -1,8 +1,11 @@
-import { Timestamp, FieldValue } from "firebase-admin/firestore";
+import {
+  FieldValue,
+  getFirestore,
+  type Timestamp,
+} from "firebase-admin/firestore";
 import type { FirestoreComment } from "~/infra/dataAccess/Posts";
 import { collections } from "~/infra/dataAccess/postUtils";
-import { PostUser } from "~/infra/types/Posts";
-import { getFirestore } from "firebase-admin/firestore";
+import type { PostUser } from "~/infra/types/Posts";
 
 export async function addCommentToPost(
   postId: string,

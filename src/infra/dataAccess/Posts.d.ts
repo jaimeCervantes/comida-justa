@@ -1,4 +1,4 @@
-import type { Timestamp, DocumentData } from "firebase-admin/firestore";
+import type { DocumentData, Timestamp } from "firebase-admin/firestore";
 import type { Post, PostUser } from "~/infra/types/Posts";
 export type FirestorePost = Post &
   DocumentData & {

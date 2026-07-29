@@ -1,9 +1,9 @@
-import { useRef } from "react";
-import { describe, it, afterEach, vi, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import TextField from "./TextField";
+import { useRef } from "react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import type { TextFieldRefType } from "./TextField";
+import TextField from "./TextField";
 
 describe("When TextField forwarded with an external ref", () => {
   it("Then it should be focus when it is loaded in a form", async () => {

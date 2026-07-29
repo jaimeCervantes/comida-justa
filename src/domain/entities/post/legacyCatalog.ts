@@ -1,8 +1,8 @@
 import {
-  resolveCategory,
-  resolveSubCategory,
   type PostCategory,
   type PostSubCategory,
+  resolveCategory,
+  resolveSubCategory,
 } from "./category";
 import type { PostOrigin } from "./origin";
 
@@ -25,7 +25,9 @@ const DIACRITICS = /[̀-ͯ]/g;
  * ("alimentacion", "jugos"). Se normaliza quitando acentos y bajando a minúsculas; lo que no
  * caiga en la allowlist se queda sin categoría en vez de inventar una clave nueva.
  */
-export function legacyLabelToKey(label: string | null | undefined): string | null {
+export function legacyLabelToKey(
+  label: string | null | undefined,
+): string | null {
   if (!label) return null;
 
   const key = label

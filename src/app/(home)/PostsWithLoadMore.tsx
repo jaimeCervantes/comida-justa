@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState, useRef, useCallback } from "react";
 import Link from "next/link";
-import CardForList from "~/infra/UI/components/CardForList/CardForList";
-import { Post } from "~/infra/types/Posts";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { PAGINATION_INIT_PAGE, PAGINATION_PAGE_SIZE } from "~/infra/constants";
+import type { Post } from "~/infra/types/Posts";
+import CardForList from "~/infra/UI/components/CardForList/CardForList";
 
 // Este componente maneja la carga dinámica del lado del cliente
 export default function PostsWithLoadMore({
@@ -75,7 +75,7 @@ export default function PostsWithLoadMore({
 
   return (
     <>
-      <section className="grid grid-flow-dense gap-4 pt-6 max-sm:grid-cols-[repeat(auto-fill,_minmax(300px,_1fr))] sm:grid-cols-[repeat(auto-fill,_minmax(300px,_1fr))]">
+      <section className="grid grid-flow-dense gap-4 pt-6 max-sm:grid-cols-[repeat(auto-fill,minmax(300px,1fr))] sm:grid-cols-[repeat(auto-fill,minmax(300px,1fr))]">
         {posts.length === 0 ? (
           <p>No hay comidas publicadas aún.</p>
         ) : (

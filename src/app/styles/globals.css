@@ -1,48 +1,250 @@
-@import "./utility-patterns.css";
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@import "./utility-patterns.css" layer(base);
 
-:root {
-  --cj-bg-color: #fafafa; /* Softer white */
-  --cj-text-color: #1a1a1a; /* Softer black */
-  --highlight: #2abf40;
-}
+@theme {
+  --animate-*: initial;
+  --animate-scaleIn: scaleIn 200ms ease;
+  --animate-scaleOut: scaleOut 200ms ease;
+  --animate-fadeIn: fadeIn 200ms ease;
+  --animate-fadeOut: fadeOut 200ms ease;
+  --animate-enterFromLeft: enterFromLeft 250ms ease;
+  --animate-enterFromRight: enterFromRight 250ms ease;
+  --animate-exitToLeft: exitToLeft 250ms ease;
+  --animate-exitToRight: exitToRight 250ms ease;
+  --animate-spin: spin 1s linear infinite;
+  --animate-pulse: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --cj-bg-color: #0d0d0d; /* Deep rich black */
-    --cj-text-color: #ededed;
+  --background-image-gradient-radial: radial-gradient(var(--tw-gradient-stops));
+  --background-image-gradient-conic: conic-gradient(
+    from 180deg at 50% 50%,
+    var(--tw-gradient-stops)
+  );
+
+  --color-pw-green: #538f39;
+  --color-pw-lightgreen: #5dbf17;
+  --color-pw-lightorange: #f2b705;
+  --color-pw-orange: #f0380e;
+  --color-pw-gray: #334155;
+  --color-pw-black: #000000;
+  --color-pw-white: #ffffff;
+  --color-blackA1: rgba(0, 0, 0, 0.05);
+  --color-blackA2: rgba(0, 0, 0, 0.1);
+  --color-blackA3: rgba(0, 0, 0, 0.15);
+  --color-blackA4: rgba(0, 0, 0, 0.2);
+  --color-blackA5: rgba(0, 0, 0, 0.3);
+  --color-blackA6: rgba(0, 0, 0, 0.4);
+  --color-blackA7: rgba(0, 0, 0, 0.5);
+  --color-blackA8: rgba(0, 0, 0, 0.6);
+  --color-blackA9: rgba(0, 0, 0, 0.7);
+  --color-blackA10: rgba(0, 0, 0, 0.8);
+  --color-blackA11: rgba(0, 0, 0, 0.9);
+  --color-blackA12: rgba(0, 0, 0, 0.95);
+  --color-mauve1: #fdfcfd;
+  --color-mauve2: #faf9fb;
+  --color-mauve3: #f2eff3;
+  --color-mauve4: #eae7ec;
+  --color-mauve5: #e3dfe6;
+  --color-mauve6: #dbd8e0;
+  --color-mauve7: #d0cdd7;
+  --color-mauve8: #bcbac7;
+  --color-mauve9: #8e8c99;
+  --color-mauve10: #84828e;
+  --color-mauve11: #65636d;
+  --color-mauve12: #211f26;
+  --color-violet1: #fdfcfe;
+  --color-violet2: #faf8ff;
+  --color-violet3: #f4f0fe;
+  --color-violet4: #ebe4ff;
+  --color-violet5: #e1d9ff;
+  --color-violet6: #d4cafe;
+  --color-violet7: #c2b5f5;
+  --color-violet8: #aa99ec;
+  --color-violet9: #6e56cf;
+  --color-violet10: #654dc4;
+  --color-violet11: #6550b9;
+  --color-violet12: #2f265f;
+  --color-purple1: #fefcfe;
+  --color-purple2: #fbf7fe;
+  --color-purple3: #f7edfe;
+  --color-purple4: #f2e2fc;
+  --color-purple5: #ead5f9;
+  --color-purple6: #e0c4f4;
+  --color-purple7: #d1afec;
+  --color-purple8: #be93e4;
+  --color-purple9: #8e4ec6;
+  --color-purple10: #8347b9;
+  --color-purple11: #8145b5;
+  --color-purple12: #402060;
+  --color-indigo1: #fdfdfe;
+  --color-indigo2: #f7f9ff;
+  --color-indigo3: #edf2fe;
+  --color-indigo4: #e1e9ff;
+  --color-indigo5: #d2deff;
+  --color-indigo6: #c1d0ff;
+  --color-indigo7: #abbdf9;
+  --color-indigo8: #8da4ef;
+  --color-indigo9: #3e63dd;
+  --color-indigo10: #3358d4;
+  --color-indigo11: #3a5bc7;
+  --color-indigo12: #1f2d5c;
+
+  @keyframes shimmer {
+    0% {
+      transform: translateX(-100 %);
+    }
+    100% {
+      transform: translateX(280%);
+    }
+  }
+  @keyframes enterFromRight {
+    from {
+      opacity: 0;
+      transform: translateX(200px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+  @keyframes enterFromLeft {
+    from {
+      opacity: 0;
+      transform: translateX(-200px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+  @keyframes exitToRight {
+    from {
+      opacity: 1;
+      transform: translateX(0);
+    }
+    to {
+      opacity: 0;
+      transform: translateX(200px);
+    }
+  }
+  @keyframes exitToLeft {
+    from {
+      opacity: 1;
+      transform: translateX(0);
+    }
+    to {
+      opacity: 0;
+      transform: translateX(-200px);
+    }
+  }
+  @keyframes scaleIn {
+    from {
+      opacity: 0;
+      transform: rotateX(-10deg) scale(0.9);
+    }
+    to {
+      opacity: 1;
+      transform: rotateX(0deg) scale(1);
+    }
+  }
+  @keyframes scaleOut {
+    from {
+      opacity: 1;
+      transform: rotateX(0deg) scale(1);
+    }
+    to {
+      opacity: 0;
+      transform: rotateX(-10deg) scale(0.95);
+    }
+  }
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  @keyframes fadeOut {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+    }
+  }
+  @keyframes spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  @keyframes shine {
+    100% {
+      transform: translateX(100%);
+    }
   }
 }
 
-html {
-  scroll-behavior: smooth;
+/*
+  The default border color has changed to `currentcolor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
 }
 
-body {
-  background-color: var(--cj-bg-color);
-  color: var(--cj-text-color);
-  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+@utility text-balance {
+  text-wrap: balance;
 }
 
-::selection {
-  background-color: var(--highlight);
-  color: white;
+@utility glass {
+  @apply bg-white/70 dark:bg-black/70 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800;
+}
+
+@utility container-width {
+  @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
 }
 
 @layer utilities {
-  .text-balance {
-    text-wrap: balance;
+  :root {
+    --cj-bg-color: #fafafa; /* Softer white */
+    --cj-text-color: #1a1a1a; /* Softer black */
+    --highlight: #2abf40;
   }
 
-  .glass {
-    @apply bg-white/70 dark:bg-black/70 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800;
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --cj-bg-color: #0d0d0d; /* Deep rich black */
+      --cj-text-color: #ededed;
+    }
   }
 
-  .container-width {
-    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--cj-bg-color);
+    color: var(--cj-text-color);
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::selection {
+    background-color: var(--highlight);
+    color: white;
   }
 }

@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { ComponentType } from "react";
+import type { ComponentType } from "react";
 
 export interface MediaItem {
   type: "video" | "image" | "audio" | string;

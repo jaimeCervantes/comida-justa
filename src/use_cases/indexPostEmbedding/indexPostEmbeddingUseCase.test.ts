@@ -1,11 +1,11 @@
-import { describe, it, expect } from "vitest";
-import EmbeddingProviderError from "~/domain/errors/EmbeddingProviderError";
+import { describe, expect, it } from "vitest";
 import { EMBEDDING_DIMENSIONS } from "~/domain/entities/post/embedding";
+import EmbeddingProviderError from "~/domain/errors/EmbeddingProviderError";
 import IndexPostEmbeddingUseCase from "./indexPostEmbeddingUseCase";
 import {
+  aVector,
   FakeEmbeddingService,
   FakePostEmbeddingRepository,
-  aVector,
 } from "./testDoubles";
 
 const ref = { postId: "post-1", locale: "es" };
@@ -16,7 +16,10 @@ describe("IndexPostEmbeddingUseCase", () => {
     const repository = new FakePostEmbeddingRepository();
     const service = new FakeEmbeddingService();
 
-    const result = await new IndexPostEmbeddingUseCase(repository, service).execute(ref);
+    const result = await new IndexPostEmbeddingUseCase(
+      repository,
+      service,
+    ).execute(ref);
 
     expect(result).toEqual({ indexed: true });
     expect(repository.saved).toHaveLength(1);
@@ -33,7 +36,10 @@ describe("IndexPostEmbeddingUseCase", () => {
       error: new EmbeddingProviderError("Gemini responded 503"),
     });
 
-    const result = await new IndexPostEmbeddingUseCase(repository, service).execute(ref);
+    const result = await new IndexPostEmbeddingUseCase(
+      repository,
+      service,
+    ).execute(ref);
 
     expect(result.indexed).toBe(false);
     expect(result).toMatchObject({ reason: "provider-error" });
@@ -44,7 +50,10 @@ describe("IndexPostEmbeddingUseCase", () => {
     const repository = new FakePostEmbeddingRepository();
     const service = new FakeEmbeddingService({ vector: aVector(0.1, 512) });
 
-    const result = await new IndexPostEmbeddingUseCase(repository, service).execute(ref);
+    const result = await new IndexPostEmbeddingUseCase(
+      repository,
+      service,
+    ).execute(ref);
 
     expect(result).toEqual({ indexed: false, reason: "unexpected-dimensions" });
     expect(repository.saved).toHaveLength(0);
@@ -54,7 +63,10 @@ describe("IndexPostEmbeddingUseCase", () => {
     const repository = new FakePostEmbeddingRepository({ source: null });
     const service = new FakeEmbeddingService();
 
-    const result = await new IndexPostEmbeddingUseCase(repository, service).execute(ref);
+    const result = await new IndexPostEmbeddingUseCase(
+      repository,
+      service,
+    ).execute(ref);
 
     expect(result).toEqual({ indexed: false, reason: "not-found" });
     expect(service.texts).toHaveLength(0);
@@ -66,7 +78,10 @@ describe("IndexPostEmbeddingUseCase", () => {
     });
     const service = new FakeEmbeddingService();
 
-    const result = await new IndexPostEmbeddingUseCase(repository, service).execute(ref);
+    const result = await new IndexPostEmbeddingUseCase(
+      repository,
+      service,
+    ).execute(ref);
 
     expect(result).toEqual({ indexed: false, reason: "empty-text" });
     expect(service.texts).toHaveLength(0);

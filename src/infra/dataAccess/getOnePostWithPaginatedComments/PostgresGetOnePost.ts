@@ -1,6 +1,6 @@
 import { sql } from "drizzle-orm";
-import { db } from "~/infra/dataAccess/db/connection";
 import { COMMENTS_PAGE_SIZE } from "~/infra/constants";
+import { db } from "~/infra/dataAccess/db/connection";
 import type { PostUser } from "~/infra/types/Posts";
 
 interface PostRow {
@@ -121,8 +121,8 @@ export async function getPostBySlug(slug: string) {
       alt: m.alt ?? undefined,
     }));
 
-  const commentsArr = (Array.isArray(row.comments) ? row.comments : [])
-    .map((c) => ({
+  const commentsArr = (Array.isArray(row.comments) ? row.comments : []).map(
+    (c) => ({
       id: c.id,
       postId: row.id,
       content: c.content,
@@ -133,7 +133,8 @@ export async function getPostBySlug(slug: string) {
         email: c.user_email ?? undefined,
         image: c.user_image ?? undefined,
       },
-    }));
+    }),
+  );
 
   return {
     id: row.id,

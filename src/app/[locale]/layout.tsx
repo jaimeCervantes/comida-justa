@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import Header from "~/infra/UI/components/Header/Header";
 import Footer from "~/infra/UI/components/Footer/Footer";
+import Header from "~/infra/UI/components/Header/Header";
 import "~/app/styles/globals.css";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import { PUBLIC_BRAND_NAME } from "~/infra/constants";

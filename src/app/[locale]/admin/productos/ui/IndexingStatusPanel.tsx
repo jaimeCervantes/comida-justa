@@ -18,19 +18,24 @@ export default function IndexingStatusPanel({
   const allIndexed = pending === 0;
 
   return (
-    <section data-testid="indexing-status" aria-labelledby="indexing-status-title">
+    <section
+      data-testid="indexing-status"
+      aria-labelledby="indexing-status-title"
+    >
       <h2 id="indexing-status-title" className="text-lg font-bold mb-2">
         Indexación para el chatbot
       </h2>
 
       <p className="mb-4 text-gray-600 dark:text-gray-400">
-        Una publicación sin embedding no puede ser recomendada por el chatbot, aunque se
-        vea bien en el sitio.
+        Una publicación sin embedding no puede ser recomendada por el chatbot,
+        aunque se vea bien en el sitio.
       </p>
 
       <dl className="flex flex-wrap gap-6 mb-4">
         <div>
-          <dt className="text-sm text-gray-600 dark:text-gray-400">Indexadas</dt>
+          <dt className="text-sm text-gray-600 dark:text-gray-400">
+            Indexadas
+          </dt>
           <dd
             data-testid="indexing-count-indexed"
             className="text-2xl font-semibold tabular-nums"
@@ -50,7 +55,9 @@ export default function IndexingStatusPanel({
           </dd>
         </div>
         <div>
-          <dt className="text-sm text-gray-600 dark:text-gray-400">Cobertura</dt>
+          <dt className="text-sm text-gray-600 dark:text-gray-400">
+            Cobertura
+          </dt>
           <dd
             data-testid="indexing-coverage"
             className="text-2xl font-semibold tabular-nums"

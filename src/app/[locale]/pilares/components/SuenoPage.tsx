@@ -24,7 +24,7 @@ export default function SuenoPage() {
             el sol.
           </p>
 
-          <div className="bg-violet-50/50 da dark:bg-violet-900/10 rounded-2xl p-6 sm:p-8 my-8 border border-violet-500 da dark:border-violet-800 shadow-sm">
+          <div className="bg-violet-50/50 da dark:bg-violet-900/10 rounded-2xl p-6 sm:p-8 my-8 border border-violet-500 da dark:border-violet-800 shadow-xs">
             <ul className="space-y-6">
               <li className="flex flex-col sm:flex-row gap-2 sm:gap-4">
                 <span className="font-bold text-slate-900 da dark:text-slate-50 shrink-0 sm:w-28 text-xl">

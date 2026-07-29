@@ -1,6 +1,10 @@
 import { eq, sql } from "drizzle-orm";
 import { db } from "~/infra/dataAccess/db/connection";
-import { posts, postTranslations, postMedia } from "~/infra/dataAccess/db/schema/posts";
+import {
+  postMedia,
+  posts,
+  postTranslations,
+} from "~/infra/dataAccess/db/schema/posts";
 import type IPostCreationDTO from "~/use_cases/createOnePost/dtos/IPostCreationDTO";
 import type IPostRepository from "~/use_cases/createOnePost/ports/IPostRepository";
 

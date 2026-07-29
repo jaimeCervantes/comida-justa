@@ -1,5 +1,5 @@
-import React from "react";
 import Link from "next/link";
+import React from "react";
 import { PILLARS, pillarColorClasses } from "./pilaresData";
 
 export default function PilaresOverviewPage() {
@@ -25,7 +25,7 @@ export default function PilaresOverviewPage() {
               <Link
                 key={pillar.slug}
                 href={`/pilares/${pillar.slug}`}
-                className={`group block rounded-2xl border-2 ${c.border} ${c.bg} p-6 sm:p-8 transition-all duration-300 hover:shadow-lg ${c.hover} focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 dark:focus-visible:ring-slate-500`}
+                className={`group block rounded-2xl border-2 ${c.border} ${c.bg} p-6 sm:p-8 transition-all duration-300 hover:shadow-lg ${c.hover} focus:outline-hidden focus-visible:ring-2 focus-visible:ring-slate-400 dark:focus-visible:ring-slate-500`}
               >
                 <div className="flex items-center gap-3 mb-4">
                   <span

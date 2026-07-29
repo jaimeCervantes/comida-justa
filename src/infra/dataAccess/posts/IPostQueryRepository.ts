@@ -1,5 +1,5 @@
-import type { OriginCount } from "~/domain/entities/post/originReport";
 import type { IndexingCounts } from "~/domain/entities/post/indexingReport";
+import type { OriginCount } from "~/domain/entities/post/originReport";
 import type { PostUser } from "../users/IUserRepository";
 
 export interface PostData {
@@ -15,7 +15,10 @@ export interface PostData {
     email?: string;
     whatsapp?: string;
   };
-  translations: Record<string, { title: string; slug: string; content: string }>;
+  translations: Record<
+    string,
+    { title: string; slug: string; content: string }
+  >;
   media: Array<{ url: string; type: string; alt?: string }>;
   createdAt: Date;
 }

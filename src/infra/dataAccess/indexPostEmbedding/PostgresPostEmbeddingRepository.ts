@@ -1,6 +1,9 @@
 import { sql } from "drizzle-orm";
+import {
+  resolveCategory,
+  resolveSubCategory,
+} from "~/domain/entities/post/category";
 import type { PostEmbeddingSource } from "~/domain/entities/post/embedding";
-import { resolveCategory, resolveSubCategory } from "~/domain/entities/post/category";
 import { db } from "~/infra/dataAccess/db/connection";
 import {
   categoryLabel,
@@ -32,8 +35,12 @@ function labelFor(
   return resolved ?? key;
 }
 
-export default class PostgresPostEmbeddingRepository implements IPostEmbeddingRepository {
-  async findEmbeddingSource(ref: TranslationRef): Promise<PostEmbeddingSource | null> {
+export default class PostgresPostEmbeddingRepository
+  implements IPostEmbeddingRepository
+{
+  async findEmbeddingSource(
+    ref: TranslationRef,
+  ): Promise<PostEmbeddingSource | null> {
     const raw = await db.execute(sql`
       SELECT t.title, t.content, t.tags, p.category, p.sub_category, p.price::text
       FROM post_translations t
@@ -81,8 +88,8 @@ export default class PostgresPostEmbeddingRepository implements IPostEmbeddingRe
       LIMIT ${limit}
     `);
 
-    return (raw.rows as unknown as Array<{ post_id: string; locale: string }>).map(
-      (row) => ({ postId: row.post_id, locale: row.locale }),
-    );
+    return (
+      raw.rows as unknown as Array<{ post_id: string; locale: string }>
+    ).map((row) => ({ postId: row.post_id, locale: row.locale }));
   }
 }

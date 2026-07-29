@@ -1,7 +1,7 @@
 import React from "react";
 import CardForList from "~/infra/UI/components/CardForList/CardForList";
-import { mapPostsToCards } from "~/infra/UI/mappers/posts/mapPostsToCards";
 import Pagination from "~/infra/UI/components/Pagination";
+import { mapPostsToCards } from "~/infra/UI/mappers/posts/mapPostsToCards";
 
 async function fetchResults(term: string, page: number, pageSize: number) {
   const res = await fetch(

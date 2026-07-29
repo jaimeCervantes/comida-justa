@@ -1,6 +1,6 @@
 "use client";
-import { useState, useId } from "react";
 import type { ForwardedRef, ReactNode } from "react";
+import { useId, useState } from "react";
 import { MdError } from "react-icons/md";
 
 type TextAreaProps = Partial<{
@@ -16,7 +16,7 @@ type TextAreaProps = Partial<{
   children: ReactNode;
 }>;
 const inputClassName =
-  "bg-hite dark:bg-slate-700 w-full border border-black focus:border-pw-green focus:outline focus:outline-pw-green px-2 py-1 dark:text-white";
+  "bg-hite dark:bg-slate-700 w-full border border-black focus:border-pw-green focus:outline-solid focus:outline-pw-green px-2 py-1 dark:text-white";
 const errorClassName =
   "pt-1 flex items-center gap-1 text-red-700 dark:text-red-400";
 

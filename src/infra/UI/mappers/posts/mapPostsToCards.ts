@@ -15,7 +15,9 @@ function normalizeCreatedAt(value: unknown): string {
     return (value as { toDate(): Date }).toDate().toISOString(); // Firestore Timestamp
   }
   if (value && typeof value === "object" && "_seconds" in value) {
-    return new Date((value as { _seconds: number })._seconds * 1000).toISOString();
+    return new Date(
+      (value as { _seconds: number })._seconds * 1000,
+    ).toISOString();
   }
   return "";
 }

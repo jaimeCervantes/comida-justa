@@ -1,7 +1,7 @@
-import { createPostQueryRepository } from "~/infra/dataAccess/getMultiplePosts";
-import { mapPostsToCards } from "~/infra/UI/mappers/posts/mapPostsToCards";
 import { PAGINATION_INIT_PAGE, PAGINATION_PAGE_SIZE } from "~/infra/constants";
+import { createPostQueryRepository } from "~/infra/dataAccess/getMultiplePosts";
 import type { Post } from "~/infra/types/Posts";
+import { mapPostsToCards } from "~/infra/UI/mappers/posts/mapPostsToCards";
 
 export type ProductsPageData = {
   products: Post[];

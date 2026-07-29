@@ -1,6 +1,6 @@
+import { inArray } from "drizzle-orm";
 import { db } from "~/infra/dataAccess/db/connection";
 import { users } from "~/infra/dataAccess/db/schema/auth";
-import { inArray } from "drizzle-orm";
 import type { IUserRepository, PostUser } from "./IUserRepository";
 
 export class PostgresUserRepository implements IUserRepository {

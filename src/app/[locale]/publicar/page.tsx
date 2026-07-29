@@ -1,9 +1,9 @@
-import PublishForm from "./PublishForm";
+import { redirect } from "next/navigation";
 import { auth } from "~/infra/auth";
 import { isAdmin } from "~/infra/auth/isAdmin";
-import { createPost } from "./actions";
-import { redirect } from "next/navigation";
 import { SIGNIN_PATH } from "~/infra/constants";
+import { createPost } from "./actions";
+import PublishForm from "./PublishForm";
 
 export default async function PublicarPage() {
   const session = await auth();

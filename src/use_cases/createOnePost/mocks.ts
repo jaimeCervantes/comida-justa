@@ -1,7 +1,7 @@
 import { vi } from "vitest";
-import type { IPostValidator, IPostEntity } from "~/domain/entities/post/types";
-import type IPostRepository from "./ports/IPostRepository";
+import type { IPostEntity, IPostValidator } from "~/domain/entities/post/types";
 import type IMediaStorageService from "./ports/IMediaStorageService";
+import type IPostRepository from "./ports/IPostRepository";
 
 export const mockPostValidator: IPostValidator = {
   MIN_LENGTH_TITLE: 5,

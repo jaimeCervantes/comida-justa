@@ -1,13 +1,13 @@
 import {
+  boolean,
+  index,
+  integer,
+  json,
+  numeric,
   pgTable,
   text,
-  numeric,
   timestamp,
-  integer,
   uuid,
-  index,
-  boolean,
-  json,
   vector,
 } from "drizzle-orm/pg-core";
 
@@ -35,7 +35,9 @@ export const posts = pgTable(
     contactPhone: text("contact_phone"),
     contactEmail: text("contact_email"),
     contactWhatsapp: text("contact_whatsapp"),
-    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
   },
   (table) => [
     index("idx_posts_created_at").on(table.createdAt.desc()),

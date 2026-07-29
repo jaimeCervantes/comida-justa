@@ -1,8 +1,8 @@
-import React from "react";
 import * as NavigationMenu from "@radix-ui/react-navigation-menu";
 import classNames from "classnames";
-import type { ReactNode, ForwardedRef } from "react";
 import Link from "next/link";
+import type { ForwardedRef, ReactNode } from "react";
+import React from "react";
 
 export default React.forwardRef(function ListItem(
   {
@@ -12,15 +12,15 @@ export default React.forwardRef(function ListItem(
     href,
     ...props
   }: { className?: string; children: ReactNode; href: string; title: string },
-  forwardedRef: ForwardedRef<HTMLAnchorElement>
+  forwardedRef: ForwardedRef<HTMLAnchorElement>,
 ) {
   return (
     <li>
       <NavigationMenu.Link asChild>
         <Link
           className={classNames(
-            "group focus:shadow-[0_0_0_2px] focus:shadow-violet7 hover:bg-mauve3 hover:text-pw-black block select-none rounded-[6px] p-3 text-[15px] leading-none no-underline outline-none transition-colors",
-            className
+            "group focus:shadow-[0_0_0_2px] focus:shadow-violet7 hover:bg-mauve3 hover:text-pw-black block select-none rounded-[6px] p-3 text-[15px] leading-none no-underline outline-hidden transition-colors",
+            className,
           )}
           href={href}
           {...props}

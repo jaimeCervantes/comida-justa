@@ -1,16 +1,18 @@
 import { desc, eq, sql } from "drizzle-orm";
-import { db } from "~/infra/dataAccess/db/connection";
-import { comments } from "~/infra/dataAccess/db/schema/comments";
-import { users } from "~/infra/dataAccess/db/schema/auth";
 import { COMMENTS_PAGE_SIZE } from "~/infra/constants";
-import type { PostUser, Comment } from "~/infra/types/Posts";
+import { db } from "~/infra/dataAccess/db/connection";
+import { users } from "~/infra/dataAccess/db/schema/auth";
+import { comments } from "~/infra/dataAccess/db/schema/comments";
+import type { Comment, PostUser } from "~/infra/types/Posts";
 
 export class PostgresCommentRepository {
   async addComment(
     postId: string,
     content: string,
     user: PostUser,
-  ): Promise<{ successMessage: string; comment: Comment } | { errorMessage: string }> {
+  ): Promise<
+    { successMessage: string; comment: Comment } | { errorMessage: string }
+  > {
     const commentId = crypto.randomUUID();
 
     try {

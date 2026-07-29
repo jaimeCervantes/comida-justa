@@ -1,8 +1,8 @@
-import { test, expect } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import {
-  simulateLogin,
-  deleteSession,
   type DbSession,
+  deleteSession,
+  simulateLogin,
 } from "../testUtils/simulateLogin";
 
 // El 404 tiene que ser un 404 de verdad, no un 200 que "parece" 404: si la decisión ocurre

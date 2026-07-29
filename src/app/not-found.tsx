@@ -1,7 +1,7 @@
-import Link from "next/link";
 import { headers } from "next/headers";
 import Image from "next/image";
-import Button from "~/infra/UI/components/Button";
+import Link from "next/link";
+import { Button } from "~/presentation/design_system/buttons/Button";
 
 export default async function NotFound() {
   const headersList = await headers();
@@ -16,7 +16,8 @@ export default async function NotFound() {
           </h1>
 
           <h2 className="text-xl md:text-2xl font-bold hidden md:block">
-            Probablemente se fue a hacer una serie extra de burpees... ¡y se agotó!
+            Probablemente se fue a hacer una serie extra de burpees... ¡y se
+            agotó!
           </h2>
 
           <h3 className="text-lg md:text-xl font-bold">
@@ -31,8 +32,8 @@ export default async function NotFound() {
           />
 
           <h4 className="md:tex-3xl font-bold">
-            Mientras se recupera, tú puedes continuar cuidando tu salud, tu tiempo.
-            Encuentra lo que necesitas aquí:
+            Mientras se recupera, tú puedes continuar cuidando tu salud, tu
+            tiempo. Encuentra lo que necesitas aquí:
           </h4>
 
           <p>

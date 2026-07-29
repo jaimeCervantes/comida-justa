@@ -36,27 +36,29 @@ async function seedPosts() {
     const media = data.media ?? [];
     const contactInfo = data.contactInfo ?? {};
 
-    const createdAt =
-      data.createdAt?.toDate?.() ?? new Date();
+    const createdAt = data.createdAt?.toDate?.() ?? new Date();
 
-    await db.insert(posts).values({
-      id: postId,
-      userId: user.id ?? "",
-      price: data.price ?? null,
-      contactPhone: contactInfo.phone ?? null,
-      contactEmail: contactInfo.email ?? null,
-      contactWhatsapp: contactInfo.whatsapp ?? null,
-      createdAt,
-    }).onConflictDoUpdate({
-      target: posts.id,
-      set: {
+    await db
+      .insert(posts)
+      .values({
+        id: postId,
         userId: user.id ?? "",
         price: data.price ?? null,
         contactPhone: contactInfo.phone ?? null,
         contactEmail: contactInfo.email ?? null,
         contactWhatsapp: contactInfo.whatsapp ?? null,
-      },
-    });
+        createdAt,
+      })
+      .onConflictDoUpdate({
+        target: posts.id,
+        set: {
+          userId: user.id ?? "",
+          price: data.price ?? null,
+          contactPhone: contactInfo.phone ?? null,
+          contactEmail: contactInfo.email ?? null,
+          contactWhatsapp: contactInfo.whatsapp ?? null,
+        },
+      });
 
     insertedPosts++;
 
@@ -64,25 +66,34 @@ async function seedPosts() {
       string,
       { title?: string; slug?: string; content?: string },
     ][]) {
-      await db.insert(postTranslations).values({
-        postId,
-        locale,
-        title: trans.title ?? "",
-        slug: trans.slug ?? "",
-        content: trans.content ?? "",
-      }).onConflictDoNothing();
+      await db
+        .insert(postTranslations)
+        .values({
+          postId,
+          locale,
+          title: trans.title ?? "",
+          slug: trans.slug ?? "",
+          content: trans.content ?? "",
+        })
+        .onConflictDoNothing();
       insertedTranslations++;
     }
 
-    for (const [index, mediaItem] of (Array.isArray(media) ? media : [media]).entries()) {
+    for (const [index, mediaItem] of (Array.isArray(media)
+      ? media
+      : [media]
+    ).entries()) {
       if (mediaItem?.url) {
-        await db.insert(postMedia).values({
-          postId,
-          url: mediaItem.url,
-          type: mediaItem.type ?? "image",
-          alt: mediaItem.alt ?? null,
-          sortOrder: index,
-        }).onConflictDoNothing();
+        await db
+          .insert(postMedia)
+          .values({
+            postId,
+            url: mediaItem.url,
+            type: mediaItem.type ?? "image",
+            alt: mediaItem.alt ?? null,
+            sortOrder: index,
+          })
+          .onConflictDoNothing();
         insertedMedia++;
       }
     }

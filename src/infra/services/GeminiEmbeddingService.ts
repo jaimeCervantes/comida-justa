@@ -59,7 +59,10 @@ export default class GeminiEmbeddingService implements IEmbeddingService {
     try {
       body = (await response.json()) as EmbedContentResponse;
     } catch (error) {
-      throw new EmbeddingProviderError("Gemini returned a malformed body.", error);
+      throw new EmbeddingProviderError(
+        "Gemini returned a malformed body.",
+        error,
+      );
     }
 
     const values = body.embedding?.values;

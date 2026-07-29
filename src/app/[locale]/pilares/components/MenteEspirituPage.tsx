@@ -25,7 +25,7 @@ export default function MenteEspirituPage() {
             naturaleza y el apoyo del grupo.
           </p>
 
-          <div className="bg-sky-50/50 dark:bg-sky-900/10 rounded-2xl p-6 sm:p-8 my-8 border border-sky-500 dark:border-sky-800 shadow-sm">
+          <div className="bg-sky-50/50 dark:bg-sky-900/10 rounded-2xl p-6 sm:p-8 my-8 border border-sky-500 dark:border-sky-800 shadow-xs">
             <ul className="space-y-6">
               <li className="flex flex-col sm:flex-row gap-2 sm:gap-4">
                 <span className="font-bold text-slate-900 dark:text-slate-50 shrink-0 sm:w-28 text-xl">

@@ -1,22 +1,22 @@
-import { test, expect } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import { EMBEDDING_DIMENSIONS } from "~/domain/entities/post/embedding";
 import {
   createIndexPostEmbeddingUseCase,
   createPostEmbeddingRepository,
 } from "~/infra/dataAccess/indexPostEmbedding/factory";
-import UnifiedCatalogPage from "./UnifiedCatalogPage";
-import {
-  simulateLogin,
-  deleteSession,
-  type DbSession,
-} from "../testUtils/simulateLogin";
 import { deleteOnePostBySlug } from "../testUtils/deleteOnePost";
-import { seedPost } from "../testUtils/seedPost";
 import {
   chatbotFindsPostBySlug,
   clearEmbeddingBySlug,
   readEmbeddingBySlug,
 } from "../testUtils/readEmbedding";
+import { seedPost } from "../testUtils/seedPost";
+import {
+  type DbSession,
+  deleteSession,
+  simulateLogin,
+} from "../testUtils/simulateLogin";
+import UnifiedCatalogPage from "./UnifiedCatalogPage";
 
 // Slice 4 de docs/features/catalogo-unificado.md — embedding al publicar desde el sitio.
 // Escenarios en src/e2e/unifiedCatalog/unifiedCatalog.feature.
@@ -71,7 +71,8 @@ test.describe("When a product is published from the website", () => {
     await publishPage.goto();
     await publishPage.fill({
       title: `Suero natural ${stamp}`,
-      description: "Agua, limón, sal de mar y un toque de miel. Sin colorantes.",
+      description:
+        "Agua, limón, sal de mar y un toque de miel. Sin colorantes.",
       price: "35",
       phone: "2781126948",
       file: "./src/e2e/dummies/post.jpg",
@@ -135,7 +136,9 @@ test.describe("When a publication was left pending because the provider failed",
     );
 
     const pendingAfter = await repository.findPendingIndexing(500);
-    expect(pendingAfter.map((ref) => ref.postId)).not.toContain(snapshot?.postId);
+    expect(pendingAfter.map((ref) => ref.postId)).not.toContain(
+      snapshot?.postId,
+    );
 
     expect(await chatbotFindsPostBySlug(pendingSlug)).toBe(true);
   });

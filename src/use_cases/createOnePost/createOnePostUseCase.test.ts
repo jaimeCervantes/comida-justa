@@ -1,8 +1,8 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import CreatePostUseCase from "./createOnePostUseCase";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Post } from "~/domain/entities/post/types";
-import { mockPostValidator, mockPostEntity, mockPostRepository } from "./mocks";
+import CreatePostUseCase from "./createOnePostUseCase";
 import { samplePostInfo } from "./dummies";
+import { mockPostEntity, mockPostRepository, mockPostValidator } from "./mocks";
 
 describe("CreatePostUseCase", () => {
   let createPostUseCase: CreatePostUseCase;

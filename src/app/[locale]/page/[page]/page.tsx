@@ -1,12 +1,16 @@
-import { Metadata } from "next";
+import type { Metadata } from "next";
 import Link from "next/link";
-import { createPostQueryRepository } from "~/infra/dataAccess/getMultiplePosts";
-import { mapPostsToCards } from "~/infra/UI/mappers/posts/mapPostsToCards";
-import { Post } from "~/infra/types/Posts";
 import { notFound } from "next/navigation";
-import { PAGINATION_INIT_PAGE, PAGINATION_PAGE_SIZE } from "~/infra/constants";
+import {
+  CANONICAL_URL,
+  PAGINATION_INIT_PAGE,
+  PAGINATION_PAGE_SIZE,
+  PUBLIC_BRAND_NAME,
+} from "~/infra/constants";
+import { createPostQueryRepository } from "~/infra/dataAccess/getMultiplePosts";
+import type { Post } from "~/infra/types/Posts";
 import CardForList from "~/infra/UI/components/CardForList/CardForList";
-import { CANONICAL_URL, PUBLIC_BRAND_NAME } from "~/infra/constants";
+import { mapPostsToCards } from "~/infra/UI/mappers/posts/mapPostsToCards";
 
 type Props = {
   params: Promise<{ page: string }>;
@@ -73,7 +77,7 @@ export default async function PaginatedPage({ params }: Props) {
         al mismo tiempo que apoyas al medio ambiente y a tu comunidad?
       </h1>
 
-      <section className="grid grid-flow-dense gap-4 pt-6 max-sm:grid-cols-[repeat(auto-fill,_minmax(300px,_1fr))] sm:grid-cols-[repeat(auto-fill,_minmax(300px,_1fr))]">
+      <section className="grid grid-flow-dense gap-4 pt-6 max-sm:grid-cols-[repeat(auto-fill,minmax(300px,1fr))] sm:grid-cols-[repeat(auto-fill,minmax(300px,1fr))]">
         {posts.length === 0 ? (
           <p>No hay comidas publicadas en esta página.</p>
         ) : (

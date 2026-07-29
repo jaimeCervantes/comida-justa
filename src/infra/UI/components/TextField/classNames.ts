@@ -1,5 +1,5 @@
 export const inputClassNameDefault =
-  "bg-white dark:bg-slate-700 border border-black w-full p-3 focus:outline outline-pw-green focus:border-pw-green";
+  "bg-white dark:bg-slate-700 border border-black w-full p-3 focus:outline-solid outline-pw-green focus:border-pw-green";
 export const labelClassNameDefault = "block mb-1";
 export const iconClassNameDefault = "absolute inset-y-0 flex items-center pl-3";
 export const iconEndClassNameDefault =

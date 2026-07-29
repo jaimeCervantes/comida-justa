@@ -1,10 +1,10 @@
-import { Metadata } from "next";
-import { getTranslations } from "next-intl/server";
+import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { hasLocale } from "next-intl";
+import { getTranslations } from "next-intl/server";
 import { routing } from "~/i18n/routing";
 import { CANONICAL_URL } from "~/infra/constants";
-import Link from "next/link";
 
 export async function generateMetadata({
   params,

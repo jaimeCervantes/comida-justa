@@ -1,7 +1,7 @@
 "use client";
-import React from "react";
 import * as AvatarR from "@radix-ui/react-avatar";
-import { User } from "next-auth";
+import type { User } from "next-auth";
+import React from "react";
 import { useInitials } from "./hooks";
 
 export default function Avatar({ user }: { user?: User }) {

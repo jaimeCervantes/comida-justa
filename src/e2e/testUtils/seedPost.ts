@@ -1,10 +1,10 @@
-import { db } from "~/infra/dataAccess/db/connection";
-import { users } from "~/infra/dataAccess/db/schema/auth";
-import PostgresPostRepository from "~/infra/dataAccess/createOnePost/PostgresPostRepository";
 import type {
   PostCategory,
   PostSubCategory,
 } from "~/domain/entities/post/category";
+import PostgresPostRepository from "~/infra/dataAccess/createOnePost/PostgresPostRepository";
+import { db } from "~/infra/dataAccess/db/connection";
+import { users } from "~/infra/dataAccess/db/schema/auth";
 
 /**
  * Media host allowed by `next.config` `images.remotePatterns`; a URL outside that list

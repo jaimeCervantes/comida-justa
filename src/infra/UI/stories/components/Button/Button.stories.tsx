@@ -1,6 +1,6 @@
-import Button from "~/infra/UI/components/Button/Button";
-import { within, expect } from "storybook/test";
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
+import { expect, within } from "storybook/test";
+import { Button } from "~/presentation/design_system/buttons/Button";
 
 const meta = {
   component: Button,

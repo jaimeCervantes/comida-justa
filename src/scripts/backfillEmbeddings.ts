@@ -39,14 +39,14 @@ async function backfillEmbeddings(): Promise<void> {
   }
 
   if (!process.env.GEMINI_API_KEY) {
-    console.error("ERROR: GEMINI_API_KEY is missing (mismo valor que usa el bot).");
+    console.error(
+      "ERROR: GEMINI_API_KEY is missing (mismo valor que usa el bot).",
+    );
     process.exit(1);
   }
 
-  const {
-    createBackfillPostEmbeddingsUseCase,
-    createPostEmbeddingRepository,
-  } = await import("~/infra/dataAccess/indexPostEmbedding/factory");
+  const { createBackfillPostEmbeddingsUseCase, createPostEmbeddingRepository } =
+    await import("~/infra/dataAccess/indexPostEmbedding/factory");
 
   if (options.dryRun) {
     const pending = await createPostEmbeddingRepository().findPendingIndexing(
@@ -61,7 +61,9 @@ async function backfillEmbeddings(): Promise<void> {
 
   console.log(`Indexando hasta ${options.limit} traducciones pendientes...`);
 
-  const summary = await createBackfillPostEmbeddingsUseCase().execute(options.limit);
+  const summary = await createBackfillPostEmbeddingsUseCase().execute(
+    options.limit,
+  );
 
   console.log("------------------------------------------------");
   console.log(`Intentadas: ${summary.attempted}`);

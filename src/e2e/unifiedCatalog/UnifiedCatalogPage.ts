@@ -37,8 +37,12 @@ export default class UnifiedCatalogPage {
     await this.page
       .getByRole("textbox", { name: /t[ií]tulo de la publicación/i })
       .fill(values.title);
-    await this.page.getByRole("spinbutton", { name: /precio/i }).fill(values.price);
-    await this.page.getByRole("textbox", { name: /t[eé]lefono/i }).fill(values.phone);
+    await this.page
+      .getByRole("spinbutton", { name: /precio/i })
+      .fill(values.price);
+    await this.page
+      .getByRole("textbox", { name: /t[eé]lefono/i })
+      .fill(values.phone);
     await this.page
       .getByRole("textbox", { name: /descripci[oó]n/i })
       .fill(values.description);
@@ -63,11 +67,15 @@ export default class UnifiedCatalogPage {
 
     // El archivo va al final: dispara un `change` nativo que solo inicia la subida una vez
     // que React hidrató y enganchó su onChange.
-    await this.page.locator('form input[type="file"]').setInputFiles(values.file);
+    await this.page
+      .locator('form input[type="file"]')
+      .setInputFiles(values.file);
   }
 
   async submit() {
-    await expect(this.page.getByText(/subido/i)).toBeVisible({ timeout: 45_000 });
+    await expect(this.page.getByText(/subido/i)).toBeVisible({
+      timeout: 45_000,
+    });
     const submitButton = this.form.getByRole("button", {
       name: "Publicar",
       exact: true,

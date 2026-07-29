@@ -1,4 +1,4 @@
-import { getFirestore } from 'firebase-admin/firestore';
+import { getFirestore } from "firebase-admin/firestore";
 
 // Tipos para el SEO
 type SeoMeta = {
@@ -32,7 +32,7 @@ export async function saveSeo(
   collectionName: string,
   documentId: string,
   seoData: SeoData,
-  lang: string = 'es'
+  lang: string = "es",
 ): Promise<SaveSeoResult> {
   try {
     const db = getFirestore();
@@ -40,24 +40,23 @@ export async function saveSeo(
 
     const writeResult = await docRef.update({
       [`translations.${lang}.seo`]: seoData,
-      updatedAt: new Date()
+      updatedAt: new Date(),
     });
 
     return {
       success: true,
       documentId,
-      updateTime: writeResult.writeTime.toDate().toISOString()
+      updateTime: writeResult.writeTime.toDate().toISOString(),
     };
-
   } catch (error: any) {
-    console.error('Error al guardar SEO:', error);
+    console.error("Error al guardar SEO:", error);
 
     return {
       success: false,
       documentId,
-      error: error?.message || 'Error desconocido',
-      errorCode: error?.code || 'unknown',
-      errorDetails: error
+      error: error?.message || "Error desconocido",
+      errorCode: error?.code || "unknown",
+      errorDetails: error,
     };
   }
 }

@@ -1,5 +1,5 @@
-import type { Comment } from "~/infra/types/Posts";
 import { COMMENTS_PAGE_SIZE } from "~/infra/constants";
+import type { Comment } from "~/infra/types/Posts";
 import { getMoreComments } from "../data-access/actions";
 
 export function createOnLoadMoreComments({
@@ -17,7 +17,7 @@ export function createOnLoadMoreComments({
   setComments: (comments: (comment: Comment[]) => Comment[]) => void;
   setCurrentPage: (page: number) => void;
 }) {
-  return async function () {
+  return async () => {
     setLoading(true);
     const nextPage = currentPage + 1;
 

@@ -18,9 +18,7 @@ async function seedComments() {
 
   console.log("Connecting to PostgreSQL...");
   const { db } = await import("~/infra/dataAccess/db/connection");
-  const { comments } = await import(
-    "~/infra/dataAccess/db/schema/comments"
-  );
+  const { comments } = await import("~/infra/dataAccess/db/schema/comments");
 
   console.log("Connecting to Firestore...");
   const { db: firestore } = await import("~/infra/dataAccess/init");
@@ -72,7 +70,7 @@ async function seedComments() {
         inserted++;
       } catch (err: any) {
         console.error(
-          `  Error inserting comment ${commentDoc.id}: ${err.message}`
+          `  Error inserting comment ${commentDoc.id}: ${err.message}`,
         );
         skipped++;
       }

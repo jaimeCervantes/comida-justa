@@ -1,11 +1,11 @@
-import {
-  Post,
-  VoidOrError,
-  User,
-  IPostValidator,
-} from "~/domain/entities/post/types";
 import { isValidKind } from "~/domain/entities/post/kind";
 import { isValidOrigin } from "~/domain/entities/post/origin";
+import type {
+  IPostValidator,
+  Post,
+  User,
+  VoidOrError,
+} from "~/domain/entities/post/types";
 
 export default class PostValidator implements IPostValidator {
   MIN_LENGTH_TITLE = 5;
@@ -36,9 +36,7 @@ export default class PostValidator implements IPostValidator {
    */
   private validateKindAndOrigin(post: Post): VoidOrError {
     if (post.kind !== undefined && !isValidKind(post.kind)) {
-      throw new PostClassificationError(
-        `Invalid kind "${String(post.kind)}".`,
-      );
+      throw new PostClassificationError(`Invalid kind "${String(post.kind)}".`);
     }
 
     if (post.kind === "producto") {

@@ -1,9 +1,9 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
-  POST_CATEGORIES,
-  POST_SUB_CATEGORIES,
   isValidCategory,
   isValidSubCategory,
+  POST_CATEGORIES,
+  POST_SUB_CATEGORIES,
   resolveCategory,
   resolveSubCategory,
 } from "./category";

@@ -17,5 +17,7 @@ export function originLabel(origin: PostOrigin | null): string {
 }
 
 /** Opciones del selector de procedencia, en el orden canónico de la allowlist. */
-export const ORIGIN_OPTIONS: ReadonlyArray<{ value: PostOrigin; label: string }> =
-  POST_ORIGINS.map((value) => ({ value, label: ORIGIN_LABELS[value] }));
+export const ORIGIN_OPTIONS: ReadonlyArray<{
+  value: PostOrigin;
+  label: string;
+}> = POST_ORIGINS.map((value) => ({ value, label: ORIGIN_LABELS[value] }));

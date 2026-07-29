@@ -1,7 +1,7 @@
 import { test } from "@playwright/test";
-import ProductsPage from "./ProductsPage";
-import { seedPost } from "../testUtils/seedPost";
 import { deleteOnePostBySlug } from "../testUtils/deleteOnePost";
+import { seedPost } from "../testUtils/seedPost";
+import ProductsPage from "./ProductsPage";
 
 // Slice 2 — the products page lists ONLY Hazlo Sano products.
 // Seeds go straight through the write repository (no UI, no admin gate) because this

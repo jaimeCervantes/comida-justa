@@ -1,13 +1,14 @@
 "use client";
-import React, { useState, useEffect } from "react";
-import { createPortal } from "react-dom";
 import {
-  HamburgerMenuIcon,
-  Cross1Icon,
   ChevronDownIcon,
+  Cross1Icon,
+  HamburgerMenuIcon,
 } from "@radix-ui/react-icons";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import type React from "react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { PUBLIC_BRAND_NAME } from "~/infra/constants";
 
 interface MenuItem {
@@ -22,7 +23,8 @@ const MENU_ITEMS: MenuItem[] = [
       {
         title: "Sueño y Descanso",
         href: "/pilares/sueno",
-        description: "Optimizar la higiene del sueño para tu recuperación biológica",
+        description:
+          "Optimizar la higiene del sueño para tu recuperación biológica",
       },
       {
         title: "Alimentación natural y nutritiva",
@@ -142,21 +144,21 @@ export default function MobileNav({
 
   const menuContent = (
     <div
-      className={`fixed inset-0 z-[9999] bg-white/95 dark:bg-black/95 backdrop-blur-xl transition-all duration-300 flex flex-col ${
+      className={`fixed inset-0 z-9999 bg-white/95 dark:bg-black/95 backdrop-blur-xl transition-all duration-300 flex flex-col ${
         isOpen
           ? "opacity-100 pointer-events-auto"
           : "opacity-0 pointer-events-none"
       }`}
     >
       <div className="flex flex-col h-full container-width py-4 overflow-hidden">
-        <div className="flex justify-between items-center mb-8 flex-shrink-0">
+        <div className="flex justify-between items-center mb-8 shrink-0">
           <Link
             href="/"
             onClick={() => setIsOpen(false)}
             className="flex items-center gap-2"
           >
             <Image src="/logo.webp" width={40} height={40} alt="Logo" />
-            <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[var(--highlight)] to-green-600">
+            <span className="text-xl font-bold bg-clip-text text-transparent bg-linear-to-r from-(--highlight) to-green-600">
               {PUBLIC_BRAND_NAME}
             </span>
           </Link>
@@ -245,7 +247,7 @@ export default function MobileNav({
           {children}
         </div>
 
-        <div className="py-6 border-t border-gray-100 dark:border-gray-800 text-center text-sm text-gray-500 flex-shrink-0">
+        <div className="py-6 border-t border-gray-100 dark:border-gray-800 text-center text-sm text-gray-500 shrink-0">
           {PUBLIC_BRAND_NAME} &copy; {new Date().getFullYear()}
         </div>
       </div>

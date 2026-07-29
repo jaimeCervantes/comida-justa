@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import AddCommentForm from "../addComments/AddCommentForm";
 import type { Comment, PostUser } from "~/infra/types/Posts";
-import { useRealTimeComments } from "../addComments/useRealTimeComments";
-import { createOnLoadMoreComments } from "./createOnLoadMoreComments";
 import Avatar from "~/infra/UI/components/Avatar/Avatar";
 import { useIsClient } from "~/infra/UI/hooks/useIsClient";
+import AddCommentForm from "../addComments/AddCommentForm";
+import { useRealTimeComments } from "../addComments/useRealTimeComments";
+import { createOnLoadMoreComments } from "./createOnLoadMoreComments";
 
 export default function CommentList({
   postId,
@@ -78,7 +78,7 @@ export default function CommentList({
 
         <button
           onClick={onLoadMoreComments}
-          className="mt-4 bg-blue-500 text-white px-4 py-2 rounded"
+          className="mt-4 bg-blue-500 text-white px-4 py-2 rounded-sm"
           disabled={loading}
         >
           {loading ? "Cargando más comentarios..." : "Cargar más comentarios"}

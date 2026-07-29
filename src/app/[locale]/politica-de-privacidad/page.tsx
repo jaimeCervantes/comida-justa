@@ -1,7 +1,7 @@
-import { Metadata } from "next";
-import { getTranslations } from "next-intl/server";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { hasLocale } from "next-intl";
+import { getTranslations } from "next-intl/server";
 import { routing } from "~/i18n/routing";
 import { CANONICAL_URL } from "~/infra/constants";
 
@@ -177,7 +177,7 @@ export default async function PrivacyPolicyPage({
           <div className="bg-zinc-50 dark:bg-zinc-800/50 rounded-lg p-5">
             <p className="mb-2">
               {t("section7.actionIntro")}
-              <strong className="bg-zinc-200 dark:bg-zinc-700 px-2 py-0.5 rounded text-zinc-900 dark:text-zinc-100 font-mono">
+              <strong className="bg-zinc-200 dark:bg-zinc-700 px-2 py-0.5 rounded-sm text-zinc-900 dark:text-zinc-100 font-mono">
                 {t("section7.actionWord")}
               </strong>
               {t("section7.actionOutro")}

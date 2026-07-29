@@ -1,8 +1,10 @@
-import { getStorage, getDownloadURL } from "firebase-admin/storage";
-import IMediaStorageService from "~/use_cases/createOnePost/ports/IMediaStorageService";
-import { fileTypeFromStream, type FileTypeResult } from "file-type";
+import { type FileTypeResult, fileTypeFromStream } from "file-type";
+import { getDownloadURL, getStorage } from "firebase-admin/storage";
+import type IMediaStorageService from "~/use_cases/createOnePost/ports/IMediaStorageService";
 
-export default class FirebaseMediaStorageService implements IMediaStorageService {
+export default class FirebaseMediaStorageService
+  implements IMediaStorageService
+{
   async uploadFile(file: File): Promise<string> {
     const bucket = getStorage().bucket();
     const buffer = Buffer.from(await file.arrayBuffer());

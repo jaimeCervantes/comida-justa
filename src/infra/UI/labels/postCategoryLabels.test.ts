@@ -1,11 +1,11 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
+import { POST_SUB_CATEGORIES } from "~/domain/entities/post/category";
 import {
   categoryLabel,
-  subCategoryLabel,
   categoryOptions,
+  subCategoryLabel,
   subCategoryOptions,
 } from "./postCategoryLabels";
-import { POST_SUB_CATEGORIES } from "~/domain/entities/post/category";
 
 describe("category labels", () => {
   // Escenario "The label follows the visitor's locale, never the database" (@slice-1)

@@ -1,4 +1,4 @@
-import { IPostEntity } from "~/domain/entities/post/types";
+import type { IPostEntity } from "~/domain/entities/post/types";
 export default class PostEntity implements IPostEntity {
   generateSlug(title: string): string {
     const slug = title

@@ -20,22 +20,31 @@ export type PostOrigin = (typeof POST_ORIGINS)[number];
 /** Prefijo de los orígenes que afirman que Hazlo Sano es el vendedor (solo admin puede asignarlos). */
 export const HAZLO_SANO_ORIGIN_PREFIX = "hazlo_sano_";
 
-const LOCAL_ORIGINS: readonly PostOrigin[] = ["productor_local", "reventa_local"];
+const LOCAL_ORIGINS: readonly PostOrigin[] = [
+  "productor_local",
+  "reventa_local",
+];
 
 export function isValidOrigin(value: unknown): value is PostOrigin {
   return (
-    typeof value === "string" && (POST_ORIGINS as readonly string[]).includes(value)
+    typeof value === "string" &&
+    (POST_ORIGINS as readonly string[]).includes(value)
   );
 }
 
 /** ¿El origen afirma que lo vende Hazlo Sano? (propio o reventa). */
 export function isHazloSanoOrigin(value: string | null | undefined): boolean {
-  return typeof value === "string" && value.startsWith(HAZLO_SANO_ORIGIN_PREFIX);
+  return (
+    typeof value === "string" && value.startsWith(HAZLO_SANO_ORIGIN_PREFIX)
+  );
 }
 
 /** ¿El origen es de un productor/revendedor local? */
 export function isLocalOrigin(value: string | null | undefined): boolean {
-  return typeof value === "string" && (LOCAL_ORIGINS as readonly string[]).includes(value);
+  return (
+    typeof value === "string" &&
+    (LOCAL_ORIGINS as readonly string[]).includes(value)
+  );
 }
 
 /** Los orígenes `hazlo_sano_*` solo puede asignarlos un admin. */

@@ -1,5 +1,5 @@
+import type React from "react";
 import type { ChangeEventHandler, ReactNode } from "react";
-import React from "react";
 
 export type TextFieldProps = {
   isInvalid?: true | false;
