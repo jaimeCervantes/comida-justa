@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "../../presentation/design_system/tokens/tokens.css";
 @import "./utility-patterns.css" layer(base);
 
 @theme {
@@ -20,13 +21,6 @@
     var(--tw-gradient-stops)
   );
 
-  --color-pw-green: #538f39;
-  --color-pw-lightgreen: #5dbf17;
-  --color-pw-lightorange: #f2b705;
-  --color-pw-orange: #f0380e;
-  --color-pw-gray: #334155;
-  --color-pw-black: #000000;
-  --color-pw-white: #ffffff;
   --color-blackA1: rgba(0, 0, 0, 0.05);
   --color-blackA2: rgba(0, 0, 0, 0.1);
   --color-blackA3: rgba(0, 0, 0, 0.15);
@@ -187,14 +181,6 @@
   }
 }
 
-/*
-  The default border color has changed to `currentcolor` in Tailwind CSS v4,
-  so we've added these compatibility styles to make sure everything still
-  looks the same as it did with Tailwind CSS v3.
-
-  If we ever want to remove these styles, we need to add an explicit border
-  color utility to any element that depends on these defaults.
-*/
 @layer base {
   *,
   ::after,
@@ -218,33 +204,20 @@
 }
 
 @layer utilities {
-  :root {
-    --cj-bg-color: #fafafa; /* Softer white */
-    --cj-text-color: #1a1a1a; /* Softer black */
-    --highlight: #2abf40;
-  }
-
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --cj-bg-color: #0d0d0d; /* Deep rich black */
-      --cj-text-color: #ededed;
-    }
-  }
-
   html {
     scroll-behavior: smooth;
   }
 
   body {
-    background-color: var(--cj-bg-color);
-    color: var(--cj-text-color);
+    background-color: var(--surface-background);
+    color: var(--text-base);
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
   ::selection {
-    background-color: var(--highlight);
+    background-color: var(--brand-green);
     color: white;
   }
 }

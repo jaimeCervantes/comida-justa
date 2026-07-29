@@ -1,0 +1,74 @@
+/* ============================================================
+   Hazlo Sano — Color tokens
+   Light theme is the default (:root). Dark theme applies under
+   @media (prefers-color-scheme: dark).
+   ============================================================ */
+
+:root {
+  /* --- Base brand palette (theme-independent) --- */
+  --brand-green: #538f39;
+  --brand-lightgreen: #5DBF17;
+  --brand-lightorange: #F2B705;
+  --brand-orange: #f0380e;
+  --brand-gray: #334155;
+  --brand-black: #000000;
+  --brand-white: #ffffff;
+
+  /* --- Semantic: text --- */
+  --text-base: #1a1a1a;
+  --text-inverse: #ffffff;
+  --text-support: #64748b;
+
+  /* --- Semantic: surfaces --- */
+  --surface-background: #fafafa;
+  --surface-elevation-1: #ffffff;
+  --surface-elevation-2: #f1f5f9;
+
+  /* --- Structure --- */
+  --separator: #e2e8f0;
+  --border: #cbd5e1;
+
+  /* --- Buttons --- */
+  --button-primary-bg: var(--brand-green);
+  --button-primary-text: var(--brand-white);
+  --button-primary-hover: #43742e;
+  
+  --button-secondary-bg: var(--brand-gray);
+  --button-secondary-text: var(--brand-white);
+  --button-secondary-hover: #1e293b;
+
+  /* --- Feedback --- */
+  --feedback-success: var(--brand-lightgreen);
+  --feedback-warning: var(--brand-lightorange);
+  --feedback-error: var(--brand-orange);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* --- Semantic: text --- */
+    --text-base: #ededed;
+    --text-inverse: #1a1a1a;
+    --text-support: #94a3b8;
+
+    /* --- Semantic: surfaces --- */
+    --surface-background: #0d0d0d;
+    --surface-elevation-1: #1e293b;
+    --surface-elevation-2: #0f172a;
+
+    /* --- Structure --- */
+    --separator: #334155;
+    --border: #475569;
+  }
+}
+
+/* Expose to Tailwind v4 as utility classes */
+@theme {
+  --color-pw-green: var(--brand-green);
+  --color-pw-lightgreen: var(--brand-lightgreen);
+  --color-pw-lightorange: var(--brand-lightorange);
+  --color-pw-orange: var(--brand-orange);
+  --color-pw-gray: var(--brand-gray);
+  --color-pw-black: var(--brand-black);
+  --color-pw-white: var(--brand-white);
+}
+
