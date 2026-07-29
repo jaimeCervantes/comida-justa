@@ -4,7 +4,7 @@ import { useActionState, useCallback, useState } from "react";
 import { MdOutlinePriceChange, MdPhone, MdTitle } from "react-icons/md";
 import { POST_CONTENT_MAX_LENGTH } from "~/infra/constants";
 import type { ActionState } from "~/infra/types/Actions";
-import TextArea from "~/infra/UI/components/TextArea";
+import { TextArea } from "~/presentation/design_system/forms/TextArea";
 import { TextField } from "~/presentation/design_system/forms/TextField";
 import {
   categoryOptions,
