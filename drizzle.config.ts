@@ -4,13 +4,19 @@ import { defineConfig } from "drizzle-kit";
 console.log(`.env.${process.env.NODE_ENV || "development"}`);
 dotenv.config({ path: `.env.${process.env.NODE_ENV || "development"}` });
 
-console.log("DATABASE_URL:", process.env.DATABASE_URL);
+const databaseUrl = process.env.DATABASE_URL;
+if (!databaseUrl) {
+  throw new Error(
+    "DATABASE_URL no está definida. Revisa tu archivo .env correspondiente al NODE_ENV actual.",
+  );
+}
+
 export default defineConfig({
   schema: "./src/infra/dataAccess/db/schema/",
   out: "./src/infra/dataAccess/db/migrations",
   dialect: "postgresql",
   dbCredentials: {
-    url: process.env.DATABASE_URL!,
+    url: databaseUrl,
     ssl: {
       rejectUnauthorized: false,
     },

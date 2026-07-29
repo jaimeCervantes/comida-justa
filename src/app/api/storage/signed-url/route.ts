@@ -1,11 +1,10 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { v4 as uuidv4 } from "uuid";
 import { auth } from "~/infra/auth";
 import { getFirebaseAdmin } from "~/infra/dataAccess/init";
 
 export async function POST(request: NextRequest) {
   const session = await auth();
-  if (!session || !session.user) {
+  if (!session?.user) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   }
 
@@ -20,7 +19,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const userId =
+    const _userId =
       session.user.email?.replace(/[.@]/g, "_") || `user_${Date.now()}`;
 
     const filePath = createFilePath(contentType, fileName, directory);

@@ -35,13 +35,7 @@ export const LoadingInteraction: StoryObj<typeof meta> = {
     isLoading: true,
     children: "Publicar",
   },
-  async play({
-    args,
-    canvasElement,
-  }: {
-    args: any;
-    canvasElement: HTMLElement;
-  }) {
+  async play({ canvasElement }) {
     const canvas = within(canvasElement);
 
     const icon = canvas.getByTitle(/cargando/i);

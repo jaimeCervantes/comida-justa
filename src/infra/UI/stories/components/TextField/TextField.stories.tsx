@@ -75,13 +75,7 @@ export const TriggerOnChangeEventInteraction: Story = {
     ...Default.args,
     onChange: fn(),
   },
-  async play({
-    args,
-    canvasElement,
-  }: {
-    args: any;
-    canvasElement: HTMLElement;
-  }) {
+  async play({ args, canvasElement }) {
     const canvas = within(canvasElement);
 
     const field = await canvas.findByRole("textbox", { name: "Nombre" });

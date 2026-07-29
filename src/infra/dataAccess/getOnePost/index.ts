@@ -34,7 +34,7 @@ export async function getPost(
     };
 
     return postInfo;
-  } catch (error: any) {
+  } catch (error) {
     return {
       error,
       errorMessage: "Algo salió mal al buscar/obtener el post",

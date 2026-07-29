@@ -35,8 +35,7 @@ export default function Footer() {
             </h4>
             <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400 font-medium">
               <li className="flex items-center gap-2">
-                <span className="text-(--highlight)">✓</span> Sueño y
-                descanso
+                <span className="text-(--highlight)">✓</span> Sueño y descanso
               </li>
               <li className="flex items-center gap-2">
                 <span className="text-(--highlight)">✓</span> Alimentación
@@ -47,8 +46,8 @@ export default function Footer() {
                 ejercicio
               </li>
               <li className="flex items-center gap-2">
-                <span className="text-(--highlight)">✓</span> Emociones /
-                mente / espíritu
+                <span className="text-(--highlight)">✓</span> Emociones / mente
+                / espíritu
               </li>
             </ul>
           </div>

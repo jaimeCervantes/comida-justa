@@ -55,3 +55,4 @@ serviceAccountKey.json
 # Configuración local de Claude Code: es de cada máquina, no del proyecto.
 .claude/settings.json
 .claude/settings.local.json
+.vscode

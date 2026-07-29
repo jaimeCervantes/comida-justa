@@ -1,7 +1,11 @@
 import { helpers, PredictionServiceClient } from "@google-cloud/aiplatform";
 import type IEmbeddingService from "~/use_cases/common/ports/IEmbeddingService";
 
-const clientOptions: any = {
+type VertexClientOptions = NonNullable<
+  ConstructorParameters<typeof PredictionServiceClient>[0]
+>;
+
+const clientOptions: VertexClientOptions = {
   apiEndpoint: "us-central1-aiplatform.googleapis.com",
 };
 
@@ -13,7 +17,7 @@ if (process.env.FIREBASE_SERVICE_ACCOUNT) {
       client_email: serviceAccount.client_email,
       private_key: serviceAccount.private_key,
     };
-  } catch (error) {
+  } catch (_error) {
     console.warn(
       "VertexEmbeddingService: Failed to parse FIREBASE_SERVICE_ACCOUNT. Falling back to default credentials.",
     );
@@ -59,16 +63,21 @@ export default class VertexEmbeddingService implements IEmbeddingService {
       throw new Error("No predictions returned from Vertex AI.");
     }
 
-    const createEmbeddingResponse = helpers.fromValue(predictions[0] as any);
-    if (
-      typeof createEmbeddingResponse !== "object" ||
-      !createEmbeddingResponse ||
-      !("embeddings" in createEmbeddingResponse) ||
-      !("values" in (createEmbeddingResponse.embeddings as any))
-    ) {
+    const createEmbeddingResponse = helpers.fromValue(
+      predictions[0] as Parameters<typeof helpers.fromValue>[0],
+    );
+
+    const embeddings =
+      typeof createEmbeddingResponse === "object" &&
+      createEmbeddingResponse !== null &&
+      "embeddings" in createEmbeddingResponse
+        ? (createEmbeddingResponse.embeddings as { values?: unknown })
+        : null;
+
+    if (!embeddings || !Array.isArray(embeddings.values)) {
       throw new Error("Invalid embedding response format.");
     }
 
-    return (createEmbeddingResponse.embeddings as any).values;
+    return embeddings.values as number[];
   }
 }

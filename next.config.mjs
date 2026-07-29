@@ -1,7 +1,7 @@
 import createNextIntlPlugin from "next-intl/plugin";
 
 const nextIntlPlugin = createNextIntlPlugin();
-const isDevelopment = process.env.NODE_ENV === "development" ? true : false;
+const isDevelopment = process.env.NODE_ENV === "development";
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {

@@ -116,7 +116,7 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
     >();
     for (const m of mediaRows) {
       if (!mediaByPost.has(m.postId)) mediaByPost.set(m.postId, []);
-      mediaByPost.get(m.postId)!.push({
+      mediaByPost.get(m.postId)?.push({
         url: m.url,
         type: m.type,
         alt: m.alt ?? undefined,

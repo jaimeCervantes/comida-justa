@@ -54,6 +54,7 @@ export default function LanguageSwitcher() {
             {locales.map((locale) => (
               <button
                 key={locale.code}
+                type="button"
                 onClick={() => handleChange(locale.code)}
                 className={`${
                   locale.code === currentLocale

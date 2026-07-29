@@ -2,11 +2,11 @@ import type { Page } from "@playwright/test";
 import PublishPage from "../createPost/PublishPage";
 
 export async function publishTestPost(page: Page) {
-  const time = new Date().getTime();
-  const slug = "ensalada-griega-" + time;
+  const time = Date.now();
+  const slug = `ensalada-griega-${time}`;
 
   const publishPage = new PublishPage(page);
-  const postTitle = "Ensalada griega " + time;
+  const postTitle = `Ensalada griega ${time}`;
 
   await publishPage.stubStorageUpload();
   await publishPage.fillFields({

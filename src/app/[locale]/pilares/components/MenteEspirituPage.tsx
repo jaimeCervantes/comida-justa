@@ -1,5 +1,3 @@
-import React from "react";
-
 export default function MenteEspirituPage() {
   return (
     <article className="">
@@ -140,7 +138,7 @@ export default function MenteEspirituPage() {
                 rel="noopener noreferrer"
                 className="text-sky-600 dark:text-sky-400 hover:text-sky-800 dark:hover:text-sky-300 underline transition-colors"
               >
-                https://doi.org/10.36283//ziun-pjmd14-3/001
+                https://doi.org/10.36283{/* ziun-pjmd14-3/001 */}
               </a>
             </li>
             <li>

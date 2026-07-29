@@ -4,14 +4,14 @@
 
 :root {
   /* font sizes */
-  --fs-tiny: 0.625rem;    /* 10px */
-  --fs-caption: 0.75rem;  /* 12px */
-  --fs-label: 0.875rem;   /* 14px */
-  --fs-body-md: 1rem;     /* 16px */
+  --fs-tiny: 0.625rem; /* 10px */
+  --fs-caption: 0.75rem; /* 12px */
+  --fs-label: 0.875rem; /* 14px */
+  --fs-body-md: 1rem; /* 16px */
   --fs-body-lg: 1.125rem; /* 18px */
   --fs-heading-sm: 1.25rem; /* 20px */
-  --fs-heading-md: 1.5rem;  /* 24px */
-  --fs-heading-lg: 1.875rem;/* 30px */
+  --fs-heading-md: 1.5rem; /* 24px */
+  --fs-heading-lg: 1.875rem; /* 30px */
 
   /* font weights */
   --font-weight-regular: 400;

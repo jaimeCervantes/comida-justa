@@ -32,11 +32,11 @@ export default function ImagePicker({
     if (file === null) return;
     const reader = new FileReader();
 
-    setFileName(file?.name);
-    setFileType(file?.type);
+    setFileName(file.name);
+    setFileType(file.type);
 
     reader.onload = onReadingCompleted;
-    reader.readAsDataURL(file!);
+    reader.readAsDataURL(file);
   }
 
   function onReadingCompleted(evt: ProgressEvent<FileReader>) {
@@ -74,7 +74,7 @@ export default function ImagePicker({
       </label>
 
       {error && (
-        <div aria-label="iconError" className={errorClassName}>
+        <div role="alert" aria-label="iconError" className={errorClassName}>
           <MdError />
           {error}
         </div>
@@ -82,17 +82,16 @@ export default function ImagePicker({
 
       <footer className="flex flex-col items-center justify-start gap-4 mt-4">
         {srcFile && isImage && (
+          // Es una vista previa local: `srcFile` es un data URL del FileReader, que `next/image`
+          // no puede optimizar. `<img>` es lo correcto aquí.
           // eslint-disable-next-line @next/next/no-img-element
+          // biome-ignore lint/performance/noImgElement: vista previa local con data URL, no optimizable por next/image.
           <img src={srcFile} alt={fileName} className={styles.ImagePreview} />
         )}
 
         {srcFile && isVideo && (
-          <video
-            role="video"
-            controls
-            src={srcFile}
-            className={styles.ImagePreview}
-          >
+          // biome-ignore lint/a11y/useMediaCaption: vista previa del video que acaba de elegir la persona usuaria; no existe pista de subtítulos.
+          <video controls src={srcFile} className={styles.ImagePreview}>
             Tu navegador no soporta HTML5
           </video>
         )}

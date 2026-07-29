@@ -31,6 +31,7 @@ export default function MediaContent({ media, className }: MediaContentProps) {
 
 function VideoContent({ media, className }: MediaContentProps) {
   return (
+    // biome-ignore lint/a11y/useMediaCaption: el video lo sube la comunidad; hoy no se capturan pistas de subtítulos.
     <video
       src={media.url}
       title={media.alt}
@@ -57,6 +58,7 @@ function ImageContent({ media, className }: MediaContentProps) {
 
 function AudioContent({ media, className }: MediaContentProps) {
   return (
+    // biome-ignore lint/a11y/useMediaCaption: el audio lo sube la comunidad; hoy no se capturan pistas de subtítulos.
     <audio
       src={media.url}
       title={media.alt}

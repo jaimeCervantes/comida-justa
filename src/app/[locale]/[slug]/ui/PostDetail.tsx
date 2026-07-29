@@ -14,13 +14,11 @@ import CommentList from "../loadComments/CommentList";
  */
 export default function PostDetail({
   post: postDetails,
-  slug,
   className,
   user,
   locale,
 }: {
   post: Post;
-  slug: string;
   className: string;
   user: PostUser | undefined;
   /** Idioma de la ruta; decide en qué idioma se lee la etiqueta de categoría. */
@@ -36,8 +34,6 @@ export default function PostDetail({
     subCategory: postDetails.subCategory,
     contactInfo: postDetails.contactInfo,
     comments: postDetails.comments,
-    firstVisibleComment: postDetails.firstVisibleComment,
-    lastVisibleComment: postDetails.lastVisibleComment,
     id: postDetails.id,
   };
 
@@ -51,8 +47,6 @@ export default function PostDetail({
     subCategory,
     contactInfo,
     comments,
-    firstVisibleComment,
-    lastVisibleComment,
     id,
   } = details;
 
@@ -84,12 +78,7 @@ export default function PostDetail({
       <section className="whitespace-pre-wrap mt-6">{content}</section>
       <section className="mt-14">
         <Suspense>
-          <CommentList
-            postId={id}
-            slug={slug}
-            user={user}
-            initialComments={comments}
-          />
+          <CommentList postId={id} user={user} initialComments={comments} />
         </Suspense>
       </section>
     </article>

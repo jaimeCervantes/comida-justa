@@ -4,7 +4,6 @@ import { LuSalad } from "react-icons/lu";
 import { auth } from "~/infra/auth";
 import { isAdmin } from "~/infra/auth/isAdmin";
 import { PUBLIC_BRAND_NAME } from "~/infra/constants";
-import { Button } from "~/presentation/design_system/buttons/Button";
 import Avatar from "../Avatar/Avatar";
 import { SignIn, SignOut } from "../auth-buttons";
 import LanguageSwitcher from "../LanguageSwitcher/LanguageSwitcher";
@@ -13,7 +12,7 @@ import SearchBar from "../SearchBar";
 import MobileNav from "./MobileNav";
 import Nav from "./Nav";
 
-export default async function Header({ locale }: { locale: string }) {
+export default async function Header() {
   const session = await auth();
   // El acceso al reporte interno solo se muestra a admins; el gate real está en la página.
   const showAdminLinks = isAdmin(session?.user?.email);

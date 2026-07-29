@@ -3,7 +3,7 @@ import { createPostQueryRepository } from "~/infra/dataAccess/getMultiplePosts";
 import { mapPostsToCards } from "~/infra/UI/mappers/posts/mapPostsToCards";
 
 export async function GET(
-  request: Request,
+  _request: Request,
   { params }: { params: Promise<{ pagination: string[] }> },
 ) {
   const { pagination } = await params;

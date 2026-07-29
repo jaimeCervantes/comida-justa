@@ -26,7 +26,7 @@ export type Post =
         createdAtLocale: string;
         to: string;
       }>)
-  | { [k: string]: any };
+  | { [k: string]: unknown };
 
 export type Comment = {
   id?: string;

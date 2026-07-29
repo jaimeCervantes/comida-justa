@@ -15,6 +15,7 @@
   @apply text-2xl font-extrabold tracking-tight;
 }
 
+/* biome-ignore lint/correctness/noUnknownFunction: `theme()` is a Tailwind v4 function, resolved at build time. */
 @media (width >= theme(--breakpoint-md)) {
   .h1 {
     @apply text-5xl;

@@ -84,7 +84,7 @@
 
   @keyframes shimmer {
     0% {
-      transform: translateX(-100 %);
+      transform: translateX(-100%);
     }
     100% {
       transform: translateX(280%);
@@ -211,7 +211,7 @@
   body {
     background-color: var(--surface-background);
     color: var(--text-base);
-    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }

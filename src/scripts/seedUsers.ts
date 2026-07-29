@@ -1,5 +1,6 @@
+import { resolve } from "node:path";
 import { config } from "dotenv";
-import { resolve } from "path";
+import getErrorMessage from "~/domain/shared/getErrorMessage";
 
 const envPath = resolve(process.cwd(), ".env.development");
 console.log(`Loading env from: ${envPath}`);
@@ -23,7 +24,7 @@ function toDate(value: unknown): Date | null {
   if (typeof value === "number") return new Date(value * 1000);
   if (typeof value === "string") {
     const d = new Date(value);
-    return isNaN(d.getTime()) ? null : d;
+    return Number.isNaN(d.getTime()) ? null : d;
   }
   // Firestore Timestamp object: { _seconds: number, _nanoseconds: number }
   if (
@@ -97,8 +98,10 @@ async function seedUsers() {
         });
 
       insertedUsers++;
-    } catch (err: any) {
-      console.error(`  Error inserting user ${docId}: ${err.message}`);
+    } catch (err) {
+      console.error(
+        `  Error inserting user ${docId}: ${getErrorMessage(err, "error desconocido")}`,
+      );
       skippedUsers++;
     }
   }
@@ -156,8 +159,10 @@ async function seedUsers() {
         });
 
       insertedAccounts++;
-    } catch (err: any) {
-      console.error(`  Error inserting account ${doc.id}: ${err.message}`);
+    } catch (err) {
+      console.error(
+        `  Error inserting account ${doc.id}: ${getErrorMessage(err, "error desconocido")}`,
+      );
       skippedAccounts++;
     }
   }
@@ -216,8 +221,10 @@ async function seedUsers() {
         });
 
       insertedSessions++;
-    } catch (err: any) {
-      console.error(`  Error inserting session ${doc.id}: ${err.message}`);
+    } catch (err) {
+      console.error(
+        `  Error inserting session ${doc.id}: ${getErrorMessage(err, "error desconocido")}`,
+      );
       skippedSessions++;
     }
   }

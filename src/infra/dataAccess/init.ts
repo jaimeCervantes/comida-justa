@@ -10,8 +10,11 @@ export function getFirebaseAdmin() {
         credential: admin.credential.cert(serviceAccount),
         storageBucket: process.env.STORAGE_BUCKET,
       });
-    } catch (error: any) {
-      console.log("Firebase admin initialization error", error?.stack);
+    } catch (error) {
+      console.log(
+        "Firebase admin initialization error",
+        error instanceof Error ? error.stack : error,
+      );
     }
   }
 

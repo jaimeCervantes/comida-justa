@@ -163,6 +163,7 @@ export default function MobileNav({
             </span>
           </Link>
           <button
+            type="button"
             onClick={() => setIsOpen(false)}
             className="p-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
             aria-label="Cerrar menú"
@@ -179,6 +180,7 @@ export default function MobileNav({
                 className="border-b border-gray-100 dark:border-gray-800 last:border-0"
               >
                 <button
+                  type="button"
                   onClick={() => toggleSubmenu(section.title)}
                   className="w-full flex items-center justify-between py-4 text-lg font-medium text-gray-900 dark:text-gray-100"
                 >
@@ -257,6 +259,7 @@ export default function MobileNav({
   return (
     <div className="lg:hidden">
       <button
+        type="button"
         onClick={() => setIsOpen(true)}
         className="p-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
         aria-label="Abrir menú"

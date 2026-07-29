@@ -39,7 +39,7 @@ export const config = {
     signIn: "/auth/signin",
   },
   basePath: process.env.CJ_AUTH_PATH,
-  debug: process.env.NODE_ENV !== "production" ? true : false,
+  debug: process.env.NODE_ENV !== "production",
   logger: {
     error(error: Error) {
       console.error("NextAuth error:", error.message, error.stack);

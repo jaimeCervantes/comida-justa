@@ -35,7 +35,7 @@ export default function FormattedDateComponent({
   }
 
   const dateObject = new Date(isoDateString);
-  if (isNaN(dateObject.getTime())) {
+  if (Number.isNaN(dateObject.getTime())) {
     return null;
   }
   const userLocale = navigator.language;

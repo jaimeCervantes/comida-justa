@@ -4,8 +4,10 @@ import Image from "next/image";
 import { getProviders, signIn } from "next-auth/react";
 import { useEffect, useState } from "react";
 
+type Providers = Awaited<ReturnType<typeof getProviders>>;
+
 export default function SignInPage() {
-  const [providers, setProviders] = useState<Record<string, any> | null>(null);
+  const [providers, setProviders] = useState<Providers>(null);
 
   useEffect(() => {
     getProviders().then((p) => setProviders(p));
@@ -37,6 +39,7 @@ export default function SignInPage() {
               Object.values(providers).map((provider) => (
                 <button
                   key={provider.id}
+                  type="button"
                   onClick={() => signIn(provider.id)}
                   aria-label={`Sign in with ${provider.name}`}
                   className="w-full flex items-center justify-between gap-3 py-3 px-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:shadow-md transition-shadow focus:outline-hidden focus:ring-2 focus:ring-pw-lightgreen/40"
@@ -58,6 +61,8 @@ export default function SignInPage() {
                     </span>
                   </div>
                   <svg
+                    aria-hidden="true"
+                    focusable="false"
                     className="h-5 w-5 text-pw-green"
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"

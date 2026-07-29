@@ -32,7 +32,9 @@ export default class IndexPostEmbeddingUseCase {
   ) {}
 
   async execute(ref: TranslationRef): Promise<IndexPostEmbeddingResult> {
-    let source;
+    let source: Awaited<
+      ReturnType<IPostEmbeddingRepository["findEmbeddingSource"]>
+    >;
     try {
       source = await this.postEmbeddingRepository.findEmbeddingSource(ref);
     } catch (error) {

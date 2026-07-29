@@ -55,7 +55,7 @@ export default class PostgresPostRepository implements IPostRepository {
     return postId;
   }
 
-  async createUniqueSlug(slug: string, lang: string = "es"): Promise<string> {
+  async createUniqueSlug(slug: string, _lang: string = "es"): Promise<string> {
     const rows = await db
       .select({ count: sql<number>`count(*)` })
       .from(postTranslations)

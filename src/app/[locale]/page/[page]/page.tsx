@@ -21,9 +21,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const postRepo = createPostQueryRepository();
   const totalPosts = await postRepo.getTotalPosts();
   const totalPages = Math.ceil(totalPosts / PAGINATION_PAGE_SIZE);
-  const page = parseInt(pageStr);
+  const page = parseInt(pageStr, 10);
   // Si la página no existe, no generamos metadata (notFound se manejará en el componente)
-  if (isNaN(page) || page < 1 || page > totalPages) {
+  if (Number.isNaN(page) || page < 1 || page > totalPages) {
     return {};
   }
 
@@ -56,10 +56,10 @@ async function getPosts(page: number) {
 
 export default async function PaginatedPage({ params }: Props) {
   const { page: pageStr } = await params;
-  const page = parseInt(pageStr);
+  const page = parseInt(pageStr, 10);
 
   // Validar que la página sea válida
-  if (isNaN(page) || page < 1) {
+  if (Number.isNaN(page) || page < 1) {
     notFound();
   }
 

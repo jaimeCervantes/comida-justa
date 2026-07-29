@@ -1,7 +1,7 @@
-import { render, screen } from "@testing-library/react";
+import { render } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useRef } from "react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { TextField } from "./TextField";
 
 describe("When TextField forwarded with an external ref", () => {
@@ -30,7 +30,9 @@ function ForwardedRefInFormWithTextField() {
         required
         pattern="[a-zA-Z]{3,50}"
       />
-      <button onClick={() => ref?.current?.focus()}>focus</button>
+      <button type="button" onClick={() => ref?.current?.focus()}>
+        focus
+      </button>
     </form>
   );
 }

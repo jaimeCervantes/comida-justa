@@ -290,23 +290,17 @@ export default function NosotrosPage() {
             <ul className="space-y-3 text-lg mb-6">
               <li className="flex justify-between border-b border-gray-100 dark:border-gray-800 pb-2">
                 <span>🌾 Natural</span>
-                <span className="font-semibold text-(--highlight)">
-                  $96
-                </span>
+                <span className="font-semibold text-(--highlight)">$96</span>
               </li>
               <li className="flex justify-between border-b border-gray-100 dark:border-gray-800 pb-2">
                 <span className="leading-tight">
                   🌻 Semillas / Hierbas finas / Arándanos / Canela
                 </span>
-                <span className="font-semibold text-(--highlight)">
-                  $125
-                </span>
+                <span className="font-semibold text-(--highlight)">$125</span>
               </li>
               <li className="flex justify-between pb-2">
                 <span>🍫 Chocolate</span>
-                <span className="font-semibold text-(--highlight)">
-                  $136
-                </span>
+                <span className="font-semibold text-(--highlight)">$136</span>
               </li>
             </ul>
             <div className="mt-auto bg-gray-50 dark:bg-gray-900 p-4 rounded-xl text-center text-sm font-medium text-gray-600 dark:text-gray-400">

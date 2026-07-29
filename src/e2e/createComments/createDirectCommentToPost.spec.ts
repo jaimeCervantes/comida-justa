@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { test } from "@playwright/test";
 import { dummyDbUser } from "../dummies/session";
 import { deleteCommentsByPostSlug } from "../testUtils/deleteComments";
 import {

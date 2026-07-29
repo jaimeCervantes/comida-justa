@@ -90,6 +90,7 @@ export default function PostsWithLoadMore({
           <p className="text-gray-500">Cargando más...</p>
         ) : hasMore ? (
           <button
+            type="button"
             onClick={loadMorePosts}
             className="bg-pw-lightgreen text-white px-5 py-2 rounded-full hover:bg-pw-green transition-colors"
           >

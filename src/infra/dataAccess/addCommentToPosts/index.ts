@@ -36,7 +36,7 @@ export async function addCommentToPost(
       successMessage: "Comentario agregado exitosamente",
       comment: newComment,
     };
-  } catch (error: any) {
+  } catch (error) {
     return {
       error,
       errorMessage: "Ocurrió un error al agregar el comentario",
@@ -46,7 +46,7 @@ export async function addCommentToPost(
 
 export async function getMoreComments(
   postId: string,
-  lastVisibleComment: any,
+  lastVisibleComment: unknown,
   pageSize: number = 10,
 ) {
   try {
@@ -56,12 +56,9 @@ export async function getMoreComments(
       .orderBy("createdAt", "desc")
       .limit(pageSize);
 
-    let query;
-    if (lastVisibleComment) {
-      query = commentsRef.startAfter(lastVisibleComment);
-    } else {
-      query = commentsRef;
-    }
+    const query = lastVisibleComment
+      ? commentsRef.startAfter(lastVisibleComment)
+      : commentsRef;
 
     const querySnapshot = await query.get();
 

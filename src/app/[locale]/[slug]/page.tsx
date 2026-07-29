@@ -25,7 +25,6 @@ export default async function Slug({
     <section className="sm:flex sm:gap-4">
       <PostDetail
         post={post}
-        slug={slug}
         className="sm:w-[50%] mb-4"
         user={session?.user as PostUser}
         locale={locale}

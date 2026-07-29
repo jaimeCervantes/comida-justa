@@ -10,12 +10,10 @@ import { createOnLoadMoreComments } from "./createOnLoadMoreComments";
 
 export default function CommentList({
   postId,
-  slug,
   user,
   initialComments,
 }: {
   postId: string;
-  slug: string;
   user: PostUser | undefined;
   initialComments: Comment[];
 }) {
@@ -41,51 +39,50 @@ export default function CommentList({
   return (
     <>
       <h2 className="text-2xl font-bold mb-4">Comentarios</h2>
-      <AddCommentForm postId={postId} slug={slug} user={user} />
+      <AddCommentForm postId={postId} user={user} />
 
       {commentError && <p className="text-red-500 mt-2">{commentError}</p>}
 
-      <div role="list" aria-label="comentarios">
-        {comments?.length > 0 ? (
-          comments.map((comment) => (
-            <article
-              role="roleitem"
-              key={comment.id}
-              className="comment p-4 border-b border-b-slate-700"
-            >
-              <header className="flex gap-4 mb-3">
-                <Avatar user={comment?.user} />
-                <p className="flex flex-col text-sm" rel="author">
-                  {comment.user.name}
-                  <time
-                    dateTime={new Date(comment.createdAt).toISOString()}
-                    className="text-sm text-gray-500"
-                  >
-                    {isClient
-                      ? new Date(comment.createdAt).toLocaleString()
-                      : ""}
-                  </time>
-                </p>
-              </header>
-              <section className="whitespace-pre-wrap">
-                {comment.content}
-              </section>
-            </article>
-          ))
-        ) : (
-          <p>No hay comentarios aún.</p>
-        )}
+      {comments?.length > 0 ? (
+        <ul aria-label="comentarios">
+          {comments.map((comment) => (
+            <li key={comment.id}>
+              <article className="comment p-4 border-b border-b-slate-700">
+                <header className="flex gap-4 mb-3">
+                  <Avatar user={comment?.user} />
+                  <p className="flex flex-col text-sm" rel="author">
+                    {comment.user.name}
+                    <time
+                      dateTime={new Date(comment.createdAt).toISOString()}
+                      className="text-sm text-gray-500"
+                    >
+                      {isClient
+                        ? new Date(comment.createdAt).toLocaleString()
+                        : ""}
+                    </time>
+                  </p>
+                </header>
+                <section className="whitespace-pre-wrap">
+                  {comment.content}
+                </section>
+              </article>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p>No hay comentarios aún.</p>
+      )}
 
-        <button
-          onClick={onLoadMoreComments}
-          className="mt-4 bg-blue-500 text-white px-4 py-2 rounded-sm"
-          disabled={loading}
-        >
-          {loading ? "Cargando más comentarios..." : "Cargar más comentarios"}
-        </button>
+      <button
+        type="button"
+        onClick={onLoadMoreComments}
+        className="mt-4 bg-blue-500 text-white px-4 py-2 rounded-sm"
+        disabled={loading}
+      >
+        {loading ? "Cargando más comentarios..." : "Cargar más comentarios"}
+      </button>
 
-        {loadMoreMessage && <p className="mt-2">{loadMoreMessage}</p>}
-      </div>
+      {loadMoreMessage && <p className="mt-2">{loadMoreMessage}</p>}
     </>
   );
 }

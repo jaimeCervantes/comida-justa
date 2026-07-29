@@ -8,8 +8,9 @@ import {
 import { DEFAULT_POST_KIND, type PostKind } from "~/domain/entities/post/kind";
 import { resolveOriginForUser } from "~/domain/entities/post/origin";
 import PostEntity from "~/domain/entities/post/Post";
-import { Post, type User } from "~/domain/entities/post/types";
+import type { User } from "~/domain/entities/post/types";
 import PostValidator from "~/domain/schemas/PostValidator";
+import getErrorMessage from "~/domain/shared/getErrorMessage";
 import { auth } from "~/infra/auth";
 import { isAdmin } from "~/infra/auth/isAdmin";
 import { SIGNIN_PATH } from "~/infra/constants";
@@ -51,7 +52,7 @@ function indexAfterResponse(postId: string): void {
 }
 
 export async function createPost(
-  prevState: ActionState,
+  _prevState: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
   const session = await auth();
@@ -100,7 +101,7 @@ export async function createPost(
     return { errors: errors, success: false, id: null, slug: null };
   }
 
-  let result;
+  let result: Awaited<ReturnType<typeof useCase.execute>>;
   try {
     result = await useCase.execute({
       title,
@@ -122,13 +123,16 @@ export async function createPost(
       },
       user: session?.user as User,
     });
-  } catch (err: any) {
+  } catch (err) {
+    const genericMessage =
+      "Sucedio un error al tratar de crear tu publicación. No eres tu, soy yo, tu servidor :(.";
+
     return {
       errors: {
         errorMessage:
           process.env.NODE_ENV === "development"
-            ? err?.message
-            : "Sucedio un error al tratar de crear tu publicación. No eres tu, soy yo, tu servidor :(.",
+            ? getErrorMessage(err, genericMessage)
+            : genericMessage,
       },
       id: null,
       slug: null,

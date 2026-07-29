@@ -126,7 +126,7 @@ test.describe("When a publication was left pending because the provider failed",
     expect(pendingBefore.map((ref) => ref.postId)).toContain(snapshot?.postId);
 
     const result = await createIndexPostEmbeddingUseCase().execute({
-      postId: snapshot!.postId,
+      postId: snapshot?.postId,
       locale: "es",
     });
 

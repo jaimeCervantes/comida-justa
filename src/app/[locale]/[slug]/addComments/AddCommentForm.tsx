@@ -7,12 +7,10 @@ import { addCommentToPost } from "../data-access/actions"; // Función para agre
 
 export default function AddCommentForm({
   postId,
-  slug,
   user,
   onAdd,
 }: {
   postId: string;
-  slug: string;
   user: PostUser | undefined;
   onAdd?: () => void;
 }) {

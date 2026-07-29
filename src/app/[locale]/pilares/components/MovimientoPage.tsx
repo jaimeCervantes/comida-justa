@@ -1,5 +1,3 @@
-import React from "react";
-
 export default function MovimientoPage() {
   return (
     <article className="">

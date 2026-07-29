@@ -14,6 +14,7 @@ export function FieldLabel({
   ...props
 }: FieldLabelProps) {
   return (
+    // biome-ignore lint/a11y/noLabelWithoutControl: componente genérico del design system; quien lo usa pasa `htmlFor` vía props.
     <label
       className={cn(
         "block text-sm font-medium text-text-base mb-1.5",

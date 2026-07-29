@@ -134,11 +134,10 @@ const SearchBar: React.FC<SearchBarProps> = ({ placeholder = "Buscar..." }) => {
             <div className="p-2 text-center text-gray-500">Sin resultados</div>
           ) : (
             <ul>
-              {results.map((result, idx) => (
+              {results.map((result, _idx) => (
                 <li
                   key={result.id}
                   className={`p-3 border-b last:border-b-0 border-gray-100 dark:border-gray-700 cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-gray-800 focus:bg-gray-100 dark:focus:bg-gray-700 outline-hidden`}
-                  tabIndex={0}
                   onMouseDown={() =>
                     router.push(`/${result.translations?.es.slug}`)
                   }
@@ -151,6 +150,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ placeholder = "Buscar..." }) => {
             </ul>
           )}
           <button
+            type="button"
             className="w-full text-left p-3 border-t border-gray-100 dark:border-pw-gray text-pw-green hover:bg-gray-50 dark:hover:bg-pw-gray font-semibold"
             onMouseDown={handleSeeAll}
           >

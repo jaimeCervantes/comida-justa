@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";
+import getErrorMessage from "~/domain/shared/getErrorMessage";
 import { auth } from "~/infra/auth";
 import { getFirebaseAdmin } from "~/infra/dataAccess/init";
 
 export async function POST(req: Request) {
   const session = await auth();
-  if (!session || !session.user) {
+  if (!session?.user) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   }
 
@@ -30,7 +31,15 @@ export async function POST(req: Request) {
 
     const publicUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(path)}?alt=media&token=${token}`;
     return NextResponse.json({ publicUrl });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error) {
+    return NextResponse.json(
+      {
+        error: getErrorMessage(
+          error,
+          "Algo salió mal al generar la URL pública del archivo",
+        ),
+      },
+      { status: 500 },
+    );
   }
 }

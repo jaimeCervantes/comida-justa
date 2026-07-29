@@ -1,4 +1,3 @@
-import React from "react";
 import CardForList from "~/infra/UI/components/CardForList/CardForList";
 import Pagination from "~/infra/UI/components/Pagination";
 import { mapPostsToCards } from "~/infra/UI/mappers/posts/mapPostsToCards";
@@ -39,7 +38,7 @@ export default async function SearchPage({
       )}
       {term && cards.length === 0 && <div>No se encontraron resultados.</div>}
       <section className="grid grid-flow-dense gap-4 pt-6 max-sm:grid-cols-[repeat(auto-fill,minmax(300px,1fr))] sm:grid-cols-[repeat(auto-fill,minmax(300px,1fr))]">
-        {cards.map((card: any) => (
+        {cards.map((card) => (
           <CardForList key={card.id} {...card} />
         ))}
       </section>

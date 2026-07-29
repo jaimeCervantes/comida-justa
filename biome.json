@@ -14,7 +14,8 @@
       "!dist",
       "!build",
       "!storybook-static",
-      "!docs"
+      "!docs",
+      "!**/*.svg"
     ]
   },
   "formatter": {

@@ -1,5 +1,4 @@
 import Link from "next/link";
-import React from "react";
 import { PILLARS, pillarColorClasses } from "./pilaresData";
 
 export default function PilaresOverviewPage() {

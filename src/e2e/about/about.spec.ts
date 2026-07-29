@@ -24,7 +24,7 @@ test.describe("When a visitor looks for what Hazlo Sano is", () => {
     const redirect = await page.request.get("/info", { maxRedirects: 0 });
 
     expect(redirect.status()).toBe(308);
-    expect(redirect.headers()["location"]).toBe("/nosotros");
+    expect(redirect.headers().location).toBe("/nosotros");
 
     await page.goto("/info");
     await aboutPage.expectOnAboutPage();

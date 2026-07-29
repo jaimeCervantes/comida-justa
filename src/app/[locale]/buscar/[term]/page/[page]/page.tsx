@@ -1,4 +1,3 @@
-import React from "react";
 import CardForList from "~/infra/UI/components/CardForList/CardForList";
 import Pagination from "~/infra/UI/components/Pagination";
 import { mapPostsToCards } from "~/infra/UI/mappers/posts/mapPostsToCards";
@@ -18,7 +17,7 @@ export default async function SearchPage({
   params: Promise<{ term: string; page: string }>;
 }) {
   const { term, page } = await params;
-  const pageInt = parseInt(page);
+  const pageInt = parseInt(page, 10);
   const pageSize = 6;
   const data = term
     ? await fetchResults(term, pageInt, pageSize)
@@ -43,7 +42,7 @@ export default async function SearchPage({
         </div>
       )}
       <section className="grid gap-8 pt-2 pb-10 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {cards.map((card: any) => (
+        {cards.map((card) => (
           <CardForList key={card.id} {...card} />
         ))}
       </section>

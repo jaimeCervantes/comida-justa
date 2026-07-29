@@ -7,8 +7,8 @@
 :root {
   /* --- Base brand palette (theme-independent) --- */
   --brand-green: #538f39;
-  --brand-lightgreen: #5DBF17;
-  --brand-lightorange: #F2B705;
+  --brand-lightgreen: #5dbf17;
+  --brand-lightorange: #f2b705;
   --brand-orange: #f0380e;
   --brand-gray: #334155;
   --brand-black: #000000;
@@ -32,7 +32,7 @@
   --button-primary-bg: var(--brand-green);
   --button-primary-text: var(--brand-white);
   --button-primary-hover: #43742e;
-  
+
   --button-secondary-bg: var(--brand-gray);
   --button-secondary-text: var(--brand-white);
   --button-secondary-hover: #1e293b;
@@ -94,4 +94,3 @@
   --color-feedback-warning: var(--feedback-warning);
   --color-feedback-error: var(--feedback-error);
 }
-
