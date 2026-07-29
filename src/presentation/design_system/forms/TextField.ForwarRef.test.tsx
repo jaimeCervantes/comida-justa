@@ -2,8 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useRef } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { TextFieldRefType } from "./TextField";
-import TextField from "./TextField";
+import { TextField } from "./TextField";
 
 describe("When TextField forwarded with an external ref", () => {
   it("Then it should be focus when it is loaded in a form", async () => {
@@ -13,7 +12,7 @@ describe("When TextField forwarded with an external ref", () => {
 
     await user.click(btn);
 
-    const field = view.getByRole("textbox", { name: "Nombre" });
+    const field = view.getByRole("textbox", { name: /Nombre/i });
     expect(field).toHaveFocus();
   });
 });

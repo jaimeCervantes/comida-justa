@@ -2,7 +2,7 @@ import { cleanup, render } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { HiMail } from "react-icons/hi";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import TextField from "./TextField";
+import { TextField } from "./TextField";
 
 describe("When TextField is rendered", () => {
   afterEach(() => {
@@ -59,7 +59,7 @@ describe("When TextField is rendered", () => {
       />,
     );
 
-    const field = view.getByLabelText("Nombre");
+    const field = view.getByRole("textbox", { name: /Nombre/i });
     await userEvent.type(field, "Jaime");
 
     expect(spy).toHaveBeenCalled();
@@ -81,7 +81,7 @@ describe("When TextField is rendered", () => {
       </form>,
     );
 
-    const field = view.getByLabelText("Nombre");
+    const field = view.getByRole("textbox", { name: /Nombre/i });
     await user.type(field, "Jaime");
 
     expect(spy).toHaveBeenCalled();
@@ -157,7 +157,7 @@ describe("When TextField is rendered", () => {
       </form>,
     );
 
-    const field = view.getByLabelText("Nombre");
+    const field = view.getByRole("textbox", { name: /Nombre/i });
     await user.type(field, "Jaime");
 
     expect(spy).toHaveBeenCalled();

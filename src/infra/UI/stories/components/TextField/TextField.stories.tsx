@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { FaUser } from "react-icons/fa";
 import { expect, fn, userEvent, within } from "storybook/test";
-import TextField from "~/infra/UI/components/TextField";
+import { TextField } from "~/presentation/design_system/forms/TextField";
 
 const meta = {
   component: TextField,

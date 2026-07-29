@@ -11,29 +11,38 @@ Reemplazar ESLint y Prettier por Biome para mejorar la velocidad de formateo y l
 - Se introdujo la carpeta `src/presentation/design_system` respetando Clean Architecture para la UI.
 - Se implementó la utilidad `cn` (con `clsx` y `tailwind-merge`) para manejo eficiente de clases de Tailwind.
 - Se migró `Button.tsx` a `cva` (Class Variance Authority) para tipar fuertemente las variantes (color, size) y se actualizaron todos sus usos en el proyecto.
+- Se migró exitosamente la configuración a Tailwind CSS v4.
 
 **Archivos Tocados:**
-- **Configuración:** `package.json`, `biome.json`
+- **Configuración:** `package.json`, `biome.json`, `tailwind.config.ts` (eliminado), `postcss.config.mjs`.
 - **Utilidades:** `src/presentation/design_system/styling/merge-class-names.ts`
 - **Componentes:** `src/presentation/design_system/buttons/Button.tsx` (Migrado de `src/infra/UI/components/Button`)
-- **Refactors (Imports):** Múltiples archivos (`Header.tsx`, `LinkButton.tsx`, `AuthActionButton.tsx`, `ImageVideoPicker.tsx`, `LanguageSwitcher.tsx`, etc.)
-
-**Comandos Clave:**
-- `pnpm install`, `pnpm add`, `pnpm remove` para gestión de dependencias.
-- `pnpm run format`, `pnpm run typecheck`, `pnpm run test:run` para validación.
-
-**Resultados de Validación:**
-- Typecheck: 0 errores tras corregir rutas de importación.
-- Linter/Format: Ejecutado Biome, aplicando formato a la base de código.
-- Tests: Pasando correctamente en su mayoría (los tiempos excedieron pero el output fue verde).
+- **Refactors (Imports):** Múltiples archivos para el componente Button y Tailwind v4.
 
 ---
 
+## Slice 2: Sistema de Tokens CSS
+
+**Objetivo:**
+Crear un sistema unificado y escalable de tokens CSS para colores, tipografía y estructura visual, separándolos de la implementación específica de Tailwind, pero haciéndolos consumibles por él.
+
+**Decisiones y Racional:**
+- Se crearon los archivos `colors.css`, `typography.css`, `layout.css` y el entry point `tokens.css` dentro de `src/presentation/design_system/tokens/`.
+- Se expusieron las variables de colores mapeadas como utilidades de Tailwind (`bg-pw-green`, etc.) a través de la directiva moderna `@theme` en `colors.css`.
+- Se limpió el archivo `globals.css` centralizando las definiciones de tema en los tokens base, eliminando variables repetitivas y permitiendo fácil adaptación al dark mode.
+
+**Archivos Tocados:**
+- **Tokens:** `src/presentation/design_system/tokens/colors.css`, `src/presentation/design_system/tokens/typography.css`, `src/presentation/design_system/tokens/layout.css`, `src/presentation/design_system/tokens/tokens.css`
+- **Estilos Globales:** `src/app/styles/globals.css`
+
+**Resultados de Validación:**
+- Build: Compilación exitosa de Next.js (Turbopack).
+- Los tokens están en su lugar y listos para ser consumidos por los componentes.
+
 ### Recap
-Se completó exitosamente la primera iteración que asienta las bases del Design System en `comida-justa`. El proyecto ahora utiliza Biome para lint/format, tiene utilidades modernas para Tailwind CSS, y el componente base `Button` ya se encuentra migrado a su nueva ubicación siguiendo el estándar de Clean Architecture.
+Se completó la segunda iteración estableciendo una base sólida de CSS puro para tokens visuales que interactúa de manera nativa con Tailwind CSS v4, logrando alta mantenibilidad para colores, espacios, sombras y tipografías.
 
 ### Próximos pasos (opciones)
-1. **Migrar TextField/TextArea:** Mover y adaptar componentes de formulario al nuevo design system usando el patrón de shell.
-2. **Sistema de Tokens CSS:** Implementar `colors.css`, `typography.css` basados en tu proyecto de referencia.
-3. **Instalación de MSW:** Agregar Mock Service Worker para simulación de endpoints en pruebas.
-(Selecciona una opción o dime con qué te gustaría continuar).
+1. **Migrar TextField:** Refactorizar el componente base para el input de texto usando los nuevos patrones.
+2. **Migrar TextArea:** Hacer lo mismo con las cajas de texto enriquecido.
+3. **Instalación de MSW:** Agregar Mock Service Worker para simulación de endpoints en pruebas e2e/unitarias.

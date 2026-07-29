@@ -4,7 +4,7 @@ import type React from "react";
 import { useEffect, useRef, useState } from "react";
 import { MdSearch } from "react-icons/md";
 import type { Post } from "~/domain/entities/post/types";
-import TextField from "./TextField/TextField";
+import { TextField } from "~/presentation/design_system/forms/TextField";
 
 interface SearchResult extends Post {
   id: string;
