@@ -52,8 +52,8 @@
 
     /* --- Semantic: surfaces --- */
     --surface-background: #0d0d0d;
-    --surface-elevation-1: #1e293b;
-    --surface-elevation-2: #0f172a;
+    --surface-elevation-1: #334155;
+    --surface-elevation-2: #1e293b;
 
     /* --- Structure --- */
     --separator: #334155;
@@ -63,6 +63,14 @@
 
 /* Expose to Tailwind v4 as utility classes */
 @theme {
+  --color-brand-green: var(--brand-green);
+  --color-brand-lightgreen: var(--brand-lightgreen);
+  --color-brand-lightorange: var(--brand-lightorange);
+  --color-brand-orange: var(--brand-orange);
+  --color-brand-gray: var(--brand-gray);
+  --color-brand-black: var(--brand-black);
+  --color-brand-white: var(--brand-white);
+
   --color-pw-green: var(--brand-green);
   --color-pw-lightgreen: var(--brand-lightgreen);
   --color-pw-lightorange: var(--brand-lightorange);
@@ -70,5 +78,20 @@
   --color-pw-gray: var(--brand-gray);
   --color-pw-black: var(--brand-black);
   --color-pw-white: var(--brand-white);
+
+  --color-text-base: var(--text-base);
+  --color-text-inverse: var(--text-inverse);
+  --color-text-support: var(--text-support);
+
+  --color-surface-background: var(--surface-background);
+  --color-surface-elevation-1: var(--surface-elevation-1);
+  --color-surface-elevation-2: var(--surface-elevation-2);
+
+  --color-border: var(--border);
+  --color-separator: var(--separator);
+
+  --color-feedback-success: var(--feedback-success);
+  --color-feedback-warning: var(--feedback-warning);
+  --color-feedback-error: var(--feedback-error);
 }
 

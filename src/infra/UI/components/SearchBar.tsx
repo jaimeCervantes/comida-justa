@@ -108,8 +108,8 @@ const SearchBar: React.FC<SearchBarProps> = ({ placeholder = "Buscar..." }) => {
         type="search"
         autoComplete="off"
         icon={<MdSearch className="text-xl text-gray-400" />}
-        className="rounded-full border border-gray-300 focus:border-pw-green focus:ring-2 focus:ring-pw-green bg-white dark:bg-pw-gray"
-        containerClassName=""
+        shellClassName="rounded-full h-10"
+        className=""
         name="search"
       />
       {showDropdown && (

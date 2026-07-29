@@ -12,7 +12,7 @@ export const inputShellClassName = cva(
   {
     variants: {
       state: {
-        idle: "border-border [&>svg:first-child]:text-text-support focus-within:border-brand-green focus-within:ring-1 focus-within:ring-brand-green",
+        idle: "border-border [&>svg:first-child]:text-text-support focus-within:border-pw-green focus-within:ring-1 focus-within:ring-pw-green",
         error: "border-feedback-error [&>svg:first-child]:text-feedback-error focus-within:ring-1 focus-within:ring-feedback-error",
         disabled: "border-border opacity-50 bg-surface-elevation-2 [&>svg:first-child]:text-text-support cursor-not-allowed",
       },

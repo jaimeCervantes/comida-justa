@@ -68,7 +68,7 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(function 
           "w-full rounded-md px-3 py-2 text-text-base border bg-surface-elevation-1 transition-colors duration-fast ease-standard outline-none placeholder:text-text-support disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-surface-elevation-2",
           hasError
             ? "border-feedback-error focus-visible:ring-1 focus-visible:ring-feedback-error"
-            : "border-border focus-visible:border-brand-green focus-visible:ring-1 focus-visible:ring-brand-green",
+            : "border-border focus-visible:border-pw-green focus-visible:ring-1 focus-visible:ring-pw-green",
           className
         )}
         {...props}

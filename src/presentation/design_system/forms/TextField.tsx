@@ -27,6 +27,7 @@ export type TextFieldProps = Omit<ComponentPropsWithRef<"input">, "id"> & {
   /** Legacy prop support */
   isInvalid?: boolean;
   containerClassName?: string;
+  shellClassName?: string;
 };
 
 export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function TextField(
@@ -44,6 +45,7 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function T
     required,
     className,
     containerClassName,
+    shellClassName,
     isInvalid,
     ...props
   },
@@ -70,6 +72,7 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function T
         state={state}
         leadingIcon={actualLeadingIcon}
         trailingAdornment={actualTrailingAdornment}
+        className={shellClassName}
       >
         <input
           ref={ref}
