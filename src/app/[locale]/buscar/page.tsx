@@ -1,6 +1,6 @@
 import React from "react";
 import CardForList from "~/infra/UI/components/CardForList/CardForList";
-import { mapPostsToCards } from "~/infra/UI/mappers/posts/mapPostsToCards";
+import { mapPostsToCardsForLocale } from "~/infra/UI/mappers/posts/mapPostsToCardsForLocale";
 import Pagination from "~/infra/UI/components/Pagination";
 
 async function fetchResults(q: string, page: number, pageSize: number) {
@@ -26,7 +26,7 @@ export default async function SearchPage({
   const data = q
     ? await fetchResults(q, pageInt, pageSize)
     : { results: [], total: 0 };
-  const cards = mapPostsToCards(data.results || []);
+  const cards = await mapPostsToCardsForLocale(data.results || [], locale);
   const totalPages = Math.ceil((data.total || 0) / pageSize);
 
   return (

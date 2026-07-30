@@ -1,10 +1,20 @@
 import type { Post } from "~/infra/types/Posts";
+import { labelFor, type CategoryTaxonomy } from "~/domain/entities/post/taxonomy";
 import { createAbsoluteUrl } from "../createAbsoluteUrl";
 
-export function mapPostsToCards(posts: Post[]) {
-  return posts.map((item: Post) => {
-    return mapOnePostToCard(item);
-  });
+/**
+ * Lo que hace falta para pintar una tarjeta en el idioma del visitante.
+ *
+ * La etiqueta se resuelve **aquí, en el servidor**, y viaja como dato: `CardForList` se renderiza
+ * también dentro de un árbol cliente (`PostsWithLoadMore`), donde no hay forma de leer la base.
+ */
+export interface CardMappingContext {
+  locale: string;
+  taxonomy: CategoryTaxonomy;
+}
+
+export function mapPostsToCards(posts: Post[], context: CardMappingContext) {
+  return posts.map((item: Post) => mapOnePostToCard(item, context));
 }
 
 function normalizeCreatedAt(value: unknown): string {
@@ -20,7 +30,7 @@ function normalizeCreatedAt(value: unknown): string {
   return "";
 }
 
-export function mapOnePostToCard(item: Post) {
+export function mapOnePostToCard(item: Post, context: CardMappingContext) {
   const slug =
     item.translations?.es?.slug ??
     `${item.translations?.es?.title?.toLowerCase()?.replace(/\s/g, "-")}-${
@@ -34,8 +44,13 @@ export function mapOnePostToCard(item: Post) {
     price: item.price,
     kind: item.kind,
     origin: item.origin ?? null,
+    // Las claves se conservan para filtros y analítica; para pintar se usa `categoryLabel`.
     category: item.category ?? null,
     subCategory: item.subCategory ?? null,
+    /** La sub-categoría gana sobre la categoría por ser la más específica. */
+    categoryLabel:
+      labelFor(context.taxonomy, item.subCategory, context.locale) ??
+      labelFor(context.taxonomy, item.category, context.locale),
     content: item.translations?.es?.content ?? item.content,
     media: item.media,
     createdAt: normalizeCreatedAt(item.createdAt),

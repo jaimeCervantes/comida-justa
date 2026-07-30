@@ -1,6 +1,16 @@
 import { createPostQueryRepository } from "~/infra/dataAccess/getMultiplePosts";
-import { mapPostsToCards } from "~/infra/UI/mappers/posts/mapPostsToCards";
+import { mapPostsToCardsForLocale } from "~/infra/UI/mappers/posts/mapPostsToCardsForLocale";
 import { PAGINATION_INIT_PAGE, PAGINATION_PAGE_SIZE } from "~/infra/constants";
+import { routing } from "~/i18n/routing";
+
+/** El scroll infinito manda el idioma para que la página 2 no vuelva al español. */
+function getLocale(request: Request): string {
+  const requested = new URL(request.url).searchParams.get("locale");
+
+  return requested && (routing.locales as readonly string[]).includes(requested)
+    ? requested
+    : routing.defaultLocale;
+}
 
 export async function GET(
   request: Request,
@@ -14,7 +24,7 @@ export async function GET(
 
     const result = await postRepo.getMultiplePosts(page, pageSize);
 
-    const posts = mapPostsToCards(result.posts);
+    const posts = await mapPostsToCardsForLocale(result.posts, getLocale(request));
     const json: string = JSON.stringify({
       posts: posts,
       nextPage: result.nextPage,

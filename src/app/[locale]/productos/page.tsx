@@ -8,9 +8,15 @@ export async function generateMetadata(): Promise<Metadata> {
   return buildProductsMetadata();
 }
 
-export default async function ProductosPage() {
+export default async function ProductosPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
   const { products, totalPages } = await getHazloSanoProducts(
     PAGINATION_INIT_PAGE,
+    locale,
   );
 
   return (

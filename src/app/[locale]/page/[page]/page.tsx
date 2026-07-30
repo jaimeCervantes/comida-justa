@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import Link from "next/link";
 import { createPostQueryRepository } from "~/infra/dataAccess/getMultiplePosts";
-import { mapPostsToCards } from "~/infra/UI/mappers/posts/mapPostsToCards";
+import { mapPostsToCardsForLocale } from "~/infra/UI/mappers/posts/mapPostsToCardsForLocale";
 import { Post } from "~/infra/types/Posts";
 import { notFound } from "next/navigation";
 import { PAGINATION_INIT_PAGE, PAGINATION_PAGE_SIZE } from "~/infra/constants";
@@ -9,7 +9,7 @@ import CardForList from "~/infra/UI/components/CardForList/CardForList";
 import { CANONICAL_URL, PUBLIC_BRAND_NAME } from "~/infra/constants";
 
 type Props = {
-  params: Promise<{ page: string }>;
+  params: Promise<{ locale: string; page: string }>;
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -37,7 +37,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-async function getPosts(page: number) {
+async function getPosts(page: number, locale: string) {
   const pageNum = Math.max(PAGINATION_INIT_PAGE, page);
   const postRepo = createPostQueryRepository();
 
@@ -45,13 +45,13 @@ async function getPosts(page: number) {
 
   return {
     ...result,
-    posts: mapPostsToCards(result.posts),
+    posts: await mapPostsToCardsForLocale(result.posts, locale),
     totalPages: Math.ceil(result.total / PAGINATION_PAGE_SIZE),
   };
 }
 
 export default async function PaginatedPage({ params }: Props) {
-  const { page: pageStr } = await params;
+  const { page: pageStr, locale } = await params;
   const page = parseInt(pageStr);
 
   // Validar que la página sea válida
@@ -59,7 +59,7 @@ export default async function PaginatedPage({ params }: Props) {
     notFound();
   }
 
-  const { posts, totalPages, nextPage, prevPage } = await getPosts(page);
+  const { posts, totalPages, nextPage, prevPage } = await getPosts(page, locale);
 
   // Si la página no tiene contenido y está fuera de rango, mostrar 404
   if (posts.length === 0 && page > 1 && page > totalPages) {

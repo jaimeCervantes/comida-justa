@@ -12,11 +12,14 @@ export default function PostsWithLoadMore({
   totalPosts,
   initialPage = PAGINATION_INIT_PAGE,
   totalPages = Math.ceil(totalPosts / PAGINATION_PAGE_SIZE),
+  locale,
 }: {
   initialPosts: Post[];
   totalPosts: number;
   initialPage?: number;
   totalPages: number;
+  /** Viaja al endpoint para que las páginas siguientes traigan la etiqueta en el mismo idioma. */
+  locale: string;
 }) {
   const [posts, setPosts] = useState<Post[]>(initialPosts);
   const [loading, setLoading] = useState(false);
@@ -32,7 +35,7 @@ export default function PostsWithLoadMore({
       const nextPage = currentPage + 1;
 
       const response = await fetch(
-        `/api/posts/page/${nextPage}/pageSize/${PAGINATION_PAGE_SIZE}`,
+        `/api/posts/page/${nextPage}/pageSize/${PAGINATION_PAGE_SIZE}?locale=${encodeURIComponent(locale)}`,
       );
       const data = await response.json();
 
@@ -48,7 +51,7 @@ export default function PostsWithLoadMore({
     } finally {
       setLoading(false);
     }
-  }, [currentPage, hasMore, loading]);
+  }, [currentPage, hasMore, loading, locale]);
 
   useEffect(() => {
     if (!loaderRef.current || !hasMore) return;

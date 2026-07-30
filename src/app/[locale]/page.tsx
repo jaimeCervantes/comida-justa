@@ -4,7 +4,7 @@ import { getTranslations } from "next-intl/server";
 import { hasLocale } from "next-intl";
 import { routing } from "~/i18n/routing";
 import { createPostQueryRepository } from "~/infra/dataAccess/getMultiplePosts";
-import { mapPostsToCards } from "~/infra/UI/mappers/posts/mapPostsToCards";
+import { mapPostsToCardsForLocale } from "~/infra/UI/mappers/posts/mapPostsToCardsForLocale";
 import PostsWithLoadMore from "~/app/(home)/PostsWithLoadMore";
 import {
   CANONICAL_URL,
@@ -39,7 +39,7 @@ export async function generateMetadata({
   };
 }
 
-async function getPosts() {
+async function getPosts(locale: string) {
   const postRepo = createPostQueryRepository();
 
   const result = await postRepo.getMultiplePosts(
@@ -47,7 +47,10 @@ async function getPosts() {
     PAGINATION_PAGE_SIZE,
   );
 
-  return { ...result, posts: mapPostsToCards(result.posts) };
+  return {
+    ...result,
+    posts: await mapPostsToCardsForLocale(result.posts, locale),
+  };
 }
 
 export default async function Inicio({
@@ -57,7 +60,7 @@ export default async function Inicio({
 }) {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "home" });
-  const { posts, total, totalPages } = await getPosts();
+  const { posts, total, totalPages } = await getPosts(locale);
 
   return (
     <main className="">
@@ -71,6 +74,7 @@ export default async function Inicio({
         initialPosts={posts}
         totalPosts={total}
         totalPages={totalPages}
+        locale={locale}
       />
     </main>
   );

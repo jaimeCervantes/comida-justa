@@ -17,9 +17,7 @@ export default function CardForList(props: Post) {
     user,
     to,
     origin,
-    category,
-    subCategory,
-    locale,
+    categoryLabel,
   } = props;
   const anchorProps = { href: to, title: title };
 
@@ -40,11 +38,7 @@ export default function CardForList(props: Post) {
     >
       <span className="flex flex-wrap items-center gap-2 mt-1">
         <ProvenanceBadge origin={origin} />
-        <CategoryTag
-          category={category}
-          subCategory={subCategory}
-          locale={locale}
-        />
+        <CategoryTag label={categoryLabel} />
       </span>
 
       <CurrencyAmount

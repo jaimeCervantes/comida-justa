@@ -1,5 +1,5 @@
 import { createPostQueryRepository } from "~/infra/dataAccess/getMultiplePosts";
-import { mapPostsToCards } from "~/infra/UI/mappers/posts/mapPostsToCards";
+import { mapPostsToCardsForLocale } from "~/infra/UI/mappers/posts/mapPostsToCardsForLocale";
 import { PAGINATION_INIT_PAGE, PAGINATION_PAGE_SIZE } from "~/infra/constants";
 import type { Post } from "~/infra/types/Posts";
 
@@ -15,6 +15,7 @@ export type ProductsPageData = {
  */
 export async function getHazloSanoProducts(
   page: number,
+  locale: string,
 ): Promise<ProductsPageData> {
   const pageNum = Math.max(PAGINATION_INIT_PAGE, page);
   const postRepo = createPostQueryRepository();
@@ -25,7 +26,7 @@ export async function getHazloSanoProducts(
   );
 
   return {
-    products: mapPostsToCards(result.posts),
+    products: await mapPostsToCardsForLocale(result.posts, locale),
     totalPages: result.totalPages,
     total: result.total,
   };

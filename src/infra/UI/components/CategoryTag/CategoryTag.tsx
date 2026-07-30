@@ -1,35 +1,15 @@
-import type {
-  PostCategory,
-  PostSubCategory,
-} from "~/domain/entities/post/category";
-import {
-  categoryLabel,
-  subCategoryLabel,
-} from "~/infra/UI/labels/postCategoryLabels";
-
 type CategoryTagProps = {
-  category?: string | null;
-  subCategory?: string | null;
-  /** Idioma del visitante; sin él se usa el idioma por defecto del sitio. */
-  locale?: string;
+  /**
+   * La etiqueta ya resuelta al idioma del visitante. La taxonomía vive en la base, y este
+   * componente se renderiza también dentro de un árbol cliente, así que la traducción la hace el
+   * servidor (`mapPostsToCards`, `PostDetail`) y aquí solo llega el texto.
+   */
+  label?: string | null;
   className?: string;
 };
 
-/**
- * Etiqueta visible de la categoría de un producto. La BD guarda la clave (`jugos`), así que el
- * texto se resuelve por idioma aquí; si la publicación no tiene categoría no renderiza nada.
- * Cuando hay sub-categoría se muestra esa, por ser la más específica.
- */
-export default function CategoryTag({
-  category,
-  subCategory,
-  locale,
-  className = "",
-}: CategoryTagProps) {
-  const label =
-    subCategoryLabel(subCategory as PostSubCategory | null, locale) ??
-    categoryLabel(category as PostCategory | null, locale);
-
+/** Sin etiqueta no se pinta nada: una publicación sin categoría no lleva chip vacío. */
+export default function CategoryTag({ label, className = "" }: CategoryTagProps) {
   if (!label) return null;
 
   return (

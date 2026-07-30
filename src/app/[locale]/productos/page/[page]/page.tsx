@@ -10,7 +10,7 @@ import {
 import ProductsList from "../../ui/ProductsList";
 
 type Props = {
-  params: Promise<{ page: string }>;
+  params: Promise<{ locale: string; page: string }>;
 };
 
 function parsePage(value: string): number | null {
@@ -26,14 +26,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function ProductosPaginatedPage({ params }: Props) {
-  const { page: pageStr } = await params;
+  const { page: pageStr, locale } = await params;
   const page = parsePage(pageStr);
 
   if (!page) {
     notFound();
   }
 
-  const { products, totalPages } = await getHazloSanoProducts(page);
+  const { products, totalPages } = await getHazloSanoProducts(page, locale);
 
   if (products.length === 0 && page > 1) {
     notFound();

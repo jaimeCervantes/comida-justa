@@ -8,12 +8,14 @@ import type { PostUser } from "~/infra/types/Posts";
 import MediaContent from "~/infra/UI/components/MediaContent/MediaContent";
 import ProvenanceBadge from "~/infra/UI/components/ProvenanceBadge";
 import CategoryTag from "~/infra/UI/components/CategoryTag/CategoryTag";
+import { labelFor } from "~/domain/entities/post/taxonomy";
+import { getCategoryTaxonomy } from "~/infra/dataAccess/categories/cachedCategoryTaxonomy";
 
 /**
  * Presenta una publicación ya cargada. La búsqueda (y el 404 si no existe) vive en la página,
  * fuera de cualquier `<Suspense>`, para que el status HTTP sea el correcto.
  */
-export default function PostDetail({
+export default async function PostDetail({
   post: postDetails,
   slug,
   className,
@@ -57,16 +59,17 @@ export default function PostDetail({
     id,
   } = details;
 
+  // La sub-categoría gana sobre la categoría por ser la más específica.
+  const taxonomy = await getCategoryTaxonomy();
+  const categoryLabel =
+    labelFor(taxonomy, subCategory, locale) ?? labelFor(taxonomy, category, locale);
+
   return (
     <article className={className}>
       <h1 className="text-3xl mb-4">{title}</h1>
       <p className="flex flex-wrap items-center gap-2 mb-4">
         <ProvenanceBadge origin={origin} />
-        <CategoryTag
-          category={category}
-          subCategory={subCategory}
-          locale={locale}
-        />
+        <CategoryTag label={categoryLabel} />
       </p>
       <MediaContent media={media} className="h-auto mb-4" />
       <p className="flex items-center mb-2">

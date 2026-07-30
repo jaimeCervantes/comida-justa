@@ -2,36 +2,30 @@ import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
 import CategoryTag from "./CategoryTag";
 
+/**
+ * El componente es tonto a propósito: la taxonomía vive en la base y esto se renderiza también
+ * dentro de un árbol cliente, así que la traducción la hace el servidor. Lo que antes se probaba
+ * aquí —el locale y las claves fuera del catálogo— vive ahora en `mapPostsToCards.test.ts` y
+ * `taxonomy.test.ts`.
+ */
 describe("CategoryTag", () => {
-  it("shows the sub-category label in the visitor's locale", () => {
-    render(<CategoryTag subCategory="jugos" locale="en" />);
+  it("shows the label it was given", () => {
+    render(<CategoryTag label="Juices" />);
 
     expect(screen.getByTestId("category-tag")).toHaveTextContent("Juices");
   });
 
-  it("defaults to Spanish when no locale is given", () => {
-    render(<CategoryTag subCategory="panaderia" />);
+  // Escenario "The category is optional in this slice" (@slice-1 del catálogo unificado)
+  describe.each([
+    [null, "a publication with no category"],
+    [undefined, "no label prop at all"],
+    ["", "an empty label"],
+  ])("with %j", (label, reason) => {
+    it(`renders nothing — ${reason}`, () => {
+      const { container } = render(<CategoryTag label={label} />);
 
-    expect(screen.getByTestId("category-tag")).toHaveTextContent("Panadería");
-  });
-
-  it("falls back to the category when there is no sub-category", () => {
-    render(<CategoryTag category="alimentacion" locale="es" />);
-
-    expect(screen.getByTestId("category-tag")).toHaveTextContent("Alimentación");
-  });
-
-  // Escenario "The category is optional in this slice" (@slice-1)
-  it("renders nothing when the publication has no category", () => {
-    const { container } = render(<CategoryTag />);
-
-    expect(container).toBeEmptyDOMElement();
-    expect(screen.queryByTestId("category-tag")).toBeNull();
-  });
-
-  it("renders nothing for a key outside the allowlist", () => {
-    const { container } = render(<CategoryTag subCategory="postres" />);
-
-    expect(container).toBeEmptyDOMElement();
+      expect(container).toBeEmptyDOMElement();
+      expect(screen.queryByTestId("category-tag")).toBeNull();
+    });
   });
 });
