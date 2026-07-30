@@ -11,6 +11,13 @@ if (process.env.NODE_ENV === "production") {
   dotenv.config({ path: ".env.development" });
 }
 /**
+ * Puerto de la suite. Se puede mover con `E2E_PORT` cuando 3000 está ocupado por otro proyecto:
+ * `E2E_PORT=3100 pnpm run test:e2e:run`.
+ */
+const PORT = Number(process.env.E2E_PORT ?? 3000);
+const BASE_URL = `http://localhost:${PORT}`;
+
+/**
  * See https://playwright.dev/docs/test-configuration.
  */
 export default defineConfig({
@@ -29,7 +36,16 @@ export default defineConfig({
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
-    baseURL: "http://localhost:3000",
+    baseURL: BASE_URL,
+
+    /**
+     * El sitio decide el idioma por `Accept-Language` y Chromium pide `en-US`, así que sin esto la
+     * suite entera corría en inglés: el proxy de next-intl redirigía `/` a `/en` y `/nosotros` a
+     * `/en/nosotros`, mientras los escenarios afirman textos en español ("Nosotros", "Publicar",
+     * "Título de la publicación"). Se fija el idioma por defecto del sitio para que la suite pruebe
+     * lo que dice probar; los escenarios que comparan idiomas piden su locale en la ruta.
+     */
+    locale: "es-MX",
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: "on-first-retry",
@@ -73,10 +89,23 @@ export default defineConfig({
     // },
   ],
 
-  /* Run your local dev server before starting the tests */
+  /**
+   * Run your local dev server before starting the tests.
+   *
+   * `reuseExistingServer` está en `false` a propósito: con `true`, si otro proyecto ya servía en
+   * este puerto, Playwright lo adoptaba y corría la suite entera contra la aplicación equivocada
+   * — 15 escenarios en rojo sin ninguna pista, porque el fallo se ve como "no encuentro el
+   * elemento" y no como "esta no es tu app". Arrancar siempre el servidor propio cuesta unos
+   * segundos y hace la suite hermética.
+   *
+   * `NEXT_PUBLIC_BASE_URL` sigue al puerto: las páginas de búsqueda lo usan para llamar a
+   * `/api/search` desde el servidor, y si apunta a otro puerto la petición se va al vacío.
+   */
   webServer: {
-    command: "pnpm run dev",
-    url: "http://localhost:3000",
-    reuseExistingServer: !process.env.CI,
+    command: `pnpm exec next dev --port ${PORT}`,
+    url: BASE_URL,
+    reuseExistingServer: false,
+    env: { NEXT_PUBLIC_BASE_URL: BASE_URL },
+    timeout: 180_000,
   },
 });
