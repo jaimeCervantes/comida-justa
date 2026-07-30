@@ -13,43 +13,56 @@ interface SearchBarProps {
   placeholder?: string;
 }
 
+/** Debajo de este largo no se busca, salvo que el usuario cierre una palabra con espacio. */
+const MIN_QUERY_LENGTH = 3;
+
+const DEBOUNCE_MS = 500;
+
+/**
+ * El resultado de una búsqueda, junto con la consulta que lo produjo.
+ *
+ * Guardar `forQuery` es lo que permite saber si lo que hay en pantalla corresponde a lo que el
+ * usuario tiene escrito **sin** una bandera `loading` aparte: si no coinciden, hay una petición en
+ * vuelo. `items: null` significa que la petición falló.
+ */
+type SearchOutcome = {
+  forQuery: string;
+  items: SearchResult[] | null;
+};
+
 const SearchBar: React.FC<SearchBarProps> = ({ placeholder = "Buscar..." }) => {
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState<SearchResult[]>([]);
-  const [showDropdown, setShowDropdown] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [outcome, setOutcome] = useState<SearchOutcome>({
+    forQuery: "",
+    items: [],
+  });
+  /**
+   * La consulta que el usuario descartó (clic afuera o "ver todos"). Se guarda la consulta y no un
+   * booleano para que el descarte caduque solo al seguir escribiendo, sin un efecto que lo reinicie.
+   */
+  const [dismissedFor, setDismissedFor] = useState<string | null>(null);
   const router = useRouter();
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
+  // Todo lo que sigue se deriva de `query` y `outcome`: nada de esto necesita estado propio, y
+  // calcularlo en un efecto provocaba renders en cascada.
+  const trimmed = query.trim();
+  const endsWithSpace = query.endsWith(" ");
+  const shouldSearch =
+    trimmed.length > 0 && (endsWithSpace || trimmed.length >= MIN_QUERY_LENGTH);
+  /** Lo que hay en `outcome` corresponde a lo que está escrito. */
+  const isSettled = outcome.forQuery === query;
+  const loading = shouldSearch && !isSettled;
+  const failed = isSettled && outcome.items === null;
+  const results = isSettled && outcome.items ? outcome.items : [];
+  // Un fallo esconde el desplegable, igual que antes: no se le muestra "Sin resultados" a alguien
+  // cuya búsqueda nunca llegó a ejecutarse.
+  const showDropdown = shouldSearch && dismissedFor !== query && !failed;
+
   useEffect(() => {
-    if (!query) {
-      setResults([]);
-      setShowDropdown(false);
-      return;
-    }
+    if (!shouldSearch || isSettled) return;
 
-    // Rules: only search when length >= 3, or when user completes a word (space)
-    const trimmed = query.trim();
-    const lastCharIsSpace = query.endsWith(" ");
-    const minLen = 3;
-
-    const shouldSearchNow = () => {
-      if (trimmed.length === 0) return false;
-      if (lastCharIsSpace && trimmed.length >= 1) return true; // search by-word when user types a space
-      return trimmed.length >= minLen;
-    };
-
-    if (!shouldSearchNow()) {
-      setResults([]);
-      setShowDropdown(false);
-      return;
-    }
-
-    setLoading(true);
-    // show the dropdown immediately so the skeleton is visible while fetching
-    setShowDropdown(true);
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    let active = true;
 
     const doFetch = async () => {
       try {
@@ -57,27 +70,27 @@ const SearchBar: React.FC<SearchBarProps> = ({ placeholder = "Buscar..." }) => {
           `/api/search?q=${encodeURIComponent(query)}&limit=5`,
         );
         const data = await res.json();
-        setResults(data.results || []);
-        setShowDropdown(true);
+        if (active) setOutcome({ forQuery: query, items: data.results || [] });
       } catch {
-        setResults([]);
-        setShowDropdown(false);
-      } finally {
-        setLoading(false);
+        if (active) setOutcome({ forQuery: query, items: null });
       }
     };
 
-    // If user just typed a space, run search immediately (word boundary), otherwise debounce
-    if (lastCharIsSpace) {
+    // Cerrar una palabra con espacio es una señal deliberada: se busca ya, sin esperar el debounce.
+    if (endsWithSpace) {
       doFetch();
-    } else {
-      timeoutRef.current = setTimeout(doFetch, 500);
+      return () => {
+        active = false;
+      };
     }
 
+    const timer = setTimeout(doFetch, DEBOUNCE_MS);
+
     return () => {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      active = false;
+      clearTimeout(timer);
     };
-  }, [query]);
+  }, [query, shouldSearch, isSettled, endsWithSpace]);
 
   // Hide dropdown when clicking outside
   useEffect(() => {
@@ -86,15 +99,15 @@ const SearchBar: React.FC<SearchBarProps> = ({ placeholder = "Buscar..." }) => {
         wrapperRef.current &&
         !wrapperRef.current.contains(event.target as Node)
       ) {
-        setShowDropdown(false);
+        setDismissedFor(query);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  }, [query]);
 
   const handleSeeAll = () => {
-    setShowDropdown(false);
+    setDismissedFor(query);
     router.push(`/search?q=${encodeURIComponent(query)}`);
   };
 
@@ -133,7 +146,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ placeholder = "Buscar..." }) => {
             <div className="p-2 text-center text-gray-500">Sin resultados</div>
           ) : (
             <ul>
-              {results.map((result, idx) => (
+              {results.map((result) => (
                 <li
                   key={result.id}
                   className={`p-3 border-b last:border-b-0 border-gray-100 dark:border-gray-700 cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-gray-800 focus:bg-gray-100 dark:focus:bg-gray-700 outline-none`}
