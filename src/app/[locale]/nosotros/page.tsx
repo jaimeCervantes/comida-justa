@@ -19,7 +19,7 @@ export default function NosotrosPage() {
       </header>
 
       {/* 1. Ecosistema Hazlo Sano / Chatbot */}
-      <section className="bg-blue-50 dark:bg-blue-900/30 border border-blue-100 dark:border-blue-800 rounded-3xl p-8 sm:p-10 shadow-sm relative overflow-hidden">
+      <section className="bg-blue-50 dark:bg-blue-900/30 border border-blue-100 dark:border-blue-800 rounded-3xl p-8 sm:p-10 shadow-xs relative overflow-hidden">
         <div className="relative z-10 flex flex-col sm:flex-row items-center sm:items-start sm:justify-between gap-8">
           <div className="space-y-6 flex-1">
             <div className="space-y-4">
@@ -29,7 +29,7 @@ export default function NosotrosPage() {
                   alt="Logo Hazlo Sano"
                   width={100}
                   height={100}
-                  className="hover:scale-105 transition-transform flex-shrink-0"
+                  className="hover:scale-105 transition-transform shrink-0"
                   priority
                 />
                 <h2 className="text-3xl sm:text-4xl font-bold text-blue-900 dark:text-blue-100">
@@ -74,7 +74,7 @@ export default function NosotrosPage() {
             </div>
           </div>
 
-          <div className="flex-shrink-0 mt-2 sm:mt-0 sm:self-end">
+          <div className="shrink-0 mt-2 sm:mt-0 sm:self-end">
             <a
               href="https://t.me/HazloSanoBot"
               target="_blank"
@@ -110,7 +110,7 @@ export default function NosotrosPage() {
         </div>
 
         <div className="grid sm:grid-cols-2 gap-6">
-          <ul className="space-y-4 bg-white dark:bg-[#1a1a1a] p-6 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm">
+          <ul className="space-y-4 bg-white dark:bg-[#1a1a1a] p-6 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-xs">
             <li className="flex items-start gap-3 text-lg">
               <span className="mt-1">✅</span>
               <div>
@@ -217,18 +217,18 @@ export default function NosotrosPage() {
             industriales. Es pan vivo. Es pan que nutre. ✨
           </p>
 
-          <div className="bg-orange-50/80 dark:bg-orange-950/30 p-5 rounded-2xl text-orange-900 dark:text-orange-200 border border-orange-200/60 dark:border-orange-900/40 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="bg-orange-50/80 dark:bg-orange-950/30 p-5 rounded-2xl text-orange-900 dark:text-orange-200 border border-orange-200/60 dark:border-orange-900/40 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <p>
               📍 Hazlo Sano es <strong>punto de venta oficial</strong> del pan
               elaborado por{" "}
               <strong className="font-bold">MMNaturalmente</strong>.
             </p>
-            <div className="flex flex-shrink-0 items-center justify-start gap-4 font-medium text-sm">
+            <div className="flex shrink-0 items-center justify-start gap-4 font-medium text-sm">
               <a
                 href="https://www.instagram.com/mmnaturalmente/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="bg-white dark:bg-[#1a1a1a] px-3 py-1.5 rounded-full shadow-sm hover:shadow-md hover:text-orange-600 dark:hover:text-orange-400 border border-orange-100 dark:border-orange-900/50 transition-all flex items-center gap-1.5"
+                className="bg-white dark:bg-[#1a1a1a] px-3 py-1.5 rounded-full shadow-xs hover:shadow-md hover:text-orange-600 dark:hover:text-orange-400 border border-orange-100 dark:border-orange-900/50 transition-all flex items-center gap-1.5"
               >
                 📸 Instagram
               </a>
@@ -236,7 +236,7 @@ export default function NosotrosPage() {
                 href="https://www.facebook.com/profile.php?id=61575188279449"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="bg-white dark:bg-[#1a1a1a] px-3 py-1.5 rounded-full shadow-sm hover:shadow-md hover:text-blue-600 dark:hover:text-blue-400 border border-orange-100 dark:border-orange-900/50 transition-all flex items-center gap-1.5"
+                className="bg-white dark:bg-[#1a1a1a] px-3 py-1.5 rounded-full shadow-xs hover:shadow-md hover:text-blue-600 dark:hover:text-blue-400 border border-orange-100 dark:border-orange-900/50 transition-all flex items-center gap-1.5"
               >
                 🔵 Facebook
               </a>
@@ -283,30 +283,24 @@ export default function NosotrosPage() {
             </div>
           </div>
 
-          <div className="bg-white dark:bg-[#1a1a1a] p-6 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm flex flex-col justify-center">
+          <div className="bg-white dark:bg-[#1a1a1a] p-6 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-xs flex flex-col justify-center">
             <h4 className="text-lg font-bold mb-4 text-gray-900 dark:text-white">
               🛒 Variedades (Hogaza de 1 kg)
             </h4>
             <ul className="space-y-3 text-lg mb-6">
               <li className="flex justify-between border-b border-gray-100 dark:border-gray-800 pb-2">
                 <span>🌾 Natural</span>
-                <span className="font-semibold text-[var(--highlight)]">
-                  $96
-                </span>
+                <span className="font-semibold text-(--highlight)">$96</span>
               </li>
               <li className="flex justify-between border-b border-gray-100 dark:border-gray-800 pb-2">
                 <span className="leading-tight">
                   🌻 Semillas / Hierbas finas / Arándanos / Canela
                 </span>
-                <span className="font-semibold text-[var(--highlight)]">
-                  $125
-                </span>
+                <span className="font-semibold text-(--highlight)">$125</span>
               </li>
               <li className="flex justify-between pb-2">
                 <span>🍫 Chocolate</span>
-                <span className="font-semibold text-[var(--highlight)]">
-                  $136
-                </span>
+                <span className="font-semibold text-(--highlight)">$136</span>
               </li>
             </ul>
             <div className="mt-auto bg-gray-50 dark:bg-gray-900 p-4 rounded-xl text-center text-sm font-medium text-gray-600 dark:text-gray-400">
@@ -364,7 +358,7 @@ export default function NosotrosPage() {
             href="https://www.tiktok.com/@hazlosano"
             target="_blank"
             rel="noopener noreferrer"
-            className="bg-black dark:bg-zinc-800 hover:bg-gray-800 hover:dark:bg-zinc-700 text-white px-6 py-3 rounded-full font-medium transition-all flex items-center gap-2"
+            className="bg-black dark:bg-zinc-800 hover:bg-gray-800 dark:hover:bg-zinc-700 text-white px-6 py-3 rounded-full font-medium transition-all flex items-center gap-2"
           >
             TikTok
           </a>
@@ -384,13 +378,13 @@ export default function NosotrosPage() {
           </span>
           <a
             href="https://hazlosano.com"
-            className="text-[var(--highlight)] hover:underline"
+            className="text-(--highlight) hover:underline"
           >
             hazlosano.com
           </a>
           <a
             href="https://restaurante.hazlosano.com"
-            className="text-[var(--highlight)] hover:underline"
+            className="text-(--highlight) hover:underline"
           >
             restaurante.hazlosano.com
           </a>

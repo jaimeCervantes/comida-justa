@@ -1,7 +1,7 @@
 "use server";
 
-import { PostgresCommentRepository } from "~/infra/dataAccess/comments/PostgresCommentRepository";
 import { COMMENTS_PAGE_SIZE } from "~/infra/constants";
+import { PostgresCommentRepository } from "~/infra/dataAccess/comments/PostgresCommentRepository";
 import type { PostUser } from "~/infra/types/Posts";
 
 const commentRepo = new PostgresCommentRepository();

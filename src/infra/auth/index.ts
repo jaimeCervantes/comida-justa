@@ -1,13 +1,13 @@
-import NextAuth from "next-auth";
+import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import type { NextAuthConfig } from "next-auth";
+import NextAuth from "next-auth";
 import createGoogleProvider from "next-auth/providers/google";
 import createMicrosoftEntraIDProvider from "next-auth/providers/microsoft-entra-id";
-import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { db } from "~/infra/dataAccess/db/connection";
 import {
-  users,
   accounts,
   sessions,
+  users,
   verificationTokens,
 } from "~/infra/dataAccess/db/schema/auth";
 
@@ -39,7 +39,7 @@ export const config = {
     signIn: "/auth/signin",
   },
   basePath: process.env.CJ_AUTH_PATH,
-  debug: process.env.NODE_ENV !== "production" ? true : false,
+  debug: process.env.NODE_ENV !== "production",
   logger: {
     error(error: Error) {
       console.error("NextAuth error:", error.message, error.stack);

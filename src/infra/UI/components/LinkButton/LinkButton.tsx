@@ -1,8 +1,10 @@
 "use client";
 
-import Button from "~/infra/UI/components/Button/Button";
-import type { ButtonProps } from "~/infra/UI/components/Button/types";
 import { useRouter } from "next/navigation";
+import {
+  Button,
+  type ButtonProps,
+} from "~/presentation/design_system/buttons/Button";
 
 type LinkButtonProps = ButtonProps & {
   href: string;

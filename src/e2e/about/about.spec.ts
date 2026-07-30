@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import AboutPage from "./AboutPage";
 
 // Slice 1 — `/info` became `/nosotros` and entered the main menu.
@@ -24,7 +24,7 @@ test.describe("When a visitor looks for what Hazlo Sano is", () => {
     const redirect = await page.request.get("/info", { maxRedirects: 0 });
 
     expect(redirect.status()).toBe(308);
-    expect(redirect.headers()["location"]).toBe("/nosotros");
+    expect(redirect.headers().location).toBe("/nosotros");
 
     await page.goto("/info");
     await aboutPage.expectOnAboutPage();

@@ -1,6 +1,6 @@
-import { describe, it, expect } from "vitest";
-import { validateNewCategory } from "./newCategory";
+import { describe, expect, it } from "vitest";
 import { makeTaxonomy } from "./__fixtures__/categoryTaxonomy";
+import { validateNewCategory } from "./newCategory";
 
 const taxonomy = makeTaxonomy();
 
@@ -28,7 +28,9 @@ describe("validateNewCategory", () => {
       ["   ", "solo espacios"],
     ])("%j", (key, reason) => {
       it(`is required — ${reason}`, () => {
-        expect(validateNewCategory(taxonomy, { ...valid, key }).key).toBeDefined();
+        expect(
+          validateNewCategory(taxonomy, { ...valid, key }).key,
+        ).toBeDefined();
       });
     });
 
@@ -42,22 +44,25 @@ describe("validateNewCategory", () => {
       ["conservas_", "termina con guion bajo"],
     ])("%j", (key, reason) => {
       it(`is rejected — ${reason}`, () => {
-        expect(validateNewCategory(taxonomy, { ...valid, key }).key).toBeDefined();
+        expect(
+          validateNewCategory(taxonomy, { ...valid, key }).key,
+        ).toBeDefined();
       });
     });
 
     it("accepts a compound key with an underscore", () => {
       expect(
-        validateNewCategory(taxonomy, { ...valid, key: "conservas_caseras" }).key,
+        validateNewCategory(taxonomy, { ...valid, key: "conservas_caseras" })
+          .key,
       ).toBeUndefined();
     });
 
     // Renombrar una clave existente cascadea a las publicaciones; crear una repetida no debe
     // parecerse a eso ni por accidente.
     it("rejects a key the catalog already has", () => {
-      expect(validateNewCategory(taxonomy, { ...valid, key: "jugos" }).key).toMatch(
-        /ya existe/i,
-      );
+      expect(
+        validateNewCategory(taxonomy, { ...valid, key: "jugos" }).key,
+      ).toMatch(/ya existe/i);
     });
 
     it("rejects it even if the existing one is inactive", () => {
@@ -78,14 +83,16 @@ describe("validateNewCategory", () => {
   describe("the parent", () => {
     it("must exist in the catalog", () => {
       expect(
-        validateNewCategory(taxonomy, { ...valid, parentKey: "ferreteria" }).parentKey,
+        validateNewCategory(taxonomy, { ...valid, parentKey: "ferreteria" })
+          .parentKey,
       ).toBeDefined();
     });
 
     // El catálogo es de dos niveles: colgar de una hoja lo rompería, y el trigger lo rechazaría.
     it("cannot be a sub-category", () => {
       expect(
-        validateNewCategory(taxonomy, { ...valid, parentKey: "jugos" }).parentKey,
+        validateNewCategory(taxonomy, { ...valid, parentKey: "jugos" })
+          .parentKey,
       ).toMatch(/dos niveles/i);
     });
 
@@ -118,8 +125,10 @@ describe("validateNewCategory", () => {
 
     it("rejects a Spanish label made only of whitespace", () => {
       expect(
-        validateNewCategory(taxonomy, { ...valid, labels: { es: "   ", en: "" } })
-          .labelEs,
+        validateNewCategory(taxonomy, {
+          ...valid,
+          labels: { es: "   ", en: "" },
+        }).labelEs,
       ).toBeDefined();
     });
   });

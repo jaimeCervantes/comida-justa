@@ -1,5 +1,5 @@
+import { resolve } from "node:path";
 import { config } from "dotenv";
-import { resolve } from "path";
 
 config({ path: resolve(process.cwd(), ".env.development") });
 
@@ -46,7 +46,9 @@ async function verifyEmbeddingSpace(): Promise<void> {
 
   const { sql } = await import("drizzle-orm");
   const { db } = await import("~/infra/dataAccess/db/connection");
-  const { buildEmbeddingText } = await import("~/domain/entities/post/embedding");
+  const { buildEmbeddingText } = await import(
+    "~/domain/entities/post/embedding"
+  );
   const { createPostEmbeddingRepository } = await import(
     "~/infra/dataAccess/indexPostEmbedding/factory"
   );
@@ -69,7 +71,9 @@ async function verifyEmbeddingSpace(): Promise<void> {
   }>;
 
   if (rows.length === 0) {
-    console.error("No hay traducciones indexadas por el bot contra las que comparar.");
+    console.error(
+      "No hay traducciones indexadas por el bot contra las que comparar.",
+    );
     process.exit(1);
   }
 
@@ -85,7 +89,9 @@ async function verifyEmbeddingSpace(): Promise<void> {
 
     if (!source) continue;
 
-    const regenerated = await service.generateEmbedding(buildEmbeddingText(source));
+    const regenerated = await service.generateEmbedding(
+      buildEmbeddingText(source),
+    );
     results.push({
       title: row.title,
       similarity: cosineSimilarity(parseVector(row.embedding), regenerated),
@@ -102,10 +108,13 @@ async function verifyEmbeddingSpace(): Promise<void> {
 
   const worst = Math.min(...results.map((result) => result.similarity));
   const average =
-    results.reduce((sum, result) => sum + result.similarity, 0) / results.length;
+    results.reduce((sum, result) => sum + result.similarity, 0) /
+    results.length;
 
   console.log(`\nComparadas ${results.length} publicaciones.`);
-  console.log(`Similitud media: ${average.toFixed(4)} — peor caso: ${worst.toFixed(4)}`);
+  console.log(
+    `Similitud media: ${average.toFixed(4)} — peor caso: ${worst.toFixed(4)}`,
+  );
 
   if (worst < SIMILARITY_FLOOR) {
     console.error(

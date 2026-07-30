@@ -1,7 +1,7 @@
+import { routing } from "~/i18n/routing";
+import { PAGINATION_INIT_PAGE, PAGINATION_PAGE_SIZE } from "~/infra/constants";
 import { createPostQueryRepository } from "~/infra/dataAccess/getMultiplePosts";
 import { mapPostsToCardsForLocale } from "~/infra/UI/mappers/posts/mapPostsToCardsForLocale";
-import { PAGINATION_INIT_PAGE, PAGINATION_PAGE_SIZE } from "~/infra/constants";
-import { routing } from "~/i18n/routing";
 
 /** El scroll infinito manda el idioma para que la página 2 no vuelva al español. */
 function getLocale(request: Request): string {
@@ -17,14 +17,17 @@ export async function GET(
   { params }: { params: Promise<{ pagination: string[] }> },
 ) {
   const { pagination } = await params;
-  let { page, pageSize } = getSlugParams(pagination);
+  const { page, pageSize } = getSlugParams(pagination);
 
   try {
     const postRepo = createPostQueryRepository();
 
     const result = await postRepo.getMultiplePosts(page, pageSize);
 
-    const posts = await mapPostsToCardsForLocale(result.posts, getLocale(request));
+    const posts = await mapPostsToCardsForLocale(
+      result.posts,
+      getLocale(request),
+    );
     const json: string = JSON.stringify({
       posts: posts,
       nextPage: result.nextPage,

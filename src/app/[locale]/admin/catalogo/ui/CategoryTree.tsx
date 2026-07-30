@@ -65,7 +65,9 @@ function Row({ node, nested }: { node: CategoryNode; nested?: boolean }) {
  * activarlas desde aquí y haría falta entrar a la base.
  */
 export default function CategoryTree({ nodes }: CategoryTreeProps) {
-  const roots = nodes.filter((node) => node.parentKey === null).sort(byCatalogOrder);
+  const roots = nodes
+    .filter((node) => node.parentKey === null)
+    .sort(byCatalogOrder);
 
   return (
     <ul className="mb-8">

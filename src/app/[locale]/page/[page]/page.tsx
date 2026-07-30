@@ -1,12 +1,16 @@
-import { Metadata } from "next";
+import type { Metadata } from "next";
 import Link from "next/link";
-import { createPostQueryRepository } from "~/infra/dataAccess/getMultiplePosts";
-import { mapPostsToCardsForLocale } from "~/infra/UI/mappers/posts/mapPostsToCardsForLocale";
-import { Post } from "~/infra/types/Posts";
 import { notFound } from "next/navigation";
-import { PAGINATION_INIT_PAGE, PAGINATION_PAGE_SIZE } from "~/infra/constants";
+import {
+  CANONICAL_URL,
+  PAGINATION_INIT_PAGE,
+  PAGINATION_PAGE_SIZE,
+  PUBLIC_BRAND_NAME,
+} from "~/infra/constants";
+import { createPostQueryRepository } from "~/infra/dataAccess/getMultiplePosts";
+import type { Post } from "~/infra/types/Posts";
 import CardForList from "~/infra/UI/components/CardForList/CardForList";
-import { CANONICAL_URL, PUBLIC_BRAND_NAME } from "~/infra/constants";
+import { mapPostsToCardsForLocale } from "~/infra/UI/mappers/posts/mapPostsToCardsForLocale";
 
 type Props = {
   params: Promise<{ locale: string; page: string }>;
@@ -17,9 +21,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const postRepo = createPostQueryRepository();
   const totalPosts = await postRepo.getTotalPosts();
   const totalPages = Math.ceil(totalPosts / PAGINATION_PAGE_SIZE);
-  const page = parseInt(pageStr);
+  const page = parseInt(pageStr, 10);
   // Si la página no existe, no generamos metadata (notFound se manejará en el componente)
-  if (isNaN(page) || page < 1 || page > totalPages) {
+  if (Number.isNaN(page) || page < 1 || page > totalPages) {
     return {};
   }
 
@@ -52,14 +56,17 @@ async function getPosts(page: number, locale: string) {
 
 export default async function PaginatedPage({ params }: Props) {
   const { page: pageStr, locale } = await params;
-  const page = parseInt(pageStr);
+  const page = parseInt(pageStr, 10);
 
   // Validar que la página sea válida
-  if (isNaN(page) || page < 1) {
+  if (Number.isNaN(page) || page < 1) {
     notFound();
   }
 
-  const { posts, totalPages, nextPage, prevPage } = await getPosts(page, locale);
+  const { posts, totalPages, nextPage, prevPage } = await getPosts(
+    page,
+    locale,
+  );
 
   // Si la página no tiene contenido y está fuera de rango, mostrar 404
   if (posts.length === 0 && page > 1 && page > totalPages) {
@@ -73,7 +80,7 @@ export default async function PaginatedPage({ params }: Props) {
         al mismo tiempo que apoyas al medio ambiente y a tu comunidad?
       </h1>
 
-      <section className="grid grid-flow-dense gap-4 pt-6 max-sm:grid-cols-[repeat(auto-fill,_minmax(300px,_1fr))] sm:grid-cols-[repeat(auto-fill,_minmax(300px,_1fr))]">
+      <section className="grid grid-flow-dense gap-4 pt-6 max-sm:grid-cols-[repeat(auto-fill,minmax(300px,1fr))] sm:grid-cols-[repeat(auto-fill,minmax(300px,1fr))]">
         {posts.length === 0 ? (
           <p>No hay comidas publicadas en esta página.</p>
         ) : (

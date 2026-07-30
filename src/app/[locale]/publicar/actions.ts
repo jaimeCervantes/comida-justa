@@ -1,20 +1,21 @@
 "use server";
-import { auth } from "~/infra/auth";
 import { redirect } from "next/navigation";
 import { after } from "next/server";
-import { ActionState } from "~/infra/types/Actions";
-import { SIGNIN_PATH } from "~/infra/constants";
-import PostEntity from "~/domain/entities/post/Post";
-import { Post, User } from "~/domain/entities/post/types";
-import CreateOnePostUseCase from "~/use_cases/createOnePost/createOnePostUseCase";
-import PostValidator from "~/domain/schemas/PostValidator";
-import { createPostRepository } from "~/infra/dataAccess/createOnePost/factory";
-import { isAdmin } from "~/infra/auth/isAdmin";
-import { resolveOriginForUser } from "~/domain/entities/post/origin";
 import { DEFAULT_POST_KIND, type PostKind } from "~/domain/entities/post/kind";
+import { resolveOriginForUser } from "~/domain/entities/post/origin";
+import PostEntity from "~/domain/entities/post/Post";
 import { resolveKeyStrict } from "~/domain/entities/post/taxonomy";
+import type { User } from "~/domain/entities/post/types";
+import PostValidator from "~/domain/schemas/PostValidator";
+import getErrorMessage from "~/domain/shared/getErrorMessage";
+import { auth } from "~/infra/auth";
+import { isAdmin } from "~/infra/auth/isAdmin";
+import { SIGNIN_PATH } from "~/infra/constants";
 import { getCategoryTaxonomy } from "~/infra/dataAccess/categories/cachedCategoryTaxonomy";
+import { createPostRepository } from "~/infra/dataAccess/createOnePost/factory";
 import { createIndexPostEmbeddingUseCase } from "~/infra/dataAccess/indexPostEmbedding/factory";
+import type { ActionState } from "~/infra/types/Actions";
+import CreateOnePostUseCase from "~/use_cases/createOnePost/createOnePostUseCase";
 
 const useCase = new CreateOnePostUseCase(
   new PostValidator(),
@@ -49,7 +50,7 @@ function indexAfterResponse(postId: string): void {
 }
 
 export async function createPost(
-  prevState: ActionState,
+  _prevState: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
   const session = await auth();
@@ -74,7 +75,10 @@ export async function createPost(
 
   // Fuera del catálogo se ignora (queda `null`) en vez de romper la publicación.
   const taxonomy = await getCategoryTaxonomy();
-  const category = resolveKeyStrict(taxonomy, formData.get("category") as string);
+  const category = resolveKeyStrict(
+    taxonomy,
+    formData.get("category") as string,
+  );
   const requestedSubCategory = resolveKeyStrict(
     taxonomy,
     formData.get("subCategory") as string,
@@ -83,7 +87,8 @@ export async function createPost(
   // Una sub-categoría que no cuelga de la categoría elegida la rechaza el FK compuesto de `posts`.
   // Se descarta aquí para que el formulario no reviente con un 500 por una combinación imposible.
   const subCategory =
-    category && taxonomy.nodes.get(requestedSubCategory ?? "")?.parentKey === category
+    category &&
+    taxonomy.nodes.get(requestedSubCategory ?? "")?.parentKey === category
       ? requestedSubCategory
       : null;
 
@@ -109,7 +114,7 @@ export async function createPost(
     return { errors: errors, success: false, id: null, slug: null };
   }
 
-  let result;
+  let result: Awaited<ReturnType<typeof useCase.execute>>;
   try {
     result = await useCase.execute({
       title,
@@ -131,13 +136,16 @@ export async function createPost(
       },
       user: session?.user as User,
     });
-  } catch (err: any) {
+  } catch (err) {
+    const genericMessage =
+      "Sucedio un error al tratar de crear tu publicación. No eres tu, soy yo, tu servidor :(.";
+
     return {
       errors: {
         errorMessage:
           process.env.NODE_ENV === "development"
-            ? err?.message
-            : "Sucedio un error al tratar de crear tu publicación. No eres tu, soy yo, tu servidor :(.",
+            ? getErrorMessage(err, genericMessage)
+            : genericMessage,
       },
       id: null,
       slug: null,

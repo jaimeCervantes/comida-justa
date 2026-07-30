@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
+import { useState } from "react";
 
 interface useStorageUpload {
   directory?: string;
@@ -22,21 +22,21 @@ export default function useStorageUpload(options: useStorageUpload = {}) {
 
     try {
       // 1. Obtener URL firmada desde el servidor
-      const response = await fetch('/api/storage/signed-url', {
-        method: 'POST',
+      const response = await fetch("/api/storage/signed-url", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           fileName: `${Date.now()}-${file.name}`,
           contentType: file.type,
-          directory: options.directory || 'posts'
+          directory: options.directory || "posts",
         }),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Error al obtener URL firmada');
+        throw new Error(errorData.error || "Error al obtener URL firmada");
       }
 
       const { uploadUrl, filePath } = await response.json();
@@ -45,8 +45,8 @@ export default function useStorageUpload(options: useStorageUpload = {}) {
       await new Promise<void>((resolve, reject) => {
         const xhr = new XMLHttpRequest();
 
-        xhr.open('PUT', uploadUrl, true);
-        xhr.setRequestHeader('Content-Type', file.type);
+        xhr.open("PUT", uploadUrl, true);
+        xhr.setRequestHeader("Content-Type", file.type);
 
         xhr.upload.onprogress = (e) => {
           if (e.lengthComputable) {
@@ -64,35 +64,35 @@ export default function useStorageUpload(options: useStorageUpload = {}) {
         };
 
         xhr.onerror = () => {
-          reject(new Error('Error de red durante la subida'));
+          reject(new Error("Error de red durante la subida"));
         };
 
         xhr.send(file);
       });
 
       // 3. Hacer el archivo público
-      const res = await fetch('/api/storage/read-url', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/storage/read-url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ path: filePath }),
       });
 
-      if (!res.ok) throw new Error('Error al hacer público');
+      if (!res.ok) throw new Error("Error al hacer público");
 
       const data = await res.json();
-      console.log('🌍 Archivo público:', data.publicUrl);
+      console.log("🌍 Archivo público:", data.publicUrl);
 
       // 4. Guardar la URL pública en el estado
       setMedia({
         url: data.publicUrl,
         type: file.type,
-        path: filePath
+        path: filePath,
       });
       setIsCompleted(true);
       setProgress(100);
     } catch (err) {
-      console.error('Error en el proceso de subida:', err);
-      setError(err instanceof Error ? err.message : 'Error desconocido');
+      console.error("Error en el proceso de subida:", err);
+      setError(err instanceof Error ? err.message : "Error desconocido");
     } finally {
       setIsLoading(false);
     }
@@ -104,6 +104,6 @@ export default function useStorageUpload(options: useStorageUpload = {}) {
     isCompleted,
     isLoading,
     media,
-    error
+    error,
   };
 }

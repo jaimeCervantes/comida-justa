@@ -13,7 +13,9 @@ type SourceRow = {
   price: string | null;
 };
 
-export default class PostgresPostEmbeddingRepository implements IPostEmbeddingRepository {
+export default class PostgresPostEmbeddingRepository
+  implements IPostEmbeddingRepository
+{
   /**
    * El vector vive **por traducción**, así que la categoría tiene que leerse en el idioma de esa
    * traducción: la fila `en` de un producto debe vectorizar "Bakery", no "Panadería". Antes el
@@ -26,7 +28,9 @@ export default class PostgresPostEmbeddingRepository implements IPostEmbeddingRe
    * sin ninguna se manda la clave cruda. Es mejor una palabra rara en el texto que perder del todo
    * la señal de categoría.
    */
-  async findEmbeddingSource(ref: TranslationRef): Promise<PostEmbeddingSource | null> {
+  async findEmbeddingSource(
+    ref: TranslationRef,
+  ): Promise<PostEmbeddingSource | null> {
     const raw = await db.execute(sql`
       SELECT t.title,
              t.content,
@@ -83,8 +87,8 @@ export default class PostgresPostEmbeddingRepository implements IPostEmbeddingRe
       LIMIT ${limit}
     `);
 
-    return (raw.rows as unknown as Array<{ post_id: string; locale: string }>).map(
-      (row) => ({ postId: row.post_id, locale: row.locale }),
-    );
+    return (
+      raw.rows as unknown as Array<{ post_id: string; locale: string }>
+    ).map((row) => ({ postId: row.post_id, locale: row.locale }));
   }
 }

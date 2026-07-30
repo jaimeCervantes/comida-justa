@@ -1,11 +1,6 @@
-import {
-  pgTable,
-  text,
-  timestamp,
-  index,
-} from "drizzle-orm/pg-core";
-import { posts } from "./posts";
+import { index, pgTable, text, timestamp } from "drizzle-orm/pg-core";
 import { users } from "./auth";
+import { posts } from "./posts";
 
 export const comments = pgTable(
   "comments",

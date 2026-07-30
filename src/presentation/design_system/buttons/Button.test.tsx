@@ -1,8 +1,8 @@
 import { render } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
 import userEvent from "@testing-library/user-event";
+import { describe, expect, it, vi } from "vitest";
 
-import Button from "./Button";
+import { Button } from "./Button";
 
 describe("Button component", () => {
   it("should render component without crashing when no props are provided", () => {
@@ -22,7 +22,7 @@ describe("Button component", () => {
     const { getByRole } = render(
       <Button>
         <span>I am a children</span>
-      </Button>
+      </Button>,
     );
     const button = getByRole("button");
 
@@ -54,7 +54,7 @@ describe("Button component", () => {
         onClick={onClick}
       >
         <span> children test</span>
-      </Button>
+      </Button>,
     );
 
     const button = getByRole("button");

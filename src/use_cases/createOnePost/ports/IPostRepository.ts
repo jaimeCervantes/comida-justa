@@ -1,4 +1,4 @@
-import IPostCreationDTO from "~/use_cases/createOnePost/dtos/IPostCreationDTO";
+import type IPostCreationDTO from "~/use_cases/createOnePost/dtos/IPostCreationDTO";
 
 export default interface IPostRepository {
   save(postData: IPostCreationDTO, lang?: string): Promise<string>;

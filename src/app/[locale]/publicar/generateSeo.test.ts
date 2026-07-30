@@ -1,16 +1,16 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import { generateSeo } from "./generateSeo";
 import {
-  basicInput,
   basicExpectedOutput,
+  basicInput,
+  basicStructureInput,
+  emptyInput,
+  inputWithDuplicateKeywords,
   inputWithImage,
   longDescriptionInput,
   shortDescriptionInput,
-  inputWithDuplicateKeywords,
   spacedInput,
   uppercaseInput,
-  emptyInput,
-  basicStructureInput,
 } from "./seoDummies";
 
 describe("generateSeo", () => {

@@ -1,7 +1,7 @@
-import TextField from "~/infra/UI/components/TextField";
-import { userEvent, within, fn, expect } from "storybook/test";
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { FaUser } from "react-icons/fa";
+import { expect, fn, userEvent, within } from "storybook/test";
+import { TextField } from "~/presentation/design_system/forms/TextField";
 
 const meta = {
   component: TextField,
@@ -75,13 +75,7 @@ export const TriggerOnChangeEventInteraction: Story = {
     ...Default.args,
     onChange: fn(),
   },
-  async play({
-    args,
-    canvasElement,
-  }: {
-    args: any;
-    canvasElement: HTMLElement;
-  }) {
+  async play({ args, canvasElement }) {
     const canvas = within(canvasElement);
 
     const field = await canvas.findByRole("textbox", { name: "Nombre" });

@@ -1,11 +1,11 @@
-import Link from "next/link";
 import { headers } from "next/headers";
 import Image from "next/image";
-import Button from "~/infra/UI/components/Button";
+import Link from "next/link";
+import { Button } from "~/presentation/design_system/buttons/Button";
 
 export default async function NotFound() {
   const headersList = await headers();
-  const mappedHeaders = Array.from(headersList);
+  const _mappedHeaders = Array.from(headersList);
 
   return (
     <section className="flex flex-col justify-center gap-4 items-center">

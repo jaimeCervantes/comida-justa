@@ -36,8 +36,12 @@ export default class PublishProductPage {
     await this.page
       .getByRole("textbox", { name: /t[ií]tulo de la publicación/i })
       .fill(values.title);
-    await this.page.getByRole("spinbutton", { name: /precio/i }).fill(values.price);
-    await this.page.getByRole("textbox", { name: /t[eé]lefono/i }).fill(values.phone);
+    await this.page
+      .getByRole("spinbutton", { name: /precio/i })
+      .fill(values.price);
+    await this.page
+      .getByRole("textbox", { name: /t[eé]lefono/i })
+      .fill(values.phone);
     await this.page
       .getByRole("textbox", { name: /descripci[oó]n/i })
       .fill(values.description);
@@ -51,11 +55,15 @@ export default class PublishProductPage {
     // upload once React has hydrated and attached its onChange handler. Doing it
     // after the controlled fields above guarantees hydration has happened, so the
     // event isn't dropped and the "Subido" state actually appears.
-    await this.page.locator('form input[type="file"]').setInputFiles(values.file);
+    await this.page
+      .locator('form input[type="file"]')
+      .setInputFiles(values.file);
   }
 
   async submit() {
-    await expect(this.page.getByText(/subido/i)).toBeVisible({ timeout: 45_000 });
+    await expect(this.page.getByText(/subido/i)).toBeVisible({
+      timeout: 45_000,
+    });
     const submitButton = this.form.getByRole("button", {
       name: "Publicar",
       exact: true,

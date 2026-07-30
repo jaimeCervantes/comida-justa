@@ -3,16 +3,16 @@
 import { updateTag } from "next/cache";
 import {
   hasErrors,
-  validateNewCategory,
   type NewCategoryErrors,
+  validateNewCategory,
 } from "~/domain/entities/post/newCategory";
 import { auth } from "~/infra/auth";
 import { isAdmin } from "~/infra/auth/isAdmin";
-import { createCategoryTaxonomyRepository } from "~/infra/dataAccess/categories/factory";
 import {
   CATEGORY_TAXONOMY_TAG,
   getCategoryTaxonomy,
 } from "~/infra/dataAccess/categories/cachedCategoryTaxonomy";
+import { createCategoryTaxonomyRepository } from "~/infra/dataAccess/categories/factory";
 
 export interface CatalogActionState {
   errors: NewCategoryErrors & { form?: string };
@@ -69,7 +69,9 @@ export async function createCategory(
     console.error("[catálogo] no se pudo crear la categoría", error);
 
     return {
-      errors: { form: "No se pudo guardar. ¿Alguien creó esa clave mientras tanto?" },
+      errors: {
+        form: "No se pudo guardar. ¿Alguien creó esa clave mientras tanto?",
+      },
     };
   }
 

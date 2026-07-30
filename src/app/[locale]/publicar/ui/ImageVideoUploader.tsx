@@ -1,15 +1,20 @@
-import classNames from "classnames";
-import useStorageUpload from "./hooks/useStorageUpload";
+import { useEffect } from "react";
 import ImageVideoPicker from "~/infra/UI/components/ImageVideoPicker";
-import {
-  InputFiles,
+import type {
   ImageVideoPickerProps,
+  InputFiles,
 } from "~/infra/UI/components/ImageVideoPicker/types";
-import { useCallback, useEffect } from "react";
-import { on } from "events";
+import useStorageUpload from "./hooks/useStorageUpload";
+
+/** Lo que el uploader reporta hacia arriba cuando la subida termina. */
+export type UploadedMediaResult = {
+  media: Record<string, string> | null;
+  isLoading: boolean;
+  isCompleted: boolean;
+};
 
 type ImageVideoUploaderProps = Omit<ImageVideoPickerProps, "onChange"> & {
-  onUploaded: (params: Record<string, any> | null) => void;
+  onUploaded: (params: UploadedMediaResult | null) => void;
 };
 
 export default function ImageVideoUploader({

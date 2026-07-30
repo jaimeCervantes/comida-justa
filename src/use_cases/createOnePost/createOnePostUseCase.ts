@@ -1,12 +1,16 @@
-import type { IPostEntity, IPostValidator } from "~/domain/entities/post/types";
-import { Post, User } from "~/domain/entities/post/types";
-import IPostRepository from "./ports/IPostRepository";
-import IPostCreationDTO from "./dtos/IPostCreationDTO";
+import type {
+  IPostEntity,
+  IPostValidator,
+  Post,
+} from "~/domain/entities/post/types";
+import getErrorMessage from "~/domain/shared/getErrorMessage";
+import type IPostCreationDTO from "./dtos/IPostCreationDTO";
+import type IPostRepository from "./ports/IPostRepository";
 
 interface CreatePostResult {
   id?: string;
   slug?: string;
-  error?: any;
+  error?: unknown;
   errorMessage?: string;
 }
 
@@ -31,11 +35,13 @@ export default class CreateOnePostUseCase {
   ): Promise<CreatePostResult> {
     try {
       this.postValidator.validate(postInfo);
-    } catch (error: any) {
+    } catch (error) {
       return {
         error,
-        errorMessage:
-          error.message || "Error de validación de los datos del post.",
+        errorMessage: getErrorMessage(
+          error,
+          "Error de validación de los datos del post.",
+        ),
       };
     }
 
@@ -44,12 +50,14 @@ export default class CreateOnePostUseCase {
     let slug: string;
     try {
       slug = await this.defineSlug(postTitle, postInfo.slug as string, lang);
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error generating slug:", error);
       return {
         error,
-        errorMessage:
-          error.message || "Algo salió mal al definir el slug del post.",
+        errorMessage: getErrorMessage(
+          error,
+          "Algo salió mal al definir el slug del post.",
+        ),
       };
     }
 
@@ -72,13 +80,14 @@ export default class CreateOnePostUseCase {
       const postId = await this.postRepository.save(finalPostData, lang);
 
       return { id: postId, slug };
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error saving post to database:", error);
       return {
         error,
-        errorMessage:
-          error.message ||
+        errorMessage: getErrorMessage(
+          error,
           "Algo salió mal al guardar el post en la base de datos.",
+        ),
       };
     }
   }

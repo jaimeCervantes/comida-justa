@@ -1,9 +1,8 @@
 import { cleanup, render } from "@testing-library/react";
-import { expect, vi, describe, afterEach, it } from "vitest";
 import userEvent from "@testing-library/user-event";
-import TextField from "./TextField";
-
 import { HiMail } from "react-icons/hi";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { TextField } from "./TextField";
 
 describe("When TextField is rendered", () => {
   afterEach(() => {
@@ -25,7 +24,7 @@ describe("When TextField is rendered", () => {
 
   it("Then it should render correctly with input type number and label", () => {
     const view = render(
-      <TextField name="precio" type="number" label="Precio:" />
+      <TextField name="precio" type="number" label="Precio:" />,
     );
     const input = view.getByRole("spinbutton", { name: /precio/i });
 
@@ -39,7 +38,7 @@ describe("When TextField is rendered", () => {
       <form onSubmit={spy}>
         <TextField label="Nombre" name="nombre" type="text" required />
         <button type="submit">Send</button>
-      </form>
+      </form>,
     );
 
     const btn = view.getByRole("button");
@@ -57,10 +56,10 @@ describe("When TextField is rendered", () => {
         type="text"
         required
         onChange={spy}
-      />
+      />,
     );
 
-    const field = view.getByLabelText("Nombre");
+    const field = view.getByRole("textbox", { name: /Nombre/i });
     await userEvent.type(field, "Jaime");
 
     expect(spy).toHaveBeenCalled();
@@ -79,10 +78,10 @@ describe("When TextField is rendered", () => {
           onChange={spy}
         />
         <button type="submit">Send</button>
-      </form>
+      </form>,
     );
 
-    const field = view.getByLabelText("Nombre");
+    const field = view.getByRole("textbox", { name: /Nombre/i });
     await user.type(field, "Jaime");
 
     expect(spy).toHaveBeenCalled();
@@ -96,7 +95,7 @@ describe("When TextField is rendered", () => {
         type="email"
         icon={<HiMail data-testid="icon-mail" />}
         required
-      />
+      />,
     );
 
     const icon = view.getByTestId("icon-mail");
@@ -111,7 +110,7 @@ describe("When TextField is rendered", () => {
         type="email"
         error="Not fund mail"
         required
-      />
+      />,
     );
 
     const errorMessage = view.getByText("Not fund mail");
@@ -132,7 +131,7 @@ describe("When TextField is rendered", () => {
           onChange={spy}
         />
         <button type="submit">Send</button>
-      </form>
+      </form>,
     );
 
     const btn = view.getByRole("button");
@@ -155,10 +154,10 @@ describe("When TextField is rendered", () => {
           onChange={spy}
         />
         <button type="submit">Send</button>
-      </form>
+      </form>,
     );
 
-    const field = view.getByLabelText("Nombre");
+    const field = view.getByRole("textbox", { name: /Nombre/i });
     await user.type(field, "Jaime");
 
     expect(spy).toHaveBeenCalled();

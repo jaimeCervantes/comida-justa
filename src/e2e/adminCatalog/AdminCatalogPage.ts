@@ -9,7 +9,10 @@ export default class AdminCatalogPage {
   }
 
   heading(): Locator {
-    return this.page.getByRole("heading", { level: 1, name: "Catálogo de categorías" });
+    return this.page.getByRole("heading", {
+      level: 1,
+      name: "Catálogo de categorías",
+    });
   }
 
   async expectOnPage() {
@@ -40,7 +43,9 @@ export default class AdminCatalogPage {
     await this.page.getByLabel("Etiqueta en español:").fill(input.labelEs);
 
     if (input.labelEn) {
-      await this.page.getByLabel("Etiqueta en inglés (opcional):").fill(input.labelEn);
+      await this.page
+        .getByLabel("Etiqueta en inglés (opcional):")
+        .fill(input.labelEn);
     }
 
     await this.page.getByRole("button", { name: "Agregar" }).click();

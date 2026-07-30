@@ -1,5 +1,5 @@
-import type { CategoryTaxonomySnapshot } from "~/domain/entities/post/taxonomy";
 import type { NewCategoryInput } from "~/domain/entities/post/newCategory";
+import type { CategoryTaxonomySnapshot } from "~/domain/entities/post/taxonomy";
 
 export default interface ICategoryTaxonomyRepository {
   /**

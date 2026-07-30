@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const select = vi.fn();
 
@@ -8,8 +8,8 @@ vi.mock("~/infra/dataAccess/db/connection", () => ({
   },
 }));
 
-import PostgresCategoryTaxonomyRepository from "./PostgresCategoryTaxonomyRepository";
 import { FALLBACK_CATEGORY_TAXONOMY } from "~/domain/entities/post/taxonomyFallback";
+import PostgresCategoryTaxonomyRepository from "./PostgresCategoryTaxonomyRepository";
 
 /** La vista devuelve un nodo repetido por cada idioma con etiqueta. */
 const labelRow = (
@@ -61,7 +61,8 @@ describe("PostgresCategoryTaxonomyRepository", () => {
       [{ aliasNormalized: "pan", categoryKey: "panaderia" }],
     );
 
-    const snapshot = await new PostgresCategoryTaxonomyRepository().loadSnapshot();
+    const snapshot =
+      await new PostgresCategoryTaxonomyRepository().loadSnapshot();
 
     expect(snapshot.nodes).toHaveLength(2);
     expect(snapshot.nodes[1]).toEqual({
@@ -87,7 +88,8 @@ describe("PostgresCategoryTaxonomyRepository", () => {
       [],
     );
 
-    const snapshot = await new PostgresCategoryTaxonomyRepository().loadSnapshot();
+    const snapshot =
+      await new PostgresCategoryTaxonomyRepository().loadSnapshot();
 
     expect(snapshot.nodes[0].labels).toEqual({ es: "Alimentación" });
   });
@@ -101,7 +103,8 @@ describe("PostgresCategoryTaxonomyRepository", () => {
       ],
     );
 
-    const snapshot = await new PostgresCategoryTaxonomyRepository().loadSnapshot();
+    const snapshot =
+      await new PostgresCategoryTaxonomyRepository().loadSnapshot();
 
     expect(snapshot.aliases).toEqual([
       { aliasNormalized: "food", categoryKey: "alimentacion" },
@@ -120,7 +123,8 @@ describe("PostgresCategoryTaxonomyRepository", () => {
     it("returns the 7 known keys and logs a warning", async () => {
       givenQueries(labels, []);
 
-      const snapshot = await new PostgresCategoryTaxonomyRepository().loadSnapshot();
+      const snapshot =
+        await new PostgresCategoryTaxonomyRepository().loadSnapshot();
 
       expect(snapshot).toBe(FALLBACK_CATEGORY_TAXONOMY);
       expect(snapshot.nodes).toHaveLength(7);

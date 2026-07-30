@@ -1,7 +1,7 @@
 import {
-  createCategoryTaxonomy,
   type CategoryTaxonomy,
   type CategoryTaxonomySnapshot,
+  createCategoryTaxonomy,
 } from "../taxonomy";
 import { FALLBACK_CATEGORY_TAXONOMY } from "../taxonomyFallback";
 
@@ -37,7 +37,9 @@ export function makeTaxonomy(
 }
 
 /** El mismo catálogo con una clave desactivada, para probar que deja de ofrecerse. */
-export function makeTaxonomyWithInactive(inactiveKey: string): CategoryTaxonomy {
+export function makeTaxonomyWithInactive(
+  inactiveKey: string,
+): CategoryTaxonomy {
   return makeTaxonomy({
     nodes: SEEDED_TAXONOMY_SNAPSHOT.nodes.map((node) =>
       node.key === inactiveKey ? { ...node, isActive: false } : node,

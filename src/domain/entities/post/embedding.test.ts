@@ -1,7 +1,7 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
-  EMBEDDING_DIMENSIONS,
   buildEmbeddingText,
+  EMBEDDING_DIMENSIONS,
   hasEmbeddableText,
   hasExpectedDimensions,
 } from "./embedding";
@@ -34,7 +34,11 @@ describe("buildEmbeddingText", () => {
   describe.each([
     [
       "sin categoría ni sub-categoría",
-      { title: "Suero natural", content: "Agua, limón y sal de mar", price: 35 },
+      {
+        title: "Suero natural",
+        content: "Agua, limón y sal de mar",
+        price: 35,
+      },
       "Nombre: Suero natural\nDescripción: Agua, limón y sal de mar\nPrecio: $35.00",
     ],
     [
@@ -64,12 +68,18 @@ describe("buildEmbeddingText", () => {
       tags: ['"omelet"', ' "desayuno" ', "", '""'],
     });
 
-    expect(text).toBe("Nombre: Omelet con ensalada\nEtiquetas: omelet, desayuno");
+    expect(text).toBe(
+      "Nombre: Omelet con ensalada\nEtiquetas: omelet, desayuno",
+    );
   });
 
   it("keeps two decimals so 20 and 20.5 read the same way", () => {
-    expect(buildEmbeddingText({ title: "Agua", price: 20 })).toContain("Precio: $20.00");
-    expect(buildEmbeddingText({ title: "Agua", price: 20.5 })).toContain("Precio: $20.50");
+    expect(buildEmbeddingText({ title: "Agua", price: 20 })).toContain(
+      "Precio: $20.00",
+    );
+    expect(buildEmbeddingText({ title: "Agua", price: 20.5 })).toContain(
+      "Precio: $20.50",
+    );
   });
 });
 
@@ -86,14 +96,19 @@ describe("hasEmbeddableText", () => {
 
 describe("hasExpectedDimensions", () => {
   it("accepts exactly the dimensions the column declares", () => {
-    expect(hasExpectedDimensions(new Array(EMBEDDING_DIMENSIONS).fill(0.1))).toBe(true);
+    expect(
+      hasExpectedDimensions(new Array(EMBEDDING_DIMENSIONS).fill(0.1)),
+    ).toBe(true);
   });
 
   it.each([
     ["too short", new Array(EMBEDDING_DIMENSIONS - 1).fill(0.1)],
     ["too long", new Array(EMBEDDING_DIMENSIONS + 1).fill(0.1)],
     ["empty", []],
-    ["with NaN", [...new Array(EMBEDDING_DIMENSIONS - 1).fill(0.1), Number.NaN]],
+    [
+      "with NaN",
+      [...new Array(EMBEDDING_DIMENSIONS - 1).fill(0.1), Number.NaN],
+    ],
   ])("rejects a vector %s", (_case, embedding) => {
     expect(hasExpectedDimensions(embedding)).toBe(false);
   });

@@ -1,7 +1,7 @@
+import { beforeEach, describe, expect, it, type Mocked, vi } from "vitest";
+import type { ISearchPostResultDTO } from "./dtos/ISearchPostResultDTO";
+import type { ISearchPostRepository } from "./ports/ISearchPostRepository";
 import { SearchPostsUseCase } from "./SearchPostsUseCase";
-import { ISearchPostRepository } from "./ports/ISearchPostRepository";
-import { ISearchPostResultDTO } from "./dtos/ISearchPostResultDTO";
-import { vi, describe, it, expect, beforeEach, Mocked } from "vitest";
 
 describe("SearchPostsUseCase", () => {
   let useCase: SearchPostsUseCase;

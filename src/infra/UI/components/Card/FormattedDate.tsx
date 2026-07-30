@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export default function FormattedDateComponent({
   isoDateString,
@@ -16,11 +16,11 @@ export default function FormattedDateComponent({
   if (!isClient) {
     return (
       <span
-        className="relative inline-block bg-gray-200 rounded overflow-hidden"
+        className="relative inline-block bg-gray-200 rounded-sm overflow-hidden"
         style={{ width: "180px", height: "1.2em" }}
       >
         <span
-          className="absolute top-0 left-0 h-full bg-gradient-to-r from-transparent via-white to-transparent opacity-70"
+          className="absolute top-0 left-0 h-full bg-linear-to-r from-transparent via-white to-transparent opacity-70"
           style={{
             width: "40px",
             animation: "shimmer 1.5s infinite",
@@ -35,7 +35,7 @@ export default function FormattedDateComponent({
   }
 
   const dateObject = new Date(isoDateString);
-  if (isNaN(dateObject.getTime())) {
+  if (Number.isNaN(dateObject.getTime())) {
     return null;
   }
   const userLocale = navigator.language;

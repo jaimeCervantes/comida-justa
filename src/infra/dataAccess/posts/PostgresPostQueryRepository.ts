@@ -1,10 +1,14 @@
-import { sql, type SQL } from "drizzle-orm";
-import { db } from "~/infra/dataAccess/db/connection";
+import { type SQL, sql } from "drizzle-orm";
 import { PRODUCT_KIND } from "~/domain/entities/post/hazloSanoProduct";
+import type { IndexingCounts } from "~/domain/entities/post/indexingReport";
 import { HAZLO_SANO_ORIGIN_PREFIX } from "~/domain/entities/post/origin";
 import type { OriginCount } from "~/domain/entities/post/originReport";
-import type { IndexingCounts } from "~/domain/entities/post/indexingReport";
-import type { IPostQueryRepository, PostData, PaginatedPostsResult } from "./IPostQueryRepository";
+import { db } from "~/infra/dataAccess/db/connection";
+import type {
+  IPostQueryRepository,
+  PaginatedPostsResult,
+  PostData,
+} from "./IPostQueryRepository";
 
 interface PostRow {
   id: string;
@@ -21,7 +25,12 @@ interface PostRow {
   user_name: string | null;
   user_email: string | null;
   user_image: string | null;
-  translations: Array<{ locale: string; title: string; slug: string; content: string }>;
+  translations: Array<{
+    locale: string;
+    title: string;
+    slug: string;
+    content: string;
+  }>;
   media: Array<{ url: string; type: string; alt: string | null }>;
   total_count: number;
   [key: string]: unknown;
@@ -62,7 +71,10 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
       WHERE p.kind = ${PRODUCT_KIND}
       GROUP BY p.origin
     `);
-    const rows = raw.rows as unknown as Array<{ origin: string | null; count: number }>;
+    const rows = raw.rows as unknown as Array<{
+      origin: string | null;
+      count: number;
+    }>;
 
     return rows.map((row) => ({
       origin: row.origin,
@@ -153,9 +165,7 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
     `);
     const rows = raw.rows as unknown as PostRow[];
 
-    const total = rows.length > 0
-      ? Number(rows[0].total_count)
-      : 0;
+    const total = rows.length > 0 ? Number(rows[0].total_count) : 0;
 
     if (rows.length === 0) {
       return {
@@ -168,8 +178,13 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
     }
 
     const postData: PostData[] = rows.map((row) => {
-      const translations: Record<string, { title: string; slug: string; content: string }> = {};
-      const translationsArr = Array.isArray(row.translations) ? row.translations : [];
+      const translations: Record<
+        string,
+        { title: string; slug: string; content: string }
+      > = {};
+      const translationsArr = Array.isArray(row.translations)
+        ? row.translations
+        : [];
       for (const t of translationsArr) {
         if (t.locale) {
           translations[t.locale] = {

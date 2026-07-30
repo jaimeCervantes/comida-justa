@@ -1,17 +1,17 @@
-import { test, expect } from "@playwright/test";
-import AdminCatalogPage from "./AdminCatalogPage";
-import {
-  simulateLogin,
-  deleteSession,
-  type DbSession,
-} from "../testUtils/simulateLogin";
-import { seedPost } from "../testUtils/seedPost";
+import { expect, test } from "@playwright/test";
 import { deleteOnePostBySlug } from "../testUtils/deleteOnePost";
+import { seedPost } from "../testUtils/seedPost";
+import {
+  type DbSession,
+  deleteSession,
+  simulateLogin,
+} from "../testUtils/simulateLogin";
 import {
   cleanupTestCategories,
   countTestCategories,
   testCategoryKey,
 } from "../testUtils/testCategories";
+import AdminCatalogPage from "./AdminCatalogPage";
 
 /**
  * Slice 5 — administrar el catálogo sin migración.
@@ -142,7 +142,11 @@ test.describe("When an admin manages the category catalog", () => {
     const catalog = new AdminCatalogPage(page);
 
     await catalog.goto();
-    await catalog.addSubCategory({ parentKey: PARENT, key, labelEs: "Reversible E2E" });
+    await catalog.addSubCategory({
+      parentKey: PARENT,
+      key,
+      labelEs: "Reversible E2E",
+    });
     await expect(catalog.state(key)).toHaveText("activa");
 
     await catalog.toggle(key).click();
@@ -173,7 +177,11 @@ test.describe("When an admin manages the category catalog", () => {
     const catalog = new AdminCatalogPage(page);
 
     await catalog.goto();
-    await catalog.addSubCategory({ parentKey: PARENT, key: "jugos", labelEs: "Otra" });
+    await catalog.addSubCategory({
+      parentKey: PARENT,
+      key: "jugos",
+      labelEs: "Otra",
+    });
 
     await expect(catalog.fieldError(/ya existe/i)).toBeVisible();
   });
@@ -181,7 +189,9 @@ test.describe("When an admin manages the category catalog", () => {
 
 test.describe("When someone who is not an admin opens the catalog", () => {
   // 404 en vez de 403: una página interna no tiene por qué revelar que existe.
-  test("Then the page answers 404, without revealing that it exists", async ({ page }) => {
+  test("Then the page answers 404, without revealing that it exists", async ({
+    page,
+  }) => {
     const response = await page.goto("/admin/catalogo");
 
     expect(response?.status()).toBe(404);

@@ -1,9 +1,13 @@
 import { and, desc, eq, ilike, inArray, or } from "drizzle-orm";
 import { db } from "~/infra/dataAccess/db/connection";
-import { posts, postTranslations, postMedia } from "~/infra/dataAccess/db/schema/posts";
 import { users } from "~/infra/dataAccess/db/schema/auth";
-import type { ISearchPostRepository } from "~/use_cases/searchPosts/ports/ISearchPostRepository";
+import {
+  postMedia,
+  posts,
+  postTranslations,
+} from "~/infra/dataAccess/db/schema/posts";
 import type { ISearchPostResultDTO } from "~/use_cases/searchPosts/dtos/ISearchPostResultDTO";
+import type { ISearchPostRepository } from "~/use_cases/searchPosts/ports/ISearchPostRepository";
 
 export class PostgresSearchPostRepository implements ISearchPostRepository {
   async search(
@@ -80,20 +84,24 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
     ]);
 
     const userIds = [...new Set(postRows.map((p) => p.userId))];
-    const userRows = userIds.length > 0
-      ? await db
-          .select({
-            id: users.id,
-            name: users.name,
-            email: users.email,
-            image: users.image,
-          })
-          .from(users)
-          .where(inArray(users.id, userIds))
-      : [];
+    const userRows =
+      userIds.length > 0
+        ? await db
+            .select({
+              id: users.id,
+              name: users.name,
+              email: users.email,
+              image: users.image,
+            })
+            .from(users)
+            .where(inArray(users.id, userIds))
+        : [];
 
     // ── Index helpers ────────────────────────────────────────────
-    const translationByPost = new Map<string, { title: string; slug: string; content: string }>();
+    const translationByPost = new Map<
+      string,
+      { title: string; slug: string; content: string }
+    >();
     for (const t of translationRows) {
       translationByPost.set(t.postId, {
         title: t.title,
@@ -102,10 +110,13 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
       });
     }
 
-    const mediaByPost = new Map<string, Array<{ url: string; type: string; alt?: string }>>();
+    const mediaByPost = new Map<
+      string,
+      Array<{ url: string; type: string; alt?: string }>
+    >();
     for (const m of mediaRows) {
       if (!mediaByPost.has(m.postId)) mediaByPost.set(m.postId, []);
-      mediaByPost.get(m.postId)!.push({
+      mediaByPost.get(m.postId)?.push({
         url: m.url,
         type: m.type,
         alt: m.alt ?? undefined,
@@ -148,9 +159,7 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
     });
 
     // Preserve original order (matchedPostIds ordering, which is createdAt DESC for no-query, or match order for query)
-    results.sort(
-      (a, b) => pageIds.indexOf(a.id) - pageIds.indexOf(b.id),
-    );
+    results.sort((a, b) => pageIds.indexOf(a.id) - pageIds.indexOf(b.id));
 
     return { results: results as unknown as ISearchPostResultDTO[], total };
   }

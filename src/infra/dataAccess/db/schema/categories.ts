@@ -1,15 +1,15 @@
 import {
+  type AnyPgColumn,
+  boolean,
+  index,
+  integer,
   pgTable,
   pgView,
-  text,
-  boolean,
-  integer,
-  smallint,
-  timestamp,
-  index,
-  uniqueIndex,
   primaryKey,
-  type AnyPgColumn,
+  smallint,
+  text,
+  timestamp,
+  uniqueIndex,
 } from "drizzle-orm/pg-core";
 
 /**
@@ -26,16 +26,23 @@ export const categories = pgTable(
   "categories",
   {
     key: text("key").primaryKey(),
-    parentKey: text("parent_key").references((): AnyPgColumn => categories.key, {
-      onUpdate: "cascade",
-      onDelete: "restrict",
-    }),
+    parentKey: text("parent_key").references(
+      (): AnyPgColumn => categories.key,
+      {
+        onUpdate: "cascade",
+        onDelete: "restrict",
+      },
+    ),
     level: smallint("level").notNull(),
     isActive: boolean("is_active").notNull().default(true),
     /** Orden canónico del selector; no es alfabético. */
     sortOrder: integer("sort_order").notNull().default(0),
-    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
   },
   (table) => [index("ix_categories_parent").on(table.parentKey)],
 );
@@ -45,7 +52,10 @@ export const categoryTranslations = pgTable(
   {
     categoryKey: text("category_key")
       .notNull()
-      .references(() => categories.key, { onUpdate: "cascade", onDelete: "cascade" }),
+      .references(() => categories.key, {
+        onUpdate: "cascade",
+        onDelete: "cascade",
+      }),
     locale: text("locale").notNull(),
     label: text("label").notNull(),
     /**
@@ -53,8 +63,12 @@ export const categoryTranslations = pgTable(
      * encuentre "Panadería": se compara texto normalizado contra texto normalizado.
      */
     labelNormalized: text("label_normalized"),
-    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
   },
   (table) => [
     primaryKey({ columns: [table.categoryKey, table.locale] }),
@@ -71,10 +85,15 @@ export const categoryAliases = pgTable(
     aliasNormalized: text("alias_normalized"),
     categoryKey: text("category_key")
       .notNull()
-      .references(() => categories.key, { onUpdate: "cascade", onDelete: "cascade" }),
+      .references(() => categories.key, {
+        onUpdate: "cascade",
+        onDelete: "cascade",
+      }),
     /** Por qué existe este alias; se lee en el psql, no en el git blame. */
     note: text("note"),
-    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
   },
   (table) => [
     uniqueIndex("ux_category_aliases_normalized").on(table.aliasNormalized),

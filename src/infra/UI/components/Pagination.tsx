@@ -1,4 +1,3 @@
-import React from "react";
 import Link from "next/link";
 
 interface PaginationProps {
@@ -16,7 +15,7 @@ export default function Pagination({
 
   // Calculate page range (max 5 pages, centered)
   let start = Math.max(1, currentPage - 2);
-  let end = Math.min(totalPages, start + 4);
+  const end = Math.min(totalPages, start + 4);
   if (end - start < 4) start = Math.max(1, end - 4);
 
   const pages: number[] = [];

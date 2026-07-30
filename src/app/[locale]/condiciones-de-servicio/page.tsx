@@ -1,10 +1,10 @@
-import { Metadata } from "next";
-import { getTranslations } from "next-intl/server";
+import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { hasLocale } from "next-intl";
+import { getTranslations } from "next-intl/server";
 import { routing } from "~/i18n/routing";
 import { CANONICAL_URL } from "~/infra/constants";
-import Link from "next/link";
 
 export async function generateMetadata({
   params,
@@ -185,6 +185,8 @@ export default async function TermsOfServicePage({
           >
             {t("section8.linkText")}
             <svg
+              aria-hidden="true"
+              focusable="false"
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 20 20"
               fill="currentColor"
@@ -240,6 +242,8 @@ export default async function TermsOfServicePage({
                 className="flex items-center gap-2 text-blue-600 dark:text-blue-400 hover:underline"
               >
                 <svg
+                  aria-hidden="true"
+                  focusable="false"
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 20 20"
                   fill="currentColor"
@@ -254,6 +258,8 @@ export default async function TermsOfServicePage({
                 className="flex items-center gap-2 text-blue-600 dark:text-blue-400 hover:underline"
               >
                 <svg
+                  aria-hidden="true"
+                  focusable="false"
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 20 20"
                   fill="currentColor"
@@ -266,6 +272,8 @@ export default async function TermsOfServicePage({
             </div>
             <div className="flex items-center gap-2 text-zinc-600 dark:text-zinc-400 mt-4">
               <svg
+                aria-hidden="true"
+                focusable="false"
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 20 20"
                 fill="currentColor"

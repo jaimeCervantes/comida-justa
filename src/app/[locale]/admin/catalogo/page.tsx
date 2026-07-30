@@ -29,10 +29,10 @@ export default async function CatalogoPage() {
       <h1 className="text-xl font-bold mb-2">Catálogo de categorías</h1>
 
       <p className="mb-6 text-gray-600 dark:text-gray-400">
-        Lo que se ve aquí es lo que ofrece <strong>/publicar</strong> y lo que filtran el
-        buscador y el chatbot. Agregar una categoría ya no necesita migración; desactivar
-        una la saca del selector <strong>sin tocar</strong> las publicaciones que ya la
-        usan.
+        Lo que se ve aquí es lo que ofrece <strong>/publicar</strong> y lo que
+        filtran el buscador y el chatbot. Agregar una categoría ya no necesita
+        migración; desactivar una la saca del selector{" "}
+        <strong>sin tocar</strong> las publicaciones que ya la usan.
       </p>
 
       <CategoryTree nodes={nodes} />

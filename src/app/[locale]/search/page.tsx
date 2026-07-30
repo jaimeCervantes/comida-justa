@@ -1,7 +1,6 @@
-import React from "react";
 import CardForList from "~/infra/UI/components/CardForList/CardForList";
-import { mapPostsToCardsForLocale } from "~/infra/UI/mappers/posts/mapPostsToCardsForLocale";
 import Pagination from "~/infra/UI/components/Pagination";
+import { mapPostsToCardsForLocale } from "~/infra/UI/mappers/posts/mapPostsToCardsForLocale";
 
 async function fetchResults(
   q: string,
@@ -48,8 +47,8 @@ export default async function SearchPage({
         </div>
       )}
       {q && cards.length === 0 && <div>No se encontraron resultados.</div>}
-      <section className="grid grid-flow-dense gap-4 pt-6 max-sm:grid-cols-[repeat(auto-fill,_minmax(300px,_1fr))] sm:grid-cols-[repeat(auto-fill,_minmax(300px,_1fr))]">
-        {cards.map((card: any) => (
+      <section className="grid grid-flow-dense gap-4 pt-6 max-sm:grid-cols-[repeat(auto-fill,minmax(300px,1fr))] sm:grid-cols-[repeat(auto-fill,minmax(300px,1fr))]">
+        {cards.map((card) => (
           <CardForList key={card.id} {...card} />
         ))}
       </section>

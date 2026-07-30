@@ -1,10 +1,13 @@
-import { EMBEDDING_DIMENSIONS } from "~/domain/entities/post/embedding";
 import type { PostEmbeddingSource } from "~/domain/entities/post/embedding";
+import { EMBEDDING_DIMENSIONS } from "~/domain/entities/post/embedding";
 import type IEmbeddingService from "~/use_cases/common/ports/IEmbeddingService";
 import type IPostEmbeddingRepository from "./ports/IPostEmbeddingRepository";
 import type { TranslationRef } from "./ports/IPostEmbeddingRepository";
 
-export function aVector(fill: number = 0.1, size: number = EMBEDDING_DIMENSIONS): number[] {
+export function aVector(
+  fill: number = 0.1,
+  size: number = EMBEDDING_DIMENSIONS,
+): number[] {
   return new Array(size).fill(fill);
 }
 

@@ -1,4 +1,5 @@
 import { sql } from "drizzle-orm";
+import type { NewCategoryInput } from "~/domain/entities/post/newCategory";
 import type {
   CategoryAlias,
   CategoryLevel,
@@ -7,7 +8,6 @@ import type {
   CategoryTaxonomySnapshot,
 } from "~/domain/entities/post/taxonomy";
 import { FALLBACK_CATEGORY_TAXONOMY } from "~/domain/entities/post/taxonomyFallback";
-import type { NewCategoryInput } from "~/domain/entities/post/newCategory";
 import { db } from "~/infra/dataAccess/db/connection";
 import {
   categoryAliases,
@@ -98,8 +98,9 @@ export default class PostgresCategoryTaxonomyRepository
       }
 
       const aliases: CategoryAlias[] = aliasRows
-        .filter((row): row is { aliasNormalized: string; categoryKey: string } =>
-          Boolean(row.aliasNormalized),
+        .filter(
+          (row): row is { aliasNormalized: string; categoryKey: string } =>
+            Boolean(row.aliasNormalized),
         )
         .map((row) => ({
           aliasNormalized: row.aliasNormalized,

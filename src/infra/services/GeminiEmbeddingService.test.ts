@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { EMBEDDING_DIMENSIONS } from "~/domain/entities/post/embedding";
 import EmbeddingProviderError from "~/domain/errors/EmbeddingProviderError";
 import GeminiEmbeddingService, {
@@ -14,22 +14,34 @@ function jsonResponse(body: unknown, init: ResponseInit = {}): Response {
 }
 
 function serviceWith(fetchImpl: typeof fetch, timeoutMs?: number) {
-  return new GeminiEmbeddingService({ apiKey: "test-key", fetchImpl, timeoutMs });
+  return new GeminiEmbeddingService({
+    apiKey: "test-key",
+    fetchImpl,
+    timeoutMs,
+  });
 }
 
 describe("GeminiEmbeddingService", () => {
   it("asks for the very model and dimension the chatbot's catalog was indexed with", async () => {
     const values = new Array(EMBEDDING_DIMENSIONS).fill(0.01);
-    const fetchImpl = vi.fn(async () => jsonResponse({ embedding: { values } }));
+    const fetchImpl = vi.fn(async () =>
+      jsonResponse({ embedding: { values } }),
+    );
 
-    const embedding = await serviceWith(fetchImpl as unknown as typeof fetch)
-      .generateEmbedding("Nombre: Jugo Verde");
+    const embedding = await serviceWith(
+      fetchImpl as unknown as typeof fetch,
+    ).generateEmbedding("Nombre: Jugo Verde");
 
     expect(embedding).toHaveLength(EMBEDDING_DIMENSIONS);
 
-    const [url, init] = fetchImpl.mock.calls[0] as unknown as [string, RequestInit];
+    const [url, init] = fetchImpl.mock.calls[0] as unknown as [
+      string,
+      RequestInit,
+    ];
     expect(url).toContain(`${GEMINI_EMBEDDING_MODEL}:embedContent`);
-    expect((init.headers as Record<string, string>)["x-goog-api-key"]).toBe("test-key");
+    expect((init.headers as Record<string, string>)["x-goog-api-key"]).toBe(
+      "test-key",
+    );
     expect(JSON.parse(init.body as string)).toEqual({
       model: `models/${GEMINI_EMBEDDING_MODEL}`,
       content: { parts: [{ text: "Nombre: Jugo Verde" }] },
@@ -39,7 +51,10 @@ describe("GeminiEmbeddingService", () => {
 
   it("fails loudly when the provider answers with an error status", async () => {
     const fetchImpl = vi.fn(async () =>
-      jsonResponse({ error: "quota" }, { status: 429, statusText: "Too Many Requests" }),
+      jsonResponse(
+        { error: "quota" },
+        { status: 429, statusText: "Too Many Requests" },
+      ),
     );
 
     await expect(
@@ -86,7 +101,9 @@ describe("GeminiEmbeddingService", () => {
     );
 
     await expect(
-      serviceWith(fetchImpl as unknown as typeof fetch, 10).generateEmbedding("x"),
+      serviceWith(fetchImpl as unknown as typeof fetch, 10).generateEmbedding(
+        "x",
+      ),
     ).rejects.toBeInstanceOf(EmbeddingProviderError);
   });
 

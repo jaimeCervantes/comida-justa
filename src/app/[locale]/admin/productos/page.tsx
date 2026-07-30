@@ -10,7 +10,8 @@ import OriginReportTable from "./ui/OriginReportTable";
 
 export const metadata: Metadata = {
   title: "Productos por procedencia - Hazlo Sano",
-  description: "Reporte interno de productos publicados, agrupados por procedencia.",
+  description:
+    "Reporte interno de productos publicados, agrupados por procedencia.",
   robots: { index: false, follow: false },
 };
 
@@ -33,8 +34,8 @@ export default async function ProductosPorProcedenciaPage() {
       <h1 className="text-xl font-bold mb-2">Productos por procedencia</h1>
 
       <p className="mb-6 text-gray-600 dark:text-gray-400">
-        Publicaciones con tipo <strong>producto</strong>, agrupadas por su procedencia.
-        Los anuncios no se cuentan aquí.
+        Publicaciones con tipo <strong>producto</strong>, agrupadas por su
+        procedencia. Los anuncios no se cuentan aquí.
       </p>
 
       <OriginReportTable {...buildOriginReport(originCounts)} />

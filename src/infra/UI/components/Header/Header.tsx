@@ -1,20 +1,18 @@
 import Image from "next/image";
-import { SignIn, SignOut } from "../auth-buttons";
-import Avatar from "../Avatar/Avatar";
-import Nav from "./Nav";
-import { auth } from "~/infra/auth";
-import { isAdmin } from "~/infra/auth/isAdmin";
 import Link from "next/link";
 import { LuSalad } from "react-icons/lu";
-import Button from "../Button/Button";
-import SearchBar from "../SearchBar";
-import LanguageSwitcher from "../LanguageSwitcher/LanguageSwitcher";
-import MobileNav from "./MobileNav";
+import { auth } from "~/infra/auth";
+import { isAdmin } from "~/infra/auth/isAdmin";
 import { PUBLIC_BRAND_NAME } from "~/infra/constants";
-
+import Avatar from "../Avatar/Avatar";
+import { SignIn, SignOut } from "../auth-buttons";
+import LanguageSwitcher from "../LanguageSwitcher/LanguageSwitcher";
 import LinkButton from "../LinkButton/LinkButton";
+import SearchBar from "../SearchBar";
+import MobileNav from "./MobileNav";
+import Nav from "./Nav";
 
-export default async function Header({ locale }: { locale: string }) {
+export default async function Header() {
   const session = await auth();
   // El acceso al reporte interno solo se muestra a admins; el gate real está en la página.
   const showAdminLinks = isAdmin(session?.user?.email);
@@ -58,7 +56,7 @@ export default async function Header({ locale }: { locale: string }) {
           </MobileNav>
           <Link
             href="/"
-            className="flex-shrink-0 transition-transform hover:scale-105"
+            className="shrink-0 transition-transform hover:scale-105"
           >
             <Image
               src="/logo.webp"

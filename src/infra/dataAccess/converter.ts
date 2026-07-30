@@ -9,5 +9,5 @@ const converter = <T>() => ({
 export const getCollectionWithConverter = <
   T extends FirebaseFirestore.DocumentData,
 >(
-  collectionPath: string
+  collectionPath: string,
 ) => db.collection(collectionPath).withConverter(converter<T>());

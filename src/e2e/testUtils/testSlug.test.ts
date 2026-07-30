@@ -1,9 +1,9 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
-  TEST_CATEGORY_PREFIX,
-  TEST_SLUG_PREFIX,
   isTestCategoryKey,
   isTestSlug,
+  TEST_CATEGORY_PREFIX,
+  TEST_SLUG_PREFIX,
   testCategoryKey,
   testPost,
   testSlug,

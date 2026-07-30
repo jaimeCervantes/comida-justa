@@ -1,11 +1,11 @@
-import PublishForm from "./PublishForm";
+import { redirect } from "next/navigation";
+import { optionsFor } from "~/domain/entities/post/taxonomy";
 import { auth } from "~/infra/auth";
 import { isAdmin } from "~/infra/auth/isAdmin";
-import { createPost } from "./actions";
-import { redirect } from "next/navigation";
 import { SIGNIN_PATH } from "~/infra/constants";
-import { optionsFor } from "~/domain/entities/post/taxonomy";
 import { getCategoryTaxonomy } from "~/infra/dataAccess/categories/cachedCategoryTaxonomy";
+import { createPost } from "./actions";
+import PublishForm from "./PublishForm";
 
 export default async function PublicarPage({
   params,
@@ -26,7 +26,10 @@ export default async function PublicarPage({
   // rechaza una sub-categoría que no cuelgue de la categoría elegida.
   const categoryOptions = optionsFor(taxonomy, null, locale);
   const subCategoryOptionsByCategory = Object.fromEntries(
-    categoryOptions.map(({ value }) => [value, optionsFor(taxonomy, value, locale)]),
+    categoryOptions.map(({ value }) => [
+      value,
+      optionsFor(taxonomy, value, locale),
+    ]),
   );
 
   return (

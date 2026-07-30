@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
-import { within, userEvent, expect, fn } from "storybook/test";
+import { expect, fn, userEvent, within } from "storybook/test";
 import ImageVideoPicker from "~/infra/UI/components/ImageVideoPicker/ImageVideoPicker";
 import { createMockFile } from "~/infra/UI/stories/utils";
 
@@ -62,7 +62,7 @@ export const WithImageSelected: Story = {
   play: async ({ canvasElement, args }) => {
     const canvas = within(canvasElement);
 
-    const fileInput = canvas.getByLabelText(args.label!);
+    const fileInput = canvas.getByLabelText(args.label as string);
     const imageFile = createMockFile("test-image.png", "image/png", 1024);
 
     await userEvent.upload(fileInput, imageFile);
@@ -83,7 +83,9 @@ export const WithVideoSelected: Story = {
   args: {},
   play: async ({ canvasElement, args }) => {
     const canvas = within(canvasElement);
-    const fileInput = canvas.getByLabelText(args.label!, { selector: "input" });
+    const fileInput = canvas.getByLabelText(args.label as string, {
+      selector: "input",
+    });
     const videoFile = createMockFile("test-video.mp4", "video/mp4", 2048);
 
     await userEvent.upload(fileInput, videoFile);

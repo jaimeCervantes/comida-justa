@@ -1,6 +1,6 @@
+import PostgresPostRepository from "~/infra/dataAccess/createOnePost/PostgresPostRepository";
 import { db } from "~/infra/dataAccess/db/connection";
 import { users } from "~/infra/dataAccess/db/schema/auth";
-import PostgresPostRepository from "~/infra/dataAccess/createOnePost/PostgresPostRepository";
 
 /**
  * Media host allowed by `next.config` `images.remotePatterns`; a URL outside that list

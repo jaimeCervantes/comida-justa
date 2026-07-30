@@ -1,7 +1,7 @@
-import { expect, describe, it } from "vitest";
+import { describe, expect, it } from "vitest";
+import { makeTaxonomy } from "~/domain/entities/post/__fixtures__/categoryTaxonomy";
 import { posts } from "./dummies/firestorePostDummies";
 import { mapOnePostToCard, mapPostsToCards } from "./mapPostsToCards";
-import { makeTaxonomy } from "~/domain/entities/post/__fixtures__/categoryTaxonomy";
 
 const taxonomy = makeTaxonomy();
 const es = { locale: "es", taxonomy };

@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import { POST_ORIGINS } from "./origin";
 import { buildOriginReport } from "./originReport";
 
@@ -15,7 +15,9 @@ describe("buildOriginReport", () => {
       { origin: "hazlo_sano_propio", count: 3 },
     ]);
 
-    expect(rows.find((row) => row.origin === "hazlo_sano_propio")?.count).toBe(3);
+    expect(rows.find((row) => row.origin === "hazlo_sano_propio")?.count).toBe(
+      3,
+    );
     expect(rows.find((row) => row.origin === "reventa_local")?.count).toBe(0);
     expect(total).toBe(3);
   });
@@ -26,8 +28,12 @@ describe("buildOriginReport", () => {
       { origin: "hazlo_sano_reventa", count: 1 },
     ]);
 
-    expect(rows.find((row) => row.origin === "hazlo_sano_propio")?.share).toBe(0.75);
-    expect(rows.find((row) => row.origin === "hazlo_sano_reventa")?.share).toBe(0.25);
+    expect(rows.find((row) => row.origin === "hazlo_sano_propio")?.share).toBe(
+      0.75,
+    );
+    expect(rows.find((row) => row.origin === "hazlo_sano_reventa")?.share).toBe(
+      0.25,
+    );
   });
 
   it("uses a share of zero when there are no products at all", () => {

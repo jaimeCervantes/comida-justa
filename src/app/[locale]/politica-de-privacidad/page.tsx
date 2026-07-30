@@ -1,7 +1,7 @@
-import { Metadata } from "next";
-import { getTranslations } from "next-intl/server";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { hasLocale } from "next-intl";
+import { getTranslations } from "next-intl/server";
 import { routing } from "~/i18n/routing";
 import { CANONICAL_URL } from "~/infra/constants";
 
@@ -177,7 +177,7 @@ export default async function PrivacyPolicyPage({
           <div className="bg-zinc-50 dark:bg-zinc-800/50 rounded-lg p-5">
             <p className="mb-2">
               {t("section7.actionIntro")}
-              <strong className="bg-zinc-200 dark:bg-zinc-700 px-2 py-0.5 rounded text-zinc-900 dark:text-zinc-100 font-mono">
+              <strong className="bg-zinc-200 dark:bg-zinc-700 px-2 py-0.5 rounded-sm text-zinc-900 dark:text-zinc-100 font-mono">
                 {t("section7.actionWord")}
               </strong>
               {t("section7.actionOutro")}
@@ -231,6 +231,8 @@ export default async function PrivacyPolicyPage({
                 className="flex items-center gap-2 text-blue-600 dark:text-blue-400 hover:underline"
               >
                 <svg
+                  aria-hidden="true"
+                  focusable="false"
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 20 20"
                   fill="currentColor"
@@ -245,6 +247,8 @@ export default async function PrivacyPolicyPage({
                 className="flex items-center gap-2 text-blue-600 dark:text-blue-400 hover:underline"
               >
                 <svg
+                  aria-hidden="true"
+                  focusable="false"
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 20 20"
                   fill="currentColor"
@@ -257,6 +261,8 @@ export default async function PrivacyPolicyPage({
             </div>
             <div className="flex items-center gap-2 text-zinc-600 dark:text-zinc-400 mt-4">
               <svg
+                aria-hidden="true"
+                focusable="false"
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 20 20"
                 fill="currentColor"

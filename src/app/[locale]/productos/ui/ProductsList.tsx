@@ -1,6 +1,6 @@
+import type { Post } from "~/infra/types/Posts";
 import CardForList from "~/infra/UI/components/CardForList/CardForList";
 import Pagination from "~/infra/UI/components/Pagination";
-import type { Post } from "~/infra/types/Posts";
 
 export const PRODUCTS_BASE_PATH = "/productos/page";
 
@@ -26,7 +26,7 @@ export default function ProductsList({
     <>
       <section
         data-testid="products-grid"
-        className="grid grid-flow-dense gap-4 pt-6 max-sm:grid-cols-[repeat(auto-fill,_minmax(300px,_1fr))] sm:grid-cols-[repeat(auto-fill,_minmax(300px,_1fr))]"
+        className="grid grid-flow-dense gap-4 pt-6 max-sm:grid-cols-[repeat(auto-fill,minmax(300px,1fr))] sm:grid-cols-[repeat(auto-fill,minmax(300px,1fr))]"
       >
         {products.map((product: Post) => (
           <CardForList {...product} key={product.id} />

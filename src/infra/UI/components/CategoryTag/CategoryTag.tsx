@@ -9,7 +9,10 @@ type CategoryTagProps = {
 };
 
 /** Sin etiqueta no se pinta nada: una publicación sin categoría no lleva chip vacío. */
-export default function CategoryTag({ label, className = "" }: CategoryTagProps) {
+export default function CategoryTag({
+  label,
+  className = "",
+}: CategoryTagProps) {
   if (!label) return null;
 
   return (

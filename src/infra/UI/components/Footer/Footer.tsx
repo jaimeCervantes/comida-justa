@@ -1,5 +1,5 @@
-import Link from "next/link";
 import Image from "next/image";
+import Link from "next/link";
 import { PUBLIC_BRAND_NAME } from "~/infra/constants";
 
 export default function Footer() {
@@ -20,7 +20,7 @@ export default function Footer() {
               width={40}
               height={40}
             />
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-[var(--highlight)] to-green-600">
+            <span className="bg-clip-text text-transparent bg-linear-to-r from-(--highlight) to-green-600">
               {PUBLIC_BRAND_NAME}
             </span>
           </Link>
@@ -35,20 +35,19 @@ export default function Footer() {
             </h4>
             <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400 font-medium">
               <li className="flex items-center gap-2">
-                <span className="text-[var(--highlight)]">✓</span> Sueño y
-                descanso
+                <span className="text-(--highlight)">✓</span> Sueño y descanso
               </li>
               <li className="flex items-center gap-2">
-                <span className="text-[var(--highlight)]">✓</span> Alimentación
+                <span className="text-(--highlight)">✓</span> Alimentación
                 natural y nutritiva
               </li>
               <li className="flex items-center gap-2">
-                <span className="text-[var(--highlight)]">✓</span> Movimiento o
+                <span className="text-(--highlight)">✓</span> Movimiento o
                 ejercicio
               </li>
               <li className="flex items-center gap-2">
-                <span className="text-[var(--highlight)]">✓</span> Emociones /
-                mente / espíritu
+                <span className="text-(--highlight)">✓</span> Emociones / mente
+                / espíritu
               </li>
             </ul>
           </div>
@@ -63,7 +62,7 @@ export default function Footer() {
             <li>
               <Link
                 href="/publicar"
-                className="hover:text-[var(--highlight)] transition-colors inline-block font-medium"
+                className="hover:text-(--highlight) transition-colors inline-block font-medium"
               >
                 Publicar un producto o info sana
               </Link>
@@ -71,7 +70,7 @@ export default function Footer() {
             <li>
               <Link
                 href="/nosotros"
-                className="hover:text-[var(--highlight)] transition-colors inline-block font-medium"
+                className="hover:text-(--highlight) transition-colors inline-block font-medium"
               >
                 Qué es {PUBLIC_BRAND_NAME}
               </Link>
@@ -81,7 +80,7 @@ export default function Footer() {
                 href="https://hazlosano.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-[var(--highlight)] transition-colors inline-block"
+                className="hover:text-(--highlight) transition-colors inline-block"
               >
                 Comunidad Hazlo Sano
               </a>
@@ -91,7 +90,7 @@ export default function Footer() {
                 href="https://restaurante.hazlosano.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-[var(--highlight)] transition-colors inline-block"
+                className="hover:text-(--highlight) transition-colors inline-block"
               >
                 Restaurante
               </a>

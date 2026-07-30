@@ -1,7 +1,6 @@
+import { ExitIcon, PersonIcon } from "@radix-ui/react-icons";
 import { signIn, signOut } from "~/infra/auth";
-import { PersonIcon, ExitIcon } from "@radix-ui/react-icons";
 import AuthActionButton from "./AuthActionButton";
-import { Suspense } from "react";
 
 export function SignIn({
   provider,

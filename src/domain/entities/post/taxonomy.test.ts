@@ -1,19 +1,18 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
-  createCategoryTaxonomy,
+  makeTaxonomy,
+  makeTaxonomyWithInactive,
+  SEEDED_TAXONOMY_SNAPSHOT,
+} from "./__fixtures__/categoryTaxonomy";
+import {
+  isActiveKey,
   labelFor,
   normalizeCategoryKey,
   optionsFor,
   resolveKeyLenient,
   resolveKeyStrict,
   subtreeKeys,
-  isActiveKey,
 } from "./taxonomy";
-import {
-  makeTaxonomy,
-  makeTaxonomyWithInactive,
-  SEEDED_TAXONOMY_SNAPSHOT,
-} from "./__fixtures__/categoryTaxonomy";
 
 const taxonomy = makeTaxonomy();
 
@@ -63,7 +62,9 @@ describe("resolveKeyStrict", () => {
   });
 
   it("rejects a key that exists but is inactive", () => {
-    expect(resolveKeyStrict(makeTaxonomyWithInactive("jugos"), "jugos")).toBeNull();
+    expect(
+      resolveKeyStrict(makeTaxonomyWithInactive("jugos"), "jugos"),
+    ).toBeNull();
   });
 });
 
@@ -93,7 +94,9 @@ describe("resolveKeyLenient", () => {
   });
 
   it("ignores an alias whose category is inactive", () => {
-    expect(resolveKeyLenient(makeTaxonomyWithInactive("panaderia"), "bread")).toBeNull();
+    expect(
+      resolveKeyLenient(makeTaxonomyWithInactive("panaderia"), "bread"),
+    ).toBeNull();
   });
 });
 
@@ -140,7 +143,9 @@ describe("labelFor", () => {
 // Escenario "The selector options follow the catalog order, not the alphabet" (@slice-1 @component)
 describe("optionsFor", () => {
   it("lists the sub-categories in catalog order, not alphabetically", () => {
-    expect(optionsFor(taxonomy, "alimentacion", "es").map((o) => o.label)).toEqual([
+    expect(
+      optionsFor(taxonomy, "alimentacion", "es").map((o) => o.label),
+    ).toEqual([
       "Jugos",
       "Platillos",
       "Bebidas",
@@ -151,14 +156,9 @@ describe("optionsFor", () => {
   });
 
   it("translates the same options", () => {
-    expect(optionsFor(taxonomy, "alimentacion", "en").map((o) => o.label)).toEqual([
-      "Juices",
-      "Dishes",
-      "Drinks",
-      "Bakery",
-      "Groceries",
-      "Spreads",
-    ]);
+    expect(
+      optionsFor(taxonomy, "alimentacion", "en").map((o) => o.label),
+    ).toEqual(["Juices", "Dishes", "Drinks", "Bakery", "Groceries", "Spreads"]);
   });
 
   it("lists the root categories when no parent is given", () => {
@@ -168,9 +168,11 @@ describe("optionsFor", () => {
   });
 
   it("leaves an inactive category out", () => {
-    const values = optionsFor(makeTaxonomyWithInactive("bebidas"), "alimentacion", "es").map(
-      (o) => o.value,
-    );
+    const values = optionsFor(
+      makeTaxonomyWithInactive("bebidas"),
+      "alimentacion",
+      "es",
+    ).map((o) => o.value);
 
     expect(values).not.toContain("bebidas");
     expect(values).toHaveLength(5);

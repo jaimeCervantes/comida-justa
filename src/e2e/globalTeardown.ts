@@ -1,4 +1,8 @@
-import { countTestData, describeTestData, sweepTestData } from "./testUtils/testData";
+import {
+  countTestData,
+  describeTestData,
+  sweepTestData,
+} from "./testUtils/testData";
 
 /**
  * Barre y **falla si algo quedó**.

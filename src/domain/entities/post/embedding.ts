@@ -31,7 +31,9 @@ function normalizeTags(tags: readonly string[] | null | undefined): string[] {
   if (!Array.isArray(tags)) return [];
 
   return tags
-    .map((tag) => (typeof tag === "string" ? tag.replace(/["']/g, "").trim() : ""))
+    .map((tag) =>
+      typeof tag === "string" ? tag.replace(/["']/g, "").trim() : "",
+    )
     .filter((tag) => tag.length > 0);
 }
 
@@ -49,7 +51,8 @@ export function buildEmbeddingText(source: PostEmbeddingSource): string {
 
   if (source.category) parts.push(`Categoría: ${source.category}`);
   if (source.subCategory) parts.push(`Sub-categoría: ${source.subCategory}`);
-  if (source.content?.trim()) parts.push(`Descripción: ${source.content.trim()}`);
+  if (source.content?.trim())
+    parts.push(`Descripción: ${source.content.trim()}`);
 
   const tags = normalizeTags(source.tags);
   if (tags.length > 0) parts.push(`Etiquetas: ${tags.join(", ")}`);
@@ -70,6 +73,8 @@ export function hasExpectedDimensions(embedding: readonly number[]): boolean {
   return (
     Array.isArray(embedding) &&
     embedding.length === EMBEDDING_DIMENSIONS &&
-    embedding.every((value) => typeof value === "number" && Number.isFinite(value))
+    embedding.every(
+      (value) => typeof value === "number" && Number.isFinite(value),
+    )
   );
 }

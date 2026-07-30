@@ -1,14 +1,14 @@
-import { test, expect } from "@playwright/test";
 import type { PlaywrightTestArgs } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import { SIGNIN_PATH } from "~/infra/constants";
-import PublishPage from "./PublishPage";
-import {
-  simulateLogin,
-  deleteSession,
-  type DbSession,
-} from "../testUtils/simulateLogin";
 import { deleteOnePostBySlug } from "../testUtils/deleteOnePost";
+import {
+  type DbSession,
+  deleteSession,
+  simulateLogin,
+} from "../testUtils/simulateLogin";
 import { testPost } from "../testUtils/testSlug";
+import PublishPage from "./PublishPage";
 
 test.describe("When users visit the platform", () => {
   test("Then a list of healthy post is displayed", async ({

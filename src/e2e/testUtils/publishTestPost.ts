@@ -14,7 +14,7 @@ export async function publishTestPost(page: Page) {
     title: postTitle,
     description: `La ensalada griega es una opción saludable y deliciosa para el desayuno o como plato principal en un menú diario.`,
     price: "80",
-    phone: '2781092116',
+    phone: "2781092116",
     file: "./src/e2e/dummies/post.jpg",
   });
 

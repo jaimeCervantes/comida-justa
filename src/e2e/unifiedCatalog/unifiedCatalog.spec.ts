@@ -1,14 +1,14 @@
-import { test, expect } from "@playwright/test";
-import UnifiedCatalogPage from "./UnifiedCatalogPage";
-import {
-  simulateLogin,
-  deleteSession,
-  type DbSession,
-} from "../testUtils/simulateLogin";
+import { expect, test } from "@playwright/test";
 import { deleteOnePostBySlug } from "../testUtils/deleteOnePost";
-import { testPost, testSlug } from "../testUtils/testSlug";
-import { seedPost } from "../testUtils/seedPost";
 import { readPostRowBySlug } from "../testUtils/readPostRow";
+import { seedPost } from "../testUtils/seedPost";
+import {
+  type DbSession,
+  deleteSession,
+  simulateLogin,
+} from "../testUtils/simulateLogin";
+import { testPost, testSlug } from "../testUtils/testSlug";
+import UnifiedCatalogPage from "./UnifiedCatalogPage";
 
 // Slice 1 de docs/features/catalogo-unificado.md — esquema unificado y categoría al publicar.
 // Escenarios en src/e2e/unifiedCatalog/unifiedCatalog.feature.
@@ -76,7 +76,9 @@ test.describe("When a product is published with a category", () => {
     expect(row?.is_available).toBe(true);
   });
 
-  test("Then the category selectors only exist for a product", async ({ page }) => {
+  test("Then the category selectors only exist for a product", async ({
+    page,
+  }) => {
     const publishPage = new UnifiedCatalogPage(page);
 
     await publishPage.goto();

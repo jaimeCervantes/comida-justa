@@ -1,5 +1,3 @@
-import React from "react";
-
 export default function AlimentacionPage() {
   return (
     <article className="">
@@ -24,7 +22,7 @@ export default function AlimentacionPage() {
             optó por la cantidad sobre la calidad.
           </p>
 
-          <div className="bg-orange-50/50 dark:bg-orange-900/10 rounded-2xl p-6 sm:p-8 my-8 border border-orange-100 dark:border-orange-800/30 shadow-sm">
+          <div className="bg-orange-50/50 dark:bg-orange-900/10 rounded-2xl p-6 sm:p-8 my-8 border border-orange-100 dark:border-orange-800/30 shadow-xs">
             <ul className="space-y-6">
               <li className="flex flex-col sm:flex-row gap-2 sm:gap-4">
                 <span className="font-bold text-slate-900 dark:text-slate-50 shrink-0 sm:w-28 text-xl">

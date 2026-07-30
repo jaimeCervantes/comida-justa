@@ -1,5 +1,6 @@
+import { resolve } from "node:path";
 import { config } from "dotenv";
-import { resolve } from "path";
+import getErrorMessage from "~/domain/shared/getErrorMessage";
 
 const envPath = resolve(process.cwd(), ".env.development");
 console.log(`Loading env from: ${envPath}`);
@@ -18,9 +19,7 @@ async function seedComments() {
 
   console.log("Connecting to PostgreSQL...");
   const { db } = await import("~/infra/dataAccess/db/connection");
-  const { comments } = await import(
-    "~/infra/dataAccess/db/schema/comments"
-  );
+  const { comments } = await import("~/infra/dataAccess/db/schema/comments");
 
   console.log("Connecting to Firestore...");
   const { db: firestore } = await import("~/infra/dataAccess/init");
@@ -70,9 +69,9 @@ async function seedComments() {
           .onConflictDoNothing({ target: comments.id });
 
         inserted++;
-      } catch (err: any) {
+      } catch (err) {
         console.error(
-          `  Error inserting comment ${commentDoc.id}: ${err.message}`
+          `  Error inserting comment ${commentDoc.id}: ${getErrorMessage(err, "error desconocido")}`,
         );
         skipped++;
       }

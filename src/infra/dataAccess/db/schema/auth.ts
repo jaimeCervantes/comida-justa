@@ -1,10 +1,10 @@
 import {
+  doublePrecision,
+  integer,
   pgTable,
+  primaryKey,
   text,
   timestamp,
-  integer,
-  doublePrecision,
-  primaryKey,
 } from "drizzle-orm/pg-core";
 
 export const users = pgTable("users", {
@@ -17,7 +17,9 @@ export const users = pgTable("users", {
   lastLatitude: doublePrecision("last_latitude"),
   lastLongitude: doublePrecision("last_longitude"),
   locationUpdatedAt: timestamp("location_updated_at", { withTimezone: true }),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
 });
 
 export const accounts = pgTable(
@@ -43,7 +45,7 @@ export const accounts = pgTable(
     pk: primaryKey({
       columns: [table.provider, table.providerAccountId],
     }),
-  })
+  }),
 );
 
 export const sessions = pgTable("sessions", {
@@ -66,5 +68,5 @@ export const verificationTokens = pgTable(
     pk: primaryKey({
       columns: [table.identifier, table.token],
     }),
-  })
+  }),
 );

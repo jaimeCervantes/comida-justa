@@ -1,15 +1,14 @@
-import CurrencyAmount from "~/infra/UI/components/CurrencyAmount";
-import { Post } from "~/infra/types/Posts";
-import { MdPhone } from "react-icons/md";
-import { FaDollarSign } from "react-icons/fa";
 import { Suspense } from "react";
-import CommentList from "../loadComments/CommentList";
-import type { PostUser } from "~/infra/types/Posts";
-import MediaContent from "~/infra/UI/components/MediaContent/MediaContent";
-import ProvenanceBadge from "~/infra/UI/components/ProvenanceBadge";
-import CategoryTag from "~/infra/UI/components/CategoryTag/CategoryTag";
+import { FaDollarSign } from "react-icons/fa";
+import { MdPhone } from "react-icons/md";
 import { labelFor } from "~/domain/entities/post/taxonomy";
 import { getCategoryTaxonomy } from "~/infra/dataAccess/categories/cachedCategoryTaxonomy";
+import type { Post, PostUser } from "~/infra/types/Posts";
+import CategoryTag from "~/infra/UI/components/CategoryTag/CategoryTag";
+import CurrencyAmount from "~/infra/UI/components/CurrencyAmount";
+import MediaContent from "~/infra/UI/components/MediaContent/MediaContent";
+import ProvenanceBadge from "~/infra/UI/components/ProvenanceBadge";
+import CommentList from "../loadComments/CommentList";
 
 /**
  * Presenta una publicación ya cargada. La búsqueda (y el 404 si no existe) vive en la página,
@@ -17,13 +16,11 @@ import { getCategoryTaxonomy } from "~/infra/dataAccess/categories/cachedCategor
  */
 export default async function PostDetail({
   post: postDetails,
-  slug,
   className,
   user,
   locale,
 }: {
   post: Post;
-  slug: string;
   className: string;
   user: PostUser | undefined;
   /** Idioma de la ruta; decide en qué idioma se lee la etiqueta de categoría. */
@@ -39,8 +36,6 @@ export default async function PostDetail({
     subCategory: postDetails.subCategory,
     contactInfo: postDetails.contactInfo,
     comments: postDetails.comments,
-    firstVisibleComment: postDetails.firstVisibleComment,
-    lastVisibleComment: postDetails.lastVisibleComment,
     id: postDetails.id,
   };
 
@@ -54,15 +49,14 @@ export default async function PostDetail({
     subCategory,
     contactInfo,
     comments,
-    firstVisibleComment,
-    lastVisibleComment,
     id,
   } = details;
 
   // La sub-categoría gana sobre la categoría por ser la más específica.
   const taxonomy = await getCategoryTaxonomy();
   const categoryLabel =
-    labelFor(taxonomy, subCategory, locale) ?? labelFor(taxonomy, category, locale);
+    labelFor(taxonomy, subCategory, locale) ??
+    labelFor(taxonomy, category, locale);
 
   return (
     <article className={className}>
@@ -88,12 +82,7 @@ export default async function PostDetail({
       <section className="whitespace-pre-wrap mt-6">{content}</section>
       <section className="mt-14">
         <Suspense>
-          <CommentList
-            postId={id}
-            slug={slug}
-            user={user}
-            initialComments={comments}
-          />
+          <CommentList postId={id} user={user} initialComments={comments} />
         </Suspense>
       </section>
     </article>

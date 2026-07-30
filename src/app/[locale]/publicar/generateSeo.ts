@@ -40,7 +40,7 @@ export function generateSeo({
   // Crear descripción más corta para redes sociales
   const socialDescription =
     trimedDescription.length > 100
-      ? trimedDescription.slice(0, 100).trim() + "..."
+      ? `${trimedDescription.slice(0, 100).trim()}...`
       : trimedDescription;
 
   return {

@@ -10,5 +10,8 @@ export type PostKind = (typeof POST_KINDS)[number];
 export const DEFAULT_POST_KIND: PostKind = "anuncio";
 
 export function isValidKind(value: unknown): value is PostKind {
-  return typeof value === "string" && (POST_KINDS as readonly string[]).includes(value);
+  return (
+    typeof value === "string" &&
+    (POST_KINDS as readonly string[]).includes(value)
+  );
 }

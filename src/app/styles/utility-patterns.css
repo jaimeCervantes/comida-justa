@@ -15,7 +15,8 @@
   @apply text-2xl font-extrabold tracking-tight;
 }
 
-@screen md {
+/* biome-ignore lint/correctness/noUnknownFunction: `theme()` is a Tailwind v4 function, resolved at build time. */
+@media (width >= theme(--breakpoint-md)) {
   .h1 {
     @apply text-5xl;
   }
@@ -32,7 +33,7 @@
 .btn-md,
 .btn-sm,
 .btn-xs {
-  @apply font-medium text-sm inline-flex items-center justify-center border border-transparent rounded leading-5 shadow-sm transition duration-150 ease-in-out;
+  @apply font-medium text-sm inline-flex items-center justify-center border border-transparent rounded-sm leading-5 shadow-xs transition duration-150 ease-in-out;
 }
 
 .btn {
@@ -73,14 +74,14 @@ input[type="search"]::-webkit-search-results-decoration {
 .form-multiselect,
 .form-select,
 .form-checkbox {
-  @apply rounded;
+  @apply rounded-sm;
 }
 
 .form-input,
 .form-textarea,
 .form-multiselect,
 .form-select {
-  @apply text-sm text-slate-800 dark:text-slate-100 leading-5 py-2 px-3 border-slate-200 hover:border-slate-300 focus:border-slate-300 dark:border-slate-700 dark:hover:border-slate-600 dark:focus:border-slate-600 shadow-sm;
+  @apply text-sm text-slate-800 dark:text-slate-100 leading-5 py-2 px-3 border-slate-200 hover:border-slate-300 focus:border-slate-300 dark:border-slate-700 dark:hover:border-slate-600 dark:focus:border-slate-600 shadow-xs;
 }
 
 .form-input,

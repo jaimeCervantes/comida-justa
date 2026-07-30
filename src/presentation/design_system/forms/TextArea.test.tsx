@@ -1,9 +1,9 @@
 import "@testing-library/jest-dom/vitest";
 import { cleanup, render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
 import userEvent from "@testing-library/user-event";
-import TextArea from "./TextArea";
 import { act } from "react";
+import { afterEach, describe, expect, it } from "vitest";
+import { TextArea } from "./TextArea";
 
 describe("TextArea Component", () => {
   afterEach(() => {
@@ -20,7 +20,7 @@ describe("TextArea Component", () => {
     render(<TextArea label={labelText} />);
 
     expect(
-      screen.getByRole("textbox", { name: labelText }),
+      screen.getByRole("textbox", { name: new RegExp(labelText, "i") }),
     ).toBeInTheDocument();
   });
 
@@ -42,7 +42,7 @@ describe("TextArea Component", () => {
     );
 
     const textarea: HTMLTextAreaElement = screen.getByRole("textbox", {
-      name: labelText,
+      name: new RegExp(labelText, "i"),
     });
 
     expect(textarea).toHaveAttribute("maxlength", maxLength.toString());
@@ -59,7 +59,7 @@ describe("TextArea Component", () => {
     render(<TextArea label={labelText} />);
 
     const textarea: HTMLTextAreaElement = screen.getByRole("textbox", {
-      name: labelText,
+      name: new RegExp(labelText, "i"),
     });
 
     await act(async () => {
@@ -78,7 +78,7 @@ describe("TextArea Component", () => {
     render(<TextArea maxLength={maxLength} label={labelText} />);
 
     const textarea: HTMLTextAreaElement = screen.getByRole("textbox", {
-      name: labelText,
+      name: new RegExp(labelText, "i"),
     });
     await act(async () => {
       await user.type(textarea, text);

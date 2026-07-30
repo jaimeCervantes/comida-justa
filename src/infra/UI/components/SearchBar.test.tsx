@@ -1,6 +1,6 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const push = vi.fn();
 
@@ -17,7 +17,9 @@ function givenResults(titles: string[]) {
     json: async () => ({
       results: titles.map((title, i) => ({
         id: `post-${i}`,
-        translations: { es: { title, slug: title.toLowerCase().replace(/\s/g, "-") } },
+        translations: {
+          es: { title, slug: title.toLowerCase().replace(/\s/g, "-") },
+        },
       })),
     }),
   });
@@ -69,7 +71,10 @@ describe("SearchBar", () => {
   });
 
   it("shows the skeleton while the request is in flight, before any result", async () => {
-    vi.stubGlobal("fetch", vi.fn(() => new Promise(() => {})));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() => new Promise(() => {})),
+    );
     render(<SearchBar />);
 
     await user.type(screen.getByRole("searchbox"), "pan");
@@ -85,7 +90,9 @@ describe("SearchBar", () => {
     await user.type(screen.getByRole("searchbox"), "pan");
     vi.advanceTimersByTime(DEBOUNCE_MS);
 
-    await waitFor(() => expect(screen.getByText("Pan de masa madre")).toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.getByText("Pan de masa madre")).toBeInTheDocument(),
+    );
     expect(screen.getByText("Jugo Verde")).toBeInTheDocument();
     expect(skeleton()).not.toBeInTheDocument();
   });
@@ -97,7 +104,9 @@ describe("SearchBar", () => {
     await user.type(screen.getByRole("searchbox"), "pan");
     vi.advanceTimersByTime(DEBOUNCE_MS);
 
-    await waitFor(() => expect(screen.getByText("Sin resultados")).toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.getByText("Sin resultados")).toBeInTheDocument(),
+    );
   });
 
   // Un fallo esconde el desplegable entero: no se anuncia "sin resultados" por una búsqueda que
@@ -173,7 +182,9 @@ describe("SearchBar", () => {
 
     await user.type(screen.getByRole("searchbox"), "pan");
     vi.advanceTimersByTime(DEBOUNCE_MS);
-    await waitFor(() => expect(screen.getByText("Pan de masa madre")).toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.getByText("Pan de masa madre")).toBeInTheDocument(),
+    );
 
     await user.click(screen.getByText("Pan de masa madre"));
 

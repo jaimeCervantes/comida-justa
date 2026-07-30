@@ -1,12 +1,30 @@
 import type { PostKind } from "./kind";
 import type { PostOrigin } from "./origin";
 
-export type VoidOrError = void | never;
+/**
+ * Un validador o no devuelve nada, o lanza. Es `void` a secas: `void | never` colapsaba a lo
+ * mismo, pero al escribirlo como unión el autofix de Biome lo convertía en `undefined`, que sí
+ * cambia el significado (una función `void` no es asignable a una que devuelve `undefined`).
+ */
+// biome-ignore lint/suspicious/noConfusingVoidType: `void` es intencional y NO debe autofixearse a `undefined`; una función `void` no es asignable a una que devuelve `undefined` y eso rompe `IPostValidator`.
+export type VoidOrError = void;
+
+/** Contenido de una publicación en un idioma concreto. La clave del `Record` es el locale. */
+export type PostTranslation = {
+  title?: string;
+  content?: string;
+  slug?: string;
+  seo?: {
+    title: string;
+    metas: Array<{ name: string; content: string }>;
+  };
+};
+
 export type Post = {
   title?: string;
   slug?: string;
   content?: string;
-  translations?: Record<string, any>;
+  translations?: Record<string, PostTranslation>;
   price?: number | null;
   /** Qué es: "anuncio" (default) o "producto" (requiere precio). */
   kind?: PostKind;
@@ -44,7 +62,7 @@ export interface IPostValidator {
   validateStringOnPost(
     value: string,
     name: string,
-    minLength: number
+    minLength: number,
   ): VoidOrError;
   validateNumberOnPost(value: number, name: string): VoidOrError;
   validateFile(file: File): VoidOrError;

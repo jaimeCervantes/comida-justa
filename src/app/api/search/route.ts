@@ -1,6 +1,6 @@
-import { NextRequest } from "next/server";
-import { SearchPostsUseCase } from "~/use_cases/searchPosts/SearchPostsUseCase";
+import type { NextRequest } from "next/server";
 import { createSearchPostRepository } from "~/infra/dataAccess/searchPosts/factory";
+import { SearchPostsUseCase } from "~/use_cases/searchPosts/SearchPostsUseCase";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);

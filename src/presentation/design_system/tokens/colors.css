@@ -1,0 +1,96 @@
+/* ============================================================
+   Hazlo Sano — Color tokens
+   Light theme is the default (:root). Dark theme applies under
+   @media (prefers-color-scheme: dark).
+   ============================================================ */
+
+:root {
+  /* --- Base brand palette (theme-independent) --- */
+  --brand-green: #538f39;
+  --brand-lightgreen: #5dbf17;
+  --brand-lightorange: #f2b705;
+  --brand-orange: #f0380e;
+  --brand-gray: #334155;
+  --brand-black: #000000;
+  --brand-white: #ffffff;
+
+  /* --- Semantic: text --- */
+  --text-base: #1a1a1a;
+  --text-inverse: #ffffff;
+  --text-support: #64748b;
+
+  /* --- Semantic: surfaces --- */
+  --surface-background: #fafafa;
+  --surface-elevation-1: #ffffff;
+  --surface-elevation-2: #f1f5f9;
+
+  /* --- Structure --- */
+  --separator: #e2e8f0;
+  --border: #cbd5e1;
+
+  /* --- Buttons --- */
+  --button-primary-bg: var(--brand-green);
+  --button-primary-text: var(--brand-white);
+  --button-primary-hover: #43742e;
+
+  --button-secondary-bg: var(--brand-gray);
+  --button-secondary-text: var(--brand-white);
+  --button-secondary-hover: #1e293b;
+
+  /* --- Feedback --- */
+  --feedback-success: var(--brand-lightgreen);
+  --feedback-warning: var(--brand-lightorange);
+  --feedback-error: var(--brand-orange);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* --- Semantic: text --- */
+    --text-base: #ededed;
+    --text-inverse: #1a1a1a;
+    --text-support: #94a3b8;
+
+    /* --- Semantic: surfaces --- */
+    --surface-background: #0d0d0d;
+    --surface-elevation-1: #334155;
+    --surface-elevation-2: #1e293b;
+
+    /* --- Structure --- */
+    --separator: #334155;
+    --border: #475569;
+  }
+}
+
+/* Expose to Tailwind v4 as utility classes */
+@theme {
+  --color-brand-green: var(--brand-green);
+  --color-brand-lightgreen: var(--brand-lightgreen);
+  --color-brand-lightorange: var(--brand-lightorange);
+  --color-brand-orange: var(--brand-orange);
+  --color-brand-gray: var(--brand-gray);
+  --color-brand-black: var(--brand-black);
+  --color-brand-white: var(--brand-white);
+
+  --color-pw-green: var(--brand-green);
+  --color-pw-lightgreen: var(--brand-lightgreen);
+  --color-pw-lightorange: var(--brand-lightorange);
+  --color-pw-orange: var(--brand-orange);
+  --color-pw-gray: var(--brand-gray);
+  --color-pw-black: var(--brand-black);
+  --color-pw-white: var(--brand-white);
+
+  --color-text-base: var(--text-base);
+  --color-text-inverse: var(--text-inverse);
+  --color-text-support: var(--text-support);
+
+  --color-surface-background: var(--surface-background);
+  --color-surface-elevation-1: var(--surface-elevation-1);
+  --color-surface-elevation-2: var(--surface-elevation-2);
+
+  --color-border: var(--border);
+  --color-separator: var(--separator);
+
+  --color-feedback-success: var(--feedback-success);
+  --color-feedback-warning: var(--feedback-warning);
+  --color-feedback-error: var(--feedback-error);
+}

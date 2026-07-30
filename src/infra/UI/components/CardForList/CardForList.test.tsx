@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
 import { render } from "@testing-library/react";
+import { describe, expect, it } from "vitest";
 import CardForList from "./CardForList";
 
 const baseProps = {
@@ -9,9 +9,7 @@ const baseProps = {
   createdAt: new Date("2026-07-01").toISOString(),
   user: { id: "user-1", name: "Hazlo Sano" },
   to: "/miel-de-abeja",
-  media: [
-    { url: "https://ruta/de/imagen/1.webp", type: "image", alt: "Miel" },
-  ],
+  media: [{ url: "https://ruta/de/imagen/1.webp", type: "image", alt: "Miel" }],
 };
 
 describe("When a card is listed", () => {
@@ -32,7 +30,9 @@ describe("When a card is listed", () => {
   });
 
   it("shows no badge when the post has no origin", () => {
-    const { queryByTestId } = render(<CardForList {...baseProps} origin={null} />);
+    const { queryByTestId } = render(
+      <CardForList {...baseProps} origin={null} />,
+    );
 
     expect(queryByTestId("provenance-badge")).not.toBeInTheDocument();
   });

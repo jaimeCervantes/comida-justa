@@ -23,7 +23,9 @@ const DIACRITICS = /[̀-ͯ]/g;
  * que esta los elimina, porque `products` guarda texto libre escrito a mano. Fundirlas rompería
  * la simetría entre el TypeScript y la base.
  */
-export function legacyLabelToKey(label: string | null | undefined): string | null {
+export function legacyLabelToKey(
+  label: string | null | undefined,
+): string | null {
   if (!label) return null;
 
   const key = label
@@ -49,13 +51,17 @@ const OUTDATED =
  * pero **lanza**: devolver `null` migraría los productos sin categoría y en silencio, que es
  * justo el modo de fallo mudo que la tabla vino a eliminar.
  */
-export function legacyCategory(label: string | null | undefined): string | null {
+export function legacyCategory(
+  label: string | null | undefined,
+): string | null {
   void label;
   throw new Error(OUTDATED);
 }
 
 /** @deprecated Ver {@link legacyCategory}. */
-export function legacySubCategory(label: string | null | undefined): string | null {
+export function legacySubCategory(
+  label: string | null | undefined,
+): string | null {
   void label;
   throw new Error(OUTDATED);
 }

@@ -1,9 +1,9 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
-  isValidOrigin,
+  isAdminOnlyOrigin,
   isHazloSanoOrigin,
   isLocalOrigin,
-  isAdminOnlyOrigin,
+  isValidOrigin,
   resolveOriginForUser,
 } from "./origin";
 

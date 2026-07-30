@@ -2,9 +2,9 @@ import type {
   CollectionReference,
   QueryDocumentSnapshot,
 } from "firebase-admin/firestore";
-import type { FirestorePost, FirestoreComment } from "~/infra/dataAccess/Posts";
+import type { FirestoreComment, FirestorePost } from "~/infra/dataAccess/Posts";
 import { collections } from "~/infra/dataAccess/postUtils";
-import { Post } from "~/infra/types/Posts";
+import type { Post } from "~/infra/types/Posts";
 
 export async function getOnePostWithPaginatedComments(
   slug: string,
@@ -64,8 +64,9 @@ export async function getOnePostWithPaginatedComments(
       };
     });
 
-    let firstVisibleComment;
-    let lastVisibleComment;
+    type PaginatedComment = (typeof comments)[number];
+    let firstVisibleComment: PaginatedComment | undefined;
+    let lastVisibleComment: PaginatedComment | undefined;
     if (comments.length > 0) {
       firstVisibleComment = comments[0];
       lastVisibleComment = comments[comments.length - 1];
@@ -77,7 +78,7 @@ export async function getOnePostWithPaginatedComments(
       firstVisibleComment,
       lastVisibleComment, // Pasamos el último comentario para futuras paginaciones
     };
-  } catch (error: any) {
+  } catch (error) {
     return {
       error,
       errorMessage: "Algo salió mal al obtener el post y los comentarios",

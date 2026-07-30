@@ -1,5 +1,5 @@
-import type { Post } from "~/infra/types/Posts";
 import { getCategoryTaxonomy } from "~/infra/dataAccess/categories/cachedCategoryTaxonomy";
+import type { Post } from "~/infra/types/Posts";
 import { mapPostsToCards } from "./mapPostsToCards";
 
 /**
@@ -10,5 +10,8 @@ import { mapPostsToCards } from "./mapPostsToCards";
  * desde varias páginas de una misma petición no cuesta consultas extra.
  */
 export async function mapPostsToCardsForLocale(posts: Post[], locale: string) {
-  return mapPostsToCards(posts, { locale, taxonomy: await getCategoryTaxonomy() });
+  return mapPostsToCards(posts, {
+    locale,
+    taxonomy: await getCategoryTaxonomy(),
+  });
 }

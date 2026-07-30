@@ -1,5 +1,5 @@
-import { vi } from "vitest";
 import { faker } from "@faker-js/faker";
+import { vi } from "vitest";
 
 export const getCollectionWithConverter = vi.fn(() => {
   return {
@@ -38,8 +38,8 @@ export const getCollectionWithConverter = vi.fn(() => {
           query: {},
           docs: [],
           empty: true,
-        }))
-      }
-    })
+        })),
+      };
+    }),
   };
 });

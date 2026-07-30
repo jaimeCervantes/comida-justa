@@ -1,13 +1,13 @@
-import { test, expect } from "@playwright/test";
-import ProductsReportPage from "./ProductsReportPage";
-import {
-  simulateLogin,
-  deleteSession,
-  type DbSession,
-} from "../testUtils/simulateLogin";
-import { seedPost } from "../testUtils/seedPost";
+import { expect, test } from "@playwright/test";
 import { deleteOnePostBySlug } from "../testUtils/deleteOnePost";
+import { seedPost } from "../testUtils/seedPost";
+import {
+  type DbSession,
+  deleteSession,
+  simulateLogin,
+} from "../testUtils/simulateLogin";
 import { testSlug } from "../testUtils/testSlug";
+import ProductsReportPage from "./ProductsReportPage";
 
 // Slice 3 — the admin report groups product counts by origin.
 // Counts are asserted as deltas (before → after seeding) instead of absolute numbers,
@@ -43,7 +43,9 @@ test.describe("When an admin opens the products report", () => {
     await reportPage.goto();
     await reportPage.expectVisible();
     // El acceso al reporte se muestra en la navegación solo a los admins.
-    await expect(page.getByRole("link", { name: "Reporte" }).first()).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: "Reporte" }).first(),
+    ).toBeVisible();
 
     const before = await reportPage.countFor(REPORTED_ORIGIN);
     const otherBefore = await reportPage.countFor("reventa_foranea");
@@ -79,7 +81,9 @@ test.describe("When a non-admin user opens the products report", () => {
     }
   });
 
-  test("Then the report is not shown, nor its navigation entry", async ({ page }) => {
+  test("Then the report is not shown, nor its navigation entry", async ({
+    page,
+  }) => {
     const reportPage = new ProductsReportPage(page);
 
     await reportPage.goto();

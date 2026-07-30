@@ -1,19 +1,20 @@
 "use client";
-import TextField from "~/infra/UI/components/TextField";
-import TextArea from "~/infra/UI/components/TextArea";
-import Button from "~/infra/UI/components/Button";
 import Link from "next/link";
-import { MdPhone, MdTitle, MdOutlinePriceChange } from "react-icons/md";
-
 import { useActionState, useCallback, useState } from "react";
-import { ActionState } from "~/infra/types/Actions";
-import { POST_CONTENT_MAX_LENGTH } from "~/infra/constants";
-import ImageVideoUploader from "./ui/ImageVideoUploader";
-import { ORIGIN_OPTIONS } from "~/infra/UI/labels/postOriginLabels";
+import { MdOutlinePriceChange, MdPhone, MdTitle } from "react-icons/md";
 import type { CategoryOption } from "~/domain/entities/post/taxonomy";
+import { POST_CONTENT_MAX_LENGTH } from "~/infra/constants";
+import type { ActionState } from "~/infra/types/Actions";
+import { ORIGIN_OPTIONS } from "~/infra/UI/labels/postOriginLabels";
+import { Button } from "~/presentation/design_system/buttons/Button";
+import { TextArea } from "~/presentation/design_system/forms/TextArea";
+import { TextField } from "~/presentation/design_system/forms/TextField";
+import ImageVideoUploader, {
+  type UploadedMediaResult,
+} from "./ui/ImageVideoUploader";
 
 const selectClassName =
-  "w-full rounded border border-gray-300 bg-white px-3 py-2 text-black dark:bg-gray-800 dark:text-white";
+  "w-full rounded-sm border border-gray-300 bg-white px-3 py-2 text-black dark:bg-gray-800 dark:text-white";
 
 export default function PublishForm({
   action,
@@ -45,17 +46,20 @@ export default function PublishForm({
     "Sube tu mejor imagen o sube tu mejor video",
   );
 
-  const onUploadedCallback = useCallback(async function (
-    data: Record<string, any> | null,
-  ) {
-    setImageVideoPickerLabel("Cambia tu mejor imagen o cambia tu mejor video");
-    try {
-      setMediaJSON(JSON.stringify(data?.media));
-      setIsLoadingMedia(data?.isLoading);
-    } catch (error) {
-      console.log(error);
-    }
-  }, []);
+  const onUploadedCallback = useCallback(
+    async (data: UploadedMediaResult | null) => {
+      setImageVideoPickerLabel(
+        "Cambia tu mejor imagen o cambia tu mejor video",
+      );
+      try {
+        setMediaJSON(JSON.stringify(data?.media));
+        setIsLoadingMedia(data?.isLoading ?? null);
+      } catch (error) {
+        console.log(error);
+      }
+    },
+    [],
+  );
 
   return (
     <section className="p-4">
@@ -135,11 +139,13 @@ export default function PublishForm({
                   className={selectClassName}
                 >
                   <option value="">— Sin especificar —</option>
-                  {(subCategoryOptionsByCategory[category] ?? []).map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
+                  {(subCategoryOptionsByCategory[category] ?? []).map(
+                    (option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ),
+                  )}
                 </select>
               </div>
             ) : null}

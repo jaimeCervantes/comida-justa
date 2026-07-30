@@ -1,15 +1,21 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { makeTaxonomy } from "~/domain/entities/post/__fixtures__/categoryTaxonomy";
 
-const { auth, isAdmin, createCategoryRepo, setActiveRepo, getTaxonomy, updateTag } =
-  vi.hoisted(() => ({
-    auth: vi.fn(),
-    isAdmin: vi.fn(),
-    createCategoryRepo: vi.fn(),
-    setActiveRepo: vi.fn(),
-    getTaxonomy: vi.fn(),
-    updateTag: vi.fn(),
-  }));
+const {
+  auth,
+  isAdmin,
+  createCategoryRepo,
+  setActiveRepo,
+  getTaxonomy,
+  updateTag,
+} = vi.hoisted(() => ({
+  auth: vi.fn(),
+  isAdmin: vi.fn(),
+  createCategoryRepo: vi.fn(),
+  setActiveRepo: vi.fn(),
+  getTaxonomy: vi.fn(),
+  updateTag: vi.fn(),
+}));
 
 vi.mock("next/cache", () => ({ updateTag }));
 vi.mock("~/infra/auth", () => ({ auth }));
@@ -94,7 +100,10 @@ describe("las acciones de /admin/catalogo", () => {
       });
 
       it("rejects a key the catalog already has", async () => {
-        const state = await createCategory({ errors: {} }, form({ ...VALID, key: "jugos" }));
+        const state = await createCategory(
+          { errors: {} },
+          form({ ...VALID, key: "jugos" }),
+        );
 
         expect(state.errors.key).toMatch(/ya existe/i);
         expect(createCategoryRepo).not.toHaveBeenCalled();

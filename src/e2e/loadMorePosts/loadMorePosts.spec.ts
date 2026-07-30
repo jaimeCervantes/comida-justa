@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import { PAGINATION_PAGE_SIZE } from "~/infra/constants";
 
 // Regresión: el handler vivía en `route.tsx`, extensión que Next.js no resuelve para route

@@ -1,6 +1,6 @@
-import { describe, it, expect } from "vitest";
-import PostValidator from "./PostValidator";
+import { describe, expect, it } from "vitest";
 import type { Post } from "~/domain/entities/post/types";
+import PostValidator from "./PostValidator";
 
 function makePost(overrides: Partial<Post> = {}): Post {
   return {

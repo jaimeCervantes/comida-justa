@@ -1,18 +1,16 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { addCommentToPost } from "../data-access/actions"; // Función para agregar un comentario
+import { useState } from "react";
 import type { PostUser } from "~/infra/types/Posts";
+import { addCommentToPost } from "../data-access/actions"; // Función para agregar un comentario
 
 export default function AddCommentForm({
   postId,
-  slug,
   user,
   onAdd,
 }: {
   postId: string;
-  slug: string;
   user: PostUser | undefined;
   onAdd?: () => void;
 }) {
@@ -41,7 +39,7 @@ export default function AddCommentForm({
       <textarea
         value={newComment}
         onChange={(e) => setNewComment(e.target.value)}
-        className="w-full p-2 border rounded dark:text-black"
+        className="w-full p-2 border rounded-sm dark:text-black"
         rows={4}
         placeholder="Escribe tu comentario..."
         aria-label="Escribe tu comentario"
@@ -49,7 +47,7 @@ export default function AddCommentForm({
       <button
         type="submit"
         onClick={handleAddComment}
-        className="mt-2 bg-blue-500 text-white px-4 py-2 rounded"
+        className="mt-2 bg-blue-500 text-white px-4 py-2 rounded-sm"
         disabled={loading}
       >
         {loading ? "Agregando..." : "Agregar Comentario"}

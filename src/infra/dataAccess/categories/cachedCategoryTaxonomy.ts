@@ -1,8 +1,8 @@
-import { cache } from "react";
 import { unstable_cache } from "next/cache";
+import { cache } from "react";
 import {
-  createCategoryTaxonomy,
   type CategoryTaxonomy,
+  createCategoryTaxonomy,
 } from "~/domain/entities/post/taxonomy";
 import { createCategoryTaxonomyRepository } from "./factory";
 
@@ -36,6 +36,8 @@ const loadSnapshot = unstable_cache(
  * pinta 12 tarjetas más el selector resuelve etiquetas muchas veces, y todas comparten la misma
  * lectura y los mismos índices.
  */
-export const getCategoryTaxonomy = cache(async (): Promise<CategoryTaxonomy> => {
-  return createCategoryTaxonomy(await loadSnapshot());
-});
+export const getCategoryTaxonomy = cache(
+  async (): Promise<CategoryTaxonomy> => {
+    return createCategoryTaxonomy(await loadSnapshot());
+  },
+);

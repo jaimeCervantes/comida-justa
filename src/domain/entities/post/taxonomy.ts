@@ -104,7 +104,10 @@ export function createCategoryTaxonomy(
 
   const orderedChildren = new Map<string, readonly string[]>();
   for (const [bucket, siblings] of childrenByParent) {
-    orderedChildren.set(bucket, siblings.sort(sortNodes).map((node) => node.key));
+    orderedChildren.set(
+      bucket,
+      siblings.sort(sortNodes).map((node) => node.key),
+    );
   }
 
   return { nodes, aliasesByNormalized, childrenByParent: orderedChildren };
@@ -218,5 +221,8 @@ export function subtreeKeys(
 ): readonly string[] {
   if (!isActiveKey(taxonomy, key)) return [];
 
-  return [key as string, ...(taxonomy.childrenByParent.get(key as string) ?? [])];
+  return [
+    key as string,
+    ...(taxonomy.childrenByParent.get(key as string) ?? []),
+  ];
 }

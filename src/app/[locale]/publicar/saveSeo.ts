@@ -1,4 +1,5 @@
-import { getFirestore } from 'firebase-admin/firestore';
+import { getFirestore } from "firebase-admin/firestore";
+import getErrorMessage from "~/domain/shared/getErrorMessage";
 
 // Tipos para el SEO
 type SeoMeta = {
@@ -18,7 +19,7 @@ type SaveSeoResult = {
   updateTime?: string;
   error?: string;
   errorCode?: string;
-  errorDetails?: any;
+  errorDetails?: unknown;
 };
 
 /**
@@ -32,7 +33,7 @@ export async function saveSeo(
   collectionName: string,
   documentId: string,
   seoData: SeoData,
-  lang: string = 'es'
+  lang: string = "es",
 ): Promise<SaveSeoResult> {
   try {
     const db = getFirestore();
@@ -40,24 +41,29 @@ export async function saveSeo(
 
     const writeResult = await docRef.update({
       [`translations.${lang}.seo`]: seoData,
-      updatedAt: new Date()
+      updatedAt: new Date(),
     });
 
     return {
       success: true,
       documentId,
-      updateTime: writeResult.writeTime.toDate().toISOString()
+      updateTime: writeResult.writeTime.toDate().toISOString(),
     };
+  } catch (error) {
+    console.error("Error al guardar SEO:", error);
 
-  } catch (error: any) {
-    console.error('Error al guardar SEO:', error);
+    // Firestore adjunta un `code` a sus errores; no está en el tipo `Error` estándar.
+    const errorCode =
+      typeof error === "object" && error !== null && "code" in error
+        ? String((error as { code: unknown }).code)
+        : "unknown";
 
     return {
       success: false,
       documentId,
-      error: error?.message || 'Error desconocido',
-      errorCode: error?.code || 'unknown',
-      errorDetails: error
+      error: getErrorMessage(error, "Error desconocido"),
+      errorCode,
+      errorDetails: error,
     };
   }
 }

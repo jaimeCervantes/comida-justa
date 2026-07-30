@@ -6,7 +6,7 @@ export type CardProps = {
   createdAt: string;
   className?: string;
   Container?: ElementType;
-  style?: Object;
+  style?: React.CSSProperties;
   user?: {
     displayName?: string;
     email?: string;

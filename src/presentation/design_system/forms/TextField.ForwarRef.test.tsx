@@ -1,9 +1,8 @@
-import { useRef } from "react";
-import { describe, it, afterEach, vi, expect } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import TextField from "./TextField";
-import type { TextFieldRefType } from "./TextField";
+import { useRef } from "react";
+import { describe, expect, it } from "vitest";
+import { TextField } from "./TextField";
 
 describe("When TextField forwarded with an external ref", () => {
   it("Then it should be focus when it is loaded in a form", async () => {
@@ -13,7 +12,7 @@ describe("When TextField forwarded with an external ref", () => {
 
     await user.click(btn);
 
-    const field = view.getByRole("textbox", { name: "Nombre" });
+    const field = view.getByRole("textbox", { name: /Nombre/i });
     expect(field).toHaveFocus();
   });
 });
@@ -31,7 +30,9 @@ function ForwardedRefInFormWithTextField() {
         required
         pattern="[a-zA-Z]{3,50}"
       />
-      <button onClick={() => ref?.current?.focus()}>focus</button>
+      <button type="button" onClick={() => ref?.current?.focus()}>
+        focus
+      </button>
     </form>
   );
 }

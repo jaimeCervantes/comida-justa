@@ -1,16 +1,16 @@
-import { Metadata } from "next";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getTranslations } from "next-intl/server";
 import { hasLocale } from "next-intl";
-import { routing } from "~/i18n/routing";
-import { createPostQueryRepository } from "~/infra/dataAccess/getMultiplePosts";
-import { mapPostsToCardsForLocale } from "~/infra/UI/mappers/posts/mapPostsToCardsForLocale";
+import { getTranslations } from "next-intl/server";
 import PostsWithLoadMore from "~/app/(home)/PostsWithLoadMore";
+import { routing } from "~/i18n/routing";
 import {
   CANONICAL_URL,
-  PAGINATION_PAGE_SIZE,
   PAGINATION_INIT_PAGE,
+  PAGINATION_PAGE_SIZE,
 } from "~/infra/constants";
+import { createPostQueryRepository } from "~/infra/dataAccess/getMultiplePosts";
+import { mapPostsToCardsForLocale } from "~/infra/UI/mappers/posts/mapPostsToCardsForLocale";
 
 export async function generateMetadata({
   params,

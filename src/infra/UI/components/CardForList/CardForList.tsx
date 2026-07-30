@@ -1,10 +1,10 @@
 import Link from "next/link";
+import type { Post } from "~/infra/types/Posts";
 import Card from "~/infra/UI/components/Card";
+import CategoryTag from "~/infra/UI/components/CategoryTag/CategoryTag";
 import CurrencyAmount from "~/infra/UI/components/CurrencyAmount";
-import { Post } from "~/infra/types/Posts";
 import MediaContent from "~/infra/UI/components/MediaContent/MediaContent";
 import ProvenanceBadge from "~/infra/UI/components/ProvenanceBadge";
-import CategoryTag from "~/infra/UI/components/CategoryTag/CategoryTag";
 
 export default function CardForList(props: Post) {
   // const userLocale = typeof window !== 'undefined' ? navigator.language : 'es-MX';
