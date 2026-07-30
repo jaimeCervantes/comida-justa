@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import type {
   CategoryAlias,
   CategoryLevel,
@@ -6,6 +7,7 @@ import type {
   CategoryTaxonomySnapshot,
 } from "~/domain/entities/post/taxonomy";
 import { FALLBACK_CATEGORY_TAXONOMY } from "~/domain/entities/post/taxonomyFallback";
+import type { NewCategoryInput } from "~/domain/entities/post/newCategory";
 import { db } from "~/infra/dataAccess/db/connection";
 import {
   categoryAliases,
@@ -112,5 +114,52 @@ export default class PostgresCategoryTaxonomyRepository
       );
       return FALLBACK_CATEGORY_TAXONOMY;
     }
+  }
+
+  /**
+   * La categoría y sus etiquetas van en **una sola transacción**: una categoría a medio crear —sin
+   * traducción— se vería por su clave en toda la vitrina, y arreglarlo exigiría entrar a la base.
+   *
+   * El `level` se deduce del padre en vez de pedirlo: es información redundante que el formulario
+   * podría contradecir, y el trigger de la base la rechazaría con un mensaje que nadie espera.
+   */
+  async createCategory(input: NewCategoryInput): Promise<void> {
+    const key = input.key.trim();
+    const level = input.parentKey ? 2 : 1;
+
+    await db.transaction(async (tx) => {
+      // `sort_order` la deja al final de sus hermanas: quien administra el catálogo decide el orden
+      // después, y aparecer en medio sin haberlo pedido sería una sorpresa.
+      await tx.execute(sql`
+        INSERT INTO categories (key, parent_key, level, sort_order)
+        VALUES (
+          ${key},
+          ${input.parentKey},
+          ${level},
+          COALESCE(
+            (SELECT MAX(sort_order) + 10 FROM categories
+             WHERE parent_key IS NOT DISTINCT FROM ${input.parentKey}),
+            10
+          )
+        )
+      `);
+
+      for (const [locale, label] of Object.entries(input.labels)) {
+        if (!label?.trim()) continue;
+
+        await tx.execute(sql`
+          INSERT INTO category_translations (category_key, locale, label)
+          VALUES (${key}, ${locale}, ${label.trim()})
+        `);
+      }
+    });
+  }
+
+  async setCategoryActive(key: string, isActive: boolean): Promise<void> {
+    await db.execute(sql`
+      UPDATE categories
+      SET    is_active = ${isActive}, updated_at = now()
+      WHERE  key = ${key}
+    `);
   }
 }

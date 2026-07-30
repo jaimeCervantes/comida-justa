@@ -1,4 +1,5 @@
 import type { CategoryTaxonomySnapshot } from "~/domain/entities/post/taxonomy";
+import type { NewCategoryInput } from "~/domain/entities/post/newCategory";
 
 export default interface ICategoryTaxonomyRepository {
   /**
@@ -10,4 +11,22 @@ export default interface ICategoryTaxonomyRepository {
    * tiene que poder desplegarse antes de que la migración corra.
    */
   loadSnapshot(): Promise<CategoryTaxonomySnapshot>;
+
+  /**
+   * Da de alta una categoría con sus etiquetas, en una sola transacción: una categoría sin
+   * traducción se vería por su clave, y eso es peor que no haberla creado.
+   *
+   * A diferencia de la lectura, **sí lanza**: quien la llama está esperando en un formulario y
+   * necesita saber si se guardó.
+   */
+  createCategory(input: NewCategoryInput): Promise<void>;
+
+  /**
+   * Activa o desactiva una categoría.
+   *
+   * Desactivar la saca del selector y de los filtros, pero **no toca las publicaciones que ya la
+   * usan**: siguen mostrando su etiqueta. Es la operación reversible frente a borrar, que el FK
+   * impide en cuanto haya un producto colgando.
+   */
+  setCategoryActive(key: string, isActive: boolean): Promise<void>;
 }
