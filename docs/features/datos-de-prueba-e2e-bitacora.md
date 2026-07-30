@@ -109,3 +109,6 @@ donde se va a leer.
    barrido por `user_id`, que atrapa cualquier escritura sin depender del nombre.
 2. **Arreglar el 500 de la publicación sin media**, que este slice destapó.
 3. **Slice 3** — que el pipeline falle si quedan datos de prueba al terminar.
+
+Los tres, con su contexto y el estado de las ramas, están consolidados en
+[`docs/pendientes.md`](../pendientes.md).

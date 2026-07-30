@@ -924,3 +924,7 @@ roadmap están entregados.
    único de este slice sin ejecución automatizada.
 2. **Renombrar desde la UI**, si se acepta encadenarlo con el reindexado de embeddings.
 3. **Desplegar**: la migración está aplicada y los tres repos funcionan con ella.
+
+El punto 1 quedó hecho en esta misma sesión (`src/e2e/adminCatalog/adminCatalog.spec.ts`, 6
+escenarios). Lo que sigue abierto, junto con el estado de las tres ramas y los defectos que
+aparecieron validando, está consolidado en [`docs/pendientes.md`](../pendientes.md).
