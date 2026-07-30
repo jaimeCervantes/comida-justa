@@ -12,10 +12,8 @@ import { createPostRepository } from "~/infra/dataAccess/createOnePost/factory";
 import { isAdmin } from "~/infra/auth/isAdmin";
 import { resolveOriginForUser } from "~/domain/entities/post/origin";
 import { DEFAULT_POST_KIND, type PostKind } from "~/domain/entities/post/kind";
-import {
-  resolveCategory,
-  resolveSubCategory,
-} from "~/domain/entities/post/category";
+import { resolveKeyStrict } from "~/domain/entities/post/taxonomy";
+import { getCategoryTaxonomy } from "~/infra/dataAccess/categories/cachedCategoryTaxonomy";
 import { createIndexPostEmbeddingUseCase } from "~/infra/dataAccess/indexPostEmbedding/factory";
 
 const useCase = new CreateOnePostUseCase(
@@ -74,9 +72,20 @@ export async function createPost(
   const admin = isAdmin(session?.user?.email);
   const origin = resolveOriginForUser(formData.get("origin") as string, admin);
 
-  // Fuera de la allowlist se ignora (queda `null`) en vez de romper la publicación.
-  const category = resolveCategory(formData.get("category") as string);
-  const subCategory = resolveSubCategory(formData.get("subCategory") as string);
+  // Fuera del catálogo se ignora (queda `null`) en vez de romper la publicación.
+  const taxonomy = await getCategoryTaxonomy();
+  const category = resolveKeyStrict(taxonomy, formData.get("category") as string);
+  const requestedSubCategory = resolveKeyStrict(
+    taxonomy,
+    formData.get("subCategory") as string,
+  );
+
+  // Una sub-categoría que no cuelga de la categoría elegida la rechaza el FK compuesto de `posts`.
+  // Se descarta aquí para que el formulario no reviente con un 500 por una combinación imposible.
+  const subCategory =
+    category && taxonomy.nodes.get(requestedSubCategory ?? "")?.parentKey === category
+      ? requestedSubCategory
+      : null;
 
   const errors = {
     title: title ? null : "El título es obligatorio.",

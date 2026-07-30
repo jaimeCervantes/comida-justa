@@ -10,10 +10,7 @@ import { ActionState } from "~/infra/types/Actions";
 import { POST_CONTENT_MAX_LENGTH } from "~/infra/constants";
 import ImageVideoUploader from "./ui/ImageVideoUploader";
 import { ORIGIN_OPTIONS } from "~/infra/UI/labels/postOriginLabels";
-import {
-  categoryOptions,
-  subCategoryOptions,
-} from "~/infra/UI/labels/postCategoryLabels";
+import type { CategoryOption } from "~/domain/entities/post/taxonomy";
 
 const selectClassName =
   "w-full rounded border border-gray-300 bg-white px-3 py-2 text-black dark:bg-gray-800 dark:text-white";
@@ -21,9 +18,15 @@ const selectClassName =
 export default function PublishForm({
   action,
   isAdmin = false,
+  categoryOptions,
+  subCategoryOptionsByCategory,
 }: {
   action: (state: ActionState, data: FormData) => Promise<typeof state>;
   isAdmin?: boolean;
+  /** Resueltas en el servidor desde la tabla `categories`, ya en el idioma de la ruta. */
+  categoryOptions: readonly CategoryOption[];
+  /** Las hijas de cada categoría, para encadenar el segundo selector. */
+  subCategoryOptionsByCategory: Record<string, readonly CategoryOption[]>;
 }) {
   const [state, createPostAction, isPending] = useActionState<
     ActionState,
@@ -35,6 +38,7 @@ export default function PublishForm({
     slug: null,
   });
   const [kind, setKind] = useState<string>("anuncio");
+  const [category, setCategory] = useState<string>("");
   const [mediaJSON, setMediaJSON] = useState<string>("");
   const [isLoadingMedia, setIsLoadingMedia] = useState<boolean | null>(null);
   const [imagePickerLabel, setImageVideoPickerLabel] = useState(
@@ -105,11 +109,12 @@ export default function PublishForm({
               <select
                 id="category"
                 name="category"
-                defaultValue=""
+                value={category}
+                onChange={(event) => setCategory(event.target.value)}
                 className={selectClassName}
               >
                 <option value="">— Sin especificar —</option>
-                {categoryOptions("es").map((option) => (
+                {categoryOptions.map((option) => (
                   <option key={option.value} value={option.value}>
                     {option.label}
                   </option>
@@ -117,24 +122,27 @@ export default function PublishForm({
               </select>
             </div>
 
-            <div className="mb-6 text-black dark:text-white">
-              <label htmlFor="subCategory" className="block mb-1">
-                Sub-categoría:
-              </label>
-              <select
-                id="subCategory"
-                name="subCategory"
-                defaultValue=""
-                className={selectClassName}
-              >
-                <option value="">— Sin especificar —</option>
-                {subCategoryOptions("es").map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
+            {/* Sin categoría no hay sub-categoría que ofrecer: la base rechaza la huérfana. */}
+            {category ? (
+              <div className="mb-6 text-black dark:text-white">
+                <label htmlFor="subCategory" className="block mb-1">
+                  Sub-categoría:
+                </label>
+                <select
+                  id="subCategory"
+                  name="subCategory"
+                  defaultValue=""
+                  className={selectClassName}
+                >
+                  <option value="">— Sin especificar —</option>
+                  {(subCategoryOptionsByCategory[category] ?? []).map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            ) : null}
           </>
         ) : null}
 

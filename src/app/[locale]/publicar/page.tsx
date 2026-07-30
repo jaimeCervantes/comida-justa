@@ -4,15 +4,37 @@ import { isAdmin } from "~/infra/auth/isAdmin";
 import { createPost } from "./actions";
 import { redirect } from "next/navigation";
 import { SIGNIN_PATH } from "~/infra/constants";
+import { optionsFor } from "~/domain/entities/post/taxonomy";
+import { getCategoryTaxonomy } from "~/infra/dataAccess/categories/cachedCategoryTaxonomy";
 
-export default async function PublicarPage() {
+export default async function PublicarPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
   const session = await auth();
 
   if (!session) {
     return redirect(SIGNIN_PATH);
   }
 
+  const { locale } = await params;
+  const taxonomy = await getCategoryTaxonomy();
+
+  // El formulario es un Client Component: las opciones se resuelven aquí y bajan como datos.
+  // Van agrupadas por categoría porque los selectores se encadenan — el FK compuesto de `posts`
+  // rechaza una sub-categoría que no cuelgue de la categoría elegida.
+  const categoryOptions = optionsFor(taxonomy, null, locale);
+  const subCategoryOptionsByCategory = Object.fromEntries(
+    categoryOptions.map(({ value }) => [value, optionsFor(taxonomy, value, locale)]),
+  );
+
   return (
-    <PublishForm action={createPost} isAdmin={isAdmin(session.user?.email)} />
+    <PublishForm
+      action={createPost}
+      isAdmin={isAdmin(session.user?.email)}
+      categoryOptions={categoryOptions}
+      subCategoryOptionsByCategory={subCategoryOptionsByCategory}
+    />
   );
 }
