@@ -23,6 +23,21 @@ const BASE_URL = `http://localhost:${PORT}`;
 export default defineConfig({
   timeout: 90000,
   testDir: "./src/e2e",
+
+  /**
+   * Solo `*.spec.ts`. Por defecto Playwright también toma `*.test.ts`, y bajo `src/e2e/` conviven
+   * pruebas unitarias de Vitest —las de los ayudantes, que deben poder correr sin navegador ni
+   * base—. Sin esto, Playwright intenta ejecutarlas y falla al importar Vitest.
+   */
+  testMatch: /.*\.spec\.ts$/,
+
+  /**
+   * La base la comparten tres repositorios, así que la limpieza no puede depender de que el final
+   * de un test se ejecute: `globalSetup` barre lo que dejó una corrida caída, y `globalTeardown`
+   * barre y **falla si algo quedó**. Ver `docs/features/datos-de-prueba-e2e.md`.
+   */
+  globalSetup: "./src/e2e/globalSetup.ts",
+  globalTeardown: "./src/e2e/globalTeardown.ts",
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
