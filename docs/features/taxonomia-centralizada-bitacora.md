@@ -871,6 +871,22 @@ fallo a mitad -> 0 categorías a medias             (la transacción hace su tra
 explícitamente que no quedó ninguna: `categorías de prueba restantes: 0`. Ninguna categoría real se
 tocó.
 
+**Y una limpieza de datos filtrados por la propia suite e2e.** Al validar, el golden del backend
+empezó a fallar con *"2 productos siguen sin indexar"*. No era código: tres publicaciones sembradas
+por `products.spec.ts` —con el sufijo de timestamp `1785417725068`— habían sobrevivido a una corrida
+que falló hoy antes de llegar a su `afterEach`. Se borraron; `posts` volvió de 16 a 14 productos y
+las traducciones sin embedding a 0. Tras eso, `pytest` 92/92 y `apps/api` 152/152.
+
+**Corrige un diagnóstico anterior de esta misma bitácora:** el `16 contra 14` que se atribuyó a "la
+suite e2e corriendo en paralelo" era en realidad **este dato filtrado**, no concurrencia. La
+conclusión —no usar conteos absolutos en una base compartida— se sostiene igual, y la reescritura de
+esas aserciones como propiedades del subárbol sigue siendo lo correcto; lo que estaba mal era la
+causa que se les atribuyó.
+
+**Deuda que esto deja al descubierto:** una corrida de e2e que falle a mitad puede dejar
+publicaciones sembradas en la base que los tres repos comparten. `afterEach` no basta cuando el
+proceso muere. Valdría un barrido previo por el patrón de sufijo, o un `globalTeardown`.
+
 ### Lo que queda sin verificar
 
 Los escenarios `@slice-5` sin `@component` —que la categoría nueva aparezca en `/publicar`, y que
