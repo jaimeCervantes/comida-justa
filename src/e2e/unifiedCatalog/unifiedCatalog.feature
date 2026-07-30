@@ -22,24 +22,24 @@ Feature: Unified catalog
 
   Background:
     Given the app is running with PostgreSQL as the database
-    And the category allowlist is:
-      | key          | label es     | label en |
-      | alimentacion | Alimentación | Food     |
-    And the sub-category allowlist is:
-      | key       | label es  | label en  |
-      | jugos     | Jugos     | Juices    |
-      | platillos | Platillos | Dishes    |
-      | bebidas   | Bebidas   | Drinks    |
-      | panaderia | Panadería | Bakery    |
-      | abarrotes | Abarrotes | Groceries |
-      | untables  | Untables  | Spreads   |
+    # The taxonomy moved out of TypeScript constants and into the `categories` table.
+    # See docs/features/taxonomia-centralizada.md — this Background now describes stored data.
+    And the catalog holds one root category and six sub-categories:
+      | key          | parent_key   | label es     | label en  |
+      | alimentacion |              | Alimentación | Food      |
+      | jugos        | alimentacion | Jugos        | Juices    |
+      | platillos    | alimentacion | Platillos    | Dishes    |
+      | bebidas      | alimentacion | Bebidas      | Drinks    |
+      | panaderia    | alimentacion | Panadería    | Bakery    |
+      | abarrotes    | alimentacion | Abarrotes    | Groceries |
+      | untables     | alimentacion | Untables     | Spreads   |
 
   # ---------------------------------------------------------------------------
   # Slice 1 — unified schema & category on publishing (implemented)
   # Scenarios live in src/e2e/unifiedCatalog/unifiedCatalog.spec.ts
-  # Allowlist and label rules are covered by Vitest:
-  #   src/domain/entities/post/category.test.ts
-  #   src/infra/UI/labels/postCategoryLabels.test.ts
+  # Catalog and label rules are covered by Vitest:
+  #   src/domain/entities/post/taxonomy.test.ts
+  #   src/infra/UI/mappers/posts/mapPostsToCards.test.ts
   #   src/infra/UI/components/CategoryTag/CategoryTag.test.tsx
   # ---------------------------------------------------------------------------
 
@@ -101,23 +101,23 @@ Feature: Unified catalog
       | external_url | null     |
     And nothing about its rendering changes
 
-  # Covered at unit level (Vitest): the allowlist is the only source of category keys.
+  # Covered at unit level (Vitest): the `categories` table is the only source of category keys.
   @slice-1 @component
-  Scenario Outline: Only allowlist keys are accepted
+  Scenario Outline: Only catalog keys are accepted
     Given a publish request carrying category "<sent>"
     When the post is validated
     Then the stored category is <stored>
 
     Examples: rejected — labels, unknown keys and empty values never reach the database
-      | sent         | stored       | reason                          |
-      | Alimentación | null         | label sent instead of the key   |
-      | electronica  | null         | not in the allowlist            |
-      | ALIMENTACION | null         | allowlist keys are lower-case   |
-      |              | null         | empty string                    |
+      | sent         | stored       | reason                        |
+      | Alimentación | null         | label sent instead of the key |
+      | electronica  | null         | not in the catalog            |
+      | ALIMENTACION | null         | catalog keys are lower-case   |
+      |              | null         | empty string                  |
 
     Examples: accepted
-      | sent         | stored         | reason              |
-      | alimentacion | "alimentacion" | exact allowlist key |
+      | sent         | stored         | reason            |
+      | alimentacion | "alimentacion" | exact catalog key |
 
   # ---------------------------------------------------------------------------
   # Slice 2 — migrate the 9 products into posts (implemented)
