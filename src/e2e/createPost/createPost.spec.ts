@@ -8,6 +8,7 @@ import {
   type DbSession,
 } from "../testUtils/simulateLogin";
 import { deleteOnePostBySlug } from "../testUtils/deleteOnePost";
+import { testPost } from "../testUtils/testSlug";
 
 test.describe("When users visit the platform", () => {
   test("Then a list of healthy post is displayed", async ({
@@ -64,8 +65,7 @@ test.describe("When a signed users publish a new healthy post", () => {
     page,
   }: PlaywrightTestArgs) => {
     const publishPage = new PublishPage(page);
-    const postTitle = "Ensalada griega";
-    const slug = "ensalada-griega";
+    const { title: postTitle, slug } = testPost("Ensalada griega");
 
     await publishPage.stubStorageUpload();
     await publishPage.fillFields({

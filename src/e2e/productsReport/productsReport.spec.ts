@@ -7,6 +7,7 @@ import {
 } from "../testUtils/simulateLogin";
 import { seedPost } from "../testUtils/seedPost";
 import { deleteOnePostBySlug } from "../testUtils/deleteOnePost";
+import { testSlug } from "../testUtils/testSlug";
 
 // Slice 3 — the admin report groups product counts by origin.
 // Counts are asserted as deltas (before → after seeding) instead of absolute numbers,
@@ -19,7 +20,7 @@ const adminEmail = (process.env.HAZLO_SANO_ADMIN_EMAILS ?? "")
 const REPORTED_ORIGIN = "hazlo_sano_propio";
 
 test.describe("When an admin opens the products report", () => {
-  const slug = `producto-de-reporte-${Date.now()}`;
+  const slug = testSlug("producto-de-reporte");
   let dbSession: DbSession | undefined;
 
   test.beforeEach(async ({ page, browserName }) => {

@@ -2,6 +2,7 @@ import { test } from "@playwright/test";
 import ProductsPage from "./ProductsPage";
 import { seedPost } from "../testUtils/seedPost";
 import { deleteOnePostBySlug } from "../testUtils/deleteOnePost";
+import { testSlug } from "../testUtils/testSlug";
 
 // Slice 2 — the products page lists ONLY Hazlo Sano products.
 // Seeds go straight through the write repository (no UI, no admin gate) because this
@@ -10,21 +11,21 @@ const stamp = Date.now();
 
 const hazloSanoProduct = {
   title: `Miel de abeja de Hazlo Sano ${stamp}`,
-  slug: `miel-de-abeja-de-hazlo-sano-${stamp}`,
+  slug: testSlug("miel-de-abeja-de-hazlo-sano"),
   kind: "producto" as const,
   origin: "hazlo_sano_propio",
 };
 
 const communityProduct = {
   title: `Miel de abeja del vecino ${stamp}`,
-  slug: `miel-de-abeja-del-vecino-${stamp}`,
+  slug: testSlug("miel-de-abeja-del-vecino"),
   kind: "producto" as const,
   origin: "productor_local",
 };
 
 const hazloSanoAnuncio = {
   title: `Aviso de Hazlo Sano ${stamp}`,
-  slug: `aviso-de-hazlo-sano-${stamp}`,
+  slug: testSlug("aviso-de-hazlo-sano"),
   kind: "anuncio" as const,
   origin: "hazlo_sano_propio",
 };

@@ -1,12 +1,13 @@
 import type { Page } from "@playwright/test";
 import PublishPage from "../createPost/PublishPage";
+import { testPost } from "./testSlug";
 
 export async function publishTestPost(page: Page) {
-  const time = new Date().getTime();
-  const slug = 'ensalada-griega-' + time;
+  // El slug lo deriva la app del título; `testPost` lo calcula con el mismo código, así que el
+  // barrido puede reconocer esta publicación aunque el test muera antes de borrarla.
+  const { title: postTitle, slug } = testPost("Ensalada griega");
 
   const publishPage = new PublishPage(page);
-  const postTitle = 'Ensalada griega ' + time;
 
   await publishPage.stubStorageUpload();
   await publishPage.fillFields({

@@ -11,6 +11,7 @@ import {
   type DbSession,
 } from "../testUtils/simulateLogin";
 import { deleteOnePostBySlug } from "../testUtils/deleteOnePost";
+import { testPost } from "../testUtils/testSlug";
 import { seedPost } from "../testUtils/seedPost";
 import {
   chatbotFindsPostBySlug,
@@ -26,8 +27,10 @@ const adminEmail = (process.env.HAZLO_SANO_ADMIN_EMAILS ?? "")
   .filter(Boolean)[0];
 
 const stamp = Date.now();
-const publishedSlug = `suero-natural-${stamp}`;
-const pendingSlug = `electrolitos-de-frutos-rojos-${stamp}`;
+const published = testPost("Suero natural");
+const publishedSlug = published.slug;
+const pending = testPost("Electrolitos de frutos rojos");
+const pendingSlug = pending.slug;
 
 /**
  * El embedding se genera en `after()`, es decir después de que la respuesta salió: en el momento
@@ -70,7 +73,7 @@ test.describe("When a product is published from the website", () => {
     await publishPage.stubStorageUpload();
     await publishPage.goto();
     await publishPage.fill({
-      title: `Suero natural ${stamp}`,
+      title: published.title,
       description: "Agua, limón, sal de mar y un toque de miel. Sin colorantes.",
       price: "35",
       phone: "2781126948",
@@ -97,7 +100,7 @@ test.describe("When a publication was left pending because the provider failed",
   test.beforeEach(async () => {
     test.skip(!process.env.GEMINI_API_KEY, "GEMINI_API_KEY is not configured");
     await seedPost({
-      title: `Electrolitos de frutos rojos ${stamp}`,
+      title: pending.title,
       slug: pendingSlug,
       kind: "producto",
       origin: "hazlo_sano_propio",

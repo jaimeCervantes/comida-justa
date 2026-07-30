@@ -6,6 +6,7 @@ import {
   type DbSession,
 } from "../testUtils/simulateLogin";
 import { deleteOnePostBySlug } from "../testUtils/deleteOnePost";
+import { testPost, testSlug } from "../testUtils/testSlug";
 import { seedPost } from "../testUtils/seedPost";
 import { readPostRowBySlug } from "../testUtils/readPostRow";
 
@@ -17,8 +18,9 @@ const adminEmail = (process.env.HAZLO_SANO_ADMIN_EMAILS ?? "")
   .filter(Boolean)[0];
 
 const stamp = Date.now();
-const publishedSlug = `jugo-verde-${stamp}`;
-const seededWithoutCategorySlug = `pan-de-masa-madre-natural-${stamp}`;
+const published = testPost("Jugo Verde");
+const publishedSlug = published.slug;
+const seededWithoutCategorySlug = testSlug("pan-de-masa-madre-natural");
 
 test.describe("When a product is published with a category", () => {
   // El navegador de Playwright pide `en-US` por defecto y next-intl detecta el idioma: la URL
@@ -48,7 +50,7 @@ test.describe("When a product is published with a category", () => {
     await publishPage.stubStorageUpload();
     await publishPage.goto();
     await publishPage.fill({
-      title: `Jugo Verde ${stamp}`,
+      title: published.title,
       description: "Espinaca, apio, pepino y limón. Sin azúcar añadida.",
       price: "40",
       phone: "2781126948",

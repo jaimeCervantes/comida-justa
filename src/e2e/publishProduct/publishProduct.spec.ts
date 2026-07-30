@@ -6,6 +6,7 @@ import {
   type DbSession,
 } from "../testUtils/simulateLogin";
 import { deleteOnePostBySlug } from "../testUtils/deleteOnePost";
+import { testPost } from "../testUtils/testSlug";
 
 // Slice 1 — admin publishes a Hazlo Sano product and the badge is shown.
 // Requires the running stack (PostgreSQL) and that the first email in
@@ -15,7 +16,7 @@ const adminEmail = (process.env.HAZLO_SANO_ADMIN_EMAILS ?? "")
   .map((entry) => entry.trim())
   .filter(Boolean)[0];
 
-const slug = "crema-de-cacahuate-artesanal";
+const { title: productTitle, slug } = testPost("Crema de cacahuate artesanal");
 
 test.describe("When an admin publishes a Hazlo Sano product", () => {
   let dbSession: DbSession | undefined;
@@ -36,7 +37,7 @@ test.describe("When an admin publishes a Hazlo Sano product", () => {
 
   test("Then the product detail shows the Hazlo Sano badge", async ({ page }) => {
     const publishPage = new PublishProductPage(page);
-    const title = "Crema de cacahuate artesanal";
+    const title = productTitle;
 
     await publishPage.stubStorageUpload();
     await publishPage.goto();
