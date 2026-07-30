@@ -41,6 +41,14 @@
   --feedback-success: var(--brand-lightgreen);
   --feedback-warning: var(--brand-lightorange);
   --feedback-error: var(--brand-orange);
+
+  /*
+   * Verde de acento para marcar (palomitas, cifras, hover de enlaces). Vivía en `globals.css`
+   * antes de que los tokens se mudaran aquí y se quedó fuera de la mudanza, así que sus usos
+   * apuntaban a una variable inexistente: `text-(--highlight)` heredaba el gris del contenedor
+   * y `from-(--highlight)` volvía transparente el arranque del degradado.
+   */
+  --highlight: #2abf40;
 }
 
 @media (prefers-color-scheme: dark) {

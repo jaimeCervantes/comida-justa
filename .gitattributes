@@ -1,0 +1,7 @@
+# Git para Windows trae `core.autocrlf=true` en su config de sistema, así que al hacer checkout
+# convertía todo a CRLF; biome formatea a LF (su valor por omisión). Uno deshacía al otro en cada
+# checkout/stash/merge, y `biome check` marcaba medio repo como mal formateado.
+#
+# `eol=lf` gana sobre `core.autocrlf`, y al estar versionado aplica igual en cualquier máquina
+# —sin que nadie tenga que tocar su config— en vez de arreglarlo solo en una.
+* text=auto eol=lf

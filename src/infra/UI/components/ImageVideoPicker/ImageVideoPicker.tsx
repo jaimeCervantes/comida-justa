@@ -52,7 +52,15 @@ export default function ImagePicker({
   return (
     <section className={className}>
       <label htmlFor={inputId}>
-        <Button startIcon={<MdImageIcon size={32} color={"white"} />} size="sm">
+        {/*
+          La única etiqueta larga de la app ("Sube tu mejor imagen o sube tu mejor video"):
+          necesita envolver, así que se sale del `whitespace-nowrap` que el botón trae por defecto.
+        */}
+        <Button
+          startIcon={<MdImageIcon size={32} color={"white"} />}
+          size="sm"
+          className="whitespace-normal"
+        >
           <input
             className="opacity-0 absolute w-full h-full top-0 left-0 cursor-pointer [&::-webkit-file-upload-button]:cursor-pointer"
             required={required}

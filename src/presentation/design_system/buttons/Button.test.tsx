@@ -41,6 +41,27 @@ describe("Button component", () => {
     expect(onClick).toBeCalled();
   });
 
+  // Regresión: en el header, al mostrar su loader el botón "Publicar" le quitaba ancho al de
+  // "Iniciar sesión", que partía la etiqueta en dos renglones y crecía de alto hasta romper la
+  // altura fija del header. La etiqueta de un botón no envuelve salvo que se pida.
+  it("Then the label does not wrap by default", () => {
+    const { getByRole } = render(<Button>Iniciar sesión</Button>);
+
+    expect(getByRole("button")).toHaveClass("whitespace-nowrap");
+  });
+
+  it("Then a long label can opt out of the no-wrap default", () => {
+    const { getByRole } = render(
+      <Button className="whitespace-normal">
+        Sube tu mejor imagen o sube tu mejor video
+      </Button>,
+    );
+    const button = getByRole("button");
+
+    expect(button).toHaveClass("whitespace-normal");
+    expect(button).not.toHaveClass("whitespace-nowrap");
+  });
+
   it("Then when props exist the button should be shown with this props", async () => {
     const onClick = vi.fn();
     const user = userEvent.setup();

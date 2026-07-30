@@ -158,7 +158,8 @@ export default function MobileNav({
             className="flex items-center gap-2"
           >
             <Image src="/logo.webp" width={40} height={40} alt="Logo" />
-            <span className="text-xl font-bold bg-clip-text text-transparent bg-linear-to-r from-(--highlight) to-green-600">
+            {/* Mismo logotipo que el pie: verde sólido para que se lean todas las letras. */}
+            <span className="text-xl font-bold text-pw-green">
               {PUBLIC_BRAND_NAME}
             </span>
           </Link>

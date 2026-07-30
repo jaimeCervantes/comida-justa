@@ -20,9 +20,11 @@ export default function Footer() {
               width={40}
               height={40}
             />
-            <span className="bg-clip-text text-transparent bg-linear-to-r from-(--highlight) to-green-600">
-              {PUBLIC_BRAND_NAME}
-            </span>
+            {/*
+              El logotipo va en verde sólido, no en degradado: recortar el degradado contra el
+              texto deja las primeras letras casi ilegibles sobre fondo claro.
+            */}
+            <span className="text-pw-green">{PUBLIC_BRAND_NAME}</span>
           </Link>
           <p className="text-gray-600 dark:text-gray-400 text-sm max-w-sm leading-relaxed">
             No somos solo una aplicación, somos todo un ecosistema de

@@ -7,7 +7,10 @@ import { BiLoaderAlt } from "react-icons/bi";
 import { cn } from "../styling/merge-class-names";
 
 const buttonVariants = cva(
-  "relative rounded-lg inline-flex items-center justify-center transition-colors disabled:opacity-50 disabled:pointer-events-none",
+  // `whitespace-nowrap` no es cosmético: sin él, un botón que se queda sin ancho —por ejemplo
+  // cuando el hermano de al lado crece al mostrar su loader— parte la etiqueta en dos renglones
+  // y el botón crece de alto, rompiendo la altura fija del header.
+  "relative rounded-lg inline-flex items-center justify-center whitespace-nowrap transition-colors disabled:opacity-50 disabled:pointer-events-none",
   {
     variants: {
       color: {
