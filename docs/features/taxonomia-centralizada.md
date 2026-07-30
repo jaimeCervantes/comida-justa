@@ -176,9 +176,15 @@ Aditivo y reversible. **Ningún consumidor cambia de comportamiento todavía.**
 - `GET /v1/catalog/categories?locale=` — hoy no hay forma de descubrir la taxonomía.
 - Chips de filtro por categoría y sub-categoría en el miniapp.
 
-### Slice 5 — Administrar la taxonomía sin migración *(siguiente)*
+### Slice 5 — Administrar la taxonomía sin migración *(entregado)*
 
-- `/admin/catalogo`: alta, baja y renombre + `revalidateTag("catalog-taxonomy")`.
+- `/admin/catalogo`: alta y activar/desactivar, más `updateTag` del catálogo tras cada cambio.
+- **Renombrar y borrar quedan fuera a propósito.** Renombrar cascadea a `posts` y cambia el texto
+  que alimenta el embedding, así que exige reindexar; borrar solo funciona en categorías vacías,
+  porque el FK con `ON DELETE RESTRICT` lo impide en cuanto haya un producto. Desactivar es la
+  operación reversible que cubre la necesidad real.
+- `updateTag` y no `revalidateTag`: el primero está pensado para Server Actions y garantiza
+  *read-your-own-writes*, así que quien crea la categoría la ve de inmediato.
 
 ## Riesgos
 

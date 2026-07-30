@@ -800,3 +800,95 @@ arreglo cambia comportamiento —como el de `SearchBar` en comida-justa— y mer
 2. **Arreglar los 2 errores de lint** de `useTelegram` y `SearchBar` en el miniapp.
 3. **Slice 5** — `/admin/catalogo` para editar la taxonomía sin migración.
 4. **Desplegar**: la migración está aplicada y los tres repos funcionan con ella.
+
+---
+
+## Slice 5 — Administrar el catálogo sin migración *(2026-07-30)*
+
+### Objetivo
+
+Que agregar una categoría deje de ser una migración. Es el primer slice en el que **el sitio escribe
+en la taxonomía**.
+
+### Alcance: agregar y (des)activar
+
+Se descartaron dos operaciones, y el motivo no es de esfuerzo:
+
+- **Renombrar** cascadea a `posts` por el `ON UPDATE CASCADE` y, sobre todo, **cambia el texto que
+  alimenta el embedding** — cada renombre exigiría reindexar. Es la operación que motivó toda la
+  feature, pero desde una UI, sin ese reindexado, dejaría el espacio vectorial desalineado en
+  silencio.
+- **Borrar** solo funciona en categorías vacías: el FK con `ON DELETE RESTRICT` lo impide en cuanto
+  haya un producto o una hija. Es la mayor superficie por el menor beneficio.
+
+**Desactivar es la operación reversible que cubre la necesidad real**: saca la categoría del
+selector y de los filtros sin tocar las publicaciones que ya la usan, que siguen mostrando su
+etiqueta.
+
+### Decisiones
+
+- **La validación vive en el dominio y devuelve todos los errores a la vez.** La base ya rechaza lo
+  imposible —el CHECK del formato, el trigger de profundidad, el FK del padre—, pero esos errores
+  llegan como un 500 sin explicación. Arreglar un formulario error por error es una forma lenta de
+  perder a quien lo está llenando.
+- **La categoría y sus etiquetas van en una sola transacción.** Una categoría a medio crear se
+  vería por su clave en toda la vitrina, y arreglarlo exigiría entrar a la base. Comprobado: un
+  fallo a mitad deja **cero** categorías huérfanas.
+- **`updateTag`, no `revalidateTag`.** El primero está pensado para llamarse desde una Server Action
+  y garantiza *read-your-own-writes*: quien acaba de crear la categoría la ve de inmediato. Con
+  `revalidateTag` habría que esperar —y en Next 16 exige además un perfil de caducidad.
+- **El `level` se deduce del padre** en vez de pedirlo al formulario: es información redundante que
+  el formulario podría contradecir, y el trigger la rechazaría con un mensaje que nadie espera.
+- **`sort_order` deja la nueva al final de sus hermanas.** Aparecer en medio del catálogo sin
+  haberlo pedido sería una sorpresa; el orden se ajusta después.
+- **La Server Action revalida el permiso.** Es un endpoint: se puede invocar sin pasar por la
+  página, así que el gate de la página no basta.
+- **Un fallo de la base se traduce a un mensaje.** Dos administradores a la vez pasan la validación
+  con la misma clave y solo uno gana; el otro merece una frase, no una pantalla de error.
+
+### Validación
+
+| | |
+|---|---|
+| Dominio (`newCategory`) | **19** casos |
+| Acciones (`actions.test.ts`) | **11** casos, incluido el gate de admin y la carrera entre dos altas |
+| Escritura contra la base | verificada con una categoría desechable, **0 restantes tras limpiar** |
+
+Lo comprobado contra la base de verdad, que ni el typecheck ni Vitest cubren:
+
+```
+creada: level=2, sort_order=70, 2 etiquetas       (transacción completa)
+en la vista `category_labels`: es=Prueba, en=Test  (la ven los tres repos)
+desactivar -> fuera de category_subtree_keys       (0)
+reactivar  -> de vuelta                            (1)
+clave repetida -> rechazada por la base            (la base es la última palabra)
+fallo a mitad -> 0 categorías a medias             (la transacción hace su trabajo)
+```
+
+### Escrito en recursos compartidos
+
+**Una categoría de prueba, creada y borrada en la misma corrida** (`zzz_prueba_claude`). Se verificó
+explícitamente que no quedó ninguna: `categorías de prueba restantes: 0`. Ninguna categoría real se
+tocó.
+
+### Lo que queda sin verificar
+
+Los escenarios `@slice-5` sin `@component` —que la categoría nueva aparezca en `/publicar`, y que
+desactivar la saque del selector— **no tienen ejecución automatizada**: necesitan Playwright con
+sesión de administrador. Están cubiertos por el dominio, las acciones y la comprobación contra la
+base, pero nadie los recorre en un navegador.
+
+### Recap
+
+Agregar una categoría dejó de necesitar una migración: se da de alta desde `/admin/catalogo`, el
+caché se invalida en el acto y aparece en `/publicar` sin desplegar. Desactivar la retira del
+selector y de los filtros sin tocar lo ya publicado, y se puede revertir desde la misma pantalla.
+Renombrar y borrar quedaron fuera con motivo escrito, no por olvido. Con esto los cinco slices del
+roadmap están entregados.
+
+### Próximos pasos (opciones)
+
+1. **Cubrir los dos escenarios de UI con Playwright** (necesita sesión de administrador), que es lo
+   único de este slice sin ejecución automatizada.
+2. **Renombrar desde la UI**, si se acepta encadenarlo con el reindexado de embeddings.
+3. **Desplegar**: la migración está aplicada y los tres repos funcionan con ella.

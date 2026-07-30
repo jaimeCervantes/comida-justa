@@ -394,18 +394,65 @@ Feature: Centralised catalog taxonomy
     And the product list still works
 
   # ---------------------------------------------------------------------------
-  # Slice 5 — administering the taxonomy without a migration
+  # Slice 5 — administering the taxonomy without a migration (implemented)
+  # Domain:  src/domain/entities/post/newCategory.test.ts
+  # Actions: src/app/[locale]/admin/catalogo/actions.test.ts
+  # Writes verified against the shared database with a throwaway category.
+  # Scope: adding and (de)activating. Renaming and deleting are deliberately out —
+  # renaming cascades into posts and invalidates the embedding text.
   # ---------------------------------------------------------------------------
 
-  @slice-5 @future
+  @slice-5
   Scenario: A new sub-category becomes available without deploying
     Given an admin on "/admin/catalogo"
-    When they add the sub-category "conservas" under "alimentacion"
+    When they add the sub-category "conservas" under "alimentacion" labelled "Conservas" / "Preserves"
     Then "/publicar" offers it without a deployment
+    And it reads "Preserves" for an English visitor
 
-  @slice-5 @future
+  # El caché dura una hora; sin invalidarlo, quien acaba de crearla no la encontraría.
+  @slice-5 @component
+  Scenario: What was just created is visible immediately
+    Given an admin who added a category
+    When the catalog is read again
+    Then the new category is there, without waiting for the cache to expire
+
+  @slice-5 @component
+  Scenario Outline: A key that the database would reject is named before saving
+    Given an admin filling the form with the key "<key>"
+    When they submit
+    Then the form explains "<problem>" and nothing is written
+
+    Examples:
+      | key                | problem                          |
+      | MAL                | mayúsculas                       |
+      | con espacios       | espacios                          |
+      | conservás          | acento                            |
+      | jugos              | la clave ya existe                |
+      |                    | la clave es obligatoria           |
+
+  @slice-5 @component
+  Scenario: Two admins racing for the same key get a message, not an error page
+    Given the key "conservas" was taken between the check and the save
+    When the form is submitted
+    Then it says the key was taken and the page keeps working
+
+  # Una Server Action es un endpoint: se puede invocar sin pasar por la página.
+  @slice-5 @component
+  Scenario Outline: Only an admin can edit the catalog
+    Given a caller who is <role>
+    When they invoke the catalog action directly
+    Then the catalog is <outcome>
+
+    Examples:
+      | role         | outcome        |
+      | an admin     | modified       |
+      | not an admin | left untouched |
+
+  @slice-5
   Scenario: Deactivating a category hides it from the form but not from its products
     Given the sub-category "abarrotes" with published products
     When an admin deactivates it
     Then it disappears from the "/publicar" selector
+    And it disappears from the category filters
     And its products keep showing their label
+    And it can be activated again from the same page
