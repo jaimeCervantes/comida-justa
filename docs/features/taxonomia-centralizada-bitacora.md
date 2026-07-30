@@ -887,12 +887,28 @@ causa que se les atribuyó.
 publicaciones sembradas en la base que los tres repos comparten. `afterEach` no basta cuando el
 proceso muere. Valdría un barrido previo por el patrón de sufijo, o un `globalTeardown`.
 
-### Lo que queda sin verificar
+### Los escenarios de UI, ya recorridos en navegador
 
-Los escenarios `@slice-5` sin `@component` —que la categoría nueva aparezca en `/publicar`, y que
-desactivar la saque del selector— **no tienen ejecución automatizada**: necesitan Playwright con
-sesión de administrador. Están cubiertos por el dominio, las acciones y la comprobación contra la
-base, pero nadie los recorre en un navegador.
+`src/e2e/adminCatalog/adminCatalog.spec.ts`, con sesión de administrador — **6 escenarios, verdes**:
+
+1. Una sub-categoría nueva aparece en `/publicar` **sin desplegar**.
+2. Desactivarla la saca del selector, **pero la publicación que ya la usa conserva su etiqueta** —
+   se siembra un producto con esa categoría y se comprueba en su página de detalle.
+3. Se puede volver a activar desde la misma pantalla.
+4. Una clave con mayúsculas se explica antes de guardar, en vez de reventar contra el CHECK.
+5. Una clave que ya existe se rechaza.
+6. Quien no es administrador recibe **404**, no 403.
+
+**Comprobado que no son vacuas:** quitar la invalidación de caché rompe 3 de las 6 — que es
+exactamente lo que esos escenarios existen para proteger.
+
+**La limpieza aprendió del incidente anterior.** Las categorías de prueba llevan el prefijo `e2e_`,
+hay un **barrido en `beforeAll`** —no solo en `afterEach`, que no corre si el proceso muere— y un
+`afterAll` que **afirma que quedan cero**. El orden importa: el FK es `ON DELETE RESTRICT`, así que
+primero se van las publicaciones y después la categoría.
+
+Estado de la base tras las corridas: 0 categorías `e2e_`, 0 publicaciones con sufijo de timestamp,
+14 productos, 0 traducciones sin embedding, y las 7 categorías reales intactas.
 
 ### Recap
 

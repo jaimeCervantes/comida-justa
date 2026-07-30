@@ -395,9 +395,13 @@ Feature: Centralised catalog taxonomy
 
   # ---------------------------------------------------------------------------
   # Slice 5 — administering the taxonomy without a migration (implemented)
-  # Domain:  src/domain/entities/post/newCategory.test.ts
-  # Actions: src/app/[locale]/admin/catalogo/actions.test.ts
-  # Writes verified against the shared database with a throwaway category.
+  # Domain:     src/domain/entities/post/newCategory.test.ts
+  # Actions:    src/app/[locale]/admin/catalogo/actions.test.ts
+  # Playwright: src/e2e/adminCatalog/adminCatalog.spec.ts (with an admin session)
+  #
+  # Categories created by the suite carry the `e2e_` prefix so they can be swept even when a
+  # run dies before its afterEach — which already happened once and broke the backend golden.
+  #
   # Scope: adding and (de)activating. Renaming and deleting are deliberately out —
   # renaming cascades into posts and invalidates the embedding text.
   # ---------------------------------------------------------------------------
@@ -447,6 +451,19 @@ Feature: Centralised catalog taxonomy
       | role         | outcome        |
       | an admin     | modified       |
       | not an admin | left untouched |
+
+  # 404 y no 403: una página interna no tiene por qué revelar que existe.
+  @slice-5
+  Scenario: The admin page does not reveal itself to anyone else
+    Given a visitor who is not an admin
+    When they open "/admin/catalogo"
+    Then the answer is 404
+
+  @slice-5
+  Scenario: A deactivated category can be switched back on
+    Given a sub-category an admin just deactivated
+    When they press the toggle again on the same page
+    Then it reads active once more
 
   @slice-5
   Scenario: Deactivating a category hides it from the form but not from its products
