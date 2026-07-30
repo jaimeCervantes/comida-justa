@@ -8,32 +8,35 @@ import {
 } from "./legacyCatalog";
 
 describe("legacy catalog mapping", () => {
-  // Escenario "Each legacy product becomes a publication, field by field" (@slice-2)
+  /**
+   * La taxonomía se mudó a la tabla `categories`, así que resolver una etiqueta heredada exige
+   * leer la base y ya no puede ser síncrono. Estas funciones conservan su firma para que
+   * `migrateProductsToPosts.ts` siga compilando sin tocarlo (la tabla `products` quedó fuera de
+   * alcance), pero lanzan: devolver `null` migraría los productos sin categoría **y en silencio**,
+   * que es justo el modo de fallo que la tabla vino a eliminar.
+   */
   describe.each([
-    ["Jugo Verde", "Jugos", "jugos"],
-    // "Comidas" ya no normaliza a una clave válida: la allowlist la renombró a `platillos`.
-    // El alias es lo único que evita que re-migrar deje estos productos sin subcategoría.
-    ["Pechuga de pollo asada", "Comidas", "platillos"],
-    ["Agua de Avena con canela", "Bebidas", "bebidas"],
-  ])("%s", (_name, legacyLabel, expectedKey) => {
-    it(`maps sub-category "${legacyLabel}" to "${expectedKey}"`, () => {
-      expect(legacySubCategory(legacyLabel)).toBe(expectedKey);
+    ["legacyCategory", legacyCategory],
+    ["legacySubCategory", legacySubCategory],
+  ])("%s", (_name, resolve) => {
+    it("throws with instructions instead of silently dropping the category", () => {
+      expect(() => resolve("Alimentación")).toThrowError(
+        /migrateProductsToPosts\.ts está desactualizado/,
+      );
+    });
+
+    it("names what to use instead", () => {
+      expect(() => resolve("Jugos")).toThrowError(/resolveKeyLenient/);
     });
   });
 
-  it("maps the legacy category label to its allowlist key", () => {
-    expect(legacyCategory("Alimentación")).toBe("alimentacion");
-  });
-
-  it("leaves the category unset when the label is not in the allowlist", () => {
-    expect(legacyCategory("Electrónica")).toBeNull();
-    expect(legacySubCategory("Postres")).toBeNull();
-    expect(legacySubCategory(null)).toBeNull();
-  });
-
-  it("strips accents and casing to build the key", () => {
+  // Sigue en uso: normaliza el texto libre de `products`, que no es lo mismo que
+  // `normalizeCategoryKey` (esa conserva espacios para coincidir con `category_normalize` en SQL).
+  it("strips accents, casing and punctuation to build a legacy key", () => {
     expect(legacyLabelToKey("Panadería")).toBe("panaderia");
+    expect(legacyLabelToKey("Sub-categoría")).toBe("subcategoria");
     expect(legacyLabelToKey("  ")).toBeNull();
+    expect(legacyLabelToKey(null)).toBeNull();
   });
 
   describe.each([

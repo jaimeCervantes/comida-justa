@@ -1,15 +1,9 @@
-import {
-  resolveCategory,
-  resolveSubCategory,
-  type PostCategory,
-  type PostSubCategory,
-} from "./category";
 import type { PostOrigin } from "./origin";
 
 /**
  * Reglas para traer el catálogo del chatbot (`products`) a `posts`. Viven en el dominio porque
  * son decisiones de negocio, no de acceso a datos: qué origen se les asigna, cómo se traduce una
- * etiqueta heredada a la clave de la allowlist y cómo se arma el contacto de WhatsApp.
+ * etiqueta heredada a la clave del catálogo y cómo se arma el contacto de WhatsApp.
  *
  * Los 9 productos son del menú de Hazlo Sano, producidos por ellos mismos.
  */
@@ -22,8 +16,12 @@ const DIACRITICS = /[̀-ͯ]/g;
 
 /**
  * `products` guarda la etiqueta visible ("Alimentación", "Jugos") y `posts` guarda la clave
- * ("alimentacion", "jugos"). Se normaliza quitando acentos y bajando a minúsculas; lo que no
- * caiga en la allowlist se queda sin categoría en vez de inventar una clave nueva.
+ * ("alimentacion", "jugos").
+ *
+ * **No es lo mismo que `normalizeCategoryKey`** de `taxonomy.ts`: aquella conserva espacios y
+ * signos interiores para coincidir exactamente con la función SQL `category_normalize`, mientras
+ * que esta los elimina, porque `products` guarda texto libre escrito a mano. Fundirlas rompería
+ * la simetría entre el TypeScript y la base.
  */
 export function legacyLabelToKey(label: string | null | undefined): string | null {
   if (!label) return null;
@@ -37,33 +35,29 @@ export function legacyLabelToKey(label: string | null | undefined): string | nul
   return key || null;
 }
 
-export function legacyCategory(
-  label: string | null | undefined,
-): PostCategory | null {
-  return resolveCategory(legacyLabelToKey(label));
-}
+const OUTDATED =
+  "migrateProductsToPosts.ts está desactualizado: la taxonomía ahora vive en la tabla " +
+  "`categories`. Usa getCategoryTaxonomy() + resolveKeyLenient antes de volver a correr " +
+  "`pnpm run migrate:products`.";
 
 /**
- * Renombres de la allowlist que la normalización por sí sola ya no alcanza.
+ * @deprecated La taxonomía dejó de vivir en constantes: resolver una etiqueta heredada exige leer
+ * la base (`getCategoryTaxonomy()` + `resolveKeyLenient`), lo que vuelve asíncrona esta operación.
+ * No se migró porque la tabla `products` quedó fuera de alcance y sus datos ya viven en `posts`.
  *
- * `products` guarda la etiqueta vieja "Comidas", que normaliza a `comidas`; esa clave se renombró
- * a `platillos`. Sin este alias, volver a correr la migración dejaría esos productos sin
- * subcategoría en vez de clasificarlos, y el fallo sería mudo: `resolveSubCategory` devuelve
- * `null` por diseño, no lanza. Se resuelve aquí y no en la allowlist porque es deuda del catálogo
- * heredado, y muere el día que se elimine la tabla `products`.
+ * Conserva su firma para que `src/scripts/migrateProductsToPosts.ts` siga compilando sin tocarlo,
+ * pero **lanza**: devolver `null` migraría los productos sin categoría y en silencio, que es
+ * justo el modo de fallo mudo que la tabla vino a eliminar.
  */
-const LEGACY_SUB_CATEGORY_ALIASES: Readonly<Record<string, PostSubCategory>> = {
-  comidas: "platillos",
-};
+export function legacyCategory(label: string | null | undefined): string | null {
+  void label;
+  throw new Error(OUTDATED);
+}
 
-export function legacySubCategory(
-  label: string | null | undefined,
-): PostSubCategory | null {
-  const key = legacyLabelToKey(label);
-
-  if (!key) return null;
-
-  return resolveSubCategory(LEGACY_SUB_CATEGORY_ALIASES[key] ?? key);
+/** @deprecated Ver {@link legacyCategory}. */
+export function legacySubCategory(label: string | null | undefined): string | null {
+  void label;
+  throw new Error(OUTDATED);
 }
 
 /**

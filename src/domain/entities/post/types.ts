@@ -1,4 +1,3 @@
-import type { PostCategory, PostSubCategory } from "./category";
 import type { PostKind } from "./kind";
 import type { PostOrigin } from "./origin";
 
@@ -13,9 +12,9 @@ export type Post = {
   kind?: PostKind;
   /** De dónde/quién viene. `null`/ausente = comunidad sin especificar. */
   origin?: PostOrigin | null;
-  /** Qué tipo de producto es. Se guarda la clave de la allowlist, no la etiqueta. */
-  category?: PostCategory | null;
-  subCategory?: PostSubCategory | null;
+  /** Clave del catálogo (`categories.key`), nunca la etiqueta: esa depende del idioma. */
+  category?: string | null;
+  subCategory?: string | null;
   contactInfo: {
     phone: string;
     email?: string;
