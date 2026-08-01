@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 import { FaDollarSign } from "react-icons/fa";
 import { MdPhone } from "react-icons/md";
@@ -36,6 +37,7 @@ export default async function PostDetail({
   /** El de la ruta: es lo que se manda en el mensaje de WhatsApp para identificar el producto. */
   slug?: string;
 }) {
+  const t = await getTranslations("post");
   const details = {
     title: postDetails.translations?.es?.title ?? postDetails.title,
     content: postDetails.translations?.es?.content ?? postDetails.content,
@@ -97,7 +99,7 @@ export default async function PostDetail({
       <MediaContent media={media} className="h-auto mb-4" />
       <p className="flex items-center mb-2">
         {price ? <FaDollarSign className="mr-2" size="24" /> : null}
-        <CurrencyAmount value={price} locale="es-MX" currency="MXN" />
+        <CurrencyAmount value={price} currency="MXN" />
       </p>
       <p className="flex items-center">
         <MdPhone className="mr-2" size="24" />
@@ -110,7 +112,7 @@ export default async function PostDetail({
       </p>
 
       <WhatsappButton href={orderLink} className="mt-4" testId="whatsapp-order">
-        Pedir por WhatsApp
+        {t("orderOnWhatsapp")}
       </WhatsappButton>
 
       {isOwner ? (

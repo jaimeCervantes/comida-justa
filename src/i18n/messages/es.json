@@ -57,8 +57,15 @@
     "emptyWithoutLocation": "Todavía no tienes sucursales con ubicación, así que el chatbot no puede recomendarte por cercanía."
   },
   "comments": {
+    "empty": "No hay comentarios aún.",
+    "heading": "Comentarios",
+    "inputLabel": "Escribe tu comentario",
+    "listLabel": "comentarios",
+    "loadMore": "Cargar más comentarios",
     "loadingMore": "Cargando más comentarios...",
-    "loadMore": "Cargar más comentarios"
+    "placeholder": "Escribe tu comentario...",
+    "submit": "Agregar Comentario",
+    "submitting": "Agregando..."
   },
   "common": {
     "title": "❤️💚 Hazlo sano: Cuando cuidas tu salud, también estás cuidando lo más valioso que tienes: tu tiempo. Tu recurso máximo no renovable.",
@@ -262,9 +269,12 @@
     "metaDescription": "Sueño y descanso, alimentación natural, movimiento y mente: los cuatro pilares sobre los que se construye una vida sana."
   },
   "post": {
-    "markSoldOut": "Marcar agotado",
+    "edit": "Editar",
     "markAvailable": "Marcar disponible",
-    "noImage": "Publicación sin imagen"
+    "markSoldOut": "Marcar agotado",
+    "noImage": "Publicación sin imagen",
+    "orderOnWhatsapp": "Pedir por WhatsApp",
+    "related": "Comida Relacionada"
   },
   "privacyPolicy": {
     "title": "Política de Privacidad | Hazlo Sano",
@@ -383,8 +393,9 @@
     "seeAll": "Ver todos los resultados"
   },
   "store": {
-    "empty": "Esta tienda todavía no ha publicado nada.",
     "branchesHeading": "Dónde encontrarnos",
+    "contactOnWhatsapp": "Escribir por WhatsApp",
+    "empty": "Esta tienda todavía no ha publicado nada.",
     "noBranches": "Esta tienda todavía no comparte sus sucursales."
   },
   "termsOfService": {

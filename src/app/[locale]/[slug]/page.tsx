@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { resolveLocale } from "~/i18n/routing";
 import { auth } from "~/infra/auth";
 import type { PostUser } from "~/infra/types/Posts";
@@ -29,6 +29,7 @@ export default async function Slug({
   const { slug, locale: rawLocale } = await params;
   const locale = resolveLocale(rawLocale);
   setRequestLocale(locale);
+  const t = await getTranslations("post");
 
   // Se resuelve aquí, fuera de cualquier `<Suspense>`: si la publicación no existe, la respuesta
   // debe salir con status 404 y no con un 200 que solo "parece" un 404. Dentro de un boundary,
@@ -49,7 +50,7 @@ export default async function Slug({
         slug={slug}
       />
       <aside>
-        <h2 className="text-3xl font-bold">Comida Relacionada</h2>
+        <h2 className="text-3xl font-bold">{t("related")}</h2>
       </aside>
     </section>
   );

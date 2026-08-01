@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { MdLink, MdPhone } from "react-icons/md";
 import type { Seller } from "~/domain/entities/seller/types";
 import { buildWhatsappStoreLink } from "~/domain/entities/seller/whatsappContact";
@@ -16,6 +17,7 @@ export default function StoreHeader({
   /** La dirección personal del dueño, si la reclamó: la tienda enlaza a quien está detrás. */
   ownerUsername?: string | null;
 }) {
+  const t = useTranslations("store");
   const contactLink = buildWhatsappStoreLink({
     storeName: seller.name,
     url: `${PUBLIC_BASE_URL}${storePath(seller.handle ?? "")}`,
@@ -73,7 +75,7 @@ export default function StoreHeader({
             className=""
             testId="whatsapp-store"
           >
-            Escribir por WhatsApp
+            {t("contactOnWhatsapp")}
           </WhatsappButton>
 
           {ownerUsername ? (

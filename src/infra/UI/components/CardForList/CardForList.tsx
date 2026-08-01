@@ -8,7 +8,6 @@ import ProvenanceBadge from "~/infra/UI/components/ProvenanceBadge";
 import SoldOutBadge from "~/infra/UI/components/SoldOutBadge/SoldOutBadge";
 
 export default function CardForList(props: Post) {
-  // const userLocale = typeof window !== 'undefined' ? navigator.language : 'es-MX';
   const {
     id,
     title,
@@ -47,7 +46,6 @@ export default function CardForList(props: Post) {
 
       <CurrencyAmount
         value={price}
-        locale="es-MX"
         currency="MXN"
         className="text-xl text-pw-green block mt-1"
       ></CurrencyAmount>

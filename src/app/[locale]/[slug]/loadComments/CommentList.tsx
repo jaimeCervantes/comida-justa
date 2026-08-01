@@ -40,13 +40,13 @@ export default function CommentList({
 
   return (
     <>
-      <h2 className="text-2xl font-bold mb-4">Comentarios</h2>
+      <h2 className="text-2xl font-bold mb-4">{t("heading")}</h2>
       <AddCommentForm postId={postId} user={user} />
 
       {commentError && <p className="text-red-500 mt-2">{commentError}</p>}
 
       {comments?.length > 0 ? (
-        <ul aria-label="comentarios">
+        <ul aria-label={t("listLabel")}>
           {comments.map((comment) => (
             <li key={comment.id}>
               <article className="comment p-4 border-b border-b-slate-700">
@@ -72,7 +72,7 @@ export default function CommentList({
           ))}
         </ul>
       ) : (
-        <p>No hay comentarios aún.</p>
+        <p>{t("empty")}</p>
       )}
 
       <button

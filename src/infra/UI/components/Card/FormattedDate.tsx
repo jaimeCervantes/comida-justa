@@ -1,61 +1,47 @@
-"use client";
-import { useEffect, useState } from "react";
+import { useFormatter } from "next-intl";
 
+/**
+ * La fecha de una publicación, en el idioma del sitio.
+ *
+ * Antes leía `navigator.language`, es decir el idioma del **navegador**, no el que el visitante
+ * eligió: cambiar el sitio a English dejaba la fecha en español. Y como eso solo se puede saber en
+ * el cliente, el componente se pintaba primero como un rectángulo gris animado y luego se
+ * reemplazaba por la fecha, con el salto de maquetación correspondiente.
+ *
+ * Con el formateador de next-intl el idioma es el de la ruta, servidor y cliente coinciden —la
+ * zona horaria está fijada en `src/i18n/request.ts`— y la fecha sale ya en el HTML. Se fue el
+ * estado, el efecto y el parpadeo.
+ */
 export default function FormattedDateComponent({
   isoDateString,
 }: {
   isoDateString: string;
 }) {
-  const [isClient, setIsClient] = useState(false);
-
-  useEffect(() => {
-    // eslint-disable-next-line
-    setIsClient(true);
-  }, []);
-
-  if (!isClient) {
-    return (
-      <span
-        className="relative inline-block bg-gray-200 rounded-sm overflow-hidden"
-        style={{ width: "180px", height: "1.2em" }}
-      >
-        <span
-          className="absolute top-0 left-0 h-full bg-linear-to-r from-transparent via-white to-transparent opacity-70"
-          style={{
-            width: "40px",
-            animation: "shimmer 1.5s infinite",
-          }}
-        ></span>
-      </span>
-    );
-  }
+  const format = useFormatter();
 
   if (!isoDateString) {
     return null;
   }
 
   const dateObject = new Date(isoDateString);
+
   if (Number.isNaN(dateObject.getTime())) {
     return null;
   }
-  const userLocale = navigator.language;
-
-  const formattedDate = dateObject.toLocaleString(userLocale, {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    hour: "numeric",
-    minute: "numeric",
-    hour12: true,
-  });
 
   return (
     <time
       dateTime={isoDateString}
       className="relative inline-block first-letter:uppercase text-sm text-gray-500 dark:text-pw-white"
     >
-      {formattedDate}
+      {format.dateTime(dateObject, {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "numeric",
+        minute: "numeric",
+      })}
     </time>
   );
 }

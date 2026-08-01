@@ -44,7 +44,7 @@ export default function OwnerControls({
     >
       <Link href={`/editar/${slug}`}>
         <Button startIcon={<MdEdit />} size="sm">
-          Editar
+          {t("edit")}
         </Button>
       </Link>
 

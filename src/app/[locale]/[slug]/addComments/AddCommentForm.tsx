@@ -1,4 +1,5 @@
 "use client";
+import { useTranslations } from "next-intl";
 
 import { useState } from "react";
 import { useRouter } from "~/i18n/navigation";
@@ -14,6 +15,7 @@ export default function AddCommentForm({
   user: PostUser | undefined;
   onAdd?: () => void;
 }) {
+  const t = useTranslations("comments");
   const router = useRouter();
   const [newComment, setNewComment] = useState("");
   const [loading, setLoading] = useState(false);
@@ -41,8 +43,8 @@ export default function AddCommentForm({
         onChange={(e) => setNewComment(e.target.value)}
         className="w-full p-2 border rounded-sm dark:text-black"
         rows={4}
-        placeholder="Escribe tu comentario..."
-        aria-label="Escribe tu comentario"
+        placeholder={t("placeholder")}
+        aria-label={t("inputLabel")}
       />
       <button
         type="submit"
@@ -50,7 +52,7 @@ export default function AddCommentForm({
         className="mt-2 bg-blue-500 text-white px-4 py-2 rounded-sm"
         disabled={loading}
       >
-        {loading ? "Agregando..." : "Agregar Comentario"}
+        {loading ? t("submitting") : t("submit")}
       </button>
       {errorMessage && <p className="text-red-500 mt-2">{errorMessage}</p>}
     </form>

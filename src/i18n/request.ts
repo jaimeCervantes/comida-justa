@@ -17,5 +17,9 @@ export default getRequestConfig(async ({ requestLocale }) => {
   return {
     locale,
     messages: (await import(`./messages/${locale}.json`)).default,
+    /* Sin zona horaria fija, el servidor formatea en UTC y el navegador en la del visitante, y
+       React se queja de que el HTML no coincide. Se fija la del negocio —lo que se publica y se
+       vende ocurre aquí— para que una fecha diga lo mismo en las dos partes. */
+    timeZone: "America/Mexico_City",
   };
 });
