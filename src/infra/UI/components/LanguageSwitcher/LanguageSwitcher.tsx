@@ -1,6 +1,6 @@
 "use client";
 
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 import { usePathname, useRouter } from "~/i18n/navigation";
 import { type AppLocale, routing } from "~/i18n/routing";
@@ -18,6 +18,7 @@ export default function LanguageSwitcher() {
      cambiar de idioma es volver a pedir la misma ruta con otro locale. Antes esto era cirugía de
      strings sobre la ruta cruda (`pathname.replace("/es", "/en")`), que se rompía con cualquier
      ruta que contuviera el código de idioma en otra posición. */
+  const t = useTranslations("nav");
   const pathname = usePathname();
   const router = useRouter();
   const currentLocale = useLocale();
@@ -38,7 +39,7 @@ export default function LanguageSwitcher() {
         color="black"
         size="xs"
         onClick={toggleDropdown}
-        aria-label="Change language"
+        aria-label={t("changeLanguage")}
       >
         <span className="text-sm">{current.flag}</span>
         <span className="text-sm">{isOpen ? "▲" : "▼"}</span>

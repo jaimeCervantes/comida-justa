@@ -1,7 +1,24 @@
 {
   "common": {
     "title": "❤️💚 Hazlo sano: Cuando cuidas tu salud, también estás cuidando lo más valioso que tienes: tu tiempo. Tu recurso máximo no renovable.",
-    "description": "❤️💚 Hazlo sano: Cuando cuidas tu salud, también estás cuidando lo más valioso que tienes: tu tiempo. Tu recurso máximo no renovable."
+    "description": "❤️💚 Hazlo sano: Cuando cuidas tu salud, también estás cuidando lo más valioso que tienes: tu tiempo. Tu recurso máximo no renovable.",
+    "logoAlt": "Logo {brand}"
+  },
+  "footer": {
+    "tagline": "No somos solo una aplicación, somos todo un ecosistema de iniciativas diseñadas para que vivir sano sea la opción más fácil para todos.",
+    "pillarsHeading": "Nuestros 4 Pilares",
+    "exploreHeading": "Explora",
+    "connectHeading": "Conecta",
+    "publishLink": "Publicar un producto o info sana",
+    "aboutLink": "Qué es {brand}",
+    "communityLink": "Comunidad Hazlo Sano",
+    "restaurantLink": "Restaurante",
+    "telegram": "🤖 Asistente (Telegram)",
+    "whatsapp": "📱 WhatsApp Directo",
+    "tiktok": "🎵 TikTok",
+    "facebook": "🔵 Facebook",
+    "rights": "© {year} {brand}. Todos los derechos reservados.",
+    "motto": "Ama y cuida tu recurso máximo no renovable, tu tiempo."
   },
   "home": {
     "title": "❤️💚 Hazlo sano: Cuando cuidas tu salud, también estás cuidando lo más valioso que tienes: tu tiempo. Tu recurso máximo no renovable.",
@@ -9,6 +26,70 @@
     "description": "❤️💚 Hazlo sano: Cuando cuidas tu salud, también estás cuidando lo más valioso que tienes: tu tiempo. Tu recurso máximo no renovable.",
     "p1": "🕒 No se compra. No se recupera. Pero con solo 10 minutos al día ⏳, puedes ganar salud 🧘‍♂️, belleza ✨ y longevidad 🌸… 🌍 mejorar tu entorno, fortalecer tu comunidad 🤝 y convertirte en inspiración para los demás 🔥.",
     "p2": "💫 Vivir bien no es un lujo. Es un acto de amor propio… que se contagia."
+  },
+  "nav": {
+    "pillarsMenu": "4 Pilares",
+    "communityMenu": "Comunidad",
+    "about": "Nosotros",
+    "products": "Productos",
+    "report": "Reporte",
+    "publish": "Publicar",
+    "openMenu": "Abrir menú",
+    "closeMenu": "Cerrar menú",
+    "changeLanguage": "Cambiar idioma",
+    "signIn": "Iniciar sesión",
+    "signOut": "Cerrar sesión",
+    "signOutShort": "Salir",
+    "myAccount": "Mi cuenta",
+    "myAccountAndStore": "Mi cuenta y mi tienda",
+    "community": {
+      "groups": {
+        "title": "Grupos",
+        "description": "Grupos locales, donde te apoyan a alcanzar tus metas"
+      },
+      "childHealth": {
+        "title": "Salud infantil",
+        "description": "Es injusto fomentar una alimentación dañina"
+      },
+      "environment": {
+        "title": "Medio ambiente",
+        "description": "Impacto para las generaciones futuras"
+      },
+      "localProducers": {
+        "title": "Productores locales",
+        "description": "Apoyo a la producción local"
+      },
+      "localBusinesses": {
+        "title": "Negocios locales",
+        "description": "Guía a negocios locales de {brand}"
+      },
+      "sports": {
+        "title": "Deportes",
+        "description": "Dónde practicar deportes con personas que te animan"
+      }
+    }
+  },
+  "pillars": {
+    "sleep": {
+      "title": "Sueño y Descanso",
+      "description": "Optimizar la higiene del sueño para tu recuperación biológica",
+      "short": "Sueño y descanso"
+    },
+    "nutrition": {
+      "title": "Alimentación natural y nutritiva",
+      "description": "Conexión con el origen, alimentos locales y reales",
+      "short": "Alimentación natural y nutritiva"
+    },
+    "movement": {
+      "title": "Ejercicio y Movimiento",
+      "description": "Combatir el sedentarismo con actividad física funcional",
+      "short": "Movimiento o ejercicio"
+    },
+    "mindSpirit": {
+      "title": "Emociones, Mente, Espíritu y Comunidad",
+      "description": "Gestión emocional, mental y una clara conexión con los demás",
+      "short": "Emociones / mente / espíritu"
+    }
   },
   "privacyPolicy": {
     "title": "Política de Privacidad | Hazlo Sano",
@@ -93,6 +174,11 @@
       "companyName": "Hazlo Sano",
       "location": "Tezonapa, Veracruz, México"
     }
+  },
+  "search": {
+    "placeholder": "Buscar...",
+    "empty": "Sin resultados",
+    "seeAll": "Ver todos los resultados"
   },
   "termsOfService": {
     "title": "Condiciones de Servicio | Hazlo Sano",

@@ -11,7 +11,8 @@ test.describe("When a visitor browses the site in English", () => {
     const localePage = new LocalePage(page);
 
     await localePage.openInEnglish();
-    await localePage.openProductsFromMainMenu();
+    // Que el enlace se llame "Products" y no "Productos" es el slice 1 ya visible en el header.
+    await localePage.openFromMainMenu("Products");
 
     /* El bug que este slice arregla: con `next/link` el href salía sin prefijo (`/productos`),
        así que un clic en inglés devolvía al visitante al español sin avisar. */

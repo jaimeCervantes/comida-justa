@@ -4,80 +4,20 @@ import {
   Cross1Icon,
   HamburgerMenuIcon,
 } from "@radix-ui/react-icons";
+import { useTranslations } from "next-intl";
 import type React from "react";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Link, usePathname } from "~/i18n/navigation";
 import { PUBLIC_BRAND_NAME } from "~/infra/constants";
+import { COMMUNITY_ITEMS, PILLAR_ITEMS } from "./menuItems";
 
-interface MenuItem {
-  title: string;
-  items: { title: string; href: string; description: string }[];
-}
-
-const MENU_ITEMS: MenuItem[] = [
-  {
-    title: "4 Pilares",
-    items: [
-      {
-        title: "Sueño y Descanso",
-        href: "/pilares/sueno",
-        description:
-          "Optimizar la higiene del sueño para tu recuperación biológica",
-      },
-      {
-        title: "Alimentación natural y nutritiva",
-        href: "/pilares/alimentacion",
-        description: "Conexión con el origen, alimentos locales y reales",
-      },
-      {
-        title: "Ejercicio y Movimiento",
-        href: "/pilares/movimiento",
-        description: "Combatir el sedentarismo con actividad física funcional",
-      },
-      {
-        title: "Emociones, Mente, Espíritu y Comunidad",
-        href: "/pilares/mente-espiritu",
-        description: "Gestión emocional, mental y conexión con los demás",
-      },
-    ],
-  },
-  {
-    title: "Comunidad",
-    items: [
-      {
-        title: "Grupos",
-        href: "/habitos/grupos",
-        description: "Grupos locales de apoyo",
-      },
-      {
-        title: "Salud infantil",
-        href: "/salud-infantil",
-        description: "Alimentación saludable para niños",
-      },
-      {
-        title: "Medio ambiente",
-        href: "/medio-ambiente",
-        description: "Impacto ambiental positivo",
-      },
-      {
-        title: "Productores locales",
-        href: "/productores-locales",
-        description: "Apoyo a la producción local",
-      },
-      {
-        title: "Negocios locales",
-        href: "/negocios-locales",
-        description: "Guía de negocios locales",
-      },
-      {
-        title: "Deportes",
-        href: "/deportes",
-        description: "Dónde practicar deportes",
-      },
-    ],
-  },
-];
+/**
+ * Las descripciones del menú móvil eran versiones acortadas de las del menú de escritorio
+ * ("Grupos locales de apoyo" frente a "Grupos locales, donde te apoyan a alcanzar tus metas").
+ * Al extraerlas se unificaron en una sola redacción: mantener dos textos para la misma entrada
+ * significaba traducir el doble para que dijeran lo mismo, y el desplegable tiene sitio de sobra.
+ */
 
 import Image from "next/image";
 
@@ -113,6 +53,67 @@ function useCloseMenuOnNavigation(
   }
 }
 
+/* Identificadores de sección, no textos: cuál acordeón está abierto no puede depender del idioma. */
+const PILLARS_SECTION = "pillars";
+const COMMUNITY_SECTION = "community";
+
+const ROW_CLASS = "border-b border-gray-100 dark:border-gray-800 last:border-0";
+const ROW_LINK_CLASS =
+  "w-full flex items-center justify-between py-4 text-lg font-medium text-gray-900 dark:text-gray-100";
+
+function Section({
+  title,
+  isOpen,
+  onToggle,
+  children,
+}: {
+  title: string;
+  isOpen: boolean;
+  onToggle: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <li className={ROW_CLASS}>
+      <button type="button" onClick={onToggle} className={ROW_LINK_CLASS}>
+        {title}
+        <ChevronDownIcon
+          className={`w-6 h-6 text-gray-500 transition-transform duration-300 ${
+            isOpen ? "rotate-180" : ""
+          }`}
+        />
+      </button>
+      <div
+        className={`overflow-hidden transition-all duration-300 ease-in-out ${
+          isOpen ? "max-h-[500px] opacity-100 mb-4" : "max-h-0 opacity-0"
+        }`}
+      >
+        <ul className="space-y-1 pl-4 border-l-2 border-pw-green/20 ml-2">
+          {children}
+        </ul>
+      </div>
+    </li>
+  );
+}
+
+function SectionLink({
+  href,
+  children,
+}: {
+  href: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <li>
+      <Link
+        href={href}
+        className="block py-3 text-base text-gray-600 dark:text-gray-400 hover:text-pw-green dark:hover:text-pw-green transition-colors"
+      >
+        {children}
+      </Link>
+    </li>
+  );
+}
+
 export default function MobileNav({
   children,
   isAdmin = false,
@@ -120,6 +121,9 @@ export default function MobileNav({
   children: React.ReactNode;
   isAdmin?: boolean;
 }) {
+  const t = useTranslations("nav");
+  const tPillars = useTranslations("pillars");
+  const tCommon = useTranslations("common");
   const [isOpen, setIsOpen] = useState(false);
   const [openSubmenu, setOpenSubmenu] = useState<string | null>(null);
 
@@ -156,7 +160,12 @@ export default function MobileNav({
             onClick={() => setIsOpen(false)}
             className="flex items-center gap-2"
           >
-            <Image src="/logo.webp" width={40} height={40} alt="Logo" />
+            <Image
+              src="/logo.webp"
+              width={40}
+              height={40}
+              alt={tCommon("logoAlt", { brand: PUBLIC_BRAND_NAME })}
+            />
             {/* Mismo logotipo que el pie: verde sólido para que se lean todas las letras. */}
             <span className="text-xl font-bold text-pw-green">
               {PUBLIC_BRAND_NAME}
@@ -166,7 +175,7 @@ export default function MobileNav({
             type="button"
             onClick={() => setIsOpen(false)}
             className="p-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
-            aria-label="Cerrar menú"
+            aria-label={t("closeMenu")}
           >
             <Cross1Icon className="w-8 h-8" />
           </button>
@@ -174,71 +183,56 @@ export default function MobileNav({
 
         <nav className="flex-1 pr-2">
           <ul className="space-y-2">
-            {MENU_ITEMS.map((section) => (
-              <li
-                key={section.title}
-                className="border-b border-gray-100 dark:border-gray-800 last:border-0"
-              >
-                <button
-                  type="button"
-                  onClick={() => toggleSubmenu(section.title)}
-                  className="w-full flex items-center justify-between py-4 text-lg font-medium text-gray-900 dark:text-gray-100"
-                >
-                  {section.title}
-                  <ChevronDownIcon
-                    className={`w-6 h-6 text-gray-500 transition-transform duration-300 ${
-                      openSubmenu === section.title ? "rotate-180" : ""
-                    }`}
-                  />
-                </button>
-                <div
-                  className={`overflow-hidden transition-all duration-300 ease-in-out ${
-                    openSubmenu === section.title
-                      ? "max-h-[500px] opacity-100 mb-4"
-                      : "max-h-0 opacity-0"
-                  }`}
-                >
-                  <ul className="space-y-1 pl-4 border-l-2 border-pw-green/20 ml-2">
-                    {section.items.map((item) => (
-                      <li key={item.href}>
-                        <Link
-                          href={item.href}
-                          className="block py-3 text-base text-gray-600 dark:text-gray-400 hover:text-pw-green dark:hover:text-pw-green transition-colors"
-                        >
-                          {item.title}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </li>
-            ))}
-            <li className="border-b border-gray-100 dark:border-gray-800 last:border-0">
+            <Section
+              title={t("pillarsMenu")}
+              isOpen={openSubmenu === PILLARS_SECTION}
+              onToggle={() => toggleSubmenu(PILLARS_SECTION)}
+            >
+              {PILLAR_ITEMS.map((item) => (
+                <SectionLink key={item.href} href={item.href}>
+                  {tPillars(item.titleKey)}
+                </SectionLink>
+              ))}
+            </Section>
+
+            <Section
+              title={t("communityMenu")}
+              isOpen={openSubmenu === COMMUNITY_SECTION}
+              onToggle={() => toggleSubmenu(COMMUNITY_SECTION)}
+            >
+              {COMMUNITY_ITEMS.map((item) => (
+                <SectionLink key={item.href} href={item.href}>
+                  {t(item.titleKey)}
+                </SectionLink>
+              ))}
+            </Section>
+
+            <li className={ROW_CLASS}>
               <Link
                 href="/nosotros"
                 onClick={() => setIsOpen(false)}
-                className="w-full flex items-center justify-between py-4 text-lg font-medium text-gray-900 dark:text-gray-100"
+                className={ROW_LINK_CLASS}
               >
-                Nosotros
+                {t("about")}
               </Link>
             </li>
-            <li className="border-b border-gray-100 dark:border-gray-800 last:border-0">
+            <li className={ROW_CLASS}>
               <Link
                 href="/productos"
                 onClick={() => setIsOpen(false)}
-                className="w-full flex items-center justify-between py-4 text-lg font-medium text-gray-900 dark:text-gray-100"
+                className={ROW_LINK_CLASS}
               >
-                Productos
+                {t("products")}
               </Link>
             </li>
             {isAdmin && (
-              <li className="border-b border-gray-100 dark:border-gray-800 last:border-0">
+              <li className={ROW_CLASS}>
                 <Link
                   href="/admin/productos"
                   onClick={() => setIsOpen(false)}
-                  className="w-full flex items-center justify-between py-4 text-lg font-medium text-gray-900 dark:text-gray-100"
+                  className={ROW_LINK_CLASS}
                 >
-                  Reporte
+                  {t("report")}
                 </Link>
               </li>
             )}
@@ -262,7 +256,7 @@ export default function MobileNav({
         type="button"
         onClick={() => setIsOpen(true)}
         className="p-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
-        aria-label="Abrir menú"
+        aria-label={t("openMenu")}
       >
         <HamburgerMenuIcon className="w-6 h-6" />
       </button>

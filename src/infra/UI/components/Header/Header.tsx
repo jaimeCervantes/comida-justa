@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { getTranslations } from "next-intl/server";
 import { LuSalad } from "react-icons/lu";
 import { Link } from "~/i18n/navigation";
 import { auth } from "~/infra/auth";
@@ -13,6 +14,8 @@ import MobileNav from "./MobileNav";
 import Nav from "./Nav";
 
 export default async function Header() {
+  const t = await getTranslations("nav");
+  const tCommon = await getTranslations("common");
   const session = await auth();
   // El acceso al reporte interno solo se muestra a admins; el gate real está en la página.
   const showAdminLinks = isAdmin(session?.user?.email);
@@ -29,7 +32,7 @@ export default async function Header() {
               className="w-full justify-center"
               showLoader
             >
-              Publicar
+              {t("publish")}
             </LinkButton>
             {session ? (
               <div className="flex flex-col gap-4">
@@ -43,17 +46,17 @@ export default async function Header() {
                       {session.user?.name}
                     </span>
                     <span className="text-xs text-gray-500 truncate max-w-[200px]">
-                      Mi cuenta y mi tienda
+                      {t("myAccountAndStore")}
                     </span>
                   </div>
                 </Link>
                 <SignOut className="w-full justify-center" showLoader>
-                  Cerrar sesión
+                  {t("signOut")}
                 </SignOut>
               </div>
             ) : (
               <SignIn className="w-full justify-center" showLoader>
-                Iniciar sesión
+                {t("signIn")}
               </SignIn>
             )}
           </MobileNav>
@@ -65,7 +68,7 @@ export default async function Header() {
               src="/logo.webp"
               width={40}
               height={40}
-              alt={`Logo ${PUBLIC_BRAND_NAME}`}
+              alt={tCommon("logoAlt", { brand: PUBLIC_BRAND_NAME })}
               priority
             />
           </Link>
@@ -82,27 +85,27 @@ export default async function Header() {
           <LinkButton
             href="/publicar"
             color="green"
-            startIcon={<LuSalad title="Publicar" />}
-            aria-label="Publicar"
+            startIcon={<LuSalad title={t("publish")} />}
+            aria-label={t("publish")}
             showLoader
           >
-            <span className="hidden sm:block">Publicar</span>
+            <span className="hidden sm:block">{t("publish")}</span>
           </LinkButton>
 
           {session ? (
             <div className="flex items-center gap-3">
-              <Link href="/cuenta" aria-label="Mi cuenta">
+              <Link href="/cuenta" aria-label={t("myAccount")}>
                 <Avatar user={session?.user} />
               </Link>
               <div className="hidden lg:block text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors">
-                <SignOut aria-label="Cerrar sesión" showLoader>
-                  Salir
+                <SignOut aria-label={t("signOut")} showLoader>
+                  {t("signOutShort")}
                 </SignOut>
               </div>
             </div>
           ) : (
-            <SignIn aria-label="Iniciar sesión">
-              <span className="hidden sm:block">Iniciar sesión</span>
+            <SignIn aria-label={t("signIn")}>
+              <span className="hidden sm:block">{t("signIn")}</span>
             </SignIn>
           )}
           <LanguageSwitcher />

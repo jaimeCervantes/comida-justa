@@ -1,8 +1,13 @@
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { Link } from "~/i18n/navigation";
 import { PUBLIC_BRAND_NAME } from "~/infra/constants";
+import { PILLAR_SHORT_KEYS } from "../Header/menuItems";
 
 export default function Footer() {
+  const t = useTranslations("footer");
+  const tPillars = useTranslations("pillars");
+  const tCommon = useTranslations("common");
   const currentYear = new Date().getFullYear();
 
   return (
@@ -16,7 +21,7 @@ export default function Footer() {
           >
             <Image
               src="/logo.webp"
-              alt={`Logo ${PUBLIC_BRAND_NAME}`}
+              alt={tCommon("logoAlt", { brand: PUBLIC_BRAND_NAME })}
               width={40}
               height={40}
             />
@@ -27,30 +32,18 @@ export default function Footer() {
             <span className="text-pw-green">{PUBLIC_BRAND_NAME}</span>
           </Link>
           <p className="text-gray-600 dark:text-gray-400 text-sm max-w-sm leading-relaxed">
-            No somos solo una aplicación, somos todo un ecosistema de
-            iniciativas diseñadas para que vivir sano sea la opción más fácil
-            para todos.
+            {t("tagline")}
           </p>
           <div className="space-y-3">
             <h4 className="font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider text-xs">
-              Nuestros 4 Pilares
+              {t("pillarsHeading")}
             </h4>
             <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400 font-medium">
-              <li className="flex items-center gap-2">
-                <span className="text-(--highlight)">✓</span> Sueño y descanso
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="text-(--highlight)">✓</span> Alimentación
-                natural y nutritiva
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="text-(--highlight)">✓</span> Movimiento o
-                ejercicio
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="text-(--highlight)">✓</span> Emociones / mente
-                / espíritu
-              </li>
+              {PILLAR_SHORT_KEYS.map((key) => (
+                <li key={key} className="flex items-center gap-2">
+                  <span className="text-(--highlight)">✓</span> {tPillars(key)}
+                </li>
+              ))}
             </ul>
           </div>
         </div>
@@ -58,7 +51,7 @@ export default function Footer() {
         {/* Explore & Links */}
         <div className="space-y-6">
           <h4 className="font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider text-xs">
-            Explora
+            {t("exploreHeading")}
           </h4>
           <ul className="space-y-3 text-sm text-gray-600 dark:text-gray-400">
             <li>
@@ -66,7 +59,7 @@ export default function Footer() {
                 href="/publicar"
                 className="hover:text-(--highlight) transition-colors inline-block font-medium"
               >
-                Publicar un producto o info sana
+                {t("publishLink")}
               </Link>
             </li>
             <li>
@@ -74,7 +67,7 @@ export default function Footer() {
                 href="/nosotros"
                 className="hover:text-(--highlight) transition-colors inline-block font-medium"
               >
-                Qué es {PUBLIC_BRAND_NAME}
+                {t("aboutLink", { brand: PUBLIC_BRAND_NAME })}
               </Link>
             </li>
             <li>
@@ -84,7 +77,7 @@ export default function Footer() {
                 rel="noopener noreferrer"
                 className="hover:text-(--highlight) transition-colors inline-block"
               >
-                Comunidad Hazlo Sano
+                {t("communityLink")}
               </a>
             </li>
             <li>
@@ -94,7 +87,7 @@ export default function Footer() {
                 rel="noopener noreferrer"
                 className="hover:text-(--highlight) transition-colors inline-block"
               >
-                Restaurante
+                {t("restaurantLink")}
               </a>
             </li>
           </ul>
@@ -103,7 +96,7 @@ export default function Footer() {
         {/* Contact & Socials */}
         <div className="space-y-6">
           <h4 className="font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider text-xs">
-            Conecta
+            {t("connectHeading")}
           </h4>
           <ul className="space-y-3 text-sm text-gray-600 dark:text-gray-400">
             <li>
@@ -113,7 +106,7 @@ export default function Footer() {
                 rel="noopener noreferrer"
                 className="hover:text-blue-500 transition-colors flex items-center gap-2"
               >
-                🤖 Asistente (Telegram)
+                {t("telegram")}
               </a>
             </li>
             <li>
@@ -123,7 +116,7 @@ export default function Footer() {
                 rel="noopener noreferrer"
                 className="hover:text-green-500 transition-colors flex items-center gap-2"
               >
-                📱 WhatsApp Directo
+                {t("whatsapp")}
               </a>
             </li>
             <li>
@@ -133,7 +126,7 @@ export default function Footer() {
                 rel="noopener noreferrer"
                 className="hover:text-gray-900 dark:hover:text-white transition-colors flex items-center gap-2"
               >
-                🎵 TikTok
+                {t("tiktok")}
               </a>
             </li>
             <li>
@@ -143,7 +136,7 @@ export default function Footer() {
                 rel="noopener noreferrer"
                 className="hover:text-blue-600 transition-colors flex items-center gap-2"
               >
-                🔵 Facebook
+                {t("facebook")}
               </a>
             </li>
           </ul>
@@ -151,10 +144,8 @@ export default function Footer() {
       </div>
 
       <div className="container-width border-t border-gray-100 dark:border-gray-800/60 pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-gray-500 dark:text-gray-500">
-        <p>
-          © {currentYear} {PUBLIC_BRAND_NAME}. Todos los derechos reservados.
-        </p>
-        <p>Ama y cuida tu recurso máximo no renovable, tu tiempo.</p>
+        <p>{t("rights", { year: currentYear, brand: PUBLIC_BRAND_NAME })}</p>
+        <p>{t("motto")}</p>
       </div>
     </footer>
   );

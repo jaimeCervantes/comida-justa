@@ -1,99 +1,80 @@
 "use client";
 import { CaretDownIcon } from "@radix-ui/react-icons";
 import * as NavigationMenu from "@radix-ui/react-navigation-menu";
+import { useTranslations } from "next-intl";
 import { Link } from "~/i18n/navigation";
 import { PUBLIC_BRAND_NAME } from "~/infra/constants";
 import ListItem from "./ListItem";
+import { COMMUNITY_ITEMS, PILLAR_ITEMS } from "./menuItems";
+
+const TRIGGER_CLASS =
+  "text-gray-700 dark:text-gray-200 hover:text-pw-green focus:text-pw-green group flex select-none items-center justify-between gap-[2px] rounded-[4px] px-3 py-2 text-[15px] font-medium leading-none outline-hidden transition-colors";
+
+const LINK_CLASS =
+  "text-gray-700 dark:text-gray-200 hover:text-pw-green focus:text-pw-green block select-none rounded-[4px] px-3 py-2 text-[15px] font-medium leading-none outline-hidden transition-colors";
+
+const CARET_CLASS =
+  "text-pw-green relative top-px transition-transform duration-[250] ease-in group-data-[state=open]:-rotate-180";
 
 export default function Nav({ isAdmin = false }: { isAdmin?: boolean }) {
+  const t = useTranslations("nav");
+  const tPillars = useTranslations("pillars");
+
   return (
     <NavigationMenu.Root className="relative z-20 flex justify-center">
       <NavigationMenu.List className="center m-0 flex list-none rounded-full bg-white/50 dark:bg-black/50 px-2 py-1 shadow-xs backdrop-blur-xs">
         <NavigationMenu.Item>
-          <NavigationMenu.Trigger className="text-gray-700 dark:text-gray-200 hover:text-pw-green focus:text-pw-green group flex select-none items-center justify-between gap-[2px] rounded-[4px] px-3 py-2 text-[15px] font-medium leading-none outline-hidden transition-colors">
-            4 Pilares
-            <CaretDownIcon
-              className="text-pw-green relative top-px transition-transform duration-[250] ease-in group-data-[state=open]:-rotate-180"
-              aria-hidden
-            />
+          <NavigationMenu.Trigger className={TRIGGER_CLASS}>
+            {t("pillarsMenu")}
+            <CaretDownIcon className={CARET_CLASS} aria-hidden />
           </NavigationMenu.Trigger>
           <NavigationMenu.Content className="absolute top-0 left-0 w-auto">
             <ul className="m-0 grid list-none gap-x-[10px] p-[22px] w-[300px] md:w-[600px] lg:w-[700px] grid-cols-[1fr_1fr]">
-              <ListItem href="/pilares/sueno" title="Sueño y Descanso">
-                Optimizar la higiene del sueño para tu recuperación biológica
-              </ListItem>
-              <ListItem
-                href="/pilares/alimentacion"
-                title="Alimentación natural y nutritiva"
-              >
-                Conexión con el origen, alimentos locales y reales
-              </ListItem>
-              <ListItem
-                href="/pilares/movimiento"
-                title="Ejercicio y Movimiento"
-              >
-                Combatir el sedentarismo con actividad física funcional
-              </ListItem>
-              <ListItem
-                href="/pilares/mente-espiritu"
-                title="Emociones, Mente, Espíritu y Comunidad"
-              >
-                Gestión emocional, mental y una clara conexión con los demás
-              </ListItem>
+              {PILLAR_ITEMS.map((item) => (
+                <ListItem
+                  key={item.href}
+                  href={item.href}
+                  title={tPillars(item.titleKey)}
+                >
+                  {tPillars(item.descriptionKey)}
+                </ListItem>
+              ))}
             </ul>
           </NavigationMenu.Content>
         </NavigationMenu.Item>
 
         <NavigationMenu.Item>
-          <NavigationMenu.Trigger className="text-gray-700 dark:text-gray-200 hover:text-pw-green focus:text-pw-green group flex select-none items-center justify-between gap-[2px] rounded-[4px] px-3 py-2 text-[15px] font-medium leading-none outline-hidden transition-colors">
-            Comunidad
-            <CaretDownIcon
-              className="text-pw-green relative top-px transition-transform duration-[250] ease-in group-data-[state=open]:-rotate-180"
-              aria-hidden
-            />
+          <NavigationMenu.Trigger className={TRIGGER_CLASS}>
+            {t("communityMenu")}
+            <CaretDownIcon className={CARET_CLASS} aria-hidden />
           </NavigationMenu.Trigger>
           <NavigationMenu.Content className="absolute top-0 left-0 w-auto">
             <ul className="m-0 grid list-none gap-[10px] p-[22px] w-[300px] md:w-[600px] grid-cols-2">
-              <ListItem title="Grupos" href="/habitos/grupos">
-                Grupos locales, donde te apoyan a alcanzar tus metas
-              </ListItem>
-              <ListItem href="/salud-infantil" title="Salud infantil">
-                Es injusto fomentar una alimentación dañina
-              </ListItem>
-              <ListItem href="/medio-ambiente" title="Medio ambiente">
-                Impacto para las generaciones futuras
-              </ListItem>
-              <ListItem title="Productores locales" href="/productores-locales">
-                Apoyo a la producción local
-              </ListItem>
-              <ListItem title="Negocios locales" href="/negocios-locales">
-                Guía a negocios locales de {PUBLIC_BRAND_NAME}
-              </ListItem>
-              <ListItem title="Deportes" href="/deportes">
-                Dónde practicar deportes con personas que te animan
-              </ListItem>
+              {COMMUNITY_ITEMS.map((item) => (
+                <ListItem
+                  key={item.href}
+                  href={item.href}
+                  title={t(item.titleKey)}
+                >
+                  {t(item.descriptionKey, { brand: PUBLIC_BRAND_NAME })}
+                </ListItem>
+              ))}
             </ul>
           </NavigationMenu.Content>
         </NavigationMenu.Item>
 
         <NavigationMenu.Item>
           <NavigationMenu.Link asChild>
-            <Link
-              href="/nosotros"
-              className="text-gray-700 dark:text-gray-200 hover:text-pw-green focus:text-pw-green block select-none rounded-[4px] px-3 py-2 text-[15px] font-medium leading-none outline-hidden transition-colors"
-            >
-              Nosotros
+            <Link href="/nosotros" className={LINK_CLASS}>
+              {t("about")}
             </Link>
           </NavigationMenu.Link>
         </NavigationMenu.Item>
 
         <NavigationMenu.Item>
           <NavigationMenu.Link asChild>
-            <Link
-              href="/productos"
-              className="text-gray-700 dark:text-gray-200 hover:text-pw-green focus:text-pw-green block select-none rounded-[4px] px-3 py-2 text-[15px] font-medium leading-none outline-hidden transition-colors"
-            >
-              Productos
+            <Link href="/productos" className={LINK_CLASS}>
+              {t("products")}
             </Link>
           </NavigationMenu.Link>
         </NavigationMenu.Item>
@@ -101,11 +82,8 @@ export default function Nav({ isAdmin = false }: { isAdmin?: boolean }) {
         {isAdmin && (
           <NavigationMenu.Item>
             <NavigationMenu.Link asChild>
-              <Link
-                href="/admin/productos"
-                className="text-gray-700 dark:text-gray-200 hover:text-pw-green focus:text-pw-green block select-none rounded-[4px] px-3 py-2 text-[15px] font-medium leading-none outline-hidden transition-colors"
-              >
-                Reporte
+              <Link href="/admin/productos" className={LINK_CLASS}>
+                {t("report")}
               </Link>
             </NavigationMenu.Link>
           </NavigationMenu.Item>

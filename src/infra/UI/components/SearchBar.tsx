@@ -1,4 +1,5 @@
 "use client";
+import { useTranslations } from "next-intl";
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
 import { MdSearch } from "react-icons/md";
@@ -31,7 +32,8 @@ type SearchOutcome = {
   items: SearchResult[] | null;
 };
 
-const SearchBar: React.FC<SearchBarProps> = ({ placeholder = "Buscar..." }) => {
+const SearchBar: React.FC<SearchBarProps> = ({ placeholder }) => {
+  const t = useTranslations("search");
   const [query, setQuery] = useState("");
   const [outcome, setOutcome] = useState<SearchOutcome>({
     forQuery: "",
@@ -117,7 +119,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ placeholder = "Buscar..." }) => {
       <TextField
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        placeholder={placeholder}
+        placeholder={placeholder ?? t("placeholder")}
         type="search"
         autoComplete="off"
         icon={<MdSearch className="text-xl text-gray-400" />}
@@ -144,7 +146,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ placeholder = "Buscar..." }) => {
               </ul>
             </div>
           ) : results.length === 0 ? (
-            <div className="p-2 text-center text-gray-500">Sin resultados</div>
+            <div className="p-2 text-center text-gray-500">{t("empty")}</div>
           ) : (
             <ul>
               {results.map((result) => (
@@ -167,7 +169,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ placeholder = "Buscar..." }) => {
             className="w-full text-left p-3 border-t border-gray-100 dark:border-pw-gray text-pw-green hover:bg-gray-50 dark:hover:bg-pw-gray font-semibold"
             onMouseDown={handleSeeAll}
           >
-            Ver todos los resultados
+            {t("seeAll")}
           </button>
         </div>
       )}

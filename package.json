@@ -27,7 +27,8 @@
     "db:migrate": "drizzle-kit migrate",
     "seed:products": "tsx src/scripts/seedHazloSanoProducts.ts",
     "migrate:products": "tsx src/scripts/migrateProductsToPosts.ts",
-    "verify:embedding-space": "tsx src/scripts/verifyEmbeddingSpace.ts"
+    "verify:embedding-space": "tsx src/scripts/verifyEmbeddingSpace.ts",
+    "check:i18n": "tsx src/scripts/checkI18n.ts"
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^1.11.2",

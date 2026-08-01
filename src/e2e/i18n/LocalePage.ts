@@ -3,9 +3,8 @@ import { expect, type Page } from "@playwright/test";
 /**
  * Acciones sobre el idioma activo del sitio.
  *
- * Solo mira **direcciones**, nunca textos: en el slice 0 la interfaz sigue escrita en español
- * dentro del TSX, así que afirmar "dice Products" sería afirmar algo que el slice 1 todavía no
- * construye. Lo que este slice promete es que el idioma no se pierde al navegar.
+ * El rótulo del menú se pide **en inglés** desde que el slice 1 extrajo el texto del header: que
+ * exista un enlace llamado "Products" ya es parte de lo que se afirma, no un detalle del selector.
  */
 export default class LocalePage {
   constructor(private readonly page: Page) {}
@@ -14,11 +13,11 @@ export default class LocalePage {
     await this.page.goto(`/en${path}`);
   }
 
-  /** El enlace del menú principal de escritorio, que hoy sigue rotulado en español. */
-  async openProductsFromMainMenu(): Promise<void> {
+  /** El enlace del menú principal de escritorio, rotulado en el idioma activo. */
+  async openFromMainMenu(label: string): Promise<void> {
     await this.page
       .getByRole("navigation")
-      .getByRole("link", { name: "Productos", exact: true })
+      .getByRole("link", { name: label, exact: true })
       .click();
   }
 

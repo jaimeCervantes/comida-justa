@@ -1,7 +1,24 @@
 {
   "common": {
     "title": "❤️💚 Just Health: When you take care of your health, you're also protecting the most valuable thing you have: your time. Your ultimate non-renewable resource.",
-    "description": "❤️💚 Just Health: When you take care of your health, you're also protecting the most valuable thing you have: your time. Your ultimate non-renewable resource."
+    "description": "❤️💚 Just Health: When you take care of your health, you're also protecting the most valuable thing you have: your time. Your ultimate non-renewable resource.",
+    "logoAlt": "{brand} logo"
+  },
+  "footer": {
+    "tagline": "We are not just an app. We are a whole ecosystem of initiatives built to make living healthy the easiest option for everyone.",
+    "pillarsHeading": "Our 4 Pillars",
+    "exploreHeading": "Explore",
+    "connectHeading": "Connect",
+    "publishLink": "Publish a product or healthy info",
+    "aboutLink": "What {brand} is",
+    "communityLink": "Hazlo Sano community",
+    "restaurantLink": "Restaurant",
+    "telegram": "🤖 Assistant (Telegram)",
+    "whatsapp": "📱 WhatsApp direct",
+    "tiktok": "🎵 TikTok",
+    "facebook": "🔵 Facebook",
+    "rights": "© {year} {brand}. All rights reserved.",
+    "motto": "Love and look after your ultimate non-renewable resource: your time."
   },
   "home": {
     "title": "❤️💚 Just Health: When you take care of your health, you're also protecting the most valuable thing you have: your time. Your ultimate non-renewable resource.",
@@ -9,6 +26,70 @@
     "description": "❤️💚 Just Health: When you take care of your health, you're also protecting the most valuable thing you have: your time. Your ultimate non-renewable resource.",
     "p1": "🕒 You can't buy it. You can't get it back. But with just 10 minutes a day ⏳, you can gain health 🧘‍♂️, beauty ✨, and longevity 🌸… 🌍 improve your environment, strengthen your community 🤝, and become an inspiration to others 🔥.",
     "p2": "💫 Living well isn’t a luxury. It’s an act of self-love… that spreads."
+  },
+  "nav": {
+    "pillarsMenu": "4 Pillars",
+    "communityMenu": "Community",
+    "about": "About us",
+    "products": "Products",
+    "report": "Report",
+    "publish": "Publish",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "changeLanguage": "Change language",
+    "signIn": "Sign in",
+    "signOut": "Sign out",
+    "signOutShort": "Sign out",
+    "myAccount": "My account",
+    "myAccountAndStore": "My account and my store",
+    "community": {
+      "groups": {
+        "title": "Groups",
+        "description": "Local groups that back you up in reaching your goals"
+      },
+      "childHealth": {
+        "title": "Children's health",
+        "description": "Pushing harmful food on children isn't fair"
+      },
+      "environment": {
+        "title": "Environment",
+        "description": "What it means for the generations after us"
+      },
+      "localProducers": {
+        "title": "Local producers",
+        "description": "Support for local production"
+      },
+      "localBusinesses": {
+        "title": "Local businesses",
+        "description": "A guide to {brand} local businesses"
+      },
+      "sports": {
+        "title": "Sports",
+        "description": "Where to play sports with people who cheer you on"
+      }
+    }
+  },
+  "pillars": {
+    "sleep": {
+      "title": "Sleep and Rest",
+      "description": "Better sleep hygiene, so your body can actually recover",
+      "short": "Sleep and rest"
+    },
+    "nutrition": {
+      "title": "Natural, Nourishing Food",
+      "description": "A connection to the source: local, real food",
+      "short": "Natural, nourishing food"
+    },
+    "movement": {
+      "title": "Exercise and Movement",
+      "description": "Push back on a sedentary life with functional activity",
+      "short": "Movement or exercise"
+    },
+    "mindSpirit": {
+      "title": "Emotions, Mind, Spirit and Community",
+      "description": "Emotional and mental care, and a real connection with others",
+      "short": "Emotions / mind / spirit"
+    }
   },
   "privacyPolicy": {
     "title": "Privacy Policy | Hazlo Sano",
@@ -93,6 +174,11 @@
       "companyName": "Hazlo Sano",
       "location": "Tezonapa, Veracruz, Mexico"
     }
+  },
+  "search": {
+    "placeholder": "Search...",
+    "empty": "No results",
+    "seeAll": "See all results"
   },
   "termsOfService": {
     "title": "Terms of Service | Hazlo Sano",
