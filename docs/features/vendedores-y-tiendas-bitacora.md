@@ -336,8 +336,15 @@ pnpm run test:e2e:run
 
 ### Validación
 
-Ver la tabla del reporte final del slice: 4 escenarios nuevos verdes (incluido el del radio) y la
-suite completa en verde.
+| Comando | Resultado |
+|---|---|
+| `pnpm run typecheck` | limpio |
+| `pnpm run lint` | limpio |
+| `pnpm run test:run` | **391 pruebas en 44 archivos**, todas verdes (+35) |
+| `playwright test src/e2e/sellerStore/branches.spec.ts` | **4 escenarios verdes**, incluido el del radio |
+| `pnpm run test:e2e:run` | **42 escenarios pasados, 3 saltados, 0 fallidos** |
+
+Estado de la base al cerrar: 1 tienda, 1 sucursal (la real de Tezonapa), **0 residuos `e2e-`**.
 
 ### Desviaciones del roadmap
 
