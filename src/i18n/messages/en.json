@@ -1,0 +1,178 @@
+{
+  "common": {
+    "title": "❤️💚 Just Health: When you take care of your health, you're also protecting the most valuable thing you have: your time. Your ultimate non-renewable resource.",
+    "description": "❤️💚 Just Health: When you take care of your health, you're also protecting the most valuable thing you have: your time. Your ultimate non-renewable resource."
+  },
+  "home": {
+    "title": "❤️💚 Just Health: When you take care of your health, you're also protecting the most valuable thing you have: your time. Your ultimate non-renewable resource.",
+    "h1": "❤️💚 Just Health: When you take care of your health, you're also protecting the most valuable thing you have: your time. Your ultimate non-renewable resource.",
+    "description": "❤️💚 Just Health: When you take care of your health, you're also protecting the most valuable thing you have: your time. Your ultimate non-renewable resource.",
+    "p1": "🕒 You can't buy it. You can't get it back. But with just 10 minutes a day ⏳, you can gain health 🧘‍♂️, beauty ✨, and longevity 🌸… 🌍 improve your environment, strengthen your community 🤝, and become an inspiration to others 🔥.",
+    "p2": "💫 Living well isn’t a luxury. It’s an act of self-love… that spreads."
+  },
+  "privacyPolicy": {
+    "title": "Privacy Policy | Hazlo Sano",
+    "description": "Privacy Policy for Hazlo Sano - Wellness Chatbot",
+    "h1": "PRIVACY POLICY",
+    "subtitle": "Hazlo Sano - Wellness Chatbot",
+    "lastUpdate": "Last updated: {date}",
+    "intro": "At Hazlo Sano we value your privacy and are committed to protecting your personal information. This Privacy Policy describes how we collect, use, and protect information when you interact with our chatbot via WhatsApp.",
+    "section1": {
+      "title": "Information we collect",
+      "intro": "When you use our chatbot, we may collect the following information:",
+      "items": [
+        "Your phone number.",
+        "The messages you send to the chatbot.",
+        "Information you voluntarily share related to sleep, diet, exercise, or emotional well-being habits.",
+        "Basic technical data necessary for the operation of the service (such as date and time of interaction)."
+      ],
+      "warning": "We do not intentionally request sensitive medical information or financial data through the chatbot."
+    },
+    "section2": {
+      "title": "How we use your information",
+      "intro": "We use the collected information to:",
+      "items": [
+        "Respond to your queries.",
+        "Provide educational content on the 4 pillars of health: sleep, healthy eating, exercise, and emotional well-being.",
+        "Recommend products or services related to healthy habits.",
+        "Improve the user experience and chatbot functionality.",
+        "Comply with applicable legal obligations."
+      ]
+    },
+    "section3": {
+      "title": "Informational nature of the service",
+      "items": [
+        "The Hazlo Sano chatbot provides information for educational and general wellness purposes.",
+        "We do not offer medical diagnoses, treatments, or professional health advice.",
+        "The use of the chatbot does not create a doctor-patient relationship."
+      ],
+      "warning": "If you are experiencing a medical or psychological emergency, we recommend you seek out a qualified health professional."
+    },
+    "section4": {
+      "title": "Information sharing",
+      "boldText": "We do not sell your personal information.",
+      "intro": "We may only share information with:",
+      "items": [
+        "Technology providers necessary to operate the service (e.g., cloud infrastructure).",
+        "Official messaging platforms like WhatsApp, owned by Meta.",
+        "Competent authorities when required by law."
+      ]
+    },
+    "section5": {
+      "title": "Storage and security",
+      "p1": "We implement reasonable technical and administrative security measures to protect your information against unauthorized access, loss, or misuse.",
+      "p2": "However, no digital system is completely secure, so we cannot guarantee absolute security."
+    },
+    "section6": {
+      "title": "Data retention",
+      "p1": "We retain information only for the time necessary to fulfill the purposes described in this policy or as required by law."
+    },
+    "section7": {
+      "title": "User rights",
+      "intro": "You can request at any time:",
+      "items": [
+        "Access to the information we hold about you.",
+        "Correction of incorrect data.",
+        "Deletion of your personal data."
+      ],
+      "actionIntro": "To exercise these rights, you can send a message with the word ",
+      "actionWord": "DELETE",
+      "actionOutro": " to the chatbot or write to us at:"
+    },
+    "section8": {
+      "title": "Use by minors",
+      "p1": "The service is directed to people over 18 years of age. We do not intentionally collect information from minors."
+    },
+    "section9": {
+      "title": "Changes to this policy",
+      "p1": "We reserve the right to update this Privacy Policy at any time. Modifications will be published on this same page with the date of the update."
+    },
+    "section10": {
+      "title": "Contact",
+      "intro": "If you have questions about this Privacy Policy, you can contact us at:",
+      "companyName": "Hazlo Sano",
+      "location": "Tezonapa, Veracruz, Mexico"
+    }
+  },
+  "termsOfService": {
+    "title": "Terms of Service | Hazlo Sano",
+    "description": "Terms of Service for Hazlo Sano - Wellness Chatbot",
+    "h1": "TERMS OF SERVICE",
+    "subtitle": "Hazlo Sano – Wellness Chatbot",
+    "lastUpdate": "Last updated: {date}",
+    "intro": "By using the Hazlo Sano chatbot via WhatsApp, you accept these Terms of Service. If you do not agree with them, we recommend that you do not use the service.",
+    "section1": {
+      "title": "Service Description",
+      "intro": "Hazlo Sano offers an informative chatbot focused on the four pillars of wellness:",
+      "items": [
+        "Sleep and rest",
+        "Healthy eating",
+        "Exercise and movement",
+        "Emotional and mental well-being"
+      ],
+      "outro": "The chatbot provides educational content, general recommendations, and, where applicable, information about products or services related to healthy habits."
+    },
+    "section2": {
+      "title": "Informational nature and absence of medical advice",
+      "items": [
+        "The content provided by the chatbot is for informational and educational purposes only.",
+        "It does not constitute a medical diagnosis, treatment, prescription, or professional health advice.",
+        "Use of the chatbot does not create a doctor-patient relationship nor does it substitute consultation with qualified health professionals."
+      ],
+      "warning": "If you have symptoms, medical conditions, or emergencies, you should go to an authorized doctor or health professional."
+    },
+    "section3": {
+      "title": "User responsibility",
+      "intro": "The user acknowledges that:",
+      "items": [
+        "They are responsible for their own decisions related to health, nutrition, exercise, or well-being.",
+        "Any action taken based on the information provided by the chatbot is at their own risk.",
+        "They should consult a professional before making significant changes to their diet, exercise routine, or health habits."
+      ]
+    },
+    "section4": {
+      "title": "Proper use of the service",
+      "intro": "The user undertakes to:",
+      "items": [
+        "Use the chatbot only for lawful purposes.",
+        "Not send offensive, illegal content or content that infringes third-party rights.",
+        "Not attempt to breach the security or operation of the system."
+      ],
+      "outro": "Hazlo Sano reserves the right to block access to the service in case of misuse."
+    },
+    "section5": {
+      "title": "Intellectual property",
+      "p1": "All content generated by the chatbot, including texts, structure, design, and associated materials, is the property of Hazlo Sano and is protected by applicable intellectual property laws.",
+      "p2": "It is not allowed to reproduce, distribute, or use the content for commercial purposes without prior authorization."
+    },
+    "section6": {
+      "title": "Limitation of liability",
+      "p1": "Hazlo Sano does not guarantee that the information provided is error-free or completely updated at all times.",
+      "p2": "To the extent permitted by law, Hazlo Sano will not be liable for direct or indirect damages arising from the use of the chatbot."
+    },
+    "section7": {
+      "title": "Service availability",
+      "p1": "We reserve the right to modify, suspend, or discontinue the chatbot at any time, without prior notice."
+    },
+    "section8": {
+      "title": "Privacy",
+      "p1": "The use of the chatbot is also subject to our Privacy Policy, available at:",
+      "linkText": "Privacy Policy"
+    },
+    "section9": {
+      "title": "Minimum age",
+      "p1": "The service is directed to people over 18 years of age. By using the chatbot, you declare that you meet this requirement."
+    },
+    "section10": {
+      "title": "Applicable law",
+      "p1": "These Terms of Service are governed by the applicable laws in Mexico.",
+      "p2": "Any controversy will be resolved according to the competent jurisdiction in Veracruz, Mexico."
+    },
+    "section11": {
+      "title": "Contact",
+      "intro": "For any queries related to these Terms of Service, you can contact us at:",
+      "companyName": "Hazlo Sano",
+      "location": "Tezonapa, Veracruz, Mexico"
+    }
+  }
+}

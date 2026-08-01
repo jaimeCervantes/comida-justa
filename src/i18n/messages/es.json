@@ -1,0 +1,178 @@
+{
+  "common": {
+    "title": "❤️💚 Hazlo sano: Cuando cuidas tu salud, también estás cuidando lo más valioso que tienes: tu tiempo. Tu recurso máximo no renovable.",
+    "description": "❤️💚 Hazlo sano: Cuando cuidas tu salud, también estás cuidando lo más valioso que tienes: tu tiempo. Tu recurso máximo no renovable."
+  },
+  "home": {
+    "title": "❤️💚 Hazlo sano: Cuando cuidas tu salud, también estás cuidando lo más valioso que tienes: tu tiempo. Tu recurso máximo no renovable.",
+    "h1": "❤️💚 Hazlo sano: Cuando cuidas tu salud, también estás cuidando lo más valioso que tienes: tu tiempo. Tu recurso máximo no renovable.",
+    "description": "❤️💚 Hazlo sano: Cuando cuidas tu salud, también estás cuidando lo más valioso que tienes: tu tiempo. Tu recurso máximo no renovable.",
+    "p1": "🕒 No se compra. No se recupera. Pero con solo 10 minutos al día ⏳, puedes ganar salud 🧘‍♂️, belleza ✨ y longevidad 🌸… 🌍 mejorar tu entorno, fortalecer tu comunidad 🤝 y convertirte en inspiración para los demás 🔥.",
+    "p2": "💫 Vivir bien no es un lujo. Es un acto de amor propio… que se contagia."
+  },
+  "privacyPolicy": {
+    "title": "Política de Privacidad | Hazlo Sano",
+    "description": "Política de Privacidad de Hazlo Sano - Chatbot de Bienestar",
+    "h1": "POLÍTICA DE PRIVACIDAD",
+    "subtitle": "Hazlo Sano – Chatbot de Bienestar",
+    "lastUpdate": "Última actualización: {date}",
+    "intro": "En Hazlo Sano valoramos tu privacidad y nos comprometemos a proteger tu información personal. La presente Política de Privacidad describe cómo recopilamos, utilizamos y protegemos la información cuando interactúas con nuestro chatbot a través de WhatsApp.",
+    "section1": {
+      "title": "Información que recopilamos",
+      "intro": "Cuando utilizas nuestro chatbot, podemos recopilar la siguiente información:",
+      "items": [
+        "Tu número de teléfono.",
+        "Los mensajes que envías al chatbot.",
+        "Información que compartas voluntariamente relacionada con hábitos de sueño, alimentación, ejercicio o bienestar emocional.",
+        "Datos técnicos básicos necesarios para el funcionamiento del servicio (como fecha y hora de interacción)."
+      ],
+      "warning": "No solicitamos intencionalmente información médica sensible ni datos financieros a través del chatbot."
+    },
+    "section2": {
+      "title": "Cómo utilizamos tu información",
+      "intro": "Utilizamos la información recopilada para:",
+      "items": [
+        "Responder tus consultas.",
+        "Proporcionar contenido educativo sobre los 4 pilares de la salud: sueño, alimentación saludable, ejercicio y bienestar emocional.",
+        "Recomendar productos o servicios relacionados con hábitos saludables.",
+        "Mejorar la experiencia del usuario y el funcionamiento del chatbot.",
+        "Cumplir con las obligaciones legales aplicables."
+      ]
+    },
+    "section3": {
+      "title": "Naturaleza informativa del servicio",
+      "items": [
+        "El chatbot de Hazlo Sano proporciona información con fines educativos y de bienestar general.",
+        "No ofrecemos diagnósticos médicos, tratamientos ni asesoramiento profesional de salud.",
+        "El uso del chatbot no crea una relación médico–paciente."
+      ],
+      "warning": "Si estás experimentando una emergencia médica o psicológica, te recomendamos acudir a un profesional de la salud calificado."
+    },
+    "section4": {
+      "title": "Compartición de información",
+      "boldText": "No vendemos tu información personal.",
+      "intro": "Podemos compartir información únicamente con:",
+      "items": [
+        "Proveedores tecnológicos necesarios para operar el servicio (por ejemplo, infraestructura en la nube).",
+        "Plataformas oficiales de mensajería como WhatsApp, propiedad de Meta.",
+        "Autoridades competentes cuando la ley lo requiera."
+      ]
+    },
+    "section5": {
+      "title": "Almacenamiento y seguridad",
+      "p1": "Implementamos medidas razonables de seguridad técnicas y administrativas para proteger tu información contra acceso no autorizado, pérdida o uso indebido.",
+      "p2": "Sin embargo, ningún sistema digital es completamente seguro, por lo que no podemos garantizar seguridad absoluta."
+    },
+    "section6": {
+      "title": "Conservación de datos",
+      "p1": "Conservamos la información únicamente durante el tiempo necesario para cumplir con los fines descritos en esta política o según lo requiera la ley."
+    },
+    "section7": {
+      "title": "Derechos del usuario",
+      "intro": "Puedes solicitar en cualquier momento:",
+      "items": [
+        "Acceso a la información que tenemos sobre ti.",
+        "Corrección de datos incorrectos.",
+        "Eliminación de tus datos personales."
+      ],
+      "actionIntro": "Para ejercer estos derechos, puedes enviar un mensaje con la palabra ",
+      "actionWord": "ELIMINAR",
+      "actionOutro": " al chatbot o escribirnos a:"
+    },
+    "section8": {
+      "title": "Uso por menores de edad",
+      "p1": "El servicio está dirigido a personas mayores de 18 años. No recopilamos intencionalmente información de menores de edad."
+    },
+    "section9": {
+      "title": "Cambios a esta política",
+      "p1": "Nos reservamos el derecho de actualizar esta Política de Privacidad en cualquier momento. Las modificaciones serán publicadas en esta misma página con fecha de actualización."
+    },
+    "section10": {
+      "title": "Contacto",
+      "intro": "Si tienes preguntas sobre esta Política de Privacidad, puedes contactarnos en:",
+      "companyName": "Hazlo Sano",
+      "location": "Tezonapa, Veracruz, México"
+    }
+  },
+  "termsOfService": {
+    "title": "Condiciones de Servicio | Hazlo Sano",
+    "description": "Condiciones de Servicio de Hazlo Sano - Chatbot de Bienestar",
+    "h1": "CONDICIONES DE SERVICIO",
+    "subtitle": "Hazlo Sano – Chatbot de Bienestar",
+    "lastUpdate": "Última actualización: {date}",
+    "intro": "Al utilizar el chatbot de Hazlo Sano a través de WhatsApp, aceptas las presentes Condiciones de Servicio. Si no estás de acuerdo con ellas, te recomendamos no utilizar el servicio.",
+    "section1": {
+      "title": "Descripción del servicio",
+      "intro": "Hazlo Sano ofrece un chatbot informativo enfocado en los cuatro pilares del bienestar:",
+      "items": [
+        "Sueño y descanso",
+        "Alimentación saludable",
+        "Ejercicio y movimiento",
+        "Bienestar emocional y mental"
+      ],
+      "outro": "El chatbot proporciona contenido educativo, recomendaciones generales y, en su caso, información sobre productos o servicios relacionados con hábitos saludables."
+    },
+    "section2": {
+      "title": "Naturaleza informativa y ausencia de asesoría médica",
+      "items": [
+        "El contenido proporcionado por el chatbot tiene fines exclusivamente informativos y educativos.",
+        "No constituye diagnóstico médico, tratamiento, prescripción ni asesoramiento profesional de salud.",
+        "El uso del chatbot no crea una relación médico–paciente ni sustituye la consulta con profesionales de la salud calificados."
+      ],
+      "warning": "Si presentas síntomas, condiciones médicas o emergencias, debes acudir a un médico o profesional de la salud autorizado."
+    },
+    "section3": {
+      "title": "Responsabilidad del usuario",
+      "intro": "El usuario reconoce que:",
+      "items": [
+        "Es responsable de sus propias decisiones relacionadas con salud, alimentación, ejercicio o bienestar.",
+        "Cualquier acción tomada con base en la información proporcionada por el chatbot es bajo su propia responsabilidad.",
+        "Debe consultar a un profesional antes de realizar cambios significativos en su dieta, rutina de ejercicio o hábitos de salud."
+      ]
+    },
+    "section4": {
+      "title": "Uso adecuado del servicio",
+      "intro": "El usuario se compromete a:",
+      "items": [
+        "Utilizar el chatbot únicamente con fines lícitos.",
+        "No enviar contenido ofensivo, ilegal o que infrinja derechos de terceros.",
+        "No intentar vulnerar la seguridad o funcionamiento del sistema."
+      ],
+      "outro": "Hazlo Sano se reserva el derecho de bloquear el acceso al servicio en caso de uso indebido."
+    },
+    "section5": {
+      "title": "Propiedad intelectual",
+      "p1": "Todo el contenido generado por el chatbot, incluyendo textos, estructura, diseño y materiales asociados, es propiedad de Hazlo Sano y está protegido por las leyes aplicables de propiedad intelectual.",
+      "p2": "No está permitido reproducir, distribuir o utilizar el contenido con fines comerciales sin autorización previa."
+    },
+    "section6": {
+      "title": "Limitación de responsabilidad",
+      "p1": "Hazlo Sano no garantiza que la información proporcionada esté libre de errores o sea completamente actualizada en todo momento.",
+      "p2": "En la medida permitida por la ley, Hazlo Sano no será responsable por daños directos o indirectos derivados del uso del chatbot."
+    },
+    "section7": {
+      "title": "Disponibilidad del servicio",
+      "p1": "Nos reservamos el derecho de modificar, suspender o descontinuar el chatbot en cualquier momento, sin previo aviso."
+    },
+    "section8": {
+      "title": "Privacidad",
+      "p1": "El uso del chatbot también está sujeto a nuestra Política de Privacidad, disponible en:",
+      "linkText": "Política de Privacidad"
+    },
+    "section9": {
+      "title": "Edad mínima",
+      "p1": "El servicio está dirigido a personas mayores de 18 años. Al utilizar el chatbot, declaras que cumples con este requisito."
+    },
+    "section10": {
+      "title": "Legislación aplicable",
+      "p1": "Estas Condiciones de Servicio se rigen por las leyes aplicables en México.",
+      "p2": "Cualquier controversia será resuelta conforme a la jurisdicción competente en Veracruz, México."
+    },
+    "section11": {
+      "title": "Contacto",
+      "intro": "Para cualquier consulta relacionada con estas Condiciones de Servicio, puedes contactarnos en:",
+      "companyName": "Hazlo Sano",
+      "location": "Tezonapa, Veracruz, México"
+    }
+  }
+}
