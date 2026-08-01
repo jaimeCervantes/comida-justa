@@ -5,18 +5,26 @@ import { auth } from "~/infra/auth";
 import { SIGNIN_PATH } from "~/infra/constants";
 import { createBranchRepository } from "~/infra/dataAccess/branches/factory";
 import { createSellerRepository } from "~/infra/dataAccess/sellers/factory";
+import { createUserProfileRepository } from "~/infra/dataAccess/users/factory";
 import BranchList from "~/infra/UI/components/BranchList/BranchList";
-import { addBranch, becomeSeller } from "./actions";
+import { addBranch, becomeSeller, claimUsername } from "./actions";
 import AddBranchForm from "./ui/AddBranchForm";
 import BecomeSellerForm from "./ui/BecomeSellerForm";
 import StoreCard from "./ui/StoreCard";
+import UsernameSection from "./ui/UsernameSection";
 
 export const metadata: Metadata = {
   title: "Mi cuenta",
-  description: "Tu tienda y tus datos de vendedor.",
+  description: "Tu tienda, tus sucursales y tu dirección personal.",
   // Es una página privada: no hay nada que indexar y su contenido depende de la sesión.
   robots: { index: false, follow: false },
 };
+
+/**
+ * El ancho lo pone el layout (`container-width`); aquí solo se reparte en dos columnas a partir
+ * de `lg`, para no dejar media pantalla vacía en escritorio.
+ */
+const COLUMNS = "grid gap-10 lg:grid-cols-2 items-start";
 
 export default async function CuentaPage() {
   const session = await auth();
@@ -31,12 +39,28 @@ export default async function CuentaPage() {
     redirect(SIGNIN_PATH);
   }
 
-  const seller = await createSellerRepository().findByUserId(user.id);
+  const [seller, profile] = await Promise.all([
+    createSellerRepository().findByUserId(user.id),
+    createUserProfileRepository().findByUserId(user.id),
+  ]);
+
+  const usernameSection = (
+    <UsernameSection
+      action={claimUsername}
+      currentUsername={profile?.username ?? null}
+      defaultName={user.name}
+    />
+  );
 
   if (!seller) {
     return (
-      <main className="p-4 max-w-2xl mx-auto">
-        <BecomeSellerForm action={becomeSeller} defaultName={user.name} />
+      <main>
+        <h1 className="text-xl font-bold mb-6">Mi cuenta</h1>
+
+        <div className={COLUMNS}>
+          <BecomeSellerForm action={becomeSeller} defaultName={user.name} />
+          {usernameSection}
+        </div>
       </main>
     );
   }
@@ -44,15 +68,23 @@ export default async function CuentaPage() {
   const branches = await createBranchRepository().listBySeller(seller.id);
 
   return (
-    <main className="p-4 max-w-2xl mx-auto">
-      <StoreCard seller={seller} />
+    <main>
+      <h1 className="text-xl font-bold mb-6">Mi cuenta</h1>
 
-      <section className="mt-10">
-        <h2 className="text-lg font-bold mb-4">Tus sucursales</h2>
-        <BranchList branches={branches} />
-      </section>
+      <div className={COLUMNS}>
+        <div className="flex flex-col gap-10">
+          <StoreCard seller={seller} />
 
-      <AddBranchForm action={addBranch} />
+          <section>
+            <h2 className="text-lg font-bold mb-4">Tus sucursales</h2>
+            <BranchList branches={branches} />
+          </section>
+
+          {usernameSection}
+        </div>
+
+        <AddBranchForm action={addBranch} />
+      </div>
     </main>
   );
 }

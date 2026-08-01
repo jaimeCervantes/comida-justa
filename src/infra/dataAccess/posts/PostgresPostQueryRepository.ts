@@ -68,6 +68,14 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
     );
   }
 
+  async getPostsByUser(
+    userId: string,
+    page: number,
+    pageSize: number,
+  ): Promise<PaginatedPostsResult> {
+    return this.getPaginatedPosts(sql`p.user_id = ${userId}`, page, pageSize);
+  }
+
   async getTotalPosts(): Promise<number> {
     const raw = await db.execute(sql`
       SELECT COUNT(*)::int AS count FROM posts

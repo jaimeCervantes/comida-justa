@@ -147,11 +147,29 @@ Feature: Vendedores y tiendas
     Then "search_posts_semantic" devuelve sus productos
     But con un cliente en Xalapa, a 150 km, no devuelve ninguno
 
-  @slice-4 @future
-  Scenario: Mi perfil público muestra todo lo mío, no solo lo que vendo
-    Given que soy vendedor y también publico anuncios
-    When un visitante abre "/u/<username>"
-    Then ve mis anuncios y mis productos, y un enlace a mi tienda
+  @slice-4
+  Scenario: Reservo mi dirección personal y ahí queda todo lo mío
+    Given que estoy autenticado y no he reservado ninguna dirección
+    When en "/cuenta" reservo el nombre de usuario
+    Then "/u/<username>" existe y lista mi anuncio, no solo lo que vendo
+
+  @slice-4
+  Scenario: El perfil y la tienda se enlazan entre sí
+    Given que soy vendedor con dirección personal reservada
+    When un visitante abre mi perfil
+    Then encuentra el enlace a mi tienda, y desde la tienda el enlace de vuelta a mi perfil
+
+  @slice-4
+  Scenario: Una dirección ya tomada se rechaza con un mensaje entendible
+    Given que otra persona ya reservó "e2e-jaime"
+    When intento reservar la misma
+    Then el formulario dice que ya está ocupada y no me la asigna
+
+  @slice-4
+  Scenario: Un perfil que no existe responde 404
+    Given que nadie reservó "no-existe"
+    When un visitante abre "/u/no-existe"
+    Then la respuesta es 404
 
   @slice-5 @future
   Scenario: Marco un producto como agotado y deja de ofrecerse

@@ -7,9 +7,12 @@ import { auth } from "~/infra/auth";
 import { SIGNIN_PATH } from "~/infra/constants";
 import { createBranchRepository } from "~/infra/dataAccess/branches/factory";
 import { createSellerRepository } from "~/infra/dataAccess/sellers/factory";
+import { createUserProfileRepository } from "~/infra/dataAccess/users/factory";
 import { GoogleMapsUrlResolver } from "~/infra/services/GoogleMapsUrlResolver";
 import AddBranchUseCase from "~/use_cases/addBranch/addBranchUseCase";
 import BecomeSellerUseCase from "~/use_cases/becomeSeller/becomeSellerUseCase";
+import ClaimUsernameUseCase from "~/use_cases/claimUsername/claimUsernameUseCase";
+import { profilePath } from "./profilePath";
 import { storePath } from "./storePath";
 
 export type BecomeSellerState = {
@@ -21,6 +24,39 @@ export type AddBranchState = {
   errorMessage?: string;
   branchName?: string;
 };
+
+export type ClaimUsernameState = {
+  errorMessage?: string;
+  username?: string;
+};
+
+/** Reserva la dirección personal (`/u/<username>`) de quien está en sesión. */
+export async function claimUsername(
+  _prevState: ClaimUsernameState,
+  formData: FormData,
+): Promise<ClaimUsernameState> {
+  const session = await auth();
+  const userId = (session?.user as User | undefined)?.id;
+
+  if (!userId) {
+    redirect(SIGNIN_PATH);
+  }
+
+  const useCase = new ClaimUsernameUseCase(createUserProfileRepository());
+  const result = await useCase.execute({
+    userId,
+    requested: String(formData.get("username") ?? ""),
+  });
+
+  if (!result.profile?.username) {
+    return { errorMessage: result.errorMessage };
+  }
+
+  revalidatePath("/cuenta");
+  revalidatePath(profilePath(result.profile.username));
+
+  return { username: result.profile.username };
+}
 
 /**
  * Da de alta una sucursal de la tienda de quien está en sesión.

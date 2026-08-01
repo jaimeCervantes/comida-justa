@@ -152,18 +152,26 @@ en el fallback sin geo, aunque el cliente esté a dos calles.
    Comprobado llamando a `search_posts_semantic` con la ubicación de un cliente a 1 km (la
    encuentra) y desde Xalapa, a 150 km (no la encuentra).
 
-### Slice 4 — Perfil público `/u/<username>`  *(siguiente)*
+### Slice 4 — Perfil público `/u/<username>`  *(entregado)*
 
-- Página de la persona: nombre, foto, bio y todo lo que publica (incluidos anuncios, que no son
+- Página de la persona: nombre, foto y todo lo que publica (incluidos anuncios, que no son
   catálogo), con enlace a su tienda si la tiene.
-- El `username` se reclama desde `/cuenta`, sobre la columna que crea el slice 1.
+- El `username` se reclama desde `/cuenta`, sobre la columna que creó el slice 1. **Sin migración.**
+
+> **Sin bio.** El plan la mencionaba, pero `users` no tiene esa columna y agregarla costaba otra
+> migración sobre la base compartida para algo que ningún criterio de aceptación pide. Queda como
+> pendiente, para cuando haya algo más que justifique tocar el esquema.
+
+> **Se reclama una sola vez.** Cambiar de dirección rompería los enlaces que la persona ya repartió;
+> renombrar con redirección es trabajo aparte.
 
 **Criterios de aceptación:**
-1. `/u/<username>` muestra las publicaciones de esa persona, anuncios incluidos.
-2. Un vendedor enlaza desde su perfil a su tienda y al revés.
-3. Un username ya tomado se rechaza con un error entendible.
+1. `/u/<username>` muestra las publicaciones de esa persona, anuncios incluidos. ✅
+2. Un vendedor enlaza desde su perfil a su tienda y al revés. ✅
+3. Un username ya tomado se rechaza con un error entendible. ✅
+4. Una dirección que nadie reclamó responde 404. ✅
 
-### Slice 5 — El vendedor administra su catálogo  *(futuro)*
+### Slice 5 — El vendedor administra su catálogo  *(siguiente)*
 
 - Marcar un producto como agotado (`posts.is_available`, que ya existe y **no tiene UI**: hoy nadie
   puede dejar de ofrecer lo que se le acabó, y el bot lo sigue recomendando).

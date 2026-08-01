@@ -13,6 +13,8 @@ export const users = pgTable("users", {
   email: text("email").unique(),
   emailVerified: timestamp("email_verified"),
   image: text("image"),
+  /** La dirección personal: `/u/<username>`. Única en la base (migración 0027). */
+  username: text("username"),
   externalId: text("external_id").notNull().unique(),
   lastLatitude: doublePrecision("last_latitude"),
   lastLongitude: doublePrecision("last_longitude"),

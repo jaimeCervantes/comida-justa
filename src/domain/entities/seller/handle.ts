@@ -1,4 +1,8 @@
-import { slugify } from "~/domain/shared/slugify";
+import {
+  generateHandle,
+  type HandleRules,
+  isValidHandle,
+} from "~/domain/shared/publicHandle";
 import { SellerHandleUnusableError } from "./errors";
 
 /** Un identificador de menos de tres caracteres no se distingue de un error de dedo. */
@@ -14,20 +18,21 @@ export const SELLER_HANDLE_MAX_LENGTH = 40;
  * hay que reservar `productos`, `publicar` ni ninguna otra sección del sitio.
  */
 export const RESERVED_SELLER_HANDLES: readonly string[] = [
-  "page", // /tienda/page/2 será la paginación
+  "page", // /tienda/page/2 es la paginación
   "nueva", // alta de tienda
   "admin",
   "api",
 ];
 
-/**
- * La dirección web de una tienda a partir de su nombre.
- *
- * Se recorta **antes** de quitar el guion final, para que "Panadería La Luz de Tezonapa…"
- * no termine en `-` al pasarse de largo.
- */
+const SELLER_HANDLE_RULES: HandleRules = {
+  minLength: SELLER_HANDLE_MIN_LENGTH,
+  maxLength: SELLER_HANDLE_MAX_LENGTH,
+  reserved: RESERVED_SELLER_HANDLES,
+};
+
+/** La dirección web de una tienda a partir de su nombre. */
 export function generateSellerHandle(name: string | null | undefined): string {
-  return slugify(name).slice(0, SELLER_HANDLE_MAX_LENGTH).replace(/-+$/, "");
+  return generateHandle(name, SELLER_HANDLE_RULES);
 }
 
 export function isReservedSellerHandle(handle: string): boolean {
@@ -35,11 +40,7 @@ export function isReservedSellerHandle(handle: string): boolean {
 }
 
 export function isValidSellerHandle(handle: string): boolean {
-  return (
-    handle.length >= SELLER_HANDLE_MIN_LENGTH &&
-    handle.length <= SELLER_HANDLE_MAX_LENGTH &&
-    !isReservedSellerHandle(handle)
-  );
+  return isValidHandle(handle, SELLER_HANDLE_RULES);
 }
 
 /**

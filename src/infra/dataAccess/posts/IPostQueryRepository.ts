@@ -47,6 +47,12 @@ export interface IPostQueryRepository {
     page: number,
     pageSize: number,
   ): Promise<PaginatedPostsResult>;
+  /** Todo lo de una persona, anuncios incluidos: su perfil no es un catálogo. */
+  getPostsByUser(
+    userId: string,
+    page: number,
+    pageSize: number,
+  ): Promise<PaginatedPostsResult>;
   getTotalPosts(): Promise<number>;
   /** Cuántos productos hay por `origin` (`null` incluido). Base del reporte de procedencia. */
   getProductCountsByOrigin(): Promise<OriginCount[]>;

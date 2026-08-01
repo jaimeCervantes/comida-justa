@@ -47,7 +47,7 @@ export default function AddBranchForm({
   };
 
   return (
-    <section className="mt-10">
+    <section>
       <h2 className="text-lg font-bold mb-2">{ADD_BRANCH_TITLE}</h2>
       <p className="mb-6 text-sm text-gray-600 dark:text-gray-400">
         {ADD_BRANCH_INTRO}

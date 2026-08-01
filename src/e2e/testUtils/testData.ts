@@ -7,6 +7,8 @@ export interface TestDataCount {
   categories: number;
   branches: number;
   sellers: number;
+  /** Direcciones personales reclamadas por la suite sobre cuentas reales. */
+  usernames: number;
 }
 
 const SLUG_PATTERN = `${TEST_SLUG_PREFIX}%`;
@@ -51,11 +53,18 @@ export async function sweepTestData(): Promise<TestDataCount> {
     DELETE FROM sellers WHERE slug LIKE ${SLUG_PATTERN}
   `);
 
+  // Los `username` se reclaman sobre usuarios REALES —la suite no crea cuentas—, así que aquí no
+  // se borra la fila: se le quita la dirección de prueba y el usuario queda como estaba.
+  const usernames = await db.execute(sql`
+    UPDATE users SET username = NULL WHERE username LIKE ${SLUG_PATTERN}
+  `);
+
   return {
     posts: posts.rowCount ?? 0,
     categories: categories.rowCount ?? 0,
     branches: branches.rowCount ?? 0,
     sellers: sellers.rowCount ?? 0,
+    usernames: usernames.rowCount ?? 0,
   };
 }
 
@@ -67,7 +76,8 @@ export async function countTestData(): Promise<TestDataCount> {
       (SELECT count(*)::int FROM categories WHERE key LIKE ${CATEGORY_PATTERN}) AS categories,
       (SELECT count(*)::int FROM branches b
         WHERE b.seller_id IN (SELECT id FROM sellers WHERE slug LIKE ${SLUG_PATTERN})) AS branches,
-      (SELECT count(*)::int FROM sellers WHERE slug LIKE ${SLUG_PATTERN}) AS sellers
+      (SELECT count(*)::int FROM sellers WHERE slug LIKE ${SLUG_PATTERN}) AS sellers,
+      (SELECT count(*)::int FROM users WHERE username LIKE ${SLUG_PATTERN}) AS usernames
   `);
 
   return result.rows[0] as unknown as TestDataCount;
@@ -84,6 +94,7 @@ export function hasTestData(count: TestDataCount): boolean {
 export function describeTestData(count: TestDataCount): string {
   return (
     `${count.posts} publicación(es), ${count.categories} categoría(s), ` +
-    `${count.branches} sucursal(es) y ${count.sellers} tienda(s) de prueba`
+    `${count.branches} sucursal(es), ${count.sellers} tienda(s) y ` +
+    `${count.usernames} dirección(es) personal(es) de prueba`
   );
 }

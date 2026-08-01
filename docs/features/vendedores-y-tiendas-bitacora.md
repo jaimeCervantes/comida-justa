@@ -380,3 +380,98 @@ bot. Los tres slices salieron sin ninguna migración más allá de la `0027` del
 - Vincular la tienda "Hazlo Sano" a la cuenta de `jaime.cervantes.ve@gmail.com` (el `UPDATE` sigue
   bloqueado por el clasificador de permisos; la sentencia está en la entrada del slice 2).
 - Revisar el plan de Vercel antes de promocionar tiendas de terceros.
+
+---
+
+## Slice 4 — Perfil público `/u/<username>` (2026-08-01)
+
+### Objetivo
+
+Que una persona tenga una página propia con todo lo que publica —anuncios incluidos—, distinta de
+su tienda. Un perfil es quién eres; una tienda es lo que vendes. La columna `users.username` llevaba
+creada desde el slice 1 esperando este momento, así que el slice salió **sin migración**.
+
+### Decisiones y por qué
+
+**Sin bio, y a propósito.** El roadmap la mencionaba, pero `users` no tiene esa columna y agregarla
+costaba otra migración sobre la base compartida para algo que ningún criterio de aceptación pide.
+Con nombre, foto y publicaciones los cuatro criterios se cumplen. Queda anotado como pendiente.
+
+**La dirección se reclama una sola vez.** Cambiarla rompería los enlaces que la persona ya repartió,
+y sostener el anterior con una redirección es un slice aparte. El caso de uso lo dice con un error
+propio (`UsernameAlreadySetError`) en vez de sobrescribir en silencio.
+
+**La regla del handle se compartió en vez de copiarse.** `generateSellerHandle` y `generateUsername`
+son la misma decisión tomada dos veces —qué caracteres sobreviven, qué tan corto es demasiado, qué
+palabras no se ceden—, así que el núcleo bajó a `src/domain/shared/publicHandle.ts` y cada uno pasa
+su lista de reservadas. Sin eso, un día `/tienda/mi-negocio` y `/u/mi-negocio` habrían aceptado cosas
+distintas sin que nadie lo decidiera. Es el mismo criterio de `slugify` y `whatsappLink`.
+
+**Los namespaces siguen separados.** `/u/` y `/tienda/` son independientes: una persona y una tienda
+pueden llamarse igual sin taparse, y ninguna de las dos choca con los slugs de publicación en la raíz.
+
+**El perfil lista TODO, no solo el catálogo.** Es lo que lo distingue de la tienda: se consulta por
+`p.user_id` y no por `p.seller_id`, así que los anuncios —que no son catálogo— también salen.
+
+**El enlace va en los dos sentidos, pero tolera que falte.** Un vendedor puede existir sin cuenta
+(alta manual de proveedor local) y una cuenta puede no haber reclamado dirección; en ambos casos
+simplemente no se pinta el enlace, sin condicionales repartidos por la UI.
+
+**El barrido de pruebas no borra usuarios.** El `username` se reclama sobre cuentas **reales** —la
+suite no crea cuentas—, así que el sweep hace `UPDATE users SET username = NULL WHERE username LIKE
+'e2e-%'` y la cuenta queda como estaba. Borrar la fila habría sido destruir datos ajenos.
+
+**Las páginas dejaron de ser angostas.** Por indicación tuya: el layout raíz ya envuelve todo en
+`container-width` (`max-w-7xl`), así que `/cuenta` tenía un `max-w-2xl mx-auto` que estrechaba de
+más. Ahora reparte en dos columnas desde `lg` y el perfil usa la misma rejilla del sitio
+(`auto-fill, minmax(300px, 1fr)`).
+
+### Archivos tocados
+
+- **Dominio:** `src/domain/shared/publicHandle.ts` (extraído; `seller/handle.ts` ahora delega); `src/domain/entities/user/{username,types,errors}.ts` + prueba.
+- **Caso de uso:** `src/use_cases/claimUsername/` (caso de uso, puerto, prueba).
+- **Infra:** `PostgresUserProfileRepository` + factory; `users.username` en el espejo Drizzle; `getPostsByUser` en el repositorio de consulta.
+- **App:** `/u/[username]/` (página, paginada, `data.ts`, `metadata.ts`, `ui/ProfileHeader`, `ui/ProfilePublications`); `cuenta/profilePath.ts`, acción `claimUsername` y `ui/UsernameSection`; `/cuenta` reorganizada a dos columnas; `StoreHeader` enlaza al perfil del dueño.
+- **e2e:** `profile.spec.ts`, `ProfilePage.ts`, `testUtils/claimTestUsername.ts`; el barrido libera los `username` de prueba.
+
+### Validación
+
+| Comando | Resultado |
+|---|---|
+| `pnpm run typecheck` | limpio |
+| `pnpm run lint` | limpio |
+| `pnpm run test:run` | **416 pruebas en 46 archivos**, todas verdes (+25) |
+| `playwright test src/e2e/sellerStore/profile.spec.ts` | **4 escenarios verdes** |
+
+### Desviaciones del roadmap
+
+- Sin bio (ver arriba): habría costado una migración que ningún criterio pedía.
+- Se agregó un cuarto criterio, el 404 de un perfil inexistente, que el roadmap no listaba y la
+  tienda sí tenía.
+
+### Pendientes que deja
+
+- No se puede **cambiar** el username una vez reclamado.
+- No hay bio ni enlaces personales en el perfil.
+- El perfil no distingue visualmente anuncios de productos; se ven con la misma tarjeta.
+
+### Recap
+
+Una persona ya tiene dos caras públicas y separadas: `/u/<username>` con todo lo que publica y
+`/tienda/<handle>` con lo que vende, enlazadas entre sí. Con esto el roadmap original queda cubierto
+salvo el slice 5. La única migración de toda la feature sigue siendo la `0027` del slice 1, que ya
+había dejado creada la columna que este slice consumió.
+
+### Próximos pasos (opciones)
+
+1. **Slice 5 — El vendedor administra su catálogo.** Lo que falta: marcar agotado
+   (`posts.is_available` existe y sigue sin UI) y editar publicaciones propias con reindexado del
+   embedding. Pesa más que nunca: hay botón de pedido y el bot recomienda por cercanía, así que se
+   puede pedir por WhatsApp algo que ya se acabó.
+2. **Renombrar direcciones** (tienda y usuario) con redirección del anterior.
+3. **Editar y borrar sucursales**, pendiente desde el slice 3.
+
+**Acciones pendientes de tu parte:**
+
+- Revisar el plan de Vercel antes de promocionar tiendas de terceros: el Hobby es para uso no
+  comercial.

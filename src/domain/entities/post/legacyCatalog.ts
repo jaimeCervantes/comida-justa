@@ -10,8 +10,6 @@ import type { PostOrigin } from "./origin";
  */
 export const LEGACY_PRODUCT_ORIGIN: PostOrigin = "hazlo_sano_propio";
 
-const MEXICO_COUNTRY_CODE = "52";
-
 /** Marcas de acento que deja `normalize("NFD")` al separar la letra base de su diacrítico. */
 const DIACRITICS = /[̀-ͯ]/g;
 

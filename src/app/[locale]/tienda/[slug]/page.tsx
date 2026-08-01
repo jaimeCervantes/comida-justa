@@ -32,7 +32,7 @@ export default async function StorePage({ params }: Props) {
 
   return (
     <>
-      <StoreHeader seller={store.seller} />
+      <StoreHeader seller={store.seller} ownerUsername={store.ownerUsername} />
 
       {store.branches.length > 0 ? (
         <section className="mb-6">

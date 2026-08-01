@@ -1,12 +1,21 @@
 import Image from "next/image";
+import Link from "next/link";
 import { MdPhone } from "react-icons/md";
 import type { Seller } from "~/domain/entities/seller/types";
 import { buildWhatsappStoreLink } from "~/domain/entities/seller/whatsappContact";
 import { PUBLIC_BASE_URL } from "~/infra/constants";
 import WhatsappButton from "~/infra/UI/components/WhatsappButton/WhatsappButton";
+import { profilePath } from "../../../cuenta/profilePath";
 import { storePath } from "../../../cuenta/storePath";
 
-export default function StoreHeader({ seller }: { seller: Seller }) {
+export default function StoreHeader({
+  seller,
+  ownerUsername,
+}: {
+  seller: Seller;
+  /** La dirección personal del dueño, si la reclamó: la tienda enlaza a quien está detrás. */
+  ownerUsername?: string | null;
+}) {
   const contactLink = buildWhatsappStoreLink({
     storeName: seller.name,
     url: `${PUBLIC_BASE_URL}${storePath(seller.handle ?? "")}`,
@@ -53,6 +62,16 @@ export default function StoreHeader({ seller }: { seller: Seller }) {
           >
             Escribir por WhatsApp
           </WhatsappButton>
+
+          {ownerUsername ? (
+            <Link
+              href={profilePath(ownerUsername)}
+              data-testid="store-owner-link"
+              className="mt-2 text-sm text-pw-lightgreen hover:underline"
+            >
+              Ver el perfil de quien vende
+            </Link>
+          ) : null}
         </div>
       </div>
     </header>
