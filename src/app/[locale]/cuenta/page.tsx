@@ -3,8 +3,11 @@ import { redirect } from "next/navigation";
 import type { User } from "~/domain/entities/post/types";
 import { auth } from "~/infra/auth";
 import { SIGNIN_PATH } from "~/infra/constants";
+import { createBranchRepository } from "~/infra/dataAccess/branches/factory";
 import { createSellerRepository } from "~/infra/dataAccess/sellers/factory";
-import { becomeSeller } from "./actions";
+import BranchList from "~/infra/UI/components/BranchList/BranchList";
+import { addBranch, becomeSeller } from "./actions";
+import AddBranchForm from "./ui/AddBranchForm";
 import BecomeSellerForm from "./ui/BecomeSellerForm";
 import StoreCard from "./ui/StoreCard";
 
@@ -30,13 +33,26 @@ export default async function CuentaPage() {
 
   const seller = await createSellerRepository().findByUserId(user.id);
 
+  if (!seller) {
+    return (
+      <main className="p-4 max-w-2xl mx-auto">
+        <BecomeSellerForm action={becomeSeller} defaultName={user.name} />
+      </main>
+    );
+  }
+
+  const branches = await createBranchRepository().listBySeller(seller.id);
+
   return (
     <main className="p-4 max-w-2xl mx-auto">
-      {seller ? (
-        <StoreCard seller={seller} />
-      ) : (
-        <BecomeSellerForm action={becomeSeller} defaultName={user.name} />
-      )}
+      <StoreCard seller={seller} />
+
+      <section className="mt-10">
+        <h2 className="text-lg font-bold mb-4">Tus sucursales</h2>
+        <BranchList branches={branches} />
+      </section>
+
+      <AddBranchForm action={addBranch} />
     </main>
   );
 }

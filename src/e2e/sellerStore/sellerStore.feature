@@ -119,17 +119,33 @@ Feature: Vendedores y tiendas
       |              | 2781092116 | wa.me/522781092116    | sin WhatsApp, el teléfono de la publicación |
       |              |            | (ningún botón)        | no se ofrece un enlace roto             |
 
-  @slice-3 @future
-  Scenario: Doy de alta mi sucursal pegando el link de Google Maps
+  @slice-3
+  Scenario: Doy de alta mi sucursal pegando el enlace de Google Maps
     Given que soy vendedor de la tienda "Panadería La Luz"
-    When registro una sucursal con la dirección y su link de Google Maps
-    Then la sucursal queda guardada con coordenadas y se ve en mi tienda
+    When registro "Sucursal Centro" en "Calle Melchor Ocampo #2, Tezonapa, Veracruz"
+      con el enlace de Google Maps que apunta a 18.6005415, -96.6872066
+    Then mi tienda muestra "Dónde encontrarnos" con esa sucursal y su enlace al mapa
+    And la sucursal queda guardada con esas coordenadas
 
-  @slice-3 @future
-  Scenario: Un link sin coordenadas se rechaza explicando qué pegar
+  @slice-3
+  Scenario: Un enlace sin coordenadas se rechaza explicando qué pegar
     Given que soy vendedor
-    When registro una sucursal con un link del que no se pueden extraer coordenadas
-    Then el formulario explica qué enlace se espera y no guarda la sucursal
+    When registro una sucursal con un enlace del que no se pueden sacar coordenadas
+    Then el formulario dice cómo copiar la dirección de Google Maps
+    And no se guarda ninguna sucursal
+
+  @slice-3
+  Scenario: Un vendedor con dos sucursales las muestra las dos
+    Given que soy vendedor y ya registré "Sucursal Centro"
+    When registro además "Sucursal Mercado"
+    Then mi tienda lista las dos
+
+  @slice-3
+  Scenario: Un producto con sucursal cerca entra en las recomendaciones del bot
+    Given los productos de "Hazlo Sano", cuya sucursal está en 18.6005, -96.6872 (Tezonapa)
+    When el chatbot busca con la ubicación de un cliente a 1 km y radio de 5 km
+    Then "search_posts_semantic" devuelve sus productos
+    But con un cliente en Xalapa, a 150 km, no devuelve ninguno
 
   @slice-4 @future
   Scenario: Mi perfil público muestra todo lo mío, no solo lo que vendo

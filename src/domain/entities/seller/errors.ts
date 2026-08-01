@@ -53,6 +53,35 @@ export class SellerPhoneTakenError extends SellerValidationError {
   }
 }
 
+export class BranchNameRequiredError extends SellerValidationError {
+  constructor() {
+    super("El nombre de la sucursal es obligatorio.");
+    this.name = "BranchNameRequiredError";
+  }
+}
+
+export class BranchAddressRequiredError extends SellerValidationError {
+  constructor() {
+    super("La dirección de la sucursal es obligatoria.");
+    this.name = "BranchAddressRequiredError";
+  }
+}
+
+/**
+ * Sin coordenadas no hay sucursal: `branches.location` es `NOT NULL` y, sobre todo, es lo único
+ * que permite que el chatbot recomiende por cercanía. El mensaje dice **qué hacer**, no solo que
+ * algo falló.
+ */
+export class BranchLocationUnresolvedError extends SellerValidationError {
+  constructor() {
+    super(
+      "No pudimos ubicar ese enlace en el mapa. Abre tu negocio en Google Maps y copia la " +
+        "dirección de la barra del navegador, o toca «Usar mi ubicación actual» estando en tu local.",
+    );
+    this.name = "BranchLocationUnresolvedError";
+  }
+}
+
 export class AlreadyASellerError extends SellerValidationError {
   constructor(readonly handle: string | null) {
     super("Ya tienes una tienda registrada.");

@@ -24,7 +24,7 @@ export default function StoreCatalog({
     <>
       <section
         data-testid="store-catalog"
-        className="grid grid-flow-dense gap-4 pt-6 max-sm:grid-cols-[repeat(auto-fill,minmax(300px,1fr))] sm:grid-cols-[repeat(auto-fill,minmax(300px,1fr))]"
+        className="grid grid-flow-dense gap-4 max-sm:grid-cols-[repeat(auto-fill,minmax(300px,1fr))] sm:grid-cols-[repeat(auto-fill,minmax(300px,1fr))]"
       >
         {catalog.map((post: Post) => (
           <CardForList {...post} key={post.id} />

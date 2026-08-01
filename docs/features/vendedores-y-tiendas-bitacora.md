@@ -260,3 +260,116 @@ por cercanía, que es el slice 3.
   sentencia: `UPDATE sellers SET user_id = (SELECT id FROM users WHERE email =
   'jaime.cervantes.ve@gmail.com') WHERE slug = 'hazlo-sano';`
 - Revisar el plan de Vercel antes de promocionar tiendas de terceros.
+
+---
+
+## Slice 3 — Sucursales con ubicación (2026-08-01)
+
+### Objetivo
+
+Que al vendedor **lo encuentren**. La función `search_posts_semantic` ya calcula el radio con
+`ST_DWithin` sobre `branches.location`, pero no tenía sobre qué calcularlo: existía una sola
+sucursal en toda la base, cargada a mano para el restaurante. Sin sucursal, un vendedor solo aparece
+en las búsquedas sin ubicación, aunque el cliente esté a dos calles.
+
+### Decisiones y por qué
+
+**Otra vez sin migración.** `branches` ya existía con nombre, dirección, `map_url` y el
+`geography(POINT,4326)`. El slice es todo aplicación: no se tocó el esquema compartido.
+
+**Las coordenadas se leen del enlace, y el pin gana sobre el encuadre.** Un enlace largo de Google
+Maps trae dos pares: `@lat,lng` (el centro del mapa que el usuario tenía en pantalla) y `!3d…!4d…`
+(el punto del lugar). Se prefiere el segundo: cuando alguien busca su negocio y arrastra un poco el
+mapa antes de copiar, los dos difieren, y el que sirve para que lo encuentren es el pin.
+
+**Los enlaces cortos se siguen, porque son los que la gente pega.** La única sucursal que existía
+guarda `https://maps.app.goo.gl/8M3zwu2aE6o8itKZ6`, que es lo que reparte el botón "Compartir". Un
+enlace corto no contiene coordenadas, así que hay que seguir su redirect. Se leen los `Location` a
+mano (`redirect: "manual"`) en vez de dejar que `fetch` los siga: basta la cabecera y no se descarga
+el HTML de Google Maps.
+
+**El resolutor es un puerto, no una llamada suelta.** Salir a la red desde el caso de uso lo haría
+imposible de probar sin internet. Con `IMapUrlResolver`, las nueve pruebas del caso de uso corren
+con un doble, y el adaptador real tiene las suyas con `fetch` doblado.
+
+**El resolutor nunca lanza.** Si Google no contesta devuelve el enlace tal cual, y el caso de uso
+cae en su mensaje de siempre —"copia la dirección de la barra o usa tu ubicación"—, que es algo que
+el vendedor puede hacer. Un error de red no lo es.
+
+**El GPS del navegador gana sobre el enlace.** Quien tocó "usar mi ubicación actual" está parado en
+su local; eso es más preciso que el encuadre de un mapa copiado. Las coordenadas viajan en campos
+ocultos porque el permiso solo puede pedirse desde el cliente: el servidor recibe números, no un
+permiso.
+
+**`0,0` se trata como "no se pudo leer".** Es el Golfo de Guinea; en la práctica, ninguna sucursal
+está ahí y sí es el resultado típico de un parseo fallido.
+
+**El `sellerId` no viaja en el formulario.** Se resuelve en el servidor desde la sesión: si fuera un
+campo oculto, cualquiera podría colgarle una sucursal a la tienda de otro.
+
+**`branches` se consulta con SQL crudo, sin espejo Drizzle.** No hay tipo Drizzle para `geography`,
+y escribir el punto exige `ST_SetSRID(ST_MakePoint(...))` igual. Un espejo con la tabla declarada
+pero sin su única columna interesante sería una trampa; se documentó la decisión en el repositorio.
+(Ojo al orden: PostGIS arma el punto **(longitud, latitud)**, al revés de como se dictan.)
+
+**El radio se probó contra la función SQL de verdad y con datos reales.** El filtro geográfico no
+existe en TypeScript: vive en `search_posts_semantic`. El escenario le pregunta qué recomendaría a
+un cliente a 1 km de Tezonapa (encuentra los productos de Hazlo Sano) y a uno en Xalapa, a 150 km
+(no encuentra ninguno). No siembra nada, así que tampoco limpia nada.
+
+### Archivos tocados
+
+- **Dominio:** `src/domain/entities/seller/coordinates.ts` (+ prueba); `Branch`/`BranchDraft` en `types.ts`; tres errores nuevos en `errors.ts`.
+- **Caso de uso:** `src/use_cases/addBranch/` (`addBranchUseCase.ts`, `ports/IBranchRepository.ts`, `ports/IMapUrlResolver.ts`, prueba).
+- **Infra:** `src/infra/dataAccess/branches/` (repositorio PostGIS + factory); `src/infra/services/GoogleMapsUrlResolver.ts` (+ prueba).
+- **UI:** `src/infra/UI/components/BranchList/`, compartido entre `/cuenta` y la tienda.
+- **App:** acción `addBranch` y `ui/AddBranchForm.tsx` en `/cuenta`; la tienda carga sucursales y catálogo en paralelo y las muestra bajo "Dónde encontrarnos".
+- **e2e:** `branches.spec.ts`, `BranchesPage.ts`, `testUtils/readBranches.ts`; el barrido y `deleteTestSellerByHandle` ahora borran sucursales antes que la tienda.
+
+### Comandos
+
+```sh
+pnpm run typecheck && pnpm run lint && pnpm run test:run
+pnpm exec playwright test src/e2e/sellerStore/branches.spec.ts --reporter=list
+pnpm run test:e2e:run
+```
+
+### Validación
+
+Ver la tabla del reporte final del slice: 4 escenarios nuevos verdes (incluido el del radio) y la
+suite completa en verde.
+
+### Desviaciones del roadmap
+
+Ninguna en alcance. Una corrección en la prueba: el escenario de dos sucursales encadenaba los dos
+envíos sin esperar al primero, y como el botón queda deshabilitado mientras la acción está en vuelo,
+el segundo se perdía. Se serializó esperando a que la primera aparezca listada.
+
+### Pendientes que deja
+
+- No se pueden **editar ni borrar** sucursales; solo agregar.
+- El mapa no se dibuja: se enlaza a Google Maps. Un mapa embebido pedía librería y API key con costo.
+- Nadie valida que la dirección escrita corresponda a las coordenadas: son dos campos
+  independientes.
+
+### Recap
+
+El circuito para vender está completo de punta a punta: un usuario registrado abre su tienda, la
+pone en el mapa, publica lo que vende y su cliente le escribe por WhatsApp desde la página — y ahora
+el chatbot puede recomendarlo por cercanía, comprobado contra la misma función SQL que consume el
+bot. Los tres slices salieron sin ninguna migración más allá de la `0027` del slice 1.
+
+### Próximos pasos (opciones)
+
+1. **Slice 4 — Perfil público `/u/<username>`.** La columna `users.username` lleva creada desde el
+   slice 1 sin usarse. Es la pieza que falta del roadmap original.
+2. **Slice 5 — Editar y marcar agotado.** Ahora pesa más que antes: con botón de pedido y con el
+   bot recomendando por cercanía, se puede pedir por WhatsApp algo que ya se acabó. `is_available`
+   existe y sigue sin UI.
+3. **Editar y borrar sucursales**, que este slice dejó fuera.
+
+**Acciones pendientes de tu parte:**
+
+- Vincular la tienda "Hazlo Sano" a la cuenta de `jaime.cervantes.ve@gmail.com` (el `UPDATE` sigue
+  bloqueado por el clasificador de permisos; la sentencia está en la entrada del slice 2).
+- Revisar el plan de Vercel antes de promocionar tiendas de terceros.

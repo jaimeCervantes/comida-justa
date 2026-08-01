@@ -1,5 +1,6 @@
-import type { Seller } from "~/domain/entities/seller/types";
+import type { Branch, Seller } from "~/domain/entities/seller/types";
 import { PAGINATION_INIT_PAGE, PAGINATION_PAGE_SIZE } from "~/infra/constants";
+import { createBranchRepository } from "~/infra/dataAccess/branches/factory";
 import { createPostQueryRepository } from "~/infra/dataAccess/getMultiplePosts";
 import { createSellerRepository } from "~/infra/dataAccess/sellers/factory";
 import type { Post } from "~/infra/types/Posts";
@@ -7,6 +8,7 @@ import { mapPostsToCardsForLocale } from "~/infra/UI/mappers/posts/mapPostsToCar
 
 export type StorePageData = {
   seller: Seller;
+  branches: Branch[];
   catalog: Post[];
   totalPages: number;
   total: number;
@@ -29,14 +31,21 @@ export async function getStoreByHandle(
   if (!seller) return null;
 
   const pageNum = Math.max(PAGINATION_INIT_PAGE, page);
-  const result = await createPostQueryRepository().getPostsBySeller(
-    seller.id,
-    pageNum,
-    PAGINATION_PAGE_SIZE,
-  );
+
+  // Catálogo y sucursales son independientes entre sí: se piden a la vez para no encadenar dos
+  // esperas a la base en el camino crítico de la página.
+  const [result, branches] = await Promise.all([
+    createPostQueryRepository().getPostsBySeller(
+      seller.id,
+      pageNum,
+      PAGINATION_PAGE_SIZE,
+    ),
+    createBranchRepository().listBySeller(seller.id),
+  ]);
 
   return {
     seller,
+    branches,
     catalog: await mapPostsToCardsForLocale(result.posts, locale),
     totalPages: result.totalPages,
     total: result.total,

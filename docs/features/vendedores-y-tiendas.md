@@ -133,23 +133,26 @@ Lo único que hoy convierte una visita en venta. El detalle solo ofrecía un `te
 3. Sin ningún teléfono utilizable, el botón no se pinta (no se ofrece un enlace roto). ✅
 4. Un anuncio no ofrece el botón de pedir. ✅
 
-### Slice 3 — Sucursales con ubicación  *(siguiente)*
+### Slice 3 — Sucursales con ubicación  *(entregado)*
 
 Lo que hace que al vendedor **lo encuentren**: sin `branches.location` el bot solo puede recomendarlo
 en el fallback sin geo, aunque el cliente esté a dos calles.
 
-- Alta de sucursal desde `/cuenta`: nombre, dirección y link de Google Maps. Las coordenadas se
-  extraen del link (resolviendo el redirect de `maps.app.goo.gl`), con "usar mi ubicación actual"
+- Alta de sucursal desde `/cuenta`: nombre, dirección y enlace de Google Maps. Las coordenadas se
+  extraen del enlace (resolviendo el redirect de `maps.app.goo.gl`), con "usar mi ubicación actual"
   como alternativa. `branches.location` es `NOT NULL`, así que sin coordenadas no hay sucursal.
-- Las sucursales se muestran en la tienda con su enlace al mapa.
+- Las sucursales se muestran en la tienda bajo "Dónde encontrarnos", con su enlace al mapa.
+- **Sin migración:** `branches` ya existía con todo lo necesario, incluido el `geography(POINT,4326)`.
 
 **Criterios de aceptación:**
-1. Pegando un link de Google Maps se guarda la sucursal con coordenadas.
-2. Un link del que no se puedan extraer coordenadas se rechaza explicando qué pegar.
-3. Un vendedor puede tener varias sucursales y todas se listan en su tienda.
-4. Un producto de una sucursal dentro del radio aparece en las recomendaciones del bot.
+1. Pegando un enlace de Google Maps se guarda la sucursal con coordenadas. ✅
+2. Un enlace del que no se puedan extraer coordenadas se rechaza explicando qué pegar. ✅
+3. Un vendedor puede tener varias sucursales y todas se listan en su tienda. ✅
+4. Un producto de una sucursal dentro del radio aparece en las recomendaciones del bot. ✅
+   Comprobado llamando a `search_posts_semantic` con la ubicación de un cliente a 1 km (la
+   encuentra) y desde Xalapa, a 150 km (no la encuentra).
 
-### Slice 4 — Perfil público `/u/<username>`  *(futuro)*
+### Slice 4 — Perfil público `/u/<username>`  *(siguiente)*
 
 - Página de la persona: nombre, foto, bio y todo lo que publica (incluidos anuncios, que no son
   catálogo), con enlace a su tienda si la tiene.
@@ -194,6 +197,7 @@ vender. Revisar antes de promocionar tiendas de terceros.
 - **Unit (Vitest):** handle (normalización, longitud, reservadas) con `Scenario Outline`; caso de uso
   `becomeSeller` contra un repositorio falso (ya vendedor, handle tomado, teléfono tomado); armado
   del enlace de WhatsApp (número, mensaje, codificación y el caso sin número).
-- **Component (Vitest):** `MediaContent` sin media; cabecera y estado vacío de la tienda.
+- **Component (Vitest):** `MediaContent` sin media; `WhatsappButton` sin número; lectura de
+  coordenadas de un enlace de Maps y el resolutor de enlaces cortos (con `fetch` doblado).
 - **Behavior (Playwright):** `src/e2e/sellerStore/sellerStore.feature`. Solo los escenarios del slice
   actual están detallados y conectados; los demás llevan `@future` y no corren en CI.

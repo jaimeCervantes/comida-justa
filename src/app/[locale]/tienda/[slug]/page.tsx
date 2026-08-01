@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PAGINATION_INIT_PAGE } from "~/infra/constants";
 import { createSellerRepository } from "~/infra/dataAccess/sellers/factory";
+import BranchList from "~/infra/UI/components/BranchList/BranchList";
 import { getStoreByHandle } from "./data";
 import { buildStoreMetadata } from "./metadata";
 import StoreCatalog from "./ui/StoreCatalog";
@@ -30,8 +31,15 @@ export default async function StorePage({ params }: Props) {
   }
 
   return (
-    <main className="p-4">
+    <>
       <StoreHeader seller={store.seller} />
+
+      {store.branches.length > 0 ? (
+        <section className="mb-6">
+          <h2 className="text-lg font-bold mb-2">Dónde encontrarnos</h2>
+          <BranchList branches={store.branches} />
+        </section>
+      ) : null}
 
       <StoreCatalog
         catalog={store.catalog}
@@ -39,6 +47,6 @@ export default async function StorePage({ params }: Props) {
         currentPage={PAGINATION_INIT_PAGE}
         totalPages={store.totalPages}
       />
-    </main>
+    </>
   );
 }

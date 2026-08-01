@@ -5,6 +5,7 @@ import { TEST_CATEGORY_PREFIX, TEST_SLUG_PREFIX } from "./testSlug";
 export interface TestDataCount {
   posts: number;
   categories: number;
+  branches: number;
   sellers: number;
 }
 
@@ -41,6 +42,11 @@ export async function sweepTestData(): Promise<TestDataCount> {
     DELETE FROM categories WHERE key LIKE ${CATEGORY_PATTERN}
   `);
 
+  const branches = await db.execute(sql`
+    DELETE FROM branches
+    WHERE seller_id IN (SELECT id FROM sellers WHERE slug LIKE ${SLUG_PATTERN})
+  `);
+
   const sellers = await db.execute(sql`
     DELETE FROM sellers WHERE slug LIKE ${SLUG_PATTERN}
   `);
@@ -48,6 +54,7 @@ export async function sweepTestData(): Promise<TestDataCount> {
   return {
     posts: posts.rowCount ?? 0,
     categories: categories.rowCount ?? 0,
+    branches: branches.rowCount ?? 0,
     sellers: sellers.rowCount ?? 0,
   };
 }
@@ -58,6 +65,8 @@ export async function countTestData(): Promise<TestDataCount> {
     SELECT
       (SELECT count(*)::int FROM post_translations WHERE slug LIKE ${SLUG_PATTERN}) AS posts,
       (SELECT count(*)::int FROM categories WHERE key LIKE ${CATEGORY_PATTERN}) AS categories,
+      (SELECT count(*)::int FROM branches b
+        WHERE b.seller_id IN (SELECT id FROM sellers WHERE slug LIKE ${SLUG_PATTERN})) AS branches,
       (SELECT count(*)::int FROM sellers WHERE slug LIKE ${SLUG_PATTERN}) AS sellers
   `);
 
@@ -73,5 +82,8 @@ export function hasTestData(count: TestDataCount): boolean {
 }
 
 export function describeTestData(count: TestDataCount): string {
-  return `${count.posts} publicación(es), ${count.categories} categoría(s) y ${count.sellers} tienda(s) de prueba`;
+  return (
+    `${count.posts} publicación(es), ${count.categories} categoría(s), ` +
+    `${count.branches} sucursal(es) y ${count.sellers} tienda(s) de prueba`
+  );
 }
