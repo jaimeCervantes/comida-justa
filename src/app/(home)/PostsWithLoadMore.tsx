@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Link } from "~/i18n/navigation";
 import { PAGINATION_INIT_PAGE, PAGINATION_PAGE_SIZE } from "~/infra/constants";
 import type { Post } from "~/infra/types/Posts";
 import CardForList from "~/infra/UI/components/CardForList/CardForList";

@@ -1,8 +1,8 @@
 import Image from "next/image";
-import Link from "next/link";
 import { MdLink, MdPhone } from "react-icons/md";
 import type { Seller } from "~/domain/entities/seller/types";
 import { buildWhatsappStoreLink } from "~/domain/entities/seller/whatsappContact";
+import { Link } from "~/i18n/navigation";
 import { PUBLIC_BASE_URL } from "~/infra/constants";
 import WhatsappButton from "~/infra/UI/components/WhatsappButton/WhatsappButton";
 import { profilePath } from "../../../cuenta/profilePath";

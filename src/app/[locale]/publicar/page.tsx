@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
+import { getLocale, setRequestLocale } from "next-intl/server";
 import { optionsFor } from "~/domain/entities/post/taxonomy";
+import { redirectKeepingLocale } from "~/i18n/redirectKeepingLocale";
+import { resolveLocale } from "~/i18n/routing";
 import { auth } from "~/infra/auth";
 import { isAdmin } from "~/infra/auth/isAdmin";
 import { SIGNIN_PATH } from "~/infra/constants";
@@ -20,10 +22,12 @@ export default async function PublicarPage({
   const session = await auth();
 
   if (!session) {
-    return redirect(SIGNIN_PATH);
+    redirectKeepingLocale(SIGNIN_PATH, await getLocale());
   }
 
-  const { locale } = await params;
+  const { locale: rawLocale } = await params;
+  const locale = resolveLocale(rawLocale);
+  setRequestLocale(locale);
   const taxonomy = await getCategoryTaxonomy();
 
   // El formulario es un Client Component: las opciones se resuelven aquí y bajan como datos.

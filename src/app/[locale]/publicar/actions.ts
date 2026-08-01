@@ -1,6 +1,6 @@
 "use server";
-import { redirect } from "next/navigation";
 import { after } from "next/server";
+import { getLocale } from "next-intl/server";
 import { DEFAULT_POST_KIND, type PostKind } from "~/domain/entities/post/kind";
 import { resolveOriginForUser } from "~/domain/entities/post/origin";
 import PostEntity from "~/domain/entities/post/Post";
@@ -8,6 +8,7 @@ import { resolveKeyStrict } from "~/domain/entities/post/taxonomy";
 import type { User } from "~/domain/entities/post/types";
 import PostValidator from "~/domain/schemas/PostValidator";
 import getErrorMessage from "~/domain/shared/getErrorMessage";
+import { redirectKeepingLocale } from "~/i18n/redirectKeepingLocale";
 import { auth } from "~/infra/auth";
 import { isAdmin } from "~/infra/auth/isAdmin";
 import { SIGNIN_PATH } from "~/infra/constants";
@@ -57,7 +58,7 @@ export async function createPost(
   const session = await auth();
 
   if (!session) {
-    redirect(SIGNIN_PATH);
+    redirectKeepingLocale(SIGNIN_PATH, await getLocale());
   }
 
   const title = formData.get("title") as string;
@@ -169,5 +170,5 @@ export async function createPost(
     indexAfterResponse(result.id);
   }
 
-  redirect(`/${result?.slug}`);
+  redirectKeepingLocale(`/${result?.slug}`, await getLocale());
 }

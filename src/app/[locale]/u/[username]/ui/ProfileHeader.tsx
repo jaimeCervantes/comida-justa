@@ -1,8 +1,8 @@
 import Image from "next/image";
-import Link from "next/link";
 import { MdStorefront } from "react-icons/md";
 import type { Seller } from "~/domain/entities/seller/types";
 import type { UserProfile } from "~/domain/entities/user/types";
+import { Link } from "~/i18n/navigation";
 import { storePath } from "../../../cuenta/storePath";
 
 export default function ProfileHeader({

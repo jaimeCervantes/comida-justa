@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
+import { setRequestLocale } from "next-intl/server";
+import { Link } from "~/i18n/navigation";
+import { resolveLocale } from "~/i18n/routing";
 import {
   CANONICAL_URL,
   PAGINATION_INIT_PAGE,
@@ -55,7 +57,9 @@ async function getPosts(page: number, locale: string) {
 }
 
 export default async function PaginatedPage({ params }: Props) {
-  const { page: pageStr, locale } = await params;
+  const { page: pageStr, locale: rawLocale } = await params;
+  const locale = resolveLocale(rawLocale);
+  setRequestLocale(locale);
   const page = parseInt(pageStr, 10);
 
   // Validar que la página sea válida

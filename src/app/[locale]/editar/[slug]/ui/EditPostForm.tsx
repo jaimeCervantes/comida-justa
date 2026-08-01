@@ -1,8 +1,8 @@
 "use client";
-import Link from "next/link";
 import { useActionState, useState } from "react";
 import { MdOutlinePriceChange, MdTitle } from "react-icons/md";
 import type { CategoryOption } from "~/domain/entities/post/taxonomy";
+import { Link } from "~/i18n/navigation";
 import { POST_CONTENT_MAX_LENGTH } from "~/infra/constants";
 import { Button } from "~/presentation/design_system/buttons/Button";
 import { TextArea } from "~/presentation/design_system/forms/TextArea";

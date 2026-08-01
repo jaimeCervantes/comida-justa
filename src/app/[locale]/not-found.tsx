@@ -1,6 +1,6 @@
 import { headers } from "next/headers";
 import Image from "next/image";
-import Link from "next/link";
+import { Link } from "~/i18n/navigation";
 import { Button } from "~/presentation/design_system/buttons/Button";
 
 export default async function NotFound() {

@@ -1,3 +1,5 @@
+import { setRequestLocale } from "next-intl/server";
+import { resolveLocale } from "~/i18n/routing";
 import CardForList from "~/infra/UI/components/CardForList/CardForList";
 import Pagination from "~/infra/UI/components/Pagination";
 import { mapPostsToCardsForLocale } from "~/infra/UI/mappers/posts/mapPostsToCardsForLocale";
@@ -16,7 +18,9 @@ export default async function SearchPage({
 }: {
   params: Promise<{ locale: string; term: string; page: string }>;
 }) {
-  const { term, page, locale } = await params;
+  const { term, page, locale: rawLocale } = await params;
+  const locale = resolveLocale(rawLocale);
+  setRequestLocale(locale);
   const pageInt = parseInt(page || "1", 10);
   const pageSize = 6;
   const data = term

@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import { setRequestLocale } from "next-intl/server";
+import { resolveLocale } from "~/i18n/routing";
 import { ABOUT_SUBTITLE, ABOUT_TITLE, buildAboutMetadata } from "./metadata";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -10,7 +12,14 @@ export async function generateMetadata(): Promise<Metadata> {
  * El ancho lo pone el layout (`container-width`). Repetirlo aquí y sumarle `max-w-4xl` encajonaba
  * el contenido a 896px dentro de un contenedor de 1280px.
  */
-export default function NosotrosPage() {
+export default async function NosotrosPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  setRequestLocale(resolveLocale(locale));
+
   return (
     <main className="py-12 space-y-16">
       <header className="text-center space-y-6">

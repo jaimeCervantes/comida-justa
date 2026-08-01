@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { setRequestLocale } from "next-intl/server";
+import { resolveLocale } from "~/i18n/routing";
 import { PAGINATION_INIT_PAGE } from "~/infra/constants";
 import { getHazloSanoProducts } from "./data";
 import {
@@ -17,7 +19,9 @@ export default async function ProductosPage({
 }: {
   params: Promise<{ locale: string }>;
 }) {
-  const { locale } = await params;
+  const { locale: rawLocale } = await params;
+  const locale = resolveLocale(rawLocale);
+  setRequestLocale(locale);
   const { products, totalPages } = await getHazloSanoProducts(
     PAGINATION_INIT_PAGE,
     locale,

@@ -1,8 +1,8 @@
 "use client";
-import Link from "next/link";
 import { useActionState, useState } from "react";
 import { MdPhone, MdStorefront } from "react-icons/md";
 import { generateSellerHandle } from "~/domain/entities/seller/handle";
+import { Link } from "~/i18n/navigation";
 import { PUBLIC_BASE_URL } from "~/infra/constants";
 import { Button } from "~/presentation/design_system/buttons/Button";
 import { TextArea } from "~/presentation/design_system/forms/TextArea";

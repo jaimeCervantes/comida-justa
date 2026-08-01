@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { setRequestLocale } from "next-intl/server";
 import { buildIndexingReport } from "~/domain/entities/post/indexingReport";
 import { buildOriginReport } from "~/domain/entities/post/originReport";
+import { resolveLocale } from "~/i18n/routing";
 import { auth } from "~/infra/auth";
 import { isAdmin } from "~/infra/auth/isAdmin";
 import { createPostQueryRepository } from "~/infra/dataAccess/getMultiplePosts";
@@ -15,7 +17,14 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default async function ProductosPorProcedenciaPage() {
+export default async function ProductosPorProcedenciaPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  setRequestLocale(resolveLocale(locale));
+
   const session = await auth();
 
   // 404 en vez de 403: una página interna no tiene por qué revelar que existe.

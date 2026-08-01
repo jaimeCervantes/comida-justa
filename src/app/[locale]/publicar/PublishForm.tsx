@@ -1,8 +1,8 @@
 "use client";
-import Link from "next/link";
 import { useActionState, useCallback, useState } from "react";
 import { MdOutlinePriceChange, MdPhone, MdTitle } from "react-icons/md";
 import type { CategoryOption } from "~/domain/entities/post/taxonomy";
+import { Link } from "~/i18n/navigation";
 import { POST_CONTENT_MAX_LENGTH } from "~/infra/constants";
 import type { ActionState } from "~/infra/types/Actions";
 import ImageVideoUploader, {

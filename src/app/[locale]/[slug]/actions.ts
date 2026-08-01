@@ -1,7 +1,8 @@
 "use server";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
+import { getLocale } from "next-intl/server";
 import type { User } from "~/domain/entities/post/types";
+import { redirectKeepingLocale } from "~/i18n/redirectKeepingLocale";
 import { auth } from "~/infra/auth";
 import { SIGNIN_PATH } from "~/infra/constants";
 import { createPostAdminRepository } from "~/infra/dataAccess/managePost/factory";
@@ -27,7 +28,7 @@ export async function setAvailability(
   const userId = (session?.user as User | undefined)?.id;
 
   if (!userId) {
-    redirect(SIGNIN_PATH);
+    redirectKeepingLocale(SIGNIN_PATH, await getLocale());
   }
 
   const useCase = new SetPostAvailabilityUseCase(createPostAdminRepository());

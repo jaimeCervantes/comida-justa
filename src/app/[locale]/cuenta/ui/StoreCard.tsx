@@ -1,5 +1,5 @@
-import Link from "next/link";
 import type { Seller } from "~/domain/entities/seller/types";
+import { Link } from "~/i18n/navigation";
 import { PUBLIC_BASE_URL } from "~/infra/constants";
 import { storePath } from "../storePath";
 

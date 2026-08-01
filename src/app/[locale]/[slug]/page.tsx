@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { setRequestLocale } from "next-intl/server";
+import { resolveLocale } from "~/i18n/routing";
 import { auth } from "~/infra/auth";
 import type { PostUser } from "~/infra/types/Posts";
 import { getPostDetails } from "./data";
@@ -24,7 +26,9 @@ export default async function Slug({
   params: Promise<{ slug: string; locale: string }>;
 }) {
   const session = await auth();
-  const { slug, locale } = await params;
+  const { slug, locale: rawLocale } = await params;
+  const locale = resolveLocale(rawLocale);
+  setRequestLocale(locale);
 
   // Se resuelve aquí, fuera de cualquier `<Suspense>`: si la publicación no existe, la respuesta
   // debe salir con status 404 y no con un 200 que solo "parece" un 404. Dentro de un boundary,

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
+import { setRequestLocale } from "next-intl/server";
+import { Link } from "~/i18n/navigation";
+import { resolveLocale } from "~/i18n/routing";
 import { getHazloSanoProducts } from "../../data";
 import {
   buildProductsMetadata,
@@ -26,7 +28,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function ProductosPaginatedPage({ params }: Props) {
-  const { page: pageStr, locale } = await params;
+  const { page: pageStr, locale: rawLocale } = await params;
+  const locale = resolveLocale(rawLocale);
+  setRequestLocale(locale);
   const page = parsePage(pageStr);
 
   if (!page) {

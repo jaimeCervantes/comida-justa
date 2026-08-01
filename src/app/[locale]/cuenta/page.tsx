@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
+import { getLocale, setRequestLocale } from "next-intl/server";
 import type { User } from "~/domain/entities/post/types";
+import { redirectKeepingLocale } from "~/i18n/redirectKeepingLocale";
+import { resolveLocale } from "~/i18n/routing";
 import { auth } from "~/infra/auth";
 import { SIGNIN_PATH } from "~/infra/constants";
 import { createBranchRepository } from "~/infra/dataAccess/branches/factory";
@@ -32,17 +34,24 @@ export const metadata: Metadata = {
  */
 const COLUMNS = "grid gap-10 lg:grid-cols-2 items-start";
 
-export default async function CuentaPage() {
+export default async function CuentaPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  setRequestLocale(resolveLocale(locale));
+
   const session = await auth();
 
   if (!session) {
-    redirect(SIGNIN_PATH);
+    redirectKeepingLocale(SIGNIN_PATH, await getLocale());
   }
 
   const user = session.user as User | undefined;
 
   if (!user?.id) {
-    redirect(SIGNIN_PATH);
+    redirectKeepingLocale(SIGNIN_PATH, await getLocale());
   }
 
   const [seller, profile] = await Promise.all([

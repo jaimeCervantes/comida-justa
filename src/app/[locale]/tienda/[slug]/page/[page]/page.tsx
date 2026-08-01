@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
+import { setRequestLocale } from "next-intl/server";
+import { Link } from "~/i18n/navigation";
+import { resolveLocale } from "~/i18n/routing";
 import { createSellerRepository } from "~/infra/dataAccess/sellers/factory";
 import { storePath } from "../../../../cuenta/storePath";
 import { getStoreByHandle } from "../../data";
@@ -28,7 +30,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function StorePaginatedPage({ params }: Props) {
-  const { slug, locale, page: pageStr } = await params;
+  const { slug, locale: rawLocale, page: pageStr } = await params;
+  const locale = resolveLocale(rawLocale);
+  setRequestLocale(locale);
   const page = parsePage(pageStr);
 
   if (!page) {

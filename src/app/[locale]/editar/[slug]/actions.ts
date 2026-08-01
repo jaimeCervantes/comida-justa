@@ -1,9 +1,10 @@
 "use server";
-import { redirect } from "next/navigation";
 import { after } from "next/server";
+import { getLocale } from "next-intl/server";
 import { resolveKeyStrict } from "~/domain/entities/post/taxonomy";
 import type { User } from "~/domain/entities/post/types";
 import PostValidator from "~/domain/schemas/PostValidator";
+import { redirectKeepingLocale } from "~/i18n/redirectKeepingLocale";
 import { auth } from "~/infra/auth";
 import { SIGNIN_PATH } from "~/infra/constants";
 import { getCategoryTaxonomy } from "~/infra/dataAccess/categories/cachedCategoryTaxonomy";
@@ -32,7 +33,7 @@ export async function updatePost(
   const userId = (session?.user as User | undefined)?.id;
 
   if (!userId) {
-    redirect(SIGNIN_PATH);
+    redirectKeepingLocale(SIGNIN_PATH, await getLocale());
   }
 
   const taxonomy = await getCategoryTaxonomy();
@@ -75,7 +76,10 @@ export async function updatePost(
     reindexAfterResponse(result.postId, result.locale);
   }
 
-  redirect(`/${"slug" in result ? result.slug : ""}`);
+  redirectKeepingLocale(
+    `/${"slug" in result ? result.slug : ""}`,
+    await getLocale(),
+  );
 }
 
 function reindexAfterResponse(postId: string, locale: string): void {

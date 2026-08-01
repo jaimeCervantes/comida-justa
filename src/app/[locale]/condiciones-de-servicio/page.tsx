@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { hasLocale } from "next-intl";
-import { getTranslations } from "next-intl/server";
-import { routing } from "~/i18n/routing";
+import { getTranslations, setRequestLocale } from "next-intl/server";
+import { Link } from "~/i18n/navigation";
+import { resolveLocale, routing } from "~/i18n/routing";
 import { CANONICAL_URL } from "~/infra/constants";
 
 export async function generateMetadata({
@@ -33,7 +33,9 @@ export default async function TermsOfServicePage({
 }: {
   params: Promise<{ locale: string }>;
 }) {
-  const { locale } = await params;
+  const { locale: rawLocale } = await params;
+  const locale = resolveLocale(rawLocale);
+  setRequestLocale(locale);
 
   if (!hasLocale(routing.locales, locale)) {
     notFound();

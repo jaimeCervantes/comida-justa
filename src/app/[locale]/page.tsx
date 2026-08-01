@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { hasLocale } from "next-intl";
-import { getTranslations } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import PostsWithLoadMore from "~/app/(home)/PostsWithLoadMore";
-import { routing } from "~/i18n/routing";
+import { resolveLocale, routing } from "~/i18n/routing";
 import {
   CANONICAL_URL,
   PAGINATION_INIT_PAGE,
@@ -58,7 +58,9 @@ export default async function Inicio({
 }: {
   params: Promise<{ locale: string }>;
 }) {
-  const { locale } = await params;
+  const { locale: rawLocale } = await params;
+  const locale = resolveLocale(rawLocale);
+  setRequestLocale(locale);
   const t = await getTranslations({ locale, namespace: "home" });
   const { posts, total, totalPages } = await getPosts(locale);
 

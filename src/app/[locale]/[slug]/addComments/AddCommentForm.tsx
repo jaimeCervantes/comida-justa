@@ -1,7 +1,7 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useRouter } from "~/i18n/navigation";
 import type { PostUser } from "~/infra/types/Posts";
 import { addCommentToPost } from "../data-access/actions"; // Función para agregar un comentario
 

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { setRequestLocale } from "next-intl/server";
 import type { User } from "~/domain/entities/post/types";
+import { resolveLocale } from "~/i18n/routing";
 import { auth } from "~/infra/auth";
 import { PAGINATION_INIT_PAGE } from "~/infra/constants";
 import { createSellerRepository } from "~/infra/dataAccess/sellers/factory";
@@ -22,7 +24,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function StorePage({ params }: Props) {
-  const { slug, locale } = await params;
+  const { slug, locale: rawLocale } = await params;
+  const locale = resolveLocale(rawLocale);
+  setRequestLocale(locale);
   const session = await auth();
 
   // Se resuelve fuera de cualquier `<Suspense>`: una tienda inexistente debe salir con status 404

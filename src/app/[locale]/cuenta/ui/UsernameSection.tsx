@@ -1,8 +1,8 @@
 "use client";
-import Link from "next/link";
 import { useActionState, useState } from "react";
 import { MdAlternateEmail } from "react-icons/md";
 import { generateUsername } from "~/domain/entities/user/username";
+import { Link } from "~/i18n/navigation";
 import { PUBLIC_BASE_URL } from "~/infra/constants";
 import { Button } from "~/presentation/design_system/buttons/Button";
 import { TextField } from "~/presentation/design_system/forms/TextField";

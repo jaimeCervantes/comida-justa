@@ -1,7 +1,7 @@
 "use client";
-import Link from "next/link";
 import { useActionState } from "react";
 import { MdEdit } from "react-icons/md";
+import { Link } from "~/i18n/navigation";
 import { Button } from "~/presentation/design_system/buttons/Button";
 import type { AvailabilityState } from "../actions";
 

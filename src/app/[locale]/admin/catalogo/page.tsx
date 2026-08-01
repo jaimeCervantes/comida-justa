@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { setRequestLocale } from "next-intl/server";
 import { optionsFor } from "~/domain/entities/post/taxonomy";
+import { resolveLocale } from "~/i18n/routing";
 import { auth } from "~/infra/auth";
 import { isAdmin } from "~/infra/auth/isAdmin";
 import { getCategoryTaxonomy } from "~/infra/dataAccess/categories/cachedCategoryTaxonomy";
@@ -13,7 +15,14 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default async function CatalogoPage() {
+export default async function CatalogoPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  setRequestLocale(resolveLocale(locale));
+
   const session = await auth();
 
   // 404 en vez de 403: una página interna no tiene por qué revelar que existe.

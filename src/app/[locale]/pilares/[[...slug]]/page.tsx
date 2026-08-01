@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { setRequestLocale } from "next-intl/server";
+import { resolveLocale } from "~/i18n/routing";
 import AlimentacionPage from "../components/AlimentacionPage";
 import MenteEspirituPage from "../components/MenteEspirituPage";
 import MovimientoPage from "../components/MovimientoPage";
@@ -23,7 +25,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function PilaresPage({ params }: Props) {
-  const { slug } = await params;
+  const { slug, locale: rawLocale } = await params;
+  setRequestLocale(resolveLocale(rawLocale));
 
   if (!slug || slug.length === 0) {
     return <PilaresOverviewPage />;

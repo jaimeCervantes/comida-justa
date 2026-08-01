@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { setRequestLocale } from "next-intl/server";
+import { resolveLocale } from "~/i18n/routing";
 import { PAGINATION_INIT_PAGE } from "~/infra/constants";
 import { createUserProfileRepository } from "~/infra/dataAccess/users/factory";
 import { getProfileByUsername } from "./data";
@@ -19,7 +21,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function ProfilePage({ params }: Props) {
-  const { username, locale } = await params;
+  const { username, locale: rawLocale } = await params;
+  const locale = resolveLocale(rawLocale);
+  setRequestLocale(locale);
 
   // Fuera de cualquier `<Suspense>`: un perfil inexistente debe salir con status 404 y no con un
   // 200 que solo "parece" un 404.

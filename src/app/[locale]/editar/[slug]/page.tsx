@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
+import { getLocale, setRequestLocale } from "next-intl/server";
 import { optionsFor } from "~/domain/entities/post/taxonomy";
 import type { User } from "~/domain/entities/post/types";
+import { redirectKeepingLocale } from "~/i18n/redirectKeepingLocale";
+import { resolveLocale } from "~/i18n/routing";
 import { auth } from "~/infra/auth";
 import { SIGNIN_PATH } from "~/infra/constants";
 import { getCategoryTaxonomy } from "~/infra/dataAccess/categories/cachedCategoryTaxonomy";
@@ -23,10 +26,12 @@ export default async function EditarPage({
   const session = await auth();
 
   if (!session) {
-    redirect(SIGNIN_PATH);
+    redirectKeepingLocale(SIGNIN_PATH, await getLocale());
   }
 
-  const { locale, slug } = await params;
+  const { locale: rawLocale, slug } = await params;
+  const locale = resolveLocale(rawLocale);
+  setRequestLocale(locale);
   const userId = (session.user as User | undefined)?.id;
   const post = await createPostAdminRepository().findBySlug(slug);
 
