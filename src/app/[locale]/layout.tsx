@@ -4,11 +4,17 @@ import Footer from "~/infra/UI/components/Footer/Footer";
 import Header from "~/infra/UI/components/Header/Header";
 import "~/app/styles/globals.css";
 import { GoogleAnalytics } from "@next/third-parties/google";
-import { PUBLIC_BRAND_NAME } from "~/infra/constants";
+import { CANONICAL_URL, PUBLIC_BRAND_NAME } from "~/infra/constants";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
+  /**
+   * Con esto, cualquier imagen o canónico relativo de una página hija se resuelve contra el
+   * dominio real. Sin él, Next avisa y las URL de Open Graph salen relativas, que es como no
+   * tenerlas: quien comparte el enlace no ve la imagen.
+   */
+  metadataBase: new URL(CANONICAL_URL),
   title: PUBLIC_BRAND_NAME,
   description:
     "¿Como evitar enfermedades, ahorrar tiempo y dinero, al mismo tiempo que apoyas al medio ambiente y a tu comunidad?",

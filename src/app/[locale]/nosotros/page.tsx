@@ -6,9 +6,13 @@ export async function generateMetadata(): Promise<Metadata> {
   return buildAboutMetadata();
 }
 
+/**
+ * El ancho lo pone el layout (`container-width`). Repetirlo aquí y sumarle `max-w-4xl` encajonaba
+ * el contenido a 896px dentro de un contenedor de 1280px.
+ */
 export default function NosotrosPage() {
   return (
-    <main className="container-width py-12 space-y-16 max-w-4xl mx-auto">
+    <main className="py-12 space-y-16">
       <header className="text-center space-y-6">
         <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-balance">
           {ABOUT_TITLE}
