@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import { db } from "~/infra/dataAccess/db/connection";
+import { SUITE_ACCOUNT_EMAIL } from "./suiteAccount";
 import { TEST_CATEGORY_PREFIX, TEST_SLUG_PREFIX } from "./testSlug";
 
 export interface TestDataCount {
@@ -55,8 +56,19 @@ export async function sweepTestData(): Promise<TestDataCount> {
 
   // Los `username` se reclaman sobre usuarios REALES —la suite no crea cuentas—, así que aquí no
   // se borra la fila: se le quita la dirección de prueba y el usuario queda como estaba.
+  //
+  // No basta con el prefijo. El formulario de `/cuenta` **precarga** la dirección a partir del
+  // nombre de la cuenta, así que una corrida que muera entre el `fill` y el `click` deja reclamada
+  // la sugerencia (`Healthy Food` → `healthy-food`), que no lleva prefijo y sobrevivía a este
+  // barrido. Y como el formulario no se pinta cuando ya hay dirección, la suite quedaba bloqueada
+  // para siempre sin decir por qué.
+  //
+  // Se libera por **correo**, el de la cuenta de la suite, y nunca por posición: un
+  // `SELECT id FROM users LIMIT 1` no está ordenado y podría dejar sin dirección a una persona real.
   const usernames = await db.execute(sql`
-    UPDATE users SET username = NULL WHERE username LIKE ${SLUG_PATTERN}
+    UPDATE users SET username = NULL
+    WHERE username IS NOT NULL
+      AND (username LIKE ${SLUG_PATTERN} OR email = ${SUITE_ACCOUNT_EMAIL})
   `);
 
   return {

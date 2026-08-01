@@ -3,6 +3,7 @@ import { eq } from "drizzle-orm";
 import type { Cookie } from "~/e2e/types/cookies";
 import { db } from "~/infra/dataAccess/db/connection";
 import { sessions, users } from "~/infra/dataAccess/db/schema/auth";
+import { findSuiteUserId } from "./suiteAccount";
 
 export async function simulateLogin(
   page: Page,
@@ -45,27 +46,21 @@ function generateRandomToken() {
 }
 
 async function createDbSession(email?: string) {
-  // Without an email, use the first available user from the users table. Note that
-  // user may have a null email, so any test that depends on the session's email
-  // (e.g. the admin gate) must pass one explicitly.
-  const userRows = email
-    ? await db
-        .select({ id: users.id })
-        .from(users)
-        .where(eq(users.email, email))
-        .limit(1)
-    : await db.select({ id: users.id }).from(users).limit(1);
-
-  if (email && userRows.length === 0) {
-    throw new Error(
-      `simulateLogin: no user with email "${email}" exists in the users table.`,
-    );
-  }
-
-  const userId =
-    userRows.length > 0
-      ? userRows[0].id
-      : "00000000-0000-0000-0000-000000000000";
+  // Sin email se entra con la cuenta de la suite, nombrada explícitamente.
+  //
+  // Antes esto era `SELECT id FROM users LIMIT 1`, sin `ORDER BY`, y eso resultó ser una fuente de
+  // fallos intermitentes muy caros de diagnosticar: Postgres devuelve las filas en orden físico, y
+  // **cualquier `UPDATE` sobre esa fila la mueve al final del heap**. En cuanto `profile.spec.ts`
+  // reclamaba y liberaba una dirección personal sobre ella, todos los specs siguientes entraban
+  // como otra persona — y los que afirman "un no-admin ve 404" empezaban a entrar como quien sí lo
+  // es. Pasaban en aislamiento y fallaban en la suite completa.
+  //
+  // Fijarla por correo la vuelve estable frente a `UPDATE`s, a filas nuevas y al orden de los
+  // specs. El respaldo por `id` existe para entornos donde esa cuenta no esté sembrada; también
+  // ordenado, para no reintroducir el mismo azar.
+  const userId = email
+    ? await findUserIdByEmail(email)
+    : await findSuiteUserId();
 
   const sessionToken = generateRandomToken();
   const expires = new Date(Date.now() + 60 * 60 * 1000);
@@ -95,3 +90,19 @@ export type DbSession = {
   sessionToken: string;
   expires: string;
 };
+
+async function findUserIdByEmail(email: string): Promise<string> {
+  const rows = await db
+    .select({ id: users.id })
+    .from(users)
+    .where(eq(users.email, email))
+    .limit(1);
+
+  if (rows.length === 0) {
+    throw new Error(
+      `simulateLogin: no user with email "${email}" exists in the users table.`,
+    );
+  }
+
+  return rows[0].id;
+}

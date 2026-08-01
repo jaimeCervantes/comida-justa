@@ -26,7 +26,7 @@ export async function releaseUsername(username: string): Promise<void> {
 /** El id de un usuario distinto al de la sesión, para montar la colisión de direcciones. */
 export async function findAnotherUserId(excludedId: string): Promise<string> {
   const result = await db.execute(sql`
-    SELECT id FROM users WHERE id <> ${excludedId} AND username IS NULL LIMIT 1
+    SELECT id FROM users WHERE id <> ${excludedId} AND username IS NULL ORDER BY id LIMIT 1
   `);
 
   const rows = result.rows as unknown as Array<{ id: string }>;

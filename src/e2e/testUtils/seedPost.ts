@@ -1,7 +1,7 @@
 import { sql } from "drizzle-orm";
 import PostgresPostRepository from "~/infra/dataAccess/createOnePost/PostgresPostRepository";
 import { db } from "~/infra/dataAccess/db/connection";
-import { users } from "~/infra/dataAccess/db/schema/auth";
+import { findSuiteUserId } from "./suiteAccount";
 
 /**
  * Media host allowed by `next.config` `images.remotePatterns`; a URL outside that list
@@ -27,7 +27,7 @@ export type SeedPostInput = {
  * admin gate), para poder preparar el estado que necesita un listado de lectura.
  */
 export async function seedPost(input: SeedPostInput): Promise<string> {
-  const userId = await findAnyUserId();
+  const userId = await findSuiteUserId();
   const sellerId = input.sellerHandle
     ? await findSellerId(input.sellerHandle)
     : null;
@@ -58,16 +58,6 @@ async function findSellerId(handle: string): Promise<string> {
 
   if (rows.length === 0) {
     throw new Error(`seedPost: no existe la tienda "${handle}".`);
-  }
-
-  return rows[0].id;
-}
-
-async function findAnyUserId(): Promise<string> {
-  const rows = await db.select({ id: users.id }).from(users).limit(1);
-
-  if (rows.length === 0) {
-    throw new Error("seedPost: the users table is empty.");
   }
 
   return rows[0].id;

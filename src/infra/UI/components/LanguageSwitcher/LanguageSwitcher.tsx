@@ -7,6 +7,7 @@ import { type AppLocale, routing } from "~/i18n/routing";
 import { Button } from "~/presentation/design_system/buttons/Button";
 
 const localesMap: Record<AppLocale, { label: string; flag: string }> = {
+  // i18n-ignore: el nombre de un idioma se escribe en ese idioma, también en la interfaz en inglés.
   es: { label: "Español", flag: "🇲🇽" },
   en: { label: "English", flag: "🇺🇸" },
 };

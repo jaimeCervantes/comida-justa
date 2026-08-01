@@ -17,13 +17,23 @@ import { join, relative } from "node:path";
 const ROOTS = ["src/app", "src/infra/UI"];
 const SPANISH = /[áéíóúÁÉÍÓÚñÑ¿¡]/;
 
-/** Archivos cuyo texto no llega a un visitante, o que aún no toca el slice en curso. */
+/** Archivos cuyo texto no llega a un visitante. */
 const IGNORED = [
   /\.test\.tsx?$/,
   /\.stories\.tsx?$/,
   /[/\\]stories[/\\]/,
   /[/\\]__mocks__[/\\]/,
+  // Datos de relleno para pruebas y Storybook: no los ve nadie desde el navegador.
+  /[/\\]dummies[/\\]/,
+  /seoDummies\.ts$/,
 ];
+
+/**
+ * Escotilla para el texto que **debe** seguir en español. Hoy solo la usa el nombre del idioma en
+ * el selector: "Español" se escribe igual en una interfaz en inglés. Se marca la línea con
+ * `// i18n-ignore` y se explica al lado por qué, para que no se convierta en un cajón de sastre.
+ */
+const IGNORE_LINE = /\/\/\s*i18n-ignore/;
 
 type Finding = { file: string; line: number; text: string };
 
@@ -56,10 +66,12 @@ function collectFiles(dir: string, found: string[] = []): string[] {
 }
 
 function findSpanishLiterals(file: string): Finding[] {
-  const lines = stripComments(readFileSync(file, "utf8")).split("\n");
+  const source = readFileSync(file, "utf8");
+  const original = source.split("\n");
+  const lines = stripComments(source).split("\n");
 
   return lines.flatMap((line, index) =>
-    SPANISH.test(line)
+    SPANISH.test(line) && !IGNORE_LINE.test(original[index] ?? "")
       ? [
           {
             file: relative(process.cwd(), file).replace(/\\/g, "/"),
