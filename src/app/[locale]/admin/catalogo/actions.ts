@@ -1,8 +1,12 @@
-import { getTranslations } from "next-intl/server";
-
-("use server");
+"use server";
+// ↑ Va en la primera línea, y no es cosmético: solo cuenta como directiva si es la primera
+// sentencia del archivo. Debajo de un import pasa a ser una expresión suelta —Biome incluso la
+// reescribe como `("use server")`—, este módulo deja de ser una Server Action, y
+// `NewCategoryForm`, que es Client Component, se lo lleva entero al navegador junto con `auth`,
+// la conexión a la base y `pg`. Lo vigila `pnpm run check:directives`.
 
 import { updateTag } from "next/cache";
+import { getTranslations } from "next-intl/server";
 import {
   hasErrors,
   type NewCategoryErrors,
