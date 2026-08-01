@@ -33,7 +33,7 @@ export default async function SearchPage({
   return (
     <main>
       <h1 className="text-4xl font-extrabold mb-6 mt-4 text-gray-900 dark:text-gray-100">
-        Resultados de búsqueda
+        {t("resultsHeading")}
       </h1>
       {term && (
         <div className="mb-8 text-lg text-gray-600 dark:text-gray-400">

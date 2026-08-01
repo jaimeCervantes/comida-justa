@@ -94,7 +94,9 @@
     "locationHint": "Use it if you are standing in your shop.",
     "locationTaken": "Location taken from your device.",
     "metaDescription": "Your store, your branches and your personal address.",
+    "profilePreview": "Your profile will live at <url>{address}</url>",
     "saveBranch": "Save branch",
+    "storeAddressStable": "Your address <url>{address}</url> does not change when you change the name, so the links you have already shared keep working.",
     "storeCardNoPublicPage": "This store doesn't have a public page yet.",
     "storeCardTitle": "Your store",
     "storeDescription": "What do you sell? (optional)",
@@ -104,6 +106,7 @@
     "storeNamePlaceholder": "e.g. Panadería La Luz",
     "storePhone": "Contact phone:",
     "storePhonePlaceholder": "e.g. 2781092116",
+    "storePreview": "Your store will live at <url>{address}</url>",
     "storeProfileFormLabel": "Edit your store's details",
     "storeProfileSubmit": "Save details",
     "storeProfileTitle": "Your store's details",
@@ -118,6 +121,7 @@
   },
   "admin": {
     "catalogHeading": "Category catalogue",
+    "catalogIntro": "What you see here is what <b>/publicar</b> offers and what the search and the chatbot filter by. Adding a category no longer needs a migration; deactivating one takes it out of the selector <b>without touching</b> the publications that already use it.",
     "catalogMetaDescription": "Internal administration of the category taxonomy.",
     "catalogMetaTitle": "Category catalogue - {brand}",
     "catalogNoPermission": "You do not have permission to edit the catalogue.",
@@ -126,6 +130,8 @@
     "indexingAllDone": "All {total} product translations are indexed.",
     "indexingHeading": "Chatbot indexing",
     "indexingIntro": "A publication with no embedding cannot be recommended by the chatbot, even if it is published.",
+    "indexingPendingHint": "To index the pending ones:",
+    "originReportHeading": "Products by provenance",
     "originReportIntro": "Publications of type <b>product</b>, grouped by provenance. Announcements are not counted here.",
     "productsMetaDescription": "Internal report of published products, grouped by provenance.",
     "productsMetaTitle": "Products by provenance - {brand}",
@@ -134,6 +140,7 @@
   "auth": {
     "chooseProvider": "a provider to sign in.",
     "chooseProviderIntro": "Choose a provider to sign in.",
+    "intro": "Sign in to publish, comment and take part in the community. Choose a provider to sign in.",
     "signInWith": "Sign in with",
     "terms": "By continuing you accept our terms and our privacy policy."
   },
@@ -153,10 +160,11 @@
     "submitting": "Adding…"
   },
   "common": {
-    "title": "❤️💚 Just Health: When you take care of your health, you're also protecting the most valuable thing you have: your time. Your ultimate non-renewable resource.",
     "description": "❤️💚 Just Health: When you take care of your health, you're also protecting the most valuable thing you have: your time. Your ultimate non-renewable resource.",
+    "loading": "Loading…",
     "logoAlt": "{brand} logo",
-    "loading": "Loading…"
+    "pagedName": "{name} — page {page}",
+    "title": "❤️💚 Just Health: When you take care of your health, you're also protecting the most valuable thing you have: your time. Your ultimate non-renewable resource."
   },
   "edit": {
     "metaTitle": "Edit publication",
@@ -165,6 +173,7 @@
     "submit": "Save changes"
   },
   "feed": {
+    "backToHome": "Back to the main page",
     "empty": "No food has been published yet.",
     "emptyPage": "No food has been published on this page.",
     "loadMore": "Load more",
@@ -172,6 +181,7 @@
     "noMore": "There are no more publications",
     "page": "Page {page}",
     "pageDescription": "Browse our selection of food on page {page}. Healthy food for you and your community.",
+    "pageHeading": "{brand}: how do you avoid illness and save time and money, while supporting the environment and your community?",
     "pageTitle": "{brand} - Page {page}",
     "pagedTitle": "{title} - Page {page}",
     "paginationLabel": "Pagination"
@@ -244,8 +254,8 @@
   "notFound": {
     "goHome": "Go to the home page",
     "heading": "Resource not found!",
+    "imageAlt": "Sometimes even a resource needs a rest",
     "invite": "While it recovers, you can keep looking after your health — your time. Find what you need here:",
-    "pagedTitle": "{name} — page {page}",
     "rest": "Sometimes even a resource needs a rest.",
     "subtitle": "It probably went off to do an extra set of burpees… and ran out of steam!"
   },
@@ -448,10 +458,14 @@
     }
   },
   "products": {
-    "empty": "No {brand} products have been published yet."
+    "description": "Products sold by {brand}, both their own and resold, with their provenance visible.",
+    "empty": "No {brand} products have been published yet.",
+    "pagedTitle": "{title} - Page {page}",
+    "title": "{brand} products"
   },
   "profile": {
     "empty": "This person hasn't published anything yet.",
+    "metaDescription": "What {name} publishes on {brand}.",
     "publicationCount": "{total, plural, one {# publication} other {# publications}}"
   },
   "publish": {
@@ -488,6 +502,7 @@
     "branchesHeading": "Where to find us",
     "contactOnWhatsapp": "Message on WhatsApp",
     "empty": "This store hasn't published anything yet.",
+    "metaDescription": "Everything {name} sells, in one place.",
     "noBranches": "This store doesn't share its branches yet."
   },
   "termsOfService": {

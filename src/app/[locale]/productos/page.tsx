@@ -1,13 +1,9 @@
 import type { Metadata } from "next";
-import { setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { resolveLocale } from "~/i18n/routing";
-import { PAGINATION_INIT_PAGE } from "~/infra/constants";
+import { PAGINATION_INIT_PAGE, PUBLIC_BRAND_NAME } from "~/infra/constants";
 import { getHazloSanoProducts } from "./data";
-import {
-  buildProductsMetadata,
-  PRODUCTS_DESCRIPTION,
-  PRODUCTS_TITLE,
-} from "./metadata";
+import { buildProductsMetadata } from "./metadata";
 import ProductsList from "./ui/ProductsList";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -22,6 +18,7 @@ export default async function ProductosPage({
   const { locale: rawLocale } = await params;
   const locale = resolveLocale(rawLocale);
   setRequestLocale(locale);
+  const t = await getTranslations("products");
   const { products, totalPages } = await getHazloSanoProducts(
     PAGINATION_INIT_PAGE,
     locale,
@@ -29,9 +26,11 @@ export default async function ProductosPage({
 
   return (
     <main>
-      <h1 className="text-xl font-bold mb-2">{PRODUCTS_TITLE}</h1>
+      <h1 className="text-xl font-bold mb-2">
+        {t("title", { brand: PUBLIC_BRAND_NAME })}
+      </h1>
 
-      <p className="mb-2">{PRODUCTS_DESCRIPTION}</p>
+      <p className="mb-2">{t("description", { brand: PUBLIC_BRAND_NAME })}</p>
 
       <ProductsList
         products={products}

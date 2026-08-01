@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "~/i18n/navigation";
 import { resolveLocale } from "~/i18n/routing";
 import {
@@ -29,12 +29,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return {};
   }
 
+  const t = await getTranslations("feed");
+  const title = t("pageTitle", { brand: PUBLIC_BRAND_NAME, page });
+  const description = t("pageDescription", { page });
+
   return {
-    title: `${PUBLIC_BRAND_NAME} - Página ${page}`,
-    description: `Explora nuestra selección de alimentos en la página ${page}. Comida saludable para ti y tu comunidad.`,
+    title,
+    description,
     openGraph: {
-      title: `${PUBLIC_BRAND_NAME} - Página ${page}`,
-      description: `Explora nuestra selección de alimentos en la página ${page}. Comida saludable para ti y tu comunidad.`,
+      title,
+      description,
       images: ["/og-image.jpg"],
     },
     alternates: {
@@ -60,6 +64,7 @@ export default async function PaginatedPage({ params }: Props) {
   const { page: pageStr, locale: rawLocale } = await params;
   const locale = resolveLocale(rawLocale);
   setRequestLocale(locale);
+  const t = await getTranslations("feed");
   const page = parseInt(pageStr, 10);
 
   // Validar que la página sea válida
@@ -80,13 +85,12 @@ export default async function PaginatedPage({ params }: Props) {
   return (
     <main>
       <h1 className="text-xl font-bold">
-        {PUBLIC_BRAND_NAME}: ¿Como evitar enfermedades, ahorrar tiempo y dinero,
-        al mismo tiempo que apoyas al medio ambiente y a tu comunidad?
+        {t("pageHeading", { brand: PUBLIC_BRAND_NAME })}
       </h1>
 
       <section className="grid grid-flow-dense gap-4 pt-6 max-sm:grid-cols-[repeat(auto-fill,minmax(300px,1fr))] sm:grid-cols-[repeat(auto-fill,minmax(300px,1fr))]">
         {posts.length === 0 ? (
-          <p>No hay comidas publicadas en esta página.</p>
+          <p>{t("emptyPage")}</p>
         ) : (
           posts.map((post: Post) => {
             return <CardForList {...post} key={post.id} />;
@@ -96,7 +100,7 @@ export default async function PaginatedPage({ params }: Props) {
 
       {/* Paginación visible para SEO y usabilidad */}
       <nav
-        aria-label="Paginación"
+        aria-label={t("paginationLabel")}
         className="flex justify-center mt-8 space-x-4"
       >
         {prevPage && page > 1 && (
@@ -152,7 +156,7 @@ export default async function PaginatedPage({ params }: Props) {
       {page > 0 && (
         <div className="text-center mt-4">
           <Link href="/" className="text-pw-lightgreen hover:underline">
-            Volver a la página principal
+            {t("backToHome")}
           </Link>
         </div>
       )}

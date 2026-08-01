@@ -2,11 +2,13 @@
 
 import Image from "next/image";
 import { getProviders, signIn } from "next-auth/react";
+import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 
 type Providers = Awaited<ReturnType<typeof getProviders>>;
 
 export default function SignInPage() {
+  const t = useTranslations("auth");
   const [providers, setProviders] = useState<Providers>(null);
 
   useEffect(() => {
@@ -30,8 +32,7 @@ export default function SignInPage() {
           </div>
 
           <p className="text-sm md:text-base text-slate-600 dark:text-slate-300 max-w-prose">
-            Accede para publicar, comentar y participar en la comunidad. Elige
-            un proveedor para iniciar sesión.
+            {t("intro")}
           </p>
 
           <div className="w-full mt-6 space-y-3">
@@ -54,7 +55,7 @@ export default function SignInPage() {
                       className="h-7 w-7"
                     />
                     <span className="text-sm font-medium text-pw-gray dark:text-pw-white">
-                      Iniciar sesión con{" "}
+                      {t("signInWith")}{" "}
                       {provider.id === "microsoft-entra-id"
                         ? "Microsoft"
                         : provider.name}
@@ -81,7 +82,7 @@ export default function SignInPage() {
           </div>
 
           <div className="mt-6 text-xs text-slate-500 dark:text-slate-400">
-            Al continuar aceptas nuestros términos y la política de privacidad.
+            {t("terms")}
           </div>
         </div>
       </div>

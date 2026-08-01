@@ -1,6 +1,6 @@
-import { render } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { buildIndexingReport } from "~/domain/entities/post/indexingReport";
+import { renderWithIntl as render } from "~/infra/test-utils/renderWithIntl";
 import IndexingStatusPanel from "./IndexingStatusPanel";
 
 describe("When the indexing status is rendered", () => {

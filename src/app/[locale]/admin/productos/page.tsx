@@ -1,21 +1,25 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { buildIndexingReport } from "~/domain/entities/post/indexingReport";
 import { buildOriginReport } from "~/domain/entities/post/originReport";
 import { resolveLocale } from "~/i18n/routing";
 import { auth } from "~/infra/auth";
 import { isAdmin } from "~/infra/auth/isAdmin";
+import { PUBLIC_BRAND_NAME } from "~/infra/constants";
 import { createPostQueryRepository } from "~/infra/dataAccess/getMultiplePosts";
 import IndexingStatusPanel from "./ui/IndexingStatusPanel";
 import OriginReportTable from "./ui/OriginReportTable";
 
-export const metadata: Metadata = {
-  title: "Productos por procedencia - Hazlo Sano",
-  description:
-    "Reporte interno de productos publicados, agrupados por procedencia.",
-  robots: { index: false, follow: false },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("admin");
+
+  return {
+    title: t("productsMetaTitle", { brand: PUBLIC_BRAND_NAME }),
+    description: t("productsMetaDescription"),
+    robots: { index: false, follow: false },
+  };
+}
 
 export default async function ProductosPorProcedenciaPage({
   params,
@@ -24,6 +28,7 @@ export default async function ProductosPorProcedenciaPage({
 }) {
   const { locale } = await params;
   setRequestLocale(resolveLocale(locale));
+  const t = await getTranslations("admin");
 
   const session = await auth();
 
@@ -40,11 +45,12 @@ export default async function ProductosPorProcedenciaPage({
 
   return (
     <main>
-      <h1 className="text-xl font-bold mb-2">Productos por procedencia</h1>
+      <h1 className="text-xl font-bold mb-2">{t("originReportHeading")}</h1>
 
       <p className="mb-6 text-gray-600 dark:text-gray-400">
-        Publicaciones con tipo <strong>producto</strong>, agrupadas por su
-        procedencia. Los anuncios no se cuentan aquí.
+        {t.rich("originReportIntro", {
+          b: (chunks) => <strong>{chunks}</strong>,
+        })}
       </p>
 
       <OriginReportTable {...buildOriginReport(originCounts)} />

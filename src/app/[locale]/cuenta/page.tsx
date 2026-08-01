@@ -21,12 +21,16 @@ import StoreCard from "./ui/StoreCard";
 import StoreProfileForm from "./ui/StoreProfileForm";
 import UsernameSection from "./ui/UsernameSection";
 
-export const metadata: Metadata = {
-  title: "Mi cuenta",
-  description: "Tu tienda, tus sucursales y tu dirección personal.",
-  // Es una página privada: no hay nada que indexar y su contenido depende de la sesión.
-  robots: { index: false, follow: false },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("account");
+
+  return {
+    title: t("heading"),
+    description: t("metaDescription"),
+    // Es una página privada: no hay nada que indexar y su contenido depende de la sesión.
+    robots: { index: false, follow: false },
+  };
+}
 
 /**
  * El ancho lo pone el layout (`container-width`); aquí solo se reparte en dos columnas a partir

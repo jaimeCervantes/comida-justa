@@ -66,10 +66,14 @@ export default function BecomeSellerForm({
         />
 
         <p className="mb-6 text-sm text-gray-600 dark:text-gray-400">
-          Tu tienda quedará en{" "}
-          <span data-testid="handle-preview" className="font-bold">
-            {`${PUBLIC_BASE_URL}${storePath(handlePreview || "…")}`}
-          </span>
+          {t.rich("storePreview", {
+            address: `${PUBLIC_BASE_URL}${storePath(handlePreview || "…")}`,
+            url: (chunks) => (
+              <span data-testid="handle-preview" className="font-bold">
+                {chunks}
+              </span>
+            ),
+          })}
         </p>
 
         <TextField

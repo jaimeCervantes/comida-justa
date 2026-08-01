@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getLocale, setRequestLocale } from "next-intl/server";
+import { getLocale, getTranslations, setRequestLocale } from "next-intl/server";
 import { optionsFor } from "~/domain/entities/post/taxonomy";
 import type { User } from "~/domain/entities/post/types";
 import { redirectKeepingLocale } from "~/i18n/redirectKeepingLocale";
@@ -12,11 +12,15 @@ import { createPostAdminRepository } from "~/infra/dataAccess/managePost/factory
 import { updatePost } from "./actions";
 import EditPostForm from "./ui/EditPostForm";
 
-export const metadata: Metadata = {
-  title: "Editar publicación",
-  // Es una pantalla de administración: no hay nada que indexar.
-  robots: { index: false, follow: false },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("edit");
+
+  return {
+    title: t("metaTitle"),
+    // Es una pantalla de administración: no hay nada que indexar.
+    robots: { index: false, follow: false },
+  };
+}
 
 export default async function EditarPage({
   params,

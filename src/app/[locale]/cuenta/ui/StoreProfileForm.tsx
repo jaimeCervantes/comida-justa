@@ -38,12 +38,10 @@ export default function StoreProfileForm({
     <section>
       <h2 className="text-lg font-bold mb-2">{t("storeProfileTitle")}</h2>
       <p className="mb-6 text-sm text-gray-600 dark:text-gray-400">
-        Tu dirección{" "}
-        <span className="font-bold">
-          {`${PUBLIC_BASE_URL}${storePath(seller.handle ?? "")}`}
-        </span>{" "}
-        no cambia aunque cambies el nombre: así los enlaces que ya repartiste
-        siguen funcionando.
+        {t.rich("storeAddressStable", {
+          address: `${PUBLIC_BASE_URL}${storePath(seller.handle ?? "")}`,
+          url: (chunks) => <span className="font-bold">{chunks}</span>,
+        })}
       </p>
 
       {state.errorMessage ? (

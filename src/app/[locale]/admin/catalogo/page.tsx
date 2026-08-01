@@ -1,19 +1,24 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { optionsFor } from "~/domain/entities/post/taxonomy";
 import { resolveLocale } from "~/i18n/routing";
 import { auth } from "~/infra/auth";
 import { isAdmin } from "~/infra/auth/isAdmin";
+import { PUBLIC_BRAND_NAME } from "~/infra/constants";
 import { getCategoryTaxonomy } from "~/infra/dataAccess/categories/cachedCategoryTaxonomy";
 import CategoryTree from "./ui/CategoryTree";
 import NewCategoryForm from "./ui/NewCategoryForm";
 
-export const metadata: Metadata = {
-  title: "Catálogo de categorías - Hazlo Sano",
-  description: "Administración interna de la taxonomía de categorías.",
-  robots: { index: false, follow: false },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("admin");
+
+  return {
+    title: t("catalogMetaTitle", { brand: PUBLIC_BRAND_NAME }),
+    description: t("catalogMetaDescription"),
+    robots: { index: false, follow: false },
+  };
+}
 
 export default async function CatalogoPage({
   params,
@@ -22,6 +27,7 @@ export default async function CatalogoPage({
 }) {
   const { locale } = await params;
   setRequestLocale(resolveLocale(locale));
+  const t = await getTranslations("admin");
 
   const session = await auth();
 
@@ -35,13 +41,10 @@ export default async function CatalogoPage({
 
   return (
     <main>
-      <h1 className="text-xl font-bold mb-2">Catálogo de categorías</h1>
+      <h1 className="text-xl font-bold mb-2">{t("catalogHeading")}</h1>
 
       <p className="mb-6 text-gray-600 dark:text-gray-400">
-        Lo que se ve aquí es lo que ofrece <strong>/publicar</strong> y lo que
-        filtran el buscador y el chatbot. Agregar una categoría ya no necesita
-        migración; desactivar una la saca del selector{" "}
-        <strong>sin tocar</strong> las publicaciones que ya la usan.
+        {t.rich("catalogIntro", { b: (chunks) => <strong>{chunks}</strong> })}
       </p>
 
       <CategoryTree nodes={nodes} />

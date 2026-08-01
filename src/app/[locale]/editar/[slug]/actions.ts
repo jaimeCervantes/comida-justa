@@ -91,6 +91,7 @@ function reindexAfterResponse(postId: string, locale: string): void {
 
     if (!outcome.indexed) {
       console.warn(
+        // i18n-ignore: traza de servidor, no llega a ninguna pantalla.
         `[embeddings] post ${postId} quedó pendiente tras editarlo: ${outcome.reason}`,
         outcome.error,
       );

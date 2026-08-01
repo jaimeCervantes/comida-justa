@@ -94,7 +94,9 @@
     "locationHint": "Úsalo si estás parado en tu local.",
     "locationTaken": "Ubicación tomada de tu dispositivo.",
     "metaDescription": "Tu tienda, tus sucursales y tu dirección personal.",
+    "profilePreview": "Tu perfil quedará en <url>{address}</url>",
     "saveBranch": "Guardar sucursal",
+    "storeAddressStable": "Tu dirección <url>{address}</url> no cambia aunque cambies el nombre: así los enlaces que ya repartiste siguen funcionando.",
     "storeCardNoPublicPage": "Esta tienda todavía no tiene una página pública.",
     "storeCardTitle": "Tu tienda",
     "storeDescription": "¿Qué vendes? (opcional)",
@@ -104,6 +106,7 @@
     "storeNamePlaceholder": "Ej: Panadería La Luz",
     "storePhone": "Teléfono de contacto:",
     "storePhonePlaceholder": "Ej: 2781092116",
+    "storePreview": "Tu tienda quedará en <url>{address}</url>",
     "storeProfileFormLabel": "Edita la ficha de tu tienda",
     "storeProfileSubmit": "Guardar ficha",
     "storeProfileTitle": "La ficha de tu tienda",
@@ -118,6 +121,7 @@
   },
   "admin": {
     "catalogHeading": "Catálogo de categorías",
+    "catalogIntro": "Lo que se ve aquí es lo que ofrece <b>/publicar</b> y lo que filtran el buscador y el chatbot. Agregar una categoría ya no necesita migración; desactivar una la saca del selector <b>sin tocar</b> las publicaciones que ya la usan.",
     "catalogMetaDescription": "Administración interna de la taxonomía de categorías.",
     "catalogMetaTitle": "Catálogo de categorías - {brand}",
     "catalogNoPermission": "No tienes permiso para editar el catálogo.",
@@ -126,6 +130,8 @@
     "indexingAllDone": "Las {total} traducciones de producto están indexadas.",
     "indexingHeading": "Indexación para el chatbot",
     "indexingIntro": "Una publicación sin embedding no puede ser recomendada por el chatbot, aunque esté publicada.",
+    "indexingPendingHint": "Para indexar las pendientes:",
+    "originReportHeading": "Productos por procedencia",
     "originReportIntro": "Publicaciones con tipo <b>producto</b>, agrupadas por su procedencia. Los anuncios no se cuentan aquí.",
     "productsMetaDescription": "Reporte interno de productos publicados, agrupados por procedencia.",
     "productsMetaTitle": "Productos por procedencia - {brand}",
@@ -134,6 +140,7 @@
   "auth": {
     "chooseProvider": "un proveedor para iniciar sesión.",
     "chooseProviderIntro": "Elige un proveedor para iniciar sesión.",
+    "intro": "Accede para publicar, comentar y participar en la comunidad. Elige un proveedor para iniciar sesión.",
     "signInWith": "Iniciar sesión con",
     "terms": "Al continuar aceptas nuestros términos y la política de privacidad."
   },
@@ -153,10 +160,11 @@
     "submitting": "Agregando..."
   },
   "common": {
-    "title": "❤️💚 Hazlo sano: Cuando cuidas tu salud, también estás cuidando lo más valioso que tienes: tu tiempo. Tu recurso máximo no renovable.",
     "description": "❤️💚 Hazlo sano: Cuando cuidas tu salud, también estás cuidando lo más valioso que tienes: tu tiempo. Tu recurso máximo no renovable.",
+    "loading": "Cargando...",
     "logoAlt": "Logo {brand}",
-    "loading": "Cargando..."
+    "pagedName": "{name} — página {page}",
+    "title": "❤️💚 Hazlo sano: Cuando cuidas tu salud, también estás cuidando lo más valioso que tienes: tu tiempo. Tu recurso máximo no renovable."
   },
   "edit": {
     "metaTitle": "Editar publicación",
@@ -165,6 +173,7 @@
     "submit": "Guardar cambios"
   },
   "feed": {
+    "backToHome": "Volver a la página principal",
     "empty": "No hay comidas publicadas aún.",
     "emptyPage": "No hay comidas publicadas en esta página.",
     "loadMore": "Cargar más",
@@ -172,6 +181,7 @@
     "noMore": "No hay más publicaciones disponibles",
     "page": "Página {page}",
     "pageDescription": "Explora nuestra selección de alimentos en la página {page}. Comida saludable para ti y tu comunidad.",
+    "pageHeading": "{brand}: ¿Como evitar enfermedades, ahorrar tiempo y dinero, al mismo tiempo que apoyas al medio ambiente y a tu comunidad?",
     "pageTitle": "{brand} - Página {page}",
     "pagedTitle": "{title} - Página {page}",
     "paginationLabel": "Paginación"
@@ -244,8 +254,8 @@
   "notFound": {
     "goHome": "Ir al inicio",
     "heading": "¡Recurso no encontrado!",
+    "imageAlt": "A veces, incluso un recurso necesita un descanso",
     "invite": "Mientras se recupera, tú puedes continuar cuidando tu salud, tu tiempo. Encuentra lo que necesitas aquí:",
-    "pagedTitle": "{name} — página {page}",
     "rest": "A veces, incluso un recurso necesita un descanso.",
     "subtitle": "Probablemente se fue a hacer una serie extra de burpees... ¡y se agotó!"
   },
@@ -448,10 +458,14 @@
     }
   },
   "products": {
-    "empty": "Aún no hay productos de {brand} publicados."
+    "description": "Productos que vende {brand}, propios y de reventa, con su procedencia visible.",
+    "empty": "Aún no hay productos de {brand} publicados.",
+    "pagedTitle": "{title} - Página {page}",
+    "title": "Productos de {brand}"
   },
   "profile": {
     "empty": "Esta persona todavía no ha publicado nada.",
+    "metaDescription": "Lo que publica {name} en {brand}.",
     "publicationCount": "{total, plural, one {# publicación} other {# publicaciones}}"
   },
   "publish": {
@@ -488,6 +502,7 @@
     "branchesHeading": "Dónde encontrarnos",
     "contactOnWhatsapp": "Escribir por WhatsApp",
     "empty": "Esta tienda todavía no ha publicado nada.",
+    "metaDescription": "Lo que vende {name}, en un solo lugar.",
     "noBranches": "Esta tienda todavía no comparte sus sucursales."
   },
   "termsOfService": {

@@ -48,10 +48,16 @@ type Finding = { file: string; line: number; text: string };
  * este repo los escribe en español a propósito: sin esto el reporte sería casi todo ruido.
  */
 function stripComments(source: string): string {
+  /* Se vacía el comentario **conservando sus saltos de línea**. Borrarlo entero colapsaba el
+     archivo, así que a partir del primer bloque de varias líneas —un JSDoc, por ejemplo— los
+     números de línea del reporte dejaban de corresponder con los del archivo, y la marca
+     `// i18n-ignore` se comparaba contra la línea equivocada. */
+  const blank = (comment: string): string => comment.replace(/[^\n]/g, "");
+
   return (
     source
-      .replace(/\{\s*\/\*[\s\S]*?\*\/\s*\}/g, "")
-      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .replace(/\{\s*\/\*[\s\S]*?\*\/\s*\}/g, blank)
+      .replace(/\/\*[\s\S]*?\*\//g, blank)
       // También el comentario que va al final de una línea de código, no solo el que la ocupa entera.
       .replace(/\/\/.*$/gm, "")
   );

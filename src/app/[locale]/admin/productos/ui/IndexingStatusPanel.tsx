@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import type { IndexingReport } from "~/domain/entities/post/indexingReport";
 
 const percentFormatter = new Intl.NumberFormat("es-MX", {
@@ -15,6 +16,7 @@ export default function IndexingStatusPanel({
   total,
   coverage,
 }: IndexingReport) {
+  const t = useTranslations("admin");
   const allIndexed = pending === 0;
 
   return (
@@ -23,12 +25,11 @@ export default function IndexingStatusPanel({
       aria-labelledby="indexing-status-title"
     >
       <h2 id="indexing-status-title" className="text-lg font-bold mb-2">
-        Indexación para el chatbot
+        {t("indexingHeading")}
       </h2>
 
       <p className="mb-4 text-gray-600 dark:text-gray-400">
-        Una publicación sin embedding no puede ser recomendada por el chatbot,
-        aunque se vea bien en el sitio.
+        {t("indexingIntro")}
       </p>
 
       <dl className="flex flex-wrap gap-6 mb-4">
@@ -72,10 +73,10 @@ export default function IndexingStatusPanel({
         className="text-sm text-gray-600 dark:text-gray-400"
       >
         {allIndexed ? (
-          <>Las {total} traducciones de producto están indexadas.</>
+          <>{t("indexingAllDone", { total })}</>
         ) : (
           <>
-            Para indexar las pendientes:{" "}
+            {t("indexingPendingHint")}{" "}
             <code className="font-mono">pnpm run backfill-embeddings</code>
           </>
         )}

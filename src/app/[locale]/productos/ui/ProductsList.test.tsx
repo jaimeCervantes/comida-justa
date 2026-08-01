@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { renderWithIntl as render } from "~/infra/test-utils/renderWithIntl";
-import ProductsList, { PRODUCTS_EMPTY_MESSAGE } from "./ProductsList";
+import ProductsList from "./ProductsList";
 
 const product = {
   id: "product-1",
@@ -21,7 +21,7 @@ describe("When the products list is rendered", () => {
     );
 
     expect(getByTestId("products-empty")).toHaveTextContent(
-      PRODUCTS_EMPTY_MESSAGE,
+      "Aún no hay productos de Hazlo Sano publicados.",
     );
     expect(queryByTestId("products-grid")).not.toBeInTheDocument();
   });

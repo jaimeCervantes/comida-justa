@@ -1,14 +1,11 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "~/i18n/navigation";
 import { resolveLocale } from "~/i18n/routing";
+import { PUBLIC_BRAND_NAME } from "~/infra/constants";
 import { getHazloSanoProducts } from "../../data";
-import {
-  buildProductsMetadata,
-  PRODUCTS_DESCRIPTION,
-  PRODUCTS_TITLE,
-} from "../../metadata";
+import { buildProductsMetadata } from "../../metadata";
 import ProductsList from "../../ui/ProductsList";
 
 type Props = {
@@ -31,6 +28,7 @@ export default async function ProductosPaginatedPage({ params }: Props) {
   const { page: pageStr, locale: rawLocale } = await params;
   const locale = resolveLocale(rawLocale);
   setRequestLocale(locale);
+  const t = await getTranslations("products");
   const page = parsePage(pageStr);
 
   if (!page) {
@@ -45,9 +43,11 @@ export default async function ProductosPaginatedPage({ params }: Props) {
 
   return (
     <main>
-      <h1 className="text-xl font-bold mb-2">{PRODUCTS_TITLE}</h1>
+      <h1 className="text-xl font-bold mb-2">
+        {t("title", { brand: PUBLIC_BRAND_NAME })}
+      </h1>
 
-      <p className="mb-2">{PRODUCTS_DESCRIPTION}</p>
+      <p className="mb-2">{t("description", { brand: PUBLIC_BRAND_NAME })}</p>
 
       <ProductsList
         products={products}

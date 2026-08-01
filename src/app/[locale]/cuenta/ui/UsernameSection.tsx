@@ -80,10 +80,14 @@ export default function UsernameSection({
         />
 
         <p className="mb-6 text-sm text-gray-600 dark:text-gray-400">
-          Tu perfil quedará en{" "}
-          <span data-testid="username-preview" className="font-bold">
-            {`${PUBLIC_BASE_URL}${profilePath(preview || "…")}`}
-          </span>
+          {t.rich("profilePreview", {
+            address: `${PUBLIC_BASE_URL}${profilePath(preview || "…")}`,
+            url: (chunks) => (
+              <span data-testid="username-preview" className="font-bold">
+                {chunks}
+              </span>
+            ),
+          })}
         </p>
 
         <Button

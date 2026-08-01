@@ -1,11 +1,10 @@
+import { useTranslations } from "next-intl";
+import { PUBLIC_BRAND_NAME } from "~/infra/constants";
 import type { Post } from "~/infra/types/Posts";
 import CardForList from "~/infra/UI/components/CardForList/CardForList";
 import Pagination from "~/infra/UI/components/Pagination";
 
 export const PRODUCTS_BASE_PATH = "/productos/page";
-
-export const PRODUCTS_EMPTY_MESSAGE =
-  "Aún no hay productos de Hazlo Sano publicados.";
 
 type ProductsListProps = {
   products: Post[];
@@ -18,8 +17,14 @@ export default function ProductsList({
   currentPage,
   totalPages,
 }: ProductsListProps) {
+  const t = useTranslations("products");
+
   if (products.length === 0) {
-    return <p data-testid="products-empty">{PRODUCTS_EMPTY_MESSAGE}</p>;
+    return (
+      <p data-testid="products-empty">
+        {t("empty", { brand: PUBLIC_BRAND_NAME })}
+      </p>
+    );
   }
 
   return (

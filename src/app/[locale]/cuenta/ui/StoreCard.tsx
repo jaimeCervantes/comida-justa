@@ -19,10 +19,7 @@ export default function StoreCard({ seller }: { seller: Seller }) {
 
       {handle ? (
         <>
-          <p className="mb-2">
-            Comparte esta dirección con tus clientes; todo lo que publiques
-            aparece ahí.
-          </p>
+          <p className="mb-2">{t("becomeSellerShare")}</p>
           <Link
             href={storePath(handle)}
             className="font-bold text-pw-orange break-all"

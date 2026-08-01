@@ -74,6 +74,7 @@ export async function createCategory(
   } catch (error) {
     // La base tiene la última palabra: dos administradores a la vez pueden pasar la validación con
     // la misma clave y solo uno gana. Se traduce a un mensaje en vez de una pantalla de error.
+    // i18n-ignore: traza de servidor para quien depura; el visitante ve `catalogSaveClash`.
     console.error("[catálogo] no se pudo crear la categoría", error);
 
     return {
