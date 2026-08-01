@@ -26,6 +26,19 @@ Use this skill for behavior changes. Start from a small scenario, then tests, th
 > Steps 6–7 and the "Artifact checkpoint gate (mandatory)" section below apply ONLY when the user
 > explicitly asks for step-by-step mode. This repo uses **pnpm**.
 
+## Branching (mandatory)
+
+**Every feature or behavior change starts on its own branch.** Never commit onto `dev` (the main
+branch) directly.
+
+- Create it before the first artifact-changing step: `git checkout -b feat/<feature>` (or
+  `fix/<bug>`). Name it after the feature area, not the slice — one branch carries a roadmap's
+  slices, each as its own commit.
+- If work has already started on `dev`, branch immediately: uncommitted changes follow you across
+  `git checkout -b`, so nothing is lost.
+- Commit per zone or per slice, not in one gigantic commit. Push and open the PR only when the user
+  asks.
+
 0. Alignment gate (mandatory, no exceptions):
    1. Ask the user for:
       - **The Problem:** What real friction exists?
@@ -173,6 +186,34 @@ When closing the task, always surface the exact validation commands you ran, or 
 - Keep files small and responsibility-focused; extract collaborators before a file becomes a mixed implementation unit (e.g. move a growing `page.tsx` section into `ui/`).
 - Do not use lazy imports for organizational reasons; keep imports explicit at module top level. Use `next/dynamic` only for genuine client-side code-splitting.
 - If a route or feature area grows too many sibling files, reorganize into shallow responsibility-based subfolders (`ui/`, `data.ts`, `types.ts`, `helpers.ts`) instead of expanding a flat directory.
+
+## Component placement (mandatory)
+
+**Never write a new component before searching for an existing one.** Grep the three homes below for
+the concern first. If something close already exists, extend or parameterize it; if two routes are
+about to grow the same component, extract one reusable version instead of copying. A second
+near-duplicate component is a design failure, not a shortcut.
+
+Placement follows **how widely the component can be used**, and is decided when it is created:
+
+| Reach | Home | Examples |
+|---|---|---|
+| Reusable anywhere, carries no app knowledge | `src/presentation/design_system/` | `buttons/`, `forms/`, `styling/`, `tokens/` |
+| Specific to this app, shared by several routes | `src/presentation/` | header, footer, badges, cards, media pickers |
+| Usable **only** in one route | `src/app/[locale]/<route>/ui/` | `PostDetail`, `StoreHeader`, `EditPostForm` |
+
+- A component in `design_system/` must not import from `src/domain/`, `src/use_cases/` or
+  `src/app/`. If it needs to know what a "post" or a "seller" is, it is not design system — it
+  belongs one row down.
+- A component under a route's `ui/` that a second route starts wanting is the signal to promote it
+  to `src/presentation/`. Promote it; do not import across routes.
+- Promotion is a move, not a copy. Leave no duplicate behind.
+
+> **Known deviation:** the app-specific shared components currently live in
+> `src/infra/UI/components/`, not in `src/presentation/`. That path predates this rule and is
+> pending a move. Put **new** shared components in `src/presentation/`, and prefer moving a file you
+> are already touching over leaving it behind — but do not turn a feature slice into a mass
+> relocation. When the folder is finally emptied, delete this note.
 
 ## Coding Standards (STRICT)
 

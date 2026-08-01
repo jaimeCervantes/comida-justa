@@ -55,7 +55,8 @@ Deliver features end-to-end without stopping for per-step validation. This is th
 - `src/domain/` is pure business code: entities, value objects, domain services, ports, and domain errors. No React or Next.js code here.
 - `src/use_cases/` orchestrates application behavior using domain types and domain ports.
 - `src/infra/` contains concrete adapters such as database queries (Prisma/Drizzle/typeORM), external REST clients, and schedulers.
-- `src/infra/UI/components/` represents reusable React presentation logic. Keep UI dumb where possible.
+- `src/presentation/design_system/` holds reusable presentation with no app knowledge (buttons, forms, tokens). `src/presentation/` holds app-specific components shared by several routes. A component usable in only one route lives in that route's `ui/` folder. **Search before creating: a second near-duplicate component is a design failure.** See "Component placement" in `.agents/skills/nextjs-bdd-feature/SKILL.md`.
+- `src/infra/UI/components/` currently holds the app-specific shared components. That predates the rule above and is pending a move to `src/presentation/`; put **new** shared components in `src/presentation/`. Keep UI dumb where possible.
 - `features/` stores Gherkin specifications (if using BDD for Next.js).
 - `e2e/` stores e2e testing with playwright.
 - `MUST` not include `src` directory as module root in imports (use TS paths/aliases like `@/`).
@@ -68,6 +69,36 @@ Deliver features end-to-end without stopping for per-step validation. This is th
 - Keep ports (interfaces) in `src/domain/ports.ts` unless the existing repo already uses a different consistent location.
 - HTTP Schemas/Zod validators for endpoints belong in `src/app/api/...` or a dedicated `schemas/` folder.
 - Database access patterns belong in `src/infra/db/` only.
+
+## Internationalization rules
+
+The routed locales are **`es` (default) and `en`**, via `next-intl` with `localePrefix: "as-needed"`:
+Spanish keeps its bare paths (`/productos`) and only English is prefixed (`/en/productos`). The
+Spanish URLs are already indexed — do **not** move them to `/es/…`. See `docs/features/i18n.md`.
+
+- **No user-visible string is ever hardcoded in a component.** Every label, helper, error, button
+  and metadata value comes from `useTranslations`/`getTranslations`. A literal in JSX is a bug, not
+  a shortcut. *(Being rolled out by slice 1; the rule applies to everything you touch from now on.)*
+- Message catalogs live in `src/i18n/messages/<locale>.json`, one file per language with the
+  namespaces as top-level keys. `en.json` must stay structurally identical to `es.json`.
+- `src/i18n/next-intl.d.ts` binds next-intl's types to `es.json`, so an unknown key or one missing
+  from `en.json` is a `pnpm typecheck` failure rather than a broken string in production. Do not
+  weaken that augmentation.
+- Next hands `params.locale` over as a plain `string`. Convert it with `resolveLocale()` from
+  `src/i18n/routing.ts`, or with `hasLocale()` + `notFound()` when an unknown locale must 404.
+  **Never cast.**
+- Import `Link`, `useRouter` and `usePathname` from `src/i18n/navigation.ts`, never from
+  `next/link` or `next/navigation` — the wrappers preserve the active locale, the raw APIs silently
+  drop it. To redirect on the server use `redirectKeepingLocale()` from
+  `src/i18n/redirectKeepingLocale.ts`; it is typed `never`, so it still narrows types after the call.
+  The only exception is `src/app/not-found.tsx`, which lives outside `[locale]`.
+- Every page calls `setRequestLocale(...)`; skipping it forces the route into request-time
+  rendering. (Today every route is dynamic anyway because `Header` reads the session — see the
+  finding in `docs/features/i18n.md`. That does not make the call optional.)
+- Never compose a message key at runtime (`t(\`badge.${x}\`)`) unless `x` is a closed union. A key
+  you cannot find with grep is a key that gets lost.
+- Component tests that render anything using the navigation wrappers or translations must render
+  through `renderWithIntl` from `src/infra/test-utils/renderWithIntl.tsx`.
 
 ## Runtime rules
 
