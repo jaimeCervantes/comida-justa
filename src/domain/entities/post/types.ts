@@ -33,6 +33,8 @@ export type Post = {
   /** Clave del catálogo (`categories.key`), nunca la etiqueta: esa depende del idioma. */
   category?: string | null;
   subCategory?: string | null;
+  /** La tienda que lo vende (`sellers.id`). `null` = quien publicó no tiene tienda. */
+  sellerId?: string | null;
   contactInfo: {
     phone: string;
     email?: string;

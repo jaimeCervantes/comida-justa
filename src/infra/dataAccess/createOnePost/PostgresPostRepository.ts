@@ -21,6 +21,7 @@ export default class PostgresPostRepository implements IPostRepository {
         origin: postData.origin ?? null,
         category: postData.category ?? null,
         subCategory: postData.subCategory ?? null,
+        sellerId: postData.sellerId ?? null,
         contactPhone: postData.contactInfo.phone,
         contactEmail: postData.contactInfo.email ?? null,
         contactWhatsapp: postData.contactInfo.whatsapp ?? null,

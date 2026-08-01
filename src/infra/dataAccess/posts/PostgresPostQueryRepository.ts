@@ -56,6 +56,18 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
     return this.getPaginatedPosts(HAZLO_SANO_PRODUCTS_WHERE, page, pageSize);
   }
 
+  async getPostsBySeller(
+    sellerId: string,
+    page: number,
+    pageSize: number,
+  ): Promise<PaginatedPostsResult> {
+    return this.getPaginatedPosts(
+      sql`p.seller_id = ${sellerId}::uuid`,
+      page,
+      pageSize,
+    );
+  }
+
   async getTotalPosts(): Promise<number> {
     const raw = await db.execute(sql`
       SELECT COUNT(*)::int AS count FROM posts

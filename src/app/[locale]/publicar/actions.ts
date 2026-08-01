@@ -14,6 +14,7 @@ import { SIGNIN_PATH } from "~/infra/constants";
 import { getCategoryTaxonomy } from "~/infra/dataAccess/categories/cachedCategoryTaxonomy";
 import { createPostRepository } from "~/infra/dataAccess/createOnePost/factory";
 import { createIndexPostEmbeddingUseCase } from "~/infra/dataAccess/indexPostEmbedding/factory";
+import { createSellerRepository } from "~/infra/dataAccess/sellers/factory";
 import type { ActionState } from "~/infra/types/Actions";
 import CreateOnePostUseCase from "~/use_cases/createOnePost/createOnePostUseCase";
 
@@ -114,6 +115,13 @@ export async function createPost(
     return { errors: errors, success: false, id: null, slug: null };
   }
 
+  // La publicación nace con su tienda; deducirla después por `user_id` costaría una consulta en
+  // cada lectura y se rompería el día que una tienda tenga más de un dueño.
+  const userId = (session.user as User | undefined)?.id;
+  const seller = userId
+    ? await createSellerRepository().findByUserId(userId)
+    : null;
+
   let result: Awaited<ReturnType<typeof useCase.execute>>;
   try {
     result = await useCase.execute({
@@ -128,6 +136,7 @@ export async function createPost(
       origin,
       category,
       subCategory,
+      sellerId: seller?.id ?? null,
       createdAt: new Date(),
       media: {
         url: media.url,

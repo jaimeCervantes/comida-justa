@@ -41,6 +41,12 @@ export interface IPostQueryRepository {
     page: number,
     pageSize: number,
   ): Promise<PaginatedPostsResult>;
+  /** El catálogo de una tienda: lo que se publicó con su `seller_id`. */
+  getPostsBySeller(
+    sellerId: string,
+    page: number,
+    pageSize: number,
+  ): Promise<PaginatedPostsResult>;
   getTotalPosts(): Promise<number>;
   /** Cuántos productos hay por `origin` (`null` incluido). Base del reporte de procedencia. */
   getProductCountsByOrigin(): Promise<OriginCount[]>;

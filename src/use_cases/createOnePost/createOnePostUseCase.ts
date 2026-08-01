@@ -71,6 +71,7 @@ export default class CreateOnePostUseCase {
       origin: postInfo.origin ?? null,
       category: postInfo.category ?? null,
       subCategory: postInfo.subCategory ?? null,
+      sellerId: postInfo.sellerId ?? null,
       media: postInfo.media as IPostCreationDTO["media"],
       user: postInfo.user,
       createdAt: new Date(),

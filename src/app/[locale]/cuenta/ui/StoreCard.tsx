@@ -1,0 +1,39 @@
+import Link from "next/link";
+import type { Seller } from "~/domain/entities/seller/types";
+import { PUBLIC_BASE_URL } from "~/infra/constants";
+import { storePath } from "../storePath";
+
+export const STORE_CARD_TITLE = "Tu tienda";
+
+export default function StoreCard({ seller }: { seller: Seller }) {
+  const handle = seller.handle;
+
+  return (
+    <section data-testid="store-card">
+      <h1 className="text-xl font-bold mb-2">{STORE_CARD_TITLE}</h1>
+      <p className="text-2xl mb-2">{seller.name}</p>
+
+      {seller.description ? (
+        <p className="mb-4 whitespace-pre-wrap">{seller.description}</p>
+      ) : null}
+
+      {handle ? (
+        <>
+          <p className="mb-2">
+            Comparte esta dirección con tus clientes; todo lo que publiques
+            aparece ahí.
+          </p>
+          <Link
+            href={storePath(handle)}
+            className="font-bold text-pw-orange break-all"
+          >
+            {`${PUBLIC_BASE_URL}${storePath(handle)}`}
+          </Link>
+        </>
+      ) : (
+        // Los vendedores que creó el chatbot no tienen dirección; darles una es otro slice.
+        <p>Esta tienda todavía no tiene una página pública.</p>
+      )}
+    </section>
+  );
+}

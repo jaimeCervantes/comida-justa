@@ -33,17 +33,20 @@ export default async function Header() {
             </LinkButton>
             {session ? (
               <div className="flex flex-col gap-4">
-                <div className="flex items-center gap-3 px-2 py-2 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                <Link
+                  href="/cuenta"
+                  className="flex items-center gap-3 px-2 py-2 bg-gray-50 dark:bg-gray-800/50 rounded-lg"
+                >
                   <Avatar user={session?.user} />
                   <div className="flex flex-col">
                     <span className="font-medium text-gray-900 dark:text-gray-100">
                       {session.user?.name}
                     </span>
                     <span className="text-xs text-gray-500 truncate max-w-[200px]">
-                      {session.user?.email}
+                      Mi cuenta y mi tienda
                     </span>
                   </div>
-                </div>
+                </Link>
                 <SignOut className="w-full justify-center" showLoader>
                   Cerrar sesión
                 </SignOut>
@@ -88,7 +91,9 @@ export default async function Header() {
 
           {session ? (
             <div className="flex items-center gap-3">
-              <Avatar user={session?.user} />
+              <Link href="/cuenta" aria-label="Mi cuenta">
+                <Avatar user={session?.user} />
+              </Link>
               <div className="hidden lg:block text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors">
                 <SignOut aria-label="Cerrar sesión" showLoader>
                   Salir
