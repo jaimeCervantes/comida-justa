@@ -4,11 +4,10 @@ import {
   Cross1Icon,
   HamburgerMenuIcon,
 } from "@radix-ui/react-icons";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
 import type React from "react";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import { Link, usePathname } from "~/i18n/navigation";
 import { PUBLIC_BRAND_NAME } from "~/infra/constants";
 
 interface MenuItem {

@@ -1,8 +1,8 @@
 import * as NavigationMenu from "@radix-ui/react-navigation-menu";
 import classNames from "classnames";
-import Link from "next/link";
 import type { ForwardedRef, ReactNode } from "react";
 import React from "react";
+import { Link } from "~/i18n/navigation";
 
 export default React.forwardRef(function ListItem(
   {

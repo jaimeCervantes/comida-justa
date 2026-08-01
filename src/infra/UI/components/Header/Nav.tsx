@@ -1,7 +1,7 @@
 "use client";
 import { CaretDownIcon } from "@radix-ui/react-icons";
 import * as NavigationMenu from "@radix-ui/react-navigation-menu";
-import Link from "next/link";
+import { Link } from "~/i18n/navigation";
 import { PUBLIC_BRAND_NAME } from "~/infra/constants";
 import ListItem from "./ListItem";
 

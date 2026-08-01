@@ -1,37 +1,33 @@
 "use client";
 
-import { useParams, usePathname, useRouter } from "next/navigation";
+import { useLocale } from "next-intl";
 import { useState } from "react";
-import { routing } from "~/i18n/routing";
+import { usePathname, useRouter } from "~/i18n/navigation";
+import { type AppLocale, routing } from "~/i18n/routing";
 import { Button } from "~/presentation/design_system/buttons/Button";
 
-const localesMap = {
-  es: { code: "es", label: "Español", flag: "🇲🇽" },
-  en: { code: "en", label: "English", flag: "🇺🇸" },
+const localesMap: Record<AppLocale, { label: string; flag: string }> = {
+  es: { label: "Español", flag: "🇲🇽" },
+  en: { label: "English", flag: "🇺🇸" },
 };
 
-const locales = routing.locales.map((item) => {
-  return localesMap[item] || { code: item, label: item, flag: "🏳️" };
-});
+const locales = routing.locales.map((code) => ({ code, ...localesMap[code] }));
 
 export default function LanguageSwitcher() {
+  /* `usePathname` de `~/i18n/navigation` devuelve la ruta **sin** el prefijo de idioma, así que
+     cambiar de idioma es volver a pedir la misma ruta con otro locale. Antes esto era cirugía de
+     strings sobre la ruta cruda (`pathname.replace("/es", "/en")`), que se rompía con cualquier
+     ruta que contuviera el código de idioma en otra posición. */
   const pathname = usePathname();
   const router = useRouter();
-  const params = useParams();
-  const currentLocale = params.locale as string;
+  const currentLocale = useLocale();
   const [isOpen, setIsOpen] = useState(false);
 
   const toggleDropdown = () => setIsOpen((prev) => !prev);
 
-  const handleChange = (newLocale: string) => {
-    let newPath = pathname;
-    if (!pathname.includes(`/${currentLocale}`)) {
-      newPath = `/${newLocale}${pathname}`;
-    } else if (currentLocale !== newLocale) {
-      newPath = pathname.replace(`/${currentLocale}`, `/${newLocale}`);
-    }
+  const handleChange = (newLocale: AppLocale) => {
     setIsOpen(false);
-    router.push(newPath);
+    router.replace(pathname, { locale: newLocale });
   };
 
   const current = locales.find((l) => l.code === currentLocale) ?? locales[0];

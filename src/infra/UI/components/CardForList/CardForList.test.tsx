@@ -1,5 +1,5 @@
-import { render } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
+import { renderWithIntl as render } from "~/infra/test-utils/renderWithIntl";
 import CardForList from "./CardForList";
 
 const baseProps = {

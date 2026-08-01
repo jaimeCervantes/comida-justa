@@ -1,9 +1,9 @@
 "use client";
-import { useRouter } from "next/navigation";
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
 import { MdSearch } from "react-icons/md";
 import type { Post } from "~/domain/entities/post/types";
+import { useRouter } from "~/i18n/navigation";
 import { TextField } from "~/presentation/design_system/forms/TextField";
 
 interface SearchResult extends Post {

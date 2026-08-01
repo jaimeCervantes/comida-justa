@@ -1,6 +1,6 @@
 import Image from "next/image";
-import Link from "next/link";
 import { LuSalad } from "react-icons/lu";
+import { Link } from "~/i18n/navigation";
 import { auth } from "~/infra/auth";
 import { isAdmin } from "~/infra/auth/isAdmin";
 import { PUBLIC_BRAND_NAME } from "~/infra/constants";

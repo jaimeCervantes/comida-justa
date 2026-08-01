@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "~/i18n/navigation";
 import type { Post } from "~/infra/types/Posts";
 import Card from "~/infra/UI/components/Card";
 import CategoryTag from "~/infra/UI/components/CategoryTag/CategoryTag";

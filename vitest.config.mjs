@@ -19,6 +19,16 @@ export default defineConfig(() => {
       alias: {
         "~": "/src",
       },
+      server: {
+        deps: {
+          /**
+           * next-intl se distribuye como ESM y hace `import ... from "next/navigation"` sin
+           * extensión. Node lo resuelve desde el directorio anidado de next-intl en pnpm y falla;
+           * pasándolo por Vite, el mapa de `exports` de Next sí se respeta.
+           */
+          inline: ["next-intl"],
+        },
+      },
     },
   };
 });

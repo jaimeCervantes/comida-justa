@@ -1,6 +1,6 @@
-import { render } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { PUBLIC_BRAND_NAME } from "~/infra/constants";
+import { renderWithIntl as render } from "~/infra/test-utils/renderWithIntl";
 import Footer from "./Footer";
 
 describe("When the footer is rendered", () => {

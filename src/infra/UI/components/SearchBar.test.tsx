@@ -1,10 +1,16 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { renderWithIntl as render } from "~/infra/test-utils/renderWithIntl";
 
 const push = vi.fn();
 
-vi.mock("next/navigation", () => ({
+/**
+ * Se mockea el wrapper, no `next/navigation`: `SearchBar` navega con el `useRouter` de
+ * `~/i18n/navigation`, y sustituir el módulo de Next entero dejaba a next-intl sin las piezas
+ * que usa por dentro para construir sus propias funciones de navegación.
+ */
+vi.mock("~/i18n/navigation", () => ({
   useRouter: () => ({ push }),
 }));
 
