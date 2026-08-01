@@ -1,4 +1,6 @@
-"use server";
+import { getTranslations } from "next-intl/server";
+
+("use server");
 
 import { updateTag } from "next/cache";
 import {
@@ -42,8 +44,10 @@ export async function createCategory(
   _state: CatalogActionState,
   formData: FormData,
 ): Promise<CatalogActionState> {
+  const t = await getTranslations("admin");
+
   if (!(await requireAdmin())) {
-    return { errors: { form: "No tienes permiso para editar el catálogo." } };
+    return { errors: { form: t("catalogNoPermission") } };
   }
 
   const key = String(formData.get("key") ?? "");
@@ -70,7 +74,7 @@ export async function createCategory(
 
     return {
       errors: {
-        form: "No se pudo guardar. ¿Alguien creó esa clave mientras tanto?",
+        form: t("catalogSaveClash"),
       },
     };
   }

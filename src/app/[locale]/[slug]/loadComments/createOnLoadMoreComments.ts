@@ -7,6 +7,7 @@ export function createOnLoadMoreComments({
   currentPage,
   setLoading,
   setLoadMoreMessage,
+  noMoreMessage,
   setComments,
   setCurrentPage,
 }: {
@@ -14,6 +15,8 @@ export function createOnLoadMoreComments({
   currentPage: number;
   setLoading: (isLoading: boolean) => void;
   setLoadMoreMessage: (message: string) => void;
+  /** Lo pone quien renderiza: este módulo no conoce ningún texto. */
+  noMoreMessage: string;
   setComments: (comments: (comment: Comment[]) => Comment[]) => void;
   setCurrentPage: (page: number) => void;
 }) {
@@ -26,7 +29,7 @@ export function createOnLoadMoreComments({
     setLoading(false);
 
     if (result.comments.length === 0) {
-      setLoadMoreMessage("Ya no hay más comentarios.");
+      setLoadMoreMessage(noMoreMessage);
     } else {
       setComments((prev: Comment[]) => [...prev, ...result.comments]);
       setCurrentPage(nextPage);

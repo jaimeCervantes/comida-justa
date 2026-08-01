@@ -77,9 +77,11 @@ export default function useStorageUpload(options: useStorageUpload = {}) {
         body: JSON.stringify({ path: filePath }),
       });
 
+      // i18n-ignore: error interno; lo que ve el visitante lo decide quien captura.
       if (!res.ok) throw new Error("Error al hacer público");
 
       const data = await res.json();
+      // i18n-ignore: traza de desarrollo.
       console.log("🌍 Archivo público:", data.publicUrl);
 
       // 4. Guardar la URL pública en el estado

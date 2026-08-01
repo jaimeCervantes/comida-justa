@@ -1,4 +1,4 @@
-import { setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { resolveLocale } from "~/i18n/routing";
 import CardForList from "~/infra/UI/components/CardForList/CardForList";
 import Pagination from "~/infra/UI/components/Pagination";
@@ -21,6 +21,7 @@ export default async function SearchPage({
   const { term, page, locale: rawLocale } = await params;
   const locale = resolveLocale(rawLocale);
   setRequestLocale(locale);
+  const t = await getTranslations("search");
   const pageInt = parseInt(page, 10);
   const pageSize = 6;
   const data = term
@@ -42,7 +43,7 @@ export default async function SearchPage({
       )}
       {term && cards.length === 0 && (
         <div className="text-xl text-gray-500 text-center py-20">
-          No se encontraron resultados para tu búsqueda.
+          {t("noResults")}
         </div>
       )}
       <section className="grid gap-8 pt-2 pb-10 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">

@@ -1,6 +1,6 @@
 "use server";
 import { after } from "next/server";
-import { getLocale } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { DEFAULT_POST_KIND, type PostKind } from "~/domain/entities/post/kind";
 import { resolveOriginForUser } from "~/domain/entities/post/origin";
 import PostEntity from "~/domain/entities/post/Post";
@@ -55,6 +55,7 @@ export async function createPost(
   _prevState: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
+  const t = await getTranslations("publish");
   const session = await auth();
 
   if (!session) {
@@ -95,9 +96,9 @@ export async function createPost(
       : null;
 
   const errors = {
-    title: title ? null : "El título es obligatorio.",
+    title: title ? null : t("errorTitleRequired"),
     content: content ? null : "El contenido es obligatorio",
-    phone: phone ? null : "El Télefono es obligatorio.",
+    phone: phone ? null : t("errorPhoneRequired"),
     media: mediaJSON
       ? null
       : "Los datos del recourso(video, imagen) son obligatorios",
@@ -147,8 +148,7 @@ export async function createPost(
       user: session?.user as User,
     });
   } catch (err) {
-    const genericMessage =
-      "Sucedio un error al tratar de crear tu publicación. No eres tu, soy yo, tu servidor :(.";
+    const genericMessage = t("errorUnexpected");
 
     return {
       errors: {

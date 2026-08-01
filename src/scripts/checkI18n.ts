@@ -26,6 +26,12 @@ const IGNORED = [
   // Datos de relleno para pruebas y Storybook: no los ve nadie desde el navegador.
   /[/\\]dummies[/\\]/,
   /seoDummies\.ts$/,
+  /**
+   * El 404 raíz vive fuera de `[locale]`: responde a direcciones que no casan con ninguna ruta, no
+   * tiene segmento de idioma que leer y se queda en el idioma por omisión a propósito. Ver la
+   * sección de i18n en `AGENTS.md`.
+   */
+  /^src[/\\]app[/\\]not-found\.tsx$/,
 ];
 
 /**
@@ -42,10 +48,13 @@ type Finding = { file: string; line: number; text: string };
  * este repo los escribe en español a propósito: sin esto el reporte sería casi todo ruido.
  */
 function stripComments(source: string): string {
-  return source
-    .replace(/\{\s*\/\*[\s\S]*?\*\/\s*\}/g, "")
-    .replace(/\/\*[\s\S]*?\*\//g, "")
-    .replace(/^\s*\/\/.*$/gm, "");
+  return (
+    source
+      .replace(/\{\s*\/\*[\s\S]*?\*\/\s*\}/g, "")
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      // También el comentario que va al final de una línea de código, no solo el que la ocupa entera.
+      .replace(/\/\/.*$/gm, "")
+  );
 }
 
 function collectFiles(dir: string, found: string[] = []): string[] {
@@ -71,7 +80,10 @@ function findSpanishLiterals(file: string): Finding[] {
   const lines = stripComments(source).split("\n");
 
   return lines.flatMap((line, index) =>
-    SPANISH.test(line) && !IGNORE_LINE.test(original[index] ?? "")
+    // La marca vale en la propia línea o en la de encima, que es donde cabe la explicación.
+    SPANISH.test(line) &&
+    !IGNORE_LINE.test(original[index] ?? "") &&
+    !IGNORE_LINE.test(original[index - 1] ?? "")
       ? [
           {
             file: relative(process.cwd(), file).replace(/\\/g, "/"),

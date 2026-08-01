@@ -1,4 +1,5 @@
 "use client";
+import { useTranslations } from "next-intl";
 
 import { useActionState } from "react";
 import type { CategoryOption } from "~/domain/entities/post/taxonomy";
@@ -21,6 +22,7 @@ interface NewCategoryFormProps {
  * caché y aparece en `/publicar` sin desplegar nada.
  */
 export default function NewCategoryForm({ roots }: NewCategoryFormProps) {
+  const t = useTranslations("admin");
   const [state, action, isPending] = useActionState<
     CatalogActionState,
     FormData
@@ -98,7 +100,7 @@ export default function NewCategoryForm({ roots }: NewCategoryFormProps) {
         <TextField
           name="labelEn"
           type="text"
-          label="Etiqueta en inglés (opcional):"
+          label={t("englishLabel")}
           placeholder="Preserves"
           containerClassName="mb-4"
         />

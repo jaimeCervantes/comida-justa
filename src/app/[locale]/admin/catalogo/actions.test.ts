@@ -18,6 +18,11 @@ const {
 }));
 
 vi.mock("next/cache", () => ({ updateTag }));
+/* La acción resuelve sus mensajes con el catálogo; aquí basta con que devuelva la clave, porque
+   lo que se afirma es qué hace la acción, no cómo está redactado el aviso. */
+vi.mock("next-intl/server", () => ({
+  getTranslations: async () => (key: string) => key,
+}));
 vi.mock("~/infra/auth", () => ({ auth }));
 vi.mock("~/infra/auth/isAdmin", () => ({ isAdmin }));
 vi.mock("~/infra/dataAccess/categories/factory", () => ({
@@ -117,7 +122,10 @@ describe("las acciones de /admin/catalogo", () => {
       const state = await createCategory({ errors: {} }, form(VALID));
 
       expect(createCategoryRepo).not.toHaveBeenCalled();
-      expect(state.errors.form).toMatch(/permiso/i);
+      /* Se afirma la clave, no la redacción: lo que decide la acción es *qué* avisa, y el texto
+         vive en el catálogo. Antes esto comparaba contra la frase en español, así que traducirla
+         habría roto una prueba que no tenía por qué enterarse. */
+      expect(state.errors.form).toBe("catalogNoPermission");
     });
 
     /**

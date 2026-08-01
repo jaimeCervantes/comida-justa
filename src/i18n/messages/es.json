@@ -1,4 +1,75 @@
 {
+  "about": {
+    "assistantBody": "¿No sabes por dónde empezar? Nuestro <b>Chatbot en Telegram</b> está diseñado para ayudarte de inmediato con tu salud.",
+    "assistantCta": "Ir al Chatbot",
+    "assistantHeading": "🤖 Nuestro Asistente Virtual",
+    "breadAvailability": "📍 Disponibles directamente en nuestra sede.",
+    "breadChocolate": "🍫 Chocolate",
+    "breadDigestionLabel": "Digestión Ligera",
+    "breadDigestionText": "Las bacterias naturales pre-digieren parte del gluten y los carbohidratos. Muchas personas intolerantes lo asimilan mejor.",
+    "breadFacebook": "🔵 Facebook",
+    "breadGlucoseLabel": "Respuesta Glucémica Estable",
+    "breadGlucoseText": "La fermentación modifica los almidones, logrando liberar energía de forma sostenida (evita picos bruscos de azúcar).",
+    "breadHeading": "🥖 Pan de Masa Madre",
+    "breadInstagram": "📸 Instagram",
+    "breadIntro": "El pan de <b>MMNaturalmente</b> no es solo pan. Es un <b>ecosistema vivo</b> que cuida tu salud, elaborado sin químicos ni levaduras industriales. Es pan vivo. Es pan que nutre. ✨",
+    "breadLoafHeading": "🧬 ¿Qué pasa en cada hogaza?",
+    "breadNatural": "🌾 Natural",
+    "breadNutrientsLabel": "Más Biodisponibilidad",
+    "breadNutrientsText": "Reduce el ácido fítico, mejorando la absorción de hierro, zinc y magnesio.",
+    "breadPartner": "📍 {brand} es <b>punto de venta oficial</b> del pan elaborado por <b>MMNaturalmente</b>.",
+    "breadQuestion": "¿Te inflama el pan comercial? Pásate a la Masa Madre en {brand}.",
+    "breadSeeds": "🌻 Semillas / Hierbas finas / Arándanos / Canela",
+    "breadTip1Label": "Congelación (La mejor opción):",
+    "breadTip1Text": "Si no te vas a acabar el pan en 3-4 días, guárdalo en el congelador.",
+    "breadTip2Label": "Consumo desde congelador:",
+    "breadTip2Text": "Saca solo las rebanadas que vayas a comer y directas al tostador o comal caliente. ¡Quedarán crujientes y suaves por dentro, como recién horneadas!",
+    "breadTip3Label": "Recuperar frescura:",
+    "breadTip3Text": "Si guardaste el pan a temperatura ambiente, pasados los días puede endurecerse de la corteza. Para revivirlo, salpícale un par de gotas de agua uniformemente por fuera y mételo al horno a 180°C por 3 a 5 minutos.",
+    "breadTipsHeading": "💡 Consejos para conservar el Pan",
+    "breadVarietiesHeading": "🛒 Variedades (Hogaza de 1 kg)",
+    "ecosystemHeading": "El Ecosistema «{brand}»",
+    "ecosystemIntro": "<b>{brand}</b> es todo un ecosistema de iniciativas y sistemas (No solo computacionales) diseñados para que vivir sano sea la opción más fácil para todos.",
+    "ecosystemPillars": "Hablamos de acciones concretas basadas en nuestros 4 pilares:",
+    "metaDescription": "{brand} es un ecosistema de vida sana construido sobre 4 pilares: sueño, alimentación natural, movimiento y mente. Conoce nuestro chatbot y nuestros productos naturales.",
+    "metaSubtitle": "Un ecosistema de vida sana: 4 pilares, chatbot y productos naturales",
+    "metaTitle": "Qué es {brand}",
+    "metaTitleSuffix": "Ecosistema de vida sana",
+    "orderBody": "Pasa a recoger tus productos nutritivos a nuestra sucursal y cuida tu salud.",
+    "orderFacebook": "Facebook",
+    "orderHeading": "Haz tu Pedido",
+    "orderPhone": "📞 Cel: 2781126948",
+    "orderTiktok": "TikTok",
+    "orderWhatsapp": "WhatsApp Directo",
+    "peanutEnergyLabel": "Energía Real",
+    "peanutEnergyText": "Rica en proteína vegetal y grasas saludables (corazón).",
+    "peanutHeading": "🥜 Crema de Cacahuate Natural",
+    "peanutIntro": "Muchas cremas comerciales llevan azúcar, aceites añadidos, conservadores y otros ingredientes que tu cuerpo realmente no necesita.",
+    "peanutIntro2": "En <b>{brand}</b> hacemos algo mucho más simple: <i>comida real</i>.",
+    "peanutNaturalLabel": "100% Natural",
+    "peanutNaturalText": "Solo contiene cacahuate.",
+    "peanutNoExtrasLabel": "Sin Extras Innecesarios",
+    "peanutNoExtrasText": "Sin azúcar añadida, aceites refinados ni conservadores.",
+    "peanutPair1": "🍞 Pan de masa madre",
+    "peanutPair2": "🍞 Pan tostado",
+    "peanutPair3": "🍌 Plátano",
+    "peanutPair4": "🥣 Avena",
+    "peanutPair5": "🍓 Fruta",
+    "peanutPair6": "🥤 Licuados",
+    "peanutPair7": "🥞 Hotcakes",
+    "peanutPairHeading": "🥄 Ideal para acompañar:",
+    "peanutPairNote": "⚡ O simplemente <b>una cucharada directa</b> cuando necesitas energía natural post-entrenamiento o por la mañana.",
+    "peanutQuestion": "¿Tu crema de cacahuate tiene más ingredientes que cacahuate?",
+    "peanutTip1Label": "Temperatura:",
+    "peanutTip1Text": "Guárdala en un lugar fresco y oscuro, como una alacena, para mantenerla untable y suave.",
+    "peanutTip2Label": "Mezclar bien:",
+    "peanutTip2Text": "Al no tener emulsionantes, es normal que el aceite natural del cacahuate suba a la superficie. Simplemente mézclala bien hasta el fondo antes de cada uso.",
+    "peanutTip3Label": "Refrigeración opcional:",
+    "peanutTip3Text": "Si tardarás más de unas semanas en consumirla, puedes guardarla en el refrigerador. Esto mantendrá los aceites estables por más tiempo, aunque la textura se volverá más firme.",
+    "peanutTip4Label": "Higiene:",
+    "peanutTip4Text": "Introduce siempre un utensilio limpio y seco para prolongar su vida útil.",
+    "peanutTipsHeading": "💡 Consejos para su conservación"
+  },
   "account": {
     "addBranchFormLabel": "Agrega una sucursal",
     "addBranchIntro": "Con su ubicación en el mapa, el chatbot puede recomendarte a quien está cerca. Sin ella, apareces solo en las búsquedas sin ubicación.",
@@ -22,6 +93,7 @@
     "locationFailed": "No se pudo leer tu ubicación; pega el enlace de Maps.",
     "locationHint": "Úsalo si estás parado en tu local.",
     "locationTaken": "Ubicación tomada de tu dispositivo.",
+    "metaDescription": "Tu tienda, tus sucursales y tu dirección personal.",
     "saveBranch": "Guardar sucursal",
     "storeCardNoPublicPage": "Esta tienda todavía no tiene una página pública.",
     "storeCardTitle": "Tu tienda",
@@ -45,11 +117,23 @@
     "usernameTitle": "Tu dirección personal"
   },
   "admin": {
+    "catalogHeading": "Catálogo de categorías",
+    "catalogMetaDescription": "Administración interna de la taxonomía de categorías.",
+    "catalogMetaTitle": "Catálogo de categorías - {brand}",
+    "catalogNoPermission": "No tienes permiso para editar el catálogo.",
+    "catalogSaveClash": "No se pudo guardar. ¿Alguien creó esa clave mientras tanto?",
+    "englishLabel": "Etiqueta en inglés (opcional):",
+    "indexingAllDone": "Las {total} traducciones de producto están indexadas.",
     "indexingHeading": "Indexación para el chatbot",
-    "indexingAllDone": "Las {total} traducciones de producto están indexadas."
+    "indexingIntro": "Una publicación sin embedding no puede ser recomendada por el chatbot, aunque esté publicada.",
+    "originReportIntro": "Publicaciones con tipo <b>producto</b>, agrupadas por su procedencia. Los anuncios no se cuentan aquí.",
+    "productsMetaDescription": "Reporte interno de productos publicados, agrupados por procedencia.",
+    "productsMetaTitle": "Productos por procedencia - {brand}",
+    "share": "Participación"
   },
   "auth": {
     "chooseProvider": "un proveedor para iniciar sesión.",
+    "chooseProviderIntro": "Elige un proveedor para iniciar sesión.",
     "signInWith": "Iniciar sesión con",
     "terms": "Al continuar aceptas nuestros términos y la política de privacidad."
   },
@@ -63,6 +147,7 @@
     "listLabel": "comentarios",
     "loadMore": "Cargar más comentarios",
     "loadingMore": "Cargando más comentarios...",
+    "noMore": "Ya no hay más comentarios.",
     "placeholder": "Escribe tu comentario...",
     "submit": "Agregar Comentario",
     "submitting": "Agregando..."
@@ -81,14 +166,15 @@
   },
   "feed": {
     "empty": "No hay comidas publicadas aún.",
-    "loadingMore": "Cargando más...",
+    "emptyPage": "No hay comidas publicadas en esta página.",
     "loadMore": "Cargar más",
+    "loadingMore": "Cargando más...",
     "noMore": "No hay más publicaciones disponibles",
-    "paginationLabel": "Paginación",
     "page": "Página {page}",
-    "pageTitle": "{brand} - Página {page}",
     "pageDescription": "Explora nuestra selección de alimentos en la página {page}. Comida saludable para ti y tu comunidad.",
-    "emptyPage": "No hay comidas publicadas en esta página."
+    "pageTitle": "{brand} - Página {page}",
+    "pagedTitle": "{title} - Página {page}",
+    "paginationLabel": "Paginación"
   },
   "footer": {
     "tagline": "No somos solo una aplicación, somos todo un ecosistema de iniciativas diseñadas para que vivir sano sea la opción más fácil para todos.",
@@ -156,11 +242,12 @@
     }
   },
   "notFound": {
+    "goHome": "Ir al inicio",
     "heading": "¡Recurso no encontrado!",
-    "subtitle": "Probablemente se fue a hacer una serie extra de burpees... ¡y se agotó!",
-    "rest": "A veces, incluso un recurso necesita un descanso.",
     "invite": "Mientras se recupera, tú puedes continuar cuidando tu salud, tu tiempo. Encuentra lo que necesitas aquí:",
-    "goHome": "Ir al inicio"
+    "pagedTitle": "{name} — página {page}",
+    "rest": "A veces, incluso un recurso necesita un descanso.",
+    "subtitle": "Probablemente se fue a hacer una serie extra de burpees... ¡y se agotó!"
   },
   "pillarPages": {
     "mindSpirit": {
@@ -360,6 +447,9 @@
       "location": "Tezonapa, Veracruz, México"
     }
   },
+  "products": {
+    "empty": "Aún no hay productos de {brand} publicados."
+  },
   "profile": {
     "empty": "Esta persona todavía no ha publicado nada.",
     "publicationCount": "{total, plural, one {# publicación} other {# publicaciones}}"
@@ -388,8 +478,10 @@
     "errorUnexpected": "Sucedio un error al tratar de crear tu publicación. No eres tu, soy yo, tu servidor :(."
   },
   "search": {
-    "placeholder": "Buscar...",
     "empty": "Sin resultados",
+    "noResults": "No se encontraron resultados para tu búsqueda.",
+    "placeholder": "Buscar...",
+    "resultsHeading": "Resultados de búsqueda",
     "seeAll": "Ver todos los resultados"
   },
   "store": {

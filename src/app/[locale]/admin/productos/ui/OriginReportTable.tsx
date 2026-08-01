@@ -14,6 +14,7 @@ function rowKey(origin: string | null): string {
 
 export default function OriginReportTable({ rows, total }: OriginReport) {
   const t = useTranslations("vocabulary");
+  const tAdmin = useTranslations("admin");
   return (
     <div className="overflow-x-auto">
       <table
@@ -32,7 +33,7 @@ export default function OriginReportTable({ rows, total }: OriginReport) {
               Productos
             </th>
             <th scope="col" className="py-2 font-semibold text-right">
-              Participación
+              {tAdmin("share")}
             </th>
           </tr>
         </thead>

@@ -1,4 +1,4 @@
-import { setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { resolveLocale } from "~/i18n/routing";
 import CardForList from "~/infra/UI/components/CardForList/CardForList";
 import Pagination from "~/infra/UI/components/Pagination";
@@ -31,6 +31,7 @@ export default async function SearchPage({
   const { locale: rawLocale } = await params;
   const locale = resolveLocale(rawLocale);
   setRequestLocale(locale);
+  const t = await getTranslations("search");
   const pageInt = parseInt(page, 10);
   const pageSize = 6;
   const data = q
@@ -41,7 +42,7 @@ export default async function SearchPage({
 
   return (
     <>
-      <h1 className="text-2xl font-bold my-4">Resultados de búsqueda</h1>
+      <h1 className="text-2xl font-bold my-4">{t("resultsHeading")}</h1>
       {q && (
         <div className="mb-4 text-gray-600">
           Mostrando resultados para:{" "}

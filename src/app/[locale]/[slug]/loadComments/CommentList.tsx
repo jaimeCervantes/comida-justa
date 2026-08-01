@@ -34,6 +34,7 @@ export default function CommentList({
     currentPage,
     setLoading,
     setLoadMoreMessage,
+    noMoreMessage: t("noMore"),
     setComments,
     setCurrentPage,
   });

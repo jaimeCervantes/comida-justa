@@ -49,6 +49,7 @@ export default function PostsWithLoadMore({
         setHasMore(false);
       }
     } catch (error) {
+      // i18n-ignore: mensaje de consola para quien depura, no lo ve un visitante.
       console.error("Error cargando más publicaciones:", error);
     } finally {
       setLoading(false);

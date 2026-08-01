@@ -36,6 +36,7 @@ export async function POST(req: Request) {
       {
         error: getErrorMessage(
           error,
+          // i18n-ignore: cuerpo de error de la API, no una pantalla.
           "Algo salió mal al generar la URL pública del archivo",
         ),
       },
