@@ -1,8 +1,22 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { auth } from "~/infra/auth";
 import type { PostUser } from "~/infra/types/Posts";
 import { getPostDetails } from "./data";
+import { buildPostMetadata } from "./metadata";
 import PostDetail from "./ui/PostDetail";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string; locale: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const post = await getPostDetails(slug);
+
+  // Sin publicación no hay nada que anunciar: la página responde 404 y el layout pone lo suyo.
+  return post ? buildPostMetadata(post, slug) : {};
+}
 
 export default async function Slug({
   params,

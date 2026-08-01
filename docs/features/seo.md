@@ -49,7 +49,7 @@ consulta; las páginas fijas, de una lista. Un sitemap escrito a mano nace desac
 
 ## Slices
 
-### Slice 1 — Que se pueda descubrir  *(actual)*
+### Slice 1 — Que se pueda descubrir  *(entregado)*
 
 - `src/app/sitemap.ts`: páginas fijas + todas las publicaciones + tiendas + perfiles reclamados,
   con `lastModified` real donde la base lo tiene.
@@ -66,7 +66,7 @@ consulta; las páginas fijas, de una lista. Un sitemap escrito a mano nace desac
 4. **No** lista ninguna de las seis secciones que responden 404, ni nada privado.
 5. `/robots.txt` responde, bloquea lo privado y apunta al sitemap.
 
-### Slice 2 — Que cada página diga qué es  *(siguiente)*
+### Slice 2 — Que cada página diga qué es  *(entregado)*
 
 - `generateMetadata` en el **detalle de publicación**: título real, descripción a partir del
   contenido, imagen de su media para compartir, canónico propio.
@@ -74,11 +74,11 @@ consulta; las páginas fijas, de una lista. Un sitemap escrito a mano nace desac
 - `noindex` explícito en `/publicar`, `/auth/signin`, `/buscar` y `/search`.
 
 **Criterios de aceptación:**
-1. El detalle de un producto tiene su título, su descripción y su imagen al compartirlo.
-2. Cada pilar tiene título y descripción propios.
-3. Las páginas de sesión y búsqueda no se indexan.
+1. El detalle de un producto tiene su título, su descripción y su imagen al compartirlo. ✅
+2. Cada pilar tiene título y descripción propios. ✅
+3. Las páginas de sesión y búsqueda no se indexan. ✅
 
-### Slice 3 — Que el buscador entienda qué vende quién  *(futuro)*
+### Slice 3 — Que el buscador entienda qué vende quién  *(siguiente)*
 
 - JSON-LD: `Product` con precio y disponibilidad, `Store` con sus sucursales y coordenadas,
   `Person` para los perfiles, `Organization` + `WebSite` en el home.

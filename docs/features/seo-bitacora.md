@@ -89,3 +89,90 @@ petición; `/robots.txt` abre el contenido y cierra lo privado. Falta que cada p
    título, descripción ni imagen. Es lo que más se comparte y lo peor presentado.
 2. **Slice 3 — Datos estructurados** (`Product`, `Store`, `Person`).
 3. **Decidir qué pasa con las seis secciones stub:** darles contenido o quitarlas del menú.
+
+---
+
+## Slice 2 — Que cada página diga qué es (2026-08-01)
+
+### Objetivo
+
+Tapar el hueco más caro que dejó el slice 1: **el detalle de publicación no definía metadata**. Las
+24 publicaciones compartían el título del layout ("Hazlo Sano") y salían sin descripción, sin
+canónico y sin imagen. Compartir un producto por WhatsApp daba un enlace pelado — justo el gesto que
+más hace un vendedor.
+
+### Decisiones y por qué
+
+**La descripción se corta en la última palabra completa.** La lee una persona, y
+"Nopal, apio, piña y perej…" se ve como un error, no como un resumen. Escribiendo la prueba apareció
+un desperdicio: cuando el corte caía **justo** donde terminaba una palabra, el algoritmo retrocedía
+igual al espacio anterior y tiraba una palabra que sí cabía. Se corrigió y quedó cubierto.
+
+**El contenido se aplana antes de resumirlo.** Llega de un `textarea` con los saltos de línea que le
+puso quien publicó, que no son los que necesita una meta description.
+
+**`getPostDetails` pasó a estar memorizada por petición.** Ahora la piden dos —`generateMetadata` y
+la página—, así que sin `cache()` cada visita al detalle costaría el doble de consultas para leer
+exactamente lo mismo.
+
+**`type: "article"` también para los productos.** El vocabulario de comercio de Open Graph
+(`product`) lo entienden pocos lectores; los datos de producto van en JSON-LD, que es lo que Google
+lee, y eso es el slice 3.
+
+**La tarjeta de Twitter se degrada sin imagen.** Pedir `summary_large_image` sin imagen deja un
+hueco gris; sin media se usa `summary`.
+
+**La metadata de un pilar sale de `PILLARS`**, la misma constante que pinta la página: si mañana
+cambia el texto de un pilar, su descripción en el buscador cambia con él en vez de quedarse vieja.
+
+**El `noindex` se hereda por layout.** `/auth/signin` es un Client Component y no puede exportar
+`metadata`; y `/buscar` y `/search` tienen rutas de resultados anidadas. Un layout por sección lo
+resuelve en un archivo en vez de en cuatro, y cubre las páginas que se agreguen después.
+
+**`follow` se queda en `true`.** Que una página no se indexe no significa que sus enlaces no valgan.
+
+### Archivos tocados
+
+- **Dominio:** `src/domain/seo/description.ts` (+ prueba).
+- **App:** `[slug]/metadata.ts` + `generateMetadata` en el detalle; `getPostDetails` memorizada; `pilares/metadata.ts` + `generateMetadata`; layouts `noindex` en `auth`, `buscar` y `search`; `metadata` en `/publicar`.
+- **UI:** `src/infra/UI/metadata/noindex.ts`, la constante compartida.
+- **e2e:** `src/e2e/seo/pageMetadata.spec.ts`.
+
+### Validación
+
+| Comando | Resultado |
+|---|---|
+| `pnpm run typecheck` | limpio |
+| `pnpm run lint` | limpio |
+| `pnpm run test:run` | **473 pruebas en 52 archivos**, todas verdes (+9) |
+| `playwright test src/e2e/seo` | **8 escenarios verdes** (4 del slice 1 + 4 del 2) |
+
+Los escenarios del detalle corren contra **"Jugo Verde", que ya existe** con su imagen: no siembran
+nada y por eso no tienen nada que limpiar.
+
+### Desviaciones del roadmap
+
+- `/publicar` quedó fuera del escenario de `noindex`: sin sesión redirige a `/auth/signin`, así que
+  probarla sería comprobar dos veces la misma página. Su `noindex` es la misma constante compartida.
+
+### Pendientes que deja
+
+- Sin datos estructurados todavía (slice 3): el buscador ve un artículo donde hay un producto con
+  precio y disponibilidad.
+- El home usa la descripción de i18n, que es más una frase de marca que una descripción de
+  resultado de búsqueda. No se tocó por no cambiar copy sin pedirlo.
+
+### Recap
+
+Cada página pública ya dice qué es: el detalle de publicación lleva su título, su descripción
+recortada del contenido, su imagen y su canónico; los cinco pilares tienen los suyos; y las páginas
+de sesión, publicación y búsqueda piden explícitamente no ser indexadas. Con el slice 1, el sitio se
+puede descubrir **y** presentar.
+
+### Próximos pasos (opciones)
+
+1. **Slice 3 — Datos estructurados** (`Product` con precio y disponibilidad, `Store` con sus
+   coordenadas, `Person`, `Organization`). Es lo que convierte un resultado en una ficha rica.
+2. **Decidir qué pasa con las seis secciones stub del menú:** darles contenido o quitarlas. Hoy son
+   seis puertas cerradas para quien llega.
+3. **Revisar la descripción del home**, que hoy es una frase de marca más que un resumen.

@@ -1,9 +1,11 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import AlimentacionPage from "../components/AlimentacionPage";
 import MenteEspirituPage from "../components/MenteEspirituPage";
 import MovimientoPage from "../components/MovimientoPage";
 import PilaresOverviewPage from "../components/PilaresOverviewPage";
 import SuenoPage from "../components/SuenoPage";
+import { buildPillarMetadata, buildPillarsOverviewMetadata } from "../metadata";
 
 type Props = {
   params: Promise<{
@@ -11,6 +13,14 @@ type Props = {
     slug?: string[];
   }>;
 };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params;
+
+  if (!slug || slug.length === 0) return buildPillarsOverviewMetadata();
+
+  return buildPillarMetadata(slug[0]);
+}
 
 export default async function PilaresPage({ params }: Props) {
   const { slug } = await params;
