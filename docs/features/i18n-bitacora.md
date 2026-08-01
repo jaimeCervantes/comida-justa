@@ -148,3 +148,39 @@ escrito como pendiente en vez de disimulado, es el prerenderizado: lo bloquea el
 
 **Nada pendiente del usuario para continuar.** El trabajo va en la rama `feat/i18n`, sin commitear
 todavía al momento de escribir esto.
+
+---
+
+## Corrección al slice 0 — el prerenderizado no lo bloqueaba el `Header` (2026-08-01)
+
+Este registro es append-only, así que la entrada de arriba se queda como se escribió. **Lo que dice
+sobre el `Header` es falso** y lo corrige esto.
+
+Se afirmó que `await auth()` en `Header.tsx` era lo que forzaba a todas las rutas a renderizarse por
+petición. Al ir a arreglarlo se midió, y no es cierto:
+
+1. Sin el `await auth()` del `Header`: todas las rutas siguen `ƒ`.
+2. Sin el `<Header />` entero en el layout: siguen `ƒ`.
+3. Una página sonda **vacía** bajo `[locale]` —sin `params`, sin next-intl, solo un `<p>`— también
+   sale `ƒ`. La causa está en el árbol del layout, no en las páginas ni en la sesión.
+4. Con el layout reducido a `html`/`body` + `setRequestLocale`, Next **sí** intenta prerenderizar, y
+   entonces asoma un segundo problema, distinto y sin diagnosticar: un error de prerenderizado en
+   `/en/condiciones-de-servicio`.
+5. `/nosotros` con `export const dynamic = "force-static"` prerenderiza hoy (`●`, ambos locales) con
+   el `Header` puesto. El opt-in por página ya funciona.
+
+### La decisión, y por qué no se arregló
+
+De (5) sale un camino corto: `force-static` en las páginas de contenido fijo. Pero una página
+`force-static` hornea en el HTML el header de **sesión cerrada**, así que ese camino arrastra mover
+la sesión al cliente (`useSession` + `SessionProvider`), y con ello un parpadeo de ~200ms para quien
+tiene sesión y exponer `isAdmin` como campo de la sesión —`HAZLO_SANO_ADMIN_EMAILS` es variable de
+servidor y no puede viajar al navegador—.
+
+Se midió el premio: **~8 páginas de contenido fijo y bajo tráfico** (`/nosotros`, 2 legales, 5
+pilares). Las de tráfico real —home, `/productos`, detalle, tiendas, perfiles— leen de la base y
+deben seguir dinámicas o servirían contenido viejo. No paga el parpadeo para los vendedores, que son
+justo quienes usan la sesión. **Se dejó pendiente y se pasó al slice 1.**
+
+La lección que vale guardar: el diagnóstico se dio por bueno sin medirlo, porque `auth()` en un
+layout *parecía* explicación suficiente. Tres builds lo desmintieron.
