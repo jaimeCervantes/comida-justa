@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import {
   isHazloSanoOrigin,
   isLocalOrigin,
@@ -8,10 +9,12 @@ type ProvenanceBadgeProps = {
   className?: string;
 };
 
-/** Etiqueta visible derivada del `origin` de un post. No renderiza nada si no aplica. */
-function badgeLabel(origin: string | null | undefined): string | null {
-  if (isHazloSanoOrigin(origin)) return "🌿 Hazlo Sano";
-  if (isLocalOrigin(origin)) return "📍 Local";
+/** La clave de la insignia según el `origin`. `null` cuando no aplica ninguna. */
+function badgeKey(
+  origin: string | null | undefined,
+): "provenance.hazloSano" | "provenance.local" | null {
+  if (isHazloSanoOrigin(origin)) return "provenance.hazloSano";
+  if (isLocalOrigin(origin)) return "provenance.local";
   return null;
 }
 
@@ -19,16 +22,17 @@ export default function ProvenanceBadge({
   origin,
   className = "",
 }: ProvenanceBadgeProps) {
-  const label = badgeLabel(origin);
+  const t = useTranslations("vocabulary");
+  const key = badgeKey(origin);
 
-  if (!label) return null;
+  if (!key) return null;
 
   return (
     <span
       data-testid="provenance-badge"
       className={`inline-flex items-center gap-1 rounded-full bg-pw-lightgreen/15 px-3 py-1 text-sm font-semibold text-pw-green ${className}`}
     >
-      {label}
+      {t(key)}
     </span>
   );
 }

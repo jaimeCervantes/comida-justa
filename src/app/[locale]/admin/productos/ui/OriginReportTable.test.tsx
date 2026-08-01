@@ -1,6 +1,6 @@
-import { render } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { buildOriginReport } from "~/domain/entities/post/originReport";
+import { renderWithIntl as render } from "~/infra/test-utils/renderWithIntl";
 import OriginReportTable from "./OriginReportTable";
 
 describe("When the origin report is rendered", () => {

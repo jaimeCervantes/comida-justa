@@ -1,6 +1,6 @@
-import { render } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import MediaContent, { NO_MEDIA_MESSAGE } from "./MediaContent";
+import { renderWithIntl as render } from "~/infra/test-utils/renderWithIntl";
+import MediaContent from "./MediaContent";
 
 describe("When a publication has no usable media", () => {
   // El defecto que documenta `docs/pendientes.md`: el listado respondía 500 porque
@@ -12,7 +12,7 @@ describe("When a publication has no usable media", () => {
     const { getByTestId } = render(<MediaContent media={media} />);
 
     expect(getByTestId("media-placeholder")).toHaveTextContent(
-      NO_MEDIA_MESSAGE,
+      "Publicación sin imagen",
     );
   });
 });

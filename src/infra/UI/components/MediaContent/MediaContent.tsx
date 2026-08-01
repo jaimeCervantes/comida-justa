@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import type { ComponentType } from "react";
 
 export interface MediaItem {
@@ -12,8 +13,6 @@ interface MediaContentProps {
   className?: string;
 }
 
-export const NO_MEDIA_MESSAGE = "Publicación sin imagen";
-
 export default function MediaContent({
   media,
   className,
@@ -22,6 +21,7 @@ export default function MediaContent({
   media: MediaItem | undefined;
   className?: string;
 }) {
+  const t = useTranslations("post");
   const contentTypes: Record<string, ComponentType<MediaContentProps>> = {
     video: VideoContent,
     image: ImageContent,
@@ -38,7 +38,7 @@ export default function MediaContent({
         data-testid="media-placeholder"
         className={`sj-media-wrapper flex items-center justify-center bg-gray-100 dark:bg-gray-800 text-gray-500 ${className || ""}`}
       >
-        {NO_MEDIA_MESSAGE}
+        {t("noImage")}
       </div>
     );
   }

@@ -1,23 +1,41 @@
 import { POST_ORIGINS, type PostOrigin } from "~/domain/entities/post/origin";
 
-/** Etiqueta visible de cada `origin`. La allowlist vive en el dominio; aquí solo se nombra. */
-export const ORIGIN_LABELS: Record<PostOrigin, string> = {
-  hazlo_sano_propio: "Hazlo Sano — propio",
-  hazlo_sano_reventa: "Hazlo Sano — reventa",
-  productor_local: "Productor local",
-  reventa_local: "Reventa local",
-  productor_foraneo: "Productor foráneo",
-  reventa_foranea: "Reventa foránea",
-};
+/**
+ * La clave del catálogo de cada procedencia **es** la de la allowlist del dominio.
+ *
+ * El reparto es a propósito: el vocabulario es código —agregar una procedencia sigue siendo editar
+ * `POST_ORIGINS`— y la redacción es traducción. Este módulo hace de puente entre los dos y no
+ * conoce ningún texto.
+ *
+ * Las claves se escriben enteras y literales para que un `grep origin.productor_local` las
+ * encuentre, y el `satisfies` obliga a que estén las seis: añadir una procedencia a la allowlist
+ * sin nombrarla aquí no compila.
+ */
+export const ORIGIN_LABEL_KEYS = {
+  hazlo_sano_propio: "origin.hazlo_sano_propio",
+  hazlo_sano_reventa: "origin.hazlo_sano_reventa",
+  productor_local: "origin.productor_local",
+  reventa_local: "origin.reventa_local",
+  productor_foraneo: "origin.productor_foraneo",
+  reventa_foranea: "origin.reventa_foranea",
+} as const satisfies Record<PostOrigin, string>;
 
-export const UNSPECIFIED_ORIGIN_LABEL = "Sin especificar";
+export const UNSPECIFIED_ORIGIN_KEY = "origin.unspecified";
 
-export function originLabel(origin: PostOrigin | null): string {
-  return origin ? ORIGIN_LABELS[origin] : UNSPECIFIED_ORIGIN_LABEL;
+export type OriginLabelKey =
+  | (typeof ORIGIN_LABEL_KEYS)[PostOrigin]
+  | typeof UNSPECIFIED_ORIGIN_KEY;
+
+/** La clave que nombra a esta procedencia; el texto lo pone quien traduce. */
+export function originLabelKey(origin: PostOrigin | null): OriginLabelKey {
+  return origin ? ORIGIN_LABEL_KEYS[origin] : UNSPECIFIED_ORIGIN_KEY;
 }
 
-/** Opciones del selector de procedencia, en el orden canónico de la allowlist. */
+/** Las procedencias del selector, en el orden canónico de la allowlist. */
 export const ORIGIN_OPTIONS: ReadonlyArray<{
   value: PostOrigin;
-  label: string;
-}> = POST_ORIGINS.map((value) => ({ value, label: ORIGIN_LABELS[value] }));
+  labelKey: OriginLabelKey;
+}> = POST_ORIGINS.map((value) => ({
+  value,
+  labelKey: ORIGIN_LABEL_KEYS[value],
+}));

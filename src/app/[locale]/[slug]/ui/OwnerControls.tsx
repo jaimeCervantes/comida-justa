@@ -1,12 +1,10 @@
 "use client";
+import { useTranslations } from "next-intl";
 import { useActionState } from "react";
 import { MdEdit } from "react-icons/md";
 import { Link } from "~/i18n/navigation";
 import { Button } from "~/presentation/design_system/buttons/Button";
 import type { AvailabilityState } from "../actions";
-
-export const MARK_SOLD_OUT_LABEL = "Marcar agotado";
-export const MARK_AVAILABLE_LABEL = "Volver a ofrecer";
 
 /**
  * Lo que solo ve quien publicó: editar y cambiar la disponibilidad.
@@ -31,6 +29,7 @@ export default function OwnerControls({
   /** Un anuncio no se agota: solo se le ofrece editar. */
   isSellable: boolean;
 }) {
+  const t = useTranslations("post");
   const [state, availabilityAction, isPending] = useActionState<
     AvailabilityState,
     FormData
@@ -65,7 +64,7 @@ export default function OwnerControls({
             isLoading={isPending}
             disabled={isPending}
           >
-            {available ? MARK_SOLD_OUT_LABEL : MARK_AVAILABLE_LABEL}
+            {available ? t("markSoldOut") : t("markAvailable")}
           </Button>
         </form>
       ) : null}

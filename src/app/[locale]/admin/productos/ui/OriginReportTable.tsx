@@ -1,5 +1,6 @@
+import { useTranslations } from "next-intl";
 import type { OriginReport } from "~/domain/entities/post/originReport";
-import { originLabel } from "~/infra/UI/labels/postOriginLabels";
+import { originLabelKey } from "~/infra/UI/labels/postOriginLabels";
 
 const percentFormatter = new Intl.NumberFormat("es-MX", {
   style: "percent",
@@ -12,6 +13,7 @@ function rowKey(origin: string | null): string {
 }
 
 export default function OriginReportTable({ rows, total }: OriginReport) {
+  const t = useTranslations("vocabulary");
   return (
     <div className="overflow-x-auto">
       <table
@@ -41,7 +43,7 @@ export default function OriginReportTable({ rows, total }: OriginReport) {
               className="border-b border-gray-100 dark:border-gray-900"
             >
               <th scope="row" className="py-2 pr-4 font-normal">
-                {originLabel(row.origin)}
+                {t(originLabelKey(row.origin))}
               </th>
               <td
                 data-testid={`origin-count-${rowKey(row.origin)}`}

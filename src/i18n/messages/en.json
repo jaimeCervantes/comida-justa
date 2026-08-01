@@ -104,6 +104,11 @@
       "short": "Emotions / mind / spirit"
     }
   },
+  "post": {
+    "markSoldOut": "Mark as sold out",
+    "markAvailable": "Mark as available",
+    "noImage": "Publication with no image"
+  },
   "privacyPolicy": {
     "title": "Privacy Policy | Hazlo Sano",
     "description": "Privacy Policy for Hazlo Sano - Wellness Chatbot",
@@ -188,10 +193,16 @@
       "location": "Tezonapa, Veracruz, Mexico"
     }
   },
+  "profile": {
+    "empty": "This person hasn't published anything yet."
+  },
   "search": {
     "placeholder": "Search...",
     "empty": "No results",
     "seeAll": "See all results"
+  },
+  "store": {
+    "empty": "This store hasn't published anything yet."
   },
   "termsOfService": {
     "title": "Terms of Service | Hazlo Sano",
@@ -272,6 +283,24 @@
       "intro": "For any queries related to these Terms of Service, you can contact us at:",
       "companyName": "Hazlo Sano",
       "location": "Tezonapa, Veracruz, Mexico"
+    }
+  },
+  "vocabulary": {
+    "origin": {
+      "hazlo_sano_propio": "Hazlo Sano — own",
+      "hazlo_sano_reventa": "Hazlo Sano — resale",
+      "productor_local": "Local producer",
+      "reventa_local": "Local resale",
+      "productor_foraneo": "Non-local producer",
+      "reventa_foranea": "Non-local resale",
+      "unspecified": "Unspecified"
+    },
+    "provenance": {
+      "hazloSano": "🌿 Hazlo Sano",
+      "local": "📍 Local"
+    },
+    "availability": {
+      "soldOut": "Sold out"
     }
   }
 }

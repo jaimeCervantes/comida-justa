@@ -1,9 +1,8 @@
+import { useTranslations } from "next-intl";
 import type { Post } from "~/infra/types/Posts";
 import CardForList from "~/infra/UI/components/CardForList/CardForList";
 import Pagination from "~/infra/UI/components/Pagination";
 import { storePath } from "../../../cuenta/storePath";
-
-export const STORE_EMPTY_MESSAGE = "Esta tienda todavía no ha publicado nada.";
 
 export default function StoreCatalog({
   catalog,
@@ -16,8 +15,9 @@ export default function StoreCatalog({
   currentPage: number;
   totalPages: number;
 }) {
+  const t = useTranslations("store");
   if (catalog.length === 0) {
-    return <p data-testid="store-empty">{STORE_EMPTY_MESSAGE}</p>;
+    return <p data-testid="store-empty">{t("empty")}</p>;
   }
 
   return (

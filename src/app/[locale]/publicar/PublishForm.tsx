@@ -1,4 +1,5 @@
 "use client";
+import { useTranslations } from "next-intl";
 import { useActionState, useCallback, useState } from "react";
 import { MdOutlinePriceChange, MdPhone, MdTitle } from "react-icons/md";
 import type { CategoryOption } from "~/domain/entities/post/taxonomy";
@@ -29,6 +30,7 @@ export default function PublishForm({
   /** Las hijas de cada categoría, para encadenar el segundo selector. */
   subCategoryOptionsByCategory: Record<string, readonly CategoryOption[]>;
 }) {
+  const tVocabulary = useTranslations("vocabulary");
   const [state, createPostAction, isPending] = useActionState<
     ActionState,
     FormData
@@ -166,7 +168,7 @@ export default function PublishForm({
               <option value="">— Sin especificar —</option>
               {ORIGIN_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
-                  {option.label}
+                  {tVocabulary(option.labelKey)}
                 </option>
               ))}
             </select>

@@ -5,7 +5,8 @@ import {
 } from "@testing-library/react";
 import { NextIntlClientProvider } from "next-intl";
 import type { ReactElement, ReactNode } from "react";
-import messages from "~/i18n/messages/es.json";
+import en from "~/i18n/messages/en.json";
+import es from "~/i18n/messages/es.json";
 import { type AppLocale, routing } from "~/i18n/routing";
 
 /**
@@ -15,9 +16,12 @@ import { type AppLocale, routing } from "~/i18n/routing";
  * necesita el provider: sin él, `useLocale()` lanza "No intl context found". En producción lo pone
  * `src/app/[locale]/layout.tsx` una sola vez; en pruebas lo pone esto.
  *
- * Se cargan los mensajes **reales** de `es.json`, no un catálogo de mentira: así una prueba falla
- * si alguien borra la clave que el componente pinta.
+ * Se cargan los catálogos **reales**, no uno de mentira: así una prueba falla si alguien borra la
+ * clave que el componente pinta. Y se carga **el del idioma pedido**, porque si no, un caso
+ * `locale: "en"` seguiría leyendo español y afirmaría algo falso.
  */
+const CATALOGS = { es, en } satisfies Record<AppLocale, unknown>;
+
 export function renderWithIntl(
   ui: ReactElement,
   {
@@ -27,7 +31,7 @@ export function renderWithIntl(
 ): RenderResult {
   function Wrapper({ children }: { children: ReactNode }) {
     return (
-      <NextIntlClientProvider locale={locale} messages={messages}>
+      <NextIntlClientProvider locale={locale} messages={CATALOGS[locale]}>
         {children}
       </NextIntlClientProvider>
     );

@@ -1,10 +1,8 @@
+import { useTranslations } from "next-intl";
 import type { Post } from "~/infra/types/Posts";
 import CardForList from "~/infra/UI/components/CardForList/CardForList";
 import Pagination from "~/infra/UI/components/Pagination";
 import { profilePath } from "../../../cuenta/profilePath";
-
-export const PROFILE_EMPTY_MESSAGE =
-  "Esta persona todavía no ha publicado nada.";
 
 export default function ProfilePublications({
   publications,
@@ -17,8 +15,9 @@ export default function ProfilePublications({
   currentPage: number;
   totalPages: number;
 }) {
+  const t = useTranslations("profile");
   if (publications.length === 0) {
-    return <p data-testid="profile-empty">{PROFILE_EMPTY_MESSAGE}</p>;
+    return <p data-testid="profile-empty">{t("empty")}</p>;
   }
 
   return (

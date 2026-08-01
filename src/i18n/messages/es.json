@@ -104,6 +104,11 @@
       "short": "Emociones / mente / espíritu"
     }
   },
+  "post": {
+    "markSoldOut": "Marcar agotado",
+    "markAvailable": "Marcar disponible",
+    "noImage": "Publicación sin imagen"
+  },
   "privacyPolicy": {
     "title": "Política de Privacidad | Hazlo Sano",
     "description": "Política de Privacidad de Hazlo Sano - Chatbot de Bienestar",
@@ -188,10 +193,16 @@
       "location": "Tezonapa, Veracruz, México"
     }
   },
+  "profile": {
+    "empty": "Esta persona todavía no ha publicado nada."
+  },
   "search": {
     "placeholder": "Buscar...",
     "empty": "Sin resultados",
     "seeAll": "Ver todos los resultados"
+  },
+  "store": {
+    "empty": "Esta tienda todavía no ha publicado nada."
   },
   "termsOfService": {
     "title": "Condiciones de Servicio | Hazlo Sano",
@@ -272,6 +283,24 @@
       "intro": "Para cualquier consulta relacionada con estas Condiciones de Servicio, puedes contactarnos en:",
       "companyName": "Hazlo Sano",
       "location": "Tezonapa, Veracruz, México"
+    }
+  },
+  "vocabulary": {
+    "origin": {
+      "hazlo_sano_propio": "Hazlo Sano — propio",
+      "hazlo_sano_reventa": "Hazlo Sano — reventa",
+      "productor_local": "Productor local",
+      "reventa_local": "Reventa local",
+      "productor_foraneo": "Productor foráneo",
+      "reventa_foranea": "Reventa foránea",
+      "unspecified": "Sin especificar"
+    },
+    "provenance": {
+      "hazloSano": "🌿 Hazlo Sano",
+      "local": "📍 Local"
+    },
+    "availability": {
+      "soldOut": "Agotado"
     }
   }
 }
