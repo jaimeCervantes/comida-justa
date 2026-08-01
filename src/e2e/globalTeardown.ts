@@ -1,6 +1,7 @@
 import {
   countTestData,
   describeTestData,
+  hasTestData,
   sweepTestData,
 } from "./testUtils/testData";
 
@@ -15,14 +16,14 @@ export default async function globalTeardown(): Promise<void> {
   const removed = await sweepTestData();
   const left = await countTestData();
 
-  if (left.posts > 0 || left.categories > 0) {
+  if (hasTestData(left)) {
     throw new Error(
       `[e2e] quedaron ${describeTestData(left)} en la base compartida y el barrido no pudo ` +
         "borrarlas. Revísalas a mano: `SELECT slug FROM post_translations WHERE slug LIKE 'e2e-%'`.",
     );
   }
 
-  if (removed.posts > 0 || removed.categories > 0) {
+  if (hasTestData(removed)) {
     // Que un `afterEach` no haya corrido no rompe la suite, pero conviene saberlo.
     console.warn(
       `[e2e] el barrido final tuvo que borrar ${describeTestData(removed)}: ` +

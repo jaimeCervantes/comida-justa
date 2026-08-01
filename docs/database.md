@@ -81,7 +81,18 @@ migraciones entrelazadas y potencialmente destructivas. Regla:
   consultas del app coincidan con lo que Alembic creó. Nunca corras `drizzle-kit generate`.
 
 > Nota: el backend además tiene su propio dominio de comercio (`products`, `sellers`, `branches`,
-> `ads`, `seller_membership`) para el bot; es distinto de los `posts` de comida-justa.
+> `ads`, `seller_membership`) para el bot. `products` desapareció al unificar el catálogo, y
+> **`sellers` ya la usa el sitio**: es el perfil comercial detrás de `/tienda/<slug>`
+> (`src/infra/dataAccess/db/schema/sellers.ts` es su espejo). `branches` sigue siendo solo del bot
+> hasta el slice de sucursales.
+
+### Migraciones aplicadas desde el sitio
+
+| Migración | Qué agregó | Para qué |
+|---|---|---|
+| `0023` | `posts.seller_id`, `sellers.user_id`, categorías, `is_available`, embeddings | Catálogo unificado |
+| `0026` | Taxonomía centralizada en `categories` | Categorías en la base |
+| `0027` | `sellers.slug`, `users.username` (ambas nullable, con índice único) | Direcciones públicas: `/tienda/<slug>` y, a futuro, `/u/<username>` |
 
 ## Seed de datos (Firestore → PostgreSQL)
 

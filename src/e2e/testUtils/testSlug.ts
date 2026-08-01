@@ -1,4 +1,5 @@
 import PostEntity from "~/domain/entities/post/Post";
+import { generateSellerHandle } from "~/domain/entities/seller/handle";
 
 /**
  * El marcador que distingue un dato sembrado por la suite de uno real.
@@ -51,6 +52,29 @@ export function testPost(name: string): { title: string; slug: string } {
   const title = `E2E ${name} ${unique()}`;
 
   return { title, slug: new PostEntity().generateSlug(title) };
+}
+
+/**
+ * Nombre, dirección y teléfono de una tienda que se da de alta **desde la UI**.
+ *
+ * Mismo trato que `testPost`: el marcador va en el nombre porque es lo único que la prueba
+ * controla, y la dirección se calcula con `generateSellerHandle`, el mismo código que corre al
+ * darse de alta. El teléfono se deriva del mismo contador porque `sellers.phone` es UNIQUE: dos
+ * corridas con el mismo número chocarían contra el índice en vez de contra la aserción.
+ */
+export function testStore(name: string): {
+  name: string;
+  handle: string;
+  phone: string;
+} {
+  const stamp = unique();
+  const storeName = `E2E ${name} ${stamp}`;
+
+  return {
+    name: storeName,
+    handle: generateSellerHandle(storeName),
+    phone: `2789${stamp.slice(-6)}`,
+  };
 }
 
 export function isTestSlug(slug: string | null | undefined): boolean {

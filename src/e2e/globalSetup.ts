@@ -1,4 +1,8 @@
-import { describeTestData, sweepTestData } from "./testUtils/testData";
+import {
+  describeTestData,
+  hasTestData,
+  sweepTestData,
+} from "./testUtils/testData";
 
 /**
  * Una corrida no hereda la basura de otra.
@@ -16,7 +20,7 @@ import { describeTestData, sweepTestData } from "./testUtils/testData";
 export default async function globalSetup(): Promise<void> {
   const removed = await sweepTestData();
 
-  if (removed.posts > 0 || removed.categories > 0) {
+  if (hasTestData(removed)) {
     console.warn(
       `[e2e] se barrieron ${describeTestData(removed)} de una corrida anterior. ` +
         "Si esto se repite, alguna corrida está muriendo antes de limpiar.",

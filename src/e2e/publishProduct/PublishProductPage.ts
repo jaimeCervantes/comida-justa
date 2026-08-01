@@ -8,7 +8,8 @@ type PublishProductValues = {
   phone: string;
   description: string;
   kind: "anuncio" | "producto";
-  origin: string;
+  /** Solo lo ve un admin; se omite cuando quien publica es un vendedor cualquiera. */
+  origin?: string;
 };
 
 /**
@@ -48,9 +49,11 @@ export default class PublishProductPage {
     await this.page
       .getByRole("combobox", { name: /tipo de publicación/i })
       .selectOption(values.kind);
-    await this.page
-      .getByRole("combobox", { name: /procedencia/i })
-      .selectOption(values.origin);
+    if (values.origin) {
+      await this.page
+        .getByRole("combobox", { name: /procedencia/i })
+        .selectOption(values.origin);
+    }
     // Set the file last: it fires a native `change` event that only starts the
     // upload once React has hydrated and attached its onChange handler. Doing it
     // after the controlled fields above guarantees hydration has happened, so the

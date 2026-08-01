@@ -5,7 +5,11 @@ Punto único de entrada para retomar el trabajo. Reúne lo que quedó abierto en
 aparecieron por el camino y no eran de ningún slice. **No sustituye a las bitácoras**: aquí está el
 qué y el por qué se dejó; el detalle de cada decisión sigue en su bitácora.
 
-Última actualización: **2026-07-30**.
+Última actualización: **2026-07-31**.
+
+> **2026-07-31.** Se entregó el slice 1 de `features/vendedores-y-tiendas.md` (alta de vendedor y
+> página pública `/tienda/<handle>`). La base compartida subió a Alembic `0027`. El detalle está en
+> `features/vendedores-y-tiendas-bitacora.md`; lo de abajo sigue vigente salvo donde se indica.
 
 ---
 
@@ -89,19 +93,16 @@ Quedaron fuera del slice 5 **con motivo, no por olvido**:
 Ninguno es de un slice; todos aparecieron validando. Se dejan escritos porque cada uno costó tiempo
 descubrirlo.
 
-### Una publicación sin media devuelve 500 en vez de degradar
+### ~~Una publicación sin media devuelve 500 en vez de degradar~~ *(arreglado el 2026-07-31)*
 
-`src/infra/UI/components/CardForList/CardForList.tsx:35` pasa `media[0]` sin comprobar que exista.
-`MediaContent` protege el acceso al tipo (`media?.type`, línea 23) pero entrega ese mismo `undefined`
-a `DefaultContent`, que lee `media.url` y revienta con
-`Cannot read properties of undefined (reading 'url')`. La página responde 500.
+`MediaContent` recibía `undefined` desde `CardForList` y se lo entregaba a `DefaultContent`, que leía
+`media.url` y reventaba con `Cannot read properties of undefined (reading 'url')`: la página
+respondía 500.
 
-`PostDetail.tsx:35` **sí** se protege (`postDetails.media[0] ?? { url: "", type: "", alt: "" }`), así
-que el detalle degrada y el listado no.
-
-No se llega por el formulario —`/publicar` exige media— pero sí sembrando directo, que es como se
-encontró. Arreglarlo es una línea; se dejó fuera porque no era del slice y porque merece decidir qué
-se pinta cuando no hay media, no solo evitar la excepción.
+Se arregló en el slice 1 de `vendedores-y-tiendas` —el catálogo de una tienda pinta esas mismas
+tarjetas—: ahora `MediaContent` degrada a un marcador ("Publicación sin imagen") cuando falta la URL,
+lo que además cubre el `src=""` que `next/image` no acepta. Cubierto por
+`MediaContent.test.tsx`.
 
 ### Playwright arranca el `webServer` antes que `globalSetup`
 
