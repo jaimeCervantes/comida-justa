@@ -156,25 +156,26 @@
     "goHome": "Go to the home page"
   },
   "pillars": {
-    "sleep": {
-      "title": "Sleep and Rest",
-      "description": "Better sleep hygiene, so your body can actually recover",
-      "short": "Sleep and rest"
-    },
-    "nutrition": {
-      "title": "Natural, Nourishing Food",
-      "description": "A connection to the source: local, real food",
-      "short": "Natural, nourishing food"
+    "mindSpirit": {
+      "title": "Emotions, Mind, Spirit and Community",
+      "description": "Emotional and mental care, and a real connection with others",
+      "short": "Emotions / mind / spirit"
     },
     "movement": {
       "title": "Exercise and Movement",
       "description": "Push back on a sedentary life with functional activity",
       "short": "Movement or exercise"
     },
-    "mindSpirit": {
-      "title": "Emotions, Mind, Spirit and Community",
-      "description": "Emotional and mental care, and a real connection with others",
-      "short": "Emotions / mind / spirit"
+    "nutrition": {
+      "title": "Natural, Nourishing Food",
+      "description": "A connection to the source: local, real food",
+      "short": "Natural, nourishing food"
+    },
+    "references": "References",
+    "sleep": {
+      "title": "Sleep and Rest",
+      "description": "Better sleep hygiene, so your body can actually recover",
+      "short": "Sleep and rest"
     }
   },
   "post": {

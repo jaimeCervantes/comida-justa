@@ -156,25 +156,26 @@
     "goHome": "Ir al inicio"
   },
   "pillars": {
-    "sleep": {
-      "title": "Sueño y Descanso",
-      "description": "Optimizar la higiene del sueño para tu recuperación biológica",
-      "short": "Sueño y descanso"
-    },
-    "nutrition": {
-      "title": "Alimentación natural y nutritiva",
-      "description": "Conexión con el origen, alimentos locales y reales",
-      "short": "Alimentación natural y nutritiva"
+    "mindSpirit": {
+      "title": "Emociones, Mente, Espíritu y Comunidad",
+      "description": "Gestión emocional, mental y una clara conexión con los demás",
+      "short": "Emociones / mente / espíritu"
     },
     "movement": {
       "title": "Ejercicio y Movimiento",
       "description": "Combatir el sedentarismo con actividad física funcional",
       "short": "Movimiento o ejercicio"
     },
-    "mindSpirit": {
-      "title": "Emociones, Mente, Espíritu y Comunidad",
-      "description": "Gestión emocional, mental y una clara conexión con los demás",
-      "short": "Emociones / mente / espíritu"
+    "nutrition": {
+      "title": "Alimentación natural y nutritiva",
+      "description": "Conexión con el origen, alimentos locales y reales",
+      "short": "Alimentación natural y nutritiva"
+    },
+    "references": "Referencias",
+    "sleep": {
+      "title": "Sueño y Descanso",
+      "description": "Optimizar la higiene del sueño para tu recuperación biológica",
+      "short": "Sueño y descanso"
     }
   },
   "post": {
