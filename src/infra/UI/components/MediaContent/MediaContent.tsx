@@ -12,7 +12,16 @@ interface MediaContentProps {
   className?: string;
 }
 
-export default function MediaContent({ media, className }: MediaContentProps) {
+export const NO_MEDIA_MESSAGE = "Publicación sin imagen";
+
+export default function MediaContent({
+  media,
+  className,
+}: {
+  /** Puede faltar: una publicación sembrada o migrada sin media es un caso real. */
+  media: MediaItem | undefined;
+  className?: string;
+}) {
   const contentTypes: Record<string, ComponentType<MediaContentProps>> = {
     video: VideoContent,
     image: ImageContent,
@@ -20,7 +29,21 @@ export default function MediaContent({ media, className }: MediaContentProps) {
     default: DefaultContent,
   };
 
-  const ContentRenderer = contentTypes[media?.type] || contentTypes.default;
+  // Sin URL no hay nada que pintar y `next/image` lanzaría con `src=""`. Antes se dejaba pasar
+  // el `undefined` a `DefaultContent`, que leía `media.url` y tumbaba el listado entero con un
+  // 500 (ver `docs/pendientes.md`).
+  if (!media?.url) {
+    return (
+      <div
+        data-testid="media-placeholder"
+        className={`sj-media-wrapper flex items-center justify-center bg-gray-100 dark:bg-gray-800 text-gray-500 ${className || ""}`}
+      >
+        {NO_MEDIA_MESSAGE}
+      </div>
+    );
+  }
+
+  const ContentRenderer = contentTypes[media.type] || contentTypes.default;
 
   return (
     <div className="sj-media-wrapper">
