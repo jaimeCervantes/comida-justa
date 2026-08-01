@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "~/i18n/navigation";
 import { PAGINATION_INIT_PAGE, PAGINATION_PAGE_SIZE } from "~/infra/constants";
@@ -21,6 +22,7 @@ export default function PostsWithLoadMore({
   /** Viaja al endpoint para que las páginas siguientes traigan la etiqueta en el mismo idioma. */
   locale: string;
 }) {
+  const t = useTranslations("feed");
   const [posts, setPosts] = useState<Post[]>(initialPosts);
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(initialPage);
@@ -80,7 +82,7 @@ export default function PostsWithLoadMore({
     <>
       <section className="grid grid-flow-dense gap-4 pt-6 max-sm:grid-cols-[repeat(auto-fill,minmax(300px,1fr))] sm:grid-cols-[repeat(auto-fill,minmax(300px,1fr))]">
         {posts.length === 0 ? (
-          <p>No hay comidas publicadas aún.</p>
+          <p>{t("empty")}</p>
         ) : (
           posts.map((post: Post) => {
             return <CardForList {...post} key={post.id} />;
@@ -90,30 +92,28 @@ export default function PostsWithLoadMore({
 
       <div ref={loaderRef} className="flex justify-center mt-8 py-4">
         {loading ? (
-          <p className="text-gray-500">Cargando más...</p>
+          <p className="text-gray-500">{t("loadingMore")}</p>
         ) : hasMore ? (
           <button
             type="button"
             onClick={loadMorePosts}
             className="bg-pw-lightgreen text-white px-5 py-2 rounded-full hover:bg-pw-green transition-colors"
           >
-            Cargar más
+            {t("loadMore")}
           </button>
         ) : (
           posts.length > initialPosts.length && (
-            <p className="text-gray-500">
-              No hay más publicaciones disponibles
-            </p>
+            <p className="text-gray-500">{t("noMore")}</p>
           )
         )}
       </div>
 
       {/* Enlaces de paginación ocultos para SEO */}
-      <nav aria-label="Paginación" className="sr-only">
+      <nav aria-label={t("paginationLabel")} className="sr-only">
         <ul>
           {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
             <li key={`page-${page}`}>
-              <Link href={`/page/${page}`}>Página {page}</Link>
+              <Link href={`/page/${page}`}>{t("page", { page })}</Link>
             </li>
           ))}
         </ul>

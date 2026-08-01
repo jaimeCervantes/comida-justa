@@ -1,8 +1,21 @@
 {
+  "comments": {
+    "loadingMore": "Cargando más comentarios...",
+    "loadMore": "Cargar más comentarios"
+  },
   "common": {
     "title": "❤️💚 Hazlo sano: Cuando cuidas tu salud, también estás cuidando lo más valioso que tienes: tu tiempo. Tu recurso máximo no renovable.",
     "description": "❤️💚 Hazlo sano: Cuando cuidas tu salud, también estás cuidando lo más valioso que tienes: tu tiempo. Tu recurso máximo no renovable.",
-    "logoAlt": "Logo {brand}"
+    "logoAlt": "Logo {brand}",
+    "loading": "Cargando..."
+  },
+  "feed": {
+    "empty": "No hay comidas publicadas aún.",
+    "loadingMore": "Cargando más...",
+    "loadMore": "Cargar más",
+    "noMore": "No hay más publicaciones disponibles",
+    "paginationLabel": "Paginación",
+    "page": "Página {page}"
   },
   "footer": {
     "tagline": "No somos solo una aplicación, somos todo un ecosistema de iniciativas diseñadas para que vivir sano sea la opción más fácil para todos.",

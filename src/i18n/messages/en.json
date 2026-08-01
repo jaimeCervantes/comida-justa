@@ -1,8 +1,21 @@
 {
+  "comments": {
+    "loadingMore": "Loading more comments…",
+    "loadMore": "Load more comments"
+  },
   "common": {
     "title": "❤️💚 Just Health: When you take care of your health, you're also protecting the most valuable thing you have: your time. Your ultimate non-renewable resource.",
     "description": "❤️💚 Just Health: When you take care of your health, you're also protecting the most valuable thing you have: your time. Your ultimate non-renewable resource.",
-    "logoAlt": "{brand} logo"
+    "logoAlt": "{brand} logo",
+    "loading": "Loading…"
+  },
+  "feed": {
+    "empty": "No food has been published yet.",
+    "loadingMore": "Loading more…",
+    "loadMore": "Load more",
+    "noMore": "There are no more publications",
+    "paginationLabel": "Pagination",
+    "page": "Page {page}"
   },
   "footer": {
     "tagline": "We are not just an app. We are a whole ecosystem of initiatives built to make living healthy the easiest option for everyone.",

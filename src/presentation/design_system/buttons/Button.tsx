@@ -1,6 +1,7 @@
 "use client";
 
 import { cva, type VariantProps } from "class-variance-authority";
+import { useTranslations } from "next-intl";
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 import { useState } from "react";
 import { BiLoaderAlt } from "react-icons/bi";
@@ -57,6 +58,7 @@ export function Button({
   showLoader,
   ...moreProps
 }: ButtonProps) {
+  const t = useTranslations("common");
   const [internalLoading, setInternalLoading] = useState(false);
 
   const handleClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -94,7 +96,7 @@ export function Button({
         {isBtnLoading && (
           <BiLoaderAlt
             className="motion-safe:animate-spin h-5 w-5"
-            title="Cargando..."
+            title={t("loading")}
           />
         )}
         {endIcon && endIcon}

@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import type { Comment, PostUser } from "~/infra/types/Posts";
 import Avatar from "~/infra/UI/components/Avatar/Avatar";
@@ -17,6 +18,7 @@ export default function CommentList({
   user: PostUser | undefined;
   initialComments: Comment[];
 }) {
+  const t = useTranslations("comments");
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [loadMoreMessage, setLoadMoreMessage] = useState<string | null>(null);
@@ -79,7 +81,7 @@ export default function CommentList({
         className="mt-4 bg-blue-500 text-white px-4 py-2 rounded-sm"
         disabled={loading}
       >
-        {loading ? "Cargando más comentarios..." : "Cargar más comentarios"}
+        {loading ? t("loadingMore") : t("loadMore")}
       </button>
 
       {loadMoreMessage && <p className="mt-2">{loadMoreMessage}</p>}

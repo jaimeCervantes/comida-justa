@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { Link } from "~/i18n/navigation";
 
 interface PaginationProps {
@@ -11,6 +12,7 @@ export default function Pagination({
   totalPages,
   basePath,
 }: PaginationProps) {
+  const t = useTranslations("feed");
   if (totalPages <= 1) return null;
 
   // Calculate page range (max 5 pages, centered)
@@ -24,7 +26,10 @@ export default function Pagination({
   }
 
   return (
-    <nav aria-label="Paginación" className="flex justify-center mt-8 space-x-4">
+    <nav
+      aria-label={t("paginationLabel")}
+      className="flex justify-center mt-8 space-x-4"
+    >
       {currentPage > 1 && (
         <Link
           href={`${basePath}/${currentPage - 1}`}
