@@ -112,21 +112,28 @@ El corte más pequeño que ya sirve para vender: existir como vendedor y tener u
 6. Un usuario que ya es vendedor ve su tienda en `/cuenta`, no el formulario otra vez.
 7. `/tienda/no-existe` responde 404.
 
-### Slice 2 — Pedir por WhatsApp  *(siguiente)*
+### Slice 2 — Pedir por WhatsApp  *(entregado)*
 
-Lo único que hoy convierte una visita en venta. El detalle solo ofrece un `tel:`.
+Lo único que hoy convierte una visita en venta. El detalle solo ofrecía un `tel:`.
 
-- Botón en el detalle del producto y en la tienda que abre WhatsApp con el mensaje ya escrito
-  (producto, precio y enlace). Se reutiliza `legacyWhatsapp` de
-  `src/domain/entities/post/legacyCatalog.ts`, que ya normaliza el teléfono a 10 dígitos con lada.
-- El número sale de `posts.contact_whatsapp`, y si falta, del teléfono de la tienda.
+- **"Pedir por WhatsApp"** en el detalle de un producto, con el mensaje ya escrito (título, precio
+  y enlace a la publicación). Solo en `kind = producto`: un anuncio no tiene nada que encargar.
+- **"Escribir por WhatsApp"** en la tienda, para preguntar sin haber elegido producto.
+- El número sale de `posts.contact_whatsapp` y, si falta, de `posts.contact_phone`.
+
+> **Desviación con motivo.** El plan decía caer al teléfono de la tienda. Consultando la base,
+> **las 24 publicaciones tienen `contact_phone`** (y solo 13 tienen `contact_whatsapp`), así que ese
+> tercer nivel sería código inalcanzable, y habría costado un JOIN a `sellers` en el detalle. La
+> regla "sin número no hay botón" se conserva y vive en un solo lugar: `whatsappLink` devuelve
+> `null` y `WhatsappButton` no pinta nada.
 
 **Criterios de aceptación:**
-1. El botón abre `wa.me` con el título y el precio del producto en el mensaje.
-2. Un producto sin WhatsApp propio usa el teléfono de su tienda.
-3. Sin ningún teléfono utilizable, el botón no se pinta (no se ofrece un enlace roto).
+1. El botón abre `wa.me` con el título y el precio del producto en el mensaje. ✅
+2. Un producto sin WhatsApp propio usa el teléfono de la publicación. ✅
+3. Sin ningún teléfono utilizable, el botón no se pinta (no se ofrece un enlace roto). ✅
+4. Un anuncio no ofrece el botón de pedir. ✅
 
-### Slice 3 — Sucursales con ubicación  *(futuro)*
+### Slice 3 — Sucursales con ubicación  *(siguiente)*
 
 Lo que hace que al vendedor **lo encuentren**: sin `branches.location` el bot solo puede recomendarlo
 en el fallback sin geo, aunque el cliente esté a dos calles.
@@ -185,7 +192,8 @@ vender. Revisar antes de promocionar tiendas de terceros.
 ## Enfoque de pruebas
 
 - **Unit (Vitest):** handle (normalización, longitud, reservadas) con `Scenario Outline`; caso de uso
-  `becomeSeller` contra un repositorio falso (ya vendedor, handle tomado, teléfono tomado).
+  `becomeSeller` contra un repositorio falso (ya vendedor, handle tomado, teléfono tomado); armado
+  del enlace de WhatsApp (número, mensaje, codificación y el caso sin número).
 - **Component (Vitest):** `MediaContent` sin media; cabecera y estado vacío de la tienda.
 - **Behavior (Playwright):** `src/e2e/sellerStore/sellerStore.feature`. Solo los escenarios del slice
   actual están detallados y conectados; los demás llevan `@future` y no corren en CI.

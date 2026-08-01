@@ -1,8 +1,18 @@
 import Image from "next/image";
 import { MdPhone } from "react-icons/md";
 import type { Seller } from "~/domain/entities/seller/types";
+import { buildWhatsappStoreLink } from "~/domain/entities/seller/whatsappContact";
+import { PUBLIC_BASE_URL } from "~/infra/constants";
+import WhatsappButton from "~/infra/UI/components/WhatsappButton/WhatsappButton";
+import { storePath } from "../../../cuenta/storePath";
 
 export default function StoreHeader({ seller }: { seller: Seller }) {
+  const contactLink = buildWhatsappStoreLink({
+    storeName: seller.name,
+    url: `${PUBLIC_BASE_URL}${storePath(seller.handle ?? "")}`,
+    phone: seller.phone,
+  });
+
   return (
     <header className="mb-6">
       <div className="flex items-center gap-4">
@@ -36,6 +46,14 @@ export default function StoreHeader({ seller }: { seller: Seller }) {
           {seller.phone}
         </a>
       </p>
+
+      <WhatsappButton
+        href={contactLink}
+        className="mt-4"
+        testId="whatsapp-store"
+      >
+        Escribir por WhatsApp
+      </WhatsappButton>
     </header>
   );
 }

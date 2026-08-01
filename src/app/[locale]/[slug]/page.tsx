@@ -28,6 +28,7 @@ export default async function Slug({
         className="sm:w-[50%] mb-4"
         user={session?.user as PostUser}
         locale={locale}
+        slug={slug}
       />
       <aside>
         <h2 className="text-3xl font-bold">Comida Relacionada</h2>

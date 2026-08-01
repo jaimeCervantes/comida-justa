@@ -1,3 +1,4 @@
+import { toWhatsappNumber } from "~/domain/shared/whatsappLink";
 import type { PostOrigin } from "./origin";
 
 /**
@@ -69,15 +70,12 @@ export function legacySubCategory(
 /**
  * El teléfono del vendedor se guarda a 10 dígitos y el enlace de WhatsApp necesita lada de país.
  * Si el número ya la trae, se respeta tal cual.
+ *
+ * @see toWhatsappNumber — la misma regla que usa el botón de pedido; se comparte para que no se
+ * separen el día que cambie.
  */
 export function legacyWhatsapp(
   phone: string | null | undefined,
 ): string | null {
-  const digits = (phone ?? "").replace(/\D/g, "");
-
-  if (!digits) return null;
-
-  return digits.startsWith(MEXICO_COUNTRY_CODE)
-    ? digits
-    : `${MEXICO_COUNTRY_CODE}${digits}`;
+  return toWhatsappNumber(phone);
 }

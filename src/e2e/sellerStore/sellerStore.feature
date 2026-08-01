@@ -86,17 +86,38 @@ Feature: Vendedores y tiendas
     When un visitante abre "/tienda/no-existe"
     Then la respuesta es 404
 
-  @slice-2 @future
+  @slice-2
   Scenario: El comprador pide por WhatsApp con el mensaje ya escrito
-    Given un producto "Jugo Verde" a 40 en la tienda "Hazlo Sano"
-    When el comprador toca "Pedir por WhatsApp"
-    Then se abre wa.me con el nombre del producto, su precio y el enlace a la publicación
+    Given el producto "Jugo Verde" a 40, con WhatsApp "522781126948"
+    When el comprador abre su detalle
+    Then "Pedir por WhatsApp" apunta a wa.me/522781126948
+    And el mensaje ya trae "Jugo Verde", "$40" y el enlace a la publicación
 
-  @slice-2 @future
-  Scenario: Sin ningún teléfono utilizable no se ofrece un enlace roto
-    Given un producto sin WhatsApp propio y una tienda sin teléfono
-    When el comprador abre el detalle
-    Then el botón de WhatsApp no se muestra
+  @slice-2
+  Scenario: Desde la tienda se le puede escribir al vendedor sin elegir producto
+    Given la tienda "Hazlo Sano" con teléfono "2781126948"
+    When el comprador abre "/tienda/hazlo-sano"
+    Then "Escribir por WhatsApp" apunta a wa.me/522781126948 con el nombre de la tienda
+
+  @slice-2
+  Scenario: Un anuncio no ofrece el botón de pedir
+    Given una publicación de tipo anuncio, que no se vende
+    When el comprador abre su detalle
+    Then no hay botón de "Pedir por WhatsApp"
+
+  @slice-2 @component
+  Scenario Outline: El teléfono del pedido sale del primero que sirva
+    # Cubierto por Vitest: hoy las 24 publicaciones tienen `contact_phone`, así que el caso
+    # "ninguno" no se puede montar contra la base sin inventar un dato que no existe.
+    Given una publicación con WhatsApp "<whatsapp>" y teléfono "<telefono>"
+    When se arma el enlace de pedido
+    Then queda "<enlace>"
+
+    Examples:
+      | whatsapp     | telefono   | enlace                | razón                                   |
+      | 522781126948 | 2781126948 | wa.me/522781126948    | el WhatsApp propio manda                |
+      |              | 2781092116 | wa.me/522781092116    | sin WhatsApp, el teléfono de la publicación |
+      |              |            | (ningún botón)        | no se ofrece un enlace roto             |
 
   @slice-3 @future
   Scenario: Doy de alta mi sucursal pegando el link de Google Maps

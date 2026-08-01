@@ -152,3 +152,111 @@ prueba. Vender todavía significa "aquí está el teléfono": el botón de Whats
   `bot-whatsapp/backend`, este último con la migración que ya se aplicó a la base).
 - Revisar el plan de Vercel antes de promocionar tiendas de terceros: el Hobby es para uso no
   comercial y el sitio va a vender.
+
+---
+
+## Slice 2 — Pedir por WhatsApp (2026-07-31)
+
+### Objetivo
+
+Que la página deje de ser un escaparate y sea un camino de venta: un botón que abre WhatsApp con el
+mensaje ya escrito. Hasta ahora el detalle solo ofrecía un `tel:`, que en un teléfono con WhatsApp
+es el camino más largo hacia la misma conversación.
+
+### Decisiones y por qué
+
+**El respaldo al teléfono de la tienda se cayó, y por dato, no por pereza.** El roadmap decía
+`contact_whatsapp` → teléfono de la tienda. Consultando la base antes de escribir el código: **las
+24 publicaciones tienen `contact_phone`** y 13 tienen `contact_whatsapp`. Ese tercer nivel nunca se
+ejecutaría con los datos que existen, y habría costado un JOIN a `sellers` en el detalle para una
+rama muerta. Quedó `contact_whatsapp` → `contact_phone`, que cubre el 100% del catálogo actual.
+
+**"Sin número no hay botón" vive en un solo lugar.** `whatsappLink` devuelve `null` y
+`WhatsappButton` no pinta nada cuando lo recibe. Así la regla no se repite en cada pantalla, que es
+justo donde se olvidaría.
+
+**La normalización se compartió en vez de duplicarse.** `legacyWhatsapp` ya sabía poner la lada
+mexicana; ahora delega en `toWhatsappNumber` (`src/domain/shared/whatsappLink.ts`), el mismo camino
+que usa el botón. La base guarda las dos formas —`contact_phone` a 10 dígitos y `contact_whatsapp`
+ya con el `52` desde la migración del catálogo—, y unificarlas en un solo lugar evita que se
+separen. Mismo criterio que `slugify` en el slice 1.
+
+**El mensaje lleva el enlace, no solo el título.** Del otro lado hay una persona atendiendo varias
+conversaciones a la vez: "Pan de masa madre" no le dice cuál de sus tres panes le están pidiendo.
+
+**Pedido y contacto son dos intenciones distintas.** En el detalle se pide un producto concreto
+(`buildWhatsappOrderLink`); en la tienda todavía se está preguntando
+(`buildWhatsappStoreLink`), y nombrar un producto que el comprador no eligió sería ruido. Por eso
+son dos funciones y dos textos, no un parámetro opcional.
+
+**El botón solo sale en `kind = producto`.** Un anuncio no tiene nada que encargar.
+
+### Archivos tocados
+
+- **Dominio:** `src/domain/shared/whatsappLink.ts` (+ prueba); `src/domain/entities/post/whatsappOrder.ts` (+ prueba); `src/domain/entities/seller/whatsappContact.ts`; `legacyCatalog.ts` delega la normalización.
+- **UI:** `src/infra/UI/components/WhatsappButton/` (+ prueba).
+- **App:** `PostDetail` arma el pedido y recibe el `slug` de la ruta; `StoreHeader` arma el contacto de la tienda.
+- **e2e:** `src/e2e/sellerStore/whatsappOrder.spec.ts`; escenarios del slice 2 detallados en `sellerStore.feature`.
+
+### Comandos
+
+```sh
+pnpm run typecheck && pnpm run lint && pnpm run test:run
+pnpm exec playwright test src/e2e/sellerStore --reporter=list
+pnpm run test:e2e:run
+```
+
+### Validación
+
+| Comando | Resultado |
+|---|---|
+| `pnpm run typecheck` | limpio |
+| `pnpm run lint` | limpio |
+| `pnpm run test:run` | **356 pruebas en 41 archivos**, todas verdes (+19) |
+| `playwright test src/e2e/sellerStore` | **11 escenarios verdes** (8 del slice 1 + 3 del slice 2) |
+| `pnpm run test:e2e:run` | **38 escenarios pasados, 3 saltados, 0 fallidos** |
+
+Dos de los tres escenarios nuevos corren **contra datos reales** (`Jugo Verde` a $40 con su WhatsApp,
+y la tienda `hazlo-sano`): no siembran nada, así que tampoco tienen nada que limpiar. El tercero
+siembra un anuncio con prefijo `e2e-` y lo borra en su `afterEach`.
+
+### Desviaciones del roadmap
+
+- El respaldo al teléfono de la tienda no se implementó (ver arriba). El criterio 2 se reescribió en
+  el roadmap para decir lo que el código hace y por qué.
+
+### Pendientes que deja
+
+- La tarjeta del listado no lleva botón de WhatsApp; hoy hay que entrar al detalle. Se dejó fuera
+  para no meter ruido en cada rejilla del sitio (feed, `/productos`, tienda), pero para la tienda
+  podría valer la pena y es barato.
+- El mensaje va siempre en español, como el resto del contenido.
+
+### Recap
+
+Vender ya es un botón: en el detalle de un producto, "Pedir por WhatsApp" abre la conversación con
+el título, el precio y el enlace ya escritos; en la tienda, "Escribir por WhatsApp" hace lo mismo sin
+elegir producto. El número sale del WhatsApp de la publicación o, si falta, de su teléfono, y cuando
+no hay ninguno simplemente no se pinta el botón. Con el slice 1, el camino completo existe: el
+vendedor se da de alta, publica, y su cliente le escribe desde la página. Falta que lo **encuentren**
+por cercanía, que es el slice 3.
+
+### Próximos pasos (opciones)
+
+1. **Slice 3 — Sucursales con ubicación.** El siguiente cuello de botella real: sin
+   `branches.location` el bot solo recomienda en el fallback sin geo. Requiere extraer coordenadas
+   del link de Google Maps (resolviendo el redirect de `maps.app.goo.gl`) y "usar mi ubicación
+   actual" como alternativa.
+2. **Botón de WhatsApp en las tarjetas de la tienda.** Pequeño; acorta el camino a la venta en el
+   listado que sí es comercial, sin tocar el feed general.
+3. **Slice 5 adelantado — marcar agotado.** `posts.is_available` sigue sin UI: se puede pedir por
+   WhatsApp algo que ya se acabó, y el bot lo sigue recomendando. Ahora que hay botón de pedido,
+   esto pesa más que antes.
+
+**Acciones pendientes de tu parte:**
+
+- **Vincular la tienda "Hazlo Sano" a la cuenta de `jaime.cervantes.ve@gmail.com`**: el `UPDATE` lo
+  bloqueó el clasificador de permisos por ser escritura sobre la base compartida. Es una sola
+  sentencia: `UPDATE sellers SET user_id = (SELECT id FROM users WHERE email =
+  'jaime.cervantes.ve@gmail.com') WHERE slug = 'hazlo-sano';`
+- Revisar el plan de Vercel antes de promocionar tiendas de terceros.
