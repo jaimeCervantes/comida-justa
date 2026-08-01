@@ -34,6 +34,7 @@ export const LoadingInteraction: StoryObj<typeof meta> = {
     ...Default.args,
     isLoading: true,
     children: "Publicar",
+    loadingLabel: "Cargando...",
   },
   async play({ canvasElement }) {
     const canvas = within(canvasElement);

@@ -1,6 +1,6 @@
+import { render } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import { renderWithIntl as render } from "~/infra/test-utils/renderWithIntl";
 
 import { Button } from "./Button";
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useRouter } from "~/i18n/navigation";
 import {
   Button,
@@ -15,6 +16,7 @@ export default function LinkButton({
   onClick,
   ...props
 }: LinkButtonProps) {
+  const t = useTranslations("common");
   const router = useRouter();
 
   const handleClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -30,5 +32,14 @@ export default function LinkButton({
     router.push(href);
   };
 
-  return <Button {...props} showLoader onClick={handleClick} />;
+  /* Este es el botón que más se ve girando sin texto propio (el "Publicar" del header, que en
+     móvil es solo un icono), así que es el que gana con una etiqueta de carga traducida. */
+  return (
+    <Button
+      {...props}
+      showLoader
+      loadingLabel={t("loading")}
+      onClick={handleClick}
+    />
+  );
 }

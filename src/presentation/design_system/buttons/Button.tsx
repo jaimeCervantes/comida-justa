@@ -1,7 +1,6 @@
 "use client";
 
 import { cva, type VariantProps } from "class-variance-authority";
-import { useTranslations } from "next-intl";
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 import { useState } from "react";
 import { BiLoaderAlt } from "react-icons/bi";
@@ -42,6 +41,18 @@ export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> &
     endIcon?: ReactNode;
     isLoading?: boolean;
     showLoader?: boolean;
+    /**
+     * Texto del `title` de la ruedita de carga.
+     *
+     * Se recibe como prop y **no** se lee del catálogo aquí a propósito. El design system tiene que
+     * poder renderizarse en cualquier parte, y hay un sitio del árbol que vive fuera del
+     * `NextIntlClientProvider`: `src/app/not-found.tsx`, que está fuera de `[locale]`. Cuando este
+     * botón llamaba a `useTranslations`, ese 404 pasaba a ser un 500. Lo mismo pasaría el día que
+     * se añada un `global-error.tsx`, que también renderiza fuera de todo proveedor.
+     *
+     * Sin este prop no se pinta `title`: mejor sin etiqueta que con una en el idioma equivocado.
+     */
+    loadingLabel?: string;
   };
 
 export function Button({
@@ -56,9 +67,9 @@ export function Button({
   endIcon,
   isLoading,
   showLoader,
+  loadingLabel,
   ...moreProps
 }: ButtonProps) {
-  const t = useTranslations("common");
   const [internalLoading, setInternalLoading] = useState(false);
 
   const handleClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -96,7 +107,7 @@ export function Button({
         {isBtnLoading && (
           <BiLoaderAlt
             className="motion-safe:animate-spin h-5 w-5"
-            title={t("loading")}
+            title={loadingLabel}
           />
         )}
         {endIcon && endIcon}

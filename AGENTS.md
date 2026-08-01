@@ -99,6 +99,14 @@ Spanish URLs are already indexed — do **not** move them to `/es/…`. See `doc
   you cannot find with grep is a key that gets lost.
 - Component tests that render anything using the navigation wrappers or translations must render
   through `renderWithIntl` from `src/infra/test-utils/renderWithIntl.tsx`.
+- **`src/presentation/design_system/` must never call `useTranslations`.** It has to be renderable
+  anywhere, and part of the tree sits outside `NextIntlClientProvider` — `src/app/not-found.tsx`
+  lives outside `[locale]`, and a future `global-error.tsx` would too. A design-system component
+  that reaches for the catalog turns those pages into a 500. Take the string as a prop instead
+  (see `loadingLabel` on `Button`) and let the caller translate it.
+- `src/app/not-found.tsx` is the one page deliberately outside the locale tree: it answers URLs that
+  match no route at all, has no `[locale]` segment to read, and stays in the default language. Do
+  not add translations or locale-aware navigation to it.
 
 ## Runtime rules
 
