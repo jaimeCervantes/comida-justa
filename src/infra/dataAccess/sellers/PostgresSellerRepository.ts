@@ -4,6 +4,8 @@ import { db } from "~/infra/dataAccess/db/connection";
 import { sellers } from "~/infra/dataAccess/db/schema/sellers";
 import type ISellerRepository from "~/use_cases/becomeSeller/ports/ISellerRepository";
 import type { NewSeller } from "~/use_cases/becomeSeller/ports/ISellerRepository";
+import type ISellerProfileRepository from "~/use_cases/updateSellerProfile/ports/ISellerProfileRepository";
+import type { SellerProfileUpdate } from "~/use_cases/updateSellerProfile/ports/ISellerProfileRepository";
 
 /**
  * `sellers.category` es `NOT NULL` y pertenece a la taxonomía del chatbot (el único valor en uso
@@ -23,7 +25,9 @@ const SELLER_COLUMNS = {
   userId: sellers.userId,
 };
 
-export class PostgresSellerRepository implements ISellerRepository {
+export class PostgresSellerRepository
+  implements ISellerRepository, ISellerProfileRepository
+{
   async findByUserId(userId: string): Promise<Seller | null> {
     return this.findOneBy(eq(sellers.userId, userId));
   }
@@ -49,6 +53,26 @@ export class PostgresSellerRepository implements ISellerRepository {
         url: seller.url,
         userId: seller.userId,
       })
+      .returning(SELLER_COLUMNS);
+
+    return row;
+  }
+
+  /** `slug` queda fuera del `UPDATE`: la dirección es inmutable por decisión, no por olvido. */
+  async updateProfile(
+    sellerId: string,
+    update: SellerProfileUpdate,
+  ): Promise<Seller> {
+    const [row] = await db
+      .update(sellers)
+      .set({
+        name: update.name,
+        phone: update.phone,
+        description: update.description,
+        url: update.url,
+        logoUrl: update.logoUrl,
+      })
+      .where(eq(sellers.id, sellerId))
       .returning(SELLER_COLUMNS);
 
     return row;

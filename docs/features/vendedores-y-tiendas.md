@@ -192,6 +192,45 @@ en el fallback sin geo, aunque el cliente esté a dos calles.
 3. Nadie puede editar la publicación de otro. ✅ *(404, no 403)*
 4. Su dueño sigue viendo lo agotado, para poder volver a ofrecerlo. ✅
 
+### Slice 6 — Editar la ficha de la tienda  *(actual)*
+
+Hoy la ficha se llena una vez, al darse de alta, y **nunca más**: `logo_url`, `url` y `description`
+existen en la base, se leen en la tienda… y no hay forma de escribirlas después. Un vendedor que
+cambia de teléfono, consigue logo o quiere corregir su descripción no puede hacer nada.
+
+- Formulario en `/cuenta` para nombre, teléfono, descripción, sitio web y logo.
+- El logo reutiliza el mismo subidor de `/publicar`, que sube a Cloud Storage; se mueve a
+  `src/infra/UI/components/` porque pasa a tener dos consumidores.
+- La tienda muestra el sitio web, que hasta ahora se guardaba sin pintarse en ninguna parte.
+- **Sin migración:** las cinco columnas existen desde que el chatbot creó la tabla.
+
+**Criterios de aceptación:**
+1. Un vendedor cambia descripción y sitio web, y su tienda lo refleja.
+2. El teléfono nuevo se valida igual que al darse de alta, y si es de otra tienda se rechaza.
+3. Cambiar el teléfono al **mismo** que ya tenía no se confunde con un duplicado.
+4. Nadie puede editar la ficha de otra tienda.
+5. La dirección (`slug`) no se toca en este formulario: eso es el slice 7.
+
+### Renombrar direcciones — *descartado (2026-08-01)*
+
+Se evaluó y **no se hace**: la dirección de una tienda (`sellers.slug`) y la de una persona
+(`users.username`) siguen siendo inmutables.
+
+**Por qué.** La duda era si el 308 penaliza en buscadores. No: Google trata 301 y 308 igual —ambas
+son redirecciones permanentes y consolidan las señales hacia la URL nueva—, así que el código de
+estado no era el problema. Lo que cuesta es **renombrar**: hay que esperar a que el buscador
+re-rastree la dirección vieja, las posiciones oscilan mientras tanto, y las vistas previas ya
+cacheadas por WhatsApp o Facebook tardan en refrescarse.
+
+Frente a eso, el slice 6 deja cambiar el **nombre visible** de la tienda sin tocar la URL, que
+resuelve el caso real (escribirlo mal, corregir mayúsculas) con cero costo. Renombrar la dirección
+solo haría falta si el negocio cambia de nombre de verdad, y entonces se paga una migración
+(`handle_history`), un 308 de un solo salto hacia la dirección actual y la regla de no ceder nunca
+una dirección que fue de otro. Queda escrito por si ese día llega.
+
+**Consecuencia asumida:** un negocio que se renombre conserva su URL original. A cambio, ningún
+enlace repartido muere jamás.
+
 ## Riesgos
 
 | Riesgo | Mitigación |

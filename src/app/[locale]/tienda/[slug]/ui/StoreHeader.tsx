@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { MdPhone } from "react-icons/md";
+import { MdLink, MdPhone } from "react-icons/md";
 import type { Seller } from "~/domain/entities/seller/types";
 import { buildWhatsappStoreLink } from "~/domain/entities/seller/whatsappContact";
 import { PUBLIC_BASE_URL } from "~/infra/constants";
@@ -54,6 +54,19 @@ export default function StoreHeader({
               {seller.phone}
             </a>
           </p>
+
+          {seller.url ? (
+            <a
+              href={seller.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              data-testid="store-url"
+              className="flex items-center text-pw-lightgreen hover:underline"
+            >
+              <MdLink className="mr-2" size="24" aria-hidden />
+              {seller.url.replace(/^https?:\/\//, "")}
+            </a>
+          ) : null}
 
           <WhatsappButton
             href={contactLink}

@@ -204,3 +204,35 @@ Feature: Vendedores y tiendas
       | producto | true       | no       | sí    |
       | producto | false      | sí       | no    |
       | anuncio  | false      | no       | no    |
+
+  @slice-6
+  Scenario: Corrijo la ficha de mi tienda y se ve al instante
+    Given que soy vendedor de "Panadería La Luz", sin descripción ni sitio web
+    When en "/cuenta" escribo la descripción y "https://panaderialaluz.mx"
+    Then mi tienda muestra los dos
+
+  @slice-6
+  Scenario Outline: El teléfono se revisa igual que al darse de alta
+    Given que soy vendedor y "Hazlo Sano" ya tiene el teléfono "2781126948"
+    When guardo mi ficha con el teléfono "<telefono>"
+    Then responde "<resultado>"
+
+    Examples:
+      | telefono   | resultado                                      | razón                                  |
+      | 2789995544 | guardado                                       | libre                                  |
+      | 2781126948 | Ese teléfono ya está registrado en otra tienda | `sellers.phone` es UNIQUE              |
+      | 123        | El teléfono debe tener 10 dígitos              | no sirve ni para llamar ni para pedir  |
+      | el mío     | guardado                                       | el suyo propio no es un duplicado      |
+
+  @slice-6
+  Scenario: Nadie edita la ficha de otra tienda
+    Given que no soy vendedor
+    When mando el formulario de ficha de todos modos
+    Then el servidor lo rechaza, porque el vendedor sale de la sesión y no del formulario
+
+  @slice-6
+  Scenario: El nombre cambia pero la dirección no se mueve
+    Given que mi tienda está en "/tienda/e2e-panaderia-la-luz" y ya repartí ese enlace
+    When cambio su nombre a "Panadería de Tezonapa"
+    Then la tienda muestra el nombre nuevo en la misma dirección de siempre
+    # Renombrar la dirección se evaluó y se descartó: ver docs/features/vendedores-y-tiendas.md

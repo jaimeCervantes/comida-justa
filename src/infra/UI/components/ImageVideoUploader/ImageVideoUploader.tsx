@@ -4,7 +4,7 @@ import type {
   ImageVideoPickerProps,
   InputFiles,
 } from "~/infra/UI/components/ImageVideoPicker/types";
-import useStorageUpload from "./hooks/useStorageUpload";
+import useStorageUpload from "~/infra/UI/hooks/useStorageUpload";
 
 /** Lo que el uploader reporta hacia arriba cuando la subida termina. */
 export type UploadedMediaResult = {
@@ -15,8 +15,14 @@ export type UploadedMediaResult = {
 
 type ImageVideoUploaderProps = Omit<ImageVideoPickerProps, "onChange"> & {
   onUploaded: (params: UploadedMediaResult | null) => void;
+  /** Carpeta de Cloud Storage. `posts` para publicaciones, `sellers` para el logo de una tienda. */
+  directory?: string;
 };
 
+/**
+ * Vive en `infra/UI` y no dentro de `/publicar` porque tiene dos consumidores: el formulario de
+ * publicación y la ficha de la tienda.
+ */
 export default function ImageVideoUploader({
   label,
   name,
@@ -24,11 +30,10 @@ export default function ImageVideoUploader({
   accept,
   required,
   className,
+  directory = "posts",
 }: ImageVideoUploaderProps) {
   const { uploadFile, progress, isLoading, media, error, isCompleted } =
-    useStorageUpload({
-      directory: "posts",
-    });
+    useStorageUpload({ directory });
 
   const handleUpload = async (files: InputFiles) => {
     const file = files?.item(0);

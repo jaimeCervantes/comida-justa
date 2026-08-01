@@ -582,3 +582,104 @@ del slice 1, dos columnas nullable), y ningún dato ajeno destruido.
 
 - Revisar el plan de Vercel antes de promocionar tiendas de terceros: el Hobby es para uso no
   comercial.
+
+---
+
+## Slice 6 — Editar la ficha de la tienda (2026-08-01)
+
+### Objetivo
+
+Que la ficha deje de ser algo que se llena una vez y nunca más. `logo_url`, `url` y `description`
+existían en la base y se leían en la tienda, pero **no había forma de escribirlas después del
+alta**: quien cambiaba de teléfono, conseguía logo o quería corregir su descripción no podía hacer
+nada. Sin migración: las cinco columnas venían con la tabla del chatbot.
+
+### La decisión que cambió el alcance: renombrar direcciones se descartó
+
+Ibas a pedir también renombrar la dirección, y preguntaste si el 308 penalizaba en buscadores. La
+respuesta corta es que **no**: Google trata 301 y 308 igual, ambas consolidan las señales hacia la
+URL nueva. Lo que cuesta es renombrar en sí —re-rastreo, oscilación de posiciones mientras tanto,
+vistas previas cacheadas por WhatsApp o Facebook que tardan en refrescarse—, no el código de estado.
+
+Con eso a la vista elegiste **solo el nombre visible**. Es la opción con mejor relación
+valor/riesgo: cubre el caso real (escribirlo mal, corregir mayúsculas) con cero costo de SEO y cero
+migración, y a cambio ningún enlace repartido muere jamás. La alternativa completa
+(`handle_history` + 308 de un salto + no ceder nunca una dirección ajena) quedó escrita en el
+roadmap por si el día llega. Los escenarios `@slice-7` se borraron del `.feature` en vez de
+quedarse como `@future`: no son trabajo pendiente, son trabajo descartado.
+
+### Decisiones y por qué
+
+**El subidor de imagen se movió a `infra/UI`.** Vivía dentro de `/publicar` y ahora tiene dos
+consumidores; su hook `useStorageUpload` se movió a `infra/UI/hooks`. Un componente compartido que
+importa desde la carpeta de otra ruta es la clase de dependencia que nadie encuentra después.
+Además ganó un parámetro `directory`, que estaba fijo en `"posts"`: el logo va a `sellers`.
+
+**Un logo vacío significa "no subí uno nuevo", no "quítame el logo".** El caso de uso conserva el
+anterior. La alternativa —borrarlo por omisión— habría vaciado el logo de Hazlo Sano la primera vez
+que alguien guardara la ficha sin tocar la imagen.
+
+**El teléfono solo se consulta si cambió.** Sin esa comparación, guardar la ficha sin tocar el
+número se habría rechazado a sí mismo por "duplicado": el único dueño de ese teléfono es uno mismo.
+Es el criterio 3 y tiene su prueba, porque es exactamente el error que comete un `UNIQUE` mal usado.
+
+**La tienda sale de la sesión, nunca del formulario.** No hay `sellerId` que mandar, así que no hay
+forma de editar la ficha de otro; por eso este slice no necesita un error de propiedad.
+
+**El sitio web se muestra por fin.** `sellers.url` llevaba guardándose desde el chatbot sin
+pintarse en ninguna parte; ahora aparece en la cabecera de la tienda.
+
+**Un puerto nuevo en vez de ampliar el del alta.** `ISellerProfileRepository` es lo que necesita
+editar (buscar por usuario, por teléfono, actualizar); ampliar `ISellerRepository` habría obligado a
+los dobles de prueba de `becomeSeller` a implementar métodos que ese caso de uso no usa. El
+repositorio de Postgres implementa los dos.
+
+### Archivos tocados
+
+- **Dominio:** `NotASellerError` en `entities/seller/errors.ts`.
+- **Caso de uso:** `src/use_cases/updateSellerProfile/` (caso de uso, puerto, prueba).
+- **Infra:** `updateProfile` en `PostgresSellerRepository`, que ahora implementa los dos puertos.
+- **UI compartida:** `ImageVideoUploader` movido a `infra/UI/components/` con parámetro `directory`; `useStorageUpload` movido a `infra/UI/hooks/`.
+- **App:** acción `updateStoreProfile` y `ui/StoreProfileForm` en `/cuenta`, reorganizada a dos columnas equilibradas; `StoreHeader` pinta el sitio web.
+- **e2e:** `storeProfile.spec.ts`.
+
+### Validación
+
+| Comando | Resultado |
+|---|---|
+| `pnpm run typecheck` | limpio |
+| `pnpm run lint` | limpio |
+| `pnpm run test:run` | **446 pruebas en 50 archivos**, todas verdes (+10) |
+| `playwright test src/e2e/sellerStore/storeProfile.spec.ts` | **4 escenarios verdes** |
+
+### Desviaciones del roadmap
+
+- Ninguna en el slice 6. El slice 7 (renombrar) se descartó antes de empezarlo, con la razón escrita
+  arriba y en el roadmap.
+
+### Pendientes que deja
+
+- No se puede **quitar** el logo una vez subido, solo reemplazarlo.
+- La dirección de la tienda y el username siguen siendo inmutables (por decisión).
+- El logo no se recorta ni se valida su proporción: se sube tal cual.
+
+### Recap
+
+La ficha de la tienda ya es editable: nombre, teléfono, descripción, sitio web y logo, todo desde
+`/cuenta`, y la tienda lo refleja al instante. La dirección se queda fija a propósito —cambiar el
+nombre visible cubre el caso real sin mover ninguna URL—, así que ningún enlace repartido se rompe.
+Sigue sin haber más migración que la `0027`.
+
+### Próximos pasos (opciones)
+
+1. **Borrar publicaciones propias**, con su confirmación y una decisión sobre comentarios e
+   histórico de recomendaciones.
+2. **Quitar el logo** (hoy solo se reemplaza) y editar/borrar sucursales, pendiente desde el slice 3.
+3. **Un `sitemap.ts`**: el proyecto no tiene ninguno, así que tiendas y perfiles dependen de que
+   alguien los enlace para ser descubiertos. Es la pieza que más ayudaría al SEO ahora mismo —más
+   que cualquier cosa relacionada con renombrar.
+
+**Acciones pendientes de tu parte:**
+
+- Revisar el plan de Vercel antes de promocionar tiendas de terceros: el Hobby es para uso no
+  comercial.

@@ -5,13 +5,13 @@ import { MdOutlinePriceChange, MdPhone, MdTitle } from "react-icons/md";
 import type { CategoryOption } from "~/domain/entities/post/taxonomy";
 import { POST_CONTENT_MAX_LENGTH } from "~/infra/constants";
 import type { ActionState } from "~/infra/types/Actions";
+import ImageVideoUploader, {
+  type UploadedMediaResult,
+} from "~/infra/UI/components/ImageVideoUploader/ImageVideoUploader";
 import { ORIGIN_OPTIONS } from "~/infra/UI/labels/postOriginLabels";
 import { Button } from "~/presentation/design_system/buttons/Button";
 import { TextArea } from "~/presentation/design_system/forms/TextArea";
 import { TextField } from "~/presentation/design_system/forms/TextField";
-import ImageVideoUploader, {
-  type UploadedMediaResult,
-} from "./ui/ImageVideoUploader";
 
 const selectClassName =
   "w-full rounded-sm border border-gray-300 bg-white px-3 py-2 text-black dark:bg-gray-800 dark:text-white";

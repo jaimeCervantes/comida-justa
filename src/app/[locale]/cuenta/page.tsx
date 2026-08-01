@@ -7,10 +7,16 @@ import { createBranchRepository } from "~/infra/dataAccess/branches/factory";
 import { createSellerRepository } from "~/infra/dataAccess/sellers/factory";
 import { createUserProfileRepository } from "~/infra/dataAccess/users/factory";
 import BranchList from "~/infra/UI/components/BranchList/BranchList";
-import { addBranch, becomeSeller, claimUsername } from "./actions";
+import {
+  addBranch,
+  becomeSeller,
+  claimUsername,
+  updateStoreProfile,
+} from "./actions";
 import AddBranchForm from "./ui/AddBranchForm";
 import BecomeSellerForm from "./ui/BecomeSellerForm";
 import StoreCard from "./ui/StoreCard";
+import StoreProfileForm from "./ui/StoreProfileForm";
 import UsernameSection from "./ui/UsernameSection";
 
 export const metadata: Metadata = {
@@ -74,16 +80,19 @@ export default async function CuentaPage() {
       <div className={COLUMNS}>
         <div className="flex flex-col gap-10">
           <StoreCard seller={seller} />
+          <StoreProfileForm action={updateStoreProfile} seller={seller} />
+        </div>
 
+        <div className="flex flex-col gap-10">
           <section>
             <h2 className="text-lg font-bold mb-4">Tus sucursales</h2>
             <BranchList branches={branches} />
           </section>
 
+          <AddBranchForm action={addBranch} />
+
           {usernameSection}
         </div>
-
-        <AddBranchForm action={addBranch} />
       </div>
     </main>
   );

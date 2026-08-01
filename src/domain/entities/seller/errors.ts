@@ -82,6 +82,14 @@ export class BranchLocationUnresolvedError extends SellerValidationError {
   }
 }
 
+/** Editar la ficha de una tienda que no existe: quien pide no es vendedor. */
+export class NotASellerError extends SellerValidationError {
+  constructor() {
+    super("Primero abre tu tienda.");
+    this.name = "NotASellerError";
+  }
+}
+
 export class AlreadyASellerError extends SellerValidationError {
   constructor(readonly handle: string | null) {
     super("Ya tienes una tienda registrada.");

@@ -12,6 +12,7 @@ import { GoogleMapsUrlResolver } from "~/infra/services/GoogleMapsUrlResolver";
 import AddBranchUseCase from "~/use_cases/addBranch/addBranchUseCase";
 import BecomeSellerUseCase from "~/use_cases/becomeSeller/becomeSellerUseCase";
 import ClaimUsernameUseCase from "~/use_cases/claimUsername/claimUsernameUseCase";
+import UpdateSellerProfileUseCase from "~/use_cases/updateSellerProfile/updateSellerProfileUseCase";
 import { profilePath } from "./profilePath";
 import { storePath } from "./storePath";
 
@@ -29,6 +30,49 @@ export type ClaimUsernameState = {
   errorMessage?: string;
   username?: string;
 };
+
+export type StoreProfileState = {
+  errorMessage?: string;
+  saved?: boolean;
+};
+
+/**
+ * Corrige la ficha de la tienda de quien está en sesión.
+ *
+ * La dirección (`slug`) no viaja en el formulario: el nombre visible cambia, la URL no.
+ */
+export async function updateStoreProfile(
+  _prevState: StoreProfileState,
+  formData: FormData,
+): Promise<StoreProfileState> {
+  const session = await auth();
+  const userId = (session?.user as User | undefined)?.id;
+
+  if (!userId) {
+    redirect(SIGNIN_PATH);
+  }
+
+  const useCase = new UpdateSellerProfileUseCase(createSellerRepository());
+  const result = await useCase.execute({
+    userId,
+    draft: {
+      name: String(formData.get("name") ?? ""),
+      phone: String(formData.get("phone") ?? ""),
+      description: String(formData.get("description") ?? ""),
+      url: String(formData.get("url") ?? ""),
+      logoUrl: String(formData.get("logoUrl") ?? ""),
+    },
+  });
+
+  if (!result.seller) {
+    return { errorMessage: result.errorMessage };
+  }
+
+  revalidatePath("/cuenta");
+  revalidatePath(storePath(result.seller.handle ?? ""));
+
+  return { saved: true };
+}
 
 /** Reserva la dirección personal (`/u/<username>`) de quien está en sesión. */
 export async function claimUsername(
