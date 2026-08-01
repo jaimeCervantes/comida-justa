@@ -171,16 +171,26 @@ en el fallback sin geo, aunque el cliente esté a dos calles.
 3. Un username ya tomado se rechaza con un error entendible. ✅
 4. Una dirección que nadie reclamó responde 404. ✅
 
-### Slice 5 — El vendedor administra su catálogo  *(siguiente)*
+### Slice 5 — El vendedor administra su catálogo  *(entregado)*
 
-- Marcar un producto como agotado (`posts.is_available`, que ya existe y **no tiene UI**: hoy nadie
-  puede dejar de ofrecer lo que se le acabó, y el bot lo sigue recomendando).
-- Editar y borrar publicaciones propias, con reindexado del embedding al cambiar el texto.
+- Marcar un producto como agotado desde su detalle (`posts.is_available`, que existía desde el
+  catálogo unificado **sin UI**: nadie podía dejar de ofrecer lo que se le acabó).
+- Editar publicaciones propias en `/editar/<slug>`, con reindexado del embedding al cambiar el texto.
+- **Sin migración.**
+
+> **Borrar quedó fuera.** Estaba en el texto del slice pero en ningún criterio de aceptación: es
+> destructivo, pide su propia confirmación y su propia decisión sobre comentarios e histórico de
+> recomendaciones. Marcar agotado cubre la necesidad real —dejar de ofrecerlo— y es reversible.
+
+> **El slug no se mueve al editar**, aunque cambie el título: la dirección ya viaja dentro del
+> mensaje de WhatsApp del slice 2, y moverla dejaría muertos los enlaces repartidos.
 
 **Criterios de aceptación:**
-1. Marcar agotado lo saca de la tienda y de las recomendaciones del bot.
-2. Editar el título o la descripción regenera el embedding.
-3. Nadie puede editar la publicación de otro.
+1. Marcar agotado lo saca de la tienda y de las recomendaciones del bot. ✅
+   *(La función SQL del bot ya filtra `is_available`; se comprobó por la vía del sitio.)*
+2. Editar el título o la descripción regenera el embedding. ✅ *(verificado esperando al vector)*
+3. Nadie puede editar la publicación de otro. ✅ *(404, no 403)*
+4. Su dueño sigue viendo lo agotado, para poder volver a ofrecerlo. ✅
 
 ## Riesgos
 

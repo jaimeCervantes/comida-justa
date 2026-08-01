@@ -18,6 +18,7 @@ interface PostRow {
   origin: string | null;
   category: string | null;
   sub_category: string | null;
+  is_available: boolean;
   contact_phone: string | null;
   contact_email: string | null;
   contact_whatsapp: string | null;
@@ -60,9 +61,15 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
     sellerId: string,
     page: number,
     pageSize: number,
+    options?: { includeSoldOut?: boolean },
   ): Promise<PaginatedPostsResult> {
+    // Un anuncio no se agota, así que el filtro solo aplica a los productos.
+    const availability = options?.includeSoldOut
+      ? sql`TRUE`
+      : sql`(p.kind <> ${PRODUCT_KIND} OR p.is_available)`;
+
     return this.getPaginatedPosts(
-      sql`p.seller_id = ${sellerId}::uuid`,
+      sql`p.seller_id = ${sellerId}::uuid AND ${availability}`,
       page,
       pageSize,
     );
@@ -142,6 +149,7 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
         p.origin,
         p.category,
         p.sub_category,
+        p.is_available,
         p.contact_phone,
         p.contact_email,
         p.contact_whatsapp,
@@ -240,6 +248,7 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
         origin: row.origin ?? null,
         category: row.category ?? null,
         subCategory: row.sub_category ?? null,
+        isAvailable: row.is_available,
         contactInfo: {
           phone: row.contact_phone ?? "",
           email: row.contact_email ?? undefined,

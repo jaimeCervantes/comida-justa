@@ -17,6 +17,7 @@ interface PostRow {
   origin: string | null;
   category: string | null;
   sub_category: string | null;
+  is_available: boolean;
   contact_phone: string | null;
   contact_email: string | null;
   contact_whatsapp: string | null;
@@ -49,6 +50,7 @@ export async function getPostBySlug(slug: string) {
       p.origin,
       p.category,
       p.sub_category,
+      p.is_available,
       p.contact_phone,
       p.contact_email,
       p.contact_whatsapp,
@@ -152,6 +154,7 @@ export async function getPostBySlug(slug: string) {
     origin: row.origin ?? null,
     category: row.category ?? null,
     subCategory: row.sub_category ?? null,
+    isAvailable: row.is_available,
     media: mediaArr,
     contactInfo: {
       phone: row.contact_phone ?? "",

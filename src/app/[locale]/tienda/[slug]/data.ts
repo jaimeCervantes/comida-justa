@@ -28,11 +28,14 @@ export async function getStoreByHandle(
   handle: string,
   page: number,
   locale: string,
+  /** Quién mira. Su dueño ve lo agotado —lo necesita para volver a ofrecerlo—; el resto no. */
+  viewerId?: string | null,
 ): Promise<StorePageData | null> {
   const seller = await createSellerRepository().findByHandle(handle);
 
   if (!seller) return null;
 
+  const isOwner = Boolean(viewerId) && seller.userId === viewerId;
   const pageNum = Math.max(PAGINATION_INIT_PAGE, page);
 
   // Catálogo y sucursales son independientes entre sí: se piden a la vez para no encadenar dos
@@ -42,6 +45,7 @@ export async function getStoreByHandle(
       seller.id,
       pageNum,
       PAGINATION_PAGE_SIZE,
+      { includeSoldOut: isOwner },
     ),
     createBranchRepository().listBySeller(seller.id),
     // Un vendedor puede existir sin cuenta (alta manual de proveedor local): entonces no hay perfil.

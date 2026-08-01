@@ -5,6 +5,7 @@ import CategoryTag from "~/infra/UI/components/CategoryTag/CategoryTag";
 import CurrencyAmount from "~/infra/UI/components/CurrencyAmount";
 import MediaContent from "~/infra/UI/components/MediaContent/MediaContent";
 import ProvenanceBadge from "~/infra/UI/components/ProvenanceBadge";
+import SoldOutBadge from "~/infra/UI/components/SoldOutBadge/SoldOutBadge";
 
 export default function CardForList(props: Post) {
   // const userLocale = typeof window !== 'undefined' ? navigator.language : 'es-MX';
@@ -16,7 +17,9 @@ export default function CardForList(props: Post) {
     price,
     user,
     to,
+    kind,
     origin,
+    isAvailable,
     categoryLabel,
   } = props;
   const anchorProps = { href: to, title: title };
@@ -39,6 +42,7 @@ export default function CardForList(props: Post) {
       <span className="flex flex-wrap items-center gap-2 mt-1">
         <ProvenanceBadge origin={origin} />
         <CategoryTag label={categoryLabel} />
+        <SoldOutBadge kind={kind} isAvailable={isAvailable} />
       </span>
 
       <CurrencyAmount

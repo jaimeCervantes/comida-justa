@@ -35,6 +35,8 @@ export type Post = {
   subCategory?: string | null;
   /** La tienda que lo vende (`sellers.id`). `null` = quien publicó no tiene tienda. */
   sellerId?: string | null;
+  /** `false` = agotado: sale de la tienda y el chatbot deja de recomendarlo. */
+  isAvailable?: boolean;
   contactInfo: {
     phone: string;
     email?: string;

@@ -171,8 +171,36 @@ Feature: Vendedores y tiendas
     When un visitante abre "/u/no-existe"
     Then la respuesta es 404
 
-  @slice-5 @future
+  @slice-5
   Scenario: Marco un producto como agotado y deja de ofrecerse
     Given un producto disponible en mi tienda
-    When lo marco como agotado
-    Then desaparece de mi tienda y el chatbot deja de recomendarlo
+    When lo marco como agotado desde su detalle
+    Then el detalle lo muestra como "Agotado" y ya no ofrece "Pedir por WhatsApp"
+    And desaparece de mi tienda para los visitantes
+    But yo lo sigo viendo, para poder volver a ofrecerlo
+
+  @slice-5
+  Scenario: Edito el título y el chatbot se entera
+    Given un producto mío ya indexado
+    When cambio su título y su descripción en "/editar/<slug>"
+    Then el detalle muestra el texto nuevo en la misma dirección de siempre
+    And su embedding se regenera, porque el vector viejo describía otro texto
+
+  @slice-5
+  Scenario: Nadie puede editar lo que no publicó
+    Given una publicación de otra persona
+    When abro "/editar/<su-slug>"
+    Then la respuesta es 404, sin revelar que la pantalla existe
+
+  @slice-5 @component
+  Scenario Outline: Lo agotado solo aplica a lo que se vende
+    # Cubierto por Vitest: es una regla pura del dominio.
+    Given una publicación de tipo "<kind>" con disponible = <disponible>
+    When se decide qué mostrar
+    Then la insignia de agotado es <insignia> y se puede pedir: <pedir>
+
+    Examples:
+      | kind     | disponible | insignia | pedir |
+      | producto | true       | no       | sí    |
+      | producto | false      | sí       | no    |
+      | anuncio  | false      | no       | no    |

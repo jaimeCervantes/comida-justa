@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import PostgresPostRepository from "~/infra/dataAccess/createOnePost/PostgresPostRepository";
 import { db } from "~/infra/dataAccess/db/connection";
 import { users } from "~/infra/dataAccess/db/schema/auth";
@@ -17,6 +18,8 @@ export type SeedPostInput = {
   price?: number | null;
   category?: string | null;
   subCategory?: string | null;
+  /** Para sembrar dentro del catálogo de una tienda, como haría `/publicar` con su dueño. */
+  sellerHandle?: string;
 };
 
 /**
@@ -25,9 +28,13 @@ export type SeedPostInput = {
  */
 export async function seedPost(input: SeedPostInput): Promise<string> {
   const userId = await findAnyUserId();
+  const sellerId = input.sellerHandle
+    ? await findSellerId(input.sellerHandle)
+    : null;
   const repository = new PostgresPostRepository();
 
   return repository.save({
+    sellerId,
     title: input.title,
     slug: input.slug,
     content: `${input.title}. Publicación de prueba para el listado de productos.`,
@@ -41,6 +48,19 @@ export async function seedPost(input: SeedPostInput): Promise<string> {
     user: { id: userId },
     createdAt: new Date(),
   });
+}
+
+async function findSellerId(handle: string): Promise<string> {
+  const result = await db.execute(
+    sql`SELECT id::text AS id FROM sellers WHERE slug = ${handle} LIMIT 1`,
+  );
+  const rows = result.rows as unknown as Array<{ id: string }>;
+
+  if (rows.length === 0) {
+    throw new Error(`seedPost: no existe la tienda "${handle}".`);
+  }
+
+  return rows[0].id;
 }
 
 async function findAnyUserId(): Promise<string> {

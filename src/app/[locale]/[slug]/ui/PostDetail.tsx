@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { FaDollarSign } from "react-icons/fa";
 import { MdPhone } from "react-icons/md";
-import { PRODUCT_KIND } from "~/domain/entities/post/hazloSanoProduct";
+import { canBeOrdered, isSellable } from "~/domain/entities/post/availability";
 import { labelFor } from "~/domain/entities/post/taxonomy";
 import { buildWhatsappOrderLink } from "~/domain/entities/post/whatsappOrder";
 import { PUBLIC_BASE_URL } from "~/infra/constants";
@@ -11,8 +11,11 @@ import CategoryTag from "~/infra/UI/components/CategoryTag/CategoryTag";
 import CurrencyAmount from "~/infra/UI/components/CurrencyAmount";
 import MediaContent from "~/infra/UI/components/MediaContent/MediaContent";
 import ProvenanceBadge from "~/infra/UI/components/ProvenanceBadge";
+import SoldOutBadge from "~/infra/UI/components/SoldOutBadge/SoldOutBadge";
 import WhatsappButton from "~/infra/UI/components/WhatsappButton/WhatsappButton";
+import { setAvailability } from "../actions";
 import CommentList from "../loadComments/CommentList";
+import OwnerControls from "./OwnerControls";
 
 /**
  * Presenta una publicación ya cargada. La búsqueda (y el 404 si no existe) vive en la página,
@@ -45,6 +48,7 @@ export default async function PostDetail({
     contactInfo: postDetails.contactInfo,
     comments: postDetails.comments,
     id: postDetails.id,
+    isAvailable: postDetails.isAvailable !== false,
   };
 
   const {
@@ -59,19 +63,22 @@ export default async function PostDetail({
     contactInfo,
     comments,
     id,
+    isAvailable,
   } = details;
 
-  // Solo lo que se vende ofrece pedido; un anuncio no tiene nada que encargar.
-  const orderLink =
-    kind === PRODUCT_KIND
-      ? buildWhatsappOrderLink({
-          title: String(title ?? ""),
-          price,
-          url: `${PUBLIC_BASE_URL}/${slug ?? ""}`,
-          whatsapp: contactInfo?.whatsapp,
-          phone: contactInfo?.phone,
-        })
-      : null;
+  // Solo se ofrece pedir lo que se vende y sigue habiendo: mandar a WhatsApp por algo agotado
+  // empieza la conversación con una decepción.
+  const orderLink = canBeOrdered({ kind, isAvailable })
+    ? buildWhatsappOrderLink({
+        title: String(title ?? ""),
+        price,
+        url: `${PUBLIC_BASE_URL}/${slug ?? ""}`,
+        whatsapp: contactInfo?.whatsapp,
+        phone: contactInfo?.phone,
+      })
+    : null;
+
+  const isOwner = Boolean(user?.id) && user?.id === postDetails.user?.id;
 
   // La sub-categoría gana sobre la categoría por ser la más específica.
   const taxonomy = await getCategoryTaxonomy();
@@ -85,6 +92,7 @@ export default async function PostDetail({
       <p className="flex flex-wrap items-center gap-2 mb-4">
         <ProvenanceBadge origin={origin} />
         <CategoryTag label={categoryLabel} />
+        <SoldOutBadge kind={kind} isAvailable={isAvailable} />
       </p>
       <MediaContent media={media} className="h-auto mb-4" />
       <p className="flex items-center mb-2">
@@ -104,6 +112,16 @@ export default async function PostDetail({
       <WhatsappButton href={orderLink} className="mt-4" testId="whatsapp-order">
         Pedir por WhatsApp
       </WhatsappButton>
+
+      {isOwner ? (
+        <OwnerControls
+          action={setAvailability}
+          postId={String(id ?? "")}
+          slug={slug ?? ""}
+          isAvailable={isAvailable}
+          isSellable={isSellable({ kind })}
+        />
+      ) : null}
       <section className="whitespace-pre-wrap mt-6">{content}</section>
       <section className="mt-14">
         <Suspense>

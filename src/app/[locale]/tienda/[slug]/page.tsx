@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import type { User } from "~/domain/entities/post/types";
+import { auth } from "~/infra/auth";
 import { PAGINATION_INIT_PAGE } from "~/infra/constants";
 import { createSellerRepository } from "~/infra/dataAccess/sellers/factory";
 import BranchList from "~/infra/UI/components/BranchList/BranchList";
@@ -21,10 +23,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function StorePage({ params }: Props) {
   const { slug, locale } = await params;
+  const session = await auth();
 
   // Se resuelve fuera de cualquier `<Suspense>`: una tienda inexistente debe salir con status 404
   // y no con un 200 que solo "parece" un 404.
-  const store = await getStoreByHandle(slug, PAGINATION_INIT_PAGE, locale);
+  const store = await getStoreByHandle(
+    slug,
+    PAGINATION_INIT_PAGE,
+    locale,
+    (session?.user as User | undefined)?.id,
+  );
 
   if (!store) {
     notFound();

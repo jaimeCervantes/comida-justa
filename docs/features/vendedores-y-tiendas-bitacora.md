@@ -475,3 +475,110 @@ había dejado creada la columna que este slice consumió.
 
 - Revisar el plan de Vercel antes de promocionar tiendas de terceros: el Hobby es para uso no
   comercial.
+
+---
+
+## Slice 5 — El vendedor administra su catálogo (2026-08-01)
+
+### Objetivo
+
+Cerrar el circuito por el lado del vendedor: poder decir "se me acabó" y poder corregir lo escrito.
+`posts.is_available` existía desde el catálogo unificado **sin ninguna forma de cambiarla**, así que
+nadie podía dejar de ofrecer lo agotado y el chatbot lo seguía recomendando. Con los slices
+anteriores eso pesaba más que nunca: hay botón de pedido y recomendación por cercanía, o sea tres
+caminos para que alguien pida algo que ya no hay.
+
+### Decisiones y por qué
+
+**El slug no se mueve al editar.** Aunque cambie el título. La dirección ya se compartió por
+WhatsApp —el mensaje del slice 2 la lleva dentro—, y moverla dejaría muertos los enlaces que el
+vendedor repartió. Es la misma razón por la que el username se reclama una sola vez.
+
+**El caso de uso devuelve `textChanged` en vez de reindexar.** El vector se deriva del texto, así
+que editar el título sin regenerarlo deja al chatbot recomendando algo que ya no dice eso. Pero
+generar el embedding es una llamada de red y guardar no puede depender de que Gemini conteste: la
+decisión se toma en el caso de uso y el efecto lo dispara la acción con `after()`, igual que al
+publicar. Si falla, la edición ya está guardada y queda pendiente para el backfill.
+
+**Y si el texto no cambió, no se llama al proveedor.** Ajustar solo el precio no debería costar una
+llamada ni arriesgar un vector nuevo peor que el anterior.
+
+**Lo agotado se oculta a los visitantes pero no a su dueño.** Ocultarlo a todos dejaba al vendedor
+sin forma de encontrarlo para volver a ofrecerlo. La consulta del catálogo recibe `includeSoldOut`
+y la página decide comparando la sesión contra `sellers.user_id`.
+
+**Un anuncio no se agota.** `isSellable` lo dice una vez en el dominio y lo respetan el badge, el
+botón de pedido, el toggle y el filtro del catálogo. El caso de uso ignora el cambio en vez de
+guardar un estado sin significado.
+
+**El botón de pedido se apaga cuando no hay existencias.** Mandar a alguien a WhatsApp por algo
+agotado empieza la conversación con una decepción; `canBeOrdered` une las dos reglas (es producto y
+sigue habiendo) en un solo lugar.
+
+**Ocultar los controles es cortesía, no seguridad.** La autorización vive en el caso de uso, que
+compara el dueño de la publicación contra la sesión: mandar el `postId` de otro en el formulario no
+sirve de nada. Y `/editar/<slug>` de una publicación ajena responde **404 y no 403**, el mismo
+criterio que ya usaba `/admin`.
+
+**Sin borrar publicaciones.** Estaba en el texto del slice pero en ningún criterio de aceptación.
+Es destructivo, pide su propia confirmación y su propia decisión sobre qué pasa con los comentarios
+y el histórico de recomendaciones. Marcar agotado cubre la necesidad real —dejar de ofrecerlo— y es
+reversible.
+
+**Tampoco se edita la media ni el tipo.** La primera exige rehacer la subida; el segundo cambiaría
+lo que la publicación *es* (un anuncio no tiene precio). Ninguno hacía falta para corregir lo escrito.
+
+### Archivos tocados
+
+- **Dominio:** `availability.ts` (+ prueba) y `errors.ts` en `entities/post/`; `isAvailable` en el tipo `Post`.
+- **Casos de uso:** `src/use_cases/managePost/` (`setPostAvailabilityUseCase`, `updateOnePostUseCase`, puerto, pruebas).
+- **Infra:** `src/infra/dataAccess/managePost/` (repositorio + factory); `is_available` en las dos lecturas y en el mapper de tarjetas; `getPostsBySeller` acepta `includeSoldOut`.
+- **UI:** `SoldOutBadge` (+ prueba), presente en tarjeta y detalle.
+- **App:** `[slug]/actions.ts` y `ui/OwnerControls`; `/editar/[slug]/` (página, acción, formulario); la tienda pasa el visitante a `getStoreByHandle`.
+- **e2e:** `managePost.spec.ts`; `seedPost` acepta `sellerHandle`; `StorePage.expectNotListed`.
+
+### Validación
+
+| Comando | Resultado |
+|---|---|
+| `pnpm run typecheck` | limpio |
+| `pnpm run lint` | limpio |
+| `pnpm run test:run` | **436 pruebas en 49 archivos**, todas verdes (+20) |
+| `playwright test src/e2e/sellerStore/managePost.spec.ts` | **3 escenarios verdes** |
+
+El escenario de edición comprueba el reindexado **de verdad**: con `GEMINI_API_KEY` configurada,
+espera a que el vector vuelva a aparecer con sus 768 dimensiones después de cambiar el texto.
+
+### Desviaciones del roadmap
+
+- **Borrar publicaciones quedó fuera** (ver arriba). Ningún criterio de aceptación lo pedía.
+- Se agregó un criterio que el roadmap no listaba: lo agotado desaparece para los visitantes pero
+  su dueño lo sigue viendo. Sin eso, marcar agotado era un viaje sin retorno.
+
+### Pendientes que deja
+
+- Borrar publicaciones propias.
+- Editar la media y la ficha de la tienda (logo, descripción, web).
+- El chatbot deja de recomendar lo agotado porque su función SQL ya filtra `is_available`; no se
+  comprobó de punta a punta con el bot corriendo, solo por la vía del sitio.
+
+### Recap
+
+La feature "Vendedores y tiendas" queda completa: abrir tienda, ponerse en el mapa, publicar,
+recibir pedidos por WhatsApp, tener perfil propio y —ahora— corregir lo publicado y dejar de
+ofrecer lo que se acabó. Cinco slices, **una sola migración** sobre la base compartida (la `0027`
+del slice 1, dos columnas nullable), y ningún dato ajeno destruido.
+
+### Próximos pasos (opciones)
+
+1. **Borrar publicaciones**, con su confirmación y una decisión sobre comentarios e histórico.
+2. **Editar la ficha de la tienda** (logo, descripción, web): las columnas existen y hoy solo se
+   llenan al darse de alta.
+3. **Renombrar direcciones** (tienda y usuario) sosteniendo la anterior con una redirección.
+4. **Comprobar el filtro de agotados desde el bot**, cerrando el criterio con su propia prueba en
+   el backend de Python.
+
+**Acciones pendientes de tu parte:**
+
+- Revisar el plan de Vercel antes de promocionar tiendas de terceros: el Hobby es para uso no
+  comercial.

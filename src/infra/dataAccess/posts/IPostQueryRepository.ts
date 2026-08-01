@@ -10,6 +10,8 @@ export interface PostData {
   kind?: string;
   /** De dónde/quién viene. `null` = comunidad sin especificar. */
   origin: string | null;
+  /** Lo que el chatbot filtra y lo que el vendedor apaga al quedarse sin existencias. */
+  isAvailable?: boolean;
   contactInfo: {
     phone: string;
     email?: string;
@@ -41,11 +43,16 @@ export interface IPostQueryRepository {
     page: number,
     pageSize: number,
   ): Promise<PaginatedPostsResult>;
-  /** El catálogo de una tienda: lo que se publicó con su `seller_id`. */
+  /**
+   * El catálogo de una tienda: lo que se publicó con su `seller_id`.
+   *
+   * Lo agotado se oculta salvo que mire su dueño, que necesita verlo para volver a ofrecerlo.
+   */
   getPostsBySeller(
     sellerId: string,
     page: number,
     pageSize: number,
+    options?: { includeSoldOut?: boolean },
   ): Promise<PaginatedPostsResult>;
   /** Todo lo de una persona, anuncios incluidos: su perfil no es un catálogo. */
   getPostsByUser(

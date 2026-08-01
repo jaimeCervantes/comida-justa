@@ -24,6 +24,12 @@ export default class StorePage {
     ).toBeVisible();
   }
 
+  async expectNotListed(title: string): Promise<void> {
+    await expect(
+      this.page.getByTestId("store-catalog").getByText(title, { exact: false }),
+    ).toHaveCount(0);
+  }
+
   async expectEmpty(): Promise<void> {
     await expect(this.page.getByTestId("store-empty")).toBeVisible();
   }

@@ -52,6 +52,7 @@ export function mapOnePostToCard(item: Post, context: CardMappingContext) {
     // Las claves se conservan para filtros y analítica; para pintar se usa `categoryLabel`.
     category: item.category ?? null,
     subCategory: item.subCategory ?? null,
+    isAvailable: item.isAvailable,
     /** La sub-categoría gana sobre la categoría por ser la más específica. */
     categoryLabel:
       labelFor(context.taxonomy, item.subCategory, context.locale) ??
