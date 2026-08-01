@@ -1,28 +1,36 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { CANONICAL_URL, PUBLIC_BRAND_NAME } from "~/infra/constants";
 import { PILLARS } from "./components/pilaresData";
 
-export const PILLARS_TITLE = `Los 4 pilares de ${PUBLIC_BRAND_NAME}`;
+export async function buildPillarsOverviewMetadata(): Promise<Metadata> {
+  const t = await getTranslations("pillarsOverview");
 
-export const PILLARS_DESCRIPTION =
-  "Sueño y descanso, alimentación natural, movimiento y mente: los cuatro pilares sobre los que se construye una vida sana.";
-
-export function buildPillarsOverviewMetadata(): Metadata {
-  return pageMetadata(PILLARS_TITLE, PILLARS_DESCRIPTION, "/pilares");
+  return pageMetadata(
+    t("metaTitle", { brand: PUBLIC_BRAND_NAME }),
+    t("metaDescription"),
+    "/pilares",
+  );
 }
 
 /**
- * La metadata de un pilar sale de `PILLARS`, la misma constante que pinta la página: si mañana
- * cambia el texto de un pilar, su descripción en el buscador cambia con él.
+ * La metadata de un pilar sale del catálogo, el mismo que pinta la página: si mañana cambia el
+ * texto de un pilar, su descripción en el buscador cambia con él —y ahora también su idioma—.
  */
-export function buildPillarMetadata(slug: string): Metadata {
+export async function buildPillarMetadata(slug: string): Promise<Metadata> {
   const pillar = PILLARS.find((item) => item.slug === slug);
 
   if (!pillar) return {};
 
+  const tPillars = await getTranslations("pillars");
+  const tPages = await getTranslations("pillarPages");
+
+  const subtitle = tPages(`${pillar.key}.subtitle`);
+  const description = tPillars(`${pillar.key}.cardDescription`);
+
   return pageMetadata(
-    pillar.title,
-    `${pillar.subtitle} ${pillar.description}`.slice(0, 300),
+    tPillars(`${pillar.key}.title`),
+    `${subtitle} ${description}`.slice(0, 300),
     `/pilares/${pillar.slug}`,
   );
 }

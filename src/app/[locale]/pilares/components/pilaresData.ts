@@ -1,9 +1,18 @@
+/**
+ * La estructura de los cuatro pilares: su dirección, su número y su color.
+ *
+ * **No contiene texto.** El mismo reparto que en `postOriginLabels`: el vocabulario es código
+ * —añadir un pilar es editar esta lista— y la redacción es traducción. Cada pilar apunta a su
+ * clave del catálogo y el texto lo pone quien traduce.
+ */
+export type PillarKey = "sleep" | "nutrition" | "movement" | "mindSpirit";
+
 export interface PillarData {
+  /** El segmento de la URL. Se queda en español mientras las rutas no se localicen (slice 4). */
   slug: string;
+  /** La clave bajo la que vive su texto, en `pillars` y en `pillarPages`. */
+  key: PillarKey;
   number: number;
-  title: string;
-  subtitle: string;
-  description: string;
   color: "violet" | "orange" | "emerald" | "sky";
   colorHex: string;
 }
@@ -11,41 +20,29 @@ export interface PillarData {
 export const PILLARS: PillarData[] = [
   {
     slug: "sueno",
+    key: "sleep",
     number: 1,
-    title: "Sueño y Descanso",
-    subtitle: "La base de la recuperación biológica y la salud a largo plazo.",
-    description:
-      "El sueño no es un lujo, es la base fisiológica de la atención, la memoria, la estabilidad emocional, el metabolismo, la inmunidad y la salud cardiovascular. Optimizar la higiene del sueño es el primer paso para que el cuerpo y la mente se reparen adecuadamente.",
     color: "violet",
     colorHex: "#8b5cf6",
   },
   {
     slug: "alimentacion",
+    key: "nutrition",
     number: 2,
-    title: "Alimentación natural y nutritiva",
-    subtitle: "Reconectando con el origen y la comida real.",
-    description:
-      "Más allá de una dieta, este pilar promueve el consumo de alimentos reales, mínimamente procesados, variados y de origen local. Facilita el puente entre agricultores y consumidores, y crea un entorno donde elegir comida sana sea la opción más sencilla.",
     color: "orange",
     colorHex: "#f0380e",
   },
   {
     slug: "movimiento",
+    key: "movement",
     number: 3,
-    title: "Movimiento y ejercicio",
-    subtitle: "Combatiendo el sedentarismo en la vida diaria.",
-    description:
-      "No se limita al gimnasio: abarca caminar, correr, jugar o cualquier forma de movimiento funcional. El objetivo es integrar la actividad física en la vida diaria y encontrar placer en el esfuerzo físico para mantenerlo de forma constante.",
     color: "emerald",
     colorHex: "#5DBF17",
   },
   {
     slug: "mente-espiritu",
+    key: "mindSpirit",
     number: 4,
-    title: "Emociones, Mente, Espíritu y Comunidad",
-    subtitle: "Reconectando con nosotros mismos y nuestra tribu.",
-    description:
-      "La salud no es solo física. Este pilar se centra en la gestión emocional, la claridad mental, la conexión con los demás y el sentido de propósito. Cultivar relaciones sanas y sentirnos parte de algo más grande impulsa los otros tres pilares.",
     color: "sky",
     colorHex: "#38bdf8",
   },

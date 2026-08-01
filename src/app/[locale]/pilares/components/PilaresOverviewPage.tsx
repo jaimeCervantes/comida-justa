@@ -1,18 +1,26 @@
+import { useTranslations } from "next-intl";
 import { Link } from "~/i18n/navigation";
+import { PUBLIC_BRAND_NAME } from "~/infra/constants";
 import { PILLARS, pillarColorClasses } from "./pilaresData";
 
 export default function PilaresOverviewPage() {
+  const t = useTranslations("pillarsOverview");
+  const tPillars = useTranslations("pillars");
+  const tPages = useTranslations("pillarPages");
+
   return (
     <article>
       <header className="mb-12 text-center">
         <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-slate-50 mb-4">
-          Los 4 Pilares de{" "}
-          <span className="text-pw-lightgreen">Hazlo Sano</span>
+          {t.rich("heading", {
+            brandName: PUBLIC_BRAND_NAME,
+            brand: (chunks) => (
+              <span className="text-pw-lightgreen">{chunks}</span>
+            ),
+          })}
         </h1>
         <p className="text-xl text-slate-600 dark:text-slate-400 max-w-3xl mx-auto">
-          Un framework integral para reconectar con tu biología y recuperar tu
-          salud. Cuatro áreas interdependientes que, trabajadas en conjunto,
-          transforman tu bienestar físico, mental y emocional.
+          {t("intro")}
         </p>
       </header>
 
@@ -35,22 +43,22 @@ export default function PilaresOverviewPage() {
                   <h2
                     className={`text-xl sm:text-2xl font-bold ${c.text} group-hover:underline group-hover:underline-offset-4`}
                   >
-                    {pillar.title}
+                    {tPillars(`${pillar.key}.title`)}
                   </h2>
                 </div>
 
                 <p className="text-base text-slate-600 dark:text-slate-400 mb-3">
-                  {pillar.subtitle}
+                  {tPages(`${pillar.key}.subtitle`)}
                 </p>
 
                 <p className="text-slate-700 dark:text-slate-300 text-base leading-relaxed mb-4">
-                  {pillar.description}
+                  {tPillars(`${pillar.key}.cardDescription`)}
                 </p>
 
                 <span
                   className={`inline-flex items-center gap-1 text-sm font-semibold ${c.text}`}
                 >
-                  Leer más
+                  {t("readMore")}
                   <span
                     aria-hidden="true"
                     className="transition-transform duration-200 group-hover:translate-x-1"
@@ -67,14 +75,10 @@ export default function PilaresOverviewPage() {
       <section className="mt-16 text-center">
         <div className="bg-slate-100 dark:bg-slate-800/50 rounded-2xl p-8 max-w-3xl mx-auto">
           <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-50 mb-3">
-            ¿Por qué estos cuatro pilares?
+            {t("whyHeading")}
           </h2>
           <p className="text-lg text-slate-700 dark:text-slate-300 leading-relaxed">
-            La ciencia moderna confirma lo que la sabiduría ancestral ya sabía:
-            el sueño reparador, la alimentación natural, el movimiento diario y
-            la conexión con nuestra comunidad son los cimientos de una vida
-            saludable. Cada pilar refuerza a los demás, creando un círculo
-            virtuoso de bienestar integral.
+            {t("whyBody")}
           </p>
         </div>
       </section>

@@ -155,28 +155,111 @@
     "invite": "While it recovers, you can keep looking after your health — your time. Find what you need here:",
     "goHome": "Go to the home page"
   },
-  "pillars": {
+  "pillarPages": {
     "mindSpirit": {
-      "title": "Emotions, Mind, Spirit and Community",
-      "description": "Emotional and mental care, and a real connection with others",
-      "short": "Emotions / mind / spirit"
+      "heading": "4. Emotions, Mind, Spirit and Community",
+      "subtitle": "Reconnecting with ourselves and with our tribe.",
+      "breakHeading": "The Digital Revolution and Urbanisation (20th-21st century): Goodbye to the Tribe",
+      "breakIntro": "Before this, human beings never lived alone. «Loneliness» was a biological death sentence. Spirit and mind were fed by ritual, by the silence of nature and by the support of the group.",
+      "changeLabel": "What changed:",
+      "changeText": "We went from the «village», where everyone knew each other, to the anonymous big city, and finally to the digital hyper-link — social media that connects us with thousands while isolating us physically from everyone.",
+      "impactLabel": "The cost:",
+      "impactText": "Chronic loneliness appeared. The brain reads isolation as constant danger, and anxiety follows. We lost rites of passage and contact with the earth (natural spirituality), and replaced them with the mental «noise» of constant comparison and empty productivity.",
+      "mismatchHeading": "The «Evolutionary Mismatch» in Mind and Spirit",
+      "mismatchIntro": "Your brain still expects to look someone in the eye while you talk, to be recognised by your community for what you do, and to feel part of something bigger than yourself — nature, or purpose.",
+      "modernOffers": "Modern life offers you:",
+      "offer1": "Likes instead of hugs.",
+      "offer2": "Newscasts full of fear instead of stories around a fire.",
+      "offer3": "Fierce competition instead of tribal collaboration.",
+      "callout": "This pillar recognises that health is not only physical. It centres on emotional care, mental clarity and connection with others. «Spirit and community» health means feeling part of something bigger, keeping healthy relationships, and holding a clear purpose that drives the other three pillars."
     },
     "movement": {
-      "title": "Exercise and Movement",
-      "description": "Push back on a sedentary life with functional activity",
-      "short": "Movement or exercise"
+      "heading": "3. Movement and Exercise",
+      "subtitle": "Pushing back on a sedentary daily life.",
+      "breakHeading": "The Industrial Revolution (18th-19th century): Goodbye to Movement",
+      "breakIntro": "Before this, most of humanity worked the land, hunted or did manual work. Movement was not «exercise» — it was survival.",
+      "changeLabel": "What changed:",
+      "changeText": "The move from agrarian to industrial and then post-industrial societies took work out of open spaces and physical tasks and into indoor settings and mental tasks. A «chair and screen» job took hold: low physical demand and long days sitting down.",
+      "impactLabel": "The cost:",
+      "impactText": "Structural sedentarism appeared. For the first time in history, human beings began spending 8 or 12 hours sitting or standing in one place, under roofs that hid the sun from us — with machines replacing physical effort, opening the door to chronic sedentarism and many modern illnesses such as obesity and cardiovascular risk.",
+      "callout": "This pillar is about pushing back on a sedentary life by working physical activity into daily life. It is not limited to the gym: it covers walking, running, playing football or any form of functional movement. The aim is for people to find pleasure in physical effort and keep it up."
     },
     "nutrition": {
-      "title": "Natural, Nourishing Food",
+      "heading": "2. Natural, Nourishing Food",
+      "subtitle": "Reconnecting with the source and with real food.",
+      "breakHeading": "The Green Revolution and Ultra-Processed Food (post-WWII)",
+      "breakIntro": "This is where eating broke. In the 1950s the priority was feeding a population that was exploding, and quantity won over quality.",
+      "changeLabel": "What changed:",
+      "changeText": "Refined vegetable oils appeared, along with white flour at scale and sugar in everything.",
+      "impactLabel": "The cost:",
+      "impactText": "We went from eating «food from the earth» to «edible products» designed in labs to be addictive but nutritionally empty.",
+      "evidence": "Since the post-war years, the drive to produce lots of cheap calories (the Green Revolution plus food industrialisation) eased the shift towards ultra-processed food built on sugar, flour and refined oils. It solved much of acute hunger, but at the cost of diets that are less diverse and more «laboratory-made» — today strongly tied to chronic disease and environmental damage. Going back to patterns built on minimally processed, varied, locally sourced food fits human and planetary health far better.",
+      "callout": "More than a diet, this pillar is about the connection to the source. It encourages real, local food, and builds the bridge between farmers and the people who eat.",
+      "includesHeading": "It covers:",
+      "includes1": "Backing restaurants that offer nourishing options.",
+      "includes2": "Encouraging people to grow their own (urban gardens or permaculture cells).",
+      "includes3": "Building a setting where choosing healthy food is the easiest option."
+    },
+    "sleep": {
+      "heading": "1. Sleep and Rest",
+      "subtitle": "The ground floor of biological recovery and long-term health.",
+      "lightHeading": "The Invention of Electric Light (1879): The End of Natural Sleep",
+      "lightIntro": "This is perhaps the harshest turning point for our brain. Before Thomas Edison and artificial light, our circadian rhythm — the internal clock — was perfectly in step with the sun.",
+      "changeLabel": "What changed:",
+      "changeText": "Night stopped being dark. We could work, eat and socialise long after sunset.",
+      "impactLabel": "The cost:",
+      "impactText": "The body stopped producing melatonin properly. We began stealing hours from rest, which set off the chronic stress and inflammation we now see everywhere.",
+      "processesHeading": "How many processes depend on sleep?",
+      "processesIntro": "Sleep takes part in many essential functions, not just one:",
+      "brainLabel": "Brain and mind:",
+      "brainText": "memory and learning, synaptic plasticity, emotional and mood regulation.",
+      "metabolismLabel": "Metabolism and energy:",
+      "metabolismText": "regulating spend and replenishment of energy, anabolism, cell maintenance and clearing the brain's «waste» (the glymphatic system).",
+      "immuneLabel": "Immune system and inflammation:",
+      "immuneText": "defence against infection, response to vaccines, and control of the inflammation tied to cancer, depression and cardiovascular disease.",
+      "cardiovascularLabel": "Cardiovascular and endocrine:",
+      "cardiovascularText": "blood pressure, glucose, stress hormones, appetite hormones, reproductive health.",
+      "homeostasisLabel": "Overall homeostasis:",
+      "homeostasisText": "balance across organ systems, metabolism, and psychological and social state.",
+      "evidence": "The <b>scientific evidence</b> shows that sleep is involved in practically every critical process of body and mind. It is not a luxury: it is the physiological base of attention, memory, emotional stability, metabolism, immunity and long-term cardiovascular health.",
+      "callout": "This pillar is the ground floor of biological recovery. It is not just about «sleeping», but about improving your <b>sleep hygiene</b> so body and mind can properly repair themselves. At <b>{brand}</b>, the aim is for technology to help track and encourage routines that respect circadian rhythms."
+    }
+  },
+  "pillars": {
+    "mindSpirit": {
+      "cardDescription": "Health is not only physical. This pillar centres on emotional care, mental clarity, connection with others and a sense of purpose. Keeping healthy relationships and feeling part of something bigger drives the other three pillars.",
+      "description": "Emotional and mental care, and a real connection with others",
+      "short": "Emotions / mind / spirit",
+      "title": "Emotions, Mind, Spirit and Community"
+    },
+    "movement": {
+      "cardDescription": "It is not limited to the gym: it covers walking, running, playing, or any form of functional movement. The aim is to work physical activity into daily life and find pleasure in the effort, so it lasts.",
+      "description": "Push back on a sedentary life with functional activity",
+      "short": "Movement or exercise",
+      "title": "Exercise and Movement"
+    },
+    "nutrition": {
+      "cardDescription": "More than a diet, this pillar encourages real food: minimally processed, varied and locally sourced. It builds the bridge between farmers and the people who eat, and creates a setting where choosing healthy food is the easiest option.",
       "description": "A connection to the source: local, real food",
-      "short": "Natural, nourishing food"
+      "short": "Natural, nourishing food",
+      "title": "Natural, Nourishing Food"
     },
     "references": "References",
     "sleep": {
-      "title": "Sleep and Rest",
+      "cardDescription": "Sleep is not a luxury: it is the physiological base of attention, memory, emotional stability, metabolism, immunity and cardiovascular health. Improving your sleep hygiene is the first step towards letting body and mind repair themselves properly.",
       "description": "Better sleep hygiene, so your body can actually recover",
-      "short": "Sleep and rest"
+      "short": "Sleep and rest",
+      "title": "Sleep and Rest"
     }
+  },
+  "pillarsOverview": {
+    "heading": "The 4 Pillars of <brand>{brandName}</brand>",
+    "intro": "A whole framework for reconnecting with your biology and getting your health back. Four interdependent areas that, worked on together, change your physical, mental and emotional wellbeing.",
+    "readMore": "Read more",
+    "whyHeading": "Why these four pillars?",
+    "whyBody": "Modern science confirms what ancestral wisdom already knew: restorative sleep, natural food, daily movement and connection with our community are the foundations of a healthy life. Each pillar reinforces the others, creating a virtuous circle of whole wellbeing.",
+    "metaTitle": "The 4 pillars of {brand}",
+    "metaDescription": "Sleep and rest, natural food, movement and mind: the four pillars a healthy life is built on."
   },
   "post": {
     "markSoldOut": "Mark as sold out",

@@ -155,28 +155,111 @@
     "invite": "Mientras se recupera, tú puedes continuar cuidando tu salud, tu tiempo. Encuentra lo que necesitas aquí:",
     "goHome": "Ir al inicio"
   },
-  "pillars": {
+  "pillarPages": {
     "mindSpirit": {
-      "title": "Emociones, Mente, Espíritu y Comunidad",
-      "description": "Gestión emocional, mental y una clara conexión con los demás",
-      "short": "Emociones / mente / espíritu"
+      "heading": "4. Emociones, Mente, Espíritu y Comunidad",
+      "subtitle": "Reconectando con nosotros mismos y nuestra tribu.",
+      "breakHeading": "La Revolución Digital y la Urbanización (Siglo XX - XXI): El Adiós a la Tribu",
+      "breakIntro": "Antes de esto, el ser humano nunca vivía solo. La «soledad» era una sentencia de muerte biológica. El espíritu y la mente se nutrían del ritual, el silencio de la naturaleza y el apoyo del grupo.",
+      "changeLabel": "El cambio:",
+      "changeText": "Pasamos de la «aldea» (donde todos se conocían) a la gran ciudad anónima, y finalmente al hiper-vínculo digital (redes sociales) que nos conecta con miles, pero nos aísla físicamente de todos.",
+      "impactLabel": "El impacto:",
+      "impactText": "Apareció la soledad crónica. El cerebro interpreta el aislamiento como un peligro constante, disparando la ansiedad. Perdimos los rituales de paso y el contacto con la tierra (espiritualidad natural), sustituyéndolos por el «ruido» mental de la comparación constante y la productividad vacía.",
+      "mismatchHeading": "El «Desajuste Evolutivo» en la Mente y el Espíritu",
+      "mismatchIntro": "Tu cerebro sigue esperando mirar a los ojos a alguien mientras platican, recibir la validación de su comunidad por sus acciones y sentirse parte de algo más grande que uno mismo (naturaleza o propósito).",
+      "modernOffers": "La vida moderna te ofrece:",
+      "offer1": "Likes en lugar de abrazos.",
+      "offer2": "Noticieros llenos de miedo en lugar de historias alrededor de una fogata.",
+      "offer3": "Competencia feroz en lugar de colaboración tribal.",
+      "callout": "Este pilar reconoce que la salud no es solo física. Se centra en la gestión emocional, la claridad mental y la conexión con los demás. La salud «espíritu/comunidad» implica sentirse parte de algo más grande, cultivar relaciones sanas y mantener un propósito claro que impulse los otros tres pilares."
     },
     "movement": {
-      "title": "Ejercicio y Movimiento",
-      "description": "Combatir el sedentarismo con actividad física funcional",
-      "short": "Movimiento o ejercicio"
+      "heading": "3. Movimiento y ejercicio",
+      "subtitle": "Combatiendo el sedentarismo en la vida diaria.",
+      "breakHeading": "La Revolución Industrial (Siglo XVIII - XIX): El Adiós al Movimiento",
+      "breakIntro": "Antes de esto, la mayoría de la humanidad trabajaba en el campo, cazaba o hacía trabajo manual. El movimiento no era «ejercicio», era supervivencia.",
+      "changeLabel": "El cambio:",
+      "changeText": "El paso de sociedades agrarias a sociedades industriales y luego postindustriales trasladó el trabajo de espacios abiertos y tareas físicas a entornos interiores y tareas mentales. Se consolidó un empleo cada vez más de «silla y pantalla», con trabajos de baja demanda física y largas jornadas sentados.",
+      "impactLabel": "El impacto:",
+      "impactText": "Apareció el sedentarismo estructural. Por primera vez en la historia, el ser humano empezó a pasar 8 o 12 horas sentado o parado en un mismo lugar, bajo techos que nos ocultaron el sol. Con máquinas que sustituyen el esfuerzo físico, abriendo la puerta al sedentarismo crónico y a muchas enfermedades modernas como obesidad y riesgo cardiovascular.",
+      "callout": "Este pilar está enfocado en combatir el sedentarismo mediante la integración de la actividad física en la vida diaria. No se limita al gimnasio; abarca caminar, correr, jugar fútbol o cualquier forma de movimiento funcional. El objetivo es que las personas encuentren placer en el esfuerzo físico y lo mantengan de forma constante."
     },
     "nutrition": {
-      "title": "Alimentación natural y nutritiva",
+      "heading": "2. Alimentación natural y nutritiva",
+      "subtitle": "Reconectando con el origen y la comida real.",
+      "breakHeading": "La Revolución Verde y los Ultraprocesados (Post-Segunda Guerra Mundial)",
+      "breakIntro": "Aquí es donde la alimentación se rompió. En los años 50, la prioridad era alimentar a una población mundial en explosión, y se optó por la cantidad sobre la calidad.",
+      "changeLabel": "El cambio:",
+      "changeText": "Aparecieron los aceites vegetales refinados, las harinas blancas masivas y el azúcar en todo.",
+      "impactLabel": "El impacto:",
+      "impactText": "Pasamos de comer «comida de la tierra» a «productos comestibles» diseñados en laboratorios para ser adictivos pero nutricionalmente nulos.",
+      "evidence": "Desde la posguerra, la prioridad de producir muchas calorías baratas (Revolución Verde + industrialización alimentaria) facilitó la transición hacia ultraprocesados basados en azúcar, harinas y aceites refinados. Esto resolvió buena parte del hambre aguda, pero a costa de dietas menos diversas y más «de laboratorio», hoy fuertemente vinculadas con enfermedades crónicas y daños ambientales. Volver a patrones basados en alimentos mínimamente procesados, variados y de origen local se alinea mejor con salud humana y planetaria.",
+      "callout": "Más allá de una dieta, este pilar se enfoca en la conexión con el origen. Promueve el consumo de alimentos reales y locales, facilitando el puente entre los agricultores y el consumidor final.",
+      "includesHeading": "Incluye:",
+      "includes1": "El apoyo a restaurantes que ofrecen opciones nutritivas.",
+      "includes2": "La promoción de la siembra propia de insumos (huertos urbanos o células de permacultura).",
+      "includes3": "La creación de un entorno donde elegir comida sana sea la opción más sencilla."
+    },
+    "sleep": {
+      "heading": "1. Sueño y Descanso",
+      "subtitle": "La base de la recuperación biológica y la salud a largo plazo.",
+      "lightHeading": "La Invención de la Luz Eléctrica (1879): El Fin del Sueño Natural",
+      "lightIntro": "Este es quizás el punto de quiebre más agresivo para nuestro cerebro. Antes de Thomas Edison, la luz artificial, nuestro ritmo circadiano (el reloj interno) estaba perfectamente sincronizado con el sol.",
+      "changeLabel": "El cambio:",
+      "changeText": "La noche dejó de ser oscura. Pudimos trabajar, comer y socializar después del atardecer.",
+      "impactLabel": "El impacto:",
+      "impactText": "El cuerpo dejó de producir melatonina correctamente. Empezamos a robarle horas al descanso, lo que disparó el estrés crónico y la inflamación que hoy vemos en todos lados.",
+      "processesHeading": "¿Cuántos procesos dependen del sueño?",
+      "processesIntro": "El sueño participa en múltiples funciones esenciales, no en solo una:",
+      "brainLabel": "Cerebro y mente:",
+      "brainText": "memoria y aprendizaje, plasticidad sináptica, regulación emocional y del estado de ánimo.",
+      "metabolismLabel": "Metabolismo y energía:",
+      "metabolismText": "regulación del gasto y reposición de energía, anabolismo, mantenimiento celular y limpieza de «desechos» cerebrales (sistema glinfático).",
+      "immuneLabel": "Sistema inmune e inflamación:",
+      "immuneText": "defensa frente a infecciones, respuesta a vacunas y control de inflamación ligada a cáncer, depresión y enfermedad cardiovascular.",
+      "cardiovascularLabel": "Cardiovascular y endocrino:",
+      "cardiovascularText": "presión arterial, glucosa, hormonas del estrés, hormonas del apetito, salud reproductiva.",
+      "homeostasisLabel": "Homeostasis general:",
+      "homeostasisText": "equilibrio de sistemas orgánicos, metabolismo, estado psicológico y social.",
+      "evidence": "La <b>evidencia científica</b> muestra que el sueño interviene en prácticamente todos los procesos críticos de cuerpo y mente; no es un lujo, sino una base fisiológica de atención, memoria, estabilidad emocional, metabolismo, inmunidad y salud cardiovascular a largo plazo.",
+      "callout": "Este pilar es la base de la recuperación biológica. No se trata solo de «dormir», sino de optimizar la <b>higiene del sueño</b> para garantizar que el cuerpo y la mente se reparen adecuadamente. En <b>{brand}</b>, se busca que la tecnología ayude a monitorizar y fomentar rutinas que respeten los ritmos circadianos."
+    }
+  },
+  "pillars": {
+    "mindSpirit": {
+      "cardDescription": "La salud no es solo física. Este pilar se centra en la gestión emocional, la claridad mental, la conexión con los demás y el sentido de propósito. Cultivar relaciones sanas y sentirnos parte de algo más grande impulsa los otros tres pilares.",
+      "description": "Gestión emocional, mental y una clara conexión con los demás",
+      "short": "Emociones / mente / espíritu",
+      "title": "Emociones, Mente, Espíritu y Comunidad"
+    },
+    "movement": {
+      "cardDescription": "No se limita al gimnasio: abarca caminar, correr, jugar o cualquier forma de movimiento funcional. El objetivo es integrar la actividad física en la vida diaria y encontrar placer en el esfuerzo físico para mantenerlo de forma constante.",
+      "description": "Combatir el sedentarismo con actividad física funcional",
+      "short": "Movimiento o ejercicio",
+      "title": "Ejercicio y Movimiento"
+    },
+    "nutrition": {
+      "cardDescription": "Más allá de una dieta, este pilar promueve el consumo de alimentos reales, mínimamente procesados, variados y de origen local. Facilita el puente entre agricultores y consumidores, y crea un entorno donde elegir comida sana sea la opción más sencilla.",
       "description": "Conexión con el origen, alimentos locales y reales",
-      "short": "Alimentación natural y nutritiva"
+      "short": "Alimentación natural y nutritiva",
+      "title": "Alimentación natural y nutritiva"
     },
     "references": "Referencias",
     "sleep": {
-      "title": "Sueño y Descanso",
+      "cardDescription": "El sueño no es un lujo, es la base fisiológica de la atención, la memoria, la estabilidad emocional, el metabolismo, la inmunidad y la salud cardiovascular. Optimizar la higiene del sueño es el primer paso para que el cuerpo y la mente se reparen adecuadamente.",
       "description": "Optimizar la higiene del sueño para tu recuperación biológica",
-      "short": "Sueño y descanso"
+      "short": "Sueño y descanso",
+      "title": "Sueño y Descanso"
     }
+  },
+  "pillarsOverview": {
+    "heading": "Los 4 Pilares de <brand>{brandName}</brand>",
+    "intro": "Un framework integral para reconectar con tu biología y recuperar tu salud. Cuatro áreas interdependientes que, trabajadas en conjunto, transforman tu bienestar físico, mental y emocional.",
+    "readMore": "Leer más",
+    "whyHeading": "¿Por qué estos cuatro pilares?",
+    "whyBody": "La ciencia moderna confirma lo que la sabiduría ancestral ya sabía: el sueño reparador, la alimentación natural, el movimiento diario y la conexión con nuestra comunidad son los cimientos de una vida saludable. Cada pilar refuerza a los demás, creando un círculo virtuoso de bienestar integral.",
+    "metaTitle": "Los 4 pilares de {brand}",
+    "metaDescription": "Sueño y descanso, alimentación natural, movimiento y mente: los cuatro pilares sobre los que se construye una vida sana."
   },
   "post": {
     "markSoldOut": "Marcar agotado",
