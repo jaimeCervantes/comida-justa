@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import type { User } from "~/domain/entities/post/types";
 import { resolveLocale } from "~/i18n/routing";
 import { auth } from "~/infra/auth";
@@ -27,6 +27,7 @@ export default async function StorePage({ params }: Props) {
   const { slug, locale: rawLocale } = await params;
   const locale = resolveLocale(rawLocale);
   setRequestLocale(locale);
+  const t = await getTranslations("store");
   const session = await auth();
 
   // Se resuelve fuera de cualquier `<Suspense>`: una tienda inexistente debe salir con status 404
@@ -48,8 +49,11 @@ export default async function StorePage({ params }: Props) {
 
       {store.branches.length > 0 ? (
         <section className="mb-6">
-          <h2 className="text-lg font-bold mb-2">Dónde encontrarnos</h2>
-          <BranchList branches={store.branches} />
+          <h2 className="text-lg font-bold mb-2">{t("branchesHeading")}</h2>
+          <BranchList
+            branches={store.branches}
+            emptyMessage={t("noBranches")}
+          />
         </section>
       ) : null}
 

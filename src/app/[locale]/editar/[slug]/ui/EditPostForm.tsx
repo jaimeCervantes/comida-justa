@@ -1,4 +1,5 @@
 "use client";
+import { useTranslations } from "next-intl";
 import { useActionState, useState } from "react";
 import { MdOutlinePriceChange, MdTitle } from "react-icons/md";
 import type { CategoryOption } from "~/domain/entities/post/taxonomy";
@@ -40,6 +41,8 @@ export default function EditPostForm({
   categoryOptions: readonly CategoryOption[];
   subCategoryOptionsByCategory: Record<string, readonly CategoryOption[]>;
 }) {
+  const t = useTranslations("edit");
+  const tPublish = useTranslations("publish");
   const [state, updateAction, isPending] = useActionState<
     EditPostState,
     FormData
@@ -50,7 +53,7 @@ export default function EditPostForm({
 
   return (
     <section>
-      <h1 className="text-xl mb-4">Edita tu publicación</h1>
+      <h1 className="text-xl mb-4">{t("heading")}</h1>
 
       {state.errorMessage ? (
         <p
@@ -61,7 +64,7 @@ export default function EditPostForm({
         </p>
       ) : null}
 
-      <form action={updateAction} aria-label="Edita tu publicación">
+      <form action={updateAction} aria-label={t("heading")}>
         <input type="hidden" name="slug" value={post.slug} />
 
         <TextField
@@ -69,7 +72,7 @@ export default function EditPostForm({
           required
           name="title"
           type="text"
-          label="Título de la publicación:"
+          label={tPublish("title")}
           defaultValue={post.title}
           icon={<MdTitle />}
           containerClassName="mb-6"
@@ -79,7 +82,7 @@ export default function EditPostForm({
           <>
             <div className="mb-6 text-black dark:text-white">
               <label htmlFor="category" className="block mb-1">
-                Categoría:
+                {tPublish("category")}
               </label>
               <select
                 id="category"
@@ -88,7 +91,7 @@ export default function EditPostForm({
                 onChange={(event) => setCategory(event.target.value)}
                 className={selectClassName}
               >
-                <option value="">— Sin especificar —</option>
+                <option value="">{tPublish("unspecifiedOption")}</option>
                 {categoryOptions.map((option) => (
                   <option key={option.value} value={option.value}>
                     {option.label}
@@ -100,7 +103,7 @@ export default function EditPostForm({
             {category ? (
               <div className="mb-6 text-black dark:text-white">
                 <label htmlFor="subCategory" className="block mb-1">
-                  Sub-categoría:
+                  {tPublish("subCategory")}
                 </label>
                 <select
                   id="subCategory"
@@ -108,7 +111,7 @@ export default function EditPostForm({
                   defaultValue={post.subCategory ?? ""}
                   className={selectClassName}
                 >
-                  <option value="">— Sin especificar —</option>
+                  <option value="">{tPublish("unspecifiedOption")}</option>
                   {(subCategoryOptionsByCategory[category] ?? []).map(
                     (option) => (
                       <option key={option.value} value={option.value}>
@@ -124,7 +127,7 @@ export default function EditPostForm({
               required
               name="price"
               type="number"
-              label="Precio:"
+              label={tPublish("price")}
               defaultValue={post.price ?? ""}
               icon={<MdOutlinePriceChange />}
               containerClassName="mb-6"
@@ -135,7 +138,7 @@ export default function EditPostForm({
         <TextArea
           name="content"
           required
-          label="Descripción:"
+          label={t("content")}
           rows={8}
           defaultValue={post.content}
           maxLength={Number(POST_CONTENT_MAX_LENGTH)}
@@ -144,7 +147,7 @@ export default function EditPostForm({
 
         <footer className="flex justify-center gap-5 mt-4">
           <Link href={`/${post.slug}`}>
-            <Button>Cancelar</Button>
+            <Button>{tPublish("cancel")}</Button>
           </Link>
 
           <Button
@@ -153,7 +156,7 @@ export default function EditPostForm({
             isLoading={isPending}
             disabled={isPending}
           >
-            Guardar cambios
+            {t("submit")}
           </Button>
         </footer>
       </form>

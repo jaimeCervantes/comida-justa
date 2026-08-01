@@ -1,16 +1,16 @@
+import { useTranslations } from "next-intl";
 import type { Seller } from "~/domain/entities/seller/types";
 import { Link } from "~/i18n/navigation";
 import { PUBLIC_BASE_URL } from "~/infra/constants";
 import { storePath } from "../storePath";
 
-export const STORE_CARD_TITLE = "Tu tienda";
-
 export default function StoreCard({ seller }: { seller: Seller }) {
+  const t = useTranslations("account");
   const handle = seller.handle;
 
   return (
     <section data-testid="store-card">
-      <h1 className="text-xl font-bold mb-2">{STORE_CARD_TITLE}</h1>
+      <h1 className="text-xl font-bold mb-2">{t("storeCardTitle")}</h1>
       <p className="text-2xl mb-2">{seller.name}</p>
 
       {seller.description ? (
@@ -32,7 +32,7 @@ export default function StoreCard({ seller }: { seller: Seller }) {
         </>
       ) : (
         // Los vendedores que creó el chatbot no tienen dirección; darles una es otro slice.
-        <p>Esta tienda todavía no tiene una página pública.</p>
+        <p>{t("storeCardNoPublicPage")}</p>
       )}
     </section>
   );

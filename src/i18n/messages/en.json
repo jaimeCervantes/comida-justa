@@ -1,4 +1,61 @@
 {
+  "account": {
+    "addBranchFormLabel": "Add a branch",
+    "addBranchIntro": "With its location on the map, the chatbot can recommend you to whoever is nearby. Without it, you only show up in searches without a location.",
+    "addBranchTitle": "Add a branch",
+    "becomeSellerFormLabel": "Open your store",
+    "becomeSellerIntro": "Open your store and have one address to give your customers: everything you publish shows up there.",
+    "becomeSellerOnline": "Your store is online",
+    "becomeSellerShare": "Share this address with your customers; everything you publish shows up there.",
+    "becomeSellerSubmit": "Open my store",
+    "becomeSellerTitle": "Sell what you make",
+    "branchAddress": "Address:",
+    "branchAddressPlaceholder": "Street, number, neighbourhood, city",
+    "branchMapsHint": "Find yourself on Google Maps and use «Share», or copy the address from the bar.",
+    "branchMapsLink": "Google Maps link:",
+    "branchName": "Branch name:",
+    "branchNamePlaceholder": "e.g. Sucursal Centro",
+    "branchesHeading": "Your branches",
+    "cancel": "Cancel",
+    "heading": "My account",
+    "locating": "Finding where you are…",
+    "locationFailed": "We couldn't read your location; paste the Maps link.",
+    "locationHint": "Use it if you are standing in your shop.",
+    "locationTaken": "Location taken from your device.",
+    "saveBranch": "Save branch",
+    "storeCardNoPublicPage": "This store doesn't have a public page yet.",
+    "storeCardTitle": "Your store",
+    "storeDescription": "What do you sell? (optional)",
+    "storeDescriptionPlaceholder": "Sourdough bread baked every morning.",
+    "storeDescriptionRequired": "What do you sell?",
+    "storeName": "Your store's name:",
+    "storeNamePlaceholder": "e.g. Panadería La Luz",
+    "storePhone": "Contact phone:",
+    "storePhonePlaceholder": "e.g. 2781092116",
+    "storeProfileFormLabel": "Edit your store's details",
+    "storeProfileSubmit": "Save details",
+    "storeProfileTitle": "Your store's details",
+    "storeWebsite": "Website (optional):",
+    "useMyLocation": "Use my current location",
+    "username": "Username:",
+    "usernameFormLabel": "Pick your personal address",
+    "usernameIntro": "A page with everything you publish, announcements included. You pick it once: changing it would break the links you have already shared.",
+    "usernamePlaceholder": "e.g. jaime-cervantes",
+    "usernameSubmit": "Reserve my address",
+    "usernameTitle": "Your personal address"
+  },
+  "admin": {
+    "indexingHeading": "Chatbot indexing",
+    "indexingAllDone": "All {total} product translations are indexed."
+  },
+  "auth": {
+    "chooseProvider": "a provider to sign in.",
+    "signInWith": "Sign in with",
+    "terms": "By continuing you accept our terms and our privacy policy."
+  },
+  "branches": {
+    "emptyWithoutLocation": "You don't have any branch with a location yet, so the chatbot can't recommend you by proximity."
+  },
   "comments": {
     "loadingMore": "Loading more comments…",
     "loadMore": "Load more comments"
@@ -9,13 +66,22 @@
     "logoAlt": "{brand} logo",
     "loading": "Loading…"
   },
+  "edit": {
+    "metaTitle": "Edit publication",
+    "heading": "Edit your publication",
+    "content": "Description:",
+    "submit": "Save changes"
+  },
   "feed": {
     "empty": "No food has been published yet.",
     "loadingMore": "Loading more…",
     "loadMore": "Load more",
     "noMore": "There are no more publications",
     "paginationLabel": "Pagination",
-    "page": "Page {page}"
+    "page": "Page {page}",
+    "pageTitle": "{brand} - Page {page}",
+    "pageDescription": "Browse our selection of food on page {page}. Healthy food for you and your community.",
+    "emptyPage": "No food has been published on this page."
   },
   "footer": {
     "tagline": "We are not just an app. We are a whole ecosystem of initiatives built to make living healthy the easiest option for everyone.",
@@ -81,6 +147,13 @@
         "description": "Where to play sports with people who cheer you on"
       }
     }
+  },
+  "notFound": {
+    "heading": "Resource not found!",
+    "subtitle": "It probably went off to do an extra set of burpees… and ran out of steam!",
+    "rest": "Sometimes even a resource needs a rest.",
+    "invite": "While it recovers, you can keep looking after your health — your time. Find what you need here:",
+    "goHome": "Go to the home page"
   },
   "pillars": {
     "sleep": {
@@ -194,7 +267,31 @@
     }
   },
   "profile": {
-    "empty": "This person hasn't published anything yet."
+    "empty": "This person hasn't published anything yet.",
+    "publicationCount": "{total, plural, one {# publication} other {# publications}}"
+  },
+  "publish": {
+    "heading": "Publish something healthy",
+    "formLabel": "Publish your new healthy food",
+    "title": "Publication title:",
+    "kind": "Publication type:",
+    "kindAnnouncement": "Announcement",
+    "kindProduct": "Product",
+    "category": "Category:",
+    "subCategory": "Sub-category:",
+    "origin": "Provenance (Hazlo Sano):",
+    "unspecifiedOption": "— Unspecified —",
+    "price": "Price:",
+    "media": "Upload your best picture or your best video",
+    "phone": "Phone",
+    "phonePlaceholder": "e.g. 278109216 or +522781092116",
+    "content": "Product description:",
+    "cancel": "Cancel",
+    "submit": "Publish",
+    "submitting": "Publishing…",
+    "errorTitleRequired": "The title is required.",
+    "errorPhoneRequired": "The phone number is required.",
+    "errorUnexpected": "Something went wrong creating your publication. It's not you, it's me, your server :(."
   },
   "search": {
     "placeholder": "Search...",
@@ -202,7 +299,9 @@
     "seeAll": "See all results"
   },
   "store": {
-    "empty": "This store hasn't published anything yet."
+    "empty": "This store hasn't published anything yet.",
+    "branchesHeading": "Where to find us",
+    "noBranches": "This store doesn't share its branches yet."
   },
   "termsOfService": {
     "title": "Terms of Service | Hazlo Sano",

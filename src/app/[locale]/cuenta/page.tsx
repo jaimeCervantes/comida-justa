@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getLocale, setRequestLocale } from "next-intl/server";
+import { getLocale, getTranslations, setRequestLocale } from "next-intl/server";
 import type { User } from "~/domain/entities/post/types";
 import { redirectKeepingLocale } from "~/i18n/redirectKeepingLocale";
 import { resolveLocale } from "~/i18n/routing";
@@ -41,6 +41,8 @@ export default async function CuentaPage({
 }) {
   const { locale } = await params;
   setRequestLocale(resolveLocale(locale));
+  const t = await getTranslations("account");
+  const tBranches = await getTranslations("branches");
 
   const session = await auth();
 
@@ -70,7 +72,7 @@ export default async function CuentaPage({
   if (!seller) {
     return (
       <main>
-        <h1 className="text-xl font-bold mb-6">Mi cuenta</h1>
+        <h1 className="text-xl font-bold mb-6">{t("heading")}</h1>
 
         <div className={COLUMNS}>
           <BecomeSellerForm action={becomeSeller} defaultName={user.name} />
@@ -84,7 +86,7 @@ export default async function CuentaPage({
 
   return (
     <main>
-      <h1 className="text-xl font-bold mb-6">Mi cuenta</h1>
+      <h1 className="text-xl font-bold mb-6">{t("heading")}</h1>
 
       <div className={COLUMNS}>
         <div className="flex flex-col gap-10">
@@ -94,8 +96,11 @@ export default async function CuentaPage({
 
         <div className="flex flex-col gap-10">
           <section>
-            <h2 className="text-lg font-bold mb-4">Tus sucursales</h2>
-            <BranchList branches={branches} />
+            <h2 className="text-lg font-bold mb-4">{t("branchesHeading")}</h2>
+            <BranchList
+              branches={branches}
+              emptyMessage={tBranches("emptyWithoutLocation")}
+            />
           </section>
 
           <AddBranchForm action={addBranch} />

@@ -1,4 +1,5 @@
 "use client";
+import { useTranslations } from "next-intl";
 import { useActionState, useState } from "react";
 import { MdPhone, MdStorefront } from "react-icons/md";
 import { generateSellerHandle } from "~/domain/entities/seller/handle";
@@ -9,11 +10,6 @@ import { TextArea } from "~/presentation/design_system/forms/TextArea";
 import { TextField } from "~/presentation/design_system/forms/TextField";
 import type { BecomeSellerState } from "../actions";
 import { storePath } from "../storePath";
-
-export const BECOME_SELLER_TITLE = "Vende lo que haces";
-
-export const BECOME_SELLER_INTRO =
-  "Abre tu tienda y ten una sola dirección que dar a tus clientes: ahí aparece todo lo que publiques.";
 
 export default function BecomeSellerForm({
   action,
@@ -26,6 +22,7 @@ export default function BecomeSellerForm({
   /** El nombre de la cuenta, como punto de partida del nombre de la tienda. */
   defaultName?: string | null;
 }) {
+  const t = useTranslations("account");
   const [state, becomeSellerAction, isPending] = useActionState<
     BecomeSellerState,
     FormData
@@ -42,8 +39,8 @@ export default function BecomeSellerForm({
 
   return (
     <section>
-      <h1 className="text-xl font-bold mb-2">{BECOME_SELLER_TITLE}</h1>
-      <p className="mb-6">{BECOME_SELLER_INTRO}</p>
+      <h1 className="text-xl font-bold mb-2">{t("becomeSellerTitle")}</h1>
+      <p className="mb-6">{t("becomeSellerIntro")}</p>
 
       {state.errorMessage ? (
         <p
@@ -54,14 +51,14 @@ export default function BecomeSellerForm({
         </p>
       ) : null}
 
-      <form action={becomeSellerAction} aria-label="Abre tu tienda">
+      <form action={becomeSellerAction} aria-label={t("becomeSellerFormLabel")}>
         <TextField
           required
           autoFocus
           name="name"
           type="text"
-          label="Nombre de tu tienda:"
-          placeholder="Ej: Panadería La Luz"
+          label={t("storeName")}
+          placeholder={t("storeNamePlaceholder")}
           icon={<MdStorefront />}
           value={name}
           onChange={(event) => setName(event.target.value)}
@@ -79,24 +76,24 @@ export default function BecomeSellerForm({
           required
           name="phone"
           type="tel"
-          label="Teléfono de contacto:"
+          label={t("storePhone")}
           pattern={"^\\+?(\\d{1,3})?[0-9]{10}$"}
-          placeholder="Ej: 2781092116"
+          placeholder={t("storePhonePlaceholder")}
           icon={<MdPhone />}
           containerClassName="mb-6"
         />
 
         <TextArea
           name="description"
-          label="¿Qué vendes? (opcional)"
+          label={t("storeDescription")}
           rows={4}
-          placeholder="Pan de masa madre horneado cada mañana."
+          placeholder={t("storeDescriptionPlaceholder")}
           className="mb-6"
         />
 
         <footer className="flex justify-center gap-5 mt-4">
           <Link href="/">
-            <Button>Cancelar</Button>
+            <Button>{t("cancel")}</Button>
           </Link>
 
           <Button
@@ -105,7 +102,7 @@ export default function BecomeSellerForm({
             isLoading={isPending}
             disabled={isPending}
           >
-            Abrir mi tienda
+            {t("becomeSellerSubmit")}
           </Button>
         </footer>
       </form>
@@ -114,13 +111,12 @@ export default function BecomeSellerForm({
 }
 
 function StoreReadyMessage({ handle }: { handle: string }) {
+  const t = useTranslations("account");
+
   return (
     <section data-testid="store-ready">
-      <h1 className="text-xl font-bold mb-2">Tu tienda ya está en línea</h1>
-      <p className="mb-4">
-        Comparte esta dirección con tus clientes; todo lo que publiques aparece
-        ahí.
-      </p>
+      <h1 className="text-xl font-bold mb-2">{t("becomeSellerOnline")}</h1>
+      <p className="mb-4">{t("becomeSellerShare")}</p>
       <Link
         href={storePath(handle)}
         className="font-bold text-pw-orange break-all"

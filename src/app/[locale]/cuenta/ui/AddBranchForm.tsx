@@ -1,14 +1,10 @@
 "use client";
+import { useTranslations } from "next-intl";
 import { useActionState, useState } from "react";
 import { MdMyLocation, MdPlace, MdStorefront } from "react-icons/md";
 import { Button } from "~/presentation/design_system/buttons/Button";
 import { TextField } from "~/presentation/design_system/forms/TextField";
 import type { AddBranchState } from "../actions";
-
-export const ADD_BRANCH_TITLE = "Agrega una sucursal";
-
-export const ADD_BRANCH_INTRO =
-  "Con su ubicación en el mapa, el chatbot puede recomendarte a quien está cerca. Sin ella, apareces solo en las búsquedas sin ubicación.";
 
 type GeolocationState = "idle" | "locating" | "located" | "failed";
 
@@ -17,6 +13,7 @@ export default function AddBranchForm({
 }: {
   action: (state: AddBranchState, data: FormData) => Promise<AddBranchState>;
 }) {
+  const t = useTranslations("account");
   const [state, addBranchAction, isPending] = useActionState<
     AddBranchState,
     FormData
@@ -48,9 +45,9 @@ export default function AddBranchForm({
 
   return (
     <section>
-      <h2 className="text-lg font-bold mb-2">{ADD_BRANCH_TITLE}</h2>
+      <h2 className="text-lg font-bold mb-2">{t("addBranchTitle")}</h2>
       <p className="mb-6 text-sm text-gray-600 dark:text-gray-400">
-        {ADD_BRANCH_INTRO}
+        {t("addBranchIntro")}
       </p>
 
       {state.errorMessage ? (
@@ -62,13 +59,13 @@ export default function AddBranchForm({
         </p>
       ) : null}
 
-      <form action={addBranchAction} aria-label="Agrega una sucursal">
+      <form action={addBranchAction} aria-label={t("addBranchFormLabel")}>
         <TextField
           required
           name="name"
           type="text"
-          label="Nombre de la sucursal:"
-          placeholder="Ej: Sucursal Centro"
+          label={t("branchName")}
+          placeholder={t("branchNamePlaceholder")}
           icon={<MdStorefront />}
           containerClassName="mb-6"
         />
@@ -77,8 +74,8 @@ export default function AddBranchForm({
           required
           name="address"
           type="text"
-          label="Dirección:"
-          placeholder="Calle, número, colonia, ciudad"
+          label={t("branchAddress")}
+          placeholder={t("branchAddressPlaceholder")}
           icon={<MdPlace />}
           containerClassName="mb-6"
         />
@@ -86,9 +83,9 @@ export default function AddBranchForm({
         <TextField
           name="mapUrl"
           type="url"
-          label="Enlace de Google Maps:"
+          label={t("branchMapsLink")}
           placeholder="https://maps.app.goo.gl/…"
-          hint="Búscate en Google Maps y usa «Compartir», o copia la dirección de la barra."
+          hint={t("branchMapsHint")}
           icon={<MdPlace />}
           containerClassName="mb-4"
         />
@@ -114,14 +111,14 @@ export default function AddBranchForm({
             size="sm"
             isLoading={geolocation === "locating"}
           >
-            Usar mi ubicación actual
+            {t("useMyLocation")}
           </Button>
 
           <span
             data-testid="geolocation-status"
             className="text-sm text-gray-600 dark:text-gray-400"
           >
-            {geolocationMessage(geolocation)}
+            {t(geolocationMessageKey(geolocation))}
           </span>
         </div>
 
@@ -132,7 +129,7 @@ export default function AddBranchForm({
             isLoading={isPending}
             disabled={isPending}
           >
-            Guardar sucursal
+            {t("saveBranch")}
           </Button>
         </footer>
       </form>
@@ -140,11 +137,16 @@ export default function AddBranchForm({
   );
 }
 
-function geolocationMessage(state: GeolocationState): string {
-  if (state === "located") return "Ubicación tomada de tu dispositivo.";
-  if (state === "failed")
-    return "No se pudo leer tu ubicación; pega el enlace de Maps.";
-  if (state === "locating") return "Buscando dónde estás…";
+/**
+ * Devuelve la **clave** del mensaje, no el texto: así el estado de la geolocalización sigue siendo
+ * una función pura y comprobable, y la redacción vive donde vive el resto.
+ */
+function geolocationMessageKey(
+  state: GeolocationState,
+): "locationTaken" | "locationFailed" | "locating" | "locationHint" {
+  if (state === "located") return "locationTaken";
+  if (state === "failed") return "locationFailed";
+  if (state === "locating") return "locating";
 
-  return "Úsalo si estás parado en tu local.";
+  return "locationHint";
 }

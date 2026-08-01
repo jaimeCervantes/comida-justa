@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { MdStorefront } from "react-icons/md";
 import type { Seller } from "~/domain/entities/seller/types";
 import type { UserProfile } from "~/domain/entities/user/types";
@@ -14,6 +15,7 @@ export default function ProfileHeader({
   store: Seller | null;
   total: number;
 }) {
+  const t = useTranslations("profile");
   return (
     <header className="mb-8 flex flex-col items-center gap-4 text-center sm:flex-row sm:items-center sm:text-left">
       {profile.image ? (
@@ -33,7 +35,7 @@ export default function ProfileHeader({
         </h1>
 
         <p className="text-sm text-gray-600 dark:text-gray-400">
-          {total === 1 ? "1 publicación" : `${total} publicaciones`}
+          {t("publicationCount", { total })}
         </p>
 
         {store?.handle ? (

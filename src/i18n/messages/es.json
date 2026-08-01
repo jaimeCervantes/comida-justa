@@ -1,4 +1,61 @@
 {
+  "account": {
+    "addBranchFormLabel": "Agrega una sucursal",
+    "addBranchIntro": "Con su ubicación en el mapa, el chatbot puede recomendarte a quien está cerca. Sin ella, apareces solo en las búsquedas sin ubicación.",
+    "addBranchTitle": "Agrega una sucursal",
+    "becomeSellerFormLabel": "Abre tu tienda",
+    "becomeSellerIntro": "Abre tu tienda y ten una sola dirección que dar a tus clientes: ahí aparece todo lo que publiques.",
+    "becomeSellerOnline": "Tu tienda ya está en línea",
+    "becomeSellerShare": "Comparte esta dirección con tus clientes; todo lo que publiques aparece ahí.",
+    "becomeSellerSubmit": "Abrir mi tienda",
+    "becomeSellerTitle": "Vende lo que haces",
+    "branchAddress": "Dirección:",
+    "branchAddressPlaceholder": "Calle, número, colonia, ciudad",
+    "branchMapsHint": "Búscate en Google Maps y usa «Compartir», o copia la dirección de la barra.",
+    "branchMapsLink": "Enlace de Google Maps:",
+    "branchName": "Nombre de la sucursal:",
+    "branchNamePlaceholder": "Ej: Sucursal Centro",
+    "branchesHeading": "Tus sucursales",
+    "cancel": "Cancelar",
+    "heading": "Mi cuenta",
+    "locating": "Buscando dónde estás…",
+    "locationFailed": "No se pudo leer tu ubicación; pega el enlace de Maps.",
+    "locationHint": "Úsalo si estás parado en tu local.",
+    "locationTaken": "Ubicación tomada de tu dispositivo.",
+    "saveBranch": "Guardar sucursal",
+    "storeCardNoPublicPage": "Esta tienda todavía no tiene una página pública.",
+    "storeCardTitle": "Tu tienda",
+    "storeDescription": "¿Qué vendes? (opcional)",
+    "storeDescriptionPlaceholder": "Pan de masa madre horneado cada mañana.",
+    "storeDescriptionRequired": "¿Qué vendes?",
+    "storeName": "Nombre de tu tienda:",
+    "storeNamePlaceholder": "Ej: Panadería La Luz",
+    "storePhone": "Teléfono de contacto:",
+    "storePhonePlaceholder": "Ej: 2781092116",
+    "storeProfileFormLabel": "Edita la ficha de tu tienda",
+    "storeProfileSubmit": "Guardar ficha",
+    "storeProfileTitle": "La ficha de tu tienda",
+    "storeWebsite": "Sitio web (opcional):",
+    "useMyLocation": "Usar mi ubicación actual",
+    "username": "Nombre de usuario:",
+    "usernameFormLabel": "Elige tu dirección personal",
+    "usernameIntro": "Una página con todo lo que publicas, anuncios incluidos. Se elige una sola vez: cambiarla rompería los enlaces que ya hayas compartido.",
+    "usernamePlaceholder": "Ej: jaime-cervantes",
+    "usernameSubmit": "Reservar mi dirección",
+    "usernameTitle": "Tu dirección personal"
+  },
+  "admin": {
+    "indexingHeading": "Indexación para el chatbot",
+    "indexingAllDone": "Las {total} traducciones de producto están indexadas."
+  },
+  "auth": {
+    "chooseProvider": "un proveedor para iniciar sesión.",
+    "signInWith": "Iniciar sesión con",
+    "terms": "Al continuar aceptas nuestros términos y la política de privacidad."
+  },
+  "branches": {
+    "emptyWithoutLocation": "Todavía no tienes sucursales con ubicación, así que el chatbot no puede recomendarte por cercanía."
+  },
   "comments": {
     "loadingMore": "Cargando más comentarios...",
     "loadMore": "Cargar más comentarios"
@@ -9,13 +66,22 @@
     "logoAlt": "Logo {brand}",
     "loading": "Cargando..."
   },
+  "edit": {
+    "metaTitle": "Editar publicación",
+    "heading": "Edita tu publicación",
+    "content": "Descripción:",
+    "submit": "Guardar cambios"
+  },
   "feed": {
     "empty": "No hay comidas publicadas aún.",
     "loadingMore": "Cargando más...",
     "loadMore": "Cargar más",
     "noMore": "No hay más publicaciones disponibles",
     "paginationLabel": "Paginación",
-    "page": "Página {page}"
+    "page": "Página {page}",
+    "pageTitle": "{brand} - Página {page}",
+    "pageDescription": "Explora nuestra selección de alimentos en la página {page}. Comida saludable para ti y tu comunidad.",
+    "emptyPage": "No hay comidas publicadas en esta página."
   },
   "footer": {
     "tagline": "No somos solo una aplicación, somos todo un ecosistema de iniciativas diseñadas para que vivir sano sea la opción más fácil para todos.",
@@ -81,6 +147,13 @@
         "description": "Dónde practicar deportes con personas que te animan"
       }
     }
+  },
+  "notFound": {
+    "heading": "¡Recurso no encontrado!",
+    "subtitle": "Probablemente se fue a hacer una serie extra de burpees... ¡y se agotó!",
+    "rest": "A veces, incluso un recurso necesita un descanso.",
+    "invite": "Mientras se recupera, tú puedes continuar cuidando tu salud, tu tiempo. Encuentra lo que necesitas aquí:",
+    "goHome": "Ir al inicio"
   },
   "pillars": {
     "sleep": {
@@ -194,7 +267,31 @@
     }
   },
   "profile": {
-    "empty": "Esta persona todavía no ha publicado nada."
+    "empty": "Esta persona todavía no ha publicado nada.",
+    "publicationCount": "{total, plural, one {# publicación} other {# publicaciones}}"
+  },
+  "publish": {
+    "heading": "Publica algo sano",
+    "formLabel": "Publica tu nueva comida sana",
+    "title": "Título de la publicación:",
+    "kind": "Tipo de publicación:",
+    "kindAnnouncement": "Anuncio",
+    "kindProduct": "Producto",
+    "category": "Categoría:",
+    "subCategory": "Sub-categoría:",
+    "origin": "Procedencia (Hazlo Sano):",
+    "unspecifiedOption": "— Sin especificar —",
+    "price": "Precio:",
+    "media": "Sube tu mejor imagen o sube tu mejor video",
+    "phone": "Télefono",
+    "phonePlaceholder": "Ej: 278109216 o +522781092116",
+    "content": "Descripción del producto:",
+    "cancel": "Cancelar",
+    "submit": "Publicar",
+    "submitting": "Publicando...",
+    "errorTitleRequired": "El título es obligatorio.",
+    "errorPhoneRequired": "El Télefono es obligatorio.",
+    "errorUnexpected": "Sucedio un error al tratar de crear tu publicación. No eres tu, soy yo, tu servidor :(."
   },
   "search": {
     "placeholder": "Buscar...",
@@ -202,7 +299,9 @@
     "seeAll": "Ver todos los resultados"
   },
   "store": {
-    "empty": "Esta tienda todavía no ha publicado nada."
+    "empty": "Esta tienda todavía no ha publicado nada.",
+    "branchesHeading": "Dónde encontrarnos",
+    "noBranches": "Esta tienda todavía no comparte sus sucursales."
   },
   "termsOfService": {
     "title": "Condiciones de Servicio | Hazlo Sano",

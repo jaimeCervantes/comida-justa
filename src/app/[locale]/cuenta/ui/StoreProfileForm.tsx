@@ -1,4 +1,5 @@
 "use client";
+import { useTranslations } from "next-intl";
 import { useActionState, useCallback, useState } from "react";
 import { MdLink, MdPhone, MdStorefront } from "react-icons/md";
 import type { Seller } from "~/domain/entities/seller/types";
@@ -12,8 +13,6 @@ import { TextField } from "~/presentation/design_system/forms/TextField";
 import type { StoreProfileState } from "../actions";
 import { storePath } from "../storePath";
 
-export const STORE_PROFILE_TITLE = "La ficha de tu tienda";
-
 export default function StoreProfileForm({
   action,
   seller,
@@ -24,6 +23,7 @@ export default function StoreProfileForm({
   ) => Promise<StoreProfileState>;
   seller: Seller;
 }) {
+  const t = useTranslations("account");
   const [state, updateAction, isPending] = useActionState<
     StoreProfileState,
     FormData
@@ -36,7 +36,7 @@ export default function StoreProfileForm({
 
   return (
     <section>
-      <h2 className="text-lg font-bold mb-2">{STORE_PROFILE_TITLE}</h2>
+      <h2 className="text-lg font-bold mb-2">{t("storeProfileTitle")}</h2>
       <p className="mb-6 text-sm text-gray-600 dark:text-gray-400">
         Tu dirección{" "}
         <span className="font-bold">
@@ -61,12 +61,12 @@ export default function StoreProfileForm({
         </p>
       ) : null}
 
-      <form action={updateAction} aria-label="Edita la ficha de tu tienda">
+      <form action={updateAction} aria-label={t("storeProfileFormLabel")}>
         <TextField
           required
           name="name"
           type="text"
-          label="Nombre de tu tienda:"
+          label={t("storeName")}
           defaultValue={seller.name}
           icon={<MdStorefront />}
           containerClassName="mb-6"
@@ -76,7 +76,7 @@ export default function StoreProfileForm({
           required
           name="phone"
           type="tel"
-          label="Teléfono de contacto:"
+          label={t("storePhone")}
           pattern={"^\\+?(\\d{1,3})?[0-9]{10}$"}
           defaultValue={seller.phone}
           icon={<MdPhone />}
@@ -86,7 +86,7 @@ export default function StoreProfileForm({
         <TextField
           name="url"
           type="url"
-          label="Sitio web (opcional):"
+          label={t("storeWebsite")}
           placeholder="https://mitienda.mx"
           defaultValue={seller.url ?? ""}
           icon={<MdLink />}
@@ -95,7 +95,7 @@ export default function StoreProfileForm({
 
         <TextArea
           name="description"
-          label="¿Qué vendes?"
+          label={t("storeDescriptionRequired")}
           rows={4}
           defaultValue={seller.description ?? ""}
           className="mb-6"
@@ -120,7 +120,7 @@ export default function StoreProfileForm({
           isLoading={isPending}
           disabled={isPending}
         >
-          Guardar ficha
+          {t("storeProfileSubmit")}
         </Button>
       </form>
     </section>

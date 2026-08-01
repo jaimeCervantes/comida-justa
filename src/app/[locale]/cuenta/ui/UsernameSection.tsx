@@ -1,4 +1,5 @@
 "use client";
+import { useTranslations } from "next-intl";
 import { useActionState, useState } from "react";
 import { MdAlternateEmail } from "react-icons/md";
 import { generateUsername } from "~/domain/entities/user/username";
@@ -8,11 +9,6 @@ import { Button } from "~/presentation/design_system/buttons/Button";
 import { TextField } from "~/presentation/design_system/forms/TextField";
 import type { ClaimUsernameState } from "../actions";
 import { profilePath } from "../profilePath";
-
-export const USERNAME_TITLE = "Tu dirección personal";
-
-export const USERNAME_INTRO =
-  "Una página con todo lo que publicas, anuncios incluidos. Se elige una sola vez: cambiarla rompería los enlaces que ya hayas compartido.";
 
 export default function UsernameSection({
   action,
@@ -27,6 +23,7 @@ export default function UsernameSection({
   currentUsername: string | null;
   defaultName?: string | null;
 }) {
+  const t = useTranslations("account");
   const [state, claimAction, isPending] = useActionState<
     ClaimUsernameState,
     FormData
@@ -38,7 +35,7 @@ export default function UsernameSection({
   if (username) {
     return (
       <section data-testid="username-card">
-        <h2 className="text-lg font-bold mb-2">{USERNAME_TITLE}</h2>
+        <h2 className="text-lg font-bold mb-2">{t("usernameTitle")}</h2>
         <Link
           href={profilePath(username)}
           className="font-bold text-pw-orange break-all"
@@ -55,9 +52,9 @@ export default function UsernameSection({
 
   return (
     <section>
-      <h2 className="text-lg font-bold mb-2">{USERNAME_TITLE}</h2>
+      <h2 className="text-lg font-bold mb-2">{t("usernameTitle")}</h2>
       <p className="mb-6 text-sm text-gray-600 dark:text-gray-400">
-        {USERNAME_INTRO}
+        {t("usernameIntro")}
       </p>
 
       {state.errorMessage ? (
@@ -69,13 +66,13 @@ export default function UsernameSection({
         </p>
       ) : null}
 
-      <form action={claimAction} aria-label="Elige tu dirección personal">
+      <form action={claimAction} aria-label={t("usernameFormLabel")}>
         <TextField
           required
           name="username"
           type="text"
-          label="Nombre de usuario:"
-          placeholder="Ej: jaime-cervantes"
+          label={t("username")}
+          placeholder={t("usernamePlaceholder")}
           icon={<MdAlternateEmail />}
           value={requested}
           onChange={(event) => setRequested(event.target.value)}
@@ -95,7 +92,7 @@ export default function UsernameSection({
           isLoading={isPending}
           disabled={isPending}
         >
-          Reservar mi dirección
+          {t("usernameSubmit")}
         </Button>
       </form>
     </section>

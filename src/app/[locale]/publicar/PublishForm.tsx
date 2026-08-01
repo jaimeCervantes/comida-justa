@@ -30,6 +30,7 @@ export default function PublishForm({
   /** Las hijas de cada categoría, para encadenar el segundo selector. */
   subCategoryOptionsByCategory: Record<string, readonly CategoryOption[]>;
 }) {
+  const t = useTranslations("publish");
   const tVocabulary = useTranslations("vocabulary");
   const [state, createPostAction, isPending] = useActionState<
     ActionState,
@@ -44,9 +45,7 @@ export default function PublishForm({
   const [category, setCategory] = useState<string>("");
   const [mediaJSON, setMediaJSON] = useState<string>("");
   const [isLoadingMedia, setIsLoadingMedia] = useState<boolean | null>(null);
-  const [imagePickerLabel, setImageVideoPickerLabel] = useState(
-    "Sube tu mejor imagen o sube tu mejor video",
-  );
+  const [imagePickerLabel, setImageVideoPickerLabel] = useState(t("media"));
 
   const onUploadedCallback = useCallback(
     async (data: UploadedMediaResult | null) => {
@@ -65,7 +64,7 @@ export default function PublishForm({
 
   return (
     <section className="p-4">
-      <h1 className="text-xl mb-4">Publica algo sano</h1>
+      <h1 className="text-xl mb-4">{t("heading")}</h1>
 
       {state?.errors?.errorMessage ? (
         <h2 className="pt-1 flex items-center gap-1 text-red-700 dark:text-red-400">
@@ -73,17 +72,13 @@ export default function PublishForm({
         </h2>
       ) : null}
 
-      <form
-        action={createPostAction}
-        className=""
-        aria-label="Publica tu nueva comida sana"
-      >
+      <form action={createPostAction} className="" aria-label={t("formLabel")}>
         <TextField
           autoFocus
           required
           name="title"
           type="text"
-          label="Título de la publicación:"
+          label={t("title")}
           icon={<MdTitle />}
           error={state?.errors?.title}
           containerClassName="mb-6"
@@ -91,7 +86,7 @@ export default function PublishForm({
 
         <div className="mb-6 text-black dark:text-white">
           <label htmlFor="kind" className="block mb-1">
-            Tipo de publicación:
+            {t("kind")}
           </label>
           <select
             id="kind"
@@ -100,8 +95,8 @@ export default function PublishForm({
             onChange={(event) => setKind(event.target.value)}
             className={selectClassName}
           >
-            <option value="anuncio">Anuncio</option>
-            <option value="producto">Producto</option>
+            <option value="anuncio">{t("kindAnnouncement")}</option>
+            <option value="producto">{t("kindProduct")}</option>
           </select>
         </div>
 
@@ -110,7 +105,7 @@ export default function PublishForm({
           <>
             <div className="mb-6 text-black dark:text-white">
               <label htmlFor="category" className="block mb-1">
-                Categoría:
+                {t("category")}
               </label>
               <select
                 id="category"
@@ -119,7 +114,7 @@ export default function PublishForm({
                 onChange={(event) => setCategory(event.target.value)}
                 className={selectClassName}
               >
-                <option value="">— Sin especificar —</option>
+                <option value="">{t("unspecifiedOption")}</option>
                 {categoryOptions.map((option) => (
                   <option key={option.value} value={option.value}>
                     {option.label}
@@ -132,7 +127,7 @@ export default function PublishForm({
             {category ? (
               <div className="mb-6 text-black dark:text-white">
                 <label htmlFor="subCategory" className="block mb-1">
-                  Sub-categoría:
+                  {t("subCategory")}
                 </label>
                 <select
                   id="subCategory"
@@ -140,7 +135,7 @@ export default function PublishForm({
                   defaultValue=""
                   className={selectClassName}
                 >
-                  <option value="">— Sin especificar —</option>
+                  <option value="">{t("unspecifiedOption")}</option>
                   {(subCategoryOptionsByCategory[category] ?? []).map(
                     (option) => (
                       <option key={option.value} value={option.value}>
@@ -157,7 +152,7 @@ export default function PublishForm({
         {isAdmin ? (
           <div className="mb-6 text-black dark:text-white">
             <label htmlFor="origin" className="block mb-1">
-              Procedencia (Hazlo Sano):
+              {t("origin")}
             </label>
             <select
               id="origin"
@@ -165,7 +160,7 @@ export default function PublishForm({
               defaultValue=""
               className={selectClassName}
             >
-              <option value="">— Sin especificar —</option>
+              <option value="">{t("unspecifiedOption")}</option>
               {ORIGIN_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
                   {tVocabulary(option.labelKey)}
@@ -178,7 +173,7 @@ export default function PublishForm({
         <TextField
           name="price"
           type="number"
-          label="Precio:"
+          label={t("price")}
           icon={<MdOutlinePriceChange />}
           error={state?.errors?.price}
           containerClassName="mb-6"
@@ -204,9 +199,9 @@ export default function PublishForm({
           required
           name="phone"
           type="tel"
-          label="Télefono"
+          label={t("phone")}
           pattern={"^\\+?(\\d{1,3})?[0-9]{10}$"}
-          placeholder="Ej: 278109216 o +522781092116"
+          placeholder={t("phonePlaceholder")}
           icon={<MdPhone />}
           error={state.errors?.phone}
           containerClassName="mb-6"
@@ -215,7 +210,7 @@ export default function PublishForm({
         <TextArea
           name="content"
           required
-          label="Descripción del producto:"
+          label={t("content")}
           rows={8}
           maxLength={Number(POST_CONTENT_MAX_LENGTH)}
           error={state?.errors?.content as string}
@@ -223,7 +218,7 @@ export default function PublishForm({
         />
         <footer className="flex justify-center gap-5 mt-4">
           <Link href="/">
-            <Button>Cancelar</Button>
+            <Button>{t("cancel")}</Button>
           </Link>
 
           <Button
@@ -233,8 +228,8 @@ export default function PublishForm({
             disabled={isPending && !state.success}
           >
             {isPending && !state.success && isLoadingMedia
-              ? "Publicando..."
-              : "Publicar"}
+              ? t("submitting")
+              : t("submit")}
           </Button>
         </footer>
       </form>
