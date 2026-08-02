@@ -55,7 +55,6 @@ function useCloseMenuOnNavigation(
 }
 
 /* Identificadores de sección, no textos: cuál acordeón está abierto no puede depender del idioma. */
-const PRODUCTS_SECTION = "products";
 const PILLARS_SECTION = "pillars";
 const COMMUNITY_SECTION = "community";
 
@@ -190,11 +189,11 @@ export default function MobileNav({
             {/* Mismo orden y mismas entradas que en escritorio: quien cambie de tamaño de
                 pantalla no tiene que volver a aprenderse el menú. */}
             <Section
-              title={t("productsMenu")}
-              isOpen={openSubmenu === PRODUCTS_SECTION}
-              onToggle={() => toggleSubmenu(PRODUCTS_SECTION)}
+              title={t("communityMenu")}
+              isOpen={openSubmenu === COMMUNITY_SECTION}
+              onToggle={() => toggleSubmenu(COMMUNITY_SECTION)}
             >
-              <SectionLink href="/">{t("wholeCatalog")}</SectionLink>
+              <SectionLink href="/">{t("publications")}</SectionLink>
               <SectionLink href="/productos">{t("brandProducts")}</SectionLink>
               {categories.map((category) => (
                 <SectionLink
@@ -207,6 +206,11 @@ export default function MobileNav({
                   {category.label}
                 </SectionLink>
               ))}
+              {COMMUNITY_ITEMS.map((item) => (
+                <SectionLink key={item.titleKey} href={item.href}>
+                  {t(item.titleKey)}
+                </SectionLink>
+              ))}
             </Section>
 
             <Section
@@ -217,18 +221,6 @@ export default function MobileNav({
               {PILLAR_ITEMS.map((item) => (
                 <SectionLink key={item.titleKey} href={item.href}>
                   {tPillars(item.titleKey)}
-                </SectionLink>
-              ))}
-            </Section>
-
-            <Section
-              title={t("communityMenu")}
-              isOpen={openSubmenu === COMMUNITY_SECTION}
-              onToggle={() => toggleSubmenu(COMMUNITY_SECTION)}
-            >
-              {COMMUNITY_ITEMS.map((item) => (
-                <SectionLink key={item.titleKey} href={item.href}>
-                  {t(item.titleKey)}
                 </SectionLink>
               ))}
             </Section>

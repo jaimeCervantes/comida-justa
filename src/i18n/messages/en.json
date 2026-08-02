@@ -256,19 +256,19 @@
       }
     },
     "communityMenu": "Community",
+    "communitySections": "Sections",
     "myAccount": "My account",
     "myAccountAndStore": "My account and my store",
     "openMenu": "Open menu",
     "openUserMenu": "Open your account menu",
     "pillarsMenu": "4 Pillars",
-    "productsMenu": "Products",
+    "publications": "Publications",
+    "publicationsDescription": "Everything the community shares, newest first.",
     "publish": "Publish",
     "report": "Report",
     "signIn": "Sign in",
     "signOut": "Sign out",
-    "signOutShort": "Sign out",
-    "wholeCatalog": "The whole catalogue",
-    "wholeCatalogDescription": "Everything the community publishes, newest first."
+    "signOutShort": "Sign out"
   },
   "notFound": {
     "goHome": "Go to the home page",

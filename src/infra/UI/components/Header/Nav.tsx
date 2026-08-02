@@ -24,10 +24,15 @@ const CATEGORY_LINK_CLASS =
 /**
  * La barra principal.
  *
- * Antes tenía cinco elementos —«4 Pilares», «Comunidad», «Nosotros», «Productos» y «Reporte»— y no
- * cabían: «4 Pilares» se partía en dos renglones. Ahora todo lo que es catálogo cuelga de un solo
- * desplegable, «Productos», donde además viven las categorías; y «Reporte», que solo ven los
- * administradores, se fue al menú de la cuenta.
+ * Empezó con cinco elementos —«4 Pilares», «Comunidad», «Nosotros», «Productos» y «Reporte»— y no
+ * cabían: «4 Pilares» se partía en dos renglones. Quedan tres.
+ *
+ * «Comunidad» es ahora la puerta a todo lo que publica la gente, en el orden en que se busca: las
+ * publicaciones y los productos primero, las categorías después y al final las secciones. Tener
+ * «Productos» como desplegable aparte separaba dos cosas que son lo mismo —lo que la comunidad
+ * comparte— en dos menús que había que aprenderse por separado.
+ *
+ * «Reporte», que solo ven los administradores, vive en el menú del avatar.
  */
 export default function Nav({
   categories,
@@ -42,14 +47,15 @@ export default function Nav({
       <NavigationMenu.List className="center m-0 flex list-none rounded-full bg-white/50 dark:bg-black/50 px-2 py-1 shadow-xs backdrop-blur-xs">
         <NavigationMenu.Item>
           <NavigationMenu.Trigger className={TRIGGER_CLASS}>
-            {t("productsMenu")}
+            {t("communityMenu")}
             <CaretDownIcon className={CARET_CLASS} aria-hidden />
           </NavigationMenu.Trigger>
           <NavigationMenu.Content className="absolute top-0 left-0 w-auto">
-            <div className="p-[22px] w-[300px] md:w-[460px]">
+            <div className="p-[22px] w-[300px] md:w-[600px]">
+              {/* Lo que se vende va primero: es a lo que viene la mayoría. */}
               <ul className="m-0 grid list-none gap-x-[10px] grid-cols-1 md:grid-cols-2">
-                <ListItem href="/" title={t("wholeCatalog")}>
-                  {t("wholeCatalogDescription")}
+                <ListItem href="/" title={t("publications")}>
+                  {t("publicationsDescription")}
                 </ListItem>
                 <ListItem href="/productos" title={t("brandProducts")}>
                   {t("brandProductsDescription", { brand: PUBLIC_BRAND_NAME })}
@@ -62,7 +68,7 @@ export default function Nav({
                   <p className="px-3 pb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
                     {t("byCategory")}
                   </p>
-                  <ul className="m-0 grid list-none gap-x-[10px] grid-cols-2">
+                  <ul className="m-0 grid list-none gap-x-[10px] grid-cols-2 md:grid-cols-3">
                     {categories.map((category) => (
                       <li key={category.value}>
                         <NavigationMenu.Link asChild>
@@ -81,6 +87,22 @@ export default function Nav({
                   </ul>
                 </>
               ) : null}
+
+              <hr className="my-3 border-gray-200 dark:border-gray-800" />
+              <p className="px-3 pb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                {t("communitySections")}
+              </p>
+              <ul className="m-0 grid list-none gap-x-[10px] grid-cols-1 md:grid-cols-2">
+                {COMMUNITY_ITEMS.map((item) => (
+                  <ListItem
+                    key={item.titleKey}
+                    href={item.href}
+                    title={t(item.titleKey)}
+                  >
+                    {t(item.descriptionKey, { brand: PUBLIC_BRAND_NAME })}
+                  </ListItem>
+                ))}
+              </ul>
             </div>
           </NavigationMenu.Content>
         </NavigationMenu.Item>
@@ -99,26 +121,6 @@ export default function Nav({
                   title={tPillars(item.titleKey)}
                 >
                   {tPillars(item.descriptionKey)}
-                </ListItem>
-              ))}
-            </ul>
-          </NavigationMenu.Content>
-        </NavigationMenu.Item>
-
-        <NavigationMenu.Item>
-          <NavigationMenu.Trigger className={TRIGGER_CLASS}>
-            {t("communityMenu")}
-            <CaretDownIcon className={CARET_CLASS} aria-hidden />
-          </NavigationMenu.Trigger>
-          <NavigationMenu.Content className="absolute top-0 left-0 w-auto">
-            <ul className="m-0 grid list-none gap-[10px] p-[22px] w-[300px] md:w-[600px] grid-cols-2">
-              {COMMUNITY_ITEMS.map((item) => (
-                <ListItem
-                  key={item.titleKey}
-                  href={item.href}
-                  title={t(item.titleKey)}
-                >
-                  {t(item.descriptionKey, { brand: PUBLIC_BRAND_NAME })}
                 </ListItem>
               ))}
             </ul>

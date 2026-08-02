@@ -256,19 +256,19 @@
       }
     },
     "communityMenu": "Comunidad",
+    "communitySections": "Secciones",
     "myAccount": "Mi cuenta",
     "myAccountAndStore": "Mi cuenta y mi tienda",
     "openMenu": "Abrir menú",
     "openUserMenu": "Abrir el menú de tu cuenta",
     "pillarsMenu": "4 Pilares",
-    "productsMenu": "Productos",
+    "publications": "Publicaciones",
+    "publicationsDescription": "Todo lo que comparte la comunidad, de lo más reciente a lo más antiguo.",
     "publish": "Publicar",
     "report": "Reporte",
     "signIn": "Iniciar sesión",
     "signOut": "Cerrar sesión",
-    "signOutShort": "Salir",
-    "wholeCatalog": "Todo el catálogo",
-    "wholeCatalogDescription": "Todo lo que publica la comunidad, de lo más reciente a lo más antiguo."
+    "signOutShort": "Salir"
   },
   "notFound": {
     "goHome": "Ir al inicio",
