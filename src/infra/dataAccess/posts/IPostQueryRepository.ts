@@ -54,6 +54,19 @@ export interface IPostQueryRepository {
     pageSize: number,
     options?: { includeSoldOut?: boolean },
   ): Promise<PaginatedPostsResult>;
+  /**
+   * El catálogo filtrado por categoría. Recibe **las claves ya resueltas** —la clave pedida más
+   * su subárbol— y no la clave suelta: quién decide qué cuelga de qué es la taxonomía
+   * (`subtreeKeys`), no el repositorio.
+   *
+   * Se busca en `category` y en `sub_category` porque una publicación guarda las dos: pedir
+   * `alimentacion` trae las 14, y pedir `jugos` trae solo la suya.
+   */
+  getPostsByCategory(
+    categoryKeys: readonly string[],
+    page: number,
+    pageSize: number,
+  ): Promise<PaginatedPostsResult>;
   /** Todo lo de una persona, anuncios incluidos: su perfil no es un catálogo. */
   getPostsByUser(
     userId: string,

@@ -42,6 +42,17 @@ const HAZLO_SANO_PRODUCTS_WHERE: SQL = sql`p.kind = ${PRODUCT_KIND} AND p.origin
 
 const ALL_POSTS_WHERE: SQL = sql`TRUE`;
 
+/** La misma forma que devuelve `getPaginatedPosts` cuando la consulta no encuentra nada. */
+function emptyPage(page: number): PaginatedPostsResult {
+  return {
+    posts: [],
+    nextPage: null,
+    prevPage: page > 1 ? page - 1 : 1,
+    total: 0,
+    totalPages: 0,
+  };
+}
+
 export class PostgresPostQueryRepository implements IPostQueryRepository {
   async getMultiplePosts(
     page: number,
@@ -55,6 +66,27 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
     pageSize: number,
   ): Promise<PaginatedPostsResult> {
     return this.getPaginatedPosts(HAZLO_SANO_PRODUCTS_WHERE, page, pageSize);
+  }
+
+  async getPostsByCategory(
+    categoryKeys: readonly string[],
+    page: number,
+    pageSize: number,
+  ): Promise<PaginatedPostsResult> {
+    // Una clave desconocida llega aquí como lista vacía. Un `IN ()` es un error de sintaxis en
+    // Postgres, así que se corta antes de consultar: sin resultados es la respuesta correcta.
+    if (categoryKeys.length === 0) return emptyPage(page);
+
+    const keys = sql.join(
+      categoryKeys.map((key) => sql`${key}`),
+      sql`, `,
+    );
+
+    return this.getPaginatedPosts(
+      sql`(p.category IN (${keys}) OR p.sub_category IN (${keys}))`,
+      page,
+      pageSize,
+    );
   }
 
   async getPostsBySeller(
