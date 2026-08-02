@@ -188,17 +188,21 @@
     "backToHome": "Back to the main page",
     "empty": "No food has been published yet.",
     "emptyPage": "No food has been published on this page.",
-    "loadMore": "Load more",
+    "llmsDescription": "Real food and products from the community of Tezonapa, Veracruz, guided by the 4 pillars of health: sleep, food, movement and mind.",
+    "llmsProfiles": "Community profiles",
+    "llmsStores": "Stores",
     "loadingMore": "Loading more…",
+    "loadMore": "Load more",
     "nextPage": "Next",
     "noMore": "There are no more publications",
     "page": "Page {page}",
     "pageDescription": "Browse our selection of food on page {page}. Healthy food for you and your community.",
+    "pagedTitle": "{title} - Page {page}",
     "pageHeading": "{brand}: how do you avoid illness and save time and money, while supporting the environment and your community?",
     "pageTitle": "{brand} - Page {page}",
-    "pagedTitle": "{title} - Page {page}",
     "paginationLabel": "Pagination",
-    "previousPage": "Previous"
+    "previousPage": "Previous",
+    "rssDescription": "The latest the Hazlo Sano community publishes and sells: real food, no ultra-processed products."
   },
   "footer": {
     "tagline": "We are not just an app. We are a whole ecosystem of initiatives built to make living healthy the easiest option for everyone.",
@@ -393,7 +397,7 @@
     "noImage": "Publication with no image",
     "orderOnWhatsapp": "Order on WhatsApp",
     "publishedBy": "Published by {name}",
-    "related": "Related food",
+    "related": "Related posts",
     "relatedEmpty": "Nothing similar has been published yet.",
     "seeCategory": "See more from {category}",
     "soldBy": "Sold by {name}"

@@ -243,8 +243,29 @@ Feature: SEO — que el sitio se pueda encontrar
       | un producto agotado        | no se ofrece                                |
       | un anuncio no disponible   | se ofrece igual, porque un anuncio no se agota |
 
-  @slice-7 @future
-  Scenario: Los rastreadores de IA saben qué pueden leer
+  @slice-7
+  Scenario Outline: Cada rastreador de IA tiene permiso escrito con su nombre
+    Given el asistente "<agente>"
+    When pide "/robots.txt"
+    Then encuentra su nombre con permiso sobre el contenido
+    And la misma lista de rutas privadas que el resto
+
+    Examples:
+      | agente          |
+      | GPTBot          |
+      | ClaudeBot       |
+      | PerplexityBot   |
+      | Google-Extended |
+
+  @slice-7
+  Scenario: El sitio ofrece su índice en texto
     Given un asistente que quiere citar el catálogo
-    When pide "/robots.txt" y "/llms.txt"
-    Then encuentra permiso explícito y un índice del sitio en texto
+    When pide "/llms.txt"
+    Then encuentra el nombre del sitio, qué es, y sus publicaciones con enlace y resumen
+
+  @slice-7
+  Scenario: Lo nuevo se puede seguir sin recorrer el sitio
+    Given "jugo-verde", que está publicado
+    When alguien pide "/rss.xml"
+    Then encuentra un feed válido con esa publicación y su fecha
+    And el inicio anuncia dónde está el feed

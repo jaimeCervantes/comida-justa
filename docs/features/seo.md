@@ -150,15 +150,23 @@ slice no agrega SEO nuevo: arregla lo que estaba mintiendo.
 3. El detalle enlaza a `/categoria/<clave>`, a `/tienda/<handle>` y al perfil del autor cuando
    existen. ✅
 
-### Slice 7 — GEO  *(siguiente)*
+### Slice 7 — GEO  *(entregado, salvo las transcripciones)*
 
-- Política explícita por rastreador de IA en `robots.txt` (`GPTBot`, `OAI-SearchBot`, `ClaudeBot`,
-  `PerplexityBot`, `Google-Extended`…), permitiendo el contenido y cerrando lo privado.
-- `/llms.txt` con el índice del sitio en texto.
-- **Transcripción de los 8 videos**, que es la palanca más grande y la única que no es código: hoy
-  esas páginas tienen título, ~500 caracteres y un archivo que ni un buscador ni un modelo pueden
-  leer.
-- Feed (RSS/JSON) para la ingesta de contenido nuevo.
+- Política explícita por rastreador de IA en `robots.txt` (12 agentes: `GPTBot`, `OAI-SearchBot`,
+  `ChatGPT-User`, `ClaudeBot`, `Claude-SearchBot`, `Claude-User`, `PerplexityBot`,
+  `Perplexity-User`, `Google-Extended`, `Applebot-Extended`, `meta-externalagent`, `Amazonbot`,
+  `CCBot`), permitiendo el contenido y **repitiendo** el bloqueo de lo privado.
+- `/llms.txt` con el índice del sitio en texto, armado desde la base.
+- `/rss.xml` con lo último publicado, anunciado desde el `<head>` del inicio.
+- **Pendiente y bloqueada: la transcripción de los 8 videos.** Es la palanca más grande y la única
+  que no es código: hoy esas páginas tienen título, ~500 caracteres y un archivo que ni un buscador
+  ni un modelo pueden leer.
+
+**Criterios de aceptación:**
+1. Cada rastreador de IA encuentra su nombre en `robots.txt`, con permiso y con la lista de rutas
+   privadas repetida en su grupo. ✅
+2. `/llms.txt` responde texto plano con el nombre del sitio, qué es y sus publicaciones. ✅
+3. `/rss.xml` responde un feed válido con lo último y el inicio dice dónde está. ✅
 
 ## Enfoque de pruebas
 

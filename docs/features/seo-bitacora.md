@@ -627,3 +627,109 @@ y moverse de lado — y un rastreador tiene por dónde seguir.
 2. **Las transcripciones de los 8 videos**, que no son código y siguen siendo la palanca más grande
    del sitio para buscadores y para asistentes.
 3. **Los directorios de productores y negocios locales** (`docs/features/secciones-comunidad.md`).
+
+---
+
+## Slice 7 — GEO (2026-08-02)
+
+### Objetivo
+
+Que los asistentes puedan leer y citar el sitio, y que esa decisión esté **escrita** en vez de
+heredada. Hasta ahora `robots.txt` solo tenía un grupo `*`: los rastreadores de IA entraban por
+omisión, que es lo mismo que no haber decidido nada.
+
+### Decisiones y por qué
+
+**Se les permite el contenido, a propósito.** Que un asistente conteste "¿dónde compro pan de masa
+madre en Tezonapa?" citando la tienda es exactamente para lo que existe este sitio. No aparecer ahí
+no protege nada: solo hace que respondan con otro.
+
+**El permiso se escribe agente por agente.** Un rastreador que encuentra **su propio nombre** en
+`robots.txt` ignora por completo el grupo `*` —así lo dice el estándar y así lo aplican todos—, así
+que declarar los agentes y olvidar el `Disallow` les habría abierto `/cuenta` de par en par. La
+lista de rutas privadas sale de una sola constante y se repite en los dos grupos; hay un escenario
+que recorre **cada grupo** del archivo servido y exige que lleve el bloqueo.
+
+**Están separados por lo que hacen, no por empresa.** Uno indexa para responder con cita, otro
+recolecta para entrenar y otro solo va a buscar la página que alguien acaba de pegar en el chat.
+Tenerlos escritos uno a uno permite decidir por separado el día que interese. Y `Google-Extended` y
+`Applebot-Extended` llevan una nota: **no** son los rastreadores de búsqueda —Googlebot y Applebot
+ya entran por `*`—, sino los interruptores de sus asistentes.
+
+**`/llms.txt` se publica con su advertencia escrita en el código.** Hoy no hay constancia de que
+ningún asistente grande lo consuma. Se publica porque cuesta poco y no estorba, no porque vaya a
+mover algo por sí solo; lo que de verdad leen es el JSON-LD del slice 4 y el texto de las páginas.
+Está anotado en el propio módulo para que nadie lo lea dentro de un año como si fuera un estándar
+consolidado.
+
+**Los textos del índice salen del catálogo, no del archivo.** El nombre de cada página fija es el
+mismo que ve un visitante en el menú (`common.home`, `products.title`, `pillars.*.title`…): un
+índice que llame a las cosas distinto que el sitio es un índice que confunde. Lo descubrió
+`check:i18n`, que falló al encontrar español escrito a mano en las dos rutas nuevas — la regla
+valía también aquí.
+
+**El feed y el índice van en español y no negocian idioma.** Listan `post_translations` en `es`,
+que es el único idioma en el que existe el contenido. El día que haya traducciones reales, se
+decide entonces.
+
+**El XML se escapa.** Un "&" en el título de una publicación convierte el feed en un documento
+inválido que ningún lector abre. Es el mismo cuidado que el `<` del JSON-LD, con su tabla de casos.
+
+### Lo que costó un 500 y ahora está escrito
+
+`db.execute` con SQL en crudo devuelve las fechas **como texto**, no como `Date`. El tipo decía
+`Date`, el feed llamó a `toUTCString()` y `/rss.xml` respondió 500. La conversión ahora vive en el
+borde (`PostgresFeedRepository`), que es donde debe estar, con el motivo anotado.
+
+### Archivos tocados
+
+- **Dominio:** `seo/aiCrawlers.ts`, `seo/llmsTxt.ts` (+ prueba), `seo/rss.ts` (+ prueba).
+- **Infra:** `dataAccess/seo/PostgresFeedRepository.ts` (últimas publicaciones y directorio).
+- **App:** `robots.ts` reescrito con dos grupos, `app/llms.txt/route.ts`, `app/rss.xml/route.ts`, y el `alternates.types` del inicio que anuncia el feed.
+- **i18n:** `feed.rssDescription`, `feed.llmsDescription`, `feed.llmsStores`, `feed.llmsProfiles`.
+- **e2e:** `src/e2e/seo/geo.spec.ts`, escenarios `@slice-7` en `seo.feature`.
+
+### Validación
+
+| Comando | Resultado |
+|---|---|
+| `pnpm run typecheck` | limpio |
+| `pnpm run lint` | limpio |
+| `pnpm run check:i18n` | limpio |
+| `pnpm run test:run` | **579 pruebas en 68 archivos**, todas verdes (+15) |
+| `pnpm run test:e2e:run` | **89 escenarios verdes, 3 saltados**, 0 fallos (+4) |
+
+Los 32 escenarios de `src/e2e/seo` pasan (4 del slice 1, 4 del 2, 9 del 3, 5 del 4, 4 del 5, 2 del 6
+y 4 de este).
+
+### Desviaciones del roadmap
+
+- El feed se entregó como **RSS 2.0** y no como JSON Feed: es el que entienden los lectores y los
+  agregadores sin excepción, y el que un rastreador espera encontrar en `alternates.types`.
+- Las transcripciones **no** entran: no son código. Siguen siendo la palanca más grande del sitio.
+
+### Pendientes que deja
+
+- **Las transcripciones de los 8 videos.** Pendiente del usuario o de un paso con Whisper sobre los
+  archivos de Firebase, más revisión humana.
+- `/llms.txt` no incluye las categorías ni los pilares con su texto completo (la convención permite
+  un `llms-full.txt` para eso). Se puede añadir cuando haya con qué llenarlo.
+- El feed no se anuncia desde el resto de las páginas, solo desde el inicio.
+
+### Recap
+
+Con esto se cierra el roadmap de SEO. El sitio se descubre (sitemap y robots), se presenta (metadata
+y vistas previas correctas), se explica (datos estructurados de producto, tienda, persona, video y
+organización), se recorre (miga de pan, relacionadas y enlaces internos) y ahora también **se deja
+leer y citar**: cada asistente tiene su permiso escrito con su nombre, hay un índice del sitio en
+`/llms.txt` y un feed en `/rss.xml`. Lo único que queda de la lista original es el trabajo que no es
+código: transcribir los ocho videos.
+
+### Próximos pasos (opciones)
+
+1. **Transcribir los 8 videos** y publicarlos como texto en la propia publicación. Es lo que más
+   rinde de todo lo que queda, para buscadores y para asistentes.
+2. **Los directorios de productores y negocios locales** (`docs/features/secciones-comunidad.md`),
+   que ya heredan la regla de sitemap del slice 5.
+3. **Verificar en Search Console** que lo entregado se ve como se espera: datos estructurados,
+   `hreflang` y el sitemap con las categorías.

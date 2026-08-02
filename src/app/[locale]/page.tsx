@@ -40,7 +40,16 @@ export async function generateMetadata({
       images: [DEFAULT_SHARE_IMAGE],
       type: "website",
     },
-    alternates: localizedAlternates("/", locale),
+    alternates: {
+      ...localizedAlternates("/", locale),
+      /* El feed se anuncia desde el home: es donde lo buscan tanto un lector de RSS como los
+         rastreadores que lo usan para enterarse de lo nuevo sin recorrer el sitio entero. */
+      types: {
+        "application/rss+xml": [
+          { url: "/rss.xml", title: `${PUBLIC_BRAND_NAME} — publicaciones` },
+        ],
+      },
+    },
   };
 }
 

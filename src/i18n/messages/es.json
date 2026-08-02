@@ -188,17 +188,21 @@
     "backToHome": "Volver a la página principal",
     "empty": "No hay comidas publicadas aún.",
     "emptyPage": "No hay comidas publicadas en esta página.",
-    "loadMore": "Cargar más",
+    "llmsDescription": "Comida real y productos de la comunidad de Tezonapa, Veracruz, con los 4 pilares de la salud como guía: sueño, alimentación, movimiento y mente.",
+    "llmsProfiles": "Perfiles de la comunidad",
+    "llmsStores": "Tiendas",
     "loadingMore": "Cargando más...",
+    "loadMore": "Cargar más",
     "nextPage": "Siguiente",
     "noMore": "No hay más publicaciones disponibles",
     "page": "Página {page}",
     "pageDescription": "Explora nuestra selección de alimentos en la página {page}. Comida saludable para ti y tu comunidad.",
+    "pagedTitle": "{title} - Página {page}",
     "pageHeading": "{brand}: ¿Como evitar enfermedades, ahorrar tiempo y dinero, al mismo tiempo que apoyas al medio ambiente y a tu comunidad?",
     "pageTitle": "{brand} - Página {page}",
-    "pagedTitle": "{title} - Página {page}",
     "paginationLabel": "Paginación",
-    "previousPage": "Anterior"
+    "previousPage": "Anterior",
+    "rssDescription": "Lo último que publica y vende la comunidad de Hazlo Sano: comida real, sin ultraprocesados."
   },
   "footer": {
     "tagline": "No somos solo una aplicación, somos todo un ecosistema de iniciativas diseñadas para que vivir sano sea la opción más fácil para todos.",
@@ -393,7 +397,7 @@
     "noImage": "Publicación sin imagen",
     "orderOnWhatsapp": "Pedir por WhatsApp",
     "publishedBy": "Publicado por {name}",
-    "related": "Comida Relacionada",
+    "related": "Publicaciones Relacionadas",
     "relatedEmpty": "Todavía no hay nada parecido publicado.",
     "seeCategory": "Ver más de {category}",
     "soldBy": "Lo vende {name}"
