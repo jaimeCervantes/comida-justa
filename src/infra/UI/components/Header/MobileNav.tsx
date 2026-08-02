@@ -83,12 +83,23 @@ function Section({
           }`}
         />
       </button>
+      {/**
+       * La animación va por `grid-template-rows`, no por `max-height`.
+       *
+       * Antes era `max-h-[500px]`, y una altura fija recorta en cuanto la lista crece: al entregar
+       * los directorios de la comunidad, «Comunidad» pasó a 14 enlaces —publicaciones, productos,
+       * las 10 categorías y las 2 secciones— y las dos últimas quedaron **fuera del recorte**, sin
+       * forma de tocarlas desde un teléfono. Con `0fr → 1fr` la altura la pone el contenido, así
+       * que la lista puede crecer sin que nadie tenga que acordarse de subir un número.
+       */}
       <div
-        className={`overflow-hidden transition-all duration-300 ease-in-out ${
-          isOpen ? "max-h-[500px] opacity-100 mb-4" : "max-h-0 opacity-0"
+        className={`grid transition-all duration-300 ease-in-out ${
+          isOpen
+            ? "grid-rows-[1fr] opacity-100 mb-4"
+            : "grid-rows-[0fr] opacity-0"
         }`}
       >
-        <ul className="space-y-1 pl-4 border-l-2 border-pw-green/20 ml-2">
+        <ul className="space-y-1 pl-4 border-l-2 border-pw-green/20 ml-2 overflow-hidden">
           {children}
         </ul>
       </div>
@@ -184,7 +195,9 @@ export default function MobileNav({
           </button>
         </div>
 
-        <nav className="flex-1 pr-2">
+        {/* El contenedor recorta lo que no cabe, así que el menú tiene que poder desplazarse: con
+            los dos desplegables abiertos no entra en la pantalla de un teléfono. */}
+        <nav className="flex-1 overflow-y-auto overscroll-contain pr-2">
           <ul className="space-y-2">
             {/* Mismo orden y mismas entradas que en escritorio: quien cambie de tamaño de
                 pantalla no tiene que volver a aprenderse el menú. */}

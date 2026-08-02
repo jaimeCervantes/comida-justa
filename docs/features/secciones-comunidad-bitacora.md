@@ -184,3 +184,70 @@ archivo de veinte líneas.
 1. **Las referencias científicas** para desbloquear salud infantil y medio ambiente.
 2. **Paginar los directorios**, cuando haya tiendas suficientes para que importe.
 3. **Que un productor sin tienda aparezca**, si resulta que la gente publica antes de abrir tienda.
+
+---
+
+## Arreglo — el menú móvil recortaba las secciones nuevas (2026-08-02)
+
+### Qué pasaba
+
+Lo reportaste tú: en el teléfono no aparecían «Productores locales» ni «Negocios locales». En
+escritorio sí.
+
+La causa no era el `published`, que estaba bien. Era una **altura fija**: el desplegable del menú
+móvil abría con `max-h-[500px]` y `overflow-hidden`. Con las dos secciones nuevas, «Comunidad» pasó
+a **14 enlaces** —publicaciones, productos, las 10 categorías y las 2 secciones— y las dos últimas
+quedaron fuera del recorte. Existían en el DOM, se podían enlazar, y ningún dedo podía llegar a
+ellas.
+
+De paso apareció el segundo tope: el contenedor del menú es `overflow-hidden` y su `<nav>` no
+declaraba desplazamiento, así que con los dos acordeones abiertos tampoco se podía llegar al final
+del menú.
+
+### Decisiones y por qué
+
+**La animación pasa a `grid-template-rows` (`0fr → 1fr`).** Es lo que evita que esto vuelva: con
+`max-height` la altura la decide un número que alguien escribió una vez, y el día que la lista crece
+el recorte no avisa —no hay error, no hay prueba en rojo, solo enlaces que nadie ve—. Con `grid` la
+altura la pone el contenido y la transición se conserva.
+
+**El menú se puede desplazar.** `overflow-y-auto` en el `<nav>`, más `overscroll-contain` para que
+al llegar al final no arrastre la página de detrás.
+
+**La prueba tuvo que aprender a distinguir "se ve" de "se puede tocar".** Los dos primeros intentos
+pasaron con el fallo delante:
+
+- `toBeVisible()` no sirve: un elemento recortado por `overflow-hidden` **conserva su caja**, así
+  que cuenta como visible.
+- `click()` tampoco: Playwright desplaza por API contenedores que un dedo no puede desplazar, así
+  que el clic llegaba igual.
+
+Lo que sí distingue es **desplazar con la rueda** —que solo mueve lo que de verdad se puede
+desplazar— y luego preguntarle al navegador qué hay en ese punto de la pantalla
+(`document.elementFromPoint`). Con eso, la prueba falla sin el arreglo y pasa con él; se comprobó
+guardando el arreglo aparte y corriéndola en rojo antes de darla por buena.
+
+### Archivos tocados
+
+- **UI:** `Header/MobileNav.tsx` — la animación del acordeón y el desplazamiento del menú.
+- **e2e:** `src/e2e/menu/menu.feature` y `src/e2e/menu/mobileMenu.spec.ts`, con viewport de teléfono.
+
+### Validación
+
+| Comando | Resultado |
+|---|---|
+| `pnpm run typecheck` | limpio |
+| `pnpm run lint` | limpio |
+| `pnpm run test:e2e:run` | **96 escenarios verdes, 3 saltados**, 0 fallos (+2) |
+
+### Pendientes que deja
+
+- El menú de «Comunidad» ya lleva 14 entradas y las categorías van a seguir creciendo. Con esto
+  cabe y se desplaza, pero llegará el momento de decidir si las categorías merecen su propio nivel
+  en vez de vivir junto a las secciones.
+
+### Recap
+
+Las dos secciones nuevas ya se pueden tocar desde un teléfono, y el menú entero se recorre aunque no
+quepa. El recorte por altura fija —que no avisaba de ninguna forma— se cambió por una animación cuya
+altura la pone el contenido.
