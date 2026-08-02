@@ -477,10 +477,10 @@
     }
   },
   "products": {
-    "description": "Products sold by {brand}, both their own and resold, with their provenance visible.",
-    "empty": "No {brand} products have been published yet.",
+    "description": "Everything the community sells, with its provenance visible on every card.",
+    "empty": "No products have been published yet.",
     "pagedTitle": "{title} - Page {page}",
-    "title": "{brand} products"
+    "title": "Products"
   },
   "profile": {
     "backToProfile": "Back to the profile",

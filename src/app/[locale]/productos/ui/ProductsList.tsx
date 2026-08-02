@@ -1,5 +1,4 @@
 import { useTranslations } from "next-intl";
-import { PUBLIC_BRAND_NAME } from "~/infra/constants";
 import type { Post } from "~/infra/types/Posts";
 import CardForList from "~/infra/UI/components/CardForList/CardForList";
 import Pagination from "~/infra/UI/components/Pagination";
@@ -20,11 +19,7 @@ export default function ProductsList({
   const t = useTranslations("products");
 
   if (products.length === 0) {
-    return (
-      <p data-testid="products-empty">
-        {t("empty", { brand: PUBLIC_BRAND_NAME })}
-      </p>
-    );
+    return <p data-testid="products-empty">{t("empty")}</p>;
   }
 
   return (

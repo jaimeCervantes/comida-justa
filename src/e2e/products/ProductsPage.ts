@@ -1,6 +1,6 @@
 import { expect, type Locator, type Page } from "@playwright/test";
 
-/** Page object for the Hazlo Sano products listing (`/productos`). */
+/** Page object for the community products listing (`/productos`). */
 export default class ProductsPage {
   constructor(private readonly page: Page) {}
 
@@ -21,9 +21,14 @@ export default class ProductsPage {
     await expect(this.cardTitle(title)).toHaveCount(0);
   }
 
-  async expectHazloSanoBadge() {
-    await expect(this.page.getByTestId("provenance-badge").first()).toHaveText(
-      /Hazlo Sano/,
-    );
+  /**
+   * La procedencia sigue a la vista. Desde que la página lista a toda la comunidad es lo único
+   * que distingue lo de la marca de lo de un vecino, así que dejar de pintarla sería perder la
+   * información que hacía falta para leer la lista.
+   */
+  async expectProvenanceIsShown() {
+    await expect(
+      this.page.getByTestId("provenance-badge").first(),
+    ).toBeVisible();
   }
 }

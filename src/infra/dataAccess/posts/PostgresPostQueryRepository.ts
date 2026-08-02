@@ -37,7 +37,15 @@ interface PostRow {
   [key: string]: unknown;
 }
 
-/** Publicaciones vendidas por Hazlo Sano: `kind = producto` + `origin` `hazlo_sano_*`. */
+/**
+ * Todo lo que es un producto, lo venda quien lo venda.
+ *
+ * Solo mira `kind` y **no** `origin`: `/productos` pasó de ser el escaparate de la marca a ser el
+ * de la comunidad entera. Lo que separa un producto de un anuncio es que se vende, no de quién es.
+ */
+const PRODUCTS_WHERE: SQL = sql`p.kind = ${PRODUCT_KIND}`;
+
+/** Solo lo que vende Hazlo Sano: `kind = producto` + `origin` `hazlo_sano_*`. */
 const HAZLO_SANO_PRODUCTS_WHERE: SQL = sql`p.kind = ${PRODUCT_KIND} AND p.origin LIKE ${`${HAZLO_SANO_ORIGIN_PREFIX}%`}`;
 
 const ALL_POSTS_WHERE: SQL = sql`TRUE`;
@@ -59,6 +67,13 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
     pageSize: number,
   ): Promise<PaginatedPostsResult> {
     return this.getPaginatedPosts(ALL_POSTS_WHERE, page, pageSize);
+  }
+
+  async getProducts(
+    page: number,
+    pageSize: number,
+  ): Promise<PaginatedPostsResult> {
+    return this.getPaginatedPosts(PRODUCTS_WHERE, page, pageSize);
   }
 
   async getHazloSanoProducts(

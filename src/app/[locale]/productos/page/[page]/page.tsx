@@ -3,8 +3,7 @@ import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "~/i18n/navigation";
 import { resolveLocale } from "~/i18n/routing";
-import { PUBLIC_BRAND_NAME } from "~/infra/constants";
-import { getHazloSanoProducts } from "../../data";
+import { getProducts } from "../../data";
 import { buildProductsMetadata } from "../../metadata";
 import ProductsList from "../../ui/ProductsList";
 
@@ -35,7 +34,7 @@ export default async function ProductosPaginatedPage({ params }: Props) {
     notFound();
   }
 
-  const { products, totalPages } = await getHazloSanoProducts(page, locale);
+  const { products, totalPages } = await getProducts(page, locale);
 
   if (products.length === 0 && page > 1) {
     notFound();
@@ -43,11 +42,9 @@ export default async function ProductosPaginatedPage({ params }: Props) {
 
   return (
     <main>
-      <h1 className="text-xl font-bold mb-2">
-        {t("title", { brand: PUBLIC_BRAND_NAME })}
-      </h1>
+      <h1 className="text-xl font-bold mb-2">{t("title")}</h1>
 
-      <p className="mb-2">{t("description", { brand: PUBLIC_BRAND_NAME })}</p>
+      <p className="mb-2">{t("description")}</p>
 
       <ProductsList
         products={products}

@@ -38,7 +38,21 @@ export interface IPostQueryRepository {
     page: number,
     pageSize: number,
   ): Promise<PaginatedPostsResult>;
-  /** Solo lo que vende Hazlo Sano: `kind = producto` con `origin` `hazlo_sano_*`. */
+  /**
+   * Todo lo que se vende, sea de quien sea: `kind = producto`, cualquier `origin`.
+   *
+   * Es lo que lista `/productos`. No filtra por procedencia a propósito: la página dejó de ser el
+   * escaparate de la marca para ser el de la comunidad.
+   */
+  getProducts(page: number, pageSize: number): Promise<PaginatedPostsResult>;
+  /**
+   * Solo lo que vende Hazlo Sano: `kind = producto` con `origin` `hazlo_sano_*`.
+   *
+   * Hoy no lo llama ninguna página —`/productos` pasó a `getProducts`— pero se conserva porque el
+   * concepto sigue existiendo en el dominio (`isHazloSanoProduct`, la insignia de procedencia y el
+   * reporte de `/admin/productos`), y es el filtro que haría falta el día que la marca quiera su
+   * propio escaparate.
+   */
   getHazloSanoProducts(
     page: number,
     pageSize: number,

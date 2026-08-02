@@ -4,9 +4,16 @@ import { seedPost } from "../testUtils/seedPost";
 import { testSlug } from "../testUtils/testSlug";
 import ProductsPage from "./ProductsPage";
 
-// Slice 2 — the products page lists ONLY Hazlo Sano products.
-// Seeds go straight through the write repository (no UI, no admin gate) because this
-// scenario is about the read model; the publish flow is already covered by publishProduct.
+/*
+ * `/productos` lista lo que vende **toda la comunidad**, no solo la marca.
+ *
+ * Antes filtraba por `origin` `hazlo_sano_*`, así que lo que publicaba un vendedor local no salía
+ * en la única pantalla llamada «Productos». Ahora la línea la marca `kind`: entra todo el que
+ * vende y quedan fuera los anuncios.
+ *
+ * Seeds go straight through the write repository (no UI, no admin gate) because this
+ * scenario is about the read model; the publish flow is already covered by publishProduct.
+ */
 const stamp = Date.now();
 
 const hazloSanoProduct = {
@@ -47,16 +54,26 @@ test.describe("When a visitor opens the products page", () => {
     }
   });
 
-  test("Then only Hazlo Sano products are listed, each with its badge", async ({
+  test("Then every product is listed, whoever sells it", async ({ page }) => {
+    const productsPage = new ProductsPage(page);
+
+    await productsPage.goto();
+
+    await productsPage.expectListed(hazloSanoProduct.title);
+    // Lo que cambió: antes esta línea era `expectNotListed`.
+    await productsPage.expectListed(communityProduct.title);
+    await productsPage.expectProvenanceIsShown();
+  });
+
+  test("Then an announcement stays out, because it is not for sale", async ({
     page,
   }) => {
     const productsPage = new ProductsPage(page);
 
     await productsPage.goto();
 
-    await productsPage.expectListed(hazloSanoProduct.title);
-    await productsPage.expectNotListed(communityProduct.title);
+    /* La distinción que la página sí hace: `kind`. El anuncio es de la marca y aun así no
+       aparece, que es la prueba de que el filtro ya no mira la procedencia. */
     await productsPage.expectNotListed(hazloSanoAnuncio.title);
-    await productsPage.expectHazloSanoBadge();
   });
 });

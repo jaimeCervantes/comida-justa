@@ -10,20 +10,24 @@ export type ProductsPageData = {
 };
 
 /**
- * Productos que vende Hazlo Sano (propios o de reventa). El filtro vive en el repositorio;
- * aquí solo se pagina y se mapea a tarjetas, igual que el listado general.
+ * Todo lo que la comunidad pone a la venta.
+ *
+ * Antes esta página listaba **solo** lo de Hazlo Sano (`origin` `hazlo_sano_*`), así que lo que
+ * publicaba un vendedor local no aparecía en la única pantalla que se llama «Productos». Ahora el
+ * filtro es únicamente `kind = producto`: entra todo el que vende y quedan fuera los anuncios,
+ * que es la distinción que la página quiere hacer.
+ *
+ * Cada tarjeta sigue llevando su insignia de procedencia, así que se distingue a simple vista lo
+ * que es de la marca de lo que es de un vecino.
  */
-export async function getHazloSanoProducts(
+export async function getProducts(
   page: number,
   locale: string,
 ): Promise<ProductsPageData> {
   const pageNum = Math.max(PAGINATION_INIT_PAGE, page);
   const postRepo = createPostQueryRepository();
 
-  const result = await postRepo.getHazloSanoProducts(
-    pageNum,
-    PAGINATION_PAGE_SIZE,
-  );
+  const result = await postRepo.getProducts(pageNum, PAGINATION_PAGE_SIZE);
 
   return {
     products: await mapPostsToCardsForLocale(result.posts, locale),

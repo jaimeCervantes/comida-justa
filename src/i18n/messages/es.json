@@ -477,10 +477,10 @@
     }
   },
   "products": {
-    "description": "Productos que vende {brand}, propios y de reventa, con su procedencia visible.",
-    "empty": "Aún no hay productos de {brand} publicados.",
+    "description": "Todo lo que vende la comunidad, con su procedencia visible en cada tarjeta.",
+    "empty": "Aún no hay productos publicados.",
     "pagedTitle": "{title} - Página {page}",
-    "title": "Productos de {brand}"
+    "title": "Productos"
   },
   "profile": {
     "backToProfile": "Volver al perfil",

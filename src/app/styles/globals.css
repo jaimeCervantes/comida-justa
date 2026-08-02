@@ -189,6 +189,27 @@
   ::file-selector-button {
     border-color: var(--color-gray-200, currentcolor);
   }
+
+  /**
+   * La manita sobre lo que se puede pulsar.
+   *
+   * Tailwind v4 cambió su preflight: `button` pasó de `cursor: pointer` a `cursor: default`, que
+   * es lo que dice la especificación pero no lo que la gente espera de un botón. Al subir de v3
+   * el sitio entero perdió la manita —«Publicar», el avatar, el selector de idioma, los del
+   * formulario— sin que nadie tocara esos componentes.
+   *
+   * Se restaura aquí y no botón por botón: es comportamiento del sitio, no de un componente, y
+   * puesto en cada `className` se olvidaría en el siguiente que se escriba.
+   *
+   * `:not(:disabled)` deja fuera lo deshabilitado, donde la manita prometería algo que no va a
+   * pasar; `[role="button"]` cubre lo que Radix pinta como botón sin serlo.
+   */
+  button:not(:disabled),
+  [role="button"]:not(:disabled),
+  summary,
+  label[for] {
+    cursor: pointer;
+  }
 }
 
 @utility text-balance {

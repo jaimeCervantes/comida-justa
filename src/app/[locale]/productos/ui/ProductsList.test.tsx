@@ -20,8 +20,10 @@ describe("When the products list is rendered", () => {
       <ProductsList products={[]} currentPage={1} totalPages={0} />,
     );
 
+    /* El texto dejó de nombrar a la marca cuando la página pasó a listar a toda la comunidad:
+       decía "Aún no hay productos de Hazlo Sano publicados". */
     expect(getByTestId("products-empty")).toHaveTextContent(
-      "Aún no hay productos de Hazlo Sano publicados.",
+      "Aún no hay productos publicados.",
     );
     expect(queryByTestId("products-grid")).not.toBeInTheDocument();
   });
