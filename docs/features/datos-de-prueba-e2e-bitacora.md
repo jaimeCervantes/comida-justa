@@ -112,3 +112,91 @@ donde se va a leer.
 
 Los tres, con su contexto y el estado de las ramas, están consolidados en
 [`docs/pendientes.md`](../pendientes.md).
+
+## Corrección — La tienda de la cuenta de la suite también es dato de prueba *(2026-08-02)*
+
+### Objetivo
+
+Devolver la suite a verde. Seis escenarios de `sellerStore/` agotaban los 90 s de timeout en su
+`beforeEach`, esperando el botón «Abrir mi tienda» de `/cuenta`.
+
+### El diagnóstico
+
+Ninguno era un fallo de la aplicación: la base compartida tenía una tienda **`healthy-food` /
+«Healthy Food»** abierta a nombre de la cuenta de la suite (`pw.healthy.food@gmail.com`), creada el
+2026-08-02 04:34 UTC — la corrida que quedó en `interrupted`. Y `/cuenta` **no pinta el formulario
+de alta cuando ya hay tienda**, así que los escenarios esperaban un botón que la página ya no tenía
+motivo para dibujar.
+
+Lo caro del caso es que **es el mismo agujero que este repo ya documentó para las direcciones
+personales**, en el comentario del `UPDATE users` de `testData.ts`: el formulario de `/cuenta`
+precarga el nombre a partir del de la cuenta, así que una corrida que muera entre el `fill` y el
+`click` deja un dato **sin el marcador `e2e-`**, invisible para un barrido por prefijo. Se arregló
+para `username` y se dejó igual para `sellers`, que tiene exactamente la misma forma: se precarga
+igual, se filtra igual y bloquea igual — con el agravante de que aquí el bloqueo es permanente,
+porque nada vuelve a mostrar el formulario.
+
+### Decisiones
+
+- **Barrer por dueño, no solo por prefijo.** `TEST_SELLER_MATCH` añade
+  `user_id IN (SELECT id FROM users WHERE email = <cuenta de la suite>)` al `slug LIKE 'e2e-%'`. Lo
+  que esa cuenta tenga abierto es de la suite por construcción —el prefijo `pw.` existe para eso—, y
+  al terminar una corrida no debería tener ninguna tienda. Es la misma decisión que ya se había
+  tomado para `username`, aplicada donde faltaba.
+- **En el barrido global, no en un `beforeEach` por spec.** El fallo es *entre corridas*, y
+  `globalSetup` es donde el repo ya decidió que se resuelve eso. Seis `beforeEach` con una guarda
+  habrían tapado el síntoma seis veces y dejado el barrido mintiendo.
+- **Nunca por `posts.user_id`.** La cuenta de la suite también tiene publicaciones reales del
+  catálogo (p. ej. «¿Tu crema de almendras protege tu corazón…?»). Las publicaciones se siguen
+  barriendo por `seller_id`, así que una tienda de prueba se lleva su catálogo y nada más.
+- **`countTestData` cuenta con el mismo criterio**, si no el `globalTeardown` seguiría dando por
+  limpia una corrida que dejó tienda abierta.
+
+### Archivos tocados
+
+- `src/e2e/testUtils/testData.ts` — `TEST_SELLER_MATCH` / `TEST_SELLER_IDS`, usados por el barrido
+  (posts, branches, sellers) y por el conteo.
+
+### Validación
+
+| | |
+|---|---|
+| `pnpm run typecheck` | limpio |
+| `pnpm run lint` | exit 0 *(1 `info` preexistente en `IndexingStatusPanel.tsx`)* |
+| `pnpm run test:run` | **501 pasan / 55 archivos** |
+| `pnpm run test:e2e:run` | **65 pasan, 3 saltados, 0 fallan** *(3.8 min)* |
+
+Los seis que fallaban —`branches` (3), `managePost` (1), `profile` (1), `sellerStore` (1)— pasan sin
+tocar ni un spec ni una página: solo dejó de haber una tienda fantasma delante.
+
+### Escrito en recursos compartidos
+
+`globalSetup` borró la tienda `healthy-food` y su sucursal («Healthy Food», Melchor Ocampo #2), ambas
+residuo de la corrida interrumpida. No colgaba ninguna publicación de ellas. Estado final: 1 tienda
+(`hazlo-sano`, la real) con su sucursal, 24 posts (14 productos + 10 anuncios), 0 residuos `e2e-`.
+**Para deshacerlo** basta volver a abrir la tienda desde `/cuenta` con esa cuenta; no hay nada más
+que restaurar.
+
+### Recap
+
+La suite estaba roja por un dato, no por un defecto: una tienda sin marcador, de la propia cuenta de
+prueba, que ningún barrido sabía reconocer y que apagaba para siempre el formulario del que dependían
+seis escenarios. El barrido ahora reconoce como suya cualquier tienda de la cuenta de la suite, que
+es la misma regla que ya se aplicaba a las direcciones personales por la misma razón. Suite completa
+en verde y base compartida en el estado en que estaba.
+
+### Próximos pasos (opciones)
+
+1. **Cerrar el patrón entero**: `sessions` es lo único que sigue filtrándose (68 filas vivas de
+   corridas caídas). Caducan solas en una hora y no rompen nada, pero son el último resto del mismo
+   fallo — barrerlas por la cuenta de la suite en `globalSetup` cierra el tema.
+2. **Simetría en `countTestData` para `usernames`**: el barrido libera la dirección por correo, pero
+   el conteo solo mira el prefijo. Hoy no se nota —el barrido corre antes del conteo—, pero es la
+   misma asimetría que causó esto.
+3. **Retomar la búsqueda semántica** (`@slice-5` de `unifiedCatalog.feature`), que quedó encuadrada
+   pero sin empezar: los 24 vectores están escritos y `/buscar` sigue haciendo `ILIKE`.
+
+Pendiente en el usuario: `src/e2e/i18n/i18n.spec.ts` tiene cambios sin confirmar (el menú
+«Comunidad» sacó *Products* del menú principal y el escenario pasó a *About us*). Pasa en verde en
+esta corrida; falta decidir si se confirma y corregir un comentario que quedó diciendo «ya no es
+`/en/nosotros` sino `/en/nosotros`».
