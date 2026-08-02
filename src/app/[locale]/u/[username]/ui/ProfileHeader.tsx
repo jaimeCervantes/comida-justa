@@ -4,7 +4,7 @@ import { MdStorefront } from "react-icons/md";
 import type { Seller } from "~/domain/entities/seller/types";
 import type { UserProfile } from "~/domain/entities/user/types";
 import { Link } from "~/i18n/navigation";
-import { storePath } from "../../../cuenta/storePath";
+import { storeHref } from "../../../cuenta/storePath";
 
 export default function ProfileHeader({
   profile,
@@ -40,12 +40,12 @@ export default function ProfileHeader({
 
         {store?.handle ? (
           <Link
-            href={storePath(store.handle)}
+            href={storeHref(store.handle)}
             data-testid="profile-store-link"
             className="mt-2 inline-flex items-center gap-2 font-bold text-pw-orange"
           >
             <MdStorefront size="20" aria-hidden />
-            {`Su tienda: ${store.name}`}
+            {t("theirStore", { name: store.name })}
           </Link>
         ) : null}
       </div>

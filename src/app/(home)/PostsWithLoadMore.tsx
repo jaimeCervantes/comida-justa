@@ -114,7 +114,14 @@ export default function PostsWithLoadMore({
         <ul>
           {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
             <li key={`page-${page}`}>
-              <Link href={`/page/${page}`}>{t("page", { page })}</Link>
+              <Link
+                href={{
+                  pathname: "/page/[page]",
+                  params: { page: String(page) },
+                }}
+              >
+                {t("page", { page })}
+              </Link>
             </li>
           ))}
         </ul>

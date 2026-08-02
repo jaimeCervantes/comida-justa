@@ -4,11 +4,18 @@ import CardForList from "~/infra/UI/components/CardForList/CardForList";
 import Pagination from "~/infra/UI/components/Pagination";
 import { mapPostsToCardsForLocale } from "~/infra/UI/mappers/posts/mapPostsToCardsForLocale";
 
-async function fetchResults(term: string, page: number, pageSize: number) {
+async function fetchResults(
+  term: string,
+  page: number,
+  pageSize: number,
+  locale: string,
+) {
   const res = await fetch(
     `${
       process.env.NEXT_PUBLIC_BASE_URL || ""
-    }/api/search?q=${encodeURIComponent(term)}&limit=${pageSize}&page=${page}`,
+    }/api/search?q=${encodeURIComponent(
+      term,
+    )}&limit=${pageSize}&page=${page}&locale=${locale}`,
   );
   return res.json();
 }
@@ -22,10 +29,10 @@ export default async function SearchPage({
   const locale = resolveLocale(rawLocale);
   setRequestLocale(locale);
   const t = await getTranslations("search");
-  const pageInt = parseInt(page, 10);
+  const pageInt = parseInt(page || "1", 10);
   const pageSize = 6;
   const data = term
-    ? await fetchResults(term, pageInt, pageSize)
+    ? await fetchResults(term, pageInt, pageSize, locale)
     : { results: [], total: 0 };
   const cards = await mapPostsToCardsForLocale(data.results || [], locale);
   const totalPages = Math.ceil((data.total || 0) / pageSize);
@@ -37,8 +44,10 @@ export default async function SearchPage({
       </h1>
       {term && (
         <div className="mb-8 text-lg text-gray-600 dark:text-gray-400">
-          Mostrando resultados para:{" "}
-          <span className="font-bold text-pw-green">{term}</span>
+          {t("showingResultsFor")}{" "}
+          <span className="font-bold text-pw-green">
+            {decodeURIComponent(term)}
+          </span>
         </div>
       )}
       {term && cards.length === 0 && (
@@ -54,7 +63,8 @@ export default async function SearchPage({
       <Pagination
         currentPage={pageInt}
         totalPages={totalPages}
-        basePath={`/search/${encodeURIComponent(term)}/page`}
+        pathname="/buscar/[term]/page/[page]"
+        params={{ term }}
       />
     </main>
   );

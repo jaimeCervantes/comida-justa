@@ -1,9 +1,9 @@
 "use server";
-import { revalidatePath } from "next/cache";
 import { getLocale } from "next-intl/server";
 import type { User } from "~/domain/entities/post/types";
 import type { Coordinates } from "~/domain/entities/seller/coordinates";
 import { redirectKeepingLocale } from "~/i18n/redirectKeepingLocale";
+import { revalidateLocalizedPath } from "~/i18n/revalidateLocalizedPath";
 import { auth } from "~/infra/auth";
 import { SIGNIN_PATH } from "~/infra/constants";
 import { createBranchRepository } from "~/infra/dataAccess/branches/factory";
@@ -14,8 +14,8 @@ import AddBranchUseCase from "~/use_cases/addBranch/addBranchUseCase";
 import BecomeSellerUseCase from "~/use_cases/becomeSeller/becomeSellerUseCase";
 import ClaimUsernameUseCase from "~/use_cases/claimUsername/claimUsernameUseCase";
 import UpdateSellerProfileUseCase from "~/use_cases/updateSellerProfile/updateSellerProfileUseCase";
-import { profilePath } from "./profilePath";
-import { storePath } from "./storePath";
+import { profileHref } from "./profilePath";
+import { storeHref } from "./storePath";
 
 export type BecomeSellerState = {
   errorMessage?: string;
@@ -69,8 +69,8 @@ export async function updateStoreProfile(
     return { errorMessage: result.errorMessage };
   }
 
-  revalidatePath("/cuenta");
-  revalidatePath(storePath(result.seller.handle ?? ""));
+  revalidateLocalizedPath("/cuenta");
+  revalidateLocalizedPath(storeHref(result.seller.handle ?? ""));
 
   return { saved: true };
 }
@@ -97,8 +97,8 @@ export async function claimUsername(
     return { errorMessage: result.errorMessage };
   }
 
-  revalidatePath("/cuenta");
-  revalidatePath(profilePath(result.profile.username));
+  revalidateLocalizedPath("/cuenta");
+  revalidateLocalizedPath(profileHref(result.profile.username));
 
   return { username: result.profile.username };
 }
@@ -145,8 +145,8 @@ export async function addBranch(
     return { errorMessage: result.errorMessage };
   }
 
-  revalidatePath("/cuenta");
-  revalidatePath(storePath(seller.handle ?? ""));
+  revalidateLocalizedPath("/cuenta");
+  revalidateLocalizedPath(storeHref(seller.handle ?? ""));
 
   return { branchName: result.branch.name };
 }
@@ -200,8 +200,8 @@ export async function becomeSeller(
 
   const handle = result.seller.handle ?? "";
 
-  revalidatePath("/cuenta");
-  revalidatePath(storePath(handle));
+  revalidateLocalizedPath("/cuenta");
+  revalidateLocalizedPath(storeHref(handle));
 
   return { handle };
 }

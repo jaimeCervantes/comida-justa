@@ -146,7 +146,7 @@ export default function EditPostForm({
         />
 
         <footer className="flex justify-center gap-5 mt-4">
-          <Link href={`/${post.slug}`}>
+          <Link href={{ pathname: "/[slug]", params: { slug: post.slug } }}>
             <Button>{tPublish("cancel")}</Button>
           </Link>
 

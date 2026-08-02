@@ -178,7 +178,12 @@ describe("SearchBar", () => {
 
     await user.click(screen.getByText("Ver todos los resultados"));
 
-    expect(push).toHaveBeenCalledWith("/search?q=pan");
+    /* Se navega a la ruta **interna** (`/buscar`); cuál se ve —`/buscar` o `/search`— lo decide
+       `pathnames` según el idioma, y eso ya lo cubren las pruebas de routing. */
+    expect(push).toHaveBeenCalledWith({
+      pathname: "/buscar",
+      query: { q: "pan" },
+    });
     await waitFor(() => expect(dropdown()).not.toBeInTheDocument());
   });
 
@@ -194,7 +199,10 @@ describe("SearchBar", () => {
 
     await user.click(screen.getByText("Pan de masa madre"));
 
-    expect(push).toHaveBeenCalledWith("/pan-de-masa-madre");
+    expect(push).toHaveBeenCalledWith({
+      pathname: "/[slug]",
+      params: { slug: "pan-de-masa-madre" },
+    });
   });
 
   it("closes the dropdown when the query is cleared", async () => {

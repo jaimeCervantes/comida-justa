@@ -8,7 +8,7 @@ import { useTranslations } from "next-intl";
 import type React from "react";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { Link, usePathname } from "~/i18n/navigation";
+import { type AppHref, Link, usePathname } from "~/i18n/navigation";
 import { PUBLIC_BRAND_NAME } from "~/infra/constants";
 import { COMMUNITY_ITEMS, PILLAR_ITEMS } from "./menuItems";
 
@@ -99,7 +99,7 @@ function SectionLink({
   href,
   children,
 }: {
-  href: string;
+  href: AppHref;
   children: React.ReactNode;
 }) {
   return (
@@ -189,7 +189,7 @@ export default function MobileNav({
               onToggle={() => toggleSubmenu(PILLARS_SECTION)}
             >
               {PILLAR_ITEMS.map((item) => (
-                <SectionLink key={item.href} href={item.href}>
+                <SectionLink key={item.titleKey} href={item.href}>
                   {tPillars(item.titleKey)}
                 </SectionLink>
               ))}
@@ -201,7 +201,7 @@ export default function MobileNav({
               onToggle={() => toggleSubmenu(COMMUNITY_SECTION)}
             >
               {COMMUNITY_ITEMS.map((item) => (
-                <SectionLink key={item.href} href={item.href}>
+                <SectionLink key={item.titleKey} href={item.href}>
                   {t(item.titleKey)}
                 </SectionLink>
               ))}

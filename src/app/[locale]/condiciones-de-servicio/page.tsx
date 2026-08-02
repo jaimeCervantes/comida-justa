@@ -182,7 +182,9 @@ export default async function TermsOfServicePage({
           </h2>
           <p className="mb-3">{t("section8.p1")}</p>
           <Link
-            href={`/${locale}/politica-de-privacidad`}
+            /* Sin el prefijo de idioma escrito a mano: lo pone `Link` de `~/i18n/navigation`,
+               que además elige la dirección que toca en cada idioma. */
+            href="/politica-de-privacidad"
             className="text-blue-600 dark:text-blue-400 font-medium hover:underline inline-flex items-center gap-1"
           >
             {t("section8.linkText")}

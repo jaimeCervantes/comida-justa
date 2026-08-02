@@ -1,15 +1,16 @@
 "use client";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useActionState, useState } from "react";
 import { MdPhone, MdStorefront } from "react-icons/md";
 import { generateSellerHandle } from "~/domain/entities/seller/handle";
 import { Link } from "~/i18n/navigation";
+import { resolveLocale } from "~/i18n/routing";
 import { PUBLIC_BASE_URL } from "~/infra/constants";
 import { Button } from "~/presentation/design_system/buttons/Button";
 import { TextArea } from "~/presentation/design_system/forms/TextArea";
 import { TextField } from "~/presentation/design_system/forms/TextField";
 import type { BecomeSellerState } from "../actions";
-import { storePath } from "../storePath";
+import { storeHref, storePath } from "../storePath";
 
 export default function BecomeSellerForm({
   action,
@@ -23,6 +24,7 @@ export default function BecomeSellerForm({
   defaultName?: string | null;
 }) {
   const t = useTranslations("account");
+  const locale = resolveLocale(useLocale());
   const [state, becomeSellerAction, isPending] = useActionState<
     BecomeSellerState,
     FormData
@@ -67,7 +69,7 @@ export default function BecomeSellerForm({
 
         <p className="mb-6 text-sm text-gray-600 dark:text-gray-400">
           {t.rich("storePreview", {
-            address: `${PUBLIC_BASE_URL}${storePath(handlePreview || "…")}`,
+            address: `${PUBLIC_BASE_URL}${storePath(handlePreview || "…", locale)}`,
             url: (chunks) => (
               <span data-testid="handle-preview" className="font-bold">
                 {chunks}
@@ -116,16 +118,17 @@ export default function BecomeSellerForm({
 
 function StoreReadyMessage({ handle }: { handle: string }) {
   const t = useTranslations("account");
+  const locale = resolveLocale(useLocale());
 
   return (
     <section data-testid="store-ready">
       <h1 className="text-xl font-bold mb-2">{t("becomeSellerOnline")}</h1>
       <p className="mb-4">{t("becomeSellerShare")}</p>
       <Link
-        href={storePath(handle)}
+        href={storeHref(handle)}
         className="font-bold text-pw-orange break-all"
       >
-        {`${PUBLIC_BASE_URL}${storePath(handle)}`}
+        {`${PUBLIC_BASE_URL}${storePath(handle, locale)}`}
       </Link>
     </section>
   );

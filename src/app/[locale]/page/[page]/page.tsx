@@ -12,6 +12,7 @@ import {
 import { createPostQueryRepository } from "~/infra/dataAccess/getMultiplePosts";
 import type { Post } from "~/infra/types/Posts";
 import CardForList from "~/infra/UI/components/CardForList/CardForList";
+import Pagination from "~/infra/UI/components/Pagination";
 import { mapPostsToCardsForLocale } from "~/infra/UI/mappers/posts/mapPostsToCardsForLocale";
 
 type Props = {
@@ -72,10 +73,7 @@ export default async function PaginatedPage({ params }: Props) {
     notFound();
   }
 
-  const { posts, totalPages, nextPage, prevPage } = await getPosts(
-    page,
-    locale,
-  );
+  const { posts, totalPages } = await getPosts(page, locale);
 
   // Si la página no tiene contenido y está fuera de rango, mostrar 404
   if (posts.length === 0 && page > 1 && page > totalPages) {
@@ -98,59 +96,14 @@ export default async function PaginatedPage({ params }: Props) {
         )}
       </section>
 
-      {/* Paginación visible para SEO y usabilidad */}
-      <nav
-        aria-label={t("paginationLabel")}
-        className="flex justify-center mt-8 space-x-4"
-      >
-        {prevPage && page > 1 && (
-          <Link
-            href={`/page/${prevPage}`}
-            className="px-4 py-2 border rounded-full bg-white dark:text-black hover:bg-gray-300"
-          >
-            Anterior
-          </Link>
-        )}
-
-        {/* Mostrar números de página para navegación */}
-        <div className="flex space-x-2">
-          {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-            // Crear un rango de páginas centrado en la actual cuando sea posible
-            const pageNum =
-              page <= 3
-                ? i + 1
-                : page > totalPages - 2
-                  ? totalPages - 4 + i
-                  : page - 2 + i;
-
-            if (pageNum > 0 && pageNum <= totalPages) {
-              return (
-                <Link
-                  key={`page-link-${pageNum}`}
-                  href={`/page/${pageNum}`}
-                  className={`px-4 py-2 border rounded-full ${
-                    pageNum === page
-                      ? "bg-pw-lightgreen text-white"
-                      : "bg-white dark:text-black hover:bg-gray-300"
-                  }`}
-                >
-                  {pageNum}
-                </Link>
-              );
-            }
-            return null;
-          })}
-        </div>
-
-        {nextPage && (
-          <Link
-            href={`/page/${nextPage}`}
-            className="px-4 py-2 border rounded-full bg-white dark:text-black hover:bg-gray-300"
-          >
-            Siguiente
-          </Link>
-        )}
-      </nav>
+      {/* Esta paginación estaba copiada a mano aquí, con la misma ventana de 5 páginas, el mismo
+          estilo y "Anterior"/"Siguiente" escritos en español dentro del TSX. Es lo que hace
+          `Pagination`, así que se usa el componente. */}
+      <Pagination
+        currentPage={page}
+        totalPages={totalPages}
+        pathname="/page/[page]"
+      />
 
       {/* Enlace para volver a la página principal si no estamos en ella */}
       {page > 0 && (

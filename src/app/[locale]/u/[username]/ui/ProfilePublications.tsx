@@ -2,7 +2,6 @@ import { useTranslations } from "next-intl";
 import type { Post } from "~/infra/types/Posts";
 import CardForList from "~/infra/UI/components/CardForList/CardForList";
 import Pagination from "~/infra/UI/components/Pagination";
-import { profilePath } from "../../../cuenta/profilePath";
 
 export default function ProfilePublications({
   publications,
@@ -34,7 +33,8 @@ export default function ProfilePublications({
       <Pagination
         currentPage={currentPage}
         totalPages={totalPages}
-        basePath={`${profilePath(username)}/page`}
+        pathname="/u/[username]/page/[page]"
+        params={{ username }}
       />
     </>
   );

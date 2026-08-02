@@ -111,7 +111,10 @@ const SearchBar: React.FC<SearchBarProps> = ({ placeholder }) => {
 
   const handleSeeAll = () => {
     setDismissedFor(query);
-    router.push(`/search?q=${encodeURIComponent(query)}`);
+    /* La ruta se nombra por su clave interna (`/buscar`); cuál se ve —`/buscar` o `/search`— lo
+       resuelve `pathnames` según el idioma. El término va en `query`, así que ya no hace falta
+       escaparlo a mano. */
+    router.push({ pathname: "/buscar", query: { q: query } });
   };
 
   return (
@@ -154,7 +157,10 @@ const SearchBar: React.FC<SearchBarProps> = ({ placeholder }) => {
                   key={result.id}
                   className={`p-3 border-b last:border-b-0 border-gray-100 dark:border-gray-700 cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-gray-800 focus:bg-gray-100 dark:focus:bg-gray-700 outline-hidden`}
                   onMouseDown={() =>
-                    router.push(`/${result.translations?.es.slug}`)
+                    router.push({
+                      pathname: "/[slug]",
+                      params: { slug: result.translations?.es.slug ?? "" },
+                    })
                   }
                 >
                   <div className="font-bold text-gray-800 dark:text-gray-200 text-sm">

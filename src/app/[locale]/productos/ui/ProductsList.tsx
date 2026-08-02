@@ -41,7 +41,7 @@ export default function ProductsList({
       <Pagination
         currentPage={currentPage}
         totalPages={totalPages}
-        basePath={PRODUCTS_BASE_PATH}
+        pathname="/productos/page/[page]"
       />
     </>
   );

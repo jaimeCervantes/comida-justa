@@ -1,8 +1,8 @@
 "use server";
-import { revalidatePath } from "next/cache";
 import { getLocale } from "next-intl/server";
 import type { User } from "~/domain/entities/post/types";
 import { redirectKeepingLocale } from "~/i18n/redirectKeepingLocale";
+import { revalidateLocalizedPath } from "~/i18n/revalidateLocalizedPath";
 import { auth } from "~/infra/auth";
 import { SIGNIN_PATH } from "~/infra/constants";
 import { createPostAdminRepository } from "~/infra/dataAccess/managePost/factory";
@@ -44,7 +44,7 @@ export async function setAvailability(
 
   const slug = String(formData.get("slug") ?? "");
 
-  revalidatePath(`/${slug}`);
+  revalidateLocalizedPath({ pathname: "/[slug]", params: { slug } });
 
   return { isAvailable: result.isAvailable };
 }

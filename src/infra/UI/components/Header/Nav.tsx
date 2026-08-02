@@ -32,7 +32,7 @@ export default function Nav({ isAdmin = false }: { isAdmin?: boolean }) {
             <ul className="m-0 grid list-none gap-x-[10px] p-[22px] w-[300px] md:w-[600px] lg:w-[700px] grid-cols-[1fr_1fr]">
               {PILLAR_ITEMS.map((item) => (
                 <ListItem
-                  key={item.href}
+                  key={item.titleKey}
                   href={item.href}
                   title={tPillars(item.titleKey)}
                 >
@@ -52,7 +52,7 @@ export default function Nav({ isAdmin = false }: { isAdmin?: boolean }) {
             <ul className="m-0 grid list-none gap-[10px] p-[22px] w-[300px] md:w-[600px] grid-cols-2">
               {COMMUNITY_ITEMS.map((item) => (
                 <ListItem
-                  key={item.href}
+                  key={item.titleKey}
                   href={item.href}
                   title={t(item.titleKey)}
                 >

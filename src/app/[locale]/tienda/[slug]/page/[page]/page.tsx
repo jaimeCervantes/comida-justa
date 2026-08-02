@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "~/i18n/navigation";
 import { resolveLocale } from "~/i18n/routing";
 import { createSellerRepository } from "~/infra/dataAccess/sellers/factory";
-import { storePath } from "../../../../cuenta/storePath";
+import { storeHref } from "../../../../cuenta/storePath";
 import { getStoreByHandle } from "../../data";
 import { buildStoreMetadata } from "../../metadata";
 import StoreCatalog from "../../ui/StoreCatalog";
@@ -33,6 +33,7 @@ export default async function StorePaginatedPage({ params }: Props) {
   const { slug, locale: rawLocale, page: pageStr } = await params;
   const locale = resolveLocale(rawLocale);
   setRequestLocale(locale);
+  const t = await getTranslations("store");
   const page = parsePage(pageStr);
 
   if (!page) {
@@ -58,10 +59,10 @@ export default async function StorePaginatedPage({ params }: Props) {
 
       <div className="text-center mt-4">
         <Link
-          href={storePath(slug)}
+          href={storeHref(slug)}
           className="text-pw-lightgreen hover:underline"
         >
-          Volver a la tienda
+          {t("backToStore")}
         </Link>
       </div>
     </main>

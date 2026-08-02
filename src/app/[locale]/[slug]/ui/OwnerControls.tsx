@@ -42,7 +42,7 @@ export default function OwnerControls({
       data-testid="owner-controls"
       className="mt-6 flex flex-wrap items-center gap-3 border-t border-gray-200 pt-4 dark:border-gray-800"
     >
-      <Link href={`/editar/${slug}`}>
+      <Link href={{ pathname: "/editar/[slug]", params: { slug } }}>
         <Button startIcon={<MdEdit />} size="sm">
           {t("edit")}
         </Button>

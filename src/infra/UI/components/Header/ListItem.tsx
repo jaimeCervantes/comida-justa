@@ -2,7 +2,7 @@ import * as NavigationMenu from "@radix-ui/react-navigation-menu";
 import classNames from "classnames";
 import type { ForwardedRef, ReactNode } from "react";
 import React from "react";
-import { Link } from "~/i18n/navigation";
+import { type AppHref, Link } from "~/i18n/navigation";
 
 export default React.forwardRef(function ListItem(
   {
@@ -11,7 +11,7 @@ export default React.forwardRef(function ListItem(
     title,
     href,
     ...props
-  }: { className?: string; children: ReactNode; href: string; title: string },
+  }: { className?: string; children: ReactNode; href: AppHref; title: string },
   forwardedRef: ForwardedRef<HTMLAnchorElement>,
 ) {
   return (

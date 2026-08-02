@@ -77,7 +77,10 @@ export async function updatePost(
   }
 
   redirectKeepingLocale(
-    `/${"slug" in result ? result.slug : ""}`,
+    {
+      pathname: "/[slug]",
+      params: { slug: "slug" in result ? result.slug : "" },
+    },
     await getLocale(),
   );
 }

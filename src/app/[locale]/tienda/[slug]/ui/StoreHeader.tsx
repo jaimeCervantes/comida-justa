@@ -1,12 +1,13 @@
 import Image from "next/image";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { MdLink, MdPhone } from "react-icons/md";
 import type { Seller } from "~/domain/entities/seller/types";
 import { buildWhatsappStoreLink } from "~/domain/entities/seller/whatsappContact";
 import { Link } from "~/i18n/navigation";
+import { resolveLocale } from "~/i18n/routing";
 import { PUBLIC_BASE_URL } from "~/infra/constants";
 import WhatsappButton from "~/infra/UI/components/WhatsappButton/WhatsappButton";
-import { profilePath } from "../../../cuenta/profilePath";
+import { profileHref } from "../../../cuenta/profilePath";
 import { storePath } from "../../../cuenta/storePath";
 
 export default function StoreHeader({
@@ -18,9 +19,10 @@ export default function StoreHeader({
   ownerUsername?: string | null;
 }) {
   const t = useTranslations("store");
+  const locale = resolveLocale(useLocale());
   const contactLink = buildWhatsappStoreLink({
     storeName: seller.name,
-    url: `${PUBLIC_BASE_URL}${storePath(seller.handle ?? "")}`,
+    url: `${PUBLIC_BASE_URL}${storePath(seller.handle ?? "", locale)}`,
     phone: seller.phone,
   });
 
@@ -80,11 +82,11 @@ export default function StoreHeader({
 
           {ownerUsername ? (
             <Link
-              href={profilePath(ownerUsername)}
+              href={profileHref(ownerUsername)}
               data-testid="store-owner-link"
               className="mt-2 text-sm text-pw-lightgreen hover:underline"
             >
-              Ver el perfil de quien vende
+              {t("viewSellerProfile")}
             </Link>
           ) : null}
         </div>

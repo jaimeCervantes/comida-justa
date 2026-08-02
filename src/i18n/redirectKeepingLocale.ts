@@ -1,4 +1,4 @@
-import { redirect } from "./navigation";
+import { type AppRedirectHref, redirect } from "./navigation";
 import type { AppLocale } from "./routing";
 
 /**
@@ -18,8 +18,13 @@ import type { AppLocale } from "./routing";
  * obligaría a que la función fuera `async`, y TypeScript no estrecha tipos después de un `await`
  * aunque su tipo sea `Promise<never>`. Quien llama ya tiene el idioma, o lo pide con `getLocale()`.
  */
-export function redirectKeepingLocale(href: string, locale: AppLocale): never {
+export function redirectKeepingLocale(
+  href: AppRedirectHref,
+  locale: AppLocale,
+): never {
   redirect({ href, locale });
 
-  throw new Error(`redirect a ${href} no interrumpió la ejecución`);
+  throw new Error(
+    `redirect a ${JSON.stringify(href)} no interrumpió la ejecución`,
+  );
 }

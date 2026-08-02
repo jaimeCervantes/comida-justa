@@ -178,13 +178,15 @@
     "emptyPage": "No food has been published on this page.",
     "loadMore": "Load more",
     "loadingMore": "Loading more…",
+    "nextPage": "Next",
     "noMore": "There are no more publications",
     "page": "Page {page}",
     "pageDescription": "Browse our selection of food on page {page}. Healthy food for you and your community.",
     "pageHeading": "{brand}: how do you avoid illness and save time and money, while supporting the environment and your community?",
     "pageTitle": "{brand} - Page {page}",
     "pagedTitle": "{title} - Page {page}",
-    "paginationLabel": "Pagination"
+    "paginationLabel": "Pagination",
+    "previousPage": "Previous"
   },
   "footer": {
     "tagline": "We are not just an app. We are a whole ecosystem of initiatives built to make living healthy the easiest option for everyone.",
@@ -464,9 +466,11 @@
     "title": "{brand} products"
   },
   "profile": {
+    "backToProfile": "Back to the profile",
     "empty": "This person hasn't published anything yet.",
     "metaDescription": "What {name} publishes on {brand}.",
-    "publicationCount": "{total, plural, one {# publication} other {# publications}}"
+    "publicationCount": "{total, plural, one {# publication} other {# publications}}",
+    "theirStore": "Their store: {name}"
   },
   "publish": {
     "heading": "Publish something healthy",
@@ -496,14 +500,17 @@
     "noResults": "No results were found for your search.",
     "placeholder": "Search...",
     "resultsHeading": "Search results",
-    "seeAll": "See all results"
+    "seeAll": "See all results",
+    "showingResultsFor": "Showing results for:"
   },
   "store": {
+    "backToStore": "Back to the store",
     "branchesHeading": "Where to find us",
     "contactOnWhatsapp": "Message on WhatsApp",
     "empty": "This store hasn't published anything yet.",
     "metaDescription": "Everything {name} sells, in one place.",
-    "noBranches": "This store doesn't share its branches yet."
+    "noBranches": "This store doesn't share its branches yet.",
+    "viewSellerProfile": "See the seller profile"
   },
   "termsOfService": {
     "title": "Terms of Service | Hazlo Sano",

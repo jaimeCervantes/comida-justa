@@ -170,5 +170,8 @@ export async function createPost(
     indexAfterResponse(result.id);
   }
 
-  redirectKeepingLocale(`/${result?.slug}`, await getLocale());
+  redirectKeepingLocale(
+    { pathname: "/[slug]", params: { slug: result?.slug ?? "" } },
+    await getLocale(),
+  );
 }

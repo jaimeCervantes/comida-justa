@@ -1,5 +1,6 @@
 "use client";
 
+import { useParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 import { usePathname, useRouter } from "~/i18n/navigation";
@@ -21,6 +22,7 @@ export default function LanguageSwitcher() {
      ruta que contuviera el código de idioma en otra posición. */
   const t = useTranslations("nav");
   const pathname = usePathname();
+  const params = useParams();
   const router = useRouter();
   const currentLocale = useLocale();
   const [isOpen, setIsOpen] = useState(false);
@@ -29,7 +31,18 @@ export default function LanguageSwitcher() {
 
   const handleChange = (newLocale: AppLocale) => {
     setIsOpen(false);
-    router.replace(pathname, { locale: newLocale });
+    /* Desde que hay `pathnames`, cambiar de idioma es traducir la ruta actual, y una ruta con
+       segmentos dinámicos (`/tienda/[slug]`) necesita además sus valores. Por eso viaja `params`:
+       sin él, quien esté viendo una tienda acabaría en el inicio del otro idioma.
+
+       El `ts-expect-error` es el que documenta next-intl para este caso: el tipo exige que los
+       `params` casen con *ese* `pathname` concreto, y aquí ambos salen de la ruta que ya se está
+       mostrando, así que casan por construcción — pero el compilador no puede probarlo. */
+    router.replace(
+      // @ts-expect-error -- `pathname` y `params` vienen de la ruta activa, así que coinciden.
+      { pathname, params },
+      { locale: newLocale },
+    );
   };
 
   const current = locales.find((l) => l.code === currentLocale) ?? locales[0];

@@ -1,14 +1,16 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useRouter } from "~/i18n/navigation";
+import { type AppRedirectHref, useRouter } from "~/i18n/navigation";
 import {
   Button,
   type ButtonProps,
 } from "~/presentation/design_system/buttons/Button";
 
 type LinkButtonProps = ButtonProps & {
-  href: string;
+  /* Navega con `router.push`, no con `<Link>`, y ese acepta una forma de `href` ligeramente más
+     estrecha (`query` en vez de todo `UrlObject`). Por eso el tipo es el de `redirect`. */
+  href: AppRedirectHref;
 };
 
 export default function LinkButton({

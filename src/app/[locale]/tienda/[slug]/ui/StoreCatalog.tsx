@@ -2,7 +2,6 @@ import { useTranslations } from "next-intl";
 import type { Post } from "~/infra/types/Posts";
 import CardForList from "~/infra/UI/components/CardForList/CardForList";
 import Pagination from "~/infra/UI/components/Pagination";
-import { storePath } from "../../../cuenta/storePath";
 
 export default function StoreCatalog({
   catalog,
@@ -34,7 +33,8 @@ export default function StoreCatalog({
       <Pagination
         currentPage={currentPage}
         totalPages={totalPages}
-        basePath={`${storePath(handle)}/page`}
+        pathname="/tienda/[slug]/page/[page]"
+        params={{ slug: handle }}
       />
     </>
   );

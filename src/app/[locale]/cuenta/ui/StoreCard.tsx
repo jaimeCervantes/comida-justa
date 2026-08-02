@@ -1,11 +1,13 @@
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import type { Seller } from "~/domain/entities/seller/types";
 import { Link } from "~/i18n/navigation";
+import { resolveLocale } from "~/i18n/routing";
 import { PUBLIC_BASE_URL } from "~/infra/constants";
-import { storePath } from "../storePath";
+import { storeHref, storePath } from "../storePath";
 
 export default function StoreCard({ seller }: { seller: Seller }) {
   const t = useTranslations("account");
+  const locale = resolveLocale(useLocale());
   const handle = seller.handle;
 
   return (
@@ -21,10 +23,10 @@ export default function StoreCard({ seller }: { seller: Seller }) {
         <>
           <p className="mb-2">{t("becomeSellerShare")}</p>
           <Link
-            href={storePath(handle)}
+            href={storeHref(handle)}
             className="font-bold text-pw-orange break-all"
           >
-            {`${PUBLIC_BASE_URL}${storePath(handle)}`}
+            {`${PUBLIC_BASE_URL}${storePath(handle, locale)}`}
           </Link>
         </>
       ) : (

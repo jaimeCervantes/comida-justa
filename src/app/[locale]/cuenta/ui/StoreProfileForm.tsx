@@ -1,8 +1,9 @@
 "use client";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useActionState, useCallback, useState } from "react";
 import { MdLink, MdPhone, MdStorefront } from "react-icons/md";
 import type { Seller } from "~/domain/entities/seller/types";
+import { resolveLocale } from "~/i18n/routing";
 import { PUBLIC_BASE_URL } from "~/infra/constants";
 import ImageVideoUploader, {
   type UploadedMediaResult,
@@ -24,6 +25,7 @@ export default function StoreProfileForm({
   seller: Seller;
 }) {
   const t = useTranslations("account");
+  const locale = resolveLocale(useLocale());
   const [state, updateAction, isPending] = useActionState<
     StoreProfileState,
     FormData
@@ -39,7 +41,7 @@ export default function StoreProfileForm({
       <h2 className="text-lg font-bold mb-2">{t("storeProfileTitle")}</h2>
       <p className="mb-6 text-sm text-gray-600 dark:text-gray-400">
         {t.rich("storeAddressStable", {
-          address: `${PUBLIC_BASE_URL}${storePath(seller.handle ?? "")}`,
+          address: `${PUBLIC_BASE_URL}${storePath(seller.handle ?? "", locale)}`,
           url: (chunks) => <span className="font-bold">{chunks}</span>,
         })}
       </p>

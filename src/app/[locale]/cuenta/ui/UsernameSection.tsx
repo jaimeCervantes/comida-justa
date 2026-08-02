@@ -1,14 +1,15 @@
 "use client";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useActionState, useState } from "react";
 import { MdAlternateEmail } from "react-icons/md";
 import { generateUsername } from "~/domain/entities/user/username";
 import { Link } from "~/i18n/navigation";
+import { resolveLocale } from "~/i18n/routing";
 import { PUBLIC_BASE_URL } from "~/infra/constants";
 import { Button } from "~/presentation/design_system/buttons/Button";
 import { TextField } from "~/presentation/design_system/forms/TextField";
 import type { ClaimUsernameState } from "../actions";
-import { profilePath } from "../profilePath";
+import { profileHref, profilePath } from "../profilePath";
 
 export default function UsernameSection({
   action,
@@ -24,6 +25,7 @@ export default function UsernameSection({
   defaultName?: string | null;
 }) {
   const t = useTranslations("account");
+  const locale = resolveLocale(useLocale());
   const [state, claimAction, isPending] = useActionState<
     ClaimUsernameState,
     FormData
@@ -37,10 +39,10 @@ export default function UsernameSection({
       <section data-testid="username-card">
         <h2 className="text-lg font-bold mb-2">{t("usernameTitle")}</h2>
         <Link
-          href={profilePath(username)}
+          href={profileHref(username)}
           className="font-bold text-pw-orange break-all"
         >
-          {`${PUBLIC_BASE_URL}${profilePath(username)}`}
+          {`${PUBLIC_BASE_URL}${profilePath(username, locale)}`}
         </Link>
       </section>
     );
@@ -81,7 +83,7 @@ export default function UsernameSection({
 
         <p className="mb-6 text-sm text-gray-600 dark:text-gray-400">
           {t.rich("profilePreview", {
-            address: `${PUBLIC_BASE_URL}${profilePath(preview || "…")}`,
+            address: `${PUBLIC_BASE_URL}${profilePath(preview || "…", locale)}`,
             url: (chunks) => (
               <span data-testid="username-preview" className="font-bold">
                 {chunks}

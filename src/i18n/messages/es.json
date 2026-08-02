@@ -178,13 +178,15 @@
     "emptyPage": "No hay comidas publicadas en esta página.",
     "loadMore": "Cargar más",
     "loadingMore": "Cargando más...",
+    "nextPage": "Siguiente",
     "noMore": "No hay más publicaciones disponibles",
     "page": "Página {page}",
     "pageDescription": "Explora nuestra selección de alimentos en la página {page}. Comida saludable para ti y tu comunidad.",
     "pageHeading": "{brand}: ¿Como evitar enfermedades, ahorrar tiempo y dinero, al mismo tiempo que apoyas al medio ambiente y a tu comunidad?",
     "pageTitle": "{brand} - Página {page}",
     "pagedTitle": "{title} - Página {page}",
-    "paginationLabel": "Paginación"
+    "paginationLabel": "Paginación",
+    "previousPage": "Anterior"
   },
   "footer": {
     "tagline": "No somos solo una aplicación, somos todo un ecosistema de iniciativas diseñadas para que vivir sano sea la opción más fácil para todos.",
@@ -464,9 +466,11 @@
     "title": "Productos de {brand}"
   },
   "profile": {
+    "backToProfile": "Volver al perfil",
     "empty": "Esta persona todavía no ha publicado nada.",
     "metaDescription": "Lo que publica {name} en {brand}.",
-    "publicationCount": "{total, plural, one {# publicación} other {# publicaciones}}"
+    "publicationCount": "{total, plural, one {# publicación} other {# publicaciones}}",
+    "theirStore": "Su tienda: {name}"
   },
   "publish": {
     "heading": "Publica algo sano",
@@ -496,14 +500,17 @@
     "noResults": "No se encontraron resultados para tu búsqueda.",
     "placeholder": "Buscar...",
     "resultsHeading": "Resultados de búsqueda",
-    "seeAll": "Ver todos los resultados"
+    "seeAll": "Ver todos los resultados",
+    "showingResultsFor": "Mostrando resultados para:"
   },
   "store": {
+    "backToStore": "Volver a la tienda",
     "branchesHeading": "Dónde encontrarnos",
     "contactOnWhatsapp": "Escribir por WhatsApp",
     "empty": "Esta tienda todavía no ha publicado nada.",
     "metaDescription": "Lo que vende {name}, en un solo lugar.",
-    "noBranches": "Esta tienda todavía no comparte sus sucursales."
+    "noBranches": "Esta tienda todavía no comparte sus sucursales.",
+    "viewSellerProfile": "Ver el perfil de quien vende"
   },
   "termsOfService": {
     "title": "Condiciones de Servicio | Hazlo Sano",

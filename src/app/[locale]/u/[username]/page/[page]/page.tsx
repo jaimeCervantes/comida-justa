@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "~/i18n/navigation";
 import { resolveLocale } from "~/i18n/routing";
 import { createUserProfileRepository } from "~/infra/dataAccess/users/factory";
-import { profilePath } from "../../../../cuenta/profilePath";
+import { profileHref } from "../../../../cuenta/profilePath";
 import { getProfileByUsername } from "../../data";
 import { buildProfileMetadata } from "../../metadata";
 import ProfileHeader from "../../ui/ProfileHeader";
@@ -33,6 +33,7 @@ export default async function ProfilePaginatedPage({ params }: Props) {
   const { username, locale: rawLocale, page: pageStr } = await params;
   const locale = resolveLocale(rawLocale);
   setRequestLocale(locale);
+  const t = await getTranslations("profile");
   const page = parsePage(pageStr);
 
   if (!page) {
@@ -62,10 +63,10 @@ export default async function ProfilePaginatedPage({ params }: Props) {
 
       <div className="text-center mt-4">
         <Link
-          href={profilePath(username)}
+          href={profileHref(username)}
           className="text-pw-lightgreen hover:underline"
         >
-          Volver al perfil
+          {t("backToProfile")}
         </Link>
       </div>
     </main>

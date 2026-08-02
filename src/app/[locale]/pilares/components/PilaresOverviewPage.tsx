@@ -31,7 +31,10 @@ export default function PilaresOverviewPage() {
             return (
               <Link
                 key={pillar.slug}
-                href={`/pilares/${pillar.slug}`}
+                href={{
+                  pathname: "/pilares/[[...slug]]",
+                  params: { slug: [pillar.slug] },
+                }}
                 className={`group block rounded-2xl border-2 ${c.border} ${c.bg} p-6 sm:p-8 transition-all duration-300 hover:shadow-lg ${c.hover} focus:outline-hidden focus-visible:ring-2 focus-visible:ring-slate-400 dark:focus-visible:ring-slate-500`}
               >
                 <div className="flex items-center gap-3 mb-4">
