@@ -56,3 +56,5 @@ serviceAccountKey.json
 .claude/settings.json
 .claude/settings.local.json
 .vscode
+# Transcripciones de video: audio y texto de trabajo (ver src/scripts/transcribeVideos.ts)
+/transcripciones/

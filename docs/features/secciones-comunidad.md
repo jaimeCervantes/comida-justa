@@ -49,18 +49,36 @@ menos en el otro.
 
 ## Lo que el modelo ya soporta
 
-**El vocabulario de procedencia ya distingue productor de negocio.**
+**El vocabulario de procedencia ya distingue quién produce.**
 `src/domain/entities/post/origin.ts` usa el patrón `{rol}_{ámbito}` y declara `productor_local`,
-`reventa_local`, `productor_foraneo` y `reventa_foranea`, con `isLocalOrigin()` incluido. O sea:
+`reventa_local`, `productor_foraneo` y `reventa_foranea`, con `isLocalOrigin()` incluido. Se
+persiste como `text` validado contra una allowlist, así que **no hay migración que hacer**.
 
-- **Productores locales** = quienes publican con `productor_local`.
-- **Negocios locales** = quienes publican con `reventa_local`.
+**Pero `origin` describe la publicación, no al vendedor** — y ahí estaba el error del primer
+borrador de este documento, que definía "negocios locales" como `reventa_local`:
 
-Se persiste como `text` validado contra una allowlist, así que **no hay migración que hacer**: es
-una consulta sobre lo que ya existe. El resto del camino también está construido — la persona se
-registra, reclama su `/u/<username>`, abre su tienda en `/tienda/<handle>` y publica—, y el
-repositorio de consultas ya tiene el patrón de filtro por procedencia (`getHazloSanoProducts`,
-`getProductCountsByOrigin`).
+- Un restaurante del pueblo **cocina** lo que vende: publicaría `productor_local` y aun así es un
+  negocio local.
+- Una tienda de abarrotes que revende producto foráneo publica `reventa_foranea` y **sigue siendo un
+  negocio del pueblo**.
+- La localidad de un negocio no cambia según lo que venda ese día.
+
+**Tampoco hace falta un `venta_local` nuevo.** El eje `rol` responde "¿quién lo produjo?"
+(`hazlo_sano` / `productor` / `reventa`); un valor genérico de "venta" no responde ninguna pregunta
+distinta y se solaparía con `reventa_local` — dos valores que nadie sabría cuándo elegir es peor que
+uno solo. Y hoy **ninguna publicación usa todavía los orígenes locales**, así que ampliar el
+vocabulario sería adivinar sin datos.
+
+La definición que sí se sostiene:
+
+- **Negocios locales = las tiendas.** `sellers` con su `slug`: quien abrió tienda en el pueblo, sin
+  importar qué venda. Es lo que dice la palabra y es lo que ya está modelado.
+- **Productores locales = quienes publican con `productor_local`**, un subconjunto de los
+  anteriores. Que se solapen está bien: un productor también es un negocio local, y la sección
+  existe para destacar a quien **hace** lo que vende.
+
+Si algún día hace falta separar por tipo de negocio (restaurante, abarrotes, taller), eso es un
+campo de `sellers` —migración Alembic en el backend Python—, no un `origin` más.
 
 **Lo que falta es el sentido del directorio.** Un directorio lista **a quién**, no qué: hace falta
 una consulta de vendedores/perfiles que tengan publicaciones con ese origen, hermana de
@@ -112,15 +130,17 @@ sigue teniendo publicaciones, productos y las categorías.
 
 ### Slice 1 — Productores y negocios locales *(no bloqueado; el de más valor por esfuerzo)*
 
-- Consulta nueva: vendedores y perfiles con publicaciones de origen `productor_local` /
-  `reventa_local`, paginada como el resto.
+- **Negocios locales:** el directorio de tiendas (`sellers` con `slug`), paginado como el resto.
+- **Productores locales:** las tiendas —o los perfiles— con al menos una publicación de origen
+  `productor_local`. Es una consulta sobre el mismo listado, con un `EXISTS`.
 - Dos páginas con la misma plantilla y distinto filtro, cada una con su cabecera de contenido y su
   estado vacío ("aún no hay ninguno registrado — abre tu tienda").
 - Entran al sitemap **solo cuando tengan contenido** (la regla del slice 5 de SEO).
 - `LocalBusiness`/`ItemList` en JSON-LD reusando lo del slice 4 de SEO.
 
 **Criterios de aceptación:**
-1. Un vendedor que publica con `productor_local` aparece en productores y **no** en negocios.
+1. Una tienda aparece en negocios locales por existir; aparece **además** en productores locales
+   solo si publica algo con `productor_local`.
 2. Con cero resultados la página explica la sección e invita a publicar; no es una lista hueca.
 3. La página no entra al sitemap mientras esté vacía.
 

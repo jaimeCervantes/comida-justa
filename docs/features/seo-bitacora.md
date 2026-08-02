@@ -807,3 +807,58 @@ página que ya dice algo.
 2. **Transcribir de verdad los 8 videos**, si quieres el texto extra: sin formato especial, párrafos
    normales, visible en la página y declarado como `transcript`.
 3. **Los directorios de productores y negocios locales**, que es la siguiente feature con valor.
+
+---
+
+## Limpieza de hashtags en la base compartida (2026-08-02)
+
+### Qué se escribió
+
+**5 filas de `post_translations`**, quitando de `content` la ristra de hashtags del final:
+
+| slug | antes | después | etiquetas |
+|---|---|---|---|
+| `funciones-del-buen-sueno-parte-1` | 1530 | 1107 | 24 |
+| `crema-de-cacahuate-natural-1-2-kilo` | 1592 | 1512 | 5 |
+| `alimentos-que-mejoran-tu-rendimiento-mental` | 656 | 591 | 5 |
+| `por-que-comer-despacio-es-la-clave-para-bajar-de-peso` | 585 | 503 | 5 |
+| `10-minutos-de-ejercicio-al-dia-pueden-cambiar-tu-vida` | 561 | 484 | 5 |
+
+Ninguna otra columna se tocó. Quedan **0 publicaciones** con `#` en el texto.
+
+**Cómo se deshace:**
+`pnpm exec tsx src/scripts/stripContentHashtags.ts --restore=src/scripts/backups/hashtags-backup-1785695449398.json`
+
+El respaldo está versionado a propósito: un archivo suelto en la carpeta de trabajo es un archivo
+que desaparece con el primer `git clean`.
+
+### La desviación que importa: **no** fueron a la columna `tags`
+
+El plan era moverlos a `post_translations.tags`, que estaba vacía en esas filas. **Al revisar antes
+de escribir, resultó ser la columna equivocada:**
+
+- `tags` **alimenta el vector del chatbot**: `buildEmbeddingText` escribe una línea
+  `Etiquetas: agua, avena, canela` que entra al embedding.
+- Lo que guarda hoy son **ingredientes** (`agua`, `piña`, `pepino`, `sal de mar`), que es
+  exactamente lo que hace falta para que el chatbot encuentre un producto por lo que lleva.
+
+Meter ahí "BuenSueño, DormirBien, RegálateSueño, SaludIntegral…" —24 en una sola publicación—
+habría secuestrado su vector: el chatbot dejaría de encontrarla por lo que es y empezaría a
+encontrarla por su campaña. Así que los hashtags **no se guardan**: se quitan del texto y viven en
+el respaldo, que es de donde se sacan si algún día se quieren para volver a publicar en redes.
+
+### Lo que queda ligeramente viejo
+
+El `embedding` de esas 5 traducciones se calculó **con los hashtags dentro**. No rompe nada —el
+vector sigue apuntando al mismo contenido, solo que con algo de ruido que ya no está en el texto— y
+el reporte de `/admin/productos` no cambia, porque ninguna se quedó sin vector.
+
+Para re-indexarlas hace falta forzar: hoy `backfill-embeddings` solo atiende a las que **no tienen**
+vector, así que habría que ponérselo en `NULL` y correr el script. Entre las dos operaciones esas
+publicaciones son invisibles para el chatbot, así que no se hizo sin decirlo. Con 5 filas de ruido
+menor, la relación coste/beneficio no lo pedía.
+
+### Archivos tocados
+
+- `src/scripts/stripContentHashtags.ts` (ensayo por defecto, `--apply` para escribir, `--restore=` para deshacer).
+- `src/scripts/backups/hashtags-backup-1785695449398.json` (el contenido original de las 5 filas).
