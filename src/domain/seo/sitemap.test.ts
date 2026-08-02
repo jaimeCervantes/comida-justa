@@ -3,7 +3,13 @@ import { buildSitemap, STATIC_SITEMAP_PATHS } from "./sitemap";
 
 const BASE = "https://hazlosano.com";
 
-const empty = { posts: [], stores: [], profiles: [], categories: [] };
+const empty = {
+  posts: [],
+  stores: [],
+  profiles: [],
+  categories: [],
+  sections: [],
+};
 
 describe("buildSitemap", () => {
   it("incluye las páginas fijas que existen", () => {
@@ -95,5 +101,16 @@ describe("buildSitemap", () => {
     const urls = buildSitemap(BASE, empty).map((entry) => entry.url);
 
     expect(urls.some((url) => url.includes("/categoria/"))).toBe(false);
+  });
+
+  it("publica las secciones que ya tienen contenido", () => {
+    const urls = buildSitemap(BASE, {
+      ...empty,
+      sections: [{ path: "/negocios-locales" }],
+    }).map((entry) => entry.url);
+
+    expect(urls).toContain(`${BASE}/negocios-locales`);
+    // La de productores no llega hasta aquí mientras nadie publique algo que elabore.
+    expect(urls).not.toContain(`${BASE}/productores-locales`);
   });
 });

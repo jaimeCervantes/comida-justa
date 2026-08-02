@@ -15,6 +15,11 @@ export interface SitemapContent {
    * catálogo. Hoy son 6 de 10.
    */
   categories: Array<{ key: string }>;
+  /**
+   * Las secciones del menú que **ya tienen contenido**. Misma regla que las categorías: una
+   * sección vacía existe a propósito —está en el menú y se llenará— pero no es contenido.
+   */
+  sections: Array<{ path: string }>;
 }
 
 /**
@@ -77,12 +82,17 @@ export function buildSitemap(
     url: absolute(`/categoria/${category.key}`),
   }));
 
+  const sectionEntries = content.sections.map((section) => ({
+    url: absolute(section.path),
+  }));
+
   return [
     ...staticEntries,
     ...postEntries,
     ...storeEntries,
     ...profileEntries,
     ...categoryEntries,
+    ...sectionEntries,
   ];
 }
 

@@ -178,6 +178,21 @@
     "pagedName": "{name} — page {page}",
     "title": "❤️💚 Just Health: When you take care of your health, you're also protecting the most valuable thing you have: your time. Your ultimate non-renewable resource."
   },
+  "directory": {
+    "businessesEmpty": "No store has opened yet. The first one could be yours.",
+    "businessesHeading": "Local businesses",
+    "businessesIntro": "The community stores, with what they sell and how to reach them. Buying here is money that stays in town and food that did not travel for three days to reach your table.",
+    "businessesMetaDescription": "Who sells in the community: stores with their catalogue, their contact and where to find them.",
+    "businessesMetaTitle": "Local businesses - {brand}",
+    "cta": "Do you sell or make something? Open your store",
+    "producersEmpty": "Nobody has published something they make here yet. If you make what you sell, this section is yours.",
+    "producersHeading": "Local producers",
+    "producersIntro": "The people who make what they sell: bread, juices, preserves, prepared food. They do not resell someone else's product, they make it here — so you can ask what is in it and where every ingredient came from.",
+    "producersMetaDescription": "Who makes what they sell right here: bread, juices, preserves and food made in the community.",
+    "producersMetaTitle": "Local producers - {brand}",
+    "publications": "{count, plural, =0 {No publications} one {# publication} other {# publications}}",
+    "visit": "Visit the store"
+  },
   "edit": {
     "metaTitle": "Edit publication",
     "heading": "Edit your publication",

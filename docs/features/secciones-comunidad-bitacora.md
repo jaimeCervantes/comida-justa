@@ -68,3 +68,119 @@ cuando cada una tenga contenido.
    regla de qué entra al sitemap: los directorios la heredan.
 2. **Pasar las referencias** para desbloquear salud infantil y medio ambiente.
 3. Dejarlo así: el menú ya no miente, y el resto puede esperar a que haya vendedores que listar.
+
+---
+
+## Slice 1 — Productores y negocios locales (2026-08-02)
+
+### Objetivo
+
+Dos de las seis puertas cerradas del menú se abren con lo que ya existe. Y de paso el sitio gana las
+primeras páginas que hablan de **quién** vende, no de qué se vende: hasta hoy una tienda solo se
+encontraba si alguien repartía su enlace.
+
+### La decisión que cambió el plan
+
+El documento decía —y yo lo escribí— que **negocios locales** salía de `origin = reventa_local`. Al
+implementarlo, tú preguntaste si no convenía agregar un `venta_local`, y la pregunta destapó que el
+error era anterior: **`origin` describe la publicación, no al vendedor.**
+
+- Un restaurante del pueblo **cocina** lo que vende: publicaría `productor_local` y quedaría fuera
+  del directorio de negocios.
+- Una tienda de abarrotes que revende producto de fuera publica `reventa_foranea` y también quedaría
+  fuera, siendo el negocio más del pueblo que hay.
+
+Tampoco hacía falta el valor nuevo: el eje `rol` responde "¿quién lo produjo?", y un `venta_local`
+genérico no responde nada distinto de `reventa_local` — dos valores que nadie sabe cuándo elegir son
+peores que uno. Además **ninguna publicación usa todavía los orígenes locales**, así que ampliar el
+vocabulario habría sido adivinar sin datos.
+
+La definición que quedó:
+
+- **Negocios locales = todas las tiendas** (`sellers` con `slug`). Quien abrió tienda aquí.
+- **Productores locales = las que además publican algo con `productor_local`**, o sea las que
+  **hacen** lo que venden. Un `EXISTS` sobre el mismo listado.
+
+Se solapan a propósito: un productor también es un negocio del pueblo.
+
+### Decisiones y por qué
+
+**Quién produce lo dice lo que publica, no una casilla.** El filtro es un `EXISTS` sobre `posts`, así
+que una tienda entra al directorio de productores el día que publica su primer producto propio, sin
+que nadie tenga que marcarla. Es la misma idea que hace que una categoría entre al sitemap sola.
+
+**Cada sección lleva su texto arriba y el directorio debajo.** Hoy productores está **vacía** y
+negocios tiene **una** tienda: una página que fuera solo lista sería una página hueca. Con el texto
+vale desde el primer día, y el estado vacío no dice "no hay nada" sino "esta sección es tuya", con
+el enlace para abrir tienda.
+
+**Vacía pide `noindex` y no entra al sitemap.** La misma regla del slice 5 de SEO para las
+categorías, heredada tal cual en vez de inventar otra. Las dos vuelven al índice solas.
+
+**La prueba que avisaba, avisó dos veces.** El slice 1 de SEO dejó un escenario afirmando que estas
+rutas respondían 404, precisamente para que fallara el día que dejaran de ser stubs. Falló, y por eso
+este slice se acordó de sacarlas de esa lista y meterlas al sitemap. Las otras cuatro siguen ahí.
+
+Y volvió a avisar: el primer intento de editar esa lista **no coincidió con el texto del archivo**
+—el orden de las rutas era otro— y el reemplazo pasó en silencio. Lo cazó la suite completa, con el
+sitemap sirviendo `/negocios-locales` mientras la prueba afirmaba que no debía estar. Un reemplazo
+por texto que no encuentra su patrón no falla: no hace nada.
+
+**Sin paginación todavía.** Con una tienda, paginar es una promesa vacía; el repositorio ya recibe
+página y tamaño, así que añadirla es un rato cuando haya con qué llenarla.
+
+**El directorio lista tiendas, no perfiles.** Quien produce sin abrir tienda no aparece — y el
+enlace de "abre tu tienda" es exactamente la invitación a que lo haga.
+
+### Lo que costó y no debería costar dos veces
+
+Al limpiar un archivo que **creí** haber creado, borré `src/domain/entities/post/origin.test.ts`,
+que existía desde antes con 8 pruebas. Lo delató el total de la suite: 587 → 579 sin que ninguna
+prueba fallara. Está restaurado, con una prueba más para el filtro nuevo. **Un `rm` de un archivo de
+pruebas no falla nada: solo baja el número.** Si el total baja sin que nadie lo explique, hay que
+mirar `git status` antes de seguir.
+
+### Archivos tocados
+
+- **Dominio:** `entities/seller/directory.ts` (qué es cada directorio), `isLocalProducerOrigin` en `entities/post/origin.ts` (+ prueba), `sections` en `seo/sitemap.ts` (+ prueba).
+- **Infra:** `dataAccess/sellers/PostgresStoreDirectory.ts`; la consulta de secciones vivas en `PostgresSitemapRepository`.
+- **Presentación:** `presentation/directory/StoreSummaryCard.tsx`.
+- **App:** `[locale]/directorio/` (plantilla, datos y metadata compartidos) y las dos rutas, que dejan de ser stubs.
+- **UI:** `published: true` para las dos entradas del menú.
+- **i18n:** el espacio `directory` completo, en los dos idiomas.
+- **e2e:** `src/e2e/seo/directories.spec.ts`; escenarios `@directorios` en `seo.feature`; `seo.spec.ts` deja de afirmar que estas dos rutas son 404.
+
+### Validación
+
+| Comando | Resultado |
+|---|---|
+| `pnpm run typecheck` | limpio |
+| `pnpm run lint` | limpio |
+| `pnpm run check:i18n` | limpio |
+| `pnpm run test:run` | **589 pruebas en 68 archivos**, todas verdes |
+| `pnpm run test:e2e:run` | **94 escenarios verdes, 3 saltados**, 0 fallos (+5) |
+
+El tercer escenario siembra una publicación de origen `productor_local` en la tienda real
+`hazlo-sano` y la borra en `afterEach`: es la única forma de comprobar que una tienda entra al
+directorio de productores cuando publica algo suyo, y el barrido de la suite la cubre igual.
+
+### Pendientes que deja
+
+- Paginación de las dos secciones cuando haya tiendas que lo pidan.
+- Un productor sin tienda no aparece en ninguna de las dos.
+- Quedan **cuatro** secciones stub: `habitos/grupos`, `salud-infantil`, `medio-ambiente` y
+  `deportes`. Las tres de contenido siguen bloqueadas esperando las referencias científicas.
+
+### Recap
+
+Las secciones de productores y negocios locales existen y salen de la base: negocios lista la única
+tienda con dirección pública, y productores explica de qué va mientras nadie publique algo que
+elabore. Las dos entraron al menú, respetan la regla de sitemap del slice 5 —la vacía pide
+`noindex`— y comparten plantilla, datos y metadata, así que la tercera sección de este tipo es un
+archivo de veinte líneas.
+
+### Próximos pasos (opciones)
+
+1. **Las referencias científicas** para desbloquear salud infantil y medio ambiente.
+2. **Paginar los directorios**, cuando haya tiendas suficientes para que importe.
+3. **Que un productor sin tienda aparezca**, si resulta que la gente publica antes de abrir tienda.

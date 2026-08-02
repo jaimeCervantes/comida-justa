@@ -243,6 +243,30 @@ Feature: SEO — que el sitio se pueda encontrar
       | un producto agotado        | no se ofrece                                |
       | un anuncio no disponible   | se ofrece igual, porque un anuncio no se agota |
 
+  # Los directorios de la comunidad viven en docs/features/secciones-comunidad.md; sus escenarios
+  # están aquí porque lo que se afirma es de descubrimiento: qué entra al sitemap y qué se indexa.
+  @directorios
+  Scenario: El directorio de negocios lista las tiendas de la comunidad
+    Given la tienda "hazlo-sano", que tiene dirección pública
+    When alguien abre "/negocios-locales"
+    Then la encuentra con su nombre y un enlace a su tienda
+    And la sección entra al sitemap
+
+  @directorios
+  Scenario: Productores locales solo lista a quien elabora lo que vende
+    Given que ninguna publicación tiene origen "productor_local"
+    When alguien abre "/productores-locales"
+    Then la sección explica de qué va e invita a publicar, sin lista hueca
+    And pide "noindex"
+    And no entra al sitemap
+
+  @directorios
+  Scenario: Una tienda entra a productores en cuanto publica algo suyo
+    Given una tienda de prueba con una publicación de origen "productor_local"
+    When alguien abre "/productores-locales"
+    Then la encuentra
+    And "/negocios-locales" también la lista, porque un productor también es un negocio
+
   @slice-7
   Scenario Outline: Cada rastreador de IA tiene permiso escrito con su nombre
     Given el asistente "<agente>"

@@ -86,13 +86,13 @@ export const COMMUNITY_ITEMS = [
     },
     titleKey: "community.localProducers.title",
     descriptionKey: "community.localProducers.description",
-    published: false,
+    published: true,
   },
   {
     href: { pathname: "/negocios-locales/[[...slug]]", params: { slug: [] } },
     titleKey: "community.localBusinesses.title",
     descriptionKey: "community.localBusinesses.description",
-    published: false,
+    published: true,
   },
   {
     href: { pathname: "/deportes/[[...slug]]", params: { slug: [] } },

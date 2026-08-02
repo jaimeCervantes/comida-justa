@@ -6,8 +6,6 @@ const STUB_PATHNAMES = [
   "/habitos/[[...slug]]",
   "/salud-infantil/[[...slug]]",
   "/medio-ambiente/[[...slug]]",
-  "/productores-locales/[[...slug]]",
-  "/negocios-locales/[[...slug]]",
   "/deportes/[[...slug]]",
 ];
 

@@ -10,7 +10,7 @@ import { db } from "~/infra/dataAccess/db/connection";
  * duplicada.
  */
 export async function getSitemapContent(): Promise<SitemapContent> {
-  const [posts, stores, profiles, categories] = await Promise.all([
+  const [posts, stores, profiles, categories, sections] = await Promise.all([
     db.execute(sql`
       SELECT t.slug, p.created_at
       FROM post_translations t
@@ -44,6 +44,16 @@ export async function getSitemapContent(): Promise<SitemapContent> {
         )
       ORDER BY c.level, c.sort_order
     `),
+    /* Las dos secciones del directorio, cada una con su propia prueba de vida: negocios existe si
+       hay al menos una tienda con dirección; productores, si alguien publicó algo que elabora. La
+       vacía se queda fuera del sitemap y además pide `noindex` desde su propia metadata. */
+    db.execute(sql`
+      SELECT '/negocios-locales' AS path
+      WHERE EXISTS (SELECT 1 FROM sellers WHERE slug IS NOT NULL)
+      UNION ALL
+      SELECT '/productores-locales' AS path
+      WHERE EXISTS (SELECT 1 FROM posts WHERE origin = 'productor_local')
+    `),
   ]);
 
   return {
@@ -58,6 +68,9 @@ export async function getSitemapContent(): Promise<SitemapContent> {
     ),
     categories: (categories.rows as unknown as Array<{ key: string }>).map(
       (row) => ({ key: row.key }),
+    ),
+    sections: (sections.rows as unknown as Array<{ path: string }>).map(
+      (row) => ({ path: row.path }),
     ),
   };
 }

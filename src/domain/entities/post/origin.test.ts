@@ -3,6 +3,7 @@ import {
   isAdminOnlyOrigin,
   isHazloSanoOrigin,
   isLocalOrigin,
+  isLocalProducerOrigin,
   isValidOrigin,
   resolveOriginForUser,
 } from "./origin";
@@ -36,6 +37,16 @@ describe("post origin", () => {
       expect(isLocalOrigin("reventa_local")).toBe(true);
       expect(isLocalOrigin("productor_foraneo")).toBe(false);
       expect(isLocalOrigin("hazlo_sano_propio")).toBe(false);
+    });
+
+    /* El filtro del directorio de productores. Es más estrecho que `isLocalOrigin` a propósito:
+       una reventa local es un negocio del pueblo, pero no produce nada. */
+    it("detects who produces locally, and only that", () => {
+      expect(isLocalProducerOrigin("productor_local")).toBe(true);
+      expect(isLocalProducerOrigin("reventa_local")).toBe(false);
+      expect(isLocalProducerOrigin("productor_foraneo")).toBe(false);
+      expect(isLocalProducerOrigin("hazlo_sano_propio")).toBe(false);
+      expect(isLocalProducerOrigin(null)).toBe(false);
     });
 
     it("treats Hazlo Sano origins as admin-only", () => {

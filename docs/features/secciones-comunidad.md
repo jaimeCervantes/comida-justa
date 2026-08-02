@@ -128,7 +128,7 @@ de meterla a `STATIC_SITEMAP_PATHS`, que es lo que recuerda el escenario de los 
 «Secciones» del desplegable desaparece mientras no haya ninguna publicada; el menú «Comunidad»
 sigue teniendo publicaciones, productos y las categorías.
 
-### Slice 1 — Productores y negocios locales *(no bloqueado; el de más valor por esfuerzo)*
+### Slice 1 — Productores y negocios locales  *(entregado el 2026-08-02)*
 
 - **Negocios locales:** el directorio de tiendas (`sellers` con `slug`), paginado como el resto.
 - **Productores locales:** las tiendas —o los perfiles— con al menos una publicación de origen
@@ -140,9 +140,13 @@ sigue teniendo publicaciones, productos y las categorías.
 
 **Criterios de aceptación:**
 1. Una tienda aparece en negocios locales por existir; aparece **además** en productores locales
-   solo si publica algo con `productor_local`.
-2. Con cero resultados la página explica la sección e invita a publicar; no es una lista hueca.
-3. La página no entra al sitemap mientras esté vacía.
+   solo si publica algo con `productor_local`. ✅
+2. Con cero resultados la página explica la sección e invita a publicar; no es una lista hueca. ✅
+3. La página no entra al sitemap mientras esté vacía. ✅
+
+**Lo que quedó fuera a propósito:** las dos secciones **no paginan** todavía —con una tienda, una
+paginación es una promesa vacía— y el directorio lista **tiendas**, no perfiles: quien produce sin
+abrir tienda no aparece, y el enlace de "abre tu tienda" es justo la invitación a hacerlo.
 
 ### Slice 2 — Salud infantil *(bloqueado: referencias)*
 

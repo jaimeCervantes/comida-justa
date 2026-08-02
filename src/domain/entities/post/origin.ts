@@ -39,6 +39,19 @@ export function isHazloSanoOrigin(value: string | null | undefined): boolean {
   );
 }
 
+/**
+ * Quién **produce** en la zona.
+ *
+ * Es el filtro del directorio de productores locales, y por eso mira solo el rol `productor` con
+ * ámbito `local`: la sección existe para destacar a quien **hace** lo que vende, no a quien lo
+ * revende —ese también es un negocio del pueblo, y aparece en el directorio de negocios—.
+ */
+export function isLocalProducerOrigin(
+  value: string | null | undefined,
+): boolean {
+  return value === "productor_local";
+}
+
 /** ¿El origen es de un productor/revendedor local? */
 export function isLocalOrigin(value: string | null | undefined): boolean {
   return (
