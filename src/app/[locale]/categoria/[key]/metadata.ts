@@ -3,6 +3,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { resolveLocale } from "~/i18n/routing";
 import { DEFAULT_SHARE_IMAGE, PUBLIC_BRAND_NAME } from "~/infra/constants";
 import { localizedAlternates } from "~/infra/UI/metadata/alternates";
+import { NOINDEX_METADATA } from "~/infra/UI/metadata/noindex";
 
 /**
  * Metadata del catálogo de una categoría.
@@ -14,7 +15,7 @@ import { localizedAlternates } from "~/infra/UI/metadata/alternates";
 export async function buildCategoryMetadata(
   key: string,
   label: string,
-  page?: number,
+  { page, isEmpty = false }: { page?: number; isEmpty?: boolean } = {},
 ): Promise<Metadata> {
   const t = await getTranslations("category");
   const locale = resolveLocale(await getLocale());
@@ -35,6 +36,12 @@ export async function buildCategoryMetadata(
   return {
     title,
     description,
+    /* Una categoría activa pero sin publicaciones responde 200 con una lista vacía. Existe a
+       propósito —el menú la enseña y se llenará— pero no es contenido: pedirle al buscador que la
+       indexe hoy es ofrecerle una página hueca que compite con las que sí tienen algo. Hoy son 4
+       de 10 (`abarrotes`, `frutas_y_verduras`, `sueno_y_descanso`, `movimiento_y_ejercicio`), y en
+       cuanto alguien publique en ellas vuelven solas al índice y al sitemap. */
+    ...(isEmpty ? NOINDEX_METADATA : {}),
     openGraph: {
       title,
       description,

@@ -1,8 +1,12 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { buildBreadcrumbJsonLd } from "~/domain/seo/jsonLd/breadcrumbs";
 import { resolveLocale } from "~/i18n/routing";
 import { PAGINATION_INIT_PAGE } from "~/infra/constants";
+import Breadcrumbs from "~/presentation/navigation/Breadcrumbs";
+import JsonLd from "~/presentation/seo/JsonLd";
+import { categoryBreadcrumbs } from "../../breadcrumbs";
 import { getPostsByCategory } from "./data";
 import { buildCategoryMetadata } from "./metadata";
 import CategoryPosts from "./ui/CategoryPosts";
@@ -17,7 +21,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const data = await getPostsByCategory(key, PAGINATION_INIT_PAGE, locale);
 
   // Sin categoría no hay metadata que construir: la página va a responder 404.
-  return data ? buildCategoryMetadata(key, data.label) : {};
+  return data
+    ? buildCategoryMetadata(key, data.label, { isEmpty: data.total === 0 })
+    : {};
 }
 
 export default async function CategoryPage({ params }: Props) {
@@ -25,6 +31,7 @@ export default async function CategoryPage({ params }: Props) {
   const locale = resolveLocale(rawLocale);
   setRequestLocale(locale);
   const t = await getTranslations("category");
+  const tCommon = await getTranslations("common");
 
   const data = await getPostsByCategory(key, PAGINATION_INIT_PAGE, locale);
 
@@ -35,8 +42,22 @@ export default async function CategoryPage({ params }: Props) {
     notFound();
   }
 
+  const { crumbs, jsonLdItems } = await categoryBreadcrumbs(
+    key,
+    tCommon("home"),
+    locale,
+  );
+  const breadcrumbJsonLd = buildBreadcrumbJsonLd(jsonLdItems);
+
   return (
     <main>
+      {breadcrumbJsonLd ? <JsonLd data={breadcrumbJsonLd} /> : null}
+      <Breadcrumbs
+        items={crumbs}
+        ariaLabel={tCommon("breadcrumb")}
+        className="mb-3"
+      />
+
       <h1 className="text-xl font-bold mb-2">
         {t("heading", { category: data.label })}
       </h1>

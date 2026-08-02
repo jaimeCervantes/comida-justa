@@ -91,17 +91,24 @@ en vez de convertirse en una tercera página vacía.
 
 ## Slices
 
-### Slice 0 — Que el menú deje de mentir *(media hora, sin dependencias)*
+### Slice 0 — Que el menú deje de mentir  *(entregado el 2026-08-02)*
 
 Las seis entradas dejan de enlazar a 404. Dos caminos, y el segundo es el bueno mientras no haya
 contenido: **ocultar del menú lo que no existe** y volver a mostrarlo conforme se entregue cada
 sección.
 
 **Criterios de aceptación:**
-1. Ningún enlace del header lleva a una ruta que responde 404.
+1. Ningún enlace del header lleva a una ruta que responde 404. ✅
 2. Los escenarios de `src/e2e/seo/seo.spec.ts` que afirman que esas rutas son 404 siguen verdes
    (son un recordatorio deliberado del slice 1 de SEO: el día que dejen de serlo, fallan y avisan
-   de que hay que meterlas al sitemap).
+   de que hay que meterlas al sitemap). ✅
+
+**Cómo se resolvió:** cada entrada de `COMMUNITY_ITEMS` lleva ahora un `published`, hoy en `false`
+en las seis, y los menús leen `VISIBLE_COMMUNITY_ITEMS`. **No se borró nada**: la lista es el plan
+de este documento, y publicar una sección es poner su `published` en `true` — y acordarse entonces
+de meterla a `STATIC_SITEMAP_PATHS`, que es lo que recuerda el escenario de los 404. El rótulo
+«Secciones» del desplegable desaparece mientras no haya ninguna publicada; el menú «Comunidad»
+sigue teniendo publicaciones, productos y las categorías.
 
 ### Slice 1 — Productores y negocios locales *(no bloqueado; el de más valor por esfuerzo)*
 

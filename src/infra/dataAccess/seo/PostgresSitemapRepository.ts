@@ -10,7 +10,7 @@ import { db } from "~/infra/dataAccess/db/connection";
  * duplicada.
  */
 export async function getSitemapContent(): Promise<SitemapContent> {
-  const [posts, stores, profiles] = await Promise.all([
+  const [posts, stores, profiles, categories] = await Promise.all([
     db.execute(sql`
       SELECT t.slug, p.created_at
       FROM post_translations t
@@ -30,6 +30,20 @@ export async function getSitemapContent(): Promise<SitemapContent> {
       WHERE username IS NOT NULL
       ORDER BY username
     `),
+    /* Solo las categorías activas **con publicaciones**, directas o de su sub-categoría. Una
+       categoría vacía responde 200 con una lista hueca, y publicarla sería ofrecerle al buscador
+       una página delgada por cada clave del catálogo. Hoy pasan el filtro 6 de 10. */
+    db.execute(sql`
+      SELECT c.key
+      FROM categories c
+      WHERE c.is_active
+        AND EXISTS (
+          SELECT 1
+          FROM posts p
+          WHERE p.category = c.key OR p.sub_category = c.key
+        )
+      ORDER BY c.level, c.sort_order
+    `),
   ]);
 
   return {
@@ -41,6 +55,9 @@ export async function getSitemapContent(): Promise<SitemapContent> {
     ).map((row) => ({ handle: row.slug, lastModified: row.created_at })),
     profiles: (profiles.rows as unknown as Array<{ username: string }>).map(
       (row) => ({ username: row.username }),
+    ),
+    categories: (categories.rows as unknown as Array<{ key: string }>).map(
+      (row) => ({ key: row.key }),
     ),
   };
 }

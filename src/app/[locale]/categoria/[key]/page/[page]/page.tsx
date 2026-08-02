@@ -25,7 +25,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const locale = resolveLocale(rawLocale);
   const data = await getPostsByCategory(key, page, locale);
 
-  return data ? buildCategoryMetadata(key, data.label, page) : {};
+  return data ? buildCategoryMetadata(key, data.label, { page }) : {};
 }
 
 export default async function CategoryPaginatedPage({ params }: Props) {

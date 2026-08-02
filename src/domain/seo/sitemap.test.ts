@@ -3,7 +3,7 @@ import { buildSitemap, STATIC_SITEMAP_PATHS } from "./sitemap";
 
 const BASE = "https://hazlosano.com";
 
-const empty = { posts: [], stores: [], profiles: [] };
+const empty = { posts: [], stores: [], profiles: [], categories: [] };
 
 describe("buildSitemap", () => {
   it("incluye las páginas fijas que existen", () => {
@@ -51,7 +51,7 @@ describe("buildSitemap", () => {
 
   it("incluye tiendas y perfiles en su propio namespace", () => {
     const urls = buildSitemap(BASE, {
-      posts: [],
+      ...empty,
       stores: [{ handle: "hazlo-sano" }],
       profiles: [{ username: "jaime" }],
     }).map((entry) => entry.url);
@@ -77,5 +77,23 @@ describe("buildSitemap", () => {
 
     expect(urls).toContain(`${BASE}/jugo-verde`);
     expect(urls).toContain(`${BASE}/`);
+  });
+
+  it("publica las categorías que recibe, que son las que tienen publicaciones", () => {
+    const urls = buildSitemap(BASE, {
+      ...empty,
+      categories: [{ key: "alimentacion" }, { key: "panaderia" }],
+    }).map((entry) => entry.url);
+
+    expect(urls).toContain(`${BASE}/categoria/alimentacion`);
+    expect(urls).toContain(`${BASE}/categoria/panaderia`);
+  });
+
+  it("no inventa categorías: publica exactamente las que le dan", () => {
+    // Las vacías (`abarrotes`, `frutas_y_verduras`, `sueno_y_descanso`,
+    // `movimiento_y_ejercicio`) no llegan hasta aquí: las filtra la consulta.
+    const urls = buildSitemap(BASE, empty).map((entry) => entry.url);
+
+    expect(urls.some((url) => url.includes("/categoria/"))).toBe(false);
   });
 });

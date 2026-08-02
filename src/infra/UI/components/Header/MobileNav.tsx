@@ -11,7 +11,7 @@ import { createPortal } from "react-dom";
 import type { CategoryOption } from "~/domain/entities/post/taxonomy";
 import { type AppHref, Link, usePathname } from "~/i18n/navigation";
 import { PUBLIC_BRAND_NAME } from "~/infra/constants";
-import { COMMUNITY_ITEMS, PILLAR_ITEMS } from "./menuItems";
+import { PILLAR_ITEMS, VISIBLE_COMMUNITY_ITEMS } from "./menuItems";
 
 /**
  * Las descripciones del menú móvil eran versiones acortadas de las del menú de escritorio
@@ -206,7 +206,7 @@ export default function MobileNav({
                   {category.label}
                 </SectionLink>
               ))}
-              {COMMUNITY_ITEMS.map((item) => (
+              {VISIBLE_COMMUNITY_ITEMS.map((item) => (
                 <SectionLink key={item.titleKey} href={item.href}>
                   {t(item.titleKey)}
                 </SectionLink>

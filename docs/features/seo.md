@@ -122,15 +122,22 @@ slice no agrega SEO nuevo: arregla lo que estaba mintiendo.
 4. El home dice quién publica el sitio y ata el sitio a su editor. ✅
 5. Todo eso viaja en el HTML del servidor, no solo tras hidratar. ✅
 
-### Slice 5 — Que las categorías se puedan descubrir  *(siguiente)*
+### Slice 5 — Que las categorías se puedan descubrir  *(entregado)*
 
 - Las categorías **con contenido** entran al sitemap (hoy 6 de 10: `alimentacion`, `platillos`,
-  `bebidas`, `panaderia`, `untables`, `jugos`).
-- Las vacías responden 200 con una lista vacía y están enlazadas desde el menú: piden `noindex`
-  mientras no tengan nada.
-- Migas de pan visibles, que además son el `BreadcrumbList` del slice 4.
+  `bebidas`, `panaderia`, `untables`, `jugos`). El filtro lo hace la consulta, no una lista a mano.
+- Las 4 vacías responden 200 con una lista vacía y están enlazadas desde el menú: piden `noindex`
+  mientras no tengan nada, y vuelven solas al índice en cuanto alguien publique.
+- Miga de pan **visible** en la categoría y en el detalle de publicación, con su `BreadcrumbList`
+  —el que se pospuso en el slice 4 justamente por esto.
 
-### Slice 6 — Que una publicación lleve a las demás
+**Criterios de aceptación:**
+1. El sitemap lista las categorías con publicaciones y ninguna vacía. ✅
+2. Una categoría vacía pide `noindex`; una con contenido, no. ✅
+3. La categoría enseña `Inicio › Alimentación › Panadería` y lo declara en ese orden. ✅
+4. Desde una publicación se puede subir a su categoría y al inicio. ✅
+
+### Slice 6 — Que una publicación lleve a las demás  *(siguiente)*
 
 - El bloque «relacionadas» del detalle es hoy un `<h2>` vacío. `post_translations.embedding` ya
   existe, así que las relacionadas semánticas son casi gratis.

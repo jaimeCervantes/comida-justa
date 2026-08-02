@@ -178,11 +178,42 @@ Feature: SEO — que el sitio se pueda encontrar
     When se serializa su JSON-LD
     Then el "<" sale escapado y el documento sigue siendo JSON válido
 
-  @slice-5 @future
-  Scenario: Las categorías con contenido se pueden descubrir
-    Given las categorías que sí tienen publicaciones
-    When un rastreador pide el sitemap
-    Then las encuentra, y las categorías vacías piden no ser indexadas
+  @slice-5
+  Scenario Outline: Solo entra al sitemap la categoría que tiene algo que enseñar
+    Given la categoría "<key>", que <estado>
+    When un rastreador pide "/sitemap.xml"
+    Then "/categoria/<key>" <resultado>
+
+    Examples: con publicaciones
+      | key          | estado                  | resultado |
+      | alimentacion | tiene las 14 de comida  | aparece   |
+      | panaderia    | tiene 3 panes           | aparece   |
+
+    Examples: vacías — existen en el menú, pero no son contenido
+      | key                    | estado          | resultado    |
+      | abarrotes              | no tiene ninguna | no aparece  |
+      | movimiento_y_ejercicio | no tiene ninguna | no aparece  |
+
+  @slice-5
+  Scenario: Una categoría vacía pide no ser indexada
+    Given "/categoria/abarrotes", que responde 200 con la lista vacía
+    When un rastreador la visita
+    Then encuentra "noindex"
+    And "/categoria/panaderia", que sí tiene publicaciones, no lo pide
+
+  @slice-5
+  Scenario: La miga de pan enseña el camino y lo declara
+    Given "/categoria/panaderia", que cuelga de "Alimentación"
+    When alguien la abre
+    Then ve "Inicio", "Alimentación" y "Panadería"
+    And sus datos estructurados llevan un "BreadcrumbList" con esos tres pasos en orden
+
+  @slice-5
+  Scenario: Desde una publicación se puede subir al catálogo
+    Given "pan-de-masa-madre-natural", que es de "Panadería"
+    When alguien llega desde un buscador
+    Then la miga le ofrece "Inicio" y "Panadería" para subir
+    And el último paso es el título de la publicación, sin enlace
 
   @slice-6 @future
   Scenario: Una publicación lleva a las demás

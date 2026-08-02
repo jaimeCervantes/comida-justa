@@ -9,6 +9,12 @@ export interface SitemapContent {
   posts: Array<{ slug: string; lastModified?: Date | null }>;
   stores: Array<{ handle: string; lastModified?: Date | null }>;
   profiles: Array<{ username: string }>;
+  /**
+   * **Solo las categorías que tienen publicaciones.** Una categoría vacía responde 200 con una
+   * lista vacía: publicarla sería ofrecerle al buscador una página hueca por cada clave del
+   * catálogo. Hoy son 6 de 10.
+   */
+  categories: Array<{ key: string }>;
 }
 
 /**
@@ -67,7 +73,17 @@ export function buildSitemap(
     url: absolute(`/u/${profile.username}`),
   }));
 
-  return [...staticEntries, ...postEntries, ...storeEntries, ...profileEntries];
+  const categoryEntries = content.categories.map((category) => ({
+    url: absolute(`/categoria/${category.key}`),
+  }));
+
+  return [
+    ...staticEntries,
+    ...postEntries,
+    ...storeEntries,
+    ...profileEntries,
+    ...categoryEntries,
+  ];
 }
 
 function withLastModified(value: Date | null | undefined): {

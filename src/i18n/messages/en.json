@@ -170,7 +170,9 @@
   },
   "common": {
     "avatarAlt": "Profile picture",
+    "breadcrumb": "Breadcrumb",
     "description": "❤️💚 Just Health: When you take care of your health, you're also protecting the most valuable thing you have: your time. Your ultimate non-renewable resource.",
+    "home": "Home",
     "loading": "Loading…",
     "logoAlt": "{brand} logo",
     "pagedName": "{name} — page {page}",

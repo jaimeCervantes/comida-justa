@@ -424,3 +424,106 @@ JavaScript — que es la mitad del asunto para GEO.
    desde el detalle. Hoy el `<h2>` de relacionadas sigue vacío.
 3. **Slice 7 — GEO:** robots por rastreador de IA, `llms.txt`, transcripción de los 8 videos.
 4. **Fuera de SEO, pendiente de tu decisión:** qué hacer con las seis secciones stub del menú.
+
+---
+
+## Slice 5 — Que las categorías se puedan descubrir (2026-08-02)
+
+### Objetivo
+
+El catálogo por categorías llegó después del slice 1, así que el sitemap ni sabía que existía: seis
+páginas con contenido real invisibles para un buscador. Y al revés, las cuatro categorías activas
+sin publicaciones respondían 200 con una lista vacía, enlazadas desde el menú. Faltaba además la
+miga de pan, que es lo que permite declarar el `BreadcrumbList` que se pospuso en el slice 4.
+
+### Decisiones y por qué
+
+**Quién entra al sitemap lo decide la consulta, no una lista a mano.** Una categoría entra si
+existe **al menos una publicación** en ella o en su sub-categoría (`EXISTS` sobre `posts`, filtrando
+por `is_active`). Hoy pasan 6 de 10. Escrito a mano, el día que alguien publique en `abarrotes`
+nadie se acordaría de añadirla; así se añade sola.
+
+**Lo vacío pide `noindex` en vez de desaparecer.** La categoría existe a propósito —el menú la
+enseña y se llenará—, así que no puede responder 404 como una clave inventada. Pero tampoco es
+contenido: una lista hueca compite contra las páginas que sí tienen algo. `noindex` es exactamente
+eso, "existe pero no la indexes", y **se quita solo** en cuanto haya una publicación, sin que nadie
+toque código.
+
+**La miga se pinta y se declara desde la misma lista.** `categoryBreadcrumbs` y `postBreadcrumbs`
+devuelven las dos formas a la vez: los `href` tipados de next-intl para la vista y las URL
+absolutas para el JSON-LD. Google pide que los datos estructurados reflejen lo que la página
+enseña; calculadas por separado, un cambio en una se olvidaría en la otra.
+
+**El camino sale de la jerarquía real, no de una constante.** `categoryTrail` sube por `parentKey`,
+así que `panaderia` da `Inicio › Alimentación › Panadería` porque *así está en la base*. Se recorre
+en bucle aunque el catálogo tenga dos niveles impuestos por un trigger: el día que sean tres, esto
+sigue valiendo.
+
+**El helper vive en `src/app/[locale]/`, no dentro de una ruta.** Lo usan el catálogo de una
+categoría y el detalle de una publicación; dejarlo en `categoria/[key]/` habría obligado al detalle
+a importar desde otra ruta, que es justo lo que la norma de ubicación evita.
+
+**`Breadcrumbs` no lee el catálogo de traducciones.** Recibe las etiquetas ya resueltas, incluida
+la de accesibilidad. Es un componente de `src/presentation/`: tiene que poder pintarse desde
+cualquier ruta y en cualquier idioma sin arrastrar el contexto de i18n.
+
+**Una miga de un solo paso no se declara ni se pinta.** "Inicio" a secas no es un camino; el
+constructor devuelve `null` y el componente no pinta nada.
+
+**Fuera de SEO, en la misma corrida: las seis secciones stub salieron del menú.** Eran seis 404
+enlazados desde el header de todas las páginas. Se ocultan con un `published: false`, no se borran.
+El detalle está en `docs/features/secciones-comunidad-bitacora.md`.
+
+### Archivos tocados
+
+- **Dominio:** `categoryTrail` en `entities/post/taxonomy.ts`; `seo/jsonLd/breadcrumbs.ts` (+ prueba); `categories` en `seo/sitemap.ts` (+ pruebas).
+- **Infra:** la consulta de categorías con publicaciones en `PostgresSitemapRepository`.
+- **Presentación:** `src/presentation/navigation/Breadcrumbs.tsx` (+ prueba).
+- **App:** `[locale]/breadcrumbs.ts` (el armado compartido); miga y `BreadcrumbList` en la categoría y en el detalle; `noindex` de la categoría vacía en su `metadata.ts`.
+- **i18n:** `common.home` y `common.breadcrumb` en los dos catálogos.
+- **e2e:** `src/e2e/seo/categories.spec.ts`, escenarios `@slice-5` en `seo.feature`.
+
+### Validación
+
+| Comando | Resultado |
+|---|---|
+| `pnpm run typecheck` | limpio |
+| `pnpm run lint` | limpio |
+| `pnpm run check:i18n` | limpio |
+| `pnpm run test:run` | **558 pruebas en 65 archivos**, todas verdes (+10) |
+| `pnpm run test:e2e:run` | **83 escenarios verdes, 3 saltados**, 0 fallos (+4) |
+
+Los escenarios nuevos corren contra la taxonomía real —`alimentacion` y `panaderia` con
+publicaciones, `abarrotes` y `movimiento_y_ejercicio` vacías— y contra "Pan de Masa Madre Natural".
+Nada sembrado.
+
+### Desviaciones del roadmap
+
+- El `BreadcrumbList` que el roadmap ponía en el slice 4 se entregó aquí, junto a la miga visible,
+  tal como se anotó al cerrar aquel slice.
+- La miga **no** se puso en la tienda ni en el perfil: su camino sería `Inicio › la propia página`,
+  un solo paso, que no aporta nada. Entra cuando exista un directorio de tiendas del que colgar.
+
+### Pendientes que deja
+
+- Las páginas paginadas de categoría (`/categoria/<key>/page/2`) no llevan miga; la primera sí.
+  Es coherente con que el canónico ya distingue página, pero conviene revisarlo si alguna categoría
+  crece.
+- Sigue sin tocarse el bloque de relacionadas del detalle: es el slice 6.
+
+### Recap
+
+El catálogo por categorías ya es descubrible: las seis con contenido están en el sitemap y las
+cuatro vacías piden explícitamente no ser indexadas hasta que tengan algo. Quien aterriza en una
+publicación desde un buscador ve el camino que no recorrió —`Inicio › Panadería › Pan de Masa Madre
+Natural`— y puede subir por él; el buscador lee esa misma miga en JSON-LD. Y el header dejó de
+ofrecer seis puertas cerradas.
+
+### Próximos pasos (opciones)
+
+1. **Slice 6 — Enlaces internos:** relacionadas por embedding (el vector ya está en
+   `post_translations`) y enlaces del detalle a su categoría, su tienda y su autor. Hoy el `<h2>`
+   de relacionadas sigue vacío.
+2. **Slice 7 — GEO:** robots por rastreador de IA, `llms.txt` y la transcripción de los 8 videos.
+3. **Directorios de productores y negocios locales** (`docs/features/secciones-comunidad.md`), que
+   ya pueden heredar la regla de sitemap que fijó este slice.

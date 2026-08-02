@@ -258,3 +258,28 @@ export function subtreeKeys(
     ...(taxonomy.childrenByParent.get(key as string) ?? []),
   ];
 }
+
+/**
+ * El camino desde la raíz hasta la clave: `["alimentacion", "panaderia"]` para una sub-categoría y
+ * `["alimentacion"]` para una raíz.
+ *
+ * Es lo que pinta la miga de pan y lo que declara el `BreadcrumbList`. El catálogo tiene dos
+ * niveles impuestos por un trigger, así que el camino nunca pasa de dos; aun así se recorre por
+ * `parentKey` en vez de asumirlo, porque el día que el trigger permita tres esto sigue valiendo.
+ */
+export function categoryTrail(
+  taxonomy: CategoryTaxonomy,
+  key: string | null | undefined,
+): readonly string[] {
+  if (!isActiveKey(taxonomy, key)) return [];
+
+  const trail: string[] = [];
+  let current: string | null | undefined = key;
+
+  while (current) {
+    trail.unshift(current);
+    current = taxonomy.nodes.get(current)?.parentKey ?? null;
+  }
+
+  return trail;
+}

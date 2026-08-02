@@ -48,21 +48,36 @@ export const PILLAR_ITEMS = [
   descriptionKey: string;
 }>;
 
+/**
+ * Las seis secciones de «Comunidad», **con el interruptor de si ya existen**.
+ *
+ * Las seis rutas son hoy stubs que llaman a `notFound()`, así que enlazarlas desde el header
+ * significaba seis 404 en **todas** las páginas del sitio: quien llega se topa con una puerta
+ * cerrada y quien rastrea gasta ahí su presupuesto y pierde confianza en el resto.
+ *
+ * No se borran: la lista es el plan, y `docs/features/secciones-comunidad.md` dice qué es cada una
+ * y en qué orden se entregan. **Para publicar una, se pone su `published` en `true`** — y entonces
+ * hay que acordarse de meterla al sitemap (`STATIC_SITEMAP_PATHS`), que es justo lo que recuerda
+ * el escenario de `src/e2e/seo/seo.spec.ts` que afirma que estas rutas responden 404.
+ */
 export const COMMUNITY_ITEMS = [
   {
     href: { pathname: "/habitos/[[...slug]]", params: { slug: ["grupos"] } },
     titleKey: "community.groups.title",
     descriptionKey: "community.groups.description",
+    published: false,
   },
   {
     href: { pathname: "/salud-infantil/[[...slug]]", params: { slug: [] } },
     titleKey: "community.childHealth.title",
     descriptionKey: "community.childHealth.description",
+    published: false,
   },
   {
     href: { pathname: "/medio-ambiente/[[...slug]]", params: { slug: [] } },
     titleKey: "community.environment.title",
     descriptionKey: "community.environment.description",
+    published: false,
   },
   {
     href: {
@@ -71,22 +86,34 @@ export const COMMUNITY_ITEMS = [
     },
     titleKey: "community.localProducers.title",
     descriptionKey: "community.localProducers.description",
+    published: false,
   },
   {
     href: { pathname: "/negocios-locales/[[...slug]]", params: { slug: [] } },
     titleKey: "community.localBusinesses.title",
     descriptionKey: "community.localBusinesses.description",
+    published: false,
   },
   {
     href: { pathname: "/deportes/[[...slug]]", params: { slug: [] } },
     titleKey: "community.sports.title",
     descriptionKey: "community.sports.description",
+    published: false,
   },
 ] as const satisfies ReadonlyArray<{
   href: AppHref;
   titleKey: string;
   descriptionKey: string;
+  published: boolean;
 }>;
+
+/**
+ * Lo que el menú pinta de verdad. Es la **única** lista que deben leer `Nav` y `MobileNav`: leer
+ * `COMMUNITY_ITEMS` directamente volvería a enlazar lo que no existe.
+ */
+export const VISIBLE_COMMUNITY_ITEMS = COMMUNITY_ITEMS.filter(
+  (item) => item.published,
+);
 
 /** Los 4 pilares en su forma corta, como los lista el pie. */
 export const PILLAR_SHORT_KEYS = [

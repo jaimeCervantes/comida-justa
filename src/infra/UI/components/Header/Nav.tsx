@@ -6,7 +6,7 @@ import type { CategoryOption } from "~/domain/entities/post/taxonomy";
 import { Link } from "~/i18n/navigation";
 import { PUBLIC_BRAND_NAME } from "~/infra/constants";
 import ListItem from "./ListItem";
-import { COMMUNITY_ITEMS, PILLAR_ITEMS } from "./menuItems";
+import { PILLAR_ITEMS, VISIBLE_COMMUNITY_ITEMS } from "./menuItems";
 
 const TRIGGER_CLASS =
   "text-gray-700 dark:text-gray-200 hover:text-pw-green focus:text-pw-green group flex select-none items-center justify-between gap-[2px] rounded-[4px] px-3 py-2 text-[15px] font-medium leading-none outline-hidden transition-colors";
@@ -88,21 +88,27 @@ export default function Nav({
                 </>
               ) : null}
 
-              <hr className="my-3 border-gray-200 dark:border-gray-800" />
-              <p className="px-3 pb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
-                {t("communitySections")}
-              </p>
-              <ul className="m-0 grid list-none gap-x-[10px] grid-cols-1 md:grid-cols-2">
-                {COMMUNITY_ITEMS.map((item) => (
-                  <ListItem
-                    key={item.titleKey}
-                    href={item.href}
-                    title={t(item.titleKey)}
-                  >
-                    {t(item.descriptionKey, { brand: PUBLIC_BRAND_NAME })}
-                  </ListItem>
-                ))}
-              </ul>
+              {/* Sin secciones publicadas no hay encabezado que pintar: un rótulo "Secciones"
+                  seguido de nada es peor que no tenerlo. */}
+              {VISIBLE_COMMUNITY_ITEMS.length > 0 ? (
+                <>
+                  <hr className="my-3 border-gray-200 dark:border-gray-800" />
+                  <p className="px-3 pb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                    {t("communitySections")}
+                  </p>
+                  <ul className="m-0 grid list-none gap-x-[10px] grid-cols-1 md:grid-cols-2">
+                    {VISIBLE_COMMUNITY_ITEMS.map((item) => (
+                      <ListItem
+                        key={item.titleKey}
+                        href={item.href}
+                        title={t(item.titleKey)}
+                      >
+                        {t(item.descriptionKey, { brand: PUBLIC_BRAND_NAME })}
+                      </ListItem>
+                    ))}
+                  </ul>
+                </>
+              ) : null}
             </div>
           </NavigationMenu.Content>
         </NavigationMenu.Item>

@@ -170,7 +170,9 @@
   },
   "common": {
     "avatarAlt": "Foto de perfil",
+    "breadcrumb": "Ruta de navegación",
     "description": "❤️💚 Hazlo sano: Cuando cuidas tu salud, también estás cuidando lo más valioso que tienes: tu tiempo. Tu recurso máximo no renovable.",
+    "home": "Inicio",
     "loading": "Cargando...",
     "logoAlt": "Logo {brand}",
     "pagedName": "{name} — página {page}",
