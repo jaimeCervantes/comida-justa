@@ -57,6 +57,7 @@ function useCloseMenuOnNavigation(
 /* Identificadores de sección, no textos: cuál acordeón está abierto no puede depender del idioma. */
 const PILLARS_SECTION = "pillars";
 const COMMUNITY_SECTION = "community";
+const CATEGORIES_SECTION = "categories";
 
 const ROW_CLASS = "border-b border-gray-100 dark:border-gray-800 last:border-0";
 const ROW_LINK_CLASS =
@@ -161,6 +162,7 @@ export default function MobileNav({
 
   const menuContent = (
     <div
+      data-testid="mobile-menu"
       className={`fixed inset-0 z-9999 bg-white/95 dark:bg-black/95 backdrop-blur-xl transition-all duration-300 flex flex-col ${
         isOpen
           ? "opacity-100 pointer-events-auto"
@@ -208,23 +210,39 @@ export default function MobileNav({
             >
               <SectionLink href="/">{t("publications")}</SectionLink>
               <SectionLink href="/productos">{t("brandProducts")}</SectionLink>
-              {categories.map((category) => (
-                <SectionLink
-                  key={category.value}
-                  href={{
-                    pathname: "/categoria/[key]",
-                    params: { key: category.value },
-                  }}
-                >
-                  {category.label}
-                </SectionLink>
-              ))}
               {VISIBLE_COMMUNITY_ITEMS.map((item) => (
                 <SectionLink key={item.titleKey} href={item.href}>
                   {t(item.titleKey)}
                 </SectionLink>
               ))}
             </Section>
+
+            {/* Las categorías tienen su propio desplegable: son diez y crecen con el catálogo, así
+                que dentro de «Comunidad» tapaban las secciones que van debajo. En escritorio siguen
+                donde estaban —el desplegable es ancho y las reparte en columnas—; aquí hay una
+                sola columna y el espacio se paga en desplazamiento. */}
+            {categories.length > 0 ? (
+              <Section
+                /* `byCategory` y no `catalog`: ese ya nombra el enlace de administración, y dos
+                   entradas del mismo menú con el mismo texto es lo que confunde a un admin. Es
+                   además la etiqueta con la que el escritorio encabeza este mismo bloque. */
+                title={t("byCategory")}
+                isOpen={openSubmenu === CATEGORIES_SECTION}
+                onToggle={() => toggleSubmenu(CATEGORIES_SECTION)}
+              >
+                {categories.map((category) => (
+                  <SectionLink
+                    key={category.value}
+                    href={{
+                      pathname: "/categoria/[key]",
+                      params: { key: category.value },
+                    }}
+                  >
+                    {category.label}
+                  </SectionLink>
+                ))}
+              </Section>
+            ) : null}
 
             <Section
               title={t("pillarsMenu")}

@@ -251,3 +251,55 @@ guardando el arreglo aparte y corriéndola en rojo antes de darla por buena.
 Las dos secciones nuevas ya se pueden tocar desde un teléfono, y el menú entero se recorre aunque no
 quepa. El recorte por altura fija —que no avisaba de ninguna forma— se cambió por una animación cuya
 altura la pone el contenido.
+
+---
+
+## Las categorías estrenan desplegable en el menú móvil (2026-08-02)
+
+### Objetivo
+
+Cerrar el pendiente que dejó el arreglo anterior. «Comunidad» juntaba cuatro cosas distintas —las
+publicaciones, los productos, **las diez categorías** y las secciones—, y las categorías, que son la
+lista que crece con el catálogo, empujaban al resto hacia abajo. Con su propio acordeón hay que
+tocar para verlas y el menú se lee de un vistazo.
+
+### Decisiones y por qué
+
+**Solo en móvil.** En escritorio el desplegable es ancho y reparte las categorías en columnas: ahí
+no estorban y separarlas obligaría a aprender dos menús distintos. En el teléfono hay una sola
+columna y cada entrada se paga en desplazamiento.
+
+**La etiqueta es «Por categoría» (`nav.byCategory`), no «Catálogo de categorías»** — esa segunda ya
+nombra el enlace de administración, y dos entradas del mismo menú con el mismo texto es lo que
+confunde a un admin. Además es la misma con la que el escritorio encabeza este bloque, así que las
+dos pantallas lo llaman igual.
+
+**La sección no aparece si no hay categorías.** Un desplegable vacío es peor que ninguno.
+
+**El panel móvil estrena `data-testid`.** El menú de escritorio también está en el DOM —lo esconde
+el CSS, no deja de existir—, así que sin acotar la búsqueda las pruebas afirmaban sobre el menú
+equivocado. Se vio al escribir el escenario: la primera versión daba por buena una categoría que
+estaba en el otro menú.
+
+**Que algo esté plegado no se afirma con `toBeHidden`.** Un hijo recortado por `overflow-hidden`
+conserva su caja y cuenta como visible. Se afirma con la misma medida que el arreglo anterior: que
+**nadie pueda tocarlo** mientras está plegado, y que sí se pueda después de desplegar.
+
+### Archivos tocados
+
+- **UI:** `Header/MobileNav.tsx` — la sección nueva y el `data-testid` del panel.
+- **e2e:** un escenario más en `src/e2e/menu/`.
+
+### Validación
+
+| Comando | Resultado |
+|---|---|
+| `pnpm run typecheck` | limpio |
+| `pnpm run lint` | limpio |
+| `pnpm run check:i18n` | limpio |
+| `pnpm run test:e2e:run` | **97 escenarios verdes, 3 saltados**, 0 fallos (+1) |
+
+### Recap
+
+En el teléfono, «Comunidad» vuelve a ser corta —publicaciones, productos y las dos secciones— y las
+categorías esperan detrás de «Por categoría». En escritorio no cambia nada.

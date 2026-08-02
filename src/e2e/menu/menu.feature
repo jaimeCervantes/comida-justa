@@ -24,3 +24,10 @@ Feature: El menú móvil llega hasta el final
     Given un visitante con la pantalla de un teléfono
     When abre el menú
     Then puede desplazarse hasta «Nosotros», la última entrada
+
+  @menu
+  Scenario: Las categorías viven en su propio desplegable
+    Given un visitante con la pantalla de un teléfono
+    When abre el menú
+    Then no ve las categorías hasta que despliega «Por categoría»
+    And al desplegarla llega a "Panadería"

@@ -56,6 +56,9 @@ async function expectReachableByScrolling(
 const COMUNIDAD = es.nav.communityMenu;
 const NEGOCIOS = es.nav.community.localBusinesses.title;
 const NOSOTROS = es.nav.about;
+const POR_CATEGORIA = es.nav.byCategory;
+// Una categoría real del catálogo, con publicaciones.
+const PANADERIA = "Panadería";
 
 test.use({ viewport: devices["Pixel 5"].viewport });
 
@@ -65,12 +68,16 @@ test.describe("Cuando alguien abre el menú desde su teléfono", () => {
     await page.getByRole("button", { name: es.nav.openMenu }).click();
   });
 
+  /* El menú de escritorio también está en el DOM —lo esconde el CSS, no deja de existir—, así que
+     todo se busca dentro del panel móvil o se estaría afirmando sobre el menú equivocado. */
+  const mobileMenu = (page: Page) => page.getByTestId("mobile-menu");
+
   test("Entonces puede tocar la última entrada de «Comunidad»", async ({
     page,
   }) => {
-    await page.getByRole("button", { name: COMUNIDAD }).click();
+    await mobileMenu(page).getByRole("button", { name: COMUNIDAD }).click();
 
-    const negocios = page.getByRole("link", { name: NEGOCIOS });
+    const negocios = mobileMenu(page).getByRole("link", { name: NEGOCIOS });
 
     await expect(negocios).toBeVisible();
     await expectReachableByScrolling(page, negocios);
@@ -82,8 +89,29 @@ test.describe("Cuando alguien abre el menú desde su teléfono", () => {
   test("Entonces puede recorrer el menú hasta la última entrada", async ({
     page,
   }) => {
-    await page.getByRole("link", { name: NOSOTROS, exact: true }).click();
+    await mobileMenu(page)
+      .getByRole("link", { name: NOSOTROS, exact: true })
+      .click();
 
     await expect(page).toHaveURL(/\/nosotros$/);
+  });
+
+  test("Entonces las categorías esperan detrás de su propio desplegable", async ({
+    page,
+  }) => {
+    const panaderia = mobileMenu(page).getByRole("link", { name: PANADERIA });
+
+    /* Cerrado, el acordeón deja su contenido a altura cero. No se afirma con `toBeHidden`: un
+       hijo recortado conserva su caja y contaría como visible. Lo que sí distingue es que nadie
+       pueda tocarlo. */
+    expect(
+      await isUnderTheFinger(page, panaderia),
+      "las categorías se ven sin haber desplegado su sección",
+    ).toBe(false);
+
+    await mobileMenu(page).getByRole("button", { name: POR_CATEGORIA }).click();
+
+    await expect(panaderia).toBeVisible();
+    await expectReachableByScrolling(page, panaderia);
   });
 });
