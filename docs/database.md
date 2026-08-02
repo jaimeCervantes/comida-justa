@@ -128,17 +128,41 @@ La URL de conexion local es: `postgresql://postgres:postgres@localhost:5432/comi
 
 ## Produccion (Supabase)
 
-En produccion se usa el **Session Pooler** de Supabase para conexiones serverless:
+En produccion se usa el **Transaction Pooler** de Supabase (puerto **6543**), que es el modo
+recomendado para serverless:
 
 ```
-DATABASE_URL=postgres://[user]:[password]@aws-1-us-east-1.pooler.supabase.com:5432/postgres?sslmode=no-verify
+DATABASE_URL=postgres://[user]:[password]@aws-1-us-east-1.pooler.supabase.com:6543/postgres?sslmode=no-verify
 ```
 
 El pool de conexiones esta configurado en `connection.ts`:
-- `max: 10` conexiones
-- `idleTimeoutMillis: 30000`
-- `connectionTimeoutMillis: 2000`
+- `max: 3` conexiones
+- `idleTimeoutMillis: 10000`
+- `connectionTimeoutMillis: 10000`
 - SSL con `rejectUnauthorized: false`
+- El `Pool` es un singleton guardado en `globalThis`
+
+### Por que no el Session Pooler (puerto 5432)
+
+En *session mode* el pooler amarra una conexion de Postgres a cada cliente durante toda la
+vida de la conexion, con un tope de 15 (`pool_size: 15`). En Vercel cada instancia serverless
+es un proceso aparte con su propio `Pool`, asi que el multiplicador es el numero de
+instancias: con `max: 10`, dos instancias concurrentes ya rebasaban el limite y la app moria
+con `(EMAXCONNSESSION) max clients reached in session mode`. Como NextAuth usa el mismo `db`
+via `DrizzleAdapter`, el sintoma visible incluia tambien un `SessionTokenError`.
+
+En *transaction mode* la conexion se devuelve al pool al terminar cada transaccion, de modo
+que los mismos slots rotan entre muchas mas peticiones. Por eso tambien conviene un `max`
+bajo por instancia y un `idleTimeoutMillis` corto: Vercel congela la instancia entre
+peticiones y una conexion ociosa retendria su lugar en el pooler sin dar servicio.
+
+Restricciones que impone el transaction mode y que el codigo respeta hoy:
+- Nada de *prepared statements* (drizzle + `node-postgres` no los usa salvo `.prepare()`).
+- Nada de `LISTEN/NOTIFY` ni `SET` de sesion.
+- Las transacciones deben caber en un solo bloque; los `db.transaction()` existentes lo hacen.
+
+`DATABASE_DIRECT_URL` apunta a la conexion directa (`db.<ref>.supabase.co:5432`) y **no** debe
+pasar por el pooler: es la que usan migraciones y scripts.
 
 ## Coexistencia Firestore + PostgreSQL
 
