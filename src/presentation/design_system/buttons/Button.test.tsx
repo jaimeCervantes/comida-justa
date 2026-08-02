@@ -1,4 +1,4 @@
-import { render } from "@testing-library/react";
+import { getByText, render } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
@@ -60,6 +60,39 @@ describe("Button component", () => {
 
     expect(button).toHaveClass("whitespace-normal");
     expect(button).not.toHaveClass("whitespace-nowrap");
+  });
+
+  /* Regresión del brinco del menú: al pulsar "Publicar" o "Iniciar sesión", el loader se sumaba
+     al flujo del botón y lo ensanchaba ~28px, empujando a los hermanos del header. jsdom no
+     calcula layout, así que se comprueba el mecanismo que lo decide: el contenido conserva su
+     caja (`invisible`, no `hidden`) y la ruedita se pinta superpuesta, fuera del flujo. */
+  it("Then the loader is overlaid instead of taking up space in the flow", () => {
+    const { getByRole, getByTitle } = render(
+      <Button isLoading loadingLabel="Cargando">
+        Publicar
+      </Button>,
+    );
+    const button = getByRole("button");
+
+    expect(button).toHaveAttribute("aria-busy", "true");
+
+    // El contenido sigue en el DOM: es lo que sostiene el ancho del botón.
+    const label = getByText(button, "Publicar");
+    expect(label).toBeInTheDocument();
+    expect(label.closest("span")).toHaveClass("invisible");
+
+    // La ruedita no comparte contenedor con la etiqueta: va en una capa absoluta.
+    const spinnerLayer = getByTitle("Cargando").closest("span");
+    expect(spinnerLayer).toHaveClass("absolute");
+    expect(spinnerLayer).not.toBe(label.closest("span"));
+  });
+
+  it("Then a button that is not loading renders no overlay", () => {
+    const { getByRole } = render(<Button>Publicar</Button>);
+    const button = getByRole("button");
+
+    expect(button).toHaveAttribute("aria-busy", "false");
+    expect(button.querySelector(".absolute")).toBeNull();
   });
 
   it("Then when props exist the button should be shown with this props", async () => {

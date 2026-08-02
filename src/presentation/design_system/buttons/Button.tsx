@@ -92,26 +92,34 @@ export function Button({
       type={type}
       onClick={handleClick}
       disabled={disabled || isBtnLoading}
+      aria-busy={isBtnLoading}
       className={cn(buttonVariants({ color, size }), className)}
       {...moreProps}
     >
+      {/* La ruedita va superpuesta y el contenido se oculta con `invisible`, que conserva su
+          espacio. Si el loader se sumara al flujo, el botón crecería ~28px al pulsarlo (icono
+          + `gap`) y empujaría a sus hermanos: es lo que hacía brincar el menú entero al pulsar
+          "Publicar" o "Iniciar sesión". El ancho tiene que ser el mismo antes y durante la carga. */}
       <span
         className={cn(
           "flex gap-2 items-center",
           startIcon && "ml-1",
           endIcon && "mr-1",
+          isBtnLoading && "invisible",
         )}
       >
         {startIcon && startIcon}
         {children}
-        {isBtnLoading && (
+        {endIcon && endIcon}
+      </span>
+      {isBtnLoading && (
+        <span className="absolute inset-0 flex items-center justify-center">
           <BiLoaderAlt
             className="motion-safe:animate-spin h-5 w-5"
             title={loadingLabel}
           />
-        )}
-        {endIcon && endIcon}
-      </span>
+        </span>
+      )}
     </button>
   );
 }
