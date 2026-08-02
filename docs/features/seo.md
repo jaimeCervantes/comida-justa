@@ -107,17 +107,22 @@ slice no agrega SEO nuevo: arregla lo que estaba mintiendo.
 4. `/en/<slug>` apunta al español y no declara pareja de idiomas. ✅
 5. Las páginas públicas piden `max-image-preview:large`; las `noindex` no lo heredan. ✅
 
-### Slice 4 — Que el buscador entienda qué vende quién  *(siguiente)*
+### Slice 4 — Que el buscador entienda qué vende quién  *(entregado)*
 
-- JSON-LD: `Product` con precio y disponibilidad, `LocalBusiness` con sus sucursales y coordenadas,
-  `Person` para los perfiles, `Organization` + `WebSite` en el home, `BreadcrumbList`, y
-  `VideoObject` para los 8 anuncios en video.
+- JSON-LD: `Product` con su `Offer` (precio, MXN, disponibilidad), `Article` para los anuncios,
+  `VideoObject` para los 8 en video, `LocalBusiness` con dirección y coordenadas de sus sucursales,
+  `Person` en los perfiles y `Organization` + `WebSite` en el home.
+- `BreadcrumbList` **se movió al slice 5**, donde vive la miga de pan visible: Google pide que los
+  datos estructurados reflejen algo que la página muestra, y hoy no la muestra.
 
 **Criterios de aceptación:**
-1. Un producto expone precio y disponibilidad en datos estructurados válidos.
-2. Una tienda con sucursal expone su dirección y coordenadas.
+1. Un producto expone precio y disponibilidad en datos estructurados válidos. ✅
+2. Una tienda con sucursal expone su dirección y coordenadas. ✅
+3. Un anuncio en video declara su `VideoObject` con el archivo y su fecha. ✅
+4. El home dice quién publica el sitio y ata el sitio a su editor. ✅
+5. Todo eso viaja en el HTML del servidor, no solo tras hidratar. ✅
 
-### Slice 5 — Que las categorías se puedan descubrir
+### Slice 5 — Que las categorías se puedan descubrir  *(siguiente)*
 
 - Las categorías **con contenido** entran al sitemap (hoy 6 de 10: `alimentacion`, `platillos`,
   `bebidas`, `panaderia`, `untables`, `jugos`).

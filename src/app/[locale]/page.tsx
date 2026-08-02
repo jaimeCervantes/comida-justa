@@ -3,15 +3,21 @@ import { notFound } from "next/navigation";
 import { hasLocale } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import PostsWithLoadMore from "~/app/(home)/PostsWithLoadMore";
+import { buildSiteJsonLd } from "~/domain/seo/jsonLd/site";
+import { ensureAbsoluteUrl } from "~/domain/seo/url";
 import { resolveLocale, routing } from "~/i18n/routing";
 import {
+  BRAND_SOCIAL_URLS,
+  CANONICAL_URL,
   DEFAULT_SHARE_IMAGE,
   PAGINATION_INIT_PAGE,
   PAGINATION_PAGE_SIZE,
+  PUBLIC_BRAND_NAME,
 } from "~/infra/constants";
 import { createPostQueryRepository } from "~/infra/dataAccess/getMultiplePosts";
 import { mapPostsToCardsForLocale } from "~/infra/UI/mappers/posts/mapPostsToCardsForLocale";
 import { localizedAlternates } from "~/infra/UI/metadata/alternates";
+import JsonLd from "~/presentation/seo/JsonLd";
 
 export async function generateMetadata({
   params,
@@ -65,6 +71,18 @@ export default async function Inicio({
 
   return (
     <main className="">
+      {/* Quién publica el sitio. Va en el home y no en el layout: repetir la organización en cada
+          página no la hace más creíble, y aquí es donde un rastreador entra primero. */}
+      <JsonLd
+        data={buildSiteJsonLd({
+          siteUrl: CANONICAL_URL,
+          brandName: PUBLIC_BRAND_NAME,
+          logoUrl: ensureAbsoluteUrl(CANONICAL_URL, DEFAULT_SHARE_IMAGE),
+          description: t("description"),
+          sameAs: BRAND_SOCIAL_URLS,
+          inLanguage: locale,
+        })}
+      />
       <h1 className="text-xl font-bold mb-2">{t("h1")}</h1>
 
       <p className="mb-2">{t("p1")}</p>

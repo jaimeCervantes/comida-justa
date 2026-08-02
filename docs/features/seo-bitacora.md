@@ -302,3 +302,125 @@ indexadas. Con los slices 1 y 2, el sitio se puede descubrir, se presenta **y** 
    rato; **las transcripciones de los 8 videos** son la palanca grande y no son código — se pueden
    ir produciendo en paralelo desde ya.
 4. **Decidir qué pasa con las seis secciones stub del menú.** Sigue pendiente desde el slice 1.
+
+---
+
+## Slice 4 — Que el buscador entienda qué vende quién (2026-08-02)
+
+### Objetivo
+
+Los slices 1–3 consiguieron que el sitio se descubra, se presente y no se contradiga. Faltaba lo
+que convierte un resultado en una ficha: **decirle al buscador qué es cada cosa**. Había material
+sin usar — 14 productos con precio y disponibilidad, una sucursal con coordenadas, 8 videos, un
+perfil reclamado— y ni una línea de datos estructurados.
+
+### Decisiones y por qué
+
+**Un producto es `Product` con su `Offer`; lo demás es `Article`.** Es la diferencia entre aparecer
+como texto y aparecer con precio. La disponibilidad se declara **también cuando está agotado**
+(`OutOfStock`): esconderla haría que el buscador siguiera ofreciendo algo que no hay, que es peor
+para quien llega que un "agotado" honesto.
+
+**Sin precio no se declara oferta.** Un `Offer` sin `price` es un dato inválido, y hoy los 10
+anuncios no tienen precio. Se omite la propiedad en vez de inventar un cero.
+
+**El video va como nodo aparte, no como propiedad.** 8 de las 24 publicaciones son video y su
+contenido entero está ahí dentro: para un buscador esa página es un título y cuatro líneas. Con
+`VideoObject` al menos existe el video, su archivo y su fecha. **Su miniatura es hoy el logo**,
+porque no se guarda un fotograma; queda anotado abajo.
+
+**La tienda es `LocalBusiness` con `geo`.** Las coordenadas ya estaban en la base —el chatbot las
+usa para el radio de cercanía—, así que publicarlas no costó nada y es lo que convierte "una
+tienda" en "una tienda **en Tezonapa**". La primera sucursal manda en `address`/`geo` y las demás
+van en `location`: aguanta la realidad de hoy (una) sin romperse el día que haya tres.
+
+**La dirección no se parte.** Se guarda como una línea que escribió el vendedor y se publica tal
+cual en `streetAddress`. Adivinar calle, colonia y municipio con expresiones regulares produce una
+dirección mal partida, que es peor que una completa en un solo campo.
+
+**`sameAs` en la organización.** Es la parte que hace trabajo de verdad: le dice al buscador —y a un
+asistente— que la cuenta de TikTok, la de Facebook y este dominio son **la misma** Hazlo Sano. Los
+enlaces viven en `BRAND_SOCIAL_URLS`; los mismos están escritos en el pie con su icono, y unificar
+las dos listas es un pendiente aparte.
+
+**El `<` se escapa siempre al serializar.** El texto de una publicación lo escribe la comunidad, y
+basta con teclear `</script>` en la descripción de un producto para cerrar la etiqueta antes de
+tiempo y dejar el resto como HTML ejecutable. Está cubierto por una prueba con esa carga exacta.
+
+**`BreadcrumbList` se movió al slice 5.** Google pide que los datos estructurados reflejen algo que
+la página muestra, y la miga de pan visible es del slice 5. Declararla antes sería marcado sin
+respaldo.
+
+**El mapeo vive en la ruta, el vocabulario en el dominio.** `buildPostJsonLd` recibe datos
+concretos y no sabe nada del tipo `Post`, que es laxo y está lleno de opcionales; quien lo lee es
+`[slug]/jsonLd.ts`. La imagen y el video salen del **mismo** `buildSharePreview` que arma Open
+Graph, así que lo que se comparte y lo que se declara no pueden divergir.
+
+**De paso:** la etiqueta de categoría estaba calculada dos veces (la pinta el detalle, la declara el
+JSON-LD) y pasó a `postCategoryLabel`; y el `"MXN"` escrito a mano en `PostDetail` es ahora
+`SITE_CURRENCY`, el mismo que usa la oferta.
+
+### Archivos tocados
+
+- **Dominio:** `src/domain/seo/jsonLd/{types,post,store,site}.ts` (+ pruebas); `ensureAbsoluteUrl` en `url.ts`.
+- **Presentación:** `src/presentation/seo/JsonLd.tsx` (+ prueba) — el primer componente que estrena `src/presentation/`.
+- **App:** `[slug]/jsonLd.ts` y `[slug]/categoryLabel.ts`; JSON-LD en el detalle, la tienda, el perfil y el home.
+- **Infra:** `SITE_CURRENCY` y `BRAND_SOCIAL_URLS` en `constants`.
+- **e2e:** `src/e2e/seo/structuredData.spec.ts`, escenarios `@slice-4` en `seo.feature`.
+
+### Validación
+
+| Comando | Resultado |
+|---|---|
+| `pnpm run typecheck` | limpio |
+| `pnpm run lint` | limpio |
+| `pnpm run test:run` | **548 pruebas en 62 archivos**, todas verdes (+23) |
+| `pnpm run test:e2e:run` | **79 escenarios verdes, 3 saltados**, 0 fallos |
+
+Los 5 escenarios nuevos corren contra "Jugo Verde", "La clave para dormir profundo", la tienda
+`hazlo-sano` y el inicio: nada sembrado, nada que limpiar.
+
+### Lo que costó tiempo y no debería costarlo dos veces
+
+Una corrida intermedia dio dos rojos —la tienda sin `LocalBusiness` y un pilar sin título— que **no
+existían**. La causa: había un `next dev` de depuración corriendo a la vez que el de Playwright, y
+los dos escriben el mismo `.next`; el HTML servido era una mezcla rancia. Con un solo servidor los
+mismos escenarios pasan. Si aparece un fallo imposible, lo primero es comprobar que no haya dos
+servidores vivos.
+
+De ahí salió un escenario que vale la pena: **el JSON-LD se comprueba también por HTTP directo**,
+sin navegador. En el DOM el script aparece igual aunque lo hubiera puesto la hidratación, y quien
+rastrea suele leer solo la respuesta del servidor.
+
+### Desviaciones del roadmap
+
+- `BreadcrumbList` sale de este slice y entra al 5, con la miga visible (explicado arriba).
+- Se agregó `Article` para los anuncios, que no estaba escrito en el roadmap: dejar 10 de 24
+  publicaciones sin ningún tipo declarado, teniendo el constructor delante, no tenía sentido.
+
+### Pendientes que deja
+
+- **Los `VideoObject` llevan el logo como miniatura.** No se guarda un fotograma del video. Generar
+  un póster al subir (o extraerlo con ffmpeg para los 8 existentes) mejora la ficha y la tarjeta al
+  compartir.
+- `BRAND_SOCIAL_URLS` y los enlaces del pie son la misma lista escrita dos veces.
+- Sigue faltando la migación de categorías al sitemap y el `noindex` de las vacías (slice 5).
+- El `Product` no declara vendedor cuando la publicación no trae autor con nombre; con
+  `posts.seller_id` disponible se podría atar el producto a su `LocalBusiness`.
+
+### Recap
+
+Un buscador que entra hoy al sitio ya no ve texto suelto: ve productos con precio, moneda y
+disponibilidad; artículos con su fecha y su autor; videos con su archivo; una tienda con dirección y
+coordenadas en Tezonapa; personas con su página; y una organización con sus perfiles públicos atada
+al sitio que publica. Todo eso viaja en el HTML del servidor, así que lo lee igual quien no ejecuta
+JavaScript — que es la mitad del asunto para GEO.
+
+### Próximos pasos (opciones)
+
+1. **Slice 5 — Categorías descubribles:** las 6 con contenido al sitemap, `noindex` a las 4 vacías y
+   miga de pan visible con su `BreadcrumbList`.
+2. **Slice 6 — Enlaces internos:** relacionadas por embedding y enlaces a categoría, tienda y autor
+   desde el detalle. Hoy el `<h2>` de relacionadas sigue vacío.
+3. **Slice 7 — GEO:** robots por rastreador de IA, `llms.txt`, transcripción de los 8 videos.
+4. **Fuera de SEO, pendiente de tu decisión:** qué hacer con las seis secciones stub del menú.

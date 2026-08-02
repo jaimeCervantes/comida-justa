@@ -134,11 +134,49 @@ Feature: SEO — que el sitio se pueda encontrar
     Then encuentra "max-image-preview:large"
     And "/buscar" sigue pidiendo "noindex"
 
-  @slice-4 @future
-  Scenario: El buscador entiende qué vende quién
-    Given un producto con precio y una tienda con sucursal
+  @slice-4
+  Scenario: El buscador entiende qué se vende y a cuánto
+    Given el producto "Jugo Verde", que cuesta 40 y está disponible
     When se leen sus datos estructurados
-    Then el producto expone precio y disponibilidad, y la tienda su dirección y coordenadas
+    Then encuentra un "Product" con su oferta en MXN y disponibilidad "InStock"
+
+  @slice-4
+  Scenario: Un anuncio en video declara su video
+    Given "la-clave-para-dormir-profundo", cuyo contenido entero está en un .mp4
+    When se leen sus datos estructurados
+    Then encuentra un "Article" y un "VideoObject" con el archivo y su fecha
+
+  @slice-4
+  Scenario: La tienda dice dónde está
+    Given la tienda "hazlo-sano", con su sucursal en Tezonapa
+    When se leen sus datos estructurados
+    Then encuentra un "LocalBusiness" con su teléfono, su dirección y sus coordenadas
+
+  @slice-4
+  Scenario: El sitio dice quién lo publica
+    Given el inicio
+    When se leen sus datos estructurados
+    Then encuentra una "Organization" con sus perfiles públicos y un "WebSite" que la nombra editora
+
+  @slice-4 @component
+  Scenario Outline: Qué tipo se declara según lo que es la publicación
+    # Cubierto por Vitest: es el mapeo al vocabulario, sin navegador ni base.
+    Given una publicación <clase> con <precio>
+    When se arman sus datos estructurados
+    Then el tipo es "<tipo>" y <oferta>
+
+    Examples:
+      | clase       | precio     | tipo    | oferta                        |
+      | producto    | precio 40  | Product | declara la oferta             |
+      | producto    | sin precio | Product | no declara oferta             |
+      | anuncio     | sin precio | Article | no declara oferta             |
+
+  @slice-4 @component
+  Scenario: Nadie puede cerrar el script desde el texto de una publicación
+    # Cubierto por Vitest: el contenido lo escribe la comunidad.
+    Given una publicación cuyo texto contiene "</script>"
+    When se serializa su JSON-LD
+    Then el "<" sale escapado y el documento sigue siendo JSON válido
 
   @slice-5 @future
   Scenario: Las categorías con contenido se pueden descubrir

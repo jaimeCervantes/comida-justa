@@ -4,10 +4,13 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import type { User } from "~/domain/entities/post/types";
 import { resolveLocale } from "~/i18n/routing";
 import { auth } from "~/infra/auth";
-import { PAGINATION_INIT_PAGE } from "~/infra/constants";
+import { CANONICAL_URL, PAGINATION_INIT_PAGE } from "~/infra/constants";
 import { createSellerRepository } from "~/infra/dataAccess/sellers/factory";
 import BranchList from "~/infra/UI/components/BranchList/BranchList";
+import JsonLd from "~/presentation/seo/JsonLd";
+import { storePath } from "../../cuenta/storePath";
 import { getStoreByHandle } from "./data";
+import { buildStoreStructuredData } from "./jsonLd";
 import { buildStoreMetadata } from "./metadata";
 import StoreCatalog from "./ui/StoreCatalog";
 import StoreHeader from "./ui/StoreHeader";
@@ -45,6 +48,15 @@ export default async function StorePage({ params }: Props) {
 
   return (
     <>
+      {/* La canónica es la misma que declara la metadata: la tienda se identifica por una sola
+          dirección aunque se sirva en dos idiomas. */}
+      <JsonLd
+        data={buildStoreStructuredData(
+          store.seller,
+          store.branches,
+          `${CANONICAL_URL}${storePath(slug, locale)}`,
+        )}
+      />
       <StoreHeader seller={store.seller} ownerUsername={store.ownerUsername} />
 
       {store.branches.length > 0 ? (

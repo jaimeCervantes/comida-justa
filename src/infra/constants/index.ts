@@ -22,3 +22,17 @@ export const PUBLIC_BRAND_NAME =
  * segunda hacía que la paginación del inicio compartiera una imagen 404.
  */
 export const DEFAULT_SHARE_IMAGE = "/logo.webp";
+/** Todo lo que se vende en el sitio está en pesos mexicanos. */
+export const SITE_CURRENCY = "MXN";
+/**
+ * Los perfiles públicos de la marca, para el `sameAs` de la organización.
+ *
+ * Es lo que le dice a un buscador —y a un asistente— que la cuenta de TikTok, la de Facebook y
+ * este dominio son la misma Hazlo Sano. Los mismos enlaces están escritos en el pie con su icono;
+ * unificarlos es un pendiente aparte, no de este slice.
+ */
+export const BRAND_SOCIAL_URLS: readonly string[] = [
+  "https://www.tiktok.com/@hazlosano",
+  "https://fb.com/hazlo.sano.comunidad",
+  "https://t.me/HazloSanoBot",
+];

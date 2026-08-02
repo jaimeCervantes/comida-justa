@@ -3,10 +3,8 @@ import { Suspense } from "react";
 import { FaDollarSign } from "react-icons/fa";
 import { MdPhone } from "react-icons/md";
 import { canBeOrdered, isSellable } from "~/domain/entities/post/availability";
-import { labelFor } from "~/domain/entities/post/taxonomy";
 import { buildWhatsappOrderLink } from "~/domain/entities/post/whatsappOrder";
-import { PUBLIC_BASE_URL } from "~/infra/constants";
-import { getCategoryTaxonomy } from "~/infra/dataAccess/categories/cachedCategoryTaxonomy";
+import { PUBLIC_BASE_URL, SITE_CURRENCY } from "~/infra/constants";
 import type { Post, PostUser } from "~/infra/types/Posts";
 import CategoryTag from "~/infra/UI/components/CategoryTag/CategoryTag";
 import CurrencyAmount from "~/infra/UI/components/CurrencyAmount";
@@ -15,6 +13,7 @@ import ProvenanceBadge from "~/infra/UI/components/ProvenanceBadge";
 import SoldOutBadge from "~/infra/UI/components/SoldOutBadge/SoldOutBadge";
 import WhatsappButton from "~/infra/UI/components/WhatsappButton/WhatsappButton";
 import { setAvailability } from "../actions";
+import { postCategoryLabel } from "../categoryLabel";
 import CommentList from "../loadComments/CommentList";
 import OwnerControls from "./OwnerControls";
 
@@ -82,11 +81,7 @@ export default async function PostDetail({
 
   const isOwner = Boolean(user?.id) && user?.id === postDetails.user?.id;
 
-  // La sub-categoría gana sobre la categoría por ser la más específica.
-  const taxonomy = await getCategoryTaxonomy();
-  const categoryLabel =
-    labelFor(taxonomy, subCategory, locale) ??
-    labelFor(taxonomy, category, locale);
+  const categoryLabel = await postCategoryLabel(category, subCategory, locale);
 
   return (
     <article className={className}>
@@ -99,7 +94,7 @@ export default async function PostDetail({
       <MediaContent media={media} className="h-auto mb-4" />
       <p className="flex items-center mb-2">
         {price ? <FaDollarSign className="mr-2" size="24" /> : null}
-        <CurrencyAmount value={price} currency="MXN" />
+        <CurrencyAmount value={price} currency={SITE_CURRENCY} />
       </p>
       <p className="flex items-center">
         <MdPhone className="mr-2" size="24" />

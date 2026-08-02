@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { setRequestLocale } from "next-intl/server";
+import { buildProfileJsonLd } from "~/domain/seo/jsonLd/site";
 import { resolveLocale } from "~/i18n/routing";
-import { PAGINATION_INIT_PAGE } from "~/infra/constants";
+import { CANONICAL_URL, PAGINATION_INIT_PAGE } from "~/infra/constants";
 import { createUserProfileRepository } from "~/infra/dataAccess/users/factory";
+import JsonLd from "~/presentation/seo/JsonLd";
+import { profilePath } from "../../cuenta/profilePath";
 import { getProfileByUsername } from "./data";
 import { buildProfileMetadata } from "./metadata";
 import ProfileHeader from "./ui/ProfileHeader";
@@ -39,6 +42,13 @@ export default async function ProfilePage({ params }: Props) {
 
   return (
     <main>
+      <JsonLd
+        data={buildProfileJsonLd({
+          url: `${CANONICAL_URL}${profilePath(username, locale)}`,
+          name: data.profile.name ?? username,
+          imageUrl: data.profile.image,
+        })}
+      />
       <ProfileHeader
         profile={data.profile}
         store={data.store}

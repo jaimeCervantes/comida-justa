@@ -4,7 +4,10 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { resolveLocale } from "~/i18n/routing";
 import { auth } from "~/infra/auth";
 import type { PostUser } from "~/infra/types/Posts";
+import JsonLd from "~/presentation/seo/JsonLd";
+import { postCategoryLabel } from "./categoryLabel";
 import { getPostDetails } from "./data";
+import { buildPostStructuredData } from "./jsonLd";
 import { buildPostMetadata } from "./metadata";
 import PostDetail from "./ui/PostDetail";
 
@@ -40,8 +43,16 @@ export default async function Slug({
     notFound();
   }
 
+  // Lo que declara el producto es la misma etiqueta que ve quien lo lee.
+  const categoryLabel = await postCategoryLabel(
+    post.category,
+    post.subCategory,
+    locale,
+  );
+
   return (
     <section className="sm:flex sm:gap-4">
+      <JsonLd data={buildPostStructuredData(post, slug, categoryLabel)} />
       <PostDetail
         post={post}
         className="sm:w-[50%] mb-4"
