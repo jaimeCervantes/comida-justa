@@ -215,11 +215,33 @@ Feature: SEO — que el sitio se pueda encontrar
     Then la miga le ofrece "Inicio" y "Panadería" para subir
     And el último paso es el título de la publicación, sin enlace
 
-  @slice-6 @future
-  Scenario: Una publicación lleva a las demás
-    Given el detalle de una publicación
+  @slice-6
+  Scenario: Una publicación lleva a las que se le parecen
+    Given "jugo-verde", que la base relaciona con "Suero natural" y las aguas
     When alguien termina de leerla
-    Then encuentra publicaciones relacionadas, su categoría y quién la vende
+    Then el bloque de relacionadas ya no está vacío
+    And cada tarjeta enlaza a su publicación
+
+  @slice-6
+  Scenario: Una publicación deja subir a su categoría, su tienda y su autor
+    Given "jugo-verde", que es de "Jugos", la vende "Hazlo Sano" y la publicó alguien con perfil
+    When alguien llega desde un buscador
+    Then encuentra un enlace a "/categoria/jugos"
+    And un enlace a "/tienda/hazlo-sano"
+    And un enlace al perfil de quien la publicó
+
+  @slice-6 @component
+  Scenario Outline: Qué se recomienda y qué no
+    # Cubierto por Vitest: la regla, sin base ni navegador.
+    Given los vecinos que devuelve el vector, entre ellos <caso>
+    When se eligen las relacionadas
+    Then <resultado>
+
+    Examples:
+      | caso                       | resultado                                   |
+      | la propia publicación      | no se recomienda a sí misma                 |
+      | un producto agotado        | no se ofrece                                |
+      | un anuncio no disponible   | se ofrece igual, porque un anuncio no se agota |
 
   @slice-7 @future
   Scenario: Los rastreadores de IA saben qué pueden leer

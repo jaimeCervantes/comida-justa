@@ -3,6 +3,8 @@ export type PostUser = {
   email?: string;
   name?: string;
   image?: string;
+  /** La dirección que reclamó: con ella la publicación enlaza a `/u/<username>`. */
+  username?: string;
 };
 
 export type Post =

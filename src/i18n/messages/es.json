@@ -392,7 +392,11 @@
     "markSoldOut": "Marcar agotado",
     "noImage": "Publicación sin imagen",
     "orderOnWhatsapp": "Pedir por WhatsApp",
-    "related": "Comida Relacionada"
+    "publishedBy": "Publicado por {name}",
+    "related": "Comida Relacionada",
+    "relatedEmpty": "Todavía no hay nada parecido publicado.",
+    "seeCategory": "Ver más de {category}",
+    "soldBy": "Lo vende {name}"
   },
   "privacyPolicy": {
     "title": "Política de Privacidad | Hazlo Sano",

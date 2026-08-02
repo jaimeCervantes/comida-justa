@@ -137,13 +137,20 @@ slice no agrega SEO nuevo: arregla lo que estaba mintiendo.
 3. La categoría enseña `Inicio › Alimentación › Panadería` y lo declara en ese orden. ✅
 4. Desde una publicación se puede subir a su categoría y al inicio. ✅
 
-### Slice 6 — Que una publicación lleve a las demás  *(siguiente)*
+### Slice 6 — Que una publicación lleve a las demás  *(entregado)*
 
-- El bloque «relacionadas» del detalle es hoy un `<h2>` vacío. `post_translations.embedding` ya
-  existe, así que las relacionadas semánticas son casi gratis.
-- Enlaces desde el detalle a su categoría, su tienda y su autor: hoy no hay ninguno.
+- El bloque «relacionadas» del detalle era un `<h2>` vacío. Ahora lo llenan las publicaciones más
+  parecidas por `post_translations.embedding`, el mismo vector con el que busca el chatbot.
+- Enlaces del detalle a su categoría, su tienda y su autor. Antes no había ninguno: era una hoja
+  sin salida para quien llega desde un buscador y para quien rastrea.
 
-### Slice 7 — GEO
+**Criterios de aceptación:**
+1. El bloque de relacionadas trae publicaciones y ninguna es la que se está leyendo. ✅
+2. No se ofrece un producto agotado como relacionado. ✅
+3. El detalle enlaza a `/categoria/<clave>`, a `/tienda/<handle>` y al perfil del autor cuando
+   existen. ✅
+
+### Slice 7 — GEO  *(siguiente)*
 
 - Política explícita por rastreador de IA en `robots.txt` (`GPTBot`, `OAI-SearchBot`, `ClaudeBot`,
   `PerplexityBot`, `Google-Extended`…), permitiendo el contenido y cerrando lo privado.

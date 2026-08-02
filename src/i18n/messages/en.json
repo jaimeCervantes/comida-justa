@@ -392,7 +392,11 @@
     "markSoldOut": "Mark as sold out",
     "noImage": "Publication with no image",
     "orderOnWhatsapp": "Order on WhatsApp",
-    "related": "Related food"
+    "publishedBy": "Published by {name}",
+    "related": "Related food",
+    "relatedEmpty": "Nothing similar has been published yet.",
+    "seeCategory": "See more from {category}",
+    "soldBy": "Sold by {name}"
   },
   "privacyPolicy": {
     "title": "Privacy Policy | Hazlo Sano",

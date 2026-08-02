@@ -12,6 +12,9 @@ interface PostRow {
   user_name: string | null;
   user_email: string | null;
   user_image: string | null;
+  user_username: string | null;
+  seller_slug: string | null;
+  seller_name: string | null;
   price: string | null;
   kind: string | null;
   origin: string | null;
@@ -45,6 +48,9 @@ export async function getPostBySlug(slug: string) {
       u.name  AS user_name,
       u.email AS user_email,
       u.image AS user_image,
+      u.username AS user_username,
+      s.slug AS seller_slug,
+      s.name AS seller_name,
       p.price::text,
       p.kind,
       p.origin,
@@ -98,6 +104,11 @@ export async function getPostBySlug(slug: string) {
       AND pt.slug = ${slug}
     LEFT JOIN users u
       ON u.id = p.user_id
+    /* Quién la vende y quién la publicó: son los dos enlaces que sacan al visitante de esta
+       página hacia el resto del catálogo. Ambos LEFT: una publicación puede no tener tienda, y
+       su autor puede no haber reclamado su dirección. */
+    LEFT JOIN sellers s
+      ON s.id = p.seller_id
     LIMIT 1
   `);
 
@@ -113,6 +124,7 @@ export async function getPostBySlug(slug: string) {
     name: row.user_name ?? undefined,
     email: row.user_email ?? undefined,
     image: row.user_image ?? undefined,
+    username: row.user_username ?? undefined,
   };
 
   const mediaArr = (Array.isArray(row.media) ? row.media : [])
@@ -149,6 +161,10 @@ export async function getPostBySlug(slug: string) {
     },
     createdAt: row.created_at,
     user,
+    seller:
+      row.seller_slug && row.seller_name
+        ? { handle: row.seller_slug, name: row.seller_name }
+        : null,
     price: row.price ? Number(row.price) : null,
     kind: row.kind ?? "anuncio",
     origin: row.origin ?? null,

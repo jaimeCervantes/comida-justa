@@ -527,3 +527,103 @@ ofrecer seis puertas cerradas.
 2. **Slice 7 — GEO:** robots por rastreador de IA, `llms.txt` y la transcripción de los 8 videos.
 3. **Directorios de productores y negocios locales** (`docs/features/secciones-comunidad.md`), que
    ya pueden heredar la regla de sitemap que fijó este slice.
+
+---
+
+## Slice 6 — Que una publicación lleve a las demás (2026-08-02)
+
+### Objetivo
+
+El detalle era un callejón sin salida. El bloque de «relacionadas» llevaba desde siempre un `<h2>`
+con **nada debajo**, y la publicación no enlazaba ni a su categoría, ni a su tienda, ni a quien la
+publicó: cero enlaces internos desde la página más importante del sitio. Para quien llega desde un
+buscador, la única salida era el botón de atrás; para quien rastrea, una hoja.
+
+### Decisiones y por qué
+
+**Las relacionadas salen del vector que ya existe.** `post_translations.embedding` tiene las 24
+traducciones indexadas y pgvector está instalado: el orden lo da `embedding <=>` en la base. Es el
+**mismo** vector con el que busca el chatbot, así que si el catálogo ya sabe que un suero se parece
+a un jugo verde, la web no tiene por qué averiguarlo por su cuenta. Comprobado contra la base antes
+de escribir nada: los vecinos de "Jugo Verde" son suero natural, agua de piña, agua de avena y
+electrolitos — es un bloque que un lector reconocería como bien hecho.
+
+**Sin vector no hay relacionadas, y se dice.** La consulta devuelve vacío en vez de caer a "las más
+recientes": eso sería recomendar cualquier cosa disfrazada de recomendación. El bloque entonces
+explica que todavía no hay nada parecido, en vez de dejar el hueco de antes.
+
+**No hay umbral de parecido, a propósito.** Con estos vectores dos publicaciones sin nada que ver
+puntúan ~0.68, así que cualquier corte o no filtra nada o filtra por una cifra inventada. Lo que
+lleva la señal es el orden, no el número. Está escrito en el dominio para que nadie lo "arregle"
+más tarde con un 0.8.
+
+**Lo que sí filtra el dominio es lo agotado.** Es la misma regla que apaga el botón de WhatsApp:
+mandar a alguien a un producto que el vendedor ya marcó como agotado empieza la visita con una
+decepción. Un anuncio no se agota, así que solo afecta a los productos — y hay una prueba que lo
+afirma. Por eso la consulta pide **el doble** de las que se pintan: si pidiera cuatro justas, el
+bloque bajaría a tres en cuanto alguien apague un producto.
+
+**La proyección SQL se extrajo en vez de copiarse.** Las relacionadas necesitan la misma forma de
+fila que el listado paginado pero con otro orden. Copiar el `SELECT` con sus dos `LATERAL` era
+garantizar que un día devolvieran cosas distintas; ahora `POST_COLUMNS` y `POST_JOINS` los comparten,
+y el mapeo de filas es un método (`toPostData`) en vez de estar dentro del paginado.
+
+**Los tres enlaces se pintan solo si existe su destino.** Hay publicaciones sin categoría (los 10
+anuncios), sin tienda (11 de 24) y de autores que no han reclamado su dirección. El bloque entero
+desaparece si no hay ninguno, en vez de dejar una barra vacía.
+
+**El detalle pasó a leer `sellers` y `users.username`.** Son dos `LEFT JOIN` en la consulta que ya
+se hacía; el enlace a la tienda usa `storeHref`/`profileHref`, los mismos destinos tipados que usa
+el resto de la app, así que las direcciones siguen traduciéndose solas.
+
+### Archivos tocados
+
+- **Dominio:** `entities/post/related.ts` (+ prueba) — a quién se recomienda y a quién no.
+- **Infra:** `getRelatedPosts` en `IPostQueryRepository` y su implementación; `POST_COLUMNS`/`POST_JOINS`/`toPostData` extraídos; `PostgresGetOnePost` ahora trae tienda y `username`; `PostUser.username` en los tipos.
+- **App:** `[slug]/data.ts` (`getRelatedPosts` memorizado), `ui/RelatedPosts.tsx`, `ui/PostLinks.tsx`, y el detalle que los coloca.
+- **i18n:** `post.relatedEmpty`, `post.soldBy`, `post.publishedBy`, `post.seeCategory`.
+- **Constantes:** `RELATED_POSTS_LIMIT`.
+- **e2e:** `src/e2e/seo/internalLinks.spec.ts`, escenarios `@slice-6` en `seo.feature`.
+
+### Validación
+
+| Comando | Resultado |
+|---|---|
+| `pnpm run typecheck` | limpio |
+| `pnpm run lint` | limpio |
+| `pnpm run check:i18n` | limpio |
+| `pnpm run test:run` | **564 pruebas en 66 archivos**, todas verdes (+6) |
+| `pnpm run test:e2e:run` | **85 escenarios verdes, 3 saltados**, 0 fallos (+2) |
+
+Una prueba unitaria falló al escribirla y **la equivocada era la prueba**: al caer el suero por
+agotado, su plaza la ocupa el siguiente vecino en vez de quedar un hueco, que es justo lo que hace
+la implementación. Se corrigió la expectativa.
+
+### Desviaciones del roadmap
+
+- Ninguna en el alcance. Lo que **no** se hizo: enlazar la categoría desde las tarjetas del
+  listado. `CardForList` ya envuelve partes de la tarjeta en un enlace a la publicación, y meter un
+  enlace dentro de otro es HTML inválido; hacerlo bien es rehacer la tarjeta, y eso no es este
+  slice.
+
+### Pendientes que deja
+
+- El bloque de relacionadas se resuelve en el servidor **antes** de responder: son 4 tarjetas y una
+  consulta con índice, pero si algún día pesa, va dentro de un `<Suspense>` (el 404 ya se decidió
+  arriba, así que el status no corre peligro).
+- Las relacionadas no aparecen en la tienda ni en el perfil, donde también tendrían sentido.
+
+### Recap
+
+Una publicación ya no es un callejón sin salida: debajo del texto están su categoría, su tienda y
+quien la publicó, y al lado las cuatro publicaciones que más se le parecen según el mismo vector que
+usa el chatbot. Con la miga de pan del slice 5, quien aterriza desde un buscador puede subir, bajar
+y moverse de lado — y un rastreador tiene por dónde seguir.
+
+### Próximos pasos (opciones)
+
+1. **Slice 7 — GEO:** política explícita por rastreador de IA en `robots.txt`, `/llms.txt` y feed.
+   Es lo único que queda del roadmap de SEO.
+2. **Las transcripciones de los 8 videos**, que no son código y siguen siendo la palanca más grande
+   del sitio para buscadores y para asistentes.
+3. **Los directorios de productores y negocios locales** (`docs/features/secciones-comunidad.md`).

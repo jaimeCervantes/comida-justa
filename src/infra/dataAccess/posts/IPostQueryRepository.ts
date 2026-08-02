@@ -81,6 +81,18 @@ export interface IPostQueryRepository {
     page: number,
     pageSize: number,
   ): Promise<PaginatedPostsResult>;
+  /**
+   * Las publicaciones más parecidas a una, ordenadas por su vector (`embedding <=>`).
+   *
+   * Es el mismo vector con el que el chatbot busca. Excluye la propia publicación y devuelve vacío
+   * cuando no hay vector: sin parecido que ordenar, "las más recientes" serían cualquier cosa
+   * disfrazada de recomendación.
+   */
+  getRelatedPosts(
+    slug: string,
+    locale: string,
+    limit: number,
+  ): Promise<PostData[]>;
   /** Todo lo de una persona, anuncios incluidos: su perfil no es un catálogo. */
   getPostsByUser(
     userId: string,

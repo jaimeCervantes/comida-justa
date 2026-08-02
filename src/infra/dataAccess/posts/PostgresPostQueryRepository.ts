@@ -50,6 +50,61 @@ const HAZLO_SANO_PRODUCTS_WHERE: SQL = sql`p.kind = ${PRODUCT_KIND} AND p.origin
 
 const ALL_POSTS_WHERE: SQL = sql`TRUE`;
 
+/**
+ * Las columnas que compone una tarjeta, y los `LATERAL` que traen sus traducciones y su media.
+ *
+ * Están fuera de `getPaginatedPosts` porque las relacionadas necesitan **la misma forma con otro
+ * orden** —por parecido, no por fecha—, y tener la proyección escrita dos veces era garantizar que
+ * un día devolvieran cosas distintas.
+ */
+const POST_COLUMNS: SQL = sql`
+        p.id,
+        p.user_id,
+        p.price::text,
+        p.kind,
+        p.origin,
+        p.category,
+        p.sub_category,
+        p.is_available,
+        p.contact_phone,
+        p.contact_email,
+        p.contact_whatsapp,
+        p.created_at,
+        u.name AS user_name,
+        u.email AS user_email,
+        u.image AS user_image,
+        COALESCE(t.translations, '[]'::jsonb) AS translations,
+        COALESCE(m.media, '[]'::jsonb)        AS media`;
+
+const POST_JOINS: SQL = sql`
+      FROM posts p
+      LEFT JOIN users u
+        ON u.id = p.user_id
+      LEFT JOIN LATERAL (
+        SELECT jsonb_agg(
+          jsonb_build_object(
+            'locale',  locale,
+            'title',   title,
+            'slug',    slug,
+            'content', content
+          )
+        ) AS translations
+        FROM post_translations
+        WHERE post_id = p.id
+      ) t ON TRUE
+      LEFT JOIN LATERAL (
+        SELECT jsonb_agg(
+          jsonb_build_object(
+            'url',  url,
+            'type', type,
+            'alt',  alt
+          )
+          ORDER BY sort_order
+        ) AS media
+        FROM post_media
+        WHERE post_id = p.id
+      ) m ON TRUE`;
+
 /** La misma forma que devuelve `getPaginatedPosts` cuando la consulta no encuentra nada. */
 function emptyPage(page: number): PaginatedPostsResult {
   return {
@@ -180,6 +235,44 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
    * como fragmento para que cada listado (todos, productos de Hazlo Sano, …) reutilice
    * exactamente la misma proyección y paginación.
    */
+  /**
+   * Las publicaciones más parecidas a una, por su vector.
+   *
+   * El parecido lo calcula la base con el operador de distancia de pgvector (`<=>`) sobre
+   * `post_translations.embedding`, el **mismo** vector con el que el chatbot busca: si el catálogo
+   * ya sabe que un suero se parece a un jugo verde, la web no tiene por qué averiguarlo otra vez.
+   *
+   * Se piden más de las que se van a pintar porque el dominio todavía descarta lo agotado
+   * (`pickRelated`), y se excluye la propia publicación aquí para no gastar una de esas plazas.
+   * Sin vector no hay parecido que ordenar: devuelve vacío en vez de caer a "las más recientes",
+   * que sería recomendar cualquier cosa disfrazada de recomendación.
+   */
+  async getRelatedPosts(
+    slug: string,
+    locale: string,
+    limit: number,
+  ): Promise<PostData[]> {
+    const raw = await db.execute(sql`
+      WITH referencia AS (
+        SELECT post_id, embedding
+        FROM post_translations
+        WHERE slug = ${slug} AND locale = ${locale} AND embedding IS NOT NULL
+        LIMIT 1
+      )
+      SELECT ${POST_COLUMNS}
+      ${POST_JOINS}
+      JOIN post_translations pt
+        ON pt.post_id = p.id AND pt.locale = ${locale}
+      CROSS JOIN referencia r
+      WHERE pt.embedding IS NOT NULL
+        AND p.id <> r.post_id
+      ORDER BY pt.embedding <=> r.embedding
+      LIMIT ${limit}
+    `);
+
+    return this.toPostData(raw.rows as unknown as PostRow[]);
+  }
+
   private async getPaginatedPosts(
     where: SQL,
     page: number,
@@ -188,52 +281,9 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
     const offset = (page - 1) * pageSize;
 
     const raw = await db.execute(sql`
-      SELECT
-        p.id,
-        p.user_id,
-        p.price::text,
-        p.kind,
-        p.origin,
-        p.category,
-        p.sub_category,
-        p.is_available,
-        p.contact_phone,
-        p.contact_email,
-        p.contact_whatsapp,
-        p.created_at,
-        u.name AS user_name,
-        u.email AS user_email,
-        u.image AS user_image,
-        COALESCE(t.translations, '[]'::jsonb) AS translations,
-        COALESCE(m.media, '[]'::jsonb)        AS media,
-        COUNT(*) OVER()::int                  AS total_count
-      FROM posts p
-      LEFT JOIN users u
-        ON u.id = p.user_id
-      LEFT JOIN LATERAL (
-        SELECT jsonb_agg(
-          jsonb_build_object(
-            'locale',  locale,
-            'title',   title,
-            'slug',    slug,
-            'content', content
-          )
-        ) AS translations
-        FROM post_translations
-        WHERE post_id = p.id
-      ) t ON TRUE
-      LEFT JOIN LATERAL (
-        SELECT jsonb_agg(
-          jsonb_build_object(
-            'url',  url,
-            'type', type,
-            'alt',  alt
-          )
-          ORDER BY sort_order
-        ) AS media
-        FROM post_media
-        WHERE post_id = p.id
-      ) m ON TRUE
+      SELECT ${POST_COLUMNS},
+        COUNT(*) OVER()::int AS total_count
+      ${POST_JOINS}
       WHERE ${where}
       ORDER BY p.created_at DESC
       LIMIT ${pageSize} OFFSET ${offset}
@@ -252,7 +302,20 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
       };
     }
 
-    const postData: PostData[] = rows.map((row) => {
+    const postData: PostData[] = this.toPostData(rows);
+
+    return {
+      posts: postData,
+      nextPage: total > page * pageSize ? page + 1 : null,
+      prevPage: page === 1 ? 1 : page - 1,
+      total,
+      totalPages: Math.ceil(total / pageSize),
+    };
+  }
+
+  /** De filas de la base a la forma que consumen las tarjetas. */
+  private toPostData(rows: PostRow[]): PostData[] {
+    return rows.map((row) => {
       const translations: Record<
         string,
         { title: string; slug: string; content: string }
@@ -306,13 +369,5 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
         createdAt: row.created_at,
       };
     });
-
-    return {
-      posts: postData,
-      nextPage: total > page * pageSize ? page + 1 : null,
-      prevPage: page === 1 ? 1 : page - 1,
-      total,
-      totalPages: Math.ceil(total / pageSize),
-    };
   }
 }

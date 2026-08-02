@@ -16,6 +16,7 @@ import { setAvailability } from "../actions";
 import { postCategoryLabel } from "../categoryLabel";
 import CommentList from "../loadComments/CommentList";
 import OwnerControls from "./OwnerControls";
+import PostLinks from "./PostLinks";
 
 /**
  * Presenta una publicación ya cargada. La búsqueda (y el 404 si no existe) vive en la página,
@@ -50,6 +51,7 @@ export default async function PostDetail({
     comments: postDetails.comments,
     id: postDetails.id,
     isAvailable: postDetails.isAvailable !== false,
+    seller: postDetails.seller,
   };
 
   const {
@@ -65,6 +67,7 @@ export default async function PostDetail({
     comments,
     id,
     isAvailable,
+    seller,
   } = details;
 
   // Solo se ofrece pedir lo que se vende y sigue habiendo: mandar a WhatsApp por algo agotado
@@ -120,6 +123,14 @@ export default async function PostDetail({
         />
       ) : null}
       <section className="whitespace-pre-wrap mt-6">{content}</section>
+
+      <PostLinks
+        categoryKey={subCategory ?? category}
+        categoryLabel={categoryLabel}
+        seller={seller}
+        authorName={postDetails.user?.name}
+        authorUsername={postDetails.user?.username}
+      />
       <section className="mt-14">
         <Suspense>
           <CommentList postId={id} user={user} initialComments={comments} />

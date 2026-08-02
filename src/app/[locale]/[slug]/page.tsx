@@ -9,10 +9,11 @@ import Breadcrumbs from "~/presentation/navigation/Breadcrumbs";
 import JsonLd from "~/presentation/seo/JsonLd";
 import { postBreadcrumbs } from "../breadcrumbs";
 import { postCategoryLabel } from "./categoryLabel";
-import { getPostDetails } from "./data";
+import { getPostDetails, getRelatedPosts } from "./data";
 import { buildPostStructuredData } from "./jsonLd";
 import { buildPostMetadata } from "./metadata";
 import PostDetail from "./ui/PostDetail";
+import RelatedPosts from "./ui/RelatedPosts";
 
 export async function generateMetadata({
   params,
@@ -35,7 +36,6 @@ export default async function Slug({
   const { slug, locale: rawLocale } = await params;
   const locale = resolveLocale(rawLocale);
   setRequestLocale(locale);
-  const t = await getTranslations("post");
   const tCommon = await getTranslations("common");
 
   // Se resuelve aquí, fuera de cualquier `<Suspense>`: si la publicación no existe, la respuesta
@@ -81,9 +81,11 @@ export default async function Slug({
         locale={locale}
         slug={slug}
       />
-      <aside>
-        <h2 className="text-3xl font-bold">{t("related")}</h2>
-      </aside>
+      {/* Se resuelve aquí y no dentro del detalle: son dos columnas hermanas, y el parecido no
+          es parte de la publicación sino de su vecindario. */}
+      <RelatedPosts
+        posts={await getRelatedPosts(slug, String(post.id ?? ""), locale)}
+      />
     </section>
   );
 }

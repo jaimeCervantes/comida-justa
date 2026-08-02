@@ -5,6 +5,9 @@ export const PAGINATION_PAGE_SIZE =
   Number(process.env.NEXT_PUBLIC_PAGINATION_PAGE_SIZE) || 4;
 export const COMMENTS_PAGE_SIZE =
   Number(process.env.NEXT_PUBLIC_COMMENTS_PAGE_SIZE) || 10;
+/** Cuántas publicaciones parecidas acompañan al detalle. Cuatro llenan la columna sin empujar los comentarios fuera de la pantalla. */
+export const RELATED_POSTS_LIMIT =
+  Number(process.env.NEXT_PUBLIC_RELATED_POSTS_LIMIT) || 4;
 export const CANONICAL_URL =
   process.env.NEXT_PUBLIC_CANONICAL_URL || "https://hazlosano.com";
 export const PUBLIC_BASE_URL =
