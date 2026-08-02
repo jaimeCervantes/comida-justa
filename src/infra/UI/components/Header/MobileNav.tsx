@@ -249,14 +249,25 @@ export default function MobileNav({
         </nav>
 
         <div className="flex flex-col gap-4 px-2 pb-6 border-t border-gray-100 dark:border-gray-800 pt-6">
+          {/* Las mismas dos entradas de administración que ofrece el menú del avatar en
+              escritorio: quien cambie de tamaño de pantalla encuentra lo mismo. */}
           {isAdmin ? (
-            <Link
-              href="/admin/productos"
-              onClick={() => setIsOpen(false)}
-              className="text-base text-gray-600 dark:text-gray-400 hover:text-pw-green transition-colors"
-            >
-              {t("report")}
-            </Link>
+            <>
+              <Link
+                href="/admin/catalogo"
+                onClick={() => setIsOpen(false)}
+                className="text-base text-gray-600 dark:text-gray-400 hover:text-pw-green transition-colors"
+              >
+                {t("catalog")}
+              </Link>
+              <Link
+                href="/admin/productos"
+                onClick={() => setIsOpen(false)}
+                className="text-base text-gray-600 dark:text-gray-400 hover:text-pw-green transition-colors"
+              >
+                {t("report")}
+              </Link>
+            </>
           ) : null}
           {children}
         </div>

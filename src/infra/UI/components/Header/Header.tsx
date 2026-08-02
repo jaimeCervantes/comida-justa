@@ -15,6 +15,7 @@ import LinkButton from "../LinkButton/LinkButton";
 import SearchBar from "../SearchBar";
 import MobileNav from "./MobileNav";
 import Nav from "./Nav";
+import UserMenu from "./UserMenu";
 
 export default async function Header() {
   const t = await getTranslations("nav");
@@ -102,27 +103,23 @@ export default async function Header() {
           </LinkButton>
 
           {session ? (
-            <div className="flex items-center gap-3">
-              {/* «Reporte» bajó aquí desde la barra de navegación: solo lo ven los
-                  administradores, así que ocupaba un hueco fijo del menú para casi nadie. Junto al
-                  avatar queda con el resto de lo que depende de quién ha iniciado sesión. */}
-              {showAdminLinks ? (
-                <Link
-                  href="/admin/productos"
-                  className="hidden lg:block text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors"
+            /* Todo lo de la sesión cuelga del avatar: la cuenta, las herramientas de
+               administración y cerrar sesión. Antes estaban sueltos en la barra y cada opción
+               nueva le quitaba ancho al resto. */
+            <UserMenu
+              avatar={<Avatar user={session?.user} />}
+              userName={session.user?.name}
+              isAdmin={showAdminLinks}
+              signOut={
+                <SignOut
+                  className="w-full justify-center"
+                  aria-label={t("signOut")}
+                  showLoader
                 >
-                  {t("report")}
-                </Link>
-              ) : null}
-              <Link href="/cuenta" aria-label={t("myAccount")}>
-                <Avatar user={session?.user} />
-              </Link>
-              <div className="hidden lg:block text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors">
-                <SignOut aria-label={t("signOut")} showLoader>
-                  {t("signOutShort")}
+                  {t("signOut")}
                 </SignOut>
-              </div>
-            </div>
+              }
+            />
           ) : (
             <SignIn aria-label={t("signIn")}>
               <span className="hidden sm:block">{t("signIn")}</span>

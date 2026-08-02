@@ -169,6 +169,7 @@
     "submitting": "Agregando..."
   },
   "common": {
+    "avatarAlt": "Foto de perfil",
     "description": "❤️💚 Hazlo sano: Cuando cuidas tu salud, también estás cuidando lo más valioso que tienes: tu tiempo. Tu recurso máximo no renovable.",
     "loading": "Cargando...",
     "logoAlt": "Logo {brand}",
@@ -222,9 +223,10 @@
   },
   "nav": {
     "about": "Nosotros",
-    "brandProducts": "Productos {brand}",
-    "brandProductsDescription": "Lo que elabora y vende {brand} directamente.",
+    "brandProducts": "Productos",
+    "brandProductsDescription": "Lo que elabora y vende la comunidad",
     "byCategory": "Por categoría",
+    "catalog": "Catálogo de categorías",
     "changeLanguage": "Cambiar idioma",
     "closeMenu": "Cerrar menú",
     "community": {
@@ -257,6 +259,7 @@
     "myAccount": "Mi cuenta",
     "myAccountAndStore": "Mi cuenta y mi tienda",
     "openMenu": "Abrir menú",
+    "openUserMenu": "Abrir el menú de tu cuenta",
     "pillarsMenu": "4 Pilares",
     "productsMenu": "Productos",
     "publish": "Publicar",

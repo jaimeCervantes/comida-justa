@@ -169,6 +169,7 @@
     "submitting": "Adding…"
   },
   "common": {
+    "avatarAlt": "Profile picture",
     "description": "❤️💚 Just Health: When you take care of your health, you're also protecting the most valuable thing you have: your time. Your ultimate non-renewable resource.",
     "loading": "Loading…",
     "logoAlt": "{brand} logo",
@@ -222,9 +223,10 @@
   },
   "nav": {
     "about": "About us",
-    "brandProducts": "{brand} products",
-    "brandProductsDescription": "What {brand} makes and sells directly.",
+    "brandProducts": "Products",
+    "brandProductsDescription": "What the community makes and sells directly.",
     "byCategory": "By category",
+    "catalog": "Category catalogue",
     "changeLanguage": "Change language",
     "closeMenu": "Close menu",
     "community": {
@@ -257,6 +259,7 @@
     "myAccount": "My account",
     "myAccountAndStore": "My account and my store",
     "openMenu": "Open menu",
+    "openUserMenu": "Open your account menu",
     "pillarsMenu": "4 Pillars",
     "productsMenu": "Products",
     "publish": "Publish",
