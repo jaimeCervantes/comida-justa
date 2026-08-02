@@ -28,6 +28,14 @@ export const pathnames = {
     es: "/productos/page/[page]",
     en: "/products/page/[page]",
   },
+  /* El catálogo filtrado por categoría. La clave que va en el segmento es la de `categories`
+     (`panaderia`, `jugos`), que es la misma en los dos idiomas: lo que se traduce es la etiqueta
+     que se pinta, no el identificador. */
+  "/categoria/[key]": { es: "/categoria/[key]", en: "/category/[key]" },
+  "/categoria/[key]/page/[page]": {
+    es: "/categoria/[key]/page/[page]",
+    en: "/category/[key]/page/[page]",
+  },
   "/publicar": { es: "/publicar", en: "/publish" },
   "/cuenta": { es: "/cuenta", en: "/account" },
   "/buscar": { es: "/buscar", en: "/search" },

@@ -211,6 +211,38 @@ export function optionsFor(
 }
 
 /**
+ * Las categorías que se ofrecen para navegar, aplanadas.
+ *
+ * El menú no reproduce la jerarquía: hoy hay **una sola raíz** (`alimentacion`) con siete hijas,
+ * así que un nivel intermedio con un único elemento sería un clic de más para llegar al mismo
+ * sitio. Se devuelven las hojas.
+ *
+ * No se codifica esa forma, se deriva: de cada raíz salen sus hijas, y una raíz sin hijas se
+ * ofrece ella misma. El día que aparezca una segunda raíz, sus hijas entran en la lista sin tocar
+ * este código — sin ordenarlas por su cuenta, porque el orden canónico (`sort_order`) ya viene
+ * dado y agruparlas por raíz es decisión de quien las pinte.
+ */
+export function navigableCategories(
+  taxonomy: CategoryTaxonomy,
+  locale?: string,
+): readonly CategoryOption[] {
+  const roots = taxonomy.childrenByParent.get(ROOT_BUCKET) ?? [];
+
+  return roots.flatMap((rootKey) => {
+    const children = optionsFor(taxonomy, rootKey, locale);
+
+    return children.length > 0
+      ? children
+      : [
+          {
+            value: rootKey,
+            label: labelFor(taxonomy, rootKey, locale) ?? rootKey,
+          },
+        ];
+  });
+}
+
+/**
  * La clave y sus hijas activas, que es lo que significa filtrar por una categoría: pedir
  * `alimentacion` trae también sus sub-categorías; pedir `jugos` trae solo `jugos`.
  * Espejo de la función SQL `category_subtree_keys`.

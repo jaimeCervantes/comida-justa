@@ -8,6 +8,7 @@ import { useTranslations } from "next-intl";
 import type React from "react";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import type { CategoryOption } from "~/domain/entities/post/taxonomy";
 import { type AppHref, Link, usePathname } from "~/i18n/navigation";
 import { PUBLIC_BRAND_NAME } from "~/infra/constants";
 import { COMMUNITY_ITEMS, PILLAR_ITEMS } from "./menuItems";
@@ -54,6 +55,7 @@ function useCloseMenuOnNavigation(
 }
 
 /* Identificadores de sección, no textos: cuál acordeón está abierto no puede depender del idioma. */
+const PRODUCTS_SECTION = "products";
 const PILLARS_SECTION = "pillars";
 const COMMUNITY_SECTION = "community";
 
@@ -116,9 +118,11 @@ function SectionLink({
 
 export default function MobileNav({
   children,
+  categories,
   isAdmin = false,
 }: {
   children: React.ReactNode;
+  categories: readonly CategoryOption[];
   isAdmin?: boolean;
 }) {
   const t = useTranslations("nav");
@@ -183,6 +187,28 @@ export default function MobileNav({
 
         <nav className="flex-1 pr-2">
           <ul className="space-y-2">
+            {/* Mismo orden y mismas entradas que en escritorio: quien cambie de tamaño de
+                pantalla no tiene que volver a aprenderse el menú. */}
+            <Section
+              title={t("productsMenu")}
+              isOpen={openSubmenu === PRODUCTS_SECTION}
+              onToggle={() => toggleSubmenu(PRODUCTS_SECTION)}
+            >
+              <SectionLink href="/">{t("wholeCatalog")}</SectionLink>
+              <SectionLink href="/productos">{t("brandProducts")}</SectionLink>
+              {categories.map((category) => (
+                <SectionLink
+                  key={category.value}
+                  href={{
+                    pathname: "/categoria/[key]",
+                    params: { key: category.value },
+                  }}
+                >
+                  {category.label}
+                </SectionLink>
+              ))}
+            </Section>
+
             <Section
               title={t("pillarsMenu")}
               isOpen={openSubmenu === PILLARS_SECTION}
@@ -216,30 +242,22 @@ export default function MobileNav({
                 {t("about")}
               </Link>
             </li>
-            <li className={ROW_CLASS}>
-              <Link
-                href="/productos"
-                onClick={() => setIsOpen(false)}
-                className={ROW_LINK_CLASS}
-              >
-                {t("products")}
-              </Link>
-            </li>
-            {isAdmin && (
-              <li className={ROW_CLASS}>
-                <Link
-                  href="/admin/productos"
-                  onClick={() => setIsOpen(false)}
-                  className={ROW_LINK_CLASS}
-                >
-                  {t("report")}
-                </Link>
-              </li>
-            )}
+            {/* «Productos» ya no es un enlace suelto: vive en el desplegable de arriba, junto a
+                las categorías. «Reporte» bajó al bloque de la cuenta, con el resto de lo que
+                depende de quién eres. */}
           </ul>
         </nav>
 
         <div className="flex flex-col gap-4 px-2 pb-6 border-t border-gray-100 dark:border-gray-800 pt-6">
+          {isAdmin ? (
+            <Link
+              href="/admin/productos"
+              onClick={() => setIsOpen(false)}
+              className="text-base text-gray-600 dark:text-gray-400 hover:text-pw-green transition-colors"
+            >
+              {t("report")}
+            </Link>
+          ) : null}
           {children}
         </div>
 

@@ -147,6 +147,15 @@
   "branches": {
     "emptyWithoutLocation": "You don't have any branch with a location yet, so the chatbot can't recommend you by proximity."
   },
+  "category": {
+    "backToCategory": "Back to {category}",
+    "count": "{total, plural, =0 {No publications} one {# publication} other {# publications}}",
+    "empty": "Nothing has been published under {category} yet.",
+    "heading": "{category}",
+    "metaDescription": "Browse {category} at {brand}: what the community publishes and what we sell, all in one place.",
+    "metaTitle": "{category} - {brand}",
+    "pagedTitle": "{title} - Page {page}"
+  },
   "comments": {
     "empty": "No comments yet.",
     "heading": "Comments",
@@ -212,20 +221,12 @@
     "p2": "💫 Living well isn’t a luxury. It’s an act of self-love… that spreads."
   },
   "nav": {
-    "pillarsMenu": "4 Pillars",
-    "communityMenu": "Community",
     "about": "About us",
-    "products": "Products",
-    "report": "Report",
-    "publish": "Publish",
-    "openMenu": "Open menu",
-    "closeMenu": "Close menu",
+    "brandProducts": "{brand} products",
+    "brandProductsDescription": "What {brand} makes and sells directly.",
+    "byCategory": "By category",
     "changeLanguage": "Change language",
-    "signIn": "Sign in",
-    "signOut": "Sign out",
-    "signOutShort": "Sign out",
-    "myAccount": "My account",
-    "myAccountAndStore": "My account and my store",
+    "closeMenu": "Close menu",
     "community": {
       "groups": {
         "title": "Groups",
@@ -251,7 +252,20 @@
         "title": "Sports",
         "description": "Where to play sports with people who cheer you on"
       }
-    }
+    },
+    "communityMenu": "Community",
+    "myAccount": "My account",
+    "myAccountAndStore": "My account and my store",
+    "openMenu": "Open menu",
+    "pillarsMenu": "4 Pillars",
+    "productsMenu": "Products",
+    "publish": "Publish",
+    "report": "Report",
+    "signIn": "Sign in",
+    "signOut": "Sign out",
+    "signOutShort": "Sign out",
+    "wholeCatalog": "The whole catalogue",
+    "wholeCatalogDescription": "Everything the community publishes, newest first."
   },
   "notFound": {
     "goHome": "Go to the home page",

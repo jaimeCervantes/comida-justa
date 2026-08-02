@@ -147,6 +147,15 @@
   "branches": {
     "emptyWithoutLocation": "Todavía no tienes sucursales con ubicación, así que el chatbot no puede recomendarte por cercanía."
   },
+  "category": {
+    "backToCategory": "Volver a {category}",
+    "count": "{total, plural, =0 {Sin publicaciones} one {# publicación} other {# publicaciones}}",
+    "empty": "Todavía no hay nada publicado en {category}.",
+    "heading": "{category}",
+    "metaDescription": "Explora {category} en {brand}: lo que publica la comunidad y lo que vendemos, en un solo lugar.",
+    "metaTitle": "{category} - {brand}",
+    "pagedTitle": "{title} - Página {page}"
+  },
   "comments": {
     "empty": "No hay comentarios aún.",
     "heading": "Comentarios",
@@ -212,20 +221,12 @@
     "p2": "💫 Vivir bien no es un lujo. Es un acto de amor propio… que se contagia."
   },
   "nav": {
-    "pillarsMenu": "4 Pilares",
-    "communityMenu": "Comunidad",
     "about": "Nosotros",
-    "products": "Productos",
-    "report": "Reporte",
-    "publish": "Publicar",
-    "openMenu": "Abrir menú",
-    "closeMenu": "Cerrar menú",
+    "brandProducts": "Productos {brand}",
+    "brandProductsDescription": "Lo que elabora y vende {brand} directamente.",
+    "byCategory": "Por categoría",
     "changeLanguage": "Cambiar idioma",
-    "signIn": "Iniciar sesión",
-    "signOut": "Cerrar sesión",
-    "signOutShort": "Salir",
-    "myAccount": "Mi cuenta",
-    "myAccountAndStore": "Mi cuenta y mi tienda",
+    "closeMenu": "Cerrar menú",
     "community": {
       "groups": {
         "title": "Grupos",
@@ -251,7 +252,20 @@
         "title": "Deportes",
         "description": "Dónde practicar deportes con personas que te animan"
       }
-    }
+    },
+    "communityMenu": "Comunidad",
+    "myAccount": "Mi cuenta",
+    "myAccountAndStore": "Mi cuenta y mi tienda",
+    "openMenu": "Abrir menú",
+    "pillarsMenu": "4 Pilares",
+    "productsMenu": "Productos",
+    "publish": "Publicar",
+    "report": "Reporte",
+    "signIn": "Iniciar sesión",
+    "signOut": "Cerrar sesión",
+    "signOutShort": "Salir",
+    "wholeCatalog": "Todo el catálogo",
+    "wholeCatalogDescription": "Todo lo que publica la comunidad, de lo más reciente a lo más antiguo."
   },
   "notFound": {
     "goHome": "Ir al inicio",

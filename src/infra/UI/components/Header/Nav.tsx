@@ -2,6 +2,7 @@
 import { CaretDownIcon } from "@radix-ui/react-icons";
 import * as NavigationMenu from "@radix-ui/react-navigation-menu";
 import { useTranslations } from "next-intl";
+import type { CategoryOption } from "~/domain/entities/post/taxonomy";
 import { Link } from "~/i18n/navigation";
 import { PUBLIC_BRAND_NAME } from "~/infra/constants";
 import ListItem from "./ListItem";
@@ -16,13 +17,74 @@ const LINK_CLASS =
 const CARET_CLASS =
   "text-pw-green relative top-px transition-transform duration-[250] ease-in group-data-[state=open]:-rotate-180";
 
-export default function Nav({ isAdmin = false }: { isAdmin?: boolean }) {
+/** Enlace de una categoría dentro del desplegable: solo la etiqueta, sin descripción. */
+const CATEGORY_LINK_CLASS =
+  "text-gray-700 dark:text-gray-200 hover:bg-mauve3 hover:text-pw-green block select-none rounded-[6px] px-3 py-2 text-[15px] leading-none no-underline outline-hidden transition-colors";
+
+/**
+ * La barra principal.
+ *
+ * Antes tenía cinco elementos —«4 Pilares», «Comunidad», «Nosotros», «Productos» y «Reporte»— y no
+ * cabían: «4 Pilares» se partía en dos renglones. Ahora todo lo que es catálogo cuelga de un solo
+ * desplegable, «Productos», donde además viven las categorías; y «Reporte», que solo ven los
+ * administradores, se fue al menú de la cuenta.
+ */
+export default function Nav({
+  categories,
+}: {
+  categories: readonly CategoryOption[];
+}) {
   const t = useTranslations("nav");
   const tPillars = useTranslations("pillars");
 
   return (
     <NavigationMenu.Root className="relative z-20 flex justify-center">
       <NavigationMenu.List className="center m-0 flex list-none rounded-full bg-white/50 dark:bg-black/50 px-2 py-1 shadow-xs backdrop-blur-xs">
+        <NavigationMenu.Item>
+          <NavigationMenu.Trigger className={TRIGGER_CLASS}>
+            {t("productsMenu")}
+            <CaretDownIcon className={CARET_CLASS} aria-hidden />
+          </NavigationMenu.Trigger>
+          <NavigationMenu.Content className="absolute top-0 left-0 w-auto">
+            <div className="p-[22px] w-[300px] md:w-[460px]">
+              <ul className="m-0 grid list-none gap-x-[10px] grid-cols-1 md:grid-cols-2">
+                <ListItem href="/" title={t("wholeCatalog")}>
+                  {t("wholeCatalogDescription")}
+                </ListItem>
+                <ListItem href="/productos" title={t("brandProducts")}>
+                  {t("brandProductsDescription", { brand: PUBLIC_BRAND_NAME })}
+                </ListItem>
+              </ul>
+
+              {categories.length > 0 ? (
+                <>
+                  <hr className="my-3 border-gray-200 dark:border-gray-800" />
+                  <p className="px-3 pb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                    {t("byCategory")}
+                  </p>
+                  <ul className="m-0 grid list-none gap-x-[10px] grid-cols-2">
+                    {categories.map((category) => (
+                      <li key={category.value}>
+                        <NavigationMenu.Link asChild>
+                          <Link
+                            href={{
+                              pathname: "/categoria/[key]",
+                              params: { key: category.value },
+                            }}
+                            className={CATEGORY_LINK_CLASS}
+                          >
+                            {category.label}
+                          </Link>
+                        </NavigationMenu.Link>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              ) : null}
+            </div>
+          </NavigationMenu.Content>
+        </NavigationMenu.Item>
+
         <NavigationMenu.Item>
           <NavigationMenu.Trigger className={TRIGGER_CLASS}>
             {t("pillarsMenu")}
@@ -70,24 +132,6 @@ export default function Nav({ isAdmin = false }: { isAdmin?: boolean }) {
             </Link>
           </NavigationMenu.Link>
         </NavigationMenu.Item>
-
-        <NavigationMenu.Item>
-          <NavigationMenu.Link asChild>
-            <Link href="/productos" className={LINK_CLASS}>
-              {t("products")}
-            </Link>
-          </NavigationMenu.Link>
-        </NavigationMenu.Item>
-
-        {isAdmin && (
-          <NavigationMenu.Item>
-            <NavigationMenu.Link asChild>
-              <Link href="/admin/productos" className={LINK_CLASS}>
-                {t("report")}
-              </Link>
-            </NavigationMenu.Link>
-          </NavigationMenu.Item>
-        )}
 
         <NavigationMenu.Indicator className="data-[state=visible]:animate-fadeIn data-[state=hidden]:animate-fadeOut top-full z-1 flex h-[10px] items-end justify-center overflow-hidden transition-[width,transform_250ms_ease]">
           <div className="relative top-[70%] h-[10px] w-[10px] rotate-45 rounded-tl-[2px] bg-white dark:bg-gray-900 border-t border-l border-gray-200 dark:border-gray-800" />

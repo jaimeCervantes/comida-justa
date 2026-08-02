@@ -7,6 +7,7 @@ import {
 import {
   isActiveKey,
   labelFor,
+  navigableCategories,
   normalizeCategoryKey,
   optionsFor,
   resolveKeyLenient,
@@ -180,6 +181,65 @@ describe("optionsFor", () => {
 
   it("is empty for a parent that has no children", () => {
     expect(optionsFor(taxonomy, "jugos", "es")).toEqual([]);
+  });
+});
+
+describe("navigableCategories", () => {
+  /* El menú ofrece las hojas y no la raíz: hoy `alimentacion` es la única, así que un nivel
+     intermedio con un solo elemento sería un clic de más para llegar al mismo sitio. */
+  it("offers the leaves, in the catalogue order", () => {
+    expect(navigableCategories(taxonomy).map((o) => o.value)).toEqual([
+      "jugos",
+      "platillos",
+      "bebidas",
+      "panaderia",
+      "abarrotes",
+      "untables",
+    ]);
+  });
+
+  it("does not offer the root itself", () => {
+    expect(navigableCategories(taxonomy).map((o) => o.value)).not.toContain(
+      "alimentacion",
+    );
+  });
+
+  it("labels them in the requested language", () => {
+    const jugos = navigableCategories(taxonomy, "en").find(
+      (o) => o.value === "jugos",
+    );
+
+    expect(jugos?.label).toBe("Juices");
+  });
+
+  it("leaves out a de-activated category", () => {
+    const values = navigableCategories(
+      makeTaxonomyWithInactive("untables"),
+    ).map((o) => o.value);
+
+    expect(values).not.toContain("untables");
+  });
+
+  /* Que la forma se derive y no esté codificada: una raíz sin hijas se ofrece ella misma, así que
+     añadir una segunda raíz al catálogo la hace aparecer en el menú sin tocar código. */
+  it("offers a childless root on its own", () => {
+    const withSecondRoot = makeTaxonomy({
+      nodes: [
+        ...SEEDED_TAXONOMY_SNAPSHOT.nodes,
+        {
+          key: "ferreteria",
+          parentKey: null,
+          level: 1,
+          isActive: true,
+          sortOrder: 20,
+          labels: { es: "Ferretería", en: "Hardware" },
+        },
+      ],
+    });
+
+    expect(navigableCategories(withSecondRoot).map((o) => o.value)).toContain(
+      "ferreteria",
+    );
   });
 });
 

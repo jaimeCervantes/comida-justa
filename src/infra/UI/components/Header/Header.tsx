@@ -1,10 +1,13 @@
 import Image from "next/image";
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { LuSalad } from "react-icons/lu";
+import { navigableCategories } from "~/domain/entities/post/taxonomy";
 import { Link } from "~/i18n/navigation";
+import { resolveLocale } from "~/i18n/routing";
 import { auth } from "~/infra/auth";
 import { isAdmin } from "~/infra/auth/isAdmin";
 import { PUBLIC_BRAND_NAME } from "~/infra/constants";
+import { getCategoryTaxonomy } from "~/infra/dataAccess/categories/cachedCategoryTaxonomy";
 import Avatar from "../Avatar/Avatar";
 import { SignIn, SignOut } from "../auth-buttons";
 import LanguageSwitcher from "../LanguageSwitcher/LanguageSwitcher";
@@ -20,11 +23,17 @@ export default async function Header() {
   // El acceso al reporte interno solo se muestra a admins; el gate real está en la página.
   const showAdminLinks = isAdmin(session?.user?.email);
 
+  /* Las categorías del menú salen de la base, no de una constante: se dan de alta desde
+     `/admin/catalogo` y tienen que aparecer sin desplegar. La lectura está cacheada
+     (`unstable_cache` + `React.cache`), así que el header no paga una consulta por render. */
+  const locale = resolveLocale(await getLocale());
+  const categories = navigableCategories(await getCategoryTaxonomy(), locale);
+
   return (
     <header className="sticky top-0 z-50 w-full glass transition-all duration-300">
       <div className="container-width flex h-16 items-center justify-between">
         <div className="flex gap-4 sm:gap-6 items-center">
-          <MobileNav isAdmin={showAdminLinks}>
+          <MobileNav isAdmin={showAdminLinks} categories={categories}>
             <LinkButton
               href="/publicar"
               color="green"
@@ -73,7 +82,7 @@ export default async function Header() {
             />
           </Link>
           <div className="hidden lg:block">
-            <Nav isAdmin={showAdminLinks} />
+            <Nav categories={categories} />
           </div>
         </div>
 
@@ -94,6 +103,17 @@ export default async function Header() {
 
           {session ? (
             <div className="flex items-center gap-3">
+              {/* «Reporte» bajó aquí desde la barra de navegación: solo lo ven los
+                  administradores, así que ocupaba un hueco fijo del menú para casi nadie. Junto al
+                  avatar queda con el resto de lo que depende de quién ha iniciado sesión. */}
+              {showAdminLinks ? (
+                <Link
+                  href="/admin/productos"
+                  className="hidden lg:block text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors"
+                >
+                  {t("report")}
+                </Link>
+              ) : null}
               <Link href="/cuenta" aria-label={t("myAccount")}>
                 <Avatar user={session?.user} />
               </Link>
