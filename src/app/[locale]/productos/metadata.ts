@@ -1,9 +1,18 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
-import { CANONICAL_URL } from "~/infra/constants";
+import { DEFAULT_SHARE_IMAGE } from "~/infra/constants";
+import { localizedAlternates } from "~/infra/UI/metadata/alternates";
 
-/** Metadata del listado de productos; `page` solo se refleja en el título y el canónico. */
-export async function buildProductsMetadata(page?: number): Promise<Metadata> {
+/**
+ * Metadata del listado de productos; `page` se refleja en el título y en la dirección.
+ *
+ * La dirección de cada idioma la resuelve `pathnames` (`/productos` y `/en/products`), así que la
+ * versión inglesa deja de declararse copia de la española.
+ */
+export async function buildProductsMetadata(
+  locale: string,
+  page?: number,
+): Promise<Metadata> {
   const t = await getTranslations("products");
 
   const isFirstPage = !page || page === 1;
@@ -12,9 +21,6 @@ export async function buildProductsMetadata(page?: number): Promise<Metadata> {
     ? baseTitle
     : t("pagedTitle", { title: baseTitle, page });
   const description = t("description");
-  const canonical = isFirstPage
-    ? `${CANONICAL_URL}/productos`
-    : `${CANONICAL_URL}/productos/page/${page}`;
 
   return {
     title,
@@ -22,11 +28,17 @@ export async function buildProductsMetadata(page?: number): Promise<Metadata> {
     openGraph: {
       title,
       description,
-      images: ["https://hazlosano.com/logo.webp"],
+      images: [DEFAULT_SHARE_IMAGE],
       type: "website",
     },
-    alternates: {
-      canonical,
-    },
+    alternates: localizedAlternates(
+      isFirstPage
+        ? "/productos"
+        : {
+            pathname: "/productos/page/[page]",
+            params: { page: String(page) },
+          },
+      locale,
+    ),
   };
 }

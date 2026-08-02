@@ -4,7 +4,7 @@ import { hasLocale } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "~/i18n/navigation";
 import { resolveLocale, routing } from "~/i18n/routing";
-import { CANONICAL_URL } from "~/infra/constants";
+import { localizedAlternates } from "~/infra/UI/metadata/alternates";
 
 export async function generateMetadata({
   params,
@@ -19,12 +19,13 @@ export async function generateMetadata({
 
   const t = await getTranslations({ locale, namespace: "termsOfService" });
 
+  /* El canónico apuntaba a `/es/condiciones-de-servicio` y a `/en/condiciones-de-servicio`:
+     la primera no existe —el español vive sin prefijo— y la segunda tampoco, porque en inglés la
+     ruta es `/en/terms-of-service`. Las dos direcciones se resuelven ahora por `pathnames`. */
   return {
     title: t("title"),
     description: t("description"),
-    alternates: {
-      canonical: `${CANONICAL_URL}/${locale}/condiciones-de-servicio`,
-    },
+    alternates: localizedAlternates("/condiciones-de-servicio", locale),
   };
 }
 

@@ -1,6 +1,10 @@
 {
-  "name": "",
-  "short_name": "",
+  "name": "Hazlo Sano",
+  "short_name": "Hazlo Sano",
+  "description": "Lo que publica y vende la comunidad para comer sano, en un solo lugar.",
+  "lang": "es",
+  "start_url": "/",
+  "scope": "/",
   "icons": [
     {
       "src": "/android-chrome-192x192.png",

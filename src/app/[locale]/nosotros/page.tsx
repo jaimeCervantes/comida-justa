@@ -6,8 +6,14 @@ import { PUBLIC_BRAND_NAME } from "~/infra/constants";
 import { PILLAR_SHORT_KEYS } from "~/infra/UI/components/Header/menuItems";
 import { buildAboutMetadata } from "./metadata";
 
-export async function generateMetadata(): Promise<Metadata> {
-  return buildAboutMetadata();
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+
+  return buildAboutMetadata(resolveLocale(locale));
 }
 
 const CARD =

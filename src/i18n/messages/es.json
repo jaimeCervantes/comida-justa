@@ -477,6 +477,7 @@
     }
   },
   "products": {
+    "backToList": "Volver a los productos",
     "description": "Todo lo que vende la comunidad, con su procedencia visible en cada tarjeta.",
     "empty": "Aún no hay productos publicados.",
     "pagedTitle": "{title} - Página {page}",

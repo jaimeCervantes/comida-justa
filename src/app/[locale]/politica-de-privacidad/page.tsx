@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { hasLocale } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { resolveLocale, routing } from "~/i18n/routing";
-import { CANONICAL_URL } from "~/infra/constants";
+import { localizedAlternates } from "~/infra/UI/metadata/alternates";
 
 export async function generateMetadata({
   params,
@@ -18,12 +18,12 @@ export async function generateMetadata({
 
   const t = await getTranslations({ locale, namespace: "privacyPolicy" });
 
+  /* Igual que en las condiciones: el canónico apuntaba a `/es/politica-de-privacidad` y a
+     `/en/politica-de-privacidad`, y ninguna de las dos existe. */
   return {
     title: t("title"),
     description: t("description"),
-    alternates: {
-      canonical: `${CANONICAL_URL}/${locale}/politica-de-privacidad`,
-    },
+    alternates: localizedAlternates("/politica-de-privacidad", locale),
   };
 }
 

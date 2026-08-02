@@ -5,12 +5,13 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import PostsWithLoadMore from "~/app/(home)/PostsWithLoadMore";
 import { resolveLocale, routing } from "~/i18n/routing";
 import {
-  CANONICAL_URL,
+  DEFAULT_SHARE_IMAGE,
   PAGINATION_INIT_PAGE,
   PAGINATION_PAGE_SIZE,
 } from "~/infra/constants";
 import { createPostQueryRepository } from "~/infra/dataAccess/getMultiplePosts";
 import { mapPostsToCardsForLocale } from "~/infra/UI/mappers/posts/mapPostsToCardsForLocale";
+import { localizedAlternates } from "~/infra/UI/metadata/alternates";
 
 export async function generateMetadata({
   params,
@@ -30,12 +31,10 @@ export async function generateMetadata({
     openGraph: {
       title: t("title"),
       description: t("description"),
-      images: ["https://hazlosano.com/logo.webp"],
+      images: [DEFAULT_SHARE_IMAGE],
       type: "website",
     },
-    alternates: {
-      canonical: CANONICAL_URL,
-    },
+    alternates: localizedAlternates("/", locale),
   };
 }
 

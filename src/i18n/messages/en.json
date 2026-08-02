@@ -477,6 +477,7 @@
     }
   },
   "products": {
+    "backToList": "Back to products",
     "description": "Everything the community sells, with its provenance visible on every card.",
     "empty": "No products have been published yet.",
     "pagedTitle": "{title} - Page {page}",

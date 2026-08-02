@@ -30,6 +30,22 @@ export const metadata: Metadata = {
   title: PUBLIC_BRAND_NAME,
   description:
     "¿Como evitar enfermedades, ahorrar tiempo y dinero, al mismo tiempo que apoyas al medio ambiente y a tu comunidad?",
+  /**
+   * Sin `max-image-preview: large`, Google enseña las publicaciones con una miniatura del tamaño
+   * de un sello: en un sitio donde lo que se vende entra por la foto, eso es regalar el clic. Los
+   * otros dos quitan los topes de fragmento y de vista previa de video, que son los formatos de
+   * los 8 anuncios en video.
+   *
+   * Lo heredan todas las páginas; las que piden `noindex` declaran su propio `robots` y este no
+   * las alcanza (ver `NOINDEX_METADATA`).
+   */
+  robots: {
+    index: true,
+    follow: true,
+    "max-image-preview": "large",
+    "max-snippet": -1,
+    "max-video-preview": -1,
+  },
 };
 
 export default async function RootLayout({

@@ -1,14 +1,15 @@
 import type { Metadata } from "next";
 import { getLocale, getTranslations } from "next-intl/server";
-import { getPathname } from "~/i18n/navigation";
 import { resolveLocale } from "~/i18n/routing";
-import { CANONICAL_URL, PUBLIC_BRAND_NAME } from "~/infra/constants";
+import { DEFAULT_SHARE_IMAGE, PUBLIC_BRAND_NAME } from "~/infra/constants";
+import { localizedAlternates } from "~/infra/UI/metadata/alternates";
 
 /**
  * Metadata del catálogo de una categoría.
  *
- * El canónico se resuelve con `getPathname` para que apunte a la dirección **del idioma servido**
- * (`/categoria/panaderia` o `/en/category/panaderia`) en vez de concatenarse a mano.
+ * La dirección se resuelve por `pathnames` para que el canónico apunte al idioma servido
+ * (`/categoria/panaderia` o `/en/category/panaderia`) y para declarar la pareja: la clave de la
+ * categoría es la misma en los dos idiomas, lo que cambia es el segmento y la etiqueta.
  */
 export async function buildCategoryMetadata(
   key: string,
@@ -31,28 +32,23 @@ export async function buildCategoryMetadata(
     brand: PUBLIC_BRAND_NAME,
   });
 
-  const path = isFirstPage
-    ? getPathname({
-        href: { pathname: "/categoria/[key]", params: { key } },
-        locale,
-      })
-    : getPathname({
-        href: {
-          pathname: "/categoria/[key]/page/[page]",
-          params: { key, page: String(page) },
-        },
-        locale,
-      });
-
   return {
     title,
     description,
     openGraph: {
       title,
       description,
-      images: ["https://hazlosano.com/logo.webp"],
+      images: [DEFAULT_SHARE_IMAGE],
       type: "website",
     },
-    alternates: { canonical: `${CANONICAL_URL}${path}` },
+    alternates: localizedAlternates(
+      isFirstPage
+        ? { pathname: "/categoria/[key]", params: { key } }
+        : {
+            pathname: "/categoria/[key]/page/[page]",
+            params: { key, page: String(page) },
+          },
+      locale,
+    ),
   };
 }

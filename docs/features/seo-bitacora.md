@@ -176,3 +176,129 @@ puede descubrir **y** presentar.
 2. **Decidir qué pasa con las seis secciones stub del menú:** darles contenido o quitarlas. Hoy son
    seis puertas cerradas para quien llega.
 3. **Revisar la descripción del home**, que hoy es una frase de marca más que un resumen.
+
+---
+
+## Slice 3 — Que compartir y rastrear digan la verdad (2026-08-02)
+
+### Objetivo
+
+Revisar el SEO entregado contra el sitio de hoy. Entre el slice 2 y esta revisión entraron el i18n
+con `/en` real, el catálogo por categorías y `/productos` de toda la comunidad, y eso **rompió cosas
+que ya estaban entregadas**. Este slice no agrega SEO nuevo: arregla lo que estaba mintiendo.
+
+### Lo que apareció al levantar el estado
+
+**La vista previa de 8 publicaciones estaba rota.** `buildPostMetadata` tomaba `media[0].url` sin
+mirar `media[0].type`, y de las 24 publicaciones **8 son video** (los anuncios de salud, justo los
+de títulos en forma de pregunta y los más compartibles). Su `og:image` era un `.mp4`: WhatsApp
+mostraba un hueco gris. El slice 2 se construyó para que compartir un producto se viera bien y
+llevaba desde entonces fallando en un tercio del catálogo.
+
+**Dos criterios opuestos de canónico conviviendo.** El home, `/nosotros`, `/productos` y los pilares
+fijaban el canónico en español desde cualquier idioma —o sea, `/en/about`, que está traducida de
+verdad, le pedía al buscador que la ignorara—, mientras `/categoria` y `/tienda` (escritas después,
+ya con `pathnames`) se canonizaban a sí mismas. Y **ninguna** declaraba `hreflang`.
+
+**Las dos legales apuntaban a direcciones que no existen:** `${CANONICAL_URL}/${locale}/…` producía
+`/es/condiciones-de-servicio` —el español vive sin prefijo— y `/en/condiciones-de-servicio`, cuando
+en inglés la ruta es `/en/terms-of-service`. Las dos, mal en los dos idiomas.
+
+**`/og-image.jpg` no existe** en `public/`, y era la imagen de Open Graph de toda la paginación del
+inicio.
+
+### Decisiones y por qué
+
+**Un video no es una imagen aunque las dos sean "media".** `buildSharePreview` elige la primera
+imagen para `og:image`, manda el video a `og:video` y, cuando no hay imagen propia, cae al logo
+**degradando la tarjeta a `summary`**: una tarjeta grande con un logo estirado se ve peor que una
+pequeña con el logo entero. El día que una publicación traiga foto *y* video, gana la foto para la
+imagen y el video se anuncia igual — está en la tabla de la corrida de escritorio.
+
+**Cada idioma es canónico de sí mismo, salvo el detalle de publicación.** La regla que faltaba: si
+la página existe de verdad en los dos idiomas, cada versión es la buena en el suyo y `hreflang`
+explica que son la misma cosa; `x-default` va al español, que es lo que se sirve sin prefijo. **El
+detalle de publicación queda fuera a propósito**: su texto sale de `post_translations`, que tiene 24
+filas en español y 0 en inglés, así que `/en/<slug>` sigue apuntando al español y no declara pareja.
+Es la misma razón por la que el sitemap solo lista español desde el slice 1.
+
+**Las direcciones nunca se concatenan a mano.** `localizedAlternates` las resuelve con `getPathname`
+desde `pathnames`, así que el día que un segmento se renombre, estas etiquetas cambian con él en vez
+de quedarse apuntando a un 404 — que es exactamente el fallo que tenían las legales.
+
+**El armado se partió en dos.** La composición de URLs es dominio puro (`buildLocalizedAlternates`,
+`buildSharePreview`, y `absoluteUrl` extraída de `sitemap.ts` para no tener dos formas de pegar una
+base con una ruta); solo la resolución por `pathnames` vive en infra. Así la regla se prueba sin
+next-intl y la traducción de rutas se prueba con él, en una corrida de escritorio que falla si
+alguien renombra un segmento.
+
+**`max-image-preview: large` en el layout, no página por página.** En un sitio donde lo que se vende
+entra por la foto, la miniatura de sello que Google pone por defecto es regalar el clic. Se hereda
+en todas y **no** alcanza a las `noindex`, porque esas declaran su propio `robots` — y hay un
+escenario que lo afirma, que era el riesgo real de ponerlo en el layout.
+
+**De paso:** `products.backToList` salió del TSX (estaba escrito en español dentro del componente,
+contra la norma de i18n) y el `meta()` de las pruebas se extrajo a `src/e2e/testUtils/metaTags.ts`.
+Esa extracción no es cosmética: la versión que estaba copiada en el spec **se colgaba 90 segundos**
+cuando la meta no existía, en vez de devolver `null`, así que afirmar que algo *no* se anuncia era
+imposible. Se descubrió al escribir el escenario de la foto.
+
+### Archivos tocados
+
+- **Dominio:** `src/domain/seo/shareMedia.ts`, `alternates.ts`, `url.ts` (+ sus pruebas); `sitemap.ts` reusa `absoluteUrl`.
+- **Infra:** `src/infra/UI/metadata/alternates.ts` (+ prueba), `DEFAULT_SHARE_IMAGE` en `constants`.
+- **App:** `[slug]/metadata.ts` (imagen/video), `robots` en el layout de `[locale]`, y el canónico + `hreflang` en home, `/nosotros`, `/productos` (+ paginada), pilares, `/categoria` (+ paginada), `/tienda` (+ paginada), `/u` (+ paginada), las dos legales y la paginación del inicio. `site.webmanifest`.
+- **i18n:** `products.backToList` en `es.json` y `en.json`.
+- **e2e:** `src/e2e/seo/shareAndLanguage.spec.ts`, `src/e2e/testUtils/metaTags.ts`, escenarios `@slice-3` en `seo.feature` (y los `@future` renumerados a 4–7).
+
+### Validación
+
+| Comando | Resultado |
+|---|---|
+| `pnpm run typecheck` | limpio |
+| `pnpm run lint` | limpio |
+| `pnpm run check:i18n` | limpio |
+| `pnpm run test:run` | **525 pruebas en 58 archivos**, todas verdes (+24) |
+| `pnpm run test:e2e:run` | **74 escenarios verdes, 3 saltados**, 0 fallos |
+
+De los 74, **17 son de `src/e2e/seo`** (4 del slice 1, 4 del 2 y 9 nuevos). Corren contra
+publicaciones que ya existen —"Jugo Verde" con foto y "La clave para dormir profundo" en video—, así
+que no siembran nada y no dejan nada que limpiar en la base compartida.
+
+### Desviaciones del roadmap
+
+- **El tamaño de página no se tocó.** En la revisión dije que eran 4 por página; ese es el valor de
+  respaldo del código. `.env.development` y `.env.production` fijan **8**, así que 24 publicaciones
+  son 3 páginas, no 6. Subirlo sería configuración, no código, y con este volumen no compra nada.
+- `/tienda` y `/u` sí declaran pareja de idiomas aunque su texto (nombre y descripción del vendedor)
+  sea de un solo idioma: la página **existe** en los dos y su URL cambia, que es justo el caso para
+  el que sirve `hreflang`. Si algún día hay `seller_translations`, no cambia nada aquí.
+
+### Pendientes que deja
+
+- Sin datos estructurados todavía: es el slice 4 y sigue siendo el hueco más grande.
+- Las categorías no están en el sitemap, y las 4 vacías (`abarrotes`, `frutas_y_verduras`,
+  `sueno_y_descanso`, `movimiento_y_ejercicio`) responden 200 con lista vacía, enlazadas desde el
+  menú. Slice 5.
+- Las seis secciones stub del menú siguen siendo 404 enlazados desde todas las páginas.
+- `lastModified` sigue siendo `created_at`: `posts` no tiene `updated_at`, y ponerlo es una
+  migración Alembic en el backend Python.
+
+### Recap
+
+Lo que el sitio le cuenta a un buscador y a WhatsApp ya es cierto: una publicación en video anuncia
+una imagen y declara su video aparte, cada página traducida es canónica de sí misma y dice cuál es
+su hermana en el otro idioma, las legales dejaron de apuntar a direcciones inexistentes, y las
+publicaciones piden vista previa de imagen grande sin que eso alcance a las páginas que piden no ser
+indexadas. Con los slices 1 y 2, el sitio se puede descubrir, se presenta **y** no se contradice.
+
+### Próximos pasos (opciones)
+
+1. **Slice 4 — Datos estructurados.** `Product` con precio y disponibilidad (14 productos listos),
+   `LocalBusiness` con la sucursal de Tezonapa y sus coordenadas, `VideoObject` para los 8 videos,
+   `Organization` + `WebSite` + `BreadcrumbList`. Es lo que más rinde y sirve igual para GEO.
+2. **Slice 5 — Categorías al sitemap y `noindex` a las vacías.**
+3. **Slice 7 — GEO**, si prefieres empezar por ahí: robots por rastreador de IA y `llms.txt` son un
+   rato; **las transcripciones de los 8 videos** son la palanca grande y no son código — se pueden
+   ir produciendo en paralelo desde ya.
+4. **Decidir qué pasa con las seis secciones stub del menú.** Sigue pendiente desde el slice 1.

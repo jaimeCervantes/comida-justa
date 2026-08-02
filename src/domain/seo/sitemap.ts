@@ -1,3 +1,5 @@
+import { absoluteUrl } from "./url";
+
 export interface SitemapEntry {
   url: string;
   lastModified?: Date;
@@ -45,9 +47,7 @@ export function buildSitemap(
   baseUrl: string,
   content: SitemapContent,
 ): SitemapEntry[] {
-  const root = baseUrl.replace(/\/$/, "");
-  const absolute = (path: string): string =>
-    path === "/" ? `${root}/` : `${root}${path}`;
+  const absolute = (path: string): string => absoluteUrl(baseUrl, path);
 
   const staticEntries = STATIC_SITEMAP_PATHS.map((path) => ({
     url: absolute(path),

@@ -17,11 +17,12 @@ type Props = {
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { slug } = await params;
+  const { slug, locale: rawLocale } = await params;
+  const locale = resolveLocale(rawLocale);
 
-  if (!slug || slug.length === 0) return buildPillarsOverviewMetadata();
+  if (!slug || slug.length === 0) return buildPillarsOverviewMetadata(locale);
 
-  return buildPillarMetadata(slug[0]);
+  return buildPillarMetadata(slug[0], locale);
 }
 
 export default async function PilaresPage({ params }: Props) {

@@ -6,8 +6,14 @@ import { getProducts } from "./data";
 import { buildProductsMetadata } from "./metadata";
 import ProductsList from "./ui/ProductsList";
 
-export async function generateMetadata(): Promise<Metadata> {
-  return buildProductsMetadata();
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+
+  return buildProductsMetadata(resolveLocale(locale));
 }
 
 export default async function ProductosPage({

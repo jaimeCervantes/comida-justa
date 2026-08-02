@@ -4,7 +4,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "~/i18n/navigation";
 import { resolveLocale } from "~/i18n/routing";
 import {
-  CANONICAL_URL,
+  DEFAULT_SHARE_IMAGE,
   PAGINATION_INIT_PAGE,
   PAGINATION_PAGE_SIZE,
   PUBLIC_BRAND_NAME,
@@ -14,13 +14,14 @@ import type { Post } from "~/infra/types/Posts";
 import CardForList from "~/infra/UI/components/CardForList/CardForList";
 import Pagination from "~/infra/UI/components/Pagination";
 import { mapPostsToCardsForLocale } from "~/infra/UI/mappers/posts/mapPostsToCardsForLocale";
+import { localizedAlternates } from "~/infra/UI/metadata/alternates";
 
 type Props = {
   params: Promise<{ locale: string; page: string }>;
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { page: pageStr } = await params;
+  const { page: pageStr, locale } = await params;
   const postRepo = createPostQueryRepository();
   const totalPosts = await postRepo.getTotalPosts();
   const totalPages = Math.ceil(totalPosts / PAGINATION_PAGE_SIZE);
@@ -40,11 +41,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     openGraph: {
       title,
       description,
-      images: ["/og-image.jpg"],
+      // Antes era `/og-image.jpg`, que no existe en `public/`: cada página de la paginación
+      // compartía una imagen 404.
+      images: [DEFAULT_SHARE_IMAGE],
     },
-    alternates: {
-      canonical: `${CANONICAL_URL}/page/${page}`,
-    },
+    alternates: localizedAlternates(
+      { pathname: "/page/[page]", params: { page: String(page) } },
+      resolveLocale(locale),
+    ),
   };
 }
 

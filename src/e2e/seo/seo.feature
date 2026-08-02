@@ -70,8 +70,90 @@ Feature: SEO — que el sitio se pueda encontrar
     When un rastreador las visita
     Then encuentra noindex
 
-  @slice-3 @future
+  @slice-3
+  Scenario Outline: Compartir una publicación anuncia una imagen, nunca un video
+    # 8 de las 24 publicaciones son video, y su og:image era el .mp4: WhatsApp mostraba un hueco.
+    Given la publicación "<slug>", que trae <medio>
+    When alguien pega su enlace en WhatsApp
+    Then la vista previa muestra <imagen>
+    And la tarjeta de Twitter es "<tarjeta>"
+
+    Examples:
+      | slug                          | medio    | imagen                | tarjeta             |
+      | jugo-verde                    | una foto | su propia foto        | summary_large_image |
+      | la-clave-para-dormir-profundo | un video | el logo de Hazlo Sano | summary             |
+
+  @slice-3
+  Scenario: Un video se anuncia como video
+    Given la publicación "la-clave-para-dormir-profundo"
+    When un lector lee su Open Graph
+    Then el ".mp4" está en "og:video" y no en "og:image"
+
+  @slice-3 @component
+  Scenario Outline: Qué se anuncia según lo que trae la publicación
+    # Cubierto por Vitest: es la elección del medio, sin navegador ni base de por medio.
+    Given una publicación con <medios>
+    When se arma su vista previa para compartir
+    Then la imagen es <imagen> y el video es <video>
+
+    Examples:
+      | medios         | imagen     | video    |
+      | una foto       | la foto    | ninguno  |
+      | un video       | el logo    | el video |
+      | video y foto   | la foto    | el video |
+      | nada           | el logo    | ninguno  |
+
+  @slice-3
+  Scenario Outline: Cada página traducida es canónica de sí misma y declara su pareja
+    Given "<ruta>", que existe de verdad en los dos idiomas
+    When un rastreador la visita
+    Then su canónico es "<canonico>"
+    And declara "<es>" como español, "<en>" como inglés y "<es>" como x-default
+
+    Examples:
+      | ruta       | canonico     | es         | en           |
+      | /nosotros  | /nosotros    | /nosotros  | /en/about    |
+      | /en/about  | /en/about    | /nosotros  | /en/about    |
+      | /productos | /productos   | /productos | /en/products |
+
+    Examples: rutas cuyo canónico apuntaba a una dirección inexistente
+      | ruta                     | canonico                 | es                       | en                |
+      | /condiciones-de-servicio | /condiciones-de-servicio | /condiciones-de-servicio | /en/terms-of-service |
+
+  @slice-3
+  Scenario: La publicación, que solo existe en español, no finge tener versión inglesa
+    Given "/en/jugo-verde", que renderiza el mismo texto en español
+    When un rastreador la visita
+    Then su canónico es "/jugo-verde"
+    And no declara ninguna pareja de idiomas
+
+  @slice-3
+  Scenario: El sitio pide que la vista previa de imagen sea grande
+    Given cualquier página pública
+    When un rastreador lee sus directivas
+    Then encuentra "max-image-preview:large"
+    And "/buscar" sigue pidiendo "noindex"
+
+  @slice-4 @future
   Scenario: El buscador entiende qué vende quién
     Given un producto con precio y una tienda con sucursal
     When se leen sus datos estructurados
     Then el producto expone precio y disponibilidad, y la tienda su dirección y coordenadas
+
+  @slice-5 @future
+  Scenario: Las categorías con contenido se pueden descubrir
+    Given las categorías que sí tienen publicaciones
+    When un rastreador pide el sitemap
+    Then las encuentra, y las categorías vacías piden no ser indexadas
+
+  @slice-6 @future
+  Scenario: Una publicación lleva a las demás
+    Given el detalle de una publicación
+    When alguien termina de leerla
+    Then encuentra publicaciones relacionadas, su categoría y quién la vende
+
+  @slice-7 @future
+  Scenario: Los rastreadores de IA saben qué pueden leer
+    Given un asistente que quiere citar el catálogo
+    When pide "/robots.txt" y "/llms.txt"
+    Then encuentra permiso explícito y un índice del sitio en texto

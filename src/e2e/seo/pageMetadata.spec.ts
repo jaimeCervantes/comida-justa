@@ -1,19 +1,9 @@
-import { expect, type Page, test } from "@playwright/test";
+import { expect, test } from "@playwright/test";
+import { canonicalUrl, meta } from "../testUtils/metaTags";
 
 // Slice 2 de docs/features/seo.md.
 // "Jugo Verde" existe en el catálogo con su imagen; no hace falta sembrar nada.
 const JUGO_VERDE = { slug: "jugo-verde", title: "Jugo Verde" };
-
-/** Lee una meta por `name` o por `property`, que es como se declaran Open Graph y las clásicas. */
-async function meta(page: Page, key: string): Promise<string | null> {
-  const byProperty = page.locator(`meta[property="${key}"]`);
-
-  if ((await byProperty.count()) > 0) {
-    return byProperty.first().getAttribute("content");
-  }
-
-  return page.locator(`meta[name="${key}"]`).first().getAttribute("content");
-}
 
 test.describe("Cuando alguien comparte una publicación", () => {
   test("Entonces el enlace lleva su título, su descripción y su imagen", async ({
@@ -31,10 +21,7 @@ test.describe("Cuando alguien comparte una publicación", () => {
     expect(await meta(page, "og:image")).toBeTruthy();
     expect(await meta(page, "og:url")).toContain(`/${JUGO_VERDE.slug}`);
 
-    const canonical = await page
-      .locator('link[rel="canonical"]')
-      .getAttribute("href");
-    expect(canonical).toContain(`/${JUGO_VERDE.slug}`);
+    expect(await canonicalUrl(page)).toContain(`/${JUGO_VERDE.slug}`);
   });
 });
 

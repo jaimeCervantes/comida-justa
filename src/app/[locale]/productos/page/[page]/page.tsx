@@ -17,10 +17,10 @@ function parsePage(value: string): number | null {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { page: pageStr } = await params;
+  const { page: pageStr, locale } = await params;
   const page = parsePage(pageStr);
 
-  return page ? buildProductsMetadata(page) : {};
+  return page ? buildProductsMetadata(resolveLocale(locale), page) : {};
 }
 
 export default async function ProductosPaginatedPage({ params }: Props) {
@@ -54,7 +54,7 @@ export default async function ProductosPaginatedPage({ params }: Props) {
 
       <div className="text-center mt-4">
         <Link href="/productos" className="text-pw-lightgreen hover:underline">
-          Volver a los productos
+          {t("backToList")}
         </Link>
       </div>
     </main>

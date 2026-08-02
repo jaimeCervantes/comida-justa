@@ -78,14 +78,68 @@ consulta; las páginas fijas, de una lista. Un sitemap escrito a mano nace desac
 2. Cada pilar tiene título y descripción propios. ✅
 3. Las páginas de sesión y búsqueda no se indexan. ✅
 
-### Slice 3 — Que el buscador entienda qué vende quién  *(siguiente)*
+### Slice 3 — Que compartir y rastrear digan la verdad  *(entregado)*
 
-- JSON-LD: `Product` con precio y disponibilidad, `Store` con sus sucursales y coordenadas,
-  `Person` para los perfiles, `Organization` + `WebSite` en el home.
+Revisión del 2026-08-02: el sitio cambió debajo de los slices 1 y 2 —i18n con `/en` real, catálogo
+por categorías, `/productos` de toda la comunidad— y aparecieron defectos en lo ya entregado. Este
+slice no agrega SEO nuevo: arregla lo que estaba mintiendo.
+
+- **La imagen de compartir depende del tipo de medio.** `media[0].url` iba a `og:image` sin mirar
+  el tipo, y **8 de las 24 publicaciones son video**: su vista previa en WhatsApp era un hueco. El
+  video se anuncia en `og:video` y la imagen cae al logo, con la tarjeta degradada a `summary`.
+- **Una sola imagen de respaldo** (`DEFAULT_SHARE_IMAGE`). Había dos formas escritas a mano: el
+  dominio completo repetido en cuatro archivos y un `/og-image.jpg` que **no existe** en `public/`,
+  así que la paginación del inicio compartía un 404.
+- **Canónico por idioma y `hreflang`.** El home, `/nosotros`, `/productos` y los pilares fijaban el
+  canónico en español desde cualquier idioma; `/categoria` y `/tienda` hacían lo contrario. Y las
+  legales apuntaban a `/es/condiciones-de-servicio` y `/en/condiciones-de-servicio`, dos direcciones
+  que **no existen**. Ahora cada página traducida es canónica de sí misma y declara su pareja, con
+  `x-default` en español.
+- **El detalle de publicación se queda como está:** su contenido solo existe en español, así que
+  `/en/<slug>` sigue apuntando al español y no declara pareja.
+- **`max-image-preview: large`** (más `max-snippet` y `max-video-preview` sin tope) en el layout.
+- **`site.webmanifest`** tenía `name` y `short_name` vacíos.
+
+**Criterios de aceptación:**
+1. Compartir una publicación en video muestra una imagen, y el `.mp4` va en `og:video`. ✅
+2. Compartir una publicación con foto sigue mostrando su foto en tarjeta grande. ✅
+3. Cada página traducida es canónica de sí misma y declara `es`, `en` y `x-default`. ✅
+4. `/en/<slug>` apunta al español y no declara pareja de idiomas. ✅
+5. Las páginas públicas piden `max-image-preview:large`; las `noindex` no lo heredan. ✅
+
+### Slice 4 — Que el buscador entienda qué vende quién  *(siguiente)*
+
+- JSON-LD: `Product` con precio y disponibilidad, `LocalBusiness` con sus sucursales y coordenadas,
+  `Person` para los perfiles, `Organization` + `WebSite` en el home, `BreadcrumbList`, y
+  `VideoObject` para los 8 anuncios en video.
 
 **Criterios de aceptación:**
 1. Un producto expone precio y disponibilidad en datos estructurados válidos.
 2. Una tienda con sucursal expone su dirección y coordenadas.
+
+### Slice 5 — Que las categorías se puedan descubrir
+
+- Las categorías **con contenido** entran al sitemap (hoy 6 de 10: `alimentacion`, `platillos`,
+  `bebidas`, `panaderia`, `untables`, `jugos`).
+- Las vacías responden 200 con una lista vacía y están enlazadas desde el menú: piden `noindex`
+  mientras no tengan nada.
+- Migas de pan visibles, que además son el `BreadcrumbList` del slice 4.
+
+### Slice 6 — Que una publicación lleve a las demás
+
+- El bloque «relacionadas» del detalle es hoy un `<h2>` vacío. `post_translations.embedding` ya
+  existe, así que las relacionadas semánticas son casi gratis.
+- Enlaces desde el detalle a su categoría, su tienda y su autor: hoy no hay ninguno.
+
+### Slice 7 — GEO
+
+- Política explícita por rastreador de IA en `robots.txt` (`GPTBot`, `OAI-SearchBot`, `ClaudeBot`,
+  `PerplexityBot`, `Google-Extended`…), permitiendo el contenido y cerrando lo privado.
+- `/llms.txt` con el índice del sitio en texto.
+- **Transcripción de los 8 videos**, que es la palanca más grande y la única que no es código: hoy
+  esas páginas tienen título, ~500 caracteres y un archivo que ni un buscador ni un modelo pueden
+  leer.
+- Feed (RSS/JSON) para la ingesta de contenido nuevo.
 
 ## Enfoque de pruebas
 
