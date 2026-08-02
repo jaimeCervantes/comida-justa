@@ -19,6 +19,14 @@ export interface PostJsonLdInput {
   /** Ya absoluta: JSON-LD no tiene `metadataBase` que resuelva una relativa. */
   imageUrl?: string | null;
   videoUrl?: string | null;
+  /**
+   * El texto completo de la publicación, para el video.
+   *
+   * `description` es el recorte de 155 caracteres que cabe en un resultado de búsqueda; en JSON-LD
+   * no hay tal límite, y en un video **el texto es lo único que se puede leer**. Recortarlo ahí
+   * era tirar 1.300 caracteres de los que sí dicen de qué va el video.
+   */
+  longDescription?: string | null;
 }
 
 /**
@@ -84,7 +92,7 @@ function videoNode(input: PostJsonLdInput): JsonLdNode {
     "@context": SCHEMA_CONTEXT,
     "@type": "VideoObject",
     name: input.title,
-    description: input.description,
+    description: input.longDescription || input.description,
     contentUrl: input.videoUrl ?? undefined,
     thumbnailUrl: input.imageUrl ?? undefined,
     uploadDate: input.publishedAt?.toISOString(),

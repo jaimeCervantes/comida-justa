@@ -733,3 +733,77 @@ código: transcribir los ocho videos.
    que ya heredan la regla de sitemap del slice 5.
 3. **Verificar en Search Console** que lo entregado se ve como se espera: datos estructurados,
    `hreflang` y el sitemap con las categorías.
+
+---
+
+## Ajuste al slice 7 — el texto de los videos ya estaba (2026-08-02)
+
+### Qué se corrigió del diagnóstico
+
+Los slices anteriores decían que las 8 publicaciones en video tenían "título, ~500 caracteres y un
+archivo que nadie puede leer", y que transcribirlas era la palanca más grande del sitio. **Eso era
+un error de lectura mío.** El `content` de esas publicaciones trae entre 266 y 1.526 caracteres de
+texto real y estructurado: la descripción del reel, con sus listas numeradas y sus datos.
+
+Lo que **no** hay es una transcripción: el texto cuenta de qué va el video, no lo que se dice en él.
+La distinción no es semántica, es de vocabulario — `VideoObject` tiene `description` y `transcript`,
+y declarar lo uno como lo otro sería afirmar algo falso.
+
+### Decisiones y por qué
+
+**El `VideoObject` declara ahora el texto completo.** Estaba publicando el recorte de 155
+caracteres, que existe para caber en un resultado de búsqueda. En JSON-LD no hay tal límite, y en un
+video **el texto es lo único legible**: en "Funciones del Buen Sueño" se estaban tirando 1.370
+caracteres que explican las cinco funciones del sueño una por una.
+
+**La ristra de hashtags se cae de todos los textos derivados.** 5 de las 24 publicaciones cierran
+con "#BuenSueño #DormirBien #SaludJusta…". En la página se quedan —quien publicó las quiso ahí— pero
+no entran ni en la descripción del buscador, ni en el resumen del feed, ni en el índice para
+asistentes: ahí son relleno que desplaza a las palabras que sí dicen de qué va.
+
+**Se limpia en `buildMetaDescription`, un solo sitio.** Es *la* función que convierte contenido en
+descripción, y la usan las cuatro salidas (metadata, JSON-LD, RSS, `llms.txt`). Hacerlo en cada
+llamador era garantizar que uno se quedara sin limpiar.
+
+**Solo la ristra final, nunca un `#` en medio.** "Calle Melchor Ocampo #2" y "el #1 en ventas" son
+texto, no etiquetas. Hay una tabla de casos que lo afirma, porque es exactamente el destrozo que
+haría un filtro ingenuo.
+
+### Archivos tocados
+
+- **Dominio:** `entities/post/hashtags.ts` (+ prueba); `seo/description.ts` limpia antes de resumir; `longDescription` en `seo/jsonLd/post.ts`.
+- **App:** `[slug]/jsonLd.ts` pasa el texto completo del video.
+
+### Validación
+
+| Comando | Resultado |
+|---|---|
+| `pnpm run typecheck` | limpio |
+| `pnpm run lint` | limpio |
+| `pnpm run test:run` | **587 pruebas**, todas verdes (+8) |
+| `pnpm run test:e2e:run` | **89 escenarios verdes, 3 saltados** |
+
+### Pendiente de decisión del usuario
+
+**Los hashtags siguen dentro de `post_translations.content`.** La tabla tiene una columna `tags`
+—que 9 de 24 filas ya usan y las 8 de video tienen vacía— pensada justo para esto. Moverlos es un
+`UPDATE` sobre publicaciones reales de la base compartida, así que **no se hace sin tu visto bueno**:
+sería un script reversible (se puede reconstruir el texto original concatenando `tags`), pero es
+tocar datos que no son de la suite de pruebas.
+
+Mientras no se muevan, el código ya los ignora donde estorban.
+
+### Recap
+
+El texto de los videos existía y ahora se aprovecha entero: el `VideoObject` declara la descripción
+completa en vez de un recorte de 155 caracteres, y los hashtags dejaron de colarse en descripciones,
+feed e índice. Transcribir lo que se dice en los videos sigue siendo un trabajo que suma —es texto
+único que hoy no existe— pero ya no es "rescatar una página vacía": es duplicar el texto de una
+página que ya dice algo.
+
+### Próximos pasos (opciones)
+
+1. **Decidir lo de los hashtags → columna `tags`** (necesita tu visto bueno para escribir en la base).
+2. **Transcribir de verdad los 8 videos**, si quieres el texto extra: sin formato especial, párrafos
+   normales, visible en la página y declarado como `transcript`.
+3. **Los directorios de productores y negocios locales**, que es la siguiente feature con valor.

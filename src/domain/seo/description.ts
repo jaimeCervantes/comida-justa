@@ -1,3 +1,5 @@
+import { withoutHashtags } from "../entities/post/hashtags";
+
 /** Lo que cabe en un resultado de búsqueda antes de que lo recorten con puntos suspensivos. */
 export const META_DESCRIPTION_MAX_LENGTH = 155;
 
@@ -10,6 +12,10 @@ export const META_DESCRIPTION_MAX_LENGTH = 155;
  *
  * Los saltos de línea y los espacios repetidos se colapsan porque el contenido se escribe en un
  * textarea y llega con la forma que le dio quien publicó, no con la que necesita una meta.
+ *
+ * **La ristra de hashtags del final se cae aquí**, no en cada llamador. Las publicaciones nacieron
+ * como reels y cierran con "#BuenSueño #DormirBien #SaludJusta…": en la página se quedan, pero en
+ * una descripción son relleno que desplaza a las palabras que sí dicen de qué va.
  */
 /** Dónde termina la última palabra completa; el largo entero si no hay ningún espacio. */
 function boundaryBefore(cut: string): number {
@@ -22,7 +28,7 @@ export function buildMetaDescription(
   content: string | null | undefined,
   maxLength: number = META_DESCRIPTION_MAX_LENGTH,
 ): string {
-  const flat = (content ?? "").replace(/\s+/g, " ").trim();
+  const flat = withoutHashtags(content).replace(/\s+/g, " ").trim();
 
   if (flat.length <= maxLength) return flat;
 

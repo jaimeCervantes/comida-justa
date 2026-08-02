@@ -1,3 +1,4 @@
+import { withoutHashtags } from "~/domain/entities/post/hashtags";
 import { PRODUCT_KIND } from "~/domain/entities/post/hazloSanoProduct";
 import { buildMetaDescription } from "~/domain/seo/description";
 import { buildPostJsonLd } from "~/domain/seo/jsonLd/post";
@@ -42,5 +43,6 @@ export function buildPostStructuredData(
     categoryLabel: categoryLabel ?? null,
     imageUrl: ensureAbsoluteUrl(CANONICAL_URL, share.imageUrl),
     videoUrl: share.videoUrl ?? null,
+    longDescription: withoutHashtags(content),
   });
 }
