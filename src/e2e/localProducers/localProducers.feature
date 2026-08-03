@@ -226,18 +226,31 @@ Feature: Quién produce lo declara, qué tan lejos lo dice la distancia
   # Slice 4 — buscar por cercanía, con red de seguridad (@future)
   # ---------------------------------------------------------------------------
 
-  @slice-4 @future
-  Scenario: La búsqueda ordena por cercanía
-    Given un visitante con ubicación conocida
-    When busca un producto que venden varias tiendas
-    Then los resultados vienen del más cercano al más lejano
+  @slice-4
+  Scenario: El catálogo sale del más cercano al más lejano
+    Given una tienda a 2 km y otra a 120 km, cada una con su producto
+    When un visitante con ubicación conocida abre "/productos"
+    Then el de la tienda de 2 km aparece antes que el de la de 120 km
 
-  @slice-4 @future
+  @slice-4
+  Scenario: Lo que no tiene ubicación no desaparece del catálogo
+    Given un producto publicado por alguien sin tienda
+    When un visitante con ubicación conocida abre "/productos"
+    Then el producto sigue apareciendo, al final y sin distancia
+
+  @slice-4
   Scenario: Sin nada cerca se ofrece lo lejano, no una página vacía
-    Given un visitante sin ninguna tienda cerca
-    When busca un producto
+    Given un visitante a cuyo alrededor no hay ninguna tienda dentro de los 50 km
+    When abre "/productos"
     Then se muestran los resultados lejanos
-    And se dice que están lejos
+    And se le dice que eso es lo que hay, aunque quede lejos
+
+  @slice-4
+  Scenario: Sin ubicación, lo más reciente primero
+    Given un visitante que no compartió su ubicación
+    When abre "/productos"
+    Then el catálogo sale por fecha descendente, como siempre
+    And no se le muestra ninguna distancia
 
   # ---------------------------------------------------------------------------
   # Slice 5 — mapa de tiendas al buscar un producto (@future)

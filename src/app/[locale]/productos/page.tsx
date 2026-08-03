@@ -25,7 +25,8 @@ export default async function ProductosPage({
   const locale = resolveLocale(rawLocale);
   setRequestLocale(locale);
   const t = await getTranslations("products");
-  const { products, totalPages } = await getProducts(
+  const tDistance = await getTranslations("distance");
+  const { products, totalPages, nothingNearby } = await getProducts(
     PAGINATION_INIT_PAGE,
     locale,
   );
@@ -35,6 +36,15 @@ export default async function ProductosPage({
       <h1 className="text-xl font-bold mb-2">{t("title")}</h1>
 
       <p className="mb-2">{t("description")}</p>
+
+      {nothingNearby ? (
+        <p
+          data-testid="nothing-nearby"
+          className="mb-2 text-sm text-gray-600 dark:text-gray-400"
+        >
+          {tDistance("nothingNearby")}
+        </p>
+      ) : null}
 
       <ProductsList
         products={products}

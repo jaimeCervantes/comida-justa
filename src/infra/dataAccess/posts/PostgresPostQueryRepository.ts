@@ -3,6 +3,7 @@ import { PRODUCT_KIND } from "~/domain/entities/post/hazloSanoProduct";
 import type { IndexingCounts } from "~/domain/entities/post/indexingReport";
 import { HAZLO_SANO_ORIGIN_PREFIX } from "~/domain/entities/post/origin";
 import type { OriginCount } from "~/domain/entities/post/originReport";
+import type { Coordinates } from "~/domain/entities/seller/coordinates";
 import { db } from "~/infra/dataAccess/db/connection";
 import type {
   IPostQueryRepository,
@@ -33,6 +34,7 @@ interface PostRow {
     content: string;
   }>;
   media: Array<{ url: string; type: string; alt: string | null }>;
+  distance_meters: string | null;
   total_count: number;
   [key: string]: unknown;
 }
@@ -105,6 +107,43 @@ const POST_JOINS: SQL = sql`
         WHERE post_id = p.id
       ) m ON TRUE`;
 
+/**
+ * A qué distancia está la tienda de cada publicación, en metros, o `NULL`.
+ *
+ * `MIN` porque una tienda puede tener varias sucursales y lo que decide es la más cercana. Es un
+ * `LEFT JOIN LATERAL` y no un `JOIN` a secas para que **nada desaparezca del listado por no tener
+ * ubicación**: lo publicado sin tienda, o por una tienda que aún no dio su sucursal, sigue estando
+ * ahí, solo que sin distancia.
+ */
+function distanceColumn(near: Coordinates | null): SQL {
+  if (!near) return sql`NULL::double precision AS distance_meters`;
+
+  return sql`(
+    SELECT MIN(
+      ST_Distance(
+        b.location,
+        ST_SetSRID(ST_MakePoint(${near.longitude}, ${near.latitude}), 4326)::geography
+      )
+    )
+    FROM branches b
+    WHERE b.seller_id = p.seller_id
+  ) AS distance_meters`;
+}
+
+/**
+ * El orden del listado.
+ *
+ * Sin ubicación de quien mira, lo más reciente primero, que es lo que había siempre. Con ella, lo
+ * más cercano primero **y `NULLS LAST`**: quien no tiene ubicación no se elimina de la lista, baja
+ * al final. Por eso no hay filtro por radio aquí — si no hay nada cerca no se devuelve una página
+ * vacía, se devuelve lo que hay diciendo a qué distancia está.
+ */
+function orderClause(near: Coordinates | null): SQL {
+  if (!near) return sql`p.created_at DESC`;
+
+  return sql`distance_meters ASC NULLS LAST, p.created_at DESC`;
+}
+
 /** La misma forma que devuelve `getPaginatedPosts` cuando la consulta no encuentra nada. */
 function emptyPage(page: number): PaginatedPostsResult {
   return {
@@ -127,8 +166,9 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
   async getProducts(
     page: number,
     pageSize: number,
+    near: Coordinates | null = null,
   ): Promise<PaginatedPostsResult> {
-    return this.getPaginatedPosts(PRODUCTS_WHERE, page, pageSize);
+    return this.getPaginatedPosts(PRODUCTS_WHERE, page, pageSize, near);
   }
 
   async getHazloSanoProducts(
@@ -277,15 +317,17 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
     where: SQL,
     page: number,
     pageSize: number,
+    near: Coordinates | null = null,
   ): Promise<PaginatedPostsResult> {
     const offset = (page - 1) * pageSize;
 
     const raw = await db.execute(sql`
       SELECT ${POST_COLUMNS},
+        ${distanceColumn(near)},
         COUNT(*) OVER()::int AS total_count
       ${POST_JOINS}
       WHERE ${where}
-      ORDER BY p.created_at DESC
+      ORDER BY ${orderClause(near)}
       LIMIT ${pageSize} OFFSET ${offset}
     `);
     const rows = raw.rows as unknown as PostRow[];
@@ -366,6 +408,10 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
         },
         translations,
         media: mediaArr,
+        distanceMeters:
+          row.distance_meters === null || row.distance_meters === undefined
+            ? null
+            : Number(row.distance_meters),
         createdAt: row.created_at,
       };
     });

@@ -28,13 +28,17 @@ export default async function ProductosPaginatedPage({ params }: Props) {
   const locale = resolveLocale(rawLocale);
   setRequestLocale(locale);
   const t = await getTranslations("products");
+  const tDistance = await getTranslations("distance");
   const page = parsePage(pageStr);
 
   if (!page) {
     notFound();
   }
 
-  const { products, totalPages } = await getProducts(page, locale);
+  const { products, totalPages, nothingNearby } = await getProducts(
+    page,
+    locale,
+  );
 
   if (products.length === 0 && page > 1) {
     notFound();
@@ -45,6 +49,15 @@ export default async function ProductosPaginatedPage({ params }: Props) {
       <h1 className="text-xl font-bold mb-2">{t("title")}</h1>
 
       <p className="mb-2">{t("description")}</p>
+
+      {nothingNearby ? (
+        <p
+          data-testid="nothing-nearby"
+          className="mb-2 text-sm text-gray-600 dark:text-gray-400"
+        >
+          {tDistance("nothingNearby")}
+        </p>
+      ) : null}
 
       <ProductsList
         products={products}

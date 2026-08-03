@@ -1,5 +1,10 @@
+import { isWithinSustainableRadius } from "~/domain/entities/seller/proximity";
 import { PAGINATION_INIT_PAGE, PAGINATION_PAGE_SIZE } from "~/infra/constants";
-import { createPostQueryRepository } from "~/infra/dataAccess/getMultiplePosts";
+import {
+  createPostQueryRepository,
+  type PostData,
+} from "~/infra/dataAccess/getMultiplePosts";
+import { readVisitorLocation } from "~/infra/location/visitorLocation";
 import type { Post } from "~/infra/types/Posts";
 import { mapPostsToCardsForLocale } from "~/infra/UI/mappers/posts/mapPostsToCardsForLocale";
 
@@ -7,6 +12,13 @@ export type ProductsPageData = {
   products: Post[];
   totalPages: number;
   total: number;
+  /**
+   * Quien mira compartió su ubicación y aun así lo más cercano queda fuera del radio sostenible.
+   *
+   * No cambia lo que se lista —seguir mostrando lo lejano es mejor que una página vacía— pero sí
+   * lo que se le dice: que esto es lo que hay, aunque quede lejos.
+   */
+  nothingNearby: boolean;
 };
 
 /**
@@ -26,12 +38,35 @@ export async function getProducts(
 ): Promise<ProductsPageData> {
   const pageNum = Math.max(PAGINATION_INIT_PAGE, page);
   const postRepo = createPostQueryRepository();
+  const near = await readVisitorLocation();
 
-  const result = await postRepo.getProducts(pageNum, PAGINATION_PAGE_SIZE);
+  const result = await postRepo.getProducts(
+    pageNum,
+    PAGINATION_PAGE_SIZE,
+    near,
+  );
 
   return {
     products: await mapPostsToCardsForLocale(result.posts, locale),
     totalPages: result.totalPages,
     total: result.total,
+    nothingNearby: Boolean(near) && isNothingNearby(result.posts),
   };
+}
+
+/**
+ * ¿Todo lo que salió queda fuera del radio sostenible?
+ *
+ * Se mira la primera fila y no todas: la consulta ya vino ordenada por distancia, así que si la
+ * más cercana está lejos, todas lo están. Una publicación sin distancia (sin tienda, o con tienda
+ * sin sucursal) tampoco cuenta como cercana.
+ */
+function isNothingNearby(posts: readonly PostData[]): boolean {
+  if (posts.length === 0) return false;
+
+  const closest = posts[0].distanceMeters;
+
+  return closest === null || closest === undefined
+    ? true
+    : !isWithinSustainableRadius(closest);
 }

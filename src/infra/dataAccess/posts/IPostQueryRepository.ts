@@ -1,5 +1,6 @@
 import type { IndexingCounts } from "~/domain/entities/post/indexingReport";
 import type { OriginCount } from "~/domain/entities/post/originReport";
+import type { Coordinates } from "~/domain/entities/seller/coordinates";
 import type { PostUser } from "../users/IUserRepository";
 
 export interface PostData {
@@ -22,6 +23,11 @@ export interface PostData {
     { title: string; slug: string; content: string }
   >;
   media: Array<{ url: string; type: string; alt?: string }>;
+  /**
+   * A cuántos metros está la tienda de quien mira. `null` cuando falta cualquiera de las dos
+   * ubicaciones —o cuando el listado ni siquiera preguntó por cercanía—, que es el caso normal.
+   */
+  distanceMeters?: number | null;
   createdAt: Date;
 }
 
@@ -44,7 +50,12 @@ export interface IPostQueryRepository {
    * Es lo que lista `/productos`. No filtra por procedencia a propósito: la página dejó de ser el
    * escaparate de la marca para ser el de la comunidad.
    */
-  getProducts(page: number, pageSize: number): Promise<PaginatedPostsResult>;
+  getProducts(
+    page: number,
+    pageSize: number,
+    /** Dónde está quien mira. Con ella el listado sale por cercanía; sin ella, por fecha. */
+    near?: Coordinates | null,
+  ): Promise<PaginatedPostsResult>;
   /**
    * Solo lo que vende Hazlo Sano: `kind = producto` con `origin` `hazlo_sano_*`.
    *

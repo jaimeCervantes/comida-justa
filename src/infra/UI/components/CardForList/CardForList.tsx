@@ -6,6 +6,7 @@ import CurrencyAmount from "~/infra/UI/components/CurrencyAmount";
 import MediaContent from "~/infra/UI/components/MediaContent/MediaContent";
 import ProvenanceBadge from "~/infra/UI/components/ProvenanceBadge";
 import SoldOutBadge from "~/infra/UI/components/SoldOutBadge/SoldOutBadge";
+import StoreDistance from "~/presentation/location/StoreDistance";
 
 export default function CardForList(props: Post) {
   const {
@@ -18,6 +19,7 @@ export default function CardForList(props: Post) {
     to,
     kind,
     origin,
+    distanceMeters,
     isAvailable,
     categoryLabel,
   } = props;
@@ -42,6 +44,7 @@ export default function CardForList(props: Post) {
         <ProvenanceBadge origin={origin} />
         <CategoryTag label={categoryLabel} />
         <SoldOutBadge kind={kind} isAvailable={isAvailable} />
+        <StoreDistance meters={distanceMeters ?? null} />
       </span>
 
       <CurrencyAmount

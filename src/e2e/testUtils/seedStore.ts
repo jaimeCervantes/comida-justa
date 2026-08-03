@@ -1,9 +1,24 @@
 import { sql } from "drizzle-orm";
+import type { Coordinates } from "~/domain/entities/seller/coordinates";
 import { COMMUNITY_ANCHOR } from "~/domain/entities/seller/proximity";
 import { db } from "~/infra/dataAccess/db/connection";
 
 /** Un grado de latitud son ~111.32 km en cualquier meridiano; mover solo la latitud evita el coseno. */
 const KM_PER_LATITUDE_DEGREE = 111.32;
+
+/**
+ * El punto que está a `km` del ancla sobre el mismo meridiano.
+ *
+ * Lo usan las tiendas sembradas y también los escenarios que necesitan **poner al visitante** en un
+ * sitio concreto: sin eso, un escenario de orden por cercanía compite contra los 13 productos de
+ * Hazlo Sano, cuya sucursal está exactamente en el ancla y que a 0 m copan una página de 4.
+ */
+export function coordinatesAtKm(km: number): Coordinates {
+  return {
+    latitude: COMMUNITY_ANCHOR.latitude + km / KM_PER_LATITUDE_DEGREE,
+    longitude: COMMUNITY_ANCHOR.longitude,
+  };
+}
 
 export type SeededStore = {
   name: string;
@@ -35,8 +50,7 @@ export async function seedStore(
 
   if (branchDistanceKm === null) return;
 
-  const latitude =
-    COMMUNITY_ANCHOR.latitude + branchDistanceKm / KM_PER_LATITUDE_DEGREE;
+  const { latitude } = coordinatesAtKm(branchDistanceKm);
 
   await db.execute(sql`
     INSERT INTO branches (seller_id, name, address, map_url, location)

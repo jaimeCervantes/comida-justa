@@ -49,6 +49,7 @@ export function mapOnePostToCard(item: Post, context: CardMappingContext) {
     price: item.price,
     kind: item.kind,
     origin: item.origin ?? null,
+    distanceMeters: item.distanceMeters ?? null,
     // Las claves se conservan para filtros y analítica; para pintar se usa `categoryLabel`.
     category: item.category ?? null,
     subCategory: item.subCategory ?? null,
