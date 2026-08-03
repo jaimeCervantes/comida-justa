@@ -43,6 +43,8 @@ export interface IPostQueryRepository {
   getMultiplePosts(
     page: number,
     pageSize: number,
+    /** Dónde está quien mira. El home no reordena por cercanía: solo pone la distancia. */
+    near?: Coordinates | null,
   ): Promise<PaginatedPostsResult>;
   /**
    * Todo lo que se vende, sea de quien sea: `kind = producto`, cualquier `origin`.

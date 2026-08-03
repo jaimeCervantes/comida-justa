@@ -10,6 +10,7 @@ import {
   PUBLIC_BRAND_NAME,
 } from "~/infra/constants";
 import { createPostQueryRepository } from "~/infra/dataAccess/getMultiplePosts";
+import { readVisitorLocation } from "~/infra/location/visitorLocation";
 import type { Post } from "~/infra/types/Posts";
 import CardForList from "~/infra/UI/components/CardForList/CardForList";
 import Pagination from "~/infra/UI/components/Pagination";
@@ -56,7 +57,11 @@ async function getPosts(page: number, locale: string) {
   const pageNum = Math.max(PAGINATION_INIT_PAGE, page);
   const postRepo = createPostQueryRepository();
 
-  const result = await postRepo.getMultiplePosts(pageNum, PAGINATION_PAGE_SIZE);
+  const result = await postRepo.getMultiplePosts(
+    pageNum,
+    PAGINATION_PAGE_SIZE,
+    await readVisitorLocation(),
+  );
 
   return {
     ...result,

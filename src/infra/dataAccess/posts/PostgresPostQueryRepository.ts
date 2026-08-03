@@ -133,15 +133,26 @@ function distanceColumn(near: Coordinates | null): SQL {
 /**
  * El orden del listado.
  *
- * Sin ubicación de quien mira, lo más reciente primero, que es lo que había siempre. Con ella, lo
- * más cercano primero **y `NULLS LAST`**: quien no tiene ubicación no se elimina de la lista, baja
- * al final. Por eso no hay filtro por radio aquí — si no hay nada cerca no se devuelve una página
- * vacía, se devuelve lo que hay diciendo a qué distancia está.
+ * Sin ubicación de quien mira, lo más reciente primero, que es lo que había siempre. Con ella —y
+ * si el listado lo pidió— lo más cercano primero **y `NULLS LAST`**: quien no tiene ubicación no se
+ * elimina de la lista, baja al final. Por eso no hay filtro por radio aquí: si no hay nada cerca no
+ * se devuelve una página vacía, se devuelve lo que hay diciendo a qué distancia está.
+ *
+ * Saber la distancia y ordenarse por ella son decisiones **separadas**, y separarlas es lo que deja
+ * al home ser un feed: ahí la distancia es un dato de cada tarjeta, no el criterio, porque lo que
+ * esa página promete es lo último que publicó la comunidad.
  */
-function orderClause(near: Coordinates | null): SQL {
-  if (!near) return sql`p.created_at DESC`;
+function orderClause(near: Coordinates | null, sortByDistance: boolean): SQL {
+  if (!near || !sortByDistance) return sql`p.created_at DESC`;
 
   return sql`distance_meters ASC NULLS LAST, p.created_at DESC`;
+}
+
+interface ListingOptions {
+  /** Dónde está quien mira; sin ella no se calcula ninguna distancia. */
+  near?: Coordinates | null;
+  /** Si además de calcularla, la distancia manda en el orden. */
+  sortByDistance?: boolean;
 }
 
 /** La misma forma que devuelve `getPaginatedPosts` cuando la consulta no encuentra nada. */
@@ -159,8 +170,13 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
   async getMultiplePosts(
     page: number,
     pageSize: number,
+    near: Coordinates | null = null,
   ): Promise<PaginatedPostsResult> {
-    return this.getPaginatedPosts(ALL_POSTS_WHERE, page, pageSize);
+    // El home es un feed: gana la distancia, conserva el orden cronológico.
+    return this.getPaginatedPosts(ALL_POSTS_WHERE, page, pageSize, {
+      near,
+      sortByDistance: false,
+    });
   }
 
   async getProducts(
@@ -168,7 +184,10 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
     pageSize: number,
     near: Coordinates | null = null,
   ): Promise<PaginatedPostsResult> {
-    return this.getPaginatedPosts(PRODUCTS_WHERE, page, pageSize, near);
+    return this.getPaginatedPosts(PRODUCTS_WHERE, page, pageSize, {
+      near,
+      sortByDistance: true,
+    });
   }
 
   async getHazloSanoProducts(
@@ -317,9 +336,10 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
     where: SQL,
     page: number,
     pageSize: number,
-    near: Coordinates | null = null,
+    options: ListingOptions = {},
   ): Promise<PaginatedPostsResult> {
     const offset = (page - 1) * pageSize;
+    const near = options.near ?? null;
 
     const raw = await db.execute(sql`
       SELECT ${POST_COLUMNS},
@@ -327,7 +347,7 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
         COUNT(*) OVER()::int AS total_count
       ${POST_JOINS}
       WHERE ${where}
-      ORDER BY ${orderClause(near)}
+      ORDER BY ${orderClause(near, options.sortByDistance ?? false)}
       LIMIT ${pageSize} OFFSET ${offset}
     `);
     const rows = raw.rows as unknown as PostRow[];

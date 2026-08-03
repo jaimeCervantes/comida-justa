@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { hasLocale } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import PostsWithLoadMore from "~/app/(home)/PostsWithLoadMore";
+import type { Coordinates } from "~/domain/entities/seller/coordinates";
 import { buildSiteJsonLd } from "~/domain/seo/jsonLd/site";
 import { ensureAbsoluteUrl } from "~/domain/seo/url";
 import { resolveLocale, routing } from "~/i18n/routing";
@@ -15,8 +16,10 @@ import {
   PUBLIC_BRAND_NAME,
 } from "~/infra/constants";
 import { createPostQueryRepository } from "~/infra/dataAccess/getMultiplePosts";
+import { readViewerLocationContext } from "~/infra/location/viewerLocationContext";
 import { mapPostsToCardsForLocale } from "~/infra/UI/mappers/posts/mapPostsToCardsForLocale";
 import { localizedAlternates } from "~/infra/UI/metadata/alternates";
+import LocationNotice from "~/presentation/location/LocationNotice";
 import JsonLd from "~/presentation/seo/JsonLd";
 
 export async function generateMetadata({
@@ -53,12 +56,21 @@ export async function generateMetadata({
   };
 }
 
-async function getPosts(locale: string) {
+/**
+ * El home mantiene su orden cronológico y **solo** gana distancias.
+ *
+ * Es un feed: lo que promete es lo último que publicó la comunidad, y reordenarlo por cercanía
+ * rompería esa promesa —quien entra a ver qué hay de nuevo dejaría de verlo—. El orden por cercanía
+ * es del catálogo, donde la pregunta es "¿dónde compro esto?". Aquí la distancia es un dato de cada
+ * tarjeta, no un criterio.
+ */
+async function getPosts(locale: string, near: Coordinates | null) {
   const postRepo = createPostQueryRepository();
 
   const result = await postRepo.getMultiplePosts(
     PAGINATION_INIT_PAGE,
     PAGINATION_PAGE_SIZE,
+    near,
   );
 
   return {
@@ -76,7 +88,8 @@ export default async function Inicio({
   const locale = resolveLocale(rawLocale);
   setRequestLocale(locale);
   const t = await getTranslations({ locale, namespace: "home" });
-  const { posts, total, totalPages } = await getPosts(locale);
+  const { visitor, showSellerCta } = await readViewerLocationContext();
+  const { posts, total, totalPages } = await getPosts(locale, visitor);
 
   return (
     <main className="">
@@ -97,6 +110,8 @@ export default async function Inicio({
       <p className="mb-2">{t("p1")}</p>
 
       <p>{t("p2")}</p>
+
+      {visitor ? null : <LocationNotice showSellerCta={showSellerCta} />}
 
       <PostsWithLoadMore
         initialPosts={posts}

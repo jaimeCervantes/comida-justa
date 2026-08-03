@@ -10,7 +10,7 @@ import {
   type PostData,
 } from "~/infra/dataAccess/getMultiplePosts";
 import { listStoresToMap } from "~/infra/dataAccess/sellers/PostgresNearbyStores";
-import { readVisitorLocation } from "~/infra/location/visitorLocation";
+import { readViewerLocationContext } from "~/infra/location/viewerLocationContext";
 import type { Post } from "~/infra/types/Posts";
 import { mapPostsToCardsForLocale } from "~/infra/UI/mappers/posts/mapPostsToCardsForLocale";
 
@@ -25,8 +25,10 @@ export type ProductsPageData = {
    * lo que se le dice: que esto es lo que hay, aunque quede lejos.
    */
   nothingNearby: boolean;
-  /** Dónde está quien mira, o `null`: es lo que decide si hay mapa que pintar. */
+  /** Dónde está quien mira, o `null`: decide si hay mapa que pintar y si hace falta el aviso. */
   visitor: Coordinates | null;
+  /** Si conviene invitar a abrir tienda en el aviso de ubicación. */
+  showSellerCta: boolean;
   /** Las tiendas que se pueden situar en ese mapa, de la más cercana a la más lejana. */
   storesToMap: MappedStore[];
 };
@@ -48,7 +50,7 @@ export async function getProducts(
 ): Promise<ProductsPageData> {
   const pageNum = Math.max(PAGINATION_INIT_PAGE, page);
   const postRepo = createPostQueryRepository();
-  const near = await readVisitorLocation();
+  const { visitor: near, showSellerCta } = await readViewerLocationContext();
 
   const result = await postRepo.getProducts(
     pageNum,
@@ -62,6 +64,7 @@ export async function getProducts(
     total: result.total,
     nothingNearby: Boolean(near) && isNothingNearby(result.posts),
     visitor: near,
+    showSellerCta,
     // Sin ubicación de quien mira no hay mapa: un mapa donde no te ves no ayuda a decidir.
     storesToMap: near ? await listStoresToMap(near, MAP_STORES_LIMIT) : [],
   };

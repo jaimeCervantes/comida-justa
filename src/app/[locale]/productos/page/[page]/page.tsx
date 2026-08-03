@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "~/i18n/navigation";
 import { resolveLocale } from "~/i18n/routing";
+import LocationNotice from "~/presentation/location/LocationNotice";
 import StoresMap from "~/presentation/location/StoresMap";
 import { getProducts } from "../../data";
 import { buildProductsMetadata } from "../../metadata";
@@ -36,8 +37,14 @@ export default async function ProductosPaginatedPage({ params }: Props) {
     notFound();
   }
 
-  const { products, totalPages, nothingNearby, visitor, storesToMap } =
-    await getProducts(page, locale);
+  const {
+    products,
+    totalPages,
+    nothingNearby,
+    visitor,
+    storesToMap,
+    showSellerCta,
+  } = await getProducts(page, locale);
 
   if (products.length === 0 && page > 1) {
     notFound();
@@ -58,7 +65,11 @@ export default async function ProductosPaginatedPage({ params }: Props) {
         </p>
       ) : null}
 
-      {visitor ? <StoresMap visitor={visitor} stores={storesToMap} /> : null}
+      {visitor ? (
+        <StoresMap visitor={visitor} stores={storesToMap} />
+      ) : (
+        <LocationNotice showSellerCta={showSellerCta} />
+      )}
 
       <ProductsList
         products={products}

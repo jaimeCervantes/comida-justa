@@ -269,6 +269,65 @@ Feature: Quién produce lo declara, qué tan lejos lo dice la distancia
     When abre "/productos"
     Then no se pinta ningún mapa
 
+  # ---------------------------------------------------------------------------
+  # Slice 6 — la cercanía en todo el sitio, y por qué falta cuando falta
+  # ---------------------------------------------------------------------------
+
+  @slice-6
+  Scenario: El home también pide la ubicación y pone distancias
+    Given un visitante con ubicación conocida
+    When abre el home
+    Then cada publicación de una tienda con sucursal dice a qué distancia está
+    And el orden sigue siendo cronológico, porque el home es un feed
+
+  @slice-6
+  Scenario Outline: La distancia solo aparece donde hay a quién medirla
+    Given una publicación de tipo "<kind>" publicada por <autor>
+    When un visitante con ubicación conocida la ve en el home
+    Then la distancia <resultado>
+
+    Examples:
+      | kind     | autor                              | resultado                          |
+      | producto | una tienda con sucursal            | se muestra                         |
+      | anuncio  | una tienda con sucursal            | se muestra: un aviso también ocurre en algún lado |
+      | producto | una tienda sin sucursal            | no se muestra: no hay dónde medir  |
+      | anuncio  | alguien que todavía no es vendedor | no se muestra: no hay tienda       |
+
+  @slice-6
+  Scenario Outline: Cada sección dice por qué no está mostrando cercanía
+    Given un visitante que no compartió su ubicación
+    When abre "<seccion>"
+    Then se le explica que sin su ubicación no hay cercanía que mostrar
+    And se le ofrece compartirla
+
+    Examples:
+      | seccion               |
+      | /                     |
+      | /productos            |
+      | /negocios-locales     |
+      | /productores-locales  |
+
+  @slice-6
+  Scenario: Negarse recibe un incentivo, no un reproche
+    Given un visitante en el home
+    When niega el permiso de ubicación
+    Then se le dice qué se gana compartiéndola, no que hizo algo mal
+    And puede volver a compartirla cuando quiera
+
+  @slice-6
+  Scenario: A quien no vende se le explica que vender exige tienda con ubicación
+    Given un visitante sin tienda y sin ubicación compartida
+    When abre cualquiera de las secciones
+    Then se le dice que para que lo encuentren por cercanía necesita abrir su tienda
+    And se le enlaza a "/cuenta"
+
+  @slice-6
+  Scenario: A quien ya tiene tienda no se le repite el consejo
+    Given un vendedor con tienda, sin ubicación compartida
+    When abre el home
+    Then ve el aviso de ubicación
+    But no ve la invitación a abrir tienda
+
   @slice-5 @component
   Scenario Outline: El encuadre incluye a quien mira
     Given un visitante y <tiendas> tienda(s) que situar

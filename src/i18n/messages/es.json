@@ -195,12 +195,18 @@
   },
   "distance": {
     "denied": "Sin tu ubicación no podemos decirte qué tan cerca está; lo más reciente sigue primero.",
+    "deniedNotice": "No compartiste tu ubicación, así que seguimos sin poder mostrarte cercanía.",
+    "incentive": "Compartirla es lo que distingue lo que está a dos cuadras de lo que está a dos horas: con ella verás primero a quien te queda de camino, y a quién le puedes comprar hoy mismo.",
     "kilometers": "a {value} km",
     "locating": "Buscando dónde estás…",
     "mapHeading": "Dónde están estas tiendas",
     "meters": "a {value} m",
     "nothingNearby": "No hay nada cerca de ti todavía. Esto es lo que hay, aunque quede lejos.",
+    "noticeIdle": "No sabemos dónde estás, así que no podemos decirte qué tan cerca te queda cada cosa.",
+    "sellerCta": "¿Vendes algo? Para que te encuentren por cercanía necesitas abrir tu tienda y darle la ubicación de tu sucursal.",
+    "sellerCtaLink": "Abre tu tienda",
     "share": "Ver a qué distancia está",
+    "shareAgain": "Compartir mi ubicación",
     "youAreHere": "Aquí estás tú"
   },
   "edit": {

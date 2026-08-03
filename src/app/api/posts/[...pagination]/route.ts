@@ -1,6 +1,7 @@
 import { routing } from "~/i18n/routing";
 import { PAGINATION_INIT_PAGE, PAGINATION_PAGE_SIZE } from "~/infra/constants";
 import { createPostQueryRepository } from "~/infra/dataAccess/getMultiplePosts";
+import { readVisitorLocation } from "~/infra/location/visitorLocation";
 import { mapPostsToCardsForLocale } from "~/infra/UI/mappers/posts/mapPostsToCardsForLocale";
 
 /** El scroll infinito manda el idioma para que la página 2 no vuelva al español. */
@@ -22,7 +23,13 @@ export async function GET(
   try {
     const postRepo = createPostQueryRepository();
 
-    const result = await postRepo.getMultiplePosts(page, pageSize);
+    // La misma ubicación que usó el primer render: si la página 2 llegara sin ella, las tarjetas
+    // perderían la distancia a medio scroll y parecería que el dato se agota.
+    const result = await postRepo.getMultiplePosts(
+      page,
+      pageSize,
+      await readVisitorLocation(),
+    );
 
     const posts = await mapPostsToCardsForLocale(
       result.posts,
