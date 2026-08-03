@@ -133,3 +133,216 @@ procedencia mal declarada: el formulario de edición sigue sin el campo.
 
 **Pendiente del usuario:** qué se le enseña a un visitante anónimo que niega el permiso de
 ubicación (bloquea el slice 3, no los demás).
+
+## Slice 2 — corregir la procedencia de lo ya publicado (2026-08-03)
+
+### Objetivo
+
+Cerrar el camino sin retorno que dejó el slice 1: quien declaraba mal su procedencia no podía
+corregirla desde ninguna pantalla, ni siquiera siendo admin, porque `EditPostForm` nunca tuvo el
+campo.
+
+### Decisiones y por qué
+
+**`validateNewPost` desaparece.** Es la mejor parte del slice y es una resta, no una suma. Ese
+método existía por una sola razón: la edición validaba sin recibir el `origin`, y exigir lo que la
+pantalla no pregunta habría roto los trece productos que ya existían. Al darle el campo a la
+edición el motivo se acabó, y la regla vuelve a `validate` junto a la del precio, que es donde se
+lee de corrido. Una abstracción que nació de una limitación temporal debe morir con ella.
+
+**La defensa de servidor se repite, no se comparte.** `updatePost` llama a `resolveOriginForUser`
+igual que publicar, con su propio `isAdmin`. Compartir el trámite habría significado una función
+que recibe `FormData` y una sesión, o sea acoplar dos acciones que hoy coinciden por casualidad.
+
+**Corregir es también ponerse al día.** El único producto sin procedencia —el anterior a la regla—
+se arregla por aquí, sin que nadie entre a la base. El e2e de edición que ya existía se volvió el
+escenario de eso: sembraba un producto sin procedencia y ahora, además, la declara.
+
+### Archivos tocados
+
+- **Dominio:** `PostValidator.ts` (la regla vuelve a `validate`), `types.ts` (`IPostValidator`
+  encoge).
+- **Use cases:** `updateOnePostUseCase.ts` (procedencia en la entrada y en la validación),
+  `createOnePostUseCase.ts`, `mocks.ts`.
+- **Puertos/infra:** `IPostAdminRepository.ts` (`EditablePost` y `PostContentUpdate` ganan
+  `origin`), `PostgresPostAdminRepository.ts` (lo lee y lo escribe).
+- **App:** `editar/[slug]/actions.ts`, `editar/[slug]/page.tsx`, `ui/EditPostForm.tsx`.
+- **Pruebas:** `PostValidator.test.ts`, `managePost.test.ts`, `readPostRow.ts`,
+  `managePost.spec.ts`, `fixProvenance.spec.ts` (**nuevo**).
+
+### Validación
+
+- `typecheck` limpio, `test:run` **624/624**, `lint` sin errores.
+- e2e de las áreas tocadas (`localProducers`, `sellerStore`): **31/31**.
+
+### Recap
+
+Una procedencia mal declarada ya se corrige desde la pantalla de edición, con las mismas reglas de
+rol y la misma defensa en servidor que al publicar. El desdoble del validador se fue con el motivo
+que lo justificaba.
+
+### Próximos pasos (opciones)
+
+1. Slice 3 — la distancia en el producto.
+2. Slice 4 — orden por cercanía.
+
+**Pendiente del usuario:** qué se le enseña a quien niega el permiso de ubicación.
+
+## Slice 3 — la distancia en el producto (2026-08-03)
+
+### Objetivo
+
+Que la publicación diga a qué distancia está la tienda de quien la mira. Es la mitad que le faltaba
+a la promesa: saber quién produce no sirve si no se sabe quién está cerca.
+
+### Decisiones y por qué
+
+**Dos fuentes para la ubicación del visitante, y en orden.** Primero la cookie que deja el botón
+—lo más reciente y lo más explícito—, luego `users.last_latitude`, que **el bot de WhatsApp ya
+llenaba** desde su migración `69113f019ca5`. Ese hallazgo cambió el slice: quien ya habló con el bot
+ve distancias sin que el sitio le pida nada. Compartirla desde la web escribe las dos, para que no
+haya dos verdades sobre dónde está la misma persona.
+
+**Negar el permiso no es un error que haya que remediar.** Se dice una vez y el sitio sigue como
+antes: sin distancias y con lo más reciente primero. Fue decisión del usuario, y evita la pantalla
+que ruega.
+
+**El dominio devuelve número y unidad, no texto.** `describeDistance` da valor y unidad, y la
+traducción la pone el catálogo. Y redondea: metros enteros, kilómetros con un decimal. Cuatro
+decimales de kilómetro no ayudan a decidir a nadie, y fingir precisión sobre una coordenada de
+navegador es fingir dos veces.
+
+**El módulo de la cookie se separó del que lee la ubicación.** No por gusto: el segundo arrastra
+`next-auth` y la suite de Playwright reventaba al importar la constante. Lo descubrió el primer
+intento de correrla.
+
+### Archivos tocados
+
+- **Dominio:** `distance.ts` y su test (**nuevos**).
+- **Infra:** `location/locationCookie.ts`, `location/visitorLocation.ts`,
+  `dataAccess/sellers/PostgresPostDistance.ts` (**nuevos**).
+- **Presentación:** `location/StoreDistance.tsx`, `location/ShareLocationButton.tsx`,
+  `location/actions.ts` (**nuevos**).
+- **App:** `[slug]/page.tsx` (resuelve la distancia), `[slug]/ui/PostDetail.tsx`.
+- **i18n:** espacio `distance` nuevo en los dos catálogos.
+
+### Validación
+
+- `typecheck` limpio, `test:run` **638/638**, `lint` sin errores, e2e de `localProducers` **7/7**.
+
+### Recap
+
+La publicación dice a cuántos metros o kilómetros está su tienda cuando se saben las dos
+ubicaciones, y ofrece compartir la propia cuando falta. Sin ubicación no se inventa nada.
+
+### Próximos pasos (opciones)
+
+1. Slice 4 — que el catálogo entero salga por cercanía.
+2. Slice 5 — el mapa.
+
+## Slice 4 — el catálogo por cercanía (2026-08-03)
+
+### Objetivo
+
+Que el catálogo salga de lo más cercano a lo más lejano, con la red de seguridad que pidió el
+usuario: si no hay nada cerca, mostrar lo lejano en vez de una página vacía.
+
+### Decisiones y por qué
+
+**`NULLS LAST` y la ausencia de filtro por radio son la misma decisión.** Nada desaparece del
+catálogo por no tener ubicación: lo publicado sin tienda, o por una tienda sin sucursal, baja al
+final en vez de esfumarse. Y como no hay filtro, la red de seguridad no necesita código aparte —
+sale sola de cómo está escrito el orden. Lo único que se añadió es el renglón que lo dice.
+
+**El aviso mira la primera fila, no todas.** La consulta ya viene ordenada por distancia: si la más
+cercana está lejos, todas lo están.
+
+**Sin ubicación, por fecha descendente, exactamente como antes.** No compartir la ubicación no
+degrada el sitio; lo deja como estaba.
+
+### El fallo que enseñó algo
+
+El escenario del orden falló en la primera corrida y la causa vale más que el arreglo: **la sucursal
+de Hazlo Sano está en el ancla**, así que sus trece productos quedan a cero metros y llenan enteras
+las páginas de cuatro. El orden estaba bien y la prueba no podía verlo. Se arregló plantando al
+visitante a 350 m de la tienda sembrada en vez de en el ancla. La segunda lección vino de la cifra:
+la siembra desplaza la latitud con 111.32 km por grado y PostGIS mide sobre el elipsoide, así que
+los 350 m salen como 348 — el escenario afirma la unidad y el orden de magnitud, no la geodesia.
+
+### Archivos tocados
+
+- **Infra:** `PostgresPostQueryRepository.ts` (columna de distancia y cláusula de orden),
+  `IPostQueryRepository.ts`, `mapPostsToCards.ts`, `CardForList.tsx`.
+- **App:** `productos/data.ts` y las dos páginas del catálogo.
+- **e2e:** `nearbyFirst.spec.ts` (**nuevo**), `seedStore.ts` (`coordinatesAtKm`).
+
+### Validación
+
+- `typecheck` limpio, `test:run` **638/638**, `lint` sin errores, e2e de `localProducers` **10/10**.
+
+### Recap
+
+El catálogo sale por cercanía cuando se sabe dónde está quien mira, cada tarjeta dice su distancia,
+y cuando todo queda fuera de los 50 km se muestra igual, diciéndolo.
+
+### Próximos pasos (opciones)
+
+1. Slice 5 — el mapa.
+2. Llevar el orden por cercanía a la búsqueda y a las categorías.
+
+## Slice 5 — el mapa de tiendas (2026-08-03)
+
+### Objetivo
+
+Poder elegir por cercanía **viéndolo**, que no es la misma pregunta que responde la lista: esta dice
+cuál está más cerca, el mapa dice cuál queda de camino.
+
+### Decisiones y por qué
+
+**Leaflet con teselas de OpenStreetMap.** Sin llave de API y sin cuenta que administrar, que para un
+sitio de pueblo es la diferencia entre tener mapa y no tenerlo. Entran dos dependencias nuevas
+(`leaflet`, `react-leaflet`) y es la primera vez en esta feature que se añade una: los cuatro slices
+anteriores salieron con lo que ya había.
+
+**`next/dynamic` con `ssr: false`, y aquí sí está justificado.** Leaflet toca `window` al
+importarse; renderizarlo en el servidor revienta la página. Por eso el mapa vive en su propio módulo
+(`StoresMapCanvas`) en lugar de detrás de una condición.
+
+**Pines de HTML, no los iconos del paquete.** Los de Leaflet se referencian por ruta relativa a su
+CSS, y con el bundler de Next esa ruta no existe: salen marcadores rotos. Un `divIcon` no depende de
+ningún asset, así que no hay nada que se pueda romper al mover un archivo.
+
+**El encuadre incluye al visitante.** Un mapa donde no te ves no sirve para decidir. Y sin tiendas
+que situar no se pinta nada: un mapa con un solo pin —el tuyo— no dice nada.
+
+**El `data-testid` va en el contenedor, no en el `MapContainer`.** react-leaflet solo reenvía
+`className`, `id` y `style` al div del mapa y se come el resto. Lo descubrió la prueba.
+
+### Archivos tocados
+
+- **Dominio:** `map.ts` y su test (**nuevos**): el encuadre y el límite de pines.
+- **Infra:** `PostgresNearbyStores.ts` (**nuevo**).
+- **Presentación:** `StoresMap.tsx`, `StoresMapCanvas.tsx` (**nuevos**).
+- **App:** `productos/data.ts` y las dos páginas del catálogo.
+- **Dependencias:** `leaflet`, `react-leaflet`, `@types/leaflet`.
+
+### Validación
+
+- `typecheck` limpio, `test:run` **641/641**, `lint` sin errores, e2e del mapa **2/2**.
+
+### Recap
+
+Los cinco slices están entregados. Quien publica un producto declara si lo hace o lo revende y de
+qué tan lejos lo trae; la distancia decide qué es local; el directorio de productores se llena solo;
+la publicación y el catálogo dicen a qué distancia está cada tienda; el catálogo sale por cercanía
+con red de seguridad; y un mapa sitúa las tiendas junto a quien mira.
+
+### Próximos pasos (opciones)
+
+1. **Llevar la cercanía al resto del sitio:** la búsqueda, las categorías y `/negocios-locales`
+   siguen saliendo por fecha o por nombre. El orden ya está escrito y es un parámetro más.
+2. **Ordenar `/productores-locales` por cercanía**, que hoy sale por nombre.
+3. **El ancla deja de ser constante** el día que el sitio sirva a más de un pueblo: pasa a ser un
+   parámetro de la consulta, el pueblo del visitante o el de la tienda.
+4. **Medir**: cuántas tiendas completan su sucursal ahora que sin ubicación no entran a productores.
+   Es la hipótesis de incentivo de todo el roadmap, y hoy no se está midiendo.

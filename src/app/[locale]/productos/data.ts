@@ -1,9 +1,15 @@
+import type { Coordinates } from "~/domain/entities/seller/coordinates";
+import {
+  MAP_STORES_LIMIT,
+  type MappedStore,
+} from "~/domain/entities/seller/map";
 import { isWithinSustainableRadius } from "~/domain/entities/seller/proximity";
 import { PAGINATION_INIT_PAGE, PAGINATION_PAGE_SIZE } from "~/infra/constants";
 import {
   createPostQueryRepository,
   type PostData,
 } from "~/infra/dataAccess/getMultiplePosts";
+import { listStoresToMap } from "~/infra/dataAccess/sellers/PostgresNearbyStores";
 import { readVisitorLocation } from "~/infra/location/visitorLocation";
 import type { Post } from "~/infra/types/Posts";
 import { mapPostsToCardsForLocale } from "~/infra/UI/mappers/posts/mapPostsToCardsForLocale";
@@ -19,6 +25,10 @@ export type ProductsPageData = {
    * lo que se le dice: que esto es lo que hay, aunque quede lejos.
    */
   nothingNearby: boolean;
+  /** Dónde está quien mira, o `null`: es lo que decide si hay mapa que pintar. */
+  visitor: Coordinates | null;
+  /** Las tiendas que se pueden situar en ese mapa, de la más cercana a la más lejana. */
+  storesToMap: MappedStore[];
 };
 
 /**
@@ -51,6 +61,9 @@ export async function getProducts(
     totalPages: result.totalPages,
     total: result.total,
     nothingNearby: Boolean(near) && isNothingNearby(result.posts),
+    visitor: near,
+    // Sin ubicación de quien mira no hay mapa: un mapa donde no te ves no ayuda a decidir.
+    storesToMap: near ? await listStoresToMap(near, MAP_STORES_LIMIT) : [],
   };
 }
 

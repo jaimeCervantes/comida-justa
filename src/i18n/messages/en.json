@@ -197,9 +197,11 @@
     "denied": "Without your location we cannot tell you how close it is; the newest still comes first.",
     "kilometers": "{value} km away",
     "locating": "Finding where you are…",
+    "mapHeading": "Where these stores are",
     "meters": "{value} m away",
     "nothingNearby": "Nothing near you yet. This is what there is, even if it is far.",
-    "share": "See how far it is"
+    "share": "See how far it is",
+    "youAreHere": "You are here"
   },
   "edit": {
     "metaTitle": "Edit publication",

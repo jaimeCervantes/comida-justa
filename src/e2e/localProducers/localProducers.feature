@@ -256,8 +256,25 @@ Feature: Quién produce lo declara, qué tan lejos lo dice la distancia
   # Slice 5 — mapa de tiendas al buscar un producto (@future)
   # ---------------------------------------------------------------------------
 
-  @slice-5 @future
+  @slice-5
   Scenario: Veo en un mapa qué tiendas venden lo que busco
-    Given un visitante buscando un producto
-    Then un mapa sitúa las tiendas que lo venden
-    And puede elegir por cercanía viéndolo, no leyendo una cifra
+    Given un visitante con ubicación conocida en "/productos"
+    Then un mapa sitúa las tiendas que tienen catálogo y dirección pública
+    And se sitúa también a él, porque un mapa donde no te ves no ayuda a decidir
+    And cada pin enlaza a la tienda y dice a qué distancia está
+
+  @slice-5
+  Scenario: Sin ubicación no hay mapa
+    Given un visitante que no compartió su ubicación
+    When abre "/productos"
+    Then no se pinta ningún mapa
+
+  @slice-5 @component
+  Scenario Outline: El encuadre incluye a quien mira
+    Given un visitante y <tiendas> tienda(s) que situar
+    Then el encuadre <resultado>
+
+    Examples:
+      | tiendas | resultado                                        |
+      | 2       | va del extremo más al sur al más al norte de los tres |
+      | 0       | no existe: un mapa con un solo pin no dice nada  |

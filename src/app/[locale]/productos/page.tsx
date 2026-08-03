@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { resolveLocale } from "~/i18n/routing";
 import { PAGINATION_INIT_PAGE } from "~/infra/constants";
+import StoresMap from "~/presentation/location/StoresMap";
 import { getProducts } from "./data";
 import { buildProductsMetadata } from "./metadata";
 import ProductsList from "./ui/ProductsList";
@@ -26,10 +27,8 @@ export default async function ProductosPage({
   setRequestLocale(locale);
   const t = await getTranslations("products");
   const tDistance = await getTranslations("distance");
-  const { products, totalPages, nothingNearby } = await getProducts(
-    PAGINATION_INIT_PAGE,
-    locale,
-  );
+  const { products, totalPages, nothingNearby, visitor, storesToMap } =
+    await getProducts(PAGINATION_INIT_PAGE, locale);
 
   return (
     <main>
@@ -45,6 +44,8 @@ export default async function ProductosPage({
           {tDistance("nothingNearby")}
         </p>
       ) : null}
+
+      {visitor ? <StoresMap visitor={visitor} stores={storesToMap} /> : null}
 
       <ProductsList
         products={products}

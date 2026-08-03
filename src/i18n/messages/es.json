@@ -197,9 +197,11 @@
     "denied": "Sin tu ubicación no podemos decirte qué tan cerca está; lo más reciente sigue primero.",
     "kilometers": "a {value} km",
     "locating": "Buscando dónde estás…",
+    "mapHeading": "Dónde están estas tiendas",
     "meters": "a {value} m",
     "nothingNearby": "No hay nada cerca de ti todavía. Esto es lo que hay, aunque quede lejos.",
-    "share": "Ver a qué distancia está"
+    "share": "Ver a qué distancia está",
+    "youAreHere": "Aquí estás tú"
   },
   "edit": {
     "metaTitle": "Editar publicación",

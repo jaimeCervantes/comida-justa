@@ -1,13 +1,14 @@
 # Feature: quién produce lo declara al publicar (y luego, quién está cerca)
 
 `/productores-locales` existe desde el slice 1 de `docs/features/secciones-comunidad.md` y su regla
-es buena: una tienda entra al directorio el día que publica algo con `origin = 'productor_local'`,
-sin que nadie la marque a mano. El problema es que **hoy nadie puede publicar eso**: el selector de
-procedencia está detrás de `isAdmin` en `PublishForm.tsx:152`, así que la única persona que puede
-declarar "esto lo hago yo" es quien administra el sitio, a mano, publicación por publicación.
+era buena: una tienda entra al directorio el día que publica algo que ella misma hace, sin que nadie
+la marque a mano. El problema era que **nadie podía publicar eso**: el selector de procedencia vivía
+detrás de `isAdmin`, así que la única persona que podía declarar "esto lo hago yo" era quien
+administra el sitio, a mano, publicación por publicación.
 
-Este documento es el **checkpoint de revisión** del roadmap. Escrito el **2026-08-02**, con los
-datos de la base a esa fecha.
+Este documento fue el **checkpoint de revisión** del roadmap. Escrito el **2026-08-02** con los
+datos de la base a esa fecha; los cinco slices quedaron entregados el **2026-08-03**. La bitácora
+de al lado (`productores-locales-bitacora.md`) narra lo que enseñó cada uno.
 
 ## Problema / Savings / Why
 
@@ -131,7 +132,7 @@ Son **tres** opciones para un vendedor —una sola pregunta, no dos— y cinco p
 
 ## Slices
 
-### Slice 1 — el vendedor declara la procedencia de su producto *(el actual)*
+### Slice 1 — el vendedor declara la procedencia de su producto *(entregado)*
 
 **Alcance:**
 
@@ -160,13 +161,13 @@ Son **tres** opciones para un vendedor —una sola pregunta, no dos— y cinco p
 **Fuera de alcance a propósito:** corregir la procedencia de algo ya publicado. `EditPostForm` no
 tiene el campo (ni lo tenía para el admin), así que el hueco no lo abre este slice. Va al slice 2.
 
-### Slice 2 — corregir la procedencia de lo ya publicado *(@future)*
+### Slice 2 — corregir la procedencia de lo ya publicado *(entregado)*
 
 El mismo selector en `EditPostForm`, con las mismas reglas de rol. Es lo que vuelve reversible una
 declaración equivocada y lo que deja al admin arreglar una falsa sin entrar a la base. También es
 por donde el único producto viejo sin procedencia puede ponerse al día.
 
-### Slice 3 — la distancia en el producto *(@future)*
+### Slice 3 — la distancia en el producto *(entregado)*
 
 Mostrar a qué distancia está lo que se está viendo: **metros por debajo de 1 km, kilómetros por
 encima**. La base ya lo soporta: `branches.location` es un `geography(POINT,4326)` de PostGIS y
@@ -184,13 +185,13 @@ La ubicación del visitante ya está medio resuelta y conviene dejarlo escrito:
 - Queda abierto qué se enseña a un visitante anónimo que niega el permiso, y qué pasa con lo
   publicado por alguien **sin tienda**: hoy no tiene ubicación de ninguna clase.
 
-### Slice 4 — buscar por cercanía, con red de seguridad *(@future)*
+### Slice 4 — buscar por cercanía, con red de seguridad *(entregado)*
 
 El listado y la búsqueda ordenan por distancia. Y la regla que pidió el usuario: **si no hay nada
 cerca, no se devuelve una página vacía** — se muestra lo lejano, diciendo que está lejos. Un
 directorio vacío es peor que uno honesto.
 
-### Slice 5 — mapa de tiendas al buscar un producto *(@future)*
+### Slice 5 — mapa de tiendas al buscar un producto *(entregado)*
 
 Un mapa que sitúe las tiendas que venden lo buscado, para decidir por cercanía viéndolo en vez de
 leyendo una cifra.
@@ -198,7 +199,8 @@ leyendo una cifra.
 ## Pendiente del usuario
 
 - Nada bloquea el slice 1.
-- Antes del slice 3: qué se le enseña a un visitante anónimo que niega el permiso de ubicación.
+- **Resuelto:** quien niega el permiso ve el catálogo por fecha descendente, como siempre, y una
+  línea que lo dice. No se le insiste.
 - El ancla de la comunidad se fijó en las coordenadas de la sucursal existente (18.60054 / −96.68721).
   Cuando el sitio sirva a más de un pueblo, deja de ser una constante y pasa a ser un parámetro.
 
