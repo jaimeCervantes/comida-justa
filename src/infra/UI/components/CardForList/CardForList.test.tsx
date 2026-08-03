@@ -21,12 +21,23 @@ describe("When a card is listed", () => {
     expect(getByTestId("provenance-badge")).toHaveTextContent("Hazlo Sano");
   });
 
-  it("shows the Local badge for a local origin", () => {
+  it("shows the Local badge for a resale the seller got nearby", () => {
     const { getByTestId } = render(
-      <CardForList {...baseProps} origin="productor_local" />,
+      <CardForList {...baseProps} origin="reventa_cercana" />,
     );
 
     expect(getByTestId("provenance-badge")).toHaveTextContent("Local");
+  });
+
+  /* Una tarjeta de listado no consulta distancias, así que un productor afirma lo que sí sabe. */
+  it("says who made it, not where it is, for a producer", () => {
+    const { getByTestId } = render(
+      <CardForList {...baseProps} origin="productor" />,
+    );
+
+    expect(getByTestId("provenance-badge")).toHaveTextContent(
+      "Lo hace quien lo vende",
+    );
   });
 
   it("shows no badge when the post has no origin", () => {

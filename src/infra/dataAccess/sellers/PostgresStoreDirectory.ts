@@ -4,6 +4,10 @@ import {
   type DirectoryPage,
   onlyProducers,
 } from "~/domain/entities/seller/directory";
+import {
+  COMMUNITY_ANCHOR,
+  SUSTAINABLE_RADIUS_METERS,
+} from "~/domain/entities/seller/proximity";
 import { db } from "~/infra/dataAccess/db/connection";
 
 interface StoreRow {
@@ -21,9 +25,16 @@ interface StoreRow {
  * **Solo las que tienen `slug`**: sin dirección pública no hay a dónde enlazar, y las tiendas que
  * creó el chatbot nacieron sin ella.
  *
- * El filtro de productores es un `EXISTS` sobre `posts`, no una columna del vendedor: quién produce
- * lo dice lo que publica. Así una tienda entra al directorio de productores el día que publica su
- * primer producto propio, sin que nadie tenga que marcarla a mano.
+ * El filtro de productores tiene dos mitades que viven en sitios distintos a propósito:
+ *
+ * 1. **Quién produce** lo dice lo que publica (`EXISTS` sobre `posts`), no una columna del vendedor.
+ *    Así una tienda entra el día que publica su primer producto propio, sin que nadie la marque.
+ * 2. **Si eso es local** lo dice la distancia, no la declaración: su sucursal tiene que caer dentro
+ *    del radio sostenible del ancla de la comunidad. `branches.location` es `geography`, así que
+ *    `ST_DWithin` recibe metros y usa el índice espacial en vez de calcular fila por fila.
+ *
+ * Consecuencia buscada: una tienda **sin sucursal** no aparece aquí aunque publique como productor.
+ * Sin ubicación no hay distancia que verificar, y esa es justo la razón para completar la tienda.
  */
 export async function listStores(
   kind: DirectoryKind,
@@ -34,7 +45,22 @@ export async function listStores(
   const producerFilter = onlyProducers(kind)
     ? sql`AND EXISTS (
           SELECT 1 FROM posts p
-          WHERE p.seller_id = s.id AND p.origin = 'productor_local'
+          WHERE p.seller_id = s.id AND p.origin = 'productor'
+        )
+        AND EXISTS (
+          SELECT 1 FROM branches b
+          WHERE b.seller_id = s.id
+            AND ST_DWithin(
+              b.location,
+              ST_SetSRID(
+                ST_MakePoint(
+                  ${COMMUNITY_ANCHOR.longitude},
+                  ${COMMUNITY_ANCHOR.latitude}
+                ),
+                4326
+              )::geography,
+              ${SUSTAINABLE_RADIUS_METERS}
+            )
         )`
     : sql``;
 

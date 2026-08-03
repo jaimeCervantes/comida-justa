@@ -28,11 +28,37 @@ export default class PostValidator implements IPostValidator {
   }
 
   /**
+   * Las reglas de `validate` más las que solo puede exigir quien **publica**.
+   *
+   * La procedencia se separa a propósito. Es obligatoria en un producto nuevo —sin ella el
+   * directorio de productores no se llena solo, que es el punto de la feature—, pero editar no la
+   * recibe: `UpdateOnePostUseCase` cambia título, texto, precio y categoría, y nunca el origen. Si
+   * `validate` la exigiera, editar cualquiera de los 13 productos que ya existen fallaría por un
+   * campo que su formulario ni siquiera muestra, y un error que no se puede corregir desde la
+   * pantalla es peor que el hueco que cierra.
+   */
+  validateNewPost(post: Post): VoidOrError {
+    this.validate(post);
+    this.validateOriginIsDeclared(post);
+  }
+
+  private validateOriginIsDeclared(post: Post): VoidOrError {
+    if (post.kind === "producto" && !post.origin) {
+      throw new PostClassificationError(
+        "Un producto necesita que digas de dónde viene.",
+      );
+    }
+  }
+
+  /**
    * Valida los ejes de clasificación del post:
    * - `kind` (si viene) debe estar en la allowlist.
    * - un `producto` exige `price` numérico y mayor a cero.
    * - `origin` (si viene) debe estar en la allowlist. El gate de admin para `hazlo_sano_*`
    *   NO vive aquí (es autorización de la capa de aplicación, no forma del dato).
+   *
+   * Que la procedencia sea **obligatoria** es regla de `validateNewPost`, no de aquí: ver el porqué
+   * en su docstring.
    */
   private validateKindAndOrigin(post: Post): VoidOrError {
     if (post.kind !== undefined && !isValidKind(post.kind)) {

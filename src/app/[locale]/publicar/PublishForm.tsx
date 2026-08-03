@@ -9,7 +9,7 @@ import type { ActionState } from "~/infra/types/Actions";
 import ImageVideoUploader, {
   type UploadedMediaResult,
 } from "~/infra/UI/components/ImageVideoUploader/ImageVideoUploader";
-import { ORIGIN_OPTIONS } from "~/infra/UI/labels/postOriginLabels";
+import { originOptionsFor } from "~/infra/UI/labels/postOriginLabels";
 import { Button } from "~/presentation/design_system/buttons/Button";
 import { TextArea } from "~/presentation/design_system/forms/TextArea";
 import { TextField } from "~/presentation/design_system/forms/TextField";
@@ -149,7 +149,8 @@ export default function PublishForm({
           </>
         ) : null}
 
-        {isAdmin ? (
+        {/* La procedencia solo aplica a lo que se vende, igual que la categoría. */}
+        {kind === "producto" ? (
           <div className="mb-6 text-black dark:text-white">
             <label htmlFor="origin" className="block mb-1">
               {t("origin")}
@@ -158,10 +159,11 @@ export default function PublishForm({
               id="origin"
               name="origin"
               defaultValue=""
+              required
               className={selectClassName}
             >
-              <option value="">{t("unspecifiedOption")}</option>
-              {ORIGIN_OPTIONS.map((option) => (
+              <option value="">{t("originPlaceholder")}</option>
+              {originOptionsFor(isAdmin).map((option) => (
                 <option key={option.value} value={option.value}>
                   {tVocabulary(option.labelKey)}
                 </option>

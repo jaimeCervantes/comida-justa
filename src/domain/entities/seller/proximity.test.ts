@@ -1,0 +1,34 @@
+import { describe, expect, it } from "vitest";
+import {
+  isWithinSustainableRadius,
+  SUSTAINABLE_RADIUS_KM,
+  SUSTAINABLE_RADIUS_METERS,
+} from "./proximity";
+
+describe("radio sostenible", () => {
+  it("expresa en metros lo mismo que en kilómetros", () => {
+    expect(SUSTAINABLE_RADIUS_METERS).toBe(SUSTAINABLE_RADIUS_KM * 1000);
+  });
+
+  /*
+   * Corrida de escritorio con distancias reales desde Tezonapa: lo que entra al directorio de
+   * productores locales y lo que no. El límite es cerrado —50 km exactos siguen contando— porque
+   * el criterio es "hasta dónde sigue siendo sostenible", no "menos de".
+   */
+  it.each<[string, number, boolean]>([
+    ["la sucursal del pueblo, a 2 km", 2_000, true],
+    ["Córdoba, a ~40 km", 40_000, true],
+    ["justo en el límite, 50 km", SUSTAINABLE_RADIUS_METERS, true],
+    ["un metro más allá del límite", SUSTAINABLE_RADIUS_METERS + 1, false],
+    ["Xalapa, a ~106 km", 106_000, false],
+    ["Ciudad de México, a ~270 km", 270_000, false],
+  ])("%s → %s", (_caso, metros, esperado) => {
+    expect(isWithinSustainableRadius(metros)).toBe(esperado);
+  });
+
+  it("no acepta una distancia que no es una distancia", () => {
+    expect(isWithinSustainableRadius(Number.NaN)).toBe(false);
+    expect(isWithinSustainableRadius(Number.POSITIVE_INFINITY)).toBe(false);
+    expect(isWithinSustainableRadius(-1)).toBe(false);
+  });
+});

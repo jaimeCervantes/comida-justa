@@ -525,7 +525,8 @@
     "kindProduct": "Producto",
     "category": "Categoría:",
     "subCategory": "Sub-categoría:",
-    "origin": "Procedencia (Hazlo Sano):",
+    "origin": "¿De dónde viene lo que vendes?",
+    "originPlaceholder": "— Elige una —",
     "unspecifiedOption": "— Sin especificar —",
     "price": "Precio:",
     "media": "Sube tu mejor imagen o sube tu mejor video",
@@ -641,14 +642,21 @@
     "origin": {
       "hazlo_sano_propio": "Hazlo Sano — propio",
       "hazlo_sano_reventa": "Hazlo Sano — reventa",
-      "productor_local": "Productor local",
-      "reventa_local": "Reventa local",
-      "productor_foraneo": "Productor foráneo",
-      "reventa_foranea": "Reventa foránea",
+      "productor": "Producción propia",
+      "reventa_cercana": "Reventa cercana",
+      "reventa_lejana": "Reventa lejana",
       "unspecified": "Sin especificar"
+    },
+    "originQuestion": {
+      "hazlo_sano_propio": "Lo hace Hazlo Sano",
+      "hazlo_sano_reventa": "Lo revende Hazlo Sano",
+      "productor": "Yo lo hago o lo cultivo",
+      "reventa_cercana": "Se lo compro a alguien de aquí cerca",
+      "reventa_lejana": "Lo traigo de muy lejos"
     },
     "provenance": {
       "hazloSano": "🌿 Hazlo Sano",
+      "producer": "🧑‍🌾 Lo hace quien lo vende",
       "local": "📍 Local"
     },
     "availability": {

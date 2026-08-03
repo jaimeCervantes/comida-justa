@@ -10,28 +10,34 @@ import ProvenanceBadge from "./ProvenanceBadge";
  * insignia a partir del catálogo: no hace falta ni base ni navegador.
  */
 describe("ProvenanceBadge", () => {
+  /*
+   * La insignia solo afirma lo que el dato respalda. Un `productor` **no** presume locación: si es
+   * local o no lo dice la distancia de su sucursal, que esta tarjeta no consulta. Dice entonces lo
+   * único que el vendedor sí respaldó —que lo hace él— y la locación se resuelve en el directorio.
+   */
   it.each<[string, AppLocale, string]>([
     ["hazlo_sano_propio", "es", "🌿 Hazlo Sano"],
     ["hazlo_sano_propio", "en", "🌿 Hazlo Sano"],
     ["hazlo_sano_reventa", "es", "🌿 Hazlo Sano"],
-    ["productor_local", "es", "📍 Local"],
-    ["productor_local", "en", "📍 Local"],
-    ["reventa_local", "en", "📍 Local"],
+    ["productor", "es", "🧑‍🌾 Lo hace quien lo vende"],
+    ["productor", "en", "🧑‍🌾 Made by the seller"],
+    ["reventa_cercana", "es", "📍 Local"],
+    ["reventa_cercana", "en", "📍 Local"],
   ])("pinta el origin %s en %s como %s", (origin, locale, expected) => {
     renderWithIntl(<ProvenanceBadge origin={origin} />, { locale });
 
     expect(screen.getByText(expected)).toBeInTheDocument();
   });
 
-  it("renders nothing for unset or community-foreign origins", () => {
+  it("renders nothing for unset or far-away origins", () => {
     const { container: none } = renderWithIntl(
       <ProvenanceBadge origin={null} />,
     );
     expect(none).toBeEmptyDOMElement();
 
-    const { container: foraneo } = renderWithIntl(
-      <ProvenanceBadge origin="productor_foraneo" />,
+    const { container: lejana } = renderWithIntl(
+      <ProvenanceBadge origin="reventa_lejana" />,
     );
-    expect(foraneo).toBeEmptyDOMElement();
+    expect(lejana).toBeEmptyDOMElement();
   });
 });

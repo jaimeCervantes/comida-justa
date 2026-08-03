@@ -63,6 +63,8 @@ export interface IPostValidator {
   MIN_LENGTH_CONTENT: number;
 
   validate(post: Post): VoidOrError;
+  /** `validate` más lo que solo se le puede exigir a una publicación nueva (la procedencia). */
+  validateNewPost(post: Post): VoidOrError;
   validateStringOnPost(
     value: string,
     name: string,

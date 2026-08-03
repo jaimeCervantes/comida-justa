@@ -28,6 +28,35 @@ describe("PostValidator — kind & origin", () => {
     ).not.toThrow();
   });
 
+  /*
+   * Sin procedencia el directorio de productores no se llena solo, que es el punto de la feature.
+   * Solo se le exige a lo nuevo: editar no recibe el campo, y romper la edición de los productos
+   * que ya existen por algo que su formulario no muestra sería un error incorregible.
+   */
+  it("rejects a new producto without origin", () => {
+    expect(() =>
+      validator.validateNewPost(makePost({ kind: "producto", price: 120 })),
+    ).toThrow(/de dónde viene/i);
+  });
+
+  it("accepts a new producto that declares its origin", () => {
+    expect(() =>
+      validator.validateNewPost(
+        makePost({ kind: "producto", price: 120, origin: "productor" }),
+      ),
+    ).not.toThrow();
+  });
+
+  it("does not ask an anuncio where it comes from", () => {
+    expect(() => validator.validateNewPost(makePost())).not.toThrow();
+  });
+
+  it("keeps editing an existing producto without origin possible", () => {
+    expect(() =>
+      validator.validate(makePost({ kind: "producto", price: 120 })),
+    ).not.toThrow();
+  });
+
   it("rejects a producto without price", () => {
     expect(() =>
       validator.validate(makePost({ kind: "producto", price: null })),

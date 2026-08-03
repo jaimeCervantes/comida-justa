@@ -18,7 +18,7 @@ describe("buildOriginReport", () => {
     expect(rows.find((row) => row.origin === "hazlo_sano_propio")?.count).toBe(
       3,
     );
-    expect(rows.find((row) => row.origin === "reventa_local")?.count).toBe(0);
+    expect(rows.find((row) => row.origin === "reventa_cercana")?.count).toBe(0);
     expect(total).toBe(3);
   });
 

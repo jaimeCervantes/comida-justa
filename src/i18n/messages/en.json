@@ -525,7 +525,8 @@
     "kindProduct": "Product",
     "category": "Category:",
     "subCategory": "Sub-category:",
-    "origin": "Provenance (Hazlo Sano):",
+    "origin": "Where does what you sell come from?",
+    "originPlaceholder": "— Pick one —",
     "unspecifiedOption": "— Unspecified —",
     "price": "Price:",
     "media": "Upload your best picture or your best video",
@@ -641,14 +642,21 @@
     "origin": {
       "hazlo_sano_propio": "Hazlo Sano — own",
       "hazlo_sano_reventa": "Hazlo Sano — resale",
-      "productor_local": "Local producer",
-      "reventa_local": "Local resale",
-      "productor_foraneo": "Non-local producer",
-      "reventa_foranea": "Non-local resale",
+      "productor": "Made by the seller",
+      "reventa_cercana": "Nearby resale",
+      "reventa_lejana": "Far-away resale",
       "unspecified": "Unspecified"
+    },
+    "originQuestion": {
+      "hazlo_sano_propio": "Hazlo Sano makes it",
+      "hazlo_sano_reventa": "Hazlo Sano resells it",
+      "productor": "I make it or grow it myself",
+      "reventa_cercana": "I buy it from someone nearby",
+      "reventa_lejana": "I bring it from far away"
     },
     "provenance": {
       "hazloSano": "🌿 Hazlo Sano",
+      "producer": "🧑‍🌾 Made by the seller",
       "local": "📍 Local"
     },
     "availability": {

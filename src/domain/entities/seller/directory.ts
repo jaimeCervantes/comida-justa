@@ -2,16 +2,17 @@
  * Los dos directorios de la comunidad y qué significa cada uno.
  *
  * La distinción costó una vuelta y conviene dejarla escrita: **`origin` describe la publicación, no
- * al vendedor**. Un restaurante del pueblo cocina lo que vende y publicaría `productor_local`; una
- * tienda de abarrotes revende producto de fuera y publicaría `reventa_foranea`. Los dos son
- * negocios del pueblo. Por eso:
+ * al vendedor**. Un restaurante del pueblo cocina lo que vende y publicaría `productor`; una tienda
+ * de abarrotes revende producto de fuera y publicaría `reventa_lejana`. Los dos son negocios del
+ * pueblo. Por eso:
  *
  * - **Negocios locales** son *todas* las tiendas: quien abrió tienda aquí, venda lo que venda.
- * - **Productores locales** son las que además publican algo con `productor_local`, o sea las que
- *   **hacen** lo que venden. Es un subconjunto, y está bien que lo sea.
+ * - **Productores locales** son las que además publican algo con `productor` **y están dentro del
+ *   radio sostenible** (`proximity.ts`), o sea las que **hacen** lo que venden, aquí. Es un
+ *   subconjunto, y está bien que lo sea.
  *
- * Por lo mismo **no se inventó un `venta_local`**: el eje `rol` responde "¿quién lo produjo?", y un
- * valor genérico de venta no responde nada distinto de `reventa_local`.
+ * Lo local no se declara: la publicación dice el rol y la sucursal dice la distancia. Un productor
+ * sin sucursal no entra, porque no hay nada que verificar.
  */
 export const DIRECTORY_KINDS = ["businesses", "producers"] as const;
 

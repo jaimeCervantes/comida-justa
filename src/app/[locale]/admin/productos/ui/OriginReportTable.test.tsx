@@ -20,7 +20,7 @@ describe("When the origin report is rendered", () => {
     expect(getByTestId("origin-count-hazlo_sano_reventa")).toHaveTextContent(
       "1",
     );
-    expect(getByTestId("origin-count-reventa_local")).toHaveTextContent("0");
+    expect(getByTestId("origin-count-reventa_cercana")).toHaveTextContent("0");
     expect(getByTestId("origin-count-total")).toHaveTextContent("4");
     expect(getByText("Hazlo Sano — propio")).toBeInTheDocument();
   });

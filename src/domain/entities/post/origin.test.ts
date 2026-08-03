@@ -2,9 +2,10 @@ import { describe, expect, it } from "vitest";
 import {
   isAdminOnlyOrigin,
   isHazloSanoOrigin,
-  isLocalOrigin,
-  isLocalProducerOrigin,
+  isNearbyResaleOrigin,
+  isProducerOrigin,
   isValidOrigin,
+  originsForUser,
   resolveOriginForUser,
 } from "./origin";
 
@@ -12,7 +13,7 @@ describe("post origin", () => {
   describe("isValidOrigin", () => {
     it("accepts allowlisted values", () => {
       expect(isValidOrigin("hazlo_sano_propio")).toBe(true);
-      expect(isValidOrigin("reventa_foranea")).toBe(true);
+      expect(isValidOrigin("reventa_lejana")).toBe(true);
     });
 
     it("rejects unknown values and non-strings", () => {
@@ -22,36 +23,57 @@ describe("post origin", () => {
       expect(isValidOrigin(undefined)).toBe(false);
       expect(isValidOrigin(123)).toBe(false);
     });
+
+    /* El ámbito del productor se derogó a propósito: lo decide la distancia de su sucursal, no una
+       declaración. Que estos dos nombres ya no existan es la garantía de que nadie los reviva. */
+    it("no longer knows a declared scope for a producer", () => {
+      expect(isValidOrigin("productor_local")).toBe(false);
+      expect(isValidOrigin("productor_foraneo")).toBe(false);
+    });
   });
 
   describe("classification helpers", () => {
     it("detects Hazlo Sano origins", () => {
       expect(isHazloSanoOrigin("hazlo_sano_propio")).toBe(true);
       expect(isHazloSanoOrigin("hazlo_sano_reventa")).toBe(true);
-      expect(isHazloSanoOrigin("productor_local")).toBe(false);
+      expect(isHazloSanoOrigin("productor")).toBe(false);
       expect(isHazloSanoOrigin(null)).toBe(false);
     });
 
-    it("detects local origins", () => {
-      expect(isLocalOrigin("productor_local")).toBe(true);
-      expect(isLocalOrigin("reventa_local")).toBe(true);
-      expect(isLocalOrigin("productor_foraneo")).toBe(false);
-      expect(isLocalOrigin("hazlo_sano_propio")).toBe(false);
+    /* La mitad del filtro del directorio que sí vive en el post. La otra —la distancia— vive en la
+       sucursal de su tienda, y por eso no se puede contestar desde aquí. */
+    it("detects who makes what they sell, and only that", () => {
+      expect(isProducerOrigin("productor")).toBe(true);
+      expect(isProducerOrigin("reventa_cercana")).toBe(false);
+      expect(isProducerOrigin("hazlo_sano_propio")).toBe(false);
+      expect(isProducerOrigin(null)).toBe(false);
     });
 
-    /* El filtro del directorio de productores. Es más estrecho que `isLocalOrigin` a propósito:
-       una reventa local es un negocio del pueblo, pero no produce nada. */
-    it("detects who produces locally, and only that", () => {
-      expect(isLocalProducerOrigin("productor_local")).toBe(true);
-      expect(isLocalProducerOrigin("reventa_local")).toBe(false);
-      expect(isLocalProducerOrigin("productor_foraneo")).toBe(false);
-      expect(isLocalProducerOrigin("hazlo_sano_propio")).toBe(false);
-      expect(isLocalProducerOrigin(null)).toBe(false);
+    it("detects a resale the seller says they got nearby", () => {
+      expect(isNearbyResaleOrigin("reventa_cercana")).toBe(true);
+      expect(isNearbyResaleOrigin("reventa_lejana")).toBe(false);
+      expect(isNearbyResaleOrigin("productor")).toBe(false);
+      expect(isNearbyResaleOrigin(null)).toBe(false);
     });
 
     it("treats Hazlo Sano origins as admin-only", () => {
       expect(isAdminOnlyOrigin("hazlo_sano_propio")).toBe(true);
-      expect(isAdminOnlyOrigin("productor_local")).toBe(false);
+      expect(isAdminOnlyOrigin("productor")).toBe(false);
+    });
+  });
+
+  describe("originsForUser", () => {
+    it("offers a seller only what a seller can claim about their own goods", () => {
+      expect(originsForUser(false)).toEqual([
+        "productor",
+        "reventa_cercana",
+        "reventa_lejana",
+      ]);
+    });
+
+    it("keeps the whole allowlist for an admin", () => {
+      expect(originsForUser(true)).toHaveLength(5);
+      expect(originsForUser(true)).toContain("hazlo_sano_propio");
     });
   });
 
@@ -74,11 +96,9 @@ describe("post origin", () => {
     });
 
     it("lets any user set a community origin", () => {
-      expect(resolveOriginForUser("productor_local", false)).toBe(
-        "productor_local",
-      );
-      expect(resolveOriginForUser("reventa_foranea", false)).toBe(
-        "reventa_foranea",
+      expect(resolveOriginForUser("productor", false)).toBe("productor");
+      expect(resolveOriginForUser("reventa_lejana", false)).toBe(
+        "reventa_lejana",
       );
     });
   });
