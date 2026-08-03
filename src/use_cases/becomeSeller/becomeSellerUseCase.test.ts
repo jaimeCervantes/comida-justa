@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Seller } from "~/domain/entities/seller/types";
 import BecomeSellerUseCase from "./becomeSellerUseCase";
+import type IOrphanPostRepository from "./ports/IOrphanPostRepository";
 import type ISellerRepository from "./ports/ISellerRepository";
 import type { NewSeller } from "./ports/ISellerRepository";
 
@@ -42,13 +43,52 @@ class FakeSellerRepository implements ISellerRepository {
   }
 }
 
+/** Recuerda a quién adoptó, para poder afirmar que la tienda recoge lo que su dueño ya publicó. */
+class FakeOrphanPostRepository implements IOrphanPostRepository {
+  readonly calls: Array<[string, string]> = [];
+
+  constructor(private readonly orphans = 0) {}
+
+  async adoptOrphansOf(userId: string, sellerId: string): Promise<number> {
+    this.calls.push([userId, sellerId]);
+    return this.orphans;
+  }
+}
+
 describe("BecomeSellerUseCase", () => {
   let repository: FakeSellerRepository;
   let useCase: BecomeSellerUseCase;
+  let orphans: FakeOrphanPostRepository;
 
   beforeEach(() => {
     repository = new FakeSellerRepository([hazloSano]);
-    useCase = new BecomeSellerUseCase(repository);
+    orphans = new FakeOrphanPostRepository(3);
+    useCase = new BecomeSellerUseCase(repository, orphans);
+  });
+
+  /*
+   * El `seller_id` se fija al publicar, así que sin esto quien publica primero y abre tienda
+   * después se queda con esas publicaciones sueltas para siempre, sin forma de enterarse. Cuando
+   * se detectó, cinco publicaciones reales ya estaban así.
+   */
+  it("cuelga de la tienda nueva lo que su dueño ya había publicado", async () => {
+    const result = await useCase.execute({
+      draft: { name: "Panadería La Luz", phone: "2789990011" },
+      userId: "user-1",
+    });
+
+    expect(result.adopted).toBe(3);
+    expect(orphans.calls).toEqual([["user-1", "new-seller-id"]]);
+  });
+
+  it("no adopta nada cuando el alta no procede", async () => {
+    const result = await useCase.execute({
+      draft: { name: "Hazlo Sano", phone: "2789990022" },
+      userId: "user-1",
+    });
+
+    expect(result.errorMessage).toBeDefined();
+    expect(orphans.calls).toHaveLength(0);
   });
 
   it("abre la tienda y la deja en su dirección web", async () => {
@@ -102,7 +142,8 @@ describe("BecomeSellerUseCase", () => {
 
   it("no deja abrir una segunda tienda a quien ya tiene una", async () => {
     repository = new FakeSellerRepository([{ ...hazloSano, userId: USER_ID }]);
-    useCase = new BecomeSellerUseCase(repository);
+    orphans = new FakeOrphanPostRepository(3);
+    useCase = new BecomeSellerUseCase(repository, orphans);
 
     const result = await useCase.execute({
       draft: { name: "Otra Tienda", phone: "2789990044" },
@@ -122,7 +163,7 @@ describe("BecomeSellerUseCase", () => {
     };
 
     await expect(
-      new BecomeSellerUseCase(broken).execute({
+      new BecomeSellerUseCase(broken, new FakeOrphanPostRepository()).execute({
         draft: { name: "Panadería La Luz", phone: "2789990011" },
         userId: USER_ID,
       }),

@@ -20,11 +20,17 @@ const selectClassName =
 export default function PublishForm({
   action,
   isAdmin = false,
+  hasStore = true,
   categoryOptions,
   subCategoryOptionsByCategory,
 }: {
   action: (state: ActionState, data: FormData) => Promise<typeof state>;
   isAdmin?: boolean;
+  /**
+   * Si quien publica ya abrió su tienda. Con `false` se le avisa —solo si se declara productor—
+   * de que sin tienda con ubicación esa declaración no lo mete a productores locales.
+   */
+  hasStore?: boolean;
   /** Resueltas en el servidor desde la tabla `categories`, ya en el idioma de la ruta. */
   categoryOptions: readonly CategoryOption[];
   /** Las hijas de cada categoría, para encadenar el segundo selector. */
@@ -42,6 +48,7 @@ export default function PublishForm({
     slug: null,
   });
   const [kind, setKind] = useState<string>("anuncio");
+  const [origin, setOrigin] = useState<string>("");
   const [category, setCategory] = useState<string>("");
   const [mediaJSON, setMediaJSON] = useState<string>("");
   const [isLoadingMedia, setIsLoadingMedia] = useState<boolean | null>(null);
@@ -158,7 +165,8 @@ export default function PublishForm({
             <select
               id="origin"
               name="origin"
-              defaultValue=""
+              value={origin}
+              onChange={(event) => setOrigin(event.target.value)}
               required
               className={selectClassName}
             >
@@ -169,6 +177,21 @@ export default function PublishForm({
                 </option>
               ))}
             </select>
+
+            {/*
+              Solo para quien se declara productor sin tener tienda. Es el único caso en que lo
+              que acaba de elegir no significa nada todavía: sin tienda con ubicación no hay
+              distancia que verificar y no entra a productores locales. No bloquea nada, y dice
+              que puede publicar primero porque al abrir la tienda esto se cuelga solo.
+            */}
+            {!hasStore && origin === "productor" ? (
+              <p
+                data-testid="producer-needs-store"
+                className="mt-2 text-sm text-gray-600 dark:text-gray-400"
+              >
+                {t("producerNeedsStore")}
+              </p>
+            ) : null}
           </div>
         ) : null}
 

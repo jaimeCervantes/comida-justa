@@ -15,6 +15,7 @@ import WhatsappButton from "~/infra/UI/components/WhatsappButton/WhatsappButton"
 import ShareLocationButton from "~/presentation/location/ShareLocationButton";
 import StoreDistance from "~/presentation/location/StoreDistance";
 import { setAvailability } from "~/presentation/post/availabilityAction";
+import OpenStoreHint from "~/presentation/post/OpenStoreHint";
 import { postCategoryLabel } from "../categoryLabel";
 import CommentList from "../loadComments/CommentList";
 import OwnerControls from "./OwnerControls";
@@ -132,13 +133,17 @@ export default async function PostDetail({
       </WhatsappButton>
 
       {isOwner ? (
-        <OwnerControls
-          action={setAvailability}
-          postId={String(id ?? "")}
-          slug={slug ?? ""}
-          isAvailable={isAvailable}
-          isSellable={isSellable({ kind })}
-        />
+        <>
+          <OwnerControls
+            action={setAvailability}
+            postId={String(id ?? "")}
+            slug={slug ?? ""}
+            isAvailable={isAvailable}
+            isSellable={isSellable({ kind })}
+          />
+          {/* Publicó sin tienda: es el momento en que el consejo sirve, con la tarea ya hecha. */}
+          {seller ? null : <OpenStoreHint className="mt-4" />}
+        </>
       ) : null}
       <section className="whitespace-pre-wrap mt-6">{content}</section>
 

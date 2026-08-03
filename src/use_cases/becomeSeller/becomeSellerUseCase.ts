@@ -8,6 +8,7 @@ import {
 import { resolveSellerHandle } from "~/domain/entities/seller/handle";
 import { normalizeSellerPhone } from "~/domain/entities/seller/phone";
 import type { Seller, SellerDraft } from "~/domain/entities/seller/types";
+import type IOrphanPostRepository from "./ports/IOrphanPostRepository";
 import type ISellerRepository from "./ports/ISellerRepository";
 
 export interface BecomeSellerInput {
@@ -16,12 +17,22 @@ export interface BecomeSellerInput {
 }
 
 export type BecomeSellerResult =
-  | { seller: Seller; errorMessage?: undefined }
-  | { seller?: undefined; errorMessage: string };
+  | {
+      seller: Seller;
+      /** Cuántas publicaciones sueltas quedaron colgadas de la tienda recién abierta. */
+      adopted: number;
+      errorMessage?: undefined;
+    }
+  | { seller?: undefined; adopted?: undefined; errorMessage: string };
 
 /**
- * Convierte una cuenta en vendedor: valida el borrador, comprueba lo que la base exige único y
- * guarda la tienda.
+ * Convierte una cuenta en vendedor: valida el borrador, comprueba lo que la base exige único,
+ * guarda la tienda y **cuelga de ella lo que su dueño ya había publicado**.
+ *
+ * La adopción no es un extra: el `seller_id` se fija al publicar, así que sin ella quien publica
+ * primero y abre tienda después se queda con esas publicaciones sueltas para siempre —sin
+ * distancia, fuera de su catálogo y fuera de los directorios— y no tiene forma de enterarse.
+ * Cuando se detectó, cinco publicaciones reales ya estaban así.
  *
  * **Lo esperado se devuelve; lo inesperado se propaga.** Los seis motivos por los que un alta
  * legítima no procede (`SellerValidationError` y sus hijos) salen como `errorMessage` para que el
@@ -29,7 +40,10 @@ export type BecomeSellerResult =
  * vendedor pueda hacer al respecto y ocultarla dejaría el fallo mudo.
  */
 export default class BecomeSellerUseCase {
-  constructor(private readonly sellerRepository: ISellerRepository) {}
+  constructor(
+    private readonly sellerRepository: ISellerRepository,
+    private readonly orphanPostRepository: IOrphanPostRepository,
+  ) {}
 
   async execute({
     draft,
@@ -37,8 +51,12 @@ export default class BecomeSellerUseCase {
   }: BecomeSellerInput): Promise<BecomeSellerResult> {
     try {
       const seller = await this.register(draft, userId);
+      const adopted = await this.orphanPostRepository.adoptOrphansOf(
+        userId,
+        seller.id,
+      );
 
-      return { seller };
+      return { seller, adopted };
     } catch (error) {
       if (error instanceof SellerValidationError) {
         return { errorMessage: error.message };

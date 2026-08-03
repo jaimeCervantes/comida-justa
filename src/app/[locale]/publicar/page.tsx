@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 import { getLocale, setRequestLocale } from "next-intl/server";
 import { optionsFor } from "~/domain/entities/post/taxonomy";
+import type { User } from "~/domain/entities/post/types";
 import { redirectKeepingLocale } from "~/i18n/redirectKeepingLocale";
 import { resolveLocale } from "~/i18n/routing";
 import { auth } from "~/infra/auth";
 import { isAdmin } from "~/infra/auth/isAdmin";
 import { SIGNIN_PATH } from "~/infra/constants";
 import { getCategoryTaxonomy } from "~/infra/dataAccess/categories/cachedCategoryTaxonomy";
+import { createSellerRepository } from "~/infra/dataAccess/sellers/factory";
 import { NOINDEX_METADATA } from "~/infra/UI/metadata/noindex";
 import { createPost } from "./actions";
 import PublishForm from "./PublishForm";
@@ -41,10 +43,17 @@ export default async function PublicarPage({
     ]),
   );
 
+  // Decide si al declararse productor se le avisa de que sin tienda esa declaración no cuenta.
+  const userId = (session.user as User | undefined)?.id;
+  const hasStore = Boolean(
+    userId ? await createSellerRepository().findByUserId(userId) : null,
+  );
+
   return (
     <PublishForm
       action={createPost}
       isAdmin={isAdmin(session.user?.email)}
+      hasStore={hasStore}
       categoryOptions={categoryOptions}
       subCategoryOptionsByCategory={subCategoryOptionsByCategory}
     />

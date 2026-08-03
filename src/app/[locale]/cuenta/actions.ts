@@ -7,7 +7,10 @@ import { revalidateLocalizedPath } from "~/i18n/revalidateLocalizedPath";
 import { auth } from "~/infra/auth";
 import { SIGNIN_PATH } from "~/infra/constants";
 import { createBranchRepository } from "~/infra/dataAccess/branches/factory";
-import { createSellerRepository } from "~/infra/dataAccess/sellers/factory";
+import {
+  createOrphanPostRepository,
+  createSellerRepository,
+} from "~/infra/dataAccess/sellers/factory";
 import { createUserProfileRepository } from "~/infra/dataAccess/users/factory";
 import { GoogleMapsUrlResolver } from "~/infra/services/GoogleMapsUrlResolver";
 import AddBranchUseCase from "~/use_cases/addBranch/addBranchUseCase";
@@ -184,7 +187,10 @@ export async function becomeSeller(
     redirectKeepingLocale(SIGNIN_PATH, await getLocale());
   }
 
-  const useCase = new BecomeSellerUseCase(createSellerRepository());
+  const useCase = new BecomeSellerUseCase(
+    createSellerRepository(),
+    createOrphanPostRepository(),
+  );
   const result = await useCase.execute({
     userId,
     draft: {

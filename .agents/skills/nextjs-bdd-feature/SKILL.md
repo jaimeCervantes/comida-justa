@@ -13,10 +13,8 @@ Use this skill for behavior changes. Start from a small scenario, then tests, th
 > only approval checkpoints to (1) the alignment gate and (2) the `.feature` + its scenarios.
 >
 > **Once the `.feature` is validated, run the slice to completion without stopping.** Do not ask for
-> permission per command, per file, or per step: write the code, run `test:run`, `typecheck`, `lint` and
-> the Playwright e2e (yes, even against the shared DB — the suite cleans up after itself), run seed or
-> fixture scripts, fix what breaks, and only then report — with numbers, and saying what you wrote to
-> any shared resource and how to undo it. A report is not a gate.
+> permission per command, per file, or per step: writ all tests needed starting witth e2e tests, then
+> implement the code, run `test:run`, `typecheck`, `lint` and the Playwright e2e (yes, even against the > > > > shared DB — the suite cleans up after itself), run seed or fixture scripts, fix what breaks, and only then > report — with numbers, and saying what you wrote to any shared resource and how to undo it. A report is not a gate.
 >
 > The single exception is a **truly irreversible** action: destroying or overwriting data that isn't
 > yours, a schema migration on the shared DB, `git push --force`, exposing secrets, or a discovery that
@@ -196,11 +194,11 @@ near-duplicate component is a design failure, not a shortcut.
 
 Placement follows **how widely the component can be used**, and is decided when it is created:
 
-| Reach | Home | Examples |
-|---|---|---|
-| Reusable anywhere, carries no app knowledge | `src/presentation/design_system/` | `buttons/`, `forms/`, `styling/`, `tokens/` |
-| Specific to this app, shared by several routes | `src/presentation/` | header, footer, badges, cards, media pickers |
-| Usable **only** in one route | `src/app/[locale]/<route>/ui/` | `PostDetail`, `StoreHeader`, `EditPostForm` |
+| Reach                                          | Home                              | Examples                                     |
+| ---------------------------------------------- | --------------------------------- | -------------------------------------------- |
+| Reusable anywhere, carries no app knowledge    | `src/presentation/design_system/` | `buttons/`, `forms/`, `styling/`, `tokens/`  |
+| Specific to this app, shared by several routes | `src/presentation/`               | header, footer, badges, cards, media pickers |
+| Usable **only** in one route                   | `src/app/[locale]/<route>/ui/`    | `PostDetail`, `StoreHeader`, `EditPostForm`  |
 
 - A component in `design_system/` must not import from `src/domain/`, `src/use_cases/` or
   `src/app/`. If it needs to know what a "post" or a "seller" is, it is not design system — it

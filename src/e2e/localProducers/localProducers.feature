@@ -358,6 +358,48 @@ Feature: Quién produce lo declara, qué tan lejos lo dice la distancia
     When despliega el submenú "Comunidad"
     Then el submenú se ve por encima del mapa
 
+  # ---------------------------------------------------------------------------
+  # Slice 9 — publicar sin tienda deja de ser un callejón
+  # ---------------------------------------------------------------------------
+
+  @slice-9
+  Scenario: Abrir la tienda recoge lo que ya se había publicado
+    Given alguien que publicó dos veces antes de tener tienda
+    When abre su tienda
+    Then sus dos publicaciones cuelgan de ella
+    And aparecen en su catálogo y ya pueden decir a qué distancia están
+
+  @slice-9
+  Scenario: Abrir una tienda no toca lo que cuelga de otra
+    Given una publicación que ya pertenece a otra tienda
+    When alguien abre una tienda nueva
+    Then esa publicación se queda donde estaba
+
+  @slice-9
+  Scenario: Después de publicar sin tienda, se le dice qué le falta
+    Given alguien sin tienda que acaba de publicar
+    When ve su publicación
+    Then se le explica que no aparece en los directorios ni puede decir su distancia
+    And se le enlaza a abrir su tienda
+
+  @slice-9
+  Scenario: A quien sí tiene tienda no se le dice nada
+    Given un vendedor con tienda que acaba de publicar
+    When ve su publicación
+    Then no se le ofrece abrir ninguna tienda
+
+  @slice-9 @component
+  Scenario Outline: El aviso del formulario es solo para quien se declara productor sin tienda
+    Given el formulario de "/publicar" con tipo "producto" de alguien <tienda>
+    When elige la procedencia "<origen>"
+    Then el aviso de que necesita tienda <resultado>
+
+    Examples:
+      | tienda      | origen          | resultado                                        |
+      | sin tienda  | productor       | se muestra: sin tienda esa declaración no cuenta |
+      | sin tienda  | reventa_cercana | no se muestra: revender no exige declararse productor |
+      | con tienda  | productor       | no se muestra: ya la tiene                       |
+
   @slice-5 @component
   Scenario Outline: El encuadre incluye a quien mira
     Given un visitante y <tiendas> tienda(s) que situar
