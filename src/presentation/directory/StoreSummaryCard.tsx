@@ -1,6 +1,7 @@
 import Image from "next/image";
 import type { StoreSummary } from "~/domain/entities/seller/directory";
 import { type AppHref, Link } from "~/i18n/navigation";
+import StoreDistance from "~/presentation/location/StoreDistance";
 
 /**
  * Una tienda dentro de un directorio.
@@ -46,7 +47,10 @@ export default function StoreSummaryCard({
           <p className="mt-1 line-clamp-3 text-sm">{store.description}</p>
         ) : null}
 
-        <p className="mt-2 text-sm text-gray-500">{publicationsLabel}</p>
+        <p className="mt-2 flex flex-wrap items-center gap-2 text-sm text-gray-500">
+          {publicationsLabel}
+          <StoreDistance meters={store.distanceMeters ?? null} />
+        </p>
 
         <Link
           href={href}

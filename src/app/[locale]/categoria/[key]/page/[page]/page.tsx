@@ -4,6 +4,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "~/i18n/navigation";
 import { resolveLocale } from "~/i18n/routing";
 import { readViewerId } from "~/infra/auth/readViewerId";
+import LocationNotice from "~/presentation/location/LocationNotice";
 import { getPostsByCategory } from "../../data";
 import { buildCategoryMetadata } from "../../metadata";
 import CategoryPosts from "../../ui/CategoryPosts";
@@ -53,6 +54,10 @@ export default async function CategoryPaginatedPage({ params }: Props) {
       <h1 className="text-xl font-bold mb-2">
         {t("heading", { category: data.label })}
       </h1>
+
+      {data.visitor ? null : (
+        <LocationNotice showSellerCta={data.showSellerCta} />
+      )}
 
       <CategoryPosts
         viewerId={viewerId}

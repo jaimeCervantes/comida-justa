@@ -5,6 +5,7 @@ import type {
 } from "~/domain/entities/seller/directory";
 import { PAGINATION_INIT_PAGE, PAGINATION_PAGE_SIZE } from "~/infra/constants";
 import { listStores } from "~/infra/dataAccess/sellers/PostgresStoreDirectory";
+import { readVisitorLocation } from "~/infra/location/visitorLocation";
 
 /**
  * El directorio de una sección.
@@ -20,5 +21,6 @@ export const listDirectory = cache(async function listDirectory(
     kind,
     Math.max(PAGINATION_INIT_PAGE, page),
     PAGINATION_PAGE_SIZE,
+    await readVisitorLocation(),
   );
 });

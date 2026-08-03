@@ -25,6 +25,8 @@ export interface StoreSummary {
   logoUrl: string | null;
   /** Cuántas publicaciones tiene: es lo que distingue una tienda viva de una recién abierta. */
   publicationCount: number;
+  /** A cuántos metros está de quien mira, o `null` si falta cualquiera de las dos ubicaciones. */
+  distanceMeters?: number | null;
 }
 
 export interface DirectoryPage {

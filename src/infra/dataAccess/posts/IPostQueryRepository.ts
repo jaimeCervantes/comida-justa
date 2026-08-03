@@ -93,6 +93,8 @@ export interface IPostQueryRepository {
     categoryKeys: readonly string[],
     page: number,
     pageSize: number,
+    /** Dónde está quien mira: una categoría ordena por cercanía, igual que el catálogo. */
+    near?: Coordinates | null,
   ): Promise<PaginatedPostsResult>;
   /**
    * Las publicaciones más parecidas a una, ordenadas por su vector (`embedding <=>`).

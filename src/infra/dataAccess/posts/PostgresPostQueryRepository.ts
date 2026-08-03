@@ -201,6 +201,7 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
     categoryKeys: readonly string[],
     page: number,
     pageSize: number,
+    near: Coordinates | null = null,
   ): Promise<PaginatedPostsResult> {
     // Una clave desconocida llega aquí como lista vacía. Un `IN ()` es un error de sintaxis en
     // Postgres, así que se corta antes de consultar: sin resultados es la respuesta correcta.
@@ -211,10 +212,12 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
       sql`, `,
     );
 
+    // Una categoría es catálogo, no feed: la pregunta es dónde comprar esto, así que ordena.
     return this.getPaginatedPosts(
       sql`(p.category IN (${keys}) OR p.sub_category IN (${keys}))`,
       page,
       pageSize,
+      { near, sortByDistance: true },
     );
   }
 

@@ -3,9 +3,11 @@ import {
   labelFor,
   subtreeKeys,
 } from "~/domain/entities/post/taxonomy";
+import type { Coordinates } from "~/domain/entities/seller/coordinates";
 import { PAGINATION_INIT_PAGE, PAGINATION_PAGE_SIZE } from "~/infra/constants";
 import { getCategoryTaxonomy } from "~/infra/dataAccess/categories/cachedCategoryTaxonomy";
 import { createPostQueryRepository } from "~/infra/dataAccess/getMultiplePosts";
+import { readViewerLocationContext } from "~/infra/location/viewerLocationContext";
 import type { Post } from "~/infra/types/Posts";
 import { mapPostsToCardsForLocale } from "~/infra/UI/mappers/posts/mapPostsToCardsForLocale";
 
@@ -15,6 +17,10 @@ export type CategoryPageData = {
   posts: Post[];
   totalPages: number;
   total: number;
+  /** Dónde está quien mira; `null` cuando no lo sabemos y hay que explicarlo. */
+  visitor: Coordinates | null;
+  /** Si conviene invitar a abrir tienda en el aviso de ubicación. */
+  showSellerCta: boolean;
 };
 
 /**
@@ -38,10 +44,12 @@ export async function getPostsByCategory(
   if (!isActiveKey(taxonomy, key)) return null;
 
   const pageNum = Math.max(PAGINATION_INIT_PAGE, page);
+  const { visitor, showSellerCta } = await readViewerLocationContext();
   const result = await createPostQueryRepository().getPostsByCategory(
     subtreeKeys(taxonomy, key),
     pageNum,
     PAGINATION_PAGE_SIZE,
+    visitor,
   );
 
   return {
@@ -49,5 +57,7 @@ export async function getPostsByCategory(
     posts: await mapPostsToCardsForLocale(result.posts, locale),
     totalPages: result.totalPages,
     total: result.total,
+    visitor,
+    showSellerCta,
   };
 }

@@ -1,4 +1,5 @@
 import { sql } from "drizzle-orm";
+import type { Coordinates } from "~/domain/entities/seller/coordinates";
 import {
   type DirectoryKind,
   type DirectoryPage,
@@ -15,6 +16,7 @@ interface StoreRow {
   name: string;
   description: string | null;
   logo_url: string | null;
+  distance_meters: string | null;
   publication_count: number;
   total_count: number;
 }
@@ -40,6 +42,7 @@ export async function listStores(
   kind: DirectoryKind,
   page: number,
   pageSize: number,
+  near: Coordinates | null = null,
 ): Promise<DirectoryPage> {
   const offset = (page - 1) * pageSize;
   const producerFilter = onlyProducers(kind)
@@ -64,18 +67,47 @@ export async function listStores(
         )`
     : sql``;
 
+  /*
+   * La distancia a la sucursal más cercana de cada tienda, o `NULL`.
+   *
+   * Es el dato que faltaba en las dos páginas cuya razón de ser **es** la proximidad: hasta ahora
+   * la usaban solo para filtrar a los productores, y luego listaban por nombre alfabético, que no
+   * le sirve a nadie que esté decidiendo dónde ir.
+   */
+  const distance = near
+    ? sql`(
+        SELECT MIN(
+          ST_Distance(
+            b.location,
+            ST_SetSRID(
+              ST_MakePoint(${near.longitude}, ${near.latitude}),
+              4326
+            )::geography
+          )
+        )
+        FROM branches b
+        WHERE b.seller_id = s.id
+      )`
+    : sql`NULL::double precision`;
+
+  // `NULLS LAST` por lo mismo que en el catálogo: una tienda sin sucursal baja, no desaparece.
+  const order = near
+    ? sql`distance_meters ASC NULLS LAST, s.name`
+    : sql`s.name`;
+
   const raw = await db.execute(sql`
     SELECT
       s.slug,
       s.name,
       s.description,
       s.logo_url,
+      ${distance} AS distance_meters,
       (SELECT COUNT(*) FROM posts p WHERE p.seller_id = s.id)::int AS publication_count,
       COUNT(*) OVER()::int AS total_count
     FROM sellers s
     WHERE s.slug IS NOT NULL
     ${producerFilter}
-    ORDER BY s.name
+    ORDER BY ${order}
     LIMIT ${pageSize} OFFSET ${offset}
   `);
 
@@ -88,6 +120,10 @@ export async function listStores(
       name: row.name,
       description: row.description,
       logoUrl: row.logo_url,
+      distanceMeters:
+        row.distance_meters === null || row.distance_meters === undefined
+          ? null
+          : Number(row.distance_meters),
       publicationCount: Number(row.publication_count),
     })),
     total,
