@@ -346,3 +346,99 @@ con red de seguridad; y un mapa sitúa las tiendas junto a quien mira.
    parámetro de la consulta, el pueblo del visitante o el de la tienda.
 4. **Medir**: cuántas tiendas completan su sucursal ahora que sin ubicación no entran a productores.
    Es la hipótesis de incentivo de todo el roadmap, y hoy no se está midiendo.
+
+## Slice 6 — la cercanía en el home, y decir la verdad cuando falta (2026-08-03)
+
+### Objetivo
+
+Que el feed también ponga distancias, y que **ninguna sección se quede callada** cuando no puede
+mostrarlas.
+
+### Decisiones y por qué
+
+**Saber la distancia y ordenarse por ella pasan a ser dos decisiones separadas.** El home es un
+feed: lo que promete es lo último que publicó la comunidad, y reordenarlo por cercanía rompería esa
+promesa —quien entra a ver qué hay de nuevo dejaría de verlo—. Así que gana la distancia como dato
+de cada tarjeta y conserva su orden. El orden por cercanía es del catálogo, donde la pregunta es
+"¿dónde compro esto?". Separarlo en la consulta es lo que permite las dos cosas sin duplicar nada.
+
+**Un listado sin distancias parece roto si nadie aclara que la parte que falta es la de quien
+mira.** De ahí el aviso en las cuatro secciones. Y desaparece en cuanto hay ubicación: lo que queda
+entonces son las distancias, que es la información de verdad.
+
+**Negarse recibe un incentivo, no un reproche.** Quien dijo que no ya contestó; lo que se le ofrece
+es la razón para cambiar de opinión —distinguir lo que está a dos cuadras de lo que está a dos
+horas— y el botón sigue ahí. Decisión del usuario, y evita la pantalla que ruega.
+
+**A quien no vende se le dice la otra mitad.** Sin vendedores situados no hay distancias que
+mostrarle a nadie, por muy bien localizado que esté quien busca. A quien ya tiene tienda se le
+calla: no necesita el consejo, y por eso `readViewerLocationContext` responde las dos preguntas
+juntas y se ahorra la consulta del vendedor cuando ya hay ubicación.
+
+**El trámite de pedir la ubicación se fue a un hook** porque ahora lo usan dos componentes con
+distinta cara. Duplicarlo eran dos sitios donde olvidarse de que negar el permiso no es un error.
+
+### Validación
+
+- `typecheck` limpio, `test:run` **645/645**, `lint` sin errores, e2e completa **115 pasados, 3
+  saltados, 0 fallos**.
+
+## Slice 7 — arreglar lo propio sin salir del listado (2026-08-03)
+
+### Objetivo
+
+Que toda publicación en forma de tarjeta ofrezca a su dueño editar y marcar agotado, y que el mapa
+deje de tapar el submenú del header.
+
+### Decisiones y por qué
+
+**Quién mira baja como prop y no se lee dentro de la tarjeta.** La tarjeta también se pinta dentro
+del scroll infinito del home, que es cliente y donde `auth()` no existe. La alternativa —un contexto
+de React— habría obligado a volver cliente a la tarjeta entera y con ella a media pantalla de
+listados. Ocultar los controles sigue siendo cortesía y no seguridad: quien decide es el servidor.
+
+**La acción de disponibilidad se mudó de la ruta del detalle a `presentation/`.** Ahora se dispara
+desde los dos sitios donde aparece una publicación, y una tarjeta compartida no puede importar desde
+`app/` sin invertir las capas. De paso invalida el layout: quien marca agotado desde una tarjeta
+está mirando un listado, y ese listado tiene que reflejarlo o parecerá que el botón no hizo nada.
+
+**`isolate` en el mapa.** Leaflet apila sus capas con z-index de 400 a 700 y, sin contexto de
+apilamiento propio, esos números competían en la raíz contra el `z-50` del header — y 400 gana. El
+escenario que lo cubre no mira el z-index: pulsa el enlace del submenú, que es la prueba de que nada
+lo tapa.
+
+### El fallo que enseñó algo
+
+El escenario de marcar agotado desde la tarjeta pasaba en aislamiento y fallaba en la suite
+completa. No era orden ni datos: el `goto` a la publicación adelantaba a la acción del servidor, así
+que la prueba medía la carrera en vez del comportamiento. Se arregló esperando a que la propia
+tarjeta lo confirme —el botón pasa a ofrecer lo contrario— antes de navegar.
+
+### Validación
+
+- `typecheck` limpio, `test:run` **649/649**, `lint` sin errores, e2e completa **118 pasados, 3
+  saltados, 0 fallos**.
+
+### Recap
+
+La cercanía está en el detalle, en el catálogo (con orden y mapa) y en el home (sin reordenar), y
+las cuatro secciones explican su ausencia cuando la hay. Toda tarjeta deja a su dueño editarla y
+marcarla agotada. El mapa ya no tapa el menú.
+
+### Próximos pasos — estado real al 2026-08-03
+
+De los cuatro que dejó el slice 5, **uno quedó hecho y tres siguen abiertos**:
+
+1. ✅ **El home.** Hecho en el slice 6, con la distinción de que no reordena.
+2. ⬜ **La búsqueda** (`/buscar`) sigue sin cercanía, y es la que **más lejos** está del resto: no
+   usa `getPaginatedPosts` sino `PostgresSearchPostRepository`, un `ilike` con su propio orden. No
+   hereda nada de lo construido; hay que llevarle la columna de distancia y el orden a mano.
+3. ⬜ **Las categorías** (`/categoria/<key>`) tampoco. Esta sí es barata: `getPostsByCategory` ya
+   pasa por `getPaginatedPosts`, así que es pasarle `near` y decidir si ordena o solo informa —
+   probablemente ordenar, porque una categoría es catálogo, no feed.
+4. ⬜ **Los directorios** (`/negocios-locales`, `/productores-locales`) ordenan por `s.name`.
+   Ordenarlos por cercanía es el cambio más visible que queda: son las dos páginas cuya razón de
+   ser es la proximidad, y hoy son las únicas que no la usan para nada más que filtrar.
+5. ⬜ **El ancla como parámetro**, el día que el sitio sirva a más de un pueblo.
+6. ⬜ **Medir** cuántas tiendas completan su sucursal. Sigue sin instrumentarse, y sigue siendo la
+   hipótesis que sostiene el roadmap entero.
