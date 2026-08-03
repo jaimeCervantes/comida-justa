@@ -400,6 +400,41 @@ Feature: Quién produce lo declara, qué tan lejos lo dice la distancia
       | sin tienda  | reventa_cercana | no se muestra: revender no exige declararse productor |
       | con tienda  | productor       | no se muestra: ya la tiene                       |
 
+  # ---------------------------------------------------------------------------
+  # Slice 10 — dónde está la tienda de lo que estoy viendo
+  # ---------------------------------------------------------------------------
+
+  @slice-10
+  Scenario: El detalle sitúa la tienda de la publicación
+    Given una publicación de una tienda con sucursal
+    When alguien abre su página
+    Then debajo de las publicaciones recomendadas ve un mapa con esa tienda
+
+  @slice-10
+  Scenario: El mapa no depende de que el visitante comparta su ubicación
+    Given un visitante que no compartió la suya
+    When abre esa publicación
+    Then el mapa sigue apareciendo, centrado en la tienda
+    But no se pinta su propio pin ni ninguna distancia
+
+  @slice-10
+  Scenario: En móvil el mapa va antes de los comentarios
+    Given una publicación de una tienda con sucursal
+    When alguien la abre en un teléfono
+    Then el mapa aparece después del producto y antes de los comentarios
+
+  @slice-10
+  Scenario: En escritorio el mapa va debajo de las recomendadas
+    Given la misma publicación
+    When alguien la abre en una pantalla ancha
+    Then el mapa queda debajo de la columna de recomendadas, a todo el ancho
+
+  @slice-10
+  Scenario: Sin tienda situada no hay mapa que enseñar
+    Given una publicación sin tienda, o de una tienda sin sucursal
+    When alguien abre su página
+    Then no se pinta ningún mapa
+
   @slice-5 @component
   Scenario Outline: El encuadre incluye a quien mira
     Given un visitante y <tiendas> tienda(s) que situar

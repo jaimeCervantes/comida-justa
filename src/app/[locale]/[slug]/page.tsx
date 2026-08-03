@@ -1,18 +1,24 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { Suspense } from "react";
+import type { Coordinates } from "~/domain/entities/seller/coordinates";
+import type { MappedStore } from "~/domain/entities/seller/map";
 import { buildBreadcrumbJsonLd } from "~/domain/seo/jsonLd/breadcrumbs";
 import { resolveLocale } from "~/i18n/routing";
 import { auth } from "~/infra/auth";
-import { distanceToSellerMeters } from "~/infra/dataAccess/sellers/PostgresPostDistance";
+import { readViewerId } from "~/infra/auth/readViewerId";
+import { storeOfPost } from "~/infra/dataAccess/sellers/PostgresPostStore";
 import { readVisitorLocation } from "~/infra/location/visitorLocation";
 import type { PostUser } from "~/infra/types/Posts";
+import StoresMap from "~/presentation/location/StoresMap";
 import Breadcrumbs from "~/presentation/navigation/Breadcrumbs";
 import JsonLd from "~/presentation/seo/JsonLd";
 import { postBreadcrumbs } from "../breadcrumbs";
 import { postCategoryLabel } from "./categoryLabel";
 import { getPostDetails, getRelatedPosts } from "./data";
 import { buildPostStructuredData } from "./jsonLd";
+import CommentList from "./loadComments/CommentList";
 import { buildPostMetadata } from "./metadata";
 import PostDetail from "./ui/PostDetail";
 import RelatedPosts from "./ui/RelatedPosts";
@@ -30,16 +36,20 @@ export async function generateMetadata({
 }
 
 /**
- * A cuántos metros está la tienda, si es que se puede saber.
+ * La tienda detrás de la publicación y dónde está quien mira.
  *
- * Hacen falta las dos ubicaciones y cualquiera de las dos puede faltar, así que el camino corto
- * —sin visitante localizado no se consulta nada— evita una consulta espacial por visita anónima,
- * que son la mayoría.
+ * Una consulta para las dos cosas que el detalle necesita de ella: la distancia que va junto al
+ * título y el punto que pinta el mapa del final. La consulta corre **aunque el visitante no haya
+ * compartido su ubicación**, porque el mapa vale igual —"¿dónde está esta tienda?" es una pregunta
+ * completa— y solo se queda sin la distancia.
  */
-async function resolveDistanceMeters(slug: string): Promise<number | null> {
+async function resolveStoreContext(slug: string): Promise<{
+  visitor: Coordinates | null;
+  store: MappedStore | null;
+}> {
   const visitor = await readVisitorLocation();
 
-  return visitor ? await distanceToSellerMeters(slug, visitor) : null;
+  return { visitor, store: await storeOfPost(slug, visitor) };
 }
 
 export default async function Slug({
@@ -51,6 +61,7 @@ export default async function Slug({
   const { slug, locale: rawLocale } = await params;
   const locale = resolveLocale(rawLocale);
   setRequestLocale(locale);
+  const viewerId = await readViewerId();
   const tCommon = await getTranslations("common");
 
   // Se resuelve aquí, fuera de cualquier `<Suspense>`: si la publicación no existe, la respuesta
@@ -79,6 +90,7 @@ export default async function Slug({
     locale,
   });
   const breadcrumbJsonLd = buildBreadcrumbJsonLd(jsonLdItems);
+  const { visitor, store } = await resolveStoreContext(slug);
 
   return (
     <section className="sm:flex sm:gap-4 flex-wrap">
@@ -89,18 +101,50 @@ export default async function Slug({
       />
       <JsonLd data={buildPostStructuredData(post, slug, categoryLabel)} />
       {breadcrumbJsonLd ? <JsonLd data={breadcrumbJsonLd} /> : null}
+      {/*
+        El orden del DOM es el de MÓVIL —publicación, mapa, comentarios, recomendadas— y las clases
+        `sm:order-*` lo reacomodan en escritorio, donde las dos primeras son columnas hermanas y el
+        mapa cae debajo de recomendadas.
+
+        Va así y no al revés porque en móvil el mapa tiene que quedar **antes de los comentarios**:
+        cuando alguien ya leyó el producto, la pregunta siguiente es si puede ir por él, no qué
+        opinan los demás. En escritorio esa pregunta llega más tarde, porque las recomendadas están
+        a la vista desde el principio y el mapa a lo ancho es el cierre natural de la página.
+      */}
       <PostDetail
         post={post}
-        className="sm:w-[50%] mb-4"
+        className="sm:w-[50%] mb-4 sm:order-1"
         user={session?.user as PostUser}
         locale={locale}
         slug={slug}
-        distanceMeters={await resolveDistanceMeters(slug)}
+        distanceMeters={store?.meters ?? null}
       />
+
+      {store ? (
+        <StoresMap
+          visitor={visitor}
+          stores={[store]}
+          headingKey="storeMapHeading"
+          className="w-full mt-4 sm:mt-8 sm:order-3"
+        />
+      ) : null}
+
+      <section data-testid="comments" className="w-full mt-14 sm:order-4">
+        <Suspense>
+          <CommentList
+            postId={post.id}
+            user={session?.user as PostUser}
+            initialComments={post.comments}
+          />
+        </Suspense>
+      </section>
+
       {/* Se resuelve aquí y no dentro del detalle: son dos columnas hermanas, y el parecido no
           es parte de la publicación sino de su vecindario. */}
       <RelatedPosts
         posts={await getRelatedPosts(slug, String(post.id ?? ""), locale)}
+        viewerId={viewerId}
+        className="sm:order-2"
       />
     </section>
   );

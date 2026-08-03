@@ -1,5 +1,4 @@
 import { getTranslations } from "next-intl/server";
-import { Suspense } from "react";
 import { FaDollarSign } from "react-icons/fa";
 import { MdPhone } from "react-icons/md";
 import { canBeOrdered, isSellable } from "~/domain/entities/post/availability";
@@ -17,13 +16,16 @@ import StoreDistance from "~/presentation/location/StoreDistance";
 import { setAvailability } from "~/presentation/post/availabilityAction";
 import OpenStoreHint from "~/presentation/post/OpenStoreHint";
 import { postCategoryLabel } from "../categoryLabel";
-import CommentList from "../loadComments/CommentList";
 import OwnerControls from "./OwnerControls";
 import PostLinks from "./PostLinks";
 
 /**
  * Presenta una publicación ya cargada. La búsqueda (y el 404 si no existe) vive en la página,
  * fuera de cualquier `<Suspense>`, para que el status HTTP sea el correcto.
+ *
+ * **Los comentarios ya no viven aquí.** Los compone la página, porque su sitio depende del ancho:
+ * en móvil van después del mapa de la tienda y en escritorio quedan debajo de las dos columnas.
+ * Un componente que se pinta dentro de este no puede colocarse fuera de él.
  */
 export default async function PostDetail({
   post: postDetails,
@@ -58,7 +60,6 @@ export default async function PostDetail({
     category: postDetails.category,
     subCategory: postDetails.subCategory,
     contactInfo: postDetails.contactInfo,
-    comments: postDetails.comments,
     id: postDetails.id,
     isAvailable: postDetails.isAvailable !== false,
     seller: postDetails.seller,
@@ -74,7 +75,6 @@ export default async function PostDetail({
     category,
     subCategory,
     contactInfo,
-    comments,
     id,
     isAvailable,
     seller,
@@ -154,11 +154,6 @@ export default async function PostDetail({
         authorName={postDetails.user?.name}
         authorUsername={postDetails.user?.username}
       />
-      <section className="mt-14">
-        <Suspense>
-          <CommentList postId={id} user={user} initialComments={comments} />
-        </Suspense>
-      </section>
     </article>
   );
 }

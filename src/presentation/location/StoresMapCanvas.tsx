@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
 import type { Coordinates } from "~/domain/entities/seller/coordinates";
 import { describeDistance } from "~/domain/entities/seller/distance";
-import { boundsFor, type MappedStore } from "~/domain/entities/seller/map";
+import { type MappedStore, viewFor } from "~/domain/entities/seller/map";
 
 /**
  * Pines de HTML y no las imágenes que trae Leaflet.
@@ -36,21 +36,32 @@ export default function StoresMapCanvas({
   visitor,
   stores,
 }: {
-  visitor: Coordinates;
+  /** `null` cuando quien mira no compartió su ubicación: el mapa sigue valiendo, sin su pin. */
+  visitor: Coordinates | null;
   stores: readonly MappedStore[];
 }) {
   const t = useTranslations("distance");
-  const bounds = boundsFor(visitor, stores);
+  const view = viewFor(visitor, stores);
 
-  if (!bounds) return null;
+  if (!view) return null;
 
   return (
     <MapContainer
-      bounds={[
-        [bounds.southWest.latitude, bounds.southWest.longitude],
-        [bounds.northEast.latitude, bounds.northEast.longitude],
-      ]}
-      boundsOptions={{ padding: [32, 32] }}
+      {...(view.kind === "bounds"
+        ? {
+            bounds: [
+              [view.bounds.southWest.latitude, view.bounds.southWest.longitude],
+              [view.bounds.northEast.latitude, view.bounds.northEast.longitude],
+            ] as [[number, number], [number, number]],
+            boundsOptions: { padding: [32, 32] as [number, number] },
+          }
+        : {
+            center: [view.center.latitude, view.center.longitude] as [
+              number,
+              number,
+            ],
+            zoom: view.zoom,
+          })}
       scrollWheelZoom={false}
       /*
        * `isolate` no es cosmético: sin él el mapa tapa el submenú del header.
@@ -66,15 +77,18 @@ export default function StoresMapCanvas({
         url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
 
-      <Marker
-        position={[visitor.latitude, visitor.longitude]}
-        icon={visitorIcon}
-      >
-        <Popup>{t("youAreHere")}</Popup>
-      </Marker>
+      {visitor ? (
+        <Marker
+          position={[visitor.latitude, visitor.longitude]}
+          icon={visitorIcon}
+        >
+          <Popup>{t("youAreHere")}</Popup>
+        </Marker>
+      ) : null}
 
       {stores.map((store) => {
-        const described = describeDistance(store.meters);
+        const described =
+          store.meters === null ? null : describeDistance(store.meters);
 
         return (
           <Marker

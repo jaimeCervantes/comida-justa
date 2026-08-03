@@ -12,15 +12,20 @@ import CardForList from "~/infra/UI/components/CardForList/CardForList";
 export default async function RelatedPosts({
   posts,
   viewerId,
+  className = "",
 }: {
   posts: Post[];
+  className?: string;
   /** Quién mira: decide si sus propias publicaciones le ofrecen editar y marcar agotado. */
   viewerId?: string | null;
 }) {
   const t = await getTranslations("post");
 
   return (
-    <aside className="sm:flex-1" aria-labelledby="related-heading">
+    <aside
+      className={`sm:flex-1 ${className}`}
+      aria-labelledby="related-heading"
+    >
       <h2 id="related-heading" className="text-3xl font-bold mb-4">
         {t("related")}
       </h2>

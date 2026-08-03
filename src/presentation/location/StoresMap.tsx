@@ -24,17 +24,23 @@ const StoresMapCanvas = dynamic(() => import("./StoresMapCanvas"), {
 export default function StoresMap({
   visitor,
   stores,
+  headingKey = "mapHeading",
+  className = "mb-4",
 }: {
-  visitor: Coordinates;
+  /** `null` cuando quien mira no compartió su ubicación. */
+  visitor: Coordinates | null;
   stores: readonly MappedStore[];
+  /** Qué pregunta contesta este mapa: dónde están varias, o dónde está esta. */
+  headingKey?: "mapHeading" | "storeMapHeading";
+  className?: string;
 }) {
   const t = useTranslations("distance");
 
   if (stores.length === 0) return null;
 
   return (
-    <section className="mb-4" data-testid="stores-map">
-      <h2 className="text-lg font-bold mb-2">{t("mapHeading")}</h2>
+    <section className={className} data-testid="stores-map">
+      <h2 className="text-lg font-bold mb-2">{t(headingKey)}</h2>
       {/* El testid va aquí y no en el `MapContainer`: react-leaflet solo reenvía `className`,
           `id` y `style` al div del mapa, y se come cualquier otro atributo. */}
       <StoresMapCanvas visitor={visitor} stores={stores} />
