@@ -8,6 +8,7 @@ export interface EditablePost {
   content: string;
   price: number | null;
   kind: string;
+  origin: string | null;
   category: string | null;
   subCategory: string | null;
   isAvailable: boolean;
@@ -19,6 +20,8 @@ export interface PostContentUpdate {
   title: string;
   content: string;
   price: number | null;
+  /** Ya resuelta contra el rol de quien edita: el gate de admin vive en la capa de aplicación. */
+  origin: string | null;
   category: string | null;
   subCategory: string | null;
 }

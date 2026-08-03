@@ -5,6 +5,7 @@ import { MdOutlinePriceChange, MdTitle } from "react-icons/md";
 import type { CategoryOption } from "~/domain/entities/post/taxonomy";
 import { Link } from "~/i18n/navigation";
 import { POST_CONTENT_MAX_LENGTH } from "~/infra/constants";
+import { originOptionsFor } from "~/infra/UI/labels/postOriginLabels";
 import { Button } from "~/presentation/design_system/buttons/Button";
 import { TextArea } from "~/presentation/design_system/forms/TextArea";
 import { TextField } from "~/presentation/design_system/forms/TextField";
@@ -19,30 +20,35 @@ export type EditablePostValues = {
   content: string;
   price: number | null;
   kind: string;
+  origin: string | null;
   category: string | null;
   subCategory: string | null;
 };
 
 /**
- * Edita el texto, el precio y la categoría de una publicación.
+ * Edita el texto, el precio, la categoría y la procedencia de una publicación.
  *
  * **No se puede cambiar la media ni el tipo**: la primera exige rehacer la subida y el segundo
- * cambiaría lo que la publicación *es* (un anuncio no tiene precio). Ninguno de los dos hacía
- * falta para lo que este slice resuelve, que es corregir lo escrito y ajustar el precio.
+ * cambiaría lo que la publicación *es* (un anuncio no tiene precio). La procedencia sí, y es lo
+ * que vuelve reversible una declaración equivocada: sin esta pantalla, corregirla exigía entrar a
+ * la base.
  */
 export default function EditPostForm({
   action,
   post,
+  isAdmin = false,
   categoryOptions,
   subCategoryOptionsByCategory,
 }: {
   action: (state: EditPostState, data: FormData) => Promise<EditPostState>;
   post: EditablePostValues;
+  isAdmin?: boolean;
   categoryOptions: readonly CategoryOption[];
   subCategoryOptionsByCategory: Record<string, readonly CategoryOption[]>;
 }) {
   const t = useTranslations("edit");
   const tPublish = useTranslations("publish");
+  const tVocabulary = useTranslations("vocabulary");
   const [state, updateAction, isPending] = useActionState<
     EditPostState,
     FormData
@@ -122,6 +128,28 @@ export default function EditPostForm({
                 </select>
               </div>
             ) : null}
+
+            {/* Requerida como al publicar: es por aquí por donde el producto anterior a la
+                regla, que quedó sin procedencia, puede ponerse al día. */}
+            <div className="mb-6 text-black dark:text-white">
+              <label htmlFor="origin" className="block mb-1">
+                {tPublish("origin")}
+              </label>
+              <select
+                id="origin"
+                name="origin"
+                defaultValue={post.origin ?? ""}
+                required
+                className={selectClassName}
+              >
+                <option value="">{tPublish("originPlaceholder")}</option>
+                {originOptionsFor(isAdmin).map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {tVocabulary(option.labelKey)}
+                  </option>
+                ))}
+              </select>
+            </div>
 
             <TextField
               required

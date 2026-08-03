@@ -123,6 +123,7 @@ describe("UpdateOnePostUseCase", () => {
     title: "Jugo Verde grande",
     content: "Nopal, apio, piña y perejil. Recién hecho, ahora de 500 ml.",
     price: 45,
+    origin: "productor",
     category: "alimentacion",
     subCategory: "jugos",
   };
@@ -171,6 +172,29 @@ describe("UpdateOnePostUseCase", () => {
     const result = await useCase.execute({ ...edit, price: null });
 
     expect(result.errorMessage).toContain("precio");
+    expect(repository.updates).toHaveLength(0);
+  });
+
+  it("corrige la procedencia sin mover nada más", async () => {
+    const result = await useCase.execute({ ...edit, origin: "reventa_lejana" });
+
+    expect(result.errorMessage).toBeUndefined();
+    expect(repository.updates[0]).toMatchObject({
+      origin: "reventa_lejana",
+      title: "Jugo Verde grande",
+    });
+  });
+
+  /*
+   * `resolveOriginForUser` deja en `null` la procedencia que un no-admin no puede declarar, así
+   * que un request forjado con `hazlo_sano_propio` llega aquí sin procedencia. La edición se
+   * rechaza en vez de guardar el producto desmarcado: descartar no puede terminar en un producto
+   * que perdió lo que sí tenía declarado.
+   */
+  it("rechaza la edición que se quedó sin procedencia", async () => {
+    const result = await useCase.execute({ ...edit, origin: null });
+
+    expect(result.errorMessage).toContain("de dónde viene");
     expect(repository.updates).toHaveLength(0);
   });
 

@@ -143,15 +143,47 @@ Feature: Quién produce lo declara, qué tan lejos lo dice la distancia
     And no se le pide nada a nadie para seguir visible
 
   # ---------------------------------------------------------------------------
-  # Slice 2 — corregir la procedencia de lo ya publicado (@future)
+  # Slice 2 — corregir la procedencia de lo ya publicado
   # ---------------------------------------------------------------------------
 
-  @slice-2 @future
+  @slice-2
   Scenario: Corrijo la procedencia de un producto que declaré mal
-    Given un producto mío publicado como "reventa_cercana"
-    When lo edito y declaro que lo hago yo
+    Given un producto mío "Pan de masa madre" publicado como "reventa_cercana"
+    When lo edito y declaro "Yo lo hago o lo cultivo"
     Then su procedencia queda como "productor"
-    And mi tienda aparece en "/productores-locales"
+    And el resto de la publicación no se movió:
+      | title | Pan de masa madre |
+      | slug  | el mismo de antes |
+
+  @slice-2
+  Scenario: El producto que quedó sin procedencia se pone al día al editarlo
+    Given el producto anterior a la regla, con procedencia nula
+    When su dueño lo edita
+    Then el formulario le pide la procedencia antes de dejarlo guardar
+    And al declararla, el producto deja de estar sin especificar
+
+  @slice-2 @component
+  Scenario Outline: Corregir no es una puerta trasera para la marca de Hazlo Sano
+    Given un <rol> editando un producto propio
+    Then la procedencia "<origen>" está <disponibilidad>
+
+    Examples:
+      | rol      | origen            | disponibilidad | razón                                    |
+      | vendedor | productor         | disponible     | corregir es el punto del slice           |
+      | vendedor | hazlo_sano_propio | escondida      | mismas reglas que al publicar            |
+      | admin    | hazlo_sano_propio | disponible     | es quien puede hablar por Hazlo Sano     |
+
+  @slice-2
+  Scenario: Un vendedor que fuerza la corrección tampoco se cuelga la marca
+    Given un vendedor editando un producto propio
+    When envía "hazlo_sano_propio" en un request forjado
+    Then el servidor descarta esa procedencia
+    And la edición se rechaza en vez de guardar el producto sin procedencia
+
+  @slice-2 @component
+  Scenario: A un anuncio se le sigue sin preguntar de dónde viene
+    Given un anuncio propio en edición
+    Then no se muestra ningún selector de procedencia
 
   # ---------------------------------------------------------------------------
   # Slice 3 — la distancia en el producto (@future)

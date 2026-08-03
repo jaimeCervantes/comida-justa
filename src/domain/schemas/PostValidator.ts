@@ -28,37 +28,20 @@ export default class PostValidator implements IPostValidator {
   }
 
   /**
-   * Las reglas de `validate` más las que solo puede exigir quien **publica**.
-   *
-   * La procedencia se separa a propósito. Es obligatoria en un producto nuevo —sin ella el
-   * directorio de productores no se llena solo, que es el punto de la feature—, pero editar no la
-   * recibe: `UpdateOnePostUseCase` cambia título, texto, precio y categoría, y nunca el origen. Si
-   * `validate` la exigiera, editar cualquiera de los 13 productos que ya existen fallaría por un
-   * campo que su formulario ni siquiera muestra, y un error que no se puede corregir desde la
-   * pantalla es peor que el hueco que cierra.
-   */
-  validateNewPost(post: Post): VoidOrError {
-    this.validate(post);
-    this.validateOriginIsDeclared(post);
-  }
-
-  private validateOriginIsDeclared(post: Post): VoidOrError {
-    if (post.kind === "producto" && !post.origin) {
-      throw new PostClassificationError(
-        "Un producto necesita que digas de dónde viene.",
-      );
-    }
-  }
-
-  /**
    * Valida los ejes de clasificación del post:
    * - `kind` (si viene) debe estar en la allowlist.
-   * - un `producto` exige `price` numérico y mayor a cero.
+   * - un `producto` exige `price` numérico y mayor a cero, y **procedencia**.
    * - `origin` (si viene) debe estar en la allowlist. El gate de admin para `hazlo_sano_*`
    *   NO vive aquí (es autorización de la capa de aplicación, no forma del dato).
    *
-   * Que la procedencia sea **obligatoria** es regla de `validateNewPost`, no de aquí: ver el porqué
-   * en su docstring.
+   * La procedencia se exige solo en un `producto` porque solo ahí significa algo: un anuncio no
+   * tiene nada cuyo origen declarar. Se exige **después** del gate de admin, así que un no-admin
+   * que fuerza un `hazlo_sano_*` no termina guardando sin procedencia: se le rechaza.
+   *
+   * Durante el slice 1 esta regla vivió aparte, en un `validateNewPost`, porque la edición
+   * validaba sin recibir el `origin` y habría roto los productos que ya existían por un campo que
+   * su formulario no mostraba. El slice 2 le dio ese campo a la edición, así que el desdoble dejó
+   * de tener razón de ser y la regla volvió aquí, que es donde se lee junto a la del precio.
    */
   private validateKindAndOrigin(post: Post): VoidOrError {
     if (post.kind !== undefined && !isValidKind(post.kind)) {
@@ -75,6 +58,12 @@ export default class PostValidator implements IPostValidator {
       ) {
         throw new PostClassificationError(
           "Un producto necesita un precio mayor a cero.",
+        );
+      }
+
+      if (!post.origin) {
+        throw new PostClassificationError(
+          "Un producto necesita que digas de dónde viene.",
         );
       }
     }

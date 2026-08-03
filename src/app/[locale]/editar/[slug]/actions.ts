@@ -1,11 +1,13 @@
 "use server";
 import { after } from "next/server";
 import { getLocale } from "next-intl/server";
+import { resolveOriginForUser } from "~/domain/entities/post/origin";
 import { resolveKeyStrict } from "~/domain/entities/post/taxonomy";
 import type { User } from "~/domain/entities/post/types";
 import PostValidator from "~/domain/schemas/PostValidator";
 import { redirectKeepingLocale } from "~/i18n/redirectKeepingLocale";
 import { auth } from "~/infra/auth";
+import { isAdmin } from "~/infra/auth/isAdmin";
 import { SIGNIN_PATH } from "~/infra/constants";
 import { getCategoryTaxonomy } from "~/infra/dataAccess/categories/cachedCategoryTaxonomy";
 import { createIndexPostEmbeddingUseCase } from "~/infra/dataAccess/indexPostEmbedding/factory";
@@ -36,6 +38,13 @@ export async function updatePost(
     redirectKeepingLocale(SIGNIN_PATH, await getLocale());
   }
 
+  // Misma defensa que al publicar: un no-admin que fuerza un `hazlo_sano_*` se queda sin
+  // procedencia, y el validador rechaza el producto en vez de guardarlo con la marca puesta.
+  const origin = resolveOriginForUser(
+    formData.get("origin") as string,
+    isAdmin(session?.user?.email),
+  );
+
   const taxonomy = await getCategoryTaxonomy();
   const category = resolveKeyStrict(
     taxonomy,
@@ -64,6 +73,7 @@ export async function updatePost(
     title: String(formData.get("title") ?? ""),
     content: String(formData.get("content") ?? ""),
     price: Number(formData.get("price")) || null,
+    origin,
     category,
     subCategory,
   });

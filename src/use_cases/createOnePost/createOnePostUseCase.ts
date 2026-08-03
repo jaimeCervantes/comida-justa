@@ -34,7 +34,7 @@ export default class CreateOnePostUseCase {
     lang: string = "es",
   ): Promise<CreatePostResult> {
     try {
-      this.postValidator.validateNewPost(postInfo);
+      this.postValidator.validate(postInfo);
     } catch (error) {
       return {
         error,

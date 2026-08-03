@@ -7,7 +7,6 @@ export const mockPostValidator: IPostValidator = {
   MIN_LENGTH_TITLE: 5,
   MIN_LENGTH_CONTENT: 10,
   validate: vi.fn(),
-  validateNewPost: vi.fn(),
   validateStringOnPost: vi.fn(),
   validateNumberOnPost: vi.fn(),
   validateFile: vi.fn(),

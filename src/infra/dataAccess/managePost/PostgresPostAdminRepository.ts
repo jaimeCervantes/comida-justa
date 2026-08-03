@@ -15,6 +15,7 @@ interface EditableRow {
   content: string;
   price: string | null;
   kind: string | null;
+  origin: string | null;
   category: string | null;
   sub_category: string | null;
   is_available: boolean;
@@ -52,6 +53,7 @@ export class PostgresPostAdminRepository implements IPostAdminRepository {
       await tx.execute(sql`
         UPDATE posts
         SET price        = ${update.price},
+            origin       = ${update.origin},
             category     = ${update.category},
             sub_category = ${update.subCategory}
         WHERE id = ${update.postId}
@@ -79,6 +81,7 @@ export class PostgresPostAdminRepository implements IPostAdminRepository {
         t.content,
         p.price::text,
         p.kind,
+        p.origin,
         p.category,
         p.sub_category,
         p.is_available
@@ -103,6 +106,7 @@ export class PostgresPostAdminRepository implements IPostAdminRepository {
       content: row.content,
       price: row.price === null ? null : Number(row.price),
       kind: row.kind ?? "anuncio",
+      origin: row.origin,
       category: row.category,
       subCategory: row.sub_category,
       isAvailable: row.is_available,

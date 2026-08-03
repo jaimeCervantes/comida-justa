@@ -13,6 +13,12 @@ export interface UpdateOnePostInput {
   title: string;
   content: string;
   price: number | null;
+  /**
+   * Ya resuelta contra el rol de quien edita (`resolveOriginForUser`), igual que al publicar: si
+   * un no-admin fuerza un `hazlo_sano_*` llega aquí en `null` y el validador rechaza el producto,
+   * en vez de guardarlo con la marca puesta o sin procedencia.
+   */
+  origin: string | null;
   category: string | null;
   subCategory: string | null;
 }
@@ -73,12 +79,15 @@ export default class UpdateOnePostUseCase {
     const title = input.title?.trim() ?? "";
     const content = input.content?.trim() ?? "";
 
-    // Se valida con las mismas reglas que al publicar: un producto sigue necesitando precio.
+    // Se valida con las mismas reglas que al publicar: un producto sigue necesitando precio y
+    // procedencia. `kind` no viaja en el formulario —editar no cambia lo que la publicación es—,
+    // así que se toma el guardado; el `origin` sí viaja, porque corregirlo es el punto.
     this.postValidator.validate({
       title,
       content,
       price: input.price,
       kind: post.kind as never,
+      origin: input.origin as never,
       contactInfo: { phone: "" },
       media: { url: "", type: "" },
       user: { id: post.ownerId } as User,
@@ -91,6 +100,7 @@ export default class UpdateOnePostUseCase {
       title,
       content,
       price: input.price,
+      origin: input.origin,
       category: input.category,
       subCategory: input.subCategory,
     });

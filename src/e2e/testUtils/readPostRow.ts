@@ -3,6 +3,7 @@ import { db } from "~/infra/dataAccess/db/connection";
 
 export type PostRowSnapshot = {
   kind: string | null;
+  origin: string | null;
   is_available: boolean;
   category: string | null;
   sub_category: string | null;
@@ -18,7 +19,7 @@ export async function readPostRowBySlug(
   slug: string,
 ): Promise<PostRowSnapshot | null> {
   const result = await db.execute(sql`
-    SELECT p.kind, p.is_available, p.category, p.sub_category, p.seller_id, p.external_url
+    SELECT p.kind, p.origin, p.is_available, p.category, p.sub_category, p.seller_id, p.external_url
     FROM posts p
     JOIN post_translations pt ON pt.post_id = p.id
     WHERE pt.slug = ${slug}

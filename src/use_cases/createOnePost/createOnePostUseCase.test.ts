@@ -23,15 +23,13 @@ describe("CreatePostUseCase", () => {
     const expectedFileUrl = "http://hazlosano.com/files/test.jpg";
     const expectedFileType = "image";
 
-    mockPostValidator.validateNewPost.mockReturnValue(undefined);
+    mockPostValidator.validate.mockReturnValue(undefined);
     mockPostRepository.createUniqueSlug.mockResolvedValue(expectedSlug);
     mockPostRepository.save.mockResolvedValue(expectedPostId);
 
     const result = await createPostUseCase.execute(samplePostInfo, "es");
 
-    expect(mockPostValidator.validateNewPost).toHaveBeenCalledWith(
-      samplePostInfo,
-    );
+    expect(mockPostValidator.validate).toHaveBeenCalledWith(samplePostInfo);
     expect(mockPostRepository.createUniqueSlug).toHaveBeenCalledWith(
       samplePostInfo.slug,
       "es",
@@ -77,7 +75,7 @@ describe("CreatePostUseCase", () => {
       subCategory: "jugos",
     };
 
-    mockPostValidator.validateNewPost.mockReturnValue(undefined);
+    mockPostValidator.validate.mockReturnValue(undefined);
     mockPostRepository.createUniqueSlug.mockResolvedValue(expectedSlug);
     mockPostRepository.save.mockResolvedValue("post123");
 
@@ -97,15 +95,13 @@ describe("CreatePostUseCase", () => {
 
   it("should return a validation error if post validation fails", async () => {
     const validationError = new Error("Invalid post data");
-    mockPostValidator.validateNewPost.mockImplementation(() => {
+    mockPostValidator.validate.mockImplementation(() => {
       throw validationError;
     });
 
     const result = await createPostUseCase.execute(samplePostInfo, "es");
 
-    expect(mockPostValidator.validateNewPost).toHaveBeenCalledWith(
-      samplePostInfo,
-    );
+    expect(mockPostValidator.validate).toHaveBeenCalledWith(samplePostInfo);
     expect(result).toEqual({
       error: validationError,
       errorMessage: "Invalid post data",
@@ -118,15 +114,13 @@ describe("CreatePostUseCase", () => {
 
   it("should return an error if slug definition fails", async () => {
     const slugError = new Error("Slug generation failed");
-    mockPostValidator.validateNewPost.mockReturnValue(undefined); // Validation passes
+    mockPostValidator.validate.mockReturnValue(undefined); // Validation passes
     // Mocking the private method 'defineSlug' indirectly by making createUniqueSlug throw
     mockPostRepository.createUniqueSlug.mockRejectedValue(slugError);
 
     const result = await createPostUseCase.execute(samplePostInfo, "es");
 
-    expect(mockPostValidator.validateNewPost).toHaveBeenCalledWith(
-      samplePostInfo,
-    );
+    expect(mockPostValidator.validate).toHaveBeenCalledWith(samplePostInfo);
     expect(mockPostRepository.createUniqueSlug).toHaveBeenCalledWith(
       samplePostInfo.slug,
       "es",
@@ -144,15 +138,13 @@ describe("CreatePostUseCase", () => {
     const expectedFileUrl = "http://hazlosano.com/files/test.jpg";
     const expectedFileType = "image";
 
-    mockPostValidator.validateNewPost.mockReturnValue(undefined); // Validation passes
+    mockPostValidator.validate.mockReturnValue(undefined); // Validation passes
     mockPostRepository.createUniqueSlug.mockResolvedValue(expectedSlug); // Returns a unique slug
     mockPostRepository.save.mockRejectedValue(repositoryError); // Saving fails
 
     const result = await createPostUseCase.execute(samplePostInfo, "es");
 
-    expect(mockPostValidator.validateNewPost).toHaveBeenCalledWith(
-      samplePostInfo,
-    );
+    expect(mockPostValidator.validate).toHaveBeenCalledWith(samplePostInfo);
     expect(mockPostRepository.createUniqueSlug).toHaveBeenCalledWith(
       samplePostInfo.slug,
       "es",
@@ -191,13 +183,13 @@ describe("CreatePostUseCase", () => {
       const postInfoWithoutSlug: Post = { ...samplePostInfo, slug: "" };
       const generatedSlug = "generated-slug-from-title";
 
-      mockPostValidator.validateNewPost.mockReturnValue(undefined);
+      mockPostValidator.validate.mockReturnValue(undefined);
       mockPostEntity.generateSlug.mockReturnValue(generatedSlug);
       mockPostRepository.save.mockResolvedValue("postId");
 
       const result = await createPostUseCase.execute(postInfoWithoutSlug, "es");
 
-      expect(mockPostValidator.validateNewPost).toHaveBeenCalledWith(
+      expect(mockPostValidator.validate).toHaveBeenCalledWith(
         postInfoWithoutSlug,
       );
       expect(mockPostEntity.generateSlug).toHaveBeenCalledWith(
@@ -218,16 +210,14 @@ describe("CreatePostUseCase", () => {
       };
       const uniqueSlug = "user-provided-slug-1";
 
-      mockPostValidator.validateNewPost.mockReturnValue(undefined);
+      mockPostValidator.validate.mockReturnValue(undefined);
       // We only mock createUniqueSlug because generateSlug shouldn't be called
       mockPostRepository.createUniqueSlug.mockResolvedValue(uniqueSlug);
       mockPostRepository.save.mockResolvedValue("postId");
 
       const result = await createPostUseCase.execute(postInfoWithSlug, "es");
 
-      expect(mockPostValidator.validateNewPost).toHaveBeenCalledWith(
-        postInfoWithSlug,
-      );
+      expect(mockPostValidator.validate).toHaveBeenCalledWith(postInfoWithSlug);
       expect(mockPostEntity.generateSlug).not.toHaveBeenCalled(); // Important: not called when slug is provided
       expect(mockPostRepository.createUniqueSlug).toHaveBeenCalledWith(
         postInfoWithSlug.slug,

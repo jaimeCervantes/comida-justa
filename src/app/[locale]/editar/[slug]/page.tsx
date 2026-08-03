@@ -6,6 +6,7 @@ import type { User } from "~/domain/entities/post/types";
 import { redirectKeepingLocale } from "~/i18n/redirectKeepingLocale";
 import { resolveLocale } from "~/i18n/routing";
 import { auth } from "~/infra/auth";
+import { isAdmin } from "~/infra/auth/isAdmin";
 import { SIGNIN_PATH } from "~/infra/constants";
 import { getCategoryTaxonomy } from "~/infra/dataAccess/categories/cachedCategoryTaxonomy";
 import { createPostAdminRepository } from "~/infra/dataAccess/managePost/factory";
@@ -63,9 +64,11 @@ export default async function EditarPage({
         content: post.content,
         price: post.price,
         kind: post.kind,
+        origin: post.origin,
         category: post.category,
         subCategory: post.subCategory,
       }}
+      isAdmin={isAdmin(session.user?.email)}
       categoryOptions={categoryOptions}
       subCategoryOptionsByCategory={subCategoryOptionsByCategory}
     />

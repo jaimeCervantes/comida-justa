@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 import { deleteOnePostBySlug } from "../testUtils/deleteOnePost";
 import { deleteTestSellerByHandle } from "../testUtils/deleteTestSeller";
 import { readEmbeddingBySlug } from "../testUtils/readEmbedding";
+import { readPostRowBySlug } from "../testUtils/readPostRow";
 import { seedPost } from "../testUtils/seedPost";
 import {
   type DbSession,
@@ -100,6 +101,9 @@ test.describe("Cuando alguien edita una publicación", () => {
     await page
       .getByRole("textbox", { name: /descripci[oó]n/i })
       .fill("Ahora de 500 ml, con nopal, apio, piña y perejil.");
+    // Este producto se sembró sin procedencia, como el que quedó de antes de la regla: la
+    // pantalla de edición es justo por donde se pone al día (slice 2).
+    await page.locator("#origin").selectOption("productor");
     await page.getByRole("button", { name: /guardar cambios/i }).click();
 
     // La dirección NO se mueve aunque el título cambie: los enlaces repartidos siguen vivos.
@@ -107,6 +111,9 @@ test.describe("Cuando alguien edita una publicación", () => {
     await expect(
       page.getByRole("heading", { name: nuevoTitulo }),
     ).toBeVisible();
+
+    // Y la procedencia que le faltaba quedó guardada, sin que nadie entrara a la base.
+    expect((await readPostRowBySlug(post.slug))?.origin).toBe("productor");
 
     // El vector se regenera en `after()`, después de la respuesta.
     if (process.env.GEMINI_API_KEY) {
