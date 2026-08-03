@@ -59,6 +59,8 @@ const NOSOTROS = es.nav.about;
 const POR_CATEGORIA = es.nav.byCategory;
 // Una categoría real del catálogo, con publicaciones.
 const PANADERIA = "Panadería";
+// La raíz de la que cuelga; el menú móvil agrupa por ella.
+const ALIMENTACION = "Alimentación";
 
 test.use({ viewport: devices["Pixel 5"].viewport });
 
@@ -101,15 +103,15 @@ test.describe("Cuando alguien abre el menú desde su teléfono", () => {
   }) => {
     const panaderia = mobileMenu(page).getByRole("link", { name: PANADERIA });
 
-    /* Cerrado, el acordeón deja su contenido a altura cero. No se afirma con `toBeHidden`: un
-       hijo recortado conserva su caja y contaría como visible. Lo que sí distingue es que nadie
-       pueda tocarlo. */
-    expect(
-      await isUnderTheFinger(page, panaderia),
-      "las categorías se ven sin haber desplegado su sección",
-    ).toBe(false);
+    /* Con paneles que se sustituyen, los otros niveles **no se pintan**: no es que estén
+       recortados, es que no existen hasta que se entra. Es lo que evita el desplazamiento
+       interminable de cuando todo crecía hacia abajo. */
+    await expect(panaderia).toHaveCount(0);
 
     await mobileMenu(page).getByRole("button", { name: POR_CATEGORIA }).click();
+
+    // Un nivel más: las categorías se agrupan por su raíz en vez de salir las nueve seguidas.
+    await mobileMenu(page).getByRole("button", { name: ALIMENTACION }).click();
 
     await expect(panaderia).toBeVisible();
     await expectReachableByScrolling(page, panaderia);

@@ -1,7 +1,10 @@
 import Image from "next/image";
 import { getLocale, getTranslations } from "next-intl/server";
 import { LuSalad } from "react-icons/lu";
-import { navigableCategories } from "~/domain/entities/post/taxonomy";
+import {
+  categoryTree,
+  navigableCategories,
+} from "~/domain/entities/post/taxonomy";
 import { Link } from "~/i18n/navigation";
 import { resolveLocale } from "~/i18n/routing";
 import { auth } from "~/infra/auth";
@@ -28,47 +31,58 @@ export default async function Header() {
      `/admin/catalogo` y tienen que aparecer sin desplegar. La lectura está cacheada
      (`unstable_cache` + `React.cache`), así que el header no paga una consulta por render. */
   const locale = resolveLocale(await getLocale());
-  const categories = navigableCategories(await getCategoryTaxonomy(), locale);
+  const taxonomy = await getCategoryTaxonomy();
+  /* Dos lecturas del mismo catálogo: el escritorio lo enseña aplanado —su desplegable es ancho y
+     las reparte en columnas— y el móvil por niveles, porque ahí cada fila se paga en
+     desplazamiento. */
+  const categories = navigableCategories(taxonomy, locale);
+  const categoryBranches = categoryTree(taxonomy, locale);
 
   return (
     <header className="sticky top-0 z-50 w-full glass transition-all duration-300">
       <div className="container-width flex h-16 items-center justify-between">
         <div className="flex gap-4 sm:gap-6 items-center">
-          <MobileNav isAdmin={showAdminLinks} categories={categories}>
-            <LinkButton
-              href="/publicar"
-              color="green"
-              startIcon={<LuSalad />}
-              className="w-full justify-center"
-              showLoader
-            >
-              {t("publish")}
-            </LinkButton>
+          <MobileNav isAdmin={showAdminLinks} categories={categoryBranches}>
             {session ? (
-              <div className="flex flex-col gap-4">
-                <Link
-                  href="/cuenta"
-                  className="flex items-center gap-3 px-2 py-2 bg-gray-50 dark:bg-gray-800/50 rounded-lg"
-                >
-                  <Avatar user={session?.user} />
-                  <div className="flex flex-col">
-                    <span className="font-medium text-gray-900 dark:text-gray-100">
-                      {session.user?.name}
-                    </span>
-                    <span className="text-xs text-gray-500 truncate max-w-[200px]">
-                      {t("myAccountAndStore")}
-                    </span>
-                  </div>
-                </Link>
-                <SignOut className="w-full justify-center" showLoader>
+              <Link
+                href="/cuenta"
+                className="flex items-center gap-3 px-2 py-2 bg-gray-50 dark:bg-gray-800/50 rounded-lg"
+              >
+                <Avatar user={session?.user} />
+                <div className="flex flex-col">
+                  <span className="font-medium text-gray-900 dark:text-gray-100">
+                    {session.user?.name}
+                  </span>
+                  <span className="text-xs text-gray-500 truncate max-w-[200px]">
+                    {t("myAccountAndStore")}
+                  </span>
+                </div>
+              </Link>
+            ) : null}
+
+            {/* Publicar y la sesión, en una fila de dos columnas: son las dos acciones del menú y
+                una debajo de la otra ocupaban el alto de tres filas del propio menú. */}
+            <div className="grid grid-cols-2 gap-3">
+              <LinkButton
+                href="/publicar"
+                color="green"
+                size="sm"
+                startIcon={<LuSalad />}
+                className="w-full justify-center"
+                showLoader
+              >
+                {t("publish")}
+              </LinkButton>
+              {session ? (
+                <SignOut size="sm" className="w-full justify-center" showLoader>
                   {t("signOut")}
                 </SignOut>
-              </div>
-            ) : (
-              <SignIn className="w-full justify-center" showLoader>
-                {t("signIn")}
-              </SignIn>
-            )}
+              ) : (
+                <SignIn size="sm" className="w-full justify-center" showLoader>
+                  {t("signIn")}
+                </SignIn>
+              )}
+            </div>
           </MobileNav>
           <Link
             href="/"

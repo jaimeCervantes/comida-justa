@@ -283,3 +283,29 @@ export function categoryTrail(
 
   return trail;
 }
+
+export interface CategoryBranch extends CategoryOption {
+  /** Sus sub-categorías activas, en orden canónico. Vacío en una raíz que no tiene. */
+  children: readonly CategoryOption[];
+}
+
+/**
+ * El catálogo **con su jerarquía**, para un menú que se recorre por niveles.
+ *
+ * Es la otra forma de leer lo mismo que `navigableCategories`, que lo aplana. Aplanado sirve
+ * cuando hay sitio para enseñarlo todo —el desplegable ancho de escritorio—; por niveles sirve
+ * cuando no lo hay: en un teléfono, nueve categorías seguidas obligan a desplazar para llegar a lo
+ * que va debajo, y agrupadas por su raíz son dos.
+ *
+ * Una raíz sin hijas se devuelve igual, con la lista vacía: quien la pinte decide si la enseña como
+ * un enlace directo en vez de como una puerta a nada.
+ */
+export function categoryTree(
+  taxonomy: CategoryTaxonomy,
+  locale?: string,
+): readonly CategoryBranch[] {
+  return optionsFor(taxonomy, null, locale).map((root) => ({
+    ...root,
+    children: optionsFor(taxonomy, root.value, locale),
+  }));
+}

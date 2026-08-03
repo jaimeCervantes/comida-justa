@@ -1,6 +1,7 @@
 "use client";
 import {
-  ChevronDownIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
   Cross1Icon,
   HamburgerMenuIcon,
 } from "@radix-ui/react-icons";
@@ -8,10 +9,11 @@ import { useTranslations } from "next-intl";
 import type React from "react";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import type { CategoryOption } from "~/domain/entities/post/taxonomy";
+import type { CategoryBranch } from "~/domain/entities/post/taxonomy";
 import { type AppHref, Link, usePathname } from "~/i18n/navigation";
 import { PUBLIC_BRAND_NAME } from "~/infra/constants";
 import { PILLAR_ITEMS, VISIBLE_COMMUNITY_ITEMS } from "./menuItems";
+import { categoryEntries, type MenuEntry, panelAt } from "./mobileMenuTree";
 
 /**
  * Las descripciones del menú móvil eran versiones acortadas de las del menú de escritorio
@@ -54,76 +56,83 @@ function useCloseMenuOnNavigation(
   }
 }
 
-/* Identificadores de sección, no textos: cuál acordeón está abierto no puede depender del idioma. */
-const PILLARS_SECTION = "pillars";
-const COMMUNITY_SECTION = "community";
-const CATEGORIES_SECTION = "categories";
+/* Identificadores de nivel, no textos: qué panel está abierto no puede depender del idioma. */
+const COMMUNITY_PANEL = "community";
+const CATEGORIES_PANEL = "categories";
+const PILLARS_PANEL = "pillars";
 
 const ROW_CLASS = "border-b border-gray-100 dark:border-gray-800 last:border-0";
-const ROW_LINK_CLASS =
+const ROW_CONTENT_CLASS =
   "w-full flex items-center justify-between py-4 text-lg font-medium text-gray-900 dark:text-gray-100";
 
-function Section({
-  title,
-  isOpen,
-  onToggle,
-  children,
-}: {
-  title: string;
-  isOpen: boolean;
-  onToggle: () => void;
-  children: React.ReactNode;
-}) {
+/** Una fila que baja un nivel. El chevron apunta a la derecha porque de ahí viene lo que abre. */
+function PanelRow({ label, onOpen }: { label: string; onOpen: () => void }) {
   return (
     <li className={ROW_CLASS}>
-      <button type="button" onClick={onToggle} className={ROW_LINK_CLASS}>
-        {title}
-        <ChevronDownIcon
-          className={`w-6 h-6 text-gray-500 transition-transform duration-300 ${
-            isOpen ? "rotate-180" : ""
-          }`}
-        />
+      <button type="button" onClick={onOpen} className={ROW_CONTENT_CLASS}>
+        {label}
+        <ChevronRightIcon className="w-6 h-6 text-gray-500" aria-hidden />
       </button>
-      {/**
-       * La animación va por `grid-template-rows`, no por `max-height`.
-       *
-       * Antes era `max-h-[500px]`, y una altura fija recorta en cuanto la lista crece: al entregar
-       * los directorios de la comunidad, «Comunidad» pasó a 14 enlaces —publicaciones, productos,
-       * las 10 categorías y las 2 secciones— y las dos últimas quedaron **fuera del recorte**, sin
-       * forma de tocarlas desde un teléfono. Con `0fr → 1fr` la altura la pone el contenido, así
-       * que la lista puede crecer sin que nadie tenga que acordarse de subir un número.
-       */}
-      <div
-        className={`grid transition-all duration-300 ease-in-out ${
-          isOpen
-            ? "grid-rows-[1fr] opacity-100 mb-4"
-            : "grid-rows-[0fr] opacity-0"
-        }`}
-      >
-        <ul className="space-y-1 pl-4 border-l-2 border-pw-green/20 ml-2 overflow-hidden">
-          {children}
-        </ul>
-      </div>
     </li>
   );
 }
 
-function SectionLink({
+function LinkRow({
   href,
-  children,
+  label,
+  onNavigate,
 }: {
   href: AppHref;
-  children: React.ReactNode;
+  label: string;
+  onNavigate?: () => void;
 }) {
   return (
-    <li>
-      <Link
-        href={href}
-        className="block py-3 text-base text-gray-600 dark:text-gray-400 hover:text-pw-green dark:hover:text-pw-green transition-colors"
-      >
-        {children}
+    <li className={ROW_CLASS}>
+      <Link href={href} onClick={onNavigate} className={ROW_CONTENT_CLASS}>
+        {label}
       </Link>
     </li>
+  );
+}
+
+/**
+ * Un nivel del menú.
+ *
+ * **Los niveles entran desde la derecha y sustituyen al anterior**, no crecen hacia abajo. Con
+ * acordeones, abrir «Comunidad» y «Por categoría» sumaba veinte filas a una pantalla de teléfono y
+ * todo se resolvía desplazando; así, cada nivel ocupa lo que ocupa y se vuelve con la flecha.
+ *
+ * La animación es la misma que usa el menú de escritorio (`enterFromRight`), y `motion-safe` la
+ * apaga para quien pidió que no le muevan la pantalla.
+ */
+function MenuLevel({
+  entries,
+  onOpenPanel,
+  onNavigate,
+}: {
+  entries: readonly MenuEntry[];
+  onOpenPanel: (id: string) => void;
+  onNavigate: () => void;
+}) {
+  return (
+    <ul className="space-y-2">
+      {entries.map((entry) =>
+        entry.kind === "panel" ? (
+          <PanelRow
+            key={entry.id}
+            label={entry.label}
+            onOpen={() => onOpenPanel(entry.id)}
+          />
+        ) : (
+          <LinkRow
+            key={entry.id}
+            href={entry.href}
+            label={entry.label}
+            onNavigate={onNavigate}
+          />
+        ),
+      )}
+    </ul>
   );
 }
 
@@ -133,17 +142,19 @@ export default function MobileNav({
   isAdmin = false,
 }: {
   children: React.ReactNode;
-  categories: readonly CategoryOption[];
+  /** El catálogo con su jerarquía: el menú se recorre por niveles, no aplanado. */
+  categories: readonly CategoryBranch[];
   isAdmin?: boolean;
 }) {
   const t = useTranslations("nav");
   const tPillars = useTranslations("pillars");
   const tCommon = useTranslations("common");
   const [isOpen, setIsOpen] = useState(false);
-  const [openSubmenu, setOpenSubmenu] = useState<string | null>(null);
+  /** Los niveles abiertos, del primero al último. Vacío es el menú de inicio. */
+  const [path, setPath] = useState<string[]>([]);
 
   const isClientMounted = useClientSideMounted();
-  useCloseMenuOnNavigation(isOpen, setIsOpen, setOpenSubmenu);
+  useCloseMenuOnNavigation(isOpen, setIsOpen, () => setPath([]));
 
   useEffect(() => {
     if (isOpen) {
@@ -156,9 +167,68 @@ export default function MobileNav({
     };
   }, [isOpen]);
 
-  const toggleSubmenu = (title: string) => {
-    setOpenSubmenu(openSubmenu === title ? null : title);
+  const closeMenu = () => {
+    setIsOpen(false);
+    setPath([]);
   };
+
+  /* El árbol se arma en cada render y no se memoriza: son treinta filas de texto ya traducido, y
+     `useMemo` aquí costaría más de leer que de calcular. */
+  const rootEntries: MenuEntry[] = [
+    {
+      kind: "panel",
+      id: COMMUNITY_PANEL,
+      label: t("communityMenu"),
+      entries: [
+        { kind: "link", id: "home", label: t("publications"), href: "/" },
+        {
+          kind: "link",
+          id: "products",
+          label: t("brandProducts"),
+          href: "/productos",
+        },
+        ...VISIBLE_COMMUNITY_ITEMS.map(
+          (item): MenuEntry => ({
+            kind: "link",
+            id: item.titleKey,
+            label: t(item.titleKey),
+            href: item.href,
+          }),
+        ),
+      ],
+    },
+    /* `byCategory` y no `catalog`: ese ya nombra el enlace de administración, y dos entradas del
+       mismo menú con el mismo texto es lo que confunde a un admin. */
+    ...(categories.length > 0
+      ? [
+          {
+            kind: "panel" as const,
+            id: CATEGORIES_PANEL,
+            label: t("byCategory"),
+            entries: categoryEntries(categories),
+          },
+        ]
+      : []),
+    {
+      kind: "panel",
+      id: PILLARS_PANEL,
+      label: t("pillarsMenu"),
+      entries: PILLAR_ITEMS.map(
+        (item): MenuEntry => ({
+          kind: "link",
+          id: item.titleKey,
+          label: tPillars(item.titleKey),
+          href: item.href,
+        }),
+      ),
+    },
+    { kind: "link", id: "about", label: t("about"), href: "/nosotros" },
+  ];
+
+  const openPanel = panelAt(rootEntries, path);
+  /* Un camino que ya no existe —una categoría desactivada mientras el menú estaba abierto— se
+     trata como estar en el inicio, en vez de pintar un panel fantasma. */
+  const currentEntries = openPanel ? openPanel.entries : rootEntries;
 
   const menuContent = (
     <div
@@ -169,11 +239,11 @@ export default function MobileNav({
           : "opacity-0 pointer-events-none"
       }`}
     >
-      <div className="flex flex-col h-full container-width py-4 overflow-hidden">
-        <div className="flex justify-between items-center mb-8 shrink-0">
+      <div className="flex flex-col h-full container-width py-4">
+        <div className="flex justify-between items-center mb-6 shrink-0">
           <Link
             href="/"
-            onClick={() => setIsOpen(false)}
+            onClick={closeMenu}
             className="flex items-center gap-2"
           >
             <Image
@@ -189,7 +259,7 @@ export default function MobileNav({
           </Link>
           <button
             type="button"
-            onClick={() => setIsOpen(false)}
+            onClick={closeMenu}
             className="p-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
             aria-label={t("closeMenu")}
           >
@@ -197,106 +267,72 @@ export default function MobileNav({
           </button>
         </div>
 
-        {/* El contenedor recorta lo que no cabe, así que el menú tiene que poder desplazarse: con
-            los dos desplegables abiertos no entra en la pantalla de un teléfono. */}
-        <nav className="flex-1 overflow-y-auto overscroll-contain pr-2">
-          <ul className="space-y-2">
-            {/* Mismo orden y mismas entradas que en escritorio: quien cambie de tamaño de
-                pantalla no tiene que volver a aprenderse el menú. */}
-            <Section
-              title={t("communityMenu")}
-              isOpen={openSubmenu === COMMUNITY_SECTION}
-              onToggle={() => toggleSubmenu(COMMUNITY_SECTION)}
-            >
-              <SectionLink href="/">{t("publications")}</SectionLink>
-              <SectionLink href="/productos">{t("brandProducts")}</SectionLink>
-              {VISIBLE_COMMUNITY_ITEMS.map((item) => (
-                <SectionLink key={item.titleKey} href={item.href}>
-                  {t(item.titleKey)}
-                </SectionLink>
-              ))}
-            </Section>
-
-            {/* Las categorías tienen su propio desplegable: son diez y crecen con el catálogo, así
-                que dentro de «Comunidad» tapaban las secciones que van debajo. En escritorio siguen
-                donde estaban —el desplegable es ancho y las reparte en columnas—; aquí hay una
-                sola columna y el espacio se paga en desplazamiento. */}
-            {categories.length > 0 ? (
-              <Section
-                /* `byCategory` y no `catalog`: ese ya nombra el enlace de administración, y dos
-                   entradas del mismo menú con el mismo texto es lo que confunde a un admin. Es
-                   además la etiqueta con la que el escritorio encabeza este mismo bloque. */
-                title={t("byCategory")}
-                isOpen={openSubmenu === CATEGORIES_SECTION}
-                onToggle={() => toggleSubmenu(CATEGORIES_SECTION)}
+        {/* **Un solo desplazamiento para todo**: el menú, los botones de la cuenta y el pie. Antes
+            solo se desplazaba la lista de secciones y el resto quedaba clavado abajo, así que en
+            una pantalla corta los botones se comían el menú. */}
+        <div className="flex-1 overflow-y-auto overscroll-contain pr-2">
+          <nav>
+            {openPanel ? (
+              <div
+                /* La `key` es el camino: al bajar otro nivel el nodo se reemplaza y la animación
+                   vuelve a correr, que es lo que da la sensación de que el nivel entra desde la
+                   derecha en vez de aparecer de golpe. */
+                key={path.join("/")}
+                className="motion-safe:animate-enterFromRight"
               >
-                {categories.map((category) => (
-                  <SectionLink
-                    key={category.value}
-                    href={{
-                      pathname: "/categoria/[key]",
-                      params: { key: category.value },
-                    }}
-                  >
-                    {category.label}
-                  </SectionLink>
-                ))}
-              </Section>
+                <button
+                  type="button"
+                  onClick={() => setPath(path.slice(0, -1))}
+                  className="flex items-center gap-1 py-3 text-base font-medium text-gray-500 hover:text-pw-green transition-colors"
+                >
+                  <ChevronLeftIcon className="w-5 h-5" aria-hidden />
+                  {t("back")}
+                </button>
+                <p className="pb-2 text-lg font-bold text-gray-900 dark:text-gray-100">
+                  {openPanel.label}
+                </p>
+                <MenuLevel
+                  entries={currentEntries}
+                  onOpenPanel={(id) => setPath([...path, id])}
+                  onNavigate={closeMenu}
+                />
+              </div>
+            ) : (
+              <MenuLevel
+                entries={currentEntries}
+                onOpenPanel={(id) => setPath([...path, id])}
+                onNavigate={closeMenu}
+              />
+            )}
+          </nav>
+
+          <div className="flex flex-col gap-3 px-2 pb-6 border-t border-gray-100 dark:border-gray-800 pt-6 mt-4">
+            {/* Las mismas dos entradas de administración que ofrece el menú del avatar en
+                escritorio: quien cambie de tamaño de pantalla encuentra lo mismo. */}
+            {isAdmin ? (
+              <div className="flex gap-4">
+                <Link
+                  href="/admin/catalogo"
+                  onClick={closeMenu}
+                  className="text-base text-gray-600 dark:text-gray-400 hover:text-pw-green transition-colors"
+                >
+                  {t("catalog")}
+                </Link>
+                <Link
+                  href="/admin/productos"
+                  onClick={closeMenu}
+                  className="text-base text-gray-600 dark:text-gray-400 hover:text-pw-green transition-colors"
+                >
+                  {t("report")}
+                </Link>
+              </div>
             ) : null}
+            {children}
+          </div>
 
-            <Section
-              title={t("pillarsMenu")}
-              isOpen={openSubmenu === PILLARS_SECTION}
-              onToggle={() => toggleSubmenu(PILLARS_SECTION)}
-            >
-              {PILLAR_ITEMS.map((item) => (
-                <SectionLink key={item.titleKey} href={item.href}>
-                  {tPillars(item.titleKey)}
-                </SectionLink>
-              ))}
-            </Section>
-
-            <li className={ROW_CLASS}>
-              <Link
-                href="/nosotros"
-                onClick={() => setIsOpen(false)}
-                className={ROW_LINK_CLASS}
-              >
-                {t("about")}
-              </Link>
-            </li>
-            {/* «Productos» ya no es un enlace suelto: vive en el desplegable de arriba, junto a
-                las categorías. «Reporte» bajó al bloque de la cuenta, con el resto de lo que
-                depende de quién eres. */}
-          </ul>
-        </nav>
-
-        <div className="flex flex-col gap-4 px-2 pb-6 border-t border-gray-100 dark:border-gray-800 pt-6">
-          {/* Las mismas dos entradas de administración que ofrece el menú del avatar en
-              escritorio: quien cambie de tamaño de pantalla encuentra lo mismo. */}
-          {isAdmin ? (
-            <>
-              <Link
-                href="/admin/catalogo"
-                onClick={() => setIsOpen(false)}
-                className="text-base text-gray-600 dark:text-gray-400 hover:text-pw-green transition-colors"
-              >
-                {t("catalog")}
-              </Link>
-              <Link
-                href="/admin/productos"
-                onClick={() => setIsOpen(false)}
-                className="text-base text-gray-600 dark:text-gray-400 hover:text-pw-green transition-colors"
-              >
-                {t("report")}
-              </Link>
-            </>
-          ) : null}
-          {children}
-        </div>
-
-        <div className="py-6 border-t border-gray-100 dark:border-gray-800 text-center text-sm text-gray-500 shrink-0">
-          {PUBLIC_BRAND_NAME} &copy; {new Date().getFullYear()}
+          <div className="py-6 border-t border-gray-100 dark:border-gray-800 text-center text-sm text-gray-500">
+            {PUBLIC_BRAND_NAME} &copy; {new Date().getFullYear()}
+          </div>
         </div>
       </div>
     </div>

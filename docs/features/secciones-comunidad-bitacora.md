@@ -303,3 +303,86 @@ conserva su caja y cuenta como visible. Se afirma con la misma medida que el arr
 
 En el teléfono, «Comunidad» vuelve a ser corta —publicaciones, productos y las dos secciones— y las
 categorías esperan detrás de «Por categoría». En escritorio no cambia nada.
+
+---
+
+## El menú móvil se recorre por niveles (2026-08-02)
+
+### Objetivo
+
+Cuatro cosas que pediste, todas del mismo problema: en un teléfono, un menú que crece hacia abajo se
+convierte en un desplazamiento interminable.
+
+1. Que el desplazamiento cubra **todo** el contenido, no solo la lista de secciones.
+2. Que los elementos de cada sección **entren desde la derecha** en vez de crecer hacia abajo.
+3. Que «Por categoría» liste primero las raíces y de ahí se abran sus sub-categorías.
+4. Que «Publicar» y la sesión vayan **en una fila de dos columnas**, más pequeños.
+
+### Decisiones y por qué
+
+**Los niveles se sustituyen, no se apilan.** El acordeón sumaba: abrir «Comunidad» y «Por
+categoría» ponía veinte filas en la pantalla. Ahora cada nivel ocupa lo que ocupa, entra desde la
+derecha con `enterFromRight` —la misma animación que ya usa el menú de escritorio— y se vuelve con
+la flecha. Los otros niveles **no se pintan**: no es que estén recortados, es que no existen hasta
+que se entra, y por eso ya no hay nada que recortar.
+
+**`motion-safe`**, para quien pidió que no le muevan la pantalla.
+
+**El menú es datos, no JSX.** `mobileMenuTree.ts` describe el árbol —enlaces y puertas— y es lo
+único de este menú que se puede probar sin navegador. Con tres niveles, la forma dejó de ser algo
+que se lee de un vistazo en el componente.
+
+**Una raíz con hijas es una puerta; una raíz sin hijas es un enlace.** `alimentacion` tiene ocho
+sub-categorías y `movimiento_y_ejercicio` ninguna: mandar a la segunda tras una puerta que da a una
+lista vacía sería un toque para no llegar a nada. La regla se deriva del catálogo, no está escrita.
+
+**El catálogo se lee de dos formas.** El escritorio lo sigue enseñando aplanado —su desplegable es
+ancho y lo reparte en columnas— y el móvil por niveles. Es el mismo `categoryTree` del dominio,
+hermano de `navigableCategories`, y ninguna de las dos pantallas impone su forma a la otra.
+
+**Un solo desplazamiento para todo.** Antes solo se desplazaba la lista y los botones quedaban
+clavados abajo; en una pantalla corta se comían el menú. Ahora el menú, los enlaces de
+administración, los botones de la cuenta y el pie están dentro del mismo contenedor que se
+desplaza. Lo único fijo es la cabecera con el logotipo y la X, que es la salida.
+
+**Publicar y la sesión, en dos columnas y `size="sm"`.** Una debajo de la otra ocupaban el alto de
+tres filas del menú. El bloque de la cuenta —avatar, nombre— se queda a ancho completo encima,
+porque es identificación, no acción.
+
+### Lo que volvió a costar
+
+**Un reemplazo por texto que no encuentra su patrón no falla: no hace nada.** Pasó por segunda vez
+en el día. El escenario de las categorías se quedó sin el paso de «Alimentación» porque el
+formateador había reunido en una línea lo que yo buscaba en tres, y la prueba falló señalando a otro
+sitio. Cuando el patrón viene de un archivo que acaba de pasar por el formateador, hay que releerlo
+antes de reemplazar.
+
+### Archivos tocados
+
+- **Dominio:** `categoryTree` en `entities/post/taxonomy.ts` (+ pruebas).
+- **UI:** `Header/mobileMenuTree.ts` (+ prueba) y `Header/MobileNav.tsx` reescrito; `Header.tsx` pasa el árbol y arma la fila de dos columnas.
+- **i18n:** `nav.back`.
+- **e2e:** el escenario de categorías baja ahora dos niveles.
+
+### Validación
+
+| Comando | Resultado |
+|---|---|
+| `pnpm run typecheck` | limpio |
+| `pnpm run lint` | limpio |
+| `pnpm run check:i18n` | limpio |
+| `pnpm run test:run` | **600 pruebas**, todas verdes (+11) |
+| `pnpm run test:e2e:run` | **97 escenarios verdes, 3 saltados**, 0 fallos |
+
+### Pendientes que deja
+
+- El menú de escritorio sigue enseñando las categorías aplanadas. Es lo correcto para su ancho, pero
+  el día que haya tres raíces convendrá revisar si también quiere agruparlas.
+- No hay gesto de deslizar para volver: se vuelve con la flecha. Si la gente lo intenta, es un rato.
+
+### Recap
+
+El menú móvil se recorre como una aplicación: cada nivel entra desde la derecha, ocupa lo suyo y se
+vuelve con la flecha. «Por categoría» agrupa por raíz, así que llegar a «Panadería» son tres toques
+en vez de un desplazamiento entre nueve. Y todo el contenido —menú, cuenta y pie— se desplaza junto,
+con «Publicar» y la sesión en una sola fila.

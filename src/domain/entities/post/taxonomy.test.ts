@@ -5,6 +5,7 @@ import {
   SEEDED_TAXONOMY_SNAPSHOT,
 } from "./__fixtures__/categoryTaxonomy";
 import {
+  categoryTree,
   isActiveKey,
   labelFor,
   navigableCategories,
@@ -289,5 +290,60 @@ describe("createCategoryTaxonomy", () => {
   it("reports an unknown key as inactive", () => {
     expect(isActiveKey(taxonomy, "ferreteria")).toBe(false);
     expect(isActiveKey(taxonomy, null)).toBe(false);
+  });
+});
+
+describe("categoryTree", () => {
+  /* La otra forma de leer lo mismo que `navigableCategories`: con la jerarquía puesta, para un
+     menú que se recorre por niveles en vez de enseñarlo todo de golpe. */
+  it("gives the roots, each with its children in catalogue order", () => {
+    const tree = categoryTree(taxonomy);
+
+    expect(tree.map((branch) => branch.value)).toEqual(["alimentacion"]);
+    expect(tree[0].children.map((child) => child.value)).toEqual([
+      "jugos",
+      "platillos",
+      "bebidas",
+      "panaderia",
+      "abarrotes",
+      "untables",
+    ]);
+  });
+
+  it("labels roots and children in the requested language", () => {
+    const [alimentacion] = categoryTree(taxonomy, "en");
+
+    expect(alimentacion.label).toBe("Food");
+    expect(alimentacion.children[0].label).toBe("Juices");
+  });
+
+  it("leaves out a de-activated child", () => {
+    const [alimentacion] = categoryTree(makeTaxonomyWithInactive("untables"));
+
+    expect(alimentacion.children.map((child) => child.value)).not.toContain(
+      "untables",
+    );
+  });
+
+  it("keeps a childless root, with an empty list", () => {
+    const withSecondRoot = makeTaxonomy({
+      nodes: [
+        ...SEEDED_TAXONOMY_SNAPSHOT.nodes,
+        {
+          key: "ferreteria",
+          parentKey: null,
+          level: 1 as const,
+          isActive: true,
+          sortOrder: 20,
+          labels: { es: "Ferretería" },
+        },
+      ],
+    });
+
+    const ferreteria = categoryTree(withSecondRoot).find(
+      (branch) => branch.value === "ferreteria",
+    );
+
+    expect(ferreteria?.children).toEqual([]);
   });
 });
