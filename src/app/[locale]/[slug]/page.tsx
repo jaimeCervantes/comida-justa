@@ -4,6 +4,8 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { buildBreadcrumbJsonLd } from "~/domain/seo/jsonLd/breadcrumbs";
 import { resolveLocale } from "~/i18n/routing";
 import { auth } from "~/infra/auth";
+import { distanceToSellerMeters } from "~/infra/dataAccess/sellers/PostgresPostDistance";
+import { readVisitorLocation } from "~/infra/location/visitorLocation";
 import type { PostUser } from "~/infra/types/Posts";
 import Breadcrumbs from "~/presentation/navigation/Breadcrumbs";
 import JsonLd from "~/presentation/seo/JsonLd";
@@ -25,6 +27,19 @@ export async function generateMetadata({
 
   // Sin publicación no hay nada que anunciar: la página responde 404 y el layout pone lo suyo.
   return post ? buildPostMetadata(post, slug) : {};
+}
+
+/**
+ * A cuántos metros está la tienda, si es que se puede saber.
+ *
+ * Hacen falta las dos ubicaciones y cualquiera de las dos puede faltar, así que el camino corto
+ * —sin visitante localizado no se consulta nada— evita una consulta espacial por visita anónima,
+ * que son la mayoría.
+ */
+async function resolveDistanceMeters(slug: string): Promise<number | null> {
+  const visitor = await readVisitorLocation();
+
+  return visitor ? await distanceToSellerMeters(slug, visitor) : null;
 }
 
 export default async function Slug({
@@ -80,6 +95,7 @@ export default async function Slug({
         user={session?.user as PostUser}
         locale={locale}
         slug={slug}
+        distanceMeters={await resolveDistanceMeters(slug)}
       />
       {/* Se resuelve aquí y no dentro del detalle: son dos columnas hermanas, y el parecido no
           es parte de la publicación sino de su vecindario. */}

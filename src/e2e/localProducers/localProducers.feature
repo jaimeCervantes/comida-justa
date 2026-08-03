@@ -186,26 +186,41 @@ Feature: Quién produce lo declara, qué tan lejos lo dice la distancia
     Then no se muestra ningún selector de procedencia
 
   # ---------------------------------------------------------------------------
-  # Slice 3 — la distancia en el producto (@future)
-  # El bot ya guarda `users.last_latitude`; AddBranchForm ya sabe pedir el permiso.
+  # Slice 3 — la distancia en el producto
+  # Dos fuentes para la ubicación de quien mira: la cookie que deja el botón, y
+  # `users.last_latitude`, que el bot de WhatsApp ya llena desde la migración 69113f019ca5.
   # ---------------------------------------------------------------------------
 
-  @slice-3 @future
+  @slice-3 @component
   Scenario Outline: La distancia se dice en la unidad que se entiende
-    Given un visitante con ubicación conocida
-    And un producto de una tienda a <metros> metros
+    Given un producto de una tienda a <metros> metros de quien mira
     Then la distancia se muestra como "<texto>"
 
     Examples:
-      | metros | texto  |
-      | 350    | 350 m  |
-      | 1500   | 1.5 km |
+      | metros | texto  | razón                                        |
+      | 350    | 350 m  | debajo del kilómetro se cuentan metros       |
+      | 999    | 999 m  | el salto es en el kilómetro exacto           |
+      | 1500   | 1.5 km | encima, un decimal basta para decidir        |
+      | 1483   | 1.5 km | fingir precisión sobre un GPS es fingir dos veces |
 
-  @slice-3 @future
-  Scenario: Sin ubicación del visitante no se inventa una distancia
+  @slice-3
+  Scenario: Quien comparte su ubicación ve a qué distancia está la tienda
+    Given una tienda con sucursal a 2 km de quien mira
+    When abre uno de sus productos habiendo compartido su ubicación
+    Then ve que está "a 2 km"
+
+  @slice-3
+  Scenario: Sin ubicación no se inventa una distancia, se ofrece compartirla
     Given un visitante que no compartió su ubicación y que el bot no conoce
     When abre un producto
     Then no se muestra ninguna distancia
+    And se le ofrece compartir su ubicación
+
+  @slice-3
+  Scenario: Negar el permiso no rompe nada
+    Given un visitante que niega el permiso de ubicación
+    Then se le dice una vez que sin ubicación no hay distancias
+    And el listado le sigue saliendo con lo más reciente primero
 
   # ---------------------------------------------------------------------------
   # Slice 4 — buscar por cercanía, con red de seguridad (@future)

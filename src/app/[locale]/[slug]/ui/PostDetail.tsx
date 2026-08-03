@@ -12,6 +12,8 @@ import MediaContent from "~/infra/UI/components/MediaContent/MediaContent";
 import ProvenanceBadge from "~/infra/UI/components/ProvenanceBadge";
 import SoldOutBadge from "~/infra/UI/components/SoldOutBadge/SoldOutBadge";
 import WhatsappButton from "~/infra/UI/components/WhatsappButton/WhatsappButton";
+import ShareLocationButton from "~/presentation/location/ShareLocationButton";
+import StoreDistance from "~/presentation/location/StoreDistance";
 import { setAvailability } from "../actions";
 import { postCategoryLabel } from "../categoryLabel";
 import CommentList from "../loadComments/CommentList";
@@ -28,10 +30,17 @@ export default async function PostDetail({
   user,
   locale,
   slug,
+  distanceMeters = null,
 }: {
   post: Post;
   className: string;
   user: PostUser | undefined;
+  /**
+   * A cuántos metros está la tienda de quien mira, o `null` cuando no lo sabemos —porque la tienda
+   * no dio ubicación, o porque quien mira no la compartió—. La resuelve la página: este componente
+   * no consulta nada.
+   */
+  distanceMeters?: number | null;
   /** Idioma de la ruta; decide en qué idioma se lee la etiqueta de categoría. */
   locale?: string;
   /** El de la ruta: es lo que se manda en el mensaje de WhatsApp para identificar el producto. */
@@ -93,6 +102,15 @@ export default async function PostDetail({
         <ProvenanceBadge origin={origin} />
         <CategoryTag label={categoryLabel} />
         <SoldOutBadge kind={kind} isAvailable={isAvailable} />
+        {/* Solo cuando las dos partes dieron ubicación: si falta una, no se pinta nada y quien
+            mira puede compartir la suya desde aquí mismo. */}
+        {distanceMeters === null ? (
+          isSellable({ kind }) ? (
+            <ShareLocationButton size="xs" />
+          ) : null
+        ) : (
+          <StoreDistance meters={distanceMeters} />
+        )}
       </p>
       <MediaContent media={media} className="h-auto mb-4" />
       <p className="flex items-center mb-2">

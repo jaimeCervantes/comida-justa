@@ -193,6 +193,14 @@
     "publications": "{count, plural, =0 {No publications} one {# publication} other {# publications}}",
     "visit": "Visit the store"
   },
+  "distance": {
+    "denied": "Without your location we cannot tell you how close it is; the newest still comes first.",
+    "kilometers": "{value} km away",
+    "locating": "Finding where you are…",
+    "meters": "{value} m away",
+    "nothingNearby": "Nothing near you yet. This is what there is, even if it is far.",
+    "share": "See how far it is"
+  },
   "edit": {
     "metaTitle": "Edit publication",
     "heading": "Edit your publication",

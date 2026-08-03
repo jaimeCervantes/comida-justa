@@ -193,6 +193,14 @@
     "publications": "{count, plural, =0 {Sin publicaciones} one {# publicación} other {# publicaciones}}",
     "visit": "Ver la tienda"
   },
+  "distance": {
+    "denied": "Sin tu ubicación no podemos decirte qué tan cerca está; lo más reciente sigue primero.",
+    "kilometers": "a {value} km",
+    "locating": "Buscando dónde estás…",
+    "meters": "a {value} m",
+    "nothingNearby": "No hay nada cerca de ti todavía. Esto es lo que hay, aunque quede lejos.",
+    "share": "Ver a qué distancia está"
+  },
   "edit": {
     "metaTitle": "Editar publicación",
     "heading": "Edita tu publicación",
