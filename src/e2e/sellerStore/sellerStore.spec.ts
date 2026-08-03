@@ -79,6 +79,9 @@ test.describe("Cuando una persona registrada abre su tienda", () => {
       phone: store.phone,
       file: "./src/e2e/dummies/post.jpg",
       kind: "producto",
+      // La panadería hornea lo que vende: un producto exige declararlo desde el slice 1 de
+      // `docs/features/productores-locales.md`.
+      origin: "productor",
     });
     await publishPage.submit();
     await page.waitForURL(`/${slug}`);

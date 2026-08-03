@@ -8,14 +8,18 @@ type PublishProductValues = {
   phone: string;
   description: string;
   kind: "anuncio" | "producto";
-  /** Solo lo ve un admin; se omite cuando quien publica es un vendedor cualquiera. */
+  /**
+   * Obligatoria en un producto, para cualquiera que publique. Solo un admin ve las `hazlo_sano_*`;
+   * un vendedor ve las tres de la comunidad. Un anuncio no la pregunta, así que se omite.
+   */
   origin?: string;
 };
 
 /**
- * Page object for publishing a Hazlo Sano product from /publicar.
- * The `origin` selector is admin-only, so this flow assumes the logged-in user's
- * email is listed in HAZLO_SANO_ADMIN_EMAILS.
+ * Page object for publishing a product from /publicar.
+ *
+ * The `hazlo_sano_*` origins are admin-only, so a flow that selects one assumes the logged-in
+ * user's email is listed in HAZLO_SANO_ADMIN_EMAILS.
  */
 export default class PublishProductPage {
   private readonly form: Locator;
@@ -51,7 +55,9 @@ export default class PublishProductPage {
       .selectOption(values.kind);
     if (values.origin) {
       await this.page
-        .getByRole("combobox", { name: /procedencia/i })
+        // Por `#origin` y no por su etiqueta: la etiqueta es una pregunta al vendedor y se
+        // redacta de nuevo cada vez que se afina el tono. El id es el contrato del campo.
+        .locator("#origin")
         .selectOption(values.origin);
     }
     // Set the file last: it fires a native `change` event that only starts the

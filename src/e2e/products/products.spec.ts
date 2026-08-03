@@ -27,7 +27,7 @@ const communityProduct = {
   title: `Miel de abeja del vecino ${stamp}`,
   slug: testSlug("miel-de-abeja-del-vecino"),
   kind: "producto" as const,
-  origin: "productor_local",
+  origin: "productor",
 };
 
 const hazloSanoAnuncio = {

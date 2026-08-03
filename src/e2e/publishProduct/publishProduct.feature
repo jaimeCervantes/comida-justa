@@ -28,13 +28,18 @@ Feature: Publish Hazlo Sano product
     Then the post is saved with kind "producto" and origin "hazlo_sano_propio"
     And the post detail page shows a "🌿 Hazlo Sano" badge
 
+  # Reescrito por el slice 1 de `docs/features/productores-locales.md`: el selector dejó de ser
+  # admin-only —lo ve cualquiera que publique un producto— y lo admin-only pasó a ser *qué
+  # procedencias ofrece*. Los escenarios vivos de esa regla están en
+  # `src/e2e/localProducers/localProducers.feature`.
   @slice-1
-  Scenario: A non-admin user does not get the Hazlo Sano origin control
+  Scenario: A non-admin user does not get the Hazlo Sano origins
     Given a signed-in non-admin user on "/publicar"
-    Then the origin selector should not be visible
+    Then the origin selector offers only the community origins
     When this user submits a product with origin "hazlo_sano_propio" via a forged request
-    Then the server rejects or ignores the "hazlo_sano_*" origin
-    And the saved post does not show the "🌿 Hazlo Sano" badge
+    Then the server discards the "hazlo_sano_*" origin
+    And the product is rejected for having no provenance left
+    And no post is created
 
   @slice-1
   Scenario: A product requires a price
@@ -61,7 +66,7 @@ Feature: Publish Hazlo Sano product
   @slice-2
   Scenario: The products page lists only Hazlo Sano products
     Given a Hazlo Sano product "Miel de abeja de Hazlo Sano" with origin "hazlo_sano_propio"
-    And a community product "Miel de abeja del vecino" with origin "productor_local"
+    And a community product "Miel de abeja del vecino" with origin "productor"
     And an "anuncio" from Hazlo Sano "Aviso de Hazlo Sano" with origin "hazlo_sano_propio"
     When a visitor opens "/productos"
     Then the Hazlo Sano product is listed

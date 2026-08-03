@@ -254,7 +254,7 @@ Feature: SEO — que el sitio se pueda encontrar
 
   @directorios
   Scenario: Productores locales solo lista a quien elabora lo que vende
-    Given que ninguna publicación tiene origen "productor_local"
+    Given que ninguna publicación tiene origen "productor"
     When alguien abre "/productores-locales"
     Then la sección explica de qué va e invita a publicar, sin lista hueca
     And pide "noindex"
@@ -262,7 +262,7 @@ Feature: SEO — que el sitio se pueda encontrar
 
   @directorios
   Scenario: Una tienda entra a productores en cuanto publica algo suyo
-    Given una tienda de prueba con una publicación de origen "productor_local"
+    Given una tienda de prueba con una publicación de origen "productor"
     When alguien abre "/productores-locales"
     Then la encuentra
     And "/negocios-locales" también la lista, porque un productor también es un negocio

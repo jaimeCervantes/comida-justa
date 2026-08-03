@@ -6,7 +6,7 @@ import { testSlug } from "../testUtils/testSlug";
 
 // Slice 1 de docs/features/secciones-comunidad.md.
 // "hazlo-sano" es la única tienda con dirección pública y hoy **ninguna** publicación tiene origen
-// `productor_local`: por eso negocios lista y productores está vacía. El orden de los escenarios
+// `productor`: por eso negocios lista y productores está vacía. El orden de los escenarios
 // importa —el último siembra lo que los primeros afirman que no existe— y Playwright los corre en
 // el orden del archivo.
 const TIENDA = { handle: "hazlo-sano", name: "Hazlo Sano" };
@@ -68,7 +68,7 @@ test.describe("Cuando una tienda publica algo que elabora", () => {
       title: `E2E Pan de la casa ${Date.now()}`,
       slug,
       kind: "producto",
-      origin: "productor_local",
+      origin: "productor",
       sellerHandle: TIENDA.handle,
     });
 

@@ -79,8 +79,8 @@ Feature: Traducciones (i18n) — que el sitio hable de verdad dos idiomas
       | origin            | locale | etiqueta   |
       | hazlo_sano_propio | es     | Hazlo Sano |
       | hazlo_sano_propio | en     | Hazlo Sano |
-      | productor_local   | es     | Local      |
-      | productor_local   | en     | Local      |
+      | reventa_cercana   | es     | Local      |
+      | reventa_cercana   | en     | Local      |
 
   @slice-1 @future
   Scenario: No queda español escrito a mano dentro de los componentes

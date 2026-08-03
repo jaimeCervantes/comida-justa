@@ -48,7 +48,7 @@ test.describe("When an admin opens the products report", () => {
     ).toBeVisible();
 
     const before = await reportPage.countFor(REPORTED_ORIGIN);
-    const otherBefore = await reportPage.countFor("reventa_foranea");
+    const otherBefore = await reportPage.countFor("reventa_lejana");
     const totalBefore = await reportPage.countFor(null);
 
     await seedPost({
@@ -62,7 +62,7 @@ test.describe("When an admin opens the products report", () => {
 
     expect(await reportPage.countFor(REPORTED_ORIGIN)).toBe(before + 1);
     // Las demás filas no se mueven, y las que no tienen productos siguen listadas.
-    expect(await reportPage.countFor("reventa_foranea")).toBe(otherBefore);
+    expect(await reportPage.countFor("reventa_lejana")).toBe(otherBefore);
     expect(await reportPage.countFor(null)).toBe(totalBefore);
   });
 });

@@ -49,9 +49,9 @@ export default class UnifiedCatalogPage {
     await this.page
       .getByRole("combobox", { name: /tipo de publicación/i })
       .selectOption(values.kind);
-    await this.page
-      .getByRole("combobox", { name: /procedencia/i })
-      .selectOption(values.origin);
+    // Por `#origin` y no por su etiqueta: la etiqueta es una pregunta al vendedor y se redacta de
+    // nuevo cada vez que se afina el tono. El id es el contrato del campo.
+    await this.page.locator("#origin").selectOption(values.origin);
 
     if (values.category) {
       await this.page
