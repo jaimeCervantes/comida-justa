@@ -67,6 +67,41 @@ describe("When a card is listed", () => {
     expect(getByTestId("card-owner-controls")).toBeInTheDocument();
   });
 
+  /*
+   * `to` viene absoluto del mapper, así que recortarle el primer `/` producía
+   * `/editar/http://localhost:3000/suero-natural`. El enlace se arma con el `slug` suelto.
+   */
+  it("enlaza a editar con el slug, no con la URL absoluta", () => {
+    const { getByTestId } = render(
+      <CardForList
+        {...baseProps}
+        to="http://localhost:3000/suero-natural"
+        slug="suero-natural"
+        kind="producto"
+        viewerId="user-1"
+      />,
+    );
+
+    const enlace = getByTestId("card-owner-controls").querySelector("a");
+
+    expect(enlace).toHaveAttribute("href", "/editar/suero-natural");
+  });
+
+  it("y si la tarjeta llega sin slug, lo saca del último tramo de la URL", () => {
+    const { getByTestId } = render(
+      <CardForList
+        {...baseProps}
+        to="http://localhost:3000/suero-natural"
+        kind="producto"
+        viewerId="user-1"
+      />,
+    );
+
+    expect(
+      getByTestId("card-owner-controls").querySelector("a"),
+    ).toHaveAttribute("href", "/editar/suero-natural");
+  });
+
   it("no se los ofrece a quien solo está mirando", () => {
     const { queryByTestId } = render(
       <CardForList {...baseProps} kind="producto" viewerId="otra-persona" />,

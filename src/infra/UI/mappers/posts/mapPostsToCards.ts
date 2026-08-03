@@ -45,6 +45,15 @@ export function mapOnePostToCard(item: Post, context: CardMappingContext) {
 
   return {
     id: item.id,
+    /**
+     * El slug **suelto**, además de `to`.
+     *
+     * `to` sale absoluto de `createAbsoluteUrl` porque lo consume un ancla, y de una URL absoluta
+     * no se saca el slug recortando el primer `/`: los controles de dueño de la tarjeta armaban
+     * `/editar/http://localhost:3000/suero-natural`. El dato ya se calcula aquí arriba; publicarlo
+     * cuesta una línea y evita que cada consumidor lo reconstruya a su manera.
+     */
+    slug,
     title: item.translations?.es?.title ?? item.title,
     price: item.price,
     kind: item.kind,

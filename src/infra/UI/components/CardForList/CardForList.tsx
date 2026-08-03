@@ -10,9 +10,17 @@ import SoldOutBadge from "~/infra/UI/components/SoldOutBadge/SoldOutBadge";
 import StoreDistance from "~/presentation/location/StoreDistance";
 import CardOwnerControls from "~/presentation/post/CardOwnerControls";
 
-/** El mapper deja el destino como `/<slug>`; de ahí sale el slug para el enlace de edición. */
-function extractSlug(to: unknown): string {
-  return typeof to === "string" ? to.replace(/^\//, "") : "";
+/**
+ * El último tramo del destino, para cuando la tarjeta llega sin `slug`.
+ *
+ * `to` viene **absoluto** (`http://host/suero-natural`), así que recortar el primer `/` devolvía la
+ * URL entera y el enlace de edición acababa en `/editar/http://host/suero-natural`. El camino bueno
+ * es que el mapper publique el slug; esto es solo la red por si alguien arma una tarjeta a mano.
+ */
+function slugFromUrl(to: unknown): string {
+  if (typeof to !== "string") return "";
+
+  return to.split("?")[0].split("#")[0].split("/").filter(Boolean).pop() ?? "";
 }
 
 /**
@@ -75,7 +83,7 @@ export default function CardForList(
       {isOwner ? (
         <CardOwnerControls
           postId={String(id ?? "")}
-          slug={String(slug ?? extractSlug(to))}
+          slug={slug ? String(slug) : slugFromUrl(to)}
           isAvailable={isAvailable !== false}
           isSellable={isSellable({ kind })}
         />
