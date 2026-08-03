@@ -15,7 +15,8 @@ export default function ProductsList({
   products,
   currentPage,
   totalPages,
-}: ProductsListProps) {
+  viewerId,
+}: ProductsListProps & { viewerId?: string | null }) {
   const t = useTranslations("products");
 
   if (products.length === 0) {
@@ -29,7 +30,7 @@ export default function ProductsList({
         className="grid grid-flow-dense gap-4 pt-6 max-sm:grid-cols-[repeat(auto-fill,minmax(300px,1fr))] sm:grid-cols-[repeat(auto-fill,minmax(300px,1fr))]"
       >
         {products.map((product: Post) => (
-          <CardForList {...product} key={product.id} />
+          <CardForList {...product} viewerId={viewerId} key={product.id} />
         ))}
       </section>
 

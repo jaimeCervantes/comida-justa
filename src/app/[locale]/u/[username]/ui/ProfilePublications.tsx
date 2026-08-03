@@ -8,11 +8,14 @@ export default function ProfilePublications({
   username,
   currentPage,
   totalPages,
+  viewerId,
 }: {
   publications: Post[];
   username: string;
   currentPage: number;
   totalPages: number;
+  /** Quién mira: decide si sus propias publicaciones le ofrecen editar y marcar agotado. */
+  viewerId?: string | null;
 }) {
   const t = useTranslations("profile");
   if (publications.length === 0) {
@@ -26,7 +29,7 @@ export default function ProfilePublications({
         className="grid grid-flow-dense gap-4 pt-2 grid-cols-[repeat(auto-fill,minmax(300px,1fr))]"
       >
         {publications.map((post: Post) => (
-          <CardForList {...post} key={post.id} />
+          <CardForList {...post} viewerId={viewerId} key={post.id} />
         ))}
       </section>
 

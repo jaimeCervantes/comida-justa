@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "~/i18n/navigation";
 import { resolveLocale } from "~/i18n/routing";
+import { readViewerId } from "~/infra/auth/readViewerId";
 import LocationNotice from "~/presentation/location/LocationNotice";
 import StoresMap from "~/presentation/location/StoresMap";
 import { getProducts } from "../../data";
@@ -29,6 +30,7 @@ export default async function ProductosPaginatedPage({ params }: Props) {
   const { page: pageStr, locale: rawLocale } = await params;
   const locale = resolveLocale(rawLocale);
   setRequestLocale(locale);
+  const viewerId = await readViewerId();
   const t = await getTranslations("products");
   const tDistance = await getTranslations("distance");
   const page = parsePage(pageStr);
@@ -72,6 +74,7 @@ export default async function ProductosPaginatedPage({ params }: Props) {
       )}
 
       <ProductsList
+        viewerId={viewerId}
         products={products}
         currentPage={page}
         totalPages={totalPages}

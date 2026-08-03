@@ -8,11 +8,14 @@ export default function StoreCatalog({
   handle,
   currentPage,
   totalPages,
+  viewerId,
 }: {
   catalog: Post[];
   handle: string;
   currentPage: number;
   totalPages: number;
+  /** Quién mira: decide si sus propias publicaciones le ofrecen editar y marcar agotado. */
+  viewerId?: string | null;
 }) {
   const t = useTranslations("store");
   if (catalog.length === 0) {
@@ -26,7 +29,7 @@ export default function StoreCatalog({
         className="grid grid-flow-dense gap-4 max-sm:grid-cols-[repeat(auto-fill,minmax(300px,1fr))] sm:grid-cols-[repeat(auto-fill,minmax(300px,1fr))]"
       >
         {catalog.map((post: Post) => (
-          <CardForList {...post} key={post.id} />
+          <CardForList {...post} viewerId={viewerId} key={post.id} />
         ))}
       </section>
 

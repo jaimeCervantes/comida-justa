@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { buildBreadcrumbJsonLd } from "~/domain/seo/jsonLd/breadcrumbs";
 import { resolveLocale } from "~/i18n/routing";
+import { readViewerId } from "~/infra/auth/readViewerId";
 import { PAGINATION_INIT_PAGE } from "~/infra/constants";
 import Breadcrumbs from "~/presentation/navigation/Breadcrumbs";
 import JsonLd from "~/presentation/seo/JsonLd";
@@ -30,6 +31,7 @@ export default async function CategoryPage({ params }: Props) {
   const { key, locale: rawLocale } = await params;
   const locale = resolveLocale(rawLocale);
   setRequestLocale(locale);
+  const viewerId = await readViewerId();
   const t = await getTranslations("category");
   const tCommon = await getTranslations("common");
 
@@ -65,6 +67,7 @@ export default async function CategoryPage({ params }: Props) {
       <p className="mb-2">{t("count", { total: data.total })}</p>
 
       <CategoryPosts
+        viewerId={viewerId}
         posts={data.posts}
         categoryKey={key}
         label={data.label}

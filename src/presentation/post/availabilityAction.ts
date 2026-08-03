@@ -1,4 +1,5 @@
 "use server";
+import { revalidatePath } from "next/cache";
 import { getLocale } from "next-intl/server";
 import type { User } from "~/domain/entities/post/types";
 import { redirectKeepingLocale } from "~/i18n/redirectKeepingLocale";
@@ -19,6 +20,14 @@ export type AvailabilityState = {
  * El `postId` viaja en el formulario, pero la autorización **no** depende de él: el caso de uso
  * compara el dueño de esa publicación contra la sesión, así que mandar el id de otro no sirve de
  * nada.
+ *
+ * Vive en `presentation/` y no bajo la ruta del detalle porque ahora se dispara desde los dos
+ * sitios donde aparece una publicación —su página y su tarjeta en cualquier listado—, y una tarjeta
+ * no puede importar desde `app/` sin invertir las capas.
+ *
+ * Por eso además de la página de la publicación se invalida el layout entero: quien marca agotado
+ * desde una tarjeta está mirando un listado, y ese listado tiene que reflejarlo al instante o
+ * parecerá que el botón no hizo nada.
  */
 export async function setAvailability(
   _prevState: AvailabilityState,
@@ -45,6 +54,7 @@ export async function setAvailability(
   const slug = String(formData.get("slug") ?? "");
 
   revalidateLocalizedPath({ pathname: "/[slug]", params: { slug } });
+  revalidatePath("/", "layout");
 
   return { isAvailable: result.isAvailable };
 }

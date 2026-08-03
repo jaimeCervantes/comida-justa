@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "~/i18n/navigation";
 import { resolveLocale } from "~/i18n/routing";
+import { readViewerId } from "~/infra/auth/readViewerId";
 import {
   DEFAULT_SHARE_IMAGE,
   PAGINATION_INIT_PAGE,
@@ -74,6 +75,7 @@ export default async function PaginatedPage({ params }: Props) {
   const { page: pageStr, locale: rawLocale } = await params;
   const locale = resolveLocale(rawLocale);
   setRequestLocale(locale);
+  const viewerId = await readViewerId();
   const t = await getTranslations("feed");
   const page = parseInt(pageStr, 10);
 
@@ -100,7 +102,7 @@ export default async function PaginatedPage({ params }: Props) {
           <p>{t("emptyPage")}</p>
         ) : (
           posts.map((post: Post) => {
-            return <CardForList {...post} key={post.id} />;
+            return <CardForList {...post} viewerId={viewerId} key={post.id} />;
           })
         )}
       </section>

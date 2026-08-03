@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { resolveLocale } from "~/i18n/routing";
+import { readViewerId } from "~/infra/auth/readViewerId";
 import { PAGINATION_INIT_PAGE } from "~/infra/constants";
 import LocationNotice from "~/presentation/location/LocationNotice";
 import StoresMap from "~/presentation/location/StoresMap";
@@ -26,6 +27,7 @@ export default async function ProductosPage({
   const { locale: rawLocale } = await params;
   const locale = resolveLocale(rawLocale);
   setRequestLocale(locale);
+  const viewerId = await readViewerId();
   const t = await getTranslations("products");
   const tDistance = await getTranslations("distance");
   const {
@@ -59,6 +61,7 @@ export default async function ProductosPage({
       )}
 
       <ProductsList
+        viewerId={viewerId}
         products={products}
         currentPage={PAGINATION_INIT_PAGE}
         totalPages={totalPages}

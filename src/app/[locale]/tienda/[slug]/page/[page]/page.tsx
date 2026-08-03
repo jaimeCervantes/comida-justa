@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "~/i18n/navigation";
 import { resolveLocale } from "~/i18n/routing";
+import { readViewerId } from "~/infra/auth/readViewerId";
 import { createSellerRepository } from "~/infra/dataAccess/sellers/factory";
 import { storeHref } from "../../../../cuenta/storePath";
 import { getStoreByHandle } from "../../data";
@@ -33,6 +34,7 @@ export default async function StorePaginatedPage({ params }: Props) {
   const { slug, locale: rawLocale, page: pageStr } = await params;
   const locale = resolveLocale(rawLocale);
   setRequestLocale(locale);
+  const viewerId = await readViewerId();
   const t = await getTranslations("store");
   const page = parsePage(pageStr);
 
@@ -51,6 +53,7 @@ export default async function StorePaginatedPage({ params }: Props) {
       <StoreHeader seller={store.seller} ownerUsername={store.ownerUsername} />
 
       <StoreCatalog
+        viewerId={viewerId}
         catalog={store.catalog}
         handle={slug}
         currentPage={page}

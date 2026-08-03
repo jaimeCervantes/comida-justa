@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "~/i18n/navigation";
 import { resolveLocale } from "~/i18n/routing";
+import { readViewerId } from "~/infra/auth/readViewerId";
 import { getPostsByCategory } from "../../data";
 import { buildCategoryMetadata } from "../../metadata";
 import CategoryPosts from "../../ui/CategoryPosts";
@@ -32,6 +33,7 @@ export default async function CategoryPaginatedPage({ params }: Props) {
   const { key, page: pageStr, locale: rawLocale } = await params;
   const locale = resolveLocale(rawLocale);
   setRequestLocale(locale);
+  const viewerId = await readViewerId();
   const t = await getTranslations("category");
   const page = parsePage(pageStr);
 
@@ -53,6 +55,7 @@ export default async function CategoryPaginatedPage({ params }: Props) {
       </h1>
 
       <CategoryPosts
+        viewerId={viewerId}
         posts={data.posts}
         categoryKey={key}
         label={data.label}

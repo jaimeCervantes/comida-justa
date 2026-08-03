@@ -328,6 +328,36 @@ Feature: Quién produce lo declara, qué tan lejos lo dice la distancia
     Then ve el aviso de ubicación
     But no ve la invitación a abrir tienda
 
+  # ---------------------------------------------------------------------------
+  # Slice 7 — arreglar lo propio sin salir del listado
+  # ---------------------------------------------------------------------------
+
+  @slice-7 @component
+  Scenario Outline: Los controles de dueño aparecen solo en lo propio
+    Given una publicación de "<dueño>" de tipo "<kind>"
+    When la ve <quien> en forma de tarjeta
+    Then <resultado>
+
+    Examples:
+      | dueño   | kind     | quien             | resultado                                    |
+      | user-1  | producto | user-1            | se le ofrece editar y marcar agotado         |
+      | user-1  | producto | otra persona      | no se le ofrece nada                         |
+      | user-1  | producto | nadie, sin sesión | no se le ofrece nada                         |
+      | user-1  | anuncio  | user-1            | solo se le ofrece editar: un anuncio no se agota |
+
+  @slice-7
+  Scenario: Marco agotado desde el listado y el listado lo refleja
+    Given un producto mío disponible, visto como tarjeta
+    When lo marco agotado sin abrir su página
+    Then la tarjeta pasa a mostrarlo agotado
+    And su página también, porque es el mismo dato
+
+  @slice-7
+  Scenario: El mapa no tapa el submenú del header
+    Given un visitante con ubicación conocida en "/productos"
+    When despliega el submenú "Comunidad"
+    Then el submenú se ve por encima del mapa
+
   @slice-5 @component
   Scenario Outline: El encuadre incluye a quien mira
     Given un visitante y <tiendas> tienda(s) que situar

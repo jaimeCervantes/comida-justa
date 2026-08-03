@@ -4,6 +4,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import type { User } from "~/domain/entities/post/types";
 import { resolveLocale } from "~/i18n/routing";
 import { auth } from "~/infra/auth";
+import { readViewerId } from "~/infra/auth/readViewerId";
 import { CANONICAL_URL, PAGINATION_INIT_PAGE } from "~/infra/constants";
 import { createSellerRepository } from "~/infra/dataAccess/sellers/factory";
 import BranchList from "~/infra/UI/components/BranchList/BranchList";
@@ -30,6 +31,7 @@ export default async function StorePage({ params }: Props) {
   const { slug, locale: rawLocale } = await params;
   const locale = resolveLocale(rawLocale);
   setRequestLocale(locale);
+  const viewerId = await readViewerId();
   const t = await getTranslations("store");
   const session = await auth();
 
@@ -70,6 +72,7 @@ export default async function StorePage({ params }: Props) {
       ) : null}
 
       <StoreCatalog
+        viewerId={viewerId}
         catalog={store.catalog}
         handle={slug}
         currentPage={PAGINATION_INIT_PAGE}

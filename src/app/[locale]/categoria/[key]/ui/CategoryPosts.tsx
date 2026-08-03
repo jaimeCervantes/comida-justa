@@ -17,7 +17,8 @@ export default function CategoryPosts({
   label,
   currentPage,
   totalPages,
-}: CategoryPostsProps) {
+  viewerId,
+}: CategoryPostsProps & { viewerId?: string | null }) {
   const t = useTranslations("category");
 
   if (posts.length === 0) {
@@ -33,7 +34,7 @@ export default function CategoryPosts({
         className="grid grid-flow-dense gap-4 pt-6 max-sm:grid-cols-[repeat(auto-fill,minmax(300px,1fr))] sm:grid-cols-[repeat(auto-fill,minmax(300px,1fr))]"
       >
         {posts.map((post: Post) => (
-          <CardForList {...post} key={post.id} />
+          <CardForList {...post} viewerId={viewerId} key={post.id} />
         ))}
       </section>
 

@@ -1,4 +1,14 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+/*
+ * La acción de disponibilidad es un Server Action y arrastra `next-auth`, que no resuelve en el
+ * entorno de Vitest. Aquí se prueba lo que pinta la tarjeta, no lo que hace el servidor cuando se
+ * aprieta el botón —eso vive en el e2e—, así que se corta la cadena en el borde.
+ */
+vi.mock("~/presentation/post/availabilityAction", () => ({
+  setAvailability: vi.fn(),
+}));
+
 import { renderWithIntl as render } from "~/infra/test-utils/renderWithIntl";
 import ProductsList from "./ProductsList";
 

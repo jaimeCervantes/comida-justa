@@ -1,5 +1,6 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { resolveLocale } from "~/i18n/routing";
+import { readViewerId } from "~/infra/auth/readViewerId";
 import CardForList from "~/infra/UI/components/CardForList/CardForList";
 import Pagination from "~/infra/UI/components/Pagination";
 import { mapPostsToCardsForLocale } from "~/infra/UI/mappers/posts/mapPostsToCardsForLocale";
@@ -28,6 +29,7 @@ export default async function SearchPage({
   const { term, page, locale: rawLocale } = await params;
   const locale = resolveLocale(rawLocale);
   setRequestLocale(locale);
+  const viewerId = await readViewerId();
   const t = await getTranslations("search");
   const pageInt = parseInt(page || "1", 10);
   const pageSize = 6;
@@ -57,7 +59,7 @@ export default async function SearchPage({
       )}
       <section className="grid gap-8 pt-2 pb-10 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {cards.map((card) => (
-          <CardForList key={card.id} {...card} />
+          <CardForList key={card.id} {...card} viewerId={viewerId} />
         ))}
       </section>
       <Pagination

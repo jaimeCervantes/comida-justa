@@ -4,25 +4,24 @@ import { useActionState } from "react";
 import { MdEdit } from "react-icons/md";
 import { Link } from "~/i18n/navigation";
 import { Button } from "~/presentation/design_system/buttons/Button";
-import type { AvailabilityState } from "~/presentation/post/availabilityAction";
+import { type AvailabilityState, setAvailability } from "./availabilityAction";
 
 /**
- * Lo que solo ve quien publicó: editar y cambiar la disponibilidad.
+ * Editar y marcar agotado, sin salir del listado.
  *
- * Ocultarlo es cortesía, no seguridad — quien decide es el servidor, que compara el dueño de la
- * publicación contra la sesión.
+ * Es la versión de tarjeta de lo que la publicación ya ofrecía en su página. Existe porque el
+ * camino real de un vendedor es mirar su catálogo y arreglar lo que ve: obligarle a abrir cada
+ * publicación para apagar tres cosas que se acabaron convierte un minuto en cinco.
+ *
+ * Ocultarlo a quien no es el dueño es cortesía, no seguridad — quien decide es el servidor, que
+ * compara el dueño de la publicación contra la sesión.
  */
-export default function OwnerControls({
-  action,
+export default function CardOwnerControls({
   postId,
   slug,
   isAvailable,
   isSellable,
 }: {
-  action: (
-    state: AvailabilityState,
-    data: FormData,
-  ) => Promise<AvailabilityState>;
   postId: string;
   slug: string;
   isAvailable: boolean;
@@ -33,17 +32,17 @@ export default function OwnerControls({
   const [state, availabilityAction, isPending] = useActionState<
     AvailabilityState,
     FormData
-  >(action, {});
+  >(setAvailability, {});
 
   const available = state.isAvailable ?? isAvailable;
 
   return (
-    <section
-      data-testid="owner-controls"
-      className="mt-6 flex flex-wrap items-center gap-3 border-t border-gray-200 pt-4 dark:border-gray-800"
+    <span
+      data-testid="card-owner-controls"
+      className="mt-2 flex flex-wrap items-center gap-2"
     >
       <Link href={{ pathname: "/editar/[slug]", params: { slug } }}>
-        <Button startIcon={<MdEdit />} size="sm">
+        <Button startIcon={<MdEdit />} size="xs">
           {t("edit")}
         </Button>
       </Link>
@@ -59,7 +58,7 @@ export default function OwnerControls({
           />
           <Button
             type="submit"
-            size="sm"
+            size="xs"
             color={available ? "default" : "green"}
             isLoading={isPending}
             disabled={isPending}
@@ -70,13 +69,13 @@ export default function OwnerControls({
       ) : null}
 
       {state.errorMessage ? (
-        <p
-          data-testid="availability-error"
-          className="text-red-700 dark:text-red-400"
+        <span
+          data-testid="card-availability-error"
+          className="text-sm text-red-700 dark:text-red-400"
         >
           {state.errorMessage}
-        </p>
+        </span>
       ) : null}
-    </section>
+    </span>
   );
 }

@@ -14,8 +14,12 @@ export default function PostsWithLoadMore({
   initialPage = PAGINATION_INIT_PAGE,
   totalPages = Math.ceil(totalPosts / PAGINATION_PAGE_SIZE),
   locale,
+  viewerId,
 }: {
   initialPosts: Post[];
+  /** Quién mira: decide si sus propias publicaciones le ofrecen editar y marcar agotado. */
+  viewerId?: string | null;
+
   totalPosts: number;
   initialPage?: number;
   totalPages: number;
@@ -86,7 +90,7 @@ export default function PostsWithLoadMore({
           <p>{t("empty")}</p>
         ) : (
           posts.map((post: Post) => {
-            return <CardForList {...post} key={post.id} />;
+            return <CardForList {...post} viewerId={viewerId} key={post.id} />;
           })
         )}
       </section>

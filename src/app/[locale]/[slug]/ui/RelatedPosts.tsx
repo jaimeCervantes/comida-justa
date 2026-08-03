@@ -9,7 +9,14 @@ import CardForList from "~/infra/UI/components/CardForList/CardForList";
  * seguido de nada. Ahora, si la base no devuelve vecinos —una publicación recién creada sin
  * vector, por ejemplo—, se dice que no hay en vez de dejar el hueco.
  */
-export default async function RelatedPosts({ posts }: { posts: Post[] }) {
+export default async function RelatedPosts({
+  posts,
+  viewerId,
+}: {
+  posts: Post[];
+  /** Quién mira: decide si sus propias publicaciones le ofrecen editar y marcar agotado. */
+  viewerId?: string | null;
+}) {
   const t = await getTranslations("post");
 
   return (
@@ -24,7 +31,7 @@ export default async function RelatedPosts({ posts }: { posts: Post[] }) {
         <ul className="grid gap-4 grid-cols-[repeat(auto-fill,minmax(240px,1fr))] list-none p-0">
           {posts.map((post) => (
             <li key={String(post.id)}>
-              <CardForList {...post} />
+              <CardForList {...post} viewerId={viewerId} />
             </li>
           ))}
         </ul>

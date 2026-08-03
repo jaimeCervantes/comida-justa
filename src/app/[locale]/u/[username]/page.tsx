@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { setRequestLocale } from "next-intl/server";
 import { buildProfileJsonLd } from "~/domain/seo/jsonLd/site";
 import { resolveLocale } from "~/i18n/routing";
+import { readViewerId } from "~/infra/auth/readViewerId";
 import { CANONICAL_URL, PAGINATION_INIT_PAGE } from "~/infra/constants";
 import { createUserProfileRepository } from "~/infra/dataAccess/users/factory";
 import JsonLd from "~/presentation/seo/JsonLd";
@@ -27,6 +28,7 @@ export default async function ProfilePage({ params }: Props) {
   const { username, locale: rawLocale } = await params;
   const locale = resolveLocale(rawLocale);
   setRequestLocale(locale);
+  const viewerId = await readViewerId();
 
   // Fuera de cualquier `<Suspense>`: un perfil inexistente debe salir con status 404 y no con un
   // 200 que solo "parece" un 404.
@@ -56,6 +58,7 @@ export default async function ProfilePage({ params }: Props) {
       />
 
       <ProfilePublications
+        viewerId={viewerId}
         publications={data.publications}
         username={username}
         currentPage={PAGINATION_INIT_PAGE}

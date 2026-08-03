@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "~/i18n/navigation";
 import { resolveLocale } from "~/i18n/routing";
+import { readViewerId } from "~/infra/auth/readViewerId";
 import { createUserProfileRepository } from "~/infra/dataAccess/users/factory";
 import { profileHref } from "../../../../cuenta/profilePath";
 import { getProfileByUsername } from "../../data";
@@ -33,6 +34,7 @@ export default async function ProfilePaginatedPage({ params }: Props) {
   const { username, locale: rawLocale, page: pageStr } = await params;
   const locale = resolveLocale(rawLocale);
   setRequestLocale(locale);
+  const viewerId = await readViewerId();
   const t = await getTranslations("profile");
   const page = parsePage(pageStr);
 
@@ -55,6 +57,7 @@ export default async function ProfilePaginatedPage({ params }: Props) {
       />
 
       <ProfilePublications
+        viewerId={viewerId}
         publications={data.publications}
         username={username}
         currentPage={page}

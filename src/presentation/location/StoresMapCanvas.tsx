@@ -52,7 +52,14 @@ export default function StoresMapCanvas({
       ]}
       boundsOptions={{ padding: [32, 32] }}
       scrollWheelZoom={false}
-      className="h-72 w-full rounded-lg"
+      /*
+       * `isolate` no es cosmético: sin él el mapa tapa el submenú del header.
+       *
+       * Leaflet apila sus capas con z-index de 400 a 700, y sin un contexto de apilamiento propio
+       * esos números compiten en la raíz contra el `z-50` del header — y 400 gana. Al aislar, todo
+       * lo de Leaflet queda dentro de un contexto que vale 0, y el desplegable pasa por encima.
+       */
+      className="relative isolate z-0 h-72 w-full rounded-lg"
     >
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'

@@ -14,7 +14,7 @@ import SoldOutBadge from "~/infra/UI/components/SoldOutBadge/SoldOutBadge";
 import WhatsappButton from "~/infra/UI/components/WhatsappButton/WhatsappButton";
 import ShareLocationButton from "~/presentation/location/ShareLocationButton";
 import StoreDistance from "~/presentation/location/StoreDistance";
-import { setAvailability } from "../actions";
+import { setAvailability } from "~/presentation/post/availabilityAction";
 import { postCategoryLabel } from "../categoryLabel";
 import CommentList from "../loadComments/CommentList";
 import OwnerControls from "./OwnerControls";

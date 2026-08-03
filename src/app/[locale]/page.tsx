@@ -7,6 +7,7 @@ import type { Coordinates } from "~/domain/entities/seller/coordinates";
 import { buildSiteJsonLd } from "~/domain/seo/jsonLd/site";
 import { ensureAbsoluteUrl } from "~/domain/seo/url";
 import { resolveLocale, routing } from "~/i18n/routing";
+import { readViewerId } from "~/infra/auth/readViewerId";
 import {
   BRAND_SOCIAL_URLS,
   CANONICAL_URL,
@@ -87,6 +88,7 @@ export default async function Inicio({
   const { locale: rawLocale } = await params;
   const locale = resolveLocale(rawLocale);
   setRequestLocale(locale);
+  const viewerId = await readViewerId();
   const t = await getTranslations({ locale, namespace: "home" });
   const { visitor, showSellerCta } = await readViewerLocationContext();
   const { posts, total, totalPages } = await getPosts(locale, visitor);
@@ -114,6 +116,7 @@ export default async function Inicio({
       {visitor ? null : <LocationNotice showSellerCta={showSellerCta} />}
 
       <PostsWithLoadMore
+        viewerId={viewerId}
         initialPosts={posts}
         totalPosts={total}
         totalPages={totalPages}
