@@ -17,6 +17,7 @@ export class SearchPostsUseCase {
       dto.page,
       dto.pageSize,
       dto.locale,
+      dto.near ?? null,
     );
   }
 }

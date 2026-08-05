@@ -4,6 +4,7 @@ import { readViewerId } from "~/infra/auth/readViewerId";
 import CardForList from "~/infra/UI/components/CardForList/CardForList";
 import Pagination from "~/infra/UI/components/Pagination";
 import { mapPostsToCardsForLocale } from "~/infra/UI/mappers/posts/mapPostsToCardsForLocale";
+import { SEARCH_PAGE_SIZE, searchPosts } from "./data";
 
 /**
  * Esta ruta se sirve como `/buscar` en español y `/search` en inglés; lo decide `pathnames` en
@@ -12,22 +13,6 @@ import { mapPostsToCardsForLocale } from "~/infra/UI/mappers/posts/mapPostsToCar
  * española paginaba —hacia `/search/…`, o sea hacia la otra— con el término escapado. Se quedó
  * esta, con lo mejor de las dos.
  */
-async function fetchResults(
-  q: string,
-  page: number,
-  pageSize: number,
-  locale: string,
-) {
-  const res = await fetch(
-    `${
-      process.env.NEXT_PUBLIC_BASE_URL || ""
-    }/api/search?q=${encodeURIComponent(
-      q,
-    )}&limit=${pageSize}&page=${page}&locale=${locale}`,
-  );
-  return res.json();
-}
-
 export default async function SearchPage({
   searchParams,
   params,
@@ -42,12 +27,9 @@ export default async function SearchPage({
   const viewerId = await readViewerId();
   const t = await getTranslations("search");
   const pageInt = parseInt(page || "1", 10);
-  const pageSize = 6;
-  const data = q
-    ? await fetchResults(q, pageInt, pageSize, locale)
-    : { results: [], total: 0 };
-  const cards = await mapPostsToCardsForLocale(data.results || [], locale);
-  const totalPages = Math.ceil((data.total || 0) / pageSize);
+  const data = await searchPosts(q, pageInt, locale);
+  const cards = await mapPostsToCardsForLocale(data.results, locale);
+  const totalPages = Math.ceil(data.total / SEARCH_PAGE_SIZE);
 
   return (
     <>

@@ -1,7 +1,16 @@
 import type { NextRequest } from "next/server";
 import { createSearchPostRepository } from "~/infra/dataAccess/searchPosts/factory";
+import { readVisitorLocation } from "~/infra/location/visitorLocation";
 import { SearchPostsUseCase } from "~/use_cases/searchPosts/SearchPostsUseCase";
 
+/**
+ * El autocompletado de `SearchBar`, que es el único cliente que queda de esta ruta.
+ *
+ * Las dos páginas de `/buscar` llamaban aquí por `fetch` desde el servidor —un viaje HTTP para
+ * hablar consigo mismo, y sin cookies—; ahora usan el caso de uso directamente (ver
+ * `app/[locale]/buscar/data.ts`). Aquí la petición la hace el navegador, así que las cookies sí
+ * viajan y `readVisitorLocation()` puede contestar.
+ */
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const q = searchParams.get("q") || "";
@@ -17,6 +26,7 @@ export async function GET(req: NextRequest) {
     page: page,
     pageSize: limit,
     locale,
+    near: await readVisitorLocation(),
   });
 
   return Response.json({ results, total });

@@ -46,7 +46,42 @@ describe("SearchPostsUseCase", () => {
       1,
       10,
       undefined,
+      null,
     );
     expect(result).toEqual({ results: mockResults, total: 1 });
+  });
+
+  /*
+   * La ubicación se pasa tal cual, sin decidir nada sobre ella: quién sabe dónde está quien busca
+   * es asunto de la capa de fuera, y qué hacer con esa distancia es asunto del repositorio. Aquí
+   * solo tiene que llegar.
+   */
+  it("le pasa al repositorio desde dónde medir", async () => {
+    mockRepository.search.mockResolvedValue({ results: [], total: 0 });
+    const near = { latitude: 18.6005415256606, longitude: -96.6872065729976 };
+
+    await useCase.execute({ query: "pan", page: 1, pageSize: 6, near });
+
+    expect(mockRepository.search).toHaveBeenCalledWith(
+      "pan",
+      1,
+      6,
+      undefined,
+      near,
+    );
+  });
+
+  it("y `null` cuando no se sabe, en vez de dejarlo indefinido", async () => {
+    mockRepository.search.mockResolvedValue({ results: [], total: 0 });
+
+    await useCase.execute({ query: "pan", page: 1, pageSize: 6 });
+
+    expect(mockRepository.search).toHaveBeenCalledWith(
+      "pan",
+      1,
+      6,
+      undefined,
+      null,
+    );
   });
 });

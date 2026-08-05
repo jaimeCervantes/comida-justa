@@ -1,4 +1,5 @@
-import { and, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
+import type { Coordinates } from "~/domain/entities/seller/coordinates";
 import { db } from "~/infra/dataAccess/db/connection";
 import { users } from "~/infra/dataAccess/db/schema/auth";
 import {
@@ -11,7 +12,53 @@ import type { ISearchPostRepository } from "~/use_cases/searchPosts/ports/ISearc
 
 interface RankedRow {
   id: string;
+  distance_meters: string | null;
   total_count: number;
+}
+
+interface RankedMatch {
+  id: string;
+  distanceMeters: number | null;
+}
+
+/**
+ * A qué distancia está la tienda de cada resultado, en metros, o `NULL`.
+ *
+ * Es el mismo subconsulta que usan el catálogo (`PostgresPostQueryRepository:118`) y el directorio
+ * (`PostgresStoreDirectory:77`): `MIN` porque una tienda puede tener varias sucursales y decide la
+ * más cercana, y correlacionada en vez de `JOIN` para que **nada desaparezca de la búsqueda por no
+ * tener ubicación**.
+ */
+function distanceColumn(near: Coordinates | null) {
+  if (!near) return sql`NULL::double precision`;
+
+  return sql`(
+    SELECT MIN(
+      ST_Distance(
+        b.location,
+        ST_SetSRID(ST_MakePoint(${near.longitude}, ${near.latitude}), 4326)::geography
+      )
+    )
+    FROM branches b
+    WHERE b.seller_id = p.seller_id
+  )`;
+}
+
+/** Las filas crudas, con el total que trae la ventana y la distancia ya en número. */
+function toMatches(rows: RankedRow[]): {
+  matches: RankedMatch[];
+  total: number;
+} {
+  return {
+    matches: rows.map((row) => ({
+      id: row.id,
+      distanceMeters:
+        row.distance_meters === null || row.distance_meters === undefined
+          ? null
+          : Number(row.distance_meters),
+    })),
+    total: rows.length > 0 ? Number(rows[0].total_count) : 0,
+  };
 }
 
 export class PostgresSearchPostRepository implements ISearchPostRepository {
@@ -20,15 +67,16 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
     page: number,
     pageSize: number,
     locale: string = "es",
+    near: Coordinates | null = null,
   ): Promise<{ results: ISearchPostResultDTO[]; total: number }> {
     const trimmed = query?.trim() ?? "";
-    const { ids, total } = trimmed
-      ? await this.rankedMatches(trimmed, page, pageSize, locale)
-      : await this.newestFirst(page, pageSize);
+    const { matches, total } = trimmed
+      ? await this.rankedMatches(trimmed, page, pageSize, locale, near)
+      : await this.newestFirst(page, pageSize, near);
 
-    if (ids.length === 0) return { results: [], total };
+    if (matches.length === 0) return { results: [], total };
 
-    return { results: await this.hydrate(ids, locale), total };
+    return { results: await this.hydrate(matches, locale), total };
   }
 
   /**
@@ -47,13 +95,21 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
    *
    * `EXISTS` y no `JOIN` para que una publicación no pueda salir dos veces si algún día hay dos
    * traducciones del mismo idioma. `COUNT(*) OVER()` da el total sin una segunda consulta.
+   *
+   * **La distancia desempata, no manda.** Entra después del nivel de relevancia y antes de la
+   * fecha: entre dos resultados igual de pertinentes, el más cercano es más útil; pero un resultado
+   * que solo coincide en el texto no adelanta a uno cuyo título coincide por estar más cerca. Esa
+   * es la diferencia entre una búsqueda y un listado — en `/productos` nadie dijo qué quería, aquí
+   * sí. Y no hay filtro por radio en ninguna parte: esconder algo que alguien pidió por su nombre
+   * sería el peor fallo posible.
    */
   private async rankedMatches(
     query: string,
     page: number,
     pageSize: number,
     locale: string,
-  ): Promise<{ ids: string[]; total: number }> {
+    near: Coordinates | null,
+  ): Promise<{ matches: RankedMatch[]; total: number }> {
     const pattern = `%${query}%`;
     const offset = Math.max(0, (page - 1) * pageSize);
 
@@ -65,6 +121,7 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
     const raw = await db.execute(sql`
       SELECT
         p.id,
+        ${distanceColumn(near)} AS distance_meters,
         COUNT(*) OVER()::int AS total_count
       FROM posts p
       WHERE EXISTS (
@@ -75,37 +132,37 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
       )
       ORDER BY
         CASE WHEN ${matchesTitle} THEN 0 ELSE 1 END,
+        distance_meters ASC NULLS LAST,
         p.created_at DESC,
         p.id
       LIMIT ${pageSize} OFFSET ${offset}
     `);
 
-    const rows = raw.rows as unknown as RankedRow[];
-
-    return {
-      ids: rows.map((row) => row.id),
-      total: rows.length > 0 ? Number(rows[0].total_count) : 0,
-    };
+    return toMatches(raw.rows as unknown as RankedRow[]);
   }
 
-  /** Sin término no hay relevancia que medir: lo más reciente primero, como estaba. */
+  /** Sin término no hay relevancia que medir: lo más cercano y, si no, lo más reciente. */
   private async newestFirst(
     page: number,
     pageSize: number,
-  ): Promise<{ ids: string[]; total: number }> {
+    near: Coordinates | null,
+  ): Promise<{ matches: RankedMatch[]; total: number }> {
     const offset = Math.max(0, (page - 1) * pageSize);
 
-    const [rows, counted] = await Promise.all([
-      db
-        .select({ id: posts.id })
-        .from(posts)
-        .orderBy(desc(posts.createdAt), posts.id)
-        .limit(pageSize)
-        .offset(offset),
-      db.select({ total: sql<number>`COUNT(*)::int` }).from(posts),
-    ]);
+    const raw = await db.execute(sql`
+      SELECT
+        p.id,
+        ${distanceColumn(near)} AS distance_meters,
+        COUNT(*) OVER()::int AS total_count
+      FROM posts p
+      ORDER BY
+        distance_meters ASC NULLS LAST,
+        p.created_at DESC,
+        p.id
+      LIMIT ${pageSize} OFFSET ${offset}
+    `);
 
-    return { ids: rows.map((row) => row.id), total: counted[0]?.total ?? 0 };
+    return toMatches(raw.rows as unknown as RankedRow[]);
   }
 
   /**
@@ -116,9 +173,10 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
    * filas de una página, no sobre la tabla entera.
    */
   private async hydrate(
-    ids: string[],
+    matches: RankedMatch[],
     locale: string,
   ): Promise<ISearchPostResultDTO[]> {
+    const ids = matches.map((match) => match.id);
     const [postRows, translationRows, mediaRows] = await Promise.all([
       db.select().from(posts).where(inArray(posts.id, ids)),
       db
@@ -174,8 +232,8 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
     const userById = new Map(userRows.map((user) => [user.id, user]));
     const postById = new Map(postRows.map((post) => [post.id, post]));
 
-    /* Se recorre `ids` y no `postRows`: el orden lo decidió la base y aquí solo se respeta. */
-    return ids.flatMap((id) => {
+    /* Se recorre `matches` y no `postRows`: el orden lo decidió la base y aquí solo se respeta. */
+    return matches.flatMap(({ id, distanceMeters }) => {
       const row = postById.get(id);
 
       if (!row) return [];
@@ -200,6 +258,7 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
             },
           },
           media: mediaByPost.get(id) ?? [],
+          distanceMeters,
           user: {
             id: user?.id ?? row.userId,
             email: user?.email ?? undefined,
