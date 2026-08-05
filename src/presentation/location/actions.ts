@@ -7,6 +7,7 @@ import {
   areValidCoordinates,
   type Coordinates,
 } from "~/domain/entities/seller/coordinates";
+import { needsRefresh } from "~/domain/entities/seller/locationFreshness";
 import { auth } from "~/infra/auth";
 import { db } from "~/infra/dataAccess/db/connection";
 import { users } from "~/infra/dataAccess/db/schema/auth";
@@ -15,6 +16,7 @@ import {
   VISITOR_LOCATION_COOKIE,
   VISITOR_LOCATION_MAX_AGE,
 } from "~/infra/location/locationCookie";
+import { readVisitorFix } from "~/infra/location/visitorLocation";
 
 /**
  * Guarda la ubicación que el visitante acaba de compartir apretando un botón.
@@ -39,6 +41,27 @@ export async function shareLocation(formData: FormData): Promise<void> {
   };
 
   if (!areValidCoordinates(coordinates)) return;
+
+  await rememberLocation(coordinates);
+
+  revalidatePath("/", "layout");
+}
+
+/**
+ * Guarda la ubicación que el navegador entregó **solo**, sin que nadie apretara nada.
+ *
+ * La diferencia con `shareLocation` no es de dónde viene el dato, es qué significa el silencio: un
+ * clic pide "corrígelo ahora", pero una detección automática ocurre en cada carga de página, y
+ * escribir siempre significaría un `revalidatePath("/", "layout")` por carga —el árbol entero de
+ * rutas invalidado y un segundo render completo— para confirmar que no te has movido.
+ *
+ * Por eso se vuelve a preguntar aquí si vale la pena, aunque el cliente ya lo haya decidido: lo que
+ * llega de un cliente es una propuesta, y lo que hay guardado solo lo sabe con certeza el servidor.
+ * Cuando no vale la pena, no se escribe **ni se revalida**, y la carga sale gratis.
+ */
+export async function refreshLocation(coordinates: Coordinates): Promise<void> {
+  if (!areValidCoordinates(coordinates)) return;
+  if (!needsRefresh(await readVisitorFix(), coordinates, new Date())) return;
 
   await rememberLocation(coordinates);
 

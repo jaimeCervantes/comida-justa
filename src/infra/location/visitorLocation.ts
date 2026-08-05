@@ -1,5 +1,6 @@
 import { eq } from "drizzle-orm";
 import { cookies } from "next/headers";
+import { cache } from "react";
 import type { User } from "~/domain/entities/post/types";
 import type { Coordinates } from "~/domain/entities/seller/coordinates";
 import { areValidCoordinates } from "~/domain/entities/seller/coordinates";
@@ -37,16 +38,19 @@ import { parseFix, VISITOR_LOCATION_COOKIE } from "./locationCookie";
  *
  * El nombre y el formato de la cookie viven aparte, en `locationCookie.ts`, porque este módulo
  * arrastra `next-auth` y la suite de Playwright necesita la constante sin arrastrarlo.
+ *
+ * Va envuelto en `cache()` porque ahora hay **dos** lectores por petición: el layout, que alimenta
+ * al refrescador, y la página, que necesita desde dónde medir. Sin esto, cada página pagaría dos
+ * veces la sesión y la consulta a `users`.
  */
-export async function readVisitorFix(): Promise<VisitorFix | null> {
+export const readVisitorFix = cache(async (): Promise<VisitorFix | null> => {
   const fromCookie = parseFix(
     (await cookies()).get(VISITOR_LOCATION_COOKIE)?.value,
   );
 
-  /* Sin cuenta no hay columna que consultar, y sin cookie tampoco hay nada que comparar: en los dos
-     casos la consulta se ahorra entera. */
+  /* Sin cuenta no hay columna que consultar: `readFixFromAccount` se corta en la sesión. */
   return fresherOf(fromCookie, await readFixFromAccount());
-}
+});
 
 /** Las coordenadas a secas, para las páginas que solo necesitan desde dónde medir. */
 export async function readVisitorLocation(): Promise<Coordinates | null> {

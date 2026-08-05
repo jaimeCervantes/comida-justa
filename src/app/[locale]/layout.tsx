@@ -9,6 +9,8 @@ import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { setRequestLocale } from "next-intl/server";
 import { routing } from "~/i18n/routing";
 import { CANONICAL_URL, PUBLIC_BRAND_NAME } from "~/infra/constants";
+import { readVisitorFix } from "~/infra/location/visitorLocation";
+import LocationRefresher from "~/presentation/location/LocationRefresher";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -73,6 +75,10 @@ export default async function RootLayout({
         {/* Sin el provider, un Client Component que use `useTranslations` revienta. Va aquí una
             sola vez para que el slice 1 pueda extraer texto en cualquier hoja del árbol. */}
         <NextIntlClientProvider>
+          {/* No pinta nada: vuelve a detectar dónde está quien mira cuando ya nos dio permiso, para
+              que las distancias sigan siendo ciertas después de moverse. Va aquí, y no en cada
+              página, para correr una vez por carga completa en lugar de por navegación. */}
+          <LocationRefresher fix={await readVisitorFix()} />
           <div className="flex flex-col min-h-screen">
             <Header />
             <main className="flex-1 pt-4 pb-12">
