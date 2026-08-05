@@ -1,12 +1,15 @@
 import type { User } from "~/domain/entities/post/types";
 import type { Coordinates } from "~/domain/entities/seller/coordinates";
+import type { VisitorFix } from "~/domain/entities/seller/locationFreshness";
 import { auth } from "~/infra/auth";
 import { createSellerRepository } from "~/infra/dataAccess/sellers/factory";
-import { readVisitorLocation } from "./visitorLocation";
+import { readVisitorFix } from "./visitorLocation";
 
 export interface ViewerLocationContext {
   /** Dónde está quien mira, o `null`. Es lo que decide si hay distancias que pintar. */
   visitor: Coordinates | null;
+  /** Lo mismo, pero con la fecha: es lo que deja decir "de hace dos horas" y volver a preguntar. */
+  fix: VisitorFix | null;
   /** Si conviene invitarle a abrir tienda: quien ya tiene una no necesita el consejo. */
   showSellerCta: boolean;
 }
@@ -20,11 +23,11 @@ export interface ViewerLocationContext {
  * aviso que pintar y nadie va a leer esa invitación.
  */
 export async function readViewerLocationContext(): Promise<ViewerLocationContext> {
-  const visitor = await readVisitorLocation();
+  const fix = await readVisitorFix();
 
-  if (visitor) return { visitor, showSellerCta: false };
+  if (fix) return { visitor: fix.coordinates, fix, showSellerCta: false };
 
-  return { visitor: null, showSellerCta: !(await viewerHasStore()) };
+  return { visitor: null, fix: null, showSellerCta: !(await viewerHasStore()) };
 }
 
 async function viewerHasStore(): Promise<boolean> {

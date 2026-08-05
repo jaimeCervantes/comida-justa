@@ -1,25 +1,36 @@
 import { eq } from "drizzle-orm";
 import { cookies } from "next/headers";
 import type { User } from "~/domain/entities/post/types";
+import type { Coordinates } from "~/domain/entities/seller/coordinates";
+import { areValidCoordinates } from "~/domain/entities/seller/coordinates";
 import {
-  areValidCoordinates,
-  type Coordinates,
-} from "~/domain/entities/seller/coordinates";
+  fresherOf,
+  type VisitorFix,
+} from "~/domain/entities/seller/locationFreshness";
 import { auth } from "~/infra/auth";
 import { db } from "~/infra/dataAccess/db/connection";
 import { users } from "~/infra/dataAccess/db/schema/auth";
-import { parseCoordinates, VISITOR_LOCATION_COOKIE } from "./locationCookie";
+import { parseFix, VISITOR_LOCATION_COOKIE } from "./locationCookie";
 
 /**
- * Dónde está quien mira, si es que lo sabemos.
+ * Dónde está quien mira, si es que lo sabemos, y **desde cuándo**.
  *
- * Dos fuentes y en este orden:
+ * Dos fuentes:
  *
- * 1. **La cookie**, que es lo que compartió en el navegador. Va primero porque es lo más reciente
- *    y lo más explícito: acaba de apretar el botón.
+ * 1. **La cookie**, que es lo que compartió en el navegador.
  * 2. **`users.last_latitude`**, que la guarda el bot de WhatsApp desde la migración
  *    `69113f019ca5`. Es la que hace que alguien que ya habló con el bot vea distancias sin que el
  *    sitio le pida nada.
+ *
+ * **Gana la más reciente, no la cookie por ser cookie.** Antes la cookie ganaba siempre, y eso
+ * producía un fallo silencioso: quien compartía su ubicación con el bot desde otra ciudad seguía
+ * viendo el sitio medido desde su casa, porque su cookie de hace meses no la desbancaba nada. La
+ * columna `location_updated_at` se venía escribiendo desde entonces sin que nadie la leyera; esto
+ * es lo que la lee.
+ *
+ * En un empate manda la cookie: es la que alguien puso explícitamente en este navegador. Una cookie
+ * sin fecha —las del formato anterior, que duran un año— también manda, para que cambiar el formato
+ * no le cambie el sitio a quien ya tiene una.
  *
  * `null` cuando no hay ninguna, y `null` es una respuesta de primera clase: quien no comparte su
  * ubicación no ve distancias y el listado le sale por fecha, sin ruegos ni pantallas a medias.
@@ -27,17 +38,22 @@ import { parseCoordinates, VISITOR_LOCATION_COOKIE } from "./locationCookie";
  * El nombre y el formato de la cookie viven aparte, en `locationCookie.ts`, porque este módulo
  * arrastra `next-auth` y la suite de Playwright necesita la constante sin arrastrarlo.
  */
-export async function readVisitorLocation(): Promise<Coordinates | null> {
-  const fromCookie = parseCoordinates(
+export async function readVisitorFix(): Promise<VisitorFix | null> {
+  const fromCookie = parseFix(
     (await cookies()).get(VISITOR_LOCATION_COOKIE)?.value,
   );
 
-  if (fromCookie) return fromCookie;
-
-  return await readLocationFromAccount();
+  /* Sin cuenta no hay columna que consultar, y sin cookie tampoco hay nada que comparar: en los dos
+     casos la consulta se ahorra entera. */
+  return fresherOf(fromCookie, await readFixFromAccount());
 }
 
-async function readLocationFromAccount(): Promise<Coordinates | null> {
+/** Las coordenadas a secas, para las páginas que solo necesitan desde dónde medir. */
+export async function readVisitorLocation(): Promise<Coordinates | null> {
+  return (await readVisitorFix())?.coordinates ?? null;
+}
+
+async function readFixFromAccount(): Promise<VisitorFix | null> {
   const session = await auth();
   const userId = (session?.user as User | undefined)?.id;
 
@@ -47,6 +63,7 @@ async function readLocationFromAccount(): Promise<Coordinates | null> {
     .select({
       latitude: users.lastLatitude,
       longitude: users.lastLongitude,
+      updatedAt: users.locationUpdatedAt,
     })
     .from(users)
     .where(eq(users.id, userId))
@@ -56,10 +73,12 @@ async function readLocationFromAccount(): Promise<Coordinates | null> {
 
   if (!stored?.latitude || !stored?.longitude) return null;
 
-  const parsed = {
+  const coordinates = {
     latitude: Number(stored.latitude),
     longitude: Number(stored.longitude),
   };
 
-  return areValidCoordinates(parsed) ? parsed : null;
+  if (!areValidCoordinates(coordinates)) return null;
+
+  return { coordinates, fixedAt: stored.updatedAt ?? null };
 }
