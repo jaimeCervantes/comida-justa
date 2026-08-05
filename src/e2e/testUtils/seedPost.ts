@@ -20,6 +20,14 @@ export type SeedPostInput = {
   subCategory?: string | null;
   /** Para sembrar dentro del catálogo de una tienda, como haría `/publicar` con su dueño. */
   sellerHandle?: string;
+  /**
+   * El texto de la publicación, cuando el escenario necesita controlarlo aparte del título.
+   *
+   * Por defecto se deriva del título, y eso basta para casi todo. Lo necesita la búsqueda: para
+   * probar que lo que coincide en el título va antes que lo que solo coincide en el texto hace
+   * falta poder poner el término **solo** en el texto.
+   */
+  content?: string;
 };
 
 /**
@@ -37,7 +45,9 @@ export async function seedPost(input: SeedPostInput): Promise<string> {
     sellerId,
     title: input.title,
     slug: input.slug,
-    content: `${input.title}. Publicación de prueba para el listado de productos.`,
+    content:
+      input.content ??
+      `${input.title}. Publicación de prueba para el listado de productos.`,
     price: input.price ?? 100,
     kind: input.kind,
     origin: input.origin,
