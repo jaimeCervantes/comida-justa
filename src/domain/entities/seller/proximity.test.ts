@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
+  anchorFor,
+  COMMUNITY_ANCHOR,
   isWithinSustainableRadius,
   SUSTAINABLE_RADIUS_KM,
   SUSTAINABLE_RADIUS_METERS,
@@ -30,5 +32,22 @@ describe("radio sostenible", () => {
     expect(isWithinSustainableRadius(Number.NaN)).toBe(false);
     expect(isWithinSustainableRadius(Number.POSITIVE_INFINITY)).toBe(false);
     expect(isWithinSustainableRadius(-1)).toBe(false);
+  });
+});
+
+describe("anchorFor", () => {
+  /*
+   * "Local" no es una propiedad del vendedor, es una relación entre dos puntos, y el punto que
+   * importa es dónde está quien va a ir a comprar. Medirlo siempre desde el mismo pueblo dejaba el
+   * directorio de productores inservible para cualquiera que no viviera ahí.
+   */
+  it("mide desde quien mira cuando sabemos dónde está", () => {
+    const monterrey = { latitude: 25.6866, longitude: -100.3161 };
+
+    expect(anchorFor(monterrey)).toEqual(monterrey);
+  });
+
+  it("vuelve al ancla de la comunidad cuando no lo sabemos", () => {
+    expect(anchorFor(null)).toEqual(COMMUNITY_ANCHOR);
   });
 });

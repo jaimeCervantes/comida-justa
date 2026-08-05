@@ -33,6 +33,12 @@ export interface DirectoryPage {
   stores: StoreSummary[];
   total: number;
   totalPages: number;
+  /**
+   * `true` cuando no había nadie dentro del radio sostenible de quien mira y lo que se lista viene
+   * de más lejos. La página tiene que decirlo: una lista de "productores locales" que en realidad
+   * están a 900 km es peor que una lista vacía si nadie avisa.
+   */
+  outsideRadius?: boolean;
 }
 
 /** ¿Este directorio se limita a quien produce? */

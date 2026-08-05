@@ -6,7 +6,7 @@ import {
   onlyProducers,
 } from "~/domain/entities/seller/directory";
 import {
-  COMMUNITY_ANCHOR,
+  anchorFor,
   SUSTAINABLE_RADIUS_METERS,
 } from "~/domain/entities/seller/proximity";
 import { db } from "~/infra/dataAccess/db/connection";
@@ -44,27 +44,61 @@ export async function listStores(
   pageSize: number,
   near: Coordinates | null = null,
 ): Promise<DirectoryPage> {
+  const withRadius = await queryStores(kind, page, pageSize, near, true);
+
+  /*
+   * El respaldo para quien mira desde lejos.
+   *
+   * Con el ancla puesta en el visitante, alguien en otro estado puede no tener un solo productor en
+   * sus 50 km, y lo que veía entonces era una página en blanco — el peor resultado posible: no
+   * distingue "no hay nadie cerca de ti" de "esto está roto". Así que se repite la consulta sin la
+   * mitad del radio y se dice que lo que sale queda lejos.
+   *
+   * Se cae **solo el radio**, no el `origin = 'productor'`: si no hay productores, no hay
+   * productores, y llenar el directorio con negocios que no producen sería mentir sobre lo que la
+   * página promete. Hoy mismo, con 0 publicaciones `productor` en la base, este respaldo devuelve
+   * vacío a propósito.
+   */
+  if (withRadius.total > 0 || !near || !onlyProducers(kind)) return withRadius;
+
+  return {
+    ...(await queryStores(kind, page, pageSize, near, false)),
+    outsideRadius: true,
+  };
+}
+
+async function queryStores(
+  kind: DirectoryKind,
+  page: number,
+  pageSize: number,
+  near: Coordinates | null,
+  withinRadius: boolean,
+): Promise<DirectoryPage> {
   const offset = (page - 1) * pageSize;
-  const producerFilter = onlyProducers(kind)
+  const anchor = anchorFor(near);
+  const radiusFilter = withinRadius
     ? sql`AND EXISTS (
-          SELECT 1 FROM posts p
-          WHERE p.seller_id = s.id AND p.origin = 'productor'
-        )
-        AND EXISTS (
           SELECT 1 FROM branches b
           WHERE b.seller_id = s.id
             AND ST_DWithin(
               b.location,
               ST_SetSRID(
                 ST_MakePoint(
-                  ${COMMUNITY_ANCHOR.longitude},
-                  ${COMMUNITY_ANCHOR.latitude}
+                  ${anchor.longitude},
+                  ${anchor.latitude}
                 ),
                 4326
               )::geography,
               ${SUSTAINABLE_RADIUS_METERS}
             )
         )`
+    : sql``;
+  const producerFilter = onlyProducers(kind)
+    ? sql`AND EXISTS (
+          SELECT 1 FROM posts p
+          WHERE p.seller_id = s.id AND p.origin = 'productor'
+        )
+        ${radiusFilter}`
     : sql``;
 
   /*

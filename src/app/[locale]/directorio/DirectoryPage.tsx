@@ -20,7 +20,8 @@ export default async function DirectorySection({
   kind: DirectoryKind;
 }) {
   const t = await getTranslations("directory");
-  const { stores } = await listDirectory(kind);
+  const tDistance = await getTranslations("distance");
+  const { stores, outsideRadius } = await listDirectory(kind);
   const { showSellerCta } = await readViewerLocationContext();
 
   const heading =
@@ -38,6 +39,17 @@ export default async function DirectorySection({
       {/* Un directorio sin distancias parece roto si no se dice que la parte que falta es la tuya;
           y con ellas, hay que poder corregir desde dónde se están midiendo. */}
       <LocationBanner showSellerCta={showSellerCta} />
+
+      {/* Lo que sale queda fuera de tu radio sostenible. Decirlo es la diferencia entre "no hay
+          nadie cerca de ti" y una lista que finge que sí lo están. */}
+      {outsideRadius ? (
+        <p
+          data-testid="nothing-nearby"
+          className="mb-4 text-sm text-gray-600 dark:text-gray-400"
+        >
+          {tDistance("nothingNearby")}
+        </p>
+      ) : null}
 
       {stores.length === 0 ? (
         <p className="mb-6 text-gray-500" data-testid="directory-empty">
