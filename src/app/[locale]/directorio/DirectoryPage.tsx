@@ -3,7 +3,7 @@ import type { DirectoryKind } from "~/domain/entities/seller/directory";
 import { Link } from "~/i18n/navigation";
 import { readViewerLocationContext } from "~/infra/location/viewerLocationContext";
 import StoreSummaryCard from "~/presentation/directory/StoreSummaryCard";
-import LocationNotice from "~/presentation/location/LocationNotice";
+import LocationBanner from "~/presentation/location/LocationBanner";
 import { storeHref } from "../cuenta/storePath";
 import { listDirectory } from "./data";
 
@@ -21,7 +21,7 @@ export default async function DirectorySection({
 }) {
   const t = await getTranslations("directory");
   const { stores } = await listDirectory(kind);
-  const { visitor, showSellerCta } = await readViewerLocationContext();
+  const { showSellerCta } = await readViewerLocationContext();
 
   const heading =
     kind === "producers" ? t("producersHeading") : t("businessesHeading");
@@ -35,8 +35,9 @@ export default async function DirectorySection({
       <h1 className="text-2xl font-bold mb-3">{heading}</h1>
       <p className="mb-6 max-w-3xl">{intro}</p>
 
-      {/* Un directorio sin distancias parece roto si no se dice que la parte que falta es la tuya. */}
-      {visitor ? null : <LocationNotice showSellerCta={showSellerCta} />}
+      {/* Un directorio sin distancias parece roto si no se dice que la parte que falta es la tuya;
+          y con ellas, hay que poder corregir desde dónde se están midiendo. */}
+      <LocationBanner showSellerCta={showSellerCta} />
 
       {stores.length === 0 ? (
         <p className="mb-6 text-gray-500" data-testid="directory-empty">

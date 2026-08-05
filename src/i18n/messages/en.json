@@ -194,6 +194,8 @@
     "visit": "Visit the store"
   },
   "distance": {
+    "chipAge": "· updated {ago}",
+    "chipLabel": "Distances from your location",
     "denied": "Without your location we cannot tell you how close it is; the newest still comes first.",
     "deniedNotice": "You did not share your location, so we still cannot show you how close things are.",
     "incentive": "Sharing it is what tells two blocks away apart from two hours away: with it you will see who is on your way first, and who you can buy from today.",
@@ -203,6 +205,7 @@
     "meters": "{value} m away",
     "nothingNearby": "Nothing near you yet. This is what there is, even if it is far.",
     "noticeIdle": "We do not know where you are, so we cannot tell you how close anything is.",
+    "refresh": "Update",
     "sellerCta": "Do you sell something? To be found by proximity you need to open your store and give it your branch location.",
     "sellerCtaLink": "Open your store",
     "share": "See how far it is",

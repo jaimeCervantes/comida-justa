@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
+  type DescribedAge,
+  describeAge,
   fresherOf,
   isStale,
   metersBetween,
@@ -11,9 +13,10 @@ import {
 import { COMMUNITY_ANCHOR } from "./proximity";
 
 const NOW = new Date("2026-08-05T12:00:00.000Z");
+const HOUR = 60 * 60 * 1000;
 
 function hoursAgo(hours: number): Date {
-  return new Date(NOW.getTime() - hours * 60 * 60 * 1000);
+  return new Date(NOW.getTime() - hours * HOUR);
 }
 
 /*
@@ -122,6 +125,41 @@ describe("needsRefresh", () => {
     ).toBe(false);
     // 0,0 es el Golfo de Guinea: en la práctica, "no se pudo leer nada".
     expect(needsRefresh(null, { latitude: 0, longitude: 0 }, NOW)).toBe(false);
+  });
+});
+
+describe("describeAge", () => {
+  /*
+   * Corrida de escritorio con las antigüedades reales de la base más los bordes de cada unidad.
+   * Redondea hacia abajo: "hace 1 hora" a los 119 minutos es lo que diría cualquiera.
+   */
+  it.each<[string, number, DescribedAge | null]>([
+    ["recién compartida", 0, { value: 0, unit: "minute" }],
+    ["a 59 minutos", 59 / 60, { value: 59, unit: "minute" }],
+    ["justo a la hora", 1, { value: 1, unit: "hour" }],
+    ["a 119 minutos", 119 / 60, { value: 1, unit: "hour" }],
+    ["a 23 horas", 23, { value: 23, unit: "hour" }],
+    ["justo al día", 24, { value: 1, unit: "day" }],
+    [
+      "la de hace 2.2 días que hay en la base",
+      2.2 * 24,
+      { value: 2, unit: "day" },
+    ],
+    [
+      "la de hace 137 días que hay en la base",
+      137 * 24,
+      { value: 137, unit: "day" },
+    ],
+  ])("%s", (_caso, horas, esperado) => {
+    expect(describeAge(hoursAgo(horas), NOW)).toEqual(esperado);
+  });
+
+  it("null sin fecha: no se inventa un 'hace un momento'", () => {
+    expect(describeAge(null, NOW)).toBeNull();
+  });
+
+  it("null con una fecha del futuro, que no es una antigüedad", () => {
+    expect(describeAge(new Date(NOW.getTime() + HOUR), NOW)).toBeNull();
   });
 });
 

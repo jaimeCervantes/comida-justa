@@ -92,6 +92,50 @@ export function needsRefresh(
   return metersBetween(stored.coordinates, next) >= SIGNIFICANT_MOVE_METERS;
 }
 
+export type AgeUnit = "minute" | "hour" | "day";
+
+export interface DescribedAge {
+  value: number;
+  unit: AgeUnit;
+}
+
+const MINUTE_MS = 60 * 1000;
+const HOUR_MS = 60 * MINUTE_MS;
+const DAY_MS = 24 * HOUR_MS;
+
+/**
+ * Cuánto hace que se supo esto, en la unidad con la que alguien lo diría.
+ *
+ * Devuelve número y unidad, no un texto: el texto es traducción, y aquí lo formatea
+ * `Intl.RelativeTimeFormat` con el idioma activo. Es el mismo trato que `describeDistance`.
+ *
+ * Redondea hacia abajo a propósito. "Hace 1 hora" cuando han pasado 119 minutos es lo que diría
+ * cualquiera; fingir precisión sobre una lectura de GPS es fingir dos veces.
+ *
+ * `null` sin fecha —las cookies del formato anterior— porque no sabemos cuándo fue, y decir "hace
+ * un momento" sería inventarlo.
+ */
+export function describeAge(
+  fixedAt: Date | null,
+  now: Date,
+): DescribedAge | null {
+  if (!fixedAt) return null;
+
+  const elapsed = now.getTime() - fixedAt.getTime();
+
+  if (!Number.isFinite(elapsed) || elapsed < 0) return null;
+
+  if (elapsed < HOUR_MS) {
+    return { value: Math.floor(elapsed / MINUTE_MS), unit: "minute" };
+  }
+
+  if (elapsed < DAY_MS) {
+    return { value: Math.floor(elapsed / HOUR_MS), unit: "hour" };
+  }
+
+  return { value: Math.floor(elapsed / DAY_MS), unit: "day" };
+}
+
 /**
  * De dos ubicaciones conocidas, la más reciente.
  *

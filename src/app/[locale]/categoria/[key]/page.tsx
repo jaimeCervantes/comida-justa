@@ -5,7 +5,7 @@ import { buildBreadcrumbJsonLd } from "~/domain/seo/jsonLd/breadcrumbs";
 import { resolveLocale } from "~/i18n/routing";
 import { readViewerId } from "~/infra/auth/readViewerId";
 import { PAGINATION_INIT_PAGE } from "~/infra/constants";
-import LocationNotice from "~/presentation/location/LocationNotice";
+import LocationBanner from "~/presentation/location/LocationBanner";
 import Breadcrumbs from "~/presentation/navigation/Breadcrumbs";
 import JsonLd from "~/presentation/seo/JsonLd";
 import { categoryBreadcrumbs } from "../../breadcrumbs";
@@ -67,9 +67,7 @@ export default async function CategoryPage({ params }: Props) {
 
       <p className="mb-2">{t("count", { total: data.total })}</p>
 
-      {data.visitor ? null : (
-        <LocationNotice showSellerCta={data.showSellerCta} />
-      )}
+      <LocationBanner showSellerCta={data.showSellerCta} />
 
       <CategoryPosts
         viewerId={viewerId}

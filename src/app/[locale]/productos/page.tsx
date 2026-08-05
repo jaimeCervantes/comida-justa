@@ -3,7 +3,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { resolveLocale } from "~/i18n/routing";
 import { readViewerId } from "~/infra/auth/readViewerId";
 import { PAGINATION_INIT_PAGE } from "~/infra/constants";
-import LocationNotice from "~/presentation/location/LocationNotice";
+import LocationBanner from "~/presentation/location/LocationBanner";
 import StoresMap from "~/presentation/location/StoresMap";
 import { getProducts } from "./data";
 import { buildProductsMetadata } from "./metadata";
@@ -54,11 +54,12 @@ export default async function ProductosPage({
         </p>
       ) : null}
 
-      {visitor ? (
-        <StoresMap visitor={visitor} stores={storesToMap} />
-      ) : (
-        <LocationNotice showSellerCta={showSellerCta} />
-      )}
+      {/* El banner va siempre: con ubicación es el chip que dice desde dónde se mide y deja
+          corregirlo, y sin ella el aviso de por qué no hay distancias. El mapa es lo que sobra
+          cuando no sabemos dónde estás —un mapa donde no te ves no ayuda a decidir—. */}
+      <LocationBanner showSellerCta={showSellerCta} />
+
+      {visitor ? <StoresMap visitor={visitor} stores={storesToMap} /> : null}
 
       <ProductsList
         viewerId={viewerId}

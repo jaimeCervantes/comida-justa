@@ -20,7 +20,7 @@ import { createPostQueryRepository } from "~/infra/dataAccess/getMultiplePosts";
 import { readViewerLocationContext } from "~/infra/location/viewerLocationContext";
 import { mapPostsToCardsForLocale } from "~/infra/UI/mappers/posts/mapPostsToCardsForLocale";
 import { localizedAlternates } from "~/infra/UI/metadata/alternates";
-import LocationNotice from "~/presentation/location/LocationNotice";
+import LocationBanner from "~/presentation/location/LocationBanner";
 import JsonLd from "~/presentation/seo/JsonLd";
 
 export async function generateMetadata({
@@ -113,7 +113,7 @@ export default async function Inicio({
 
       <p>{t("p2")}</p>
 
-      {visitor ? null : <LocationNotice showSellerCta={showSellerCta} />}
+      <LocationBanner showSellerCta={showSellerCta} />
 
       <PostsWithLoadMore
         viewerId={viewerId}

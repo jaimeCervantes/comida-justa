@@ -4,7 +4,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "~/i18n/navigation";
 import { resolveLocale } from "~/i18n/routing";
 import { readViewerId } from "~/infra/auth/readViewerId";
-import LocationNotice from "~/presentation/location/LocationNotice";
+import LocationBanner from "~/presentation/location/LocationBanner";
 import StoresMap from "~/presentation/location/StoresMap";
 import { getProducts } from "../../data";
 import { buildProductsMetadata } from "../../metadata";
@@ -67,11 +67,9 @@ export default async function ProductosPaginatedPage({ params }: Props) {
         </p>
       ) : null}
 
-      {visitor ? (
-        <StoresMap visitor={visitor} stores={storesToMap} />
-      ) : (
-        <LocationNotice showSellerCta={showSellerCta} />
-      )}
+      <LocationBanner showSellerCta={showSellerCta} />
+
+      {visitor ? <StoresMap visitor={visitor} stores={storesToMap} /> : null}
 
       <ProductsList
         viewerId={viewerId}
