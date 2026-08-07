@@ -1,7 +1,10 @@
 import { beforeEach, describe, expect, it, type Mocked, vi } from "vitest";
 import type { ISearchPostResultDTO } from "./dtos/ISearchPostResultDTO";
 import type { ISearchPostRepository } from "./ports/ISearchPostRepository";
-import { SearchPostsUseCase } from "./SearchPostsUseCase";
+import {
+  SEMANTIC_MAX_DISTANCE,
+  SearchPostsUseCase,
+} from "./SearchPostsUseCase";
 
 describe("SearchPostsUseCase", () => {
   let useCase: SearchPostsUseCase;
@@ -118,5 +121,121 @@ describe("SearchPostsUseCase y el idioma de respaldo", () => {
       null,
       "es",
     );
+  });
+});
+
+/**
+ * Slice 3 de `docs/features/busqueda-semantica.md`: el rescate semántico.
+ *
+ * La decisión de coste del slice está aquí: una llamada al proveedor de embeddings **por búsqueda**
+ * sería inasumible —la caja tiene 500 ms de rebote—, así que solo se paga cuando el texto completo
+ * no encontró nada, que es justo cuando quien busca se iba a ir con las manos vacías.
+ */
+describe("SearchPostsUseCase y el rescate semántico", () => {
+  const unResultado = {
+    results: [{ id: "post-1" }] as never[],
+    total: 1,
+  };
+  const sinResultados = { results: [], total: 0 };
+
+  function makeRepo(textual: typeof unResultado, vectorial = sinResultados) {
+    return {
+      search: vi.fn().mockResolvedValue(textual),
+      searchByVector: vi.fn().mockResolvedValue(vectorial),
+    };
+  }
+
+  it("no llama al proveedor cuando el texto ya encontró algo", async () => {
+    const repository = makeRepo(unResultado);
+    const embedder = { generateEmbedding: vi.fn() };
+
+    const result = await new SearchPostsUseCase(repository, embedder).execute({
+      query: "pan",
+      page: 1,
+      pageSize: 6,
+    });
+
+    expect(result.total).toBe(1);
+    expect(embedder.generateEmbedding).not.toHaveBeenCalled();
+    expect(repository.searchByVector).not.toHaveBeenCalled();
+  });
+
+  it("pregunta por el sentido cuando el texto no encontró nada", async () => {
+    const repository = makeRepo(sinResultados, unResultado);
+    const embedder = {
+      generateEmbedding: vi.fn().mockResolvedValue([0.1, 0.2]),
+    };
+
+    const result = await new SearchPostsUseCase(repository, embedder).execute({
+      query: "algo para dormir mejor",
+      page: 1,
+      pageSize: 6,
+      locale: "en",
+      fallbackLocale: "es",
+    });
+
+    expect(embedder.generateEmbedding).toHaveBeenCalledWith(
+      "algo para dormir mejor",
+    );
+    expect(repository.searchByVector).toHaveBeenCalledWith(
+      [0.1, 0.2],
+      1,
+      6,
+      "en",
+      "es",
+      SEMANTIC_MAX_DISTANCE,
+      null,
+    );
+    expect(result.total).toBe(1);
+  });
+
+  /**
+   * Sin umbral el vecino más cercano existe **siempre**, así que buscar un disparate devolvería
+   * jugos. El umbral se midió contra la base: lo bueno cae en 0.28–0.32 y lo absurdo en 0.45+.
+   */
+  it("lleva un umbral de distancia, no busca el más cercano a secas", async () => {
+    const repository = makeRepo(sinResultados);
+    const embedder = { generateEmbedding: vi.fn().mockResolvedValue([0.1]) };
+
+    await new SearchPostsUseCase(repository, embedder).execute({
+      query: "reparar la transmisión de un camión",
+      page: 1,
+      pageSize: 6,
+    });
+
+    const [, , , , , maxDistance] = repository.searchByVector.mock.calls[0];
+    expect(maxDistance).toBe(SEMANTIC_MAX_DISTANCE);
+    expect(maxDistance).toBeLessThan(0.45);
+  });
+
+  /* Una búsqueda sin resultados es una respuesta válida; un proveedor caído no puede convertirse
+     en un error de la página. */
+  it("devuelve cero resultados si el proveedor falla, sin lanzar", async () => {
+    const repository = makeRepo(sinResultados);
+    const embedder = {
+      generateEmbedding: vi.fn().mockRejectedValue(new Error("Gemini caído")),
+    };
+
+    const result = await new SearchPostsUseCase(repository, embedder).execute({
+      query: "lo que sea",
+      page: 1,
+      pageSize: 6,
+    });
+
+    expect(result).toEqual({ results: [], total: 0 });
+    expect(repository.searchByVector).not.toHaveBeenCalled();
+  });
+
+  it("funciona sin proveedor configurado, solo que sin rescate", async () => {
+    const repository = makeRepo(sinResultados);
+
+    const result = await new SearchPostsUseCase(repository).execute({
+      query: "lo que sea",
+      page: 1,
+      pageSize: 6,
+    });
+
+    expect(result).toEqual({ results: [], total: 0 });
+    expect(repository.searchByVector).not.toHaveBeenCalled();
   });
 });

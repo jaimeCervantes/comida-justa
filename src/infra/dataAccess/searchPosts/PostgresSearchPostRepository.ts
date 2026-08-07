@@ -1,4 +1,4 @@
-import { and, eq, inArray, sql } from "drizzle-orm";
+import { and, inArray, sql } from "drizzle-orm";
 import type { Coordinates } from "~/domain/entities/seller/coordinates";
 import { db } from "~/infra/dataAccess/db/connection";
 import { users } from "~/infra/dataAccess/db/schema/auth";
@@ -107,6 +107,33 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
     };
   }
 
+  async searchByVector(
+    embedding: readonly number[],
+    page: number,
+    pageSize: number,
+    locale: string,
+    fallbackLocale: string,
+    maxDistance: number,
+    near: Coordinates | null = null,
+  ): Promise<{ results: ISearchPostResultDTO[]; total: number }> {
+    const { matches, total } = await this.semanticMatches(
+      embedding,
+      page,
+      pageSize,
+      locale,
+      fallbackLocale,
+      maxDistance,
+      near,
+    );
+
+    if (matches.length === 0) return { results: [], total };
+
+    return {
+      results: await this.hydrate(matches, locale, fallbackLocale),
+      total,
+    };
+  }
+
   /**
    * Los resultados de una búsqueda, ordenados y paginados **en la base**.
    *
@@ -115,11 +142,16 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
    * devolviera el planner, así que dos búsquedas idénticas podían repartir los mismos resultados
    * distinto entre las páginas.
    *
-   * El criterio ahora es la **relevancia**, y solo tiene dos niveles: coincide el título (0) o
-   * coincide únicamente el texto (1). Dos niveles se explican en una frase y se prueban en una
-   * tabla; más —empieza por, palabra completa, coincidencia exacta— sería especular sin datos de
-   * uso. Después la fecha, y al final el `id`: sin ese último desempate, dos publicaciones con el
-   * mismo `created_at` vuelven a quedar en orden indefinido, que es justo el fallo que se corrige.
+   * El criterio es la **relevancia**, que ya no son dos niveles («coincide el título» o «solo el
+   * texto») sino la que calcula `ts_rank` sobre un vector con pesos: el título entra como `A` y el
+   * cuerpo como `B`. Eso conserva la regla de que el título manda **y** añade lo que los dos
+   * niveles no podían distinguir — coincidir una vez no es lo mismo que coincidir cinco. Después la
+   * fecha, y al final el `id`: sin ese último desempate, dos publicaciones con el mismo
+   * `created_at` vuelven a quedar en orden indefinido, que es justo el fallo que se corrigió.
+   *
+   * Y ya no es `ILIKE '%término%'`, que emparejaba subcadenas: «pan» encontraba «panela» y
+   * «Pancakes», mientras que «panes» y «pán» no encontraban nada. Ver
+   * `docs/features/busqueda-semantica.md`.
    *
    * `EXISTS` y no `JOIN` para que una publicación no pueda salir dos veces si algún día hay dos
    * traducciones del mismo idioma. `COUNT(*) OVER()` da el total sin una segunda consulta.
@@ -181,6 +213,60 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
         distance_meters ASC NULLS LAST,
         p.created_at DESC,
         p.id
+      LIMIT ${pageSize} OFFSET ${offset}
+    `);
+
+    return toMatches(raw.rows as unknown as RankedRow[]);
+  }
+
+  /**
+   * El rescate semántico: lo más parecido al **sentido** de la consulta.
+   *
+   * Solo se usa cuando el texto completo no encontró nada, así que su coste —una llamada al
+   * proveedor de embeddings— se paga exactamente cuando quien busca se iba a ir con las manos
+   * vacías. Ver `SearchPostsUseCase`.
+   *
+   * **No reusa `search_posts_semantic`**, y esa fue una decisión medida, contra lo que el roadmap
+   * suponía. Esa función es el recomendador de **productos** del chatbot: filtra `kind = producto`,
+   * así que dejaría fuera las 10 publicaciones de tipo `anuncio` —los artículos—, que son
+   * justamente las que alguien encuentra buscando por concepto. Medido con "algo para dormir
+   * mejor": la función devuelve "Suero natural" a 0.419, y la consulta directa devuelve "La clave
+   * para dormir profundo" a 0.285.
+   *
+   * `DISTINCT ON` toma la traducción **más cercana** de cada publicación, sin importar su idioma:
+   * el vector no entiende de fronteras, así que una consulta en español puede encontrar una fila
+   * inglesa y al revés. Es una ventaja, no un descuido.
+   */
+  private async semanticMatches(
+    embedding: readonly number[],
+    page: number,
+    pageSize: number,
+    locale: string,
+    fallbackLocale: string,
+    maxDistance: number,
+    near: Coordinates | null,
+  ): Promise<{ matches: RankedMatch[]; total: number }> {
+    const offset = Math.max(0, (page - 1) * pageSize);
+    const vector = `[${embedding.join(",")}]`;
+
+    const raw = await db.execute(sql`
+      WITH vecinas AS (
+        SELECT DISTINCT ON (post_id)
+               post_id,
+               (embedding <=> ${vector}::vector) AS dist
+        FROM post_translations
+        WHERE embedding IS NOT NULL
+          AND locale IN (${locale}, ${fallbackLocale})
+        ORDER BY post_id, (embedding <=> ${vector}::vector)
+      )
+      SELECT
+        p.id,
+        ${distanceColumn(near)} AS distance_meters,
+        COUNT(*) OVER()::int AS total_count
+      FROM posts p
+      JOIN vecinas v ON v.post_id = p.id
+      WHERE v.dist <= ${maxDistance}
+      ORDER BY v.dist ASC, p.id
       LIMIT ${pageSize} OFFSET ${offset}
     `);
 

@@ -17,4 +17,21 @@ export interface ISearchPostRepository {
      */
     fallbackLocale?: string,
   ): Promise<{ results: ISearchPostResultDTO[]; total: number }>;
+
+  /**
+   * Lo más parecido al **sentido** de la consulta, por distancia coseno.
+   *
+   * `maxDistance` no es opcional a propósito: sin umbral, el vecino más cercano existe siempre y
+   * la búsqueda devolvería cualquier cosa disfrazada de resultado. Es el mismo error que
+   * `getRelatedPosts` ya evitaba.
+   */
+  searchByVector(
+    embedding: readonly number[],
+    page: number,
+    pageSize: number,
+    locale: string,
+    fallbackLocale: string,
+    maxDistance: number,
+    near?: Coordinates | null,
+  ): Promise<{ results: ISearchPostResultDTO[]; total: number }>;
 }

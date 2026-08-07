@@ -84,3 +84,81 @@ tumbaba la página.
    búsquedas sin resultados. Debería ir antes del 3 si se quiere justificar su coste con números.
 3. **Un índice GIN** sobre el `tsvector`. Hoy no hace falta —46 traducciones— pero es lo primero que
    se va a notar cuando el catálogo crezca. Requiere migración Alembic.
+
+---
+
+## Slice 3: El rescate semántico
+
+**Objetivo:** que «algo para dormir mejor» encuentre la publicación del sueño.
+
+**Decisiones y racional:**
+
+- **El vector no sustituye al texto, lo rescata.** Se dispara **solo cuando el texto completo
+  devolvió cero**. Esa es la decisión de coste del slice: una llamada al proveedor de embeddings por
+  búsqueda sería inasumible —la caja tiene 500 ms de rebote y las páginas de resultados se piden en
+  cada navegación—, pero pagarla justo cuando alguien se iba a ir con las manos vacías es
+  exactamente cuando vale. Y el orden de las búsquedas que sí funcionan no se toca: quien escribe
+  «Suero natural» sigue recibiendo esa publicación primero.
+
+- **NO se reusa `search_posts_semantic`, y eso contradice al roadmap.** El roadmap decía que
+  reusarla era lo correcto «para que el sitio y el bot no ordenen distinto». Al medirlo resultó
+  falso: esa función es el recomendador de **productos** del chatbot y filtra `kind = producto`,
+  así que dejaría fuera las 10 publicaciones de tipo `anuncio` — los artículos, que son justamente
+  lo que alguien encuentra buscando por concepto.
+
+  | «algo para dormir mejor» | Resultado | Distancia |
+  | --- | --- | --- |
+  | `search_posts_semantic` | Suero natural ❌ | 0.419 |
+  | Consulta directa | **La clave para dormir profundo** ✅ | 0.285 |
+
+  Se escribió una consulta directa sobre `post_translations.embedding`, con la misma forma que
+  `getRelatedPosts` ya usaba.
+
+- **El umbral se midió, no se eligió a ojo.** Sin umbral el vecino más cercano existe **siempre**:
+  buscar un disparate devolvería jugos, que es «cualquier cosa disfrazada de recomendación», el
+  error que el propio código ya advertía en `getRelatedPosts`.
+
+  | Consulta | Distancia del mejor resultado |
+  | --- | --- |
+  | «algo para dormir mejor» | 0.285 |
+  | «bebida para hidratarme» | 0.305 |
+  | «desayuno con proteína» | 0.321 |
+  | «reparar la transmisión de un camión» | 0.449 |
+  | «comprar acciones en la bolsa» | 0.457 |
+
+  `SEMANTIC_MAX_DISTANCE = 0.40` deja pasar lo bueno con margen y corta lo absurdo.
+
+- **`DISTINCT ON` toma la traducción más cercana de cada publicación, sea cual sea su idioma.** El
+  vector no entiende de fronteras: una consulta en español puede encontrar una fila inglesa y al
+  revés. Es una ventaja, no un descuido.
+
+- **Un proveedor caído no es un error de la página.** Si el embedding falla, se devuelven los cero
+  resultados de siempre. Y sin `GEMINI_API_KEY` la búsqueda funciona igual, solo que sin rescate:
+  el servicio es un parámetro opcional del caso de uso.
+
+**Comprobado de punta a punta contra la base:**
+
+| Consulta | Vía | Resultado |
+| --- | --- | --- |
+| `pan` | texto | 9 resultados, sin llamar al proveedor |
+| «bebida para hidratarme» | rescate | Agua de piña, Suero natural, Electrolitos |
+| «desayuno con proteína» | rescate | Omelet, Pechuga de pollo |
+| «something to sleep better» | rescate | **The key to deep sleep** (en inglés) |
+| «reparar la transmisión de un camión» | rescate | **0** |
+| «comprar acciones en la bolsa» | rescate | **0** |
+| `zzzqxwv` | rescate | **0** |
+
+**Validación:** `pnpm run test:run` **914/914**; `typecheck` exit 0; `lint` limpio; `build` compila.
+
+### Recap
+La búsqueda entiende conceptos y no solo palabras, sin volverse un generador de resultados
+irrelevantes: los tres disparates que se probaron devuelven cero. El coste está acotado a las
+búsquedas que iban a fracasar, y la medición desmintió la suposición del roadmap sobre reusar la
+función del chatbot — que habría escondido todos los artículos.
+
+### Próximos pasos (opciones)
+1. **Slice 4 — medir qué se busca.** Sigue sin haber **ningún** dato. Ahora importa más que antes:
+   sin él no se puede saber cuántas búsquedas llegan al rescate ni cuánto se gasta en embeddings.
+2. **Un índice GIN** sobre el `tsvector` y un **HNSW** sobre el vector. Con 46 traducciones no hace
+   falta; es lo primero que se notará al crecer. Requiere migración Alembic.
+3. **Caché del embedding por término**, si el rescate resulta ser frecuente.

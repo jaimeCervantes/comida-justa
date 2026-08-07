@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 import { routing } from "~/i18n/routing";
 import { createSearchPostRepository } from "~/infra/dataAccess/searchPosts/factory";
 import { readVisitorLocation } from "~/infra/location/visitorLocation";
+import { createEmbeddingService } from "~/infra/services/factory";
 import { SearchPostsUseCase } from "~/use_cases/searchPosts/SearchPostsUseCase";
 
 /**
@@ -20,7 +21,7 @@ export async function GET(req: NextRequest) {
   const locale = searchParams.get("locale") || "es";
 
   const repository = createSearchPostRepository();
-  const useCase = new SearchPostsUseCase(repository);
+  const useCase = new SearchPostsUseCase(repository, createEmbeddingService());
 
   const { results, total } = await useCase.execute({
     query: q,
