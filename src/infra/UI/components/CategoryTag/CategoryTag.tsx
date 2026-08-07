@@ -1,3 +1,5 @@
+import { Badge } from "~/presentation/design_system/badges/Badge";
+
 type CategoryTagProps = {
   /**
    * La etiqueta ya resuelta al idioma del visitante. La taxonomía vive en la base, y este
@@ -16,11 +18,8 @@ export default function CategoryTag({
   if (!label) return null;
 
   return (
-    <span
-      data-testid="category-tag"
-      className={`inline-flex items-center gap-1 rounded-full bg-pw-orange/10 px-3 py-1 text-sm font-medium text-pw-orange ${className}`}
-    >
+    <Badge tone="accent" className={className} data-testid="category-tag">
       {label}
-    </span>
+    </Badge>
   );
 }

@@ -4,6 +4,7 @@ import {
   isNearbyResaleOrigin,
   isProducerOrigin,
 } from "~/domain/entities/post/origin";
+import { Badge } from "~/presentation/design_system/badges/Badge";
 
 type ProvenanceBadgeProps = {
   origin: string | null | undefined;
@@ -27,6 +28,10 @@ function badgeKey(
   return null;
 }
 
+/**
+ * Es la única insignia con `emphasis="strong"`: la procedencia es la afirmación de confianza de la
+ * tarjeta y tiene que pesar más que la categoría o la disponibilidad.
+ */
 export default function ProvenanceBadge({
   origin,
   className = "",
@@ -37,11 +42,13 @@ export default function ProvenanceBadge({
   if (!key) return null;
 
   return (
-    <span
+    <Badge
+      tone="brand"
+      emphasis="strong"
+      className={className}
       data-testid="provenance-badge"
-      className={`inline-flex items-center gap-1 rounded-full bg-pw-lightgreen/15 px-3 py-1 text-sm font-semibold text-pw-green ${className}`}
     >
       {t(key)}
-    </span>
+    </Badge>
   );
 }

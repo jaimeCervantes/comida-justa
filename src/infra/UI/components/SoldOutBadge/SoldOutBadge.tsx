@@ -1,9 +1,12 @@
 import { useTranslations } from "next-intl";
 import { isSoldOut } from "~/domain/entities/post/availability";
+import { Badge } from "~/presentation/design_system/badges/Badge";
 
 /**
  * Marca lo que el vendedor dejó de ofrecer. No se pinta nada cuando hay existencias ni en un
  * anuncio: la regla de cuándo aplica vive en el dominio, no aquí.
+ *
+ * La forma del chip vive en `Badge`; aquí solo queda la regla de negocio y la traducción.
  */
 export default function SoldOutBadge({
   kind,
@@ -17,11 +20,8 @@ export default function SoldOutBadge({
   if (!isSoldOut({ kind, isAvailable })) return null;
 
   return (
-    <span
-      data-testid="sold-out-badge"
-      className="inline-flex items-center rounded-full bg-gray-200 px-3 py-1 text-sm font-medium text-gray-700 dark:bg-gray-700 dark:text-gray-200"
-    >
+    <Badge tone="neutral" data-testid="sold-out-badge">
       {t("availability.soldOut")}
-    </span>
+    </Badge>
   );
 }

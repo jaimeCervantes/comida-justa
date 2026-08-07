@@ -49,10 +49,65 @@
    * y `from-(--highlight)` volvía transparente el arranque del degradado.
    */
   --highlight: #2abf40;
+
+  /* ==========================================================
+     Los cuatro pilares
+     ==========================================================
+     El logo tiene dos tonos (#f0380e el círculo, #538f39 el corazón) y cuatro pilares necesitan
+     cuatro tonos distinguibles, así que la paleta **extiende** la marca: tres de los cuatro salen
+     de tokens que ya existían y solo Sueño estrena tono.
+
+     Cada pilar es una rampa de tres papeles, no un color suelto, porque las semillas de marca no
+     sirven como tinta: `#5dbf17` da 2.35 sobre blanco y `#f2b705` da 1.82 — ambos muy por debajo
+     de AA, y el blanco encima de ellos falla igual. Cada papel se derivó de su semilla
+     conservando tono y saturación, y moviendo la luminosidad hasta cruzar 4.5:1.
+
+       solid → relleno saturado (insignia sólida, número del pilar). Texto blanco encima.
+       soft  → tinte de fondo del chip tenue y de las superficies del pilar.
+       ink   → tinta: texto, iconos y bordes sobre `soft`.
+
+     Los contrastes están verificados en `pillarPalette.contrast.test.ts`, que lee **este archivo**:
+     si alguien retoca un hex y rompe AA, falla la prueba y no el usuario.
+
+     Aviso de diseño: como tinta, Movimiento (#3c7b0f) y Mente (#8e6b03) contrastan 1.06 entre sí
+     —casi idéntica luminosidad, solo los separa el tono—. El color nunca puede ser el único
+     portador del significado de un pilar: siempre va con su número o su etiqueta. */
+
+  /* 1 · Sueño — índigo nocturno (nuevo) */
+  --pillar-sleep-solid: #4c4a8f;
+  --pillar-sleep-soft: #e6e6ef;
+  --pillar-sleep-ink: #4c4a8f;
+
+  /* 2 · Alimentación — del naranja del logo (--brand-orange) */
+  --pillar-nutrition-solid: #dd340d;
+  --pillar-nutrition-soft: #fde3dd;
+  --pillar-nutrition-ink: #c52e0b;
+
+  /* 3 · Movimiento — del verde vivo (--brand-lightgreen) */
+  --pillar-movement-solid: #408410;
+  --pillar-movement-soft: #e8f6df;
+  --pillar-movement-ink: #3c7b0f;
+
+  /* 4 · Mente y Espíritu — del ámbar (--brand-lightorange), que estaba definido sin un solo uso */
+  --pillar-mindSpirit-solid: #936f03;
+  --pillar-mindSpirit-soft: #fdf5dc;
+  --pillar-mindSpirit-ink: #8e6b03;
 }
 
+/*
+ * El tema oscuro se declara dos veces y no es un descuido.
+ *
+ * CSS no permite compartir un bloque de declaraciones entre una media query y un selector normal,
+ * y hacen falta los dos: la media query para seguir al sistema operativo —que es lo que el sitio
+ * hace hoy— y el atributo para poder forzar un tema, que es lo que necesita Storybook para enseñar
+ * claro y oscuro lado a lado (y lo que necesitará un futuro selector manual).
+ *
+ * `:root:not([data-theme="light"])` deja que el atributo gane sobre la preferencia del sistema en
+ * ambas direcciones. Que las dos copias no se separen lo garantiza `darkThemeParity.test.ts`, que
+ * las compara declaración por declaración: si alguien toca una y olvida la otra, falla la prueba.
+ */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     /* --- Semantic: text --- */
     --text-base: #ededed;
     --text-inverse: #1a1a1a;
@@ -66,7 +121,57 @@
     /* --- Structure --- */
     --separator: #334155;
     --border: #475569;
+
+    /* --- Los cuatro pilares ---
+       La rampa se invierte: sobre `#0d0d0d` la semilla de marca vuelve a ser legible por sí sola
+       (Movimiento 8.26, Mente 10.69, Alimentación 4.88), así que `ink` recupera el tono vivo y es
+       `soft` quien se hunde. Solo Sueño necesita aclararse: su índigo es demasiado oscuro para
+       destacar contra un fondo casi negro.
+
+       `solid` no cambia entre temas: lleva texto blanco encima en ambos y ya cumple AA. */
+    --pillar-sleep-soft: #181824;
+    --pillar-sleep-ink: #8280be;
+
+    --pillar-nutrition-soft: #36150d;
+    --pillar-nutrition-ink: #f4522e;
+
+    --pillar-movement-soft: #1b2d0f;
+    --pillar-movement-ink: #5dbf17;
+
+    --pillar-mindSpirit-soft: #362b0b;
+    --pillar-mindSpirit-ink: #f2b705;
   }
+}
+
+/* Copia exacta del bloque de arriba, para forzar el tema con `data-theme="dark"`.
+   Verificada por `darkThemeParity.test.ts`. */
+:root[data-theme="dark"] {
+  /* --- Semantic: text --- */
+  --text-base: #ededed;
+  --text-inverse: #1a1a1a;
+  --text-support: #94a3b8;
+
+  /* --- Semantic: surfaces --- */
+  --surface-background: #0d0d0d;
+  --surface-elevation-1: #334155;
+  --surface-elevation-2: #1e293b;
+
+  /* --- Structure --- */
+  --separator: #334155;
+  --border: #475569;
+
+  /* --- Los cuatro pilares --- */
+  --pillar-sleep-soft: #181824;
+  --pillar-sleep-ink: #8280be;
+
+  --pillar-nutrition-soft: #36150d;
+  --pillar-nutrition-ink: #f4522e;
+
+  --pillar-movement-soft: #1b2d0f;
+  --pillar-movement-ink: #5dbf17;
+
+  --pillar-mindSpirit-soft: #362b0b;
+  --pillar-mindSpirit-ink: #f2b705;
 }
 
 /* Expose to Tailwind v4 as utility classes */
@@ -101,4 +206,20 @@
   --color-feedback-success: var(--feedback-success);
   --color-feedback-warning: var(--feedback-warning);
   --color-feedback-error: var(--feedback-error);
+
+  --color-pillar-sleep-solid: var(--pillar-sleep-solid);
+  --color-pillar-sleep-soft: var(--pillar-sleep-soft);
+  --color-pillar-sleep-ink: var(--pillar-sleep-ink);
+
+  --color-pillar-nutrition-solid: var(--pillar-nutrition-solid);
+  --color-pillar-nutrition-soft: var(--pillar-nutrition-soft);
+  --color-pillar-nutrition-ink: var(--pillar-nutrition-ink);
+
+  --color-pillar-movement-solid: var(--pillar-movement-solid);
+  --color-pillar-movement-soft: var(--pillar-movement-soft);
+  --color-pillar-movement-ink: var(--pillar-movement-ink);
+
+  --color-pillar-mindSpirit-solid: var(--pillar-mindSpirit-solid);
+  --color-pillar-mindSpirit-soft: var(--pillar-mindSpirit-soft);
+  --color-pillar-mindSpirit-ink: var(--pillar-mindSpirit-ink);
 }
