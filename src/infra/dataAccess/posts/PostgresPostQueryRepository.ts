@@ -310,25 +310,39 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
    * que sería recomendar cualquier cosa disfrazada de recomendación.
    */
   async getRelatedPosts(
-    slug: string,
+    postId: string,
     locale: string,
+    fallbackLocale: string,
     limit: number,
   ): Promise<PostData[]> {
     const raw = await db.execute(sql`
+      /* La semilla se busca por post_id, no por slug.
+         Con el slug, pedir la ficha en un idioma cuya fila aun no existe dejaba la referencia
+         vacia y el CROSS JOIN devolvia cero filas: el bloque de relacionadas desaparecia entero.
+         Prefiere el vector del idioma pedido y, si no lo hay, usa cualquiera del mismo post: el
+         parecido semantico no cambia con el idioma, que es justo la gracia del embedding. */
       WITH referencia AS (
         SELECT post_id, embedding
         FROM post_translations
-        WHERE slug = ${slug} AND locale = ${locale} AND embedding IS NOT NULL
+        WHERE post_id = ${postId} AND embedding IS NOT NULL
+        ORDER BY (locale = ${locale}) DESC
         LIMIT 1
+      ),
+      /* Un vector por publicacion vecina: el del idioma pedido si existe, si no el de respaldo.
+         Sin el DISTINCT ON, una publicacion con dos traducciones entraria dos veces. */
+      vecinas AS (
+        SELECT DISTINCT ON (post_id) post_id, embedding
+        FROM post_translations
+        WHERE embedding IS NOT NULL
+          AND locale IN (${locale}, ${fallbackLocale})
+        ORDER BY post_id, (locale = ${locale}) DESC
       )
       SELECT ${POST_COLUMNS}
       ${POST_JOINS}
-      JOIN post_translations pt
-        ON pt.post_id = p.id AND pt.locale = ${locale}
+      JOIN vecinas v ON v.post_id = p.id
       CROSS JOIN referencia r
-      WHERE pt.embedding IS NOT NULL
-        AND p.id <> r.post_id
-      ORDER BY pt.embedding <=> r.embedding
+      WHERE p.id <> r.post_id
+      ORDER BY v.embedding <=> r.embedding
       LIMIT ${limit}
     `);
 

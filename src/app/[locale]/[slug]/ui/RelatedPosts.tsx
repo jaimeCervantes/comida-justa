@@ -25,6 +25,7 @@ export default async function RelatedPosts({
     <aside
       className={`sm:flex-1 ${className}`}
       aria-labelledby="related-heading"
+      data-testid="related-posts"
     >
       <h2 id="related-heading" className="text-3xl font-bold mb-4">
         {t("related")}

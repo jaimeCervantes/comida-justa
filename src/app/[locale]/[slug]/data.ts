@@ -1,5 +1,6 @@
 import { cache } from "react";
 import { pickRelated } from "~/domain/entities/post/related";
+import { routing } from "~/i18n/routing";
 import { RELATED_POSTS_LIMIT } from "~/infra/constants";
 import { createPostQueryRepository } from "~/infra/dataAccess/getMultiplePosts";
 import { getOnePostWithPaginatedComments } from "~/infra/dataAccess/getOnePostWithPaginatedComments";
@@ -43,13 +44,13 @@ export const getPostDetails = cache(async function getPostDetails(
  * sin vector —o una base sin vecinos— devuelve una lista vacía, y el bloque no se pinta.
  */
 export const getRelatedPosts = cache(async function getRelatedPosts(
-  slug: string,
   postId: string,
   locale: string,
 ): Promise<Post[]> {
   const candidates = await createPostQueryRepository().getRelatedPosts(
-    slug,
+    postId,
     locale,
+    routing.defaultLocale,
     RELATED_POSTS_LIMIT * 2,
   );
 

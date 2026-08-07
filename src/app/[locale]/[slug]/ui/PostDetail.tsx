@@ -103,8 +103,10 @@ export default async function PostDetail({
 
   const categoryLabel = await postCategoryLabel(category, subCategory, locale);
 
+  /* El `data-testid` de la raíz permite que una prueba distinga la ficha de las tarjetas
+     relacionadas, que pintan exactamente las mismas insignias. */
   return (
-    <article className={className}>
+    <article className={className} data-testid="post-detail">
       <h1 className="text-3xl mb-4">{title}</h1>
       <p className="flex flex-wrap items-center gap-2 mb-4">
         <ProvenanceBadge origin={origin} />

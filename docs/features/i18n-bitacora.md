@@ -307,3 +307,66 @@ nadie espere al proveedor. Los dos defectos de calidad que aparecieron al correr
    una acción irreversible sobre la base compartida: **no se ejecutó**, queda a tu decisión.
 4. **Slice 5 — tiendas y sucursales:** `sellers.name/description` y `branches.name/address` siguen
    en un solo idioma.
+
+---
+
+## Corrección — el contenido no cambiaba de idioma en la ficha
+
+**Reportado:** «el language switcher sí me lleva a la versión en inglés, pero en el detalle de
+publicación el contenido no cambia, y los related post desaparecen».
+
+**Una sola causa, tres consecuencias.** `LanguageSwitcher.tsx:41-45` reconstruye la ruta con los
+`params` de la ruta activa, así que al pasar a inglés producía `/en/suero-natural` — **el slug
+español con el prefijo inglés**. A partir de ahí:
+
+1. `PostgresGetOnePost.ts:103` hace `JOIN … AND pt.slug = ${slug}`, que emparejaba la fila `es`:
+   **el contenido no cambiaba**.
+2. `PostgresPostQueryRepository.getRelatedPosts` buscaba la semilla con
+   `WHERE slug = 'suero-natural' AND locale = 'en'` → cero filas → el `CROSS JOIN` con una
+   referencia vacía no devuelve nada: **el bloque de relacionadas desaparecía entero**.
+3. Y un tercero que nadie había visto: `PostgresGetOnePost.ts:155` archivaba la traducción bajo
+   `es` **pasara lo que pasara**. Entrar por la dirección inglesa traía el texto inglés etiquetado
+   como español, así que `isFallback` salía mal y `alternates.languages` no se declaraba nunca.
+
+**Decisiones:**
+
+- **La redirección vive en la página, no en el selector.** El selector es una de las puertas de
+  entrada; un enlace compartido, un resultado indexado o una dirección escrita a mano llegan igual.
+  Ahora `/[slug]` redirige a la dirección del idioma pedido cuando esa traducción existe de verdad
+  (`!isFallback`). Una publicación que aún no está traducida se sirve en español bajo el marco
+  inglés, **sin rebotar**.
+
+- **La semilla de las relacionadas se busca por `post_id`, no por slug.** El id es el mismo en todos
+  los idiomas. Prefiere el vector del idioma pedido y cae a cualquiera del mismo post: el parecido
+  semántico no cambia con el idioma, que es justo la gracia del embedding. Las vecinas se resuelven
+  con `DISTINCT ON` sobre `(locale pedido, locale de respaldo)` para que una publicación con dos
+  traducciones no entre dos veces.
+
+- **El detalle devuelve todas las traducciones** (`jsonb_object_agg` por locale), no solo aquella
+  cuyo slug se pidió.
+
+- **Los canónicos estaban mal y lo destapó esto.** `buildPostMetadata` concatenaba
+  `${CANONICAL_URL}/${slug}`, sin el prefijo `/en`: el canónico de la versión inglesa apuntaba a una
+  dirección española que no existe. Ahora usa `buildLocalizedAlternates` + `getPathname`, que es el
+  helper que el resto del sitio ya usaba, resolviendo el slug de cada idioma por separado.
+
+**Dos pruebas fallaron, y las dos codificaban el mundo anterior:**
+
+1. `unifiedCatalog.spec.ts` buscaba `getByTestId("category-tag")` en toda la página y **funcionaba
+   por casualidad**: en inglés las relacionadas no se pintaban —por este mismo bug— así que solo
+   había una insignia. Al arreglarlo aparecieron cinco y el locator se volvió ambiguo. Se acotó a
+   la ficha con un `data-testid="post-detail"`.
+2. `shareAndLanguage.spec.ts` afirmaba «apunta al español y no declara pareja de idiomas», que era
+   correcto mientras no había traducciones. Ahora afirma lo contrario, que es lo cierto.
+
+**Archivos tocados:** `PostgresGetOnePost.ts`, `PostgresPostQueryRepository.ts`,
+`IPostQueryRepository.ts`, `[slug]/page.tsx`, `[slug]/data.ts`, `[slug]/metadata.ts`,
+`[slug]/ui/PostDetail.tsx`, `[slug]/ui/RelatedPosts.tsx`, `i18n.spec.ts`, `shareAndLanguage.spec.ts`,
+`UnifiedCatalogPage.ts`.
+
+**Validación:**
+- `pnpm run test:run`: **893/893**. `pnpm run typecheck`: exit 0. `pnpm run lint`: limpio.
+- **Playwright: 153 pasan, 3 saltadas, 0 fallan** — incluidas 4 pruebas nuevas del bug reportado.
+- Se corrió contra el `next dev` que ya estaba levantado, con un config temporal
+  (`reuseExistingServer: true`) que se borró después. El `false` del config principal existe para no
+  adoptar el servidor de **otro** proyecto; el que corría era este.

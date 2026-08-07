@@ -68,17 +68,34 @@ test.describe("Cuando un rastreador visita una página traducida", () => {
   }
 });
 
-test.describe("Cuando un rastreador visita una publicación en inglés", () => {
-  test("Entonces apunta al español y no declara pareja de idiomas", async ({
+test.describe("Cuando un rastreador visita una publicación traducida", () => {
+  const CON_FOTO_EN = "green-juice";
+
+  /**
+   * Este escenario afirmaba lo contrario —canónico al español y cero `hreflang`— y era correcto
+   * mientras `post_translations` solo tenía filas en español. Desde el backfill de traducciones
+   * cada idioma tiene su propio slug y su propio texto, así que cada versión es canónica de sí
+   * misma y las dos se declaran como pareja.
+   */
+  test("Entonces cada idioma es canónico de sí mismo y declara su pareja", async ({
+    page,
+  }) => {
+    await page.goto(`/en/${CON_FOTO_EN}`);
+
+    expect(await canonicalUrl(page)).toBe(`${SITE}/en/${CON_FOTO_EN}`);
+    expect(await alternateUrl(page, "es")).toBe(`${SITE}/${CON_FOTO}`);
+    expect(await alternateUrl(page, "en")).toBe(`${SITE}/en/${CON_FOTO_EN}`);
+    // Quien llega sin pedir idioma se queda en el que se sirve sin prefijo.
+    expect(await alternateUrl(page, "x-default")).toBe(`${SITE}/${CON_FOTO}`);
+  });
+
+  test("Entonces la dirección española en inglés lleva a la inglesa", async ({
     page,
   }) => {
     await page.goto(`/en/${CON_FOTO}`);
 
-    // El contenido sale de `post_translations`, que hoy solo tiene filas en español.
-    expect(await canonicalUrl(page)).toBe(`${SITE}/${CON_FOTO}`);
-    expect(await page.locator('link[rel="alternate"][hreflang]').count()).toBe(
-      0,
-    );
+    expect(new URL(page.url()).pathname).toBe(`/en/${CON_FOTO_EN}`);
+    expect(await canonicalUrl(page)).toBe(`${SITE}/en/${CON_FOTO_EN}`);
   });
 });
 

@@ -6,6 +6,7 @@ import { resolvePostTranslation } from "~/domain/entities/post/translations";
 import type { Coordinates } from "~/domain/entities/seller/coordinates";
 import type { MappedStore } from "~/domain/entities/seller/map";
 import { buildBreadcrumbJsonLd } from "~/domain/seo/jsonLd/breadcrumbs";
+import { redirectKeepingLocale } from "~/i18n/redirectKeepingLocale";
 import { resolveLocale, routing } from "~/i18n/routing";
 import { auth } from "~/infra/auth";
 import { readViewerId } from "~/infra/auth/readViewerId";
@@ -84,13 +85,42 @@ export default async function Slug({
     locale,
   );
 
-  /* Quien llega desde un buscador aterriza aquí sin haber pasado por el catálogo: la miga es su
-     única forma de subir, y es lo que permite declarar el `BreadcrumbList`. */
   const translation = resolvePostTranslation(
     post.translations,
     locale,
     routing.defaultLocale,
   );
+
+  /**
+   * Cada idioma tiene su propio slug, así que una publicación pedida en inglés por su dirección
+   * española se sirve en su dirección inglesa.
+   *
+   * Es lo que arreglaba el cambio de idioma en la ficha: el selector reconstruye la ruta con los
+   * `params` de la ruta activa, así que al pasar a inglés producía `/en/suero-natural` —el slug
+   * español con el prefijo inglés—. Con esa URL, la consulta del detalle emparejaba la fila `es`
+   * (el contenido no cambiaba) y la de relacionadas buscaba un slug español en la tabla inglesa
+   * (el bloque desaparecía entero).
+   *
+   * Va aquí y no en el selector porque cubre **todas** las puertas de entrada, no solo esa: un
+   * enlace compartido, un resultado indexado o una dirección escrita a mano acaban igual de bien.
+   *
+   * Solo redirige cuando la traducción es propia del idioma pedido (`!isFallback`). Una
+   * publicación que aún no existe en inglés se sirve en español bajo el marco inglés, sin rebotar.
+   */
+  if (
+    translation &&
+    !translation.isFallback &&
+    translation.slug &&
+    translation.slug !== slug
+  ) {
+    redirectKeepingLocale(
+      { pathname: "/[slug]", params: { slug: translation.slug } },
+      locale,
+    );
+  }
+
+  /* Quien llega desde un buscador aterriza aquí sin haber pasado por el catálogo: la miga es su
+     única forma de subir, y es lo que permite declarar el `BreadcrumbList`. */
   const title = String(translation?.title ?? post.title ?? "");
   const { crumbs, jsonLdItems } = await postBreadcrumbs({
     categoryKey: post.subCategory ?? post.category,
@@ -159,7 +189,7 @@ export default async function Slug({
       {/* Se resuelve aquí y no dentro del detalle: son dos columnas hermanas, y el parecido no
           es parte de la publicación sino de su vecindario. */}
       <RelatedPosts
-        posts={await getRelatedPosts(slug, String(post.id ?? ""), locale)}
+        posts={await getRelatedPosts(String(post.id ?? ""), locale)}
         viewerId={viewerId}
         className="sm:order-2"
       />

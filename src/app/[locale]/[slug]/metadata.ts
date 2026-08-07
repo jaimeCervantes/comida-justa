@@ -4,8 +4,11 @@ import {
   availableLocales,
   resolvePostTranslation,
 } from "~/domain/entities/post/translations";
+import { buildLocalizedAlternates } from "~/domain/seo/alternates";
 import { buildMetaDescription } from "~/domain/seo/description";
 import { buildSharePreview } from "~/domain/seo/shareMedia";
+import { getPathname } from "~/i18n/navigation";
+import { routing } from "~/i18n/routing";
 import {
   CANONICAL_URL,
   DEFAULT_SHARE_IMAGE,
@@ -23,11 +26,57 @@ import type { Post } from "~/infra/types/Posts";
  * también: el vocabulario de comercio de Open Graph (`product`) lo entienden pocos lectores, y los
  * datos de producto van en JSON-LD, que es lo que Google lee.
  *
- * **El canónico apunta a la versión que de verdad se está enseñando.** Cuando la publicación no
- * existe en el idioma pedido, la página cae al de respaldo y sirve el mismo texto que la ruta
- * española: declarar esa URL como canónica es lo que evita que un buscador indexe dos direcciones
- * con contenido idéntico. Solo cuando hay traducción propia se declara la pareja de idiomas.
+ * **El canónico apunta a la versión que de verdad se está enseñando**, y cada idioma es canónico de
+ * sí mismo cuando existe de verdad. Ver `postAlternates`.
  */
+
+/**
+ * El canónico de la ficha y las direcciones de sus hermanas en otros idiomas.
+ *
+ * **Cada idioma tiene su propio slug**, así que la ruta no se puede resolver una vez y reutilizar:
+ * `/suero-natural` es `/en/natural-electrolyte-drink`. Se resuelve con `getPathname` idioma por
+ * idioma y nunca concatenando, que es lo que se hacía antes y dejaba fuera el prefijo `/en`: el
+ * canónico de la versión inglesa apuntaba a una dirección española que no existe.
+ *
+ * Se recorre `routing.locales` —y no las claves de la base— para que el tipo sea el del sitio y
+ * para no declarar nunca un idioma que el sitio no sirve.
+ *
+ * Cuando la publicación existe en un solo idioma no se declara `languages`: anunciar una versión
+ * inglesa que sirve texto español manda al buscador a un duplicado.
+ */
+function postAlternates(
+  post: Post,
+  slug: string,
+  locale: string,
+): Metadata["alternates"] {
+  const translated = availableLocales(post.translations);
+  const locales = routing.locales.filter((code) => translated.includes(code));
+
+  if (locales.length <= 1) {
+    return { canonical: `${CANONICAL_URL}/${slug}` };
+  }
+
+  const pathByLocale = Object.fromEntries(
+    locales.map((code) => [
+      code,
+      getPathname({
+        href: {
+          pathname: "/[slug]",
+          params: { slug: post.translations?.[code]?.slug ?? slug },
+        },
+        locale: code,
+      }),
+    ]),
+  );
+
+  return buildLocalizedAlternates({
+    baseUrl: CANONICAL_URL,
+    pathByLocale,
+    locale,
+    defaultLocale: routing.defaultLocale,
+  });
+}
+
 export function buildPostMetadata(
   post: Post,
   slug: string,
@@ -45,23 +94,10 @@ export function buildPostMetadata(
   const url = `${CANONICAL_URL}/${slug}`;
   const share = buildSharePreview(post.media, DEFAULT_SHARE_IMAGE);
 
-  /* Solo se declara `languages` cuando la publicación existe de verdad en más de un idioma.
-     Anunciar una versión inglesa que sirve texto español manda al buscador a un duplicado. */
-  const locales = availableLocales(post.translations);
-  const languages =
-    locales.length > 1
-      ? Object.fromEntries(
-          locales.map((available) => [
-            available,
-            `${CANONICAL_URL}/${post.translations?.[available]?.slug ?? slug}`,
-          ]),
-        )
-      : undefined;
-
   return {
     title: `${title} | ${PUBLIC_BRAND_NAME}`,
     description,
-    alternates: { canonical: url, languages },
+    alternates: postAlternates(post, slug, locale),
     openGraph: {
       title,
       description,

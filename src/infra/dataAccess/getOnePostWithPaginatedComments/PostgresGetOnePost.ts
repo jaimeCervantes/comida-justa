@@ -26,6 +26,10 @@ interface PostRow {
   contact_whatsapp: string | null;
   created_at: Date;
   media: Array<{ url: string; type: string; alt: string | null }>;
+  translations: Record<
+    string,
+    { title: string; slug: string; content: string }
+  > | null;
   comments: Array<{
     id: string;
     content: string;
@@ -76,6 +80,25 @@ export async function getPostBySlug(slug: string) {
         ),
         '[]'::jsonb
       ) AS media,
+      /* TODAS las traducciones del post, no solo aquella cuyo slug se pidio.
+         Antes devolvia una sola y la archivaba bajo 'es' pasara lo que pasara, asi que entrar por
+         la direccion inglesa traia el texto ingles etiquetado como espanol: el respaldo se
+         calculaba mal y alternates.languages no se declaraba nunca. */
+      COALESCE(
+        (
+          SELECT jsonb_object_agg(
+            tr.locale,
+            jsonb_build_object(
+              'title',   tr.title,
+              'slug',    tr.slug,
+              'content', tr.content
+            )
+          )
+          FROM post_translations tr
+          WHERE tr.post_id = p.id
+        ),
+        '{}'::jsonb
+      ) AS translations,
       COALESCE(
         (
           SELECT jsonb_agg(data)
@@ -152,13 +175,7 @@ export async function getPostBySlug(slug: string) {
 
   return {
     id: row.id,
-    translations: {
-      es: {
-        title: row.title ?? "",
-        slug: row.slug ?? "",
-        content: row.content ?? "",
-      },
-    },
+    translations: row.translations ?? {},
     createdAt: row.created_at,
     user,
     seller:

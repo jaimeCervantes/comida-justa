@@ -42,3 +42,58 @@ test.describe("When a visitor browses the site in English", () => {
     expect(response?.status()).toBe(404);
   });
 });
+
+/**
+ * Slice 2/3 — el contenido cambia de idioma, no solo el marco.
+ *
+ * El bug que cubre: el selector de idioma reconstruye la ruta con los `params` de la ruta activa,
+ * así que al pasar a inglés producía `/en/suero-natural` —el slug español con el prefijo inglés—.
+ * Con esa URL la consulta del detalle emparejaba la fila `es` (el contenido no cambiaba) y la de
+ * relacionadas buscaba un slug español en la tabla inglesa (el bloque desaparecía entero).
+ *
+ * No siembra nada: usa "Suero natural", una de las publicaciones reales del catálogo, y solo lee.
+ */
+test.describe("When a visitor reads a publication in another language", () => {
+  const SPANISH_SLUG = "suero-natural";
+  const ENGLISH_SLUG = "natural-electrolyte-drink";
+
+  test("Then the Spanish address in English lands on the English one", async ({
+    page,
+  }) => {
+    const response = await page.goto(`/en/${SPANISH_SLUG}`);
+
+    expect(response?.status()).toBe(200);
+    expect(new URL(page.url()).pathname).toBe(`/en/${ENGLISH_SLUG}`);
+  });
+
+  test("Then the content is in English, not just the frame", async ({
+    page,
+  }) => {
+    await page.goto(`/en/${ENGLISH_SLUG}`);
+
+    await expect(
+      page.getByRole("heading", { name: "Natural Electrolyte Drink" }),
+    ).toBeVisible();
+    await expect(page.getByText("Suero natural")).toHaveCount(0);
+  });
+
+  test("Then the related block does not disappear", async ({ page }) => {
+    await page.goto(`/en/${ENGLISH_SLUG}`);
+
+    /* La semilla del parecido se busca por `post_id`, así que existe en los dos idiomas. Antes se
+       buscaba por slug y en inglés no encontraba nada: el bloque entero se iba. */
+    const related = page.getByTestId("related-posts");
+    await expect(related).toBeVisible();
+    await expect(related.getByRole("link").first()).toBeVisible();
+  });
+
+  test("Then the Spanish version still works untouched", async ({ page }) => {
+    const response = await page.goto(`/${SPANISH_SLUG}`);
+
+    expect(response?.status()).toBe(200);
+    expect(new URL(page.url()).pathname).toBe(`/${SPANISH_SLUG}`);
+    await expect(
+      page.getByRole("heading", { name: "Suero natural" }),
+    ).toBeVisible();
+  });
+});

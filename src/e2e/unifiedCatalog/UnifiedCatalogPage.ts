@@ -84,8 +84,15 @@ export default class UnifiedCatalogPage {
     await submitButton.click();
   }
 
+  /**
+   * La insignia de categoría **de la ficha**, no la de cualquier tarjeta.
+   *
+   * Antes buscaba en toda la página y funcionaba de casualidad: en inglés las publicaciones
+   * relacionadas no se pintaban —su semilla se buscaba por slug y en inglés no existía—, así que
+   * solo había una insignia. Al arreglar ese bug aparecieron cinco y el locator se volvió ambiguo.
+   */
   categoryTag() {
-    return this.page.getByTestId("category-tag");
+    return this.page.getByTestId("post-detail").getByTestId("category-tag");
   }
 
   /** Los selectores de categoría solo deben existir para publicaciones de tipo producto. */

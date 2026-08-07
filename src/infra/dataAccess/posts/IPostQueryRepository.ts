@@ -104,8 +104,16 @@ export interface IPostQueryRepository {
    * disfrazada de recomendación.
    */
   getRelatedPosts(
-    slug: string,
+    /**
+     * La publicación de referencia, por **id** y no por slug.
+     *
+     * Con el slug, pedir la ficha en un idioma cuya traducción todavía no existe dejaba la semilla
+     * vacía y el bloque entero desaparecía. El id es el mismo en todos los idiomas.
+     */
+    postId: string,
     locale: string,
+    /** A qué idioma caer para el vector cuando el pedido no lo tiene. */
+    fallbackLocale: string,
     limit: number,
   ): Promise<PostData[]>;
   /** Todo lo de una persona, anuncios incluidos: su perfil no es un catálogo. */
