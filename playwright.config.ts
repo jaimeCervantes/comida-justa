@@ -22,7 +22,7 @@ const BASE_URL = `http://localhost:${PORT}`;
  * See https://playwright.dev/docs/test-configuration.
  */
 export default defineConfig({
-  timeout: 90000,
+  timeout: 90_000,
   testDir: "./src/e2e",
 
   /**
