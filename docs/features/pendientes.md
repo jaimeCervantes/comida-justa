@@ -7,35 +7,56 @@ Cada punto apunta a su roadmap. **Última sesión: 2026-08-07.**
 
 ## Por dónde retomar
 
-### 1. Una prueba e2e sin verificar — es lo primero
+Todo lo que estaba abierto y no dependía de una decisión tuya quedó cerrado (ver *Resuelto* abajo).
+Lo que sigue se reparte en tres montones:
 
-`src/e2e/localProducers/cardControls.spec.ts:98` — *«Entonces el submenú del header sigue quedando
-por encima»*. Falló en la última corrida y **no se llegó a comprobar si es real o un falso
-positivo**.
+1. **Necesita que decidas** — la migración de `UNIQUE(post_id, locale)` y la revisión de las
+   traducciones automáticas. Están más abajo, cada una con su coste y su vuelta atrás.
+2. **Bloqueado en Alembic**, que vive en `bot-whatsapp/backend` y toca la base compartida: los
+   índices de búsqueda, la tabla de búsquedas y el slice 5 de i18n.
+3. **Se puede hacer ya, sin permiso de nadie**: los `rounded-*` del mapa, poner al día
+   `docs/database.md` —que hoy describe una base que no existe— y distinguir un fallo de
+   persistencia de uno del proveedor en `translatePostUseCase` (ver *Deuda transversal*).
 
-```bash
-pnpm dev                     # en otra terminal, para calentar .next
-npx playwright test src/e2e/localProducers/cardControls.spec.ts --reporter=list
-```
+De los tres, el de más valor es el de `translatePostUseCase`: hoy cualquier excepción se registra
+como "falló Gemini, ya lo recogerá el backfill", y eso manda a buscar el problema al sitio
+equivocado.
 
-**Hipótesis (sin confirmar):** arranque en frío. En esa corrida se había borrado `.next/dev`, y el
-test hace `page.goto("/productos")` y espera `stores-map` con **15 s** de margen; compilar esa ruta
-más el mapa —que es un import dinámico— se come ese presupuesto sin problema. Los otros dos fallos
-de la misma corrida (`about.spec.ts` y `createPost.spec.ts`) resultaron ser exactamente eso: pasaron
-en aislamiento sin tocar nada.
+---
 
-**Lo que haría dudar de la hipótesis:** el test va del **submenú del header**, y el Header es uno de
-los componentes que se mudaron. Mover archivos no cambia CSS y el barrido de tipografía tocó
-`Footer`, no `MobileNav` — pero conviene descartarlo mirando, no razonando.
+## Resuelto el 2026-08-07
 
-Si resultara real, el sospechoso es el `z-50` del header contra los z-index que Leaflet inyecta en
-sus paneles (está explicado en el comentario del propio test).
+### El submenú sobre el mapa era un falso positivo
 
-### 2. El dev server está apagado
+`cardControls.spec.ts:98` pasa: **3,6 s** contra un presupuesto de 15 s. Era arranque en frío, como
+los otros dos fallos de aquella corrida. El `z-50` del header contra los z-index de Leaflet no tiene
+nada de malo.
 
-Se detuvo a propósito: tras mudar veinte componentes devolvía **404 en todo**, porque Next mantiene
-el manifiesto de rutas en caliente y la mudanza se lo rompió. `.next/dev` también se borró (se
-regenera solo). Arráncalo con `pnpm dev`.
+### Las rutas se calientan solas antes de la suite
+
+`src/e2e/testUtils/warmRoutes.ts`, llamado desde `globalSetup`. Next dev compila **cada ruta la
+primera vez que la piden**, no al arrancar; Playwright espera a que el puerto responda, pero
+responder no es tener `/productos` compilada, así que el primer escenario pagaba la compilación
+dentro de su propio margen de espera.
+
+Dormir unos segundos no lo arregla —corto sigue fallando, largo se lo cobra también a las corridas
+calientes—. Esto espera **el hecho**: pide las 7 rutas que la suite pisa casi siempre, en paralelo,
+y cuando ya están calientes cuesta milisegundos. En frío tardó 15 s. Nunca tumba la suite: si una
+ruta no responde, avisa y sigue.
+
+El arreglo de fondo sería correr la e2e contra `next build && next start`, donde no hay compilación
+bajo demanda —y además probaría lo que se despliega—, pero le suma el build a cada corrida.
+
+### Los tests ya se typechequean
+
+`tsconfig.test.json` + `pnpm typecheck:tests`. Destapó 39 errores reales; el detalle, en *Deuda
+transversal*.
+
+### El dev server colgado
+
+Había un `next dev` de este proyecto en el 3000 que no respondía a nada (`/` y `/productos` se
+comieron 90 y 120 s sin contestar) — el mismo que tras la mudanza daba 404 en todo. Se mató; el que
+levanta Playwright arranca limpio.
 
 ---
 
@@ -90,8 +111,8 @@ completo, respaldo de idioma, rescate semántico y medición.
   Mientras tanto: `grep '\[search\]' | grep 'emptyHanded=true'` responde qué se busca que no
   encontramos, y `grep 'strategy=semantic' | wc -l` dice cuántos embeddings se están pagando.
 - **Caché del embedding por término**, si los datos muestran que el rescate es frecuente.
-- **Distancia en `/tienda/[handle]`**, el último hueco de cercanía del sitio (viene de
-  `busqueda-relevante-bitacora.md`).
+- ~~**Distancia en `/tienda/[handle]`**~~ — **entregada el 2026-08-07** como slice 7 de
+  `vendedores-y-tiendas.md`. Ya no queda ningún hueco de cercanía en el sitio.
 
 ---
 
@@ -126,19 +147,48 @@ Slices 1–9 hechos. Ver `docs/features/design-system.md` y su bitácora.
 
 ## Deuda transversal
 
-- **Los tests no se typechequean.** `tsconfig.json` excluye `**/*.test.ts(x)`. Mordió **tres veces**
-  en la última sesión: al añadir `fallbackLocale` a `CardMappingContext`, al añadir `defaultLocale` a
-  `buildSitemap` y al cambiar la firma de `SearchPostsUseCase`. En los dos primeros los tests
-  siguieron **pasando por accidente** —`undefined === undefined` daba la respuesta correcta por la
-  razón equivocada—.
+- ~~**Los tests no se typechequean.**~~ **Cerrado el 2026-08-07** con `tsconfig.test.json` y
+  `pnpm typecheck:tests`. Va aparte del `typecheck` de siempre para no frenar el ciclo rápido, así
+  que **hay que acordarse de correrlo**: no es una puerta automática.
 
-  **Medido: cuesta 32 errores hoy**, concentrados en `Card.test.tsx` (tipos laxos de `CardProps`),
-  `saveSeo.test.ts` y un par de mocks de Vitest. Es acotado y cabe en una sesión. La forma menos
-  invasiva es un `tsconfig.test.json` aparte y un script `typecheck:tests`, para no frenar el ciclo
-  normal.
+  El `tsconfig.json` normal no solo excluye `*.test.ts(x)`; también `*.spec.ts` y `src/e2e/*`, o sea
+  que `globalSetup.ts` y `globalTeardown.ts` tampoco se miraban nunca.
 
-- **`.next/dev` se corrompe** cuando se interrumpe el dev server, y entonces `pnpm typecheck` falla
-  con ~20 errores que no son del repo. Se arregla borrando la carpeta.
+  Salieron **39 errores**, no 32, y lo que destaparon merece leerse porque casi ninguno era ruido:
+
+  - `props.createdAt` era un `Date` donde `Card` espera una cadena ISO, y acababa en el atributo
+    `dateTime` de un `<time>` como "Wed Aug 07 2026 …".
+  - `saveSeo.test.ts` envolvía el fixture en una capa `es:` que `saveSeo` ya añade sola: guardaba
+    `translations.es.seo.es.title`. Verde porque la aserción comparaba contra el mismo objeto mal.
+  - Los mocks de `createOnePost` estaban anotados con la interfaz pelada, lo que **borra** el tipo de
+    `vi.fn()`: 18 errores de un tirón. Ahora usan `Mocked<T>`, que además exige que
+    `mockResolvedValue` reciba lo que el puerto promete.
+  - `mapPostsToCards.test.ts` era exactamente el caso del `fallbackLocale` que ya se sospechaba.
+  - `SearchPostsUseCase.test.ts` tenía dos dobles sin `searchByVector`, que el puerto exige desde el
+    rescate semántico.
+
+  **Cuidado con `incremental`.** Heredado del config base, la primera pasada decía **0 errores** y
+  la siguiente, sin tocar nada, sacaba 39. Está puesto a `false` en `tsconfig.test.json` a
+  propósito: un comprobador que calla cuando hay errores es peor que no tenerlo.
+
+- **`.next/dev` se corrompe** cuando se mata el dev server a lo bruto. Se arregla borrando la
+  carpeta, pero conviene reconocerlo antes de perder una hora:
+
+  - `pnpm typecheck` falla con ~20 errores que no son del repo.
+  - La aplicación **arranca y sirve**, pero cada página escupe `SyntaxError: Unexpected
+    non-whitespace character after JSON` sin línea que la sitúe, más `Failed to generate static
+    paths for /[locale]`. El archivo roto es `.next/dev/prerender-manifest.json`, que queda a medio
+    escribir. Despista mucho porque el mensaje se parece al de los dos `JSON.parse` de
+    `FIREBASE_SERVICE_ACCOUNT` —`init.ts` y `VertexEmbeddingService.ts`—, pero esos dos están en
+    `try/catch` y **avisan con su propio texto**: si el `SyntaxError` viene pelado, no son ellos.
+
+  Para saberlo en un segundo, sin adivinar cuál de los JSON es:
+
+  ```bash
+  for f in $(find .next -maxdepth 3 -name "*.json"); do
+    node -e "try{JSON.parse(require('fs').readFileSync('$f','utf8'))}catch(e){console.log('$f',e.message)}"
+  done
+  ```
 
 - **La e2e y el dev server compiten por el puerto 3000.** `playwright.config.ts` fija
   `reuseExistingServer: false` a propósito —para no adoptar el servidor de otro proyecto— así que la
@@ -147,6 +197,5 @@ Slices 1–9 hechos. Ver `docs/features/design-system.md` y su bitácora.
   corre es de **este** proyecto. En esta sesión se usó lo segundo y se borró después.
 
 - **La suite e2e completa tarda ~7 min** y roza los límites de ejecución. Partirla en dos mitades
-  por carpetas funciona bien. Ojo: **el primer test tras borrar `.next` suele fallar** por compilar
-  la ruta en caliente; conviene calentar con `pnpm dev` antes, o repetir el fallo en aislamiento
-  antes de darlo por regresión.
+  por carpetas funciona bien. Lo de que *el primer test tras borrar `.next` suele fallar* ya lo
+  cubre `warmRoutes`; si aparece de nuevo, mira primero si la ruta del test está en su lista.
