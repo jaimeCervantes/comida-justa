@@ -59,7 +59,11 @@ export default async function StorePage({ params }: Props) {
           `${CANONICAL_URL}${storePath(slug, locale)}`,
         )}
       />
-      <StoreHeader seller={store.seller} ownerUsername={store.ownerUsername} />
+      <StoreHeader
+        seller={store.seller}
+        ownerUsername={store.ownerUsername}
+        distanceMeters={store.distanceMeters}
+      />
 
       {store.branches.length > 0 ? (
         <section className="mb-6">

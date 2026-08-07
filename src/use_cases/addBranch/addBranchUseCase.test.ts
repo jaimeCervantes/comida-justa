@@ -33,6 +33,14 @@ class FakeBranchRepository implements IBranchRepository {
 
     return { ...branch, id: `branch-${this.saved.length}` };
   }
+
+  /**
+   * Siempre `null`: este doble guarda sucursales en memoria y no modela geografía, y dar de alta
+   * una sucursal no consulta distancias. Devolver un número inventado haría creer que sí.
+   */
+  async distanceToNearestBranch(): Promise<number | null> {
+    return null;
+  }
 }
 
 describe("AddBranchUseCase", () => {
@@ -135,6 +143,7 @@ describe("AddBranchUseCase", () => {
     const broken: IBranchRepository = {
       listBySeller: vi.fn(),
       save: vi.fn().mockRejectedValue(new Error("connection refused")),
+      distanceToNearestBranch: vi.fn(),
     };
 
     await expect(

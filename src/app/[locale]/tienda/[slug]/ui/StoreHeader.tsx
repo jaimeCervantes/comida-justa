@@ -6,6 +6,7 @@ import { buildWhatsappStoreLink } from "~/domain/entities/seller/whatsappContact
 import { Link } from "~/i18n/navigation";
 import { resolveLocale } from "~/i18n/routing";
 import { PUBLIC_BASE_URL } from "~/infra/constants";
+import StoreDistance from "~/presentation/location/StoreDistance";
 import WhatsappButton from "~/presentation/post/WhatsappButton/WhatsappButton";
 import { profileHref } from "../../../cuenta/profilePath";
 import { storePath } from "../../../cuenta/storePath";
@@ -13,10 +14,13 @@ import { storePath } from "../../../cuenta/storePath";
 export default function StoreHeader({
   seller,
   ownerUsername,
+  distanceMeters = null,
 }: {
   seller: Seller;
   /** La dirección personal del dueño, si la reclamó: la tienda enlaza a quien está detrás. */
   ownerUsername?: string | null;
+  /** Metros hasta su sucursal más cercana. `StoreDistance` no pinta nada cuando es `null`. */
+  distanceMeters?: number | null;
 }) {
   const t = useTranslations("store");
   const locale = resolveLocale(useLocale());
@@ -48,6 +52,10 @@ export default function StoreHeader({
         ) : null}
 
         <div className="flex flex-col items-center justify-around content-around">
+          {/* Junto al teléfono porque responde a la misma pregunta que el resto del bloque: cómo
+              llegar a esta tienda. Se pinta solo si hay distancia que decir. */}
+          <StoreDistance meters={distanceMeters} className="mb-2" />
+
           <p className="flex items-center">
             <MdPhone className="mr-2" size="24" />
             <a

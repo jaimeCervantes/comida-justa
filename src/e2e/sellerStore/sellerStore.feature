@@ -236,3 +236,19 @@ Feature: Vendedores y tiendas
     When cambio su nombre a "Panadería de Tezonapa"
     Then la tienda muestra el nombre nuevo en la misma dirección de siempre
     # Renombrar la dirección se evaluó y se descartó: ver docs/features/vendedores-y-tiendas.md
+
+  # Era el último hueco de cercanía del sitio: el directorio, las tarjetas del catálogo y la ficha de
+  # una publicación ya decían a qué distancia queda cada vendedor. La página de la tienda —a la que
+  # se llega DESDE el directorio, justo después de leer ese dato— no lo decía.
+  @slice-7
+  Scenario Outline: A qué distancia queda la tienda, y cuándo no se puede saber
+    Given que la tienda "<tienda>" tiene <sucursal>
+    And que yo <ubicación> mi ubicación
+    When abro "/tienda/<handle>"
+    Then la página <resultado>
+
+    Examples:
+      | tienda             | handle                 | sucursal            | ubicación | resultado                 | razón                                              |
+      | Panadería La Luz   | e2e-panaderia-la-luz   | una sucursal a 2 km | comparto  | dice a qué distancia      | es lo que esta feature viene a resolver            |
+      | Panadería La Luz   | e2e-panaderia-la-luz   | una sucursal a 2 km | no doy    | no dice ninguna distancia | sin punto de partida no hay distancia que calcular |
+      | Abarrotes Sin Mapa | e2e-abarrotes-sin-mapa | ninguna sucursal    | comparto  | no dice ninguna distancia | `MIN` de cero filas es NULL, que no es cero        |

@@ -50,7 +50,11 @@ export default async function StorePaginatedPage({ params }: Props) {
 
   return (
     <main className="p-4">
-      <StoreHeader seller={store.seller} ownerUsername={store.ownerUsername} />
+      <StoreHeader
+        seller={store.seller}
+        ownerUsername={store.ownerUsername}
+        distanceMeters={store.distanceMeters}
+      />
 
       <StoreCatalog
         viewerId={viewerId}

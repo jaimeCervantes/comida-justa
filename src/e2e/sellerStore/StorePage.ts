@@ -33,4 +33,20 @@ export default class StorePage {
   async expectEmpty(): Promise<void> {
     await expect(this.page.getByTestId("store-empty")).toBeVisible();
   }
+
+  /**
+   * Que la tienda diga a qué distancia queda, sin comprometerse con la cifra.
+   *
+   * El redondeo y su texto ya los cubre `StoreDistance.test.tsx` en Vitest, que no necesita ni base
+   * ni navegador para verificar que 1483 m se dicen "1.5 km". Aquí se comprueba lo que solo se puede
+   * comprobar de extremo a extremo: que la distancia **llega** desde PostGIS hasta la pantalla.
+   */
+  async expectDistanceShown(): Promise<void> {
+    await expect(this.page.getByTestId("store-distance")).toBeVisible();
+    await expect(this.page.getByTestId("store-distance")).toContainText(/km|m/);
+  }
+
+  async expectNoDistance(): Promise<void> {
+    await expect(this.page.getByTestId("store-distance")).toHaveCount(0);
+  }
 }

@@ -192,7 +192,7 @@ en el fallback sin geo, aunque el cliente esté a dos calles.
 3. Nadie puede editar la publicación de otro. ✅ *(404, no 403)*
 4. Su dueño sigue viendo lo agotado, para poder volver a ofrecerlo. ✅
 
-### Slice 6 — Editar la ficha de la tienda  *(actual)*
+### Slice 6 — Editar la ficha de la tienda  *(entregado)*
 
 Hoy la ficha se llena una vez, al darse de alta, y **nunca más**: `logo_url`, `url` y `description`
 existen en la base, se leen en la tienda… y no hay forma de escribirlas después. Un vendedor que
@@ -209,7 +209,30 @@ cambia de teléfono, consigue logo o quiere corregir su descripción no puede ha
 2. El teléfono nuevo se valida igual que al darse de alta, y si es de otra tienda se rechaza.
 3. Cambiar el teléfono al **mismo** que ya tenía no se confunde con un duplicado.
 4. Nadie puede editar la ficha de otra tienda.
-5. La dirección (`slug`) no se toca en este formulario: eso es el slice 7.
+5. La dirección (`slug`) no se toca en este formulario: ver "Renombrar direcciones", más abajo.
+
+### Slice 7 — La tienda dice a qué distancia está  *(entregado)*
+
+La cercanía es el criterio con el que alguien decide a quién comprarle, y el sitio ya la decía en el
+directorio, en las tarjetas del catálogo y en la ficha de una publicación — pero **no en la página de
+la tienda**. Se nota justo ahí porque a `/tienda/<handle>` se llega normalmente desde el directorio:
+lees "a 2 km", entras, y el dato desaparece cuando vas a decidir.
+
+- `distanceToNearestBranch` en el repositorio de sucursales: `MIN(ST_Distance(...))` sobre las de esa
+  tienda, el mismo cálculo que ya hace el directorio.
+- La página lo pide dentro del `Promise.all` que ya tenía, así que no añade una espera en serie.
+- Reutiliza `StoreDistance`, que ya existía y ya estaba probado. **Ningún componente nuevo.**
+- **Sin migración:** `branches.location` existe desde el slice 3.
+
+**La distancia la calcula PostGIS, no JavaScript.** `Branch.coordinates` ya viaja a la página, así
+que restar en memoria habría salido gratis; se descartó porque `ST_Distance` sobre `geography` usa el
+elipsoide y el haversine de `locationFreshness.ts` una esfera. Mezclarlos haría que el directorio y
+la tienda discreparan sobre la misma tienda.
+
+**Criterios de aceptación:**
+1. Con ubicación compartida y una sucursal a 2 km, la tienda dice a qué distancia queda.
+2. Sin ubicación del visitante, no se pinta ninguna distancia.
+3. Con ubicación pero sin sucursal situada, tampoco: `MIN` de cero filas es `NULL`, que no es cero.
 
 ### Renombrar direcciones — *descartado (2026-08-01)*
 

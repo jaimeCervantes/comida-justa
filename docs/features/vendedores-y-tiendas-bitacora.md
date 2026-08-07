@@ -683,3 +683,96 @@ Sigue sin haber más migración que la `0027`.
 
 - Revisar el plan de Vercel antes de promocionar tiendas de terceros: el Hobby es para uso no
   comercial.
+
+---
+
+## Slice 7 — La tienda dice a qué distancia está (2026-08-07)
+
+### Objetivo
+
+Cerrar el último hueco de cercanía del sitio. El directorio, las tarjetas del catálogo y la ficha de
+una publicación ya decían a qué distancia queda cada vendedor; `/tienda/<handle>` no. Y es donde más
+se nota, porque a esa página se llega normalmente **desde** el directorio: lees "a 2 km", entras, y
+el dato desaparece justo cuando vas a decidir.
+
+### Decisiones y porqué
+
+- **La distancia la calcula PostGIS, no JavaScript.** `Branch.coordinates` ya viaja a la página, así
+  que restar en memoria con `metersBetween` habría sido lo cómodo y no habría costado ninguna
+  consulta. Se descartó por la regla que fija `locationFreshness.ts:42`: esa función es la única
+  aritmética de distancia en JavaScript del proyecto y existe para una sola pregunta ("¿me moví lo
+  suficiente?"). `ST_Distance` sobre `geography` usa el elipsoide y el haversine una esfera; mezclar
+  las dos haría que `/directorio` y `/tienda/<handle>` discreparan sobre la misma tienda.
+- **`MIN` sobre las sucursales**, como en `PostgresStoreDirectory`: a quien mira le importa la que
+  tiene más cerca, no el promedio ni la primera por nombre.
+- **Una consulta propia en vez de ampliar `listBySeller`.** Entra en el `Promise.all` que la página
+  ya hacía, así que no añade una espera en serie, y deja intacto el contrato de `listBySeller`, que
+  usan otras pantallas.
+- **`null` cubre dos casos distintos con la misma respuesta**: sin ubicación del visitante y sin
+  sucursal situada. `MIN` de cero filas es `NULL`, así que el segundo cae solo en el mismo camino.
+  La pantalla hace lo mismo en ambos: no pintar nada. `StoreDistance` ya lo resolvía.
+- **Ningún componente nuevo.** `StoreDistance` existía y ya estaba probado; esto es cablearlo.
+
+### Archivos tocados
+
+- **Puerto y adaptador:** `use_cases/addBranch/ports/IBranchRepository.ts`,
+  `infra/dataAccess/branches/PostgresBranchRepository.ts` (`distanceToNearestBranch`).
+- **Ruta:** `app/[locale]/tienda/[slug]/data.ts` (`readVisitorLocation` + `distanceMeters`),
+  `ui/StoreHeader.tsx`, `page.tsx` y `page/[page]/page.tsx`.
+- **Pruebas:** `e2e/sellerStore/sellerStore.feature` (`Scenario Outline`, 3 filas),
+  `e2e/sellerStore/storeDistance.spec.ts`, `e2e/sellerStore/StorePage.ts`,
+  `use_cases/addBranch/addBranchUseCase.test.ts` (dos dobles al día con el puerto).
+
+### Validación
+
+| Comando | Resultado |
+| --- | --- |
+| `npx playwright test src/e2e/sellerStore/storeDistance.spec.ts` | **rojo** 1/3 sin implementación, **verde** 3/3 con ella |
+| `pnpm typecheck` | 0 |
+| `pnpm typecheck:tests` | 0 (destapó los dos dobles que faltaban) |
+| `pnpm lint` | limpio (queda un `info` preexistente en `IndexingStatusPanel`) |
+| `pnpm test:run --pool=threads` | 930/930 |
+
+### Desviaciones del proceso (a la vista)
+
+Se implementó **antes** de escribir el `.feature` y el spec, saltándose el alignment gate, la rama
+propia y el ciclo red→green que la skill marca como obligatorios. Se corrigió a media tarea: rama
+`feat/distancia-en-tienda`, gate planteado y aprobado, y la deuda del rojo se pagó guardando la
+implementación con `git stash` para ver fallar el spec y recuperarla después. Merece quedar escrito
+porque el rojo **sí encontró algo**: la primera vez falló por un 500, no por la aserción.
+
+### Hallazgo colateral: el calentamiento en paralelo corrompía Next
+
+`warmRoutes` pedía sus 7 rutas con `Promise.allSettled`. Next compila esas rutas a la vez y **cada
+compilación reescribe `.next/dev/prerender-manifest.json`**; sin reemplazo atómico, dos escrituras
+solapadas dejan el archivo con un JSON válido seguido de basura. A partir de ahí el servidor
+responde 500 a todo con un `SyntaxError` que no nombra ni el archivo ni la ruta.
+
+Se diagnostica fatal —parece un fallo de la aplicación, y se confundió dos veces con el error de
+`FIREBASE_SERVICE_ACCOUNT`— y explica por qué la suite solo pasaba arrancando de un `.next` recién
+borrado. Ahora calienta **en serie**: 37 s en frío y 15 s en caliente, una vez por corrida y fuera
+del presupuesto de cualquier escenario.
+
+### Recap
+
+`/tienda/<handle>` ya dice a qué distancia queda su sucursal más cercana, con la misma cifra que el
+directorio porque sale del mismo `ST_Distance` sobre `geography`. Calla cuando no puede saberlo, sea
+porque el visitante no compartió su ubicación o porque la tienda no tiene sucursal situada. No hubo
+migración: `branches.location` ya existía desde el slice 3. De paso se arregló una corrupción de
+`.next` que llevaba todo el día dando falsos negativos en la suite e2e.
+
+### Próximos pasos (opciones)
+
+1. **Añadir `/tienda/<handle>` a `warmRoutes`.** No está en la lista, así que corriendo ese spec en
+   solitario contra un `.next` frío la ruta compila dentro de la primera aserción, que solo espera
+   5 s. Se vio en esta misma sesión.
+2. **Distinguir `provider-failed` de un fallo de persistencia** en `translatePostUseCase`: hoy
+   cualquier excepción se etiqueta como "falló Gemini" y se registra como "queda pendiente", aunque
+   el post ya no exista y ningún backfill lo vaya a recoger.
+3. **Borrar publicaciones propias** y **quitar el logo**, que siguen abiertos desde los slices 5 y 6.
+
+**Acciones pendientes de tu parte:**
+
+- Correr la suite e2e completa: `warmRoutes` cambió y afecta a **todas** las corridas, no solo a las
+  de este slice. Aquí solo se pasó `storeDistance.spec.ts`.
+- Sigue pendiente lo del plan de Vercel antes de promocionar tiendas de terceros.
