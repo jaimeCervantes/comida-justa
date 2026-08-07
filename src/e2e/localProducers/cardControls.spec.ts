@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 import { VISITOR_LOCATION_COOKIE } from "~/infra/location/locationCookie";
 import { deleteOnePostBySlug } from "../testUtils/deleteOnePost";
 import { deleteTestSellerByHandle } from "../testUtils/deleteTestSeller";
-import { seedPost } from "../testUtils/seedPost";
+import { type SeedPostInput, seedPost } from "../testUtils/seedPost";
 import { coordinatesAtKm, seedStore } from "../testUtils/seedStore";
 import {
   type DbSession,
@@ -14,13 +14,15 @@ import { testSlug, testStore } from "../testUtils/testSlug";
 /** Slice 7 de `docs/features/productores-locales.md`. */
 test.describe("Cuando un vendedor mira su propio catálogo", () => {
   let dbSession: DbSession | undefined;
+  // `satisfies` en vez de `as const` suelto: comprueba el objeto entero contra el sembrador y a la
+  // vez conserva los literales, así que `kind` y `origin` ya no necesitan anotación propia.
   const post = {
     title: `E2E Jugo Verde del listado ${Date.now()}`,
     slug: testSlug("jugo-verde-del-listado"),
-    kind: "producto" as const,
+    kind: "producto",
     origin: "productor",
     price: 40,
-  };
+  } satisfies SeedPostInput;
 
   test.beforeEach(async ({ page, browserName }) => {
     dbSession = await simulateLogin(page, browserName);

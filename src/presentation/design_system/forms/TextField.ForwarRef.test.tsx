@@ -18,7 +18,9 @@ describe("When TextField forwarded with an external ref", () => {
 });
 
 function ForwardedRefInFormWithTextField() {
-  const ref = useRef<TextFieldRefType>(null);
+  // `TextField` es `forwardRef<HTMLInputElement, TextFieldProps>`, así que este es su tipo de ref.
+  // Antes decía `TextFieldRefType`, un nombre que no existe en ninguna parte.
+  const ref = useRef<HTMLInputElement>(null);
 
   return (
     <form onSubmit={(e) => e.preventDefault}>

@@ -206,25 +206,28 @@ describe("saveSeo", () => {
   });
 
   it("debería manejar datos SEO con estructura compleja", async () => {
+    /*
+     * Plano, sin envoltorio `es:`. `saveSeo` ya escribe en `translations.${lang}.seo`, así que
+     * envolverlo aquí guardaba `translations.es.seo.es.title`. El test no lo veía porque la
+     * aserción compara contra este mismo objeto: mal en los dos lados da verde.
+     */
     const complexSeoData = {
-      es: {
-        title: "Título con caracteres especiales áéíóú | Post saludable",
-        metas: [
-          {
-            content: "keywords, con, acentos, ñoño",
-            name: "keywords",
-          },
-          {
-            content: "https://example.com/path/to/image.jpg?param=value",
-            name: "image",
-          },
-          {
-            content:
-              "Descripción con múltiples líneas\ny caracteres especiales @#$%",
-            name: "description",
-          },
-        ],
-      },
+      title: "Título con caracteres especiales áéíóú | Post saludable",
+      metas: [
+        {
+          content: "keywords, con, acentos, ñoño",
+          name: "keywords",
+        },
+        {
+          content: "https://example.com/path/to/image.jpg?param=value",
+          name: "image",
+        },
+        {
+          content:
+            "Descripción con múltiples líneas\ny caracteres especiales @#$%",
+          name: "description",
+        },
+      ],
     };
 
     const result = await saveSeo("posts", "complex-doc", complexSeoData);

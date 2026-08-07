@@ -13,13 +13,15 @@ export const getCollectionWithConverter = vi.fn(() => {
                 title: faker.lorem.words(5),
                 description: faker.lorem.words(10),
                 price: faker.number.int(100),
-                file: faker.image.imageUrl(),
+                // faker 9 retiró `image.imageUrl()`; el sustituto es `image.url()`.
+                file: faker.image.url(),
                 user: {
                   id: faker.string.uuid(),
                   email: faker.internet.email(),
                   displayName: faker.person.fullName(),
                   phoneNumber: faker.phone.number(),
-                  photoURL: faker.internet.avatar(),
+                  // y `internet.avatar()` se mudó a `image.avatar()`.
+                  photoURL: faker.image.avatar(),
                 },
               };
             }),

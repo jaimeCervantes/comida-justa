@@ -1,4 +1,12 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  type MockInstance,
+  vi,
+} from "vitest";
 
 const select = vi.fn();
 
@@ -39,7 +47,10 @@ function givenQueries(labels: unknown, aliases: unknown): void {
 }
 
 describe("PostgresCategoryTaxonomyRepository", () => {
-  let warn: ReturnType<typeof vi.spyOn>;
+  // `ReturnType<typeof vi.spyOn>` colapsaba los genéricos a `MockInstance<unknown[], unknown>`, que
+  // no admite el espía real de `console.warn`. Aquí solo se usa para restaurarlo, así que basta el
+  // tipo base con sus genéricos por defecto.
+  let warn: MockInstance;
 
   beforeEach(() => {
     select.mockReset();

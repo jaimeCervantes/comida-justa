@@ -51,7 +51,7 @@ it("When Container prop is a section, then the container should be a section", (
 });
 
 it("When Container prop is a Component, then the container should be the Component wrapper", () => {
-  function MyComponent({ children }: { children: JSX.Element }) {
+  function MyComponent({ children }: { children: React.JSX.Element }) {
     return <div>{children}</div>;
   }
 
@@ -71,7 +71,7 @@ it("When AnchorElement prop is a Component, then the AnchorElement should render
     children,
     href,
   }: {
-    children: JSX.Element;
+    children: React.JSX.Element;
     href: string;
   }) {
     return <a href={href}>{children}</a>;

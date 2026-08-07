@@ -120,15 +120,23 @@ test.describe("When a publication was left pending because the provider failed",
   test("Then the backfill indexes it and it stops being pending", async () => {
     const snapshot = await readEmbeddingBySlug(pendingSlug);
 
-    expect(snapshot).not.toBeNull();
-    expect(snapshot?.dimensions).toBeNull();
+    // `expect(...).not.toBeNull()` afirma, pero no **estrecha** el tipo, así que todo lo de abajo
+    // seguía siendo `snapshot?.` y `postId` llegaba como `string | undefined`. Lanzar sí estrecha,
+    // y de paso dice qué falta en vez de reventar más adelante contra un `undefined`.
+    if (!snapshot) {
+      throw new Error(
+        `No hay fila de embedding para "${pendingSlug}": el sembrado no llegó a escribirla.`,
+      );
+    }
+
+    expect(snapshot.dimensions).toBeNull();
 
     const repository = createPostEmbeddingRepository();
     const pendingBefore = await repository.findPendingIndexing(500);
-    expect(pendingBefore.map((ref) => ref.postId)).toContain(snapshot?.postId);
+    expect(pendingBefore.map((ref) => ref.postId)).toContain(snapshot.postId);
 
     const result = await createIndexPostEmbeddingUseCase().execute({
-      postId: snapshot?.postId,
+      postId: snapshot.postId,
       locale: "es",
     });
 

@@ -1,4 +1,5 @@
 import { sql } from "drizzle-orm";
+import type { PostOrigin } from "~/domain/entities/post/origin";
 import PostgresPostRepository from "~/infra/dataAccess/createOnePost/PostgresPostRepository";
 import { db } from "~/infra/dataAccess/db/connection";
 import { findSuiteUserId } from "./suiteAccount";
@@ -14,7 +15,11 @@ export type SeedPostInput = {
   title: string;
   slug: string;
   kind: "anuncio" | "producto";
-  origin: string | null;
+  /**
+   * `PostOrigin` y no `string`: un escenario que siembre una procedencia inventada la insertaría en
+   * la base sin queja y luego fallaría en la aserción, que es el peor sitio para enterarse.
+   */
+  origin: PostOrigin | null;
   price?: number | null;
   category?: string | null;
   subCategory?: string | null;

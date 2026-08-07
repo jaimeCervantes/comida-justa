@@ -10,7 +10,11 @@ test.describe
     });
 
     test.afterEach(async () => {
-      await deleteSession(dbSession?.id);
+      // Mismo resguardo que el resto de la suite: si `simulateLogin` falló, no hay sesión que
+      // borrar y `deleteSession` no acepta `undefined`.
+      if (dbSession?.id) {
+        await deleteSession(dbSession.id);
+      }
     });
 
     test("Create a session for test user", async ({ page }) => {

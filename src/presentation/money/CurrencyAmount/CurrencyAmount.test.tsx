@@ -1,9 +1,11 @@
 import { render, screen } from "@testing-library/react";
 import { NextIntlClientProvider } from "next-intl";
 import { describe, expect, it } from "vitest";
+import type { routing } from "~/i18n/routing";
 import CurrencyAmount from "./CurrencyAmount";
 
-function renderIn(locale: string, value: number) {
+// Derivado de `routing.locales` en vez de `string`: si mañana entra un idioma, este test se entera.
+function renderIn(locale: (typeof routing.locales)[number], value: number) {
   return render(
     <NextIntlClientProvider locale={locale} messages={{}} timeZone="UTC">
       <CurrencyAmount value={value} />

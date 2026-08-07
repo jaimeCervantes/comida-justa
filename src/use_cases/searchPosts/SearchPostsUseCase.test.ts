@@ -13,6 +13,8 @@ describe("SearchPostsUseCase", () => {
   beforeEach(() => {
     mockRepository = {
       search: vi.fn(),
+      // El puerto tiene dos métodos desde el rescate semántico; faltaba este.
+      searchByVector: vi.fn(),
     };
     useCase = new SearchPostsUseCase(mockRepository);
   });
@@ -101,8 +103,11 @@ describe("SearchPostsUseCase", () => {
  */
 describe("SearchPostsUseCase y el idioma de respaldo", () => {
   it("le pasa al repositorio a qué idioma caer", async () => {
-    const repository = {
+    const repository: Mocked<ISearchPostRepository> = {
       search: vi.fn().mockResolvedValue({ results: [], total: 0 }),
+      // Este escenario no llega al rescate semántico, pero el puerto lo exige: sin él, el doble no
+      // es un repositorio de búsqueda y `tsc` deja de poder comprobar la llamada de abajo.
+      searchByVector: vi.fn(),
     };
 
     await new SearchPostsUseCase(repository).execute({

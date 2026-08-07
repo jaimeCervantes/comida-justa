@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { deleteOnePostBySlug } from "../testUtils/deleteOnePost";
 import { readPostRowBySlug } from "../testUtils/readPostRow";
-import { seedPost } from "../testUtils/seedPost";
+import { type SeedPostInput, seedPost } from "../testUtils/seedPost";
 import {
   type DbSession,
   deleteSession,
@@ -20,10 +20,10 @@ test.describe("Cuando alguien declaró mal de dónde viene su producto", () => {
   const post = {
     title: `E2E Pan de masa madre ${Date.now()}`,
     slug: testSlug("pan-de-masa-madre-mal-declarado"),
-    kind: "producto" as const,
+    kind: "producto",
     origin: "reventa_cercana",
     price: 96,
-  };
+  } satisfies SeedPostInput;
 
   test.beforeEach(async ({ page, browserName }) => {
     dbSession = await simulateLogin(page, browserName);

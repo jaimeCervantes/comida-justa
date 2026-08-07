@@ -1,6 +1,6 @@
 import { test } from "@playwright/test";
 import { deleteOnePostBySlug } from "../testUtils/deleteOnePost";
-import { seedPost } from "../testUtils/seedPost";
+import { type SeedPostInput, seedPost } from "../testUtils/seedPost";
 import { testSlug } from "../testUtils/testSlug";
 import ProductsPage from "./ProductsPage";
 
@@ -19,23 +19,23 @@ const stamp = Date.now();
 const hazloSanoProduct = {
   title: `Miel de abeja de Hazlo Sano ${stamp}`,
   slug: testSlug("miel-de-abeja-de-hazlo-sano"),
-  kind: "producto" as const,
+  kind: "producto",
   origin: "hazlo_sano_propio",
-};
+} satisfies SeedPostInput;
 
 const communityProduct = {
   title: `Miel de abeja del vecino ${stamp}`,
   slug: testSlug("miel-de-abeja-del-vecino"),
-  kind: "producto" as const,
+  kind: "producto",
   origin: "productor",
-};
+} satisfies SeedPostInput;
 
 const hazloSanoAnuncio = {
   title: `Aviso de Hazlo Sano ${stamp}`,
   slug: testSlug("aviso-de-hazlo-sano"),
-  kind: "anuncio" as const,
+  kind: "anuncio",
   origin: "hazlo_sano_propio",
-};
+} satisfies SeedPostInput;
 
 const seeded = [hazloSanoProduct, communityProduct, hazloSanoAnuncio];
 

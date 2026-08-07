@@ -21,6 +21,8 @@ const jugoVerde: EditablePost = {
   content: "Nopal, apio, piña y perejil. Recién hecho.",
   price: 40,
   kind: "producto",
+  // `EditablePost` lo exige. Faltaba, y llegaba como `undefined` en vez de `null`.
+  origin: null,
   category: "alimentacion",
   subCategory: "jugos",
   isAvailable: true,

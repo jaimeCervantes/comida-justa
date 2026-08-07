@@ -49,7 +49,10 @@ describe("When a card is mapped for a visitor's locale", () => {
     it(`resolves the label to ${expected}`, () => {
       const card = mapOnePostToCard(
         { ...posts[0], category: "alimentacion", subCategory: "panaderia" },
-        { locale, taxonomy },
+        // `fallbackLocale` es el del sitio, no el del caso: en `en` la etiqueta se resuelve en
+        // inglés y solo cae a español si falta. Faltaba, y el test seguía en verde porque
+        // `undefined` daba la respuesta correcta por la razón equivocada.
+        { locale, fallbackLocale: "es", taxonomy },
       );
 
       expect(card.categoryLabel).toBe(expected);

@@ -1,0 +1,34 @@
+{
+  // Los tests no los mira `tsc`: `tsconfig.json` excluye `*.test.ts(x)`, `*.spec.ts` y `src/e2e/*`
+  // para no frenar el ciclo normal —Vitest y Playwright transpilan sin comprobar tipos, así que un
+  // test con la firma vieja sigue ejecutándose—. El precio es que un cambio de firma no rompe nada
+  // hasta que alguien lee el test: al añadir `fallbackLocale` a `CardMappingContext` y `defaultLocale`
+  // a `buildSitemap`, los tests siguieron **pasando por accidente**, porque `undefined === undefined`
+  // daba la respuesta correcta por la razón equivocada.
+  //
+  // Esta configuración es la misma, sin esas exclusiones: comprueba el repo entero **más** los
+  // tests. Va aparte y no en el `typecheck` de siempre para que el ciclo rápido siga siendo rápido.
+  //
+  //     pnpm typecheck:tests
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    // `extends` no fusiona `types`, lo sustituye, y `vitest/globals` no vive bajo `@types/` — sin
+    // nombrarlo, `describe`/`it`/`expect` no existen para TypeScript (`globals: true` en
+    // `vitest.config.mjs`). Los demás entran por import, salvo estos que se usan como globales.
+    "types": ["vitest/globals", "node", "react", "react-dom"],
+
+    // El `incremental: true` que hereda del base **daba 0 errores en falso**: la primera ejecución
+    // decía que todo estaba limpio y la siguiente, sin tocar nada, sacaba 39. Un comprobador que
+    // calla cuando hay errores es peor que no tenerlo, y esto se comprueba de uvas a peras, así que
+    // la caché no compensa el riesgo.
+    "incremental": false
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts"
+  ],
+  "exclude": ["node_modules"]
+}
