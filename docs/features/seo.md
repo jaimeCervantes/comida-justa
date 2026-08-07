@@ -95,6 +95,10 @@ slice no agrega SEO nuevo: arregla lo que estaba mintiendo.
   legales apuntaban a `/es/condiciones-de-servicio` y `/en/condiciones-de-servicio`, dos direcciones
   que **no existen**. Ahora cada página traducida es canónica de sí misma y declara su pareja, con
   `x-default` en español.
+> **Desactualizado desde el backfill de traducciones (2026-08-07).** El detalle de publicación ya
+> existe en los dos idiomas, con un slug propio cada uno: es canónico de sí mismo, declara su pareja
+> con `hreflang` y el sitemap lista las dos direcciones. Ver `docs/features/i18n-bitacora.md`.
+
 - **El detalle de publicación se queda como está:** su contenido solo existe en español, así que
   `/en/<slug>` sigue apuntando al español y no declara pareja.
 - **`max-image-preview: large`** (más `max-snippet` y `max-video-preview` sin tope) en el layout.

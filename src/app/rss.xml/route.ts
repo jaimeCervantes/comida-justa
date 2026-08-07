@@ -14,8 +14,10 @@ const FEED_SIZE = 30;
 export const dynamic = "force-dynamic";
 
 export async function GET(): Promise<Response> {
-  /* El feed va en español: lista `post_translations` en `es`, que es el único idioma en el que
-     existe el contenido. */
+  /* El feed va en español, y ahora es una **decisión** y no una consecuencia: desde el backfill de
+     traducciones el contenido existe también en inglés. Un canal RSS declara un solo `language`, así
+     que servir los dos idiomas pide un segundo canal (`/en/rss.xml`), no mezclarlos en este: un
+     lector que se suscribe en español no quiere ver cada entrada dos veces. Queda pendiente. */
   const locale = routing.defaultLocale;
   const [posts, t] = await Promise.all([
     getLatestPosts(FEED_SIZE),

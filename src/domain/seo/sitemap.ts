@@ -6,7 +6,11 @@ export interface SitemapEntry {
 }
 
 export interface SitemapContent {
-  posts: Array<{ slug: string; lastModified?: Date | null }>;
+  /**
+   * Una entrada **por traducción**, no por publicación: cada idioma tiene su propio slug y su
+   * propio texto, así que son dos páginas distintas y no una duplicada.
+   */
+  posts: Array<{ slug: string; locale: string; lastModified?: Date | null }>;
   stores: Array<{ handle: string; lastModified?: Date | null }>;
   profiles: Array<{ username: string }>;
   /**
@@ -46,10 +50,12 @@ export const STATIC_SITEMAP_PATHS: readonly string[] = [
 /**
  * Arma el sitemap a partir de lo que existe.
  *
- * **Solo el español.** `localePrefix` es `as-needed`, así que el español vive sin prefijo; pero las
- * publicaciones solo tienen traducción `es`, y `/en/<slug>` renderizaría el mismo texto en español
- * con el marco en inglés — una página duplicada y delgada. El día que haya traducción real se
- * agrega con `alternates.languages`.
+ * **Las publicaciones se listan en todos los idiomas en los que existen de verdad.** Antes solo el
+ * español, y con razón: `/en/<slug>` habría servido el mismo texto español con el marco en inglés,
+ * o sea una página duplicada y delgada. Desde el backfill de traducciones cada idioma tiene su
+ * propio slug y su propio texto, así que son dos páginas y las dos merecen estar.
+ *
+ * El prefijo lo pone `localePrefix: as-needed`: el idioma por defecto vive sin él.
  *
  * **Sin `priority` ni `changeFrequency`:** Google dice explícitamente que los ignora. Lo que sí
  * usa es `lastModified`, así que eso es lo único que se calcula, y solo cuando la base lo sabe.
@@ -57,15 +63,18 @@ export const STATIC_SITEMAP_PATHS: readonly string[] = [
 export function buildSitemap(
   baseUrl: string,
   content: SitemapContent,
+  defaultLocale: string,
 ): SitemapEntry[] {
   const absolute = (path: string): string => absoluteUrl(baseUrl, path);
+  const localized = (path: string, locale: string): string =>
+    absolute(locale === defaultLocale ? path : `/${locale}${path}`);
 
   const staticEntries = STATIC_SITEMAP_PATHS.map((path) => ({
     url: absolute(path),
   }));
 
   const postEntries = content.posts.map((post) => ({
-    url: absolute(`/${post.slug}`),
+    url: localized(`/${post.slug}`, post.locale),
     ...withLastModified(post.lastModified),
   }));
 

@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { buildSitemap } from "~/domain/seo/sitemap";
+import { routing } from "~/i18n/routing";
 import { CANONICAL_URL } from "~/infra/constants";
 import { getSitemapContent } from "~/infra/dataAccess/seo/PostgresSitemapRepository";
 
@@ -13,5 +14,9 @@ import { getSitemapContent } from "~/infra/dataAccess/seo/PostgresSitemapReposit
 export const dynamic = "force-dynamic";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  return buildSitemap(CANONICAL_URL, await getSitemapContent());
+  return buildSitemap(
+    CANONICAL_URL,
+    await getSitemapContent(),
+    routing.defaultLocale,
+  );
 }

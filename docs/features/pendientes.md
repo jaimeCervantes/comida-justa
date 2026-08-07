@@ -98,10 +98,16 @@ Ver `docs/features/design-system.md`. Slices 1–7 hechos.
 
 ## Deuda transversal encontrada de paso
 
-- **Los tests no se typechequean.** `tsconfig.json` excluye `**/*.test.ts(x)`. Al añadir un campo
-  requerido a `CardMappingContext`, los tests siguieron compilando y **pasando por accidente**.
-  Un cambio de contrato no falla hasta que alguien ejecuta la suite, y puede pasar en verde por la
-  razón equivocada. Merece decidirse a conciencia: incluirlos tiene coste, excluirlos también.
+- **Los tests no se typechequean.** `tsconfig.json` excluye `**/*.test.ts(x)`. Ya ha mordido dos
+  veces: al añadir `fallbackLocale` a `CardMappingContext` y al añadir `defaultLocale` a
+  `buildSitemap`, los tests siguieron **pasando por accidente** —`undefined === undefined` daba la
+  respuesta correcta por la razón equivocada—. Un cambio de contrato no falla hasta que alguien
+  mira.
+
+  **Medido:** incluirlos cuesta **32 errores** hoy, concentrados en `Card.test.tsx` (tipos laxos de
+  `CardProps`), `saveSeo.test.ts` y un par de mocks de Vitest. Es acotado y se puede hacer en una
+  sesión; no se hizo aquí para no desviar el trabajo de búsqueda. La forma menos invasiva es un
+  `tsconfig.test.json` aparte y un script `typecheck:tests`, para que el ciclo normal no se frene.
 - **`.next/dev/types` se corrompe** cuando se interrumpe el dev server, y entonces `pnpm typecheck`
   falla con ~20 errores que no son del repo. Se arregla borrando la carpeta. Confunde bastante
   cuando aparece por primera vez.

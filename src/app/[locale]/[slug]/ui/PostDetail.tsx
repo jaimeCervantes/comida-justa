@@ -60,7 +60,21 @@ export default async function PostDetail({
   const details = {
     title: translation?.title ?? postDetails.title,
     content: translation?.content ?? postDetails.content,
-    media: postDetails.media[0] ?? { url: "", type: "", alt: "" },
+    /**
+     * El texto alternativo sale de la traducción, no de la columna.
+     *
+     * `post_media.alt` no tiene idioma —hay una fila por archivo, no por traducción— y al publicar
+     * se rellena con el título español (`publicar/actions.ts:186`), descartando cualquier cosa que
+     * hubiera escrito quien publica. O sea que siempre **fue** el título. Derivarlo aquí es
+     * equivalente y además lo traduce, sin migración: quien lee con lector de pantalla en inglés
+     * deja de oír el título en español.
+     */
+    media: postDetails.media[0]
+      ? {
+          ...postDetails.media[0],
+          alt: translation?.title ?? postDetails.media[0].alt,
+        }
+      : { url: "", type: "", alt: "" },
     price: postDetails.price,
     kind: postDetails.kind,
     origin: postDetails.origin,

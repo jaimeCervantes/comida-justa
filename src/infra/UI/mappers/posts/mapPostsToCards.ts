@@ -85,7 +85,14 @@ export function mapOnePostToCard(item: Post, context: CardMappingContext) {
      */
     contentLocale: translation?.locale ?? context.fallbackLocale,
     isTranslationFallback: translation?.isFallback ?? true,
-    media: item.media,
+    /* El `alt` sale de la traducción y no de la columna: `post_media.alt` no tiene idioma y al
+       publicar se rellena con el título, así que siempre fue el título. Ver `PostDetail`. */
+    media: Array.isArray(item.media)
+      ? item.media.map((file: { alt?: string | null }) => ({
+          ...file,
+          alt: title ?? file.alt,
+        }))
+      : item.media,
     createdAt: normalizeCreatedAt(item.createdAt),
     user: item.user,
     summary: item.summary,

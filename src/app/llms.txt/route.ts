@@ -19,8 +19,10 @@ export const dynamic = "force-dynamic";
  * Se sirve como texto plano para que se pueda leer de un `curl` sin descargar nada. Sale de la
  * base en cada petición, igual que el sitemap: un índice que nace desactualizado no sirve de nada.
  *
- * **Va en español**, el idioma por defecto, porque lo que indexa son las publicaciones, y esas solo
- * existen en español (`post_translations` tiene 24 filas `es` y ninguna `en`).
+ * **Va en español**, el idioma por defecto. Desde el backfill de traducciones el contenido existe
+ * también en inglés, así que esto pasó de ser una consecuencia a ser una decisión: un índice es
+ * para orientarse, y duplicar cada entrada en dos idiomas lo hace el doble de largo sin añadir un
+ * destino nuevo — el sitio ya declara sus `hreflang` y el sitemap lista las dos direcciones.
  */
 export async function GET(): Promise<Response> {
   const locale = routing.defaultLocale;

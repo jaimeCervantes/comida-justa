@@ -5,18 +5,17 @@ import { db } from "~/infra/dataAccess/db/connection";
 /**
  * Todo lo que hay que publicar en el sitemap, en una sola ida a la base.
  *
- * Se piden solo las columnas que el sitemap usa —dirección y fecha—, y **solo la traducción
- * `es`**: es el único idioma en el que existe el contenido, y `/en/<slug>` sería la misma página
- * duplicada.
+ * Se piden solo las columnas que el sitemap usa: dirección, idioma y fecha. **Todas las
+ * traducciones**, no solo la española — desde el backfill cada idioma tiene su propio slug y su
+ * propio texto, así que cada uno es una página real y no un duplicado.
  */
 export async function getSitemapContent(): Promise<SitemapContent> {
   const [posts, stores, profiles, categories, sections] = await Promise.all([
     db.execute(sql`
-      SELECT t.slug, p.created_at
+      SELECT t.slug, t.locale, p.created_at
       FROM post_translations t
       JOIN posts p ON p.id = t.post_id
-      WHERE t.locale = 'es'
-      ORDER BY p.created_at DESC
+      ORDER BY p.created_at DESC, t.locale
     `),
     db.execute(sql`
       SELECT slug, created_at
@@ -58,8 +57,16 @@ export async function getSitemapContent(): Promise<SitemapContent> {
 
   return {
     posts: (
-      posts.rows as unknown as Array<{ slug: string; created_at: Date | null }>
-    ).map((row) => ({ slug: row.slug, lastModified: row.created_at })),
+      posts.rows as unknown as Array<{
+        slug: string;
+        locale: string;
+        created_at: Date | null;
+      }>
+    ).map((row) => ({
+      slug: row.slug,
+      locale: row.locale,
+      lastModified: row.created_at,
+    })),
     stores: (
       stores.rows as unknown as Array<{ slug: string; created_at: Date | null }>
     ).map((row) => ({ handle: row.slug, lastModified: row.created_at })),
