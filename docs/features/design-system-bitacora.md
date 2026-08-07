@@ -286,3 +286,65 @@ algo imposible de renderizar.
    consumir nadie.
 2. **Slice 7 — Estado y foco:** `Skeleton`, `Alert` y un anillo de foco consistente.
 3. **Barrer el resto de `rounded-*`:** quedan usos fuera de tarjetas (cabecera, paginación, mapa).
+
+---
+
+## Slice 6: La tipografía deja de ser `text-sm` a mano
+
+**Objetivo:**
+Dar nombre al papel que cumple cada texto en vez de a su tamaño. Los tokens `--fs-*` llevaban desde
+el slice 2 sin que los consumiera **ni un solo componente**, mientras el árbol acumulaba 99
+`text-sm`, 47 `text-xl`, 41 `text-lg` y 40 `text-2xl` escritos a mano.
+
+**Decisiones y Racional:**
+
+- **Los tokens no se usaban porque nunca llegaron a `@theme`.** Eran variables CSS en `:root` que no
+  generaban ninguna clase de Tailwind: imposibles de usar aunque alguien quisiera. Ahora se exponen
+  en el espacio `--text-*`, que es el que Tailwind v4 usa para tamaños, con nombres que dicen para
+  qué sirven (`text-label`, `text-heading-md`) en lugar de cuánto miden.
+
+- **`level` y `size` son props separadas en `Heading`, y es la decisión importante del slice.** El
+  nivel es estructura —lo que leen un lector de pantalla y un buscador— y el tamaño es apariencia.
+  Atarlos obliga a elegir entre una jerarquía correcta y un diseño correcto, y con prisa siempre
+  gana el diseño: así es como acaba un `<h1>` en mitad de una tarjeta porque tenía que verse grande.
+  Con las dos props, un `<h2>` puede verse pequeño sin mentir sobre el documento.
+
+- **`Text` nombra el papel, no el tamaño**: `body`, `lead`, `label`, `caption`, `tiny`. Un párrafo
+  largo lleva interlineado holgado y una etiqueta no, y eso deja de decidirse en cada componente.
+
+- **Salió un bug real que habría llegado a producción.** `tailwind-merge` desempata mirando el
+  **nombre** de la clase, no el CSS: sin declararle los tamaños nuevos, `text-body` le parecía un
+  color de texto —como `text-red-500`—, chocaba con `text-text-base` y **descartaba uno de los dos**.
+  El síntoma es un componente que se queda literalmente sin clase de tamaño. Lo atrapó el test de
+  `Text` antes de que se viera en pantalla. `cn()` pasó a usar `extendTailwindMerge` declarando los
+  tamaños y los colores semánticos del sistema, incluidas las tintas de los cuatro pilares.
+
+- **`Surface` estrenó `radius="none"`**, para superficies que redondean solo algunos lados: la caja
+  con barra lateral de los pilares lleva `rounded-r-xl` y nada más.
+
+**Archivos Tocados:**
+- **Tokens:** `src/presentation/design_system/tokens/typography.css` (bloque `@theme`)
+- **Primitivos:** `typography/Heading.tsx`, `Heading.test.tsx`, `typography/Text.tsx`, `Text.test.tsx`, `Typography.stories.tsx` (nuevos)
+- **Utilidad:** `styling/merge-class-names.ts` (`extendTailwindMerge`)
+- **Migrados:** `src/app/[locale]/pilares/components/PillarArticle.tsx`, `PillarReferences.tsx`
+- **Primitivo tocado:** `surfaces/Surface.tsx` (`radius="none"`)
+
+**Resultados de Validación:**
+- `pnpm run test:run`: **838/838 en verde**, 89 archivos (+21 pruebas).
+- `pnpm run typecheck`: exit 0. `pnpm run lint`: limpio. `pnpm run check:i18n`: limpio.
+- `pnpm run build`: **Compiled successfully in 13.6s**.
+
+**Alcance deliberado:** solo se migraron las páginas de pilares. Los otros ~250 `text-*` a mano se
+dejan para un barrido posterior: convertirlos todos no cabe en un slice y no enseña nada nuevo.
+
+### Recap
+El sitio puede por fin hablar de "una etiqueta" o "una entradilla" en vez de "text-sm" y "text-lg", y
+la escala se ajusta en un archivo. `Heading` separa la jerarquía del documento de su apariencia, que
+es lo que impide que la prisa degrade la accesibilidad. En el camino apareció un fallo de
+`tailwind-merge` que dejaba componentes sin clase de tamaño, y ahora `cn()` conoce el vocabulario
+del design system.
+
+### Próximos pasos (opciones)
+1. **Slice 7 — Estado y foco:** `Skeleton`, `Alert` y un anillo de foco consistente.
+2. **Barrido de tipografía:** llevar `Heading`/`Text` al resto del árbol (~250 usos).
+3. **Barrido de `rounded-*`:** cabecera, paginación y mapa siguen decidiendo su radio.

@@ -1,4 +1,5 @@
 import { useTranslations } from "next-intl";
+import { Heading } from "~/presentation/design_system/typography/Heading";
 import { type PillarKey, pillarColorClasses } from "./pilaresData";
 
 /**
@@ -20,10 +21,10 @@ export default function PillarReferences({
 
   return (
     <section>
-      <h3 className="text-xl font-bold text-slate-900 dark:text-slate-50 mb-4">
+      <Heading level={3} className="mb-4">
         {t("references")}
-      </h3>
-      <ul className="list-disc pl-6 space-y-2 text-slate-700 dark:text-slate-300 text-base break-all">
+      </Heading>
+      <ul className="list-disc pl-6 space-y-2 text-body break-all">
         {references.map((reference) => (
           <li key={reference}>
             <a

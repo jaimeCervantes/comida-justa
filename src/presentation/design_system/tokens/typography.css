@@ -24,3 +24,29 @@
   --lh-normal: 1.5;
   --lh-relaxed: 1.75;
 }
+
+/*
+ * Expuestos a Tailwind con nombres que dicen **para qué sirve** el tamaño, no cuánto mide.
+ *
+ * `text-sm` obliga a decidir un número en cada componente; `text-label` dice qué es y deja que la
+ * escala se ajuste en un solo archivo. Los tokens llevaban definidos desde el slice 2 sin que
+ * ningún componente los consumiera, porque nunca llegaron a `@theme`: eran variables que no
+ * generaban ninguna clase.
+ *
+ * El espacio `--text-*` es el que Tailwind v4 usa para tamaños de fuente, así que esto añade
+ * utilidades nuevas sin tocar las suyas: `text-xs` y compañía siguen existiendo.
+ */
+@theme {
+  --text-tiny: var(--fs-tiny);
+  --text-caption: var(--fs-caption);
+  --text-label: var(--fs-label);
+  --text-body: var(--fs-body-md);
+  --text-body-lg: var(--fs-body-lg);
+  --text-heading-sm: var(--fs-heading-sm);
+  --text-heading-md: var(--fs-heading-md);
+  --text-heading-lg: var(--fs-heading-lg);
+
+  --leading-tight: var(--lh-tight);
+  --leading-normal: var(--lh-normal);
+  --leading-relaxed: var(--lh-relaxed);
+}

@@ -16,6 +16,8 @@ import { cn } from "../styling/merge-class-names";
 const surfaceVariants = cva("", {
   variants: {
     radius: {
+      /** Para superficies que redondean solo algunos lados (una caja con barra lateral). */
+      none: "",
       md: "rounded-md",
       lg: "rounded-lg",
       xl: "rounded-xl",

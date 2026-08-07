@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 import { Surface } from "~/presentation/design_system/surfaces/Surface";
+import { Heading } from "~/presentation/design_system/typography/Heading";
+import { Text } from "~/presentation/design_system/typography/Text";
 import { type PillarKey, pillarColorClasses } from "./pilaresData";
 
 /**
@@ -28,17 +30,19 @@ export default function PillarArticle({
   return (
     <article>
       <header className="mb-10">
-        <h1
-          className={`text-4xl sm:text-5xl font-extrabold tracking-tight mb-4 ${color.text}`}
+        <Heading
+          level={1}
+          tone="inherit"
+          className={`sm:text-5xl mb-4 ${color.text}`}
         >
           {heading}
-        </h1>
-        <p className="text-xl text-slate-600 dark:text-slate-400">{subtitle}</p>
+        </Heading>
+        <Text variant="lead" tone="support" className="text-xl">
+          {subtitle}
+        </Text>
       </header>
 
-      <div className="space-y-8 text-lg text-slate-800 dark:text-slate-200 leading-relaxed">
-        {children}
-      </div>
+      <div className="space-y-8 text-lg leading-relaxed">{children}</div>
     </article>
   );
 }
@@ -46,9 +50,9 @@ export default function PillarArticle({
 /** El encabezado de sección que las cuatro páginas repiten. */
 export function PillarSectionHeading({ children }: { children: ReactNode }) {
   return (
-    <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-50 mb-4">
+    <Heading level={2} className="mb-4">
       {children}
-    </h2>
+    </Heading>
   );
 }
 
@@ -56,10 +60,17 @@ export function PillarSectionHeading({ children }: { children: ReactNode }) {
 export function LabeledItem({ label, text }: { label: string; text: string }) {
   return (
     <li className="flex flex-col sm:flex-row gap-2 sm:gap-4">
-      <span className="font-bold text-slate-900 dark:text-slate-50 shrink-0 sm:w-28 text-xl">
+      <Text
+        as="span"
+        variant="lead"
+        weight="bold"
+        className="shrink-0 sm:w-28 text-xl"
+      >
         {label}
-      </span>
-      <span className="text-slate-700 dark:text-slate-300 text-lg">{text}</span>
+      </Text>
+      <Text as="span" variant="lead">
+        {text}
+      </Text>
     </li>
   );
 }
@@ -96,10 +107,13 @@ export function PillarCallout({
   const color = pillarColorClasses[pillar];
 
   return (
-    <div
+    <Surface
+      radius="none"
       className={`border-l-4 p-6 rounded-r-xl my-8 ${color.bg} ${color.border}`}
     >
-      <p className={`text-lg m-0 ${color.text}`}>{children}</p>
-    </div>
+      <Text variant="lead" tone="inherit" className={`m-0 ${color.text}`}>
+        {children}
+      </Text>
+    </Surface>
   );
 }
