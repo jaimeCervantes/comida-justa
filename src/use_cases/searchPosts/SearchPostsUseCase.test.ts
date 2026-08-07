@@ -47,6 +47,7 @@ describe("SearchPostsUseCase", () => {
       10,
       undefined,
       null,
+      undefined,
     );
     expect(result).toEqual({ results: mockResults, total: 1 });
   });
@@ -68,6 +69,7 @@ describe("SearchPostsUseCase", () => {
       6,
       undefined,
       near,
+      undefined,
     );
   });
 
@@ -82,6 +84,39 @@ describe("SearchPostsUseCase", () => {
       6,
       undefined,
       null,
+      undefined,
+    );
+  });
+});
+
+/**
+ * El idioma de respaldo viaja hasta el repositorio sin que el caso de uso decida nada sobre él,
+ * igual que la ubicación: quién es el idioma por defecto del sitio es asunto de la capa de fuera.
+ *
+ * Importa que llegue porque sin él la búsqueda filtraba `locale = pedido` a secas y una publicación
+ * sin traducir era invisible: buscar en inglés devolvía cero resultados para todo el catálogo.
+ */
+describe("SearchPostsUseCase y el idioma de respaldo", () => {
+  it("le pasa al repositorio a qué idioma caer", async () => {
+    const repository = {
+      search: vi.fn().mockResolvedValue({ results: [], total: 0 }),
+    };
+
+    await new SearchPostsUseCase(repository).execute({
+      query: "pan",
+      page: 1,
+      pageSize: 6,
+      locale: "en",
+      fallbackLocale: "es",
+    });
+
+    expect(repository.search).toHaveBeenCalledWith(
+      "pan",
+      1,
+      6,
+      "en",
+      null,
+      "es",
     );
   });
 });

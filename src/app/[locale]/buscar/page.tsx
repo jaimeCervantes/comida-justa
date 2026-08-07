@@ -38,7 +38,10 @@ export default async function SearchPage({
         <div className="mb-4 text-gray-600">
           {t("showingResultsFor")}{" "}
           <span className="font-semibold text-pw-green">
-            {decodeURIComponent(q)}
+            {/* `q` sale de `searchParams`, que Next ya entrega decodificado: volver a decodificar
+                aquí **lanzaba** con un `%` suelto —buscar «50% descuento» tumbaba la página con un
+                500— y no arreglaba nada, porque no había nada que decodificar. */}
+            {q}
           </span>
         </div>
       )}

@@ -1,4 +1,5 @@
 import { cache } from "react";
+import { routing } from "~/i18n/routing";
 import { createSearchPostRepository } from "~/infra/dataAccess/searchPosts/factory";
 import { readVisitorLocation } from "~/infra/location/visitorLocation";
 import type { ISearchPostResultDTO } from "~/use_cases/searchPosts/dtos/ISearchPostResultDTO";
@@ -32,6 +33,7 @@ export const searchPosts = cache(async function searchPosts(
     page: Math.max(1, page),
     pageSize: SEARCH_PAGE_SIZE,
     locale,
+    fallbackLocale: routing.defaultLocale,
     near: await readVisitorLocation(),
   });
 });

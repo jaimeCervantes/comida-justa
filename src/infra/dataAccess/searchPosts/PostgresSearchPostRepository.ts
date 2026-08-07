@@ -10,6 +10,23 @@ import {
 import type { ISearchPostResultDTO } from "~/use_cases/searchPosts/dtos/ISearchPostResultDTO";
 import type { ISearchPostRepository } from "~/use_cases/searchPosts/ports/ISearchPostRepository";
 
+/**
+ * Qué diccionario usa Postgres para analizar cada idioma.
+ *
+ * `spanish` y `english` son configuraciones que la base ya trae —se comprobó— y hacen lematización
+ * y normalización de acentos por su cuenta: con ellas, `panes` y `pán` encuentran lo mismo que
+ * `pan` **sin instalar `unaccent`**, que habría sido un cambio en la base compartida. Un idioma sin
+ * diccionario cae en `simple`, que solo parte por espacios: peor que tener uno, mejor que fallar.
+ */
+const TEXT_SEARCH_CONFIG: Readonly<Record<string, string>> = {
+  es: "spanish",
+  en: "english",
+};
+
+function configFor(locale: string): string {
+  return TEXT_SEARCH_CONFIG[locale] ?? "simple";
+}
+
 interface RankedRow {
   id: string;
   distance_meters: string | null;
@@ -68,15 +85,26 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
     pageSize: number,
     locale: string = "es",
     near: Coordinates | null = null,
+    fallbackLocale: string = "es",
   ): Promise<{ results: ISearchPostResultDTO[]; total: number }> {
     const trimmed = query?.trim() ?? "";
     const { matches, total } = trimmed
-      ? await this.rankedMatches(trimmed, page, pageSize, locale, near)
+      ? await this.rankedMatches(
+          trimmed,
+          page,
+          pageSize,
+          locale,
+          fallbackLocale,
+          near,
+        )
       : await this.newestFirst(page, pageSize, near);
 
     if (matches.length === 0) return { results: [], total };
 
-    return { results: await this.hydrate(matches, locale), total };
+    return {
+      results: await this.hydrate(matches, locale, fallbackLocale),
+      total,
+    };
   }
 
   /**
@@ -108,30 +136,48 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
     page: number,
     pageSize: number,
     locale: string,
+    fallbackLocale: string,
     near: Coordinates | null,
   ): Promise<{ matches: RankedMatch[]; total: number }> {
-    const pattern = `%${query}%`;
     const offset = Math.max(0, (page - 1) * pageSize);
 
-    const matchesTitle = sql`EXISTS (
-      SELECT 1 FROM post_translations t
-      WHERE t.post_id = p.id AND t.locale = ${locale} AND t.title ILIKE ${pattern}
+    /* Cada fila se analiza con el diccionario de **su** idioma, no con el de quien busca: una fila
+       española se lematiza en español aunque la consulta venga de la interfaz en inglés. Y la
+       pregunta se construye con ese mismo diccionario, o el término quedaría partido de una forma
+       y el documento de otra. */
+    const rowConfig = sql`(CASE WHEN t.locale = ${locale} THEN ${configFor(locale)} ELSE ${configFor(fallbackLocale)} END)::regconfig`;
+
+    /* `setweight` es lo que sustituye al viejo «coincide el título (0) o solo el texto (1)». El
+       peso vive en el vector, así que `ts_rank` ya devuelve la relevancia con el título por delante
+       —y además distingue entre coincidir una vez y coincidir cinco, que los dos niveles no podían. */
+    const document = sql`(
+      setweight(to_tsvector(${rowConfig}, coalesce(t.title, '')), 'A') ||
+      setweight(to_tsvector(${rowConfig}, coalesce(t.content, '')), 'B')
     )`;
+    const question = sql`websearch_to_tsquery(${rowConfig}, ${query})`;
+
+    /* `IN (pedido, respaldo)` es el slice 2: antes era `= locale` a secas, así que una publicación
+       sin traducción al idioma de la interfaz era **invisible** al buscar, aunque su ficha se
+       abriera perfectamente. En inglés eso significaba cero resultados para todo el catálogo. */
+    const searchable = sql`t.post_id = p.id AND t.locale IN (${locale}, ${fallbackLocale})`;
 
     const raw = await db.execute(sql`
       SELECT
         p.id,
         ${distanceColumn(near)} AS distance_meters,
-        COUNT(*) OVER()::int AS total_count
+        COUNT(*) OVER()::int AS total_count,
+        (
+          SELECT MAX(ts_rank(${document}, ${question}))
+          FROM post_translations t
+          WHERE ${searchable}
+        ) AS relevance
       FROM posts p
       WHERE EXISTS (
         SELECT 1 FROM post_translations t
-        WHERE t.post_id = p.id
-          AND t.locale = ${locale}
-          AND (t.title ILIKE ${pattern} OR t.content ILIKE ${pattern})
+        WHERE ${searchable} AND ${document} @@ ${question}
       )
       ORDER BY
-        CASE WHEN ${matchesTitle} THEN 0 ELSE 1 END,
+        relevance DESC,
         distance_meters ASC NULLS LAST,
         p.created_at DESC,
         p.id
@@ -175,6 +221,7 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
   private async hydrate(
     matches: RankedMatch[],
     locale: string,
+    fallbackLocale: string,
   ): Promise<ISearchPostResultDTO[]> {
     const ids = matches.map((match) => match.id);
     const [postRows, translationRows, mediaRows] = await Promise.all([
@@ -185,7 +232,10 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
         .where(
           and(
             inArray(postTranslations.postId, ids),
-            eq(postTranslations.locale, locale),
+            /* Los dos idiomas, no solo el pedido: un resultado encontrado por su fila española
+               mientras se navega en inglés se quedaba sin traducción que pintar, y la tarjeta salía
+               sin título. Quien elige cuál se enseña es `resolvePostTranslation`. */
+            inArray(postTranslations.locale, [locale, fallbackLocale]),
           ),
         ),
       db
@@ -209,12 +259,22 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
             .where(inArray(users.id, userIds))
         : [];
 
-    const translationByPost = new Map(
-      translationRows.map((row) => [
-        row.postId,
-        { title: row.title, slug: row.slug, content: row.content },
-      ]),
-    );
+    /* Un registro **por idioma** y no una sola traducción: ahora llegan hasta dos filas por
+       publicación y un `Map` plano se quedaba con la última, que es la que devolviera el planner.
+       Cuál se enseña lo decide `resolvePostTranslation` al pintar la tarjeta. */
+    const translationsByPost = new Map<
+      string,
+      Record<string, { title: string; slug: string; content: string }>
+    >();
+    for (const row of translationRows) {
+      const current = translationsByPost.get(row.postId) ?? {};
+      current[row.locale] = {
+        title: row.title,
+        slug: row.slug,
+        content: row.content,
+      };
+      translationsByPost.set(row.postId, current);
+    }
 
     const mediaByPost = new Map<
       string,
@@ -238,7 +298,7 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
 
       if (!row) return [];
 
-      const translation = translationByPost.get(id);
+      const translations = translationsByPost.get(id) ?? {};
       const user = userById.get(row.userId);
 
       return [
@@ -250,13 +310,7 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
             email: row.contactEmail ?? undefined,
             whatsapp: row.contactWhatsapp ?? undefined,
           },
-          translations: {
-            [locale]: {
-              title: translation?.title ?? "",
-              slug: translation?.slug ?? "",
-              content: translation?.content ?? "",
-            },
-          },
+          translations,
           media: mediaByPost.get(id) ?? [],
           distanceMeters,
           user: {

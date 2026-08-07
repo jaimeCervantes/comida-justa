@@ -5,6 +5,7 @@ import CardForList from "~/infra/UI/components/CardForList/CardForList";
 import Pagination from "~/infra/UI/components/Pagination";
 import { mapPostsToCardsForLocale } from "~/infra/UI/mappers/posts/mapPostsToCardsForLocale";
 import { SEARCH_PAGE_SIZE, searchPosts } from "../../../data";
+import { decodeSearchTerm } from "../../../decodeTerm";
 
 export default async function SearchPage({
   params,
@@ -17,7 +18,11 @@ export default async function SearchPage({
   const viewerId = await readViewerId();
   const t = await getTranslations("search");
   const pageInt = parseInt(page || "1", 10);
-  const data = await searchPosts(term, pageInt, locale);
+  /* Se decodifica **una vez** y lo usan la consulta y el encabezado. Antes la consulta recibía el
+     segmento crudo (`bu%C3%B1uelos`) y solo el encabezado se decodificaba, así que cualquier
+     término con acento devolvía cero mientras la página mostraba la palabra bien escrita. */
+  const query = decodeSearchTerm(term);
+  const data = await searchPosts(query, pageInt, locale);
   const cards = await mapPostsToCardsForLocale(data.results, locale);
   const totalPages = Math.ceil(data.total / SEARCH_PAGE_SIZE);
 
@@ -29,9 +34,7 @@ export default async function SearchPage({
       {term && (
         <div className="mb-8 text-lg text-gray-600 dark:text-gray-400">
           {t("showingResultsFor")}{" "}
-          <span className="font-bold text-pw-green">
-            {decodeURIComponent(term)}
-          </span>
+          <span className="font-bold text-pw-green">{query}</span>
         </div>
       )}
       {term && cards.length === 0 && (

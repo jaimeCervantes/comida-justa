@@ -1,4 +1,5 @@
 import type { NextRequest } from "next/server";
+import { routing } from "~/i18n/routing";
 import { createSearchPostRepository } from "~/infra/dataAccess/searchPosts/factory";
 import { readVisitorLocation } from "~/infra/location/visitorLocation";
 import { SearchPostsUseCase } from "~/use_cases/searchPosts/SearchPostsUseCase";
@@ -26,6 +27,7 @@ export async function GET(req: NextRequest) {
     page: page,
     pageSize: limit,
     locale,
+    fallbackLocale: routing.defaultLocale,
     near: await readVisitorLocation(),
   });
 
