@@ -40,9 +40,15 @@ responder no es tener `/productos` compilada, así que el primer escenario pagab
 dentro de su propio margen de espera.
 
 Dormir unos segundos no lo arregla —corto sigue fallando, largo se lo cobra también a las corridas
-calientes—. Esto espera **el hecho**: pide las 7 rutas que la suite pisa casi siempre, en paralelo,
-y cuando ya están calientes cuesta milisegundos. En frío tardó 15 s. Nunca tumba la suite: si una
-ruta no responde, avisa y sigue.
+calientes—. Esto espera **el hecho**: pide las 7 rutas que la suite pisa casi siempre, **de una en
+una**, y cuando ya están calientes cuesta milisegundos. En frío tardó 37 s; en caliente, 15 s. Nunca
+tumba la suite: si una ruta no responde, avisa y sigue.
+
+**En serie a propósito, no por comodidad.** En paralelo Next compila varias rutas a la vez y cada
+compilación reescribe `.next/dev/prerender-manifest.json`: dos escrituras solapadas lo dejan con un
+JSON válido seguido de basura, y a partir de ahí el servidor responde 500 a todo. Es una de las
+formas de corromper `.next/dev` que se describen en *Deuda transversal*. Está contado con detalle en
+`vendedores-y-tiendas-bitacora.md`, slice 7.
 
 El arreglo de fondo sería correr la e2e contra `next build && next start`, donde no hay compilación
 bajo demanda —y además probaría lo que se despliega—, pero le suma el build a cada corrida.
