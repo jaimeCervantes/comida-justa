@@ -106,7 +106,7 @@ tono, y con el número puede.
 
 ## Roadmap de slices
 
-### Slice 3 — El chip deja de escribirse tres veces (actual)
+### Slice 3 — El chip deja de escribirse tres veces ✅
 
 **Alcance.** El primitivo `Badge` en el design system, con variantes por token, y la rampa de los
 cuatro pilares en `colors.css`. Las tres insignias existentes pasan a ser configuraciones de `Badge`

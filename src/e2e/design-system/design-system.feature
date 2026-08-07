@@ -92,29 +92,96 @@ Feature: Un design system que habla como la marca
     And quien no distingue el tono sigue pudiendo identificar el pilar
 
   # ---------------------------------------------------------------------------
-  # Slices siguientes — esqueletos. No corren en CI ni bloquean.
+  # Slice 4 — Los pilares estrenan su paleta  (implementado)
+  # Specs en src/app/[locale]/pilares/components/pilaresData.test.ts
   # ---------------------------------------------------------------------------
 
-  @slice-4 @future
+  @slice-4 @component
   Scenario: Los pilares estrenan su paleta
     Given las páginas de /pilares pintadas con utilidades crudas de Tailwind
     When adoptan los tokens --pillar-*
     Then ninguna clase violet-* ni sky-* sobrevive en src/app/[locale]/pilares/
+    And ninguna clase del pilar necesita una variante "dark:"
 
-  @slice-5 @future
-  Scenario: Las tarjetas dejan de decidir su propio radio
+  @slice-4 @component
+  Scenario: El color del pilar no viaja como cadena de clases
+    Given un componente que necesita pintar un pilar
+    When recibe la clave del pilar en vez de un className
+    Then un pilar solo puede pintarse de su propio color
+
+  # ---------------------------------------------------------------------------
+  # Slice 5 — Superficie y tarjeta  (implementado)
+  # Specs en src/presentation/design_system/surfaces/Surface.test.tsx
+  # ---------------------------------------------------------------------------
+
+  @slice-5 @component
+  Scenario Outline: Las tarjetas dejan de decidir su propio radio
     Given 71 usos de rounded-* repartidos en 31 archivos
-    When Card, CardForList y StoreSummaryCard cuelgan del primitivo Surface
+    When "<componente>" cuelga del primitivo Surface
     Then el radio, la elevación y el borde vienen del token
+    And la superficie conserva su etiqueta HTML "<etiqueta>"
 
-  @slice-6 @future
-  Scenario: La tipografía deja de ser text-sm a mano
-    Given los tokens --fs-* que hoy no consume nadie
-    When los primitivos Heading y Text los consumen
-    Then una escala tipográfica cambia en un solo archivo
+    Examples:
+      | componente        | etiqueta |
+      | Card              | article  |
+      | StoreSummaryCard  | article  |
+      | PillarPanel       | div      |
 
-  @slice-7 @future
-  Scenario: El foco se ve siempre
-    Given un anillo de foco distinto en cada componente
-    When se unifica en un token
+  # ---------------------------------------------------------------------------
+  # Slice 6 — Tipografía  (implementado)
+  # Specs en src/presentation/design_system/typography/{Heading,Text}.test.tsx
+  # ---------------------------------------------------------------------------
+
+  @slice-6 @component
+  Scenario Outline: Cada nivel de encabezado trae su tamaño, y se puede separar
+    Given un encabezado de nivel "<nivel>"
+    When no se pide un tamaño distinto
+    Then se renderiza como "<etiqueta>" con el tamaño "<tamaño>"
+
+    Examples:
+      | nivel | etiqueta | tamaño           |
+      | 1     | h1       | text-heading-lg  |
+      | 2     | h2       | text-heading-md  |
+      | 3     | h3       | text-heading-sm  |
+      | 4     | h4       | text-body-lg     |
+
+  @slice-6 @component
+  Scenario: La jerarquía del documento no se sacrifica por la apariencia
+    Given una sección que debe ser un h2 pero verse pequeña
+    When se pide nivel 2 con tamaño xs
+    Then el elemento sigue siendo un h2
+    And su tamaño es el del cuerpo grande, no el de un encabezado de nivel 2
+
+  # ---------------------------------------------------------------------------
+  # Slice 7 — Estado, retroalimentación y foco  (implementado)
+  # Specs en src/presentation/design_system/feedback/{Alert,Skeleton}.test.tsx
+  # ---------------------------------------------------------------------------
+
+  @slice-7 @component
+  Scenario: El foco se ve siempre, incluso dentro de una tarjeta recortada
+    Given un anillo de foco distinto en cada uno de nueve componentes
+    And tarjetas con overflow hidden que recortaban cualquier box-shadow
+    When el anillo se unifica en la utilidad focus-ring, dibujada con outline
     Then quien navega con teclado ve dónde está en cualquier pantalla
+    And el anillo sigue el radio del elemento en vez de encajonarlo
+
+  @slice-7 @component
+  Scenario Outline: Un aviso se anuncia con la urgencia que le corresponde
+    Given un aviso de tono "<tono>"
+    When un lector de pantalla lo encuentra
+    Then su role es "<role>"
+    And su etiqueta de texto lo hace legible sin percibir el color
+
+    Examples: solo el error interrumpe la lectura
+      | tono    | role   |
+      | error   | alert  |
+      | warning | status |
+      | success | status |
+      | info    | status |
+
+  @slice-7 @component
+  Scenario: Lo que aún no cargó no se anuncia ni marea
+    Given una ficha de publicación cargando
+    When se pintan sus huecos
+    Then cada hueco es aria-hidden y el contenedor lleva aria-busy
+    And la animación de brillo solo ocurre bajo motion-safe
