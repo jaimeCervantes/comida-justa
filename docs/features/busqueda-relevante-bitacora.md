@@ -122,3 +122,32 @@ verde: 743 unitarios y 148 e2e.
    terminan sin resultados. Sin eso, cualquier mejora del motor es a ciegas.
 
 **Pendiente del usuario:** la rama `feat/busqueda-relevante` tiene dos commits, sin subir y sin PR.
+
+---
+
+## Nota posterior (2026-08-07)
+
+Los puntos 2 y 4 de "Próximos pasos" siguen abiertos y ahora tienen su propio roadmap:
+`docs/features/busqueda-semantica.md`, con las mediciones que faltaban.
+
+Lo que se midió contra la base compartida, ya con las 23 publicaciones traducidas al inglés:
+
+| Término | Locale | Resultados |
+| --- | --- | --- |
+| `pan` | es | 10 |
+| `pán` | es | **0** |
+| `panes` | es | **0** |
+| `pan` | en | **2** — «panela» y «Pancakes» |
+| `bread` | en | 9 |
+| `bread` | es | **0** |
+
+Confirma lo que esta bitácora ya anticipaba ("no entiende plurales ni acentos") y añade dos cosas
+que no estaban dichas:
+
+1. **La coincidencia por subcadena produce falsos positivos**, no solo omisiones: `%pan%` cae dentro
+   de «panela» y «Pancakes».
+2. **El filtro de idioma es estricto, sin respaldo** (`t.locale = ${locale}`, líneas 118 y 131), a
+   diferencia del backend Python y de `resolvePostTranslation`. Antes del backfill de traducciones,
+   **buscar en inglés devolvía cero resultados siempre**. Hoy queda tapado porque las 23 están
+   traducidas, pero reaparece en cuanto una publicación nueva se quede sin su fila `en`.
+
