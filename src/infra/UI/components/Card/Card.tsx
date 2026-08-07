@@ -1,3 +1,5 @@
+import { cn } from "~/presentation/design_system/styling/merge-class-names";
+import { Surface } from "~/presentation/design_system/surfaces/Surface";
 import Avatar from "../Avatar";
 import FormattedDate from "./FormattedDate";
 import type { CardProps } from "./types";
@@ -15,13 +17,20 @@ export default function Card({
   anchorProps = {},
   children,
 }: CardProps) {
-  const clsN =
-    `bg-white dark:bg-pw-gray rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-gray-100 dark:border-gray-800 group hover:ring-2 hover:ring-pw-orange ${
-      className ?? ""
-    }`.trim();
-
   return (
-    <Container className={clsN} style={style ?? ""}>
+    <Surface
+      as={Container}
+      radius="2xl"
+      background="raised"
+      border="subtle"
+      elevation="md"
+      interactive
+      className={cn(
+        "overflow-hidden group hover:ring-2 hover:ring-pw-orange",
+        className,
+      )}
+      style={style ?? {}}
+    >
       {media}
       <section className="p-5 flex flex-col grow">
         <h3 className="mb-3 text-lg font-bold leading-tight text-gray-900 dark:text-gray-100 group-hover:text-pw-lightgreen transition-colors">
@@ -42,6 +51,6 @@ export default function Card({
       {footerChildren && (
         <footer className="flex flex-wrap p-2">{footerChildren}</footer>
       )}
-    </Container>
+    </Surface>
   );
 }

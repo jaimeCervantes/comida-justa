@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { Surface } from "~/presentation/design_system/surfaces/Surface";
 import { type PillarKey, pillarColorClasses } from "./pilaresData";
 
 /**
@@ -74,11 +75,13 @@ export function PillarPanel({
   const color = pillarColorClasses[pillar];
 
   return (
-    <div
-      className={`rounded-2xl p-6 sm:p-8 my-8 border shadow-xs ${color.bg} ${color.border}`}
+    <Surface
+      radius="2xl"
+      elevation="xs"
+      className={`p-6 sm:p-8 my-8 border ${color.bg} ${color.border}`}
     >
       <ul className="space-y-6">{children}</ul>
-    </div>
+    </Surface>
   );
 }
 

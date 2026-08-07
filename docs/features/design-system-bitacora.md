@@ -231,3 +231,58 @@ es la de Hazlo Sano de punta a punta: `violet` y `sky` desaparecieron del árbol
 1. **Slice 5 — Superficie y tarjeta:** el primitivo `Surface` contra los `rounded-*` sueltos.
 2. **Slice 6 — Tipografía:** `Heading` y `Text` sobre `typography.css`.
 3. **Slice 7 — Estado y foco:** `Skeleton`, `Alert` y un anillo de foco consistente.
+
+---
+
+## Slice 5: Superficie y tarjeta
+
+**Objetivo:**
+Que el radio, la elevación, el borde y el fondo dejen de decidirse archivo por archivo. `layout.css`
+define `--radius-*` y `--shadow-*` desde el slice 2 y no los consumía nadie: 71 `rounded-*`
+repartidos en 31 archivos.
+
+**Decisiones y Racional:**
+
+- **`Surface` es polimórfico (`as`), no un `<div>` envolvente.** Una tarjeta tiene que seguir siendo
+  un `<article>` y un bloque de página una `<section>`. Un primitivo que obligara a envolver añadiría
+  un nodo por tarjeta y rompería la semántica que el HTML ya tenía bien.
+
+- **Fondos y bordes por token semántico, sin `dark:`.** `bg-white dark:bg-pw-gray` pasó a
+  `bg-surface-elevation-1`, que vale exactamente lo mismo en ambos temas (`#ffffff` / `#334155`), así
+  que el cambio es invisible y desaparece una pareja de clases más. `border-gray-100
+  dark:border-gray-800` pasó a `border-separator`: **este sí cambia un poco el tono del borde**
+  (`#e2e8f0` en vez de `#f3f4f6` en claro), y se aceptó porque `separator` es el token que existe
+  para eso y tener dos grises de borde distintos era el problema, no la solución.
+
+- **`interactive` es una variante, no el comportamiento por defecto.** El `hover:-translate-y-1` solo
+  tiene sentido en una superficie que lleva a algún sitio. Un panel informativo que se levanta al
+  pasar el cursor promete un clic que no existe.
+
+- **Apareció una mentira de tipos.** `CardProps.media` declaraba
+  `ElementType | JSX.Element | string | null | undefined`. Un *tipo* de componente no se puede pintar
+  como hijo —React no lo instancia—, así que ese miembro describía algo que habría fallado en tiempo
+  de ejecución; nadie lo usaba. Salió a la luz porque `Surface` tipa `children` como `ReactNode` de
+  verdad, mientras que el `<Container>` genérico de antes aceptaba cualquier cosa. Ahora es
+  `React.ReactNode`.
+
+**Archivos Tocados:**
+- **Primitivo:** `src/presentation/design_system/surfaces/Surface.tsx`, `Surface.test.tsx`, `Surface.stories.tsx` (nuevos)
+- **Migrados:** `src/infra/UI/components/Card/Card.tsx`, `Card/types.ts`, `src/presentation/directory/StoreSummaryCard.tsx`, `src/app/[locale]/pilares/components/PillarArticle.tsx` (`PillarPanel`)
+- `CardForList` no se tocó: pinta a través de `Card`, así que hereda la superficie.
+
+**Resultados de Validación:**
+- `pnpm run test:run`: **817/817 en verde**, 87 archivos (+11 pruebas de `Surface`).
+- `pnpm run typecheck`: exit 0 (tras corregir el tipo de `media`). `pnpm run lint`: limpio.
+- `pnpm run build`: **Compiled successfully in 14.0s**.
+
+### Recap
+El sitio tiene un contenedor con nombre. Las tarjetas del catálogo, las del directorio de tiendas y
+los paneles de los pilares ya no eligen su propio radio ni su propia sombra, y el fondo y el borde
+salen de tokens semánticos que cambian solos con el tema. De paso se corrigió un tipo que describía
+algo imposible de renderizar.
+
+### Próximos pasos (opciones)
+1. **Slice 6 — Tipografía:** `Heading` y `Text` sobre `typography.css`, cuyos `--fs-*` sigue sin
+   consumir nadie.
+2. **Slice 7 — Estado y foco:** `Skeleton`, `Alert` y un anillo de foco consistente.
+3. **Barrer el resto de `rounded-*`:** quedan usos fuera de tarjetas (cabecera, paginación, mapa).

@@ -1,0 +1,88 @@
+import { cva, type VariantProps } from "class-variance-authority";
+import type { ElementType, HTMLAttributes, ReactNode } from "react";
+import { cn } from "../styling/merge-class-names";
+
+/**
+ * El contenedor con fondo, borde, radio y elevación del sitio.
+ *
+ * Existe porque `layout.css` define `--radius-*` y `--shadow-*` desde el slice 2 y no los consumía
+ * nadie: el radio se decidía archivo por archivo, con 71 `rounded-*` repartidos en 31 archivos.
+ * Una tarjeta con `rounded-2xl` junto a otra con `rounded-lg` no es una decisión, es un descuido
+ * que nadie puede ver hasta que están una al lado de la otra.
+ *
+ * Los colores salen de los tokens semánticos (`surface-elevation-1`, `separator`), así que **no
+ * hay variantes `dark:`**: la variable ya cambia de valor con el tema.
+ */
+const surfaceVariants = cva("", {
+  variants: {
+    radius: {
+      md: "rounded-md",
+      lg: "rounded-lg",
+      xl: "rounded-xl",
+      "2xl": "rounded-2xl",
+    },
+    elevation: {
+      none: "",
+      xs: "shadow-xs",
+      sm: "shadow-sm",
+      md: "shadow-md",
+      lg: "shadow-lg",
+    },
+    border: {
+      none: "",
+      subtle: "border border-separator",
+    },
+    background: {
+      none: "",
+      /** El fondo de la página: para bloques que no deben despegarse de ella. */
+      base: "bg-surface-background",
+      /** Una superficie por encima de la página: tarjetas, paneles, diálogos. */
+      raised: "bg-surface-elevation-1",
+      /** Un escalón más: lo que se apoya sobre una tarjeta. */
+      sunken: "bg-surface-elevation-2",
+    },
+    /** Realce al pasar el cursor. Solo para superficies que llevan a algún sitio. */
+    interactive: {
+      true: "transition-all duration-300 hover:shadow-xl hover:-translate-y-1",
+      false: "",
+    },
+  },
+  defaultVariants: {
+    radius: "lg",
+    elevation: "none",
+    border: "none",
+    background: "none",
+    interactive: false,
+  },
+});
+
+export type SurfaceProps = HTMLAttributes<HTMLElement> &
+  VariantProps<typeof surfaceVariants> & {
+    /** El elemento a renderizar. `article` para una tarjeta, `section` para un bloque de página. */
+    as?: ElementType;
+    children?: ReactNode;
+  };
+
+export function Surface({
+  as: Component = "div",
+  radius,
+  elevation,
+  border,
+  background,
+  interactive,
+  className,
+  children,
+  ...moreProps
+}: SurfaceProps) {
+  return (
+    <Component
+      className={cn(
+        surfaceVariants({ radius, elevation, border, background, interactive }),
+        className,
+      )}
+      {...moreProps}
+    >
+      {children}
+    </Component>
+  );
+}

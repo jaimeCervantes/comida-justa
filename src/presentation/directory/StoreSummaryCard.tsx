@@ -1,6 +1,7 @@
 import Image from "next/image";
 import type { StoreSummary } from "~/domain/entities/seller/directory";
 import { type AppHref, Link } from "~/i18n/navigation";
+import { Surface } from "~/presentation/design_system/surfaces/Surface";
 import StoreDistance from "~/presentation/location/StoreDistance";
 
 /**
@@ -22,8 +23,12 @@ export default function StoreSummaryCard({
   visitLabel: string;
 }) {
   return (
-    <article
-      className="flex gap-4 rounded-2xl border border-gray-100 dark:border-gray-800 p-4 shadow-xs"
+    <Surface
+      as="article"
+      radius="2xl"
+      border="subtle"
+      elevation="xs"
+      className="flex gap-4 p-4"
       data-testid="store-summary"
     >
       {store.logoUrl ? (
@@ -59,6 +64,6 @@ export default function StoreSummaryCard({
           {visitLabel}
         </Link>
       </div>
-    </article>
+    </Surface>
   );
 }
