@@ -18,6 +18,20 @@ interface PaginationProps {
   params?: Record<string, string>;
 }
 
+/**
+ * El aspecto de un enlace de paginación.
+ *
+ * Sale de los tokens del design system en vez de `bg-white dark:text-black`, que era una pareja de
+ * clases que había que acordarse de mantener; `surface-elevation-1` y `text-base` ya cambian solos
+ * con el tema. Y estrena el anillo de foco del sitio: al tabular por la paginación no había
+ * ninguna señal de dónde estabas.
+ */
+const PAGE_LINK =
+  "focus-ring rounded-full border border-separator bg-surface-elevation-1 px-4 py-2 text-text-base transition-colors hover:bg-surface-elevation-2";
+
+const PAGE_LINK_CURRENT =
+  "focus-ring rounded-full border border-pw-lightgreen bg-pw-lightgreen px-4 py-2 font-semibold text-white";
+
 export default function Pagination({
   currentPage,
   totalPages,
@@ -52,10 +66,7 @@ export default function Pagination({
       className="flex justify-center mt-8 space-x-4"
     >
       {currentPage > 1 && (
-        <Link
-          href={hrefForPage(currentPage - 1)}
-          className="px-4 py-2 border rounded-full bg-white dark:text-black hover:bg-gray-300"
-        >
+        <Link href={hrefForPage(currentPage - 1)} className={PAGE_LINK}>
           {t("previousPage")}
         </Link>
       )}
@@ -64,21 +75,17 @@ export default function Pagination({
           <Link
             key={`page-link-${pageNum}`}
             href={hrefForPage(pageNum)}
-            className={`px-4 py-2 border rounded-full ${
-              pageNum === currentPage
-                ? "bg-pw-lightgreen text-white"
-                : "bg-white dark:text-black hover:bg-gray-300"
-            }`}
+            /* `aria-current` es lo que le dice a un lector de pantalla en qué página está. Sin él,
+               la actual solo se distinguía por el color de fondo. */
+            aria-current={pageNum === currentPage ? "page" : undefined}
+            className={pageNum === currentPage ? PAGE_LINK_CURRENT : PAGE_LINK}
           >
             {pageNum}
           </Link>
         ))}
       </div>
       {currentPage < totalPages && (
-        <Link
-          href={hrefForPage(currentPage + 1)}
-          className="px-4 py-2 border rounded-full bg-white dark:text-black hover:bg-gray-300"
-        >
+        <Link href={hrefForPage(currentPage + 1)} className={PAGE_LINK}>
           {t("nextPage")}
         </Link>
       )}

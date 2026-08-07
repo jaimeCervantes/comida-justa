@@ -11,6 +11,7 @@ import ImageVideoUploader, {
 } from "~/infra/UI/components/ImageVideoUploader/ImageVideoUploader";
 import { originOptionsFor } from "~/infra/UI/labels/postOriginLabels";
 import { Button } from "~/presentation/design_system/buttons/Button";
+import { Alert } from "~/presentation/design_system/feedback/Alert";
 import { TextArea } from "~/presentation/design_system/forms/TextArea";
 import { TextField } from "~/presentation/design_system/forms/TextField";
 
@@ -37,6 +38,7 @@ export default function PublishForm({
   subCategoryOptionsByCategory: Record<string, readonly CategoryOption[]>;
 }) {
   const t = useTranslations("publish");
+  const tCommon = useTranslations("common");
   const tVocabulary = useTranslations("vocabulary");
   const [state, createPostAction, isPending] = useActionState<
     ActionState,
@@ -73,10 +75,13 @@ export default function PublishForm({
     <section className="p-4">
       <h1 className="text-xl mb-4">{t("heading")}</h1>
 
+      {/* Era un `<h2>` en rojo: sin `role`, un lector de pantalla no anunciaba nada, y quien no
+          distingue el rojo no tenía forma de saber que aquello era un error. `Alert` pone el
+          `role="alert"` que interrumpe y la etiqueta de texto que sobrevive sin percibir el color. */}
       {state?.errors?.errorMessage ? (
-        <h2 className="pt-1 flex items-center gap-1 text-red-700 dark:text-red-400">
+        <Alert tone="error" label={tCommon("alertError")} className="mb-4">
           {state.errors.errorMessage}
-        </h2>
+        </Alert>
       ) : null}
 
       <form action={createPostAction} className="" aria-label={t("formLabel")}>

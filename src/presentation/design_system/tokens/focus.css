@@ -38,3 +38,14 @@
     border-radius: inherit;
   }
 }
+
+/* La misma señal cuando quien recibe el foco es un hijo y no el elemento en sí: un campo de texto
+   vive dentro de una caja que dibuja el borde y los iconos, así que el anillo lo tiene que pintar
+   la caja. */
+@utility focus-ring-within {
+  &:focus-within {
+    outline: var(--focus-ring-width) solid var(--focus-ring);
+    outline-offset: var(--focus-ring-offset);
+    border-radius: inherit;
+  }
+}

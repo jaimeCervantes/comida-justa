@@ -421,3 +421,64 @@ lector de pantalla ni marean a quien pidió menos movimiento.
    competir por el mismo anillo.
 4. **Usar `Alert`:** el primitivo existe pero todavía no lo consume ninguna pantalla; los mensajes
    de error de `/publicar` son el primer candidato.
+---
+
+## Slice 8: Cerrar los cabos del roadmap
+
+**Objetivo:** consumir lo que el design system ya ofrecía y que ninguna pantalla usaba, y resolver
+los dos puntos que el slice 7 dejó fuera a propósito.
+
+**Decisiones y Racional:**
+
+- **`Alert` ya se usa.** El error de `/publicar` era un `<h2>` en rojo: sin `role`, un lector de
+  pantalla **no anunciaba nada**, y quien no distingue el rojo no tenía forma de saber que aquello
+  era un error. Ahora lleva el `role="alert"` que interrumpe y la etiqueta de texto que sobrevive
+  sin percibir el color (`common.alertError`, nueva en los dos catálogos).
+
+- **El foco de los formularios se separó del estado de validación.** Era el punto que el slice 7
+  dejó pendiente, y el problema estaba bien identificado: el mismo anillo comunicaba dos cosas, así
+  que en un campo con error el foco se pintaba rojo y la señal de "estás aquí" se confundía con la
+  de "esto está mal". Ahora **el borde dice el estado y el anillo dice el foco**. Hizo falta una
+  utilidad nueva, `focus-ring-within`: un campo de texto vive dentro de una caja que dibuja el borde
+  y los iconos, así que el anillo lo tiene que pintar la caja y no el `input`.
+
+- **Había un literal en español clavado en el design system.** `TextArea` tenía
+  `"Este campo es requerido o inválido"` como texto de reserva. `check:i18n` no lo ve porque solo
+  mira `src/app` y `src/infra/UI`. Pasó a ser un prop (`genericErrorLabel`), por la misma razón que
+  `loadingLabel` en `Button`: el design system tiene que poder renderizarse fuera del proveedor de
+  i18n. Sin el prop no se pinta frase — mejor el icono solo que una en el idioma equivocado.
+
+- **La paginación estrena tokens, foco y `aria-current`.** Usaba `bg-white dark:text-black`, otra
+  pareja de clases que había que recordar; ahora `surface-elevation-1` y `text-base` cambian solos.
+  No tenía anillo de foco: al tabular por la paginación no había ninguna señal de dónde estabas. Y
+  la página actual solo se distinguía por el color de fondo, sin `aria-current="page"`.
+
+- **`layout.css` no se expone a Tailwind, y ahora está escrito por qué.** Se comprobó valor por
+  valor: `--radius-sm/md/lg` son **idénticos** a la escala por defecto de Tailwind v4, y
+  `--radius-pill` es lo mismo que `rounded-full`. O sea que "nadie los consume" no era una tarea
+  pendiente: no hay nada que consumir, porque escribir `rounded-lg` ya usa ese valor. Exponerlos
+  cambiaría cada `rounded-sm` del sitio sin añadir nada. Queda documentado en el propio archivo para
+  que nadie lo "arregle" exponiéndolos.
+
+**Archivos Tocados:**
+- `src/app/[locale]/publicar/PublishForm.tsx`, `src/i18n/messages/{es,en}.json`
+- `src/presentation/design_system/tokens/focus.css` (`focus-ring-within`), `tokens/layout.css` (nota)
+- `src/presentation/design_system/forms/InputShell.tsx`, `forms/TextArea.tsx`
+- `src/infra/UI/components/Pagination.tsx`
+
+**Resultados de Validación:**
+- `pnpm run test:run`: **896/896**. `pnpm run typecheck`: exit 0. `pnpm run lint` y `check:i18n`:
+  limpios. `pnpm run build`: compila.
+
+### Recap
+El design system dejó de tener piezas que nadie usaba: `Alert` ya protege el error de `/publicar`,
+el anillo de foco llegó a los formularios y a la paginación separando el foco del estado, y se quitó
+el último literal en español que vivía dentro del sistema. De paso quedó por escrito por qué los
+tokens de `layout.css` no se exponen, que era una tarea fantasma.
+
+### Próximos pasos (opciones)
+1. **Barrido de tipografía:** `Heading`/`Text` solo los consumen las páginas de pilares; quedan ~250
+   `text-*` a mano. Es mecánico y grande; conviene hacerlo por zonas, no de una vez.
+2. **Mudanza de `src/infra/UI/components/` a `src/presentation/`**, que `AGENTS.md` pide desde antes
+   de este trabajo.
+3. **Typechequear los tests:** medido en 32 errores (ver `docs/features/pendientes.md`).

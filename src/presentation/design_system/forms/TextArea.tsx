@@ -11,6 +11,17 @@ export type TextAreaProps = Omit<ComponentPropsWithRef<"textarea">, "id"> & {
   id?: string;
   label?: string;
   error?: string | boolean | null;
+  /**
+   * Qué decir cuando `error` es `true` y no una frase.
+   *
+   * Entra como prop y **no** se lee del catálogo aquí, por la misma razón que `loadingLabel` en
+   * `Button`: el design system tiene que poder renderizarse fuera del `NextIntlClientProvider`
+   * —`src/app/not-found.tsx` vive fuera de `[locale]`—. Antes había un literal en español clavado
+   * en el componente, que `check:i18n` no ve porque solo mira `src/app` y `src/infra/UI`.
+   *
+   * Sin él no se pinta frase: mejor el icono solo que una en el idioma equivocado.
+   */
+  genericErrorLabel?: string;
   hint?: string;
   containerClassName?: string;
 };
@@ -21,6 +32,7 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
       id: providedId,
       label,
       error,
+      genericErrorLabel,
       hint,
       disabled,
       required,
@@ -66,10 +78,11 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
           aria-describedby={describedBy}
           aria-invalid={hasError ? true : undefined}
           className={cn(
-            "w-full rounded-md px-3 py-2 text-text-base border bg-surface-elevation-1 transition-colors duration-fast ease-standard outline-none placeholder:text-text-support disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-surface-elevation-2",
+            "focus-ring w-full rounded-md px-3 py-2 text-text-base border bg-surface-elevation-1 transition-colors duration-fast ease-standard placeholder:text-text-support disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-surface-elevation-2",
+            // El borde dice el estado; el anillo de foco es el del sitio y no cambia con él.
             hasError
-              ? "border-feedback-error focus-visible:ring-1 focus-visible:ring-feedback-error"
-              : "border-border focus-visible:border-pw-green focus-visible:ring-1 focus-visible:ring-pw-green",
+              ? "border-feedback-error"
+              : "border-border focus-visible:border-pw-green",
             className,
           )}
           {...props}
@@ -78,9 +91,7 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
         {hasError ? (
           <FieldHelper id={describedBy} tone="error">
             <MdError aria-hidden="true" className="size-4" />
-            {typeof error === "string"
-              ? error
-              : "Este campo es requerido o inválido"}
+            {typeof error === "string" ? error : genericErrorLabel}
           </FieldHelper>
         ) : (
           <span className="block text-right mt-1 text-sm text-text-support">

@@ -82,11 +82,11 @@
     "becomeSellerTitle": "Sell what you make",
     "branchAddress": "Address:",
     "branchAddressPlaceholder": "Street, number, neighbourhood, city",
+    "branchesHeading": "Your branches",
     "branchMapsHint": "Find yourself on Google Maps and use «Share», or copy the address from the bar.",
     "branchMapsLink": "Google Maps link:",
     "branchName": "Branch name:",
     "branchNamePlaceholder": "e.g. Sucursal Centro",
-    "branchesHeading": "Your branches",
     "cancel": "Cancel",
     "heading": "My account",
     "locating": "Finding where you are…",
@@ -161,14 +161,15 @@
     "heading": "Comments",
     "inputLabel": "Write your comment",
     "listLabel": "comments",
-    "loadMore": "Load more comments",
     "loadingMore": "Loading more comments…",
+    "loadMore": "Load more comments",
     "noMore": "There are no more comments.",
     "placeholder": "Write your comment…",
     "submit": "Add comment",
     "submitting": "Adding…"
   },
   "common": {
+    "alertError": "Error",
     "avatarAlt": "Profile picture",
     "breadcrumb": "Breadcrumb",
     "description": "❤️💚 Just Health: When you take care of your health, you're also protecting the most valuable thing you have: your time. Your ultimate non-renewable resource.",
@@ -214,9 +215,9 @@
     "youAreHere": "You are here"
   },
   "edit": {
-    "metaTitle": "Edit publication",
-    "heading": "Edit your publication",
     "content": "Description:",
+    "heading": "Edit your publication",
+    "metaTitle": "Edit publication",
     "submit": "Save changes"
   },
   "feed": {
@@ -240,27 +241,27 @@
     "rssDescription": "The latest the Hazlo Sano community publishes and sells: real food, no ultra-processed products."
   },
   "footer": {
-    "tagline": "We are not just an app. We are a whole ecosystem of initiatives built to make living healthy the easiest option for everyone.",
-    "pillarsHeading": "Our 4 Pillars",
-    "exploreHeading": "Explore",
-    "connectHeading": "Connect",
-    "publishLink": "Publish a product or healthy info",
     "aboutLink": "What {brand} is",
     "communityLink": "Hazlo Sano community",
-    "restaurantLink": "Restaurant",
-    "telegram": "🤖 Assistant (Telegram)",
-    "whatsapp": "📱 WhatsApp direct",
-    "tiktok": "🎵 TikTok",
+    "connectHeading": "Connect",
+    "exploreHeading": "Explore",
     "facebook": "🔵 Facebook",
+    "motto": "Love and look after your ultimate non-renewable resource: your time.",
+    "pillarsHeading": "Our 4 Pillars",
+    "publishLink": "Publish a product or healthy info",
+    "restaurantLink": "Restaurant",
     "rights": "© {year} {brand}. All rights reserved.",
-    "motto": "Love and look after your ultimate non-renewable resource: your time."
+    "tagline": "We are not just an app. We are a whole ecosystem of initiatives built to make living healthy the easiest option for everyone.",
+    "telegram": "🤖 Assistant (Telegram)",
+    "tiktok": "🎵 TikTok",
+    "whatsapp": "📱 WhatsApp direct"
   },
   "home": {
-    "title": "❤️💚 Just Health: When you take care of your health, you're also protecting the most valuable thing you have: your time. Your ultimate non-renewable resource.",
-    "h1": "❤️💚 Just Health: When you take care of your health, you're also protecting the most valuable thing you have: your time. Your ultimate non-renewable resource.",
     "description": "❤️💚 Just Health: When you take care of your health, you're also protecting the most valuable thing you have: your time. Your ultimate non-renewable resource.",
+    "h1": "❤️💚 Just Health: When you take care of your health, you're also protecting the most valuable thing you have: your time. Your ultimate non-renewable resource.",
     "p1": "🕒 You can't buy it. You can't get it back. But with just 10 minutes a day ⏳, you can gain health 🧘‍♂️, beauty ✨, and longevity 🌸… 🌍 improve your environment, strengthen your community 🤝, and become an inspiration to others 🔥.",
-    "p2": "💫 Living well isn’t a luxury. It’s an act of self-love… that spreads."
+    "p2": "💫 Living well isn’t a luxury. It’s an act of self-love… that spreads.",
+    "title": "❤️💚 Just Health: When you take care of your health, you're also protecting the most valuable thing you have: your time. Your ultimate non-renewable resource."
   },
   "nav": {
     "about": "About us",
@@ -420,11 +421,11 @@
   "pillarsOverview": {
     "heading": "The 4 Pillars of <brand>{brandName}</brand>",
     "intro": "A whole framework for reconnecting with your biology and getting your health back. Four interdependent areas that, worked on together, change your physical, mental and emotional wellbeing.",
-    "readMore": "Read more",
-    "whyHeading": "Why these four pillars?",
-    "whyBody": "Modern science confirms what ancestral wisdom already knew: restorative sleep, natural food, daily movement and connection with our community are the foundations of a healthy life. Each pillar reinforces the others, creating a virtuous circle of whole wellbeing.",
+    "metaDescription": "Sleep and rest, natural food, movement and mind: the four pillars a healthy life is built on.",
     "metaTitle": "The 4 pillars of {brand}",
-    "metaDescription": "Sleep and rest, natural food, movement and mind: the four pillars a healthy life is built on."
+    "readMore": "Read more",
+    "whyBody": "Modern science confirms what ancestral wisdom already knew: restorative sleep, natural food, daily movement and connection with our community are the foundations of a healthy life. Each pillar reinforces the others, creating a virtuous circle of whole wellbeing.",
+    "whyHeading": "Why these four pillars?"
   },
   "post": {
     "edit": "Edit",
@@ -439,12 +440,10 @@
     "soldBy": "Sold by {name}"
   },
   "privacyPolicy": {
-    "title": "Privacy Policy | Hazlo Sano",
     "description": "Privacy Policy for Hazlo Sano - Wellness Chatbot",
     "h1": "PRIVACY POLICY",
-    "subtitle": "Hazlo Sano - Wellness Chatbot",
-    "lastUpdate": "Last updated: {date}",
     "intro": "At Hazlo Sano we value your privacy and are committed to protecting your personal information. This Privacy Policy describes how we collect, use, and protect information when you interact with our chatbot via WhatsApp.",
+    "lastUpdate": "Last updated: {date}",
     "section1": {
       "title": "Information we collect",
       "intro": "When you use our chatbot, we may collect the following information:",
@@ -455,6 +454,12 @@
         "Basic technical data necessary for the operation of the service (such as date and time of interaction)."
       ],
       "warning": "We do not intentionally request sensitive medical information or financial data through the chatbot."
+    },
+    "section10": {
+      "title": "Contact",
+      "intro": "If you have questions about this Privacy Policy, you can contact us at:",
+      "companyName": "Hazlo Sano",
+      "location": "Tezonapa, Veracruz, Mexico"
     },
     "section2": {
       "title": "How we use your information",
@@ -515,12 +520,8 @@
       "title": "Changes to this policy",
       "p1": "We reserve the right to update this Privacy Policy at any time. Modifications will be published on this same page with the date of the update."
     },
-    "section10": {
-      "title": "Contact",
-      "intro": "If you have questions about this Privacy Policy, you can contact us at:",
-      "companyName": "Hazlo Sano",
-      "location": "Tezonapa, Veracruz, Mexico"
-    }
+    "subtitle": "Hazlo Sano - Wellness Chatbot",
+    "title": "Privacy Policy | Hazlo Sano"
   },
   "products": {
     "backToList": "Back to products",
@@ -581,12 +582,10 @@
     "viewSellerProfile": "See the seller profile"
   },
   "termsOfService": {
-    "title": "Terms of Service | Hazlo Sano",
     "description": "Terms of Service for Hazlo Sano - Wellness Chatbot",
     "h1": "TERMS OF SERVICE",
-    "subtitle": "Hazlo Sano – Wellness Chatbot",
-    "lastUpdate": "Last updated: {date}",
     "intro": "By using the Hazlo Sano chatbot via WhatsApp, you accept these Terms of Service. If you do not agree with them, we recommend that you do not use the service.",
+    "lastUpdate": "Last updated: {date}",
     "section1": {
       "title": "Service Description",
       "intro": "Hazlo Sano offers an informative chatbot focused on the four pillars of wellness:",
@@ -597,6 +596,17 @@
         "Emotional and mental well-being"
       ],
       "outro": "The chatbot provides educational content, general recommendations, and, where applicable, information about products or services related to healthy habits."
+    },
+    "section10": {
+      "title": "Applicable law",
+      "p1": "These Terms of Service are governed by the applicable laws in Mexico.",
+      "p2": "Any controversy will be resolved according to the competent jurisdiction in Veracruz, Mexico."
+    },
+    "section11": {
+      "title": "Contact",
+      "intro": "For any queries related to these Terms of Service, you can contact us at:",
+      "companyName": "Hazlo Sano",
+      "location": "Tezonapa, Veracruz, Mexico"
     },
     "section2": {
       "title": "Informational nature and absence of medical advice",
@@ -649,19 +659,13 @@
       "title": "Minimum age",
       "p1": "The service is directed to people over 18 years of age. By using the chatbot, you declare that you meet this requirement."
     },
-    "section10": {
-      "title": "Applicable law",
-      "p1": "These Terms of Service are governed by the applicable laws in Mexico.",
-      "p2": "Any controversy will be resolved according to the competent jurisdiction in Veracruz, Mexico."
-    },
-    "section11": {
-      "title": "Contact",
-      "intro": "For any queries related to these Terms of Service, you can contact us at:",
-      "companyName": "Hazlo Sano",
-      "location": "Tezonapa, Veracruz, Mexico"
-    }
+    "subtitle": "Hazlo Sano – Wellness Chatbot",
+    "title": "Terms of Service | Hazlo Sano"
   },
   "vocabulary": {
+    "availability": {
+      "soldOut": "Sold out"
+    },
     "origin": {
       "hazlo_sano_propio": "Hazlo Sano — own",
       "hazlo_sano_reventa": "Hazlo Sano — resale",
@@ -681,9 +685,6 @@
       "hazloSano": "🌿 Hazlo Sano",
       "producer": "🧑‍🌾 Made by the seller",
       "local": "📍 Local"
-    },
-    "availability": {
-      "soldOut": "Sold out"
     }
   }
 }

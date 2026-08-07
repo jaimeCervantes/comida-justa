@@ -82,11 +82,11 @@
     "becomeSellerTitle": "Vende lo que haces",
     "branchAddress": "Dirección:",
     "branchAddressPlaceholder": "Calle, número, colonia, ciudad",
+    "branchesHeading": "Tus sucursales",
     "branchMapsHint": "Búscate en Google Maps y usa «Compartir», o copia la dirección de la barra.",
     "branchMapsLink": "Enlace de Google Maps:",
     "branchName": "Nombre de la sucursal:",
     "branchNamePlaceholder": "Ej: Sucursal Centro",
-    "branchesHeading": "Tus sucursales",
     "cancel": "Cancelar",
     "heading": "Mi cuenta",
     "locating": "Buscando dónde estás…",
@@ -161,14 +161,15 @@
     "heading": "Comentarios",
     "inputLabel": "Escribe tu comentario",
     "listLabel": "comentarios",
-    "loadMore": "Cargar más comentarios",
     "loadingMore": "Cargando más comentarios...",
+    "loadMore": "Cargar más comentarios",
     "noMore": "Ya no hay más comentarios.",
     "placeholder": "Escribe tu comentario...",
     "submit": "Agregar Comentario",
     "submitting": "Agregando..."
   },
   "common": {
+    "alertError": "Error",
     "avatarAlt": "Foto de perfil",
     "breadcrumb": "Ruta de navegación",
     "description": "❤️💚 Hazlo sano: Cuando cuidas tu salud, también estás cuidando lo más valioso que tienes: tu tiempo. Tu recurso máximo no renovable.",
@@ -214,9 +215,9 @@
     "youAreHere": "Aquí estás tú"
   },
   "edit": {
-    "metaTitle": "Editar publicación",
-    "heading": "Edita tu publicación",
     "content": "Descripción:",
+    "heading": "Edita tu publicación",
+    "metaTitle": "Editar publicación",
     "submit": "Guardar cambios"
   },
   "feed": {
@@ -240,27 +241,27 @@
     "rssDescription": "Lo último que publica y vende la comunidad de Hazlo Sano: comida real, sin ultraprocesados."
   },
   "footer": {
-    "tagline": "No somos solo una aplicación, somos todo un ecosistema de iniciativas diseñadas para que vivir sano sea la opción más fácil para todos.",
-    "pillarsHeading": "Nuestros 4 Pilares",
-    "exploreHeading": "Explora",
-    "connectHeading": "Conecta",
-    "publishLink": "Publicar un producto o info sana",
     "aboutLink": "Qué es {brand}",
     "communityLink": "Comunidad Hazlo Sano",
-    "restaurantLink": "Restaurante",
-    "telegram": "🤖 Asistente (Telegram)",
-    "whatsapp": "📱 WhatsApp Directo",
-    "tiktok": "🎵 TikTok",
+    "connectHeading": "Conecta",
+    "exploreHeading": "Explora",
     "facebook": "🔵 Facebook",
+    "motto": "Ama y cuida tu recurso máximo no renovable, tu tiempo.",
+    "pillarsHeading": "Nuestros 4 Pilares",
+    "publishLink": "Publicar un producto o info sana",
+    "restaurantLink": "Restaurante",
     "rights": "© {year} {brand}. Todos los derechos reservados.",
-    "motto": "Ama y cuida tu recurso máximo no renovable, tu tiempo."
+    "tagline": "No somos solo una aplicación, somos todo un ecosistema de iniciativas diseñadas para que vivir sano sea la opción más fácil para todos.",
+    "telegram": "🤖 Asistente (Telegram)",
+    "tiktok": "🎵 TikTok",
+    "whatsapp": "📱 WhatsApp Directo"
   },
   "home": {
-    "title": "❤️💚 Hazlo sano: Cuando cuidas tu salud, también estás cuidando lo más valioso que tienes: tu tiempo. Tu recurso máximo no renovable.",
-    "h1": "❤️💚 Hazlo sano: Cuando cuidas tu salud, también estás cuidando lo más valioso que tienes: tu tiempo. Tu recurso máximo no renovable.",
     "description": "❤️💚 Hazlo sano: Cuando cuidas tu salud, también estás cuidando lo más valioso que tienes: tu tiempo. Tu recurso máximo no renovable.",
+    "h1": "❤️💚 Hazlo sano: Cuando cuidas tu salud, también estás cuidando lo más valioso que tienes: tu tiempo. Tu recurso máximo no renovable.",
     "p1": "🕒 No se compra. No se recupera. Pero con solo 10 minutos al día ⏳, puedes ganar salud 🧘‍♂️, belleza ✨ y longevidad 🌸… 🌍 mejorar tu entorno, fortalecer tu comunidad 🤝 y convertirte en inspiración para los demás 🔥.",
-    "p2": "💫 Vivir bien no es un lujo. Es un acto de amor propio… que se contagia."
+    "p2": "💫 Vivir bien no es un lujo. Es un acto de amor propio… que se contagia.",
+    "title": "❤️💚 Hazlo sano: Cuando cuidas tu salud, también estás cuidando lo más valioso que tienes: tu tiempo. Tu recurso máximo no renovable."
   },
   "nav": {
     "about": "Nosotros",
@@ -420,11 +421,11 @@
   "pillarsOverview": {
     "heading": "Los 4 Pilares de <brand>{brandName}</brand>",
     "intro": "Un framework integral para reconectar con tu biología y recuperar tu salud. Cuatro áreas interdependientes que, trabajadas en conjunto, transforman tu bienestar físico, mental y emocional.",
-    "readMore": "Leer más",
-    "whyHeading": "¿Por qué estos cuatro pilares?",
-    "whyBody": "La ciencia moderna confirma lo que la sabiduría ancestral ya sabía: el sueño reparador, la alimentación natural, el movimiento diario y la conexión con nuestra comunidad son los cimientos de una vida saludable. Cada pilar refuerza a los demás, creando un círculo virtuoso de bienestar integral.",
+    "metaDescription": "Sueño y descanso, alimentación natural, movimiento y mente: los cuatro pilares sobre los que se construye una vida sana.",
     "metaTitle": "Los 4 pilares de {brand}",
-    "metaDescription": "Sueño y descanso, alimentación natural, movimiento y mente: los cuatro pilares sobre los que se construye una vida sana."
+    "readMore": "Leer más",
+    "whyBody": "La ciencia moderna confirma lo que la sabiduría ancestral ya sabía: el sueño reparador, la alimentación natural, el movimiento diario y la conexión con nuestra comunidad son los cimientos de una vida saludable. Cada pilar refuerza a los demás, creando un círculo virtuoso de bienestar integral.",
+    "whyHeading": "¿Por qué estos cuatro pilares?"
   },
   "post": {
     "edit": "Editar",
@@ -439,12 +440,10 @@
     "soldBy": "Lo vende {name}"
   },
   "privacyPolicy": {
-    "title": "Política de Privacidad | Hazlo Sano",
     "description": "Política de Privacidad de Hazlo Sano - Chatbot de Bienestar",
     "h1": "POLÍTICA DE PRIVACIDAD",
-    "subtitle": "Hazlo Sano – Chatbot de Bienestar",
-    "lastUpdate": "Última actualización: {date}",
     "intro": "En Hazlo Sano valoramos tu privacidad y nos comprometemos a proteger tu información personal. La presente Política de Privacidad describe cómo recopilamos, utilizamos y protegemos la información cuando interactúas con nuestro chatbot a través de WhatsApp.",
+    "lastUpdate": "Última actualización: {date}",
     "section1": {
       "title": "Información que recopilamos",
       "intro": "Cuando utilizas nuestro chatbot, podemos recopilar la siguiente información:",
@@ -455,6 +454,12 @@
         "Datos técnicos básicos necesarios para el funcionamiento del servicio (como fecha y hora de interacción)."
       ],
       "warning": "No solicitamos intencionalmente información médica sensible ni datos financieros a través del chatbot."
+    },
+    "section10": {
+      "title": "Contacto",
+      "intro": "Si tienes preguntas sobre esta Política de Privacidad, puedes contactarnos en:",
+      "companyName": "Hazlo Sano",
+      "location": "Tezonapa, Veracruz, México"
     },
     "section2": {
       "title": "Cómo utilizamos tu información",
@@ -515,12 +520,8 @@
       "title": "Cambios a esta política",
       "p1": "Nos reservamos el derecho de actualizar esta Política de Privacidad en cualquier momento. Las modificaciones serán publicadas en esta misma página con fecha de actualización."
     },
-    "section10": {
-      "title": "Contacto",
-      "intro": "Si tienes preguntas sobre esta Política de Privacidad, puedes contactarnos en:",
-      "companyName": "Hazlo Sano",
-      "location": "Tezonapa, Veracruz, México"
-    }
+    "subtitle": "Hazlo Sano – Chatbot de Bienestar",
+    "title": "Política de Privacidad | Hazlo Sano"
   },
   "products": {
     "backToList": "Volver a los productos",
@@ -581,12 +582,10 @@
     "viewSellerProfile": "Ver el perfil de quien vende"
   },
   "termsOfService": {
-    "title": "Condiciones de Servicio | Hazlo Sano",
     "description": "Condiciones de Servicio de Hazlo Sano - Chatbot de Bienestar",
     "h1": "CONDICIONES DE SERVICIO",
-    "subtitle": "Hazlo Sano – Chatbot de Bienestar",
-    "lastUpdate": "Última actualización: {date}",
     "intro": "Al utilizar el chatbot de Hazlo Sano a través de WhatsApp, aceptas las presentes Condiciones de Servicio. Si no estás de acuerdo con ellas, te recomendamos no utilizar el servicio.",
+    "lastUpdate": "Última actualización: {date}",
     "section1": {
       "title": "Descripción del servicio",
       "intro": "Hazlo Sano ofrece un chatbot informativo enfocado en los cuatro pilares del bienestar:",
@@ -597,6 +596,17 @@
         "Bienestar emocional y mental"
       ],
       "outro": "El chatbot proporciona contenido educativo, recomendaciones generales y, en su caso, información sobre productos o servicios relacionados con hábitos saludables."
+    },
+    "section10": {
+      "title": "Legislación aplicable",
+      "p1": "Estas Condiciones de Servicio se rigen por las leyes aplicables en México.",
+      "p2": "Cualquier controversia será resuelta conforme a la jurisdicción competente en Veracruz, México."
+    },
+    "section11": {
+      "title": "Contacto",
+      "intro": "Para cualquier consulta relacionada con estas Condiciones de Servicio, puedes contactarnos en:",
+      "companyName": "Hazlo Sano",
+      "location": "Tezonapa, Veracruz, México"
     },
     "section2": {
       "title": "Naturaleza informativa y ausencia de asesoría médica",
@@ -649,19 +659,13 @@
       "title": "Edad mínima",
       "p1": "El servicio está dirigido a personas mayores de 18 años. Al utilizar el chatbot, declaras que cumples con este requisito."
     },
-    "section10": {
-      "title": "Legislación aplicable",
-      "p1": "Estas Condiciones de Servicio se rigen por las leyes aplicables en México.",
-      "p2": "Cualquier controversia será resuelta conforme a la jurisdicción competente en Veracruz, México."
-    },
-    "section11": {
-      "title": "Contacto",
-      "intro": "Para cualquier consulta relacionada con estas Condiciones de Servicio, puedes contactarnos en:",
-      "companyName": "Hazlo Sano",
-      "location": "Tezonapa, Veracruz, México"
-    }
+    "subtitle": "Hazlo Sano – Chatbot de Bienestar",
+    "title": "Condiciones de Servicio | Hazlo Sano"
   },
   "vocabulary": {
+    "availability": {
+      "soldOut": "Agotado"
+    },
     "origin": {
       "hazlo_sano_propio": "Hazlo Sano — propio",
       "hazlo_sano_reventa": "Hazlo Sano — reventa",
@@ -681,9 +685,6 @@
       "hazloSano": "🌿 Hazlo Sano",
       "producer": "🧑‍🌾 Lo hace quien lo vende",
       "local": "📍 Local"
-    },
-    "availability": {
-      "soldOut": "Agotado"
     }
   }
 }

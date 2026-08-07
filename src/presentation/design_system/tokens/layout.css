@@ -1,5 +1,20 @@
 /* ============================================================
    Hazlo Sano — Spacing, radius, shadow
+   ============================================================
+
+   **Estos tokens NO se exponen a Tailwind, y es deliberado.**
+
+   Sus valores de radio son idénticos a los de la escala por defecto de Tailwind v4
+   (`sm` 0.25rem, `md` 0.375rem, `lg` 0.5rem), así que declararlos en `@theme` no añadiría ninguna
+   utilidad nueva: escribir `rounded-lg` ya usa exactamente este valor. Y `--radius-pill` es lo
+   mismo que `rounded-full`.
+
+   Por eso "nadie los consume": no hay nada que consumir. Quedan como la referencia escrita de la
+   escala —para cambiarla habría que exponerlos aquí **y** aceptar que cada `rounded-sm` del sitio
+   cambia con ellos—, no como una capa que los componentes deban usar.
+
+   Quien quiera un radio distinto del de Tailwind: añádalo aquí con un nombre propio y expóngalo,
+   como se hizo con `--text-*` en `typography.css`.
    ============================================================ */
 
 :root {
