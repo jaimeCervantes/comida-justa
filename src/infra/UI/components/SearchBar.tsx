@@ -1,10 +1,12 @@
 "use client";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
 import { MdSearch } from "react-icons/md";
+import { resolvePostTranslation } from "~/domain/entities/post/translations";
 import type { Post } from "~/domain/entities/post/types";
 import { useRouter } from "~/i18n/navigation";
+import { routing } from "~/i18n/routing";
 import { TextField } from "~/presentation/design_system/forms/TextField";
 
 interface SearchResult extends Post {
@@ -34,6 +36,9 @@ type SearchOutcome = {
 
 const SearchBar: React.FC<SearchBarProps> = ({ placeholder }) => {
   const t = useTranslations("search");
+  /* El repositorio de búsqueda ya indexa la traducción por su locale real, así que leer `.es` a
+     secas dejaba cada resultado sin título ni slug en cuanto se buscaba en inglés. */
+  const locale = useLocale();
   const [query, setQuery] = useState("");
   const [outcome, setOutcome] = useState<SearchOutcome>({
     forQuery: "",
@@ -152,22 +157,29 @@ const SearchBar: React.FC<SearchBarProps> = ({ placeholder }) => {
             <div className="p-2 text-center text-gray-500">{t("empty")}</div>
           ) : (
             <ul>
-              {results.map((result) => (
-                <li
-                  key={result.id}
-                  className={`p-3 border-b last:border-b-0 border-gray-100 dark:border-gray-700 cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-gray-800 focus:bg-gray-100 dark:focus:bg-gray-700 outline-hidden`}
-                  onMouseDown={() =>
-                    router.push({
-                      pathname: "/[slug]",
-                      params: { slug: result.translations?.es.slug ?? "" },
-                    })
-                  }
-                >
-                  <div className="font-bold text-gray-800 dark:text-gray-200 text-sm">
-                    {result.translations?.es.title}
-                  </div>
-                </li>
-              ))}
+              {results.map((result) => {
+                const translation = resolvePostTranslation(
+                  result.translations,
+                  locale,
+                  routing.defaultLocale,
+                );
+                return (
+                  <li
+                    key={result.id}
+                    className={`p-3 border-b last:border-b-0 border-gray-100 dark:border-gray-700 cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-gray-800 focus:bg-gray-100 dark:focus:bg-gray-700 outline-hidden`}
+                    onMouseDown={() =>
+                      router.push({
+                        pathname: "/[slug]",
+                        params: { slug: translation?.slug ?? "" },
+                      })
+                    }
+                  >
+                    <div className="font-bold text-gray-800 dark:text-gray-200 text-sm">
+                      {translation?.title}
+                    </div>
+                  </li>
+                );
+              })}
             </ul>
           )}
           <button

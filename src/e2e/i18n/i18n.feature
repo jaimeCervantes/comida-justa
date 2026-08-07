@@ -89,48 +89,86 @@ Feature: Traducciones (i18n) — que el sitio hable de verdad dos idiomas
     Then no encuentra literales con acentos ni signos españoles
 
   # ---------------------------------------------------------------------------
-  # Slice 2 — El contenido deja de asumir español
+  # Slice 2 — El contenido deja de asumir español  (implementado)
+  # Specs en src/domain/entities/post/translations.test.ts
+  #          src/infra/UI/mappers/posts/mapPostsToCards.test.ts
   # ---------------------------------------------------------------------------
 
-  @slice-2 @future
-  Scenario: Una publicación traducida se muestra en el idioma pedido
-    Given "Jugo Verde" con traducción al inglés "Green Juice"
-    When un visitante la abre en inglés
-    Then lee "Green Juice", y su SEO anuncia ese título
+  @slice-2 @component
+  Scenario Outline: La publicación se lee en el idioma que existe, y se declara cuál es
+    Given la publicación "<publicacion>" con traducciones en "<idiomas>"
+    When un visitante la abre en "<pedido>"
+    Then la lee en "<mostrado>"
+    And el respaldo se declara como "<respaldo>"
 
-  @slice-2 @future
-  Scenario: Sin traducción, se cae al español en vez de quedarse en blanco
+    Examples: con traducción al inglés — el estado tras el backfill
+      | publicacion   | idiomas | pedido | mostrado | respaldo |
+      | Jugo Verde    | es,en   | en     | en       | false    |
+      | Jugo Verde    | es,en   | es     | es       | false    |
+
+    Examples: sin traducción — nunca se queda en blanco
+      | publicacion   | idiomas | pedido | mostrado | respaldo |
+      | Suero natural | es      | en     | es       | true     |
+      | Suero natural | es      | es     | es       | false    |
+
+  @slice-2 @component
+  Scenario: El enlace lleva al slug del idioma que se está enseñando
+    Given "Jugo Verde" con slug "jugo-verde" en español y "green-juice" en inglés
+    When se pinta su tarjeta en inglés
+    Then el enlace apunta a "green-juice", no a "jugo-verde"
+
+  @slice-2 @component
+  Scenario: El SEO no anuncia una versión que no existe
     Given "Suero natural", que solo existe en español
-    When un visitante la abre en inglés
-    Then ve el texto en español bajo el marco en inglés
-
-  @slice-2 @future
-  Scenario: Buscar por el slug en inglés encuentra la publicación
-    Given "Jugo Verde" con slug en inglés "green-juice"
-    When un visitante abre "/en/green-juice"
-    Then la lee en inglés, no un 404
+    When se genera su metadata en inglés
+    Then no se declara `alternates.languages`
+    And el dato estructurado describe el texto que la página enseña, no el español por defecto
 
   # ---------------------------------------------------------------------------
-  # Slice 3 — El contenido existe en inglés
+  # Slice 3 — El contenido existe en inglés  (implementado)
+  # Specs en src/use_cases/translatePost/translatePostUseCase.test.ts
+  #          src/infra/services/GeminiTranslationService.test.ts
   # ---------------------------------------------------------------------------
 
-  @slice-3 @future
+  @slice-3 @component
   Scenario: El backfill traduce lo que ya está publicado
-    Given las 24 publicaciones que hoy solo existen en español
-    When corre el backfill de traducción
-    Then cada una tiene su fila en inglés, con su slug y su embedding
+    Given las 23 publicaciones que solo existían en español
+    When corre `pnpm run backfill-translations`
+    Then cada una tiene su fila en inglés con su propio slug
+    And `pnpm run backfill-embeddings` le da su vector, porque el embedding vive por traducción
 
-  @slice-3 @future
+  @slice-3 @component
+  Scenario: Correr el backfill dos veces no duplica nada
+    Given que las 23 ya están traducidas
+    When se vuelve a correr el backfill
+    Then no se escribe ninguna fila
+    And una traducción corregida a mano sigue intacta
+
+  @slice-3 @component
   Scenario: Publicar deja la traducción hecha sin hacer esperar
     Given que publico un producto en español
     When se guarda
-    Then la respuesta no espera al traductor, y después existe su traducción al inglés
+    Then la respuesta no espera al traductor, porque la traducción va en su propio `after()`
+    And después existe su traducción al inglés
 
-  @slice-3 @future
+  @slice-3 @component
   Scenario: Con el traductor caído, la publicación se crea igual
     Given que el proveedor de traducción no responde
     When publico un producto
     Then el producto queda publicado y su traducción, pendiente para el backfill
+    And el caso de uso no lanza: la respuesta ya salió y nadie vería la excepción
+
+  @slice-3 @component
+  Scenario Outline: Una traducción que sale mal no se guarda
+    Given que el proveedor devuelve "<respuesta>"
+    When se intenta traducir
+    Then la fila no se escribe y queda pendiente
+
+    Examples: los tres fallos que aparecieron en la corrida real
+      | respuesta                                  | por qué importa                                  |
+      | el texto en español sin tocar              | el slug saldría en español con un -1 pegado      |
+      | el cuerpo con los saltos de línea aplastados | la publicación se vuelve un muro de texto      |
+      | prosa en vez de JSON                       | el preámbulo acabaría publicado como el título   |
 
   # ---------------------------------------------------------------------------
   # Slice 4 — URLs localizadas

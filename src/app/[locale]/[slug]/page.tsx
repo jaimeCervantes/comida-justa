@@ -2,10 +2,11 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Suspense } from "react";
+import { resolvePostTranslation } from "~/domain/entities/post/translations";
 import type { Coordinates } from "~/domain/entities/seller/coordinates";
 import type { MappedStore } from "~/domain/entities/seller/map";
 import { buildBreadcrumbJsonLd } from "~/domain/seo/jsonLd/breadcrumbs";
-import { resolveLocale } from "~/i18n/routing";
+import { resolveLocale, routing } from "~/i18n/routing";
 import { auth } from "~/infra/auth";
 import { readViewerId } from "~/infra/auth/readViewerId";
 import { storeOfPost } from "~/infra/dataAccess/sellers/PostgresPostStore";
@@ -28,11 +29,14 @@ export async function generateMetadata({
 }: {
   params: Promise<{ slug: string; locale: string }>;
 }): Promise<Metadata> {
-  const { slug } = await params;
+  const { slug, locale: rawLocale } = await params;
+  const locale = resolveLocale(rawLocale);
   const post = await getPostDetails(slug);
 
   // Sin publicación no hay nada que anunciar: la página responde 404 y el layout pone lo suyo.
-  return post ? buildPostMetadata(post, slug) : {};
+  return post
+    ? buildPostMetadata(post, slug, locale, routing.defaultLocale)
+    : {};
 }
 
 /**
@@ -82,7 +86,12 @@ export default async function Slug({
 
   /* Quien llega desde un buscador aterriza aquí sin haber pasado por el catálogo: la miga es su
      única forma de subir, y es lo que permite declarar el `BreadcrumbList`. */
-  const title = String(post.translations?.es?.title ?? post.title ?? "");
+  const translation = resolvePostTranslation(
+    post.translations,
+    locale,
+    routing.defaultLocale,
+  );
+  const title = String(translation?.title ?? post.title ?? "");
   const { crumbs, jsonLdItems } = await postBreadcrumbs({
     categoryKey: post.subCategory ?? post.category,
     title,
@@ -99,7 +108,15 @@ export default async function Slug({
         ariaLabel={tCommon("breadcrumb")}
         className="w-full mb-3"
       />
-      <JsonLd data={buildPostStructuredData(post, slug, categoryLabel)} />
+      <JsonLd
+        data={buildPostStructuredData(
+          post,
+          slug,
+          categoryLabel,
+          locale,
+          routing.defaultLocale,
+        )}
+      />
       {breadcrumbJsonLd ? <JsonLd data={breadcrumbJsonLd} /> : null}
       {/*
         El orden del DOM es el de MÓVIL —publicación, mapa, comentarios, recomendadas— y las clases

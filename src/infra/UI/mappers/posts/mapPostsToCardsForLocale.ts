@@ -1,3 +1,4 @@
+import { routing } from "~/i18n/routing";
 import { getCategoryTaxonomy } from "~/infra/dataAccess/categories/cachedCategoryTaxonomy";
 import type { Post } from "~/infra/types/Posts";
 import { mapPostsToCards } from "./mapPostsToCards";
@@ -12,6 +13,7 @@ import { mapPostsToCards } from "./mapPostsToCards";
 export async function mapPostsToCardsForLocale(posts: Post[], locale: string) {
   return mapPostsToCards(posts, {
     locale,
+    fallbackLocale: routing.defaultLocale,
     taxonomy: await getCategoryTaxonomy(),
   });
 }

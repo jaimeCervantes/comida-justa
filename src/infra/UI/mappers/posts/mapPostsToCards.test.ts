@@ -4,8 +4,8 @@ import { posts } from "./dummies/firestorePostDummies";
 import { mapOnePostToCard, mapPostsToCards } from "./mapPostsToCards";
 
 const taxonomy = makeTaxonomy();
-const es = { locale: "es", taxonomy };
-const en = { locale: "en", taxonomy };
+const es = { locale: "es", fallbackLocale: "es", taxonomy };
+const en = { locale: "en", fallbackLocale: "es", taxonomy };
 
 describe("When mapPostsToIndex receive a list of FirestorePost", () => {
   it("should map them to a list of post for the index cards", () => {
@@ -94,5 +94,67 @@ describe("When a card is mapped for a visitor's locale", () => {
 
     expect(card.category).toBe("alimentacion");
     expect(card.subCategory).toBe("jugos");
+  });
+});
+
+/**
+ * Cubre los escenarios de `@slice-2` en `src/e2e/i18n/i18n.feature`.
+ *
+ * Hasta ahora el mapper leía `translations.es` a secas, así que una fila `en` era invisible por
+ * mucho que existiera en la base. Estos casos son los que fallaban antes del cambio.
+ */
+describe("When the visitor asks for a language", () => {
+  const bilingue = {
+    ...posts[0],
+    translations: {
+      es: {
+        title: "Suero natural",
+        slug: "suero-natural",
+        content: "Bebida fermentada de la casa.",
+      },
+      en: {
+        title: "Natural whey",
+        slug: "natural-whey",
+        content: "House fermented drink.",
+      },
+    },
+  };
+
+  it("shows the English row when it exists", () => {
+    const card = mapOnePostToCard(bilingue, en);
+
+    expect(card.title).toBe("Natural whey");
+    expect(card.slug).toBe("natural-whey");
+    expect(card.contentLocale).toBe("en");
+    expect(card.isTranslationFallback).toBe(false);
+  });
+
+  it("shows the Spanish row when Spanish is asked", () => {
+    const card = mapOnePostToCard(bilingue, es);
+
+    expect(card.title).toBe("Suero natural");
+    expect(card.slug).toBe("suero-natural");
+    expect(card.isTranslationFallback).toBe(false);
+  });
+
+  /* El estado real de la base hoy: 24 filas en español y ninguna en inglés. */
+  it("falls back to Spanish and says so when there is no English row", () => {
+    const soloEspanol = {
+      ...posts[0],
+      translations: { es: bilingue.translations.es },
+    };
+
+    const card = mapOnePostToCard(soloEspanol, en);
+
+    expect(card.title).toBe("Suero natural");
+    expect(card.contentLocale).toBe("es");
+    expect(card.isTranslationFallback).toBe(true);
+  });
+
+  /* El enlace tiene que llevar al slug del idioma que se está enseñando, o la ficha se abre en el
+     otro idioma y el cambio de idioma deja de ser reversible. */
+  it("links to the slug of the language it is showing", () => {
+    expect(mapOnePostToCard(bilingue, en).to).toContain("natural-whey");
+    expect(mapOnePostToCard(bilingue, es).to).toContain("suero-natural");
   });
 });

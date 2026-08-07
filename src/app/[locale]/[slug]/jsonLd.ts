@@ -1,5 +1,6 @@
 import { withoutHashtags } from "~/domain/entities/post/hashtags";
 import { PRODUCT_KIND } from "~/domain/entities/post/hazloSanoProduct";
+import { resolvePostTranslation } from "~/domain/entities/post/translations";
 import { buildMetaDescription } from "~/domain/seo/description";
 import { buildPostJsonLd } from "~/domain/seo/jsonLd/post";
 import type { JsonLdNode } from "~/domain/seo/jsonLd/types";
@@ -23,15 +24,24 @@ import type { Post } from "~/infra/types/Posts";
 export function buildPostStructuredData(
   post: Post,
   slug: string,
-  categoryLabel?: string | null,
+  categoryLabel: string | null | undefined,
+  locale: string,
+  fallbackLocale: string,
 ): JsonLdNode[] {
   const share = buildSharePreview(post.media, DEFAULT_SHARE_IMAGE);
-  const content = String(post.translations?.es?.content ?? post.content ?? "");
+  /* El dato estructurado tiene que describir **lo que la página enseña**. Si declarara siempre el
+     español mientras la ficha se lee en inglés, el buscador indexaría un texto que nadie ve. */
+  const translation = resolvePostTranslation(
+    post.translations,
+    locale,
+    fallbackLocale,
+  );
+  const content = String(translation?.content ?? post.content ?? "");
   const publishedAt = post.createdAt ? new Date(post.createdAt) : null;
 
   return buildPostJsonLd({
     url: `${CANONICAL_URL}/${slug}`,
-    title: String(post.translations?.es?.title ?? post.title ?? ""),
+    title: String(translation?.title ?? post.title ?? ""),
     description: buildMetaDescription(content),
     isProduct: post.kind === PRODUCT_KIND,
     price: post.price ?? null,

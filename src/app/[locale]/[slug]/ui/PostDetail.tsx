@@ -2,7 +2,9 @@ import { getTranslations } from "next-intl/server";
 import { FaDollarSign } from "react-icons/fa";
 import { MdPhone } from "react-icons/md";
 import { canBeOrdered, isSellable } from "~/domain/entities/post/availability";
+import { resolvePostTranslation } from "~/domain/entities/post/translations";
 import { buildWhatsappOrderLink } from "~/domain/entities/post/whatsappOrder";
+import { routing } from "~/i18n/routing";
 import { PUBLIC_BASE_URL, SITE_CURRENCY } from "~/infra/constants";
 import type { Post, PostUser } from "~/infra/types/Posts";
 import CategoryTag from "~/infra/UI/components/CategoryTag/CategoryTag";
@@ -50,9 +52,14 @@ export default async function PostDetail({
   slug?: string;
 }) {
   const t = await getTranslations("post");
+  const translation = resolvePostTranslation(
+    postDetails.translations,
+    locale ?? routing.defaultLocale,
+    routing.defaultLocale,
+  );
   const details = {
-    title: postDetails.translations?.es?.title ?? postDetails.title,
-    content: postDetails.translations?.es?.content ?? postDetails.content,
+    title: translation?.title ?? postDetails.title,
+    content: translation?.content ?? postDetails.content,
     media: postDetails.media[0] ?? { url: "", type: "", alt: "" },
     price: postDetails.price,
     kind: postDetails.kind,

@@ -9,6 +9,7 @@ import type { User } from "~/domain/entities/post/types";
 import PostValidator from "~/domain/schemas/PostValidator";
 import getErrorMessage from "~/domain/shared/getErrorMessage";
 import { redirectKeepingLocale } from "~/i18n/redirectKeepingLocale";
+import { routing } from "~/i18n/routing";
 import { auth } from "~/infra/auth";
 import { isAdmin } from "~/infra/auth/isAdmin";
 import { SIGNIN_PATH } from "~/infra/constants";
@@ -16,6 +17,7 @@ import { getCategoryTaxonomy } from "~/infra/dataAccess/categories/cachedCategor
 import { createPostRepository } from "~/infra/dataAccess/createOnePost/factory";
 import { createIndexPostEmbeddingUseCase } from "~/infra/dataAccess/indexPostEmbedding/factory";
 import { createSellerRepository } from "~/infra/dataAccess/sellers/factory";
+import { createTranslatePostUseCase } from "~/infra/dataAccess/translatePost/factory";
 import type { ActionState } from "~/infra/types/Actions";
 import CreateOnePostUseCase from "~/use_cases/createOnePost/createOnePostUseCase";
 
@@ -27,6 +29,11 @@ const useCase = new CreateOnePostUseCase(
 
 /** El idioma en el que se escribe hoy toda publicación; la traducción vive bajo esa clave. */
 const PUBLISH_LOCALE = "es";
+
+/** Los idiomas del sitio que no son aquel en el que se escribió: a esos hay que traducir. */
+const TRANSLATION_TARGETS = routing.locales.filter(
+  (locale) => locale !== PUBLISH_LOCALE,
+);
 
 /**
  * Deja la publicación indexada para el chatbot **después** de responderle a quien publicó.
@@ -47,6 +54,39 @@ function indexAfterResponse(postId: string): void {
         `[embeddings] post ${postId} queda pendiente de indexar: ${result.reason}`,
         result.error,
       );
+    }
+  });
+}
+
+/**
+ * Traduce la publicación a los demás idiomas **después** de responder.
+ *
+ * Va en su propio `after()` y no dentro del anterior a propósito: si Gemini tarda 30 segundos en
+ * traducir, el embedding —que es lo que hace que el chatbot la encuentre— no tiene por qué esperar
+ * detrás. Son dos trabajos independientes que fallan por su cuenta.
+ *
+ * El caso de uso no lanza nunca: lo que no se pueda traducir queda pendiente y lo recoge
+ * `pnpm run backfill-translations`.
+ */
+function translateAfterResponse(postId: string): void {
+  if (TRANSLATION_TARGETS.length === 0) return;
+
+  after(async () => {
+    const useCaseInstance = createTranslatePostUseCase();
+
+    for (const targetLocale of TRANSLATION_TARGETS) {
+      const result = await useCaseInstance.execute({
+        postId,
+        sourceLocale: PUBLISH_LOCALE,
+        targetLocale,
+      });
+
+      if (!result.translated && result.reason === "provider-failed") {
+        console.warn(
+          `[translations] post ${postId} queda pendiente en ${targetLocale}`,
+          result.error,
+        );
+      }
     }
   });
 }
@@ -168,6 +208,7 @@ export async function createPost(
 
   if (result?.id) {
     indexAfterResponse(result.id);
+    translateAfterResponse(result.id);
   }
 
   redirectKeepingLocale(

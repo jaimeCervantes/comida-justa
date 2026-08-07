@@ -1,7 +1,10 @@
 import type IEmbeddingService from "~/use_cases/common/ports/IEmbeddingService";
+import type ITranslationService from "~/use_cases/common/ports/ITranslationService";
 import GeminiEmbeddingService from "./GeminiEmbeddingService";
+import GeminiTranslationService from "./GeminiTranslationService";
 
 let instance: IEmbeddingService | null = null;
+let translator: ITranslationService | null = null;
 
 /**
  * El proveedor de embeddings del sitio. Se lee `GEMINI_API_KEY` aquí y no en el constructor para
@@ -13,4 +16,13 @@ export function createEmbeddingService(): IEmbeddingService {
     apiKey: process.env.GEMINI_API_KEY ?? "",
   });
   return instance;
+}
+
+/** El traductor del sitio. Comparte clave con los embeddings; el modelo y el endpoint son otros. */
+export function createTranslationService(): ITranslationService {
+  if (translator) return translator;
+  translator = new GeminiTranslationService({
+    apiKey: process.env.GEMINI_API_KEY ?? "",
+  });
+  return translator;
 }

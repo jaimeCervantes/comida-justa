@@ -184,3 +184,126 @@ justo quienes usan la sesión. **Se dejó pendiente y se pasó al slice 1.**
 
 La lección que vale guardar: el diagnóstico se dio por bueno sin medirlo, porque `auth()` en un
 layout *parecía* explicación suficiente. Tres builds lo desmintieron.
+
+---
+
+## Slice 2 — El contenido deja de asumir español
+
+**Objetivo:** que una publicación se muestre en el idioma pedido, con respaldo declarado al
+español. Sin esto, una fila `en` en la base es **invisible** por mucho que exista.
+
+**Decisiones y racional:**
+
+- **La decisión no existía en ninguna parte.** Nueve archivos leían `translations?.es` a mano: el
+  mapper de tarjetas, `PostDetail`, `metadata.ts`, `jsonLd.ts`, `page.tsx` y `SearchBar`. Ahora hay
+  una sola regla en el dominio (`resolvePostTranslation`): *pedido → respaldo → cualquiera que haya*.
+
+- **El último escalón es deliberado.** Una publicación que solo exista en un tercer idioma se
+  muestra en ese: enseñar algo es mejor que enseñar un hueco. Lo que nunca hace es inventar texto.
+
+- **`isFallback` viaja en el resultado.** El criterio de aceptación pedía que el respaldo fuera
+  «visible o declarado, no un silencio». Quien pinta decide si lo dice; quien resuelve tiene la
+  obligación de contarlo. De ahí salen también `contentLocale` e `isTranslationFallback` en la
+  tarjeta.
+
+- **`SearchBar` estaba roto y nadie lo sabía.** El repositorio de búsqueda ya indexaba la traducción
+  bajo **su locale real** (`translations: { [locale]: … }`), pero el componente leía `.es` fijo: al
+  buscar en inglés, cada resultado salía **sin título y con el slug vacío**. El bug estaba latente
+  esperando a que hubiera contenido en inglés.
+
+- **El SEO dejó de mentir.** `alternates.languages` solo se declara cuando la publicación existe de
+  verdad en más de un idioma (`availableLocales`), y el JSON-LD describe el texto que la página
+  enseña. Antes anunciaba siempre el español mientras la ficha podía leerse en inglés.
+
+- **Hallazgo: los tests no se typechequean.** `tsconfig.json` excluye `**/*.test.ts(x)`. Al añadir
+  `fallbackLocale` como campo requerido de `CardMappingContext`, los tests siguieron compilando y
+  **pasando por accidente** (el `undefined` caía en la rama de "cualquier idioma" y acertaba). Se
+  corrigieron a mano y se añadió cobertura del caso inglés. Conviene tenerlo presente: un cambio de
+  contrato no falla en los tests hasta que se ejecutan.
+
+**Archivos tocados:** `src/domain/entities/post/translations.ts` + test (nuevos);
+`mapPostsToCards.ts`, `mapPostsToCardsForLocale.ts`, `[slug]/metadata.ts`, `[slug]/jsonLd.ts`,
+`[slug]/page.tsx`, `[slug]/ui/PostDetail.tsx`, `SearchBar.tsx`.
+
+---
+
+## Slice 3 — El contenido existe en inglés (Gemini)
+
+**Objetivo:** traducir las publicaciones existentes y las nuevas. Es lo que vuelve honesto el
+prefijo `/en`.
+
+**Decisiones y racional:**
+
+- **Cliente REST, no SDK.** `GeminiTranslationService` copia el patrón de `GeminiEmbeddingService`:
+  `:generateContent` por REST, `x-goog-api-key`, `AbortController` y un error de dominio propio. Son
+  ~40 líneas contra una dependencia más en el bundle del servidor.
+
+- **`responseMimeType: application/json` con esquema, y `temperature: 0`.** Sin el esquema el modelo
+  contesta «Here is the translation: …» y ese preámbulo acabaría publicado como el título. Traducir
+  no es escribir: se quiere la lectura más literal posible, no variedad.
+
+- **Título y cuerpo van juntos en una llamada.** Traducirlos por separado pierde el contexto:
+  «Verde» solo es «Green» si el traductor sabe que el cuerpo habla de un jugo.
+
+- **El caso de uso no lanza nunca.** Corre dentro de `after()`, cuando la respuesta ya salió: un
+  `throw` no lo vería nadie y sí ensuciaría los logs como si fuera un fallo del sitio. Va en **su
+  propio `after()`**, separado del embedding, para que traducir 30 segundos no retrase lo que hace
+  que el chatbot encuentre la publicación.
+
+- **Idempotencia por SQL, no por confianza.** `post_translations` **no tiene**
+  `UNIQUE(post_id, locale)` —la documentación lo daba por hecho y ninguna migración lo crea—, así
+  que el `INSERT` lleva su `WHERE NOT EXISTS` **dentro de la misma sentencia**. Un `SELECT` seguido
+  de un `INSERT` dejaría una ventana en la que dos corridas duplican la fila.
+
+**Dos defectos reales encontrados al correrlo contra la base, no en teoría:**
+
+1. **Gemini aplastó los saltos de línea.** La primera traducción devolvió el texto con **0** saltos
+   donde el original tenía 4: título pegado al primer párrafo, la publicación vuelta un muro. Se
+   corrigió el prompt y se añadió `assertKeepsStructure`, que **falla** en vez de avisar — guardar
+   el texto aplastado sería corrupción silenciosa, y nadie revisa 23 publicaciones a mano.
+2. **Una volvió sin traducir.** «¿Por Qué Comer Despacio es la Clave para Bajar de Peso?» regresó
+   idéntica, y como el slug sale del título traducido, la fila inglesa acabó con una URL española y
+   un `-1` pegado. Se añadió `assertActuallyTranslated`, que exige que **título y cuerpo a la vez**
+   no sean idénticos: un título puede legítimamente no cambiar («Kombucha»), el cuerpo entero no.
+
+**Archivos tocados:** `src/domain/errors/TranslationProviderError.ts`,
+`src/use_cases/common/ports/ITranslationService.ts`,
+`src/use_cases/translatePost/**` (caso de uso, puerto, test),
+`src/infra/services/GeminiTranslationService.ts` + test, `factory.ts`,
+`src/infra/dataAccess/translatePost/**`, `src/scripts/backfillTranslations.ts`,
+`src/app/[locale]/publicar/actions.ts`, `package.json`.
+
+**Comandos:**
+```bash
+pnpm run backfill-translations -- --dry-run   # lista lo pendiente
+pnpm run backfill-translations                # traduce
+pnpm run backfill-embeddings                  # el vector de cada fila nueva
+```
+
+**Validación (con números):**
+- `pnpm run test:run`: **893/893 en verde**, 94 archivos (+39 pruebas nuevas).
+- `pnpm run typecheck`: exit 0. `pnpm run lint` y `check:i18n`: limpios. `pnpm run build`: compila.
+- **Escrito en la base compartida:** las 23 publicaciones tienen ahora su fila `en` con slug propio
+  y embedding. Estado auditado: `en` 23 filas / 0 sin embedding, `es` 23 / 0; **sin duplicados
+  `(post_id, locale)`, sin slugs repetidos, sin títulos sin traducir y sin estructura aplastada**.
+- **Idempotencia comprobada:** una segunda corrida reporta `0 publicaciones sin 'en'`.
+- **Para deshacerlo:** `DELETE FROM post_translations WHERE locale = 'en';`
+- Playwright no se ejecutó en este slice.
+
+### Recap
+El contenido del sitio existe en inglés de verdad, no como marco traducido sobre texto español. El
+resolutor de traducción vive en el dominio y lo usan las seis pantallas que antes leían `.es` a
+mano; el SEO dejó de anunciar versiones inexistentes; y publicar deja la traducción hecha sin que
+nadie espere al proveedor. Los dos defectos de calidad que aparecieron al correrlo de verdad
+—estructura aplastada y original sin traducir— ahora fallan en vez de guardarse en silencio.
+
+### Próximos pasos (opciones)
+1. **Slice 4 ya está hecho** (URLs localizadas, commit `5c17326`), pero se hizo **antes** de que
+   hubiera contenido en inglés. Conviene revisar `LanguageSwitcher` en la ficha de una publicación:
+   ahora que cada idioma tiene su slug, cambiar de idioma debería llevar a *esa misma* publicación.
+2. **El sitemap y el RSS siguen fijando español** (`PostgresSitemapRepository.ts:18`,
+   `rss.xml/route.ts`, `llms.txt/route.ts`). Con 23 traducciones reales ya hay motivo para listarlas.
+3. **Falta `UNIQUE(post_id, locale)`** en la base. Requiere migración Alembic en el backend, que es
+   una acción irreversible sobre la base compartida: **no se ejecutó**, queda a tu decisión.
+4. **Slice 5 — tiendas y sucursales:** `sellers.name/description` y `branches.name/address` siguen
+   en un solo idioma.

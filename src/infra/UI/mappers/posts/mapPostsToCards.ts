@@ -2,6 +2,7 @@ import {
   type CategoryTaxonomy,
   labelFor,
 } from "~/domain/entities/post/taxonomy";
+import { resolvePostTranslation } from "~/domain/entities/post/translations";
 import type { Post } from "~/infra/types/Posts";
 import { createAbsoluteUrl } from "../createAbsoluteUrl";
 
@@ -13,6 +14,8 @@ import { createAbsoluteUrl } from "../createAbsoluteUrl";
  */
 export interface CardMappingContext {
   locale: string;
+  /** A qué idioma caer cuando la publicación no existe en el pedido. El del sitio, no el del post. */
+  fallbackLocale: string;
   taxonomy: CategoryTaxonomy;
 }
 
@@ -36,11 +39,17 @@ function normalizeCreatedAt(value: unknown): string {
 }
 
 export function mapOnePostToCard(item: Post, context: CardMappingContext) {
+  const translation = resolvePostTranslation(
+    item.translations,
+    context.locale,
+    context.fallbackLocale,
+  );
+  const title = translation?.title ?? item.title;
   const slug =
-    item.translations?.es?.slug ??
-    `${item.translations?.es?.title?.toLowerCase()?.replace(/\s/g, "-")}-${
-      item.id
-    }`;
+    translation?.slug ??
+    `${String(title ?? "")
+      .toLowerCase()
+      .replace(/\s/g, "-")}-${item.id}`;
   const to = `/${slug}`;
 
   return {
@@ -54,7 +63,7 @@ export function mapOnePostToCard(item: Post, context: CardMappingContext) {
      * cuesta una línea y evita que cada consumidor lo reconstruya a su manera.
      */
     slug,
-    title: item.translations?.es?.title ?? item.title,
+    title,
     price: item.price,
     kind: item.kind,
     origin: item.origin ?? null,
@@ -67,7 +76,15 @@ export function mapOnePostToCard(item: Post, context: CardMappingContext) {
     categoryLabel:
       labelFor(context.taxonomy, item.subCategory, context.locale) ??
       labelFor(context.taxonomy, item.category, context.locale),
-    content: item.translations?.es?.content ?? item.content,
+    content: translation?.content ?? item.content,
+    /**
+     * El idioma en el que de verdad se está leyendo la tarjeta, que no siempre es el pedido.
+     *
+     * Hoy las 24 publicaciones existen solo en español, así que en inglés todas caen al respaldo.
+     * Publicarlo permite que quien pinta lo diga en vez de fingir que el catálogo está traducido.
+     */
+    contentLocale: translation?.locale ?? context.fallbackLocale,
+    isTranslationFallback: translation?.isFallback ?? true,
     media: item.media,
     createdAt: normalizeCreatedAt(item.createdAt),
     user: item.user,
