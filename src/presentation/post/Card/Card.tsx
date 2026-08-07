@@ -33,14 +33,14 @@ export default function Card({
     >
       {media}
       <section className="p-5 flex flex-col grow">
-        <h3 className="mb-3 text-lg font-bold leading-tight text-gray-900 dark:text-gray-100 group-hover:text-pw-lightgreen transition-colors">
+        <h3 className="mb-3 text-body-lg font-bold leading-tight group-hover:text-pw-lightgreen transition-colors">
           <AnchorElement {...anchorProps}>{title}</AnchorElement>
         </h3>
         {children}
-        <div className="mt-auto flex justify-start gap-3 items-center pt-4 border-t border-gray-100 dark:border-gray-800">
+        <div className="mt-auto flex justify-start gap-3 items-center pt-4 border-t border-separator">
           <Avatar user={user} />
-          <div className="flex flex-col text-sm text-gray-600 dark:text-gray-400">
-            <span className="font-medium text-gray-900 dark:text-gray-200">
+          <div className="flex flex-col text-label text-text-support">
+            <span className="font-medium text-text-base">
               {user.displayName}
             </span>
             <FormattedDate isoDateString={createdAt} />

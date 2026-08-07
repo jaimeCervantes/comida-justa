@@ -1,8 +1,25 @@
 import Image from "next/image";
 import { useTranslations } from "next-intl";
+import type { ReactNode } from "react";
 import { Link } from "~/i18n/navigation";
 import { PUBLIC_BRAND_NAME } from "~/infra/constants";
 import { PILLAR_SHORT_KEYS } from "../Header/menuItems";
+
+/**
+ * El encabezado de una columna del pie.
+ *
+ * Estaba escrito tres veces con la misma cadena
+ * (`font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider text-xs`). Vive aquí
+ * dentro y no en el design system porque es el estilo de **este** pie, no un primitivo del sitio:
+ * promoverlo sin un segundo uso real sería inventar una abstracción.
+ */
+function ColumnHeading({ children }: { children: ReactNode }) {
+  return (
+    <h4 className="font-semibold uppercase tracking-wider text-caption">
+      {children}
+    </h4>
+  );
+}
 
 export default function Footer() {
   const t = useTranslations("footer");
@@ -11,7 +28,7 @@ export default function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-white dark:bg-[#0a0a0a] border-t border-gray-100 dark:border-gray-800/60 pt-16 pb-8 mt-16">
+    <footer className="bg-white dark:bg-[#0a0a0a] border-t border-separator pt-16 pb-8 mt-16">
       <div className="container-width grid grid-cols-1 md:grid-cols-4 gap-12 lg:gap-8 mb-12">
         {/* Brand & Pillars */}
         <div className="md:col-span-2 space-y-6">
@@ -31,14 +48,12 @@ export default function Footer() {
             */}
             <span className="text-pw-green">{PUBLIC_BRAND_NAME}</span>
           </Link>
-          <p className="text-gray-600 dark:text-gray-400 text-sm max-w-sm leading-relaxed">
+          <p className="text-label text-text-support max-w-sm leading-relaxed">
             {t("tagline")}
           </p>
           <div className="space-y-3">
-            <h4 className="font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider text-xs">
-              {t("pillarsHeading")}
-            </h4>
-            <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400 font-medium">
+            <ColumnHeading>{t("pillarsHeading")}</ColumnHeading>
+            <ul className="space-y-2 text-label text-text-support font-medium">
               {PILLAR_SHORT_KEYS.map((key) => (
                 <li key={key} className="flex items-center gap-2">
                   <span className="text-(--highlight)">✓</span> {tPillars(key)}
@@ -50,10 +65,8 @@ export default function Footer() {
 
         {/* Explore & Links */}
         <div className="space-y-6">
-          <h4 className="font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider text-xs">
-            {t("exploreHeading")}
-          </h4>
-          <ul className="space-y-3 text-sm text-gray-600 dark:text-gray-400">
+          <ColumnHeading>{t("exploreHeading")}</ColumnHeading>
+          <ul className="space-y-3 text-label text-text-support">
             <li>
               <Link
                 href="/publicar"
@@ -95,10 +108,8 @@ export default function Footer() {
 
         {/* Contact & Socials */}
         <div className="space-y-6">
-          <h4 className="font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider text-xs">
-            {t("connectHeading")}
-          </h4>
-          <ul className="space-y-3 text-sm text-gray-600 dark:text-gray-400">
+          <ColumnHeading>{t("connectHeading")}</ColumnHeading>
+          <ul className="space-y-3 text-label text-text-support">
             <li>
               <a
                 href="https://t.me/HazloSanoBot"
@@ -143,7 +154,7 @@ export default function Footer() {
         </div>
       </div>
 
-      <div className="container-width border-t border-gray-100 dark:border-gray-800/60 pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-gray-500 dark:text-gray-500">
+      <div className="container-width border-t border-separator pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-caption text-text-support">
         <p>{t("rights", { year: currentYear, brand: PUBLIC_BRAND_NAME })}</p>
         <p>{t("motto")}</p>
       </div>

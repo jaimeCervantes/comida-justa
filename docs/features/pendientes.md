@@ -80,18 +80,15 @@ Ver `docs/features/i18n.md` y su bitácora. Slices 0–4 hechos.
 
 Ver `docs/features/design-system.md`. Slices 1–7 hechos.
 
-- **Barrido de tipografía.** `Heading` y `Text` existen y están probados, pero solo los consumen las
-  páginas de pilares. Quedan ~250 `text-*` escritos a mano en el resto del árbol.
-- **Barrido de `rounded-*`.** `Surface` cubre las tarjetas; la cabecera, la paginación y el mapa
-  siguen decidiendo su propio radio.
-- **`Alert` no lo usa nadie.** El primitivo existe con su `role` por tono y su etiqueta obligatoria,
-  pero ninguna pantalla lo consume todavía. Los mensajes de error de `/publicar` son el primer
-  candidato natural.
-- **Estados de formulario.** `TextField` y `TextArea` quedaron fuera del anillo de foco unificado a
-  propósito: ahí el color comunica el estado de validación, no solo el foco. Unificarlos pide
-  revisar el sistema de estados de formulario, que es su propio trabajo.
-- **Los componentes compartidos siguen en `src/infra/UI/components/`.** `AGENTS.md` dice que su
-  sitio es `src/presentation/`; la mudanza está pendiente desde antes de este trabajo.
+Slices 1–9 entregados. Lo que queda:
+
+- **221 `text-*` sueltos**, deliberadamente. Los que quedan están en `Button`, `Alert` y las stories
+  —donde el tamaño **es** la variante que el primitivo define— y repartidos de uno en uno por rutas
+  sin patrón compartido. Convertirlos sin una repetición detrás no gana nada. El barrido del slice 9
+  atacó lo que sí estaba copiado: 21 encabezados legales, la cabecera de esas páginas y el
+  encabezado de columna del pie.
+- **`rounded-*` en el mapa.** `Surface` cubre tarjetas y paneles; la paginación ya usa tokens. Queda
+  el mapa.
 
 ---
 

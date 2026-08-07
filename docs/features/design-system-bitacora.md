@@ -482,3 +482,85 @@ tokens de `layout.css` no se exponen, que era una tarea fantasma.
 2. **Mudanza de `src/infra/UI/components/` a `src/presentation/`**, que `AGENTS.md` pide desde antes
    de este trabajo.
 3. **Typechequear los tests:** medido en 32 errores (ver `docs/features/pendientes.md`).
+
+---
+
+## Slice 9: La mudanza de componentes y el barrido de tipografía
+
+**Objetivo:** cerrar los dos pendientes mecánicos que arrastraba el roadmap.
+
+### La mudanza
+
+`AGENTS.md` pedía sacar los componentes compartidos de `src/infra/UI/components/` desde antes de que
+empezara este trabajo: son presentación viviendo en la capa de infraestructura.
+
+**No se mudaron a un `presentation/components/` plano**, que solo habría cambiado la ruta del
+problema. Van agrupados por concern, que es lo que `AGENTS.md` pide de la estructura de carpetas:
+
+| Concern | Qué contiene |
+| --- | --- |
+| `chrome/` | Header, Footer, LanguageSwitcher |
+| `navigation/` | Pagination, LinkButton (+ Breadcrumbs, que ya estaba) |
+| `post/` | Card, CardForList, CategoryTag, ProvenanceBadge, SoldOutBadge, WhatsappButton |
+| `media/` | MediaContent, ImageVideoPicker, ImageVideoUploader |
+| `search/`, `user/`, `auth/`, `money/` | SearchBar, Avatar, auth-buttons, CurrencyAmount |
+| `directory/` | BranchList (+ StoreSummaryCard, que ya estaba) |
+
+En `src/infra/UI/` quedan `hooks/`, `labels/`, `mappers/`, `metadata/` y `stories/`: son adaptadores
+y datos, no interfaz. La carpeta `components/` se borró.
+
+**Lo que casi se rompe en silencio:** `checkI18n.ts` escanea `["src/app", "src/infra/UI"]`. Sin
+actualizar esa lista, el escáner habría seguido pasando en verde **mientras dejaba de mirar veinte
+componentes**. Al añadir `src/presentation` salieron dos literales en español en `contrast.ts`; son
+mensajes de `throw` que lee quien programa, no interfaz, así que se pasaron a inglés —como los de
+`GeminiEmbeddingService` y `TranslationProviderError`— en vez de silenciarlos con `// i18n-ignore`.
+
+### El barrido
+
+Había 292 `text-*` escritos a mano. El barrido **no fue rociar `<Text>` por encima**: los tres
+archivos que concentraban 84 resultaron ser copias unas de otras, así que lo que tocaba era extraer
+lo repetido.
+
+- **21 encabezados numerados** en las dos páginas legales, cada uno con esta cadena copiada entera:
+  `bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-full w-7 sm:w-8 h-7
+  sm:h-8 flex items-center justify-center text-sm font-semibold shrink-0`. Ahora son
+  `LegalSectionHeading`.
+- **Y ya habían derivado**, que es la prueba de que el problema era la copia y no el tamaño: en
+  `/condiciones-de-servicio` diez usaban `gap-3 mb-4 sm:mb-5` y uno `gap-2 mb-4`; en
+  `/politica-de-privacidad` era al revés, uno y nueve. Nadie lo había visto porque cada copia se
+  editaba sola.
+- **El azul se fue.** Las páginas legales usaban `blue-*`, un color que el sitio no usa en ningún
+  otro sitio. Ahora usan el verde de la marca.
+- **La cabecera de página legal** estaba escrita dos veces carácter por carácter → `LegalPageHeader`.
+- **El encabezado de columna del pie**, tres veces → un componente local en `Footer.tsx`. Se queda
+  local a propósito: es el estilo de *ese* pie, y promoverlo sin un segundo uso real sería inventar
+  una abstracción.
+- `Footer`, `Card` y `StoreSummaryCard` cambiaron sus parejas `text-gray-600 dark:text-gray-400` por
+  tokens semánticos (`text-text-support`, `text-label`, `border-separator`): una clase en vez de dos,
+  y el tema lo resuelve la variable.
+
+**Quedan 221 `text-*`.** No es un barrido a medias: los que quedan están en `Button`, `Alert` y las
+stories —donde el tamaño **es** la variante que el primitivo define, no un valor a mano— y repartidos
+de uno en uno por rutas que no comparten patrón. Convertirlos sin una repetición detrás sería cambiar
+`text-sm` por `text-label` sin ganar nada.
+
+**Archivos tocados:** mudanza de 20 componentes (`git mv`, con historia conservada); imports
+reescritos en 22 archivos; `src/presentation/legal/` (nuevo);
+`condiciones-de-servicio/page.tsx`, `politica-de-privacidad/page.tsx`, `Footer.tsx`, `Card.tsx`,
+`StoreSummaryCard.tsx`; `checkI18n.ts`; `AGENTS.md` y `.agents/skills/nextjs-bdd-feature/SKILL.md`
+(la nota de "known deviation" ya no aplica).
+
+**Validación:** `pnpm run test:run` **930/930**; `typecheck` exit 0; `lint` limpio; `check:i18n`
+limpio; `build` compila.
+
+### Recap
+Los componentes compartidos ya no viven en infraestructura, y no aterrizaron en un cajón plano sino
+agrupados por lo que hacen. El barrido de tipografía encontró lo que suele esconder un número
+grande: 292 `text-*` no eran 292 decisiones, eran unas pocas copiadas muchas veces — y ya divergiendo
+entre copias. Se extrajeron; el resto se dejó donde el tamaño es una decisión legítima.
+
+### Próximos pasos (opciones)
+1. **Typechequear los tests**, medido en 32 errores (`docs/features/pendientes.md`).
+2. **La deuda que necesita Alembic**: `UNIQUE(post_id, locale)`, índices GIN/HNSW, tabla de
+   búsquedas.
+3. **Slice 5 de i18n**: `sellers` y `branches` siguen en un solo idioma.

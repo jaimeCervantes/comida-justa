@@ -4,6 +4,8 @@ import { hasLocale } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { resolveLocale, routing } from "~/i18n/routing";
 import { localizedAlternates } from "~/infra/UI/metadata/alternates";
+import LegalPageHeader from "~/presentation/legal/LegalPageHeader";
+import LegalSectionHeading from "~/presentation/legal/LegalSectionHeading";
 
 export async function generateMetadata({
   params,
@@ -50,17 +52,11 @@ export default async function PrivacyPolicyPage({
 
   return (
     <main className="">
-      <header className="mb-8 md:mb-12 border-b border-zinc-200 dark:border-zinc-800 pb-6 md:pb-8">
-        <h1 className="text-2xl sm:text-4xl md:text-5xl font-extrabold text-zinc-900 dark:text-zinc-50 tracking-tight mb-3 sm:mb-4">
-          {t("h1")}
-        </h1>
-        <p className="text-lg sm:text-xl text-zinc-600 dark:text-zinc-400 font-medium mb-1 sm:mb-2">
-          {t("subtitle")}
-        </p>
-        <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-500 font-mono">
-          {t("lastUpdate", { date: lastUpdateDate })}
-        </p>
-      </header>
+      <LegalPageHeader
+        title={t("h1")}
+        subtitle={t("subtitle")}
+        lastUpdate={t("lastUpdate", { date: lastUpdateDate })}
+      />
 
       <div className="prose prose-sm sm:prose-base md:prose-lg prose-zinc dark:prose-invert max-w-none text-zinc-700 dark:text-zinc-300 space-y-8 sm:space-y-10">
         <p className="text-base sm:text-lg leading-relaxed font-medium">
@@ -68,12 +64,9 @@ export default async function PrivacyPolicyPage({
         </p>
 
         <section>
-          <h2 className="text-xl sm:text-2xl font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-3 mb-4 sm:mb-5">
-            <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-full w-7 sm:w-8 h-7 sm:h-8 flex items-center justify-center text-sm font-semibold shrink-0">
-              1
-            </span>
+          <LegalSectionHeading number={1}>
             {t("section1.title")}
-          </h2>
+          </LegalSectionHeading>
           <p className="mb-3">{t("section1.intro")}</p>
           <ul className="list-disc pl-6 space-y-2 mb-4">
             <li>{t("section1.items.0")}</li>
@@ -89,12 +82,9 @@ export default async function PrivacyPolicyPage({
         </section>
 
         <section>
-          <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2 mb-4">
-            <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-full w-8 h-8 flex items-center justify-center text-sm">
-              2
-            </span>
+          <LegalSectionHeading number={2}>
             {t("section2.title")}
-          </h2>
+          </LegalSectionHeading>
           <p className="mb-3">{t("section2.intro")}</p>
           <ul className="list-disc pl-6 space-y-2">
             <li>{t("section2.items.0")}</li>
@@ -106,12 +96,9 @@ export default async function PrivacyPolicyPage({
         </section>
 
         <section>
-          <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2 mb-4">
-            <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-full w-8 h-8 flex items-center justify-center text-sm">
-              3
-            </span>
+          <LegalSectionHeading number={3}>
             {t("section3.title")}
-          </h2>
+          </LegalSectionHeading>
           <ul className="list-disc pl-6 space-y-2 mb-4">
             <li>{t("section3.items.0")}</li>
             <li>{t("section3.items.1")}</li>
@@ -125,12 +112,9 @@ export default async function PrivacyPolicyPage({
         </section>
 
         <section>
-          <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2 mb-4">
-            <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-full w-8 h-8 flex items-center justify-center text-sm">
-              4
-            </span>
+          <LegalSectionHeading number={4}>
             {t("section4.title")}
-          </h2>
+          </LegalSectionHeading>
           <p className="font-semibold text-zinc-800 dark:text-zinc-200 mb-3">
             {t("section4.boldText")}
           </p>
@@ -143,33 +127,24 @@ export default async function PrivacyPolicyPage({
         </section>
 
         <section>
-          <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2 mb-4">
-            <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-full w-8 h-8 flex items-center justify-center text-sm">
-              5
-            </span>
+          <LegalSectionHeading number={5}>
             {t("section5.title")}
-          </h2>
+          </LegalSectionHeading>
           <p className="mb-3">{t("section5.p1")}</p>
           <p>{t("section5.p2")}</p>
         </section>
 
         <section>
-          <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2 mb-4">
-            <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-full w-8 h-8 flex items-center justify-center text-sm">
-              6
-            </span>
+          <LegalSectionHeading number={6}>
             {t("section6.title")}
-          </h2>
+          </LegalSectionHeading>
           <p>{t("section6.p1")}</p>
         </section>
 
         <section>
-          <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2 mb-4">
-            <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-full w-8 h-8 flex items-center justify-center text-sm">
-              7
-            </span>
+          <LegalSectionHeading number={7}>
             {t("section7.title")}
-          </h2>
+          </LegalSectionHeading>
           <p className="mb-3">{t("section7.intro")}</p>
           <ul className="list-disc pl-6 space-y-2 mb-4">
             <li>{t("section7.items.0")}</li>
@@ -194,32 +169,23 @@ export default async function PrivacyPolicyPage({
         </section>
 
         <section>
-          <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2 mb-4">
-            <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-full w-8 h-8 flex items-center justify-center text-sm">
-              8
-            </span>
+          <LegalSectionHeading number={8}>
             {t("section8.title")}
-          </h2>
+          </LegalSectionHeading>
           <p>{t("section8.p1")}</p>
         </section>
 
         <section>
-          <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2 mb-4">
-            <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-full w-8 h-8 flex items-center justify-center text-sm">
-              9
-            </span>
+          <LegalSectionHeading number={9}>
             {t("section9.title")}
-          </h2>
+          </LegalSectionHeading>
           <p>{t("section9.p1")}</p>
         </section>
 
         <section>
-          <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2 mb-4">
-            <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-full w-8 h-8 flex items-center justify-center text-sm">
-              10
-            </span>
+          <LegalSectionHeading number={10}>
             {t("section10.title")}
-          </h2>
+          </LegalSectionHeading>
           <p className="mb-4">{t("section10.intro")}</p>
           <div className="bg-zinc-100 dark:bg-zinc-800/30 rounded-xl p-8 border border-zinc-100 dark:border-zinc-800">
             <div>

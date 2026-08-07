@@ -2,6 +2,8 @@ import Image from "next/image";
 import type { StoreSummary } from "~/domain/entities/seller/directory";
 import { type AppHref, Link } from "~/i18n/navigation";
 import { Surface } from "~/presentation/design_system/surfaces/Surface";
+import { Heading } from "~/presentation/design_system/typography/Heading";
+import { Text } from "~/presentation/design_system/typography/Text";
 import StoreDistance from "~/presentation/location/StoreDistance";
 
 /**
@@ -42,24 +44,26 @@ export default function StoreSummaryCard({
       ) : null}
 
       <div className="min-w-0">
-        <h2 className="text-lg font-bold">
+        <Heading level={2} size="xs">
           <Link href={href} className="hover:underline">
             {store.name}
           </Link>
-        </h2>
+        </Heading>
 
         {store.description ? (
-          <p className="mt-1 line-clamp-3 text-sm">{store.description}</p>
+          <Text variant="label" className="mt-1 line-clamp-3">
+            {store.description}
+          </Text>
         ) : null}
 
-        <p className="mt-2 flex flex-wrap items-center gap-2 text-sm text-gray-500">
+        <p className="mt-2 flex flex-wrap items-center gap-2 text-label text-text-support">
           {publicationsLabel}
           <StoreDistance meters={store.distanceMeters ?? null} />
         </p>
 
         <Link
           href={href}
-          className="mt-2 inline-block text-sm font-medium text-pw-lightgreen hover:underline"
+          className="mt-2 inline-block text-label font-medium text-pw-lightgreen hover:underline"
         >
           {visitLabel}
         </Link>
