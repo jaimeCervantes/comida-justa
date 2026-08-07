@@ -30,7 +30,7 @@ const PILLARS = [
     origin: "--brand-lightgreen",
   },
   {
-    key: "mindSpirit",
+    key: "mind-spirit",
     number: 4,
     label: "Mente y Espíritu",
     origin: "--brand-lightorange (estaba sin uso)",

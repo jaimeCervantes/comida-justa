@@ -89,9 +89,9 @@
   --pillar-movement-ink: #3c7b0f;
 
   /* 4 · Mente y Espíritu — del ámbar (--brand-lightorange), que estaba definido sin un solo uso */
-  --pillar-mindSpirit-solid: #936f03;
-  --pillar-mindSpirit-soft: #fdf5dc;
-  --pillar-mindSpirit-ink: #8e6b03;
+  --pillar-mind-spirit-solid: #936f03;
+  --pillar-mind-spirit-soft: #fdf5dc;
+  --pillar-mind-spirit-ink: #8e6b03;
 }
 
 /*
@@ -138,8 +138,8 @@
     --pillar-movement-soft: #1b2d0f;
     --pillar-movement-ink: #5dbf17;
 
-    --pillar-mindSpirit-soft: #362b0b;
-    --pillar-mindSpirit-ink: #f2b705;
+    --pillar-mind-spirit-soft: #362b0b;
+    --pillar-mind-spirit-ink: #f2b705;
   }
 }
 
@@ -170,8 +170,8 @@
   --pillar-movement-soft: #1b2d0f;
   --pillar-movement-ink: #5dbf17;
 
-  --pillar-mindSpirit-soft: #362b0b;
-  --pillar-mindSpirit-ink: #f2b705;
+  --pillar-mind-spirit-soft: #362b0b;
+  --pillar-mind-spirit-ink: #f2b705;
 }
 
 /* Expose to Tailwind v4 as utility classes */
@@ -219,7 +219,7 @@
   --color-pillar-movement-soft: var(--pillar-movement-soft);
   --color-pillar-movement-ink: var(--pillar-movement-ink);
 
-  --color-pillar-mindSpirit-solid: var(--pillar-mindSpirit-solid);
-  --color-pillar-mindSpirit-soft: var(--pillar-mindSpirit-soft);
-  --color-pillar-mindSpirit-ink: var(--pillar-mindSpirit-ink);
+  --color-pillar-mind-spirit-solid: var(--pillar-mind-spirit-solid);
+  --color-pillar-mind-spirit-soft: var(--pillar-mind-spirit-soft);
+  --color-pillar-mind-spirit-ink: var(--pillar-mind-spirit-ink);
 }

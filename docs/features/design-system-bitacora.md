@@ -151,3 +151,83 @@ que antes y las páginas de pilares siguen con sus colores viejos.
    primitivo `Surface`.
 3. **Slice 6 — Tipografía:** `Heading` y `Text` atados a `typography.css`, cuyos tokens `--fs-*` hoy
    no consume nadie.
+
+---
+
+## Slice 4: Los pilares estrenan su paleta
+
+**Objetivo:**
+Que las páginas de `/pilares` dejen de escribir sus colores a mano y consuman los tokens
+`--pillar-*` creados en el slice 3. Es donde el trabajo se vuelve visible.
+
+**Decisiones y Racional:**
+
+- **Se encontró podredumbre, no solo inconsistencia.** Al abrir las páginas apareció la cicatriz de
+  un find/replace anterior: ` da dark:` como clase suelta en 8 sitios, `bg-violet-50/da` y
+  `text-violet-100xt-lg` en `SuenoPage`. Llevaban ahí sin que nadie lo notara, y por una razón
+  concreta: **el color estaba escrito cuatro veces en cuatro archivos**, así que romper uno no
+  rompía nada visible en los demás. Es el argumento de este slice mejor que cualquier discurso.
+
+- **La clave del pilar sustituye a la cadena de clases.** `PillarArticle`, `PillarCallout` y
+  `PillarReferences` recibían `headingClassName`, `className` y `linkClassName` — cadenas de Tailwind
+  viajando por props. Ahora reciben `pillar: PillarKey` y resuelven el color ellos. Un pilar ya solo
+  puede pintarse de su color: el error de teclear mal una clase deja de ser posible.
+
+- **Desaparecen las variantes `dark:`.** Antes cada color venía en pareja
+  (`text-violet-600 dark:text-violet-400`) y había que acordarse de las dos. El token cambia solo de
+  valor según el tema, así que la clase es una. Hay una prueba que lo exige: si alguien reintroduce
+  un `dark:` en `pillarColorClasses`, falla.
+
+- **`colorHex` era código muerto.** El campo existía en `PillarData` con cuatro valores y no lo leía
+  nadie. Se eliminó junto con `color: "violet" | "orange" | "emerald" | "sky"`, que era un segundo
+  nombre para lo que `key` ya identificaba.
+
+- **Tokens en kebab-case.** `--pillar-mindSpirit-*` pasó a `--pillar-mind-spirit-*`: Tailwind no es
+  fiable con mayúsculas dentro de un nombre de clase. La clave del pilar (`mindSpirit`) y el tono de
+  `Badge` siguen en camelCase; solo cambia el nombre del token.
+
+- **`stripComments` se extrajo a su propio módulo.** El test que prohíbe colores ajenos se tropezaba
+  con su propia documentación, porque estos archivos citan a propósito las clases rotas que vinieron
+  a reemplazar. `checkI18n.ts` ya tenía resuelto exactamente ese problema, así que la función salió
+  a `src/scripts/stripComments.ts` y ahora la usan los dos. Ninguna copia nueva.
+
+- **Se añadió `PillarPanel` y `PillarSectionHeading`.** Las cuatro páginas repetían literalmente el
+  mismo `<div className="…rounded-2xl p-6 sm:p-8 my-8 border…">` y el mismo `<h2>`. Cuatro copias
+  es el mismo error que las tres insignias del slice 3.
+
+**Archivos Tocados:**
+- **Datos y color:** `src/app/[locale]/pilares/components/pilaresData.ts`, `pilaresData.test.ts` (nuevo)
+- **Armazón:** `PillarArticle.tsx` (+`PillarPanel`, `PillarSectionHeading`), `PillarReferences.tsx`
+- **Páginas:** `SuenoPage.tsx`, `AlimentacionPage.tsx`, `MovimientoPage.tsx`, `MenteEspirituPage.tsx`, `PilaresOverviewPage.tsx`
+- **Compartido:** `src/scripts/stripComments.ts` (nuevo, extraído de `checkI18n.ts`)
+- **Tokens:** `colors.css`, `Badge.tsx`, `pillarPalette.contrast.test.ts`, `PillarPalette.stories.tsx` (kebab-case)
+
+**Comandos clave:**
+```bash
+pnpm run test:run
+pnpm run typecheck
+pnpm run lint
+pnpm run check:i18n
+pnpm run build      # la única prueba real de que Tailwind genera las clases del token
+```
+
+**Resultados de Validación:**
+- `pnpm run test:run`: **806/806 en verde**, 86 archivos (+21 pruebas nuevas).
+- `pnpm run typecheck`: exit 0. `pnpm run lint`: limpio. `pnpm run check:i18n`: limpio.
+- `pnpm run build`: **compila**. Verificado en el CSS emitido que existen de verdad
+  `.bg-pillar-mind-spirit-soft`, `.text-pillar-mind-spirit-ink`, `.bg-pillar-sleep-solid`,
+  `.text-pillar-movement-ink` y `.border-pillar-nutrition-ink`, y que salen tanto el bloque
+  `prefers-color-scheme` como el `[data-theme=dark]`.
+- Playwright no se ejecutó: no hay escenario e2e nuevo. El criterio de aceptación ("ninguna clase
+  `violet-*` ni `sky-*` sobrevive") lo hace cumplir una prueba que escanea los archivos.
+
+### Recap
+Las cuatro páginas de pilares ya no escriben un solo color: reciben la clave del pilar y el token
+hace el resto, en claro y en oscuro. De paso se limpiaron tres clases rotas que llevaban tiempo en
+producción sin que nadie las viera, y se borró `colorHex`, que no leía nadie. La paleta del sitio ya
+es la de Hazlo Sano de punta a punta: `violet` y `sky` desaparecieron del árbol de pilares.
+
+### Próximos pasos (opciones)
+1. **Slice 5 — Superficie y tarjeta:** el primitivo `Surface` contra los `rounded-*` sueltos.
+2. **Slice 6 — Tipografía:** `Heading` y `Text` sobre `typography.css`.
+3. **Slice 7 — Estado y foco:** `Skeleton`, `Alert` y un anillo de foco consistente.

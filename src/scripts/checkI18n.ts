@@ -13,6 +13,7 @@
  */
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
+import { stripComments } from "./stripComments";
 
 const ROOTS = ["src/app", "src/infra/UI"];
 const SPANISH = /[áéíóúÁÉÍÓÚñÑ¿¡]/;
@@ -42,26 +43,6 @@ const IGNORED = [
 const IGNORE_LINE = /\/\/\s*i18n-ignore/;
 
 type Finding = { file: string; line: number; text: string };
-
-/**
- * Quita comentarios antes de buscar. Un comentario en español es documentación, no interfaz, y
- * este repo los escribe en español a propósito: sin esto el reporte sería casi todo ruido.
- */
-function stripComments(source: string): string {
-  /* Se vacía el comentario **conservando sus saltos de línea**. Borrarlo entero colapsaba el
-     archivo, así que a partir del primer bloque de varias líneas —un JSDoc, por ejemplo— los
-     números de línea del reporte dejaban de corresponder con los del archivo, y la marca
-     `// i18n-ignore` se comparaba contra la línea equivocada. */
-  const blank = (comment: string): string => comment.replace(/[^\n]/g, "");
-
-  return (
-    source
-      .replace(/\{\s*\/\*[\s\S]*?\*\/\s*\}/g, blank)
-      .replace(/\/\*[\s\S]*?\*\//g, blank)
-      // También el comentario que va al final de una línea de código, no solo el que la ocupa entera.
-      .replace(/\/\/.*$/gm, "")
-  );
-}
 
 function collectFiles(dir: string, found: string[] = []): string[] {
   for (const entry of readdirSync(dir)) {

@@ -13,80 +13,78 @@ export interface PillarData {
   /** La clave bajo la que vive su texto, en `pillars` y en `pillarPages`. */
   key: PillarKey;
   number: number;
-  color: "violet" | "orange" | "emerald" | "sky";
-  colorHex: string;
 }
 
 export const PILLARS: PillarData[] = [
-  {
-    slug: "sueno",
-    key: "sleep",
-    number: 1,
-    color: "violet",
-    colorHex: "#8b5cf6",
-  },
-  {
-    slug: "alimentacion",
-    key: "nutrition",
-    number: 2,
-    color: "orange",
-    colorHex: "#f0380e",
-  },
-  {
-    slug: "movimiento",
-    key: "movement",
-    number: 3,
-    color: "emerald",
-    colorHex: "#5DBF17",
-  },
-  {
-    slug: "mente-espiritu",
-    key: "mindSpirit",
-    number: 4,
-    color: "sky",
-    colorHex: "#38bdf8",
-  },
+  { slug: "sueno", key: "sleep", number: 1 },
+  { slug: "alimentacion", key: "nutrition", number: 2 },
+  { slug: "movimiento", key: "movement", number: 3 },
+  { slug: "mente-espiritu", key: "mindSpirit", number: 4 },
 ];
 
 export interface PillarColorClasses {
+  /** Tinta del pilar: títulos y texto de acento. */
   text: string;
+  /** Fondo tenue: tarjetas y cajas destacadas. */
   bg: string;
+  /** Borde a juego con la tinta. */
   border: string;
+  /** Relleno saturado; siempre lleva texto blanco encima. */
   badge: string;
+  /** Realce al pasar el cursor por una tarjeta enlazada. */
   hover: string;
+  /** Enlaces de la lista de referencias. */
+  link: string;
 }
 
-export const pillarColorClasses: Record<string, PillarColorClasses> = {
-  violet: {
-    text: "text-violet-600 dark:text-violet-400",
-    bg: "bg-violet-50 dark:bg-violet-900/20",
-    border: "border-violet-200 dark:border-violet-800/40",
-    badge: "bg-violet-500",
-    hover:
-      "hover:border-violet-400 dark:hover:border-violet-600 hover:shadow-violet-200/50 dark:hover:shadow-violet-900/30",
+/**
+ * Las clases de cada pilar, todas apoyadas en los tokens `--pillar-*` del design system.
+ *
+ * **Ya no hay variantes `dark:`.** Antes cada clase venía en pareja (`text-violet-600
+ * dark:text-violet-400`) y había que acordarse de las dos; ahora el token cambia solo de valor
+ * según el tema y la clase es una. Eso es también lo que arregló la podredumbre que había aquí:
+ * un find/replace anterior había dejado `da dark:` como clase suelta, `bg-violet-50/da` y
+ * `text-violet-100xt-lg` en las páginas, y nadie lo vio porque cada página escribía su color a mano.
+ *
+ * Sueño y Mente usaban `violet` y `sky`, que no son colores de Hazlo Sano. Ahora los cuatro salen
+ * de la marca: Alimentación de `--brand-orange`, Movimiento de `--brand-lightgreen` y Mente de
+ * `--brand-lightorange`; solo Sueño estrena tono. El contraste de cada par está verificado en
+ * `pillarPalette.contrast.test.ts`.
+ *
+ * Los nombres de token van en kebab-case (`mind-spirit`) porque Tailwind no es fiable con
+ * mayúsculas dentro de una clase; la clave del pilar sigue en camelCase.
+ */
+export const pillarColorClasses: Record<PillarKey, PillarColorClasses> = {
+  sleep: {
+    text: "text-pillar-sleep-ink",
+    bg: "bg-pillar-sleep-soft",
+    border: "border-pillar-sleep-ink/30",
+    badge: "bg-pillar-sleep-solid",
+    hover: "hover:border-pillar-sleep-ink/60",
+    link: "text-pillar-sleep-ink underline transition-opacity hover:opacity-75",
   },
-  orange: {
-    text: "text-pw-orange",
-    bg: "bg-orange-50 dark:bg-orange-900/20",
-    border: "border-orange-200 dark:border-orange-800/40",
-    badge: "bg-pw-orange",
-    hover:
-      "hover:border-orange-400 dark:hover:border-orange-700 hover:shadow-orange-200/50 dark:hover:shadow-orange-900/30",
+  nutrition: {
+    text: "text-pillar-nutrition-ink",
+    bg: "bg-pillar-nutrition-soft",
+    border: "border-pillar-nutrition-ink/30",
+    badge: "bg-pillar-nutrition-solid",
+    hover: "hover:border-pillar-nutrition-ink/60",
+    link: "text-pillar-nutrition-ink underline transition-opacity hover:opacity-75",
   },
-  emerald: {
-    text: "text-pw-lightgreen",
-    bg: "bg-emerald-50 dark:bg-emerald-900/20",
-    border: "border-emerald-200 dark:border-emerald-800/40",
-    badge: "bg-pw-lightgreen",
-    hover:
-      "hover:border-emerald-400 dark:hover:border-emerald-700 hover:shadow-emerald-200/50 dark:hover:shadow-emerald-900/30",
+  movement: {
+    text: "text-pillar-movement-ink",
+    bg: "bg-pillar-movement-soft",
+    border: "border-pillar-movement-ink/30",
+    badge: "bg-pillar-movement-solid",
+    hover: "hover:border-pillar-movement-ink/60",
+    link: "text-pillar-movement-ink underline transition-opacity hover:opacity-75",
   },
-  sky: {
-    text: "text-sky-500 dark:text-sky-400",
-    bg: "bg-sky-50 dark:bg-sky-900/20",
-    border: "border-sky-200 dark:border-sky-800/40",
-    badge: "bg-sky-400",
-    hover:
-      "hover:border-sky-400 dark:hover:border-sky-600 hover:shadow-sky-200/50 dark:hover:shadow-sky-900/30",
+  mindSpirit: {
+    text: "text-pillar-mind-spirit-ink",
+    bg: "bg-pillar-mind-spirit-soft",
+    border: "border-pillar-mind-spirit-ink/30",
+    badge: "bg-pillar-mind-spirit-solid",
+    hover: "hover:border-pillar-mind-spirit-ink/60",
+    link: "text-pillar-mind-spirit-ink underline transition-opacity hover:opacity-75",
   },
 };

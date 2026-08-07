@@ -31,7 +31,7 @@ const badgeVariants = cva(
         sleep: "bg-pillar-sleep-soft text-pillar-sleep-ink",
         nutrition: "bg-pillar-nutrition-soft text-pillar-nutrition-ink",
         movement: "bg-pillar-movement-soft text-pillar-movement-ink",
-        mindSpirit: "bg-pillar-mindSpirit-soft text-pillar-mindSpirit-ink",
+        mindSpirit: "bg-pillar-mind-spirit-soft text-pillar-mind-spirit-ink",
       },
       emphasis: {
         soft: "font-medium",

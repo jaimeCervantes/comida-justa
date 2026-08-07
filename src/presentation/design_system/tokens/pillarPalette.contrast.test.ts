@@ -23,7 +23,8 @@ const DARK = readCssVariables(CSS, {
   stopAt: "/* Copia exacta",
 });
 
-const PILLARS = ["sleep", "nutrition", "movement", "mindSpirit"] as const;
+/** En kebab-case porque así se llaman los tokens: Tailwind no es fiable con mayúsculas en clases. */
+const PILLARS = ["sleep", "nutrition", "movement", "mind-spirit"] as const;
 type Pillar = (typeof PILLARS)[number];
 
 /** En oscuro solo se redefinen `soft` e `ink`; `solid` se hereda del bloque claro a propósito. */
@@ -89,7 +90,7 @@ describe("La rampa de los cuatro pilares", () => {
   it("deja constancia de que dos pilares no se distinguen solo por luminosidad", () => {
     const ratio = contrastRatio(
       LIGHT["--pillar-movement-ink"],
-      LIGHT["--pillar-mindSpirit-ink"],
+      LIGHT["--pillar-mind-spirit-ink"],
     );
     expect(ratio).toBeLessThan(1.5);
   });

@@ -27,7 +27,7 @@ export default function PilaresOverviewPage() {
       <section>
         <div className="grid gap-6 sm:grid-cols-2">
           {PILLARS.map((pillar) => {
-            const c = pillarColorClasses[pillar.color];
+            const c = pillarColorClasses[pillar.key];
             return (
               <Link
                 key={pillar.slug}
