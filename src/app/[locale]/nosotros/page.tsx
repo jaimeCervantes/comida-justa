@@ -3,7 +3,7 @@ import Image from "next/image";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { resolveLocale } from "~/i18n/routing";
 import { PUBLIC_BRAND_NAME } from "~/infra/constants";
-import { PILLAR_SHORT_KEYS } from "~/infra/UI/components/Header/menuItems";
+import { PILLAR_SHORT_KEYS } from "~/presentation/chrome/Header/menuItems";
 import { buildAboutMetadata } from "./metadata";
 
 export async function generateMetadata({

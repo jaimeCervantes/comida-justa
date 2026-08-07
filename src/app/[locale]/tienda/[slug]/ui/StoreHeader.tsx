@@ -6,7 +6,7 @@ import { buildWhatsappStoreLink } from "~/domain/entities/seller/whatsappContact
 import { Link } from "~/i18n/navigation";
 import { resolveLocale } from "~/i18n/routing";
 import { PUBLIC_BASE_URL } from "~/infra/constants";
-import WhatsappButton from "~/infra/UI/components/WhatsappButton/WhatsappButton";
+import WhatsappButton from "~/presentation/post/WhatsappButton/WhatsappButton";
 import { profileHref } from "../../../cuenta/profilePath";
 import { storePath } from "../../../cuenta/storePath";
 

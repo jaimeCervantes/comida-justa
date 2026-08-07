@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { expect, fn, userEvent, within } from "storybook/test";
-import ImageVideoPicker from "~/infra/UI/components/ImageVideoPicker/ImageVideoPicker";
 import { createMockFile } from "~/infra/UI/stories/utils";
+import ImageVideoPicker from "~/presentation/media/ImageVideoPicker/ImageVideoPicker";
 
 const meta = {
   title: "Components/UI/ImageVideoPicker",

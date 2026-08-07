@@ -1,6 +1,10 @@
 /**
  * Contraste WCAG 2.1 sobre colores en hexadecimal.
  *
+ * Los mensajes de error van en inglés, como los de `GeminiEmbeddingService` y
+ * `TranslationProviderError`: los lee quien programa al romper un token, nunca un visitante. Un
+ * comentario en español es documentación; un `throw` en español parece interfaz sin serlo.
+ *
  * Vive en el design system y no en un helper de pruebas porque el contraste es una **propiedad del
  * token**, no del test que lo mira: la paleta de los pilares se derivó bajando la luminosidad de
  * cada semilla de marca hasta cruzar 4.5:1, y sin esta función ese cálculo no se puede repetir ni
@@ -26,7 +30,7 @@ export function parseHex(hex: string): Rgb {
       : raw;
 
   if (!/^[0-9a-fA-F]{6}$/.test(full)) {
-    throw new Error(`No es un color hexadecimal válido: "${hex}"`);
+    throw new Error(`Not a valid hex colour: "${hex}"`);
   }
 
   return [0, 2, 4].map(
@@ -74,7 +78,7 @@ export function readCssVariables(
   const from = options.startAfter ? css.indexOf(options.startAfter) : 0;
   if (from < 0) {
     throw new Error(
-      `No se encontró el bloque "${options.startAfter}" en el CSS`,
+      `Block not found in the stylesheet: "${options.startAfter}"`,
     );
   }
 

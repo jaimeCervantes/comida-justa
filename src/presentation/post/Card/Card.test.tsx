@@ -2,7 +2,7 @@ import type { RenderResult } from "@testing-library/react";
 import { beforeEach, describe, expect, it } from "vitest";
 import { Link } from "~/i18n/navigation";
 import { renderWithIntl as render } from "~/infra/test-utils/renderWithIntl";
-import MediaContent from "~/infra/UI/components/MediaContent/MediaContent";
+import MediaContent from "~/presentation/media/MediaContent/MediaContent";
 import Card from "./Card";
 import { props } from "./dummies/props";
 

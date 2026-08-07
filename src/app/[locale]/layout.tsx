@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { notFound } from "next/navigation";
-import Footer from "~/infra/UI/components/Footer/Footer";
-import Header from "~/infra/UI/components/Header/Header";
+import Footer from "~/presentation/chrome/Footer/Footer";
+import Header from "~/presentation/chrome/Header/Header";
 import "~/app/styles/globals.css";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import { hasLocale, NextIntlClientProvider } from "next-intl";

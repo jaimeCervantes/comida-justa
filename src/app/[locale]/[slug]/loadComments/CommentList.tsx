@@ -3,8 +3,8 @@
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import type { Comment, PostUser } from "~/infra/types/Posts";
-import Avatar from "~/infra/UI/components/Avatar/Avatar";
 import { useIsClient } from "~/infra/UI/hooks/useIsClient";
+import Avatar from "~/presentation/user/Avatar/Avatar";
 import AddCommentForm from "../addComments/AddCommentForm";
 import { useRealTimeComments } from "../addComments/useRealTimeComments";
 import { createOnLoadMoreComments } from "./createOnLoadMoreComments";

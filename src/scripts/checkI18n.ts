@@ -15,7 +15,14 @@ import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import { stripComments } from "./stripComments";
 
-const ROOTS = ["src/app", "src/infra/UI"];
+/*
+ * Dónde se busca texto en español escrito a mano.
+ *
+ * `src/presentation` sustituyó a `src/infra/UI/components`, que era donde vivían los componentes
+ * compartidos antes de la mudanza. Sin actualizar esta lista el escáner habría seguido pasando en
+ * verde mientras dejaba de mirar veinte componentes.
+ */
+const ROOTS = ["src/app", "src/presentation", "src/infra/UI"];
 const SPANISH = /[áéíóúÁÉÍÓÚñÑ¿¡]/;
 
 /** Archivos cuyo texto no llega a un visitante. */

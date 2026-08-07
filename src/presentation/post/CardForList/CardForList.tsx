@@ -1,14 +1,14 @@
 import { isSellable } from "~/domain/entities/post/availability";
 import { Link } from "~/i18n/navigation";
 import type { Post } from "~/infra/types/Posts";
-import Card from "~/infra/UI/components/Card";
-import CategoryTag from "~/infra/UI/components/CategoryTag/CategoryTag";
-import CurrencyAmount from "~/infra/UI/components/CurrencyAmount";
-import MediaContent from "~/infra/UI/components/MediaContent/MediaContent";
-import ProvenanceBadge from "~/infra/UI/components/ProvenanceBadge";
-import SoldOutBadge from "~/infra/UI/components/SoldOutBadge/SoldOutBadge";
 import StoreDistance from "~/presentation/location/StoreDistance";
+import MediaContent from "~/presentation/media/MediaContent/MediaContent";
+import CurrencyAmount from "~/presentation/money/CurrencyAmount";
+import Card from "~/presentation/post/Card";
 import CardOwnerControls from "~/presentation/post/CardOwnerControls";
+import CategoryTag from "~/presentation/post/CategoryTag/CategoryTag";
+import ProvenanceBadge from "~/presentation/post/ProvenanceBadge";
+import SoldOutBadge from "~/presentation/post/SoldOutBadge/SoldOutBadge";
 
 /**
  * El último tramo del destino, para cuando la tarjeta llega sin `slug`.

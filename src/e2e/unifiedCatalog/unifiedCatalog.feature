@@ -40,7 +40,7 @@ Feature: Unified catalog
   # Catalog and label rules are covered by Vitest:
   #   src/domain/entities/post/taxonomy.test.ts
   #   src/infra/UI/mappers/posts/mapPostsToCards.test.ts
-  #   src/infra/UI/components/CategoryTag/CategoryTag.test.tsx
+  #   src/presentation/post/CategoryTag/CategoryTag.test.tsx
   # ---------------------------------------------------------------------------
 
   @slice-1

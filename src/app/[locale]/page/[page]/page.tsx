@@ -13,10 +13,10 @@ import {
 import { createPostQueryRepository } from "~/infra/dataAccess/getMultiplePosts";
 import { readVisitorLocation } from "~/infra/location/visitorLocation";
 import type { Post } from "~/infra/types/Posts";
-import CardForList from "~/infra/UI/components/CardForList/CardForList";
-import Pagination from "~/infra/UI/components/Pagination";
 import { mapPostsToCardsForLocale } from "~/infra/UI/mappers/posts/mapPostsToCardsForLocale";
 import { localizedAlternates } from "~/infra/UI/metadata/alternates";
+import Pagination from "~/presentation/navigation/Pagination";
+import CardForList from "~/presentation/post/CardForList/CardForList";
 
 type Props = {
   params: Promise<{ locale: string; page: string }>;

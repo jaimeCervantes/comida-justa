@@ -6,14 +6,14 @@ import type { CategoryOption } from "~/domain/entities/post/taxonomy";
 import { Link } from "~/i18n/navigation";
 import { POST_CONTENT_MAX_LENGTH } from "~/infra/constants";
 import type { ActionState } from "~/infra/types/Actions";
-import ImageVideoUploader, {
-  type UploadedMediaResult,
-} from "~/infra/UI/components/ImageVideoUploader/ImageVideoUploader";
 import { originOptionsFor } from "~/infra/UI/labels/postOriginLabels";
 import { Button } from "~/presentation/design_system/buttons/Button";
 import { Alert } from "~/presentation/design_system/feedback/Alert";
 import { TextArea } from "~/presentation/design_system/forms/TextArea";
 import { TextField } from "~/presentation/design_system/forms/TextField";
+import ImageVideoUploader, {
+  type UploadedMediaResult,
+} from "~/presentation/media/ImageVideoUploader/ImageVideoUploader";
 
 const selectClassName =
   "w-full rounded-sm border border-gray-300 bg-white px-3 py-2 text-black dark:bg-gray-800 dark:text-white";

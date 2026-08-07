@@ -7,7 +7,7 @@ import { auth } from "~/infra/auth";
 import { readViewerId } from "~/infra/auth/readViewerId";
 import { CANONICAL_URL, PAGINATION_INIT_PAGE } from "~/infra/constants";
 import { createSellerRepository } from "~/infra/dataAccess/sellers/factory";
-import BranchList from "~/infra/UI/components/BranchList/BranchList";
+import BranchList from "~/presentation/directory/BranchList/BranchList";
 import JsonLd from "~/presentation/seo/JsonLd";
 import { storePath } from "../../cuenta/storePath";
 import { getStoreByHandle } from "./data";

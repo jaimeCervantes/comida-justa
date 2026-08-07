@@ -56,7 +56,12 @@ Deliver features end-to-end without stopping for per-step validation. This is th
 - `src/use_cases/` orchestrates application behavior using domain types and domain ports.
 - `src/infra/` contains concrete adapters such as database queries (Prisma/Drizzle/typeORM), external REST clients, and schedulers.
 - `src/presentation/design_system/` holds reusable presentation with no app knowledge (buttons, forms, tokens). `src/presentation/` holds app-specific components shared by several routes. A component usable in only one route lives in that route's `ui/` folder. **Search before creating: a second near-duplicate component is a design failure.** See "Component placement" in `.agents/skills/nextjs-bdd-feature/SKILL.md`.
-- `src/infra/UI/components/` currently holds the app-specific shared components. That predates the rule above and is pending a move to `src/presentation/`; put **new** shared components in `src/presentation/`. Keep UI dumb where possible.
+- `src/presentation/` is organised by concern, not as one flat `components/` folder: `chrome/`
+  (header, footer, selector de idioma), `navigation/`, `post/`, `media/`, `search/`, `user/`,
+  `auth/`, `money/`, `directory/`, `location/`, `seo/`, `design_system/`. Un componente nuevo va en
+  la carpeta de su concern; si no encaja en ninguna, es señal de que falta nombrarlo.
+- `src/infra/UI/` ya **no** tiene componentes: solo quedan `hooks/`, `labels/`, `mappers/`,
+  `metadata/` y `stories/`, que son adaptadores y datos, no interfaz. Keep UI dumb where possible.
 - `features/` stores Gherkin specifications (if using BDD for Next.js).
 - `e2e/` stores e2e testing with playwright.
 - `MUST` not include `src` directory as module root in imports (use TS paths/aliases like `@/`).

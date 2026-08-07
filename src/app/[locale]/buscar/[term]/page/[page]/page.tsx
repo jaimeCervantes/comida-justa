@@ -1,9 +1,9 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { resolveLocale } from "~/i18n/routing";
 import { readViewerId } from "~/infra/auth/readViewerId";
-import CardForList from "~/infra/UI/components/CardForList/CardForList";
-import Pagination from "~/infra/UI/components/Pagination";
 import { mapPostsToCardsForLocale } from "~/infra/UI/mappers/posts/mapPostsToCardsForLocale";
+import Pagination from "~/presentation/navigation/Pagination";
+import CardForList from "~/presentation/post/CardForList/CardForList";
 import { SEARCH_PAGE_SIZE, searchPosts } from "../../../data";
 import { decodeSearchTerm } from "../../../decodeTerm";
 

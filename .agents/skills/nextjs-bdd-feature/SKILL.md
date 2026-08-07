@@ -207,11 +207,10 @@ Placement follows **how widely the component can be used**, and is decided when 
   to `src/presentation/`. Promote it; do not import across routes.
 - Promotion is a move, not a copy. Leave no duplicate behind.
 
-> **Known deviation:** the app-specific shared components currently live in
-> `src/infra/UI/components/`, not in `src/presentation/`. That path predates this rule and is
-> pending a move. Put **new** shared components in `src/presentation/`, and prefer moving a file you
-> are already touching over leaving it behind — but do not turn a feature slice into a mass
-> relocation. When the folder is finally emptied, delete this note.
+> **La mudanza ya se hizo.** `src/infra/UI/components/` está vacía y borrada: los veinte
+> componentes compartidos viven en `src/presentation/`, agrupados por concern (`chrome/`,
+> `navigation/`, `post/`, `media/`, `search/`, `user/`, `auth/`, `money/`, `directory/`). En
+> `src/infra/UI/` solo quedan `hooks/`, `labels/`, `mappers/`, `metadata/` y `stories/`.
 
 ## Coding Standards (STRICT)
 

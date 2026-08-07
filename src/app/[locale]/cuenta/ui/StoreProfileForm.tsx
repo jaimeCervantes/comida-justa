@@ -5,12 +5,12 @@ import { MdLink, MdPhone, MdStorefront } from "react-icons/md";
 import type { Seller } from "~/domain/entities/seller/types";
 import { resolveLocale } from "~/i18n/routing";
 import { PUBLIC_BASE_URL } from "~/infra/constants";
-import ImageVideoUploader, {
-  type UploadedMediaResult,
-} from "~/infra/UI/components/ImageVideoUploader/ImageVideoUploader";
 import { Button } from "~/presentation/design_system/buttons/Button";
 import { TextArea } from "~/presentation/design_system/forms/TextArea";
 import { TextField } from "~/presentation/design_system/forms/TextField";
+import ImageVideoUploader, {
+  type UploadedMediaResult,
+} from "~/presentation/media/ImageVideoUploader/ImageVideoUploader";
 import type { StoreProfileState } from "../actions";
 import { storePath } from "../storePath";
 

@@ -1,6 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import type { Post } from "~/infra/types/Posts";
-import CardForList from "~/infra/UI/components/CardForList/CardForList";
+import CardForList from "~/presentation/post/CardForList/CardForList";
 
 /**
  * Lo que se parece a esta publicación, según el mismo vector con el que busca el chatbot.

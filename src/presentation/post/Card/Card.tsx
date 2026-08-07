@@ -1,6 +1,6 @@
 import { cn } from "~/presentation/design_system/styling/merge-class-names";
 import { Surface } from "~/presentation/design_system/surfaces/Surface";
-import Avatar from "../Avatar";
+import Avatar from "~/presentation/user/Avatar";
 import FormattedDate from "./FormattedDate";
 import type { CardProps } from "./types";
 

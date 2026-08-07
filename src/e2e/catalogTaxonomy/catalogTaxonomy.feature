@@ -178,7 +178,7 @@ Feature: Centralised catalog taxonomy
   # inside a client tree (PostsWithLoadMore), where the database is unreachable.
   # Covered by Vitest:
   #   src/infra/UI/mappers/posts/mapPostsToCards.test.ts
-  #   src/infra/UI/components/CategoryTag/CategoryTag.test.tsx
+  #   src/presentation/post/CategoryTag/CategoryTag.test.tsx
   # ---------------------------------------------------------------------------
 
   # This was a bug: mapPostsToCards never received a locale, so cards rendered in Spanish even

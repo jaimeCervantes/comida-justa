@@ -1,7 +1,7 @@
 import { useTranslations } from "next-intl";
 import type { Post } from "~/infra/types/Posts";
-import CardForList from "~/infra/UI/components/CardForList/CardForList";
-import Pagination from "~/infra/UI/components/Pagination";
+import Pagination from "~/presentation/navigation/Pagination";
+import CardForList from "~/presentation/post/CardForList/CardForList";
 
 export default function StoreCatalog({
   catalog,

@@ -8,7 +8,7 @@ import { SIGNIN_PATH } from "~/infra/constants";
 import { createBranchRepository } from "~/infra/dataAccess/branches/factory";
 import { createSellerRepository } from "~/infra/dataAccess/sellers/factory";
 import { createUserProfileRepository } from "~/infra/dataAccess/users/factory";
-import BranchList from "~/infra/UI/components/BranchList/BranchList";
+import BranchList from "~/presentation/directory/BranchList/BranchList";
 import {
   addBranch,
   becomeSeller,
