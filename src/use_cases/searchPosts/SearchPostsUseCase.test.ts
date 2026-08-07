@@ -239,3 +239,72 @@ describe("SearchPostsUseCase y el rescate semántico", () => {
     expect(repository.searchByVector).not.toHaveBeenCalled();
   });
 });
+
+/** Slice 4: medir qué se busca. */
+describe("SearchPostsUseCase y la medición", () => {
+  const conResultados = { results: [{ id: "1" }] as never[], total: 1 };
+  const sinResultados = { results: [], total: 0 };
+
+  function makeRepo(textual: typeof conResultados, vectorial = sinResultados) {
+    return {
+      search: vi.fn().mockResolvedValue(textual),
+      searchByVector: vi.fn().mockResolvedValue(vectorial),
+    };
+  }
+
+  it.each([
+    ["text", conResultados, sinResultados],
+    ["semantic", sinResultados, conResultados],
+    ["none", sinResultados, sinResultados],
+  ] as const)(
+    "registra la estrategia %s",
+    async (strategy, textual, vectorial) => {
+      const reporter = { record: vi.fn() };
+      const embedder = { generateEmbedding: vi.fn().mockResolvedValue([0.1]) };
+
+      await new SearchPostsUseCase(
+        makeRepo(textual, vectorial),
+        embedder,
+        reporter,
+      ).execute({
+        query: "  Pan Integral ",
+        page: 1,
+        pageSize: 6,
+        locale: "es",
+      });
+
+      expect(reporter.record).toHaveBeenCalledTimes(1);
+      expect(reporter.record.mock.calls[0][0]).toMatchObject({
+        term: "pan integral",
+        locale: "es",
+        strategy,
+      });
+    },
+  );
+
+  /* Medir es lo primero que se sacrifica: si el destino falla, quien buscaba recibe sus resultados
+     igual. */
+  it("no rompe la búsqueda si medir falla", async () => {
+    const reporter = {
+      record: vi.fn(() => {
+        throw new Error("destino caído");
+      }),
+    };
+
+    const result = await new SearchPostsUseCase(
+      makeRepo(conResultados),
+      undefined,
+      reporter,
+    ).execute({ query: "pan", page: 1, pageSize: 6 });
+
+    expect(result.total).toBe(1);
+  });
+
+  it("funciona sin medición configurada", async () => {
+    const result = await new SearchPostsUseCase(
+      makeRepo(conResultados),
+    ).execute({ query: "pan", page: 1, pageSize: 6 });
+
+    expect(result.total).toBe(1);
+  });
+});

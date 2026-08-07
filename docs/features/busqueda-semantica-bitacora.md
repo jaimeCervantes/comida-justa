@@ -162,3 +162,51 @@ función del chatbot — que habría escondido todos los artículos.
 2. **Un índice GIN** sobre el `tsvector` y un **HNSW** sobre el vector. Con 46 traducciones no hace
    falta; es lo primero que se notará al crecer. Requiere migración Alembic.
 3. **Caché del embedding por término**, si el rescate resulta ser frecuente.
+
+---
+
+## Slice 4: Medir qué se busca
+
+**Objetivo:** dejar de trabajar a ciegas. No había **ningún** dato sobre qué se escribe en la caja
+ni cuántas búsquedas terminan sin resultados.
+
+**Decisiones y racional:**
+
+- **Un puerto, no un `console.log` suelto.** El destino natural sería una tabla, pero crearla es una
+  migración Alembic sobre la base compartida, que es una decisión aparte y no se tomó aquí. Con
+  `ISearchReporter` en medio, cambiar el destino el día que exista la tabla no toca el caso de uso.
+
+- **Se registra la estrategia, y esa es la métrica que faltaba.** Distinguir `text` de `semantic` es
+  lo que permite saber **cuánto se está gastando en embeddings**: cada búsqueda `semantic` costó una
+  llamada al proveedor. Y `emptyHanded` responde la pregunta que el motor no puede responder solo:
+  qué busca la gente que no encontramos.
+
+- **El término se normaliza.** Minúsculas y espacios colapsados, porque si no el informe de términos
+  más buscados sería una lista de variantes de escritura del mismo término. Y se recorta a 120
+  caracteres: un término desmesurado suele ser un pegado accidental.
+
+- **Medir nunca interrumpe.** Si el destino falla, quien buscaba recibe sus resultados igual. Hay un
+  `try/catch` en el caso de uso **y** otro en el adaptador, y una prueba que lo exige.
+
+Para leer el dato mientras no haya tabla:
+`grep '\[search\]' | grep 'emptyHanded=true'` y `grep 'strategy=semantic' | wc -l`.
+
+**Archivos tocados:** `src/domain/search/searchEvent.ts` + test (nuevos),
+`src/use_cases/searchPosts/ports/ISearchReporter.ts` (nuevo),
+`src/infra/services/ConsoleSearchReporter.ts` (nuevo), `SearchPostsUseCase.ts` + test,
+`buscar/data.ts`, `api/search/route.ts`.
+
+**Validación:** `pnpm run test:run` **930/930**; `typecheck` exit 0; `lint` limpio; `build` compila;
+**Playwright 160 pasan, 3 saltadas, 0 fallan**.
+
+### Recap
+El roadmap de búsqueda semántica queda con sus cuatro slices entregados. La caja entiende palabras
+(slice 1), no esconde nada por falta de traducción (slice 2), rescata por sentido lo que el texto no
+encuentra sin devolver disparates (slice 3) y por fin deja rastro de lo que la gente busca (slice 4).
+
+### Próximos pasos (opciones)
+1. **La tabla de búsquedas**, cuando se decida la migración Alembic. El puerto ya está.
+2. **Índices**: GIN sobre el `tsvector` y HNSW sobre el vector. Con 46 traducciones no hacen falta;
+   es lo primero que se notará al crecer. También es Alembic.
+3. **Caché del embedding por término**, si los datos del slice 4 muestran que el rescate es
+   frecuente.

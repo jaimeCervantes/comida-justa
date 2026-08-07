@@ -2,6 +2,7 @@ import { cache } from "react";
 import { routing } from "~/i18n/routing";
 import { createSearchPostRepository } from "~/infra/dataAccess/searchPosts/factory";
 import { readVisitorLocation } from "~/infra/location/visitorLocation";
+import ConsoleSearchReporter from "~/infra/services/ConsoleSearchReporter";
 import { createEmbeddingService } from "~/infra/services/factory";
 import type { ISearchPostResultDTO } from "~/use_cases/searchPosts/dtos/ISearchPostResultDTO";
 import { SearchPostsUseCase } from "~/use_cases/searchPosts/SearchPostsUseCase";
@@ -30,6 +31,7 @@ export const searchPosts = cache(async function searchPosts(
   const useCase = new SearchPostsUseCase(
     createSearchPostRepository(),
     createEmbeddingService(),
+    new ConsoleSearchReporter(),
   );
 
   return useCase.execute({

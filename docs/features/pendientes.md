@@ -40,18 +40,17 @@ Deshacer todo: `DELETE FROM post_translations WHERE locale = 'en';`
 
 ## Búsqueda
 
-**La búsqueda semántica no está hecha.** Ver `docs/features/busqueda-semantica.md` (roadmap nuevo,
-sin empezar). Resumen: el embedding existe, está indexado y lo usan el chatbot y las publicaciones
-relacionadas — pero la caja de búsqueda del sitio sigue siendo `ILIKE '%término%'`.
+**Los cuatro slices están entregados** (`docs/features/busqueda-semantica.md` y su bitácora): texto
+completo, respaldo de idioma, rescate semántico y medición.
 
-Medido contra la base: `pán` → 0 resultados, `panes` → 0, y `pan` en inglés trae «panela» y
-«Pancakes». Además el filtro de idioma es estricto **sin respaldo**, así que una publicación sin
-fila `en` es invisible al buscar en inglés.
-
-De `busqueda-relevante-bitacora.md` sigue pendiente:
-- Distancia en `/tienda/[handle]`, el último hueco de cercanía del sitio.
-- Instrumentar qué se busca: hoy no hay **ningún** dato sobre términos ni sobre búsquedas sin
-  resultados.
+Queda abierto:
+- **Índices** GIN sobre el `tsvector` y HNSW sobre el vector. Con 46 traducciones no hacen falta; es
+  lo primero que se notará al crecer. **Requiere Alembic.**
+- **La tabla de búsquedas.** Hoy la medición va al registro del servidor; el puerto
+  (`ISearchReporter`) ya está para cambiar el destino sin tocar el caso de uso. **Requiere Alembic.**
+- **Caché del embedding por término**, si los datos muestran que el rescate es frecuente.
+- **Distancia en `/tienda/[handle]`**, el último hueco de cercanía del sitio (de
+  `busqueda-relevante-bitacora.md`).
 
 ---
 

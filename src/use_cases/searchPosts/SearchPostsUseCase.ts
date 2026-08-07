@@ -1,7 +1,12 @@
+import {
+  buildSearchEvent,
+  type SearchStrategy,
+} from "~/domain/search/searchEvent";
 import type IEmbeddingService from "~/use_cases/common/ports/IEmbeddingService";
 import type { ISearchPostDTO } from "./dtos/ISearchPostDTO";
 import type { ISearchPostResultDTO } from "./dtos/ISearchPostResultDTO";
 import type { ISearchPostRepository } from "./ports/ISearchPostRepository";
+import type ISearchReporter from "./ports/ISearchReporter";
 
 /**
  * Hasta dónde puede alejarse un resultado semántico para seguir siendo un resultado.
@@ -28,6 +33,8 @@ export class SearchPostsUseCase {
      * permite que la suite y los entornos sin `GEMINI_API_KEY` no dependan del proveedor.
      */
     private readonly embeddingService?: IEmbeddingService,
+    /** Opcional: sin él la búsqueda funciona igual, solo que a ciegas. */
+    private readonly reporter?: ISearchReporter,
   ) {}
 
   async execute(
@@ -46,9 +53,43 @@ export class SearchPostsUseCase {
       dto.fallbackLocale,
     );
 
-    if (textual.total > 0) return textual;
+    if (textual.total > 0) {
+      this.report(dto, "text", textual.total);
+      return textual;
+    }
 
-    return this.rescueSemantically(dto);
+    const rescued = await this.rescueSemantically(dto);
+    this.report(dto, rescued.total > 0 ? "semantic" : "none", rescued.total);
+
+    return rescued;
+  }
+
+  /**
+   * Deja constancia de la búsqueda. **Nunca interrumpe.**
+   *
+   * Medir es lo primero que se sacrifica: si el destino falla, quien buscaba recibe sus resultados
+   * igual. Va después de tener la respuesta y no antes, para poder registrar con qué estrategia se
+   * resolvió y cuántos resultados salieron — que es el dato que hoy no existe.
+   */
+  private report(
+    dto: ISearchPostDTO,
+    strategy: SearchStrategy,
+    resultCount: number,
+  ): void {
+    if (!this.reporter) return;
+
+    try {
+      this.reporter.record(
+        buildSearchEvent({
+          term: dto.query,
+          locale: dto.locale ?? "es",
+          strategy,
+          resultCount,
+        }),
+      );
+    } catch {
+      /* una búsqueda no puede fallar por no poder medirla */
+    }
   }
 
   /**
