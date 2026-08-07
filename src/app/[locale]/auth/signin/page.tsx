@@ -43,7 +43,7 @@ export default function SignInPage() {
                   type="button"
                   onClick={() => signIn(provider.id)}
                   aria-label={`Sign in with ${provider.name}`}
-                  className="w-full flex items-center justify-between gap-3 py-3 px-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:shadow-md transition-shadow focus:outline-hidden focus:ring-2 focus:ring-pw-lightgreen/40"
+                  className="focus-ring w-full flex items-center justify-between gap-3 py-3 px-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:shadow-md transition-shadow"
                 >
                   <div className="flex items-center gap-3">
                     <Image

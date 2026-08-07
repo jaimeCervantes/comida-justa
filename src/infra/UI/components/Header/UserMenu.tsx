@@ -38,7 +38,7 @@ export default function UserMenu({
         <button
           type="button"
           aria-label={t("openUserMenu")}
-          className="rounded-full outline-hidden transition-transform hover:scale-105 focus-visible:ring-2 focus-visible:ring-pw-green"
+          className="focus-ring rounded-full transition-transform hover:scale-105"
         >
           {avatar}
         </button>

@@ -348,3 +348,76 @@ del design system.
 1. **Slice 7 — Estado y foco:** `Skeleton`, `Alert` y un anillo de foco consistente.
 2. **Barrido de tipografía:** llevar `Heading`/`Text` al resto del árbol (~250 usos).
 3. **Barrido de `rounded-*`:** cabecera, paginación y mapa siguen decidiendo su radio.
+
+---
+
+## Slice 7: Estado, retroalimentación y foco
+
+**Objetivo:**
+Cerrar el roadmap con lo que falta para que la interfaz sea usable sin ratón y sin vista perfecta:
+un anillo de foco igual en todas partes, y primitivos para «cargando» y «algo pasó».
+
+**Decisiones y Racional:**
+
+- **El anillo de foco usa `outline`, no `ring`, y ese detalle es el que lo hace funcionar.** `ring`
+  de Tailwind es una `box-shadow`, así que **lo recorta cualquier ancestro con `overflow: hidden`**
+  — justo lo que tienen las tarjetas del catálogo, que ahora lo declaran en `Surface`. El anillo
+  desaparecía exactamente donde más falta hace. `outline` se pinta por encima del recorte.
+  `border-radius: inherit` hace además que siga la forma del elemento en vez de dibujar un
+  rectángulo alrededor de un chip redondo.
+
+- **Había nueve tratamientos de foco distintos** (`ring-pw-green`, `ring-slate-400`,
+  `ring-slate-500`, `ring-pw-lightgreen`, `ring-1`, `ring-2`, `outline-hidden`…). Quien navega con
+  teclado necesita lo contrario: la misma señal en todas las pantallas.
+
+- **`Button` no tenía foco en absoluto.** El componente más pulsado del sitio: al tabular no había
+  forma de saber dónde estabas. Se corrigió en la clase base del primitivo, así que lo hereda todo
+  el sitio de una vez.
+
+- **El anillo cambia de verde con el tema.** El verde de marca (`#538f39`) se apaga sobre fondo casi
+  negro, así que en oscuro el token pasa al verde vivo.
+
+- **En `Alert` el `role` lo decide el tono, no quien llama.** Un error tiene que interrumpir a un
+  lector de pantalla (`role="alert"`, es decir `aria-live="assertive"`); una confirmación no debe
+  cortar la lectura (`role="status"`, `polite`). Dejarlo como prop garantiza que tarde o temprano un
+  error se anuncie en `polite` y pase desapercibido.
+
+- **`Alert` exige una etiqueta de texto.** Quien no distingue rojo de verde no puede leer un aviso
+  cuyo único dato es el color del borde. La etiqueta llega ya traducida: el design system no lee el
+  catálogo de mensajes (misma regla que `loadingLabel` en `Button`).
+
+- **`Skeleton` es `aria-hidden` y anima solo bajo `motion-safe`.** No hay nada que anunciar mientras
+  carga —el contenido aún no existe— y oír «imagen, imagen, imagen» es peor que el silencio; quien
+  avisa es el contenedor con `aria-busy`, que `PostDetailSkeleton` **no tenía**, así que la carga era
+  muda. Y el brillo que recorre el bloque es justo el tipo de animación que provoca mareo: ahora
+  desaparece para quien pidió menos movimiento en su sistema.
+
+**Archivos Tocados:**
+- **Tokens:** `tokens/focus.css` (nuevo), `tokens/tokens.css`
+- **Primitivos:** `feedback/Skeleton.tsx` + test, `feedback/Alert.tsx` + test (nuevos)
+- **Foco unificado:** `buttons/Button.tsx`, `Header/UserMenu.tsx`, `pilares/components/PilaresOverviewPage.tsx`, `auth/signin/page.tsx`
+- **Migrado:** `src/app/[locale]/[slug]/ui/PostDetailSkeleton.tsx`
+
+**Resultados de Validación:**
+- `pnpm run test:run`: **854/854 en verde**, 91 archivos (+16 pruebas).
+- `pnpm run typecheck`: exit 0. `pnpm run lint`: limpio. `pnpm run build`: **Compiled successfully**.
+- Verificado en el CSS emitido que `.focus-ring:focus-visible` existe con su `outline`, y que
+  `--focus-ring` cambia de valor bajo `prefers-color-scheme` y bajo `[data-theme=dark]`.
+
+**Fuera de alcance, a propósito:** los campos de formulario (`TextField`, `TextArea`) conservan su
+anillo de color según el estado de validación, porque ahí el color comunica el error y no solo el
+foco. Unificarlos pide una revisión del sistema de estados de formulario, que no es este slice.
+
+### Recap
+El design system queda cerrado con los siete slices del roadmap. El sitio tiene un anillo de foco
+único que sobrevive al recorte de las tarjetas, un botón que por fin se ve al tabular, avisos que
+anuncian con la urgencia correcta y no dependen del color, y esqueletos que ni interrumpen a un
+lector de pantalla ni marean a quien pidió menos movimiento.
+
+### Próximos pasos (opciones)
+1. **Barrido de tipografía:** llevar `Heading`/`Text` al resto del árbol (~250 usos a mano).
+2. **Barrido de `rounded-*`:** cabecera, paginación y mapa siguen decidiendo su radio.
+3. **Estados de formulario:** revisar `TextField`/`TextArea` para que el foco y el error dejen de
+   competir por el mismo anillo.
+4. **Usar `Alert`:** el primitivo existe pero todavía no lo consume ninguna pantalla; los mensajes
+   de error de `/publicar` son el primer candidato.

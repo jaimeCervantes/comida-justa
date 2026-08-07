@@ -35,7 +35,7 @@ export default function PilaresOverviewPage() {
                   pathname: "/pilares/[[...slug]]",
                   params: { slug: [pillar.slug] },
                 }}
-                className={`group block rounded-2xl border-2 ${c.border} ${c.bg} p-6 sm:p-8 transition-all duration-300 hover:shadow-lg ${c.hover} focus:outline-hidden focus-visible:ring-2 focus-visible:ring-slate-400 dark:focus-visible:ring-slate-500`}
+                className={`focus-ring group block rounded-2xl border-2 ${c.border} ${c.bg} p-6 sm:p-8 transition-all duration-300 hover:shadow-lg ${c.hover}`}
               >
                 <div className="flex items-center gap-3 mb-4">
                   <span

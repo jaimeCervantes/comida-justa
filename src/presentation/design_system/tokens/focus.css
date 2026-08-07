@@ -1,0 +1,40 @@
+/* ============================================================
+   Hazlo Sano — Anillo de foco
+   ============================================================
+   Había nueve tratamientos distintos repartidos por el árbol: `focus-visible:ring-pw-green`,
+   `focus-visible:ring-slate-400`, `focus-visible:ring-slate-500`, `focus:ring-pw-lightgreen`,
+   `focus-visible:ring-1`, `ring-2`, `focus:outline-hidden`… Quien navega con teclado necesita
+   exactamente lo contrario: la misma señal en todas las pantallas, para no tener que aprender
+   dónde mirar en cada una.
+
+   Se usa `outline` y no `ring` a propósito. `ring` es una sombra, así que la recorta cualquier
+   ancestro con `overflow: hidden` —justo lo que tienen las tarjetas del catálogo—, y el anillo
+   desaparece precisamente donde hace falta. `outline` se pinta por encima del recorte.
+
+   `border-radius: inherit` hace que el anillo siga la forma del elemento en vez de dibujar un
+   rectángulo alrededor de un chip redondo. */
+
+:root {
+  --focus-ring: var(--brand-green);
+  --focus-ring-width: 2px;
+  --focus-ring-offset: 2px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    /* Sobre fondo casi negro el verde de marca se apaga; el vivo mantiene la señal visible. */
+    --focus-ring: var(--brand-lightgreen);
+  }
+}
+
+:root[data-theme="dark"] {
+  --focus-ring: var(--brand-lightgreen);
+}
+
+@utility focus-ring {
+  &:focus-visible {
+    outline: var(--focus-ring-width) solid var(--focus-ring);
+    outline-offset: var(--focus-ring-offset);
+    border-radius: inherit;
+  }
+}
