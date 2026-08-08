@@ -252,3 +252,81 @@ Feature: Vendedores y tiendas
       | Panadería La Luz   | e2e-panaderia-la-luz   | una sucursal a 2 km | comparto  | dice a qué distancia      | es lo que esta feature viene a resolver            |
       | Panadería La Luz   | e2e-panaderia-la-luz   | una sucursal a 2 km | no doy    | no dice ninguna distancia | sin punto de partida no hay distancia que calcular |
       | Abarrotes Sin Mapa | e2e-abarrotes-sin-mapa | ninguna sucursal    | comparto  | no dice ninguna distancia | `MIN` de cero filas es NULL, que no es cero        |
+
+  # Slice 8. La ficha ya enlazaba a la tienda y al autor, pero como texto y al final. Quien decide
+  # mira arriba: foto, precio, insignias. A esa altura no decía de quién es, teniendo la tienda un
+  # logo y la persona una foto o sus iniciales.
+  @slice-8
+  Scenario: La publicación dice de quién es antes de que haya que bajar
+    Given "suero-natural", que la vende "Hazlo Sano" y la publicó "Jaime Cervantes", que tiene perfil
+    When alguien la abre
+    Then ve el logo de "Hazlo Sano" enlazando a "/tienda/hazlo-sano"
+    And ve el avatar de "Jaime Cervantes" enlazando a su perfil
+    And los dos van en el mismo renglón que la categoría y la distancia, que es donde se decide
+    And ya no ve la insignia "🌿 Hazlo Sano", porque el logo de al lado dice lo mismo
+
+  # Los nombres no se leen: el renglón ya es largo y el logo dice quién es. Pero un enlace cuyo
+  # único hijo visible es una imagen decorativa se anuncia como "enlace" a secas, así que el nombre
+  # sigue en el árbol, escondido.
+  @slice-8
+  Scenario: Quien no ve el logo oye de quién es
+    Given "suero-natural", que la vende "Hazlo Sano"
+    When alguien la abre con un lector de pantalla
+    Then oye un enlace llamado "Hazlo Sano", aunque en pantalla solo se vea el logo
+
+  @slice-8 @component
+  Scenario Outline: Qué identidad se pinta según lo que exista
+    # Vitest: son combinaciones de props, no hacen falta base ni navegador. Y las de "sin tienda"
+    # tampoco se pueden sembrar cómodamente: 5 de las 23 publicaciones reales están así.
+    Given una publicación <caso>
+    When se pinta su ficha
+    Then la identidad de la línea <resultado>
+
+    Examples:
+      | caso                                  | resultado                                      |
+      | de "Hazlo Sano" y con autor con perfil | muestra el logo y el avatar, cada uno enlazado |
+      | de "Hazlo Sano" y con autor sin perfil | muestra solo el logo                           |
+      | sin tienda y con autor con perfil      | muestra solo el avatar                         |
+      | sin tienda y con autor sin perfil      | no se pinta, y no deja separadores sueltos     |
+
+  @slice-8 @component
+  Scenario Outline: Cuándo se calla la procedencia y cuándo no
+    # La regla es "lo dice ya la identidad", no "el origen no importa": con `productor` el logo no
+    # dice quién lo hizo, así que la insignia se queda. Hoy en la base no hay ninguna `productor`,
+    # pero el formulario de publicar la ofrece y el directorio de productores se apoya en ella.
+    # Vale igual en la ficha y en la tarjeta: desde que las dos enseñan el logo, las dos duplican.
+    Given una publicación con origen "<origen>" y <tienda>
+    When se pinta
+    Then la insignia de procedencia <resultado>
+
+    Examples:
+      | origen             | tienda           | resultado                                          |
+      | hazlo_sano_propio  | la tienda al lado | no se pinta, porque el logo ya lo dice            |
+      | hazlo_sano_reventa | la tienda al lado | no se pinta, por lo mismo: también es "Hazlo Sano" |
+      | productor          | la tienda al lado | se pinta: el logo no dice quién lo hizo           |
+      | reventa_cercana    | la tienda al lado | se pinta: "📍 Local" tampoco se deduce del logo    |
+      | hazlo_sano_propio  | sin tienda        | se pinta: no hay nada al lado que lo diga         |
+
+  @slice-8
+  Scenario: Las salidas del final también muestran de quién son
+    Given "suero-natural", que la vende "Hazlo Sano" y la publicó "Jaime Cervantes"
+    When alguien termina de leerla
+    Then el enlace "Lo vende Hazlo Sano" lleva su logo al lado
+    And el enlace "Publicado por Jaime Cervantes" lleva su avatar al lado
+    And las dos imágenes son decorativas, porque el nombre ya está escrito en el enlace
+
+  # La tarjeta ya decía "a 2 km" —la distancia sale de `p.seller_id`— sin decir de quién. El nombre
+  # de la tienda no se pedía en la consulta del listado, solo en la de la ficha.
+  @slice-8
+  Scenario: La tarjeta de un listado dice de qué tienda es
+    Given un listado con una publicación de "Hazlo Sano"
+    When alguien lo recorre
+    Then la tarjeta lleva el logo de "Hazlo Sano" en el mismo renglón que la categoría y la distancia
+    And el logo enlaza a "/tienda/hazlo-sano" sin tener que abrir la publicación
+    And quien la publicó no sale en ese renglón, porque ya firma abajo junto a la fecha
+
+  @slice-8 @component
+  Scenario: Una publicación sin tienda no deja un hueco en el renglón
+    Given una publicación sin tienda
+    When se pinta su tarjeta
+    Then el renglón empieza por la categoría, sin logo ni separador de más

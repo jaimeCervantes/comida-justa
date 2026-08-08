@@ -234,6 +234,76 @@ la tienda discreparan sobre la misma tienda.
 2. Sin ubicación del visitante, no se pinta ninguna distancia.
 3. Con ubicación pero sin sucursal situada, tampoco: `MIN` de cero filas es `NULL`, que no es cero.
 
+### Slice 8 — Quién vende esto, con cara  *(en curso)*
+
+La publicación ya enlaza a su tienda y a su autor, pero **como texto y al final de la ficha**
+(`PostLinks`, slice 6 de `seo.md`). Quien decide comprar lo hace arriba, mirando la foto, el precio y
+las insignias; a esa altura la ficha no dice de quién es. La tienda tiene logo y la persona tiene
+foto o iniciales, y no se usan en el único sitio donde la decisión ocurre.
+
+- El logo de la tienda y el avatar del autor **en la misma línea que la categoría y la distancia**,
+  bajo el título. Cada uno enlazado a `/tienda/<handle>` y a `/u/<username>`.
+  - **Sin el nombre escrito.** Se probó con el nombre al lado y el renglón se iba a dos líneas
+    diciendo lo que el logo ya dice. Pero el nombre sigue en el árbol (`sr-only`): el único hijo
+    visible del enlace es una imagen decorativa, y un enlace sin nombre accesible se anuncia como
+    "enlace" a secas. Escondido no es lo mismo que ausente.
+- **Ningún componente nuevo para el avatar:** `presentation/user/Avatar` ya resuelve imagen o
+  iniciales con Radix. El logo lo pinta `StoreHeader` desde el slice 6; aquí se reutiliza el patrón.
+- **"Imagen + nombre + enlace" se extrae a `presentation/`**, no se resuelve dentro de la ficha. Hay
+  cuatro sitios donde hoy se enlaza a una tienda o a una persona con puro texto —`PostLinks`,
+  `StoreHeader` (→ su dueño), `ProfileHeader` (→ su tienda) y `DirectoryPage`—, así que escribirlo
+  local sería la primera de cuatro copias. Este slice lo estrena en la ficha; **los otros tres
+  quedan como seguimiento**, para no mezclar el cambio con un barrido de cuatro pantallas.
+- **La tarjeta de listado también lleva el logo**, en el mismo renglón que la categoría y la
+  distancia. Ahí ya decía "a 2 km" sin decir de quién: la distancia sale de `p.seller_id`, pero el
+  nombre de la tienda no se pedía en la consulta del listado, solo en la de la ficha.
+  - **Quien publica no entra en ese renglón**: ya firma en el pie de la tarjeta, junto a la fecha.
+  - Sale del catálogo (`PostgresPostQueryRepository`). **La búsqueda queda fuera**: su proyección
+    (`PostgresSearchPostRepository.hydrate`) tampoco trae `kind`, `origin` ni `category`, así que
+    sus tarjetas ya salían sin insignias. Emparejarla es un hueco anterior a este slice.
+- **Se calla la procedencia cuando la duplica la identidad:** con un `origin` `hazlo_sano_*` y la
+  tienda ya visible al lado, el badge "🌿 Hazlo Sano" dice lo mismo dos veces a 30 px de distancia.
+  `productor` y `reventa_cercana` **se quedan**: el logo no dice quién lo hizo. La regla vale en la
+  ficha y en la tarjeta, así que vive en `presentation/post/ProvenanceBadge/provenanceVisibility.ts`.
+- **Sin migración:** `sellers.logo_url` y `users.image` existen. Lo que faltaba era pedirlos: en
+  `getPostBySlug` el `seller` era solo `{ handle, name }`, y en el listado no había ni `JOIN sellers`.
+- **Los destinos tipados se mudan a `~/i18n/routes`.** `storeHref`/`profileHref` vivían en
+  `app/[locale]/cuenta/`, que servía mientras solo los usaran las rutas; la tarjeta los necesita
+  desde `presentation/`, que no puede importar de `app/`. `cuenta/storePath.ts` y `profilePath.ts`
+  los reexportan para no tocar a quienes ya se los pedían.
+- **Los enlaces de abajo se quedan, y también ganan imagen.** Se evaluó mudarlos —un destino, un
+  enlace— y se descartó a propósito: el `nav` del final es lo que lee un rastreador al terminar la
+  página y lo que usa quien ya leyó la ficha entera. Así que la tienda y el autor se enlazan **dos
+  veces**: arriba como identidad (logo/avatar + nombre) y abajo como salida ("Lo vende X").
+  - El costo es que quien navega por enlaces oye el mismo destino dos veces. Se acota dándoles
+    textos distintos —arriba el nombre solo, abajo la frase completa— y marcando las imágenes
+    `aria-hidden`, que no aportan nada que el nombre no diga ya.
+  - Los `data-testid` de `PostLinks` **no se tocan**: `internalLinks.spec.ts` tiene que seguir
+    pasando sin editarlo. La fila de arriba estrena los suyos.
+
+**Lo que dicen los datos (23 publicaciones, 2026-08-07).** No hay ni una `productor` ni una
+`reventa_cercana`: 13 son `hazlo_sano_*` y 10 no declaran origen. O sea que la regla condicional
+oculta el badge en **todas** las fichas de hoy, y hasta que publique un productor de la comunidad se
+ve igual que si se borrara. Se hace condicional igualmente porque cuesta lo mismo y ese día la ficha
+tiene que saber distinguir. Y **5 de 23 no tienen ni tienda ni perfil**: la fila entera desaparece,
+sin separadores huérfanos.
+
+**Criterios de aceptación:**
+1. En `/suero-natural` se ve el logo de Hazlo Sano enlazando a su tienda y el avatar de su autor
+   enlazando a su perfil.
+2. Esa misma ficha ya no muestra el badge "🌿 Hazlo Sano".
+3. Una publicación `productor` sigue mostrando "🧑‍🌾 Lo hace quien lo vende" junto a su identidad.
+4. Una publicación sin tienda ni autor con perfil no pinta ninguna identidad, y no deja separadores
+   sueltos en el renglón.
+5. Los enlaces a tienda y perfil siguen existiendo en la página: `internalLinks.spec.ts` pasa sin
+   tocarlo.
+6. El `nav` del final muestra el logo junto a "Lo vende X" y el avatar junto a "Publicado por Y",
+   ambos `aria-hidden`.
+7. En `/productos`, cada tarjeta lleva el logo de su tienda enlazado, en el mismo renglón que la
+   categoría y la distancia, y sin repetir a quien publica —que ya está en el pie.
+8. Los dos enlaces de identidad —el de la ficha y el de la tarjeta— se llaman como la tienda o la
+   persona aunque el nombre no se lea en pantalla.
+
 ### Renombrar direcciones — *descartado (2026-08-01)*
 
 Se evaluó y **no se hace**: la dirección de una tienda (`sellers.slug`) y la de una persona
