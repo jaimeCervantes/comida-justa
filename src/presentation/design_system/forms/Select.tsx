@@ -2,7 +2,8 @@
 
 import type { ComponentPropsWithRef, ReactNode } from "react";
 import { forwardRef, useId } from "react";
-import { MdError, MdExpandMore } from "react-icons/md";
+import { MdError } from "react-icons/md";
+import { ChevronDown } from "../icons/ChevronDown";
 import { cn } from "../styling/merge-class-names";
 import { FieldHelper } from "./FieldHelper";
 import { FieldLabel } from "./FieldLabel";
@@ -36,6 +37,9 @@ export type SelectProps = Omit<ComponentPropsWithRef<"select">, "id"> & {
  * y esta se coloca donde le toca. Va con `pointer-events-none` para que al pincharla el clic caiga
  * en el `select` que tiene debajo: la nativa se puede pinchar y la nuestra tenía que seguir
  * pudiéndose.
+ *
+ * **La lista que se despliega no es nuestra y no puede serlo**: la pinta el sistema. Sigue el tema
+ * porque `colors.css` declara `color-scheme`, que es lo único que un navegador acepta para eso.
  */
 export const Select = forwardRef<HTMLSelectElement, SelectProps>(
   function Select(
@@ -81,20 +85,13 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
               aria-invalid={hasError ? true : undefined}
               className={cn(
                 "w-full appearance-none bg-transparent pr-7 text-text-base outline-none disabled:cursor-not-allowed",
-                /* La lista desplegada la pinta el navegador y no hereda la caja: sin esto, en
-                   tema oscuro se abre en blanco. Va por token y no por `dark:`, que solo cubre
-                   `prefers-color-scheme` y se saltaba a quien elige el tema a mano. */
-                "[&>option]:bg-surface-elevation-1 [&>option]:text-text-base",
                 className,
               )}
               {...props}
             >
               {children}
             </select>
-            <MdExpandMore
-              aria-hidden="true"
-              className="pointer-events-none absolute right-0 text-text-support"
-            />
+            <ChevronDown className="pointer-events-none absolute right-0 text-text-support" />
           </span>
         </InputShell>
 
