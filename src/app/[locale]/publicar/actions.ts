@@ -81,9 +81,19 @@ function translateAfterResponse(postId: string): void {
         targetLocale,
       });
 
-      if (!result.translated && result.reason === "provider-failed") {
+      if (result.translated) continue;
+
+      /* Dos avisos y no uno: "queda pendiente, lo recoge el backfill" solo es verdad cuando falló
+         el proveedor. Si lo que falló fue guardar, el backfill volverá a pagarle a Gemini para
+         estrellarse contra la misma base, y quien lea el registro tiene que ir a mirar ahí. */
+      if (result.reason === "provider-failed") {
         console.warn(
-          `[translations] post ${postId} queda pendiente en ${targetLocale}`,
+          `[translations] post ${postId} queda pendiente en ${targetLocale}: no contestó el traductor. Lo recoge \`pnpm run backfill-translations\`.`,
+          result.error,
+        );
+      } else if (result.reason === "storage-failed") {
+        console.error(
+          `[translations] post ${postId} NO se guardó en ${targetLocale}: falló la base, no el traductor. La traducción ya se pagó y se perdió; revisa la conexión antes de relanzar el backfill.`,
           result.error,
         );
       }

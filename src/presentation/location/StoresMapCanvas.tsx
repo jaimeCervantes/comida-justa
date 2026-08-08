@@ -6,6 +6,7 @@ import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
 import type { Coordinates } from "~/domain/entities/seller/coordinates";
 import { describeDistance } from "~/domain/entities/seller/distance";
 import { type MappedStore, viewFor } from "~/domain/entities/seller/map";
+import { Surface } from "~/presentation/design_system/surfaces/Surface";
 
 /**
  * Pines de HTML y no las imágenes que trae Leaflet.
@@ -46,71 +47,93 @@ export default function StoresMapCanvas({
   if (!view) return null;
 
   return (
-    <MapContainer
-      {...(view.kind === "bounds"
-        ? {
-            bounds: [
-              [view.bounds.southWest.latitude, view.bounds.southWest.longitude],
-              [view.bounds.northEast.latitude, view.bounds.northEast.longitude],
-            ] as [[number, number], [number, number]],
-            boundsOptions: { padding: [32, 32] as [number, number] },
-          }
-        : {
-            center: [view.center.latitude, view.center.longitude] as [
-              number,
-              number,
-            ],
-            zoom: view.zoom,
-          })}
-      scrollWheelZoom={false}
-      /*
-       * `isolate` no es cosmético: sin él el mapa tapa el submenú del header.
-       *
-       * Leaflet apila sus capas con z-index de 400 a 700, y sin un contexto de apilamiento propio
-       * esos números compiten en la raíz contra el `z-50` del header — y 400 gana. Al aislar, todo
-       * lo de Leaflet queda dentro de un contexto que vale 0, y el desplegable pasa por encima.
-       */
-      className="relative isolate z-0 h-72 w-full rounded-lg"
-    >
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
+    /*
+     * El radio lo decide el design system, no este archivo.
+     *
+     * Era el `rounded-*` que `pendientes.md` dejó marcado: el mapa se pintaba con `rounded-lg`
+     * escrito a mano mientras tarjetas, paneles y paginación ya pasaban por `Surface`. Da igual
+     * que el valor coincidiera hoy — una esquina que no se puede cambiar desde `layout.css` es una
+     * esquina que se va a quedar atrás la próxima vez que cambie el radio del sitio.
+     *
+     * El envoltorio existe porque `MapContainer` no acepta `as`: `Surface` pone el radio y recorta,
+     * y el mapa se queda con lo suyo —el tamaño y el aislamiento—.
+     */
+    <Surface radius="lg" className="overflow-hidden">
+      <MapContainer
+        {...(view.kind === "bounds"
+          ? {
+              bounds: [
+                [
+                  view.bounds.southWest.latitude,
+                  view.bounds.southWest.longitude,
+                ],
+                [
+                  view.bounds.northEast.latitude,
+                  view.bounds.northEast.longitude,
+                ],
+              ] as [[number, number], [number, number]],
+              boundsOptions: { padding: [32, 32] as [number, number] },
+            }
+          : {
+              center: [view.center.latitude, view.center.longitude] as [
+                number,
+                number,
+              ],
+              zoom: view.zoom,
+            })}
+        scrollWheelZoom={false}
+        /*
+         * `isolate` no es cosmético: sin él el mapa tapa el submenú del header.
+         *
+         * Leaflet apila sus capas con z-index de 400 a 700, y sin un contexto de apilamiento propio
+         * esos números compiten en la raíz contra el `z-50` del header — y 400 gana. Al aislar, todo
+         * lo de Leaflet queda dentro de un contexto que vale 0, y el desplegable pasa por encima.
+         */
+        className="relative isolate z-0 h-72 w-full"
+      >
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+          url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
 
-      {visitor ? (
-        <Marker
-          position={[visitor.latitude, visitor.longitude]}
-          icon={visitorIcon}
-        >
-          <Popup>{t("youAreHere")}</Popup>
-        </Marker>
-      ) : null}
-
-      {stores.map((store) => {
-        const described =
-          store.meters === null ? null : describeDistance(store.meters);
-
-        return (
+        {visitor ? (
           <Marker
-            key={store.handle}
-            position={[store.coordinates.latitude, store.coordinates.longitude]}
-            icon={storeIcon}
+            position={[visitor.latitude, visitor.longitude]}
+            icon={visitorIcon}
           >
-            <Popup>
-              <a href={`/tienda/${store.handle}`} className="font-semibold">
-                {store.name}
-              </a>
-              {described ? (
-                <span className="block">
-                  {described.unit === "meters"
-                    ? t("meters", { value: described.value })
-                    : t("kilometers", { value: described.value })}
-                </span>
-              ) : null}
-            </Popup>
+            <Popup>{t("youAreHere")}</Popup>
           </Marker>
-        );
-      })}
-    </MapContainer>
+        ) : null}
+
+        {stores.map((store) => {
+          const described =
+            store.meters === null ? null : describeDistance(store.meters);
+
+          return (
+            <Marker
+              key={store.handle}
+              position={[
+                store.coordinates.latitude,
+                store.coordinates.longitude,
+              ]}
+              icon={storeIcon}
+            >
+              <Popup>
+                <a href={`/tienda/${store.handle}`} className="font-semibold">
+                  {store.name}
+                </a>
+                {described ? (
+                  <span className="block">
+                    {described.unit === "meters"
+                      ? t("meters", { value: described.value })
+                      : t("kilometers", { value: described.value })}
+                  </span>
+                ) : null}
+              </Popup>
+            </Marker>
+          );
+        })}
+      </MapContainer>
+    </Surface>
   );
 }
