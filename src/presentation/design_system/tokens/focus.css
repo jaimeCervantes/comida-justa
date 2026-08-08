@@ -11,8 +11,20 @@
    ancestro con `overflow: hidden` —justo lo que tienen las tarjetas del catálogo—, y el anillo
    desaparece precisamente donde hace falta. `outline` se pinta por encima del recorte.
 
-   `border-radius: inherit` hace que el anillo siga la forma del elemento en vez de dibujar un
-   rectángulo alrededor de un chip redondo. */
+   El anillo sigue la forma del elemento **solo**, sin ayuda: el navegador ya curva el `outline`
+   según el `border-radius` de quien lo recibe. Aquí hubo un `border-radius: inherit` que pretendía
+   forzarlo y hacía lo contrario: `inherit` toma el radio **del padre**, así que al enfocar, la
+   barra de búsqueda —`rounded-full` dentro de un contenedor sin radio— perdía su forma y se
+   cuadraba, anillo incluido. Se veía redonda hasta que alguien hacía clic. Pasaba en todo lo que
+   tiene una forma propia: el avatar del menú, la paginación, los botones, las tarjetas de pilares.
+
+   **Los campos de texto no lo llevan.** Su borde ya se pone verde al enfocarse, y con el anillo
+   fuera quedaban dos verdes concéntricos separados por 2 px alrededor de cada campo. El anillo se
+   queda donde no hay otra señal: botones, avatar, paginación, tarjetas. Ver `InputShell`.
+
+   Hubo también un `focus-ring-within`, para cuando el foco lo recibe un hijo y el anillo lo pinta
+   la caja. Se borró al quedarse sin usuarios —era justo el de los campos—; si vuelve a hacer falta,
+   son estas cinco líneas con `:focus-within` en vez de `:focus-visible`. */
 
 :root {
   --focus-ring: var(--brand-green);
@@ -35,17 +47,5 @@
   &:focus-visible {
     outline: var(--focus-ring-width) solid var(--focus-ring);
     outline-offset: var(--focus-ring-offset);
-    border-radius: inherit;
-  }
-}
-
-/* La misma señal cuando quien recibe el foco es un hijo y no el elemento en sí: un campo de texto
-   vive dentro de una caja que dibuja el borde y los iconos, así que el anillo lo tiene que pintar
-   la caja. */
-@utility focus-ring-within {
-  &:focus-within {
-    outline: var(--focus-ring-width) solid var(--focus-ring);
-    outline-offset: var(--focus-ring-offset);
-    border-radius: inherit;
   }
 }

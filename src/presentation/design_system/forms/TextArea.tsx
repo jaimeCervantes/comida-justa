@@ -78,8 +78,8 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
           aria-describedby={describedBy}
           aria-invalid={hasError ? true : undefined}
           className={cn(
-            "focus-ring w-full rounded-md px-3 py-2 text-text-base border bg-surface-elevation-1 transition-colors duration-fast ease-standard placeholder:text-text-support disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-surface-elevation-2",
-            // El borde dice el estado; el anillo de foco es el del sitio y no cambia con él.
+            "w-full rounded-md px-3 py-2 text-text-base border bg-surface-elevation-1 transition-colors duration-fast ease-standard placeholder:text-text-support disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-surface-elevation-2",
+            // Sin el anillo del sitio, por lo mismo que `InputShell`: el borde dice el foco.
             hasError
               ? "border-feedback-error"
               : "border-border focus-visible:border-pw-green",
