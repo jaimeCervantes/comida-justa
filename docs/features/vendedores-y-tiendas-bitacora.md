@@ -776,3 +776,117 @@ migración: `branches.location` ya existía desde el slice 3. De paso se arregl�
 - Correr la suite e2e completa: `warmRoutes` cambió y afecta a **todas** las corridas, no solo a las
   de este slice. Aquí solo se pasó `storeDistance.spec.ts`.
 - Sigue pendiente lo del plan de Vercel antes de promocionar tiendas de terceros.
+
+## Slice 8 — Quién vende esto, con cara (2026-08-07)
+
+### Objetivo
+
+La publicación ya enlazaba a su tienda y a su persona, pero **como texto y al final**. Quien decide
+comprar mira arriba —foto, precio, insignias— y a esa altura la página no decía de quién era,
+teniendo la tienda un logo y la persona una foto o sus iniciales. Lo mismo en la tarjeta de un
+listado, que llegó a decir "a 2 km" sin decir de quién: la distancia sale de `p.seller_id`, pero el
+nombre de la tienda no se pedía en la consulta.
+
+### Decisiones y porqué
+
+- **Todo en un renglón: logo, avatar, categoría y distancia.** Se probó primero como una fila propia
+  bajo el título, con el nombre escrito al lado de cada imagen, y el bloque se comía dos líneas para
+  repetir lo que el logo ya decía. Manda el renglón único.
+- **El nombre no se ve, pero está.** Con el nombre fuera, el único hijo visible de cada enlace es una
+  imagen decorativa (`aria-hidden`, `alt=""`), y un enlace así se anuncia como "enlace" a secas. La
+  salida es `hideLabel` en `IdentityLink`: el texto sigue en el árbol dentro de un `sr-only`.
+  **Escondido no es lo mismo que ausente**, y un `title` no habría servido —no lo lee el teclado.
+- **La procedencia se calla cuando la duplica el logo**, y solo entonces. Con `origin` `hazlo_sano_*`
+  la insignia "🌿 Hazlo Sano" dice lo mismo que el logo a 30 px. `productor` y `reventa_cercana` se
+  quedan: que lo haga quien lo vende no se deduce de ninguna imagen. La regla vive en
+  `presentation/post/ProvenanceBadge/provenanceVisibility.ts` porque la hacen dos sitios —la ficha y
+  la tarjeta—, no uno.
+- **La tarjeta lleva la tienda, no a quien publica.** La persona ya firma en el pie de la tarjeta,
+  junto a la fecha; la tienda no aparecía en ningún sitio.
+- **`storeHref`/`profileHref` se mudan a `~/i18n/routes`.** Vivían en `app/[locale]/cuenta/`, que
+  bastaba mientras solo los usaran las rutas. La tarjeta los necesita desde `presentation/`, que no
+  puede importar de `app/`. Copiar el literal `"/tienda/[slug]"` al otro lado era garantizar que el
+  día que la ruta cambie uno de los dos se quede atrás; `cuenta/storePath.ts` y `profilePath.ts` los
+  reexportan para no tocar a quienes ya se los pedían.
+- **Los enlaces del final se quedan y también ganan imagen.** Se evaluó mudarlos —un destino, un
+  enlace— y se descartó: el `nav` del final es lo que recoge un rastreador al terminar la página. El
+  costo es que quien navega por enlaces oye el destino dos veces; se acota dándoles textos distintos
+  (arriba el nombre solo, abajo "Lo vende X").
+- **Sin migración.** `sellers.logo_url` y `users.image` existían desde el slice 6. Lo que faltaba era
+  pedirlos: en `getPostBySlug` el `seller` era `{ handle, name }`, y en el listado no había ni un
+  `JOIN sellers`.
+- **`sellers.slug` es nulo en los vendedores que creó el bot**, así que la tienda se deja en `null`
+  cuando falta: un logo que no lleva a ninguna parte engaña más de lo que informa.
+
+### Lo que dijeron los datos (23 publicaciones)
+
+13 son `hazlo_sano_*`, 10 no declaran origen, y **ninguna** es `productor` ni `reventa_cercana`. O
+sea que la regla condicional oculta la insignia en el 100 % de lo publicado hoy y se ve igual que si
+se hubiera borrado. Se hizo condicional igualmente porque cuesta lo mismo y el día que publique un
+productor de la comunidad —que es la razón de ser del directorio— la página tiene que distinguir.
+Y **5 de 23 no tienen ni tienda ni perfil reclamado**: ahí no se pinta identidad ninguna.
+
+### Archivos tocados
+
+- **Presentación nueva:** `presentation/identity/IdentityLink.tsx`, `StoreLogo.tsx`,
+  `StoreIdentity.ts`; `presentation/post/ProvenanceBadge/provenanceVisibility.ts`.
+- **Ficha:** `app/[locale]/[slug]/ui/PostIdentity.tsx` (nuevo), `PostDetail.tsx`, `PostLinks.tsx`.
+- **Tarjeta:** `presentation/post/CardForList/CardForList.tsx`, `presentation/user/Avatar/Avatar.tsx`
+  (tamaño `sm`), `infra/UI/mappers/posts/mapPostsToCards.ts`.
+- **Datos:** `infra/dataAccess/getOnePostWithPaginatedComments/PostgresGetOnePost.ts` (el logo),
+  `infra/dataAccess/posts/PostgresPostQueryRepository.ts` (`JOIN sellers` + 3 columnas en la
+  proyección compartida), `infra/dataAccess/posts/IPostQueryRepository.ts`.
+- **Rutas:** `i18n/routes.ts` (nuevo), `app/[locale]/cuenta/storePath.ts`, `profilePath.ts`.
+- **Pruebas:** `e2e/sellerStore/sellerStore.feature` (7 escenarios `@slice-8`),
+  `e2e/sellerStore/postIdentity.spec.ts`, `app/[locale]/[slug]/ui/PostIdentity.test.tsx`,
+  `presentation/post/ProvenanceBadge/provenanceVisibility.test.ts`,
+  `presentation/post/CardForList/CardForList.test.tsx`.
+
+### Validación
+
+| Comando | Resultado |
+| --- | --- |
+| `pnpm typecheck` | 0 |
+| `pnpm typecheck:tests` | 0 |
+| `pnpm lint` | limpio (sigue el `info` preexistente de `IndexingStatusPanel`) |
+| `pnpm test:run` | 948/948 |
+| Playwright | **no se corrió**: queda de tu parte, por decisión tuya en esta sesión |
+
+### Desviaciones del proceso (a la vista)
+
+- **El `.feature` se escribió antes que el código, pero se reescribió después.** La primera versión
+  hablaba de "la fila de identidad" y de "el logo de arriba"; al pasar todo a un solo renglón esos
+  escenarios quedaron describiendo un diseño que ya no existe. Se corrigieron, no se dejaron.
+- **No hubo ciclo rojo→verde en la parte de tarjetas**: se implementó y luego se probó. El rojo del
+  slice anterior encontró algo real, así que la deuda es de verdad, no formal.
+
+### Hallazgo colateral: un enlace mudo
+
+Al quitar el nombre del renglón los dos enlaces se quedaron sin nombre accesible: su contenido era
+solo una imagen `aria-hidden`. No lo detecta ningún typecheck ni ningún lint del proyecto, y en
+pantalla se ve perfecto. Ahora hay dos pruebas que lo afirman por el rol y el nombre
+(`getByRole("link", { name })`) en vez de por el `data-testid`, que habría pasado igual estando roto.
+
+### Recap
+
+Una publicación dice de quién es en el mismo renglón donde se decide comprarla, en la ficha y en la
+tarjeta, y sin repetir por escrito lo que el logo ya dice. La insignia de procedencia solo se calla
+cuando el logo la duplica. Los destinos tipados de tienda y perfil dejaron de vivir en `app/` para
+que `presentation/` pueda enlazar sin romper la dirección de las dependencias. Sin migración: las
+dos columnas existían y solo faltaba pedirlas.
+
+### Próximos pasos (opciones)
+
+1. **Emparejar la búsqueda con el catálogo.** `PostgresSearchPostRepository.hydrate` no proyecta
+   `kind`, `origin`, `category` ni ahora `seller`, así que sus tarjetas salen sin insignias y sin
+   logo mientras las de `/productos` los llevan. Es un hueco anterior a este slice, pero ahora se
+   nota más.
+2. **Los otros tres sitios que enlazan a una tienda o a una persona con puro texto**: `StoreHeader`
+   (→ su dueño), `ProfileHeader` (→ su tienda) y el directorio. `IdentityLink` se extrajo para los
+   cuatro; este slice solo estrenó dos.
+3. Siguen abiertos **borrar publicaciones propias** (slice 5) y **quitar el logo** (slice 6).
+
+**Acciones pendientes de tu parte:**
+
+- Correr la suite e2e completa, incluido `sellerStore/postIdentity.spec.ts`, que nunca se ha
+  ejecutado.
