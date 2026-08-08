@@ -121,7 +121,18 @@ export default defineConfig({
     command: `pnpm exec next dev --port ${PORT}`,
     url: BASE_URL,
     reuseExistingServer: false,
-    env: { NEXT_PUBLIC_BASE_URL: BASE_URL },
+    env: {
+      NEXT_PUBLIC_BASE_URL: BASE_URL,
+      /*
+       * La medición de búsquedas se queda en el registro y NO va a la tabla `searches`.
+       *
+       * Esa tabla contesta «qué busca la gente y cuánta se va con las manos vacías», y una corrida
+       * de la suite le mete decenas de términos inventados —más `pan`, `panela`, `buñuelos`, que
+       * son indistinguibles de una búsqueda real—. El barrido de `testData.ts` no puede limpiarlos
+       * después: no hay prefijo que los marque. Así que no se escriben.
+       */
+      SEARCH_REPORTER: "console",
+    },
     timeout: 180_000,
   },
 });

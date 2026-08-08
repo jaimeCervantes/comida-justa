@@ -88,11 +88,13 @@ function translateAfterResponse(postId: string): void {
          estrellarse contra la misma base, y quien lea el registro tiene que ir a mirar ahí. */
       if (result.reason === "provider-failed") {
         console.warn(
+          // i18n-ignore: registro del servidor; lo lee quien opera, no un visitante.
           `[translations] post ${postId} queda pendiente en ${targetLocale}: no contestó el traductor. Lo recoge \`pnpm run backfill-translations\`.`,
           result.error,
         );
       } else if (result.reason === "storage-failed") {
         console.error(
+          // i18n-ignore: registro del servidor; lo lee quien opera, no un visitante.
           `[translations] post ${postId} NO se guardó en ${targetLocale}: falló la base, no el traductor. La traducción ya se pagó y se perdió; revisa la conexión antes de relanzar el backfill.`,
           result.error,
         );

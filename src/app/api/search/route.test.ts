@@ -8,6 +8,9 @@ const { execute } = vi.hoisted(() => ({
 
 vi.mock("~/infra/dataAccess/searchPosts/factory", () => ({
   createSearchPostRepository: () => ({}),
+  /* La medición va a la tabla `searches` desde la migración `0029_2026_08_08`; aquí basta con que
+     exista, porque lo que se afirma es qué le llega al caso de uso. */
+  createSearchReporter: () => ({ record: vi.fn() }),
 }));
 vi.mock("~/infra/services/factory", () => ({
   createEmbeddingService: () => ({}),

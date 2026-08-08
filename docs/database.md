@@ -1,7 +1,7 @@
 # Base de datos
 
 > Volcado del esquema **real** el 2026-08-08, contra la base compartida (`alembic_version` =
-> `0027_2026_07_31`). La versión anterior de este documento describía una base que ya no existía:
+> `0029_2026_08_08`). La versión anterior de este documento describía una base que ya no existía:
 > tres tablas, `posts.id` como `uuid` cuando es `text`, un `UNIQUE(post_id, locale)` que nunca se
 > creó, y una sección entera sobre leer de Firestore. Si vuelves a dudar, el volcado se reproduce
 > con las consultas de `information_schema` en vez de creerle a este archivo.
@@ -34,7 +34,10 @@
 | `categories`, `category_translations`, `category_aliases` | **el sitio** y el bot | taxonomía centralizada |
 | `sellers` | **el sitio** y el bot | el perfil detrás de `/tienda/<slug>` |
 | `branches` | **el sitio** y el bot | sucursales con `location` PostGIS; es lo que da las distancias |
+| `seller_translations`, `branch_translations` | **el sitio** | desde `0029`. Español sembrado; el camino de lectura es el slice 5 de i18n |
+| `searches` | **el sitio** | desde `0029`. Qué se busca y cuánta gente se va vacía |
 | `messages`, `orders`, `prompts`, `ai_training_logs`, `product_recommendations` | **solo el bot** | no hay espejo Drizzle |
+| `social_posts`, `social_post_deliveries` | **solo el bot** | desde `0028`. Ledger de publicación en redes |
 | `alembic_version` | Alembic | |
 
 `products` ya no existe: desapareció al unificar el catálogo dentro de `posts`.
@@ -150,9 +153,33 @@ CREATE TABLE branches (
 );
 ```
 
-**`sellers.name`, `sellers.description`, `branches.name` y `branches.address` están en un solo
-idioma.** Es el slice 5 de i18n, pendiente: requiere `seller_translations` y `branch_translations`
-en Alembic.
+### Traducciones de tienda y sucursal (desde `0029`)
+
+```sql
+CREATE TABLE seller_translations (
+  seller_id   uuid NOT NULL REFERENCES sellers(id) ON DELETE CASCADE,
+  locale      text NOT NULL,
+  name        text NOT NULL,
+  description text,
+  created_at  timestamptz NOT NULL DEFAULT now(),
+  updated_at  timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (seller_id, locale),
+  CHECK (locale IN ('es', 'en')),
+  CHECK (btrim(name) <> '')
+);
+
+CREATE TABLE branch_translations (   -- igual, más `address text NOT NULL`
+  branch_id uuid NOT NULL REFERENCES branches(id) ON DELETE CASCADE,
+  …
+);
+```
+
+**Las columnas originales de `sellers` y `branches` no se vaciaron ni se van a vaciar**: el bot de
+WhatsApp las lee y no sabe de locales. Las tablas nuevas son aditivas y sus filas `es` se sembraron
+copiando lo que ya había, así que nacieron consistentes.
+
+Falta el **camino de lectura**: la ficha de tienda sigue leyendo `sellers.name` y `branches.address`
+directos. Es el slice 5 de i18n, que ya no está bloqueado por esquema.
 
 ### Taxonomía
 
@@ -205,9 +232,15 @@ CREATE INDEX ix_posts_sub_category_category ON posts (sub_category, category);
 CREATE INDEX ix_posts_seller_id ON posts (seller_id);
 
 -- post_translations
-CREATE INDEX idx_translations_post_id ON post_translations (post_id);
-CREATE INDEX idx_translations_slug ON post_translations (slug);
--- ⚠️ NO hay índice GIN sobre el tsvector ni HNSW sobre el embedding.
+CREATE INDEX        idx_translations_post_id     ON post_translations (post_id);
+CREATE UNIQUE INDEX ux_translations_post_locale  ON post_translations (post_id, locale);
+CREATE UNIQUE INDEX ux_translations_slug         ON post_translations (slug);
+CREATE INDEX ix_translations_embedding ON post_translations USING hnsw (embedding vector_cosine_ops);
+
+-- Búsqueda de texto: TRES índices GIN parciales, uno por idioma. Ver abajo.
+CREATE INDEX ix_translations_fts_es    ON post_translations USING gin ((…'spanish'…)) WHERE locale = 'es';
+CREATE INDEX ix_translations_fts_en    ON post_translations USING gin ((…'english'…)) WHERE locale = 'en';
+CREATE INDEX ix_translations_fts_other ON post_translations USING gin ((…'simple'…))  WHERE locale NOT IN ('es','en');
 
 -- resto
 CREATE INDEX idx_media_post_id ON post_media (post_id);
@@ -217,21 +250,51 @@ CREATE INDEX ix_categories_active ON categories (key) WHERE is_active;
 CREATE INDEX ix_categories_parent ON categories (parent_key);
 CREATE INDEX ix_category_translations_locale ON category_translations (locale);
 CREATE INDEX ix_category_translations_label_norm ON category_translations (label_normalized);
+CREATE INDEX ix_searches_empty_handed ON searches (term) WHERE empty_handed;
+CREATE INDEX ix_searches_created_at ON searches (created_at DESC);
 ```
+
+### Por qué la búsqueda de texto lleva tres índices y no uno
+
+Porque **uno solo no se usa nunca**, y esto cuesta media hora de desconcierto si no está escrito.
+
+La consulta analiza cada fila con el diccionario de SU idioma, así que el `tsquery` también sale de
+un `CASE` sobre `locale`: la clave de búsqueda **cambia de una fila a otra**. Un GIN necesita una
+clave fija para descender por el índice, así que un índice único sobre esa expresión se crea sin
+protestar y el planner lo ignora siempre — comprobado con `EXPLAIN` y `enable_seqscan = off`.
+
+Partida por idioma, cada rama lleva su diccionario como constante y empareja con su índice parcial:
+
+```
+BitmapOr
+  → Bitmap Index Scan on ix_translations_fts_es
+  → Bitmap Index Scan on ix_translations_fts_en
+  → Bitmap Index Scan on ix_translations_fts_other
+```
+
+El tercero **cubre 0 filas hoy y es imprescindible**: un `OR` solo se resuelve por índices si los
+tienen todas sus ramas, y la de reserva existe para que una fila en un idioma inesperado no sea
+invisible al buscar.
+
+**Van atados a `PostgresSearchPostRepository`.** El planner solo usa un índice de expresión cuando
+la expresión coincide palabra por palabra; si se desalinean no falla nada, solo se vuelve lento en
+silencio. Lo vigila `rowConfigMatchesIndex.test.ts`. Un idioma nuevo pide tres cosas: su línea en
+`TEXT_SEARCH_CONFIG`, su índice parcial, y recrear `ix_translations_fts_other`.
 
 ## Lo que la base NO impide (y el código sí)
 
-Esto es lo más importante del documento, porque son las reglas que **parecen** estar en el esquema
-y no están:
+Las reglas que **parecen** estar en el esquema. Dos de las tres ya están; la que falta importa
+saberla:
 
-| Regla que se asume | ¿La impone la base? | Quién la sostiene hoy |
+| Regla que se asume | ¿La impone la base? | Quién la sostiene |
 | --- | --- | --- |
-| Una sola traducción por `(post_id, locale)` | **No.** No hay `UNIQUE`. | El `INSERT` de `saveTranslation` lleva su `WHERE NOT EXISTS` en la misma sentencia, y `TranslatePostUseCase` comprueba antes. |
-| Un `slug` no se repite | **No.** El índice de `slug` no es único. | `createUniqueSlug` desambigua contando. |
-| Un idioma es `es` o `en` | Solo en `category_translations`. | En `post_translations` cabe cualquier cosa. |
+| Una sola traducción por `(post_id, locale)` | **Sí**, desde `0029`: `ux_translations_post_locale`. | La base. El `WHERE NOT EXISTS` de `saveTranslation` se queda porque da un error legible antes de que salte el constraint. |
+| Un `slug` no se repite | **Sí**, desde `0029`: `ux_translations_slug`. | La base. `createUniqueSlug` sigue desambiguando para no chocar. |
+| Un idioma es `es` o `en` | **Solo** en `category_translations`, `seller_translations` y `branch_translations`. | En `post_translations` **cabe cualquier cosa**: no hay CHECK. |
 
-Crear ese `UNIQUE(post_id, locale)` es una migración Alembic sobre la base compartida —
-irreversible — y sigue **pendiente de decisión**. Ver `docs/features/pendientes.md`.
+Ese último hueco es deliberado por ahora: la búsqueda tiene una rama de reserva
+(`ix_translations_fts_other`) precisamente para que una fila en un idioma inesperado no sea
+invisible. Cerrarlo con un CHECK obligaría a una migración por cada idioma nuevo.
 
 ## Extensiones y funciones
 
@@ -259,10 +322,15 @@ src/infra/dataAccess/db/
     sellers.ts         — sellers, branches
     categories.ts      — categories, category_translations, category_aliases
     comments.ts
+    searches.ts        — searches
 ```
 
-Las 5 tablas que solo usa el bot (`messages`, `orders`, `prompts`, `ai_training_logs`,
-`product_recommendations`) **no tienen espejo**, y está bien así: el sitio no las toca.
+Las tablas que solo usa el bot (`messages`, `orders`, `prompts`, `ai_training_logs`,
+`product_recommendations`, `social_posts`, `social_post_deliveries`) **no tienen espejo**, y está
+bien así: el sitio no las toca.
+
+`seller_translations` y `branch_translations` tampoco lo tienen **todavía**: el espejo existe para
+las consultas del sitio, y hasta que el slice 5 de i18n las lea sería código muerto.
 
 ## Scripts
 
@@ -334,5 +402,9 @@ pnpm dev
 | `0023` | `posts.seller_id`, `sellers.user_id`, categorías, `is_available`, embeddings |
 | `0026` | Taxonomía centralizada en `categories` |
 | `0027` | `sellers.slug`, `users.username` (nullable, con índice único) |
+| `0029` | Unicidad de traducción y slug, los 3 GIN + HNSW, `searches`, `seller_translations`, `branch_translations` |
 
-Head actual: **`0027_2026_07_31`**.
+`0028` es del bot (ledger de publicación en redes) y se aplicó de camino al `0029`: estaba escrita
+sin aplicar y `alembic upgrade head` no la puede saltar.
+
+Head actual: **`0029_2026_08_08`**.
