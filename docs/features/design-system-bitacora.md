@@ -564,3 +564,59 @@ entre copias. Se extrajeron; el resto se dejó donde el tamaño es una decisión
 2. **La deuda que necesita Alembic**: `UNIQUE(post_id, locale)`, índices GIN/HNSW, tabla de
    búsquedas.
 3. **Slice 5 de i18n**: `sellers` y `branches` siguen en un solo idioma.
+
+## Slice 10: El anillo de foco cuadraba lo redondo (2026-08-07)
+
+Se reportó desde la barra de búsqueda: en reposo es una píldora y al hacer clic se volvía un
+rectángulo, con el anillo verde también rectangular.
+
+### El defecto
+
+`tokens/focus.css` cerraba las dos utilidades con `border-radius: inherit`, puesto —según su propio
+comentario— para "que el anillo siga la forma del elemento". Hace lo contrario de lo que dice: no
+toca el anillo, le **cambia la forma al elemento**, y `inherit` toma el radio del padre. El
+`InputShell` de la barra es `rounded-full` dentro del `div.flex.flex-col` de `TextField`, que no
+tiene radio: al enfocar, radio 0.
+
+No hacía falta nada. El navegador ya curva el `outline` según el `border-radius` de quien lo recibe.
+
+Alcanzaba a **todo** lo que tiene forma propia y un padre sin ella: el avatar del menú y la
+paginación (`rounded-full`), los botones (`rounded-lg`), las tarjetas de pilares (`rounded-2xl`).
+Se veía solo al enfocar, así que con el ratón casi nunca.
+
+### Y de paso: los campos se quedan sin anillo
+
+Arreglada la forma, quedaban dos verdes concéntricos separados por 2 px alrededor de cada campo —el
+borde, que ya se pone verde al enfocarse, y el anillo—. En una pantalla con varios campos es ruido.
+Los campos se quedan solo con el borde, como estaba en producción antes del slice 7; el anillo sigue
+donde no hay otra señal: botones, avatar, paginación, tarjetas.
+
+**El costo, dicho:** en un campo la señal de foco pasa a ser un cambio de color de 1 px. El cursor
+de texto acompaña —es el único elemento del sitio que lo tiene—, pero es menos señal que un anillo.
+Se decidió a la vista de las dos versiones.
+
+`focus-ring-within` se borró al quedarse sin usuarios: existía justo para los campos.
+
+### Archivos tocados
+
+`tokens/focus.css`, `forms/InputShell.tsx`, `forms/TextArea.tsx`.
+
+### Validación
+
+`pnpm typecheck` 0; `pnpm typecheck:tests` 0; `pnpm lint` limpio; `pnpm test:run` 948/948.
+La forma y el anillo son CSS: se comprueban mirando, no hay prueba que los afirme.
+
+### Recap
+
+El anillo de foco dejó de cuadrar lo redondo, en toda la aplicación y no solo en la barra de
+búsqueda, y los campos volvieron a la señal que tenían en producción: su borde.
+
+### Próximos pasos (opciones)
+
+1. **Una prueba que note esto.** Hoy nada afirma la forma ni el anillo; el defecto se reportó a
+   ojo, meses después. Un caso de Playwright con `toHaveScreenshot` sobre un campo enfocado lo
+   habría cazado.
+2. **Medir el contraste del borde verde** contra `surface-elevation-1` en los dos temas: ahora es la
+   única señal de foco de los campos y WCAG 1.4.11 pide 3:1.
+3. Sigue abierto lo del slice 9: typechequear los tests ya se hizo, quedan Alembic e i18n de
+   `sellers`/`branches`.
