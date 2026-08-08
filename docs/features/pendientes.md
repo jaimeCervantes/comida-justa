@@ -7,23 +7,28 @@ Cada punto apunta a su roadmap. **Última sesión: 2026-08-08.**
 
 ## Por dónde retomar
 
-**Solo queda un montón, y es el que no depende de este repositorio.**
+**No queda nada bloqueado.** La migración Alembic `0029_2026_08_08` cerró las cuatro cosas que
+esperaban a la base compartida (detalle en `deuda-pendiente-bitacora.md`, entrada de la tarde):
 
-Todo lo que se podía hacer sin tocar la base compartida está cerrado (ver *Resuelto* abajo). Lo
-único abierto es lo que **requiere una migración Alembic** en `bot-whatsapp/backend`, que es
-irreversible sobre una base que comparten dos aplicaciones:
+1. ✅ `UNIQUE(post_id, locale)` y unicidad de `slug` — ahora los impone la base, no el código.
+2. ✅ Índices de búsqueda: tres GIN parciales (uno por idioma) y HNSW sobre el vector.
+   **Verificado con `EXPLAIN` que el planner los usa**, que no es lo mismo que crearlos.
+3. ✅ La tabla `searches`, con su adaptador escribiendo.
+4. ✅ `seller_translations` y `branch_translations`, con el español ya sembrado.
 
-1. `UNIQUE(post_id, locale)` y unicidad de `slug` — hoy los sostiene el código.
-2. Los índices de búsqueda: GIN sobre el `tsvector` y HNSW sobre el vector.
-3. La tabla de búsquedas, para dejar de medir contra el registro del servidor.
-4. El slice 5 de i18n: `seller_translations` y `branch_translations`.
+Lo que sigue abierto es **trabajo normal en este repositorio**, sin puertas:
 
-Ninguna corre prisa con el tamaño de hoy (23 publicaciones, 46 traducciones, 1 tienda). El orden por
-valor sería **2 → 1 → 3 → 4**, y las cuatro caben en una sola migración si se hacen juntas.
+- **Slice 5 de i18n**: leer las tablas nuevas en la ficha de tienda. El esquema ya no bloquea.
+- **Mirar el dato de `searches`** dentro de unos días. Si `strategy='semantic'` casi no aparece, el
+  rescate semántico se puede quitar y con él la dependencia de Gemini en la búsqueda.
+- Dos cosas **medidas pero sin decidir**, que no son deuda sino opciones: el `taskType` de los
+  embeddings para consultas cortas, y qué hacer con los `rounded-*` de las páginas de contenido.
+  Las dos están más abajo con sus números.
+- La flakiness de la e2e y los `Failed query` al insertar traducciones.
 
-Aparte hay dos cosas **medidas pero sin decidir**, que no son deuda sino opciones: el `taskType`
-de los embeddings para consultas cortas, y qué hacer con los `rounded-*` de las páginas de
-contenido. Las dos están más abajo con sus números.
+> **Nota**: al aplicar `0029` se aplicó también `0028` (el ledger de publicación en redes sociales
+> del bot), que estaba escrita y sin aplicar. `alembic upgrade head` no la puede saltar. Es
+> aditiva —dos tablas nuevas, nada existente tocado— pero conviene saberlo.
 
 ---
 
@@ -81,19 +86,16 @@ rama local de las cuatro sin perder nada.
 
 ---
 
-## Requiere una decisión tuya
+## Cerrado
 
-### `UNIQUE(post_id, locale)` no existe en la base
+### ~~`UNIQUE(post_id, locale)` no existe en la base~~ — **creado el 2026-08-08**
 
-`docs/features/i18n.md:89` lo da por hecho, pero **ninguna migración lo crea**. Tampoco hay unicidad
-sobre `slug`. (`docs/database.md` ya no miente sobre esto: lo dice en su sección *Lo que la base NO
-impide*.)
+Existe desde la migración `0029_2026_08_08`, junto con la unicidad de `slug`. Se verificaron 0
+duplicados antes de crearlos, así que los constraints cayeron sobre datos ya limpios.
 
-Está mitigado en el código: el `INSERT` de traducciones lleva su `WHERE NOT EXISTS` en la misma
-sentencia, y el slug se desambigua contando. La base no lo impediría por su cuenta.
-
-Es una **migración Alembic sobre la base compartida** —irreversible— y vive en
-`bot-whatsapp/backend`. No se ejecutó.
+El código sigue defendiéndose por su cuenta —el `WHERE NOT EXISTS` del `INSERT` y el
+`createUniqueSlug`— y está bien que siga: da un error legible en vez de una violación de constraint.
+Lo que cambia es que ahora **hay una garantía** debajo, y no solo una convención.
 
 ### ~~Traducciones automáticas sin revisar~~ — **leídas el 2026-08-08**
 
@@ -117,9 +119,11 @@ que ya no existe.
 Respaldo de las filas originales: `src/scripts/backups/en-translations-5-rows.json`.
 Deshacer todo el inglés sigue siendo: `DELETE FROM post_translations WHERE locale = 'en';`
 
-**Lo que NO se tocó, a propósito:** el título en español dice `"Eléctrolitos de frutos rojos"` y la
-palabra es **electrolitos**, sin acento. Es contenido de origen, y corregirlo arrastra su slug y su
-URL ya indexada. Es tuyo decidirlo.
+**El acento de más, corregido esa misma tarde.** El título decía `"Eléctrolitos de frutos rojos"` y
+la palabra es *electrolitos*. Aquí se había dejado fuera diciendo que "arrastra su slug y su URL
+indexada", y eso era **falso**: el slug ya era `electrolitos-de-frutos-rojos` porque `slugify`
+normaliza los diacríticos. Solo el título llevaba el acento; la URL no se movió. Su embedding se
+regeneró.
 
 ---
 
@@ -142,14 +146,30 @@ completo, respaldo de idioma, rescate semántico y medición. Encima va
   `taskType: RETRIEVAL_QUERY`, que Gemini ofrece justo para consultas cortas frente a documentos —
   pide su propia medición y un backfill de los 46 vectores existentes.
 
-- **Índices** GIN sobre el `tsvector` y HNSW sobre el vector. Con 46 traducciones no hacen falta; es
-  lo primero que se notará al crecer. **Requiere Alembic.**
-- **La tabla de búsquedas.** Hoy la medición va al registro del servidor; el puerto
-  `ISearchReporter` ya está para cambiar el destino sin tocar el caso de uso. **Requiere Alembic.**
+- ~~**Índices**~~ — **creados el 2026-08-08** (`0029_2026_08_08`). No es un GIN sino **tres,
+  parciales, uno por idioma**, y la razón merece leerse antes de tocarlos: un índice único sobre el
+  `CASE` del diccionario **se crea y no se usa jamás**, porque el `tsquery` también depende de la
+  fila y un GIN necesita una clave fija. Está contado en `deuda-pendiente-bitacora.md`. El tercero
+  (`ix_translations_fts_other`) cubre 0 filas hoy y es imprescindible: un `OR` solo usa índices si
+  los tienen todas sus ramas.
 
-  Mientras tanto: `grep '\[search\]' | grep 'emptyHanded=true'` responde qué se busca que no
-  encontramos, y `grep 'strategy=semantic' | wc -l` dice cuántos embeddings se están pagando.
-- **Caché del embedding por término**, si los datos muestran que el rescate es frecuente.
+  **La consulta y la migración van atadas.** Si se desalinean nada falla; solo se vuelve lento, en
+  silencio. Lo vigila `rowConfigMatchesIndex.test.ts`.
+
+- ~~**La tabla de búsquedas.**~~ — **creada y conectada el 2026-08-08.** `searches`, escrita por
+  `PostgresSearchReporter`. La e2e mide contra el registro (`SEARCH_REPORTER=console` en
+  `playwright.config.ts`): sus términos —`pan`, `panela`, `buñuelos`— son indistinguibles de una
+  búsqueda real y no hay barrido que pueda limpiarlos después.
+
+  Lo que contesta ahora, sin `grep`:
+
+  ```sql
+  SELECT term, count(*) FROM searches WHERE empty_handed GROUP BY 1 ORDER BY 2 DESC;
+  SELECT strategy, count(*) FROM searches GROUP BY 1;   -- cuántos embeddings se pagan
+  ```
+
+- **Caché del embedding por término**, si los datos muestran que el rescate es frecuente. Ahora se
+  puede saber: la segunda consulta de arriba lo dice.
 - ~~**Distancia en `/tienda/[handle]`**~~ — **entregada el 2026-08-07** como slice 7 de
   `vendedores-y-tiendas.md`. Ya no queda ningún hueco de cercanía en el sitio.
 
@@ -159,9 +179,14 @@ completo, respaldo de idioma, rescate semántico y medición. Encima va
 
 Slices 0–4 hechos. Ver `docs/features/i18n.md` y su bitácora.
 
-- **Slice 5 — tiendas y sucursales.** `sellers.name`, `sellers.description`, `branches.name` y
-  `branches.address` siguen en un solo idioma. Requiere Alembic (`seller_translations`,
-  `branch_translations`). Hoy hay **una sola tienda**, así que no corre prisa.
+- **Slice 5 — tiendas y sucursales. Ya no está bloqueado.** `seller_translations` y
+  `branch_translations` existen desde `0029_2026_08_08`, con sus filas `es` sembradas copiando lo
+  que ya había. Falta **el camino de lectura**: la ficha de tienda sigue leyendo `sellers.name` y
+  `branches.address` directos. Las columnas originales no se tocaron ni se van a tocar — el bot las
+  lee y no sabe de locales.
+
+  Hoy hay **una sola tienda**, así que sigue sin correr prisa; lo que ya no hay es excusa de
+  esquema.
 - **RSS y `llms.txt` siguen en español**, ahora por decisión y no por falta de contenido. Un canal
   RSS declara un solo `language`, así que servir los dos idiomas pide un segundo canal
   (`/en/rss.xml`), no mezclarlos. El sitemap sí lista ya los dos idiomas.

@@ -206,3 +206,162 @@ unitarias, 174 e2e, typecheck y lint limpios.
 
 Pendiente de ti: el punto 1, el 3, y si quieres que `"Eléctrolitos"` pase a `"Electrolitos"` con el
 cambio de slug que eso arrastra.
+
+---
+
+## 2026-08-08 (tarde) — la migración Alembic y el acento
+
+### Objetivo
+
+Cerrar lo único que quedaba: la migración sobre la base compartida y el título con la falta de
+ortografía. Las dos las pidió el usuario explícitamente.
+
+### 1. `"Eléctrolitos"` → `"Electrolitos"`
+
+Resultó **más barato de lo que la entrada de la mañana decía**. Ahí se dejó fuera porque "arrastra
+su slug y su URL indexada", y eso era falso: el slug ya era `electrolitos-de-frutos-rojos`, porque
+`slugify` normaliza los diacríticos. Solo el título llevaba el acento de más y la URL no se movió.
+
+Sí hubo que anular y regenerar su embedding: el vector describía el título anterior.
+
+### 2. La migración: `0029_2026_08_08`
+
+**Se aplicó también `0028`.** Estaba escrita en el repo del backend y sin aplicar —el ledger de
+publicación en redes sociales, del bot— y `alembic upgrade head` no la puede saltar. Es puramente
+aditiva (crea `social_posts` y `social_post_deliveries`, no toca nada existente) y tiene downgrade
+limpio, pero conviene saber que se aplicó sin que nadie lo pidiera hoy.
+
+Antes de escribir nada se verificó contra la base: **0 duplicados** de `(post_id, locale)` y **0**
+de `slug` sobre 46 filas. Los constraints se crearon sobre datos ya limpios.
+
+#### El índice GIN que no servía para nada
+
+Esta es la parte que merece leerse. La primera versión creaba **un** índice sobre la expresión con
+el `CASE` del diccionario. Se aplicó, se comprobó que existía… y con `EXPLAIN` resultó que **el
+planner no lo usaba nunca**, ni siquiera con `enable_seqscan = off`.
+
+El motivo no era la expresión indexada sino el otro lado del `@@`. La consulta analiza cada fila con
+el diccionario de SU idioma, así que el `tsquery` también sale de un `CASE` sobre `locale`: la clave
+de búsqueda **cambia de una fila a otra**. Un GIN necesita una clave fija para descender por el
+índice; con una que depende de la fila que todavía no ha leído, no hay nada que consultar.
+
+Un índice que existe y nunca se usa es peor que ninguno: cuesta escrituras y hace creer que el
+problema está resuelto. Así que se revirtió la migración —`downgrade` limpio, había durado minutos—
+y se rehízo partiendo la pregunta por idioma:
+
+```sql
+WHERE (locale = 'es' AND doc_spanish @@ websearch_to_tsquery('spanish', $1))
+   OR (locale = 'en' AND doc_english @@ websearch_to_tsquery('english', $1))
+   OR (locale NOT IN ('es','en') AND doc_simple @@ websearch_to_tsquery('simple', $1))
+```
+
+con un índice parcial por rama. Y ahí apareció **el segundo tropiezo**: con dos índices seguía
+saliendo seq scan. Un `OR` solo se resuelve por índices si las tienen **todas** sus ramas, y la
+tercera —la de cortesía, para un idioma sin diccionario propio— no tenía. Ese índice cubre **0 filas
+hoy** y es imprescindible: sin él, la rama que existe para que una fila en un tercer idioma no sea
+invisible anulaba a las otras dos.
+
+Con los tres:
+
+```
+BitmapOr
+  → Bitmap Index Scan on ix_translations_fts_es
+  → Bitmap Index Scan on ix_translations_fts_en
+  → Bitmap Index Scan on ix_translations_fts_other
+```
+
+El HNSW sí funcionó a la primera (`Index Scan using ix_translations_embedding`).
+
+**La consulta y la migración quedan atadas**, y eso es una fragilidad real: si se desalinean no falla
+nada —la búsqueda sigue devolviendo lo correcto— y solo se vuelve lenta, en silencio. Lo vigila
+`rowConfigMatchesIndex.test.ts`, que transcribe a mano la expresión de la migración en vez de leer
+el archivo: vive en otro repositorio, y leerlo haría que el test pasara solo porque los dos lados
+cambiaron a la vez.
+
+El `CASE` no desapareció: se quedó para **puntuar** (`ts_rank`), que corre sobre las filas que el
+filtro ya dejó pasar y por tanto no necesita índice. Filtrar y puntuar se separaron por eso.
+
+#### Lo demás de la migración
+
+- **`searches`**, sin `user_id` ni IP: la pregunta es agregada y no necesita saber quién buscó.
+  `empty_handed` es columna generada para que dos adaptadores no puedan calcularla distinto. Índice
+  **parcial** sobre `term WHERE empty_handed`, porque el informe que justifica la tabla solo mira
+  esas filas.
+- **`seller_translations` y `branch_translations`** con las filas `es` sembradas copiando lo que ya
+  hay, así que nacen consistentes en vez de vacías. Las columnas originales **no se tocan**: el bot
+  las lee y no sabe de locales. El camino de lectura es del slice 5 de i18n, que sigue pendiente —
+  esto solo lo desbloquea.
+
+### 3. `PostgresSearchReporter`, y el ruido que casi dejo en producción
+
+Crear `searches` sin conectarla habría sido dejar la mitad del trabajo, así que se escribió el
+adaptador y la fábrica pasó a devolverlo.
+
+Al correr la e2e, la tabla tenía **24 filas de la suite**: `zarzaperico1786…`, `xyzzy…`, y también
+`pan`, `panela` y `buñuelos`, que son indistinguibles de una búsqueda real. Un defecto introducido
+en esta misma sesión: la suite había empezado a contaminar la tabla que responde qué busca la gente.
+
+No se puede limpiar después —no hay prefijo que marque un término— así que la salida es no
+escribirlo: `playwright.config.ts` pone `SEARCH_REPORTER=console` y la suite mide contra el
+registro. Las 24 filas se borraron; la tabla arranca vacía y su primer dato será el primero de
+verdad.
+
+`ConsoleSearchReporter` se queda por eso y porque durante un incidente un `grep` sigue siendo más
+rápido que abrir un cliente de SQL.
+
+### Archivos tocados
+
+**Backend (`bot-whatsapp/backend`)**
+- `alembic/versions/0029_2026-08-08_search_indexes_uniqueness_and_store_translations.py` (nuevo).
+
+**Consulta y medición**
+- `src/infra/dataAccess/searchPosts/PostgresSearchPostRepository.ts` — `matchesQuery` por idioma,
+  `ROW_CONFIG` solo para puntuar, `FTS_INDEXED_DOCUMENTS` expuesto como contrato.
+- `src/infra/dataAccess/searchPosts/rowConfigMatchesIndex.test.ts` (nuevo).
+- `src/infra/dataAccess/searchPosts/PostgresSearchReporter.ts` (nuevo).
+- `src/infra/dataAccess/searchPosts/factory.ts` — `createSearchReporter()`.
+- `src/infra/dataAccess/db/schema/searches.ts` (nuevo) — espejo Drizzle.
+- `src/infra/services/ConsoleSearchReporter.ts` — ya no es el destino por defecto.
+- `src/app/api/search/route.ts`, `src/app/[locale]/buscar/data.ts` — usan la fábrica.
+- `src/app/api/search/route.test.ts` — el mock de la fábrica.
+- `playwright.config.ts` — `SEARCH_REPORTER=console`.
+
+### Validación
+
+```bash
+alembic upgrade head        # 0027 → 0028 → 0029
+alembic downgrade 0028…     # probado dos veces, limpio
+pnpm run test:run           # 966/966  (eran 961)
+pnpm run typecheck          # 0
+pnpm run typecheck:tests    # 0
+pnpm run lint               # limpio (1 info preexistente)
+pnpm exec playwright test <búsqueda>                           # 22/22
+pnpm exec playwright test <i18n, tienda, publicar, búsqueda>   # 63/63
+```
+
+Comprobado contra la base después: `searches` en 0 filas tras la e2e, título corregido, 0
+traducciones sin embedding, `BitmapOr` sobre los tres índices.
+
+**Escrito en la base compartida:** el esquema de `0028` y `0029`, la siembra `es` de
+`seller_translations` y `branch_translations` (1 fila cada una), y el título de una traducción `es`
+con su embedding regenerado. Para deshacer el esquema:
+`alembic downgrade 0027_2026_07_31` (revierte 0029 y 0028).
+
+### Recap
+
+La base ya no tiene nada pendiente: unicidad real sobre `(post_id, locale)` y `slug`, índices de
+texto que el planner **usa de verdad** —comprobado, no supuesto—, HNSW sobre el vector, la tabla de
+búsquedas escribiendo, y las tablas de traducción de tienda listas con su español sembrado. La
+búsqueda de texto pasó de un `CASE` no indexable a tres ramas con índice parcial cada una, atadas a
+la migración por un test. 966 unitarias, 63 e2e en las áreas tocadas, typecheck y lint limpios.
+
+### Próximos pasos (opciones)
+
+1. **Slice 5 de i18n**: leer `seller_translations` / `branch_translations` en la ficha de tienda y
+   traducir la única tienda que hay. El esquema ya no bloquea.
+2. **Mirar el dato de `searches`** en unos días: si `strategy='semantic'` casi no aparece, el
+   rescate se puede quitar y con él la dependencia de Gemini en la búsqueda.
+3. **Los `rounded-*` de contenido**, que siguen siendo una decisión de diseño.
+4. **La flakiness de la e2e** y los `Failed query` al insertar traducciones.
+
+Pendiente de ti: nada bloqueante.

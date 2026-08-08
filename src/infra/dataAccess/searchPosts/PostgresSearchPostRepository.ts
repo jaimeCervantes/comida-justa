@@ -27,21 +27,106 @@ const TEXT_SEARCH_CONFIG: Readonly<Record<string, string>> = {
 const NEUTRAL_CONFIG = "simple";
 
 /**
+ * Nada de lo que se inlinea sale de una petición —son claves del mapa de arriba— pero se comprueba
+ * igual: al emitirse como literal SQL y no como parámetro, una entrada rara en el mapa dejaría de
+ * ser un dato para pasar a ser sintaxis.
+ */
+const SAFE_IDENTIFIER = /^[a-z][a-z0-9_]*$/;
+
+function literal(value: string): string {
+  if (!SAFE_IDENTIFIER.test(value)) {
+    throw new Error(
+      `TEXT_SEARCH_CONFIG: "${value}" no es un identificador que se pueda inlinear.`,
+    );
+  }
+
+  return `'${value}'`;
+}
+
+/**
  * El diccionario que le toca a **cada fila**, decidido por el idioma de la fila y no por el de
  * quien busca.
  *
  * Antes esto era un `CASE` de dos ramas —tu idioma o el de respaldo— porque la consulta solo veía
  * esos dos. Al abrirla a todas las traducciones deja de haber dos casos que enumerar: se traduce el
- * mapa entero a SQL, así que añadir un idioma sigue siendo una línea en `TEXT_SEARCH_CONFIG` y nada
- * más. Analizar una fila inglesa con el diccionario español no es un detalle: `loaves` seguiría
- * siendo `loaves` y buscar `loaf` no la encontraría.
+ * mapa entero a SQL, así que añadir un idioma sigue siendo una línea en `TEXT_SEARCH_CONFIG`.
+ * Analizar una fila inglesa con el diccionario español no es un detalle: `loaves` seguiría siendo
+ * `loaves` y buscar `loaf` no la encontraría.
+ *
+ * Se usa para **puntuar**, no para filtrar. Filtrar con esto no puede aprovechar ningún índice
+ * (ver `matchesQuery`), pero puntuar corre sobre las filas que el filtro ya dejó pasar, así que un
+ * `CASE` ahí no cuesta nada y se lee mucho mejor que repetir la rama por idioma.
  */
-const ROW_CONFIG = sql`(CASE t.locale ${sql.join(
-  Object.entries(TEXT_SEARCH_CONFIG).map(
-    ([locale, config]) => sql`WHEN ${locale} THEN ${config}`,
-  ),
-  sql` `,
-)} ELSE ${NEUTRAL_CONFIG} END)::regconfig`;
+const ROW_CONFIG = sql.raw(
+  `CASE t.locale ${Object.entries(TEXT_SEARCH_CONFIG)
+    .map(
+      ([locale, config]) =>
+        `WHEN ${literal(locale)} THEN ${literal(config)}::regconfig`,
+    )
+    .join(" ")} ELSE ${literal(NEUTRAL_CONFIG)}::regconfig END`,
+);
+
+/** El documento pesado de una fila con el diccionario ya resuelto: título `A`, cuerpo `B`. */
+function weightedDocument(config: string): string {
+  return (
+    `setweight(to_tsvector(${config}, coalesce(t.title, '')), 'A') || ` +
+    `setweight(to_tsvector(${config}, coalesce(t.content, '')), 'B')`
+  );
+}
+
+/**
+ * La expresión que se indexa por idioma, expuesta para que una prueba pueda compararla contra la
+ * migración. No se usa en ninguna consulta: es el contrato, no el código.
+ */
+export const FTS_INDEXED_DOCUMENTS: Readonly<Record<string, string>> =
+  Object.fromEntries(
+    Object.entries(TEXT_SEARCH_CONFIG).map(([locale, config]) => [
+      locale,
+      weightedDocument(literal(config)),
+    ]),
+  );
+
+/**
+ * El filtro, **partido por idioma para que pueda usar un índice**.
+ *
+ * La forma corta —un solo `@@` con el `CASE` de arriba a los dos lados— es la que estaba aquí, y
+ * es la que **ningún índice GIN puede servir**. No por la expresión indexada, sino por el otro
+ * lado del operador: si el `tsquery` también sale de un `CASE` sobre `t.locale`, la clave de
+ * búsqueda cambia de una fila a otra, y un GIN necesita una clave fija para descender por el
+ * índice. Medido con `EXPLAIN` y `enable_seqscan = off`: seq scan igual, con o sin índice.
+ *
+ * Partida por idioma, cada rama lleva su diccionario como constante y empareja con su índice
+ * parcial (`ix_translations_fts_es`, `ix_translations_fts_en`, migración Alembic
+ * `0029_2026_08_08`):
+ *
+ *   BitmapOr
+ *     → Bitmap Index Scan on ix_translations_fts_es
+ *     → Bitmap Index Scan on ix_translations_fts_en
+ *
+ * La rama final cubre los idiomas sin diccionario propio: caen a `simple` y **no** llevan índice,
+ * porque serían N índices para el caso que hoy no existe.
+ *
+ * **Esto y la migración van atados.** Si se desalinean no falla nada: la búsqueda sigue devolviendo
+ * lo correcto y solo deja de usar el índice, en silencio. Lo vigila `rowConfigMatchesIndex.test.ts`.
+ */
+function matchesQuery(query: string) {
+  const known = Object.keys(TEXT_SEARCH_CONFIG).map(literal).join(", ");
+
+  const branches = Object.entries(TEXT_SEARCH_CONFIG).map(
+    ([locale, config]) =>
+      sql`(t.locale = ${sql.raw(literal(locale))} AND (${sql.raw(
+        weightedDocument(literal(config)),
+      )}) @@ websearch_to_tsquery(${sql.raw(literal(config))}, ${query}))`,
+  );
+
+  branches.push(
+    sql`(t.locale NOT IN (${sql.raw(known)}) AND (${sql.raw(
+      weightedDocument(literal(NEUTRAL_CONFIG)),
+    )}) @@ websearch_to_tsquery(${sql.raw(literal(NEUTRAL_CONFIG))}, ${query}))`,
+  );
+
+  return sql`(${sql.join(branches, sql` OR `)})`;
+}
 
 interface RankedRow {
   id: string;
@@ -184,7 +269,11 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
        —y además distingue entre coincidir una vez y coincidir cinco, que los dos niveles no podían.
 
        La pregunta se construye con el diccionario de la fila, igual que el documento: con dos
-       distintos el término quedaría partido de una forma y el texto de otra. */
+       distintos el término quedaría partido de una forma y el texto de otra.
+
+       Esto **puntúa**; quien filtra es `matchesQuery`, que dice lo mismo partido por idioma para
+       poder usar los índices parciales. Se separan porque solo el filtro necesita ser indexable:
+       la puntuación corre sobre lo que el filtro ya dejó pasar. */
     const document = sql`(
       setweight(to_tsvector(${ROW_CONFIG}, coalesce(t.title, '')), 'A') ||
       setweight(to_tsvector(${ROW_CONFIG}, coalesce(t.content, '')), 'B')
@@ -203,7 +292,7 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
           MAX(ts_rank(${document}, ${question}))
             FILTER (WHERE t.locale = ${locale}) AS own_relevance
         FROM post_translations t
-        WHERE t.post_id = p.id AND ${document} @@ ${question}
+        WHERE t.post_id = p.id AND ${matchesQuery(query)}
       ) r ON r.relevance IS NOT NULL
       ORDER BY
         r.own_relevance DESC NULLS LAST,

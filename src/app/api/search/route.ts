@@ -1,8 +1,10 @@
 import type { NextRequest } from "next/server";
 import { resolveLocale } from "~/i18n/routing";
-import { createSearchPostRepository } from "~/infra/dataAccess/searchPosts/factory";
+import {
+  createSearchPostRepository,
+  createSearchReporter,
+} from "~/infra/dataAccess/searchPosts/factory";
 import { readVisitorLocation } from "~/infra/location/visitorLocation";
-import ConsoleSearchReporter from "~/infra/services/ConsoleSearchReporter";
 import { createEmbeddingService } from "~/infra/services/factory";
 import { SearchPostsUseCase } from "~/use_cases/searchPosts/SearchPostsUseCase";
 
@@ -28,7 +30,7 @@ export async function GET(req: NextRequest) {
   const useCase = new SearchPostsUseCase(
     repository,
     createEmbeddingService(),
-    new ConsoleSearchReporter(),
+    createSearchReporter(),
   );
 
   const { results, total } = await useCase.execute({
