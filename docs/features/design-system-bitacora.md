@@ -597,26 +597,69 @@ Se decidió a la vista de las dos versiones.
 
 `focus-ring-within` se borró al quedarse sin usuarios: existía justo para los campos.
 
+### El borde de 1 px se veía delgado
+
+Se reportó en cuanto se vio en pantalla, y era cierto: sin anillo, la única señal de foco es un
+borde de 1 px, y contra el gris de reposo se nota poco. Ahora el foco añade una sombra **hacia
+dentro** del mismo verde, que se suma al borde y lo deja en 2 px visuales.
+
+Con sombra y no subiendo el `border` a 2 px porque cambiar el ancho mueve el contenido un píxel al
+enfocar, y con varios campos seguidos eso se lee como un salto. La sombra ocupa el hueco sin
+empujar nada. Va por dentro también para que no la recorte ningún `overflow: hidden`.
+
+### El desplegable ni siquiera estaba en el design system
+
+Al mirar el mismo formulario se vio que el `select` no se ponía verde al enfocarse y que su flecha
+se pegaba al borde derecho. No era un descuido de una pantalla: era una cadena de clases suelta,
+`selectClassName`, **copiada en tres formularios** —publicar, editar y el alta de categorías del
+admin—, que se había quedado atrás. `border-gray-300` en vez del token, `rounded-sm` donde los demás
+campos son `rounded-md`, ~40 px de alto contra los 48 px del resto, y sin foco ninguno. En un
+formulario donde el título de arriba se pone verde y el desplegable de abajo no cambia, lo que
+parece es que el desplegable no responde.
+
+`Select` se apoya en el mismo `InputShell` que `TextField`: borde, altura, foco, el `*` de requerido
+y el hueco de error salen por herencia y no hay nada que recordar.
+
+**La flecha es nuestra.** La nativa se pega al borde —el `padding` del elemento no la separa— y cada
+navegador la dibuja distinta. `appearance-none` la quita; esta se coloca a 12 px del borde y lleva
+`pointer-events-none` para que al pincharla el clic caiga en el `select` de debajo, que es lo que
+hace la nativa.
+
+**La lista desplegada la pinta el navegador y no hereda la caja**: sin decirle nada, en tema oscuro
+se abre en blanco. Se le dan colores por token y no con `dark:`, que solo cubre
+`prefers-color-scheme` y se saltaba a quien elige el tema a mano —el `dark:bg-gray-800` que había
+antes tenía justo ese agujero.
+
 ### Archivos tocados
 
-`tokens/focus.css`, `forms/InputShell.tsx`, `forms/TextArea.tsx`.
+`tokens/focus.css`, `forms/InputShell.tsx`, `forms/TextArea.tsx`, `forms/Select.tsx` (nuevo),
+`publicar/PublishForm.tsx`, `editar/[slug]/ui/EditPostForm.tsx`,
+`admin/catalogo/ui/NewCategoryForm.tsx`.
 
 ### Validación
 
 `pnpm typecheck` 0; `pnpm typecheck:tests` 0; `pnpm lint` limpio; `pnpm test:run` 948/948.
-La forma y el anillo son CSS: se comprueban mirando, no hay prueba que los afirme.
+La forma, el anillo y el grosor son CSS: se comprueban mirando, no hay prueba que los afirme. Lo que
+sí protegió el cambio de `select` fueron los page objects, que localizan por
+`getByRole("combobox", { name })` y por `#origin`: el `id` y la etiqueta no se tocaron.
 
 ### Recap
 
 El anillo de foco dejó de cuadrar lo redondo, en toda la aplicación y no solo en la barra de
-búsqueda, y los campos volvieron a la señal que tenían en producción: su borde.
+búsqueda; los campos volvieron a la señal que tenían en producción, ahora con grosor suficiente para
+verla; y el desplegable entró al design system, del que llevaba fuera desde siempre en tres copias.
 
 ### Próximos pasos (opciones)
 
-1. **Una prueba que note esto.** Hoy nada afirma la forma ni el anillo; el defecto se reportó a
-   ojo, meses después. Un caso de Playwright con `toHaveScreenshot` sobre un campo enfocado lo
+1. **Una prueba que note esto.** Hoy nada afirma la forma, el anillo ni el grosor; los tres defectos
+   se reportaron a ojo. Un caso de Playwright con `toHaveScreenshot` sobre un campo enfocado los
    habría cazado.
-2. **Medir el contraste del borde verde** contra `surface-elevation-1` en los dos temas: ahora es la
-   única señal de foco de los campos y WCAG 1.4.11 pide 3:1.
-3. Sigue abierto lo del slice 9: typechequear los tests ya se hizo, quedan Alembic e i18n de
+2. **Medir el contraste del borde verde** contra `surface-elevation-1` en los dos temas: es la única
+   señal de foco de los campos y WCAG 1.4.11 pide 3:1.
+3. **`color-scheme` en los tokens.** Es lo que haría que el navegador pinte solo la lista de un
+   `select`, las barras de desplazamiento y el resto de controles nativos según el tema. Hoy no está
+   declarado en ninguna parte, y por eso `Select` tiene que dar colores a sus `option` a mano.
+4. **Los demás controles que siguen sueltos**: `input[type=file]` de `ImageVideoUploader`, las
+   casillas y los radios. La búsqueda que encontró `selectClassName` no se hizo para ellos.
+5. Sigue abierto lo del slice 9: typechequear los tests ya se hizo, quedan Alembic e i18n de
    `sellers`/`branches`.
