@@ -9,9 +9,11 @@ import type { SVGProps } from "react";
  *
  * Hereda tamaño y color de quien la pinta (`currentColor`, y el `size-*` que le llegue del
  * contenedor), y va marcada como decorativa: siempre acompaña a un control que ya se anuncia solo.
+ * Por eso quien la use para decir "abierto" o "cerrado" tiene que decirlo también en el control
+ * —`aria-expanded`—, como hace el selector de idioma.
  *
- * El otro sitio donde debería usarse es el `▼` literal del selector de idioma, que hoy es un
- * carácter de texto y cambia de tamaño y de grosor según la fuente que resuelva el sistema.
+ * **Solo apunta hacia abajo.** Para "abierto" se gira 180°, que es una clase y no un segundo
+ * archivo; el selector de idioma tenía un `▲` y un `▼` distintos por no poder girar un carácter.
  */
 export function ChevronDown(props: SVGProps<SVGSVGElement>) {
   return (

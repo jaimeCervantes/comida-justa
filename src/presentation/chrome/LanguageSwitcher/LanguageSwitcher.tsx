@@ -6,6 +6,8 @@ import { useState } from "react";
 import { usePathname, useRouter } from "~/i18n/navigation";
 import { type AppLocale, routing } from "~/i18n/routing";
 import { Button } from "~/presentation/design_system/buttons/Button";
+import { ChevronDown } from "~/presentation/design_system/icons/ChevronDown";
+import { cn } from "~/presentation/design_system/styling/merge-class-names";
 
 const localesMap: Record<AppLocale, { label: string; flag: string }> = {
   // i18n-ignore: el nombre de un idioma se escribe en ese idioma, también en la interfaz en inglés.
@@ -54,9 +56,21 @@ export default function LanguageSwitcher() {
         size="xs"
         onClick={toggleDropdown}
         aria-label={t("changeLanguage")}
+        /* La flecha dice "abierto" o "cerrado" y es decorativa, así que quien no la ve necesita
+           que lo diga el botón. Antes no lo decía ni con la flecha ni sin ella. */
+        aria-expanded={isOpen}
+        aria-haspopup="menu"
       >
         <span className="text-sm">{current.flag}</span>
-        <span className="text-sm">{isOpen ? "▲" : "▼"}</span>
+        {/* Era un `▼` de texto: su tamaño y su grosor los decidía la fuente que resolviera el
+            sistema, así que no casaba con la del desplegable de los formularios. Ahora es la
+            misma, y girarla es lo que ahorra el segundo glifo (`▲`). */}
+        <ChevronDown
+          className={cn(
+            "size-4 transition-transform duration-fast ease-standard",
+            isOpen && "rotate-180",
+          )}
+        />
       </Button>
 
       {isOpen && (
