@@ -15,6 +15,7 @@ interface PostRow {
   user_username: string | null;
   seller_slug: string | null;
   seller_name: string | null;
+  seller_logo_url: string | null;
   price: string | null;
   kind: string | null;
   origin: string | null;
@@ -55,6 +56,9 @@ export async function getPostBySlug(slug: string) {
       u.username AS user_username,
       s.slug AS seller_slug,
       s.name AS seller_name,
+      /* El logo viaja con la tienda desde el slice 8: la ficha lo pinta junto al nombre, arriba,
+         donde se decide. La columna existe desde el slice 6; solo faltaba pedirla aquí. */
+      s.logo_url AS seller_logo_url,
       p.price::text,
       p.kind,
       p.origin,
@@ -180,7 +184,11 @@ export async function getPostBySlug(slug: string) {
     user,
     seller:
       row.seller_slug && row.seller_name
-        ? { handle: row.seller_slug, name: row.seller_name }
+        ? {
+            handle: row.seller_slug,
+            name: row.seller_name,
+            logoUrl: row.seller_logo_url,
+          }
         : null,
     price: row.price ? Number(row.price) : null,
     kind: row.kind ?? "anuncio",

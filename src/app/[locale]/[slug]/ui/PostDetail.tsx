@@ -14,11 +14,14 @@ import CurrencyAmount from "~/presentation/money/CurrencyAmount";
 import { setAvailability } from "~/presentation/post/availabilityAction";
 import CategoryTag from "~/presentation/post/CategoryTag/CategoryTag";
 import OpenStoreHint from "~/presentation/post/OpenStoreHint";
-import ProvenanceBadge from "~/presentation/post/ProvenanceBadge";
+import ProvenanceBadge, {
+  showsProvenanceBadge,
+} from "~/presentation/post/ProvenanceBadge";
 import SoldOutBadge from "~/presentation/post/SoldOutBadge/SoldOutBadge";
 import WhatsappButton from "~/presentation/post/WhatsappButton/WhatsappButton";
 import { postCategoryLabel } from "../categoryLabel";
 import OwnerControls from "./OwnerControls";
+import PostIdentity from "./PostIdentity";
 import PostLinks from "./PostLinks";
 
 /**
@@ -122,8 +125,17 @@ export default async function PostDetail({
   return (
     <article className={className} data-testid="post-detail">
       <h1 className="text-3xl mb-4">{title}</h1>
-      <p className="flex flex-wrap items-center gap-2 mb-4">
-        <ProvenanceBadge origin={origin} />
+
+      <p
+        className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-2 text-label"
+        data-testid="post-identity"
+      >
+        <PostIdentity seller={seller} author={postDetails.user} />
+
+        {/* Se calla cuando el logo de al lado ya lo dijo: ver `provenanceVisibility.ts`. */}
+        {showsProvenanceBadge(origin, Boolean(seller)) ? (
+          <ProvenanceBadge origin={origin} />
+        ) : null}
         <CategoryTag label={categoryLabel} />
         <SoldOutBadge kind={kind} isAvailable={isAvailable} />
         {/* Solo cuando las dos partes dieron ubicación: si falta una, no se pinta nada y quien
@@ -174,8 +186,7 @@ export default async function PostDetail({
         categoryKey={subCategory ?? category}
         categoryLabel={categoryLabel}
         seller={seller}
-        authorName={postDetails.user?.name}
-        authorUsername={postDetails.user?.username}
+        author={postDetails.user}
       />
     </article>
   );
