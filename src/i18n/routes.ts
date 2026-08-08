@@ -1,0 +1,23 @@
+/**
+ * Los destinos tipados de una tienda y de una persona.
+ *
+ * Vivían en `app/[locale]/cuenta/`, que servía mientras solo los usaran las rutas. Desde que una
+ * tarjeta de listado enlaza a la tienda de su publicación hacen falta también en `presentation/`, y
+ * un componente de `presentation/` **no puede importar de `app/`** (misma regla que documenta
+ * `StoreSummaryCard`). Copiar el literal `"/tienda/[slug]"` en el otro lado era garantizar que el
+ * día que la ruta cambie uno de los dos se quede atrás, así que viven aquí, junto al resto de la
+ * navegación, y `cuenta/storePath.ts` y `cuenta/profilePath.ts` los reexportan.
+ *
+ * Son objetos de ruta, no cadenas: el `Link` de `~/i18n/navigation` los traduce al idioma activo
+ * (`/tienda/…` en español, `/store/…` en inglés).
+ */
+
+/** El destino tipado de una tienda, para un `<Link>` o un `router.push`. */
+export function storeHref(handle: string) {
+  return { pathname: "/tienda/[slug]", params: { slug: handle } } as const;
+}
+
+/** El destino tipado de una persona. */
+export function profileHref(username: string) {
+  return { pathname: "/u/[username]", params: { username } } as const;
+}

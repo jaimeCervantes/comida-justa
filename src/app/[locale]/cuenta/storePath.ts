@@ -1,4 +1,5 @@
 import { getPathname } from "~/i18n/navigation";
+import { storeHref } from "~/i18n/routes";
 import type { AppLocale } from "~/i18n/routing";
 
 /**
@@ -11,10 +12,12 @@ import type { AppLocale } from "~/i18n/routing";
  */
 export const STORE_BASE_PATH = "/tienda";
 
-/** El destino tipado, para un `<Link>` o un `router.push`. */
-export function storeHref(handle: string) {
-  return { pathname: "/tienda/[slug]", params: { slug: handle } } as const;
-}
+/**
+ * El destino tipado se mudó a `~/i18n/routes` cuando `presentation/` empezó a necesitarlo —una
+ * tarjeta de listado enlaza a la tienda de su publicación— y no puede importar de `app/`. Se
+ * reexporta desde aquí para no tocar los ocho sitios que ya lo pedían a este módulo.
+ */
+export { storeHref } from "~/i18n/routes";
 
 /**
  * La dirección **tal como se ve** en ese idioma: `/tienda/…` en español y `/store/…` en inglés.
