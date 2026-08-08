@@ -9,14 +9,12 @@ import type { ActionState } from "~/infra/types/Actions";
 import { originOptionsFor } from "~/infra/UI/labels/postOriginLabels";
 import { Button } from "~/presentation/design_system/buttons/Button";
 import { Alert } from "~/presentation/design_system/feedback/Alert";
+import { Select } from "~/presentation/design_system/forms/Select";
 import { TextArea } from "~/presentation/design_system/forms/TextArea";
 import { TextField } from "~/presentation/design_system/forms/TextField";
 import ImageVideoUploader, {
   type UploadedMediaResult,
 } from "~/presentation/media/ImageVideoUploader/ImageVideoUploader";
-
-const selectClassName =
-  "w-full rounded-sm border border-gray-300 bg-white px-3 py-2 text-black dark:bg-gray-800 dark:text-white";
 
 export default function PublishForm({
   action,
@@ -96,84 +94,69 @@ export default function PublishForm({
           containerClassName="mb-6"
         />
 
-        <div className="mb-6 text-black dark:text-white">
-          <label htmlFor="kind" className="block mb-1">
-            {t("kind")}
-          </label>
-          <select
-            id="kind"
-            name="kind"
-            value={kind}
-            onChange={(event) => setKind(event.target.value)}
-            className={selectClassName}
-          >
-            <option value="anuncio">{t("kindAnnouncement")}</option>
-            <option value="producto">{t("kindProduct")}</option>
-          </select>
-        </div>
+        <Select
+          id="kind"
+          name="kind"
+          label={t("kind")}
+          value={kind}
+          onChange={(event) => setKind(event.target.value)}
+          containerClassName="mb-6"
+        >
+          <option value="anuncio">{t("kindAnnouncement")}</option>
+          <option value="producto">{t("kindProduct")}</option>
+        </Select>
 
         {/* La categoría solo aplica a lo que se vende; en un anuncio sería ruido. */}
         {kind === "producto" ? (
           <>
-            <div className="mb-6 text-black dark:text-white">
-              <label htmlFor="category" className="block mb-1">
-                {t("category")}
-              </label>
-              <select
-                id="category"
-                name="category"
-                value={category}
-                onChange={(event) => setCategory(event.target.value)}
-                className={selectClassName}
-              >
-                <option value="">{t("unspecifiedOption")}</option>
-                {categoryOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <Select
+              id="category"
+              name="category"
+              label={t("category")}
+              value={category}
+              onChange={(event) => setCategory(event.target.value)}
+              containerClassName="mb-6"
+            >
+              <option value="">{t("unspecifiedOption")}</option>
+              {categoryOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </Select>
 
             {/* Sin categoría no hay sub-categoría que ofrecer: la base rechaza la huérfana. */}
             {category ? (
-              <div className="mb-6 text-black dark:text-white">
-                <label htmlFor="subCategory" className="block mb-1">
-                  {t("subCategory")}
-                </label>
-                <select
-                  id="subCategory"
-                  name="subCategory"
-                  defaultValue=""
-                  className={selectClassName}
-                >
-                  <option value="">{t("unspecifiedOption")}</option>
-                  {(subCategoryOptionsByCategory[category] ?? []).map(
-                    (option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ),
-                  )}
-                </select>
-              </div>
+              <Select
+                id="subCategory"
+                name="subCategory"
+                label={t("subCategory")}
+                defaultValue=""
+                containerClassName="mb-6"
+              >
+                <option value="">{t("unspecifiedOption")}</option>
+                {(subCategoryOptionsByCategory[category] ?? []).map(
+                  (option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ),
+                )}
+              </Select>
             ) : null}
           </>
         ) : null}
 
         {/* La procedencia solo aplica a lo que se vende, igual que la categoría. */}
         {kind === "producto" ? (
-          <div className="mb-6 text-black dark:text-white">
-            <label htmlFor="origin" className="block mb-1">
-              {t("origin")}
-            </label>
-            <select
+          <div className="mb-6">
+            <Select
               id="origin"
               name="origin"
+              label={t("origin")}
               value={origin}
               onChange={(event) => setOrigin(event.target.value)}
               required
-              className={selectClassName}
             >
               <option value="">{t("originPlaceholder")}</option>
               {originOptionsFor(isAdmin).map((option) => (
@@ -181,7 +164,7 @@ export default function PublishForm({
                   {tVocabulary(option.labelKey)}
                 </option>
               ))}
-            </select>
+            </Select>
 
             {/*
               Solo para quien se declara productor sin tener tienda. Es el único caso en que lo

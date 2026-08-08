@@ -7,12 +7,10 @@ import { Link } from "~/i18n/navigation";
 import { POST_CONTENT_MAX_LENGTH } from "~/infra/constants";
 import { originOptionsFor } from "~/infra/UI/labels/postOriginLabels";
 import { Button } from "~/presentation/design_system/buttons/Button";
+import { Select } from "~/presentation/design_system/forms/Select";
 import { TextArea } from "~/presentation/design_system/forms/TextArea";
 import { TextField } from "~/presentation/design_system/forms/TextField";
 import type { EditPostState } from "../actions";
-
-const selectClassName =
-  "w-full rounded-sm border border-gray-300 bg-white px-3 py-2 text-black dark:bg-gray-800 dark:text-white";
 
 export type EditablePostValues = {
   slug: string;
@@ -86,70 +84,58 @@ export default function EditPostForm({
 
         {isProduct ? (
           <>
-            <div className="mb-6 text-black dark:text-white">
-              <label htmlFor="category" className="block mb-1">
-                {tPublish("category")}
-              </label>
-              <select
-                id="category"
-                name="category"
-                value={category}
-                onChange={(event) => setCategory(event.target.value)}
-                className={selectClassName}
-              >
-                <option value="">{tPublish("unspecifiedOption")}</option>
-                {categoryOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <Select
+              id="category"
+              name="category"
+              label={tPublish("category")}
+              value={category}
+              onChange={(event) => setCategory(event.target.value)}
+              containerClassName="mb-6"
+            >
+              <option value="">{tPublish("unspecifiedOption")}</option>
+              {categoryOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </Select>
 
             {category ? (
-              <div className="mb-6 text-black dark:text-white">
-                <label htmlFor="subCategory" className="block mb-1">
-                  {tPublish("subCategory")}
-                </label>
-                <select
-                  id="subCategory"
-                  name="subCategory"
-                  defaultValue={post.subCategory ?? ""}
-                  className={selectClassName}
-                >
-                  <option value="">{tPublish("unspecifiedOption")}</option>
-                  {(subCategoryOptionsByCategory[category] ?? []).map(
-                    (option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ),
-                  )}
-                </select>
-              </div>
+              <Select
+                id="subCategory"
+                name="subCategory"
+                label={tPublish("subCategory")}
+                defaultValue={post.subCategory ?? ""}
+                containerClassName="mb-6"
+              >
+                <option value="">{tPublish("unspecifiedOption")}</option>
+                {(subCategoryOptionsByCategory[category] ?? []).map(
+                  (option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ),
+                )}
+              </Select>
             ) : null}
 
             {/* Requerida como al publicar: es por aquí por donde el producto anterior a la
                 regla, que quedó sin procedencia, puede ponerse al día. */}
-            <div className="mb-6 text-black dark:text-white">
-              <label htmlFor="origin" className="block mb-1">
-                {tPublish("origin")}
-              </label>
-              <select
-                id="origin"
-                name="origin"
-                defaultValue={post.origin ?? ""}
-                required
-                className={selectClassName}
-              >
-                <option value="">{tPublish("originPlaceholder")}</option>
-                {originOptionsFor(isAdmin).map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {tVocabulary(option.labelKey)}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <Select
+              id="origin"
+              name="origin"
+              label={tPublish("origin")}
+              defaultValue={post.origin ?? ""}
+              required
+              containerClassName="mb-6"
+            >
+              <option value="">{tPublish("originPlaceholder")}</option>
+              {originOptionsFor(isAdmin).map((option) => (
+                <option key={option.value} value={option.value}>
+                  {tVocabulary(option.labelKey)}
+                </option>
+              ))}
+            </Select>
 
             <TextField
               required

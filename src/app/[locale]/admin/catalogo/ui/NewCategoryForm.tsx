@@ -4,11 +4,9 @@ import { useTranslations } from "next-intl";
 import { useActionState } from "react";
 import type { CategoryOption } from "~/domain/entities/post/taxonomy";
 import { Button } from "~/presentation/design_system/buttons/Button";
+import { Select } from "~/presentation/design_system/forms/Select";
 import { TextField } from "~/presentation/design_system/forms/TextField";
 import { type CatalogActionState, createCategory } from "../actions";
-
-const selectClassName =
-  "w-full rounded border border-gray-300 bg-white px-3 py-2 text-black dark:bg-gray-800 dark:text-white";
 
 interface NewCategoryFormProps {
   /** Las raíces del catálogo, para colgar la nueva sub-categoría de una de ellas. */
@@ -52,29 +50,21 @@ export default function NewCategoryForm({ roots }: NewCategoryFormProps) {
       ) : null}
 
       <form action={action} className="max-w-md">
-        <div className="mb-4 text-black dark:text-white">
-          <label htmlFor="parentKey" className="block mb-1">
-            Cuelga de:
-          </label>
-          <select
-            id="parentKey"
-            name="parentKey"
-            defaultValue={roots[0]?.value ?? ""}
-            className={selectClassName}
-          >
-            <option value="">— Nueva categoría raíz —</option>
-            {roots.map((root) => (
-              <option key={root.value} value={root.value}>
-                {root.label}
-              </option>
-            ))}
-          </select>
-          {state.errors.parentKey ? (
-            <p className="pt-1 text-red-700 dark:text-red-400">
-              {state.errors.parentKey}
-            </p>
-          ) : null}
-        </div>
+        <Select
+          id="parentKey"
+          name="parentKey"
+          label="Cuelga de:"
+          defaultValue={roots[0]?.value ?? ""}
+          error={state.errors.parentKey}
+          containerClassName="mb-4"
+        >
+          <option value="">— Nueva categoría raíz —</option>
+          {roots.map((root) => (
+            <option key={root.value} value={root.value}>
+              {root.label}
+            </option>
+          ))}
+        </Select>
 
         <TextField
           required
