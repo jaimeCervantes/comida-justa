@@ -93,7 +93,8 @@ async function backfillTranslations(): Promise<void> {
 
   let translated = 0;
   let skipped = 0;
-  let failed = 0;
+  let providerFailed = 0;
+  let storageFailed = 0;
   const useCase = createTranslatePostUseCase();
 
   for (const row of pending) {
@@ -110,8 +111,20 @@ async function backfillTranslations(): Promise<void> {
     }
 
     if (result.reason === "provider-failed") {
-      failed += 1;
-      console.warn(`  ✗ ${row.slug}: ${String(result.error)}`);
+      providerFailed += 1;
+      console.warn(`  ✗ ${row.slug}: no contestó el traductor`);
+      console.warn(`      ${String(result.error)}`);
+      continue;
+    }
+
+    /* Separado del anterior porque relanzar el script **no** lo arregla: la traducción se pagó y
+       lo que falló fue escribirla. Volver a correr vuelve a pagarla y vuelve a estrellarse. */
+    if (result.reason === "storage-failed") {
+      storageFailed += 1;
+      console.error(
+        `  ✗ ${row.slug}: falló la BASE al guardar, no el traductor`,
+      );
+      console.error(`      ${String(result.error)}`);
       continue;
     }
 
@@ -120,9 +133,10 @@ async function backfillTranslations(): Promise<void> {
   }
 
   console.log("------------------------------------------------");
-  console.log(`Traducidas: ${translated}`);
-  console.log(`Omitidas:   ${skipped}`);
-  console.log(`Fallidas:   ${failed}`);
+  console.log(`Traducidas:        ${translated}`);
+  console.log(`Omitidas:          ${skipped}`);
+  console.log(`Falló el traductor:${String(providerFailed).padStart(2)}`);
+  console.log(`Falló la base:     ${storageFailed}`);
 
   if (translated > 0) {
     console.log(
@@ -131,8 +145,19 @@ async function backfillTranslations(): Promise<void> {
     console.log("o el chatbot no las encontrará al buscar en inglés.");
   }
 
-  if (failed > 0) {
-    console.log("Las fallidas siguen pendientes; vuelve a correr el script.");
+  if (providerFailed > 0) {
+    console.log(
+      "\nLas del traductor siguen pendientes; vuelve a correr el script.",
+    );
+  }
+
+  if (storageFailed > 0) {
+    console.log(
+      "\nLas de la base NO se arreglan repitiendo: cada intento vuelve a pagarle al",
+    );
+    console.log(
+      "traductor para estrellarse igual. Revisa DATABASE_URL y la conexión primero.",
+    );
   }
 }
 

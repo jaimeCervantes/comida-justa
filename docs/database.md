@@ -1,174 +1,338 @@
 # Base de datos
 
-## Schema PostgreSQL
+> Volcado del esquema **real** el 2026-08-08, contra la base compartida (`alembic_version` =
+> `0027_2026_07_31`). La versión anterior de este documento describía una base que ya no existía:
+> tres tablas, `posts.id` como `uuid` cuando es `text`, un `UNIQUE(post_id, locale)` que nunca se
+> creó, y una sección entera sobre leer de Firestore. Si vuelves a dudar, el volcado se reproduce
+> con las consultas de `information_schema` en vez de creerle a este archivo.
 
-El schema esta normalizado en 3 tablas. Los usuarios NO tienen tabla propia porque viven en Firebase Auth.
+## Lo que hay que saber antes de tocar nada
+
+1. **La base es compartida** con el backend Python del bot de WhatsApp
+   (`C:\Users\S2G52\Desktop\jaimito\HazloSano\bot-whatsapp\backend`). Ese backend administra el
+   esquema con **Alembic**, y es la **única** fuente de verdad de migraciones.
+2. **Nunca corras `drizzle-kit generate/migrate`.** El esquema Drizzle de
+   `src/infra/dataAccess/db/schema/` es un **espejo de consulta y tipos**, no una definición: no
+   conoce las columnas que Alembic administra ni las 8 tablas que solo usa el bot, así que
+   `generate` produce migraciones entrelazadas y potencialmente destructivas.
+   - **Cambio de esquema** → migración Alembic en el backend, encadenada desde el head, y
+     `alembic upgrade head`.
+   - **Espejo Drizzle** → edítalo a mano para que coincida con lo que Alembic creó.
+3. **La app ya no lee de Firestore.** `DB_PROVIDER` sigue en los `.env` pero **ningún archivo de
+   `src/` lo lee**: es una variable muerta. Todo pasa por PostgreSQL. Firebase se sigue usando
+   para *storage* de imágenes y vídeo, no para datos.
+
+## Qué tabla es de quién
+
+19 tablas. No todas son de este sitio:
+
+| Tabla | La usa | Notas |
+| --- | --- | --- |
+| `posts`, `post_translations`, `post_media` | **el sitio** (y el bot lee) | el contenido |
+| `comments` | **el sitio** | 45 filas |
+| `users`, `accounts`, `sessions`, `verification_tokens` | **el sitio** (NextAuth) | `users` la comparten los dos |
+| `categories`, `category_translations`, `category_aliases` | **el sitio** y el bot | taxonomía centralizada |
+| `sellers` | **el sitio** y el bot | el perfil detrás de `/tienda/<slug>` |
+| `branches` | **el sitio** y el bot | sucursales con `location` PostGIS; es lo que da las distancias |
+| `messages`, `orders`, `prompts`, `ai_training_logs`, `product_recommendations` | **solo el bot** | no hay espejo Drizzle |
+| `alembic_version` | Alembic | |
+
+`products` ya no existe: desapareció al unificar el catálogo dentro de `posts`.
+
+## El esquema que usa el sitio
 
 ```sql
--- Tabla principal de posts
+-- 23 filas. El id es TEXT, no uuid: convive el id de Firestore ("j5FOSBacjlJrX9dRU2Hw")
+-- con el uuid de lo creado después ("1bb033d3-9bc2-48cd-9608-b7e8b7443ea1").
 CREATE TABLE posts (
-  id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id         text NOT NULL,              -- Firebase UID
-  price           numeric,
-  contact_phone   text,
-  contact_email   text,
+  id               text PRIMARY KEY,
+  user_id          text NOT NULL REFERENCES users(id),
+  price            numeric,
+  kind             text NOT NULL DEFAULT 'anuncio',   -- 'anuncio' | 'producto'
+  origin           text,
+  category         text REFERENCES categories(key) ON DELETE RESTRICT,
+  sub_category     text REFERENCES categories(key) ON DELETE RESTRICT,
+  is_available     boolean NOT NULL DEFAULT true,     -- lo que filtra el chatbot
+  seller_id        uuid REFERENCES sellers(id),
+  external_url     text,                              -- enlace heredado del catálogo del bot
+  contact_phone    text,
+  contact_email    text,
   contact_whatsapp text,
-  created_at      timestamptz NOT NULL DEFAULT now()
+  created_at       timestamptz NOT NULL DEFAULT now(),
+  CHECK (sub_category IS NULL OR category IS NOT NULL)
 );
 
--- Traducciones (un post puede tener varias: "es", "en", etc.)
+-- 46 filas: las 23 publicaciones en 'es' y en 'en'.
+-- `tags` y `embedding` viven aquí y no en `posts` porque ambos se derivan del TEXTO,
+-- y el texto cambia con el idioma.
 CREATE TABLE post_translations (
-  id       uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  post_id  uuid NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
-  locale   text NOT NULL,
-  title    text NOT NULL,
-  slug     text NOT NULL,
-  content  text NOT NULL,
-  UNIQUE(post_id, locale)
+  id        uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  post_id   text NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
+  locale    text NOT NULL,
+  title     text NOT NULL,
+  slug      text NOT NULL,
+  content   text NOT NULL,
+  tags      json NOT NULL DEFAULT '[]',
+  embedding vector(768)          -- gemini-embedding-001, el mismo modelo que el bot
+  -- ⚠️ NO hay UNIQUE(post_id, locale). Ni sobre slug. Ver "Lo que la base NO impide".
 );
 
--- Archivos multimedia asociados al post
 CREATE TABLE post_media (
   id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  post_id    uuid NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
+  post_id    text NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
   url        text NOT NULL,
-  type       text NOT NULL,    -- "image" | "video"
+  type       text NOT NULL,      -- 'image' | 'video'
   alt        text,
-  sort_order int NOT NULL DEFAULT 0
+  sort_order integer NOT NULL DEFAULT 0
+);
+
+CREATE TABLE comments (
+  id         text PRIMARY KEY,
+  post_id    text NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
+  user_id    text NOT NULL REFERENCES users(id),
+  content    text NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now()
 );
 ```
 
-### Indices
+### Usuarios y sesiones (NextAuth sobre la tabla del bot)
 
 ```sql
-CREATE INDEX idx_posts_created_at ON posts (created_at DESC);
-CREATE INDEX idx_translations_post_id ON post_translations (post_id);
-CREATE INDEX idx_translations_slug ON post_translations (slug);
-CREATE INDEX idx_media_post_id ON post_media (post_id);
+-- 21 filas. `external_id` es de cuando los usuarios vivían en Firebase Auth; sigue siendo
+-- NOT NULL y único. `username` y `email` son nullable pero únicos: dos NULL no chocan.
+CREATE TABLE users (
+  id                  text PRIMARY KEY DEFAULT gen_random_uuid()::text,
+  external_id         varchar NOT NULL UNIQUE,
+  name                varchar,
+  email               text UNIQUE,
+  email_verified      timestamptz,
+  image               text,
+  username            text UNIQUE,
+  last_latitude       double precision,
+  last_longitude      double precision,
+  location_updated_at timestamptz,
+  created_at          timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TABLE accounts (…);              -- PK (provider, provider_account_id)
+CREATE TABLE sessions (…);              -- PK session_token
+CREATE TABLE verification_tokens (…);   -- PK (identifier, token)
 ```
 
-### Ubicacion de archivos
+### Tiendas y sucursales
+
+```sql
+-- 1 fila. `slug` es la dirección pública: /tienda/<slug>.
+CREATE TABLE sellers (
+  id             uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  name           varchar NOT NULL,
+  category       varchar NOT NULL,
+  phone          varchar NOT NULL UNIQUE,
+  slug           text UNIQUE,
+  user_id        text UNIQUE REFERENCES users(id),
+  url            varchar,
+  description    varchar,
+  logo_url       varchar,
+  has_membership boolean NOT NULL DEFAULT false,
+  has_paid_ads   boolean NOT NULL DEFAULT false,
+  created_at     timestamptz NOT NULL DEFAULT now()
+);
+
+-- 1 fila. `location` es geography(Point,4326) de PostGIS, con índice GiST:
+-- es lo que hace posible ST_Distance y por tanto todas las distancias del sitio.
+CREATE TABLE branches (
+  id        uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  seller_id uuid NOT NULL REFERENCES sellers(id),
+  name      varchar NOT NULL,
+  address   varchar NOT NULL,
+  map_url   varchar NOT NULL,
+  location  geography(Point, 4326) NOT NULL
+);
+```
+
+**`sellers.name`, `sellers.description`, `branches.name` y `branches.address` están en un solo
+idioma.** Es el slice 5 de i18n, pendiente: requiere `seller_translations` y `branch_translations`
+en Alembic.
+
+### Taxonomía
+
+```sql
+-- 11 filas. Dos niveles, con la jerarquía forzada por CHECK.
+CREATE TABLE categories (
+  key        text PRIMARY KEY,
+  parent_key text REFERENCES categories(key) ON DELETE RESTRICT,
+  level      smallint NOT NULL,
+  is_active  boolean NOT NULL DEFAULT true,
+  sort_order integer NOT NULL DEFAULT 0,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  CHECK (key ~ '^[a-z0-9]+(_[a-z0-9]+)*$'),     -- guion BAJO, nunca medio
+  CHECK (level IN (1, 2)),
+  CHECK ((level = 1 AND parent_key IS NULL) OR (level = 2 AND parent_key IS NOT NULL)),
+  CHECK (parent_key IS DISTINCT FROM key),
+  UNIQUE (key, parent_key)
+);
+
+CREATE TABLE category_translations (
+  category_key text NOT NULL REFERENCES categories(key) ON DELETE CASCADE,
+  locale       text NOT NULL,
+  label        text NOT NULL,
+  label_normalized text,
+  PRIMARY KEY (category_key, locale),
+  CHECK (locale IN ('es', 'en')),
+  CHECK (btrim(label) <> '')
+);
+
+CREATE TABLE category_aliases (
+  alias            text PRIMARY KEY,
+  alias_normalized text UNIQUE,
+  category_key     text NOT NULL REFERENCES categories(key) ON DELETE CASCADE,
+  note             text,
+  created_at       timestamptz NOT NULL DEFAULT now()
+);
+```
+
+`CHECK (locale IN ('es','en'))` en `category_translations` es la única parte del esquema que
+**enumera los idiomas**: añadir un tercero pide una migración aquí.
+
+## Índices
+
+```sql
+-- posts
+CREATE INDEX idx_posts_created_at ON posts (created_at DESC);
+CREATE INDEX ix_posts_category ON posts (category);
+CREATE INDEX ix_posts_sub_category_category ON posts (sub_category, category);
+CREATE INDEX ix_posts_seller_id ON posts (seller_id);
+
+-- post_translations
+CREATE INDEX idx_translations_post_id ON post_translations (post_id);
+CREATE INDEX idx_translations_slug ON post_translations (slug);
+-- ⚠️ NO hay índice GIN sobre el tsvector ni HNSW sobre el embedding.
+
+-- resto
+CREATE INDEX idx_media_post_id ON post_media (post_id);
+CREATE INDEX idx_comments_post_id_created_at ON comments (post_id, created_at DESC);
+CREATE INDEX idx_branches_location ON branches USING gist (location);
+CREATE INDEX ix_categories_active ON categories (key) WHERE is_active;
+CREATE INDEX ix_categories_parent ON categories (parent_key);
+CREATE INDEX ix_category_translations_locale ON category_translations (locale);
+CREATE INDEX ix_category_translations_label_norm ON category_translations (label_normalized);
+```
+
+## Lo que la base NO impide (y el código sí)
+
+Esto es lo más importante del documento, porque son las reglas que **parecen** estar en el esquema
+y no están:
+
+| Regla que se asume | ¿La impone la base? | Quién la sostiene hoy |
+| --- | --- | --- |
+| Una sola traducción por `(post_id, locale)` | **No.** No hay `UNIQUE`. | El `INSERT` de `saveTranslation` lleva su `WHERE NOT EXISTS` en la misma sentencia, y `TranslatePostUseCase` comprueba antes. |
+| Un `slug` no se repite | **No.** El índice de `slug` no es único. | `createUniqueSlug` desambigua contando. |
+| Un idioma es `es` o `en` | Solo en `category_translations`. | En `post_translations` cabe cualquier cosa. |
+
+Crear ese `UNIQUE(post_id, locale)` es una migración Alembic sobre la base compartida —
+irreversible — y sigue **pendiente de decisión**. Ver `docs/features/pendientes.md`.
+
+## Extensiones y funciones
+
+Extensiones: `postgis`, `vector` (pgvector), `pgcrypto`, `uuid-ossp`, `pg_stat_statements`,
+`supabase_vault`.
+
+Dos funciones SQL las escribió Alembic **para el chatbot**, no para el sitio:
+
+- `search_posts_semantic(query_embedding, p_locale, p_fallback_locale, p_threshold, p_pool_size, p_latitude, p_longitude, p_radius_m, p_exclude_ids)`
+- `recommend_posts(…)` — la anterior más impulso por membresía y anuncios pagados.
+
+**El sitio no las usa, y es deliberado**: filtran `kind = 'producto'`, así que dejarían fuera las
+publicaciones de tipo `anuncio` —los artículos—, que son justo las que alguien encuentra buscando
+por concepto. La búsqueda del sitio consulta `post_translations` directamente. Está medido en
+`docs/features/busqueda-semantica.md`.
+
+## Dónde vive el espejo
 
 ```
 src/infra/dataAccess/db/
-  connection.ts          — pool singleton de PostgreSQL + Drizzle
+  connection.ts        — pool singleton + Drizzle
   schema/
-    posts.ts             — definicion de las 3 tablas en Drizzle
-  migrations/
-    0001_good_chat.sql   — migracion inicial autogenerada
+    posts.ts           — posts, post_translations, post_media
+    auth.ts            — users, accounts, sessions, verification_tokens
+    sellers.ts         — sellers, branches
+    categories.ts      — categories, category_translations, category_aliases
+    comments.ts
 ```
 
-## Migraciones — Alembic es la fuente de verdad (⚠️ IMPORTANTE)
+Las 5 tablas que solo usa el bot (`messages`, `orders`, `prompts`, `ai_training_logs`,
+`product_recommendations`) **no tienen espejo**, y está bien así: el sitio no las toca.
 
-La base de datos es **compartida** con el backend de Python (bot de WhatsApp), ubicado en
-`C:\Users\S2G52\Desktop\jaimito\HazloSano\bot-whatsapp\backend`. Ese backend administra el schema
-con **Alembic**, y es la **única** fuente de verdad de migraciones.
+## Scripts
 
-Las tablas que usa este app (`posts`, `post_translations`, `post_media`, `comments`, `users`,
-`accounts`, `sessions`, `verification_tokens`) fueron creadas por Alembic (ver `alembic/versions/`,
-p. ej. `0020_..._unify_users_for_nextauth.py` y `0021_..._add_comida_justa_tables.py`).
+| Script | Qué hace |
+| --- | --- |
+| `pnpm run backfill-translations` | Traduce a `en` lo que no tenga fila. Idempotente. |
+| `pnpm run backfill-embeddings` | Genera el vector de las traducciones sin indexar. |
+| `src/scripts/seedPosts.ts` | Copia de Firestore a PostgreSQL. **Histórico**: la migración ya se hizo. |
+| `src/scripts/migrateProductsToPosts.ts` | Unificó `products` dentro de `posts`. **Histórico.** |
+| `src/scripts/verifyEmbeddingSpace.ts` | Comprueba que el sitio y el bot vectorizan en el mismo espacio. |
 
-### NO migrar la BD con Drizzle
+Traducir deja la fila **sin embedding a propósito**: son dos trabajos, y encadenarlos haría cada
+script el doble de frágil. Después de un backfill de traducciones hay que correr el de embeddings o
+el chatbot no las encontrará.
 
-`drizzle-kit generate/migrate` **no debe usarse** contra esta BD. El schema Drizzle en
-`src/infra/dataAccess/db/schema/` es solo un **espejo de consulta/tipos** para el app Next.js; no
-conoce las columnas que Alembic administra (p. ej. `users.external_id`), así que `generate` produce
-migraciones entrelazadas y potencialmente destructivas. Regla:
+Para deshacer todas las traducciones automáticas:
 
-- **Cambio de schema** → nueva migración **Alembic** en el backend, encadenada desde el head actual,
-  y luego `alembic upgrade head`.
-- **Espejo Drizzle** → actualiza a mano `src/infra/dataAccess/db/schema/*.ts` para que los tipos y
-  consultas del app coincidan con lo que Alembic creó. Nunca corras `drizzle-kit generate`.
-
-> Nota: el backend además tiene su propio dominio de comercio (`products`, `sellers`, `branches`,
-> `ads`, `seller_membership`) para el bot. `products` desapareció al unificar el catálogo, y
-> **`sellers` ya la usa el sitio**: es el perfil comercial detrás de `/tienda/<slug>`
-> (`src/infra/dataAccess/db/schema/sellers.ts` es su espejo). `branches` sigue siendo solo del bot
-> hasta el slice de sucursales.
-
-### Migraciones aplicadas desde el sitio
-
-| Migración | Qué agregó | Para qué |
-|---|---|---|
-| `0023` | `posts.seller_id`, `sellers.user_id`, categorías, `is_available`, embeddings | Catálogo unificado |
-| `0026` | Taxonomía centralizada en `categories` | Categorías en la base |
-| `0027` | `sellers.slug`, `users.username` (ambas nullable, con índice único) | Direcciones públicas: `/tienda/<slug>` y, a futuro, `/u/<username>` |
-
-## Seed de datos (Firestore → PostgreSQL)
-
-El script `src/scripts/seedPosts.ts` copia todos los posts de Firestore a PostgreSQL:
-
-```sh
-npx tsx src/scripts/seedPosts.ts
+```sql
+DELETE FROM post_translations WHERE locale = 'en';
 ```
 
-El script:
-1. Lee todos los posts de Firestore
-2. Inserta cada post en las tablas `posts`, `post_translations`, `post_media`
-3. Maneja conflictos con `ON CONFLICT DO UPDATE` / `DO NOTHING` (idempotente)
-4. Convierte Firestore `Timestamp` → `Date` de JavaScript
+## Conexión
 
-## Desarrollo local con Docker
+**Producción (Supabase):** Transaction Pooler, puerto **6543**.
+
+```
+DATABASE_URL=postgres://[user]:[pass]@aws-1-us-east-1.pooler.supabase.com:6543/postgres?sslmode=no-verify
+```
+
+`connection.ts`: `max: 3`, `idleTimeoutMillis: 10000`, `connectionTimeoutMillis: 10000`, SSL con
+`rejectUnauthorized: false`, y el `Pool` como singleton en `globalThis`.
+
+`DATABASE_DIRECT_URL` apunta a la conexión directa (`db.<ref>.supabase.co:5432`) y **no** pasa por
+el pooler: es la de migraciones y scripts.
+
+### Por qué no el Session Pooler (5432)
+
+En *session mode* el pooler amarra una conexión de Postgres a cada cliente durante toda su vida, con
+un tope de 15. En Vercel cada instancia serverless es un proceso aparte con su propio `Pool`, así que
+el multiplicador es el número de instancias: con `max: 10`, dos instancias concurrentes ya rebasaban
+el límite y la app moría con `(EMAXCONNSESSION) max clients reached in session mode`. Como NextAuth
+usa el mismo `db` vía `DrizzleAdapter`, el síntoma visible incluía también un `SessionTokenError`.
+
+En *transaction mode* la conexión vuelve al pool al terminar cada transacción. Por eso conviene
+además un `max` bajo por instancia y un `idleTimeoutMillis` corto: Vercel congela la instancia entre
+peticiones y una conexión ociosa retendría su lugar sin dar servicio.
+
+Restricciones que el código respeta hoy:
+
+- Nada de *prepared statements* (drizzle + `node-postgres` no los usa salvo `.prepare()`).
+- Nada de `LISTEN/NOTIFY` ni `SET` de sesión.
+- Las transacciones caben en un solo bloque.
+
+### Desarrollo local
 
 ```sh
-# Iniciar PostgreSQL local
 docker compose -f docker-compose.dev.yml up -d postgres
-
-# Aplicar migraciones (desde el backend de Python, NO Drizzle)
+# Migraciones desde el backend Python, NO Drizzle:
 #   cd .../bot-whatsapp/backend && alembic upgrade head
-
-# Seed de datos (opcional)
-npx tsx src/scripts/seedPosts.ts
-
-# Iniciar la app
 pnpm dev
 ```
 
-La URL de conexion local es: `postgresql://postgres:postgres@localhost:5432/comida_justa`
+`postgresql://postgres:postgres@localhost:5432/comida_justa`
 
-## Produccion (Supabase)
+## Migraciones aplicadas desde el sitio
 
-En produccion se usa el **Transaction Pooler** de Supabase (puerto **6543**), que es el modo
-recomendado para serverless:
+| Migración | Qué agregó |
+| --- | --- |
+| `0023` | `posts.seller_id`, `sellers.user_id`, categorías, `is_available`, embeddings |
+| `0026` | Taxonomía centralizada en `categories` |
+| `0027` | `sellers.slug`, `users.username` (nullable, con índice único) |
 
-```
-DATABASE_URL=postgres://[user]:[password]@aws-1-us-east-1.pooler.supabase.com:6543/postgres?sslmode=no-verify
-```
-
-El pool de conexiones esta configurado en `connection.ts`:
-- `max: 3` conexiones
-- `idleTimeoutMillis: 10000`
-- `connectionTimeoutMillis: 10000`
-- SSL con `rejectUnauthorized: false`
-- El `Pool` es un singleton guardado en `globalThis`
-
-### Por que no el Session Pooler (puerto 5432)
-
-En *session mode* el pooler amarra una conexion de Postgres a cada cliente durante toda la
-vida de la conexion, con un tope de 15 (`pool_size: 15`). En Vercel cada instancia serverless
-es un proceso aparte con su propio `Pool`, asi que el multiplicador es el numero de
-instancias: con `max: 10`, dos instancias concurrentes ya rebasaban el limite y la app moria
-con `(EMAXCONNSESSION) max clients reached in session mode`. Como NextAuth usa el mismo `db`
-via `DrizzleAdapter`, el sintoma visible incluia tambien un `SessionTokenError`.
-
-En *transaction mode* la conexion se devuelve al pool al terminar cada transaccion, de modo
-que los mismos slots rotan entre muchas mas peticiones. Por eso tambien conviene un `max`
-bajo por instancia y un `idleTimeoutMillis` corto: Vercel congela la instancia entre
-peticiones y una conexion ociosa retendria su lugar en el pooler sin dar servicio.
-
-Restricciones que impone el transaction mode y que el codigo respeta hoy:
-- Nada de *prepared statements* (drizzle + `node-postgres` no los usa salvo `.prepare()`).
-- Nada de `LISTEN/NOTIFY` ni `SET` de sesion.
-- Las transacciones deben caber en un solo bloque; los `db.transaction()` existentes lo hacen.
-
-`DATABASE_DIRECT_URL` apunta a la conexion directa (`db.<ref>.supabase.co:5432`) y **no** debe
-pasar por el pooler: es la que usan migraciones y scripts.
-
-## Coexistencia Firestore + PostgreSQL
-
-Mientras `DB_PROVIDER=firestore`, la app lee posts desde Firestore (comportamiento original). Las unicas consultas que pasan por PostgreSQL cuando `DB_PROVIDER=postgres` son:
-
-- `getMultiplePosts()` — listado de posts con paginacion
-- `getTotalPosts()` — conteo total de posts
-
-El resto de operaciones (crear post, comentarios, busqueda) siguen usando Firestore directamente. Conforme se migren mas funcionalidades, se agregan metodos a `IPostQueryRepository` (o nuevas interfaces) y sus implementaciones PostgreSQL.
+Head actual: **`0027_2026_07_31`**.

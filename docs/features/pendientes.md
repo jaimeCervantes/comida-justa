@@ -1,26 +1,29 @@
 # Pendientes
 
 Registro único de lo que queda abierto, para no tener que reconstruirlo leyendo nueve bitácoras.
-Cada punto apunta a su roadmap. **Última sesión: 2026-08-07.**
+Cada punto apunta a su roadmap. **Última sesión: 2026-08-08.**
 
 ---
 
 ## Por dónde retomar
 
-Todo lo que estaba abierto y no dependía de una decisión tuya quedó cerrado (ver *Resuelto* abajo).
-Lo que sigue se reparte en tres montones:
+**Solo queda un montón, y es el que no depende de este repositorio.**
 
-1. **Necesita que decidas** — la migración de `UNIQUE(post_id, locale)` y la revisión de las
-   traducciones automáticas. Están más abajo, cada una con su coste y su vuelta atrás.
-2. **Bloqueado en Alembic**, que vive en `bot-whatsapp/backend` y toca la base compartida: los
-   índices de búsqueda, la tabla de búsquedas y el slice 5 de i18n.
-3. **Se puede hacer ya, sin permiso de nadie**: los `rounded-*` del mapa, poner al día
-   `docs/database.md` —que hoy describe una base que no existe— y distinguir un fallo de
-   persistencia de uno del proveedor en `translatePostUseCase` (ver *Deuda transversal*).
+Todo lo que se podía hacer sin tocar la base compartida está cerrado (ver *Resuelto* abajo). Lo
+único abierto es lo que **requiere una migración Alembic** en `bot-whatsapp/backend`, que es
+irreversible sobre una base que comparten dos aplicaciones:
 
-De los tres, el de más valor es el de `translatePostUseCase`: hoy cualquier excepción se registra
-como "falló Gemini, ya lo recogerá el backfill", y eso manda a buscar el problema al sitio
-equivocado.
+1. `UNIQUE(post_id, locale)` y unicidad de `slug` — hoy los sostiene el código.
+2. Los índices de búsqueda: GIN sobre el `tsvector` y HNSW sobre el vector.
+3. La tabla de búsquedas, para dejar de medir contra el registro del servidor.
+4. El slice 5 de i18n: `seller_translations` y `branch_translations`.
+
+Ninguna corre prisa con el tamaño de hoy (23 publicaciones, 46 traducciones, 1 tienda). El orden por
+valor sería **2 → 1 → 3 → 4**, y las cuatro caben en una sola migración si se hacen juntas.
+
+Aparte hay dos cosas **medidas pero sin decidir**, que no son deuda sino opciones: el `taskType`
+de los embeddings para consultas cortas, y qué hacer con los `rounded-*` de las páginas de
+contenido. Las dos están más abajo con sus números.
 
 ---
 
@@ -68,16 +71,13 @@ levanta Playwright arranca limpio.
 
 ## Estado de las ramas
 
-Ninguna está subida ni tiene PR. Cada una **contiene** a la anterior.
+**`dev` ya las contiene todas.** `git rev-list --count dev..<rama>` da **0** para
+`feat/design-system-pilares`, `feat/traducciones-contenido`, `feat/mudanza-y-tipografia` y
+`feat/distancia-en-tienda`: se fusionaron y la tabla que había aquí —que decía "ninguna está subida"
+y contaba 16 commits pendientes— mandaba a buscar trabajo donde ya no estaba. Se puede borrar la
+rama local de las cuatro sin perder nada.
 
-| Rama | Commits desde `dev` | Qué añade |
-| --- | --- | --- |
-| `feat/design-system-pilares` | 6 | Slices 3–7 del design system |
-| `feat/traducciones-contenido` | 14 | + i18n slices 2–3, el arreglo del cambio de idioma en la ficha, y los 4 slices de búsqueda |
-| `feat/mudanza-y-tipografia` | 16 | + la mudanza a `src/presentation/` y el barrido de tipografía |
-
-Validación de la última: **930/930 unitarias**, `typecheck` 0, `lint` limpio, `check:i18n` limpio,
-`build` compila. La e2e quedó con el punto 1 pendiente.
+`dev` está subida a `origin/dev`.
 
 ---
 
@@ -85,8 +85,9 @@ Validación de la última: **930/930 unitarias**, `typecheck` 0, `lint` limpio, 
 
 ### `UNIQUE(post_id, locale)` no existe en la base
 
-`docs/database.md:27` y `docs/features/i18n.md:89` lo dan por hecho, pero **ninguna migración lo
-crea**. Tampoco hay unicidad sobre `slug`.
+`docs/features/i18n.md:89` lo da por hecho, pero **ninguna migración lo crea**. Tampoco hay unicidad
+sobre `slug`. (`docs/database.md` ya no miente sobre esto: lo dice en su sección *Lo que la base NO
+impide*.)
 
 Está mitigado en el código: el `INSERT` de traducciones lleva su `WHERE NOT EXISTS` en la misma
 sentencia, y el slug se desambigua contando. La base no lo impediría por su cuenta.
@@ -94,13 +95,31 @@ sentencia, y el slug se desambigua contando. La base no lo impediría por su cue
 Es una **migración Alembic sobre la base compartida** —irreversible— y vive en
 `bot-whatsapp/backend`. No se ejecutó.
 
-### Traducciones automáticas ya escritas en producción
+### ~~Traducciones automáticas sin revisar~~ — **leídas el 2026-08-08**
 
-Las 23 publicaciones tienen fila `en` generada por Gemini, con slug y embedding. Están auditadas
-—sin duplicados, sin títulos sin traducir, sin estructura aplastada— pero **nadie las ha leído una
-por una**. Vale la pena revisar al menos los productos que se venden.
+Las 23 se leyeron una por una comparándolas con su original. **No había ninguna mistraducción de
+fondo**: el sentido, los datos y la estructura estaban bien en las 23. Sí había cuatro defectos de
+acabado, todos en producto que se vende, y **los cuatro están corregidos**
+(`src/scripts/fixEnglishTranslations.ts`, 11 cambios):
 
-Deshacer todo: `DELETE FROM post_translations WHERE locale = 'en';`
+| Qué | Dónde | Por qué importaba |
+| --- | --- | --- |
+| Frases pegadas sin espacio (`"don't stop.It's"`) | Electrolitos (×3), Pan de Masa Madre Natural (×2) | Se ve en la ficha; es lo único que un cliente leería como descuido |
+| `"Dorado"` traducido a `"Golden"` | las 3 pechugas | Es el **nombre** del aderezo. Quien pida "the Golden dressing" no se hace entender en el mostrador — y el Omelet sí lo había dejado como "Dorado" |
+| `"arándanos"` → `"blueberries"` en una y `"cranberries"` en tres | Pechuga asada | Misma lista de ingredientes, dos frutas distintas |
+| `"Grasas Buenas"` → `"Healthy Fats"` en una y `"Good Fats"` en dos | Pechuga a la macha | Misma frase de la misma plantilla |
+
+También se unificó el título `"Orange Chicken Breast Steak**s**"` a singular, como sus dos hermanas
+y como el español. Los embeddings de las 5 filas tocadas se anularon y se regeneraron
+(`pnpm run backfill-embeddings`, 5/5): un vector calculado sobre el texto anterior describe un texto
+que ya no existe.
+
+Respaldo de las filas originales: `src/scripts/backups/en-translations-5-rows.json`.
+Deshacer todo el inglés sigue siendo: `DELETE FROM post_translations WHERE locale = 'en';`
+
+**Lo que NO se tocó, a propósito:** el título en español dice `"Eléctrolitos de frutos rojos"` y la
+palabra es **electrolitos**, sin acento. Es contenido de origen, y corregirlo arrastra su slug y su
+URL ya indexada. Es tuyo decidirlo.
 
 ---
 
@@ -146,8 +165,9 @@ Slices 0–4 hechos. Ver `docs/features/i18n.md` y su bitácora.
 - **RSS y `llms.txt` siguen en español**, ahora por decisión y no por falta de contenido. Un canal
   RSS declara un solo `language`, así que servir los dos idiomas pide un segundo canal
   (`/en/rss.xml`), no mezclarlos. El sitemap sí lista ya los dos idiomas.
-- **`docs/database.md` está desactualizado**: describe 3 tablas, dice que `posts.id` es `uuid`
-  cuando es `text`, y no menciona `tags`, `embedding`, `category` ni `seller_id`.
+- ~~**`docs/database.md` está desactualizado**~~ — **reescrito el 2026-08-08** contra el esquema
+  real (`information_schema`, no de memoria): las 19 tablas con dueño, qué es del bot y qué del
+  sitio, y una sección *Lo que la base NO impide* que es lo que de verdad hacía falta.
 
 ---
 
@@ -160,12 +180,43 @@ Slices 1–9 hechos. Ver `docs/features/design-system.md` y su bitácora.
   sin patrón compartido. Convertirlos sin una repetición detrás no gana nada. El barrido atacó lo
   que sí estaba copiado: 21 encabezados legales, la cabecera de esas páginas y el encabezado de
   columna del pie.
-- **`rounded-*` en el mapa.** `Surface` cubre tarjetas y paneles y la paginación ya usa tokens;
-  queda el mapa.
+- ~~**`rounded-*` en el mapa.**~~ **Cerrado el 2026-08-08**: `StoresMapCanvas` va dentro de un
+  `Surface radius="lg"` con `overflow-hidden`, y el `MapContainer` se queda solo con lo suyo
+  —tamaño y `isolate`—. El envoltorio existe porque `MapContainer` no acepta `as`.
+
+- **Quedan 45 `rounded-*` no-pastilla fuera del design system, y son más de los que este documento
+  decía.** Contados: 9 `rounded-2xl`, 7 `rounded-sm`, 7 `rounded-lg`, 5 `rounded-r`, 3 `rounded-xl`,
+  2 `rounded-3xl`, 1 `rounded-md`, 1 `rounded-tl` (más 23 `rounded-full`, que sí son deliberados:
+  avatares y pastillas, donde la forma **es** el componente).
+
+  Casi todos viven en páginas de contenido: `nosotros` (7), las dos legales (7), `pilares` (3),
+  el header y sus menús (7). **`--radius-lg` es 0.5rem y el token más grande que existe**, así que
+  `rounded-2xl` y `rounded-3xl` no están usando ningún token: son valores de Tailwind por su cuenta.
+
+  No se barrieron a propósito. Bajarlos a `rounded-lg` **cambia visiblemente** cómo se ven esas
+  páginas —las tarjetas de `nosotros` son deliberadamente más suaves que una tarjeta de producto—,
+  y eso es una decisión de diseño, no una limpieza. Las dos salidas honestas: añadir un
+  `--radius-xl` al sistema y adoptarlo, o decidir que el contenido editorial redondea distinto que
+  el catálogo y dejarlo escrito.
 
 ---
 
 ## Deuda transversal
+
+- ~~**`translatePostUseCase` culpa siempre al proveedor.**~~ **Cerrado el 2026-08-08.** Un solo
+  `try` envolvía la traducción **y** las dos escrituras, así que un error de Postgres salía como
+  `provider-failed` y el aviso prometía un backfill que iba a fallar igual. Se vio de verdad en la
+  corrida e2e del 2026-08-07:
+
+  ```
+  [translations] post 80dea1e5-… queda pendiente en en  Error: Failed query: …
+  ```
+
+  Ahora hay un `storage-failed` aparte, y los dos avisos dicen cosas distintas porque piden cosas
+  distintas: lo del proveedor se arregla solo al repetir el backfill, y lo de la base **no** —la
+  traducción ya se pagó, repetir vuelve a pagarla para estrellarse igual—. De paso, las dos lecturas
+  iniciales estaban fuera de todo `try`, así que "nunca lanza" dejaba de ser cierto justo cuando la
+  base era el problema.
 
 - ~~**Los tests no se typechequean.**~~ **Cerrado el 2026-08-07** con `tsconfig.test.json` y
   `pnpm typecheck:tests`. Va aparte del `typecheck` de siempre para no frenar el ciclo rápido, así

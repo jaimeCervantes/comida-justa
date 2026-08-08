@@ -170,3 +170,100 @@ describe("TranslatePostUseCase", () => {
     expect(result).toEqual({ translated: true, slug: "natural-whey-1" });
   });
 });
+
+/**
+ * Quién falló, el proveedor o la base.
+ *
+ * El `try` envolvía la traducción **y** las dos escrituras, así que un error de Postgres salía
+ * como `provider-failed` y el aviso decía «queda pendiente, ya lo recogerá el backfill». Es la
+ * peor forma de equivocarse: manda a mirar el estado de Gemini cuando el problema está en la
+ * conexión, y promete un backfill que va a fallar exactamente igual. Se vio de verdad en la corrida
+ * e2e del 2026-08-07:
+ *
+ *   [translations] post 80dea1e5-… queda pendiente en en Error: Failed query: …
+ *
+ * Y las dos lecturas de arriba estaban fuera de todo `try`, así que una base caída hacía **lanzar**
+ * a un caso de uso cuya primera línea de documentación dice que nunca lanza.
+ */
+describe("TranslatePostUseCase y de quién es el fallo", () => {
+  const dbDown = () => new Error("Failed query: select ...");
+
+  it("un fallo del proveedor es del proveedor", async () => {
+    const result = await new TranslatePostUseCase(
+      makeRepository(),
+      makeTranslator({
+        translate: vi
+          .fn()
+          .mockRejectedValue(new TranslationProviderError("Gemini is down")),
+      }),
+    ).execute(input);
+
+    expect(result).toMatchObject({
+      translated: false,
+      reason: "provider-failed",
+    });
+  });
+
+  /* Lo que Gemini contestó es correcto y ya está pagado; lo que falló es guardarlo. Volver a
+     traducir no arregla nada. */
+  it.each([
+    [
+      "createUniqueSlug",
+      { createUniqueSlug: vi.fn().mockRejectedValue(dbDown()) },
+    ],
+    [
+      "saveTranslation",
+      { saveTranslation: vi.fn().mockRejectedValue(dbDown()) },
+    ],
+  ])(
+    "un fallo al guardar (%s) es de la base, no de Gemini",
+    async (_, override) => {
+      const result = await new TranslatePostUseCase(
+        makeRepository(override),
+        makeTranslator(),
+      ).execute(input);
+
+      expect(result).toMatchObject({
+        translated: false,
+        reason: "storage-failed",
+      });
+    },
+  );
+
+  /* «Nunca lanza» tiene que valer también cuando la base no contesta a la primera pregunta. */
+  it.each([
+    ["hasTranslation", { hasTranslation: vi.fn().mockRejectedValue(dbDown()) }],
+    [
+      "findTranslation",
+      { findTranslation: vi.fn().mockRejectedValue(dbDown()) },
+    ],
+  ])(
+    "tampoco lanza si la base cae antes de traducir (%s)",
+    async (_, override) => {
+      const translator = makeTranslator();
+
+      const result = await new TranslatePostUseCase(
+        makeRepository(override),
+        translator,
+      ).execute(input);
+
+      expect(result).toMatchObject({
+        translated: false,
+        reason: "storage-failed",
+      });
+      /* Y no se le paga a Gemini una traducción que no se va a poder guardar. */
+      expect(translator.translate).not.toHaveBeenCalled();
+    },
+  );
+
+  it("el error original viaja en el resultado, sea de quien sea", async () => {
+    const causa = dbDown();
+
+    const result = await new TranslatePostUseCase(
+      makeRepository({ saveTranslation: vi.fn().mockRejectedValue(causa) }),
+      makeTranslator(),
+    ).execute(input);
+
+    expect(result).toMatchObject({ translated: false, error: causa });
+  });
+});
