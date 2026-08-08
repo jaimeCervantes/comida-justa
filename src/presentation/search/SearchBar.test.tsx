@@ -205,6 +205,29 @@ describe("SearchBar", () => {
     });
   });
 
+  /**
+   * Slice 2 de `docs/features/busqueda-entre-idiomas.md`.
+   *
+   * La petición no llevaba idioma, así que `/api/search` caía a `"es"` y el desplegable buscaba en
+   * español aunque el sitio estuviera en inglés: escribir "bread" en `/en` no devolvía ninguno de
+   * los tres panes del catálogo, que en inglés se llaman "Sourdough Bread". El componente ya tenía
+   * el idioma —lo usa para elegir qué traducción pintar—; solo faltaba mandarlo.
+   */
+  it.each(["es", "en"] as const)(
+    "asks /api/search in the language being browsed (%s)",
+    async (locale) => {
+      const fetchMock = givenResults(["Pan de masa madre"]);
+      vi.stubGlobal("fetch", fetchMock);
+      render(<SearchBar />, { locale });
+
+      await user.type(screen.getByRole("searchbox"), "pan");
+      vi.advanceTimersByTime(DEBOUNCE_MS);
+
+      await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+      expect(fetchMock.mock.calls[0][0]).toContain(`locale=${locale}`);
+    },
+  );
+
   it("closes the dropdown when the query is cleared", async () => {
     vi.stubGlobal("fetch", givenResults(["Pan de masa madre"]));
     render(<SearchBar />);

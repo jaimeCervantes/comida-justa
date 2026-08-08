@@ -74,8 +74,11 @@ const SearchBar: React.FC<SearchBarProps> = ({ placeholder }) => {
 
     const doFetch = async () => {
       try {
+        /* El idioma viaja en la petición: sin él la ruta caía a español y el desplegable buscaba
+           en español aunque el sitio estuviera en inglés. Se arregló leer la traducción correcta al
+           pintar (ver arriba) y se quedó sin arreglar el pedirla. */
         const res = await fetch(
-          `/api/search?q=${encodeURIComponent(query)}&limit=5`,
+          `/api/search?q=${encodeURIComponent(query)}&limit=5&locale=${locale}`,
         );
         const data = await res.json();
         if (active) setOutcome({ forQuery: query, items: data.results || [] });
@@ -98,7 +101,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ placeholder }) => {
       active = false;
       clearTimeout(timer);
     };
-  }, [query, shouldSearch, isSettled, endsWithSpace]);
+  }, [query, shouldSearch, isSettled, endsWithSpace, locale]);
 
   // Hide dropdown when clicking outside
   useEffect(() => {

@@ -50,7 +50,6 @@ export class SearchPostsUseCase {
       dto.pageSize,
       dto.locale,
       dto.near ?? null,
-      dto.fallbackLocale,
     );
 
     if (textual.total > 0) {
@@ -119,8 +118,6 @@ export class SearchPostsUseCase {
         embedding,
         dto.page,
         dto.pageSize,
-        dto.locale ?? "es",
-        dto.fallbackLocale ?? "es",
         SEMANTIC_MAX_DISTANCE,
         dto.near ?? null,
       );

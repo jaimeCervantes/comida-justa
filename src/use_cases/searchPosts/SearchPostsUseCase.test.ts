@@ -52,7 +52,6 @@ describe("SearchPostsUseCase", () => {
       10,
       undefined,
       null,
-      undefined,
     );
     expect(result).toEqual({ results: mockResults, total: 1 });
   });
@@ -74,7 +73,6 @@ describe("SearchPostsUseCase", () => {
       6,
       undefined,
       near,
-      undefined,
     );
   });
 
@@ -89,20 +87,21 @@ describe("SearchPostsUseCase", () => {
       6,
       undefined,
       null,
-      undefined,
     );
   });
 });
 
 /**
- * El idioma de respaldo viaja hasta el repositorio sin que el caso de uso decida nada sobre él,
- * igual que la ubicación: quién es el idioma por defecto del sitio es asunto de la capa de fuera.
+ * El idioma viaja hasta el repositorio sin que el caso de uso decida nada sobre él, igual que la
+ * ubicación: en qué idioma se está leyendo el sitio es asunto de la capa de fuera.
  *
- * Importa que llegue porque sin él la búsqueda filtraba `locale = pedido` a secas y una publicación
- * sin traducir era invisible: buscar en inglés devolvía cero resultados para todo el catálogo.
+ * Ya no lo acompaña un `fallbackLocale`. Existía para ensanchar el filtro `t.locale = pedido`, que
+ * dejaba invisible a la publicación sin traducir; al abrir la consulta a **toda** traducción no hay
+ * filtro que ensanchar, y a qué idioma caer al pintar lo decide `resolvePostTranslation`. Ver
+ * `docs/features/busqueda-entre-idiomas.md`.
  */
-describe("SearchPostsUseCase y el idioma de respaldo", () => {
-  it("le pasa al repositorio a qué idioma caer", async () => {
+describe("SearchPostsUseCase y el idioma de quien busca", () => {
+  it("le pasa al repositorio en qué idioma se está leyendo", async () => {
     const repository: Mocked<ISearchPostRepository> = {
       search: vi.fn().mockResolvedValue({ results: [], total: 0 }),
       // Este escenario no llega al rescate semántico, pero el puerto lo exige: sin él, el doble no
@@ -115,17 +114,9 @@ describe("SearchPostsUseCase y el idioma de respaldo", () => {
       page: 1,
       pageSize: 6,
       locale: "en",
-      fallbackLocale: "es",
     });
 
-    expect(repository.search).toHaveBeenCalledWith(
-      "pan",
-      1,
-      6,
-      "en",
-      null,
-      "es",
-    );
+    expect(repository.search).toHaveBeenCalledWith("pan", 1, 6, "en", null);
   });
 });
 
@@ -176,18 +167,17 @@ describe("SearchPostsUseCase y el rescate semántico", () => {
       page: 1,
       pageSize: 6,
       locale: "en",
-      fallbackLocale: "es",
     });
 
     expect(embedder.generateEmbedding).toHaveBeenCalledWith(
       "algo para dormir mejor",
     );
+    /* Sin idioma: el vector no entiende de fronteras y estrecharlo por locale era contradecir la
+       única razón de tenerlo. */
     expect(repository.searchByVector).toHaveBeenCalledWith(
       [0.1, 0.2],
       1,
       6,
-      "en",
-      "es",
       SEMANTIC_MAX_DISTANCE,
       null,
     );
@@ -208,7 +198,7 @@ describe("SearchPostsUseCase y el rescate semántico", () => {
       pageSize: 6,
     });
 
-    const [, , , , , maxDistance] = repository.searchByVector.mock.calls[0];
+    const [, , , maxDistance] = repository.searchByVector.mock.calls[0];
     expect(maxDistance).toBe(SEMANTIC_MAX_DISTANCE);
     expect(maxDistance).toBeLessThan(0.45);
   });

@@ -107,7 +107,21 @@ Deshacer todo: `DELETE FROM post_translations WHERE locale = 'en';`
 ## Búsqueda
 
 Los cuatro slices están entregados (`docs/features/busqueda-semantica.md` + bitácora): texto
-completo, respaldo de idioma, rescate semántico y medición.
+completo, respaldo de idioma, rescate semántico y medición. Encima va
+`docs/features/busqueda-entre-idiomas.md`, que quitó el filtro de idioma de la consulta.
+
+- **El umbral semántico se midió con frases y no vale para una palabra suelta.** `0.40` sale de
+  `"algo para dormir mejor"` → 0.285; con un solo término las distancias suben y la señal se pega al
+  ruido:
+
+  ```
+  "bread"  (contra filas en inglés)  Sourdough Bread with Seeds  0.430
+                                     Natural Peanut Butter       0.439   ← 9 milésimas
+  ```
+
+  No hay umbral que los separe, así que no se tocó. El arreglo de fondo sería pedir el embedding con
+  `taskType: RETRIEVAL_QUERY`, que Gemini ofrece justo para consultas cortas frente a documentos —
+  pide su propia medición y un backfill de los 46 vectores existentes.
 
 - **Índices** GIN sobre el `tsvector` y HNSW sobre el vector. Con 46 traducciones no hacen falta; es
   lo primero que se notará al crecer. **Requiere Alembic.**

@@ -1,4 +1,4 @@
-import { and, inArray, sql } from "drizzle-orm";
+import { inArray, sql } from "drizzle-orm";
 import type { Coordinates } from "~/domain/entities/seller/coordinates";
 import { db } from "~/infra/dataAccess/db/connection";
 import { users } from "~/infra/dataAccess/db/schema/auth";
@@ -23,9 +23,25 @@ const TEXT_SEARCH_CONFIG: Readonly<Record<string, string>> = {
   en: "english",
 };
 
-function configFor(locale: string): string {
-  return TEXT_SEARCH_CONFIG[locale] ?? "simple";
-}
+/** El diccionario de un idioma que no tiene el suyo: parte por espacios y no lematiza nada. */
+const NEUTRAL_CONFIG = "simple";
+
+/**
+ * El diccionario que le toca a **cada fila**, decidido por el idioma de la fila y no por el de
+ * quien busca.
+ *
+ * Antes esto era un `CASE` de dos ramas —tu idioma o el de respaldo— porque la consulta solo veía
+ * esos dos. Al abrirla a todas las traducciones deja de haber dos casos que enumerar: se traduce el
+ * mapa entero a SQL, así que añadir un idioma sigue siendo una línea en `TEXT_SEARCH_CONFIG` y nada
+ * más. Analizar una fila inglesa con el diccionario español no es un detalle: `loaves` seguiría
+ * siendo `loaves` y buscar `loaf` no la encontraría.
+ */
+const ROW_CONFIG = sql`(CASE t.locale ${sql.join(
+  Object.entries(TEXT_SEARCH_CONFIG).map(
+    ([locale, config]) => sql`WHEN ${locale} THEN ${config}`,
+  ),
+  sql` `,
+)} ELSE ${NEUTRAL_CONFIG} END)::regconfig`;
 
 interface RankedRow {
   id: string;
@@ -85,34 +101,21 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
     pageSize: number,
     locale: string = "es",
     near: Coordinates | null = null,
-    fallbackLocale: string = "es",
   ): Promise<{ results: ISearchPostResultDTO[]; total: number }> {
     const trimmed = query?.trim() ?? "";
     const { matches, total } = trimmed
-      ? await this.rankedMatches(
-          trimmed,
-          page,
-          pageSize,
-          locale,
-          fallbackLocale,
-          near,
-        )
+      ? await this.rankedMatches(trimmed, page, pageSize, locale, near)
       : await this.newestFirst(page, pageSize, near);
 
     if (matches.length === 0) return { results: [], total };
 
-    return {
-      results: await this.hydrate(matches, locale, fallbackLocale),
-      total,
-    };
+    return { results: await this.hydrate(matches), total };
   }
 
   async searchByVector(
     embedding: readonly number[],
     page: number,
     pageSize: number,
-    locale: string,
-    fallbackLocale: string,
     maxDistance: number,
     near: Coordinates | null = null,
   ): Promise<{ results: ISearchPostResultDTO[]; total: number }> {
@@ -120,18 +123,13 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
       embedding,
       page,
       pageSize,
-      locale,
-      fallbackLocale,
       maxDistance,
       near,
     );
 
     if (matches.length === 0) return { results: [], total };
 
-    return {
-      results: await this.hydrate(matches, locale, fallbackLocale),
-      total,
-    };
+    return { results: await this.hydrate(matches), total };
   }
 
   /**
@@ -153,8 +151,17 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
    * «Pancakes», mientras que «panes» y «pán» no encontraban nada. Ver
    * `docs/features/busqueda-semantica.md`.
    *
-   * `EXISTS` y no `JOIN` para que una publicación no pueda salir dos veces si algún día hay dos
-   * traducciones del mismo idioma. `COUNT(*) OVER()` da el total sin una segunda consulta.
+   * **La búsqueda no tiene idioma; el orden sí.** Se mira **toda** traducción, no solo la del
+   * idioma pedido y su respaldo: navegando en español los dos eran `es`, el filtro se cerraba sobre
+   * sí mismo y las filas inglesas no entraban, así que «bread» devolvía cero aunque los tres panes
+   * del catálogo se llamen «Sourdough Bread» en inglés. Lo que conserva idioma es el desempate:
+   * `own_relevance` —la relevancia de tu propia fila— manda sobre `relevance`, que es la mejor de
+   * cualquier idioma. Así «pan» en español devuelve exactamente lo que devolvía, y «bread» en
+   * español encuentra los panes detrás. Ver `docs/features/busqueda-entre-idiomas.md`.
+   *
+   * `JOIN LATERAL` en vez de `EXISTS` más dos subconsultas correlacionadas: agrega, así que una
+   * publicación no puede salir dos veces por tener dos traducciones que coinciden, y devuelve las
+   * dos relevancias en una sola pasada. `COUNT(*) OVER()` da el total sin una segunda consulta.
    *
    * **La distancia desempata, no manda.** Entra después del nivel de relevancia y antes de la
    * fecha: entre dos resultados igual de pertinentes, el más cercano es más útil; pero un resultado
@@ -168,48 +175,39 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
     page: number,
     pageSize: number,
     locale: string,
-    fallbackLocale: string,
     near: Coordinates | null,
   ): Promise<{ matches: RankedMatch[]; total: number }> {
     const offset = Math.max(0, (page - 1) * pageSize);
 
-    /* Cada fila se analiza con el diccionario de **su** idioma, no con el de quien busca: una fila
-       española se lematiza en español aunque la consulta venga de la interfaz en inglés. Y la
-       pregunta se construye con ese mismo diccionario, o el término quedaría partido de una forma
-       y el documento de otra. */
-    const rowConfig = sql`(CASE WHEN t.locale = ${locale} THEN ${configFor(locale)} ELSE ${configFor(fallbackLocale)} END)::regconfig`;
-
     /* `setweight` es lo que sustituye al viejo «coincide el título (0) o solo el texto (1)». El
        peso vive en el vector, así que `ts_rank` ya devuelve la relevancia con el título por delante
-       —y además distingue entre coincidir una vez y coincidir cinco, que los dos niveles no podían. */
-    const document = sql`(
-      setweight(to_tsvector(${rowConfig}, coalesce(t.title, '')), 'A') ||
-      setweight(to_tsvector(${rowConfig}, coalesce(t.content, '')), 'B')
-    )`;
-    const question = sql`websearch_to_tsquery(${rowConfig}, ${query})`;
+       —y además distingue entre coincidir una vez y coincidir cinco, que los dos niveles no podían.
 
-    /* `IN (pedido, respaldo)` es el slice 2: antes era `= locale` a secas, así que una publicación
-       sin traducción al idioma de la interfaz era **invisible** al buscar, aunque su ficha se
-       abriera perfectamente. En inglés eso significaba cero resultados para todo el catálogo. */
-    const searchable = sql`t.post_id = p.id AND t.locale IN (${locale}, ${fallbackLocale})`;
+       La pregunta se construye con el diccionario de la fila, igual que el documento: con dos
+       distintos el término quedaría partido de una forma y el texto de otra. */
+    const document = sql`(
+      setweight(to_tsvector(${ROW_CONFIG}, coalesce(t.title, '')), 'A') ||
+      setweight(to_tsvector(${ROW_CONFIG}, coalesce(t.content, '')), 'B')
+    )`;
+    const question = sql`websearch_to_tsquery(${ROW_CONFIG}, ${query})`;
 
     const raw = await db.execute(sql`
       SELECT
         p.id,
         ${distanceColumn(near)} AS distance_meters,
-        COUNT(*) OVER()::int AS total_count,
-        (
-          SELECT MAX(ts_rank(${document}, ${question}))
-          FROM post_translations t
-          WHERE ${searchable}
-        ) AS relevance
+        COUNT(*) OVER()::int AS total_count
       FROM posts p
-      WHERE EXISTS (
-        SELECT 1 FROM post_translations t
-        WHERE ${searchable} AND ${document} @@ ${question}
-      )
+      JOIN LATERAL (
+        SELECT
+          MAX(ts_rank(${document}, ${question})) AS relevance,
+          MAX(ts_rank(${document}, ${question}))
+            FILTER (WHERE t.locale = ${locale}) AS own_relevance
+        FROM post_translations t
+        WHERE t.post_id = p.id AND ${document} @@ ${question}
+      ) r ON r.relevance IS NOT NULL
       ORDER BY
-        relevance DESC,
+        r.own_relevance DESC NULLS LAST,
+        r.relevance DESC,
         distance_meters ASC NULLS LAST,
         p.created_at DESC,
         p.id
@@ -235,14 +233,14 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
    *
    * `DISTINCT ON` toma la traducción **más cercana** de cada publicación, sin importar su idioma:
    * el vector no entiende de fronteras, así que una consulta en español puede encontrar una fila
-   * inglesa y al revés. Es una ventaja, no un descuido.
+   * inglesa y al revés. Es una ventaja, no un descuido — y por eso el `WHERE` ya no filtra por
+   * idioma: lo hacía, y con ello contradecía la frase anterior. Navegando en español el filtro era
+   * `IN ('es','es')` y dejaba fuera justo las filas que el vector podía aprovechar.
    */
   private async semanticMatches(
     embedding: readonly number[],
     page: number,
     pageSize: number,
-    locale: string,
-    fallbackLocale: string,
     maxDistance: number,
     near: Coordinates | null,
   ): Promise<{ matches: RankedMatch[]; total: number }> {
@@ -256,7 +254,6 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
                (embedding <=> ${vector}::vector) AS dist
         FROM post_translations
         WHERE embedding IS NOT NULL
-          AND locale IN (${locale}, ${fallbackLocale})
         ORDER BY post_id, (embedding <=> ${vector}::vector)
       )
       SELECT
@@ -303,11 +300,15 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
    * `inArray` no conserva el orden —lo decide el planner otra vez—, así que se reordena contra los
    * `ids` que ya venían ordenados. Es la única ordenación en memoria que queda, y es sobre las 6
    * filas de una página, no sobre la tabla entera.
+   *
+   * **Se traen todas las traducciones, sin filtrar por idioma.** Antes eran las del idioma pedido y
+   * su respaldo, que bastaban mientras la búsqueda solo miraba esos dos; ahora una publicación
+   * puede entrar por una fila de cualquier idioma, y filtrar aquí la dejaría sin nada que pintar
+   * —una tarjeta sin título—. Son como mucho dos filas por resultado. Cuál se enseña lo decide
+   * `resolvePostTranslation`, que ya sabe caer al respaldo y, si tampoco, a lo que haya.
    */
   private async hydrate(
     matches: RankedMatch[],
-    locale: string,
-    fallbackLocale: string,
   ): Promise<ISearchPostResultDTO[]> {
     const ids = matches.map((match) => match.id);
     const [postRows, translationRows, mediaRows] = await Promise.all([
@@ -315,15 +316,7 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
       db
         .select()
         .from(postTranslations)
-        .where(
-          and(
-            inArray(postTranslations.postId, ids),
-            /* Los dos idiomas, no solo el pedido: un resultado encontrado por su fila española
-               mientras se navega en inglés se quedaba sin traducción que pintar, y la tarjeta salía
-               sin título. Quien elige cuál se enseña es `resolvePostTranslation`. */
-            inArray(postTranslations.locale, [locale, fallbackLocale]),
-          ),
-        ),
+        .where(inArray(postTranslations.postId, ids)),
       db
         .select()
         .from(postMedia)
