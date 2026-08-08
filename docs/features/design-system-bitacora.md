@@ -626,15 +626,38 @@ navegador la dibuja distinta. `appearance-none` la quita; esta se coloca a 12 px
 hace la nativa.
 
 **La lista desplegada la pinta el navegador y no hereda la caja**: sin decirle nada, en tema oscuro
-se abre en blanco. Se le dan colores por token y no con `dark:`, que solo cubre
-`prefers-color-scheme` y se saltaba a quien elige el tema a mano —el `dark:bg-gray-800` que había
-antes tenía justo ese agujero.
+se abre en blanco. El primer intento fue darle colores a los `option` por token —mejor que el
+`dark:bg-gray-800` que había, que solo cubría `prefers-color-scheme` y se saltaba a quien elige el
+tema a mano—, pero es un apaño que Safari ignora. Lo que un navegador acepta para eso es
+`color-scheme`, y de ahí salió lo siguiente.
+
+### Lo que faltaba de verdad: `color-scheme`
+
+No estaba declarado en ninguna parte del proyecto. O sea que **todo** lo que el navegador dibuja por
+su cuenta —la lista de un `select`, las barras de desplazamiento, el cursor de texto, los selectores
+de fecha— salía en claro aunque el sitio estuviera en oscuro. Se notaba sobre todo al desplegar:
+una lista blanca encima de una página oscura.
+
+Va **una sola vez**, con el tema montado en una variable (`--scheme`). La alternativa era repetir
+`color-scheme: dark` en los dos bloques oscuros, y ahí `darkThemeParity.test.ts` no habría podido
+cuidarlo: solo compara variables. Como variable entra en la invariante sola, y se comprobó que el
+parseo de la prueba la ve en las dos copias.
+
+Con eso, `Select` deja de pintarle los colores a sus `option` a mano.
+
+### La flecha
+
+La de `react-icons` viene rellena: a 20 px un triángulo sólido pesa más que el texto que tiene al
+lado y se lleva la vista al borde derecho del campo, que es justo donde no hay nada que leer. La
+nuestra es un trazo, hereda tamaño y color de quien la pinta, y estrena
+`design_system/icons/`. Queda un segundo consumidor a la vista: el `▼` del selector de idioma es
+hoy un carácter de texto y cambia de grosor según la fuente que resuelva el sistema.
 
 ### Archivos tocados
 
-`tokens/focus.css`, `forms/InputShell.tsx`, `forms/TextArea.tsx`, `forms/Select.tsx` (nuevo),
-`publicar/PublishForm.tsx`, `editar/[slug]/ui/EditPostForm.tsx`,
-`admin/catalogo/ui/NewCategoryForm.tsx`.
+`tokens/focus.css`, `tokens/colors.css`, `forms/InputShell.tsx`, `forms/TextArea.tsx`,
+`forms/Select.tsx` (nuevo), `icons/ChevronDown.tsx` (nuevo), `publicar/PublishForm.tsx`,
+`editar/[slug]/ui/EditPostForm.tsx`, `admin/catalogo/ui/NewCategoryForm.tsx`.
 
 ### Validación
 
@@ -647,7 +670,27 @@ sí protegió el cambio de `select` fueron los page objects, que localizan por
 
 El anillo de foco dejó de cuadrar lo redondo, en toda la aplicación y no solo en la barra de
 búsqueda; los campos volvieron a la señal que tenían en producción, ahora con grosor suficiente para
-verla; y el desplegable entró al design system, del que llevaba fuera desde siempre en tres copias.
+verla; el desplegable entró al design system, del que llevaba fuera desde siempre en tres copias; y
+lo que el navegador pinta por su cuenta dejó de ignorar el tema, que era un agujero de todo el
+sitio y no de este formulario.
+
+### Se evaluó y no se hace (todavía): un `SelectSheet`
+
+La pregunta era si el desplegable debería ser una hoja propia, pensada para móvil. **En móvil ya lo
+es**: un `<select>` nativo no despliega una lista, iOS abre una rueda anclada abajo y Android un
+diálogo casi a pantalla completa. Eso ya es la hoja, gratis, y trae lo que una propia habría que
+reconstruir: semántica de combobox, foco atrapado, scroll bloqueado, typeahead al escribir una
+letra, autocompletado, y que el formulario siga enviando por `FormData` —los tres son Server
+Actions, así que una hoja propia necesitaría además un control oculto que sostenga el valor.
+
+Mobile-first aquí **es** el control nativo: pensar primero en la pantalla chica no obliga a
+construir, obliga a elegir lo que mejor funciona en ella.
+
+**Cuándo cambiaría:** cuando haga falta algo que el nativo no da —buscar dentro de las opciones,
+opciones con imagen (elegir tienda con su logo), grupos con encabezado, selección múltiple—. El
+disparador más probable es la categoría, que sale de la tabla `categories` y crece sin desplegar.
+Ese día no se escribe desde cero: `@radix-ui/react-select` trae la accesibilidad y el teclado
+resueltos, y el proyecto ya usa Radix en tres sitios.
 
 ### Próximos pasos (opciones)
 
@@ -656,9 +699,8 @@ verla; y el desplegable entró al design system, del que llevaba fuera desde sie
    habría cazado.
 2. **Medir el contraste del borde verde** contra `surface-elevation-1` en los dos temas: es la única
    señal de foco de los campos y WCAG 1.4.11 pide 3:1.
-3. **`color-scheme` en los tokens.** Es lo que haría que el navegador pinte solo la lista de un
-   `select`, las barras de desplazamiento y el resto de controles nativos según el tema. Hoy no está
-   declarado en ninguna parte, y por eso `Select` tiene que dar colores a sus `option` a mano.
+3. **El `▼` del selector de idioma**, que es un carácter de texto y ya tiene componente al que
+   mudarse (`icons/ChevronDown`).
 4. **Los demás controles que siguen sueltos**: `input[type=file]` de `ImageVideoUploader`, las
    casillas y los radios. La búsqueda que encontró `selectClassName` no se hizo para ellos.
 5. Sigue abierto lo del slice 9: typechequear los tests ya se hizo, quedan Alembic e i18n de
