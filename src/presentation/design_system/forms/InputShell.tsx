@@ -10,6 +10,11 @@ import { cn } from "../styling/merge-class-names";
  * por 2 px alrededor de cada campo. En una pantalla con varios campos es ruido, y el campo es
  * justo el elemento donde el cursor de texto ya dice dónde estás. El anillo se queda donde no hay
  * otra señal: botones, avatar, paginación, tarjetas.
+ *
+ * El verde del foco se engorda con una sombra **hacia dentro** y no subiendo el `border` a 2 px:
+ * cambiar el ancho del borde mueve el contenido un píxel al enfocar, y con varios campos seguidos
+ * eso se ve como un salto. La sombra ocupa el hueco sin empujar nada. Va por dentro también para
+ * que no la recorte ningún ancestro con `overflow: hidden`.
  */
 export const inputShellClassName = cva(
   [
@@ -21,7 +26,7 @@ export const inputShellClassName = cva(
   {
     variants: {
       state: {
-        idle: "border-border [&>svg:first-child]:text-text-support focus-within:border-pw-green",
+        idle: "border-border [&>svg:first-child]:text-text-support focus-within:border-pw-green focus-within:shadow-[inset_0_0_0_1px_var(--color-pw-green)]",
         error: "border-feedback-error [&>svg:first-child]:text-feedback-error",
         disabled:
           "border-border opacity-50 bg-surface-elevation-2 [&>svg:first-child]:text-text-support cursor-not-allowed",

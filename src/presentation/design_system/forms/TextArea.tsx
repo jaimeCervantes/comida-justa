@@ -82,7 +82,7 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
             // Sin el anillo del sitio, por lo mismo que `InputShell`: el borde dice el foco.
             hasError
               ? "border-feedback-error"
-              : "border-border focus-visible:border-pw-green",
+              : "border-border focus:border-pw-green focus:shadow-[inset_0_0_0_1px_var(--color-pw-green)]",
             className,
           )}
           {...props}
