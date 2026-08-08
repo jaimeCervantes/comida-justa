@@ -1,13 +1,19 @@
 import { isSellable } from "~/domain/entities/post/availability";
 import { Link } from "~/i18n/navigation";
+import { storeHref } from "~/i18n/routes";
 import type { Post } from "~/infra/types/Posts";
+import IdentityLink from "~/presentation/identity/IdentityLink";
+import type { StoreIdentity } from "~/presentation/identity/StoreIdentity";
+import StoreLogo from "~/presentation/identity/StoreLogo";
 import StoreDistance from "~/presentation/location/StoreDistance";
 import MediaContent from "~/presentation/media/MediaContent/MediaContent";
 import CurrencyAmount from "~/presentation/money/CurrencyAmount";
 import Card from "~/presentation/post/Card";
 import CardOwnerControls from "~/presentation/post/CardOwnerControls";
 import CategoryTag from "~/presentation/post/CategoryTag/CategoryTag";
-import ProvenanceBadge from "~/presentation/post/ProvenanceBadge";
+import ProvenanceBadge, {
+  showsProvenanceBadge,
+} from "~/presentation/post/ProvenanceBadge";
 import SoldOutBadge from "~/presentation/post/SoldOutBadge/SoldOutBadge";
 
 /**
@@ -31,7 +37,7 @@ function slugFromUrl(to: unknown): string {
  * scroll infinito del home—, donde `auth()` no existe. Quien sabe quién mira es la página.
  */
 export default function CardForList(
-  props: Post & { viewerId?: string | null },
+  props: Post & { viewerId?: string | null; seller?: StoreIdentity | null },
 ) {
   const {
     id,
@@ -47,6 +53,7 @@ export default function CardForList(
     distanceMeters,
     isAvailable,
     categoryLabel,
+    seller,
     viewerId,
   } = props;
   const anchorProps = { href: to, title: title };
@@ -67,8 +74,30 @@ export default function CardForList(
         </Link>
       }
     >
+      {/* Quién lo vende, qué es y a qué distancia queda: los tres datos con los que se decide si
+          vale la pena abrir la tarjeta, en un solo renglón. Quien publica no está aquí —ya firma
+          abajo, junto a la fecha—; la tienda sí, porque no aparece en ningún otro sitio. */}
       <span className="flex flex-wrap items-center gap-2 mt-1">
-        <ProvenanceBadge origin={origin} />
+        {seller ? (
+          <IdentityLink
+            href={storeHref(seller.handle)}
+            label={seller.name}
+            hideLabel
+            testId="card-store"
+            media={
+              <StoreLogo
+                logoUrl={seller.logoUrl}
+                name={seller.name}
+                size={24}
+                testId="card-store-media"
+              />
+            }
+          />
+        ) : null}
+        {/* Se calla cuando el logo de al lado ya lo dijo: ver `provenanceVisibility.ts`. */}
+        {showsProvenanceBadge(origin, Boolean(seller)) ? (
+          <ProvenanceBadge origin={origin} />
+        ) : null}
         <CategoryTag label={categoryLabel} />
         <SoldOutBadge kind={kind} isAvailable={isAvailable} />
         <StoreDistance meters={distanceMeters ?? null} />

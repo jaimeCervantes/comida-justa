@@ -27,6 +27,9 @@ interface PostRow {
   user_name: string | null;
   user_email: string | null;
   user_image: string | null;
+  seller_slug: string | null;
+  seller_name: string | null;
+  seller_logo_url: string | null;
   translations: Array<{
     locale: string;
     title: string;
@@ -75,6 +78,12 @@ const POST_COLUMNS: SQL = sql`
         u.name AS user_name,
         u.email AS user_email,
         u.image AS user_image,
+        /* Quién lo vende, para que la tarjeta lo diga sin abrirla. La distancia ya se calculaba
+           desde p.seller_id (ver distanceColumn), pero el nombre y el logo no se pedían: un
+           listado decía "a 2 km" sin decir de quién. */
+        s.slug     AS seller_slug,
+        s.name     AS seller_name,
+        s.logo_url AS seller_logo_url,
         COALESCE(t.translations, '[]'::jsonb) AS translations,
         COALESCE(m.media, '[]'::jsonb)        AS media`;
 
@@ -82,6 +91,10 @@ const POST_JOINS: SQL = sql`
       FROM posts p
       LEFT JOIN users u
         ON u.id = p.user_id
+      /* LEFT porque publicar no obliga a tener tienda: 5 de las 23 publicaciones no la tienen y
+         un JOIN a secas las borraría del listado. */
+      LEFT JOIN sellers s
+        ON s.id = p.seller_id
       LEFT JOIN LATERAL (
         SELECT jsonb_agg(
           jsonb_build_object(
@@ -432,6 +445,16 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
           email: row.user_email ?? undefined,
           image: row.user_image ?? undefined,
         },
+        /* Sin `slug` no hay a dónde enlazar, así que la tienda no existe para quien pinta: una
+           tienda a medio dar de alta no debe salir como un enlace roto. */
+        seller:
+          row.seller_slug && row.seller_name
+            ? {
+                handle: row.seller_slug,
+                name: row.seller_name,
+                logoUrl: row.seller_logo_url,
+              }
+            : null,
         price: row.price ? Number(row.price) : null,
         kind: row.kind ?? undefined,
         origin: row.origin ?? null,

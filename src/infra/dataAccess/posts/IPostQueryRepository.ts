@@ -6,6 +6,17 @@ import type { PostUser } from "../users/IUserRepository";
 export interface PostData {
   id: string;
   user: PostUser;
+  /**
+   * La tienda que lo vende, o `null` si se publicó a título personal.
+   *
+   * Viaja con el listado desde el slice 8: la tarjeta enseña el logo junto a la categoría y la
+   * distancia. Antes solo se sabía la distancia —que sale de `p.seller_id`— y no de quién era.
+   */
+  seller?: {
+    handle: string;
+    name: string;
+    logoUrl?: string | null;
+  } | null;
   price: number | null;
   /** Qué es: "anuncio" (default) o "producto". */
   kind?: string;

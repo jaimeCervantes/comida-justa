@@ -95,6 +95,13 @@ export function mapOnePostToCard(item: Post, context: CardMappingContext) {
       : item.media,
     createdAt: normalizeCreatedAt(item.createdAt),
     user: item.user,
+    /**
+     * La tienda, para la línea de insignias.
+     *
+     * Llega ya filtrada: el repositorio la deja en `null` cuando le falta el `slug`, porque sin él
+     * no hay `/tienda/…` a donde ir y un logo que no lleva a ninguna parte engaña más que informa.
+     */
+    seller: item.seller ?? null,
     summary: item.summary,
     contactInfo: item.contactInfo,
     to: createAbsoluteUrl(to),

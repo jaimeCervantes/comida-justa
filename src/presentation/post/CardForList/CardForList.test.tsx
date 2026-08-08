@@ -137,4 +137,60 @@ describe("When a card is listed", () => {
 
     expect(queryByTestId("provenance-badge")).not.toBeInTheDocument();
   });
+
+  /*
+   * `Scenario` "La tarjeta dice de qué tienda es" de `sellerStore.feature`.
+   *
+   * Sin esto un listado decía "a 2 km" sin decir de quién: la distancia salía de `p.seller_id`
+   * pero el nombre de la tienda no se pedía en la consulta.
+   */
+  describe("con tienda", () => {
+    const CON_TIENDA = {
+      ...baseProps,
+      seller: {
+        handle: "hazlo-sano",
+        name: "Hazlo Sano",
+        logoUrl: "/logo.webp",
+      },
+    };
+
+    it("enlaza a la tienda desde la línea de insignias", () => {
+      const { getByTestId } = render(<CardForList {...CON_TIENDA} />);
+
+      expect(getByTestId("card-store")).toHaveAttribute(
+        "href",
+        "/tienda/hazlo-sano",
+      );
+    });
+
+    /* El logo es decorativo, así que el nombre de la tienda es lo único que nombra el enlace. */
+    it("nombra la tienda para quien escucha, aunque solo se vea el logo", () => {
+      const { getByRole } = render(<CardForList {...CON_TIENDA} />);
+
+      expect(getByRole("link", { name: "Hazlo Sano" })).toBeInTheDocument();
+    });
+
+    it("se calla la procedencia cuando el logo ya dice lo mismo", () => {
+      const { queryByTestId } = render(
+        <CardForList {...CON_TIENDA} origin="hazlo_sano_propio" />,
+      );
+
+      expect(queryByTestId("provenance-badge")).not.toBeInTheDocument();
+    });
+
+    /* Que lo haga quien lo vende no se deduce de ningún logo: esa insignia se queda. */
+    it("pero mantiene la de productor, que el logo no dice", () => {
+      const { getByTestId } = render(
+        <CardForList {...CON_TIENDA} origin="productor" />,
+      );
+
+      expect(getByTestId("provenance-badge")).toBeInTheDocument();
+    });
+  });
+
+  it("sin tienda no deja un hueco en la línea", () => {
+    const { queryByTestId } = render(<CardForList {...baseProps} />);
+
+    expect(queryByTestId("card-store")).not.toBeInTheDocument();
+  });
 });
