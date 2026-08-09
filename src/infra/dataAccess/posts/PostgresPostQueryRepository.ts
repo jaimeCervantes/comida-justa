@@ -3,6 +3,7 @@ import { PRODUCT_KIND } from "~/domain/entities/post/hazloSanoProduct";
 import type { IndexingCounts } from "~/domain/entities/post/indexingReport";
 import { HAZLO_SANO_ORIGIN_PREFIX } from "~/domain/entities/post/origin";
 import type { OriginCount } from "~/domain/entities/post/originReport";
+import type { PostMediaFile } from "~/domain/entities/post/types";
 import type { Coordinates } from "~/domain/entities/seller/coordinates";
 import { db } from "~/infra/dataAccess/db/connection";
 import type {
@@ -36,7 +37,14 @@ interface PostRow {
     slug: string;
     content: string;
   }>;
-  media: Array<{ url: string; type: string; alt: string | null }>;
+  /* Lo que devuelve el `jsonb_agg`: `alt` y las dimensiones llegan nulas de la base, no ausentes. */
+  media: Array<{
+    url: string;
+    type: string;
+    alt: string | null;
+    width: number | null;
+    height: number | null;
+  }>;
   distance_meters: string | null;
   total_count: number;
   [key: string]: unknown;
@@ -110,9 +118,12 @@ const POST_JOINS: SQL = sql`
       LEFT JOIN LATERAL (
         SELECT jsonb_agg(
           jsonb_build_object(
-            'url',  url,
-            'type', type,
-            'alt',  alt
+            'url',    url,
+            'type',   type,
+            'alt',    alt,
+            -- Nulas mientras no se sepan: quien las pinta distingue el nulo y cae al alto fijo.
+            'width',  width,
+            'height', height
           )
           ORDER BY sort_order
         ) AS media
@@ -425,7 +436,7 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
         }
       }
 
-      const mediaArr: Array<{ url: string; type: string; alt?: string }> = [];
+      const mediaArr: PostMediaFile[] = [];
       const rawMedia = Array.isArray(row.media) ? row.media : [];
       for (const m of rawMedia) {
         if (m.url) {

@@ -1,5 +1,6 @@
 import { useTranslations } from "next-intl";
 import type { Post } from "~/infra/types/Posts";
+import { CARD_MASONRY } from "~/presentation/design_system/surfaces/cardList";
 import Pagination from "~/presentation/navigation/Pagination";
 import CardForList from "~/presentation/post/CardForList/CardForList";
 
@@ -26,7 +27,7 @@ export default function ProfilePublications({
     <>
       <section
         data-testid="profile-publications"
-        className="grid grid-flow-dense gap-4 pt-2 grid-cols-[repeat(auto-fill,minmax(300px,1fr))]"
+        className={`${CARD_MASONRY} pt-2`}
       >
         {publications.map((post: Post) => (
           <CardForList {...post} viewerId={viewerId} key={post.id} />

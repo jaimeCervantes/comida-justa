@@ -156,7 +156,16 @@ export async function createPost(
       : "Los datos del recourso(video, imagen) son obligatorios",
   };
 
-  let media = { url: "", type: "", alt: "" };
+  /* Las dimensiones las mide el navegador antes de subir (`readImageSize`) y viajan en este mismo
+     JSON. Aquí no se validan más allá de que sean números: el `CHECK` de `post_media` rechaza un
+     cero o un negativo, y el dominio ya trata «falta una» como «no lo sabemos». */
+  let media: {
+    url: string;
+    type: string;
+    alt: string;
+    width?: number;
+    height?: number;
+  } = { url: "", type: "", alt: "" };
   try {
     media = JSON.parse(mediaJSON);
   } catch (error) {
@@ -196,6 +205,8 @@ export async function createPost(
         url: media.url,
         type: media.type.split("/")[0],
         alt: title,
+        width: media.width,
+        height: media.height,
       },
       user: session?.user as User,
     });

@@ -1,5 +1,7 @@
 import { useEffect } from "react";
-import useStorageUpload from "~/infra/UI/hooks/useStorageUpload";
+import useStorageUpload, {
+  type UploadedMedia,
+} from "~/infra/UI/hooks/useStorageUpload";
 import ImageVideoPicker from "~/presentation/media/ImageVideoPicker";
 import type {
   ImageVideoPickerProps,
@@ -8,7 +10,7 @@ import type {
 
 /** Lo que el uploader reporta hacia arriba cuando la subida termina. */
 export type UploadedMediaResult = {
-  media: Record<string, string> | null;
+  media: UploadedMedia | null;
   isLoading: boolean;
   isCompleted: boolean;
 };

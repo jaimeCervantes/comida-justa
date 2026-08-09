@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "~/i18n/navigation";
 import { PAGINATION_INIT_PAGE, PAGINATION_PAGE_SIZE } from "~/infra/constants";
 import type { Post } from "~/infra/types/Posts";
+import { CARD_MASONRY } from "~/presentation/design_system/surfaces/cardList";
 import CardForList from "~/presentation/post/CardForList/CardForList";
 
 /**
@@ -93,7 +94,7 @@ export default function PostsWithLoadMore({
 
   return (
     <>
-      <section className="grid grid-flow-dense gap-4 pt-6 max-sm:grid-cols-[repeat(auto-fill,minmax(300px,1fr))] sm:grid-cols-[repeat(auto-fill,minmax(300px,1fr))]">
+      <section className={`${CARD_MASONRY} pt-6`}>
         {posts.length === 0 ? (
           <p>{t("empty")}</p>
         ) : (

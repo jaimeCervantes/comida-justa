@@ -2,6 +2,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { resolveLocale } from "~/i18n/routing";
 import { readViewerId } from "~/infra/auth/readViewerId";
 import { mapPostsToCardsForLocale } from "~/infra/UI/mappers/posts/mapPostsToCardsForLocale";
+import { CARD_MASONRY } from "~/presentation/design_system/surfaces/cardList";
 import Pagination from "~/presentation/navigation/Pagination";
 import CardForList from "~/presentation/post/CardForList/CardForList";
 import { SEARCH_PAGE_SIZE, searchPosts } from "../../../data";
@@ -42,7 +43,9 @@ export default async function SearchPage({
           {t("noResults")}
         </div>
       )}
-      <section className="grid gap-8 pt-2 pb-10 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      {/* Era la única que fijaba el número de columnas por punto de ruptura en vez de por ancho
+          mínimo, así que ya se veía distinta al resto de los listados. */}
+      <section className={`${CARD_MASONRY} pt-2 pb-10`}>
         {cards.map((card) => (
           <CardForList key={card.id} {...card} viewerId={viewerId} />
         ))}

@@ -2,6 +2,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { resolveLocale } from "~/i18n/routing";
 import { readViewerId } from "~/infra/auth/readViewerId";
 import { mapPostsToCardsForLocale } from "~/infra/UI/mappers/posts/mapPostsToCardsForLocale";
+import { CARD_MASONRY } from "~/presentation/design_system/surfaces/cardList";
 import Pagination from "~/presentation/navigation/Pagination";
 import CardForList from "~/presentation/post/CardForList/CardForList";
 import { SEARCH_PAGE_SIZE, searchPosts } from "./data";
@@ -46,7 +47,7 @@ export default async function SearchPage({
         </div>
       )}
       {q && cards.length === 0 && <div>{t("noResults")}</div>}
-      <section className="grid grid-flow-dense gap-4 pt-6 max-sm:grid-cols-[repeat(auto-fill,minmax(300px,1fr))] sm:grid-cols-[repeat(auto-fill,minmax(300px,1fr))]">
+      <section className={`${CARD_MASONRY} pt-6`}>
         {cards.map((card) => (
           <CardForList key={card.id} {...card} viewerId={viewerId} />
         ))}

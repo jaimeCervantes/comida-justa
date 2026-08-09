@@ -1,5 +1,6 @@
 import { useTranslations } from "next-intl";
 import type { Post } from "~/infra/types/Posts";
+import { CARD_MASONRY } from "~/presentation/design_system/surfaces/cardList";
 import Pagination from "~/presentation/navigation/Pagination";
 import CardForList from "~/presentation/post/CardForList/CardForList";
 
@@ -29,10 +30,7 @@ export default function CategoryPosts({
 
   return (
     <>
-      <section
-        data-testid="category-grid"
-        className="grid grid-flow-dense gap-4 pt-6 max-sm:grid-cols-[repeat(auto-fill,minmax(300px,1fr))] sm:grid-cols-[repeat(auto-fill,minmax(300px,1fr))]"
-      >
+      <section data-testid="category-grid" className={`${CARD_MASONRY} pt-6`}>
         {posts.map((post: Post) => (
           <CardForList {...post} viewerId={viewerId} key={post.id} />
         ))}

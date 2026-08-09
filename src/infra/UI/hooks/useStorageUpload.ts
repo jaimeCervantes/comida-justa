@@ -1,15 +1,32 @@
 "use client";
 
 import { useState } from "react";
+import { readImageSize } from "~/infra/UI/media/readImageSize";
 
 interface useStorageUpload {
   directory?: string;
 }
 
+/**
+ * Lo que queda de un archivo ya subido.
+ *
+ * Era un `Record<string, string>`, y con él las dimensiones no cabían sin convertirlas a texto para
+ * volver a parsearlas al otro lado. Tipado, quien lo recibe sabe qué hay y qué puede faltar.
+ */
+export interface UploadedMedia {
+  url: string;
+  /** El MIME del archivo (`image/jpeg`); quien lo guarda se queda con la primera mitad. */
+  type: string;
+  path: string;
+  /** Del propio archivo, antes de subirlo. Ausentes en un vídeo o si la medición falla. */
+  width?: number;
+  height?: number;
+}
+
 export default function useStorageUpload(options: useStorageUpload = {}) {
   const [progress, setProgress] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [media, setMedia] = useState<Record<string, string> | null>(null);
+  const [media, setMedia] = useState<UploadedMedia | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isCompleted, setIsCompleted] = useState<boolean>(false);
 
@@ -84,11 +101,18 @@ export default function useStorageUpload(options: useStorageUpload = {}) {
       // i18n-ignore: traza de desarrollo.
       console.log("🌍 Archivo público:", data.publicUrl);
 
-      // 4. Guardar la URL pública en el estado
+      /* 4. Guardar la URL pública y la forma del archivo.
+         Se mide aquí y no en el servidor porque **este es el único momento en que el archivo está
+         en la mano**: a la Server Action le llega solo una URL, y medirla la obligaría a descargar
+         lo que el navegador acaba de subir. Se mide después de subir, no antes, para no retrasar
+         la subida; y si falla no devuelve nada, porque publicar no puede depender de esto. */
+      const size = await readImageSize(file);
+
       setMedia({
         url: data.publicUrl,
         type: file.type,
         path: filePath,
+        ...size,
       });
       setIsCompleted(true);
       setProgress(100);

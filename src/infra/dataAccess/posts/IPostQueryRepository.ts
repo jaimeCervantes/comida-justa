@@ -1,5 +1,6 @@
 import type { IndexingCounts } from "~/domain/entities/post/indexingReport";
 import type { OriginCount } from "~/domain/entities/post/originReport";
+import type { PostMediaFile } from "~/domain/entities/post/types";
 import type { Coordinates } from "~/domain/entities/seller/coordinates";
 import type { PostUser } from "../users/IUserRepository";
 
@@ -33,7 +34,7 @@ export interface PostData {
     string,
     { title: string; slug: string; content: string }
   >;
-  media: Array<{ url: string; type: string; alt?: string }>;
+  media: PostMediaFile[];
   /**
    * A cuántos metros está la tienda de quien mira. `null` cuando falta cualquiera de las dos
    * ubicaciones —o cuando el listado ni siquiera preguntó por cercanía—, que es el caso normal.
