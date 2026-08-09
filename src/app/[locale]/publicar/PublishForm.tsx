@@ -106,45 +106,44 @@ export default function PublishForm({
           <option value="producto">{t("kindProduct")}</option>
         </Select>
 
-        {/* La categoría solo aplica a lo que se vende; en un anuncio sería ruido. */}
-        {kind === "producto" ? (
-          <>
-            <Select
-              id="category"
-              name="category"
-              label={t("category")}
-              value={category}
-              onChange={(event) => setCategory(event.target.value)}
-              containerClassName="mb-6"
-            >
-              <option value="">{t("unspecifiedOption")}</option>
-              {categoryOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </Select>
+        {/*
+          La categoría aplica a los dos kinds. Se ofrecía solo en `producto` por considerarla ruido
+          en un anuncio, y el efecto era que los anuncios se guardaban con `category` en null: no
+          hay forma de saber a qué pilar pertenece un anuncio sin categoría, así que ninguna pantalla
+          de pilar podía mostrarlos y todos acababan solo en el feed general.
+        */}
+        <Select
+          id="category"
+          name="category"
+          label={t("category")}
+          value={category}
+          onChange={(event) => setCategory(event.target.value)}
+          containerClassName="mb-6"
+        >
+          <option value="">{t("unspecifiedOption")}</option>
+          {categoryOptions.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </Select>
 
-            {/* Sin categoría no hay sub-categoría que ofrecer: la base rechaza la huérfana. */}
-            {category ? (
-              <Select
-                id="subCategory"
-                name="subCategory"
-                label={t("subCategory")}
-                defaultValue=""
-                containerClassName="mb-6"
-              >
-                <option value="">{t("unspecifiedOption")}</option>
-                {(subCategoryOptionsByCategory[category] ?? []).map(
-                  (option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ),
-                )}
-              </Select>
-            ) : null}
-          </>
+        {/* Sin categoría no hay sub-categoría que ofrecer: la base rechaza la huérfana. */}
+        {category ? (
+          <Select
+            id="subCategory"
+            name="subCategory"
+            label={t("subCategory")}
+            defaultValue=""
+            containerClassName="mb-6"
+          >
+            <option value="">{t("unspecifiedOption")}</option>
+            {(subCategoryOptionsByCategory[category] ?? []).map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </Select>
         ) : null}
 
         {/* La procedencia solo aplica a lo que se vende, igual que la categoría. */}

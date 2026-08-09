@@ -82,43 +82,46 @@ export default function EditPostForm({
           containerClassName="mb-6"
         />
 
+        {/*
+          La categoría aplica a los dos kinds, igual que al publicar. Es por aquí por donde el
+          anuncio anterior a la regla, que quedó con `category` en null y por eso no aparecía en
+          ninguna pantalla de pilar, puede ponerse al día.
+        */}
+        <Select
+          id="category"
+          name="category"
+          label={tPublish("category")}
+          value={category}
+          onChange={(event) => setCategory(event.target.value)}
+          containerClassName="mb-6"
+        >
+          <option value="">{tPublish("unspecifiedOption")}</option>
+          {categoryOptions.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </Select>
+
+        {category ? (
+          <Select
+            id="subCategory"
+            name="subCategory"
+            label={tPublish("subCategory")}
+            defaultValue={post.subCategory ?? ""}
+            containerClassName="mb-6"
+          >
+            <option value="">{tPublish("unspecifiedOption")}</option>
+            {(subCategoryOptionsByCategory[category] ?? []).map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </Select>
+        ) : null}
+
         {isProduct ? (
           <>
-            <Select
-              id="category"
-              name="category"
-              label={tPublish("category")}
-              value={category}
-              onChange={(event) => setCategory(event.target.value)}
-              containerClassName="mb-6"
-            >
-              <option value="">{tPublish("unspecifiedOption")}</option>
-              {categoryOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </Select>
-
-            {category ? (
-              <Select
-                id="subCategory"
-                name="subCategory"
-                label={tPublish("subCategory")}
-                defaultValue={post.subCategory ?? ""}
-                containerClassName="mb-6"
-              >
-                <option value="">{tPublish("unspecifiedOption")}</option>
-                {(subCategoryOptionsByCategory[category] ?? []).map(
-                  (option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ),
-                )}
-              </Select>
-            ) : null}
-
             {/* Requerida como al publicar: es por aquí por donde el producto anterior a la
                 regla, que quedó sin procedencia, puede ponerse al día. */}
             <Select

@@ -6,7 +6,19 @@ import PublishForm from "./PublishForm";
 
 const noop = vi.fn();
 
-function renderForm(props: { hasStore?: boolean } = {}) {
+const ALIMENTACION = { value: "alimentacion", label: "Alimentación" } as const;
+const JUGOS = { value: "jugos", label: "Jugos" } as const;
+
+function renderForm(
+  props: {
+    hasStore?: boolean;
+    categoryOptions?: readonly { value: string; label: string }[];
+    subCategoryOptionsByCategory?: Record<
+      string,
+      readonly { value: string; label: string }[]
+    >;
+  } = {},
+) {
   return renderWithIntl(
     <PublishForm
       action={noop}
@@ -82,5 +94,50 @@ describe("PublishForm — el aviso de abrir tienda", () => {
     expect(
       screen.queryByTestId("producer-needs-store"),
     ).not.toBeInTheDocument();
+  });
+});
+
+/**
+ * La categoría se ofrecía solo en `producto`, por considerarla ruido en un anuncio. El efecto era
+ * que todo anuncio se guardaba con `category` en null, y sin categoría no hay forma de saber a qué
+ * pilar pertenece: ninguna pantalla de pilar podía mostrarlos.
+ */
+describe("PublishForm — la categoría", () => {
+  it("se pregunta en un anuncio, que es el kind por defecto", () => {
+    renderForm({ categoryOptions: [ALIMENTACION] });
+
+    expect(
+      screen.getByRole("combobox", { name: /categoría/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("se sigue preguntando en un producto", async () => {
+    renderForm({ categoryOptions: [ALIMENTACION] });
+    await selectProduct();
+
+    expect(
+      screen.getByRole("combobox", { name: /categoría/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("ofrece sub-categoría en un anuncio una vez elegida la categoría", async () => {
+    // Sin categoría no hay sub-categoría que ofrecer: la base rechaza la huérfana.
+    renderForm({
+      categoryOptions: [ALIMENTACION],
+      subCategoryOptionsByCategory: { alimentacion: [JUGOS] },
+    });
+
+    expect(
+      screen.queryByRole("combobox", { name: /sub-?categoría/i }),
+    ).not.toBeInTheDocument();
+
+    await userEvent.selectOptions(
+      screen.getByRole("combobox", { name: /categoría/i }),
+      "alimentacion",
+    );
+
+    expect(
+      screen.getByRole("combobox", { name: /sub-?categoría/i }),
+    ).toBeInTheDocument();
   });
 });
