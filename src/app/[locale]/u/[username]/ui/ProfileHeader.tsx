@@ -6,6 +6,9 @@ import type { UserProfile } from "~/domain/entities/user/types";
 import { Link } from "~/i18n/navigation";
 import { resolveLocale } from "~/i18n/routing";
 import { PUBLIC_BASE_URL } from "~/infra/constants";
+import type { FollowSnapshot } from "~/infra/dataAccess/follows/readFollowState";
+import FollowButton from "~/presentation/follow/FollowButton/FollowButton";
+import FollowerCount from "~/presentation/follow/FollowerCount";
 import ShareMenu from "~/presentation/sharing/ShareMenu/ShareMenu";
 import { profilePath } from "../../../cuenta/profilePath";
 import { storeHref } from "../../../cuenta/storePath";
@@ -14,10 +17,21 @@ export default function ProfileHeader({
   profile,
   store,
   total,
+  follow,
+  isOwner = false,
+  canFollow,
+  path,
 }: {
   profile: UserProfile;
   store: Seller | null;
   total: number;
+  /** Cuántos la siguen y si quien mira ya lo hace. Lo resuelve la página: aquí no se consulta. */
+  follow: FollowSnapshot;
+  /** Nadie se sigue a sí mismo; a quien es dueño se le invita a compartir su página. */
+  isOwner?: boolean;
+  /** Si quien mira tiene sesión: sin ella, seguir lleva a entrar. */
+  canFollow: boolean;
+  path: string;
 }) {
   const t = useTranslations("profile");
   const tShare = useTranslations("share");
@@ -55,6 +69,18 @@ export default function ProfileHeader({
             superior, que entre dos elementos en línea no separa nada. Puestos en una fila con
             `gap` se separan de verdad, y se van a la línea siguiente cuando no quepan. El
             `justify-center` sigue al `text-center` de la cabecera, que en `sm` pasa a la izquierda. */}
+        {isOwner ? (
+          <FollowerCount total={follow.followers} />
+        ) : (
+          <FollowButton
+            followedId={profile.id}
+            canFollow={canFollow}
+            followers={follow.followers}
+            isFollowing={follow.isFollowing}
+            path={path}
+          />
+        )}
+
         <div className="mt-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 sm:justify-start">
           {store?.handle ? (
             <Link

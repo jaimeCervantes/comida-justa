@@ -6,6 +6,7 @@ import { resolveLocale } from "~/i18n/routing";
 import { auth } from "~/infra/auth";
 import { readViewerId } from "~/infra/auth/readViewerId";
 import { CANONICAL_URL, PAGINATION_INIT_PAGE } from "~/infra/constants";
+import { readFollowState } from "~/infra/dataAccess/follows/readFollowState";
 import { createSellerRepository } from "~/infra/dataAccess/sellers/factory";
 import BranchList from "~/presentation/directory/BranchList/BranchList";
 import JsonLd from "~/presentation/seo/JsonLd";
@@ -59,10 +60,21 @@ export default async function StorePage({ params }: Props) {
           `${CANONICAL_URL}${storePath(slug, locale)}`,
         )}
       />
+      {/* El seguimiento se resuelve aquí y no dentro de la cabecera: es la página quien sabe quién
+          mira. Van las dos lecturas juntas porque siempre se piden juntas. */}
       <StoreHeader
         seller={store.seller}
         ownerUsername={store.ownerUsername}
         distanceMeters={store.distanceMeters}
+        follow={
+          await readFollowState(
+            { kind: "seller", sellerId: store.seller.id },
+            viewerId,
+          )
+        }
+        canFollow={Boolean(viewerId)}
+        isOwner={Boolean(viewerId) && store.seller.userId === viewerId}
+        path={storePath(slug, locale)}
       />
 
       {store.branches.length > 0 ? (

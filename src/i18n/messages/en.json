@@ -247,6 +247,11 @@
     "previousPage": "Previous",
     "rssDescription": "The latest the Hazlo Sano community publishes and sells: real food, no ultra-processed products."
   },
+  "follow": {
+    "count": "{total, plural, one {# follower} other {# followers}}",
+    "follow": "Follow",
+    "unfollow": "Following"
+  },
   "footer": {
     "aboutLink": "What {brand} is",
     "communityLink": "Hazlo Sano community",

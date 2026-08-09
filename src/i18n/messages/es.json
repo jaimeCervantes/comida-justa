@@ -247,6 +247,11 @@
     "previousPage": "Anterior",
     "rssDescription": "Lo último que publica y vende la comunidad de Hazlo Sano: comida real, sin ultraprocesados."
   },
+  "follow": {
+    "count": "{total, plural, one {# seguidor} other {# seguidores}}",
+    "follow": "Seguir",
+    "unfollow": "Siguiendo"
+  },
   "footer": {
     "aboutLink": "Qué es {brand}",
     "communityLink": "Comunidad Hazlo Sano",

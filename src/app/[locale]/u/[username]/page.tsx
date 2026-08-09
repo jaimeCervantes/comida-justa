@@ -5,6 +5,7 @@ import { buildProfileJsonLd } from "~/domain/seo/jsonLd/site";
 import { resolveLocale } from "~/i18n/routing";
 import { readViewerId } from "~/infra/auth/readViewerId";
 import { CANONICAL_URL, PAGINATION_INIT_PAGE } from "~/infra/constants";
+import { readFollowState } from "~/infra/dataAccess/follows/readFollowState";
 import { createUserProfileRepository } from "~/infra/dataAccess/users/factory";
 import JsonLd from "~/presentation/seo/JsonLd";
 import { profilePath } from "../../cuenta/profilePath";
@@ -55,6 +56,15 @@ export default async function ProfilePage({ params }: Props) {
         profile={data.profile}
         store={data.store}
         total={data.total}
+        follow={
+          await readFollowState(
+            { kind: "user", userId: data.profile.id },
+            viewerId,
+          )
+        }
+        canFollow={Boolean(viewerId)}
+        isOwner={Boolean(viewerId) && data.profile.id === viewerId}
+        path={profilePath(username, locale)}
       />
 
       <ProfilePublications

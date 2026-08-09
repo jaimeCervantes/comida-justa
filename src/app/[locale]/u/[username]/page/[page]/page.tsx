@@ -4,8 +4,9 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "~/i18n/navigation";
 import { resolveLocale } from "~/i18n/routing";
 import { readViewerId } from "~/infra/auth/readViewerId";
+import { readFollowState } from "~/infra/dataAccess/follows/readFollowState";
 import { createUserProfileRepository } from "~/infra/dataAccess/users/factory";
-import { profileHref } from "../../../../cuenta/profilePath";
+import { profileHref, profilePath } from "../../../../cuenta/profilePath";
 import { getProfileByUsername } from "../../data";
 import { buildProfileMetadata } from "../../metadata";
 import ProfileHeader from "../../ui/ProfileHeader";
@@ -54,6 +55,15 @@ export default async function ProfilePaginatedPage({ params }: Props) {
         profile={data.profile}
         store={data.store}
         total={data.total}
+        follow={
+          await readFollowState(
+            { kind: "user", userId: data.profile.id },
+            viewerId,
+          )
+        }
+        canFollow={Boolean(viewerId)}
+        isOwner={Boolean(viewerId) && data.profile.id === viewerId}
+        path={profilePath(username, locale)}
       />
 
       <ProfilePublications

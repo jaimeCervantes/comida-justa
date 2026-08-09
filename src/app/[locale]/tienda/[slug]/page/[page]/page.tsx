@@ -4,8 +4,9 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "~/i18n/navigation";
 import { resolveLocale } from "~/i18n/routing";
 import { readViewerId } from "~/infra/auth/readViewerId";
+import { readFollowState } from "~/infra/dataAccess/follows/readFollowState";
 import { createSellerRepository } from "~/infra/dataAccess/sellers/factory";
-import { storeHref } from "../../../../cuenta/storePath";
+import { storeHref, storePath } from "../../../../cuenta/storePath";
 import { getStoreByHandle } from "../../data";
 import { buildStoreMetadata } from "../../metadata";
 import StoreCatalog from "../../ui/StoreCatalog";
@@ -54,6 +55,15 @@ export default async function StorePaginatedPage({ params }: Props) {
         seller={store.seller}
         ownerUsername={store.ownerUsername}
         distanceMeters={store.distanceMeters}
+        follow={
+          await readFollowState(
+            { kind: "seller", sellerId: store.seller.id },
+            viewerId,
+          )
+        }
+        canFollow={Boolean(viewerId)}
+        isOwner={Boolean(viewerId) && store.seller.userId === viewerId}
+        path={storePath(slug, locale)}
       />
 
       <StoreCatalog

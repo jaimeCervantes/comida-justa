@@ -6,6 +6,9 @@ import { buildWhatsappStoreLink } from "~/domain/entities/seller/whatsappContact
 import { Link } from "~/i18n/navigation";
 import { resolveLocale } from "~/i18n/routing";
 import { PUBLIC_BASE_URL } from "~/infra/constants";
+import type { FollowSnapshot } from "~/infra/dataAccess/follows/readFollowState";
+import FollowButton from "~/presentation/follow/FollowButton/FollowButton";
+import FollowerCount from "~/presentation/follow/FollowerCount";
 import StoreDistance from "~/presentation/location/StoreDistance";
 import WhatsappButton from "~/presentation/post/WhatsappButton/WhatsappButton";
 import ShareMenu from "~/presentation/sharing/ShareMenu/ShareMenu";
@@ -16,12 +19,24 @@ export default function StoreHeader({
   seller,
   ownerUsername,
   distanceMeters = null,
+  follow,
+  isOwner = false,
+  canFollow,
+  path,
 }: {
   seller: Seller;
   /** La dirección personal del dueño, si la reclamó: la tienda enlaza a quien está detrás. */
   ownerUsername?: string | null;
   /** Metros hasta su sucursal más cercana. `StoreDistance` no pinta nada cuando es `null`. */
   distanceMeters?: number | null;
+  /** Cuántos la siguen y si quien mira ya lo hace. Lo resuelve la página: aquí no se consulta. */
+  follow: FollowSnapshot;
+  /** A la dueña no se le ofrece seguir su propia tienda: se le invita a compartirla. */
+  isOwner?: boolean;
+  /** Si quien mira tiene sesión: sin ella, seguir lleva a entrar. */
+  canFollow: boolean;
+  /** La ruta a refrescar tras seguir, para que el contador del resto también quede al día. */
+  path: string;
 }) {
   const t = useTranslations("store");
   const tShare = useTranslations("share");
@@ -91,6 +106,21 @@ export default function StoreHeader({
               </a>
             ) : null}
           </div>
+
+          {/* Seguir va antes de escribir: es el compromiso más barato que se le puede pedir a
+              quien acaba de llegar, y escribir por WhatsApp es el más caro. A la dueña no se le
+              ofrece —nadie se sigue a sí mismo—, se le invita a repartir su página. */}
+          {isOwner ? (
+            <FollowerCount total={follow.followers} />
+          ) : (
+            <FollowButton
+              sellerId={seller.id}
+              canFollow={canFollow}
+              followers={follow.followers}
+              isFollowing={follow.isFollowing}
+              path={path}
+            />
+          )}
 
           {/* Lo que se hace, en fila y no apiladas: son dos botones, y uno debajo del otro leían
               como una lista de opciones en vez de como la acción principal y su acompañante.
