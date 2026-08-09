@@ -30,6 +30,13 @@ const RUTAS = [
   "/publicar", // El formulario; fue uno de los tres fallos en frío.
   "/info", // Fue otro.
   "/buscar?q=pan",
+  /* `/cuenta`. Entra por los dos motivos de esta lista a la vez: la pisan siete specs —los cuatro
+     de `sellerStore` y los tres de `compartir`— y ya falló en frío. Se volvió cara: arrastra el
+     desplegable de Radix del menú de compartir, sus iconos, y el `ImageVideoUploader` con la
+     medición de imágenes, que `page.tsx` importa siempre aunque solo lo pinte quien ya tiene
+     tienda. El síntoma era el de siempre: un `click` esperando 90 s un formulario que aún no
+     existía, y verde al reintentarlo solo. */
+  "/cuenta",
 ] as const;
 
 /** Compilar una ruta pesada en frío pasa de largo cualquier plazo corto. */
