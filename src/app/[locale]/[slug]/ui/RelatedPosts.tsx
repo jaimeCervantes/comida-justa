@@ -1,5 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import type { Post } from "~/infra/types/Posts";
+import { Heading } from "~/presentation/design_system/typography/Heading";
 import CardForList from "~/presentation/post/CardForList/CardForList";
 
 /**
@@ -27,9 +28,12 @@ export default async function RelatedPosts({
       aria-labelledby="related-heading"
       data-testid="related-posts"
     >
-      <h2 id="related-heading" className="text-3xl font-bold mb-4">
+      {/* Por el sistema y no con clases sueltas: escrito a mano era `text-3xl font-bold`, el mismo
+          tamaño que el título de la publicación y con más peso, así que el vecindario pesaba más
+          que la publicación que se venía a leer. `level={2}` trae su propio tamaño. */}
+      <Heading level={2} id="related-heading" className="mb-4">
         {t("related")}
-      </h2>
+      </Heading>
 
       {posts.length === 0 ? (
         <p className="text-gray-500">{t("relatedEmpty")}</p>

@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 import type { Comment, PostUser } from "~/infra/types/Posts";
 import { useIsClient } from "~/infra/UI/hooks/useIsClient";
+import { Heading } from "~/presentation/design_system/typography/Heading";
 import Avatar from "~/presentation/user/Avatar/Avatar";
 import AddCommentForm from "../addComments/AddCommentForm";
 import { useRealTimeComments } from "../addComments/useRealTimeComments";
@@ -41,7 +42,12 @@ export default function CommentList({
 
   return (
     <>
-      <h2 className="text-2xl font-bold mb-4">{t("heading")}</h2>
+      {/* Mismo nivel y mismo tamaño que «Publicaciones Relacionadas»: son las dos secciones
+          hermanas de la ficha. `text-2xl font-bold` ya era `heading-md`, así que no cambia de
+          aspecto; lo que cambia es que ahora sigue a la escala y no a una clase copiada. */}
+      <Heading level={2} className="mb-4">
+        {t("heading")}
+      </Heading>
       <AddCommentForm postId={postId} user={user} />
 
       {commentError && <p className="text-red-500 mt-2">{commentError}</p>}

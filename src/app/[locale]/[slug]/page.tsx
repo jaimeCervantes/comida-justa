@@ -172,11 +172,11 @@ export default async function Slug({
           visitor={visitor}
           stores={[store]}
           headingKey="storeMapHeading"
-          className="w-full mt-4 sm:mt-8 sm:order-3"
+          className="w-full sm:order-3"
         />
       ) : null}
 
-      <section data-testid="comments" className="w-full mt-14 sm:order-4">
+      <section data-testid="comments" className="w-full mt-4 mb-4 sm:order-4">
         <Suspense>
           <CommentList
             postId={post.id}

@@ -145,6 +145,23 @@ Feature: Un design system que habla como la marca
       | 3     | h3       | text-heading-sm  |
       | 4     | h4       | text-body-lg     |
 
+  # El componente existía desde el slice 6 y la ficha de una publicación no lo usaba: sus tres
+  # encabezados iban con clases escritas a mano. "Publicaciones Relacionadas" era
+  # `text-3xl font-bold` y el título de la publicación `text-3xl` a secas —sin peso—, así que el
+  # vecindario se veía más fuerte que la publicación que se venía a leer.
+  @slice-7
+  Scenario: El título de una página pesa más que sus secciones
+    Given la ficha de una publicación, con "Publicaciones Relacionadas" y "Comentarios"
+    When alguien la abre
+    Then el título de la publicación se ve más grande que las dos secciones
+    And ninguna de las dos lo supera en peso
+
+  @slice-7
+  Scenario: Las secciones hermanas se ven iguales entre sí
+    Given "Publicaciones Relacionadas" y "Comentarios", que son el mismo nivel del documento
+    When alguien las compara
+    Then tienen el mismo tamaño y el mismo peso, porque las dos salen de la escala y no de una clase copiada
+
   @slice-6 @component
   Scenario: La jerarquía del documento no se sacrifica por la apariencia
     Given una sección que debe ser un h2 pero verse pequeña
