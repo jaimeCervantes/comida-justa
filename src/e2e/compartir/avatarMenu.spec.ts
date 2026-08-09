@@ -28,6 +28,20 @@ const openAvatarMenu = (page: Page) =>
  */
 const avatarMenu = (page: Page) => page.getByTestId("user-menu");
 
+/**
+ * Cuánto se espera a que la navegación llegue a su destino.
+ *
+ * Los 5 s por omisión bastan con el spec corriendo solo, y **no** con la suite entera: `/u/<dir>` y
+ * `/tienda/<handle>` listan publicaciones, o sea consultas y render, sobre un servidor que lleva
+ * doscientos escenarios encima. Este mismo escenario pasó en dos corridas completas y falló en la
+ * tercera —la más lenta, 11.4 min— sin que nada del código cambiara: no es que la navegación no
+ * ocurra, es que no cabe en cinco segundos.
+ *
+ * El resto de la suite ya hace esto donde una página tarda (15 s en `postStoreMap`, 20 s en
+ * `homeCards`, 30 s en `managePost`).
+ */
+const NAVIGATION_TIMEOUT = 20_000;
+
 test.describe("Cuando una vendedora con tienda y perfil abre su avatar", () => {
   let dbSession: DbSession | undefined;
   const store = testStore("Panadería La Luz");
@@ -62,7 +76,9 @@ test.describe("Cuando una vendedora con tienda y perfil abre su avatar", () => {
 
     await page.getByTestId("menu-my-store").click();
 
-    await expect(page).toHaveURL(new RegExp(`/tienda/${store.handle}$`));
+    await expect(page).toHaveURL(new RegExp(`/tienda/${store.handle}$`), {
+      timeout: NAVIGATION_TIMEOUT,
+    });
   });
 
   test("Entonces llega a su perfil igual de rápido", async ({ page }) => {
@@ -71,7 +87,9 @@ test.describe("Cuando una vendedora con tienda y perfil abre su avatar", () => {
 
     await page.getByTestId("menu-my-profile").click();
 
-    await expect(page).toHaveURL(new RegExp(`/u/${username}$`));
+    await expect(page).toHaveURL(new RegExp(`/u/${username}$`), {
+      timeout: NAVIGATION_TIMEOUT,
+    });
   });
 
   /* Es lo que dice con qué identidad estás mirando el sitio, y es lo que ponen ahí Instagram,
@@ -150,6 +168,8 @@ test.describe("Cuando la vendedora usa el teléfono", () => {
 
     await shortcut.click();
 
-    await expect(page).toHaveURL(new RegExp(`/tienda/${store.handle}$`));
+    await expect(page).toHaveURL(new RegExp(`/tienda/${store.handle}$`), {
+      timeout: NAVIGATION_TIMEOUT,
+    });
   });
 });
