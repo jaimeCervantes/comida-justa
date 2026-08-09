@@ -154,6 +154,22 @@
   "branches": {
     "emptyWithoutLocation": "Todavía no tienes sucursales con ubicación, así que el chatbot no puede recomendarte por cercanía."
   },
+  "cart": {
+    "add": "Añadir al carrito",
+    "confirmWith": "Confirmar pedido con {store}",
+    "empty": "Tu carrito está vacío.",
+    "emptyCta": "Ver el catálogo",
+    "itemCount": "{count, plural, =0 {Carrito vacío} one {1 artículo} other {# artículos}}",
+    "nothingAvailable": "Ahora mismo no hay nada disponible de esta tienda.",
+    "open": "Ver tu carrito",
+    "orderIntro": "Hola, quiero pedir:",
+    "orderTotal": "Total",
+    "quantity": "Cantidad de {product}",
+    "remove": "Quitar {product}",
+    "soldOutNote": "Agotado: no entra en el total ni en el pedido",
+    "title": "Tu carrito",
+    "total": "Total"
+  },
   "category": {
     "backToCategory": "Volver a {category}",
     "count": "{total, plural, =0 {Sin publicaciones} one {# publicación} other {# publicaciones}}",

@@ -154,6 +154,22 @@
   "branches": {
     "emptyWithoutLocation": "You don't have any branch with a location yet, so the chatbot can't recommend you by proximity."
   },
+  "cart": {
+    "add": "Add to cart",
+    "confirmWith": "Send your order to {store}",
+    "empty": "Your cart is empty.",
+    "emptyCta": "Browse the catalog",
+    "itemCount": "{count, plural, =0 {Empty cart} one {1 item} other {# items}}",
+    "nothingAvailable": "Nothing from this store is available right now.",
+    "open": "View your cart",
+    "orderIntro": "Hi, I'd like to order:",
+    "orderTotal": "Total",
+    "quantity": "Quantity of {product}",
+    "remove": "Remove {product}",
+    "soldOutNote": "Sold out: not counted in the total or the order",
+    "title": "Your cart",
+    "total": "Total"
+  },
   "category": {
     "backToCategory": "Back to {category}",
     "count": "{total, plural, =0 {No publications} one {# publication} other {# publications}}",

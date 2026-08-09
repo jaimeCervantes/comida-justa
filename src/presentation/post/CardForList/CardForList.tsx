@@ -5,6 +5,7 @@ import { Link } from "~/i18n/navigation";
 import { storeHref } from "~/i18n/routes";
 import { PUBLIC_BASE_URL, SITE_CURRENCY } from "~/infra/constants";
 import type { Post } from "~/infra/types/Posts";
+import AddToCartButton from "~/presentation/cart/AddToCartButton/AddToCartButton";
 import { CARD_ROW } from "~/presentation/design_system/surfaces/cardSpacing";
 import IdentityLink from "~/presentation/identity/IdentityLink";
 import type { StoreIdentity } from "~/presentation/identity/StoreIdentity";
@@ -160,6 +161,17 @@ export default function CardForList(
           className="text-xl text-pw-green"
         />
       </span>
+
+      {/* Juntar sin abrir la publicación: el camino real de quien compra es recorrer el listado y
+          echar al carrito lo que reconoce, no entrar y volver trece veces. La regla de cuándo se
+          pinta vive dentro del botón, que es el mismo que usa la ficha. */}
+      <AddToCartButton
+        postId={String(id ?? "")}
+        kind={kind}
+        isAvailable={isAvailable}
+        size="xs"
+        className="mt-2"
+      />
 
       {isOwner ? (
         <CardOwnerControls

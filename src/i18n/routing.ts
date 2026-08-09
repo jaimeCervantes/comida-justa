@@ -38,6 +38,7 @@ export const pathnames = {
   },
   "/publicar": { es: "/publicar", en: "/publish" },
   "/cuenta": { es: "/cuenta", en: "/account" },
+  "/carrito": { es: "/carrito", en: "/cart" },
   "/buscar": { es: "/buscar", en: "/search" },
   "/buscar/[term]/page/[page]": {
     es: "/buscar/[term]/page/[page]",

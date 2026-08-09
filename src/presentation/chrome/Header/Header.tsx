@@ -13,6 +13,7 @@ import { PUBLIC_BRAND_NAME } from "~/infra/constants";
 import { getCategoryTaxonomy } from "~/infra/dataAccess/categories/cachedCategoryTaxonomy";
 import { findPublicAddresses } from "~/infra/dataAccess/identity/sessionIdentity";
 import { SignIn, SignOut } from "~/presentation/auth/auth-buttons";
+import CartLink from "~/presentation/cart/CartLink/CartLink";
 import LinkButton from "~/presentation/navigation/LinkButton/LinkButton";
 import SearchBar from "~/presentation/search/SearchBar";
 import Avatar from "~/presentation/user/Avatar/Avatar";
@@ -114,6 +115,10 @@ export default async function Header() {
           >
             <span className="hidden sm:block">{t("publish")}</span>
           </LinkButton>
+
+          {/* Antes de la sesión: el carrito no la pide, y quien está comprando no debería tener que
+              buscarlo dentro del menú del avatar. */}
+          <CartLink />
 
           {session ? (
             /* Todo lo de la sesión cuelga del avatar: la cuenta, las herramientas de

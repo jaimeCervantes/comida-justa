@@ -6,6 +6,7 @@ import { buildWhatsappOrderLink } from "~/domain/entities/post/whatsappOrder";
 import { routing } from "~/i18n/routing";
 import { PUBLIC_BASE_URL, SITE_CURRENCY } from "~/infra/constants";
 import type { Post, PostUser } from "~/infra/types/Posts";
+import AddToCartButton from "~/presentation/cart/AddToCartButton/AddToCartButton";
 import { cn } from "~/presentation/design_system/styling/merge-class-names";
 import { CARD_ROW } from "~/presentation/design_system/surfaces/cardSpacing";
 import { Heading } from "~/presentation/design_system/typography/Heading";
@@ -187,6 +188,15 @@ export default async function PostDetail({
       {/* Compartir va junto a pedir: son las dos salidas de la ficha. Una lleva al vendedor y la
           otra a quien todavía no conoce esto — y para un anuncio, que no se pide, es la única. */}
       <div className="mt-4 flex flex-wrap items-center gap-3">
+        {/* Pedir uno y juntar varios conviven a propósito: quien quiere una sola cosa no debería
+            tener que pasar por el carrito, y quien quiere tres no debería abrir tres
+            conversaciones. La regla de cuándo se pinta cada uno es la misma (`canBeOrdered`). */}
+        <AddToCartButton
+          postId={String(id ?? "")}
+          kind={kind}
+          isAvailable={postDetails.isAvailable}
+        />
+
         <WhatsappButton href={orderLink} testId="whatsapp-order">
           {t("orderOnWhatsapp")}
         </WhatsappButton>
