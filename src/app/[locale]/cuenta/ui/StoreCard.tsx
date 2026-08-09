@@ -1,9 +1,10 @@
 import { useLocale, useTranslations } from "next-intl";
 import type { Seller } from "~/domain/entities/seller/types";
-import { Link } from "~/i18n/navigation";
 import { resolveLocale } from "~/i18n/routing";
 import { PUBLIC_BASE_URL } from "~/infra/constants";
 import { storeHref, storePath } from "../storePath";
+import AccountCard from "./AccountCard";
+import PublicAddressRow from "./PublicAddressRow";
 
 export default function StoreCard({ seller }: { seller: Seller }) {
   const t = useTranslations("account");
@@ -11,28 +12,29 @@ export default function StoreCard({ seller }: { seller: Seller }) {
   const handle = seller.handle;
 
   return (
-    <section data-testid="store-card">
-      <h1 className="text-xl font-bold mb-2">{t("storeCardTitle")}</h1>
-      <p className="text-2xl mb-2">{seller.name}</p>
+    <AccountCard title={t("storeCardTitle")} testId="store-card">
+      <p className="text-2xl font-medium">{seller.name}</p>
 
       {seller.description ? (
-        <p className="mb-4 whitespace-pre-wrap">{seller.description}</p>
+        <p className="mt-2 whitespace-pre-wrap">{seller.description}</p>
       ) : null}
 
       {handle ? (
         <>
-          <p className="mb-2">{t("becomeSellerShare")}</p>
-          <Link
+          <p className="mt-4 mb-2">{t("becomeSellerShare")}</p>
+          <PublicAddressRow
             href={storeHref(handle)}
-            className="font-bold text-pw-orange break-all"
-          >
-            {`${PUBLIC_BASE_URL}${storePath(handle, locale)}`}
-          </Link>
+            path={storePath(handle, locale)}
+            shareUrl={`${PUBLIC_BASE_URL}${storePath(handle, locale)}`}
+            shareTitle={seller.name}
+            shareText={t("shareStoreText", { name: seller.name })}
+            shareTestId="share-store"
+          />
         </>
       ) : (
         // Los vendedores que creó el chatbot no tienen dirección; darles una es otro slice.
-        <p>{t("storeCardNoPublicPage")}</p>
+        <p className="mt-4">{t("storeCardNoPublicPage")}</p>
       )}
-    </section>
+    </AccountCard>
   );
 }

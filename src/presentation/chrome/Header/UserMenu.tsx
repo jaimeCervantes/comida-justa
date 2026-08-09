@@ -3,11 +3,12 @@ import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 import { Link } from "~/i18n/navigation";
-
-const ITEM_CLASS =
-  "block w-full select-none rounded-[6px] px-3 py-2 text-[15px] leading-none text-gray-700 dark:text-gray-200 no-underline outline-hidden transition-colors data-[highlighted]:bg-gray-100 dark:data-[highlighted]:bg-gray-800 data-[highlighted]:text-pw-green cursor-pointer";
-
-const SEPARATOR_CLASS = "my-1 h-px bg-gray-200 dark:bg-gray-800";
+import { profileHref, storeHref } from "~/i18n/routes";
+import {
+  MENU_ITEM_CLASS as ITEM_CLASS,
+  MENU_CONTENT_CLASS,
+  MENU_SEPARATOR_CLASS as SEPARATOR_CLASS,
+} from "~/presentation/design_system/styling/menuSurface";
 
 /**
  * Lo que cuelga del avatar de quien ha iniciado sesión.
@@ -18,17 +19,27 @@ const SEPARATOR_CLASS = "my-1 h-px bg-gray-200 dark:bg-gray-800";
  *
  * `avatar` y `signOut` llegan como nodos ya renderizados en el servidor: `SignOut` encierra una
  * Server Action, y este componente es de cliente. Es el mismo reparto que usa `MobileNav`.
+ *
+ * **La tienda y el perfil se ofrecen solo si existen.** No se pinta una entrada que lleve a dar de
+ * alta lo que falta: para eso ya está «Mi cuenta», que es lo único que ven los 20 de 21 usuarios
+ * que hoy no han reservado nada.
  */
 export default function UserMenu({
   avatar,
   signOut,
   userName,
   isAdmin = false,
+  storeHandle = null,
+  username = null,
 }: {
   avatar: ReactNode;
   signOut: ReactNode;
   userName?: string | null;
   isAdmin?: boolean;
+  /** La dirección de su tienda, si la abrió. */
+  storeHandle?: string | null;
+  /** La dirección personal, si la reservó. */
+  username?: string | null;
 }) {
   const t = useTranslations("nav");
 
@@ -45,18 +56,64 @@ export default function UserMenu({
       </DropdownMenu.Trigger>
 
       <DropdownMenu.Portal>
+        {/* Con nombre propio, como `mobile-menu`: el menú móvil pinta lo mismo —el nombre, la
+            `@dirección` y los atajos— y el CSS solo lo esconde, no lo quita del DOM. Sin poder
+            acotar, una prueba que busque "Mi cuenta" encuentra dos. */}
         <DropdownMenu.Content
           align="end"
           sideOffset={8}
-          className="z-9999 min-w-[220px] rounded-[10px] border border-gray-200 bg-white p-2 shadow-[0_10px_38px_-10px_hsla(206,22%,7%,.35),0_10px_20px_-15px_hsla(206,22%,7%,.2)] dark:border-gray-800 dark:bg-gray-900"
+          className={MENU_CONTENT_CLASS}
+          data-testid="user-menu"
         >
-          {userName ? (
+          {/* La misma cabecera que Instagram y Facebook ponen en este menú: la foto, el nombre y
+              la dirección personal. Dice con qué identidad estás mirando el sitio, que es la
+              pregunta de quien tiene más de una cuenta. El avatar se repinta aquí a propósito: el
+              del disparador queda tapado por el propio desplegable. */}
+          {userName || username ? (
             <>
-              <p className="px-3 py-2 text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-                {userName}
-              </p>
+              <div className="flex items-center gap-3 px-3 py-2">
+                {avatar}
+                <span className="flex min-w-0 flex-col">
+                  {userName ? (
+                    <span className="truncate text-sm font-medium text-gray-900 dark:text-gray-100">
+                      {userName}
+                    </span>
+                  ) : null}
+                  {username ? (
+                    <span className="truncate text-xs text-gray-500 dark:text-gray-400">
+                      {`@${username}`}
+                    </span>
+                  ) : null}
+                </span>
+              </div>
               <DropdownMenu.Separator className={SEPARATOR_CLASS} />
             </>
+          ) : null}
+
+          {/* Lo propio primero y lo público antes que lo privado: quien abre este menú suele venir
+              a verse como lo ven sus clientes, no a editar su ficha. */}
+          {storeHandle ? (
+            <DropdownMenu.Item asChild>
+              <Link
+                href={storeHref(storeHandle)}
+                className={ITEM_CLASS}
+                data-testid="menu-my-store"
+              >
+                {t("myStore")}
+              </Link>
+            </DropdownMenu.Item>
+          ) : null}
+
+          {username ? (
+            <DropdownMenu.Item asChild>
+              <Link
+                href={profileHref(username)}
+                className={ITEM_CLASS}
+                data-testid="menu-my-profile"
+              >
+                {t("myProfile")}
+              </Link>
+            </DropdownMenu.Item>
           ) : null}
 
           <DropdownMenu.Item asChild>

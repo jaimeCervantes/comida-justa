@@ -39,7 +39,7 @@ export default function CardOwnerControls({
   return (
     <span
       data-testid="card-owner-controls"
-      className="mt-2 flex flex-wrap items-center gap-2"
+      className="mt-2 mb-2 flex flex-wrap items-center gap-2"
     >
       <Link href={{ pathname: "/editar/[slug]", params: { slug } }}>
         <Button startIcon={<MdEdit />} size="xs">

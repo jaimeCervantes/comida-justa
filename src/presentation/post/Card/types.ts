@@ -22,6 +22,13 @@ export type CardProps = {
     phoneNumber?: string;
   };
   footerChildren?: React.JSX.Element | string | undefined | null;
+  /**
+   * Lo que se puede hacer con la tarjeta **sin abrirla**, alineado al final del renglón de la firma.
+   *
+   * Va ahí y no sobre la imagen porque ese renglón ya es el borde inferior de la tarjeta —lo separa
+   * una línea— y porque encima de la foto taparía justo lo que se mira para decidir.
+   */
+  actions?: React.ReactNode;
   AnchorElement?: ElementType;
   anchorProps?: { [key: string]: string };
   children?: React.ReactNode;

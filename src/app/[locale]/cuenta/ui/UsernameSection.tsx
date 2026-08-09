@@ -3,13 +3,14 @@ import { useLocale, useTranslations } from "next-intl";
 import { useActionState, useState } from "react";
 import { MdAlternateEmail } from "react-icons/md";
 import { generateUsername } from "~/domain/entities/user/username";
-import { Link } from "~/i18n/navigation";
 import { resolveLocale } from "~/i18n/routing";
 import { PUBLIC_BASE_URL } from "~/infra/constants";
 import { Button } from "~/presentation/design_system/buttons/Button";
 import { TextField } from "~/presentation/design_system/forms/TextField";
 import type { ClaimUsernameState } from "../actions";
 import { profileHref, profilePath } from "../profilePath";
+import AccountCard from "./AccountCard";
+import PublicAddressRow from "./PublicAddressRow";
 
 export default function UsernameSection({
   action,
@@ -35,16 +36,21 @@ export default function UsernameSection({
   const username = currentUsername ?? state.username;
 
   if (username) {
+    // Quien la reservó ya la tiene: lo siguiente que necesita es repartirla.
+    const profileUrl = `${PUBLIC_BASE_URL}${profilePath(username, locale)}`;
+    const shareName = defaultName || `@${username}`;
+
     return (
-      <section data-testid="username-card">
-        <h2 className="text-lg font-bold mb-2">{t("usernameTitle")}</h2>
-        <Link
+      <AccountCard title={t("usernameTitle")} testId="username-card">
+        <PublicAddressRow
           href={profileHref(username)}
-          className="font-bold text-pw-orange break-all"
-        >
-          {`${PUBLIC_BASE_URL}${profilePath(username, locale)}`}
-        </Link>
-      </section>
+          path={profilePath(username, locale)}
+          shareUrl={profileUrl}
+          shareTitle={shareName}
+          shareText={t("shareProfileText", { name: shareName })}
+          shareTestId="share-profile"
+        />
+      </AccountCard>
     );
   }
 
@@ -53,12 +59,7 @@ export default function UsernameSection({
   const preview = generateUsername(requested);
 
   return (
-    <section>
-      <h2 className="text-lg font-bold mb-2">{t("usernameTitle")}</h2>
-      <p className="mb-6 text-sm text-gray-600 dark:text-gray-400">
-        {t("usernameIntro")}
-      </p>
-
+    <AccountCard title={t("usernameTitle")} intro={t("usernameIntro")}>
       {state.errorMessage ? (
         <p
           data-testid="username-error"
@@ -101,6 +102,6 @@ export default function UsernameSection({
           {t("usernameSubmit")}
         </Button>
       </form>
-    </section>
+    </AccountCard>
   );
 }

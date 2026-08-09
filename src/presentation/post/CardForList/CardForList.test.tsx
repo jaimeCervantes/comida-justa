@@ -9,6 +9,8 @@ vi.mock("~/presentation/post/availabilityAction", () => ({
   setAvailability: vi.fn(),
 }));
 
+import userEvent from "@testing-library/user-event";
+import { PUBLIC_BASE_URL } from "~/infra/constants";
 import { renderWithIntl as render } from "~/infra/test-utils/renderWithIntl";
 import CardForList from "./CardForList";
 
@@ -192,5 +194,83 @@ describe("When a card is listed", () => {
     const { queryByTestId } = render(<CardForList {...baseProps} />);
 
     expect(queryByTestId("card-store")).not.toBeInTheDocument();
+  });
+
+  /* El precio caía en su propia línea, con `block mt-1`, debajo de las insignias. Es uno de los
+     datos con los que se decide si vale la pena abrir la tarjeta, así que va en el mismo renglón
+     que el resto — y ese renglón se parte solo cuando no cabe. */
+  describe("la línea con la que se decide", () => {
+    it("lleva el precio junto a las insignias, no en una línea aparte", () => {
+      const { getByTestId } = render(<CardForList {...baseProps} />);
+
+      expect(getByTestId("card-facts")).toHaveTextContent(/\$120/);
+    });
+
+    it("no deja hueco cuando no hay precio, como en un anuncio", () => {
+      const { getByTestId } = render(
+        <CardForList {...baseProps} price={null} kind="anuncio" />,
+      );
+
+      expect(getByTestId("card-facts")).not.toHaveTextContent(/\$/);
+    });
+
+    /* Los 10 anuncios de la base van sin precio, sin categoría y sin origen, y 5 tampoco tienen
+       tienda: ahí todos los hijos de la fila deciden no pintarse y quedaba un elemento sin nada
+       dentro ocupando su separación, que es el hueco que aparecía bajo el título.
+
+       Se afirma que la fila queda **sin hijos**, no que esté oculta: `:empty` lo resuelve el
+       navegador y jsdom no aplica hojas de estilo. Que no tenga hijos es la condición que dispara
+       la regla, y es lo que esta prueba puede garantizar de verdad. */
+    it("un anuncio pelado no deja ni un elemento que ocupe sitio", () => {
+      const { getByTestId } = render(
+        <CardForList
+          {...baseProps}
+          price={null}
+          kind="anuncio"
+          origin={null}
+          categoryLabel={undefined}
+        />,
+      );
+
+      const facts = getByTestId("card-facts");
+
+      expect(facts.childElementCount).toBe(0);
+      expect(facts.className).toContain("empty:hidden");
+    });
+  });
+
+  describe("cuando se comparte desde la tarjeta", () => {
+    it("ofrece compartir sin tener que abrir la publicación", () => {
+      const { getByTestId } = render(<CardForList {...baseProps} />);
+
+      expect(getByTestId("card-share-trigger")).toBeInTheDocument();
+    });
+
+    /* `to` llega absoluta desde `mapPostsToCards`, pero una tarjeta armada a mano —como la de esta
+       prueba— la trae relativa. Compartir "/miel-de-abeja" produce un enlace que no resuelve en
+       ninguna otra aplicación, que es justo donde va a acabar pegado. */
+    it("reparte una dirección absoluta aunque la tarjeta traiga un camino", async () => {
+      const user = userEvent.setup();
+      const { getByTestId } = render(<CardForList {...baseProps} />);
+
+      await user.click(getByTestId("card-share-trigger"));
+
+      expect(getByTestId("share-whatsapp").getAttribute("href")).toContain(
+        encodeURIComponent(`${PUBLIC_BASE_URL}/miel-de-abeja`),
+      );
+    });
+
+    it("no toca una dirección que ya venía absoluta", async () => {
+      const user = userEvent.setup();
+      const { getByTestId } = render(
+        <CardForList {...baseProps} to="https://hazlosano.com/miel-de-abeja" />,
+      );
+
+      await user.click(getByTestId("card-share-trigger"));
+
+      expect(getByTestId("share-whatsapp").getAttribute("href")).toContain(
+        encodeURIComponent("https://hazlosano.com/miel-de-abeja"),
+      );
+    });
   });
 });

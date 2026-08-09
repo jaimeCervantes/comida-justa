@@ -8,6 +8,7 @@ import { resolveLocale } from "~/i18n/routing";
 import { PUBLIC_BASE_URL } from "~/infra/constants";
 import StoreDistance from "~/presentation/location/StoreDistance";
 import WhatsappButton from "~/presentation/post/WhatsappButton/WhatsappButton";
+import ShareMenu from "~/presentation/sharing/ShareMenu/ShareMenu";
 import { profileHref } from "../../../cuenta/profilePath";
 import { storePath } from "../../../cuenta/storePath";
 
@@ -23,10 +24,13 @@ export default function StoreHeader({
   distanceMeters?: number | null;
 }) {
   const t = useTranslations("store");
+  const tShare = useTranslations("share");
   const locale = resolveLocale(useLocale());
+  // La misma dirección para escribir al vendedor y para repartir la tienda: una sola verdad.
+  const storeUrl = `${PUBLIC_BASE_URL}${storePath(seller.handle ?? "", locale)}`;
   const contactLink = buildWhatsappStoreLink({
     storeName: seller.name,
-    url: `${PUBLIC_BASE_URL}${storePath(seller.handle ?? "", locale)}`,
+    url: storeUrl,
     phone: seller.phone,
   });
 
@@ -87,6 +91,17 @@ export default function StoreHeader({
           >
             {t("contactOnWhatsapp")}
           </WhatsappButton>
+
+          {/* Aquí comparte **el comprador**, no el vendedor: es quien acaba de decidir que esta
+              tienda vale la pena. Por eso el texto va en su voz ("esta tienda") y no en la del
+              dueño, que es la que usa `/cuenta`. */}
+          <ShareMenu
+            className="mt-2"
+            testId="share-store-page"
+            url={storeUrl}
+            title={seller.name}
+            text={tShare("storeText", { name: seller.name })}
+          />
 
           {ownerUsername ? (
             <Link

@@ -6,8 +6,10 @@ import { resolveLocale } from "~/i18n/routing";
 import { auth } from "~/infra/auth";
 import { SIGNIN_PATH } from "~/infra/constants";
 import { createBranchRepository } from "~/infra/dataAccess/branches/factory";
-import { createSellerRepository } from "~/infra/dataAccess/sellers/factory";
-import { createUserProfileRepository } from "~/infra/dataAccess/users/factory";
+import {
+  findProfileOfUser,
+  findSellerOfUser,
+} from "~/infra/dataAccess/identity/sessionIdentity";
 import BranchList from "~/presentation/directory/BranchList/BranchList";
 import {
   addBranch,
@@ -15,6 +17,7 @@ import {
   claimUsername,
   updateStoreProfile,
 } from "./actions";
+import AccountCard from "./ui/AccountCard";
 import AddBranchForm from "./ui/AddBranchForm";
 import BecomeSellerForm from "./ui/BecomeSellerForm";
 import StoreCard from "./ui/StoreCard";
@@ -35,8 +38,13 @@ export async function generateMetadata(): Promise<Metadata> {
 /**
  * El ancho lo pone el layout (`container-width`); aquí solo se reparte en dos columnas a partir
  * de `lg`, para no dejar media pantalla vacía en escritorio.
+ *
+ * El reparto no es arbitrario: a la izquierda **lo que se enseña** —la tienda y la dirección
+ * personal, con su botón de compartir— y a la derecha **lo que se edita** —la ficha y las
+ * sucursales—. Antes la dirección personal caía al final de la segunda columna, debajo del alta de
+ * sucursales, y era lo último que veía quien entraba a repartir su enlace.
  */
-const COLUMNS = "grid gap-10 lg:grid-cols-2 items-start";
+const COLUMNS = "grid gap-6 lg:grid-cols-2 items-start";
 
 export default async function CuentaPage({
   params,
@@ -60,9 +68,11 @@ export default async function CuentaPage({
     redirectKeepingLocale(SIGNIN_PATH, await getLocale());
   }
 
+  /* Los mismos lectores que usa el encabezado. Van cacheados por render, así que las dos filas se
+     leen una sola vez aunque las pidan las dos partes de la página. */
   const [seller, profile] = await Promise.all([
-    createSellerRepository().findByUserId(user.id),
-    createUserProfileRepository().findByUserId(user.id),
+    findSellerOfUser(user.id),
+    findProfileOfUser(user.id),
   ]);
 
   const usernameSection = (
@@ -93,23 +103,22 @@ export default async function CuentaPage({
       <h1 className="text-xl font-bold mb-6">{t("heading")}</h1>
 
       <div className={COLUMNS}>
-        <div className="flex flex-col gap-10">
+        {/* Lo que se reparte. */}
+        <div className="flex flex-col gap-6">
           <StoreCard seller={seller} />
-          <StoreProfileForm action={updateStoreProfile} seller={seller} />
-        </div>
-
-        <div className="flex flex-col gap-10">
-          <section>
-            <h2 className="text-lg font-bold mb-4">{t("branchesHeading")}</h2>
+          {usernameSection}
+          <AccountCard title={t("branchesHeading")}>
             <BranchList
               branches={branches}
               emptyMessage={tBranches("emptyWithoutLocation")}
             />
-          </section>
+          </AccountCard>
+        </div>
 
+        {/* Lo que se edita. */}
+        <div className="flex flex-col gap-6">
+          <StoreProfileForm action={updateStoreProfile} seller={seller} />
           <AddBranchForm action={addBranch} />
-
-          {usernameSection}
         </div>
       </div>
     </main>

@@ -5,6 +5,7 @@ import { MdMyLocation, MdPlace, MdStorefront } from "react-icons/md";
 import { Button } from "~/presentation/design_system/buttons/Button";
 import { TextField } from "~/presentation/design_system/forms/TextField";
 import type { AddBranchState } from "../actions";
+import AccountCard from "./AccountCard";
 
 type GeolocationState = "idle" | "locating" | "located" | "failed";
 
@@ -44,12 +45,7 @@ export default function AddBranchForm({
   };
 
   return (
-    <section>
-      <h2 className="text-lg font-bold mb-2">{t("addBranchTitle")}</h2>
-      <p className="mb-6 text-sm text-gray-600 dark:text-gray-400">
-        {t("addBranchIntro")}
-      </p>
-
+    <AccountCard title={t("addBranchTitle")} intro={t("addBranchIntro")}>
       {state.errorMessage ? (
         <p
           data-testid="add-branch-error"
@@ -133,7 +129,7 @@ export default function AddBranchForm({
           </Button>
         </footer>
       </form>
-    </section>
+    </AccountCard>
   );
 }
 
