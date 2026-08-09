@@ -98,6 +98,33 @@ describe("El feed del home", () => {
   });
 
   /*
+   * El feed se pinta en columnas, y `column-fill: balance` reparte de nuevo TODAS las tarjetas
+   * cada vez que se añade una. Con una sola lista, cargar la página siguiente no ponía lo nuevo
+   * al final: recolocaba lo viejo, y varias tarjetas subían por encima de donde estaba mirando
+   * quien había hecho scroll — lo recién cargado quedaba fuera de su vista.
+   *
+   * Una tanda por petición, cada una en su bloque, es lo que impide esa recolocación. Se afirma
+   * sobre el número de bloques y no sobre posiciones en pantalla porque jsdom no maqueta columnas:
+   * lo que se puede garantizar aquí es la estructura de la que depende el arreglo.
+   */
+  it("y cada página cargada estrena su propio bloque, sin tocar el anterior", async () => {
+    respondeConUnaPaginaMas([tarjeta("dos", 2500)]);
+    renderWithIntl(feed(ENCIMA, [tarjeta("uno", 2000)], 2));
+
+    const primerBloque = screen.getAllByTestId("feed-batch")[0];
+    expect(screen.getAllByTestId("feed-batch")).toHaveLength(1);
+
+    await userEvent.click(screen.getByRole("button", { name: "Cargar más" }));
+
+    await waitFor(() =>
+      expect(screen.getAllByTestId("feed-batch")).toHaveLength(2),
+    );
+    // El mismo nodo de antes: la tanda que ya estaba no se vuelve a montar.
+    expect(screen.getAllByTestId("feed-batch")[0]).toBe(primerBloque);
+    expect(primerBloque.querySelectorAll("article")).toHaveLength(1);
+  });
+
+  /*
    * El escenario "El feed obedece al servidor cuando cambia desde dónde se mide" de
    * `ubicacionFresca.feature`.
    *

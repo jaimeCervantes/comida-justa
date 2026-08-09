@@ -162,6 +162,17 @@ Feature: Un design system que habla como la marca
     When alguien las compara
     Then tienen el mismo tamaño y el mismo peso, porque las dos salen de la escala y no de una clase copiada
 
+  # Lo reportó el usuario al usar el home: cargaba más y las tarjetas ya vistas se recolocaban.
+  # `column-fill: balance` —el comportamiento por omisión de multi-columna— reparte de nuevo TODAS
+  # las tarjetas cada vez que se añade una, así que lo nuevo no caía al final: subía por encima de
+  # donde él estaba mirando, y no lo veía salvo que volviera con el scroll.
+  @slice-8 @component
+  Scenario: Cargar más no mueve lo que ya se estaba viendo
+    Given el feed del home con su primera tanda pintada
+    When se carga la página siguiente
+    Then la tanda nueva estrena su propio bloque de columnas
+    And la anterior no se vuelve a montar, así que ninguna de sus tarjetas se mueve
+
   @slice-6 @component
   Scenario: La jerarquía del documento no se sacrifica por la apariencia
     Given una sección que debe ser un h2 pero verse pequeña
