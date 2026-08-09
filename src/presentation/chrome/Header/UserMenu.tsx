@@ -44,7 +44,11 @@ export default function UserMenu({
   const t = useTranslations("nav");
 
   return (
-    <DropdownMenu.Root>
+    /* `modal={false}`, como el selector de idioma: en modo modal Radix deja el resto de la página
+       con `pointer-events: none` y `aria-hidden`, así que el primer toque fuera se gasta en cerrar
+       el menú y no llega a donde iba. Con dos desplegables en la misma barra, la diferencia se
+       notaba al querer tocar cualquier cosa detrás. */
+    <DropdownMenu.Root modal={false}>
       <DropdownMenu.Trigger asChild>
         <button
           type="button"

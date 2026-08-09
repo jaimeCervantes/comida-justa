@@ -54,4 +54,23 @@ export default class HeaderMenusPage {
   async clickOutside(): Promise<void> {
     await this.page.mouse.click(5, 300);
   }
+
+  /**
+   * Tocar un enlace del menú principal **teniendo un desplegable abierto**.
+   *
+   * Va por coordenadas por la misma razón que `clickOutside`, y además porque es lo único que
+   * distingue este escenario del anterior: lo que se afirma no es que el desplegable se cierre
+   * —eso ya pasaba— sino que el toque **llegue a su destino** en vez de gastarse en cerrarlo.
+   */
+  async clickLinkBehindTheMenu(label: string): Promise<void> {
+    const link = this.page
+      .getByRole("navigation")
+      .getByRole("link", { name: label, exact: true })
+      .first();
+    const box = await link.boundingBox();
+
+    if (!box) throw new Error(`No se encontró el enlace «${label}»`);
+
+    await this.page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+  }
 }

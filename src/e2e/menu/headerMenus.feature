@@ -27,6 +27,15 @@ Feature: Los desplegables de la cabecera se cierran al tocar fuera
     When toca en cualquier otra parte de la página
     Then el menú se cierra y sigue en la misma dirección
 
+  # El toque de fuera no se puede *gastar* en cerrar. Radix abre en modo modal por omisión: deja el
+  # resto de la página con `pointer-events: none` y `aria-hidden`, así que tocar un enlace con el
+  # menú abierto lo cerraba sin llevar a ninguna parte y había que tocar dos veces.
+  @slice-1
+  Scenario: El toque que cierra el menú hace además lo suyo
+    Given un visitante en el inicio con el selector de idioma abierto
+    When toca el enlace de «Nosotros»
+    Then el selector se cierra y la página de «Nosotros» se abre
+
   @slice-1
   Scenario: Escape también los cierra
     Given un visitante en el inicio con el selector de idioma abierto

@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import es from "~/i18n/messages/es.json";
 import {
   type DbSession,
   deleteSession,
@@ -24,6 +25,28 @@ test.describe("Cuando un visitante abre el selector de idioma", () => {
     await expect(header.languageMenu()).toHaveCount(0);
     // Que no se haya cerrado *navegando* a otro sitio: el toque cayó en el fondo de la página.
     expect(page.url()).toBe(before);
+  });
+
+  /**
+   * El toque que cierra no puede gastarse en cerrar.
+   *
+   * Radix abre en modo modal por omisión: mientras el menú está abierto pone `pointer-events: none`
+   * en el `body` y `aria-hidden` en el resto de la página. El menú se cerraba al tocar fuera —eso
+   * ya funcionaba— pero **ese toque no llegaba a su destino**: tocar un enlace lo cerraba sin
+   * navegar, y había que tocar otra vez. Un desplegable de una barra no reclama la pantalla.
+   */
+  test("Entonces el toque que lo cierra hace además lo suyo", async ({
+    page,
+  }) => {
+    const header = new HeaderMenusPage(page);
+
+    await header.goto();
+    await header.openLanguageMenu();
+
+    await header.clickLinkBehindTheMenu(es.nav.about);
+
+    await expect(header.languageMenu()).toHaveCount(0);
+    await expect(page).toHaveURL(/\/nosotros\/?$/);
   });
 
   test("Entonces Escape también lo cierra", async ({ page }) => {

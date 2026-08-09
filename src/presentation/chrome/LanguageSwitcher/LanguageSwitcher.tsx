@@ -60,7 +60,12 @@ export default function LanguageSwitcher() {
   const current = locales.find((l) => l.code === currentLocale) ?? locales[0];
 
   return (
-    <DropdownMenu.Root>
+    /* `modal={false}` no es un detalle: en modo modal —el de por omisión— Radix pone
+       `pointer-events: none` en el `body` y `aria-hidden` en el resto de la página mientras el menú
+       está abierto. El menú se cierra al tocar fuera, sí, pero **ese toque se pierde**: tocar un
+       enlace con el menú abierto lo cierra y no lleva a ninguna parte, así que hay que tocar dos
+       veces. Un desplegable de una barra no es un diálogo: no reclama la pantalla. */
+    <DropdownMenu.Root modal={false}>
       <DropdownMenu.Trigger asChild>
         {/* `aria-expanded` y `aria-haspopup` los pone Radix en el disparador: eran dos atributos
             que había que acordarse de sincronizar con el `useState` a mano. */}

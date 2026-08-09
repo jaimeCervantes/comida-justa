@@ -448,3 +448,64 @@ mirando. Queda cubierto por 4 escenarios e2e y 5 pruebas de componente que antes
    estrechas; Radix lo recoloca solo, pero eso ninguna prueba lo juzga.
 
 **Pendiente del usuario:** nada para continuar.
+
+## Corrección — el toque que cierra el menú se estaba gastando en cerrarlo (2026-08-09)
+
+**Reportado, por segunda vez:** «el languageSwitcher no se cierra si se toca en cualquier otra
+parte, debería hacerlo, así como el menú del usuario cuando se le da click al avatar».
+
+**Lo primero fue medir, no volver a suponer.** Se sondearon cuatro formas distintas de tocar fuera
+—sobre texto del contenido, sobre un enlace, sobre la caja de búsqueda y sobre el margen— con los
+dos menús. **Los dos se cerraban en las cuatro.** Lo que la sonda destapó estaba al lado:
+
+```
+bodyPointerEvents: "none"
+aria-hidden:       DIV:true  NEXT-ROUTE-ANNOUNCER:true  DIV:true
+```
+
+`DropdownMenu.Root` abre **en modo modal por omisión**. Mientras el menú está abierto, Radix deja el
+resto de la página con `pointer-events: none` y `aria-hidden="true"`. Consecuencias:
+
+1. **El primer toque fuera se gasta en cerrar y no llega a su destino.** Tocar «Nosotros» con el
+   menú abierto lo cerraba sin ir a ninguna parte: había que tocar dos veces. Descrito por quien lo
+   sufre, «tocar en otra parte no hace lo que debería».
+2. **La página entera desaparece del árbol de accesibilidad.** Un lector de pantalla no ve nada
+   detrás del desplegable — y eso pasaba ya con el menú del avatar, desde antes de este trabajo.
+3. Se notó primero en la propia sonda: `getByRole("heading")` se quedaba colgado con el menú
+   abierto, porque Playwright ignora lo que está `aria-hidden`.
+
+Un desplegable de una barra **no es un diálogo**: no reclama la pantalla. `modal={false}` en los dos
+—`LanguageSwitcher` y `UserMenu`— conserva cerrar al tocar fuera, cerrar con Escape y el foco, y
+devuelve la página a quien la está usando.
+
+**El escenario nuevo afirma justo eso, y no lo que ya pasaba:** con el selector abierto, tocar
+«Nosotros» cierra el menú **y** abre «Nosotros». Falla de las dos maneras con `modal` puesto —el
+enlace ni siquiera es localizable por rol estando `aria-hidden`—, así que la prueba muerde de verdad.
+
+**Archivos tocados:** `LanguageSwitcher.tsx`, `UserMenu.tsx`, `headerMenus.feature`,
+`headerMenus.spec.ts`, `HeaderMenusPage.ts`.
+
+### Validación
+
+- `pnpm run test:run`: **1081/1081**. `typecheck` y `typecheck:tests`: exit 0. `lint`: limpio.
+- **Playwright: 201 pasan, 3 saltadas, 0 fallan** (204 escenarios), en dos mitades: 5.8 y 5.0 min.
+- Los `.next/dev/types/*.ts` se corrompen cuando se mata un `next dev` a media escritura y dejan
+  `tsc` en rojo con errores de sintaxis en ficheros generados. Se borran y se regeneran levantando
+  el servidor una vez; no es del código.
+
+### Recap
+
+Los dos desplegables de la cabecera se cierran al tocar fuera **y dejan pasar ese toque**. El de
+idioma ya lo hacía desde la corrección anterior; lo que faltaba, y afectaba también al del avatar
+desde siempre, era no comportarse como un diálogo modal. La cabecera queda cubierta por 5 escenarios
+e2e y 5 pruebas de componente.
+
+### Próximos pasos (opciones)
+
+1. **Subir la rama.** `fix/desplegables-de-la-cabecera` no está en `dev` ni desplegada: mientras no
+   se integre, el sitio sigue con el selector viejo, que es lo que se está viendo al probar.
+2. **`ShareMenu` sigue en modo modal.** Es el tercer desplegable sobre Radix y tiene el mismo
+   problema; no se tocó aquí por no mezclarlo con lo reportado.
+3. **`SearchBar` y `MobileNav`** siguen con `useState` propio, sin cierre al tocar fuera.
+
+**Pendiente del usuario:** decir si se integra a `dev` o se deja la rama para revisar.
