@@ -175,3 +175,133 @@ cuando ya se sabe dónde estás hay siempre un chip que lo dice, dice desde cuá
 
 **Pendiente del usuario:** nada bloqueante. La rama es `feat/ubicacion-fresca`, con cuatro commits,
 sin subir y sin PR abierto — se abre cuando lo pidas.
+
+---
+
+## 2026-08-08 — Slice 5: corregir la ubicación se nota
+
+### Objetivo
+
+Cerrar los dos fallos que dejaban el trabajo anterior sin efecto visible: el botón de corregir se
+quedaba cargando para siempre y, en el home, las tarjetas seguían midiendo desde donde ya no
+estabas. Los dos se leen igual desde fuera —"aprieto y no pasa nada"—, y esa lectura es la peor
+posible: le enseña a la gente que el control no sirve, justo el control que los slices 2 a 4
+existían para darle.
+
+### Lo que estaba pasando, y por qué no se había visto
+
+**El botón.** `useShareLocation` encendía `locating` a mano y nadie lo apagaba. `isPending` se apaga
+solo al cerrar la transición; `locating` no. El fallo llevaba ahí desde el principio y no se notó
+porque los dos primeros consumidores **desaparecen al corregir**: `LocationNotice` se vuelve chip y
+`ShareLocationButton` se vuelve distancia, y con ellos se iba el estado colgado. `LocationChip`, del
+slice 3, es el primero que sobrevive a su propia corrección, así que fue el primero en enseñarlo: la
+ruedita girando sobre una antigüedad que ya decía "hace unos segundos".
+
+**El feed.** `PostsWithLoadMore` hace `useState(initialPosts)`, y `useState` solo mira su valor
+inicial. La revalidación llegaba entera y correcta —el chip lo demuestra— pero el componente la
+ignoraba. Dos consecuencias, y la primera es la que más gente veía:
+
+1. Quien entraba al home con el permiso ya concedido y sin cookie **nunca veía distancias**. El
+   primer render sale sin ubicación, el refrescador la escribe, `revalidatePath` repinta… y el feed
+   se queda con la copia sin distancias hasta que alguien recargue a mano.
+2. Quien corregía su ubicación desde el chip veía cambiar el chip y nada más.
+
+### Decisiones y por qué
+
+1. **`finally { setState("idle") }`, y el `catch` no cae en `failed`.** `failed` significa "dijiste
+   que no" y saca una copia que se lo reprocha ("No compartiste tu ubicación"), que es exactamente
+   lo contrario de lo que pasó cuando el que falló fue el servidor. Y no se relanza: lo que se cayó
+   fue una corrección de ubicación, y tumbar la página por eso le cuesta a quien mira mucho más que
+   la distancia desactualizada que se queda en pantalla.
+2. **Una `key`, no un `useEffect` que sincronice.** Cuando cambia desde dónde se mide no hay nada
+   que salvar: la primera página y las que trajo el scroll están mal por igual. `key` es la forma
+   que React tiene de decir "esta ya no es la misma lista", y empezar de nuevo es la respuesta
+   correcta, no un apaño. Un efecto que copiara `initialPosts` al estado tendría que decidir además
+   qué hacer con las páginas acumuladas, y esa decisión es justo la que la `key` no necesita tomar.
+3. **La `key` son las coordenadas, no la fecha del dato.** Con la misma ubicación el valor no
+   cambia, así que una revalidación por cualquier otro motivo —alguien marcando agotado su
+   producto— no le tira al lector las páginas que llevaba cargadas. Si dependiera de `fixedAt`,
+   cada re-detección silenciosa reiniciaría el feed sin que nada se hubiera movido.
+4. **`measuredFrom` en `src/app/(home)/` y no en el dominio.** Es el contrato de un componente
+   concreto ("si me montas, dame esta `key`"), no una regla de negocio sobre coordenadas. Y no puede
+   vivir dentro de `PostsWithLoadMore.tsx`: todo lo que exporta un módulo `"use client"` es una
+   referencia de cliente, así que la página no podría llamarlo.
+5. **Solo el home.** Se revisaron las seis secciones que el usuario nombró: `/productos`,
+   `/categoria/[key]`, `/negocios-locales`, `/productores-locales` y la ficha pintan sus tarjetas
+   desde componentes de servidor, sin estado. `grep useState src/app` lo confirma: la única lista en
+   estado del proyecto es esta. El home es la única sección con scroll infinito, y por tanto la
+   única con una copia de cliente que mantener al día.
+
+### Archivos tocados
+
+**El botón**
+
+- `src/presentation/location/useShareLocation.ts` — `try/catch/finally` alrededor de la acción.
+- `src/presentation/location/LocationChip.test.tsx` — dos casos nuevos (guarda / revienta) y
+  `stubGeolocation` extraído.
+
+**El feed**
+
+- `src/app/(home)/measuredFrom.ts` (nuevo) y su prueba.
+- `src/app/(home)/PostsWithLoadMore.tsx` — docstring que declara el contrato de la `key`.
+- `src/app/(home)/PostsWithLoadMore.test.tsx` (nuevo) — primera cobertura del feed.
+- `src/app/[locale]/page.tsx` — `key={measuredFrom(visitor)}`.
+
+**Especificación y documentación**
+
+- `src/e2e/ubicacionFresca/ubicacionFresca.feature` — cuatro escenarios `@slice-5`.
+- `src/e2e/ubicacionFresca/homeCards.spec.ts` (nuevo).
+- `docs/features/ubicacion-fresca.md` — el slice 5 y por qué solo afecta al home.
+
+### Validación
+
+```
+pnpm run test:run        → 102 archivos, 975 pruebas, todo verde
+pnpm run typecheck       → 0
+pnpm run typecheck:tests → 0
+pnpm run lint            → 0
+```
+
+La prueba de la `key` se comprobó al revés antes de darla por buena: quitando el `key` del
+componente falla con `expected [ 'a 2 km', 'a 2.5 km' ] to deeply equal [ 'a 39.8 km' ]`, que es
+literalmente el fallo del que se quejó el usuario.
+
+**Playwright no se corrió**: el usuario pidió correr las e2e a mano al final. `homeCards.spec.ts`
+está sin ejecutar.
+
+### Desviaciones del roadmap
+
+Este slice no estaba en el roadmap: sale de dos fallos reportados sobre lo ya entregado. Se numera
+como slice 5 porque no es un parche suelto sino la parte del slice 3 que faltaba —el control existía
+pero no acusaba recibo—, y así queda con sus escenarios en el mismo `.feature`.
+
+### Pendientes
+
+- **La insignia "Agotado" tampoco se actualiza en el feed del home**, y por el mismo motivo:
+  `availabilityAction` revalida el layout a propósito ("ese listado tiene que reflejarlo al instante
+  o parecerá que el botón no hizo nada") y el feed lo ignora. La `key` no lo cubre, porque la
+  ubicación no cambió. El arreglo natural es que `PostsWithLoadMore` guarde en estado **solo las
+  páginas que pidió él** y deje la primera siempre del servidor; hace falta decidir antes qué se
+  hace con los duplicados si el servidor mete una publicación nueva al principio.
+- Sigue todo lo de la entrada anterior: `/buscar` sin cercanía, `/tienda/[handle]` sin distancia,
+  cero publicaciones con `origin = 'productor'`, y la detección automática sin instrumentar.
+
+### Recap
+
+Corregir la ubicación ya se nota. El botón vuelve a estar disponible tanto si el servidor guardó
+como si reventó, y en el home las tarjetas se corrigen con él en vez de quedarse midiendo desde
+donde el lector ya no está —incluido el caso más común de todos, entrar con el permiso concedido y
+ver las distancias aparecer solas sin recargar—. Las demás secciones ya lo hacían: pintan desde
+componentes de servidor y no guardan copia. 975 unitarias verdes; la e2e nueva queda pendiente de
+ejecutar.
+
+### Próximos pasos (opciones)
+
+1. **Cerrar el "Agotado" del feed** con el cambio de "solo las páginas que pidió el cliente". Es el
+   último sitio donde una revalidación se pierde, y el mismo archivo.
+2. **Llevar la cercanía a `/buscar`**, que sigue siendo el hueco grande de esta línea de trabajo.
+3. **Distancia en `/tienda/[handle]`**, pequeño y de la misma familia.
+4. **Instrumentar el refrescador** para calibrar los 500 m / 6 h con datos.
+
+**Pendiente del usuario:** correr `pnpm run test:e2e:run` cuando quiera; `homeCards.spec.ts` no se ha
+ejecutado nunca.

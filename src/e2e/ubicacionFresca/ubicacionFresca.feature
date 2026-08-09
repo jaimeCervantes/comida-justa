@@ -172,3 +172,50 @@ Feature: La ubicación se vuelve a detectar, porque la gente se mueve
     And su sucursal está a 300 km del ancla de la comunidad
     When abro "/productores-locales"
     Then la lista no incluye "Panadería La Luz"
+
+  # ---------------------------------------------------------------------------
+  # Slice 5 — corregir la ubicación se nota
+  #
+  # Los slices 1 a 4 dejaron la ubicación al día y un botón para corregirla. Faltaba lo que pasa
+  # después de apretarlo: el botón se quedaba cargando para siempre y el feed del home seguía
+  # enseñando las distancias de antes. Un control que no acusa recibo es peor que no tenerlo,
+  # porque le enseña a la gente que apretarlo no sirve.
+  # ---------------------------------------------------------------------------
+
+  @slice-5 @component
+  # Vitest: es el estado de un componente cliente, no hace falta navegador.
+  Scenario Outline: El botón de corregir siempre vuelve
+    Given tengo una ubicación guardada hace 137 días
+    And el navegador sí sabe dónde estoy
+    When aprieto "Actualizar" en el chip
+    And el servidor <responde>
+    Then el botón vuelve a estar disponible
+
+    Examples:
+      | responde  | reason                                                            |
+      | la guarda | el chip sobrevive a su propia corrección: nadie apagaba `locating` |
+      | revienta  | un fallo del servidor deja reintentar, no acusa de no compartirla  |
+
+  @slice-5 @component
+  Scenario: El feed obedece al servidor cuando cambia desde dónde se mide
+    Given un feed con la primera página cargada y otra traída por el scroll
+    When llega una primera página nueva medida desde otro sitio
+    Then el feed enseña lo que acaba de mandar el servidor
+    And ya no enseña las páginas que había acumulado
+
+  @slice-5
+  Scenario: En el home, la distancia aparece sin que yo recargue
+    Given le concedí el permiso de ubicación a este sitio
+    And la tienda "Panadería La Luz" tiene su sucursal a 2 km del ancla
+    And el navegador me sitúa encima de esa sucursal
+    And no tengo ninguna cookie de ubicación
+    When abro "/"
+    Then la tarjeta de su pan muestra su distancia
+    And nunca recargué la página
+
+  @slice-5
+  Scenario: Corrijo mi ubicación desde el home y las tarjetas la obedecen
+    Given estoy en el home viendo el pan de "Panadería La Luz" a unos metros
+    When me voy a 40 km y aprieto "Actualizar" en el chip
+    Then esa misma tarjeta pasa a decir "a 39.8 km"
+    And no tuve que recargar para verlo

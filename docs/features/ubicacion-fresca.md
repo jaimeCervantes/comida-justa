@@ -151,6 +151,34 @@ cuándo es el dato.
 **Aceptación:** un visitante a 1000 km no ve una página en blanco, ve lo que hay con el aviso de que
 queda lejos. Un visitante local no nota ninguna diferencia.
 
+### Slice 5 — corregir la ubicación se nota
+
+Los cuatro slices anteriores dejaron la ubicación al día y un control para corregirla. Faltaba lo
+que pasa **después de apretarlo**, que eran dos fallos distintos con el mismo efecto: parecía que el
+botón no hacía nada.
+
+1. **El botón se quedaba cargando para siempre.** `useShareLocation` encendía `locating` y nadie lo
+   apagaba: `isPending` se apaga solo, pero ese no. No se notaba desde `LocationNotice` ni desde
+   `ShareLocationButton` porque a los dos se los lleva por delante la revalidación —el aviso se
+   vuelve chip, el botón se vuelve distancia—; `LocationChip` sobrevive a su propia corrección, así
+   que ahí el botón se quedaba girando sobre una antigüedad que ya decía "hace unos segundos". Se
+   añade un `finally` que vuelve a `idle`, y un `catch` que **no** cae en `failed`: ese estado
+   significa "dijiste que no" y saca copia que se lo reprocha.
+2. **Las tarjetas del home no se enteraban.** `PostsWithLoadMore` copia `initialPosts` a `useState`,
+   y `useState` solo mira su valor inicial: la revalidación llegaba con las distancias nuevas y el
+   feed las ignoraba. La página le pasa ahora una `key` con `measuredFrom(visitor)` —dónde se midió
+   esta lista—, así que cuando cambia la ubicación el feed empieza de nuevo, y **solo** entonces:
+   con la misma ubicación una revalidación cualquiera no le tira al lector las páginas cargadas.
+
+**Por qué solo el home.** Las demás secciones ya lo hacían: `/productos`, `/categoria/[key]`,
+`/negocios-locales`, `/productores-locales` y la ficha pintan sus tarjetas desde componentes de
+servidor, que reciben props nuevas en cada revalidación y no guardan nada. El home es la única con
+scroll infinito, y por tanto la única con una copia de cliente que mantener al día.
+
+**Aceptación:** en el home, entrar con el permiso concedido y sin cookie estrena distancias sin
+recargar; y corregir la ubicación desde el chip corrige las tarjetas, no solo el chip. El botón
+vuelve a estar disponible tanto si el servidor guardó como si reventó.
+
 ## Validación
 
 ```
