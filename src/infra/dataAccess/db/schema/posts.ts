@@ -82,6 +82,16 @@ export const postMedia = pgTable(
     type: text("type").notNull(),
     alt: text("alt"),
     sortOrder: integer("sort_order").notNull().default(0),
+    /**
+     * Las dimensiones reales del archivo, o nulas cuando no se saben.
+     *
+     * Nulas es la verdad para los vídeos —medir uno pide `ffprobe`— y para lo que se publique
+     * antes de que el formulario las capture. **`NULL` no es "es cuadrada"**: quien las pinta
+     * distingue el nulo y cae al alto fijo de siempre. Las escribe Alembic (`0030`), que es la
+     * fuente de verdad del esquema; aquí solo se leen.
+     */
+    width: integer("width"),
+    height: integer("height"),
   },
   (table) => [index("idx_media_post_id").on(table.postId)],
 );

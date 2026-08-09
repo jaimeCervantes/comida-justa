@@ -1,11 +1,18 @@
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import type { ComponentType } from "react";
+import { hasKnownAspect } from "~/domain/entities/post/mediaAspect";
 
 export interface MediaItem {
   type: "video" | "image" | "audio" | string;
   url: string;
   alt: string;
+  /**
+   * Las dimensiones reales, si se saben. Nulas en los vídeos y en lo publicado antes de que el
+   * formulario las capture. **Nulo no es "es cuadrada"**: sin ellas se cae al alto fijo de siempre.
+   */
+  width?: number | null;
+  height?: number | null;
 }
 
 interface MediaContentProps {
@@ -66,15 +73,31 @@ function VideoContent({ media, className }: MediaContentProps) {
   );
 }
 
+/**
+ * Cuando no se sabe la forma del archivo.
+ *
+ * Es un cuadrado, y era el ÚNICO trato que recibían todas: `next/image` deriva la proporción del
+ * hueco de estos dos números, así que declararlos iguales para una foto de 1200x1600 la anunciaba
+ * cuadrada. Sigue aquí porque es la verdad disponible para los vídeos y para lo que se publicó sin
+ * medir, y porque quien lo pinta lo acompaña de un alto fijo que recorta con `object-cover`.
+ */
+const UNKNOWN_SIZE = { width: 1000, height: 1000 } as const;
+
 function ImageContent({ media, className }: MediaContentProps) {
+  const known = hasKnownAspect(media);
+
   return (
     <Image
       src={media.url}
       alt={media.alt}
-      width={1000}
-      height={1000}
+      /* Con las reales, el hueco nace ya con la proporción del archivo y no hay nada que recortar.
+         `object-cover` solo actúa cuando alguien impone un alto, que es justo lo que deja de
+         hacerse en cuanto se sabe la forma. */
+      width={known ? Number(media.width) : UNKNOWN_SIZE.width}
+      height={known ? Number(media.height) : UNKNOWN_SIZE.height}
       loading="eager"
-      className={`w-full object-cover ${className || ""}`}
+      data-testid={known ? "media-image-sized" : "media-image-unsized"}
+      className={`w-full ${known ? "h-auto" : "object-cover"} ${className || ""}`}
     />
   );
 }

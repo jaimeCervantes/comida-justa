@@ -1,4 +1,5 @@
 import { inArray, sql } from "drizzle-orm";
+import type { PostMediaFile } from "~/domain/entities/post/types";
 import type { Coordinates } from "~/domain/entities/seller/coordinates";
 import { db } from "~/infra/dataAccess/db/connection";
 import { users } from "~/infra/dataAccess/db/schema/auth";
@@ -444,16 +445,15 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
       translationsByPost.set(row.postId, current);
     }
 
-    const mediaByPost = new Map<
-      string,
-      Array<{ url: string; type: string; alt?: string }>
-    >();
+    const mediaByPost = new Map<string, PostMediaFile[]>();
     for (const media of mediaRows) {
       if (!mediaByPost.has(media.postId)) mediaByPost.set(media.postId, []);
       mediaByPost.get(media.postId)?.push({
         url: media.url,
         type: media.type,
         alt: media.alt ?? undefined,
+        width: media.width ?? undefined,
+        height: media.height ?? undefined,
       });
     }
 

@@ -1,5 +1,22 @@
 import type { PostKind } from "./kind";
+import type { MediaDimensions } from "./mediaAspect";
 import type { PostOrigin } from "./origin";
+
+/**
+ * Un archivo de una publicación.
+ *
+ * Estaba escrito a mano en **cuatro** sitios —aquí, en `IPostQueryRepository`, en el repositorio de
+ * consultas y en el de búsqueda—, que es la razón de que añadirle un campo doliera: había que
+ * acordarse de los cuatro. Vive una vez y los otros lo importan.
+ *
+ * Las dimensiones son opcionales y nulables porque en la base lo son: nulas en los vídeos y en lo
+ * publicado antes de que el formulario las capture. Ver `mediaAspect.ts`.
+ */
+export type PostMediaFile = MediaDimensions & {
+  url: string;
+  type: "image" | "video" | string;
+  alt?: string;
+};
 
 /**
  * Un validador o no devuelve nada, o lanza. Es `void` a secas: `void | never` colapsaba a lo
@@ -42,11 +59,7 @@ export type Post = {
     email?: string;
     whatsapp?: string;
   };
-  media: {
-    url: string;
-    type: "image" | "video" | string;
-    alt?: string;
-  };
+  media: PostMediaFile;
   user: User;
   createdAt: Date;
 };

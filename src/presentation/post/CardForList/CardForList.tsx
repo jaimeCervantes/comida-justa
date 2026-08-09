@@ -1,5 +1,6 @@
 import { useTranslations } from "next-intl";
 import { isSellable } from "~/domain/entities/post/availability";
+import { hasKnownAspect } from "~/domain/entities/post/mediaAspect";
 import { Link } from "~/i18n/navigation";
 import { storeHref } from "~/i18n/routes";
 import { PUBLIC_BASE_URL, SITE_CURRENCY } from "~/infra/constants";
@@ -100,9 +101,16 @@ export default function CardForList(
           text={tShare("postText", { title })}
         />
       }
+      /* El alto fijo solo cuando NO se sabe la forma del archivo. Con ella, imponer 256 px
+         recortaría por el centro justo lo que se viene a mirar: de las 15 imágenes de la base, 10
+         son verticales y se les tiraba el 36%. Y es lo que da altura distinta a cada tarjeta, que
+         es de lo que vive la mampostería. */
       media={
         <Link {...anchorProps}>
-          <MediaContent media={media[0]} className="h-64" />
+          <MediaContent
+            media={media[0]}
+            className={hasKnownAspect(media[0] ?? {}) ? "" : "h-64"}
+          />
         </Link>
       }
     >
