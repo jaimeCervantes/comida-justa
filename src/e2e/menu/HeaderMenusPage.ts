@@ -1,0 +1,57 @@
+import { expect, type Locator, type Page } from "@playwright/test";
+import es from "~/i18n/messages/es.json";
+
+/**
+ * Los dos desplegables que viven en la cabecera: el del idioma y el que cuelga del avatar.
+ *
+ * La suite corre en español (`playwright.config.ts` fija `locale: "es-MX"`), así que los botones se
+ * buscan por el rótulo accesible que ve quien visita el sitio.
+ */
+export default class HeaderMenusPage {
+  constructor(private readonly page: Page) {}
+
+  async goto(path = "/"): Promise<void> {
+    await this.page.goto(path);
+  }
+
+  languageMenu(): Locator {
+    return this.page.getByTestId("language-menu");
+  }
+
+  userMenu(): Locator {
+    return this.page.getByTestId("user-menu");
+  }
+
+  async openLanguageMenu(): Promise<void> {
+    await this.page
+      .getByRole("button", { name: es.nav.changeLanguage })
+      .click();
+
+    await expect(this.languageMenu()).toBeVisible();
+  }
+
+  async openUserMenu(): Promise<void> {
+    await this.page.getByRole("button", { name: es.nav.openUserMenu }).click();
+
+    await expect(this.userMenu()).toBeVisible();
+  }
+
+  async chooseLanguage(label: string): Promise<void> {
+    await this.languageMenu().getByText(label).click();
+  }
+
+  /**
+   * Un toque en cualquier otra parte, que es lo que hace todo el mundo para cerrar un desplegable.
+   *
+   * Va por coordenadas y no por `locator.click()` a propósito. Un desplegable abierto de Radix es
+   * modal: pone `pointer-events: none` en el cuerpo, así que Playwright consideraría que algo
+   * intercepta el clic y la prueba fallaría por la razón equivocada. `mouse.click` dispara el
+   * evento donde se le dice, sin comprobaciones — igual que un dedo.
+   *
+   * El punto está en el margen izquierdo, bajo la cabecera: ahí no hay ningún enlace, y que la
+   * dirección no cambie es parte de lo que cada escenario afirma.
+   */
+  async clickOutside(): Promise<void> {
+    await this.page.mouse.click(5, 300);
+  }
+}

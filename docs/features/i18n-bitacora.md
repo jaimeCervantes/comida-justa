@@ -370,3 +370,81 @@ español con el prefijo inglés**. A partir de ahí:
 - Se corrió contra el `next dev` que ya estaba levantado, con un config temporal
   (`reuseExistingServer: true`) que se borró después. El `false` del config principal existe para no
   adoptar el servidor de **otro** proyecto; el que corría era este.
+
+## Corrección — el selector de idioma no se cerraba al tocar fuera (2026-08-09)
+
+**Reportado:** «el languageSwitcher no se cierra si se toca en cualquier otra parte, debería
+hacerlo, así como el menú del usuario cuando se le da click al avatar».
+
+**Lo primero fue comprobar cuál de los dos estaba roto**, porque la frase admite dos lecturas. Se
+escribió el escenario del menú del avatar *antes* de tocar nada y **pasó en verde a la primera**: ese
+ya se cerraba. `UserMenu` está sobre Radix desde que nació, y cerrar al tocar fuera, cerrar con
+Escape y devolver el foco al disparador vienen con la primitiva. El roto era solo el del idioma.
+
+**La causa.** `LanguageSwitcher` era un desplegable escrito a mano: un `useState` que el botón
+alternaba y un `{isOpen && <div>}`. Un desplegable a mano **no escucha nada fuera de sí mismo**, así
+que el panel se quedaba encima del contenido hasta volver a pulsar su propio botón. Tampoco cerraba
+con Escape, ni se anunciaba como menú a un lector de pantalla más allá de los `aria-*` que había que
+acordarse de sincronizar con el estado.
+
+### Por qué Radix y no un `useOutsideClick`
+
+Un `onClick` en el documento cierra el panel y deja fuera todo lo demás: devolver el foco a donde
+estaba, no cerrarse al pulsar *dentro*, cerrar al elegir, la navegación con flechas y `aria-expanded`
+en el disparador. Eso ya estaba resuelto **dos veces** en la misma barra —`UserMenu` y `ShareMenu`—
+y `menuSurface.ts` existe precisamente porque el segundo desplegable no podía copiar las clases del
+primero. Un tercer desplegable con motor propio era la tercera copia. El `data-state` que Radix
+escribe en el disparador sustituye además al `useState`: la flecha gira con
+`group-data-[state=open]:rotate-180` y el componente se queda **sin estado de React**.
+
+### Lo que protege el cambio de motor
+
+El selector no tenía **ninguna** prueba, y la e2e nunca lo tocaba: los escenarios de i18n navegan por
+URL. Reescribir su motor sin red habría puesto en riesgo lo único que hace, que además ya se rompió
+una vez (ver la corrección anterior: el slug español con prefijo inglés). Se cubrió antes de tocarlo:
+
+- `src/e2e/menu/headerMenus.feature` + `headerMenus.spec.ts`: se cierra al tocar fuera, se cierra con
+  Escape, elegir «English» sirve la misma página en inglés, y el menú del avatar se cierra igual.
+- `LanguageSwitcher.test.tsx`: ofrece los dos idiomas, el disparador anuncia el menú y su estado, y
+  **elegir un idioma pide la misma ruta con sus `params`** — la regresión concreta de la corrección
+  anterior, ahora afirmada en 5 ms en vez de en un navegador.
+
+**Un detalle de las dos pruebas del clic de fuera:** un desplegable abierto de Radix es modal y pone
+`pointer-events: none` en el cuerpo. Ni `userEvent.click(document.body)` ni `locator.click()` lo
+tocan —los dos comprueban primero que nadie intercepte— y fallarían por la razón equivocada. Se
+disparan los eventos donde se quiere: `fireEvent.pointerDown` en Vitest y `mouse.click` en Playwright.
+
+**Archivos tocados:** `LanguageSwitcher.tsx` (reescrito sobre Radix), `LanguageSwitcher.test.tsx`
+(nuevo), `src/e2e/menu/headerMenus.feature`, `headerMenus.spec.ts` y `HeaderMenusPage.ts` (nuevos).
+
+### Validación
+
+- `pnpm run test:run`: **1081/1081**. `pnpm run typecheck` y `typecheck:tests`: exit 0.
+  `pnpm run lint`: limpio.
+- **Playwright: 200 pasan, 3 saltadas, 0 fallan** (203 escenarios, 4 de ellos nuevos).
+- La suite se corrió **en dos mitades** (`--shard=1/2` y `--shard=2/2`, 6.2 y 6.3 min). De una sola
+  vez, la máquina se quedó sin memoria y Chromium dejó de arrancar: 149 escenarios cayeron con
+  `worker process exited unexpectedly (code=3221225794)`, que es `STATUS_DLL_INIT_FAILED` de
+  Windows. No es del código —las corridas cortadas dejan árboles de `node` huérfanos que se comen
+  la RAM—, pero conviene saberlo antes de diagnosticar un rojo masivo en local.
+- La cabecera se revisó además a ojo con una captura del panel abierto: alineado a la derecha, el
+  idioma activo marcado y la flecha girada.
+
+### Recap
+
+Los tres desplegables de la cabecera —avatar, compartir e idioma— comparten ahora primitiva y
+superficie, y los tres se cierran igual. El selector de idioma pierde su estado de React y gana el
+comportamiento accesible que no tenía, sin cambiar lo que hace: traducir la ruta que se está
+mirando. Queda cubierto por 4 escenarios e2e y 5 pruebas de componente que antes no existían.
+
+### Próximos pasos (opciones)
+
+1. **Cerrar el hueco del catálogo de idiomas:** hoy los dos idiomas se marcan solo por color y
+   negrita. `DropdownMenu.RadioGroup`/`RadioItem` lo diría con `aria-checked`, que es lo correcto
+   para un juego de opciones excluyentes. Se dejó fuera para no mezclarlo con el arreglo.
+2. **Barrer los desplegables que quedan escritos a mano:** `SearchBar` y `MobileNav` siguen con
+   `useState` propio. Ninguno se ha reportado, pero son los dos sitios donde volvería a pasar esto.
+3. **Revisar en un teléfono real** que el panel de 220 px no se salga por la derecha en pantallas
+   estrechas; Radix lo recoloca solo, pero eso ninguna prueba lo juzga.
+
+**Pendiente del usuario:** nada para continuar.

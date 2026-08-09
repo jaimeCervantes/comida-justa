@@ -1,12 +1,16 @@
 "use client";
 
+import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { useParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
-import { useState } from "react";
 import { usePathname, useRouter } from "~/i18n/navigation";
 import { type AppLocale, routing } from "~/i18n/routing";
 import { Button } from "~/presentation/design_system/buttons/Button";
 import { ChevronDown } from "~/presentation/design_system/icons/ChevronDown";
+import {
+  MENU_CONTENT_CLASS,
+  MENU_ITEM_CLASS,
+} from "~/presentation/design_system/styling/menuSurface";
 import { cn } from "~/presentation/design_system/styling/merge-class-names";
 
 const localesMap: Record<AppLocale, { label: string; flag: string }> = {
@@ -17,6 +21,16 @@ const localesMap: Record<AppLocale, { label: string; flag: string }> = {
 
 const locales = routing.locales.map((code) => ({ code, ...localesMap[code] }));
 
+/**
+ * El selector de idioma de la cabecera.
+ *
+ * Sobre Radix, como el menú del avatar y el de compartir. Estaba escrito a mano con un `useState`,
+ * y un desplegable a mano no escucha nada fuera de sí mismo: tocar en cualquier otra parte no lo
+ * cerraba —tampoco Escape—, así que el panel se quedaba encima del contenido hasta volver a pulsar
+ * su propio botón. Eso no se arregla con un `onClick` en el documento: hay que devolver el foco a
+ * donde estaba, cerrar al elegir, no cerrarse al desplazarse dentro y anunciarse como menú. Todo
+ * eso ya lo trae la primitiva que la barra usa dos veces más.
+ */
 export default function LanguageSwitcher() {
   /* `usePathname` de `~/i18n/navigation` devuelve la ruta **sin** el prefijo de idioma, así que
      cambiar de idioma es volver a pedir la misma ruta con otro locale. Antes esto era cirugía de
@@ -27,12 +41,8 @@ export default function LanguageSwitcher() {
   const params = useParams();
   const router = useRouter();
   const currentLocale = useLocale();
-  const [isOpen, setIsOpen] = useState(false);
-
-  const toggleDropdown = () => setIsOpen((prev) => !prev);
 
   const handleChange = (newLocale: AppLocale) => {
-    setIsOpen(false);
     /* Desde que hay `pathnames`, cambiar de idioma es traducir la ruta actual, y una ruta con
        segmentos dinámicos (`/tienda/[slug]`) necesita además sus valores. Por eso viaja `params`:
        sin él, quien esté viendo una tienda acabaría en el inicio del otro idioma.
@@ -50,50 +60,52 @@ export default function LanguageSwitcher() {
   const current = locales.find((l) => l.code === currentLocale) ?? locales[0];
 
   return (
-    <div className="relative inline-block text-left">
-      <Button
-        color="black"
-        size="xs"
-        onClick={toggleDropdown}
-        aria-label={t("changeLanguage")}
-        /* La flecha dice "abierto" o "cerrado" y es decorativa, así que quien no la ve necesita
-           que lo diga el botón. Antes no lo decía ni con la flecha ni sin ella. */
-        aria-expanded={isOpen}
-        aria-haspopup="menu"
-      >
-        <span className="text-sm">{current.flag}</span>
-        {/* Era un `▼` de texto: su tamaño y su grosor los decidía la fuente que resolviera el
-            sistema, así que no casaba con la del desplegable de los formularios. Ahora es la
-            misma, y girarla es lo que ahorra el segundo glifo (`▲`). */}
-        <ChevronDown
-          className={cn(
-            "size-4 transition-transform duration-fast ease-standard",
-            isOpen && "rotate-180",
-          )}
-        />
-      </Button>
+    <DropdownMenu.Root>
+      <DropdownMenu.Trigger asChild>
+        {/* `aria-expanded` y `aria-haspopup` los pone Radix en el disparador: eran dos atributos
+            que había que acordarse de sincronizar con el `useState` a mano. */}
+        <Button
+          color="black"
+          size="xs"
+          aria-label={t("changeLanguage")}
+          /* `group` para que la flecha pueda mirar el `data-state` que Radix escribe aquí. */
+          className="group"
+        >
+          <span className="text-sm">{current.flag}</span>
+          {/* Era un `▼` de texto: su tamaño y su grosor los decidía la fuente que resolviera el
+              sistema, así que no casaba con la del desplegable de los formularios. Ahora es la
+              misma, y girarla es lo que ahorra el segundo glifo (`▲`). Gira con el estado que
+              publica el disparador, no con una copia del estado en React. */}
+          <ChevronDown className="size-4 transition-transform duration-fast ease-standard group-data-[state=open]:rotate-180" />
+        </Button>
+      </DropdownMenu.Trigger>
 
-      {isOpen && (
-        <div className="absolute right-0 z-10 mt-2 w-40 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
-          <div className="py-1">
-            {locales.map((locale) => (
-              <button
-                key={locale.code}
-                type="button"
-                onClick={() => handleChange(locale.code)}
-                className={`${
-                  locale.code === currentLocale
-                    ? "bg-gray-100 text-gray-900 font-semibold"
-                    : "text-gray-700"
-                } flex w-full items-center px-4 py-2 text-sm hover:bg-gray-100`}
-              >
-                <span className="mr-2 text-lg">{locale.flag}</span>
-                {locale.label}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
+      <DropdownMenu.Portal>
+        {/* Con nombre propio, igual que `user-menu`: es lo que una prueba abre y espera ver
+            desaparecer. */}
+        <DropdownMenu.Content
+          align="end"
+          sideOffset={8}
+          className={MENU_CONTENT_CLASS}
+          data-testid="language-menu"
+        >
+          {locales.map((locale) => (
+            <DropdownMenu.Item
+              key={locale.code}
+              onSelect={() => handleChange(locale.code)}
+              className={cn(
+                MENU_ITEM_CLASS,
+                "flex items-center",
+                locale.code === currentLocale &&
+                  "bg-gray-100 font-semibold text-gray-900 dark:bg-gray-800 dark:text-gray-100",
+              )}
+            >
+              <span className="mr-2 text-lg">{locale.flag}</span>
+              {locale.label}
+            </DropdownMenu.Item>
+          ))}
+        </DropdownMenu.Content>
+      </DropdownMenu.Portal>
+    </DropdownMenu.Root>
   );
 }
