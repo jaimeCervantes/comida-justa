@@ -48,6 +48,12 @@ export default class PostgresPostRepository implements IPostRepository {
             type: item.type ?? "image",
             alt: item.alt ?? null,
             sortOrder: index,
+            /* `null` y no `undefined`: Drizzle omite del INSERT las claves indefinidas, y la
+               columna acabaría en su valor por omisión en vez de en el nulo explícito que
+               significa «no lo sabemos». Aquí da lo mismo —no tienen `DEFAULT`— pero el día que
+               alguien les ponga uno, esa diferencia deja de ser cosmética. */
+            width: item.width ?? null,
+            height: item.height ?? null,
           })),
         );
       }
