@@ -5,14 +5,14 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "~/i18n/navigation";
 import { PAGINATION_INIT_PAGE, PAGINATION_PAGE_SIZE } from "~/infra/constants";
 import type { Post } from "~/infra/types/Posts";
-import { CARD_MASONRY } from "~/presentation/design_system/surfaces/cardList";
+import MasonryColumns from "~/presentation/design_system/surfaces/MasonryColumns";
 import CardForList from "~/presentation/post/CardForList/CardForList";
 
 /**
  * El feed del home: la primera página la pinta el servidor y el resto la pide este componente.
  *
  * **Quien lo monta tiene que darle una `key` con `measuredFrom(visitor)`.** Lo que acumula en
- * `batches` es una copia de cliente de datos del servidor, y `useState` no vuelve a mirar sus props:
+ * `posts` es una copia de cliente de datos del servidor, y `useState` no vuelve a mirar sus props:
  * sin esa `key`, corregir la ubicación repintaba el chip de arriba y dejaba las tarjetas midiendo
  * desde donde estabas antes. La `key` es lo que hace que el feed empiece de nuevo justo cuando
  * empezar de nuevo es lo correcto, y solo entonces.
@@ -37,29 +37,21 @@ export default function PostsWithLoadMore({
 }) {
   const t = useTranslations("feed");
   /**
-   * Las tandas, no una lista plana: cada elemento es **lo que devolvió una petición**.
+   * Una sola lista, otra vez.
    *
-   * No es un detalle de estructura, es lo que arregla un fallo. El feed se pinta en columnas
-   * (mampostería), y `column-fill: balance` —el comportamiento por omisión— **reparte de nuevo
-   * TODAS las tarjetas cada vez que se añade una**. Con una lista plana, cargar la página
-   * siguiente no colocaba lo nuevo al final: recolocaba lo viejo, y varias tarjetas subían por
-   * encima de donde estaba mirando quien había hecho scroll. Lo recién cargado quedaba fuera de
-   * su vista salvo que volviera hacia arriba.
+   * Estuvo partida en tandas —una por petición— para esquivar la multi-columna de CSS, que reparte
+   * de nuevo TODAS las tarjetas al añadir y hacía subir lo ya visto. Eso lo arreglaba, pero dejaba
+   * una costura con huecos cada nueve tarjetas, que es lo que se vio en pantalla.
    *
-   * Una tanda por petición, cada una en su propio bloque de columnas, hace que añadir la siguiente
-   * no toque a las anteriores: nada se mueve y lo nuevo aparece siempre debajo. El precio es una
-   * costura entre tandas, donde las columnas vuelven a empezar.
-   *
-   * Se modela por petición y no cortando de nueve en nueve porque la última página trae menos, y
-   * un corte por tamaño fijo se desalinearía justo ahí.
+   * `MasonryColumns` da las dos cosas: reparte en el cliente, en orden y a la columna más corta, y
+   * ese reparto **es estable al añadir** —colocar la número diez no puede cambiar dónde quedaron
+   * las nueve anteriores—. Así que la lista vuelve a ser plana y no hay costura que enseñar.
    */
-  const [batches, setBatches] = useState<Post[][]>([initialPosts]);
+  const [posts, setPosts] = useState<Post[]>(initialPosts);
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(initialPage);
   const [hasMore, setHasMore] = useState(initialPosts.length < totalPosts);
   const loaderRef = useRef<HTMLDivElement>(null);
-
-  const loadedCount = batches.reduce((total, batch) => total + batch.length, 0);
 
   const loadMorePosts = useCallback(async () => {
     if (loading || !hasMore) return;
@@ -74,7 +66,7 @@ export default function PostsWithLoadMore({
       const data = await response.json();
 
       if (data.posts && data.posts.length > 0) {
-        setBatches((prevBatches) => [...prevBatches, data.posts]);
+        setPosts((prevPosts) => [...prevPosts, ...data.posts]);
         setCurrentPage(nextPage);
         setHasMore(data.nextPage !== null);
       } else {
@@ -113,23 +105,14 @@ export default function PostsWithLoadMore({
 
   return (
     <>
-      {loadedCount === 0 ? (
+      {posts.length === 0 ? (
         <p className="pt-6">{t("empty")}</p>
       ) : (
-        /* Un bloque de columnas por tanda. La `key` es el id de su primera publicación y no el
-           índice: las tandas solo se añaden al final, así que ese id no cambia nunca, y con él
-           React no vuelve a montar las tarjetas ya pintadas. */
-        batches.map((batch, index) => (
-          <section
-            key={String(batch[0]?.id ?? index)}
-            className={`${CARD_MASONRY} ${index === 0 ? "pt-6" : "pt-4"}`}
-            data-testid="feed-batch"
-          >
-            {batch.map((post: Post) => (
-              <CardForList {...post} viewerId={viewerId} key={post.id} />
-            ))}
-          </section>
-        ))
+        <MasonryColumns className="pt-6" testId="feed-masonry">
+          {posts.map((post: Post) => (
+            <CardForList {...post} viewerId={viewerId} key={post.id} />
+          ))}
+        </MasonryColumns>
       )}
 
       <div ref={loaderRef} className="flex justify-center mt-8 py-4">
@@ -145,7 +128,9 @@ export default function PostsWithLoadMore({
           </button>
         ) : (
           // "No hay más" solo tiene sentido para quien llegó hasta aquí cargando algo.
-          batches.length > 1 && <p className="text-gray-500">{t("noMore")}</p>
+          posts.length > initialPosts.length && (
+            <p className="text-gray-500">{t("noMore")}</p>
+          )
         )}
       </div>
 

@@ -162,16 +162,29 @@ Feature: Un design system que habla como la marca
     When alguien las compara
     Then tienen el mismo tamaño y el mismo peso, porque las dos salen de la escala y no de una clase copiada
 
-  # Lo reportó el usuario al usar el home: cargaba más y las tarjetas ya vistas se recolocaban.
-  # `column-fill: balance` —el comportamiento por omisión de multi-columna— reparte de nuevo TODAS
-  # las tarjetas cada vez que se añade una, así que lo nuevo no caía al final: subía por encima de
-  # donde él estaba mirando, y no lo veía salvo que volviera con el scroll.
+  # Lo reportó el usuario al usar el home: cargaba más y las tarjetas ya vistas se recolocaban,
+  # subiendo por encima de donde él estaba mirando. Es la multi-columna de CSS: `column-fill:
+  # balance` reparte de nuevo TODAS las tarjetas cada vez que se añade una, y no sabe hacerlo de
+  # otro modo. Partirlo en tandas lo evitaba, pero dejaba una costura con huecos cada nueve.
   @slice-8 @component
   Scenario: Cargar más no mueve lo que ya se estaba viendo
-    Given el feed del home con su primera tanda pintada
-    When se carga la página siguiente
-    Then la tanda nueva estrena su propio bloque de columnas
-    And la anterior no se vuelve a montar, así que ninguna de sus tarjetas se mueve
+    Given un listado repartido en columnas por el cliente, cada tarjeta a la más corta
+    When llega una tanda nueva
+    Then las que ya estaban conservan su columna, porque el reparto se hace en orden
+    And el listado sigue siendo continuo, sin costura entre una tanda y la siguiente
+
+  @slice-8 @component
+  Scenario Outline: El reparto es estable por construcción, no por suerte
+    Given <cuantas> tarjetas ya repartidas en 3 columnas
+    When se añaden 9 más
+    Then las <cuantas> primeras siguen exactamente donde estaban
+
+    Examples:
+      | cuantas |
+      | 9       |
+      | 18      |
+      | 27      |
+      | 36      |
 
   @slice-6 @component
   Scenario: La jerarquía del documento no se sacrifica por la apariencia
