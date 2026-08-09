@@ -15,8 +15,8 @@ type PublishValues = {
 
 /**
  * Page object del slice 1 del catálogo unificado: publicar con categoría y leer su etiqueta.
- * Los selectores de categoría solo existen cuando `kind` es "producto", así que se eligen
- * después de fijar el tipo de publicación.
+ * La categoría se elige después de fijar el tipo de publicación porque la sub-categoría se
+ * encadena a ella, no porque el tipo la haga aparecer: se pregunta en los dos kinds.
  */
 export default class UnifiedCatalogPage {
   private readonly form: Locator;
@@ -95,13 +95,21 @@ export default class UnifiedCatalogPage {
     return this.page.getByTestId("post-detail").getByTestId("category-tag");
   }
 
-  /** Los selectores de categoría solo deben existir para publicaciones de tipo producto. */
-  async expectCategorySelectorsHidden() {
+  /**
+   * La categoría se pregunta sea cual sea el tipo de publicación; la sub-categoría no aparece
+   * hasta que hay una categoría elegida, porque la base rechaza la huérfana.
+   */
+  async expectCategoryOffered() {
     await expect(
       this.page.getByRole("combobox", { name: /^categoría/i }),
-    ).toHaveCount(0);
+    ).toBeVisible();
     await expect(
       this.page.getByRole("combobox", { name: /sub-categoría/i }),
     ).toHaveCount(0);
+  }
+
+  /** La procedencia describe algo que se vende, así que solo la pide un producto. */
+  origin() {
+    return this.page.locator("#origin");
   }
 }

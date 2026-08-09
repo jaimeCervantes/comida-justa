@@ -35,6 +35,16 @@ export default class StorePage {
   }
 
   /**
+   * Cuántas publicaciones enseña el catálogo. Cada tarjeta pone su título en un encabezado, así
+   * que contar encabezados dentro de la rejilla es contar tarjetas.
+   */
+  async expectCatalogCount(count: number): Promise<void> {
+    await expect(
+      this.page.getByTestId("store-catalog").getByRole("heading"),
+    ).toHaveCount(count);
+  }
+
+  /**
    * Que la tienda diga a qué distancia queda, sin comprometerse con la cifra.
    *
    * El redondeo y su texto ya los cubre `StoreDistance.test.tsx` en Vitest, que no necesita ni base

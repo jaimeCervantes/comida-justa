@@ -40,6 +40,14 @@ jobs:
           AUTH_GOOGLE_SECRET: ${{ secrets.AUTH_GOOGLE_SECRET }}
           AUTH_TRUST_HOST: ${{ secrets.AUTH_TRUST_HOST }}
           CJ_AUTH_PATH: ${{ secrets.CJ_AUTH_PATH }}
+          # Sin esta clave, publicar y editar dejan el vector y la traducción pendientes —el
+          # registro se llenaba de `GEMINI_API_KEY is not configured`— y los escenarios de
+          # indexación se saltan solos (`test.skip`). Tenerla en el repositorio no bastaba: el
+          # trabajo solo ve las variables que este bloque nombra.
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          # La otra mitad de esos escenarios: publican como administrador. Sin la lista de correos
+          # se siguen saltando, aunque la clave de Gemini ya esté.
+          HAZLO_SANO_ADMIN_EMAILS: ${{ secrets.HAZLO_SANO_ADMIN_EMAILS }}
           NEXT_PUBLIC_FIREBASE_API_KEY: ${{ vars.NEXT_PUBLIC_FIREBASE_API_KEY }}
           NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${{ vars.NEXT_PUBLIC_FIREBASE_AUTH_DOM }}
           NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${{ vars.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}

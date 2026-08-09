@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { PAGINATION_PAGE_SIZE } from "~/infra/constants";
 import PublishProductPage from "../publishProduct/PublishProductPage";
 import { deleteOnePostBySlug } from "../testUtils/deleteOnePost";
 import { deleteTestSellerByHandle } from "../testUtils/deleteTestSeller";
@@ -176,9 +177,19 @@ test.describe("Cuando un visitante abre una tienda", () => {
     await storePage.goto(HAZLO_SANO.handle);
 
     await storePage.expectName(HAZLO_SANO.name);
-    // Los 13 productos ya traían `seller_id`: la página los muestra sin migrar ningún dato.
+    // Lo último que publicó encabeza el catálogo, así que sale en la primera página con cualquier
+    // tamaño de página.
     await storePage.expectListed("Suero natural");
-    await storePage.expectListed("Jugo Verde");
+    /* Y no es una publicación suelta: la primera página viene llena. Las 18 publicaciones que el
+       vendedor ya tenía traían `seller_id`, así que la tienda las muestra sin migrar ningún dato.
+
+       Antes se afirmaba «Jugo Verde», la sexta más reciente. Fallaba SIEMPRE en GitHub y nunca en
+       local, igual que los escenarios de SEO: ningún `.env` está commiteado, así que en CI
+       `PAGINATION_PAGE_SIZE` cae a su valor por omisión —4— mientras `.env.development` vale 9, y
+       la sexta cabía solo con 9. Contra la constante, lo que se afirma es la REGLA —la tienda
+       llena su primera página con lo que el vendedor ya tenía— y no un tamaño de página concreto,
+       que es configuración y no comportamiento. */
+    await storePage.expectCatalogCount(PAGINATION_PAGE_SIZE);
   });
 
   test("Entonces una dirección que no existe responde 404", async ({

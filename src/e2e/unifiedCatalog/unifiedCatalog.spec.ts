@@ -76,21 +76,28 @@ test.describe("When a product is published with a category", () => {
     expect(row?.is_available).toBe(true);
   });
 
-  test("Then the category selectors only exist for a product", async ({
+  /* Afirmaba lo contrario —que los selectores de categoría solo existían para un producto— y se
+     quedó atrás cuando los anuncios empezaron a guardarse con categoría: sin ella no hay forma de
+     saber a qué pilar pertenece un anuncio, y todos acababan solo en el feed general. No se vio
+     porque este describe se salta sin `HAZLO_SANO_ADMIN_EMAILS`, que es justo lo que le faltaba al
+     trabajo de GitHub. Lo que queda como propio de un producto es la procedencia. */
+  test("Then the category is asked for both kinds, and the origin only for a product", async ({
     page,
   }) => {
     const publishPage = new UnifiedCatalogPage(page);
 
     await publishPage.goto();
-    await publishPage.expectCategorySelectorsHidden();
+
+    // El formulario abre en «anuncio», y ya pregunta la categoría.
+    await publishPage.expectCategoryOffered();
+    await expect(publishPage.origin()).toHaveCount(0);
 
     await page
       .getByRole("combobox", { name: /tipo de publicación/i })
       .selectOption("producto");
 
-    await expect(
-      page.getByRole("combobox", { name: /^categoría/i }),
-    ).toBeVisible();
+    await publishPage.expectCategoryOffered();
+    await expect(publishPage.origin()).toBeVisible();
   });
 });
 
