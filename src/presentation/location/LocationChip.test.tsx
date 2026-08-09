@@ -1,4 +1,4 @@
-import { screen } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { VisitorFix } from "~/domain/entities/seller/locationFreshness";
@@ -57,20 +57,57 @@ describe("LocationChip", () => {
   });
 
   it("ofrece siempre corregirla: esa era la salida que no existía", async () => {
-    vi.stubGlobal("navigator", {
-      ...navigator,
-      geolocation: {
-        getCurrentPosition: (
-          ok: (position: {
-            coords: { latitude: number; longitude: number };
-          }) => void,
-        ) => ok({ coords: { latitude: 19.4326, longitude: -99.1332 } }),
-      },
-    });
+    stubGeolocation();
 
     renderWithIntl(<LocationChip fix={fixFrom(137 * 24)} />);
     await userEvent.click(screen.getByTestId("refresh-location"));
 
     expect(shareLocation).toHaveBeenCalledTimes(1);
   });
+
+  /*
+   * El chip es el único de los tres que sobrevive a su propia corrección: el aviso se vuelve chip y
+   * el botón suelto se vuelve distancia, pero este sigue en pantalla. Por eso aquí se veía que el
+   * estado "locating" no tenía vuelta, y el botón se quedaba cargando para siempre sobre una
+   * antigüedad que ya decía "hace unos segundos".
+   */
+  it("deja de cargar cuando la ubicación ya se guardó", async () => {
+    stubGeolocation();
+
+    renderWithIntl(<LocationChip fix={fixFrom(137 * 24)} />);
+    await userEvent.click(screen.getByTestId("refresh-location"));
+
+    await waitFor(() =>
+      expect(screen.getByTestId("refresh-location")).toHaveAttribute(
+        "aria-busy",
+        "false",
+      ),
+    );
+    expect(screen.getByTestId("refresh-location")).toBeEnabled();
+  });
+
+  it("tampoco se queda cargando si la acción revienta", async () => {
+    stubGeolocation();
+    shareLocation.mockRejectedValueOnce(new Error("se cayó el servidor"));
+
+    renderWithIntl(<LocationChip fix={fixFrom(137 * 24)} />);
+    await userEvent.click(screen.getByTestId("refresh-location"));
+
+    await waitFor(() =>
+      expect(screen.getByTestId("refresh-location")).toBeEnabled(),
+    );
+  });
 });
+
+function stubGeolocation(): void {
+  vi.stubGlobal("navigator", {
+    ...navigator,
+    geolocation: {
+      getCurrentPosition: (
+        ok: (position: {
+          coords: { latitude: number; longitude: number };
+        }) => void,
+      ) => ok({ coords: { latitude: 19.4326, longitude: -99.1332 } }),
+    },
+  });
+}

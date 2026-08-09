@@ -37,7 +37,25 @@ export function useShareLocation(): ShareLocation {
         data.set("longitude", String(position.coords.longitude));
 
         startTransition(async () => {
-          await shareLocation(data);
+          try {
+            await shareLocation(data);
+          } catch {
+            /* Un fallo del servidor no es `failed`: ese estado significa "dijiste que no" y saca
+               copia que se lo reprocha ("No compartiste tu ubicación"), que es exactamente lo
+               contrario de lo que acaba de pasar. Se vuelve a `idle`, que deja el botón vivo para
+               reintentar, y no se relanza: lo que se cayó fue una corrección de ubicación, y
+               tumbar la página entera por eso le cuesta a quien mira mucho más que la distancia
+               desactualizada que se queda en pantalla. */
+          } finally {
+            /* Volver a `idle` es lo que apaga la ruedita, y hacía falta decirlo: `isPending` se
+               apaga solo, pero `locating` lo prendimos nosotros y nadie lo apagaba. No se notaba
+               desde `LocationNotice` ni desde `ShareLocationButton` porque a los dos se los lleva
+               por delante la revalidación —el aviso se vuelve chip, el botón se vuelve distancia— y
+               con ellos se iba el estado colgado. `LocationChip` sigue en pantalla después de
+               corregir la ubicación, así que ahí el botón se quedaba cargando para siempre sobre
+               una antigüedad que ya decía "hace unos segundos". */
+            setState("idle");
+          }
         });
       },
       () => setState("failed"),
