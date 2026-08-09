@@ -1,4 +1,8 @@
 import { cn } from "~/presentation/design_system/styling/merge-class-names";
+import {
+  CARD_PADDING,
+  CARD_STACK,
+} from "~/presentation/design_system/surfaces/cardSpacing";
 import { Surface } from "~/presentation/design_system/surfaces/Surface";
 import Avatar from "~/presentation/user/Avatar";
 import FormattedDate from "./FormattedDate";
@@ -13,6 +17,7 @@ export default function Card({
   style = {},
   user = {},
   footerChildren = null,
+  actions = null,
   AnchorElement = "a",
   anchorProps = {},
   children,
@@ -32,11 +37,18 @@ export default function Card({
       style={style ?? {}}
     >
       {media}
-      <section className="p-5 flex flex-col grow">
-        <h3 className="mb-3 text-body-lg font-bold leading-tight group-hover:text-pw-lightgreen transition-colors">
+      {/* El espaciado sale del estándar y no de márgenes en cada hijo: ver `cardSpacing.ts`. Con
+          `gap`, un bloque que decide no pintarse —la línea de datos de un anuncio, que no tiene ni
+          precio ni categoría— deja de ocupar sitio, cosa que un `mb-*` en el hermano de arriba no
+          hacía: ahí estaba el hueco que quedaba bajo el título. */}
+      <section className={cn(CARD_PADDING, CARD_STACK, "grow")}>
+        <h3 className="text-body-lg font-bold leading-tight group-hover:text-pw-lightgreen transition-colors">
           <AnchorElement {...anchorProps}>{title}</AnchorElement>
         </h3>
         {children}
+        {/* `mt-auto` empuja la firma al fondo, que es lo que alinea los pies de una fila de
+            tarjetas de altura distinta. El `pt-4` se queda: el borde necesita aire propio, más
+            que la separación de la pila. */}
         <div className="mt-auto flex justify-start gap-3 items-center pt-4 border-t border-separator">
           <Avatar user={user} />
           <div className="flex flex-col text-label text-text-support">
@@ -45,6 +57,7 @@ export default function Card({
             </span>
             <FormattedDate isoDateString={createdAt} />
           </div>
+          {actions ? <div className="ml-auto">{actions}</div> : null}
         </div>
       </section>
 
