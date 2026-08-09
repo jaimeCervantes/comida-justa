@@ -8,20 +8,20 @@ import {
   useRef,
   useState,
 } from "react";
-
-/** Ancho mínimo de columna, el mismo que usaba la mampostería de CSS. */
-const MIN_COLUMN_WIDTH = 300;
-
-/** Separación entre tarjetas, en píxeles. Es el `gap-4` de Tailwind. */
-const GAP = 16;
+import { CARD_MASONRY } from "./cardList";
 
 /**
- * Cuántas columnas caben en ese ancho. Nunca menos de una.
+ * Ancho mínimo de columna.
  *
- * En el servidor no hay ancho que medir, así que se parte de este valor y se corrige antes de
- * pintar. Ver el `useLayoutEffect` de abajo.
+ * **Tiene que ser el mismo número que el `columns-[300px]` de `CARD_MASONRY`**, que es quien
+ * maqueta mientras no hay nada medido: si los dos lados se separan, el número de columnas cambiaría
+ * al hidratar y volvería el brinco. Tailwind no puede leer esta constante —sus clases se extraen
+ * del código fuente—, así que hay un test que vigila que sigan diciendo lo mismo.
  */
-const SERVER_COLUMNS = 3;
+export const MIN_COLUMN_WIDTH = 300;
+
+/** Separación entre tarjetas, en píxeles. Es el `gap-4` de Tailwind. */
+export const GAP = 16;
 
 function columnsFor(width: number): number {
   return Math.max(1, Math.floor((width + GAP) / (MIN_COLUMN_WIDTH + GAP)));
@@ -57,27 +57,37 @@ export function assignToColumns(
   });
 }
 
-/** El reparto de partida, antes de haber medido nada. Determinista: servidor y cliente coinciden. */
-function roundRobin(count: number, columnCount: number): number[] {
-  return Array.from({ length: count }, (_, index) => index % columnCount);
-}
-
 function sameAssignment(a: readonly number[], b: readonly number[]): boolean {
   return a.length === b.length && a.every((value, index) => value === b[index]);
 }
 
+/** Un reparto ya medido. Mientras es `null`, quien maqueta es CSS. */
+type Layout = {
+  readonly columns: number;
+  readonly assignment: readonly number[];
+};
+
 /**
- * Un listado en mampostería, repartido en el cliente.
+ * Un listado en mampostería que se reparte en el cliente **sin decidir nada hasta poder medir**.
  *
  * Existe porque la multi-columna de CSS no sirve para un listado que crece: reparte de nuevo todas
  * las tarjetas al añadir, así que lo ya visto se movía. Pintarlo por tandas lo evitaba, pero dejaba
- * una costura con huecos cada nueve tarjetas. Esto da las dos cosas: flujo continuo y nada que se
- * mueva.
+ * una costura con huecos cada nueve tarjetas. El reparto voraz de arriba da las dos cosas: flujo
+ * continuo y nada que se mueva.
  *
- * **La corrección va en `useLayoutEffect` y no en `useEffect`.** El servidor no puede medir nada, así
- * que el primer HTML sale con un reparto de partida y tres columnas; `useLayoutEffect` corre después
- * de tocar el DOM y **antes de que el navegador pinte**, de modo que el reparto equivocado no llega
- * a verse. Con `useEffect` se vería un salto en cada carga.
+ * **Antes de medir, maqueta CSS, y eso no es un detalle.** El servidor no tiene ancho que medir, y
+ * durante un tiempo esto arrancaba en tres columnas fijas confiando en que `useLayoutEffect` las
+ * corrigiera antes de pintar. Solo que `useLayoutEffect` corre **después de la hidratación**: el
+ * primer pintado es el HTML del servidor, que el teléfono dibuja en cuanto llega y mucho antes de
+ * que baje el JavaScript. Resultado, el fallo reportado: el home abría con tres columnas apretadas
+ * y de golpe se convertía en una. Ahora el primer render sale con `CARD_MASONRY` —la misma
+ * multi-columna que usan los demás listados—, que el navegador resuelve solo, con el ancho real y
+ * sin scripts. `columns-[300px] gap-4` y `columnsFor()` son la misma fórmula sobre los mismos
+ * números, así que el número de columnas no cambia al hidratar; lo único que se acomoda al medir es
+ * en qué columna cae cada tarjeta.
+ *
+ * Y cuando solo cabe una columna —el teléfono— ni eso: CSS ya pone las tarjetas en orden, una
+ * debajo de otra, que es exactamente lo que haría el reparto, así que no se toca el DOM.
  */
 export default function MasonryColumns({
   children,
@@ -89,35 +99,46 @@ export default function MasonryColumns({
   testId?: string;
 }) {
   const items = Children.toArray(children);
+  const count = items.length;
   const containerRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<Array<HTMLDivElement | null>>([]);
-  const [columnCount, setColumnCount] = useState(SERVER_COLUMNS);
-  const [assignment, setAssignment] = useState<number[]>(() =>
-    roundRobin(items.length, SERVER_COLUMNS),
-  );
+  const [layout, setLayout] = useState<Layout | null>(null);
 
   const relayout = useCallback(() => {
     const container = containerRef.current;
-    if (!container) return;
+    if (!container || count === 0) return;
 
-    const nextColumns = columnsFor(container.clientWidth);
-    const heights = itemRefs.current.map(
-      (node) => node?.getBoundingClientRect().height ?? 0,
+    const columns = columnsFor(container.clientWidth);
+
+    if (columns === 1) {
+      if (layout) setLayout(null);
+      return;
+    }
+
+    const heights = Array.from(
+      { length: count },
+      (_, index) =>
+        itemRefs.current[index]?.getBoundingClientRect().height ?? 0,
     );
 
     /* Con alguna altura todavía en cero —una imagen que aún no ocupa su sitio— repartir daría un
        resultado que habría que deshacer en cuanto midiera de verdad, y deshacerlo es mover
-       tarjetas. Se espera: el `ResizeObserver` vuelve a llamar cuando ya tengan tamaño. */
-    if (heights.length !== items.length || heights.some((h) => h === 0)) {
-      if (nextColumns !== columnCount) setColumnCount(nextColumns);
+       tarjetas. Se espera, maquetando con CSS: el `ResizeObserver` vuelve a llamar cuando tengan
+       tamaño. */
+    if (heights.some((height) => height === 0)) return;
+
+    const assignment = assignToColumns(heights, columns);
+
+    if (
+      layout &&
+      layout.columns === columns &&
+      sameAssignment(layout.assignment, assignment)
+    ) {
       return;
     }
 
-    const next = assignToColumns(heights, nextColumns);
-
-    if (nextColumns !== columnCount) setColumnCount(nextColumns);
-    if (!sameAssignment(next, assignment)) setAssignment(next);
-  }, [assignment, columnCount, items.length]);
+    setLayout({ columns, assignment });
+  }, [count, layout]);
 
   useLayoutEffect(() => {
     relayout();
@@ -136,9 +157,37 @@ export default function MasonryColumns({
     return () => observer.disconnect();
   }, [relayout]);
 
-  const columns = Array.from({ length: columnCount }, () => [] as number[]);
+  /* El envoltorio es el mismo en las dos maquetaciones: es lo que se mide, y en la de CSS es
+     también lo que no debe partirse entre columnas (`CARD_MASONRY` estiliza a sus hijos directos). */
+  const wrapped = (index: number) => (
+    <div
+      key={(items[index] as { key?: string })?.key ?? index}
+      ref={(node) => {
+        itemRefs.current[index] = node;
+      }}
+    >
+      {items[index]}
+    </div>
+  );
+
+  if (!layout) {
+    return (
+      <div
+        ref={containerRef}
+        className={`${CARD_MASONRY} ${className}`}
+        data-testid={testId}
+      >
+        {items.map((_, index) => wrapped(index))}
+      </div>
+    );
+  }
+
+  const buckets = Array.from({ length: layout.columns }, () => [] as number[]);
   items.forEach((_, index) => {
-    columns[assignment[index] ?? index % columnCount]?.push(index);
+    /* Una tarjeta recién llegada todavía no está en el reparto: se le da un sitio provisional para
+       que el render no se caiga. Dura lo que tarda el `useLayoutEffect` de arriba, que corre antes
+       de pintar, así que nadie lo ve. */
+    buckets[layout.assignment[index] ?? index % layout.columns]?.push(index);
   });
 
   return (
@@ -147,7 +196,7 @@ export default function MasonryColumns({
       className={`flex items-start gap-4 ${className}`}
       data-testid={testId}
     >
-      {columns.map((indexes, column) => (
+      {buckets.map((indexes, column) => (
         <div
           // Las columnas no se reordenan ni se filtran: su posición ES su identidad.
           // biome-ignore lint/suspicious/noArrayIndexKey: la columna se identifica por su posición.
@@ -155,16 +204,7 @@ export default function MasonryColumns({
           className="flex min-w-0 flex-1 flex-col gap-4"
           data-testid="masonry-column"
         >
-          {indexes.map((index) => (
-            <div
-              key={(items[index] as { key?: string })?.key ?? index}
-              ref={(node) => {
-                itemRefs.current[index] = node;
-              }}
-            >
-              {items[index]}
-            </div>
-          ))}
+          {indexes.map((index) => wrapped(index))}
         </div>
       ))}
     </div>

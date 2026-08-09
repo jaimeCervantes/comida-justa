@@ -705,3 +705,117 @@ resueltos, y el proyecto ya usa Radix en tres sitios.
    casillas y los radios. La búsqueda que encontró `selectClassName` no se hizo para ellos.
 5. Sigue abierto lo del slice 9: typechequear los tests ya se hizo, quedan Alembic e i18n de
    `sellers`/`branches`.
+
+## Slice 11: El primer pintado del feed ya trae el ancho correcto (2026-08-09)
+
+> En el `.feature` y en el roadmap esta slice es `@slice-9`. La numeración de esta bitácora y la de
+> `design-system.md` llevan divergiendo desde el slice 8; se deja anotado en vez de renumerar.
+
+### Objetivo
+
+Lo reportó el usuario abriendo el home en el teléfono: el feed aparecía en varias columnas apretadas
+y de golpe se convertía en una sola. No era un parpadeo de estilos, era el reparto cambiando.
+
+### Decisiones y por qué
+
+**El diagnóstico primero, porque el comentario del código decía lo contrario.** `MasonryColumns`
+arrancaba en `SERVER_COLUMNS = 3` y corregía en `useLayoutEffect`, con un comentario que afirmaba
+que así el reparto equivocado «no llega a verse». Es cierto solo para los renders posteriores a la
+hidratación: **el primer pintado es el HTML del servidor**, que el teléfono dibuja en cuanto llega y
+mucho antes de que baje el JavaScript. Se comprobó pidiendo la página, no leyendo el código:
+
+```bash
+curl -s http://localhost:3000/ | grep -o 'masonry-column' | wc -l   # antes: 3   ahora: 0
+```
+
+**El arreglo salió de los otros listados.** Productos, categoría, buscar, tienda y perfil nunca
+tuvieron el problema porque usan `CARD_MASONRY`, multi-columna de CSS pura, que el navegador
+resuelve en el primer pintado sin scripts. Así que `MasonryColumns` deja de inventar un número de
+columnas: mientras no ha medido nada maqueta con `CARD_MASONRY`, y solo al tener ancho y alturas
+reales cambia al reparto voraz en columnas de flex. El reparto del slice 8 —y su estabilidad al
+cargar más— no se tocó.
+
+**Lo que hace que el cambio sea invisible: `columns-[300px] gap-4` y `columnsFor()` son la misma
+fórmula sobre los mismos números.** El número de columnas no cambia al hidratar, y las columnas caen
+en las mismas coordenadas —tres columnas de multi-columna en 1216px están en las mismas x que tres
+hijos `flex-1` con `gap-4`—. Lo único que se acomoda al medir es en qué columna cae cada tarjeta.
+Como son dos sitios que Tailwind no puede mantener sincronizados por su cuenta (sus clases se
+extraen del código fuente, no leen constantes), hay un test que falla si alguien mueve un lado.
+
+**Con una sola columna no se hace nada.** CSS ya pone las tarjetas en orden, una debajo de otra, que
+es exactamente el resultado del reparto voraz con `columnCount = 1`. Así que se sale antes: el
+teléfono —donde se reportó el fallo— ya no entra nunca al camino de JavaScript y su DOM no se toca.
+Ahorra además el remontaje de las tarjetas que implica cambiar de maquetación.
+
+**Los tests afirman posiciones, no clases.** Un caso que comprobara `columns-[300px]` pasaría igual
+aunque el CSS no llegara a aplicarse; lo que se reportó es dónde acaban las tarjetas. El e2e mide la
+caja de cada una y cuenta cuántas coordenadas horizontales distintas hay.
+
+**El e2e bloquea los paquetes de Next en vez de usar `javaScriptEnabled: false`.** Así el contexto
+conserva JavaScript para Playwright, y sobre todo es literalmente el caso reportado: la página ya se
+ve y sus scripts todavía no llegaron. Intentar pillar ese instante con los scripts cargando de
+verdad sería una carrera, y un test intermitente no defiende nada.
+
+### Archivos tocados
+
+- **Componente:** `src/presentation/design_system/surfaces/MasonryColumns.tsx` (+91 −51). Exporta
+  ahora `MIN_COLUMN_WIDTH` y `GAP` para que el test pueda atarlos a la clase de CSS.
+- **Pruebas:** `src/presentation/design_system/surfaces/MasonryColumns.test.tsx` (tres casos de
+  render nuevos y el que vigila la fórmula), `src/e2e/design-system/primerPintado.spec.ts` (nuevo).
+- **Especificación:** `src/e2e/design-system/design-system.feature` (`@slice-9`, cuatro escenarios).
+- **Documentación:** `docs/features/design-system.md` (slice 9, y el slice 8 que faltaba recoger).
+
+### Comandos
+
+```bash
+pnpm run test:run        # 111 archivos, 1085 casos
+pnpm run typecheck
+pnpm run lint
+pnpm exec playwright test src/e2e/design-system/primerPintado.spec.ts --reporter=list
+```
+
+### Validación
+
+- `pnpm run test:run`: **1085/1085** en 111 archivos.
+- `pnpm run typecheck`: limpio. `pnpm run lint`: limpio (hizo falta `biome format --write` sobre lo
+  tocado antes de que pasara).
+- El e2e nuevo: **4/4** en 49.4 s.
+- **La comprobación en rojo, que es la que vale.** Con el `MasonryColumns` de `HEAD` restaurado, el
+  mismo spec da **2 fallos y 2 pases**: caen los dos casos del teléfono y pasan los dos del
+  escritorio, que es exactamente lo reportado —en escritorio el número de columnas ya era correcto—.
+  El registro del fallo llegó a capturar el brinco: `2 × locator resolved to 3 elements` seguido de
+  `11 × locator resolved to 1 element`.
+- **Pendiente: la suite e2e completa.** El usuario pidió correrla él. No se ejecutó aquí, así que no
+  se afirma nada sobre ella.
+
+### Desviaciones
+
+Ninguna respecto a lo aprobado. Se añadió por el camino la salida temprana con una sola columna, que
+no estaba en el plan: apareció al notar que el teléfono pagaba un remontaje de todas las tarjetas
+para llegar a una maquetación idéntica a la que ya tenía.
+
+### Recap
+
+El feed del home ya no decide cuántas columnas tiene antes de poder medirlas: el primer pintado lo
+maqueta CSS con el ancho real del dispositivo, y el reparto voraz del slice 8 entra solo cuando hay
+algo que medir y hay más de una columna que repartir. En un teléfono las dos maquetaciones dan el
+mismo resultado, así que el brinco desapareció y el JavaScript ya ni siquiera toca el DOM; en
+escritorio el número de columnas es correcto desde el primer píxel. La regla que mantiene las dos
+maquetaciones de acuerdo —300 px de columna, 16 de separación— está atada por un test, porque vive
+en dos lenguajes que no pueden leerse entre sí.
+
+### Próximos pasos (opciones)
+
+1. **Correr la suite e2e completa** (`--shard=1/2` y `--shard=2/2`, matando los `node` huérfanos
+   antes) y commitear. Es lo único pendiente de esta slice.
+2. **El remontaje en escritorio.** Al pasar de CSS a columnas de flex, React desmonta y vuelve a
+   montar cada tarjeta, porque cambian de padre. Ocurre dentro del `useLayoutEffect`, antes de
+   pintar, así que no debería verse —las imágenes vienen de la caché—, pero no se midió. Si
+   apareciera un parpadeo de imágenes en escritorio, la salida es posicionar en absoluto sobre un
+   contenedor plano, que deja el DOM quieto en las dos maquetaciones.
+3. **Los demás listados**, que siguen en multi-columna de CSS pura: no brincan, pero sí recolocan
+   todo al añadir. Hoy no crecen —son páginas paginadas—, así que no duele; el día que uno estrene
+   «cargar más», hereda el fallo del slice 8 y le toca `MasonryColumns`.
+4. **El anti-patrón general.** Este fallo es una instancia de uno más amplio: cualquier componente
+   que dependa de medir para maquetar miente en el primer pintado. Vale la pena buscar otros
+   (`ResizeObserver`, `clientWidth`, `window.matchMedia` en render) antes de que los reporte alguien.

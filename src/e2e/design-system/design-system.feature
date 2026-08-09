@@ -186,6 +186,50 @@ Feature: Un design system que habla como la marca
       | 27      |
       | 36      |
 
+  # ---------------------------------------------------------------------------
+  # Slice 9 — El primer pintado ya trae el ancho correcto  (actual)
+  # Lo reportó el usuario abriendo el home en el teléfono: el feed aparece en varias
+  # columnas apretadas y de golpe se convierte en una. El `useLayoutEffect` que corrige
+  # el reparto solo protege los renders POSTERIORES a la hidratación; el primer pintado
+  # es el HTML del servidor, y ese sale con tres columnas escritas porque el servidor no
+  # tiene ancho que medir:  curl -s localhost:3000/ | grep -c masonry-column  → 3
+  # ---------------------------------------------------------------------------
+
+  @slice-9
+  Scenario Outline: El feed abre con las columnas que caben, sin esperar al JavaScript
+    Given un visitante con una ventana de <ancho> px
+    When abre el home y el navegador pinta el HTML del servidor, antes de correr ningún script
+    Then las publicaciones se agrupan en <columnas> posiciones horizontales
+    And ninguna se mueve de sitio cuando el script termina de cargar
+
+    Examples: la misma fórmula que aplica el cliente al medir, resuelta por CSS
+      | ancho | columnas | contenedor | cuenta                    |
+      | 390   | 1        | 358px      | cabe una de 300 y ya está |
+      | 1280  | 3        | 1216px     | (1216+16) / (300+16) = 3  |
+
+  @slice-9 @component
+  Scenario: Mientras no haya nada medido, el reparto lo hace CSS
+    Given un listado en mampostería recién montado, sin ancho ni alturas que medir
+    When se pinta
+    Then no existe ninguna columna repartida por el cliente
+    And el contenedor lleva la multi-columna de CSS, que el navegador resuelve sin scripts
+
+  @slice-9 @component
+  Scenario: En cuanto hay medidas, el reparto vuelve a ser el del cliente
+    Given un listado montado en 1216px con tarjetas que ya tienen altura
+    When el observador de tamaño avisa
+    Then las tarjetas quedan repartidas en 3 columnas, cada una a la más corta
+    And el reparto es el mismo del slice 8, que no se toca
+
+  # El primer pintado y el reparto medido tienen que medir la columna igual, o el número de
+  # columnas cambiaría al hidratar y volvería el brinco. Son dos sitios distintos —una clase
+  # de Tailwind y dos constantes de TypeScript— porque Tailwind no lee valores de JavaScript.
+  @slice-9 @component
+  Scenario: Las dos maquetaciones miden la columna igual
+    Given MIN_COLUMN_WIDTH = 300 y GAP = 16, que usa el reparto del cliente
+    When se compara con la clase que pinta el primer render
+    Then esa clase es "columns-[300px] gap-4": el mismo ancho mínimo y la misma separación
+
   @slice-6 @component
   Scenario: La jerarquía del documento no se sacrifica por la apariencia
     Given una sección que debe ser un h2 pero verse pequeña

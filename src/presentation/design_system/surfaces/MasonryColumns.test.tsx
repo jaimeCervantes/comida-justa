@@ -1,5 +1,11 @@
-import { describe, expect, it } from "vitest";
-import { assignToColumns } from "./MasonryColumns";
+import { render, screen } from "@testing-library/react";
+import { afterEach, describe, expect, it } from "vitest";
+import { CARD_MASONRY } from "./cardList";
+import MasonryColumns, {
+  assignToColumns,
+  GAP,
+  MIN_COLUMN_WIDTH,
+} from "./MasonryColumns";
 
 /**
  * El reparto es lo único que se prueba aquí, y a propósito: es la regla, y es pura. Lo demás
@@ -72,5 +78,110 @@ describe("assignToColumns", () => {
     const asignacion = assignToColumns([200, 200, 200, 200, 200, 200], 3);
 
     expect(new Set(asignacion)).toEqual(new Set([0, 1, 2]));
+  });
+});
+
+/**
+ * Cómo se dejan medir las tarjetas en jsdom, que no maqueta: cada una declara su altura y el
+ * envoltorio que `MasonryColumns` le pone alrededor la devuelve como si el navegador la hubiera
+ * calculado. Es la única forma de ejercitar el camino "ya hay medidas" fuera de un navegador.
+ */
+function conAncho(ancho: number): void {
+  Object.defineProperty(HTMLElement.prototype, "clientWidth", {
+    configurable: true,
+    get: () => ancho,
+  });
+  Object.defineProperty(HTMLElement.prototype, "getBoundingClientRect", {
+    configurable: true,
+    value(this: HTMLElement) {
+      const alto = Number(
+        this.firstElementChild?.getAttribute("data-alto") ?? 0,
+      );
+
+      return { height: alto, width: ancho } as DOMRect;
+    },
+  });
+}
+
+function tarjetas(alturas: readonly number[]) {
+  return alturas.map((alto, indice) => (
+    // biome-ignore lint/suspicious/noArrayIndexKey: son datos de prueba, no se reordenan.
+    <article key={indice} data-alto={alto}>
+      tarjeta {indice}
+    </article>
+  ));
+}
+
+/**
+ * El fallo que trajo aquí: el home abría en el teléfono con tres columnas apretadas que de golpe
+ * se convertían en una. El reparto se corregía en `useLayoutEffect`, que solo cubre los renders
+ * posteriores a la hidratación — el primer pintado es el HTML del servidor, y salía con un número
+ * de columnas inventado porque el servidor no tiene ancho que medir.
+ */
+describe("MasonryColumns, antes de haber medido nada", () => {
+  afterEach(() => {
+    // @ts-expect-error se quita la propiedad para devolver el prototipo a su estado original.
+    delete HTMLElement.prototype.clientWidth;
+    // @ts-expect-error idem.
+    delete HTMLElement.prototype.getBoundingClientRect;
+  });
+
+  it("no inventa columnas: deja el reparto a la multi-columna de CSS", () => {
+    render(
+      <MasonryColumns testId="listado">{tarjetas([0, 0])}</MasonryColumns>,
+    );
+
+    expect(screen.queryAllByTestId("masonry-column")).toHaveLength(0);
+    expect(screen.getByTestId("listado")).toHaveClass("columns-[300px]");
+    expect(screen.getAllByRole("article")).toHaveLength(2);
+  });
+
+  it("y en cuanto hay ancho y alturas, reparte cada tarjeta a la columna más corta", () => {
+    conAncho(1216);
+
+    render(
+      <MasonryColumns testId="listado">
+        {tarjetas([400, 200, 200, 100])}
+      </MasonryColumns>,
+    );
+
+    const columnas = screen.getAllByTestId("masonry-column");
+
+    // El mismo reparto que afirma `assignToColumns`: [0, 1, 2, 1].
+    expect(columnas).toHaveLength(3);
+    expect(columnas.map((columna) => columna.textContent)).toEqual([
+      "tarjeta 0",
+      "tarjeta 1tarjeta 3",
+      "tarjeta 2",
+    ]);
+  });
+
+  /* En una sola columna CSS ya hace exactamente lo que haría el reparto —las tarjetas en orden,
+     una debajo de otra—, así que no hay razón para tocar el DOM. Es el caso del teléfono, que es
+     donde se reportó el fallo: ahí el JavaScript no llega a mover nada. */
+  it("y cuando solo cabe una columna, se queda en CSS y no toca el DOM", () => {
+    conAncho(358);
+
+    render(
+      <MasonryColumns testId="listado">
+        {tarjetas([400, 200, 200])}
+      </MasonryColumns>,
+    );
+
+    expect(screen.queryAllByTestId("masonry-column")).toHaveLength(0);
+    expect(screen.getByTestId("listado")).toHaveClass("columns-[300px]");
+  });
+});
+
+/**
+ * Las dos maquetaciones tienen que medir la columna igual, o el número de columnas cambiaría al
+ * hidratar y volvería el brinco. Viven en sitios distintos —una clase de Tailwind y dos constantes
+ * de TypeScript— porque Tailwind no puede leer un valor de JavaScript, así que lo vigila este test.
+ */
+describe("El primer pintado y el reparto medido miden la columna igual", () => {
+  it("la clase de CSS lleva los mismos números que las constantes del reparto", () => {
+    expect(CARD_MASONRY).toContain(`columns-[${MIN_COLUMN_WIDTH}px]`);
+    // La escala de espaciado de Tailwind va de 4 en 4 píxeles: `gap-4` son 16.
+    expect(CARD_MASONRY).toContain(`gap-${GAP / 4}`);
   });
 });

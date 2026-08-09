@@ -144,6 +144,55 @@ nadie.
 
 **Alcance.** `Skeleton`, `Alert` y un token de anillo de foco visible y consistente.
 
+### Slice 8 — La mampostería se reparte en el cliente ✅
+
+**Alcance.** `MasonryColumns`: el reparto voraz y estable que sustituyó a la multi-columna de CSS en
+el feed del home, para que cargar más dejara de mover lo ya visto. Sus escenarios viven en
+`src/e2e/design-system/design-system.feature` (`@slice-8`); este documento no lo había recogido.
+
+### Slice 9 — El primer pintado ya trae el ancho correcto
+
+**El fallo, reportado desde un teléfono.** El home abre con el feed en varias columnas apretadas y
+de golpe se convierte en una sola. El brinco no es un parpadeo de estilos: es el reparto cambiando.
+
+**Por qué pasa.** `MasonryColumns` arranca en `SERVER_COLUMNS = 3` porque el servidor no tiene ancho
+que medir, y corrige en `useLayoutEffect`. Ese `useLayoutEffect` solo protege los renders
+**posteriores a la hidratación**: el primer pintado es el HTML del servidor, que el teléfono dibuja
+en cuanto llega y mucho antes de que baje y corra el JavaScript. Se comprueba pidiendo la página:
+
+```bash
+curl -s http://localhost:3000/ | grep -o 'masonry-column' | wc -l   # → 3
+```
+
+Tres columnas escritas en el HTML, en una pantalla donde solo cabe una. Los demás listados
+—productos, categoría, buscar, tienda, perfil— no tienen el problema porque usan `CARD_MASONRY`,
+multi-columna de CSS pura: el navegador la resuelve en el primer pintado, sin scripts. Esa es la
+pista y también el arreglo.
+
+**Alcance.** `MasonryColumns` deja de inventar un número de columnas. Antes de medir se pinta con
+`CARD_MASONRY` —la misma multi-columna que ya usan los otros listados—, y solo cuando tiene ancho y
+alturas reales cambia al reparto voraz de columnas en flex. El reparto en sí, su estabilidad al
+cargar más y el orden de las tarjetas no se tocan: sigue siendo el del slice 8.
+
+En un teléfono las dos maquetaciones dan exactamente lo mismo —una columna, en orden de documento—,
+así que el cambio no se ve. En escritorio el número de columnas ya es el correcto desde el primer
+píxel, porque `columns-[300px] gap-4` y `columnsFor()` son la misma fórmula sobre los mismos
+números; lo único que se reacomoda al medir es en qué columna cae cada tarjeta, que es lo que ya
+ocurría.
+
+**Criterios de aceptación.**
+- Con JavaScript deshabilitado y una ventana de 390px, todas las tarjetas del home comparten el
+  borde izquierdo y ocupan el ancho del contenedor: una sola columna.
+- Con JavaScript deshabilitado y una ventana de 1280px, las tarjetas se agrupan en 3 posiciones
+  horizontales distintas.
+- El render inicial de `MasonryColumns` —sin ancho ni alturas— no contiene ningún
+  `data-testid="masonry-column"`; contiene el contenedor con la multi-columna de CSS.
+- Con ancho y alturas medidos, `MasonryColumns` vuelve a repartir en columnas de flex como hoy.
+- `MIN_COLUMN_WIDTH` y `GAP` no pueden separarse de la clase CSS del primer pintado: hay un test que
+  falla si alguien cambia uno de los dos lados.
+- Los tests que ya existen sobre el feed (`PostsWithLoadMore.test.tsx`) siguen verdes sin tocarlos,
+  incluido el que afirma que la tarjeta ya pintada no se vuelve a montar al cargar más.
+
 ---
 
 ## Verificación
