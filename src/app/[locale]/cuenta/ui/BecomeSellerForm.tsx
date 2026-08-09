@@ -11,6 +11,7 @@ import { TextArea } from "~/presentation/design_system/forms/TextArea";
 import { TextField } from "~/presentation/design_system/forms/TextField";
 import type { BecomeSellerState } from "../actions";
 import { storeHref, storePath } from "../storePath";
+import AccountCard from "./AccountCard";
 
 export default function BecomeSellerForm({
   action,
@@ -40,10 +41,7 @@ export default function BecomeSellerForm({
   }
 
   return (
-    <section>
-      <h1 className="text-xl font-bold mb-2">{t("becomeSellerTitle")}</h1>
-      <p className="mb-6">{t("becomeSellerIntro")}</p>
-
+    <AccountCard title={t("becomeSellerTitle")} intro={t("becomeSellerIntro")}>
       {state.errorMessage ? (
         <p
           data-testid="become-seller-error"
@@ -112,7 +110,7 @@ export default function BecomeSellerForm({
           </Button>
         </footer>
       </form>
-    </section>
+    </AccountCard>
   );
 }
 
@@ -121,15 +119,17 @@ function StoreReadyMessage({ handle }: { handle: string }) {
   const locale = resolveLocale(useLocale());
 
   return (
-    <section data-testid="store-ready">
-      <h1 className="text-xl font-bold mb-2">{t("becomeSellerOnline")}</h1>
-      <p className="mb-4">{t("becomeSellerShare")}</p>
+    <AccountCard
+      title={t("becomeSellerOnline")}
+      intro={t("becomeSellerShare")}
+      testId="store-ready"
+    >
       <Link
         href={storeHref(handle)}
         className="font-bold text-pw-orange break-all"
       >
         {`${PUBLIC_BASE_URL}${storePath(handle, locale)}`}
       </Link>
-    </section>
+    </AccountCard>
   );
 }

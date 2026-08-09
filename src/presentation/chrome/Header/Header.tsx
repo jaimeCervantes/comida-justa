@@ -11,11 +11,13 @@ import { auth } from "~/infra/auth";
 import { isAdmin } from "~/infra/auth/isAdmin";
 import { PUBLIC_BRAND_NAME } from "~/infra/constants";
 import { getCategoryTaxonomy } from "~/infra/dataAccess/categories/cachedCategoryTaxonomy";
+import { findPublicAddresses } from "~/infra/dataAccess/identity/sessionIdentity";
 import { SignIn, SignOut } from "~/presentation/auth/auth-buttons";
 import LinkButton from "~/presentation/navigation/LinkButton/LinkButton";
 import SearchBar from "~/presentation/search/SearchBar";
 import Avatar from "~/presentation/user/Avatar/Avatar";
 import LanguageSwitcher from "../LanguageSwitcher/LanguageSwitcher";
+import MobileAccountCard from "./MobileAccountCard";
 import MobileNav from "./MobileNav";
 import Nav from "./Nav";
 import UserMenu from "./UserMenu";
@@ -26,6 +28,12 @@ export default async function Header() {
   const session = await auth();
   // El acceso al reporte interno solo se muestra a admins; el gate real está en la página.
   const showAdminLinks = isAdmin(session?.user?.email);
+
+  /* Las direcciones propias, para que el menú del avatar lleve a la tienda y al perfil sin pasar
+     por `/cuenta`. Van cacheadas por render: en `/cuenta`, que lee lo mismo, no se repite. */
+  const { storeHandle, username } = session?.user?.id
+    ? await findPublicAddresses(session.user.id)
+    : { storeHandle: null, username: null };
 
   /* Las categorías del menú salen de la base, no de una constante: se dan de alta desde
      `/admin/catalogo` y tienen que aparecer sin desplegar. La lectura está cacheada
@@ -44,20 +52,11 @@ export default async function Header() {
         <div className="flex gap-4 sm:gap-6 items-center">
           <MobileNav isAdmin={showAdminLinks} categories={categoryBranches}>
             {session ? (
-              <Link
-                href="/cuenta"
-                className="flex items-center gap-3 px-2 py-2 bg-gray-50 dark:bg-gray-800/50 rounded-lg"
-              >
-                <Avatar user={session?.user} />
-                <div className="flex flex-col">
-                  <span className="font-medium text-gray-900 dark:text-gray-100">
-                    {session.user?.name}
-                  </span>
-                  <span className="text-xs text-gray-500 truncate max-w-[200px]">
-                    {t("myAccountAndStore")}
-                  </span>
-                </div>
-              </Link>
+              <MobileAccountCard
+                user={session.user}
+                storeHandle={storeHandle}
+                username={username}
+              />
             ) : null}
 
             {/* Publicar y la sesión, en una fila de dos columnas: son las dos acciones del menú y
@@ -124,6 +123,8 @@ export default async function Header() {
               avatar={<Avatar user={session?.user} />}
               userName={session.user?.name}
               isAdmin={showAdminLinks}
+              storeHandle={storeHandle}
+              username={username}
               signOut={
                 <SignOut
                   className="w-full justify-center"

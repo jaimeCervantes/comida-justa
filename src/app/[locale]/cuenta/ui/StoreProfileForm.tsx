@@ -13,6 +13,7 @@ import ImageVideoUploader, {
 } from "~/presentation/media/ImageVideoUploader/ImageVideoUploader";
 import type { StoreProfileState } from "../actions";
 import { storePath } from "../storePath";
+import AccountCard from "./AccountCard";
 
 export default function StoreProfileForm({
   action,
@@ -37,15 +38,13 @@ export default function StoreProfileForm({
   }, []);
 
   return (
-    <section>
-      <h2 className="text-lg font-bold mb-2">{t("storeProfileTitle")}</h2>
-      <p className="mb-6 text-sm text-gray-600 dark:text-gray-400">
-        {t.rich("storeAddressStable", {
-          address: `${PUBLIC_BASE_URL}${storePath(seller.handle ?? "", locale)}`,
-          url: (chunks) => <span className="font-bold">{chunks}</span>,
-        })}
-      </p>
-
+    <AccountCard
+      title={t("storeProfileTitle")}
+      intro={t.rich("storeAddressStable", {
+        address: `${PUBLIC_BASE_URL}${storePath(seller.handle ?? "", locale)}`,
+        url: (chunks) => <span className="font-bold">{chunks}</span>,
+      })}
+    >
       {state.errorMessage ? (
         <p
           data-testid="store-profile-error"
@@ -57,7 +56,7 @@ export default function StoreProfileForm({
 
       {state.saved ? (
         <p data-testid="store-profile-saved" className="mb-4 text-pw-green">
-          Ficha guardada.
+          {t("storeProfileSaved")}
         </p>
       ) : null}
 
@@ -87,7 +86,7 @@ export default function StoreProfileForm({
           name="url"
           type="url"
           label={t("storeWebsite")}
-          placeholder="https://mitienda.mx"
+          placeholder={t("storeWebsitePlaceholder")}
           defaultValue={seller.url ?? ""}
           icon={<MdLink />}
           containerClassName="mb-6"
@@ -102,7 +101,7 @@ export default function StoreProfileForm({
         />
 
         <ImageVideoUploader
-          label={seller.logoUrl ? "Cambia tu logo" : "Sube tu logo"}
+          label={t(seller.logoUrl ? "storeLogoChange" : "storeLogoUpload")}
           name=""
           directory="sellers"
           onUploaded={onLogoUploaded}
@@ -123,6 +122,6 @@ export default function StoreProfileForm({
           {t("storeProfileSubmit")}
         </Button>
       </form>
-    </section>
+    </AccountCard>
   );
 }
