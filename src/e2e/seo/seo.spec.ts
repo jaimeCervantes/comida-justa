@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { CANONICAL_URL } from "~/infra/constants";
 import { deleteOnePostBySlug } from "../testUtils/deleteOnePost";
 import { seedPost } from "../testUtils/seedPost";
 import { testSlug } from "../testUtils/testSlug";
@@ -30,7 +31,7 @@ test.describe("Cuando un rastreador pide el sitemap", () => {
     const xml = await response.text();
 
     // Páginas fijas con contenido real.
-    expect(xml).toContain("<loc>http://localhost:3000/</loc>");
+    expect(xml).toContain(`<loc>${CANONICAL_URL}/</loc>`);
     expect(xml).toContain("/productos<");
     expect(xml).toContain("/nosotros<");
     expect(xml).toContain("/pilares/alimentacion<");

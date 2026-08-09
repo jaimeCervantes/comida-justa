@@ -1,11 +1,24 @@
 import { expect, test } from "@playwright/test";
+import { CANONICAL_URL } from "~/infra/constants";
 import { alternateUrl, canonicalUrl, meta } from "../testUtils/metaTags";
 
 // Slice 3 de docs/features/seo.md. Corre contra publicaciones que ya existen en el catálogo
 // —una con foto y otra en video—, así que no siembra nada y no tiene nada que limpiar.
 const CON_FOTO = "jugo-verde";
 const EN_VIDEO = "la-clave-para-dormir-profundo";
-const SITE = "http://localhost:3000";
+/**
+ * La misma canónica que declara la aplicación, no una escrita a mano.
+ *
+ * Estaba fijada a `http://localhost:3000`, y por eso la suite fallaba SIEMPRE en GitHub y nunca en
+ * local: ningún `.env` está commiteado, así que en CI `NEXT_PUBLIC_CANONICAL_URL` no existe y
+ * `CANONICAL_URL` cae a su valor por omisión (`https://hazlosano.com`), mientras el spec seguía
+ * comparando contra localhost. En la máquina de quien desarrolla sí existe el `.env.development`,
+ * los dos valían localhost y coincidían por casualidad.
+ *
+ * Leyendo la constante, lo que se afirma es la REGLA —cada página es canónica de sí misma— y no el
+ * dominio concreto, que es configuración y no comportamiento.
+ */
+const SITE = CANONICAL_URL;
 
 test.describe("Cuando alguien comparte una publicación en video", () => {
   test("Entonces la vista previa lleva una imagen, no el archivo de video", async ({
