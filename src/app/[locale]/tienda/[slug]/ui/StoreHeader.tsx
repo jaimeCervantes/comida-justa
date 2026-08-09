@@ -55,59 +55,70 @@ export default function StoreHeader({
           <p className="mt-4 whitespace-pre-wrap">{seller.description}</p>
         ) : null}
 
-        <div className="flex flex-col items-center justify-around content-around">
-          {/* Junto al teléfono porque responde a la misma pregunta que el resto del bloque: cómo
-              llegar a esta tienda. Se pinta solo si hay distancia que decir. */}
-          <StoreDistance meters={distanceMeters} className="mb-2" />
+        {/* Seis cosas iban aquí en una sola columna, todas al mismo nivel y con la separación
+            decidida una por una (`mb-2`, `mt-2`, nada): un dato, dos contactos, dos acciones y una
+            navegación. Sin agrupar no hay dónde descansar la vista, y por eso se veían amontonadas.
 
-          <p className="flex items-center">
-            <MdPhone className="mr-2" size="24" />
-            <a
-              href={`tel:${seller.phone}`}
-              className="font-bold text-pw-orange"
-              data-testid="store-phone"
-            >
-              {seller.phone}
-            </a>
-          </p>
+            Ahora van en tres grupos por lo que son —lo que se consulta, lo que se hace, y a dónde
+            se va—, cada uno con una única separación. `justify-around content-around` se cae: en
+            una columna de altura automática no hay espacio libre que repartir. */}
+        <div className="flex flex-col items-center gap-4">
+          {/* Lo que se consulta: dónde está, a qué número, en qué web. */}
+          <div className="flex flex-col items-center gap-1">
+            <StoreDistance meters={distanceMeters} />
 
-          {seller.url ? (
-            <a
-              href={seller.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              data-testid="store-url"
-              className="flex items-center text-pw-lightgreen hover:underline"
-            >
-              <MdLink className="mr-2" size="24" aria-hidden />
-              {seller.url.replace(/^https?:\/\//, "")}
-            </a>
-          ) : null}
+            <p className="flex items-center">
+              <MdPhone className="mr-2" size="24" aria-hidden />
+              <a
+                href={`tel:${seller.phone}`}
+                className="font-bold text-pw-orange"
+                data-testid="store-phone"
+              >
+                {seller.phone}
+              </a>
+            </p>
 
-          <WhatsappButton
-            href={contactLink}
-            className=""
-            testId="whatsapp-store"
-          >
-            {t("contactOnWhatsapp")}
-          </WhatsappButton>
+            {seller.url ? (
+              <a
+                href={seller.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                data-testid="store-url"
+                className="flex items-center text-pw-lightgreen hover:underline"
+              >
+                <MdLink className="mr-2" size="24" aria-hidden />
+                {seller.url.replace(/^https?:\/\//, "")}
+              </a>
+            ) : null}
+          </div>
 
-          {/* Aquí comparte **el comprador**, no el vendedor: es quien acaba de decidir que esta
-              tienda vale la pena. Por eso el texto va en su voz ("esta tienda") y no en la del
-              dueño, que es la que usa `/cuenta`. */}
-          <ShareMenu
-            className="mt-2"
-            testId="share-store-page"
-            url={storeUrl}
-            title={seller.name}
-            text={tShare("storeText", { name: seller.name })}
-          />
+          {/* Lo que se hace, en fila y no apiladas: son dos botones, y uno debajo del otro leían
+              como una lista de opciones en vez de como la acción principal y su acompañante.
 
+              Compartir lo pulsa **el comprador**, no el vendedor: es quien acaba de decidir que
+              esta tienda vale la pena. Por eso el texto va en su voz ("esta tienda") y no en la
+              del dueño, que es la que usa `/cuenta`. */}
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <WhatsappButton href={contactLink} testId="whatsapp-store">
+              {t("contactOnWhatsapp")}
+            </WhatsappButton>
+
+            <ShareMenu
+              testId="share-store-page"
+              url={storeUrl}
+              title={seller.name}
+              text={tShare("storeText", { name: seller.name })}
+            />
+          </div>
+
+          {/* A dónde se va: no es una acción sobre esta tienda, es irse a otra página. Va al final
+              y en pequeño para que no compita con el botón de escribir. El `mt-2` se cae: la
+              separación ya la pone el `gap` de la columna. */}
           {ownerUsername ? (
             <Link
               href={profileHref(ownerUsername)}
               data-testid="store-owner-link"
-              className="mt-2 text-sm text-pw-lightgreen hover:underline"
+              className="text-sm text-pw-lightgreen hover:underline"
             >
               {t("viewSellerProfile")}
             </Link>

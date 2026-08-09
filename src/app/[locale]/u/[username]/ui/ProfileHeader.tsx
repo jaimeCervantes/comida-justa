@@ -50,27 +50,33 @@ export default function ProfileHeader({
           {t("publicationCount", { total })}
         </p>
 
-        {store?.handle ? (
-          <Link
-            href={storeHref(store.handle)}
-            data-testid="profile-store-link"
-            className="mt-2 inline-flex items-center gap-2 font-bold text-pw-orange"
-          >
-            <MdStorefront size="20" aria-hidden />
-            {t("theirStore", { name: store.name })}
-          </Link>
-        ) : null}
+        {/* Los dos son `inline-flex`, así que caían en el mismo renglón **pegados**: entre ellos
+            JSX se come el espacio en blanco por llevar salto de línea, y sus `mt-*` son margen
+            superior, que entre dos elementos en línea no separa nada. Puestos en una fila con
+            `gap` se separan de verdad, y se van a la línea siguiente cuando no quepan. El
+            `justify-center` sigue al `text-center` de la cabecera, que en `sm` pasa a la izquierda. */}
+        <div className="mt-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 sm:justify-start">
+          {store?.handle ? (
+            <Link
+              href={storeHref(store.handle)}
+              data-testid="profile-store-link"
+              className="inline-flex items-center gap-2 font-bold text-pw-orange"
+            >
+              <MdStorefront size="20" aria-hidden />
+              {t("theirStore", { name: store.name })}
+            </Link>
+          ) : null}
 
-        {/* En la voz de quien mira, no en la de quien publica: aquí comparte el visitante. */}
-        {username ? (
-          <ShareMenu
-            className="mt-3"
-            testId="share-profile-page"
-            url={`${PUBLIC_BASE_URL}${profilePath(username, locale)}`}
-            title={displayName}
-            text={tShare("profileText", { name: displayName })}
-          />
-        ) : null}
+          {/* En la voz de quien mira, no en la de quien publica: aquí comparte el visitante. */}
+          {username ? (
+            <ShareMenu
+              testId="share-profile-page"
+              url={`${PUBLIC_BASE_URL}${profilePath(username, locale)}`}
+              title={displayName}
+              text={tShare("profileText", { name: displayName })}
+            />
+          ) : null}
+        </div>
       </div>
     </header>
   );
