@@ -7,7 +7,15 @@ import { PAGINATION_INIT_PAGE, PAGINATION_PAGE_SIZE } from "~/infra/constants";
 import type { Post } from "~/infra/types/Posts";
 import CardForList from "~/presentation/post/CardForList/CardForList";
 
-// Este componente maneja la carga dinámica del lado del cliente
+/**
+ * El feed del home: la primera página la pinta el servidor y el resto la pide este componente.
+ *
+ * **Quien lo monta tiene que darle una `key` con `measuredFrom(visitor)`.** Lo que acumula en
+ * `posts` es una copia de cliente de datos del servidor, y `useState` no vuelve a mirar sus props:
+ * sin esa `key`, corregir la ubicación repintaba el chip de arriba y dejaba las tarjetas midiendo
+ * desde donde estabas antes. La `key` es lo que hace que el feed empiece de nuevo justo cuando
+ * empezar de nuevo es lo correcto, y solo entonces.
+ */
 export default function PostsWithLoadMore({
   initialPosts,
   totalPosts,

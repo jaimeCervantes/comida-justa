@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { hasLocale } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { measuredFrom } from "~/app/(home)/measuredFrom";
 import PostsWithLoadMore from "~/app/(home)/PostsWithLoadMore";
 import type { Coordinates } from "~/domain/entities/seller/coordinates";
 import { buildSiteJsonLd } from "~/domain/seo/jsonLd/site";
@@ -115,7 +116,11 @@ export default async function Inicio({
 
       <LocationBanner showSellerCta={showSellerCta} />
 
+      {/* La `key` es desde dónde se midieron estas distancias. El feed acumula en estado las
+          páginas que pide, así que sin esto una ubicación corregida repintaba el chip y dejaba las
+          tarjetas como estaban. Ver `measuredFrom`. */}
       <PostsWithLoadMore
+        key={measuredFrom(visitor)}
         viewerId={viewerId}
         initialPosts={posts}
         totalPosts={total}
