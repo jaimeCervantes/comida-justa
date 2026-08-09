@@ -1,5 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import type { Post } from "~/infra/types/Posts";
+import { CARD_MASONRY_NARROW } from "~/presentation/design_system/surfaces/cardList";
 import { Heading } from "~/presentation/design_system/typography/Heading";
 import CardForList from "~/presentation/post/CardForList/CardForList";
 
@@ -38,7 +39,7 @@ export default async function RelatedPosts({
       {posts.length === 0 ? (
         <p className="text-gray-500">{t("relatedEmpty")}</p>
       ) : (
-        <ul className="grid gap-4 grid-cols-[repeat(auto-fill,minmax(240px,1fr))] list-none p-0">
+        <ul className={`${CARD_MASONRY_NARROW} list-none p-0`}>
           {posts.map((post) => (
             <li key={String(post.id)}>
               <CardForList {...post} viewerId={viewerId} />
