@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import {
   addToSelection,
+  type CartSelection,
   countSelectionItems,
   removeFromSelection,
   setSelectionQuantity,
