@@ -135,23 +135,76 @@ Feature: Carrito y pedidos
     Then salen dos grupos, cada uno con su subtotal y su propio botón de confirmar
     And no existe ningún total que mezcle a las dos tiendas, porque cada una entrega por su cuenta
 
-  @slice-2 @future
-  Scenario: El pedido queda registrado antes de salir a WhatsApp
-    Given un carrito confirmado
-    When se manda el pedido
-    Then queda guardado en estado PENDING con el precio del día
+  # Confirmar ya no salta a WhatsApp: primero se registra el pedido y el aviso se manda desde su
+  # página. Si el aviso fuera lo primero, un pedido existiría solo dentro de una conversación y nadie
+  # podría decir cuántos hubo ni en qué acabaron.
+  @slice-2
+  Scenario: Confirmar deja el pedido registrado y lleva a su página
+    Given un carrito con "Suero natural" a 35, de "Hazlo Sano", y sesión iniciada
+    When pulso "Hacer el pedido a Hazlo Sano"
+    Then llego a la página del pedido, que lo da por registrado y lo muestra Pendiente
+    And desde ahí puedo avisar a la tienda por WhatsApp, con el enlace del propio pedido
+    And el carrito se queda sin ese renglón, porque ya está pedido
 
-  @slice-2 @future
+  @slice-2
+  Scenario: El precio queda congelado en el pedido
+    Given un pedido de un producto que costaba 50
+    When el vendedor le sube el precio a 80
+    Then el pedido sigue diciendo 50, porque es lo que se acordó
+    But el catálogo ya muestra 80
+
+  @slice-2
   Scenario: El vendedor lleva su pedido por el proceso
-    Given un pedido en PENDING
-    When el vendedor lo acepta, lo prepara y lo entrega
-    Then el pedido pasa por CONFIRMED, PREPARING y DELIVERED
+    Given un pedido Pendiente en mi tienda
+    When lo acepto, lo preparo y lo entrego desde "/cuenta"
+    Then pasa por Aceptado, En preparación y Entregado
+    And una vez Entregado ya no ofrece ninguna acción
 
-  @slice-2 @future
-  Scenario: Un pedido se puede cancelar
-    Given un pedido que no está entregado
-    When el vendedor lo cancela
-    Then queda en CANCELLED
+  @slice-2
+  Scenario: Confirmar sin sesión primero pide identificarse
+    Given un carrito con algo dentro y sin sesión iniciada
+    When pulso confirmar
+    Then se me pide iniciar sesión, porque un pedido tiene dueño
+    And el carrito sigue intacto
+
+  @slice-2
+  Scenario: El pedido de otra persona no se puede ni mirar
+    Given un pedido que hizo alguien más
+    When abro su dirección
+    Then la respuesta es 404, no 403: un id ajeno no se confirma ni negándolo
+
+  @slice-2 @component
+  Scenario Outline: Qué transiciones se permiten
+    # Vitest sobre el dominio: son reglas puras y montarlas todas en el navegador costaría un pedido
+    # sembrado por fila. La pantalla pinta un botón por cada destino que devuelve `nextStatuses`, así
+    # que esta tabla es también la lista de botones.
+    Given un pedido en "<desde>"
+    When el vendedor intenta llevarlo a "<hasta>"
+    Then la transición <resultado>
+
+    Examples: permitidas
+      | desde     | hasta     | resultado | razón                                  |
+      | PENDING   | CONFIRMED | se acepta | el vendedor lo acepta                  |
+      | PENDING   | CANCELLED | se acepta | no puede atenderlo                     |
+      | CONFIRMED | PREPARING | se acepta | se pone a ello                         |
+      | PREPARING | DELIVERED | se acepta | lo entrega                             |
+      | PREPARING | CANCELLED | se acepta | se le acabó a media preparación        |
+
+    Examples: rechazadas
+      | desde     | hasta     | resultado  | razón                                          |
+      | PENDING   | DELIVERED | se rechaza | no se entrega lo que no se aceptó              |
+      | PENDING   | PREPARING | se rechaza | saltarse la aceptación esconde el paso clave   |
+      | CONFIRMED | PENDING   | se rechaza | no hay marcha atrás: nadie des-acepta          |
+      | DELIVERED | CANCELLED | se rechaza | lo entregado no se deshace cambiando una fila  |
+      | CANCELLED | CONFIRMED | se rechaza | un pedido cancelado no revive                  |
+
+  @slice-2 @component
+  Scenario: Dos pestañas no aplican la misma decisión dos veces
+    # Vitest: el estado de partida viaja al `WHERE` de la escritura, así que la segunda pestaña no
+    # encuentra fila que tocar. Montarlo en el navegador pediría dos contextos a la vez.
+    Given un pedido Pendiente abierto en dos pestañas
+    When en la primera se acepta y en la segunda se cancela
+    Then la segunda no cambia nada y avisa de que el pedido ya se movió
 
   @slice-3 @future
   Scenario: El comprador ve en qué va lo suyo

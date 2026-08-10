@@ -10,6 +10,7 @@ import {
   findProfileOfUser,
   findSellerOfUser,
 } from "~/infra/dataAccess/identity/sessionIdentity";
+import { createOrderRepository } from "~/infra/dataAccess/orders/factory";
 import BranchList from "~/presentation/directory/BranchList/BranchList";
 import {
   addBranch,
@@ -20,6 +21,7 @@ import {
 import AccountCard from "./ui/AccountCard";
 import AddBranchForm from "./ui/AddBranchForm";
 import BecomeSellerForm from "./ui/BecomeSellerForm";
+import SellerOrders from "./ui/SellerOrders";
 import StoreCard from "./ui/StoreCard";
 import StoreProfileForm from "./ui/StoreProfileForm";
 import UsernameSection from "./ui/UsernameSection";
@@ -55,6 +57,7 @@ export default async function CuentaPage({
   setRequestLocale(resolveLocale(locale));
   const t = await getTranslations("account");
   const tBranches = await getTranslations("branches");
+  const tOrders = await getTranslations("orders");
 
   const session = await auth();
 
@@ -96,7 +99,11 @@ export default async function CuentaPage({
     );
   }
 
-  const branches = await createBranchRepository().listBySeller(seller.id);
+  /* Las dos lecturas del vendedor van juntas: son independientes y en serie costaban dos viajes. */
+  const [branches, orders] = await Promise.all([
+    createBranchRepository().listBySeller(seller.id),
+    createOrderRepository().listBySeller(seller.id),
+  ]);
 
   return (
     <main>
@@ -106,6 +113,11 @@ export default async function CuentaPage({
         {/* Lo que se reparte. */}
         <div className="flex flex-col gap-6">
           <StoreCard seller={seller} />
+          {/* Los pedidos van arriba del todo tras la tienda: es lo único de esta pantalla que pide
+              una acción con prisa. Lo demás —la ficha, las sucursales— se toca una vez y se olvida. */}
+          <AccountCard title={tOrders("sellerHeading")}>
+            <SellerOrders orders={orders} />
+          </AccountCard>
           {usernameSection}
           <AccountCard title={t("branchesHeading")}>
             <BranchList

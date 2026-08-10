@@ -1,6 +1,5 @@
 "use server";
 import { revalidatePath } from "next/cache";
-import { cookies } from "next/headers";
 import {
   addToSelection,
   type CartSelection,
@@ -8,12 +7,7 @@ import {
   removeFromSelection,
   setSelectionQuantity,
 } from "~/domain/cart/cartSelection";
-import {
-  CART_COOKIE,
-  CART_COOKIE_MAX_AGE,
-  serializeCart,
-} from "~/infra/cart/cartCookie";
-import { readCartSelection } from "~/infra/cart/readCart";
+import { readCartSelection, writeCartSelection } from "~/infra/cart/readCart";
 
 export type CartActionState = {
   /** Cuántos artículos quedaron. Es lo que deja al botón decir que ya lo añadió. */
@@ -70,14 +64,7 @@ export async function removeCartLine(
 async function writeCart(
   selection: readonly CartSelection[],
 ): Promise<CartActionState> {
-  const store = await cookies();
-
-  store.set(CART_COOKIE, serializeCart(selection), {
-    maxAge: CART_COOKIE_MAX_AGE,
-    path: "/",
-    sameSite: "lax",
-    httpOnly: true,
-  });
+  await writeCartSelection(selection);
 
   /* El layout entero, no solo la página: el contador de la cabecera sale de esta misma cookie y se
      pinta en todas las pantallas. Sin esto, añadir desde una tarjeta parecería no hacer nada. */

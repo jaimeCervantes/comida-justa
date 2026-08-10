@@ -39,6 +39,9 @@ export const pathnames = {
   "/publicar": { es: "/publicar", en: "/publish" },
   "/cuenta": { es: "/cuenta", en: "/account" },
   "/carrito": { es: "/carrito", en: "/cart" },
+  /* El id no se traduce: es un uuid. La página es privada —solo la ven quien compró y quien
+     vende—, así que su dirección no se reparte ni se indexa. */
+  "/pedido/[id]": { es: "/pedido/[id]", en: "/order/[id]" },
   "/buscar": { es: "/buscar", en: "/search" },
   "/buscar/[term]/page/[page]": {
     es: "/buscar/[term]/page/[page]",

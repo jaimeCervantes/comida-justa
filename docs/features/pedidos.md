@@ -176,19 +176,57 @@ algo funcionando que la justifique.
 9. Una cookie manipulada (id inexistente, cantidad `0` o `"abc"`) no rompe la página: se descarta ese
    renglón y los demás siguen.
 
-### Slice 2 — El pedido queda registrado y el vendedor lo administra  *(@future)*
+### Slice 2 — El pedido queda registrado y el vendedor lo administra  *(actual)*
 
 Aquí entra la base, y con ella el proceso que el vendedor necesita.
 
-- **Migración Alembic (aditiva)** sobre `orders`, que tiene 0 filas: `seller_id`, renglones
-  normalizados con su precio congelado, y el hueco de la referencia de pago **en la misma migración**
-  — dos migraciones sobre la base compartida son dos veces el riesgo (misma lección que el slice 1 de
-  `vendedores-y-tiendas.md` con `users.username`).
-- Confirmar escribe el pedido en `PENDING` antes de abrir WhatsApp.
+- **Migración Alembic `0032`, encadenada desde `0031_2026_08_09`.** Crea `customer_orders` y
+  `customer_order_items`, y **reutiliza el enum `orderstatus`** que ya existe.
+- Confirmar escribe el pedido en `PENDING` y lleva a `/pedido/<id>`, desde donde se avisa a la tienda.
 - Sección "Pedidos" en `/cuenta`, con el flujo `PENDING → CONFIRMED → PREPARING → DELIVERED` y
-  `CANCELLED` desde cualquier punto.
+  `CANCELLED` desde cualquier punto menos el último.
 
-> **Es el único paso irreversible del roadmap** y se consulta antes de tocarlo, según `AGENTS.md`.
+> **Es el único paso irreversible del roadmap.** La migración la escribe este repositorio y la
+> aplica el usuario, según lo acordado el 2026-08-09.
+
+#### Por qué NO se reusa `orders`
+
+El plan original decía adaptar `orders`: existe, está vacía y su enum describe el proceso entero.
+Leyendo el backend se vio que **es el carrito del bot, y es código vivo** —
+`PostgresOrderRepository` está inyectado en `api/dependencies.py` y en el orquestador de mensajes.
+`handle_order_intent` crea la fila con `status=DRAFT` **antes** de saber qué se pide y va apilando
+artículos en el JSON de `items`. De ahí que:
+
+- `orders.seller_id NOT NULL` sea imposible: al crear la fila no hay vendedor que poner.
+- `orders.items` sea carga viva: normalizar aparte dejaría al sitio escribiendo `[]` o duplicando.
+
+Y no había nada que unificar: las filas del bot son carritos a medio hacer, no pedidos. El nombre
+`customer_orders` —y no `site_orders`— deja la puerta abierta a que el bot escriba ahí el día que
+llegue a colocar un pedido de verdad.
+
+> **Hallazgo aparte, sin tocar:** los `items` del bot guardan `product_id` apuntando a `products`,
+> la tabla que desapareció al unificar el catálogo dentro de `posts`. Esa ruta probablemente ya esté
+> rota, y explicaría los 0 pedidos.
+
+#### Decisiones del esquema
+
+- **No hay columna `total`.** Se suma de los renglones, que son la única verdad; una copia
+  denormalizada solo puede desincronizarse.
+- **`post_id` es nulo con `ON DELETE SET NULL`.** Si la publicación se borra, el renglón sobrevive
+  con su copia del título y del precio — que es exactamente para lo que se guardaron. Con `RESTRICT`,
+  el histórico bloquearía para siempre el borrado de cualquier producto pedido una vez.
+- **`unit_price` es `numeric`**, como `posts.price`: el dinero no se guarda en flotante.
+- **`checkout_id` desde el primer día**, aunque hoy siempre haya un pedido por carrito.
+- **Qué transición vale lo decide el dominio, no un `CHECK`.** Son reglas que van a cambiar —con el
+  pago, `PAID` se mete en medio— y que necesitan dar un motivo entendible.
+
+**Criterios de aceptación:**
+1. Confirmar deja el pedido en `PENDING` y lleva a su página, con el aviso por WhatsApp a un clic.
+2. El precio del pedido no se mueve aunque el catálogo suba después.
+3. El vendedor lo lleva de pendiente a entregado desde `/cuenta`, y ahí se le acaban las acciones.
+4. Confirmar sin sesión pide identificarse y **no** vacía el carrito.
+5. El pedido de otra persona responde 404, no 403.
+6. Dos pestañas no aplican la misma decisión dos veces.
 
 ### Slice 3 — El comprador ve sus pedidos y en qué van  *(@future)*
 

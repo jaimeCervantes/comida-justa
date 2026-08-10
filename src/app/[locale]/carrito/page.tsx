@@ -63,22 +63,10 @@ export default async function CarritoPage({
       ) : (
         <div className="flex flex-col gap-6">
           {groups.map((group) => (
-            <CartGroup
-              key={group.seller.id}
-              group={group}
-              baseUrl={publicBaseUrlFor(locale)}
-            />
+            <CartGroup key={group.seller.id} group={group} />
           ))}
         </div>
       )}
     </main>
   );
-}
-
-/* El enlace que viaja al vendedor tiene que abrir en el idioma en que se pidió. `localePrefix` es
-   `as-needed`: el español va sin prefijo y solo el inglés lo lleva. */
-function publicBaseUrlFor(locale: string): string {
-  return locale === routing.defaultLocale
-    ? PUBLIC_BASE_URL
-    : `${PUBLIC_BASE_URL}/${locale}`;
 }

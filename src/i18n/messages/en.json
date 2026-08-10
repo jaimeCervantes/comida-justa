@@ -351,6 +351,37 @@
     "rest": "Sometimes even a resource needs a rest.",
     "subtitle": "It probably went off to do an extra set of burpees… and ran out of steam!"
   },
+  "orders": {
+    "action": {
+      "CANCELLED": "Cancel",
+      "CONFIRMED": "Accept the order",
+      "DELIVERED": "Mark as delivered",
+      "PREPARING": "Start preparing it"
+    },
+    "buyer": "Ordered by {name}",
+    "confirm": "Send your order to {store}",
+    "errorEmpty": "There is nothing from that store in your cart anymore.",
+    "errorTransition": "This order changed while you were looking at it. Reload to see where it stands.",
+    "errorUnavailable": "Everything you had from this store has sold out.",
+    "notifySeller": "Message {store} on WhatsApp",
+    "placed": "Your order is registered",
+    "placedHint": "One step left: message the store on WhatsApp so they can prepare it.",
+    "placedOn": "Placed on {date}",
+    "sellerEmpty": "Nobody has ordered from you yet.",
+    "sellerHeading": "Orders you have received",
+    "signInToOrder": "Sign in to place your order",
+    "status": {
+      "CANCELLED": "Cancelled",
+      "CONFIRMED": "Accepted",
+      "DELIVERED": "Delivered",
+      "DRAFT": "Draft",
+      "PAID": "Paid",
+      "PENDING": "Pending",
+      "PREPARING": "Being prepared"
+    },
+    "title": "Order",
+    "total": "Total"
+  },
   "pillarPages": {
     "mindSpirit": {
       "heading": "4. Emotions, Mind, Spirit and Community",

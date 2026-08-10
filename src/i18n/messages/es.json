@@ -351,6 +351,37 @@
     "rest": "A veces, incluso un recurso necesita un descanso.",
     "subtitle": "Probablemente se fue a hacer una serie extra de burpees... ¡y se agotó!"
   },
+  "orders": {
+    "action": {
+      "CANCELLED": "Cancelar",
+      "CONFIRMED": "Aceptar el pedido",
+      "DELIVERED": "Marcar entregado",
+      "PREPARING": "Empezar a prepararlo"
+    },
+    "buyer": "Lo pidió {name}",
+    "confirm": "Hacer el pedido a {store}",
+    "errorEmpty": "Ya no tienes nada de esa tienda en el carrito.",
+    "errorTransition": "Ese pedido cambió mientras lo mirabas. Recarga para ver cómo está.",
+    "errorUnavailable": "Se agotó todo lo que llevabas de esta tienda.",
+    "notifySeller": "Avisar a {store} por WhatsApp",
+    "placed": "Tu pedido quedó registrado",
+    "placedHint": "Falta un paso: avísale a la tienda por WhatsApp para que lo prepare.",
+    "placedOn": "Hecho el {date}",
+    "sellerEmpty": "Todavía no te han hecho ningún pedido.",
+    "sellerHeading": "Pedidos que te han hecho",
+    "signInToOrder": "Inicia sesión para hacer tu pedido",
+    "status": {
+      "CANCELLED": "Cancelado",
+      "CONFIRMED": "Aceptado",
+      "DELIVERED": "Entregado",
+      "DRAFT": "Borrador",
+      "PAID": "Pagado",
+      "PENDING": "Pendiente",
+      "PREPARING": "En preparación"
+    },
+    "title": "Pedido",
+    "total": "Total"
+  },
   "pillarPages": {
     "mindSpirit": {
       "heading": "4. Emociones, Mente, Espíritu y Comunidad",

@@ -1,12 +1,11 @@
 import { getTranslations } from "next-intl/server";
 import type { CartSellerGroup } from "~/domain/cart/cart";
-import { buildWhatsappCartLink } from "~/domain/order/whatsappCartOrder";
 import { Link } from "~/i18n/navigation";
 import { SITE_CURRENCY } from "~/infra/constants";
 import { Surface } from "~/presentation/design_system/surfaces/Surface";
 import CurrencyAmount from "~/presentation/money/CurrencyAmount";
-import WhatsappButton from "~/presentation/post/WhatsappButton/WhatsappButton";
 import CartLineRow from "./CartLineRow";
+import ConfirmOrderButton from "./ConfirmOrderButton";
 
 /**
  * El pedido de **una** tienda: sus renglones, su total y su botón para confirmarlo.
@@ -14,21 +13,16 @@ import CartLineRow from "./CartLineRow";
  * Cada tienda tiene el suyo porque cada una acepta, prepara y entrega por su cuenta — y porque no se
  * le puede mandar un WhatsApp a dos vendedores a la vez. Con un solo vendedor en la base se ve un
  * bloque; el día que haya dos, se ven dos, sin que esta pantalla cambie.
+ *
+ * **Confirmar ya no salta a WhatsApp desde aquí.** Primero se registra el pedido y el aviso se manda
+ * desde su página; el mensaje del carrito (`whatsappCartOrder.ts`) dejó de usarse en esta pantalla y
+ * se conserva porque es el que describe un carrito, no un pedido.
  */
-export default async function CartGroup({
-  group,
-  baseUrl,
-}: {
-  group: CartSellerGroup;
-  /** La raíz pública **con el idioma ya puesto**: es lo que se le manda al vendedor. */
-  baseUrl: string;
-}) {
+export default async function CartGroup({ group }: { group: CartSellerGroup }) {
   const t = await getTranslations("cart");
 
-  const orderLink = buildWhatsappCartLink(group, baseUrl, {
-    intro: t("orderIntro"),
-    total: t("orderTotal"),
-  });
+  /** Sin nada disponible no hay pedido que hacer: el botón se calla y se explica por qué. */
+  const hasAvailable = group.lines.some((line) => line.product.isAvailable);
 
   return (
     <Surface
@@ -71,12 +65,11 @@ export default async function CartGroup({
           </span>
         </p>
 
-        {/* Sin nada disponible no hay pedido que mandar: `buildWhatsappCartLink` devuelve `null` y
-            `WhatsappButton` no pinta nada, así que en su lugar se explica por qué. */}
-        {orderLink ? (
-          <WhatsappButton href={orderLink} testId="cart-confirm">
-            {t("confirmWith", { store: group.seller.name })}
-          </WhatsappButton>
+        {hasAvailable ? (
+          <ConfirmOrderButton
+            sellerId={group.seller.id}
+            sellerName={group.seller.name}
+          />
         ) : (
           <p
             data-testid="cart-group-unavailable"

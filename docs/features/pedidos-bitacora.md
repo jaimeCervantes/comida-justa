@@ -218,3 +218,114 @@ no se guarda en ningún sitio.
 4. **El fallo preexistente de `cardControls.spec.ts:39`.**
 
 **Pendiente del usuario:** lo mismo que en la entrada anterior, más la opción 3, que es de diseño.
+
+---
+
+## Slice 2 — El pedido queda registrado y el vendedor lo administra (2026-08-09)
+
+> **Entregado como código; PENDIENTE de aplicar la migración.** Nada de esto funciona hasta que corra
+> `alembic upgrade head` en el backend. Se acordó que este repositorio escribe la migración y el
+> usuario la aplica.
+
+### El plan cambió a mitad, y por un buen motivo
+
+Se aprobó reusar la tabla `orders` del bot: existe, está vacía y su enum describe el proceso entero.
+Al abrir el backend para escribir la migración se vio que **`orders` es el carrito del bot y es
+código vivo** — `PostgresOrderRepository` está inyectado en `api/dependencies.py` y en el orquestador
+de mensajes. `handle_order_intent` crea la fila con `status=DRAFT` **antes** de saber qué se pide y
+va apilando artículos dentro del JSON de `items`.
+
+Eso rompía dos piezas del DDL aprobado: `seller_id NOT NULL` habría reventado el primer «quiero pedir
+algo» por WhatsApp, e `items` no es un resto sino carga viva. Y el argumento con el que se había
+recomendado reusarla —«así el panel del vendedor une los pedidos del bot y los del sitio»— no
+sobrevivía a los hechos: las filas del bot son carritos a medio hacer, no pedidos.
+
+Se paró, se contó y el usuario decidió **resolver solo para el sitio**: tabla propia, el bot intacto.
+
+**Hallazgo aparte, no tocado:** los `items` del bot guardan `product_id` apuntando a `products`, la
+tabla que desapareció al unificar el catálogo dentro de `posts`. Esa ruta probablemente ya esté rota,
+y explicaría los 0 pedidos.
+
+### Decisiones y por qué
+
+- **`customer_orders` y no `site_orders`.** El canal por el que entra un pedido no debería estar en
+  el nombre de la tabla: el día que el bot coloque pedidos de verdad, escribe ahí.
+- **No hay columna `total`.** Se suma de los renglones. Una copia denormalizada solo puede
+  desincronizarse de lo que la compone.
+- **`post_id` nulo con `ON DELETE SET NULL`.** El renglón guarda copia del título y del precio, así
+  que sobrevive a que se borre la publicación. Con `RESTRICT`, el histórico habría bloqueado para
+  siempre el borrado de cualquier producto pedido una vez.
+- **`unit_price` es `numeric`**, no `double precision` como el `total` del bot: el dinero no se
+  guarda en flotante.
+- **El enum se reutiliza con `create_type=False`.** Crearlo otra vez falla; crear uno paralelo deja
+  dos enums que dicen lo mismo.
+- **`fromStatus` viaja al `WHERE` de la escritura.** El vendedor decide mirando una pantalla que
+  puede llevar minutos abierta; sin esa condición, dos pestañas aplican una transición calculada
+  sobre un estado que ya cambió. Con ella, la segunda no encuentra fila y se le dice que recargue.
+- **Confirmar ya no salta a WhatsApp.** Primero se registra el pedido y el aviso se manda desde
+  `/pedido/<id>`. Motivo técnico: `window.open` tras una acción de servidor llega sin gesto del
+  usuario y los navegadores lo bloquean. Motivo real: un pedido que solo existe dentro de una
+  conversación no se puede contar ni consultar después.
+- **El mensaje del pedido lleva un solo enlace, el del pedido**, y no uno por producto como el del
+  carrito: el renglón no guarda el slug —la publicación puede haberse borrado— y el vendedor abre esa
+  dirección y ve todo, incluido lo que le queda por hacer.
+- **Los botones del panel salen de `nextStatuses`**, la misma función que valida la transición.
+  Escribirlos a mano habría sido la segunda copia de las reglas. Para que el catálogo de textos exija
+  exactamente las cuatro etiquetas existentes, se estrechó el tipo: `OrderAction` es el subconjunto
+  de `OrderStatus` al que se puede **llegar**.
+- **404 y no 403** en el pedido ajeno: un id de pedido es un uuid, y responder «existe pero no es
+  tuyo» convertiría la página en una forma de averiguar cuáles existen.
+
+### Archivos tocados
+
+- **Backend (otro repo, sin aplicar):** `alembic/versions/0032_2026-08-09_add_customer_orders.py`.
+  **Ningún modelo de Python se tocó.**
+- **Dominio:** `src/domain/order/` (`order.ts`, `ports.ts`, `whatsappOrderNotice.ts` + tests).
+- **Infra:** `src/infra/dataAccess/db/schema/orders.ts` (espejo Drizzle),
+  `src/infra/dataAccess/orders/` (repositorio + factory), `src/infra/cart/readCart.ts`
+  (`writeCartSelection`, extraído porque ahora lo usan dos acciones).
+- **Casos de uso:** `src/use_cases/placeOrder/`, `src/use_cases/advanceOrder/` + tests.
+- **Presentación:** `src/presentation/orders/` (`orderActions.ts`, `OrderLines/`,
+  `OrderStatusBadge/`).
+- **Rutas:** `src/app/[locale]/pedido/[id]/page.tsx`, `carrito/ui/ConfirmOrderButton.tsx`,
+  `cuenta/ui/SellerOrders.tsx`, y los enganches en `carrito/` y `cuenta/page.tsx`.
+- **i18n:** namespace `orders` en `es.json` y `en.json`; `/pedido/[id]` → `/order/[id]` en `routing`.
+- **Specs:** `src/e2e/orders/orders.feature` (slice 2 detallado), `src/e2e/orders/placeOrder.spec.ts`.
+
+### Validación
+
+| Comando | Resultado |
+| --- | --- |
+| `pnpm run typecheck` / `typecheck:tests` | limpios |
+| `pnpm run lint` | exit 0 |
+| `pnpm run test:run` | **121 archivos, 1185 tests, todos verdes** (47 nuevos en este slice) |
+| Playwright | **no corrido.** El usuario pidió detener la e2e y correrla al final |
+
+**El spec de slice 2 se salta solo mientras falte la migración.** `placeOrder.spec.ts` comprueba en
+`beforeAll` si existe `customer_orders` (`to_regclass`) y hace `test.skip` si no: sin la tabla, esos
+escenarios fallarían por un esquema que falta y no por un defecto. En cuanto `0032` corra, dejan de
+saltarse solos — no hay que acordarse de nada.
+
+**Nada se escribió en la base compartida en este slice.** No se corrió ninguna migración ni ninguna
+e2e.
+
+### Recap
+
+El slice 2 está escrito de punta a punta —dominio, casos de uso, repositorio, acciones y las tres
+pantallas— y verificado hasta donde se puede sin base: 1185 tests unitarios verdes, typecheck y lint
+limpios. Lo que falta es la migración `0032`, que está escrita en el backend y **sin aplicar**, y la
+corrida de Playwright. Hasta entonces, confirmar un pedido fallará en tiempo de ejecución: la tabla
+no existe.
+
+### Próximos pasos (opciones)
+
+1. **Revisar y aplicar `0032`.** Está en `alembic/versions/0032_2026-08-09_add_customer_orders.py`,
+   sin commitear, para que puedas leer el diff antes. `alembic upgrade head` y listo. Ningún modelo
+   de Python se tocó, así que el bot no se entera.
+2. **Correr la e2e completa** (`--shard=1/2` y `2/2`), ya con la migración aplicada, para que
+   `placeOrder.spec.ts` deje de saltarse.
+3. **Slice 3** — que el comprador vea la lista de sus pedidos. El repositorio ya tiene `listByBuyer`
+   escrito y sin usar; falta la pantalla.
+4. **El fallo preexistente de `cardControls.spec.ts:39`**, que sigue ensuciando toda corrida completa.
+
+**Pendiente del usuario:** aplicar la migración (1) y decidir entre 2–4.
