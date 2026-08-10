@@ -3,13 +3,21 @@ import { CaretDownIcon } from "@radix-ui/react-icons";
 import * as NavigationMenu from "@radix-ui/react-navigation-menu";
 import { useTranslations } from "next-intl";
 import type { CategoryOption } from "~/domain/entities/post/taxonomy";
-import { Link } from "~/i18n/navigation";
+import { type AppHref, Link } from "~/i18n/navigation";
 import { PUBLIC_BRAND_NAME } from "~/infra/constants";
 import ListItem from "./ListItem";
-import { PILLAR_ITEMS, VISIBLE_COMMUNITY_ITEMS } from "./menuItems";
+import {
+  COMMUNITY_OVERVIEW_HREF,
+  PILLAR_ITEMS,
+  PILLARS_OVERVIEW_HREF,
+  VISIBLE_COMMUNITY_ITEMS,
+} from "./menuItems";
 
-const TRIGGER_CLASS =
-  "text-gray-700 dark:text-gray-200 hover:text-pw-green focus:text-pw-green group flex select-none items-center justify-between gap-[2px] rounded-[4px] px-3 py-2 text-[15px] font-medium leading-none outline-hidden transition-colors";
+const SECTION_LINK_CLASS =
+  "text-gray-700 dark:text-gray-200 hover:text-pw-green focus:text-pw-green flex select-none items-center rounded-l-[4px] py-2 pl-3 pr-1 text-[15px] font-medium leading-none outline-hidden transition-colors";
+
+const SECTION_TRIGGER_CLASS =
+  "text-gray-700 dark:text-gray-200 hover:text-pw-green focus:text-pw-green group flex select-none items-center rounded-r-[4px] py-2 pl-1 pr-3 outline-hidden transition-colors";
 
 const LINK_CLASS =
   "text-gray-700 dark:text-gray-200 hover:text-pw-green focus:text-pw-green block select-none rounded-[4px] px-3 py-2 text-[15px] font-medium leading-none outline-hidden transition-colors";
@@ -20,6 +28,32 @@ const CARET_CLASS =
 /** Enlace de una categoría dentro del desplegable: solo la etiqueta, sin descripción. */
 const CATEGORY_LINK_CLASS =
   "text-gray-700 dark:text-gray-200 hover:bg-mauve3 hover:text-pw-green block select-none rounded-[6px] px-3 py-2 text-[15px] leading-none no-underline outline-hidden transition-colors";
+
+function SectionControl({
+  href,
+  label,
+  openLabel,
+}: {
+  href: AppHref;
+  label: string;
+  openLabel: string;
+}) {
+  return (
+    <div className="flex items-center">
+      <NavigationMenu.Link asChild>
+        <Link href={href} className={SECTION_LINK_CLASS}>
+          {label}
+        </Link>
+      </NavigationMenu.Link>
+      <NavigationMenu.Trigger
+        className={SECTION_TRIGGER_CLASS}
+        aria-label={openLabel}
+      >
+        <CaretDownIcon className={CARET_CLASS} aria-hidden />
+      </NavigationMenu.Trigger>
+    </div>
+  );
+}
 
 /**
  * La barra principal.
@@ -43,13 +77,19 @@ export default function Nav({
   const tPillars = useTranslations("pillars");
 
   return (
-    <NavigationMenu.Root className="relative z-20 flex justify-center">
+    <NavigationMenu.Root
+      className="relative z-20 flex justify-center"
+      data-testid="desktop-menu"
+    >
       <NavigationMenu.List className="center m-0 flex list-none rounded-full bg-white/50 dark:bg-black/50 px-2 py-1 shadow-xs backdrop-blur-xs">
         <NavigationMenu.Item>
-          <NavigationMenu.Trigger className={TRIGGER_CLASS}>
-            {t("communityMenu")}
-            <CaretDownIcon className={CARET_CLASS} aria-hidden />
-          </NavigationMenu.Trigger>
+          <SectionControl
+            href={COMMUNITY_OVERVIEW_HREF}
+            label={t("communityMenu")}
+            openLabel={t("openSectionMenu", {
+              section: t("communityMenu"),
+            })}
+          />
           <NavigationMenu.Content className="absolute top-0 left-0 w-auto">
             <div className="p-[22px] w-[300px] md:w-[600px]">
               {/* Lo que se vende va primero: es a lo que viene la mayoría. */}
@@ -114,10 +154,11 @@ export default function Nav({
         </NavigationMenu.Item>
 
         <NavigationMenu.Item>
-          <NavigationMenu.Trigger className={TRIGGER_CLASS}>
-            {t("pillarsMenu")}
-            <CaretDownIcon className={CARET_CLASS} aria-hidden />
-          </NavigationMenu.Trigger>
+          <SectionControl
+            href={PILLARS_OVERVIEW_HREF}
+            label={t("pillarsMenu")}
+            openLabel={t("openSectionMenu", { section: t("pillarsMenu") })}
+          />
           <NavigationMenu.Content className="absolute top-0 left-0 w-auto">
             <ul className="m-0 grid list-none gap-x-[10px] p-[22px] w-[300px] md:w-[600px] lg:w-[700px] grid-cols-[1fr_1fr]">
               {PILLAR_ITEMS.map((item) => (

@@ -11,7 +11,17 @@ import type { AppHref } from "~/i18n/navigation";
  */
 export type MenuEntry =
   | { kind: "link"; id: string; label: string; href: AppHref }
-  | { kind: "panel"; id: string; label: string; entries: MenuEntry[] };
+  | { kind: "panel"; id: string; label: string; entries: MenuEntry[] }
+  | {
+      kind: "section";
+      id: string;
+      label: string;
+      href: AppHref;
+      openLabel: string;
+      entries: MenuEntry[];
+    };
+
+type BranchEntry = Extract<MenuEntry, { entries: MenuEntry[] }>;
 
 export interface CategoryMenuLabels {
   /** El título del nivel que agrupa las categorías. */
@@ -55,14 +65,13 @@ function categoryLink(key: string, label: string): MenuEntry {
 export function panelAt(
   entries: readonly MenuEntry[],
   path: readonly string[],
-): Extract<MenuEntry, { kind: "panel" }> | null {
-  let current: Extract<MenuEntry, { kind: "panel" }> | null = null;
+): BranchEntry | null {
+  let current: BranchEntry | null = null;
   let level: readonly MenuEntry[] = entries;
 
   for (const id of path) {
     const found = level.find(
-      (entry): entry is Extract<MenuEntry, { kind: "panel" }> =>
-        entry.kind === "panel" && entry.id === id,
+      (entry): entry is BranchEntry => "entries" in entry && entry.id === id,
     );
 
     if (!found) return null;

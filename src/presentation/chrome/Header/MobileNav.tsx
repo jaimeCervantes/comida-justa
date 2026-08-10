@@ -12,7 +12,12 @@ import { createPortal } from "react-dom";
 import type { CategoryBranch } from "~/domain/entities/post/taxonomy";
 import { type AppHref, Link, usePathname } from "~/i18n/navigation";
 import { PUBLIC_BRAND_NAME } from "~/infra/constants";
-import { PILLAR_ITEMS, VISIBLE_COMMUNITY_ITEMS } from "./menuItems";
+import {
+  COMMUNITY_OVERVIEW_HREF,
+  PILLAR_ITEMS,
+  PILLARS_OVERVIEW_HREF,
+  VISIBLE_COMMUNITY_ITEMS,
+} from "./menuItems";
 import { categoryEntries, type MenuEntry, panelAt } from "./mobileMenuTree";
 
 /**
@@ -95,6 +100,40 @@ function LinkRow({
   );
 }
 
+function SectionRow({
+  href,
+  label,
+  openLabel,
+  onNavigate,
+  onOpen,
+}: {
+  href: AppHref;
+  label: string;
+  openLabel: string;
+  onNavigate: () => void;
+  onOpen: () => void;
+}) {
+  return (
+    <li className={`${ROW_CLASS} flex items-stretch`}>
+      <Link
+        href={href}
+        onClick={onNavigate}
+        className="flex flex-1 items-center py-4 text-lg font-medium text-gray-900 dark:text-gray-100"
+      >
+        {label}
+      </Link>
+      <button
+        type="button"
+        onClick={onOpen}
+        aria-label={openLabel}
+        className="flex items-center px-3 text-gray-500 hover:text-pw-green transition-colors"
+      >
+        <ChevronRightIcon className="w-6 h-6" aria-hidden />
+      </button>
+    </li>
+  );
+}
+
 /**
  * Un nivel del menú.
  *
@@ -121,6 +160,15 @@ function MenuLevel({
           <PanelRow
             key={entry.id}
             label={entry.label}
+            onOpen={() => onOpenPanel(entry.id)}
+          />
+        ) : entry.kind === "section" ? (
+          <SectionRow
+            key={entry.id}
+            href={entry.href}
+            label={entry.label}
+            openLabel={entry.openLabel}
+            onNavigate={onNavigate}
             onOpen={() => onOpenPanel(entry.id)}
           />
         ) : (
@@ -176,9 +224,11 @@ export default function MobileNav({
      `useMemo` aquí costaría más de leer que de calcular. */
   const rootEntries: MenuEntry[] = [
     {
-      kind: "panel",
+      kind: "section",
       id: COMMUNITY_PANEL,
       label: t("communityMenu"),
+      href: COMMUNITY_OVERVIEW_HREF,
+      openLabel: t("openSectionMenu", { section: t("communityMenu") }),
       entries: [
         { kind: "link", id: "home", label: t("publications"), href: "/" },
         {
@@ -210,9 +260,11 @@ export default function MobileNav({
         ]
       : []),
     {
-      kind: "panel",
+      kind: "section",
       id: PILLARS_PANEL,
       label: t("pillarsMenu"),
+      href: PILLARS_OVERVIEW_HREF,
+      openLabel: t("openSectionMenu", { section: t("pillarsMenu") }),
       entries: PILLAR_ITEMS.map(
         (item): MenuEntry => ({
           kind: "link",

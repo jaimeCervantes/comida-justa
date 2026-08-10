@@ -73,6 +73,21 @@ describe("panelAt", () => {
       label: "Por categoría",
       entries: categoryEntries(branches),
     },
+    {
+      kind: "section" as const,
+      id: "pillars",
+      label: "4 Pilares",
+      href: "/" as const,
+      openLabel: "Abrir el submenú de 4 Pilares",
+      entries: [
+        {
+          kind: "link" as const,
+          id: "sleep",
+          label: "Sueño",
+          href: "/" as const,
+        },
+      ],
+    },
   ];
 
   it("sin camino, no hay panel abierto", () => {
@@ -89,6 +104,14 @@ describe("panelAt", () => {
     expect(
       panelAt(entries, ["categories", "category:alimentacion"]),
     ).toMatchObject({ label: "Alimentación" });
+  });
+
+  it("abre los destinos de una sección cuyo título también enlaza", () => {
+    expect(panelAt(entries, ["pillars"])).toMatchObject({
+      kind: "section",
+      label: "4 Pilares",
+      href: "/",
+    });
   });
 
   /* Si el camino deja de existir —una categoría que se desactiva mientras el menú está abierto—
