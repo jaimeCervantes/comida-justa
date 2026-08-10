@@ -563,3 +563,92 @@ cuando todavía existe. Sin migración y sin nada que aplicar. Falta pasar la e2
 4. **`cardControls.spec.ts:39`**, el único rojo conocido de la suite.
 
 **Pendiente del usuario:** decidir cuándo se lanza la e2e.
+
+---
+
+## Slice 3 — validación en navegador y los tres bugs que destapó (2026-08-10)
+
+Correr la e2e contra las pantallas nuevas encontró lo que ni el typecheck ni 1203 tests unitarios
+podían ver. Los tres son míos, de este mismo slice.
+
+### 1. Las fechas llegaban como texto y la pantalla reventaba por dentro
+
+`FORMATTING_ERROR: Invalid time value` en `/pedidos` y en la ficha del pedido — **el error que el
+usuario vio al probarlo a mano.**
+
+La causa: **`db.execute` con SQL crudo entrega los `timestamptz` como cadena**
+(`2026-08-10 01:58:42.873743+00`), mientras que el constructor de consultas de drizzle sí los
+convierte a `Date`. El slice 2 leía con el constructor y funcionaba; el slice 3 pasó a SQL crudo para
+poder paginar y filtrar, y con eso `createdAt` dejó de ser una fecha. `Intl` la convierte a `NaN` y
+`format.dateTime` lanza.
+
+Se convierte al mapear, una sola vez, y `OrderRow.created_at` pasa a declararse `string`, que es la
+verdad. Declararlo `Date` era la mentira que dejó pasar el error por delante de TypeScript.
+
+> El mismo tropiezo acecha en `PostgresPostQueryRepository`, que también lee con `db.execute` y
+> declara `created_at: Date`. Ahí no se nota porque `mapPostsToCards.normalizeCreatedAt` acepta
+> cadenas — esa función existe justamente por esto.
+
+### 2. La e2e no podía verlo, porque next-intl se lo tragaba
+
+next-intl **captura** el `FORMATTING_ERROR`, lo registra y pinta un hueco. La página seguía cargando,
+así que todas las aserciones pasaban: el escenario iba verde con la fecha rota. Ahora la fecha se
+afirma de verdad (`order-placed-on` contiene el año), así que un fallo de formato ya no puede
+esconderse detrás de una página que carga.
+
+### 3. Siete fallos que no eran fallos: rutas frías
+
+La primera corrida completa dio **7 rojos repartidos por tres archivos**, varios en pruebas que este
+slice no tocaba. No eran regresiones: `/carrito`, `/pedidos`, `/pedido/[id]` y
+`/buscar/[term]/page/[page]` **no estaban en `warmRoutes`**, así que el primer escenario que las
+pisaba pagaba su compilación dentro de su propio plazo. Es el modo de fallo que ese módulo ya
+documenta; lo que faltaba era añadir las rutas que estrené. Con ellas dentro: **16/16**.
+
+`/pedido/[id]` se calienta con un uuid de ceros: sin sesión redirige a identificarse, y eso ya compila
+el segmento, que es lo único que se busca.
+
+### 4. El escenario de las alturas dependía de la paginación
+
+Fijaba dos productos concretos, y el apaisado era del lote del 24 de julio: cae a la página 2 de
+`/productos`. Peor, el tamaño de página cambia con el entorno —9 en local, 4 en CI, que corre sin
+ningún `.env`—, así que habría sido rojo en GitHub por un motivo distinto. Ahora recorre las dos
+primeras páginas y afirma lo que el escenario dice de verdad: **que no todas las tarjetas miden lo
+mismo de alto**, sin nombrar cuáles.
+
+### Validación
+
+| Comando | Resultado |
+| --- | --- |
+| `typecheck` / `typecheck:tests` / `lint` | limpios, exit 0 |
+| `test:run` | **1203 verdes** |
+| `playwright test src/e2e/orders src/e2e/dimensionesMedia` | **16/16** |
+| `playwright test --shard=1/2` | 108 pasados, 3 saltados, **1 fallo preexistente** |
+| `playwright test --shard=2/2` | **112 pasados** |
+
+**220 pasados.** `createPost.spec.ts:31` falló en la primera pasada de la mitad 1 y pasó sola y en la
+repetición: es la flakiness en frío ya documentada, no una regresión.
+
+### El único rojo, ya diagnosticado
+
+`localProducers/cardControls.spec.ts:39` sigue fallando, y ya no es un misterio. Se instrumentó:
+**la acción del servidor no falla** —no aparece error y la base sí cambia—. Lo que no se entera es la
+pantalla, por dos cosas que se suman: el feed del inicio guarda `posts` en `useState` (su propio
+docstring avisa de que no vuelve a mirar sus props) y `MasonryColumns` puede mover una tarjeta de
+columna al repintar, lo que la desmonta y se lleva el `useActionState`. El detalle y por qué **no** se
+arregló aquí —las dos salidas tienen regresión visible y son un cambio de diseño del feed— está en
+`docs/pendientes.md`.
+
+### Recap
+
+El slice 3 está entregado y verificado en navegador. Los pedidos vienen por páginas, el vendedor
+entra por lo abierto, se busca por producto y cada renglón enseña su miniatura y lleva al producto.
+De paso quedó arreglado que las tarjetas y la ficha usen las dimensiones reales de la media. Sin
+ninguna migración.
+
+### Próximos pasos (opciones)
+
+1. **`cardControls.spec.ts:39`**, ya con el diagnóstico hecho: pide decidir cómo refresca el feed del
+   inicio tras una mutación.
+2. **Slice 4 — pago en línea**, cuando los pedidos digan que vale la pena.
+3. **Las insignias que faltan en la búsqueda** (`origin`, `category`, `subCategory`, `seller`) — ya
+   hechas para el carrito, pendientes de decidir para el resto.
