@@ -15,7 +15,7 @@ const PILLARS = [
     key: "sleep",
     number: 1,
     label: "Sueño",
-    origin: "nuevo — índigo nocturno",
+    origin: "violeta anterior #8b5cf6",
   },
   {
     key: "nutrition",
@@ -33,7 +33,7 @@ const PILLARS = [
     key: "mind-spirit",
     number: 4,
     label: "Mente y Espíritu",
-    origin: "--brand-lightorange (estaba sin uso)",
+    origin: "azul cielo anterior #38bdf8",
   },
 ] as const;
 
@@ -83,11 +83,11 @@ function PaletteTable() {
   return (
     <div className="flex flex-col gap-6">
       <p className="max-w-2xl text-sm text-text-support">
-        El logo tiene dos tonos, y cuatro pilares necesitan cuatro. La paleta
-        extiende la marca: tres de los cuatro salen de tokens que ya existían.
-        Cada pilar es una rampa de tres papeles porque las semillas de marca no
-        sirven como tinta —<code>#5dbf17</code> da 2.35 sobre blanco y{" "}
-        <code>#f2b705</code> da 1.82, muy por debajo de AA.
+        Alimentación y Movimiento conservan tonos derivados de la marca. Sueño y
+        Mente/Espíritu recuperan su violeta y azul cielo anteriores. Cada pilar
+        usa una rampa de tres papeles porque los tonos vivos no siempre admiten
+        texto blanco: <code>#8b5cf6</code> da 4.23 y <code>#38bdf8</code> da
+        2.14, por debajo de AA.
       </p>
 
       {PILLARS.map((pillar) => {
@@ -142,7 +142,7 @@ function PaletteTable() {
 
       <p className="max-w-2xl text-sm text-text-support">
         <strong>Aviso de diseño.</strong> Como tinta, Movimiento y Mente
-        contrastan 1.06 entre sí: casi idéntica luminosidad, solo los separa el
+        contrastan 1.14 entre sí: casi idéntica luminosidad, solo los separa el
         tono. Por eso el número acompaña siempre al color — quien no distingue
         el tono sigue pudiendo identificar el pilar.
       </p>

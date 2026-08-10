@@ -66,8 +66,8 @@
      Los cuatro pilares
      ==========================================================
      El logo tiene dos tonos (#f0380e el círculo, #538f39 el corazón) y cuatro pilares necesitan
-     cuatro tonos distinguibles, así que la paleta **extiende** la marca: tres de los cuatro salen
-     de tokens que ya existían y solo Sueño estrena tono.
+     cuatro tonos distinguibles. Alimentación y Movimiento conservan los tonos derivados de la
+     marca; Sueño y Mente/Espíritu recuperan el violeta y el azul cielo que los identificaban.
 
      Cada pilar es una rampa de tres papeles, no un color suelto, porque las semillas de marca no
      sirven como tinta: `#5dbf17` da 2.35 sobre blanco y `#f2b705` da 1.82 — ambos muy por debajo
@@ -81,14 +81,14 @@
      Los contrastes están verificados en `pillarPalette.contrast.test.ts`, que lee **este archivo**:
      si alguien retoca un hex y rompe AA, falla la prueba y no el usuario.
 
-     Aviso de diseño: como tinta, Movimiento (#3c7b0f) y Mente (#8e6b03) contrastan 1.06 entre sí
+     Aviso de diseño: como tinta, Movimiento (#3c7b0f) y Mente (#0369a1) contrastan 1.14 entre sí
      —casi idéntica luminosidad, solo los separa el tono—. El color nunca puede ser el único
      portador del significado de un pilar: siempre va con su número o su etiqueta. */
 
-  /* 1 · Sueño — índigo nocturno (nuevo) */
-  --pillar-sleep-solid: #4c4a8f;
-  --pillar-sleep-soft: #e6e6ef;
-  --pillar-sleep-ink: #4c4a8f;
+  /* 1 · Sueño — del violeta anterior (#8b5cf6) */
+  --pillar-sleep-solid: #7c3aed;
+  --pillar-sleep-soft: #f5f3ff;
+  --pillar-sleep-ink: #7c3aed;
 
   /* 2 · Alimentación — del naranja del logo (--brand-orange) */
   --pillar-nutrition-solid: #dd340d;
@@ -100,10 +100,10 @@
   --pillar-movement-soft: #e8f6df;
   --pillar-movement-ink: #3c7b0f;
 
-  /* 4 · Mente y Espíritu — del ámbar (--brand-lightorange), que estaba definido sin un solo uso */
-  --pillar-mind-spirit-solid: #936f03;
-  --pillar-mind-spirit-soft: #fdf5dc;
-  --pillar-mind-spirit-ink: #8e6b03;
+  /* 4 · Mente y Espíritu — del azul cielo anterior (#38bdf8) */
+  --pillar-mind-spirit-solid: #0369a1;
+  --pillar-mind-spirit-soft: #f0f9ff;
+  --pillar-mind-spirit-ink: #0369a1;
 }
 
 /*
@@ -138,14 +138,12 @@
     --border: #475569;
 
     /* --- Los cuatro pilares ---
-       La rampa se invierte: sobre `#0d0d0d` la semilla de marca vuelve a ser legible por sí sola
-       (Movimiento 8.26, Mente 10.69, Alimentación 4.88), así que `ink` recupera el tono vivo y es
-       `soft` quien se hunde. Solo Sueño necesita aclararse: su índigo es demasiado oscuro para
-       destacar contra un fondo casi negro.
+       La rampa se invierte: `ink` recupera los tonos vivos que son legibles sobre `#0d0d0d`, y
+       `soft` se oscurece para conservar una superficie diferenciada.
 
        `solid` no cambia entre temas: lleva texto blanco encima en ambos y ya cumple AA. */
-    --pillar-sleep-soft: #181824;
-    --pillar-sleep-ink: #8280be;
+    --pillar-sleep-soft: #2e1065;
+    --pillar-sleep-ink: #c4b5fd;
 
     --pillar-nutrition-soft: #36150d;
     --pillar-nutrition-ink: #f4522e;
@@ -153,8 +151,8 @@
     --pillar-movement-soft: #1b2d0f;
     --pillar-movement-ink: #5dbf17;
 
-    --pillar-mind-spirit-soft: #362b0b;
-    --pillar-mind-spirit-ink: #f2b705;
+    --pillar-mind-spirit-soft: #0c2a3b;
+    --pillar-mind-spirit-ink: #38bdf8;
   }
 }
 
@@ -179,8 +177,8 @@
   --border: #475569;
 
   /* --- Los cuatro pilares --- */
-  --pillar-sleep-soft: #181824;
-  --pillar-sleep-ink: #8280be;
+  --pillar-sleep-soft: #2e1065;
+  --pillar-sleep-ink: #c4b5fd;
 
   --pillar-nutrition-soft: #36150d;
   --pillar-nutrition-ink: #f4522e;
@@ -188,8 +186,8 @@
   --pillar-movement-soft: #1b2d0f;
   --pillar-movement-ink: #5dbf17;
 
-  --pillar-mind-spirit-soft: #362b0b;
-  --pillar-mind-spirit-ink: #f2b705;
+  --pillar-mind-spirit-soft: #0c2a3b;
+  --pillar-mind-spirit-ink: #38bdf8;
 }
 
 /* Expose to Tailwind v4 as utility classes */
