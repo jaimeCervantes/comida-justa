@@ -67,6 +67,18 @@ Feature: Carrito y pedidos
     And el sembrado no aparece en el mensaje de WhatsApp
     But su renglón sigue a la vista, para que yo decida quitarlo
 
+  # La búsqueda es el camino más corto del sitio hasta un producto y era el único listado que no
+  # dejaba juntar. No era la UI: usa el mismo `CardForList` que `/productos`. Su proyección construía
+  # el DTO sin `kind` ni `is_available` —aunque la consulta trae la fila entera de `posts`— y un
+  # `as unknown as` impedía que el compilador avisara.
+  @slice-1
+  Scenario: Desde un resultado de búsqueda también se junta
+    Given un producto y un anuncio que comparten un término poco común
+    When busco ese término
+    Then la tarjeta del producto ofrece añadirlo al carrito, igual que en "/productos"
+    And la del anuncio no lo ofrece, porque un anuncio no se vende
+    And al añadirlo la cabecera lo cuenta, sin haber abierto la publicación
+
   @slice-1
   Scenario: Un carrito vacío dice qué hacer
     Given que no he añadido nada

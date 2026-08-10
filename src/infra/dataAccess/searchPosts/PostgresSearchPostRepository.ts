@@ -473,6 +473,17 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
         {
           id: row.id,
           price: row.price ? Number(row.price) : null,
+          /**
+           * Qué es y si queda: **lo que decide si se puede juntar en el carrito.**
+           *
+           * Faltaban aunque `row` los traía desde siempre —la consulta hace
+           * `db.select().from(posts)`, o sea todas las columnas—, y el `as unknown as` de abajo
+           * impedía que TypeScript avisara. Sin `kind`, `canBeOrdered` devolvía `false` para todo
+           * y ni el botón de añadir ni la insignia de agotado aparecían en un resultado de
+           * búsqueda, mientras la misma publicación sí los mostraba en `/productos`.
+           */
+          kind: row.kind,
+          isAvailable: row.isAvailable,
           contactInfo: {
             phone: row.contactPhone ?? "",
             email: row.contactEmail ?? undefined,
@@ -488,6 +499,12 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
             image: user?.image ?? undefined,
           },
           createdAt: row.createdAt,
+          /* El `as unknown as` sigue aquí por **una** discrepancia concreta y no por comodidad: el
+             `Post` del dominio declara `media: PostMediaFile` en singular, mientras que todo el que
+             la lee la trata como lista. Mientras ese tipo no se arregle, cualquier campo que se
+             olvide aquí se pierde en silencio — que es exactamente lo que pasó con `kind` e
+             `isAvailable`. Siguen faltando `origin`, `category`, `subCategory` y `seller`, que son
+             los que dejan a estas tarjetas sin insignias ni logo; ver docs/features/pedidos.md. */
         } as unknown as ISearchPostResultDTO,
       ];
     });
