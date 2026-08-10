@@ -19,11 +19,11 @@ tokens. Todo lo demás se resuelve a mano en cada pantalla, y ya se nota:
   **71 usos de `rounded-*` repartidos en 31 archivos** decidiendo el radio archivo por archivo.
 - **Storybook está instalado y vacío.** `@storybook/nextjs-vite` configurado, **4 stories** en total
   (`Button`, `TextField`, `ImageVideoPicker`, `MediaContent`). Lo que no se ve, se vuelve a escribir.
-- **La marca no gobierna su propio discurso.** Los cuatro pilares son el eje narrativo del sitio y
-  `pilaresData.ts:20-49` le da a dos de ellos colores genéricos de Tailwind (`violet #8b5cf6`,
-  `sky #38bdf8`). Peor: `pillarColorClasses:59-92` mezcla los dos idiomas dentro del mismo objeto
-  —`text-violet-600 dark:text-violet-400` conviviendo con `text-pw-orange`—. Y
-  `--brand-lightorange: #f2b705` está definido en los tokens **sin un solo uso**.
+- **La marca no gobernaba su propio discurso.** Los cuatro pilares son el eje narrativo del sitio y
+  sus colores estaban repartidos entre clases crudas de Tailwind y tokens de marca. El slice 3 los
+  convirtió en rampas semánticas; el ajuste posterior documentado en
+  `docs/features/colores-pilares-vivos.md` recuperó el violeta y el azul que identificaban mejor a
+  Sueño y Mente/Espíritu.
 - **El contraste no está garantizado en ninguna parte.** Cada componente decide su color y su modo
   oscuro por su cuenta, sin que nada verifique que la combinación sea legible.
 
@@ -41,7 +41,7 @@ comunicando una marca: está mostrando el CSS que tenía a la mano.
 
 ---
 
-## La paleta: extender la marca, no inventarla
+## La paleta: marca y colores reconocibles
 
 El `public/logo.svg` tiene **dos tonos** y negro:
 
@@ -51,15 +51,16 @@ El `public/logo.svg` tiene **dos tonos** y negro:
 | Corazón | `#538f39` | `--brand-green` |
 | Texto | `#000000` | `--brand-black` |
 
-Cuatro pilares necesitan cuatro tonos distinguibles, así que la paleta **extiende** la marca: tres de
-los cuatro salen de tokens que ya existen y solo Sueño estrena tono.
+Cuatro pilares necesitan cuatro tonos distinguibles. Alimentación y Movimiento conservan tonos
+derivados de la marca; Sueño y Mente/Espíritu recuperan los colores vivos que los identificaban antes
+de la primera tokenización.
 
 | # | Pilar | Semilla | Origen |
 | --- | --- | --- | --- |
-| 1 | Sueño | `#4c4a8f` | **Nuevo** — índigo nocturno |
+| 1 | Sueño | `#8b5cf6` | Violeta anterior |
 | 2 | Alimentación | `#f0380e` | `--brand-orange` (del logo) |
 | 3 | Movimiento | `#5dbf17` | `--brand-lightgreen` |
-| 4 | Mente y Espíritu | `#f2b705` | `--brand-lightorange` (existía sin uso) |
+| 4 | Mente y Espíritu | `#38bdf8` | Azul cielo anterior |
 
 ### Por qué un token por pilar no alcanza
 
@@ -67,14 +68,14 @@ Las semillas de marca **no se pueden usar como color de texto**. Medido contra W
 
 | Pilar | Semilla | Texto s/ blanco | Blanco s/ semilla |
 | --- | --- | --- | --- |
-| Sueño | `#4c4a8f` | 7.83 ✅ | 7.83 ✅ |
+| Sueño | `#8b5cf6` | 4.23 ⚠️ solo texto grande | 4.23 ⚠️ |
 | Alimentación | `#f0380e` | 3.98 ⚠️ solo texto grande | 3.98 ⚠️ |
 | Movimiento | `#5dbf17` | **2.35 ❌** | **2.35 ❌** |
-| Mente y Espíritu | `#f2b705` | **1.82 ❌** | **1.82 ❌** |
+| Mente y Espíritu | `#38bdf8` | **2.14 ❌** | **2.14 ❌** |
 
-El ámbar y el verde vivo fallan por mucho en ambas direcciones: ni sirven de tinta sobre claro ni
-aguantan blanco encima. Por eso cada pilar es una **rampa de tres papeles**, derivada de la semilla
-conservando su tono y su saturación, y bajando o subiendo la luminosidad hasta cruzar 4.5:1:
+Varios tonos vivos no sirven directamente como tinta sobre claro ni aguantan blanco encima. Por eso
+cada pilar es una **rampa de tres papeles**, derivada de la semilla conservando su matiz y ajustando
+la luminosidad hasta cruzar 4.5:1:
 
 | Papel | Qué es | Contra qué se mide |
 | --- | --- | --- |
@@ -86,17 +87,18 @@ Valores resueltos (modo claro):
 
 | Pilar | `soft` | `ink` | contraste ink/soft | `solid` | blanco/solid |
 | --- | --- | --- | --- | --- | --- |
-| Sueño | `#e6e6ef` | `#4c4a8f` | 6.30 ✅ | `#4c4a8f` | 7.83 ✅ |
+| Sueño | `#f5f3ff` | `#7c3aed` | 5.20 ✅ | `#7c3aed` | 5.70 ✅ |
 | Alimentación | `#fde3dd` | `#c52e0b` | 4.57 ✅ | `#dd340d` | 4.59 ✅ |
 | Movimiento | `#e8f6df` | `#3c7b0f` | 4.64 ✅ | `#408410` | 4.64 ✅ |
-| Mente y Espíritu | `#fdf5dc` | `#8e6b03` | 4.53 ✅ | `#936f03` | 4.65 ✅ |
+| Mente y Espíritu | `#f0f9ff` | `#0369a1` | 5.57 ✅ | `#0369a1` | 5.93 ✅ |
 
-En modo oscuro la rampa se invierte: la semilla vuelve a ser legible sobre `#0d0d0d` (Movimiento
-8.26, Mente 10.69, Alimentación 4.88) y solo Sueño necesita aclararse a `#7674b7`.
+En modo oscuro la rampa se invierte: la tinta recupera una variante brillante y la superficie se
+oscurece. Sueño usa `#c4b5fd` sobre `#2e1065`; Mente/Espíritu recupera el azul `#38bdf8` sobre
+`#0c2a3b`.
 
 ### La advertencia que el cálculo dejó por escrito
 
-Como **tinta**, Movimiento (`#3c7b0f`) y Mente (`#8e6b03`) tienen contraste **1.06 entre sí**: son
+Como **tinta**, Movimiento (`#3c7b0f`) y Mente (`#0369a1`) tienen contraste **1.14 entre sí**: son
 casi idénticos en luminosidad y solo los separa el tono (95° contra 45°). Consecuencia de diseño, no
 negociable: **el color nunca puede ser el único portador del significado de un pilar.** Siempre va
 acompañado de su número o su etiqueta. Un lector con deuteranopia debe poder distinguirlos sin el
