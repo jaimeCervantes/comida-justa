@@ -37,4 +37,21 @@ justifique otra portada. El mismo modelo se aplica en escritorio y móvil y cons
 - Los submenús siguen ofreciendo los cuatro pilares y los destinos visibles de Comunidad.
 - Los enlaces y las flechas tienen nombres accesibles que distinguen navegar de desplegar.
 
-No hay slices futuros: el cambio queda completo al separar ambos comportamientos en los dos menús.
+### Slice 2 - Unir visualmente el control y su submenú
+
+**Alcance**
+
+- Ajustar únicamente el menú de escritorio; el menú móvil conserva su distribución actual.
+- Acercar la flecha verde al título sin volver a mezclar sus acciones.
+- Centrar el triángulo blanco bajo el conjunto formado por título y flecha verde.
+- Unir visualmente el triángulo blanco con el borde superior del submenú.
+
+**Criterios de aceptación**
+
+- Entre el final del título y el inicio de la flecha verde hay como máximo 8 píxeles.
+- El centro horizontal del triángulo blanco difiere como máximo 2 píxeles del centro del control
+  completo.
+- El triángulo blanco toca el borde superior del submenú, con una separación máxima de 1 píxel.
+- «Comunidad» y «4 Pilares» conservan sus enlaces, botones accesibles y destinos actuales.
+
+No hay slices futuros: la navegación queda completa al corregir la cohesión visual detectada en uso.

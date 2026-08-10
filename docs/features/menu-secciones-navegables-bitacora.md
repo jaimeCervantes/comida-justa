@@ -99,3 +99,101 @@ slice y dejó la base compartida limpia.
    impiden completar la suite global.
 3. **Portada futura:** considerar `/comunidad` solo cuando exista contenido introductorio propio que
    no duplique el feed del inicio.
+
+## 2026-08-10 - Slice 2: el indicador nace del control completo
+
+### Objetivo
+
+Corregir la separación visual detectada en escritorio: acercar la flecha verde a «Comunidad» y «4
+Pilares», centrar el triángulo blanco bajo cada conjunto y hacer que ese triángulo toque el submenú.
+
+### Decisiones y racional
+
+- El enlace y el botón siguen siendo controles distintos. Juntarlos visualmente no justifica perder
+  la navegación directa ni volver a un botón con dos comportamientos ambiguos.
+- Se eliminó el indicador global de Radix porque su posición se calcula desde el `Trigger`, que ahora
+  es únicamente la flecha. Por eso apuntaba al extremo derecho y no al centro del conjunto.
+- Cada control dibuja su propio triángulo desde un contenedor relativo que abarca título y flecha.
+  Su centro depende del conjunto completo y no de la longitud del texto ni del botón aislado.
+- El triángulo es un borde CSS anclado al borde superior del viewport. Así no queda una franja entre
+  la punta y el panel, en tema claro ni oscuro.
+- El espacio visible entre texto y caret se redujo a 4 píxeles. La prueba admite hasta 8 para evitar
+  fragilidad por redondeos de subpíxel, pero mide las cajas reales del navegador.
+- El menú móvil no cambió: la observación y el problema estaban en la barra de escritorio.
+
+### Archivos tocados
+
+- **Cabecera:** `src/presentation/chrome/Header/Nav.tsx`.
+- **Prueba y especificación:** `src/e2e/menu/sectionAlignment.spec.ts`,
+  `src/e2e/menu/sectionAlignment.feature`.
+- **Documentación:** `docs/features/menu-secciones-navegables.md`,
+  `docs/features/menu-secciones-navegables-bitacora.md`.
+
+### Comandos clave
+
+```bash
+pnpm exec playwright test src/e2e/menu/sectionAlignment.spec.ts
+pnpm exec playwright test src/e2e/menu/sectionAlignment.spec.ts src/e2e/menu/sectionLinks.spec.ts
+pnpm run test:run
+pnpm run typecheck
+pnpm run lint
+pnpm run check:i18n
+pnpm run test:e2e:run
+pnpm exec biome check src/presentation/chrome/Header/Nav.tsx src/e2e/menu/sectionAlignment.spec.ts
+git diff --check
+```
+
+### Resultados de validación
+
+- La E2E geométrica empezó roja en **2/2 casos** porque aún no existían un indicador por control ni
+  una caja propia para medir el título.
+- La E2E específica quedó en **2/2 casos verdes** para «Comunidad» y «4 Pilares»: distancia
+  título/caret menor o igual a 8 píxeles, desviación del centro menor o igual a 2 y separación con el
+  submenú menor o igual a 1.
+- La regresión completa del menú quedó en **12/12 casos verdes**, incluidos enlaces, rutas en inglés,
+  despliegues, móvil y la nueva geometría.
+- `pnpm run test:run`: **1,211/1,211 pruebas verdes**, 124 archivos.
+- `pnpm run typecheck`: exit 0.
+- `pnpm run lint`: exit 0, con la información preexistente sobre el fragmento redundante de
+  `IndexingStatusPanel.tsx`.
+- `pnpm run check:i18n`, Biome dirigido y `git diff --check`: limpios.
+- `pnpm run test:e2e:run`: **incompleto**. Planeó 237 casos y alcanzó el inicio del 155 antes del
+  timeout de 15 minutos. Los doce casos del menú, ejecutados del 109 al 120, pasaron. Los dos fallos
+  observados antes del corte fueron el proveedor de Google ausente en `createPost.spec.ts` y una
+  carga incremental que no añadió tarjetas en `loadMorePosts.spec.ts`; también hubo mensajes de
+  conexión abortada y de la FK de traducciones, ajenos a este ajuste.
+- La E2E escribió en la base compartida. Como el timeout impidió el teardown, el barrido oficial
+  eliminó **1 publicación y 1 dirección personal E2E**; su conteo posterior quedó en **0
+  publicaciones, 0 categorías, 0 sucursales, 0 tiendas y 0 direcciones personales de prueba**. No
+  quedó nada que deshacer.
+
+### Desviaciones del roadmap
+
+- No cambió el alcance: solo se tocó escritorio y se conservaron los dos comportamientos del control.
+- El indicador dejó de usar el componente global de Radix. Mantenerlo habría hecho imposible
+  centrarlo sobre el conjunto sin volver a convertir todo el elemento en un único botón.
+- La suite E2E global no terminó por duración e incidencias externas; la cobertura específica se
+  ejecutó completa tres veces y la regresión del menú una vez, todas verdes.
+
+### Seguimiento
+
+- La comprobación pendiente es subjetiva: comparar la barra desplegada con la captura original en un
+  dispositivo real y confirmar que la cercanía visual esperada coincide con la medida acordada.
+- Los fallos de Google, carga incremental, conexión y FK deben permanecer en tareas separadas.
+
+### Recap
+
+En escritorio, «Comunidad» y «4 Pilares» conservan su enlace y su botón independiente, pero ahora se
+leen como un solo control: el caret queda junto al título y el triángulo blanco nace del centro del
+conjunto y toca el panel abierto. La geometría está protegida por Playwright para ambos elementos; la
+regresión del menú, Vitest, tipos, lint e i18n están verdes, y la base compartida quedó limpia tras la
+suite global incompleta.
+
+### Próximos pasos (opciones)
+
+1. **Revisión visual final:** abrir ambos submenús en escritorio y confirmar que la composición se ve
+   unida también en el dispositivo objetivo.
+2. **Ajuste fino:** si se desea aún menos espacio, reducir el único padding izquierdo de 4 píxeles del
+   botón y mantener las mismas pruebas geométricas.
+3. **Deuda separada:** diagnosticar el proveedor de Google, la carga incremental y la carrera de
+   traducciones observados en la suite global.
