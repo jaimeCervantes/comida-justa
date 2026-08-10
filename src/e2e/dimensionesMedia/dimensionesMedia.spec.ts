@@ -20,12 +20,8 @@ const VERTICAL = {
   width: 1200,
   height: 1600,
 };
-const APAISADA = {
-  slug: "crema-de-cacahuate-natural",
-  title: "Crema de Cacahuate Natural",
-  width: 1600,
-  height: 1200,
-};
+/** Las dos formas que conviven en el catálogo real: 5 verticales y 4 apaisadas por página. */
+const RATIO_MINIMO_ENTRE_FORMAS = 1.4;
 
 /** La imagen dentro de la tarjeta de esa publicación, en un listado. */
 function cardImage(page: Page, title: string): Locator {
@@ -35,11 +31,30 @@ function cardImage(page: Page, title: string): Locator {
     .getByTestId("media-image-sized");
 }
 
-async function renderedHeight(image: Locator): Promise<number> {
-  await expect(image).toBeVisible();
-  const box = await image.boundingBox();
+/**
+ * El alto pintado de cada imagen con dimensiones conocidas del listado.
+ *
+ * Se recorren **las dos primeras páginas** en vez de fijar dos productos concretos: `/productos`
+ * ordena por fecha y su tamaño de página cambia con el entorno —9 en local, 4 en CI, que corre sin
+ * ningún `.env`—, así que nombrar un producto apaisado ataba el escenario a dónde cayó ese día. Lo
+ * que se afirma no es qué productos hay, sino que **conviven formas distintas**.
+ */
+async function alturasDelListado(page: Page): Promise<number[]> {
+  const alturas: number[] = [];
 
-  return box?.height ?? 0;
+  for (const url of ["/productos", "/productos/page/2"]) {
+    await page.goto(url);
+
+    const imagenes = page.getByTestId("media-image-sized");
+
+    for (const imagen of await imagenes.all()) {
+      const box = await imagen.boundingBox();
+
+      if (box?.height) alturas.push(box.height);
+    }
+  }
+
+  return alturas;
 }
 
 test.describe("Cuando una foto vertical sale en un listado", () => {
@@ -77,20 +92,19 @@ test.describe("Cuando una foto vertical sale en un listado", () => {
 });
 
 test.describe("Cuando en un listado conviven formas distintas", () => {
-  test("Entonces la vertical ocupa bastante más alto que la apaisada", async ({
+  test("Entonces no todas las tarjetas miden lo mismo de alto", async ({
     page,
   }) => {
-    await page.goto("/productos");
+    const alturas = await alturasDelListado(page);
 
-    const alturas = {
-      vertical: await renderedHeight(cardImage(page, VERTICAL.title)),
-      apaisada: await renderedHeight(cardImage(page, APAISADA.title)),
-    };
+    // Si esto falla, o no llegan las dimensiones o el catálogo perdió una de las dos formas.
+    expect(alturas.length).toBeGreaterThan(1);
 
-    /* 4:3 contra 3:4 son 1.78x de diferencia en teoría; se afirma 1.4 para dejar aire al ancho de
-       columna, que no es idéntico en todas. Lo que se comprueba es que NO son iguales — que es lo
-       que pasaba cuando las dos se declaraban 1000x1000, y lo que hace que el listado parezca
-       mampostería y no una rejilla con huecos. */
-    expect(alturas.vertical).toBeGreaterThan(alturas.apaisada * 1.4);
+    /* Lo que se comprueba es que NO son todas iguales, que es exactamente lo que pasaba cuando las
+       15 imágenes se declaraban 1000x1000: una rejilla de cuadrados. 4:3 contra 3:4 son 1.78x en
+       teoría; se afirma 1.4 para dejar aire a que las columnas no midan lo mismo. */
+    expect(Math.max(...alturas)).toBeGreaterThan(
+      Math.min(...alturas) * RATIO_MINIMO_ENTRE_FORMAS,
+    );
   });
 });
