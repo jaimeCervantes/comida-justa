@@ -178,6 +178,31 @@ test.describe("Cuando el vendedor administra lo que le pidieron", () => {
   });
 });
 
+test.describe("Cuando alguien quiere ver sus pedidos", () => {
+  test("Entonces llega desde el menú de su avatar y ve sus dos papeles", async ({
+    page,
+  }) => {
+    await addToCart(page, producto.slug);
+    await page.goto("/carrito");
+    await page.getByTestId("cart-confirm").click();
+    await expect(page.getByTestId("order-detail")).toBeVisible();
+
+    // Se llega por el menú, no escribiendo la dirección: es lo que faltaba.
+    await page.goto("/");
+    await page.getByTestId("user-menu-trigger").click();
+    await page.getByTestId("menu-my-orders").click();
+
+    /* La cuenta de la suite es dueña de la tienda sembrada, así que ve las dos secciones: lo que le
+       pidieron y lo que pidió. */
+    await expect(page.getByTestId("orders-received")).toBeVisible();
+    await expect(page.getByTestId("orders-placed")).toBeVisible();
+
+    // Y desde el resumen se llega al detalle.
+    await page.getByTestId("buyer-order").first().click();
+    await expect(page.getByTestId("order-detail")).toBeVisible();
+  });
+});
+
 test.describe("Cuando quien confirma no ha iniciado sesión", () => {
   test("Entonces se le pide identificarse y el carrito se queda intacto", async ({
     page,

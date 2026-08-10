@@ -329,3 +329,60 @@ no existe.
 4. **El fallo preexistente de `cardControls.spec.ts:39`**, que sigue ensuciando toda corrida completa.
 
 **Pendiente del usuario:** aplicar la migración (1) y decidir entre 2–4.
+
+---
+
+## Slice 2 (añadido) — Los pedidos tienen su sitio (2026-08-09)
+
+### Objetivo
+
+Cerrar el hueco que se vio al mirar lo entregado: **los pedidos del vendedor estaban enterrados
+dentro de `/cuenta`, mezclados con la ficha de la tienda y las sucursales, y lo que uno pedía no
+tenía página ninguna.** El repositorio ya traía `listByBuyer` escrito y sin usar.
+
+### Decisiones y por qué
+
+- **Un solo destino, `/pedidos`, para los dos papeles.** La misma persona compra y vende —hoy la
+  única tienda es de alguien que también compra—, así que dos direcciones obligarían a elegir «¿en
+  qué papel entro?» antes de saber si hay algo que atender.
+- **Lo que te han pedido va primero.** Un pedido pendiente es alguien esperando respuesta; mirar lo
+  que uno pidió puede esperar.
+- **Se saca de `/cuenta` en vez de duplicarlo.** Son cosas distintas: `/cuenta` es quién eres y cómo
+  te presentas —se toca una vez y se olvida—, y esto es actividad que cambia cada día.
+- **La lista del comprador va resumida, no desglosada**: tienda, estado y total, con el detalle en
+  `/pedido/<id>`. Repetir los renglones haría la lista ilegible con tres pedidos.
+- **La sección del vendedor no se pinta si no hay tienda**, en vez de enseñarla vacía: no puede haber
+  nada, y un encabezado vacío parece un fallo.
+- **El enlace se ofrece a todo el mundo**, venda o no. En el menú del avatar va **antes** que «Mi
+  cuenta», y en el móvil fuera del bloque condicional de tienda/perfil — que hoy no ven 20 de los 21
+  usuarios.
+- El disparador del menú del avatar estrena `data-testid`: la prueba lo buscaba por su etiqueta
+  traducida, que es exactamente el tipo de localizador que se rompe al cambiar un texto.
+
+### Archivos tocados
+
+`src/app/[locale]/pedidos/` (`page.tsx`, `ui/BuyerOrders.tsx`, y `ui/SellerOrders.tsx` **movido**
+desde `cuenta/ui/`), `cuenta/page.tsx` (se le quita la sección), `UserMenu.tsx`,
+`MobileAccountCard.tsx`, `i18n/routing.ts` (`/pedidos` → `/orders`), los dos catálogos de mensajes,
+`orders.feature` y `placeOrder.spec.ts`.
+
+### Validación
+
+`typecheck`, `typecheck:tests` y `lint` limpios; `pnpm run test:run` en **1185 verdes**. Playwright
+**no corrido** — sigue pendiente de la migración y de que el usuario lance la suite.
+
+### Recap
+
+Ya hay un lugar visible para los pedidos y se llega desde el menú del avatar en escritorio y móvil:
+`/pedidos` enseña lo que te han pedido —si tienes tienda— y lo que has pedido, cada uno enlazando a
+su detalle. Con esto el slice 3 del roadmap queda absorbido: lo que faltaba era justo la lista del
+comprador. Sigue todo pendiente de aplicar `0032`.
+
+### Próximos pasos (opciones)
+
+1. **Revisar y aplicar `0032`** (`alembic upgrade head`), que sigue siendo la única puerta.
+2. **Correr la e2e completa** ya con la tabla, para que `placeOrder.spec.ts` deje de saltarse.
+3. **Slice 4 — pago en línea**, cuando los pedidos registrados digan que vale la pena.
+4. **El fallo preexistente de `cardControls.spec.ts:39`.**
+
+**Pendiente del usuario:** aplicar la migración y lanzar la e2e.

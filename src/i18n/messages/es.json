@@ -330,6 +330,7 @@
     "communitySections": "Secciones",
     "myAccount": "Mi cuenta",
     "myAccountAndStore": "Mi cuenta y mi tienda",
+    "myOrders": "Mis pedidos",
     "myProfile": "Mi perfil",
     "myStore": "Mi tienda",
     "openMenu": "Abrir menú",
@@ -359,10 +360,15 @@
       "PREPARING": "Empezar a prepararlo"
     },
     "buyer": "Lo pidió {name}",
+    "buyerEmpty": "Todavía no has hecho ningún pedido.",
+    "buyerEmptyCta": "Ver el catálogo",
+    "buyerHeading": "Tus pedidos",
     "confirm": "Hacer el pedido a {store}",
     "errorEmpty": "Ya no tienes nada de esa tienda en el carrito.",
     "errorTransition": "Ese pedido cambió mientras lo mirabas. Recarga para ver cómo está.",
     "errorUnavailable": "Se agotó todo lo que llevabas de esta tienda.",
+    "heading": "Pedidos",
+    "metaDescription": "Lo que has pedido y lo que te han pedido.",
     "notifySeller": "Avisar a {store} por WhatsApp",
     "placed": "Tu pedido quedó registrado",
     "placedHint": "Falta un paso: avísale a la tienda por WhatsApp para que lo prepare.",
@@ -380,7 +386,8 @@
       "PREPARING": "En preparación"
     },
     "title": "Pedido",
-    "total": "Total"
+    "total": "Total",
+    "viewOrder": "Ver el pedido"
   },
   "pillarPages": {
     "mindSpirit": {

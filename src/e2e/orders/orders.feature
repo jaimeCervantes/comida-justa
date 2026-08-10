@@ -167,6 +167,23 @@ Feature: Carrito y pedidos
     Then se me pide iniciar sesión, porque un pedido tiene dueño
     And el carrito sigue intacto
 
+  # Los pedidos vivían dentro de "/cuenta", mezclados con la ficha de la tienda y las sucursales, y
+  # lo que uno pedía no tenía página ninguna. Un solo destino para los dos papeles: la misma persona
+  # compra y vende —hoy la única tienda es de alguien que también compra—, así que partirlo en dos
+  # direcciones obliga a elegir en qué papel entras antes de saber si hay algo que atender.
+  @slice-2
+  Scenario: Los pedidos tienen su sitio, y se llega desde el menú de la cuenta
+    Given que hice un pedido y además tengo tienda
+    When abro "Mis pedidos" desde el menú de mi avatar
+    Then veo primero lo que me han pedido y debajo lo que he pedido yo
+    And cada uno enlaza a su página, donde está el detalle
+
+  @slice-2
+  Scenario: Quien no vende solo ve lo suyo
+    Given que no tengo tienda
+    When abro "/pedidos"
+    Then no aparece la sección de lo que me han pedido, porque no puede haber nada
+
   @slice-2
   Scenario: El pedido de otra persona no se puede ni mirar
     Given un pedido que hizo alguien más

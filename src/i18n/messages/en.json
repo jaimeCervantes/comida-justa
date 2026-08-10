@@ -330,6 +330,7 @@
     "communitySections": "Sections",
     "myAccount": "My account",
     "myAccountAndStore": "My account and my store",
+    "myOrders": "My orders",
     "myProfile": "My profile",
     "myStore": "My store",
     "openMenu": "Open menu",
@@ -359,10 +360,15 @@
       "PREPARING": "Start preparing it"
     },
     "buyer": "Ordered by {name}",
+    "buyerEmpty": "You have not placed any order yet.",
+    "buyerEmptyCta": "Browse the catalog",
+    "buyerHeading": "Your orders",
     "confirm": "Send your order to {store}",
     "errorEmpty": "There is nothing from that store in your cart anymore.",
     "errorTransition": "This order changed while you were looking at it. Reload to see where it stands.",
     "errorUnavailable": "Everything you had from this store has sold out.",
+    "heading": "Orders",
+    "metaDescription": "What you ordered and what you were asked for.",
     "notifySeller": "Message {store} on WhatsApp",
     "placed": "Your order is registered",
     "placedHint": "One step left: message the store on WhatsApp so they can prepare it.",
@@ -380,7 +386,8 @@
       "PREPARING": "Being prepared"
     },
     "title": "Order",
-    "total": "Total"
+    "total": "Total",
+    "viewOrder": "View order"
   },
   "pillarPages": {
     "mindSpirit": {
