@@ -1,7 +1,7 @@
 # Pendientes
 
 Registro único de lo que queda abierto, para no tener que reconstruirlo leyendo nueve bitácoras.
-Cada punto apunta a su roadmap. **Última sesión: 2026-08-08.**
+Cada punto apunta a su roadmap. **Última sesión: 2026-08-09.**
 
 ---
 
@@ -29,6 +29,43 @@ Lo que sigue abierto es **trabajo normal en este repositorio**, sin puertas:
 > **Nota**: al aplicar `0029` se aplicó también `0028` (el ledger de publicación en redes sociales
 > del bot), que estaba escrita y sin aplicar. `alembic upgrade head` no la puede saltar. Es
 > aditiva —dos tablas nuevas, nada existente tocado— pero conviene saberlo.
+
+---
+
+## Abierto el 2026-08-09
+
+### `cardControls.spec.ts:39` falla, y **no** es arranque en frío
+
+"Marca agotado desde la tarjeta, sin abrir la publicación": tras pulsar, la tarjeta nunca vuelve a
+pintar "Marcar disponible" y la espera agota sus 5 s. Se reproduce corrida tras corrida.
+
+**No lo rompió el carrito.** Se comprobó guardando el slice con `git stash` y corriendo ese spec
+sobre `dev` limpio: falla igual. Es anterior, y es distinto del falso positivo de la línea 98 que se
+cerró el 2026-08-07 — aquel sí era compilación en frío.
+
+Por dónde empezar: `CardOwnerControls` decide la etiqueta con `state.isAvailable ?? isAvailable`, así
+que o la acción no devuelve estado nuevo, o el componente se remonta y lo pierde.
+
+### Carrito entregado (slice 1 de `pedidos.md`)
+
+`/carrito`, contador en la cabecera y "Confirmar pedido con \<tienda\>". **Sin migración**: el pedido
+todavía no se guarda. El slice 2 sí la pide — `orders` tiene 0 filas y le falta `seller_id`, los
+renglones y el hueco del pago — y es la única puerta abierta de esta feature.
+
+~~Seguimiento menor: las tarjetas de búsqueda no ofrecen añadir al carrito.~~ **Cerrado el
+2026-08-09, y la causa merece leerse.** La consulta de búsqueda hace `db.select().from(posts)` —trae
+la fila entera—, pero al construir el DTO se quedaban fuera `kind`, `origin`, `category`,
+`subCategory` e `isAvailable`, y el `as unknown as ISearchPostResultDTO` del final impedía que
+TypeScript avisara. Sin `kind`, `canBeOrdered` decidía que **nada** se podía pedir.
+
+Se añadieron `kind` e `isAvailable` (con ellos vuelve también la insignia de agotado). **`origin`,
+`category`, `subCategory` y `seller` siguen faltando**: son los que dejan esas tarjetas sin el resto
+de insignias ni logo, y ponerlos cambia cómo se ven los resultados, que es una decisión de diseño y
+no una corrección.
+
+El cast sobrevive por **una** discrepancia concreta: el `Post` del dominio declara
+`media: PostMediaFile` en singular mientras todo el que la lee la trata como lista. Mientras eso no
+se arregle, cualquier campo que se olvide en esa proyección se pierde en silencio.
 
 ---
 

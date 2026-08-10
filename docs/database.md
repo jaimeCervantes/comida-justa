@@ -1,7 +1,7 @@
 # Base de datos
 
-> Volcado del esquema **real** el 2026-08-08, contra la base compartida (`alembic_version` =
-> `0029_2026_08_08`). La versión anterior de este documento describía una base que ya no existía:
+> Volcado del esquema **real** el 2026-08-09, contra la base compartida (`alembic_version` =
+> `0032_2026_08_09`). La versión anterior de este documento describía una base que ya no existía:
 > tres tablas, `posts.id` como `uuid` cuando es `text`, un `UNIQUE(post_id, locale)` que nunca se
 > creó, y una sección entera sobre leer de Firestore. Si vuelves a dudar, el volcado se reproduce
 > con las consultas de `information_schema` en vez de creerle a este archivo.
@@ -24,7 +24,7 @@
 
 ## Qué tabla es de quién
 
-19 tablas. No todas son de este sitio:
+26 tablas. No todas son de este sitio:
 
 | Tabla | La usa | Notas |
 | --- | --- | --- |
@@ -36,6 +36,8 @@
 | `branches` | **el sitio** y el bot | sucursales con `location` PostGIS; es lo que da las distancias |
 | `seller_translations`, `branch_translations` | **el sitio** | desde `0029`. Español sembrado; el camino de lectura es el slice 5 de i18n |
 | `searches` | **el sitio** | desde `0029`. Qué se busca y cuánta gente se va vacía |
+| `follows` | **el sitio** | desde `0031`. Seguir a una tienda o a una persona |
+| `customer_orders`, `customer_order_items` | **el sitio** | desde `0032`. Los pedidos y sus renglones con el precio congelado |
 | `messages`, `orders`, `prompts`, `ai_training_logs`, `product_recommendations` | **solo el bot** | no hay espejo Drizzle |
 | `social_posts`, `social_post_deliveries` | **solo el bot** | desde `0028`. Ledger de publicación en redes |
 | `alembic_version` | Alembic | |
@@ -180,6 +182,54 @@ copiando lo que ya había, así que nacieron consistentes.
 
 Falta el **camino de lectura**: la ficha de tienda sigue leyendo `sellers.name` y `branches.address`
 directos. Es el slice 5 de i18n, que ya no está bloqueado por esquema.
+
+### Pedidos (desde `0032`)
+
+```sql
+-- Los N pedidos nacidos de un mismo carrito comparten `checkout_id`. Hoy N es siempre 1,
+-- porque hay una sola tienda: existe para el día que no.
+CREATE TABLE customer_orders (
+  id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  checkout_id uuid NOT NULL,
+  seller_id   uuid NOT NULL REFERENCES sellers(id),
+  user_id     text NOT NULL REFERENCES users(id),
+  status      orderstatus NOT NULL DEFAULT 'PENDING',
+  created_at  timestamptz NOT NULL DEFAULT now(),
+  updated_at  timestamptz NOT NULL DEFAULT now()
+);
+
+-- `title` y `unit_price` son COPIAS del momento en que se pidió, no referencias: si el
+-- vendedor sube el precio mañana, el pedido de ayer no cambia.
+CREATE TABLE customer_order_items (
+  id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  order_id   uuid NOT NULL REFERENCES customer_orders(id) ON DELETE CASCADE,
+  post_id    text REFERENCES posts(id) ON DELETE SET NULL,   -- nullable a propósito
+  title      text    NOT NULL,
+  unit_price numeric NOT NULL,
+  quantity   integer NOT NULL,
+  CHECK (quantity > 0),
+  CHECK (unit_price >= 0)
+);
+```
+
+**No hay columna `total`.** Se suma de los renglones, que son la única verdad; una copia
+denormalizada solo puede desincronizarse de lo que la compone.
+
+**`post_id` es nulo con `ON DELETE SET NULL`, y eso es el diseño, no un descuido.** Si la
+publicación desaparece, el renglón sobrevive con su copia — que es justo para lo que se guardó. Con
+`RESTRICT`, el histórico bloquearía para siempre el borrado de cualquier producto que alguien haya
+pedido una vez.
+
+**Qué transición de estado vale NO lo impone la base.** El enum acepta los siete valores y cualquier
+salto entre ellos; las reglas (`PENDING → CONFIRMED → PREPARING → DELIVERED`, y `CANCELLED` desde
+cualquier punto menos el último) viven en `src/domain/order/order.ts`. Son de negocio, van a cambiar
+—con el pago en línea, `PAID` se mete en medio— y tienen que dar un mensaje entendible en vez de una
+violación de constraint.
+
+> **`orders` NO es esta tabla.** `orders` es el **carrito** del bot y sigue siendo suya: allí una
+> fila nace en `DRAFT` sin vendedor y va acumulando artículos en un JSON conforme avanza la
+> conversación de WhatsApp (`app/use_cases/orders.py`, inyectado en `api/dependencies.py`). El enum
+> `orderstatus` sí se comparte. Ver "Por qué NO se reusa `orders`" en `docs/features/pedidos.md`.
 
 ### Taxonomía
 
@@ -403,8 +453,11 @@ pnpm dev
 | `0026` | Taxonomía centralizada en `categories` |
 | `0027` | `sellers.slug`, `users.username` (nullable, con índice único) |
 | `0029` | Unicidad de traducción y slug, los 3 GIN + HNSW, `searches`, `seller_translations`, `branch_translations` |
+| `0030` | `post_media.width` y `post_media.height` |
+| `0031` | `follows`, con sus dos únicos parciales |
+| `0032` | `customer_orders` y `customer_order_items` |
 
 `0028` es del bot (ledger de publicación en redes) y se aplicó de camino al `0029`: estaba escrita
 sin aplicar y `alembic upgrade head` no la puede saltar.
 
-Head actual: **`0029_2026_08_08`**.
+Head actual: **`0032_2026_08_09`**.

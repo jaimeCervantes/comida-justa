@@ -154,6 +154,22 @@
   "branches": {
     "emptyWithoutLocation": "Todavía no tienes sucursales con ubicación, así que el chatbot no puede recomendarte por cercanía."
   },
+  "cart": {
+    "add": "Añadir al carrito",
+    "confirmWith": "Confirmar pedido con {store}",
+    "empty": "Tu carrito está vacío.",
+    "emptyCta": "Ver el catálogo",
+    "itemCount": "{count, plural, =0 {Carrito vacío} one {1 artículo} other {# artículos}}",
+    "nothingAvailable": "Ahora mismo no hay nada disponible de esta tienda.",
+    "open": "Ver tu carrito",
+    "orderIntro": "Hola, quiero pedir:",
+    "orderTotal": "Total",
+    "quantity": "Cantidad de {product}",
+    "remove": "Quitar {product}",
+    "soldOutNote": "Agotado: no entra en el total ni en el pedido",
+    "title": "Tu carrito",
+    "total": "Total"
+  },
   "category": {
     "backToCategory": "Volver a {category}",
     "count": "{total, plural, =0 {Sin publicaciones} one {# publicación} other {# publicaciones}}",
@@ -314,6 +330,7 @@
     "communitySections": "Secciones",
     "myAccount": "Mi cuenta",
     "myAccountAndStore": "Mi cuenta y mi tienda",
+    "myOrders": "Mis pedidos",
     "myProfile": "Mi perfil",
     "myStore": "Mi tienda",
     "openMenu": "Abrir menú",
@@ -334,6 +351,43 @@
     "invite": "Mientras se recupera, tú puedes continuar cuidando tu salud, tu tiempo. Encuentra lo que necesitas aquí:",
     "rest": "A veces, incluso un recurso necesita un descanso.",
     "subtitle": "Probablemente se fue a hacer una serie extra de burpees... ¡y se agotó!"
+  },
+  "orders": {
+    "action": {
+      "CANCELLED": "Cancelar",
+      "CONFIRMED": "Aceptar el pedido",
+      "DELIVERED": "Marcar entregado",
+      "PREPARING": "Empezar a prepararlo"
+    },
+    "buyer": "Lo pidió {name}",
+    "buyerEmpty": "Todavía no has hecho ningún pedido.",
+    "buyerEmptyCta": "Ver el catálogo",
+    "buyerHeading": "Tus pedidos",
+    "confirm": "Hacer el pedido a {store}",
+    "errorEmpty": "Ya no tienes nada de esa tienda en el carrito.",
+    "errorTransition": "Ese pedido cambió mientras lo mirabas. Recarga para ver cómo está.",
+    "errorUnavailable": "Se agotó todo lo que llevabas de esta tienda.",
+    "heading": "Pedidos",
+    "metaDescription": "Lo que has pedido y lo que te han pedido.",
+    "notifySeller": "Avisar a {store} por WhatsApp",
+    "placed": "Tu pedido quedó registrado",
+    "placedHint": "Falta un paso: avísale a la tienda por WhatsApp para que lo prepare.",
+    "placedOn": "Hecho el {date}",
+    "sellerEmpty": "Todavía no te han hecho ningún pedido.",
+    "sellerHeading": "Pedidos que te han hecho",
+    "signInToOrder": "Inicia sesión para hacer tu pedido",
+    "status": {
+      "CANCELLED": "Cancelado",
+      "CONFIRMED": "Aceptado",
+      "DELIVERED": "Entregado",
+      "DRAFT": "Borrador",
+      "PAID": "Pagado",
+      "PENDING": "Pendiente",
+      "PREPARING": "En preparación"
+    },
+    "title": "Pedido",
+    "total": "Total",
+    "viewOrder": "Ver el pedido"
   },
   "pillarPages": {
     "mindSpirit": {

@@ -154,6 +154,22 @@
   "branches": {
     "emptyWithoutLocation": "You don't have any branch with a location yet, so the chatbot can't recommend you by proximity."
   },
+  "cart": {
+    "add": "Add to cart",
+    "confirmWith": "Send your order to {store}",
+    "empty": "Your cart is empty.",
+    "emptyCta": "Browse the catalog",
+    "itemCount": "{count, plural, =0 {Empty cart} one {1 item} other {# items}}",
+    "nothingAvailable": "Nothing from this store is available right now.",
+    "open": "View your cart",
+    "orderIntro": "Hi, I'd like to order:",
+    "orderTotal": "Total",
+    "quantity": "Quantity of {product}",
+    "remove": "Remove {product}",
+    "soldOutNote": "Sold out: not counted in the total or the order",
+    "title": "Your cart",
+    "total": "Total"
+  },
   "category": {
     "backToCategory": "Back to {category}",
     "count": "{total, plural, =0 {No publications} one {# publication} other {# publications}}",
@@ -314,6 +330,7 @@
     "communitySections": "Sections",
     "myAccount": "My account",
     "myAccountAndStore": "My account and my store",
+    "myOrders": "My orders",
     "myProfile": "My profile",
     "myStore": "My store",
     "openMenu": "Open menu",
@@ -334,6 +351,43 @@
     "invite": "While it recovers, you can keep looking after your health — your time. Find what you need here:",
     "rest": "Sometimes even a resource needs a rest.",
     "subtitle": "It probably went off to do an extra set of burpees… and ran out of steam!"
+  },
+  "orders": {
+    "action": {
+      "CANCELLED": "Cancel",
+      "CONFIRMED": "Accept the order",
+      "DELIVERED": "Mark as delivered",
+      "PREPARING": "Start preparing it"
+    },
+    "buyer": "Ordered by {name}",
+    "buyerEmpty": "You have not placed any order yet.",
+    "buyerEmptyCta": "Browse the catalog",
+    "buyerHeading": "Your orders",
+    "confirm": "Send your order to {store}",
+    "errorEmpty": "There is nothing from that store in your cart anymore.",
+    "errorTransition": "This order changed while you were looking at it. Reload to see where it stands.",
+    "errorUnavailable": "Everything you had from this store has sold out.",
+    "heading": "Orders",
+    "metaDescription": "What you ordered and what you were asked for.",
+    "notifySeller": "Message {store} on WhatsApp",
+    "placed": "Your order is registered",
+    "placedHint": "One step left: message the store on WhatsApp so they can prepare it.",
+    "placedOn": "Placed on {date}",
+    "sellerEmpty": "Nobody has ordered from you yet.",
+    "sellerHeading": "Orders you have received",
+    "signInToOrder": "Sign in to place your order",
+    "status": {
+      "CANCELLED": "Cancelled",
+      "CONFIRMED": "Accepted",
+      "DELIVERED": "Delivered",
+      "DRAFT": "Draft",
+      "PAID": "Paid",
+      "PENDING": "Pending",
+      "PREPARING": "Being prepared"
+    },
+    "title": "Order",
+    "total": "Total",
+    "viewOrder": "View order"
   },
   "pillarPages": {
     "mindSpirit": {

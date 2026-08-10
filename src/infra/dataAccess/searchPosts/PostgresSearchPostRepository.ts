@@ -8,8 +8,38 @@ import {
   posts,
   postTranslations,
 } from "~/infra/dataAccess/db/schema/posts";
+import { sellers } from "~/infra/dataAccess/db/schema/sellers";
 import type { ISearchPostResultDTO } from "~/use_cases/searchPosts/dtos/ISearchPostResultDTO";
 import type { ISearchPostRepository } from "~/use_cases/searchPosts/ports/ISearchPostRepository";
+
+/**
+ * Lo mínimo para pintar una tienda en una tarjeta y llegar a ella.
+ *
+ * Se declara aquí y no se importa de `presentation/identity/StoreIdentity` porque `infra` no puede
+ * depender de la capa de presentación. Es la misma forma que ya declara `PostData.seller` en
+ * `IPostQueryRepository`, por el mismo motivo.
+ */
+type SearchStoreIdentity = {
+  handle: string;
+  name: string;
+  logoUrl?: string | null;
+};
+
+/**
+ * La tienda de una publicación, o `null` cuando no hay a dónde enlazar.
+ *
+ * **Sin `slug` no existe para quien pinta**, igual que en el catálogo: una tienda a medio dar de
+ * alta no debe salir como un logo que no lleva a ninguna parte.
+ */
+function toStoreIdentity(
+  seller:
+    | { name: string; slug: string | null; logoUrl: string | null }
+    | undefined,
+): SearchStoreIdentity | null {
+  if (!seller?.slug) return null;
+
+  return { handle: seller.slug, name: seller.name, logoUrl: seller.logoUrl };
+}
 
 /**
  * Qué diccionario usa Postgres para analizar cada idioma.
@@ -414,10 +444,20 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
         .orderBy(postMedia.sortOrder),
     ]);
 
+    /* Las dos lecturas dependen de `postRows`, así que no podían ir en el `Promise.all` de arriba
+       —pero sí una junto a la otra: son independientes entre sí y en serie costaban dos viajes. */
     const userIds = [...new Set(postRows.map((post) => post.userId))];
-    const userRows =
+    const sellerIds = [
+      ...new Set(
+        postRows
+          .map((post) => post.sellerId)
+          .filter((id): id is string => Boolean(id)),
+      ),
+    ];
+
+    const [userRows, sellerRows] = await Promise.all([
       userIds.length > 0
-        ? await db
+        ? db
             .select({
               id: users.id,
               name: users.name,
@@ -426,7 +466,19 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
             })
             .from(users)
             .where(inArray(users.id, userIds))
-        : [];
+        : [],
+      sellerIds.length > 0
+        ? db
+            .select({
+              id: sellers.id,
+              name: sellers.name,
+              slug: sellers.slug,
+              logoUrl: sellers.logoUrl,
+            })
+            .from(sellers)
+            .where(inArray(sellers.id, sellerIds))
+        : [],
+    ]);
 
     /* Un registro **por idioma** y no una sola traducción: ahora llegan hasta dos filas por
        publicación y un `Map` plano se quedaba con la última, que es la que devolviera el planner.
@@ -458,6 +510,7 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
     }
 
     const userById = new Map(userRows.map((user) => [user.id, user]));
+    const sellerById = new Map(sellerRows.map((seller) => [seller.id, seller]));
     const postById = new Map(postRows.map((post) => [post.id, post]));
 
     /* Se recorre `matches` y no `postRows`: el orden lo decidió la base y aquí solo se respeta. */
@@ -473,6 +526,23 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
         {
           id: row.id,
           price: row.price ? Number(row.price) : null,
+          /**
+           * Qué es y si queda: **lo que decide si se puede juntar en el carrito.**
+           *
+           * Faltaban aunque `row` los traía desde siempre —la consulta hace
+           * `db.select().from(posts)`, o sea todas las columnas—, y el `as unknown as` de abajo
+           * impedía que TypeScript avisara. Sin `kind`, `canBeOrdered` devolvía `false` para todo
+           * y ni el botón de añadir ni la insignia de agotado aparecían en un resultado de
+           * búsqueda, mientras la misma publicación sí los mostraba en `/productos`.
+           */
+          kind: row.kind,
+          isAvailable: row.isAvailable,
+          /* El resto de la línea de insignias, para que un resultado de búsqueda enseñe lo mismo
+             que la misma publicación en `/productos`: de dónde viene, qué es y de quién es. */
+          origin: row.origin ?? null,
+          category: row.category ?? null,
+          subCategory: row.subCategory ?? null,
+          seller: toStoreIdentity(sellerById.get(row.sellerId ?? "")),
           contactInfo: {
             phone: row.contactPhone ?? "",
             email: row.contactEmail ?? undefined,
@@ -488,6 +558,12 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
             image: user?.image ?? undefined,
           },
           createdAt: row.createdAt,
+          /* El `as unknown as` sigue aquí por **una** discrepancia concreta y no por comodidad: el
+             `Post` del dominio declara `media: PostMediaFile` en singular, mientras que todo el que
+             la lee la trata como lista. Mientras ese tipo no se arregle, cualquier campo que se
+             olvide aquí se pierde en silencio — que es exactamente lo que pasó con `kind` e
+             `isAvailable` —y antes con `origin`, `category`, `subCategory` y `seller`—. Ya no falta
+             ninguno; lo que queda es el tipo de `media`. */
         } as unknown as ISearchPostResultDTO,
       ];
     });

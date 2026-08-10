@@ -53,6 +53,7 @@ export default function UserMenu({
         <button
           type="button"
           aria-label={t("openUserMenu")}
+          data-testid="user-menu-trigger"
           className="focus-ring rounded-full transition-transform hover:scale-105"
         >
           {avatar}
@@ -119,6 +120,19 @@ export default function UserMenu({
               </Link>
             </DropdownMenu.Item>
           ) : null}
+
+          {/* Antes que «Mi cuenta» porque cambia a diario y la cuenta no: un pedido pendiente es
+              alguien esperando respuesta. Se ofrece a todo el mundo, venda o no — la misma página
+              enseña lo que te han pedido y lo que has pedido tú. */}
+          <DropdownMenu.Item asChild>
+            <Link
+              href="/pedidos"
+              className={ITEM_CLASS}
+              data-testid="menu-my-orders"
+            >
+              {t("myOrders")}
+            </Link>
+          </DropdownMenu.Item>
 
           <DropdownMenu.Item asChild>
             <Link href="/cuenta" className={ITEM_CLASS}>
