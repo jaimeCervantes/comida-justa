@@ -157,8 +157,10 @@
   "cart": {
     "add": "Add to cart",
     "confirmWith": "Send your order to {store}",
+    "decrease": "One less {product}",
     "empty": "Your cart is empty.",
     "emptyCta": "Browse the catalog",
+    "increase": "One more {product}",
     "itemCount": "{count, plural, =0 {Empty cart} one {1 item} other {# items}}",
     "nothingAvailable": "Nothing from this store is available right now.",
     "open": "View your cart",

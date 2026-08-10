@@ -25,6 +25,7 @@ const jugoVerde: CartProduct = {
   slug: "jugo-verde",
   price: 40,
   isAvailable: true,
+  imageUrl: null,
   seller: hazloSano,
 };
 
@@ -34,6 +35,7 @@ const sueroNatural: CartProduct = {
   slug: "suero-natural",
   price: 35,
   isAvailable: true,
+  imageUrl: null,
   seller: hazloSano,
 };
 

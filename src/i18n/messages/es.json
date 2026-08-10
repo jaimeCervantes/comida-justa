@@ -157,8 +157,10 @@
   "cart": {
     "add": "Añadir al carrito",
     "confirmWith": "Confirmar pedido con {store}",
+    "decrease": "Uno menos de {product}",
     "empty": "Tu carrito está vacío.",
     "emptyCta": "Ver el catálogo",
+    "increase": "Uno más de {product}",
     "itemCount": "{count, plural, =0 {Carrito vacío} one {1 artículo} other {# artículos}}",
     "nothingAvailable": "Ahora mismo no hay nada disponible de esta tienda.",
     "open": "Ver tu carrito",

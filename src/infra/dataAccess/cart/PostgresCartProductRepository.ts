@@ -11,6 +11,7 @@ interface CartProductRow {
   is_available: boolean;
   title: string;
   slug: string;
+  image_url: string | null;
   seller_id: string;
   seller_name: string;
   seller_slug: string | null;
@@ -51,6 +52,7 @@ export class PostgresCartProductRepository implements CartProductRepository {
         p.is_available,
         t.title,
         t.slug,
+        m.url AS image_url,
         s.id    AS seller_id,
         s.name  AS seller_name,
         s.slug  AS seller_slug,
@@ -65,6 +67,16 @@ export class PostgresCartProductRepository implements CartProductRepository {
         ORDER BY (locale = ${locale}) DESC, (locale = ${fallbackLocale}) DESC
         LIMIT 1
       ) t ON TRUE
+      /* La primera imagen, para reconocer el producto de un vistazo en el carrito. Va con LEFT
+         porque una publicacion puede no tener media —caso real: las sembradas y las migradas sin
+         archivo— y quedarse fuera del carrito por eso seria mucho peor que no verla. */
+      LEFT JOIN LATERAL (
+        SELECT url
+        FROM post_media
+        WHERE post_id = p.id AND type = 'image'
+        ORDER BY sort_order
+        LIMIT 1
+      ) m ON TRUE
       WHERE p.id IN (${ids})
         AND p.kind = ${PRODUCT_KIND}
         /* Sin precio no se puede sumar. Es lo que deja fuera a los 10 anuncios, que no tienen
@@ -90,6 +102,7 @@ function toCartProduct(row: CartProductRow): CartProduct[] {
       slug: row.slug,
       price,
       isAvailable: row.is_available,
+      imageUrl: row.image_url,
       seller: {
         id: row.seller_id,
         name: row.seller_name,

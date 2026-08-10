@@ -277,7 +277,46 @@ Feature: Carrito y pedidos
       | página 4                 | estado a todos  | sin página                    | la 4 de un resultado de 1 es una pantalla vacía |
       | página 1                 | pasar de página | pagina=2                      | paginar sí conserva la página                  |
 
-  @slice-4 @future
+  # Slice 4. El carrito enseñaba una lista de texto con un desplegable de veinte números al lado. Se
+  # entendía leyendo, no mirando, y poner tres unidades pedía abrir una lista y buscar el número.
+  @slice-4
+  Scenario: Cada renglón se entiende solo
+    Given un carrito con "Suero natural"
+    When abro "/carrito"
+    Then el renglón enseña la foto del producto
+    And su nombre lleva a la publicación
+
+  @slice-4
+  Scenario: La cantidad se cambia de a uno, sin abrir nada
+    Given un renglón con 1 unidad
+    When pulso "más"
+    Then hay 2 y el total sube
+    When pulso "menos"
+    Then vuelve a haber 1
+    # El campo sigue aceptando que se escriba 12, para no dar doce toques.
+
+  @slice-4
+  Scenario: Dos toques seguidos suman dos
+    Given un renglón con 1 unidad
+    When pulso "más" dos veces seguidas, antes de que la pantalla se refresque
+    Then quedan 3 y no 2
+    # Los botones mandan un incremento, no la cantidad final: el servidor lo aplica sobre lo que hay
+    # guardado, así que el segundo toque no pisa al primero con un número calculado sobre lo viejo.
+
+  @slice-4 @component
+  Scenario Outline: La miniatura solo aparece cuando hay algo que enseñar
+    # Vitest sobre `Thumbnail`, que comparten el carrito y los pedidos.
+    Given un renglón cuyo producto tiene <archivo>
+    When se pinta
+    Then <resultado>
+
+    Examples:
+      | archivo        | resultado                                          |
+      | una imagen     | se ve la miniatura, decorativa y sin nombre propio |
+      | solo un vídeo  | no se pinta nada: el texto se lee igual            |
+      | ningún archivo | tampoco, y sin dejar un marco vacío                |
+
+  @slice-5 @future
   Scenario: Se paga en línea
     Given un pedido aceptado
     When pago

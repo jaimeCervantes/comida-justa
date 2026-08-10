@@ -652,3 +652,78 @@ ninguna migración.
 2. **Slice 4 — pago en línea**, cuando los pedidos digan que vale la pena.
 3. **Las insignias que faltan en la búsqueda** (`origin`, `category`, `subCategory`, `seller`) — ya
    hechas para el carrito, pendientes de decidir para el resto.
+
+---
+
+## Slice 4 — El carrito se entiende de un vistazo (2026-08-10)
+
+### Objetivo
+
+El carrito enseñaba una lista de texto con un desplegable de veinte números al lado. Se entendía
+**leyendo**, no mirando, y poner tres unidades pedía abrir una lista y buscar el número.
+
+### Decisiones y por qué
+
+- **La miniatura no se guarda, se relee.** El carrito sigue recordando solo id y cantidad; la foto
+  sale de `post_media` en la misma consulta que ya traía título y precio. Un `LEFT JOIN LATERAL`,
+  porque una publicación puede no tener archivo y dejarla fuera del carrito por eso sería mucho peor
+  que no verla.
+- **Dos enlaces al mismo sitio, uno de ellos callado.** La foto y el nombre llevan al producto; el de
+  la foto va `aria-hidden` y fuera del tabulador. Repetir el destino no informa, y una imagen
+  decorativa dentro de un enlace se anuncia como "enlace" a secas.
+- **La fila se reordena para caber**: foto a la izquierda y el resto en columna. En un teléfono el
+  nombre se lleva su renglón entero y los controles caen debajo, en vez de comprimirse hasta ser
+  impulsables.
+- **Menos / cantidad / más, y los botones mandan un INCREMENTO.** No la cantidad final: el servidor
+  lo aplica sobre lo que hay en la cookie, así que dos toques seguidos suman dos aunque la pantalla
+  enseñe todavía el número viejo. Mandar "3" calculado sobre una pantalla que se quedó atrás pisaría
+  el otro toque. El campo numérico sí manda el valor absoluto —escribir 12 es decir 12— y **envía al
+  salir**, no en cada tecla: por tecla se manda una petición por dígito y la del "1" puede llegar
+  después de la del "12".
+- **`Thumbnail` se comparte** con los renglones del pedido. Era la segunda copia del mismo patrón, y
+  la segunda copia es donde empiezan a discrepar.
+- **Sin migración.** `post_media` ya estaba; lo que faltaba era pedirla.
+
+### Archivos tocados
+
+`domain/cart/cart.ts` (`imageUrl`), `PostgresCartProductRepository` (el `LATERAL` de la imagen),
+`carrito/ui/CartLineRow.tsx` (reescrito), `presentation/cart/cartActions.ts` (incremento),
+`presentation/media/Thumbnail/` (nuevo, con test), `presentation/orders/OrderLines.tsx` (lo adopta),
+los dos catálogos de mensajes, `orders.feature` y `cart.spec.ts`.
+
+### Validación
+
+| Comando | Resultado |
+| --- | --- |
+| `typecheck` / `typecheck:tests` / `lint` | limpios, exit 0 |
+| `test:run` | **124 archivos, 1209 tests, verdes** |
+| `playwright test src/e2e/orders` | **14/14** |
+| `playwright test --shard=1/2` | 109 pasados, 3 saltados, **1 fallo preexistente** |
+| `playwright test --shard=2/2` | **112 pasados** |
+
+**221 pasados.** El único rojo sigue siendo `localProducers/cardControls.spec.ts:39`, ya
+diagnosticado en `docs/pendientes.md`.
+
+### Una lección sobre la flakiness, para no repetir el rato perdido
+
+`cartFromSearch.spec.ts` falló **tres veces seguidas** y pareció una regresión de este slice. No lo
+era: pasó en `dev`, y al volver a la rama pasó también, sin tocar una línea. El disparador es el
+**cambio de rama**, que invalida la compilación de Next; el calentamiento de rutas cubre la primera
+petición de cada segmento, pero no que la primera consulta de búsqueda de la corrida sea la más
+lenta.
+
+La forma de distinguirlo cuesta dos minutos y vale la pena antes de tocar nada: correr el spec
+aislado en la rama y en `dev`. Si pasa en las dos, es frío. Es el mismo procedimiento que ya sirvió
+para `cardControls` —donde sí resultó ser real— y para `createPost`.
+
+### Recap
+
+El carrito ya se lee de un vistazo: foto, nombre enlazado, cantidad con menos y más, importe y
+quitar, y la fila se parte sola en pantallas estrechas. Sin nada que aplicar en la base.
+
+### Próximos pasos (opciones)
+
+1. **`cardControls.spec.ts:39`**, con el diagnóstico ya hecho: decidir cómo refresca el feed del
+   inicio tras una mutación.
+2. **Slice 5 — pago en línea**, cuando los pedidos digan que vale la pena.
+3. **Las 75 vulnerabilidades que reporta Dependabot** en el repositorio, avisadas en el último push.
