@@ -444,6 +444,13 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
             url: m.url,
             type: m.type ?? "image",
             alt: m.alt ?? undefined,
+            /* Las dimensiones **sí** viajan. La consulta las traía desde la migración `0030` y este
+               mapeo las tiraba, así que `hasKnownAspect` decía siempre que no y las 15 imágenes de
+               la base se pintaban en un cuadrado con `object-cover`: a las 10 verticales se les
+               recortaba el 36%. Nadie lo vio porque lo único que comprueba `media-image-sized` son
+               tests de componente, donde las dimensiones llegan como props. */
+            width: m.width,
+            height: m.height,
           });
         }
       }

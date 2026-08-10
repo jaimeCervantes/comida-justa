@@ -26,7 +26,13 @@ interface PostRow {
   contact_email: string | null;
   contact_whatsapp: string | null;
   created_at: Date;
-  media: Array<{ url: string; type: string; alt: string | null }>;
+  media: Array<{
+    url: string;
+    type: string;
+    alt: string | null;
+    width: number | null;
+    height: number | null;
+  }>;
   translations: Record<
     string,
     { title: string; slug: string; content: string }
@@ -73,9 +79,13 @@ export async function getPostBySlug(slug: string) {
         (
           SELECT jsonb_agg(
             jsonb_build_object(
-              'url',  pm.url,
-              'type', pm.type,
-              'alt',  pm.alt
+              'url',    pm.url,
+              'type',   pm.type,
+              'alt',    pm.alt,
+              -- Nulas en los videos y en lo publicado antes de medir. Sin ellas la ficha declaraba
+              -- cuadrada cualquier foto, que es justo lo que la migracion 0030 vino a evitar.
+              'width',  pm.width,
+              'height', pm.height
             )
             ORDER BY pm.sort_order
           )
@@ -160,6 +170,8 @@ export async function getPostBySlug(slug: string) {
       url: m.url,
       type: m.type ?? "image",
       alt: m.alt ?? undefined,
+      width: m.width,
+      height: m.height,
     }));
 
   const commentsArr = (Array.isArray(row.comments) ? row.comments : []).map(
