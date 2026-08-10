@@ -15,11 +15,26 @@ import OrderStatusBadge from "~/presentation/orders/OrderStatusBadge/OrderStatus
  * `/pedido/<id>`, que es además de donde se avisa al vendedor — repetir aquí los renglones haría la
  * lista ilegible en cuanto haya tres pedidos.
  */
-export default function BuyerOrders({ orders }: { orders: OrderWithSeller[] }) {
+export default function BuyerOrders({
+  orders,
+  emptyKey,
+}: {
+  orders: OrderWithSeller[];
+  /** No es lo mismo «no has pedido nada» que «no hay nada con ese filtro». */
+  emptyKey: "filtered" | "none";
+}) {
   const t = useTranslations("orders");
   const format = useFormatter();
 
   if (orders.length === 0) {
+    if (emptyKey === "filtered") {
+      return (
+        <p data-testid="buyer-orders-empty" className="text-text-support">
+          {t("nothingFound")}
+        </p>
+      );
+    }
+
     return (
       <p data-testid="buyer-orders-empty" className="text-text-support">
         {t("buyerEmpty")}{" "}

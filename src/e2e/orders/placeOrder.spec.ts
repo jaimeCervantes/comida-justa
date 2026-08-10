@@ -153,14 +153,24 @@ test.describe("Cuando el vendedor administra lo que le pidieron", () => {
     await page.goto("/pedidos");
     await expect(page.getByTestId("seller-orders")).toBeVisible();
 
-    for (const status of ["CONFIRMED", "PREPARING", "DELIVERED"] as const) {
+    for (const status of ["CONFIRMED", "PREPARING"] as const) {
       await page.getByTestId(`order-action-${status}`).first().click();
       await expect(
         page.getByTestId("seller-order").first().getByTestId("order-status"),
       ).toHaveAttribute("data-status", status);
     }
 
-    // Entregado es final: no queda ninguna acción que ofrecer.
+    /* Al entregarlo sale del filtro por defecto —"abiertos"— y la lista se queda vacía: eso ES el
+       comportamiento, no un fallo. Un vendedor entra a atender lo que espera, no a repasar lo
+       terminado. */
+    await page.getByTestId("order-action-DELIVERED").first().click();
+    await expect(page.getByTestId("seller-orders-empty")).toBeVisible();
+
+    // Y aparece donde le toca, entre lo terminado, ya sin acciones que ofrecer.
+    await page.getByTestId("orders-scope-closed").click();
+    await expect(
+      page.getByTestId("seller-order").first().getByTestId("order-status"),
+    ).toHaveAttribute("data-status", "DELIVERED");
     await expect(page.getByTestId("order-action-CANCELLED")).toHaveCount(0);
     await expect(page.getByTestId("order-action-PREPARING")).toHaveCount(0);
   });
@@ -178,11 +188,17 @@ test.describe("Cuando alguien quiere ver sus pedidos", () => {
     await page.getByTestId("user-menu-trigger").click();
     await page.getByTestId("menu-my-orders").click();
 
-    // La cuenta de la suite es dueña de la tienda sembrada, así que ve los dos papeles.
+    /* La cuenta de la suite es dueña de la tienda sembrada, así que entra por lo que le han
+       pedido: es lo que tiene prisa. La otra vista se ve por su pestaña, no apilada debajo. */
     await expect(page.getByTestId("orders-received")).toBeVisible();
+    await expect(page.getByTestId("orders-placed")).toHaveCount(0);
+    // Y la pestaña de la otra dice que hay uno esperando sin tener que entrar.
+    await expect(page.getByTestId("orders-count-placed")).toHaveText("1");
+
+    await page.getByTestId("orders-tab-placed").click();
     await expect(page.getByTestId("orders-placed")).toBeVisible();
 
-    // Y desde el resumen se llega al detalle.
+    // Desde el resumen se llega al detalle.
     await page.getByTestId("buyer-order").first().click();
     await expect(page.getByTestId("order-detail")).toBeVisible();
   });

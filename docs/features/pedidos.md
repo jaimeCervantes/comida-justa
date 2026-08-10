@@ -228,9 +228,58 @@ llegue a colocar un pedido de verdad.
 5. El pedido de otra persona responde 404, no 403.
 6. Dos pestañas no aplican la misma decisión dos veces.
 
-### Slice 3 — El comprador ve sus pedidos y en qué van  *(@future)*
+### Slice 3 — Pedidos que aguantan  *(actual)*
 
-Sin esto el registro solo sirve al vendedor, y quien pidió sigue preguntando por WhatsApp "¿ya está?".
+> La lista del comprador, que era el slice 3 original, se entregó dentro del 2 al darle sitio propio
+> a `/pedidos`. Este slice es lo que hace que esa pantalla siga sirviendo cuando haya volumen.
+
+**El defecto:** `listBySeller` y `listByBuyer` no tenían `LIMIT`. La página traía **todos** los
+pedidos con **todos** sus renglones, los metía en memoria y los volcaba al HTML en cada visita. Con
+cinco no se nota —por eso pasó las pruebas—; con trescientos es media pantalla de HTML y una
+consulta que crece para siempre.
+
+**El espacio en disco nunca fue el problema.** Una fila de `customer_orders` ocupa ~100 bytes y una
+de `customer_order_items` ~120 con su título: diez mil pedidos de tres renglones son unos **5 MB**.
+La base ya guarda vectores de 768 dimensiones por traducción, que pesan mucho más.
+
+- **Paginación** de 10 en las dos listas, con el total en la misma consulta (`count(*) OVER ()`) en
+  vez de un segundo `SELECT count`.
+- **El vendedor entra por lo abierto** (`PENDING`, `CONFIRMED`, `PREPARING`). Trescientos entregados
+  detrás esconden los cuatro que hay que contestar.
+- **Búsqueda por el título congelado del renglón**, con `ILIKE`.
+- **Miniatura y enlace al producto** en cada renglón, resueltos al leer contra la publicación de hoy.
+- **Sin migración.**
+
+#### Pestañas, y por qué dejaron de verse las dos listas a la vez
+
+Apiladas funcionaban mientras no tenían controles. Al ganar cada una su búsqueda, su filtro y su
+paginación, apilarlas significaba **dos buscadores y dos paginaciones** compitiendo por los mismos
+parámetros de la URL. Con pestañas hay un solo juego de controles, y el número que llevan al lado
+dice si hay algo esperando en la otra — que era lo único que se perdía al no verlas juntas.
+
+#### El índice que se propuso y NO se hizo
+
+Se planteó `(seller_id, status, created_at DESC)` y se descartó al mirarlo de cerca:
+`ix_customer_orders_seller` ya lleva `seller_id` de primero, así que la consulta lo usa para acotar
+y ordenar, y el estado se filtra sobre esas pocas entradas. Para una tienda con cientos de pedidos
+eso es gratis. Una migración sobre la base compartida para una tabla de una fila es ceremonia, no
+ingeniería. **El umbral:** si alguna tienda pasa de ~10.000 pedidos y `EXPLAIN` muestra que el filtro
+de estado descarta la mayoría, entonces sí.
+
+#### Por qué `ILIKE` y no full-text
+
+La pregunta real es «¿cuándo pedí aquel pan?» sobre una lista que casi siempre cabe en dos páginas.
+Montar `tsvector` con su índice GIN —como el catálogo— sería traer toda esa maquinaria a un sitio que
+no la necesita. Vive en una función del repositorio: el día que haga falta, se cambia ahí y el resto
+no se entera.
+
+**Criterios de aceptación:**
+1. La lista viene por páginas de 10 y la consulta no trae el resto.
+2. El vendedor ve solo lo abierto, con lo terminado a un clic.
+3. Entregar un pedido lo saca de "abiertos" y lo pone en "terminados".
+4. Buscar "pan" deja solo los que lo llevaban, sin perder el filtro de estado.
+5. Cada renglón muestra miniatura y enlaza a la publicación.
+6. Un pedido de algo ya borrado conserva título e importe, sin miniatura ni enlace.
 
 ### Slice 4 — Pago en línea  *(@future, condicionado)*
 

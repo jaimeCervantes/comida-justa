@@ -469,3 +469,97 @@ del avatar. Ya no queda ninguna puerta abierta en esta feature.
 4. **Commitear `0030`, `0031` y `0032`** en el repo del backend, que están sin versionar.
 
 **Pendiente del usuario:** decidir la fusión y el push.
+
+---
+
+## Slice 3 — Pedidos que aguantan (2026-08-09)
+
+### La pregunta que lo abrió
+
+«¿No crees que los pedidos usan mucho espacio? ¿Qué pasa si algún vendedor o usuario tiene muchos?»
+
+La respuesta honesta era **no al espacio y sí a la consulta**. Diez mil pedidos de tres renglones son
+unos 5 MB — la base ya guarda vectores de 768 dimensiones que pesan más. Lo que sí estaba mal, y lo
+había escrito yo dos slices antes, es que `listBySeller` y `listByBuyer` **no tenían `LIMIT`**: la
+página traía todos los pedidos con todos sus renglones y los volcaba al HTML en cada visita. Con
+cinco no se nota, y por eso pasó las pruebas.
+
+### Decisiones y por qué
+
+- **Paginación de 10**, con el total en la misma consulta (`count(*) OVER ()`). Dos `SELECT` para
+  pintar una barra de paginación son dos viajes a la base.
+- **El vendedor entra por lo abierto.** `OPEN_STATUSES` se enumera y **no** se deriva de `isFinal`,
+  aunque hoy dé lo mismo: `DRAFT` y `PAID` tampoco tienen salidas y no son pedidos abiertos. Hay un
+  test dedicado a que nadie lo "simplifique" el día que `PAID` entre en el flujo.
+- **`ILIKE` y no full-text**, con el motivo escrito junto a la función: la pregunta real cabe en dos
+  páginas de resultados, y montar `tsvector` sería traer la maquinaria del catálogo a un sitio que no
+  la necesita.
+- **Se descartó el índice que yo mismo había propuesto.** `ix_customer_orders_seller` ya lleva
+  `seller_id` de primero, así que acota y ordena; filtrar el estado sobre unos cientos de entradas es
+  gratis. Una migración sobre la base compartida para una tabla de una fila es ceremonia. Queda el
+  umbral escrito: ~10.000 pedidos por tienda y un `EXPLAIN` que lo justifique. **Este slice no lleva
+  migración.**
+- **La miniatura y el enlace NO se guardan.** Se resuelven al leer con dos `LEFT JOIN LATERAL`. El
+  renglón congela lo que se acordó —título y precio—; un slug congelado apuntaría a una dirección que
+  puede haber cambiado de idioma. Y como `post_id` es nulo cuando la publicación se borró, los
+  laterales devuelven nulo y el renglón se sigue leyendo entero, sin foto ni enlace.
+- **Lo que se escribe y lo que se lee dejaron de ser el mismo tipo.** `NewOrderLine` es un
+  subconjunto de `OrderLine` sin slug ni imagen: tenerlos en el tipo de escritura invitaba a
+  congelarlos.
+- **`updateStatus` devuelve el estado, no el pedido.** Nadie pinta lo que devuelve —la pantalla se
+  recarga por `revalidatePath`—, así que traer los renglones era una consulta a la basura. Y
+  `findHeader` se separó de `findById` por lo mismo: mover un pedido no necesita ni renglones ni
+  idioma.
+- **Pestañas en vez de las dos listas apiladas.** Apiladas funcionaban sin controles; con búsqueda,
+  filtro y paginación cada una, significaban dos buscadores compitiendo por los mismos parámetros. El
+  número en la pestaña dice si hay algo esperando en la otra, que era lo único que se perdía.
+- **La búsqueda es un `<form method="get">`** con los demás filtros como campos ocultos: funciona sin
+  JavaScript y el navegador arma la URL solo.
+- **No se reutilizó `presentation/navigation/Pagination`**: pagina por segmento de ruta contra las
+  rutas declaradas en `routing.ts`, y aquí la página convive con la pestaña, el estado y la búsqueda
+  como parámetros de consulta. Meterle soporte de query lo habría vuelto dos componentes en uno.
+
+### Archivos tocados
+
+- **Dominio:** `order.ts` (`OPEN_STATUSES`, `CLOSED_STATUSES`, `OrderScope`, `statusesInScope`,
+  `resolveScope`, y `slug`/`imageUrl` en `OrderLine`), `ports.ts` (`OrderQuery`, `OrderPage`,
+  `NewOrderLine`, `countOpen`, `findHeader`).
+- **Infra:** `PostgresOrderRepository` reescrito alrededor de una consulta compartida con `LIMIT`,
+  filtro de estado, `ILIKE` y los dos `LATERAL` de la miniatura.
+- **Casos de uso:** `advanceOrder` usa `findHeader`; `placeOrder` escribe `NewOrderLine`.
+- **Rutas:** `/pedidos` con pestañas, filtro, búsqueda y paginación (`ui/OrdersControls.tsx`,
+  `ui/OrdersPagination.tsx`); `OrderLines` con miniatura y enlace.
+- **Specs:** `orders.feature` (slice 3), `placeOrder.spec.ts` alineado con las pestañas,
+  `scope.test.ts` y `ordersHref.test.ts` nuevos.
+
+### Validación
+
+| Comando | Resultado |
+| --- | --- |
+| `pnpm run typecheck` / `typecheck:tests` | limpios |
+| `pnpm run lint` | exit 0 |
+| `pnpm run test:run` | **123 archivos, 1203 tests, todos verdes** (18 nuevos) |
+| Playwright | **no corrido.** El usuario pidió no lanzarla todavía |
+
+### Lo que hay que saber antes de correr la e2e
+
+**`placeOrder.spec.ts` se ajustó a la pantalla nueva y ese cambio no está verificado.** Dos
+escenarios afirmaban cosas que el slice 3 cambió: que se veían las dos secciones a la vez —ahora solo
+la de la pestaña activa— y que tras entregar el pedido seguía en la lista —ahora sale del filtro por
+omisión, que es el comportamiento buscado—. Están reescritos contra el comportamiento nuevo, pero
+hasta que la suite corra son una hipótesis.
+
+### Recap
+
+Las dos listas ya no se leen enteras: vienen de diez en diez, el vendedor entra por lo que espera
+respuesta, se puede buscar por producto y cada renglón enseña su miniatura y lleva a la publicación
+cuando todavía existe. Sin migración y sin nada que aplicar. Falta pasar la e2e.
+
+### Próximos pasos (opciones)
+
+1. **Correr la e2e** (`src/e2e/orders` primero, luego la suite en dos mitades).
+2. **Fusionar y subir**, cuando la e2e esté verde.
+3. **Slice 4 — pago en línea**, cuando los pedidos digan que vale la pena.
+4. **`cardControls.spec.ts:39`**, el único rojo conocido de la suite.
+
+**Pendiente del usuario:** decidir cuándo se lanza la e2e.

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import type { Order, OrderStatus } from "~/domain/order/order";
+import type { OrderStatus } from "~/domain/order/order";
 import type { OrderRepository, OrderWithSeller } from "~/domain/order/ports";
 import AdvanceOrderUseCase from "./advanceOrderUseCase";
 
@@ -23,6 +23,8 @@ function orderInStatus(
         title: "Jugo Verde",
         unitPrice: 40,
         quantity: 2,
+        slug: "jugo-verde",
+        imageUrl: null,
       },
     ],
     createdAt: new Date("2026-08-09T12:00:00Z"),
@@ -32,15 +34,25 @@ function orderInStatus(
   };
 }
 
-function build(current: OrderWithSeller | null, updated?: Order | null) {
+function build(current: OrderWithSeller | null, applied?: OrderStatus | null) {
   const orders: OrderRepository = {
     createAll: vi.fn(),
     listBySeller: vi.fn(),
     listByBuyer: vi.fn(),
-    findById: vi.fn().mockResolvedValue(current),
+    countOpen: vi.fn(),
+    findById: vi.fn(),
+    /* El caso de uso solo pregunta de quién es y en qué estado está: no pinta nada, así que no pide
+       `findById` ni sus renglones. */
+    findHeader: vi
+      .fn()
+      .mockResolvedValue(
+        current ? { sellerId: current.sellerId, status: current.status } : null,
+      ),
     updateStatus: vi
       .fn()
-      .mockResolvedValue(updated === undefined ? current : updated),
+      .mockResolvedValue(
+        applied === undefined ? (current?.status ?? null) : applied,
+      ),
   };
 
   return { useCase: new AdvanceOrderUseCase(orders), orders };
@@ -48,9 +60,7 @@ function build(current: OrderWithSeller | null, updated?: Order | null) {
 
 describe("AdvanceOrderUseCase", () => {
   it("acepta un pedido pendiente", async () => {
-    const { useCase, orders } = build(orderInStatus("PENDING"), {
-      ...orderInStatus("CONFIRMED"),
-    });
+    const { useCase, orders } = build(orderInStatus("PENDING"), "CONFIRMED");
 
     const result = await useCase.execute({
       orderId: ORDER_ID,
@@ -58,7 +68,7 @@ describe("AdvanceOrderUseCase", () => {
       status: "CONFIRMED",
     });
 
-    expect("order" in result && result.order.status).toBe("CONFIRMED");
+    expect("status" in result && result.status).toBe("CONFIRMED");
     // El estado de partida viaja al `WHERE`: la transición es atómica.
     expect(orders.updateStatus).toHaveBeenCalledWith({
       orderId: ORDER_ID,
@@ -144,9 +154,7 @@ describe("AdvanceOrderUseCase", () => {
   ] as Array<[OrderStatus, OrderStatus]>)(
     "deja pasar de %s a %s",
     async (from, to) => {
-      const { useCase } = build(orderInStatus(from), {
-        ...orderInStatus(to),
-      });
+      const { useCase } = build(orderInStatus(from), to);
 
       const result = await useCase.execute({
         orderId: ORDER_ID,
@@ -154,7 +162,7 @@ describe("AdvanceOrderUseCase", () => {
         status: to,
       });
 
-      expect("order" in result).toBe(true);
+      expect("status" in result).toBe(true);
     },
   );
 });

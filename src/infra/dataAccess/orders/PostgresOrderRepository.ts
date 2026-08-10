@@ -1,7 +1,15 @@
-import { and, desc, eq, inArray } from "drizzle-orm";
-import type { Order, OrderLine, OrderStatus } from "~/domain/order/order";
+import { and, eq, sql } from "drizzle-orm";
+import {
+  OPEN_STATUSES,
+  type Order,
+  type OrderLine,
+  type OrderStatus,
+  statusesInScope,
+} from "~/domain/order/order";
 import type {
   NewOrder,
+  OrderPage,
+  OrderQuery,
   OrderRepository,
   OrderWithSeller,
 } from "~/domain/order/ports";
@@ -10,7 +18,55 @@ import {
   customerOrderItems,
   customerOrders,
 } from "~/infra/dataAccess/db/schema/orders";
-import { sellers } from "~/infra/dataAccess/db/schema/sellers";
+
+interface OrderRow {
+  id: string;
+  checkout_id: string;
+  seller_id: string;
+  user_id: string;
+  status: OrderStatus;
+  created_at: Date;
+  total_count: number;
+  seller_name: string;
+  seller_slug: string | null;
+  seller_phone: string;
+  [key: string]: unknown;
+}
+
+interface LineRow {
+  order_id: string;
+  post_id: string | null;
+  title: string;
+  /** `numeric` sale de Postgres como texto para no perder precisión por el camino. */
+  unit_price: string;
+  quantity: number;
+  slug: string | null;
+  image_url: string | null;
+  [key: string]: unknown;
+}
+
+/** `status IN (…)`: drizzle no serializa un array de JS, así que se emite un marcador por valor. */
+function statusList(statuses: readonly OrderStatus[]) {
+  return sql.join(
+    statuses.map((status) => sql`${status}`),
+    sql`, `,
+  );
+}
+
+/**
+ * El filtro de texto, sobre el título **congelado** del renglón.
+ *
+ * `ILIKE` y no full-text a propósito: la pregunta real es «¿cuándo pedí aquel pan?» sobre una lista
+ * que casi siempre cabe en dos páginas, y montar `tsvector` con su índice para eso sería traer toda
+ * la maquinaria del catálogo a un sitio que no la necesita. Si algún día una tienda acumula decenas
+ * de miles de pedidos, esto se cambia y el resto no se entera.
+ */
+function matchesTerm(term: string) {
+  return sql`EXISTS (
+    SELECT 1 FROM customer_order_items i
+    WHERE i.order_id = o.id AND i.title ILIKE ${`%${term}%`}
+  )`;
+}
 
 export class PostgresOrderRepository implements OrderRepository {
   /**
@@ -23,7 +79,7 @@ export class PostgresOrderRepository implements OrderRepository {
   async createAll(orders: readonly NewOrder[]): Promise<Order[]> {
     if (orders.length === 0) return [];
 
-    return db.transaction(async (tx) => {
+    const headers = await db.transaction(async (tx) => {
       const headers = await tx
         .insert(customerOrders)
         .values(
@@ -51,26 +107,17 @@ export class PostgresOrderRepository implements OrderRepository {
         await tx.insert(customerOrderItems).values(items);
       }
 
-      return headers.map((header, index) => ({
-        id: header.id,
-        checkoutId: header.checkoutId,
-        sellerId: header.sellerId,
-        buyerId: header.userId,
-        status: header.status,
-        lines: orders[index].lines,
-        createdAt: header.createdAt,
-      }));
+      return headers;
     });
-  }
 
-  async listBySeller(sellerId: string): Promise<Order[]> {
-    const headers = await db
-      .select()
-      .from(customerOrders)
-      .where(eq(customerOrders.sellerId, sellerId))
-      .orderBy(desc(customerOrders.createdAt));
-
-    const linesByOrder = await this.linesOf(headers.map((row) => row.id));
+    /* Los renglones se releen **después** del commit y no se devuelven los de entrada: así el
+       pedido recién creado tiene ya su slug y su miniatura, exactamente iguales a los que dará
+       cualquier lectura posterior. Dentro de la transacción no se podía: `linesOf` usa `db`. */
+    const linesByOrder = await this.linesOf(
+      headers.map((header) => header.id),
+      "es",
+      "es",
+    );
 
     return headers.map((header) => ({
       id: header.id,
@@ -83,64 +130,87 @@ export class PostgresOrderRepository implements OrderRepository {
     }));
   }
 
-  async listByBuyer(buyerId: string): Promise<OrderWithSeller[]> {
-    const headers = await db
-      .select({
-        order: customerOrders,
-        sellerName: sellers.name,
-        sellerHandle: sellers.slug,
-        sellerPhone: sellers.phone,
-      })
-      .from(customerOrders)
-      .innerJoin(sellers, eq(sellers.id, customerOrders.sellerId))
-      .where(eq(customerOrders.userId, buyerId))
-      .orderBy(desc(customerOrders.createdAt));
+  async listBySeller(
+    sellerId: string,
+    query: OrderQuery,
+  ): Promise<OrderPage<Order>> {
+    const page = await this.listWhere(
+      sql`o.seller_id = ${sellerId}::uuid`,
+      query,
+    );
 
-    const linesByOrder = await this.linesOf(headers.map((row) => row.order.id));
-
-    return headers.map((row) => ({
-      id: row.order.id,
-      checkoutId: row.order.checkoutId,
-      sellerId: row.order.sellerId,
-      buyerId: row.order.userId,
-      status: row.order.status,
-      lines: linesByOrder.get(row.order.id) ?? [],
-      createdAt: row.order.createdAt,
-      sellerName: row.sellerName,
-      sellerHandle: row.sellerHandle,
-      sellerPhone: row.sellerPhone,
-    }));
+    return {
+      total: page.total,
+      orders: page.orders.map(
+        ({ sellerName, sellerHandle, sellerPhone, ...order }) => order,
+      ),
+    };
   }
 
-  async findById(orderId: string): Promise<OrderWithSeller | null> {
+  listByBuyer(
+    buyerId: string,
+    query: OrderQuery,
+  ): Promise<OrderPage<OrderWithSeller>> {
+    return this.listWhere(sql`o.user_id = ${buyerId}`, query);
+  }
+
+  /**
+   * Cuántos pedidos abiertos hay en cada papel, en **una** consulta.
+   *
+   * Dos `SELECT count(*)` habrían sido dos viajes para pintar dos números en unas pestañas.
+   */
+  async countOpen({
+    sellerId,
+    buyerId,
+  }: {
+    sellerId?: string | null;
+    buyerId: string;
+  }): Promise<{ received: number; placed: number }> {
+    const statuses = statusList(OPEN_STATUSES);
+    const raw = await db.execute(sql`
+      SELECT
+        count(*) FILTER (
+          WHERE ${sellerId ? sql`seller_id = ${sellerId}::uuid` : sql`FALSE`}
+        )::int AS received,
+        count(*) FILTER (WHERE user_id = ${buyerId})::int AS placed
+      FROM customer_orders
+      WHERE status::text IN (${statuses})
+    `);
+
+    const row = (raw.rows as Array<{ received: number; placed: number }>)[0];
+
+    return { received: row?.received ?? 0, placed: row?.placed ?? 0 };
+  }
+
+  async findById(
+    orderId: string,
+    locale: string,
+    fallbackLocale: string,
+  ): Promise<OrderWithSeller | null> {
+    const page = await this.listWhere(sql`o.id = ${orderId}::uuid`, {
+      page: 1,
+      pageSize: 1,
+      scope: "all",
+      locale,
+      fallbackLocale,
+    });
+
+    return page.orders[0] ?? null;
+  }
+
+  async findHeader(
+    orderId: string,
+  ): Promise<{ sellerId: string; status: OrderStatus } | null> {
     const [row] = await db
       .select({
-        order: customerOrders,
-        sellerName: sellers.name,
-        sellerHandle: sellers.slug,
-        sellerPhone: sellers.phone,
+        sellerId: customerOrders.sellerId,
+        status: customerOrders.status,
       })
       .from(customerOrders)
-      .innerJoin(sellers, eq(sellers.id, customerOrders.sellerId))
       .where(eq(customerOrders.id, orderId))
       .limit(1);
 
-    if (!row) return null;
-
-    const linesByOrder = await this.linesOf([row.order.id]);
-
-    return {
-      id: row.order.id,
-      checkoutId: row.order.checkoutId,
-      sellerId: row.order.sellerId,
-      buyerId: row.order.userId,
-      status: row.order.status,
-      lines: linesByOrder.get(row.order.id) ?? [],
-      createdAt: row.order.createdAt,
-      sellerName: row.sellerName,
-      sellerHandle: row.sellerHandle,
-      sellerPhone: row.sellerPhone,
-    };
+    return row ?? null;
   }
 
   /**
@@ -160,7 +230,7 @@ export class PostgresOrderRepository implements OrderRepository {
     sellerId: string;
     fromStatus: OrderStatus;
     status: OrderStatus;
-  }): Promise<Order | null> {
+  }): Promise<OrderStatus | null> {
     const [header] = await db
       .update(customerOrders)
       .set({ status, updatedAt: new Date() })
@@ -173,48 +243,124 @@ export class PostgresOrderRepository implements OrderRepository {
       )
       .returning();
 
-    if (!header) return null;
+    return header?.status ?? null;
+  }
 
-    const linesByOrder = await this.linesOf([header.id]);
+  /**
+   * La consulta que comparten las dos listas y la ficha.
+   *
+   * Una sola porque solo cambian el `WHERE` de a quién pertenece y los datos de la tienda, que se
+   * traen siempre: al comprador le hacen falta para decir a quién le pidió, y al vendedor le sobran
+   * pero cuestan un `JOIN` sobre una fila que ya está en memoria.
+   *
+   * **El total viaja en la misma consulta** (`count(*) OVER ()`), no en un segundo `SELECT count`:
+   * son dos viajes a la base para pintar una barra de paginación.
+   */
+  private async listWhere(
+    owner: ReturnType<typeof sql>,
+    query: OrderQuery,
+  ): Promise<OrderPage<OrderWithSeller>> {
+    const statuses = statusList(statusesInScope(query.scope));
+    const term = query.term?.trim();
+    const offset = Math.max(0, (query.page - 1) * query.pageSize);
+
+    const raw = await db.execute(sql`
+      SELECT
+        o.id, o.checkout_id, o.seller_id, o.user_id, o.status, o.created_at,
+        s.name AS seller_name, s.slug AS seller_slug, s.phone AS seller_phone,
+        count(*) OVER ()::int AS total_count
+      FROM customer_orders o
+      JOIN sellers s ON s.id = o.seller_id
+      WHERE ${owner}
+        AND o.status::text IN (${statuses})
+        ${term ? sql`AND ${matchesTerm(term)}` : sql``}
+      ORDER BY o.created_at DESC
+      LIMIT ${query.pageSize} OFFSET ${offset}
+    `);
+
+    const rows = raw.rows as OrderRow[];
+    const linesByOrder = await this.linesOf(
+      rows.map((row) => row.id),
+      query.locale,
+      query.fallbackLocale,
+    );
 
     return {
-      id: header.id,
-      checkoutId: header.checkoutId,
-      sellerId: header.sellerId,
-      buyerId: header.userId,
-      status: header.status,
-      lines: linesByOrder.get(header.id) ?? [],
-      createdAt: header.createdAt,
+      total: rows[0]?.total_count ?? 0,
+      orders: rows.map((row) => ({
+        id: row.id,
+        checkoutId: row.checkout_id,
+        sellerId: row.seller_id,
+        buyerId: row.user_id,
+        status: row.status,
+        lines: linesByOrder.get(row.id) ?? [],
+        createdAt: row.created_at,
+        sellerName: row.seller_name,
+        sellerHandle: row.seller_slug,
+        sellerPhone: row.seller_phone,
+      })),
     };
   }
 
-  /** Los renglones de varios pedidos de una vez: una consulta para la lista entera, no una por fila. */
+  /**
+   * Los renglones de varios pedidos de una vez, con su enlace y su miniatura **de hoy**.
+   *
+   * Los dos `LEFT JOIN LATERAL` son los que hacen que un producto borrado no rompa nada: `post_id`
+   * queda nulo, los laterales devuelven nulo, y el renglón se pinta con su copia del título y del
+   * precio, sin foto y sin enlace. Es lo mismo que ya garantiza el `ON DELETE SET NULL`.
+   *
+   * Una consulta para la lista entera, no una por pedido.
+   */
   private async linesOf(
     orderIds: readonly string[],
+    locale: string,
+    fallbackLocale: string,
   ): Promise<Map<string, OrderLine[]>> {
     const byOrder = new Map<string, OrderLine[]>();
 
     if (orderIds.length === 0) return byOrder;
 
-    const rows = await db
-      .select()
-      .from(customerOrderItems)
-      .where(inArray(customerOrderItems.orderId, [...orderIds]))
-      .orderBy(customerOrderItems.title);
+    const ids = sql.join(
+      orderIds.map((id) => sql`${id}::uuid`),
+      sql`, `,
+    );
 
-    for (const row of rows) {
-      const lines = byOrder.get(row.orderId) ?? [];
+    const raw = await db.execute(sql`
+      SELECT
+        i.order_id, i.post_id, i.title, i.unit_price::text, i.quantity,
+        t.slug, m.url AS image_url
+      FROM customer_order_items i
+      LEFT JOIN LATERAL (
+        SELECT slug
+        FROM post_translations
+        WHERE post_id = i.post_id
+        ORDER BY (locale = ${locale}) DESC, (locale = ${fallbackLocale}) DESC
+        LIMIT 1
+      ) t ON TRUE
+      LEFT JOIN LATERAL (
+        SELECT url
+        FROM post_media
+        WHERE post_id = i.post_id
+        ORDER BY sort_order
+        LIMIT 1
+      ) m ON TRUE
+      WHERE i.order_id IN (${ids})
+      ORDER BY i.title
+    `);
+
+    for (const row of raw.rows as LineRow[]) {
+      const lines = byOrder.get(row.order_id) ?? [];
 
       lines.push({
-        /* `post_id` es nulo cuando la publicación se borró. El renglón sobrevive con su copia del
-           título y del precio, que es justo para lo que se guardaron. */
-        postId: row.postId ?? "",
+        postId: row.post_id,
         title: row.title,
-        unitPrice: Number(row.unitPrice),
+        unitPrice: Number(row.unit_price),
         quantity: row.quantity,
+        slug: row.slug,
+        imageUrl: row.image_url,
       });
 
-      byOrder.set(row.orderId, lines);
+      byOrder.set(row.order_id, lines);
     }
 
     return byOrder;

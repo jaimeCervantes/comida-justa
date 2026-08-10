@@ -64,7 +64,11 @@ export default async function PedidoPage({
     redirectKeepingLocale(SIGNIN_PATH, await getLocale());
   }
 
-  const order = await createOrderRepository().findById(id);
+  const order = await createOrderRepository().findById(
+    id,
+    locale,
+    routing.defaultLocale,
+  );
 
   if (!order) notFound();
 

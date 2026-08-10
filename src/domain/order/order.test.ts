@@ -17,6 +17,8 @@ const jugoVerde: OrderLine = {
   title: "Jugo Verde",
   unitPrice: 40,
   quantity: 2,
+  slug: "jugo-verde",
+  imageUrl: null,
 };
 
 const sueroNatural: OrderLine = {
@@ -24,6 +26,8 @@ const sueroNatural: OrderLine = {
   title: "Suero natural",
   unitPrice: 35,
   quantity: 1,
+  slug: "suero-natural",
+  imageUrl: null,
 };
 
 describe("los estados", () => {

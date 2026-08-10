@@ -219,11 +219,63 @@ Feature: Carrito y pedidos
     When en la primera se acepta y en la segunda se cancela
     Then la segunda no cambia nada y avisa de que el pedido ya se movió
 
-  @slice-3 @future
-  Scenario: El comprador ve en qué va lo suyo
-    Given que hice un pedido
-    When abro mis pedidos
-    Then veo su estado sin preguntarle a nadie
+  # Slice 3. La primera versión leía la lista ENTERA y la metía en el HTML en cada visita: sin
+  # `LIMIT`. Con cinco pedidos no se nota y por eso pasó las pruebas; con trescientos es media
+  # pantalla de HTML y una consulta que crece para siempre. El espacio en disco nunca fue el
+  # problema —diez mil pedidos son unos 5 MB—; la consulta sin techo sí.
+  @slice-3
+  Scenario: La lista viene por páginas, no entera
+    Given una tienda con más pedidos de los que caben en una página
+    When abro "/pedidos"
+    Then veo los 10 más recientes y un enlace para pasar a los siguientes
+    And la consulta no trae los demás
+
+  @slice-3
+  Scenario: El vendedor entra por lo que espera respuesta
+    Given pedidos míos en varios estados, incluidos entregados de hace meses
+    When abro "/pedidos"
+    Then veo solo los abiertos: pendientes, aceptados y en preparación
+    And lo terminado está a un clic, no mezclado por fecha
+
+  @slice-3
+  Scenario: Al entregar un pedido, sale de la lista de pendientes
+    Given un pedido en preparación
+    When lo marco como entregado
+    Then desaparece de "abiertos" y aparece en "terminados"
+
+  @slice-3
+  Scenario: Busco aquel pedido por lo que pedí
+    Given pedidos con "Pan de masa madre" y con "Jugo Verde"
+    When busco "pan"
+    Then quedan solo los que llevaban pan
+    And el filtro de estado que tenía puesto no se pierde
+
+  @slice-3
+  Scenario: Cada renglón enseña el producto y lleva a él
+    Given un pedido de un producto que sigue publicado
+    When lo abro
+    Then cada renglón muestra su miniatura y enlaza a la publicación
+
+  @slice-3
+  Scenario: Un pedido de algo ya borrado se sigue leyendo entero
+    Given un pedido cuyo producto se borró después
+    When lo abro
+    Then el renglón conserva su título y su importe
+    But no lleva miniatura ni enlace, porque no hay a dónde ir
+
+  @slice-3 @component
+  Scenario Outline: La dirección de la lista conserva lo que no se cambia
+    # Vitest sobre `ordersHref`: son combinaciones de parámetros, no hacen falta ni base ni navegador.
+    Given que estoy en "<partida>"
+    When cambio "<cambio>"
+    Then la dirección queda con "<resultado>"
+
+    Examples:
+      | partida                  | cambio          | resultado                     | razón                                          |
+      | abiertos, buscando "pan" | estado a todos  | estado=all y q=pan            | cambiar de estado no puede perder la búsqueda  |
+      | terminados               | pestaña a míos  | vista=placed y estado=closed  | cambiar de pestaña no puede perder el estado   |
+      | página 4                 | estado a todos  | sin página                    | la 4 de un resultado de 1 es una pantalla vacía |
+      | página 1                 | pasar de página | pagina=2                      | paginar sí conserva la página                  |
 
   @slice-4 @future
   Scenario: Se paga en línea

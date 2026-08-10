@@ -3,7 +3,6 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "~/i18n/navigation";
 import { resolveLocale, routing } from "~/i18n/routing";
 import { readCartSelection } from "~/infra/cart/readCart";
-import { PUBLIC_BASE_URL } from "~/infra/constants";
 import { createCartProductRepository } from "~/infra/dataAccess/cart/factory";
 import { Heading } from "~/presentation/design_system/typography/Heading";
 import ViewCartUseCase from "~/use_cases/viewCart/viewCartUseCase";
