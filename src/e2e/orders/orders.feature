@@ -47,13 +47,9 @@ Feature: Carrito y pedidos
     Then el total es 40
     And su renglón ya no está
 
-  @slice-1
-  Scenario: Confirmo el pedido y el mensaje va escrito
-    Given un carrito con un "Suero natural" y otro producto a 40, de la tienda "Hazlo Sano"
-    When pulso "Confirmar pedido con Hazlo Sano"
-    Then se abre wa.me/522781126948
-    And el mensaje trae "1 × Suero natural — $35" y "Total: $75"
-    And trae el enlace de cada producto, porque hay tres hogazas que se llaman casi igual
+  # Este escenario cambió en el slice 2. Antes confirmar era un enlace directo a wa.me; ahora
+  # registra el pedido y el aviso se manda desde su página, así que la comprobación del mensaje vive
+  # en los escenarios de @slice-2 y aquí solo queda lo que es del carrito.
 
   # El que se agota se siembra: marcar agotado uno de los 13 reales lo saca del sitio y de las
   # recomendaciones del bot mientras corre la suite, y un fallo a media prueba lo dejaría así.
@@ -64,8 +60,8 @@ Feature: Carrito y pedidos
     And vuelvo a abrir "/carrito"
     Then el sembrado se ve marcado como agotado y no entra en el total
     And el total baja a 35
-    And el sembrado no aparece en el mensaje de WhatsApp
     But su renglón sigue a la vista, para que yo decida quitarlo
+    # Que tampoco entre en el PEDIDO lo prueban el caso de uso y el aviso del slice 2.
 
   # La búsqueda es el camino más corto del sitio hasta un producto y era el único listado que no
   # dejaba juntar. No era la UI: usa el mismo `CardForList` que `/productos`. Su proyección construía

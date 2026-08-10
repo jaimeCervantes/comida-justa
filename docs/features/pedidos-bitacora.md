@@ -386,3 +386,86 @@ comprador. Sigue todo pendiente de aplicar `0032`.
 4. **El fallo preexistente de `cardControls.spec.ts:39`.**
 
 **Pendiente del usuario:** aplicar la migración y lanzar la e2e.
+
+---
+
+## Slice 2 — validación completa tras aplicar `0032` (2026-08-09)
+
+### Qué se corrió
+
+La migración ya estaba aplicada (`alembic_version = 0032_2026_08_09`), verificada contra
+`information_schema`: las dos tablas con su forma exacta, los cuatro índices, los dos CHECK y **la
+`orders` del bot intacta, con 0 filas**.
+
+| Comando | Resultado |
+| --- | --- |
+| `playwright test src/e2e/orders` | **13/13** |
+| `playwright test --shard=1/2` | 107 pasados, 3 saltados, **1 fallo preexistente** |
+| `playwright test --shard=2/2` | **110 pasados** |
+| `pnpm run typecheck` / `typecheck:tests` / `lint` | limpios |
+
+El único fallo sigue siendo `localProducers/cardControls.spec.ts:39`, comprobado sobre `dev` limpio
+en una sesión anterior.
+
+### El dev server no se mató: se reutilizó
+
+Había un `next dev` del propio proyecto en el 3000. `E2E_PORT=3100` **no sirve** —Next se niega a
+arrancar un segundo `dev` del mismo directorio aunque cambie el puerto—, y matarlo a lo bruto
+corrompe `.next/dev`. Se usó la otra salida que ya documentaba `pendientes.md`: un
+`playwright.reuse.config.ts` temporal que hereda el config y pone `reuseExistingServer: true`.
+**Borrado al terminar.**
+
+### Tres defectos que la corrida destapó
+
+1. **`deleteTestSellerByHandle` ya no podía limpiar.** `customer_orders.seller_id` apunta a
+   `sellers` desde `0032`, así que borrar una tienda de prueba con pedidos fallaba por el FK. Lo
+   introdujo mi migración y ninguna prueba lo habría visto hasta que una tienda sembrada tuviera
+   pedidos. Ahora los pedidos se borran primero; sus renglones caen por `CASCADE`.
+
+2. **El panel del vendedor se probaba con una tienda ajena.** Los escenarios usaban `hazlo-sano`,
+   cuya `user_id` apunta a una cuenta real: la sesión de la suite no es su dueña, así que `/pedidos`
+   no pintaba la sección de vendedor y el escenario fallaba **por el fixture, no por el código**.
+   Ahora el spec siembra su propia tienda (`e2e-tienda-de-pedidos`) y se la engancha a la cuenta de
+   la suite, con el handle fijo y borrado **antes y después** de cada prueba: una corrida que muera a
+   medias se limpia sola en la siguiente en vez de dejar la cuenta con tienda —que es el fallo que
+   `seedStore` advierte y que ya costó una corrida entera.
+
+3. **Dos escenarios del slice 1 describían algo que el slice 2 eliminó.** `cart-confirm` era un
+   enlace a `wa.me` y ahora es un botón que registra el pedido. El escenario del mensaje se movió a
+   `placeOrder.spec.ts` —donde sí hay sesión, que es lo que confirmar exige— y el del agotado se
+   quedó con lo que sigue siendo del carrito: que se ve, que no se cobra y que no desaparece solo.
+   El `.feature` se corrigió para decir lo que las pruebas hacen.
+
+### Lo que quedó en la base compartida
+
+**Nada de la suite:** 0 tiendas y 0 publicaciones con prefijo `e2e-`. La única fila en
+`customer_orders` es un pedido **real** hecho a mano desde el sitio (4 × Pechuga de pollo asada a
+105, de Hazlo Sano). Durante la sesión pasó de `PENDING` a `DELIVERED`; no fue la suite —el `WHERE`
+de la escritura lleva el `seller_id` de la sesión y la cuenta de pruebas solo es dueña de su tienda
+sembrada—, así que lo recorrió su dueño desde el panel.
+
+### De paso: `docs/database.md`
+
+Estaba dos migraciones por detrás (decía head `0029` y 19 tablas; van `0032` y 26). Se actualizaron
+la cabecera, el reparto de tablas, la lista de migraciones, y se añadió la sección de pedidos — con
+la advertencia de que **`orders` no es esta tabla**, que es exactamente el malentendido que hizo
+proponer reusarla.
+
+### Recap
+
+El slice 2 está entregado y verificado de punta a punta contra el esquema real: 13/13 en su carpeta
+y 217 pasados en la suite completa, con el único fallo conocido de antes. Los pedidos se registran,
+el vendedor los administra desde `/pedidos` y el comprador ve los suyos, todo enlazado desde el menú
+del avatar. Ya no queda ninguna puerta abierta en esta feature.
+
+### Próximos pasos (opciones)
+
+1. **Fusionar `feat/pedidos` en `dev`** (9 commits) y subirla.
+2. **Slice 4 — pago en línea.** Ya hay un pedido real sobre el que empezar a contar; la decisión pide
+   unas semanas de dato, no una tarde.
+3. **`cardControls.spec.ts:39`**, el único rojo de la suite. Pista: `CardOwnerControls` resuelve la
+   etiqueta con `state.isAvailable ?? isAvailable`, así que o la acción no devuelve estado nuevo o el
+   componente se remonta y lo pierde.
+4. **Commitear `0030`, `0031` y `0032`** en el repo del backend, que están sin versionar.
+
+**Pendiente del usuario:** decidir la fusión y el push.

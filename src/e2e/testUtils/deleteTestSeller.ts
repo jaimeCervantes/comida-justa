@@ -10,6 +10,14 @@ import { db } from "~/infra/dataAccess/db/connection";
  * prueba para que su catálogo y sus sucursales también lo sean.
  */
 export async function deleteTestSellerByHandle(handle: string): Promise<void> {
+  /* Los pedidos van los PRIMEROS: `customer_orders.seller_id` apunta aquí desde la migración 0032,
+     así que una tienda con pedidos ya no se puede borrar sin esto y el barrido fallaba en silencio
+     al final de la prueba. Sus renglones caen por `ON DELETE CASCADE`. */
+  await db.execute(sql`
+    DELETE FROM customer_orders
+    WHERE seller_id IN (SELECT id FROM sellers WHERE slug = ${handle})
+  `);
+
   await db.execute(sql`
     DELETE FROM posts
     WHERE seller_id IN (SELECT id FROM sellers WHERE slug = ${handle})

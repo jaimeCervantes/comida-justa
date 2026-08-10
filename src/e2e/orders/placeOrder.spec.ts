@@ -1,24 +1,39 @@
 import { expect, type Page, test } from "@playwright/test";
 import { sql } from "drizzle-orm";
 import { db } from "~/infra/dataAccess/db/connection";
-import { deleteOnePostBySlug } from "../testUtils/deleteOnePost";
+import { deleteTestSellerByHandle } from "../testUtils/deleteTestSeller";
 import { seedPost } from "../testUtils/seedPost";
+import { seedStore } from "../testUtils/seedStore";
 import {
   type DbSession,
   deleteSession,
   simulateLogin,
 } from "../testUtils/simulateLogin";
+import { findSuiteUserId } from "../testUtils/suiteAccount";
 import { testSlug } from "../testUtils/testSlug";
 
 /**
  * Slice 2 de `docs/features/pedidos.md`.
  *
- * **Se salta entero mientras la migración `0032` no esté aplicada.** El esquema lo administra
- * Alembic en el backend del bot, así que este repositorio no puede crearlo ni darlo por hecho: sin
- * `customer_orders` estos escenarios fallarían por una tabla que falta, no por un defecto. En cuanto
- * la migración corra, dejan de saltarse solos.
+ * **La tienda es de la propia cuenta de la suite**, y no "hazlo-sano". El panel del vendedor solo se
+ * ve si la sesión es dueña de la tienda, y `sellers.user_id` de Hazlo Sano apunta a una cuenta real
+ * que la suite no puede usar: con la tienda real, `/pedidos` no pintaba la sección de vendedor y el
+ * escenario fallaba por el fixture, no por el código.
+ *
+ * `seedStore` deja `user_id` en NULL a propósito (ver su docstring: una tienda colgada de la cuenta
+ * de la suite rompe los seis escenarios que empiezan abriendo tienda desde `/cuenta`). Aquí se
+ * engancha **a mano y con red**: el handle es fijo y se borra ANTES y DESPUÉS de cada prueba, así
+ * que una corrida que muera a medias se limpia sola en la siguiente en vez de dejar la cuenta con
+ * tienda.
  */
-const HAZLO_SANO = "hazlo-sano";
+const TIENDA = {
+  name: "E2E Tienda de Pedidos",
+  handle: "e2e-tienda-de-pedidos",
+  phone: "2789990077",
+};
+
+/** Con lada, como lo quiere `wa.me`. */
+const TIENDA_WHATSAPP = "522789990077";
 
 const producto = {
   title: `E2E Pedido ${Date.now()}`,
@@ -26,32 +41,16 @@ const producto = {
   kind: "producto" as const,
   origin: null,
   price: 50,
-  sellerHandle: HAZLO_SANO,
+  sellerHandle: TIENDA.handle,
 };
 
-let schemaReady = false;
 let dbSession: DbSession | undefined;
 
-async function customerOrdersExists(): Promise<boolean> {
-  const result = await db.execute(sql`
-    SELECT to_regclass('public.customer_orders') IS NOT NULL AS ready
-  `);
-
-  return Boolean((result.rows as Array<{ ready: boolean }>)[0]?.ready);
-}
-
-/** Borra los pedidos que deja la suite, por el producto que sembró. */
-async function deleteOrdersOf(slug: string): Promise<void> {
-  if (!schemaReady) return;
+async function attachStoreToSuite(): Promise<void> {
+  const userId = await findSuiteUserId();
 
   await db.execute(sql`
-    DELETE FROM customer_orders
-    WHERE id IN (
-      SELECT i.order_id
-      FROM customer_order_items i
-      JOIN post_translations t ON t.post_id = i.post_id
-      WHERE t.slug = ${slug}
-    )
+    UPDATE sellers SET user_id = ${userId} WHERE slug = ${TIENDA.handle}
   `);
 }
 
@@ -61,22 +60,25 @@ async function addToCart(page: Page, slug: string): Promise<void> {
   await expect(page.getByTestId("cart-count")).toHaveText("1");
 }
 
-test.beforeAll(async () => {
-  schemaReady = await customerOrdersExists();
-});
+/** Confirma el carrito y espera a estar ya en la página del pedido. */
+async function confirmOrder(page: Page): Promise<void> {
+  await page.goto("/carrito");
+  await page.getByTestId("cart-confirm").click();
+  await expect(page.getByTestId("order-detail")).toBeVisible();
+}
 
 test.beforeEach(async ({ page, browserName }) => {
-  test.skip(
-    !schemaReady,
-    "Falta aplicar la migración Alembic 0032 (customer_orders).",
-  );
-  dbSession = await simulateLogin(page, browserName);
+  // Antes de sembrar: si una corrida anterior murió, aquí es donde se limpia su resto.
+  await deleteTestSellerByHandle(TIENDA.handle);
+  await seedStore(TIENDA, null);
+  await attachStoreToSuite();
   await seedPost(producto);
+  dbSession = await simulateLogin(page, browserName);
 });
 
 test.afterEach(async () => {
-  await deleteOrdersOf(producto.slug);
-  await deleteOnePostBySlug(producto.slug);
+  // Se lleva la tienda, sus publicaciones, sus sucursales y sus pedidos.
+  await deleteTestSellerByHandle(TIENDA.handle);
   if (dbSession?.id) {
     await deleteSession(dbSession.id);
   }
@@ -87,12 +89,8 @@ test.describe("Cuando el comprador confirma su carrito", () => {
     page,
   }) => {
     await addToCart(page, producto.slug);
+    await confirmOrder(page);
 
-    await page.goto("/carrito");
-    await page.getByTestId("cart-confirm").click();
-
-    // Se sale del carrito a la página del pedido.
-    await expect(page.getByTestId("order-detail")).toBeVisible();
     await expect(page.getByTestId("order-status")).toHaveAttribute(
       "data-status",
       "PENDING",
@@ -103,7 +101,7 @@ test.describe("Cuando el comprador confirma su carrito", () => {
     // El aviso es un enlace normal: se abre con un clic de verdad, no con `window.open`.
     const href = await page.getByTestId("order-notify").getAttribute("href");
 
-    expect(href).toContain("wa.me/522781126948");
+    expect(href).toContain(`wa.me/${TIENDA_WHATSAPP}`);
 
     const message = decodeURIComponent(
       new URL(href ?? "").searchParams.get("text") ?? "",
@@ -123,9 +121,7 @@ test.describe("Cuando el comprador confirma su carrito", () => {
     page,
   }) => {
     await addToCart(page, producto.slug);
-
-    await page.goto("/carrito");
-    await page.getByTestId("cart-confirm").click();
+    await confirmOrder(page);
     await expect(page.getByTestId("order-total")).toContainText("50");
 
     const orderUrl = page.url();
@@ -152,24 +148,16 @@ test.describe("Cuando el vendedor administra lo que le pidieron", () => {
     page,
   }) => {
     await addToCart(page, producto.slug);
+    await confirmOrder(page);
 
-    await page.goto("/carrito");
-    await page.getByTestId("cart-confirm").click();
-    await expect(page.getByTestId("order-detail")).toBeVisible();
-
-    /* La cuenta de la suite es la dueña de la tienda sembrada, así que compra y vende: en una base
-       con un solo vendedor es la única forma de recorrer el proceso sin inventar una segunda
-       cuenta. Lo que se comprueba —las transiciones y que el botón desaparezca— no depende de que
-       sean personas distintas. */
-    await page.goto("/cuenta");
+    await page.goto("/pedidos");
     await expect(page.getByTestId("seller-orders")).toBeVisible();
 
     for (const status of ["CONFIRMED", "PREPARING", "DELIVERED"] as const) {
       await page.getByTestId(`order-action-${status}`).first().click();
-      await expect(page.getByTestId("order-status").first()).toHaveAttribute(
-        "data-status",
-        status,
-      );
+      await expect(
+        page.getByTestId("seller-order").first().getByTestId("order-status"),
+      ).toHaveAttribute("data-status", status);
     }
 
     // Entregado es final: no queda ninguna acción que ofrecer.
@@ -183,17 +171,14 @@ test.describe("Cuando alguien quiere ver sus pedidos", () => {
     page,
   }) => {
     await addToCart(page, producto.slug);
-    await page.goto("/carrito");
-    await page.getByTestId("cart-confirm").click();
-    await expect(page.getByTestId("order-detail")).toBeVisible();
+    await confirmOrder(page);
 
     // Se llega por el menú, no escribiendo la dirección: es lo que faltaba.
     await page.goto("/");
     await page.getByTestId("user-menu-trigger").click();
     await page.getByTestId("menu-my-orders").click();
 
-    /* La cuenta de la suite es dueña de la tienda sembrada, así que ve las dos secciones: lo que le
-       pidieron y lo que pidió. */
+    // La cuenta de la suite es dueña de la tienda sembrada, así que ve los dos papeles.
     await expect(page.getByTestId("orders-received")).toBeVisible();
     await expect(page.getByTestId("orders-placed")).toBeVisible();
 

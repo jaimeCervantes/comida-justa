@@ -126,30 +126,10 @@ test.describe("Cuando el comprador junta varios productos", () => {
     await expect(page.getByTestId("cart-group-total")).toContainText("40");
   });
 
-  test("Entonces confirmar abre WhatsApp con el desglose y el total", async ({
-    page,
-  }) => {
-    await addFromDetail(page, SUERO_NATURAL.slug, 1);
-    await addFromDetail(page, seeded.slug, 2);
-
-    await page.goto("/carrito");
-
-    const href = await page.getByTestId("cart-confirm").getAttribute("href");
-
-    expect(href).toContain(`wa.me/${HAZLO_SANO.whatsapp}`);
-
-    // El mensaje viaja codificado: se lee decodificado, que es lo que ve el vendedor.
-    const message = decodeURIComponent(
-      new URL(href ?? "").searchParams.get("text") ?? "",
-    );
-
-    expect(message).toContain(`1 × ${SUERO_NATURAL.title} — $35`);
-    expect(message).toContain(`1 × ${seeded.title} — $40`);
-    // El enlace de cada uno: hay tres hogazas que se llaman casi igual.
-    expect(message).toContain(`/${SUERO_NATURAL.slug}`);
-    expect(message).toContain(`/${seeded.slug}`);
-    expect(message).toContain("Total: $75");
-  });
+  /* El escenario "confirmar abre WhatsApp con el desglose" vivía aquí y se movió a
+     `placeOrder.spec.ts`: desde el slice 2, confirmar registra el pedido y el aviso se manda desde
+     su propia página. Aquí no se puede probar porque este archivo no inicia sesión — y confirmar sin
+     sesión lleva a identificarse, que es justo lo que comprueba el otro archivo. */
 
   test("Entonces el carrito sobrevive a recargar la página", async ({
     page,
@@ -211,14 +191,9 @@ test.describe("Cuando un producto del carrito se agota", () => {
     // Y ya no suma: quedan solo los 35 del suero.
     expect(await cartTotal(page)).toContain("35");
 
-    const message = decodeURIComponent(
-      new URL(
-        (await page.getByTestId("cart-confirm").getAttribute("href")) ?? "",
-      ).searchParams.get("text") ?? "",
-    );
-
-    expect(message).not.toContain(perecedero.title);
-    expect(message).toContain("Total: $35");
+    /* Que lo agotado tampoco entre en el pedido lo prueban el caso de uso (`placeOrderUseCase`, que
+       lo deja fuera de los renglones) y el mensaje del aviso. Aquí se comprueba lo que es del
+       carrito: que se ve, que no se cobra y que no desaparece a escondidas. */
   });
 });
 
