@@ -59,10 +59,10 @@ Feature: Un design system que habla como la marca
 
     Examples: la marca gobierna — tres de cuatro salen de tokens que ya existían
       | pilar          | semilla | solid   | soft    | ink     | origen                  |
-      | sueno          | #4c4a8f | #4c4a8f | #e6e6ef | #4c4a8f | nuevo, índigo nocturno  |
+      | sueno          | #8b5cf6 | #7c3aed | #f5f3ff | #7c3aed | violeta anterior        |
       | alimentacion   | #f0380e | #dd340d | #fde3dd | #c52e0b | --brand-orange (logo)   |
       | movimiento     | #5dbf17 | #408410 | #e8f6df | #3c7b0f | --brand-lightgreen      |
-      | mente-espiritu | #f2b705 | #936f03 | #fdf5dc | #8e6b03 | --brand-lightorange     |
+      | mente-espiritu | #38bdf8 | #0369a1 | #f0f9ff | #0369a1 | azul cielo anterior     |
 
   @slice-3 @component
   Scenario Outline: Ninguna combinación de la paleta baja de AA
@@ -72,21 +72,21 @@ Feature: Un design system que habla como la marca
 
     Examples: la tinta sobre su propio chip
       | primer_plano | fondo   | medido |
-      | #4c4a8f      | #e6e6ef | 6.30   |
+      | #7c3aed      | #f5f3ff | 5.20   |
       | #c52e0b      | #fde3dd | 4.57   |
       | #3c7b0f      | #e8f6df | 4.64   |
-      | #8e6b03      | #fdf5dc | 4.53   |
+      | #0369a1      | #f0f9ff | 5.57   |
 
     Examples: texto blanco sobre el relleno sólido
       | primer_plano | fondo   | medido |
-      | #ffffff      | #4c4a8f | 7.83   |
+      | #ffffff      | #7c3aed | 5.70   |
       | #ffffff      | #dd340d | 4.59   |
       | #ffffff      | #408410 | 4.64   |
-      | #ffffff      | #936f03 | 4.65   |
+      | #ffffff      | #0369a1 | 5.93   |
 
   @slice-3 @component
   Scenario: El color nunca es el único portador del significado de un pilar
-    Given que Movimiento (#3c7b0f) y Mente (#8e6b03) contrastan 1.06 entre sí como tinta
+    Given que Movimiento (#3c7b0f) y Mente (#0369a1) contrastan 1.14 entre sí como tinta
     When un pilar se muestra al visitante
     Then su número o su etiqueta acompaña siempre al color
     And quien no distingue el tono sigue pudiendo identificar el pilar

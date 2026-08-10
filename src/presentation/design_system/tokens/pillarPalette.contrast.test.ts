@@ -4,8 +4,8 @@ import { describe, expect, it } from "vitest";
 import { AA_THRESHOLD, contrastRatio, readCssVariables } from "./contrast";
 
 /**
- * Cubre los `Scenario Outline` "Cada pilar tiene una rampa de tres papeles" y "Ninguna combinación
- * de la paleta baja de AA" de `src/e2e/design-system/design-system.feature`.
+ * Cubre los escenarios de `src/e2e/pilares/colores-pilares-vivos.feature` y las invariantes de
+ * contraste de `src/e2e/design-system/design-system.feature`.
  *
  * Lee **`colors.css`**, no una copia en TypeScript: el objetivo es que retocar un hex y romper el
  * contraste falle aquí, no en la cara de un usuario. Un espejo en TS se desincroniza en cuanto
@@ -27,19 +27,40 @@ const DARK = readCssVariables(CSS, {
 const PILLARS = ["sleep", "nutrition", "movement", "mind-spirit"] as const;
 type Pillar = (typeof PILLARS)[number];
 
+const EXPECTED_LIGHT_RAMPS: Record<
+  Pillar,
+  { solid: string; soft: string; ink: string }
+> = {
+  sleep: { solid: "#7c3aed", soft: "#f5f3ff", ink: "#7c3aed" },
+  nutrition: { solid: "#dd340d", soft: "#fde3dd", ink: "#c52e0b" },
+  movement: { solid: "#408410", soft: "#e8f6df", ink: "#3c7b0f" },
+  "mind-spirit": { solid: "#0369a1", soft: "#f0f9ff", ink: "#0369a1" },
+};
+
+const EXPECTED_DARK_RAMPS: Record<Pillar, { soft: string; ink: string }> = {
+  sleep: { soft: "#2e1065", ink: "#c4b5fd" },
+  nutrition: { soft: "#36150d", ink: "#f4522e" },
+  movement: { soft: "#1b2d0f", ink: "#5dbf17" },
+  "mind-spirit": { soft: "#0c2a3b", ink: "#38bdf8" },
+};
+
 /** En oscuro solo se redefinen `soft` e `ink`; `solid` se hereda del bloque claro a propósito. */
 const inDark = (name: string): string => DARK[name] ?? LIGHT[name];
 
 describe("La rampa de los cuatro pilares", () => {
   it.each(PILLARS)("define los tres papeles de %s en modo claro", (pillar) => {
-    expect(LIGHT[`--pillar-${pillar}-solid`]).toMatch(/^#[0-9a-f]{6}$/i);
-    expect(LIGHT[`--pillar-${pillar}-soft`]).toMatch(/^#[0-9a-f]{6}$/i);
-    expect(LIGHT[`--pillar-${pillar}-ink`]).toMatch(/^#[0-9a-f]{6}$/i);
+    expect({
+      solid: LIGHT[`--pillar-${pillar}-solid`],
+      soft: LIGHT[`--pillar-${pillar}-soft`],
+      ink: LIGHT[`--pillar-${pillar}-ink`],
+    }).toEqual(EXPECTED_LIGHT_RAMPS[pillar]);
   });
 
   it.each(PILLARS)("redefine soft e ink de %s en modo oscuro", (pillar) => {
-    expect(DARK[`--pillar-${pillar}-soft`]).toMatch(/^#[0-9a-f]{6}$/i);
-    expect(DARK[`--pillar-${pillar}-ink`]).toMatch(/^#[0-9a-f]{6}$/i);
+    expect({
+      soft: DARK[`--pillar-${pillar}-soft`],
+      ink: DARK[`--pillar-${pillar}-ink`],
+    }).toEqual(EXPECTED_DARK_RAMPS[pillar]);
   });
 
   describe.each(PILLARS)("%s", (pillar: Pillar) => {
@@ -83,7 +104,7 @@ describe("La rampa de los cuatro pilares", () => {
   /**
    * La razón por la que el número del pilar no es decorativo.
    *
-   * Movimiento y Mente quedaron casi con la misma luminosidad: quien no distingue el tono no los
+   * Movimiento y Mente tienen casi la misma luminosidad: quien no distingue el tono no los
    * separa. Esta prueba no exige que se arregle —la marca manda sobre la comodidad del test— sino
    * que documenta el límite, para que nadie construya una UI donde el color sea el único dato.
    */
