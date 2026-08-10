@@ -140,3 +140,81 @@ vendedor, así que al slice 2 solo le falta el adaptador de persistencia.
 4. **Cerrar el fallo preexistente de `cardControls.spec.ts:39`**, que ensucia toda corrida completa.
 
 **Pendiente del usuario:** decidir entre 1–4, y si es la 1, autorizar la migración Alembic.
+
+---
+
+## Slice 1 (añadido) — Añadir al carrito desde la búsqueda (2026-08-09)
+
+### Objetivo
+
+Cerrar el seguimiento que dejó abierto el slice 1. La búsqueda es el camino más corto del sitio hasta
+un producto y era el **único listado que no dejaba juntarlo**: había que abrir la publicación.
+
+### La causa era mejor que el síntoma
+
+No faltaba UI: la búsqueda usa el mismo `CardForList` que `/productos`. Lo que faltaba era que su
+proyección llevara los datos. `PostgresSearchPostRepository.hydrate` hace
+`db.select().from(posts)` —o sea **todas** las columnas— y luego construía el DTO dejando fuera
+`kind`, `origin`, `category`, `subCategory` e `isAvailable`. Sin `kind`, `canBeOrdered` devolvía
+`false` para todo resultado.
+
+**Lo que impidió detectarlo antes es el `as unknown as ISearchPostResultDTO`** que cierra ese objeto:
+borra la comprobación de campos, así que olvidar cinco no cuesta ni una advertencia. Ese cast no se
+quitó porque tapa **una** discrepancia real y distinta: el `Post` del dominio declara
+`media: PostMediaFile` en singular mientras todo el que la lee la trata como lista. Queda anotado
+junto al cast y en `pendientes.md`.
+
+### Alcance, y lo que se dejó fuera a propósito
+
+Se añadieron **`kind` e `isAvailable`**, que es lo que el carrito necesita. Con `isAvailable` vuelve
+además la insignia de agotado a esas tarjetas, que tampoco aparecía — eso no es alcance de más sino
+la consecuencia correcta del mismo dato.
+
+**`origin`, `category`, `subCategory` y `seller` se quedan fuera.** Cuestan una línea cada uno y
+cerrarían el hueco de insignias que `vendedores-y-tiendas.md` ya había anotado, pero **cambian cómo
+se ven los resultados de búsqueda**, y eso es una decisión de diseño que nadie pidió.
+
+### Archivos tocados
+
+`src/infra/dataAccess/searchPosts/PostgresSearchPostRepository.ts`,
+`src/e2e/orders/cartFromSearch.spec.ts` (nuevo), `src/e2e/orders/orders.feature`.
+
+Aparte, un **fix del slice 1**: `cartActions.ts` usaba `CartSelection` sin importarlo. Se coló al
+ajustar la firma de `writeCart` después del último typecheck; el dev server no typechequea, así que
+la e2e pasó igual y solo salió con `pnpm typecheck`.
+
+### Validación
+
+| Comando | Resultado |
+| --- | --- |
+| `pnpm run typecheck` / `typecheck:tests` / `lint` | limpios, exit 0 |
+| `pnpm run test:run` | 1138 verdes |
+| `pnpm exec playwright test src/e2e/orders` | **8/8**, incluido el escenario nuevo |
+| `pnpm exec playwright test --shard=1/2` | 104 pasados, 3 saltados, 1 fallo preexistente |
+| `pnpm exec playwright test --shard=2/2` | **no corrida** — el usuario detuvo la e2e |
+
+**La segunda mitad queda como validación pendiente.** En la corrida anterior del mismo día dio
+107/107, y este cambio solo toca la proyección de búsqueda, cuyos specs (`busqueda*`) viven en la
+mitad que sí corrió — pero no está comprobado y no se afirma que lo esté.
+
+El escenario nuevo siembra un producto y un anuncio que comparten un término poco común, busca ese
+término y comprueba las tres cosas: el producto ofrece añadir, el anuncio no, y la cabecera lo cuenta
+sin haber abierto la publicación.
+
+### Recap
+
+Los tres listados del sitio —catálogo, tienda y ahora búsqueda— dejan añadir al carrito, y la ficha
+también. El slice 1 queda completo, sin ningún hueco conocido salvo las insignias de las tarjetas de
+búsqueda, que es una decisión de diseño abierta y no un defecto. Sigue sin haber migración: el pedido
+no se guarda en ningún sitio.
+
+### Próximos pasos (opciones)
+
+1. **Correr `--shard=2/2`** para cerrar la validación que quedó a medias.
+2. **Slice 2** — registrar el pedido y la sección "Pedidos" del vendedor. Sigue necesitando la
+   migración Alembic sobre la base compartida, y sigue siendo el único paso irreversible.
+3. **Decidir las insignias de la búsqueda**: emparejarlas con `/productos` (`origin`, `category`,
+   `subCategory`, `seller`) o dejar escrito que el resultado de búsqueda enseña menos a propósito.
+4. **El fallo preexistente de `cardControls.spec.ts:39`.**
+
+**Pendiente del usuario:** lo mismo que en la entrada anterior, más la opción 3, que es de diseño.

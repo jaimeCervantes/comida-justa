@@ -52,8 +52,20 @@ que o la acción no devuelve estado nuevo, o el componente se remonta y lo pierd
 todavía no se guarda. El slice 2 sí la pide — `orders` tiene 0 filas y le falta `seller_id`, los
 renglones y el hueco del pago — y es la única puerta abierta de esta feature.
 
-Seguimiento menor: las tarjetas de **búsqueda** no ofrecen añadir al carrito; falta comprobar si su
-proyección lleva `kind` e `is_available` hasta la tarjeta.
+~~Seguimiento menor: las tarjetas de búsqueda no ofrecen añadir al carrito.~~ **Cerrado el
+2026-08-09, y la causa merece leerse.** La consulta de búsqueda hace `db.select().from(posts)` —trae
+la fila entera—, pero al construir el DTO se quedaban fuera `kind`, `origin`, `category`,
+`subCategory` e `isAvailable`, y el `as unknown as ISearchPostResultDTO` del final impedía que
+TypeScript avisara. Sin `kind`, `canBeOrdered` decidía que **nada** se podía pedir.
+
+Se añadieron `kind` e `isAvailable` (con ellos vuelve también la insignia de agotado). **`origin`,
+`category`, `subCategory` y `seller` siguen faltando**: son los que dejan esas tarjetas sin el resto
+de insignias ni logo, y ponerlos cambia cómo se ven los resultados, que es una decisión de diseño y
+no una corrección.
+
+El cast sobrevive por **una** discrepancia concreta: el `Post` del dominio declara
+`media: PostMediaFile` en singular mientras todo el que la lee la trata como lista. Mientras eso no
+se arregle, cualquier campo que se olvide en esa proyección se pierde en silencio.
 
 ---
 
