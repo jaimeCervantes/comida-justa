@@ -14,7 +14,7 @@ import {
 } from "./menuItems";
 
 const SECTION_LINK_CLASS =
-  "text-gray-700 dark:text-gray-200 hover:text-pw-green focus:text-pw-green flex select-none items-center rounded-l-[4px] py-2 pl-3 pr-1 text-[15px] font-medium leading-none outline-hidden transition-colors";
+  "text-gray-700 dark:text-gray-200 hover:text-pw-green focus:text-pw-green flex select-none items-center rounded-l-[4px] py-2 pl-3 text-[15px] font-medium leading-none outline-hidden transition-colors";
 
 const SECTION_TRIGGER_CLASS =
   "text-gray-700 dark:text-gray-200 hover:text-pw-green focus:text-pw-green group flex select-none items-center rounded-r-[4px] py-2 pl-1 pr-3 outline-hidden transition-colors";
@@ -39,10 +39,10 @@ function SectionControl({
   openLabel: string;
 }) {
   return (
-    <div className="flex items-center">
+    <div className="relative flex items-center justify-center">
       <NavigationMenu.Link asChild>
         <Link href={href} className={SECTION_LINK_CLASS}>
-          {label}
+          <span data-testid="section-label">{label}</span>
         </Link>
       </NavigationMenu.Link>
       <NavigationMenu.Trigger
@@ -50,6 +50,15 @@ function SectionControl({
         aria-label={openLabel}
       >
         <CaretDownIcon className={CARET_CLASS} aria-hidden />
+        <span
+          aria-hidden
+          className="pointer-events-none absolute top-full left-1/2 z-1 h-[22px] w-4 -translate-x-1/2 opacity-0 transition-opacity group-data-[state=open]:opacity-100"
+        >
+          <span
+            data-testid="submenu-indicator"
+            className="absolute bottom-0 left-1/2 h-0 w-0 -translate-x-1/2 border-x-8 border-x-transparent border-b-8 border-b-white dark:border-b-gray-900"
+          />
+        </span>
       </NavigationMenu.Trigger>
     </div>
   );
@@ -181,13 +190,12 @@ export default function Nav({
             </Link>
           </NavigationMenu.Link>
         </NavigationMenu.Item>
-
-        <NavigationMenu.Indicator className="data-[state=visible]:animate-fadeIn data-[state=hidden]:animate-fadeOut top-full z-1 flex h-[10px] items-end justify-center overflow-hidden transition-[width,transform_250ms_ease]">
-          <div className="relative top-[70%] h-[10px] w-[10px] rotate-45 rounded-tl-[2px] bg-white dark:bg-gray-900 border-t border-l border-gray-200 dark:border-gray-800" />
-        </NavigationMenu.Indicator>
       </NavigationMenu.List>
       <div className="absolute top-full left-0 pt-2">
-        <NavigationMenu.Viewport className="data-[state=open]:animate-scaleIn data-[state=closed]:animate-scaleOut relative mt-[10px] h-(--radix-navigation-menu-viewport-height) w-(--radix-navigation-menu-viewport-width) origin-[top_center] overflow-hidden rounded-[10px] bg-white dark:bg-gray-900 shadow-[0_10px_38px_-10px_hsla(206,22%,7%,.35),0_10px_20px_-15px_hsla(206,22%,7%,.2)] transition-[width,height] duration-300 border border-gray-200 dark:border-gray-800" />
+        <NavigationMenu.Viewport
+          data-testid="desktop-submenu"
+          className="data-[state=open]:animate-scaleIn data-[state=closed]:animate-scaleOut relative mt-[10px] h-(--radix-navigation-menu-viewport-height) w-(--radix-navigation-menu-viewport-width) origin-[top_center] overflow-hidden rounded-[10px] bg-white dark:bg-gray-900 shadow-[0_10px_38px_-10px_hsla(206,22%,7%,.35),0_10px_20px_-15px_hsla(206,22%,7%,.2)] transition-[width,height] duration-300 border border-gray-200 dark:border-gray-800"
+        />
       </div>
     </NavigationMenu.Root>
   );
