@@ -25,7 +25,14 @@ interface OrderRow {
   seller_id: string;
   user_id: string;
   status: OrderStatus;
-  created_at: Date;
+  /**
+   * **Texto, no `Date`.** `db.execute` con SQL crudo entrega los `timestamptz` tal como los manda
+   * el driver (`2026-08-10 01:58:42.873743+00`), mientras que el constructor de consultas de
+   * drizzle sí los convierte. Declararlo `Date` era mentir: `Intl` recibía una cadena, la
+   * convertía a `NaN` y `format.dateTime` reventaba con `Invalid time value` en `/pedidos` y en la
+   * ficha del pedido. Se convierte al mapear, una sola vez.
+   */
+  created_at: string;
   total_count: number;
   seller_name: string;
   seller_slug: string | null;
@@ -294,7 +301,7 @@ export class PostgresOrderRepository implements OrderRepository {
         buyerId: row.user_id,
         status: row.status,
         lines: linesByOrder.get(row.id) ?? [],
-        createdAt: row.created_at,
+        createdAt: new Date(row.created_at),
         sellerName: row.seller_name,
         sellerHandle: row.seller_slug,
         sellerPhone: row.seller_phone,

@@ -98,6 +98,14 @@ test.describe("Cuando el comprador confirma su carrito", () => {
     await expect(page.getByTestId("order-lines")).toContainText(producto.title);
     await expect(page.getByTestId("order-total")).toContainText("50");
 
+    /* La fecha se afirma **de verdad** y no solo que la página cargue: `db.execute` con SQL crudo
+       entrega los `timestamptz` como texto, `Intl` lo convierte a `NaN` y `format.dateTime` lanza
+       `Invalid time value`. next-intl lo captura y pinta un hueco, así que la página seguía
+       cargando y ningún escenario se enteraba. Con esto, se entera. */
+    await expect(page.getByTestId("order-placed-on")).toContainText(
+      String(new Date().getFullYear()),
+    );
+
     // El aviso es un enlace normal: se abre con un clic de verdad, no con `window.open`.
     const href = await page.getByTestId("order-notify").getAttribute("href");
 

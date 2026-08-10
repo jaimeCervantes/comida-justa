@@ -99,7 +99,7 @@ export default async function PedidoPage({
         {/* `getFormatter` y no `toLocaleDateString(locale)`: el locale del routing es `es` a secas e
             `Intl` lo lee como español de España. Es el mismo tropiezo que ya arregló
             `CurrencyAmount`. */}
-        <span>
+        <span data-testid="order-placed-on">
           {t("placedOn", {
             date: format.dateTime(order.createdAt, { dateStyle: "medium" }),
           })}
