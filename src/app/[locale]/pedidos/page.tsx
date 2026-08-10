@@ -1,15 +1,27 @@
 import type { Metadata } from "next";
 import { getLocale, getTranslations, setRequestLocale } from "next-intl/server";
 import type { User } from "~/domain/entities/post/types";
+import { resolveScope } from "~/domain/order/order";
 import { redirectKeepingLocale } from "~/i18n/redirectKeepingLocale";
-import { resolveLocale } from "~/i18n/routing";
+import { resolveLocale, routing } from "~/i18n/routing";
 import { auth } from "~/infra/auth";
 import { SIGNIN_PATH } from "~/infra/constants";
 import { findSellerOfUser } from "~/infra/dataAccess/identity/sessionIdentity";
 import { createOrderRepository } from "~/infra/dataAccess/orders/factory";
 import { Heading } from "~/presentation/design_system/typography/Heading";
 import BuyerOrders from "./ui/BuyerOrders";
+import OrdersControls, { type OrdersParams } from "./ui/OrdersControls";
+import OrdersPagination from "./ui/OrdersPagination";
 import SellerOrders from "./ui/SellerOrders";
+
+/**
+ * Cuántos pedidos por página.
+ *
+ * Diez y no cuatro como el catálogo: un pedido ocupa poco alto y recorrer la lista buscando uno se
+ * hace de un vistazo, no leyendo. Lo que importa no es el número exacto sino que **haya uno**: la
+ * primera versión leía la lista entera y la metía en el HTML en cada visita.
+ */
+const PAGE_SIZE = 10;
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("orders");
@@ -25,24 +37,24 @@ export async function generateMetadata(): Promise<Metadata> {
 /**
  * Los pedidos de quien mira, en sus dos papeles.
  *
- * **Un solo destino y no dos.** La misma persona compra y vende —de hecho hoy la única tienda es de
- * alguien que también compra—, así que partirlo en dos direcciones obliga a elegir "¿en qué papel
- * entro?" antes de saber si hay algo que atender. Aquí lo que hay se ve de un vistazo.
+ * **Una sola pantalla y una sola lista a la vez.** Antes se apilaban las dos, y funcionaba mientras
+ * no tenían controles; al ganar búsqueda, filtro y paginación, apilarlas significaba dos buscadores
+ * y dos paginaciones compitiendo por los mismos parámetros. Las pestañas llevan el número de lo que
+ * está esperando en la otra, que era lo único que se perdía.
  *
- * Lo del vendedor va primero **porque es lo que tiene prisa**: un pedido pendiente es alguien
- * esperando respuesta, mientras que mirar lo que uno pidió puede esperar.
- *
- * Antes esto vivía dentro de `/cuenta`, mezclado con la ficha de la tienda y las sucursales. Se
- * separó porque son cosas distintas: `/cuenta` es quién eres y cómo te presentas —se toca una vez y
- * se olvida—, y esto es actividad que cambia cada día.
+ * El vendedor entra por lo que le han pedido y **por lo abierto**: un pedido pendiente es alguien
+ * esperando respuesta, y trescientos entregados detrás lo esconden.
  */
 export default async function PedidosPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const { locale } = await params;
-  setRequestLocale(resolveLocale(locale));
+  const { locale: rawLocale } = await params;
+  const locale = resolveLocale(rawLocale);
+  setRequestLocale(locale);
   const t = await getTranslations("orders");
 
   const session = await auth();
@@ -52,14 +64,38 @@ export default async function PedidosPage({
     redirectKeepingLocale(SIGNIN_PATH, await getLocale());
   }
 
-  const repository = createOrderRepository();
   const seller = await findSellerOfUser(userId);
+  const current = readParams(await searchParams, Boolean(seller));
 
-  /* Las dos listas van juntas: son independientes y en serie costaban dos viajes. La del vendedor
-     solo se pide si hay tienda — quien no vende no tiene nada que leer ahí. */
-  const [received, placed] = await Promise.all([
-    seller ? repository.listBySeller(seller.id) : Promise.resolve([]),
-    repository.listByBuyer(userId),
+  const repository = createOrderRepository();
+  const query = {
+    page: current.page,
+    pageSize: PAGE_SIZE,
+    scope: current.scope,
+    term: current.term,
+    locale,
+    fallbackLocale: routing.defaultLocale,
+  };
+
+  /* Se devuelve etiquetada con la vista para que TypeScript sepa qué componente puede recibirla:
+     las dos listas no llevan la misma forma —la del comprador trae la tienda— y sin la etiqueta
+     habría que forzar el tipo justo donde importa acertar. */
+  const loadList = async () =>
+    current.view === "received" && seller
+      ? {
+          view: "received" as const,
+          ...(await repository.listBySeller(seller.id, query)),
+        }
+      : {
+          view: "placed" as const,
+          ...(await repository.listByBuyer(userId, query)),
+        };
+
+  /* El conteo va aparte de la lista **a propósito**: las pestañas tienen que decir cuántos esperan
+     en la otra vista, y contar sobre la página que se pintó daría el número de esa página. */
+  const [counts, list] = await Promise.all([
+    repository.countOpen({ sellerId: seller?.id, buyerId: userId }),
+    loadList(),
   ]);
 
   return (
@@ -68,21 +104,58 @@ export default async function PedidosPage({
         {t("heading")}
       </Heading>
 
-      <div className="flex flex-col gap-10">
-        {seller ? (
-          <section data-testid="orders-received">
-            <h2 className="mb-4 text-body-lg font-bold">
-              {t("sellerHeading")}
-            </h2>
-            <SellerOrders orders={received} />
-          </section>
-        ) : null}
+      <OrdersControls
+        current={current}
+        counts={counts}
+        isSeller={Boolean(seller)}
+      />
 
-        <section data-testid="orders-placed">
-          <h2 className="mb-4 text-body-lg font-bold">{t("buyerHeading")}</h2>
-          <BuyerOrders orders={placed} />
+      {list.view === "received" ? (
+        <section data-testid="orders-received">
+          <SellerOrders orders={list.orders} emptyKey={emptyKeyFor(current)} />
         </section>
-      </div>
+      ) : (
+        <section data-testid="orders-placed">
+          <BuyerOrders orders={list.orders} emptyKey={emptyKeyFor(current)} />
+        </section>
+      )}
+
+      <OrdersPagination
+        current={current}
+        total={list.total}
+        pageSize={PAGE_SIZE}
+      />
     </main>
   );
+}
+
+/**
+ * Lo que llega en la URL, reducido a algo con sentido.
+ *
+ * Todo puede venir escrito a mano, así que nada se cree sin comprobar: una vista desconocida cae a
+ * la que corresponde al papel, un estado raro cae a "abiertos" y una página que no es un número cae
+ * a la primera.
+ */
+function readParams(
+  search: Record<string, string | string[] | undefined>,
+  isSeller: boolean,
+): OrdersParams {
+  const first = (value: string | string[] | undefined): string | undefined =>
+    Array.isArray(value) ? value[0] : value;
+
+  const page = Number(first(search.pagina));
+
+  return {
+    /* Quien vende entra por lo que le han pedido; quien no, no tiene esa vista y cae a la suya
+       aunque la pida por la URL. */
+    view: isSeller && first(search.vista) !== "placed" ? "received" : "placed",
+    scope: resolveScope(first(search.estado)),
+    term: (first(search.q) ?? "").trim().slice(0, 80),
+    page: Number.isInteger(page) && page > 0 ? page : 1,
+  };
+}
+
+/** Qué decir cuando no hay nada: no es lo mismo «no tienes» que «no hay con ese filtro». */
+function emptyKeyFor(current: OrdersParams): "filtered" | "none" {
+  return current.term || current.scope !== "open" ? "filtered" : "none";
 }

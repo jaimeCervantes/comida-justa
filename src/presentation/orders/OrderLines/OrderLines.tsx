@@ -1,8 +1,12 @@
 "use client";
+import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { lineAmount, type OrderLine, orderTotal } from "~/domain/order/order";
+import { Link } from "~/i18n/navigation";
 import { SITE_CURRENCY } from "~/infra/constants";
 import CurrencyAmount from "~/presentation/money/CurrencyAmount";
+
+const THUMB = 48;
 
 /**
  * Los renglones de un pedido y lo que suman.
@@ -10,8 +14,10 @@ import CurrencyAmount from "~/presentation/money/CurrencyAmount";
  * **El total se calcula aquí, de los renglones**, y no viaja como dato: la tabla no guarda ninguna
  * columna `total` precisamente para que no pueda desincronizarse de lo que la compone.
  *
- * No enlaza a las publicaciones. El renglón guarda una copia del título y del precio, no el slug: un
- * pedido tiene que poder leerse aunque el producto ya no exista.
+ * La miniatura y el enlace salen de la publicación **de hoy**, no del pedido: lo que el renglón
+ * congela es el título y el precio, que es lo que se acordó. Si la publicación se borró, el renglón
+ * se sigue leyendo entero —con su texto y su importe— y simplemente no lleva foto ni enlace. Es lo
+ * mismo que ya garantiza el `ON DELETE SET NULL` de `post_id`.
  */
 export default function OrderLines({ lines }: { lines: OrderLine[] }) {
   const t = useTranslations("orders");
@@ -21,12 +27,10 @@ export default function OrderLines({ lines }: { lines: OrderLine[] }) {
       <ul data-testid="order-lines">
         {lines.map((line) => (
           <li
-            key={`${line.postId}-${line.title}`}
-            className="flex items-center justify-between gap-3 border-t border-separator py-2 first:border-t-0"
+            key={`${line.postId ?? "sin-post"}-${line.title}`}
+            className="flex items-center gap-3 border-t border-separator py-2 first:border-t-0"
           >
-            <span>
-              {line.quantity} × {line.title}
-            </span>
+            <LineIdentity line={line} />
             <CurrencyAmount value={lineAmount(line)} currency={SITE_CURRENCY} />
           </li>
         ))}
@@ -39,5 +43,42 @@ export default function OrderLines({ lines }: { lines: OrderLine[] }) {
         </span>
       </p>
     </>
+  );
+}
+
+/** La foto y el nombre, enlazados al producto cuando todavía existe. */
+function LineIdentity({ line }: { line: OrderLine }) {
+  const label = `${line.quantity} × ${line.title}`;
+  const thumb = line.imageUrl ? (
+    <Image
+      src={line.imageUrl}
+      alt=""
+      width={THUMB}
+      height={THUMB}
+      className="size-12 shrink-0 rounded-lg object-cover"
+      /* Decorativa: el nombre va escrito al lado, así que un `alt` con el título haría que un
+         lector de pantalla dijera el producto dos veces. */
+      aria-hidden
+    />
+  ) : null;
+
+  if (!line.slug) {
+    return (
+      <span className="flex min-w-0 grow items-center gap-3">
+        {thumb}
+        <span className="min-w-0 truncate">{label}</span>
+      </span>
+    );
+  }
+
+  return (
+    <Link
+      href={{ pathname: "/[slug]", params: { slug: line.slug } }}
+      data-testid="order-line-link"
+      className="flex min-w-0 grow items-center gap-3 hover:text-pw-lightgreen"
+    >
+      {thumb}
+      <span className="min-w-0 truncate">{label}</span>
+    </Link>
   );
 }

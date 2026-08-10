@@ -61,12 +61,21 @@ function build(products: CartProduct[]) {
           id: `order-${index}`,
           status: "PENDING",
           createdAt: new Date("2026-08-09T12:00:00Z"),
+          /* El repositorio real relee los renglones tras el commit, ya con su slug y su miniatura;
+             el doble devuelve los escritos con esos dos campos vacíos. */
+          lines: order.lines.map((line) => ({
+            ...line,
+            slug: null,
+            imageUrl: null,
+          })),
         }),
       );
     }),
     listBySeller: vi.fn(),
     listByBuyer: vi.fn(),
+    countOpen: vi.fn(),
     findById: vi.fn(),
+    findHeader: vi.fn(),
     updateStatus: vi.fn(),
   };
   const cart: CartProductRepository = {

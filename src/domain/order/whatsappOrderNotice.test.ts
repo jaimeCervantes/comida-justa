@@ -20,12 +20,16 @@ const order: Order = {
       title: "Jugo Verde",
       unitPrice: 40,
       quantity: 2,
+      slug: "jugo-verde",
+      imageUrl: null,
     },
     {
       postId: "4e256323-9965-5f82-a8d6-6fc2849e9c77",
       title: "Suero natural",
       unitPrice: 35,
       quantity: 1,
+      slug: "suero-natural",
+      imageUrl: null,
     },
   ],
   createdAt: new Date("2026-08-09T12:00:00Z"),
@@ -51,7 +55,8 @@ describe("buildWhatsappOrderNoticeMessage", () => {
   it("sigue diciendo qué se pidió aunque la publicación ya no exista", () => {
     const huerfano: Order = {
       ...order,
-      lines: [{ ...order.lines[0], postId: "" }],
+      // Publicación borrada: `post_id` nulo, y con él el enlace y la miniatura.
+      lines: [{ ...order.lines[0], postId: null, slug: null, imageUrl: null }],
     };
 
     expect(

@@ -1,8 +1,4 @@
-import {
-  canTransition,
-  type Order,
-  type OrderStatus,
-} from "~/domain/order/order";
+import { canTransition, type OrderStatus } from "~/domain/order/order";
 import type { OrderRepository } from "~/domain/order/ports";
 
 export interface AdvanceOrderInput {
@@ -13,7 +9,7 @@ export interface AdvanceOrderInput {
 }
 
 export type AdvanceOrderResult =
-  | { order: Order }
+  | { status: OrderStatus }
   | { error: AdvanceOrderError };
 
 export type AdvanceOrderError =
@@ -41,7 +37,7 @@ export default class AdvanceOrderUseCase {
     sellerId,
     status,
   }: AdvanceOrderInput): Promise<AdvanceOrderResult> {
-    const current = await this.orders.findById(orderId);
+    const current = await this.orders.findHeader(orderId);
 
     /* Un pedido de otra tienda se responde igual que uno que no existe: quien lo intenta no debe
        poder averiguar si el id es bueno. */
@@ -52,7 +48,7 @@ export default class AdvanceOrderUseCase {
       return { error: "invalid-transition" };
     }
 
-    const order = await this.orders.updateStatus({
+    const applied = await this.orders.updateStatus({
       orderId,
       sellerId,
       fromStatus: current.status,
@@ -62,6 +58,6 @@ export default class AdvanceOrderUseCase {
     /* Sin fila devuelta, alguien lo movió entre la lectura y la escritura. No se reintenta: la
        decisión se tomó mirando un estado que ya no era el actual, así que lo honesto es que la
        pantalla se recargue y el vendedor vuelva a decidir. */
-    return order ? { order } : { error: "not-found" };
+    return applied ? { status: applied } : { error: "not-found" };
   }
 }

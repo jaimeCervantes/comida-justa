@@ -469,3 +469,186 @@ del avatar. Ya no queda ninguna puerta abierta en esta feature.
 4. **Commitear `0030`, `0031` y `0032`** en el repo del backend, que están sin versionar.
 
 **Pendiente del usuario:** decidir la fusión y el push.
+
+---
+
+## Slice 3 — Pedidos que aguantan (2026-08-09)
+
+### La pregunta que lo abrió
+
+«¿No crees que los pedidos usan mucho espacio? ¿Qué pasa si algún vendedor o usuario tiene muchos?»
+
+La respuesta honesta era **no al espacio y sí a la consulta**. Diez mil pedidos de tres renglones son
+unos 5 MB — la base ya guarda vectores de 768 dimensiones que pesan más. Lo que sí estaba mal, y lo
+había escrito yo dos slices antes, es que `listBySeller` y `listByBuyer` **no tenían `LIMIT`**: la
+página traía todos los pedidos con todos sus renglones y los volcaba al HTML en cada visita. Con
+cinco no se nota, y por eso pasó las pruebas.
+
+### Decisiones y por qué
+
+- **Paginación de 10**, con el total en la misma consulta (`count(*) OVER ()`). Dos `SELECT` para
+  pintar una barra de paginación son dos viajes a la base.
+- **El vendedor entra por lo abierto.** `OPEN_STATUSES` se enumera y **no** se deriva de `isFinal`,
+  aunque hoy dé lo mismo: `DRAFT` y `PAID` tampoco tienen salidas y no son pedidos abiertos. Hay un
+  test dedicado a que nadie lo "simplifique" el día que `PAID` entre en el flujo.
+- **`ILIKE` y no full-text**, con el motivo escrito junto a la función: la pregunta real cabe en dos
+  páginas de resultados, y montar `tsvector` sería traer la maquinaria del catálogo a un sitio que no
+  la necesita.
+- **Se descartó el índice que yo mismo había propuesto.** `ix_customer_orders_seller` ya lleva
+  `seller_id` de primero, así que acota y ordena; filtrar el estado sobre unos cientos de entradas es
+  gratis. Una migración sobre la base compartida para una tabla de una fila es ceremonia. Queda el
+  umbral escrito: ~10.000 pedidos por tienda y un `EXPLAIN` que lo justifique. **Este slice no lleva
+  migración.**
+- **La miniatura y el enlace NO se guardan.** Se resuelven al leer con dos `LEFT JOIN LATERAL`. El
+  renglón congela lo que se acordó —título y precio—; un slug congelado apuntaría a una dirección que
+  puede haber cambiado de idioma. Y como `post_id` es nulo cuando la publicación se borró, los
+  laterales devuelven nulo y el renglón se sigue leyendo entero, sin foto ni enlace.
+- **Lo que se escribe y lo que se lee dejaron de ser el mismo tipo.** `NewOrderLine` es un
+  subconjunto de `OrderLine` sin slug ni imagen: tenerlos en el tipo de escritura invitaba a
+  congelarlos.
+- **`updateStatus` devuelve el estado, no el pedido.** Nadie pinta lo que devuelve —la pantalla se
+  recarga por `revalidatePath`—, así que traer los renglones era una consulta a la basura. Y
+  `findHeader` se separó de `findById` por lo mismo: mover un pedido no necesita ni renglones ni
+  idioma.
+- **Pestañas en vez de las dos listas apiladas.** Apiladas funcionaban sin controles; con búsqueda,
+  filtro y paginación cada una, significaban dos buscadores compitiendo por los mismos parámetros. El
+  número en la pestaña dice si hay algo esperando en la otra, que era lo único que se perdía.
+- **La búsqueda es un `<form method="get">`** con los demás filtros como campos ocultos: funciona sin
+  JavaScript y el navegador arma la URL solo.
+- **No se reutilizó `presentation/navigation/Pagination`**: pagina por segmento de ruta contra las
+  rutas declaradas en `routing.ts`, y aquí la página convive con la pestaña, el estado y la búsqueda
+  como parámetros de consulta. Meterle soporte de query lo habría vuelto dos componentes en uno.
+
+### Archivos tocados
+
+- **Dominio:** `order.ts` (`OPEN_STATUSES`, `CLOSED_STATUSES`, `OrderScope`, `statusesInScope`,
+  `resolveScope`, y `slug`/`imageUrl` en `OrderLine`), `ports.ts` (`OrderQuery`, `OrderPage`,
+  `NewOrderLine`, `countOpen`, `findHeader`).
+- **Infra:** `PostgresOrderRepository` reescrito alrededor de una consulta compartida con `LIMIT`,
+  filtro de estado, `ILIKE` y los dos `LATERAL` de la miniatura.
+- **Casos de uso:** `advanceOrder` usa `findHeader`; `placeOrder` escribe `NewOrderLine`.
+- **Rutas:** `/pedidos` con pestañas, filtro, búsqueda y paginación (`ui/OrdersControls.tsx`,
+  `ui/OrdersPagination.tsx`); `OrderLines` con miniatura y enlace.
+- **Specs:** `orders.feature` (slice 3), `placeOrder.spec.ts` alineado con las pestañas,
+  `scope.test.ts` y `ordersHref.test.ts` nuevos.
+
+### Validación
+
+| Comando | Resultado |
+| --- | --- |
+| `pnpm run typecheck` / `typecheck:tests` | limpios |
+| `pnpm run lint` | exit 0 |
+| `pnpm run test:run` | **123 archivos, 1203 tests, todos verdes** (18 nuevos) |
+| Playwright | **no corrido.** El usuario pidió no lanzarla todavía |
+
+### Lo que hay que saber antes de correr la e2e
+
+**`placeOrder.spec.ts` se ajustó a la pantalla nueva y ese cambio no está verificado.** Dos
+escenarios afirmaban cosas que el slice 3 cambió: que se veían las dos secciones a la vez —ahora solo
+la de la pestaña activa— y que tras entregar el pedido seguía en la lista —ahora sale del filtro por
+omisión, que es el comportamiento buscado—. Están reescritos contra el comportamiento nuevo, pero
+hasta que la suite corra son una hipótesis.
+
+### Recap
+
+Las dos listas ya no se leen enteras: vienen de diez en diez, el vendedor entra por lo que espera
+respuesta, se puede buscar por producto y cada renglón enseña su miniatura y lleva a la publicación
+cuando todavía existe. Sin migración y sin nada que aplicar. Falta pasar la e2e.
+
+### Próximos pasos (opciones)
+
+1. **Correr la e2e** (`src/e2e/orders` primero, luego la suite en dos mitades).
+2. **Fusionar y subir**, cuando la e2e esté verde.
+3. **Slice 4 — pago en línea**, cuando los pedidos digan que vale la pena.
+4. **`cardControls.spec.ts:39`**, el único rojo conocido de la suite.
+
+**Pendiente del usuario:** decidir cuándo se lanza la e2e.
+
+---
+
+## Slice 3 — validación en navegador y los tres bugs que destapó (2026-08-10)
+
+Correr la e2e contra las pantallas nuevas encontró lo que ni el typecheck ni 1203 tests unitarios
+podían ver. Los tres son míos, de este mismo slice.
+
+### 1. Las fechas llegaban como texto y la pantalla reventaba por dentro
+
+`FORMATTING_ERROR: Invalid time value` en `/pedidos` y en la ficha del pedido — **el error que el
+usuario vio al probarlo a mano.**
+
+La causa: **`db.execute` con SQL crudo entrega los `timestamptz` como cadena**
+(`2026-08-10 01:58:42.873743+00`), mientras que el constructor de consultas de drizzle sí los
+convierte a `Date`. El slice 2 leía con el constructor y funcionaba; el slice 3 pasó a SQL crudo para
+poder paginar y filtrar, y con eso `createdAt` dejó de ser una fecha. `Intl` la convierte a `NaN` y
+`format.dateTime` lanza.
+
+Se convierte al mapear, una sola vez, y `OrderRow.created_at` pasa a declararse `string`, que es la
+verdad. Declararlo `Date` era la mentira que dejó pasar el error por delante de TypeScript.
+
+> El mismo tropiezo acecha en `PostgresPostQueryRepository`, que también lee con `db.execute` y
+> declara `created_at: Date`. Ahí no se nota porque `mapPostsToCards.normalizeCreatedAt` acepta
+> cadenas — esa función existe justamente por esto.
+
+### 2. La e2e no podía verlo, porque next-intl se lo tragaba
+
+next-intl **captura** el `FORMATTING_ERROR`, lo registra y pinta un hueco. La página seguía cargando,
+así que todas las aserciones pasaban: el escenario iba verde con la fecha rota. Ahora la fecha se
+afirma de verdad (`order-placed-on` contiene el año), así que un fallo de formato ya no puede
+esconderse detrás de una página que carga.
+
+### 3. Siete fallos que no eran fallos: rutas frías
+
+La primera corrida completa dio **7 rojos repartidos por tres archivos**, varios en pruebas que este
+slice no tocaba. No eran regresiones: `/carrito`, `/pedidos`, `/pedido/[id]` y
+`/buscar/[term]/page/[page]` **no estaban en `warmRoutes`**, así que el primer escenario que las
+pisaba pagaba su compilación dentro de su propio plazo. Es el modo de fallo que ese módulo ya
+documenta; lo que faltaba era añadir las rutas que estrené. Con ellas dentro: **16/16**.
+
+`/pedido/[id]` se calienta con un uuid de ceros: sin sesión redirige a identificarse, y eso ya compila
+el segmento, que es lo único que se busca.
+
+### 4. El escenario de las alturas dependía de la paginación
+
+Fijaba dos productos concretos, y el apaisado era del lote del 24 de julio: cae a la página 2 de
+`/productos`. Peor, el tamaño de página cambia con el entorno —9 en local, 4 en CI, que corre sin
+ningún `.env`—, así que habría sido rojo en GitHub por un motivo distinto. Ahora recorre las dos
+primeras páginas y afirma lo que el escenario dice de verdad: **que no todas las tarjetas miden lo
+mismo de alto**, sin nombrar cuáles.
+
+### Validación
+
+| Comando | Resultado |
+| --- | --- |
+| `typecheck` / `typecheck:tests` / `lint` | limpios, exit 0 |
+| `test:run` | **1203 verdes** |
+| `playwright test src/e2e/orders src/e2e/dimensionesMedia` | **16/16** |
+| `playwright test --shard=1/2` | 108 pasados, 3 saltados, **1 fallo preexistente** |
+| `playwright test --shard=2/2` | **112 pasados** |
+
+**220 pasados.** `createPost.spec.ts:31` falló en la primera pasada de la mitad 1 y pasó sola y en la
+repetición: es la flakiness en frío ya documentada, no una regresión.
+
+### El único rojo, ya diagnosticado
+
+`localProducers/cardControls.spec.ts:39` sigue fallando, y ya no es un misterio. Se instrumentó:
+**la acción del servidor no falla** —no aparece error y la base sí cambia—. Lo que no se entera es la
+pantalla, por dos cosas que se suman: el feed del inicio guarda `posts` en `useState` (su propio
+docstring avisa de que no vuelve a mirar sus props) y `MasonryColumns` puede mover una tarjeta de
+columna al repintar, lo que la desmonta y se lleva el `useActionState`. El detalle y por qué **no** se
+arregló aquí —las dos salidas tienen regresión visible y son un cambio de diseño del feed— está en
+`docs/pendientes.md`.
+
+### Recap
+
+El slice 3 está entregado y verificado en navegador. Los pedidos vienen por páginas, el vendedor
+entra por lo abierto, se busca por producto y cada renglón enseña su miniatura y lleva al producto.
+De paso quedó arreglado que las tarjetas y la ficha usen las dimensiones reales de la media. Sin
+ninguna migración.
+
+### Próximos pasos (opciones)
+
+1. **`cardControls.spec.ts:39`**, ya con el diagnóstico hecho: pide decidir cómo refresca el feed del
+   inicio tras una mutación.
+2. **Slice 4 — pago en línea**, cuando los pedidos digan que vale la pena.
+3. **Las insignias que faltan en la búsqueda** (`origin`, `category`, `subCategory`, `seller`) — ya
+   hechas para el carrito, pendientes de decidir para el resto.

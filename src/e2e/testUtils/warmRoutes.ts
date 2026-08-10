@@ -37,6 +37,21 @@ const RUTAS = [
      tienda. El síntoma era el de siempre: un `click` esperando 90 s un formulario que aún no
      existía, y verde al reintentarlo solo. */
   "/cuenta",
+
+  /* Las tres del carrito y los pedidos. Entraron aquí por el mismo camino que `/cuenta`: la
+     corrida siguiente a estrenarlas dio **siete fallos** repartidos por tres archivos, todos
+     esperando un elemento de una ruta que aún no existía compilada, y todos verdes al reintentar.
+     Las pisa cada escenario de `orders`. */
+  "/carrito",
+  "/pedidos",
+  /* Sin sesión redirige a identificarse, y eso basta: lo que se busca es compilar el segmento, no
+     ver un pedido. El uuid de ceros no existe ni existirá. */
+  "/pedido/00000000-0000-0000-0000-000000000000",
+
+  /* `/buscar/[term]/page/[page]` es **otra unidad de compilación** que `/buscar`: comparten el
+     primer segmento y nada más. La usan los dos escenarios de `cartFromSearch`, que fueron dos de
+     aquellos siete fallos. */
+  "/buscar/pan/page/1",
 ] as const;
 
 /** Compilar una ruta pesada en frío pasa de largo cualquier plazo corto. */

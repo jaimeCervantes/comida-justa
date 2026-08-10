@@ -80,11 +80,60 @@ export function isFinal(status: OrderStatus): boolean {
  * el vendedor sube el precio o corrige el título mañana, el pedido de ayer sigue diciendo lo que se
  * acordó. Sin esto no hay histórico creíble ni reclamación posible.
  */
+/**
+ * Los que **piden acción**: alguien está esperando al otro lado.
+ *
+ * No se derivan de `isFinal` aunque parezca lo mismo: `DRAFT` y `PAID` tampoco tienen salidas hoy y
+ * sin embargo no son pedidos abiertos —el primero es del carrito del bot y el segundo espera al pago
+ * en línea—. Enumerarlos es lo que hace que añadir `PAID` al flujo no los meta aquí por accidente.
+ */
+export const OPEN_STATUSES: readonly OrderStatus[] = [
+  "PENDING",
+  "CONFIRMED",
+  "PREPARING",
+];
+
+/** Los que ya no se mueven y solo se consultan. */
+export const CLOSED_STATUSES: readonly OrderStatus[] = [
+  "DELIVERED",
+  "CANCELLED",
+];
+
+/**
+ * Con qué se entra a la lista.
+ *
+ * El vendedor entra por `open` porque un pedido con 300 entregados detrás sigue teniendo cuatro que
+ * contestar, y mezclarlos por fecha los esconde.
+ */
+export type OrderScope = "open" | "closed" | "all";
+
+export function statusesInScope(scope: OrderScope): readonly OrderStatus[] {
+  if (scope === "open") return OPEN_STATUSES;
+  if (scope === "closed") return CLOSED_STATUSES;
+
+  return ORDER_STATUSES;
+}
+
+/** Lo que llega de la URL puede ser cualquier cosa; se reduce a un ámbito conocido. */
+export function resolveScope(candidate: string | undefined): OrderScope {
+  return candidate === "closed" || candidate === "all" ? candidate : "open";
+}
+
 export interface OrderLine {
-  postId: string;
+  /** `null` cuando la publicación se borró: el renglón sobrevive con su copia. */
+  postId: string | null;
   title: string;
   unitPrice: number;
   quantity: number;
+  /**
+   * La dirección de la publicación **hoy**, o `null` si ya no existe.
+   *
+   * No se guarda en el pedido a propósito: el slug cambia con el idioma, y lo que el renglón congela
+   * es lo que se acordó —título y precio—, no cómo llegar. Se resuelve al leer.
+   */
+  slug: string | null;
+  /** Su primera imagen, para reconocerlo de un vistazo. `null` si no tiene o si ya no existe. */
+  imageUrl: string | null;
 }
 
 export interface Order {

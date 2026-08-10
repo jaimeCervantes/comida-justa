@@ -1,7 +1,7 @@
 # Pendientes
 
 Registro único de lo que queda abierto, para no tener que reconstruirlo leyendo nueve bitácoras.
-Cada punto apunta a su roadmap. **Última sesión: 2026-08-09.**
+Cada punto apunta a su roadmap. **Última sesión: 2026-08-10.**
 
 ---
 
@@ -43,8 +43,29 @@ pintar "Marcar disponible" y la espera agota sus 5 s. Se reproduce corrida tras 
 sobre `dev` limpio: falla igual. Es anterior, y es distinto del falso positivo de la línea 98 que se
 cerró el 2026-08-07 — aquel sí era compilación en frío.
 
-Por dónde empezar: `CardOwnerControls` decide la etiqueta con `state.isAvailable ?? isAvailable`, así
-que o la acción no devuelve estado nuevo, o el componente se remonta y lo pierde.
+**Diagnosticado el 2026-08-10, y no es un fallo de la prueba.** Se instrumentó el escenario para
+distinguir los dos casos: **la acción del servidor NO falla** —no aparece `card-availability-error` y
+`is_available` sí cambia en la base—. Lo que no se entera es la pantalla, por dos motivos que se
+suman:
+
+1. **El feed del inicio es una copia de cliente.** `PostsWithLoadMore` guarda `posts` en `useState` y
+   su propio docstring lo dice: *«`useState` no vuelve a mirar sus props»*. Así que `revalidatePath`
+   manda datos nuevos del servidor y la lista sigue enseñando los viejos.
+2. **`MasonryColumns` reparte las tarjetas en columnas midiendo en el cliente.** Cuando el árbol se
+   vuelve a pintar, una tarjeta puede cambiar de columna, o sea de padre en el DOM: React la
+   desmonta y la vuelve a montar, y con ella se va el `useActionState` que guardaba
+   `{ isAvailable: false }`. Por eso `state.isAvailable ?? isAvailable` acaba cayendo al prop, que
+   es el viejo.
+
+**Por qué no se arregló aquí.** La salida obvia —resincronizar `posts` cuando cambian
+`initialPosts`— tiene una regresión visible: quien haya cargado tres páginas con el scroll infinito
+vería la lista encogerse a la primera al marcar algo agotado. Y la otra —quitar el remontaje— toca el
+reparto de la mampostería, que es justo el código que el repositorio ya reescribió una vez para que
+nada saltara. Es un cambio de diseño del feed, no una corrección, y merece hacerse despierto y con su
+propio slice.
+
+**El comportamiento de fondo funciona**: marcar agotado desde la tarjeta guarda, y al recargar la
+página se ve bien. Lo que falla es el refresco en sitio.
 
 ### Carrito entregado (slice 1 de `pedidos.md`)
 

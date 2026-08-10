@@ -5,8 +5,12 @@ import {
 } from "~/domain/cart/cart";
 import type { CartSelection } from "~/domain/cart/cartSelection";
 import type { CartProductRepository } from "~/domain/cart/ports";
-import type { Order, OrderLine } from "~/domain/order/order";
-import type { NewOrder, OrderRepository } from "~/domain/order/ports";
+import type { Order } from "~/domain/order/order";
+import type {
+  NewOrder,
+  NewOrderLine,
+  OrderRepository,
+} from "~/domain/order/ports";
 
 export interface PlaceOrderInput {
   selection: readonly CartSelection[];
@@ -80,7 +84,15 @@ export default class PlaceOrderUseCase {
     /* Qué renglones se llevó el pedido, para que quien llama vacíe justo esos del carrito y deje
        los de las otras tiendas. Sale de los renglones creados y no del grupo: lo agotado sigue en
        el carrito a propósito, porque nadie lo pidió. */
-    return { order, orderedPostIds: lines.map((line) => line.postId) };
+    /* `postId` es nulo en el TIPO porque un renglón leído puede haber perdido su publicación; en
+       uno recién creado siempre lo hay. Se filtra en vez de forzarlo: lo que sale de aquí decide
+       qué se vacía del carrito, y un `null` colado lo dejaría intacto sin que nadie lo notara. */
+    return {
+      order,
+      orderedPostIds: lines.flatMap((line) =>
+        line.postId ? [line.postId] : [],
+      ),
+    };
   }
 
   private async findGroup(
@@ -103,7 +115,7 @@ export default class PlaceOrderUseCase {
 }
 
 /** El precio de hoy se copia al renglón: a partir de aquí, el pedido ya no cambia de importe. */
-function toOrderLines(group: CartSellerGroup): OrderLine[] {
+function toOrderLines(group: CartSellerGroup): NewOrderLine[] {
   return group.lines
     .filter((line) => line.product.isAvailable)
     .map((line) => ({

@@ -22,13 +22,20 @@ import {
  * Ocultar lo que no se puede hacer es cortesía, no seguridad: quien decide es el servidor, que
  * compara la tienda de la sesión contra la del pedido dentro del propio `WHERE`.
  */
-export default function SellerOrders({ orders }: { orders: Order[] }) {
+export default function SellerOrders({
+  orders,
+  emptyKey,
+}: {
+  orders: Order[];
+  /** No es lo mismo «no te han pedido nada» que «no hay nada con ese filtro». */
+  emptyKey: "filtered" | "none";
+}) {
   const t = useTranslations("orders");
 
   if (orders.length === 0) {
     return (
       <p data-testid="seller-orders-empty" className="text-text-support">
-        {t("sellerEmpty")}
+        {emptyKey === "filtered" ? t("nothingFound") : t("sellerEmpty")}
       </p>
     );
   }
