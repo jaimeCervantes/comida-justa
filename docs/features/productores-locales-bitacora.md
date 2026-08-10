@@ -442,3 +442,91 @@ De los cuatro que dejó el slice 5, **uno quedó hecho y tres siguen abiertos**:
 5. ⬜ **El ancla como parámetro**, el día que el sitio sirva a más de un pueblo.
 6. ⬜ **Medir** cuántas tiendas completan su sucursal. Sigue sin instrumentarse, y sigue siendo la
    hipótesis que sostiene el roadmap entero.
+
+## Slice 8 — conservar la disponibilidad al redistribuir la tarjeta (2026-08-10)
+
+### Objetivo
+
+Que marcar un producto agotado desde el home dé una confirmación visible y durable sin recargar,
+incluso cuando la mampostería remonta la tarjeta y aunque el feed ya haya acumulado más páginas.
+
+### Decisiones y por qué
+
+**La verdad visual sube al dueño de la copia de cliente.** `CardOwnerControls` conserva su
+`useActionState` para el formulario, pero comunica el resultado exitoso a `PostsWithLoadMore`. El
+feed actualiza solo el `Post` afectado dentro de su estado; así un remontaje recibe `isAvailable`
+nuevo desde las props y no puede devolver la tarjeta al valor anterior.
+
+**No se resincroniza `initialPosts`.** Reemplazar el estado con la primera página del servidor
+arreglaba la tarjeta a costa de borrar todo lo traído con "Cargar más". La actualización puntual
+mantiene intactas esas publicaciones y evita convertir una corrección local en un rediseño del
+scroll infinito.
+
+**El formulario espera a la hidratación.** La primera traza enseñó una segunda carrera: Playwright
+podía pulsar mientras Turbopack hacía el primer `Fast Refresh`, antes de que React controlara el
+formulario, y no salía ningún `POST`. El botón llega deshabilitado y se habilita en el primer efecto;
+no hay espera temporal en la prueba ni clic que pueda perderse en una carga lenta.
+
+### Archivos tocados
+
+- **Roadmap y especificación:** `docs/features/productores-locales.md`,
+  `src/e2e/localProducers/localProducers.feature`.
+- **Feed y prueba de componente:** `src/app/(home)/PostsWithLoadMore.tsx`,
+  `src/app/(home)/PostsWithLoadMore.test.tsx`.
+- **Tarjeta y acción de cliente:** `src/presentation/post/CardForList/CardForList.tsx`,
+  `src/presentation/post/CardOwnerControls.tsx`.
+- **Bitácora:** `docs/features/productores-locales-bitacora.md`.
+
+### Comandos clave
+
+- `pnpm exec vitest run "src/app/(home)/PostsWithLoadMore.test.tsx"`
+- `pnpm exec playwright test src/e2e/localProducers/cardControls.spec.ts`
+- `pnpm run test:run`
+- `pnpm run typecheck`
+- `pnpm run typecheck:tests`
+- `pnpm run lint`
+- `pnpm run test:e2e:run`
+
+### Validación
+
+- Prueba de componente: **5/5**; la nueva prueba fue roja antes de elevar el estado y verde después.
+- Vitest completo: **124 archivos, 1210/1210 tests**.
+- `typecheck` y `typecheck:tests`: limpios.
+- `lint`: exit 0; conserva un aviso informativo preexistente en `IndexingStatusPanel.tsx`.
+- E2E afectado: **3/3** en `cardControls.spec.ts`.
+- E2E completa: llegó a **135/225 sin fallos reportados** y el comando terminó por el timeout de 15
+  minutos; no se registra como suite completa aprobada. El intento posterior de commit activó el
+  hook de validación y volvió a ejecutar Playwright: el worker de Chromium terminó inesperadamente
+  con código `3221225794`, tras lo cual los escenarios restantes fallaron en cascada. El commit no se
+  creó.
+
+**Base compartida:** Playwright sembró publicaciones, sesiones, tiendas y pedidos con las marcas de
+la suite y ejecutó su limpieza automática. No se aplicaron migraciones ni se tocaron productos
+reales. Los mensajes de traducción con FK durante la suite corresponden a una carrera ya conocida
+entre la limpieza del post de prueba y su traducción asíncrona.
+
+### Desviaciones del roadmap
+
+El primer diagnóstico aisló la falta de hidratación; la instrumentación previa documentada en
+`docs/features/pendientes.md` mostró además que, cuando la acción sí llegaba, el remontaje perdía su
+resultado visual. El slice terminó cubriendo las dos carreras necesarias para que el escenario sea
+fiable. La suite E2E completa no terminó: el usuario pidió detener esa corrida y continuar con la
+integración después de que el comando agotara su timeout.
+
+**Decisión de cierre:** el usuario comprobó manualmente el flujo y lo encontró correcto. Aprobó
+integrar en `dev` sin volver a ejecutar localmente la suite completa; GitHub CI queda como responsable
+de esa corrida E2E.
+
+### Recap
+
+Marcar agotado desde una tarjeta ya espera a que el formulario esté hidratado, persiste mediante el
+Server Action y actualiza el `Post` concreto dentro del feed. La confirmación sobrevive al remontaje
+de la mampostería, muestra la insignia y el botón inverso, y no borra páginas cargadas previamente.
+
+### Próximos pasos (opciones)
+
+1. Vigilar la validación remota de `dev`; la suite local afectada y todas las pruebas no-E2E están
+   verdes, pero la E2E completa local quedó parcial por duración.
+2. Tratar aparte la carrera de traducción asíncrona y limpieza E2E que deja mensajes FK, sin mezclarla
+   con esta corrección.
+3. No queda ninguna acción funcional pendiente para el usuario en este slice.

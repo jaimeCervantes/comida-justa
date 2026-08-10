@@ -345,12 +345,22 @@ Feature: Quién produce lo declara, qué tan lejos lo dice la distancia
       | user-1  | producto | nadie, sin sesión | no se le ofrece nada                         |
       | user-1  | anuncio  | user-1            | solo se le ofrece editar: un anuncio no se agota |
 
-  @slice-7
-  Scenario: Marco agotado desde el listado y el listado lo refleja
-    Given un producto mío disponible, visto como tarjeta
-    When lo marco agotado sin abrir su página
-    Then la tarjeta pasa a mostrarlo agotado
+  # Regresión del slice 8: la acción sí guardaba, pero el reparto medido de `MasonryColumns`
+  # remontaba la tarjeta y borraba su `useActionState`; el feed de cliente volvía a darle el dato
+  # anterior. La corrección actualiza solo esa publicación y no reinicia las páginas acumuladas.
+  @slice-7 @slice-8
+  Scenario: Marco agotado desde el listado y el listado conserva el resultado
+    Given un producto mío disponible, visto como tarjeta en el feed de cliente
+    When termina la hidratación y lo marco agotado sin abrir su página
+    Then esa misma tarjeta pasa a ofrecer "Marcar disponible" aunque la mampostería la remonte
     And su página también, porque es el mismo dato
+
+  @slice-8 @component
+  Scenario: Actualizar una tarjeta no reinicia el feed acumulado
+    Given la primera página del feed y otra publicación traída con "Cargar más"
+    When el resultado de disponibilidad actualiza una publicación de la primera página
+    Then esa publicación refleja la disponibilidad nueva
+    And la publicación traída con "Cargar más" sigue en el feed
 
   @slice-7
   Scenario: El mapa no tapa el submenú del header

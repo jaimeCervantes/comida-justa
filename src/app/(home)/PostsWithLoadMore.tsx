@@ -53,6 +53,14 @@ export default function PostsWithLoadMore({
   const [hasMore, setHasMore] = useState(initialPosts.length < totalPosts);
   const loaderRef = useRef<HTMLDivElement>(null);
 
+  function updatePostAvailability(postId: string, isAvailable: boolean): void {
+    setPosts((currentPosts) =>
+      currentPosts.map((post) =>
+        String(post.id) === postId ? { ...post, isAvailable } : post,
+      ),
+    );
+  }
+
   const loadMorePosts = useCallback(async () => {
     if (loading || !hasMore) return;
 
@@ -110,7 +118,12 @@ export default function PostsWithLoadMore({
       ) : (
         <MasonryColumns className="pt-6" testId="feed-masonry">
           {posts.map((post: Post) => (
-            <CardForList {...post} viewerId={viewerId} key={post.id} />
+            <CardForList
+              {...post}
+              viewerId={viewerId}
+              onAvailabilityChange={updatePostAvailability}
+              key={post.id}
+            />
           ))}
         </MasonryColumns>
       )}

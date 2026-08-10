@@ -1,6 +1,6 @@
 "use client";
 import { useTranslations } from "next-intl";
-import { useActionState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { MdEdit } from "react-icons/md";
 import { Link } from "~/i18n/navigation";
 import { Button } from "~/presentation/design_system/buttons/Button";
@@ -21,18 +21,39 @@ export default function CardOwnerControls({
   slug,
   isAvailable,
   isSellable,
+  onAvailabilityChange,
 }: {
   postId: string;
   slug: string;
   isAvailable: boolean;
   /** Un anuncio no se agota: solo se le ofrece editar. */
   isSellable: boolean;
+  onAvailabilityChange?: (isAvailable: boolean) => void;
 }) {
   const t = useTranslations("post");
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
+
+  async function updateAvailability(
+    previousState: AvailabilityState,
+    formData: FormData,
+  ): Promise<AvailabilityState> {
+    const result = await setAvailability(previousState, formData);
+
+    if (typeof result.isAvailable === "boolean") {
+      onAvailabilityChange?.(result.isAvailable);
+    }
+
+    return result;
+  }
+
   const [state, availabilityAction, isPending] = useActionState<
     AvailabilityState,
     FormData
-  >(setAvailability, {});
+  >(updateAvailability, {});
 
   const available = state.isAvailable ?? isAvailable;
 
@@ -61,7 +82,7 @@ export default function CardOwnerControls({
             size="xs"
             color={available ? "default" : "green"}
             isLoading={isPending}
-            disabled={isPending}
+            disabled={!isHydrated || isPending}
           >
             {available ? t("markSoldOut") : t("markAvailable")}
           </Button>

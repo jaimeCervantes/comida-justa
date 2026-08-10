@@ -1,6 +1,10 @@
-import { screen, waitFor } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
+const { setAvailabilityMock } = vi.hoisted(() => ({
+  setAvailabilityMock: vi.fn(),
+}));
 
 /*
  * La tarjeta arrastra el Server Action de disponibilidad, y con él `next-auth`, que no resuelve en
@@ -8,7 +12,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
  * servidor cuando se aprieta un botón —eso vive en el e2e—, así que se corta la cadena en el borde.
  */
 vi.mock("~/presentation/post/availabilityAction", () => ({
-  setAvailability: vi.fn(),
+  setAvailability: setAvailabilityMock,
 }));
 
 import type { Coordinates } from "~/domain/entities/seller/coordinates";
@@ -70,6 +74,9 @@ function respondeConUnaPaginaMas(posts: TarjetaSembrada[]): void {
 
 describe("El feed del home", () => {
   beforeEach(() => {
+    setAvailabilityMock.mockReset();
+    setAvailabilityMock.mockResolvedValue({});
+
     /* jsdom no trae `IntersectionObserver`, y el feed monta uno para el scroll infinito. Aquí el
        scroll no existe: las páginas siguientes se piden apretando "Cargar más". */
     vi.stubGlobal(
@@ -120,6 +127,55 @@ describe("El feed del home", () => {
     expect(screen.getAllByRole("article")[0]).toBe(primeraTarjeta);
     // Un solo listado: ya no hay un bloque por página que deje huecos entre uno y otro.
     expect(screen.getAllByTestId("feed-masonry")).toHaveLength(1);
+  });
+
+  it("actualiza solo la disponibilidad afectada y conserva lo cargado", async () => {
+    setAvailabilityMock.mockResolvedValue({ isAvailable: false });
+    respondeConUnaPaginaMas([tarjeta("dos", 2500)]);
+    renderWithIntl(
+      <PostsWithLoadMore
+        initialPosts={[
+          {
+            ...tarjeta("uno", 2000),
+            kind: "producto",
+            isAvailable: true,
+          },
+        ]}
+        totalPosts={2}
+        totalPages={1}
+        locale="es"
+        viewerId="user-1"
+      />,
+    );
+
+    await userEvent.click(screen.getByRole("button", { name: "Cargar más" }));
+    await waitFor(() =>
+      expect(
+        screen.getByRole("heading", { name: "E2E Pan dos" }),
+      ).toBeVisible(),
+    );
+
+    const primeraTarjeta = screen
+      .getByRole("heading", { name: "E2E Pan uno" })
+      .closest("article");
+    expect(primeraTarjeta).not.toBeNull();
+
+    await userEvent.click(
+      within(primeraTarjeta as HTMLElement).getByRole("button", {
+        name: "Marcar agotado",
+      }),
+    );
+
+    await waitFor(() => {
+      const tarjetaActualizada = screen
+        .getByRole("heading", { name: "E2E Pan uno" })
+        .closest("article");
+      expect(tarjetaActualizada).not.toBeNull();
+      expect(
+        within(tarjetaActualizada as HTMLElement).getByTestId("sold-out-badge"),
+      ).toBeVisible();
+    });
+    expect(screen.getByRole("heading", { name: "E2E Pan dos" })).toBeVisible();
   });
 
   /*

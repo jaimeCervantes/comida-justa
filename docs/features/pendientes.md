@@ -34,7 +34,7 @@ Lo que sigue abierto es **trabajo normal en este repositorio**, sin puertas:
 
 ## Abierto el 2026-08-09
 
-### `cardControls.spec.ts:39` falla, y **no** es arranque en frío
+### ~~`cardControls.spec.ts:39` falla~~ — cerrado el 2026-08-10
 
 "Marca agotado desde la tarjeta, sin abrir la publicación": tras pulsar, la tarjeta nunca vuelve a
 pintar "Marcar disponible" y la espera agota sus 5 s. Se reproduce corrida tras corrida.
@@ -66,6 +66,12 @@ propio slice.
 
 **El comportamiento de fondo funciona**: marcar agotado desde la tarjeta guarda, y al recargar la
 página se ve bien. Lo que falla es el refresco en sitio.
+
+**Cerrado:** `CardOwnerControls` comunica el resultado exitoso al estado acumulado de
+`PostsWithLoadMore`, que actualiza solo la publicación afectada y conserva las páginas traídas con
+"Cargar más". Además, el botón espera a la hidratación para que un clic temprano no se pierda antes
+de que React controle el formulario. El spec afectado quedó **3/3** y Vitest **1210/1210**; ver el
+slice 8 de `productores-locales-bitacora.md`.
 
 ### Carrito entregado (slice 1 de `pedidos.md`)
 

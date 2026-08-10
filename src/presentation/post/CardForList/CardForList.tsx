@@ -56,7 +56,11 @@ function absoluteUrl(to: string): string {
  * scroll infinito del home—, donde `auth()` no existe. Quien sabe quién mira es la página.
  */
 export default function CardForList(
-  props: Post & { viewerId?: string | null; seller?: StoreIdentity | null },
+  props: Post & {
+    viewerId?: string | null;
+    seller?: StoreIdentity | null;
+    onAvailabilityChange?: (postId: string, isAvailable: boolean) => void;
+  },
 ) {
   const {
     id,
@@ -74,6 +78,7 @@ export default function CardForList(
     categoryLabel,
     seller,
     viewerId,
+    onAvailabilityChange,
   } = props;
   const anchorProps = { href: to, title: title };
   const isOwner = Boolean(viewerId) && user?.id === viewerId;
@@ -179,6 +184,11 @@ export default function CardForList(
           slug={slug ? String(slug) : slugFromUrl(to)}
           isAvailable={isAvailable !== false}
           isSellable={isSellable({ kind })}
+          onAvailabilityChange={
+            onAvailabilityChange
+              ? (available) => onAvailabilityChange(String(id ?? ""), available)
+              : undefined
+          }
         />
       ) : null}
     </Card>

@@ -196,6 +196,33 @@ directorio vacío es peor que uno honesto.
 Un mapa que sitúe las tiendas que venden lo buscado, para decidir por cercanía viéndolo en vez de
 leyendo una cifra.
 
+### Slice 8 — conservar la disponibilidad al redistribuir la tarjeta *(en corrección)*
+
+**Problema:** marcar un producto agotado desde el home sí guarda `is_available = false`, pero
+`MasonryColumns` remonta la tarjeta al pasar del reparto CSS al reparto medido. Ese remontaje pierde
+el resultado local de `useActionState` y `PostsWithLoadMore` vuelve a darle el dato anterior desde su
+copia de cliente.
+
+**Alcance:**
+
+- El resultado de la acción actualiza únicamente la publicación afectada dentro del estado ya
+  acumulado por `PostsWithLoadMore`.
+- El botón de disponibilidad no acepta el clic hasta que React hidrata el formulario; así una carga
+  lenta no puede tragarse la acción antes de que exista el manejador de cliente.
+- Las páginas que el scroll infinito ya cargó se conservan; no se resincroniza ni se reemplaza el
+  feed completo con la primera página del servidor.
+- `MasonryColumns` conserva su reparto estable. Este slice no rediseña la mampostería.
+
+**Criterios de aceptación:**
+
+1. Al marcar agotado un producto propio desde una tarjeta del home, esa misma tarjeta pasa a ofrecer
+   "Marcar disponible" aunque la mampostería la remonte.
+2. Antes de la hidratación el control no se puede enviar; al terminar queda habilitado.
+3. La página del producto muestra la insignia de agotado, porque la tarjeta y el detalle representan
+   el mismo dato persistido.
+4. Si el feed ya cargó publicaciones adicionales, ninguna desaparece al actualizar la tarjeta.
+5. Quien no es dueño sigue sin recibir los controles.
+
 ## Pendiente del usuario
 
 - Nada bloquea el slice 1.
