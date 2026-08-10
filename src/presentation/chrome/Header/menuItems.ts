@@ -48,6 +48,13 @@ export const PILLAR_ITEMS = [
   descriptionKey: string;
 }>;
 
+export const COMMUNITY_OVERVIEW_HREF = "/" as const satisfies AppHref;
+
+export const PILLARS_OVERVIEW_HREF = {
+  pathname: "/pilares/[[...slug]]",
+  params: { slug: [] },
+} as const satisfies AppHref;
+
 /**
  * Las seis secciones de «Comunidad», **con el interruptor de si ya existen**.
  *

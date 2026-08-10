@@ -336,6 +336,7 @@
     "myProfile": "Mi perfil",
     "myStore": "Mi tienda",
     "openMenu": "Abrir menú",
+    "openSectionMenu": "Abrir el submenú de {section}",
     "openUserMenu": "Abrir el menú de tu cuenta",
     "pillarsMenu": "4 Pilares",
     "publications": "Publicaciones",
