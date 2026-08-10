@@ -108,19 +108,21 @@ test.describe("Cuando el comprador junta varios productos", () => {
     await page.goto("/carrito");
     expect(await cartTotal(page)).toContain("75");
 
-    // Dos sueros (70) + el sembrado (40).
-    await page
+    // Dos sueros (70) + el sembrado (40). Un toque en "más", que es la acción normal.
+    const suero = page
       .getByTestId("cart-line")
-      .filter({ hasText: SUERO_NATURAL.title })
-      .getByRole("combobox")
-      .selectOption("2");
+      .filter({ hasText: SUERO_NATURAL.title });
+
+    await suero.getByTestId("cart-increase").click();
     await expect(page.getByTestId("cart-group-total")).toContainText("110");
 
-    await page
-      .getByTestId("cart-line")
-      .filter({ hasText: SUERO_NATURAL.title })
-      .getByTestId("cart-remove")
-      .click();
+    // Y "menos" deshace: el control va en los dos sentidos.
+    await suero.getByTestId("cart-decrease").click();
+    await expect(page.getByTestId("cart-group-total")).toContainText("75");
+    await suero.getByTestId("cart-increase").click();
+    await expect(page.getByTestId("cart-group-total")).toContainText("110");
+
+    await suero.getByTestId("cart-remove").click();
 
     await expect(page.getByTestId("cart-line")).toHaveCount(1);
     await expect(page.getByTestId("cart-group-total")).toContainText("40");
@@ -130,6 +132,25 @@ test.describe("Cuando el comprador junta varios productos", () => {
      `placeOrder.spec.ts`: desde el slice 2, confirmar registra el pedido y el aviso se manda desde
      su propia página. Aquí no se puede probar porque este archivo no inicia sesión — y confirmar sin
      sesión lleva a identificarse, que es justo lo que comprueba el otro archivo. */
+
+  test("Entonces cada renglón se entiende solo: foto, nombre y enlace al producto", async ({
+    page,
+  }) => {
+    await addFromDetail(page, SUERO_NATURAL.slug, 1);
+    await page.goto("/carrito");
+
+    const linea = page.getByTestId("cart-line").first();
+
+    // La foto, para reconocerlo sin leer.
+    await expect(linea.getByTestId("cart-line-image")).toBeVisible();
+
+    // Y el nombre lleva a su publicación.
+    await linea.getByTestId("cart-line-link").click();
+    await expect(page).toHaveURL(new RegExp(`/${SUERO_NATURAL.slug}$`));
+    await expect(page.getByTestId("post-detail")).toContainText(
+      SUERO_NATURAL.title,
+    );
+  });
 
   test("Entonces el carrito sobrevive a recargar la página", async ({
     page,

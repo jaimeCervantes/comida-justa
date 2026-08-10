@@ -1,12 +1,10 @@
 "use client";
-import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { lineAmount, type OrderLine, orderTotal } from "~/domain/order/order";
 import { Link } from "~/i18n/navigation";
 import { SITE_CURRENCY } from "~/infra/constants";
+import Thumbnail from "~/presentation/media/Thumbnail/Thumbnail";
 import CurrencyAmount from "~/presentation/money/CurrencyAmount";
-
-const THUMB = 48;
 
 /**
  * Los renglones de un pedido y lo que suman.
@@ -49,18 +47,9 @@ export default function OrderLines({ lines }: { lines: OrderLine[] }) {
 /** La foto y el nombre, enlazados al producto cuando todavía existe. */
 function LineIdentity({ line }: { line: OrderLine }) {
   const label = `${line.quantity} × ${line.title}`;
-  const thumb = line.imageUrl ? (
-    <Image
-      src={line.imageUrl}
-      alt=""
-      width={THUMB}
-      height={THUMB}
-      className="size-12 shrink-0 rounded-lg object-cover"
-      /* Decorativa: el nombre va escrito al lado, así que un `alt` con el título haría que un
-         lector de pantalla dijera el producto dos veces. */
-      aria-hidden
-    />
-  ) : null;
+  /* La misma miniatura que el carrito: decorativa, y nada cuando no hay archivo. Se comparte en vez
+     de escribirla dos veces — la segunda copia es donde empiezan a discrepar. */
+  const thumb = <Thumbnail url={line.imageUrl} testId="order-line-image" />;
 
   if (!line.slug) {
     return (

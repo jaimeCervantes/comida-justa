@@ -36,18 +36,53 @@ export async function addToCart(
   return writeCart(addToSelection(await readCartSelection(), postId));
 }
 
+/**
+ * Cambia la cantidad de un renglón, por incremento o por valor.
+ *
+ * **Los botones de más y menos mandan `delta`, no la cantidad final**, y se aplica sobre lo que hay
+ * en la cookie en ese momento. Dos toques rápidos suman dos aunque la pantalla todavía enseñe el
+ * número viejo; mandar "3" desde una pantalla que se quedó atrás pisaría el otro toque.
+ *
+ * El campo numérico sí manda el valor absoluto, porque escribir 12 es decir exactamente 12. Los dos
+ * llegan en el mismo formulario cuando se pulsa un botón —el campo va dentro—, así que `delta`
+ * decide cuando está presente.
+ */
 export async function setCartQuantity(
   _prevState: CartActionState,
   formData: FormData,
 ): Promise<CartActionState> {
   const postId = String(formData.get("postId") ?? "");
+
+  if (!postId) return {};
+
+  const selection = await readCartSelection();
+  const quantity = quantityFrom(formData, selection, postId);
+
+  if (quantity === null) return {};
+
+  return writeCart(setSelectionQuantity(selection, postId, quantity));
+}
+
+/** La cantidad que pide el formulario, o `null` si no manda nada utilizable. */
+function quantityFrom(
+  formData: FormData,
+  selection: readonly CartSelection[],
+  postId: string,
+): number | null {
+  const delta = Number(formData.get("delta"));
+
+  if (formData.has("delta")) {
+    if (!Number.isFinite(delta)) return null;
+
+    const current =
+      selection.find((line) => line.postId === postId)?.quantity ?? 0;
+
+    return current + delta;
+  }
+
   const quantity = Number(formData.get("quantity"));
 
-  if (!postId || !Number.isFinite(quantity)) return {};
-
-  return writeCart(
-    setSelectionQuantity(await readCartSelection(), postId, quantity),
-  );
+  return Number.isFinite(quantity) ? quantity : null;
 }
 
 export async function removeCartLine(

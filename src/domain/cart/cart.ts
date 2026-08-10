@@ -17,6 +17,14 @@ export interface CartProduct {
   slug: string;
   price: number;
   isAvailable: boolean;
+  /**
+   * Su primera imagen, o `null` si no tiene.
+   *
+   * Se relee como todo lo demás: el carrito no guarda nada del producto salvo su id y la cantidad.
+   * Un vídeo no da miniatura —`post_media` solo mide las imágenes—, así que ahí va nulo y el
+   * renglón se lee igual, solo que sin foto.
+   */
+  imageUrl: string | null;
   seller: CartSeller;
 }
 

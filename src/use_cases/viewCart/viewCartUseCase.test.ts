@@ -9,6 +9,7 @@ const jugoVerde: CartProduct = {
   slug: "jugo-verde",
   price: 40,
   isAvailable: true,
+  imageUrl: null,
   seller: {
     id: "05bea858-88d0-4ff3-a531-3d82a7ad6fcc",
     name: "Hazlo Sano",

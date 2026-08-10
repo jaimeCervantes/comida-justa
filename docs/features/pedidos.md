@@ -281,7 +281,28 @@ no se entera.
 5. Cada renglón muestra miniatura y enlaza a la publicación.
 6. Un pedido de algo ya borrado conserva título e importe, sin miniatura ni enlace.
 
-### Slice 4 — Pago en línea  *(@future, condicionado)*
+### Slice 4 — El carrito se entiende de un vistazo  *(actual)*
+
+El carrito era una lista de texto con un desplegable de veinte números al lado: se entendía leyendo,
+no mirando, y poner tres unidades pedía abrir una lista y buscar el número.
+
+- **Miniatura del producto** en cada renglón, enlazada a su publicación igual que el nombre. Se
+  relee como todo lo demás; el carrito sigue guardando solo id y cantidad.
+- **La fila se reordena para caber**: la foto a la izquierda y el resto en columna, así que en un
+  teléfono el nombre se lleva su renglón entero y los controles caen debajo en vez de comprimirse.
+- **Menos / cantidad / más** en lugar del desplegable. Los botones mandan un **incremento**, no la
+  cantidad final: el servidor lo aplica sobre lo que hay guardado, así que dos toques seguidos suman
+  dos aunque la pantalla enseñe todavía el número viejo. El campo sigue aceptando que se escriba 12.
+- **`Thumbnail` se comparte** con los renglones del pedido en vez de escribirse dos veces.
+- **Sin migración**: `post_media` ya estaba; lo que faltaba era pedirla en la consulta del carrito.
+
+**Criterios de aceptación:**
+1. Cada renglón enseña la foto del producto y su nombre lleva a la publicación.
+2. «Más» y «menos» cambian la cantidad de a uno y el total sigue.
+3. Dos toques seguidos en «más» suman dos, no uno.
+4. Un producto sin imagen —o con solo vídeo— se lee igual, sin marco vacío.
+
+### Slice 5 — Pago en línea  *(@future, condicionado)*
 
 **No se empieza hasta que los pedidos del slice 2 lo justifiquen.** No es una pantalla de checkout:
 es repartir dinero entre vendedores, y eso trae KYC por vendedor, datos fiscales, devoluciones y
