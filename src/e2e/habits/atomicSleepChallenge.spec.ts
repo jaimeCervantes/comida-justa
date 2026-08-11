@@ -56,7 +56,7 @@ test.describe("Del atardecer al amanecer", () => {
       page.getByRole("heading", { name: "Tu semilla despertó" }),
     ).toBeVisible();
     await expect(page.getByText("Nivel: Brote")).toBeVisible();
-    await expect(page.getByText("10 XP").first()).toBeVisible();
+    await expect(page.getByText("10 puntos").first()).toBeVisible();
     await expect(page.getByText("Primer paso")).toBeVisible();
   });
 
@@ -112,7 +112,7 @@ test.describe("Del atardecer al amanecer", () => {
     await expect(page.getByTestId("public-habit-celebration")).toHaveCount(0);
     await page.goto("/habitos/sueno");
     await expect(page.getByText("Nivel: Brote")).toBeVisible();
-    await expect(page.getByText("10 XP").first()).toBeVisible();
+    await expect(page.getByText("10 puntos").first()).toBeVisible();
   });
 
   test("five distinct local mornings complete the seven-day challenge", async ({
@@ -147,7 +147,7 @@ test.describe("Del atardecer al amanecer", () => {
       }),
     ).toBeVisible();
     await expect(page.getByText("5 de 7 ciclos")).toBeVisible();
-    await expect(page.getByText("50 XP").first()).toBeVisible();
+    await expect(page.getByText("50 puntos").first()).toBeVisible();
     await expect(page.getByText("Cosecha de descanso")).toBeVisible();
     await expect(
       page.getByText(/Siete días no bastan para afirmar/),
@@ -158,7 +158,7 @@ test.describe("Del atardecer al amanecer", () => {
       .getByRole("button", { name: "Compartir con la comunidad" })
       .click();
     await page.getByRole("button", { name: "Dejar de compartir" }).click();
-    await expect(page.getByText("50 XP").first()).toBeVisible();
+    await expect(page.getByText("50 puntos").first()).toBeVisible();
     await expect(page.getByText("Cosecha de descanso")).toBeVisible();
   });
 
@@ -280,7 +280,7 @@ test.describe("Del atardecer al amanecer", () => {
       }),
     ).toBeVisible();
     await expect(page.getByText("5 de 7 elecciones")).toBeVisible();
-    await expect(page.getByText("50 XP").first()).toBeVisible();
+    await expect(page.getByText("50 puntos").first()).toBeVisible();
   });
 
   test("a shared nutrition milestone keeps nutrition text, design and destination", async ({
@@ -325,7 +325,7 @@ test.describe("Del atardecer al amanecer", () => {
       page.getByText(/ropa preparada, una pausa o una ruta cotidiana/i),
     ).toBeVisible();
     await expect(
-      page.getByText(/continuar es opcional y no suma XP/i),
+      page.getByText(/continuar es opcional y no suma puntos/i),
     ).toBeVisible();
 
     await page
@@ -357,7 +357,7 @@ test.describe("Del atardecer al amanecer", () => {
     await expect(
       page.getByRole("heading", { name: "Empezaste a moverte cinco veces" }),
     ).toBeVisible();
-    await expect(page.getByText("50 XP").first()).toBeVisible();
+    await expect(page.getByText("50 puntos").first()).toBeVisible();
   });
 
   test("a shared movement milestone links back to Movement", async ({
@@ -445,10 +445,10 @@ test.describe("Del atardecer al amanecer", () => {
         name: "Cultivaste cinco vínculos reales",
       }),
     ).toBeVisible();
-    await expect(page.getByText("50 XP").first()).toBeVisible();
+    await expect(page.getByText("50 puntos").first()).toBeVisible();
   });
 
-  test("a shared connection has an amber card and no popularity score", async ({
+  test("a shared connection keeps Mind and Spirit colors without a popularity score", async ({
     page,
   }) => {
     await page.goto("/pilares/mente-espiritu");

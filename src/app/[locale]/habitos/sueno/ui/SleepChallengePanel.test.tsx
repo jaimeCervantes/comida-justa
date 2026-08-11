@@ -82,7 +82,7 @@ describe("SleepChallengePanel", () => {
       screen.getByRole("heading", { name: "Tu semilla despertó" }),
     ).toBeInTheDocument();
     expect(screen.getByText("Nivel: Brote")).toBeInTheDocument();
-    expect(screen.getAllByText("10 XP")).toHaveLength(2);
+    expect(screen.getAllByText("10 puntos")).toHaveLength(2);
     expect(
       screen.getByRole("button", { name: "Compartir con la comunidad" }),
     ).toBeInTheDocument();

@@ -1,7 +1,7 @@
 {
   "atomicSleepChallenge": {
     "alreadyCounted": "Ese ciclo ya cuenta",
-    "alreadyCountedBody": "Tu progreso y XP permanecen iguales; un reintento no suma dos veces.",
+    "alreadyCountedBody": "Tu progreso y tus puntos permanecen iguales; un reintento no suma dos veces.",
     "badgeFirst": "Primer paso",
     "badgeHarvest": "Cosecha de descanso",
     "celebrationBody": "No esperaste a ser perfecto: hiciste la primera repetición de una persona que protege su descanso.",
@@ -20,7 +20,7 @@
     "complete": "Completar mi primer ciclo",
     "continueWeek": "Continuar con mi semana de descanso",
     "cycleRecorded": "Ciclo registrado",
-    "cycleRecordedBody": "Diez XP por esta fecha local. Tu siguiente ciclo seguirá disponible.",
+    "cycleRecordedBody": "Sumaste 10 puntos por esta fecha. Tu siguiente ciclo seguirá disponible.",
     "dateUnavailable": "Esa fecha no está disponible",
     "dateUnavailableBody": "Elige una mañana que ya haya llegado dentro de tu ventana de siete días.",
     "dayCompleted": "Completo",
@@ -79,7 +79,7 @@
     "title": "Del atardecer al amanecer",
     "weekEyebrow": "Tu ventana local de siete días",
     "withdraw": "Dejar de compartir",
-    "xp": "{xp} XP"
+    "xp": "{xp} puntos"
   },
   "atomicChallenges": {
     "activate": "Elegir como mi práctica activa",
@@ -90,7 +90,7 @@
     "eyebrow": "Prácticas para tu bienestar",
     "experienceCommon": {
       "alreadyCounted": "Esa elección ya cuenta",
-      "alreadyCountedBody": "Tu progreso y XP permanecen iguales; un reintento no suma dos veces.",
+      "alreadyCountedBody": "Tu progreso y tus puntos permanecen iguales; un reintento no suma dos veces.",
       "badgeFirst": "Primer paso",
       "communityAnonymous": "Una persona de la comunidad",
       "dateUnavailable": "Esa fecha no está disponible",
@@ -117,7 +117,7 @@
       "siteMessageClose": "Cerrar este mensaje",
       "siteMessageLabel": "Nuevo logro comunitario",
       "withdraw": "Dejar de compartir",
-      "xp": "{xp} XP"
+      "xp": "{xp} puntos"
     },
     "indexIntro": "Elige una práctica para esta semana. Puedes cambiarla sin perder tu progreso.",
     "indexTitle": "Una práctica para cada pilar",
@@ -149,7 +149,7 @@
       "cueTitle": "Elegir mi comida ancla",
       "cycleDate": "Fecha local de esta elección",
       "cycleRecorded": "Elección registrada",
-      "cycleRecordedBody": "Diez XP por esta fecha local. Sumar más cantidad no da puntos extra.",
+      "cycleRecordedBody": "Sumaste 10 puntos por esta fecha. Agregar más cantidad no da puntos extra.",
       "eyebrow": "Una práctica de Alimentación",
       "finalBody": "Llegaste a la meta flexible de cinco elecciones dentro de siete días, sin contar calorías, peso ni cantidad.",
       "finalEyebrow": "Meta 5 de 7 alcanzada",
@@ -209,7 +209,7 @@
       "cueTitle": "Pausar fuera del ruido digital",
       "cycleDate": "Fecha local de este vínculo",
       "cycleRecorded": "Vínculo registrado",
-      "cycleRecordedBody": "Diez XP por esta fecha local. Las respuestas, contactos y reacciones no suman puntos.",
+      "cycleRecordedBody": "Sumaste 10 puntos por esta fecha. Las respuestas, contactos y reacciones no suman puntos.",
       "eyebrow": "Una práctica de Mente y Espíritu",
       "finalBody": "Llegaste a la meta flexible de cinco vínculos dentro de siete días, sin medir respuestas ni popularidad.",
       "finalEyebrow": "Meta 5 de 7 alcanzada",
@@ -270,7 +270,7 @@
       "cueTitle": "Elegir una señal de inicio",
       "cycleDate": "Fecha local de este inicio",
       "cycleRecorded": "Inicio registrado",
-      "cycleRecordedBody": "Diez XP por esta fecha local. Continuar es opcional y no suma XP adicional.",
+      "cycleRecordedBody": "Sumaste 10 puntos por esta fecha. Continuar es opcional y no suma puntos adicionales.",
       "eyebrow": "Una práctica de Movimiento",
       "finalBody": "Llegaste a la meta flexible de cinco inicios dentro de siete días, sin medir intensidad, distancia ni volumen.",
       "finalEyebrow": "Meta 5 de 7 alcanzada",
@@ -280,7 +280,7 @@
       "intro": "Un inicio tan pequeño que cabe en una pausa, una ruta cotidiana o el momento de ponerte ropa preparada.",
       "metaDescription": "Elige una señal y muévete dos minutos según tu capacidad con Dos minutos cuentan.",
       "metaTitle": "Ritual de movimiento: Dos minutos cuentan",
-      "minimumBody": "Muévete durante dos minutos de una forma adecuada para tu capacidad. Continuar es opcional y no suma XP adicional.",
+      "minimumBody": "Muévete durante dos minutos de una forma adecuada para tu capacidad. Continuar es opcional y no suma puntos adicionales.",
       "minimumCheckbox": "Me moví dos minutos según mi capacidad",
       "minimumHeading": "El mínimo que cuenta",
       "minimumTitle": "Moverme dos minutos",
@@ -317,7 +317,7 @@
       "pillar": "Alimentación",
       "title": "Una planta más"
     },
-    "progress": "{cycles} repeticiones distintas · {xp} XP",
+    "progress": "{cycles} repeticiones distintas · {xp} puntos",
     "reminderDisabled": "Recordatorios de Telegram no disponibles",
     "reminderTitle": "Recordatorios de Telegram",
     "reminderUnavailable": "Los recordatorios estarán disponibles más adelante.",
@@ -336,7 +336,7 @@
     "mind": "Mente y espíritu",
     "movement": "Movimiento",
     "nutrition": "Alimentación",
-    "privacy": "Solo se cuentan repeticiones aportadas voluntariamente; nunca se muestran nombres, fechas personales ni XP.",
+    "privacy": "Solo se cuentan repeticiones aportadas voluntariamente; nunca se muestran nombres, fechas personales ni puntos.",
     "sleep": "Sueño",
     "title": "El jardín de los cuatro pilares"
   },

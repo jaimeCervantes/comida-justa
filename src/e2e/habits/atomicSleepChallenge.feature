@@ -31,9 +31,9 @@ Feature: Retos atomicos - del pilar a una practica con identidad propia
     Given que inicie sesion con la cuenta E2E y empece "Del atardecer al amanecer"
     When confirmo que estacione mis dispositivos, baje las luces y sali a luz natural al despertar
     Then la celebracion dice "Tu semilla desperto"
-    And mi progreso queda en "Brote" con 10 XP y la insignia "Primer paso"
+    And mi progreso queda en "Brote" con 10 puntos y la insignia "Primer paso"
     When envio la misma intencion otra vez
-    Then sigo con 10 XP y una sola primera repeticion
+    Then sigo con 10 puntos y una sola primera repeticion
 
   @slice-1
   Scenario: Mi primer ciclo es privado hasta que decido compartirlo
@@ -57,7 +57,7 @@ Feature: Retos atomicos - del pilar a una practica con identidad propia
     Given que publique mi primera repeticion
     When dejo de compartirla desde el reto
     Then el inicio y el mensaje global dejan de mostrarla
-    But mi reto sigue en "Brote" con 10 XP
+    But mi reto sigue en "Brote" con 10 puntos
 
   @slice-1
   Scenario: Iniciar el reto requiere una identidad a la cual regresar
@@ -98,11 +98,11 @@ Feature: Retos atomicos - del pilar a una practica con identidad propia
   Scenario: Completo cinco de siete ciclos y recibo la celebracion final
     Given que empece el reto en la zona "America/Mexico_City" cuatro dias antes de hoy
     When registro cinco fechas locales distintas, incluida una fecha posterior a una omision
-    Then veo "5 de 7 ciclos" y 50 XP sin que un reintento sume otra vez
+    Then veo "5 de 7 ciclos" y 50 puntos sin que un reintento sume otra vez
     And recibo la celebracion final "Protegiste tu descanso cinco veces"
     And la pagina aclara que siete dias no bastan para afirmar que forme un habito
     When acepto compartir el hito final y despues lo retiro
-    Then la insignia "Cosecha de descanso" y mis 50 XP permanecen privados
+    Then la insignia "Cosecha de descanso" y mis 50 puntos permanecen privados
 
   @slice-2 @component
   Scenario Outline: Una fecha cuenta solo dentro de la ventana local disponible
@@ -124,7 +124,7 @@ Feature: Retos atomicos - del pilar a una practica con identidad propia
   Scenario: Regresar despues de faltar vale mas que abandonar
     Given repeticiones en "2026-08-06" y "2026-08-07" y ninguna en "2026-08-08"
     When registro el ciclo de "2026-08-09"
-    Then el reconocimiento es "regreso" y las dos repeticiones anteriores conservan sus 20 XP
+    Then el reconocimiento es "regreso" y las dos repeticiones anteriores conservan sus 20 puntos
 
   @slice-3
   Scenario: Las repeticiones compartidas hacen crecer el jardin comunitario
@@ -132,15 +132,15 @@ Feature: Retos atomicos - del pilar a una practica con identidad propia
     When acepto "Aportar mis repeticiones al jardin"
     Then el jardin agregado suma una repeticion violeta sin mostrar mis dias ni ordenarme
     When retiro mi aporte
-    Then el jardin deja de contar mis repeticiones y mi XP no cambia
+    Then el jardin deja de contar mis repeticiones y mis puntos no cambian
 
   @slice-3
   Scenario: La comunidad celebra sin convertir popularidad en puntos
     Given un hito publicado por la cuenta E2E y otra cuenta autenticada
     When la otra cuenta envia dos veces la intencion "Celebrar"
-    Then el hito conserva una sola reaccion y el XP del autor no cambia
+    Then el hito conserva una sola reaccion y los puntos del autor no cambian
     When la otra cuenta envia dos veces la intencion "Retirar celebración"
-    Then el hito queda sin su reaccion y el XP del autor no cambia
+    Then el hito queda sin su reaccion y los puntos del autor no cambian
 
   @slice-3 @component
   Scenario Outline: El jardin agrega colores, no posiciones personales
@@ -225,7 +225,7 @@ Feature: Retos atomicos - del pilar a una practica con identidad propia
   Scenario: Cinco elecciones reales reciben una celebracion propia
     Given que empece "Una planta más" en mi zona local cuatro dias antes de hoy
     When registro cinco fechas distintas en las que elegi una comida ancla y sume una planta
-    Then veo "5 de 7 elecciones" y 50 XP
+    Then veo "5 de 7 elecciones" y 50 puntos
     And la celebracion dice "Cultivaste cinco elecciones reales"
     And la pagina no habla de luna, amanecer ni ritual de descanso
 
@@ -259,13 +259,13 @@ Feature: Retos atomicos - del pilar a una practica con identidad propia
     And declaro "Soy una persona que empieza a moverse"
     And puedo anclar el inicio a ropa preparada, una pausa o una ruta cotidiana
     And el minimo son dos minutos segun mi capacidad
-    But continuar es opcional y no suma XP adicional
+    But continuar es opcional y no suma puntos adicionales
 
   @slice-7
   Scenario: Cinco inicios de movimiento reciben una celebracion propia
     Given que empece "Dos minutos cuentan" en mi zona local cuatro dias antes de hoy
     When registro cinco fechas distintas con mi senal elegida y dos minutos de movimiento
-    Then veo "5 de 7 inicios" y 50 XP
+    Then veo "5 de 7 inicios" y 50 puntos
     And la celebracion dice "Empezaste a moverte cinco veces"
     And el ritual me invita a preparar, empezar, moverme dos minutos y notar mi cuerpo
 
@@ -281,12 +281,12 @@ Feature: Retos atomicos - del pilar a una practica con identidad propia
   Scenario Outline: El volumen opcional nunca compra mas puntos
     Given un check-in con dos minutos completos y <continuacion>
     When se registra en la fecha local "2026-08-11"
-    Then el total ganado en esa fecha es "<xp>"
+    Then el total ganado en esa fecha es "<puntos>"
 
     Examples:
-      | continuacion                | xp    |
-      | sin minutos adicionales     | 10 XP |
-      | con minutos adicionales     | 10 XP |
+      | continuacion            | puntos   |
+      | sin minutos adicionales | 10 puntos |
+      | con minutos adicionales | 10 puntos |
 
   @slice-8
   Scenario: Un vinculo consciente se convierte en un ritual de presencia
@@ -301,7 +301,7 @@ Feature: Retos atomicos - del pilar a una practica con identidad propia
   Scenario: La respuesta ajena nunca decide mi practica ni mis puntos
     Given que envie un mensaje genuino de presencia y deje espacio para escuchar
     When la otra persona no responde
-    Then puedo registrar la fecha local con 10 XP
+    Then puedo registrar la fecha local con 10 puntos
     And no se puntua cantidad de respuestas, contactos ni popularidad
     When completo cinco fechas distintas
     Then veo "5 de 7 vínculos" y la celebracion "Cultivaste cinco vínculos reales"
@@ -389,3 +389,21 @@ Feature: Retos atomicos - del pilar a una practica con identidad propia
       | experiencia profunda| pillar-mind-spirit-ink, pillar-mind-spirit-soft, pillar-mind-spirit-solid |
       | panel de seguimiento| pillar-mind-spirit-ink, pillar-mind-spirit-soft, pillar-mind-spirit-solid |
       | celebracion publica | pillar-mind-spirit-ink, pillar-mind-spirit-soft, pillar-mind-spirit-solid |
+
+  # Slice 11 cambia la palabra visible, no el calculo ni el contrato interno.
+
+  @slice-11 @component
+  Scenario Outline: El progreso se expresa con palabras cotidianas
+    Given una practica con <ciclos> fechas completadas
+    When veo mi progreso en "<idioma>"
+    Then aparece "<puntos>"
+    And no aparece "XP" ni "EXP"
+
+    Examples: progreso en los dos idiomas
+      | ciclos | idioma | puntos    |
+      | 0      | es     | 0 puntos  |
+      | 1      | es     | 10 puntos |
+      | 5      | es     | 50 puntos |
+      | 0      | en     | 0 points  |
+      | 1      | en     | 10 points |
+      | 5      | en     | 50 points |

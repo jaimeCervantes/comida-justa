@@ -1,7 +1,7 @@
 {
   "atomicSleepChallenge": {
     "alreadyCounted": "That cycle already counts",
-    "alreadyCountedBody": "Your progress and XP stay the same; a retry never adds points twice.",
+    "alreadyCountedBody": "Your progress and points stay the same; a retry never adds points twice.",
     "badgeFirst": "First step",
     "badgeHarvest": "Rest harvest",
     "celebrationBody": "You did not wait for perfection: you cast the first vote for a person who protects their rest.",
@@ -20,7 +20,7 @@
     "complete": "Complete my first cycle",
     "continueWeek": "Continue my rest week",
     "cycleRecorded": "Cycle recorded",
-    "cycleRecordedBody": "Ten XP for this local date. Your next cycle remains available.",
+    "cycleRecordedBody": "You earned 10 points for this date. Your next cycle remains available.",
     "dateUnavailable": "That date is not available",
     "dateUnavailableBody": "Choose a morning that has arrived within your seven-day window.",
     "dayCompleted": "Complete",
@@ -78,7 +78,7 @@
     "title": "From dusk to dawn",
     "weekEyebrow": "Your local seven-day window",
     "withdraw": "Stop sharing",
-    "xp": "{xp} XP",
+    "xp": "{xp} points",
     "progressCounter": "{completed} of {total} cycles"
   },
   "atomicChallenges": {
@@ -90,7 +90,7 @@
     "eyebrow": "Practices for your wellbeing",
     "experienceCommon": {
       "alreadyCounted": "That choice already counts",
-      "alreadyCountedBody": "Your progress and XP stay the same; a retry never adds points twice.",
+      "alreadyCountedBody": "Your progress and points stay the same; a retry never adds points twice.",
       "badgeFirst": "First step",
       "communityAnonymous": "Someone in the community",
       "dateUnavailable": "That date is not available",
@@ -117,7 +117,7 @@
       "siteMessageClose": "Close this message",
       "siteMessageLabel": "New community achievement",
       "withdraw": "Stop sharing",
-      "xp": "{xp} XP"
+      "xp": "{xp} points"
     },
     "indexIntro": "Choose one practice for this week. You can switch without losing your progress.",
     "indexTitle": "One practice for every pillar",
@@ -149,7 +149,7 @@
       "cueTitle": "Choose my anchor meal",
       "cycleDate": "Local date of this choice",
       "cycleRecorded": "Choice recorded",
-      "cycleRecordedBody": "Ten XP for this local date. Adding more quantity gives no extra points.",
+      "cycleRecordedBody": "You earned 10 points for this date. Adding more quantity gives no extra points.",
       "eyebrow": "A Nutrition practice",
       "finalBody": "You reached the flexible goal of five choices within seven days, without counting calories, weight or quantity.",
       "finalEyebrow": "5 of 7 goal reached",
@@ -209,7 +209,7 @@
       "cueTitle": "Pause outside digital noise",
       "cycleDate": "Local date of this connection",
       "cycleRecorded": "Connection recorded",
-      "cycleRecordedBody": "Ten XP for this local date. Replies, contacts and reactions do not add points.",
+      "cycleRecordedBody": "You earned 10 points for this date. Replies, contacts and reactions do not add points.",
       "eyebrow": "A Mind and Spirit practice",
       "finalBody": "You reached the flexible goal of five connections within seven days, without measuring replies or popularity.",
       "finalEyebrow": "5 of 7 goal reached",
@@ -270,7 +270,7 @@
       "cueTitle": "Choose a starting cue",
       "cycleDate": "Local date of this start",
       "cycleRecorded": "Start recorded",
-      "cycleRecordedBody": "Ten XP for this local date. Continuing is optional and gives no extra XP.",
+      "cycleRecordedBody": "You earned 10 points for this date. Continuing is optional and gives no extra points.",
       "eyebrow": "A Movement practice",
       "finalBody": "You reached the flexible goal of five starts within seven days, without measuring intensity, distance or volume.",
       "finalEyebrow": "5 of 7 goal reached",
@@ -280,7 +280,7 @@
       "intro": "A start small enough to fit a break, an everyday route or the moment you put on prepared clothes.",
       "metaDescription": "Choose a cue and move for two minutes in a way that works for you with Two minutes count.",
       "metaTitle": "Movement ritual: Two minutes count",
-      "minimumBody": "Move for two minutes in a way suited to your ability. Continuing is optional and gives no extra XP.",
+      "minimumBody": "Move for two minutes in a way suited to your ability. Continuing is optional and gives no extra points.",
       "minimumCheckbox": "I moved for two minutes according to my ability",
       "minimumHeading": "The minimum that counts",
       "minimumTitle": "Move for two minutes",
@@ -317,7 +317,7 @@
       "pillar": "Nutrition",
       "title": "One more plant"
     },
-    "progress": "{cycles} distinct repetitions · {xp} XP",
+    "progress": "{cycles} distinct repetitions · {xp} points",
     "reminderDisabled": "Telegram reminders unavailable",
     "reminderTitle": "Telegram reminders",
     "reminderUnavailable": "Reminders will be available later.",
@@ -336,7 +336,7 @@
     "mind": "Mind and spirit",
     "movement": "Movement",
     "nutrition": "Nutrition",
-    "privacy": "Only voluntarily contributed repetitions are counted; names, personal dates and XP are never shown.",
+    "privacy": "Only voluntarily contributed repetitions are counted; names, personal dates and points are never shown.",
     "sleep": "Sleep",
     "title": "The four-pillar garden"
   },

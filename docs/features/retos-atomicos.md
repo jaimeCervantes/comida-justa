@@ -40,7 +40,7 @@ clinico. Cada repeticion es evidencia de esa identidad.
 | Hacerlo obvio | El ritual tiene dos anclas: cerrar la noche y abrir la manana. |
 | Hacerlo atractivo | El pilar crece visualmente de Semilla a Brote y la comunidad puede reconocerlo. |
 | Hacerlo facil | Existe una version minima; el ritual completo es una invitacion, no un examen. |
-| Hacerlo satisfactorio | La primera repeticion recibe una celebracion inmediata, XP y progreso visible. |
+| Hacerlo satisfactorio | La primera repeticion recibe una celebracion inmediata, puntos y progreso visible. |
 
 ### Recompensa desde el primer dia
 
@@ -59,9 +59,9 @@ premia regresar. El objetivo semanal sera 5 de 7, no 7 de 7 obligatorio.
 
 ### Gamificacion etica
 
-- 10 XP por ciclo valido, con un maximo por ciclo; caminar mas o dormir mas no compra mas puntos.
+- 10 puntos por ciclo valido, con un maximo por ciclo; caminar mas o dormir mas no compra mas puntos.
 - Semilla, Brote, Raiz y Cosecha representan practica acumulada, no superioridad personal.
-- Las reacciones sociales no dan XP: la salud no se convierte en concurso de popularidad.
+- Las reacciones sociales no dan puntos: la salud no se convierte en concurso de popularidad.
 - No hay castigos, miedo, recompensas economicas, comparacion corporal ni notificaciones infinitas.
 - La clasificacion, si llega, compara constancia relativa en ligas pequenas y reiniciadas, no volumen
   de ejercicio ni historiales eternos.
@@ -147,7 +147,7 @@ aparecer. Este mecanismo tambien alcanza a visitantes sin cuenta.
 - Explicacion del ritual completo y distincion visible entre minimo y recomendado.
 - Inicio con sesion; quien no ha entrado vuelve al reto despues de identificarse.
 - Registro idempotente de la primera repeticion autorreferida.
-- Celebracion inmediata: 10 XP, insignia Primer paso y Semilla que se convierte en Brote.
+- Celebracion inmediata: 10 puntos, insignia Primer paso y Semilla que se convierte en Brote.
 - Consentimiento separado para compartir o retirar el primer hito.
 - Ultima celebracion publica antes del feed y mensaje global descartable.
 - Migracion Alembic aditiva en el backend que gobierna el esquema; Drizzle solo refleja las tablas.
@@ -156,11 +156,11 @@ aparecer. Este mecanismo tambien alcanza a visitantes sin cuenta.
 
 1. El reto explica las dos acciones minimas y deja cena, ropa, ambiente y movimiento como recomendadas.
 2. Sin sesion, iniciar lleva a entrar y conserva el destino de regreso.
-3. Con sesion, completar ambos anclajes una vez deja 10 XP y nivel Brote; repetir la peticion no suma.
+3. Con sesion, completar ambos anclajes una vez deja 10 puntos y nivel Brote; repetir la peticion no suma.
 4. Antes de compartir no aparece nombre ni logro en el inicio ni en el mensaje global.
 5. Al compartir, una sola tarjeta aparece antes de la primera publicacion y un mensaje se ve en todo
    el sitio; cerrarlo lo oculta en ese navegador.
-6. Retirar la celebracion elimina ambas proyecciones pero conserva el Brote y los 10 XP privados.
+6. Retirar la celebracion elimina ambas proyecciones pero conserva el Brote y los 10 puntos privados.
 7. Espanol e ingles conservan rutas, contenido y regreso de autenticacion en su idioma.
 
 ### Slice 2 - Siete dias y una celebracion final *(completado)*
@@ -175,20 +175,20 @@ aparecer. Este mecanismo tambien alcanza a visitantes sin cuenta.
 
 **Criterios de aceptacion**
 
-1. Cada fecha local admite una sola repeticion y cada repeticion vale 10 XP; reintentos no suman.
+1. Cada fecha local admite una sola repeticion y cada repeticion vale 10 puntos; reintentos no suman.
 2. Se pueden registrar fechas anteriores aun disponibles dentro de la ventana, nunca fechas futuras
    ni fechas fuera de `[inicio, fin)`.
 3. La interfaz muestra el ciclo y el dia de siete, conserva avances al faltar y reconoce el regreso
    posterior a una fecha sin repeticion.
 4. Cinco fechas distintas completan el reto, otorgan Cosecha e insignia persistente y muestran una
    celebracion final mas fuerte sin prometer que ya se formo un habito.
-5. El hito final permanece privado hasta compartirlo y puede retirarse sin alterar ciclos, XP ni
+5. El hito final permanece privado hasta compartirlo y puede retirarse sin alterar ciclos, puntos ni
    insignias.
 
 ### Slice 3 - Jardin comunitario y apoyo *(completado)*
 
 - Cada repeticion compartida hace crecer un jardin agregado con los colores de los cuatro pilares.
-- Reaccion unica «Celebrar», sin XP ni ranking de popularidad.
+- Reaccion unica «Celebrar», sin puntos ni ranking de popularidad.
 - Los hitos intermedios se agrupan para que el sitio no emita una alerta por persona y por dia.
 - Grupos empiezan solo cuando exista una forma real de crearlos; un logro grupal produce un evento,
   no uno por integrante.
@@ -200,7 +200,7 @@ aparecer. Este mecanismo tambien alcanza a visitantes sin cuenta.
 2. El jardin muestra conteos por los cuatro pilares y nunca ordena personas.
 3. `Celebrar` usa intenciones explicitas de agregar o retirar; repetir la misma intencion no cambia
    el conteo y cada cuenta ocupa como maximo una reaccion por celebracion.
-4. Las reacciones no cambian XP del autor y las repeticiones intermedias solo alteran el agregado,
+4. Las reacciones no cambian los puntos del autor y las repeticiones intermedias solo alteran el agregado,
    no el mensaje global.
 5. Sin modelo real de grupos se explica que aun no existen; no se inventan equipos ni actividad.
 
@@ -224,7 +224,7 @@ un opt-in enganoso: muestra la elegibilidad bloqueada y la condicion concreta qu
 
 1. Alimentacion, movimiento y mente/comunidad tienen definicion curada, ruta y contenido bilingue,
    enlazados desde su pilar.
-2. Activar una practica desactiva solo el onboarding de la anterior; no borra sus repeticiones ni XP.
+2. Activar una practica desactiva solo el onboarding de la anterior; no borra sus repeticiones ni puntos.
 3. Cada practica usa la persistencia generica de progreso/repeticiones y una repeticion diaria topada.
 4. La interfaz explica que Telegram no esta disponible porque la identidad de canal no esta probada;
    no ofrece elegir hora ni afirma haber enviado nada.
@@ -258,7 +258,7 @@ descanso, sin copiar su noche ni su estetica:
 - **Ritual que crece:** elegir, hacer visible, preparar, sumar y observar que combinacion resulto facil.
 - **Diseno:** atmosfera calida de cocina/mercado con los tokens naranjas de Alimentacion; hoja y plato
   como simbolos, no la luna, el cielo ni la semilla violeta de Sueno.
-- **Semana:** calendario local 7 dias, meta 5/7, 10 XP por fecha distinta, regreso sin reinicio,
+- **Semana:** calendario local 7 dias, meta 5/7, 10 puntos por fecha distinta, regreso sin reinicio,
   celebracion inmediata y celebracion final propia.
 - **Comunidad:** hitos, tarjeta, mensaje global, jardin y reaccion enlazan y nombran Alimentacion, no
   reutilizan texto ni destino de Sueno.
@@ -268,17 +268,17 @@ descanso, sin copiar su noche ni su estetica:
 1. La ruta explica senal, preparacion y minimo antes de pedir registrar nada.
 2. Un check-in exige haber elegido la comida ancla y sumado una planta; prepararla con anticipacion es
    recomendada, no una puerta para considerar el dia fracasado.
-3. Cinco fechas locales distintas producen 50 XP, nivel Cosecha y la celebracion
+3. Cinco fechas locales distintas producen 50 puntos, nivel Cosecha y la celebracion
    «Cultivaste cinco elecciones reales».
 4. La celebracion publica usa el color, texto y enlace de Alimentacion y sigue siendo opt-in/revocable.
-5. El calendario, privacidad, XP, jardin y liga salen de una base compartida, no de una segunda copia
+5. El calendario, privacidad, puntos, jardin y liga salen de una base compartida, no de una segunda copia
    del panel de Sueno.
 
 ### Slice 7 - Movimiento con ritual propio *(completado)*
 
 - **Identidad:** «Soy una persona que empieza a moverse».
 - **Senal:** vincular el inicio a ropa preparada, una pausa o una ruta cotidiana.
-- **Minimo:** dos minutos de movimiento segun capacidad; continuar es opcional y no da XP extra.
+- **Minimo:** dos minutos de movimiento segun capacidad; continuar es opcional y no da puntos extra.
 - **Ritual:** preparar, ponerse de pie, empezar dos minutos y reconocer como se siente el cuerpo.
 - **Diseno:** energia y direccion con el verde oficial de Movimiento, trazos de recorrido y pulso.
 - Misma semana 5/7, celebraciones y comunidad, con textos y destinos propios.
@@ -312,7 +312,7 @@ hacer y que puede esperar; los detalles tecnicos pertenecen al codigo y a la doc
 - Alimentacion, Movimiento y Mente/Comunidad mueven su invitacion al mismo lugar.
 - El indice y las cuatro experiencias eliminan menciones visibles a «retos atomicos» y detalles
   internos de vinculacion, puertos u onboarding.
-- Se simplifican las frases largas o abstractas sin cambiar meta 5/7, XP, privacidad, seguridad,
+- Se simplifican las frases largas o abstractas sin cambiar meta 5/7, puntos, privacidad, seguridad,
   recordatorios no disponibles ni reglas de registro.
 - Espanol e ingles conservan la misma estructura de catalogo y el mismo significado.
 
@@ -353,12 +353,36 @@ paralela con otro nombre o paleta.
 2. Ningun enlace, sitemap o prueba conserva «mente-comunidad» o «mind-community».
 3. La experiencia profunda, el panel y la celebracion publica no contienen clases `amber-*`.
 4. Las tres superficies usan los mismos tokens que `pillarColorClasses.mindSpirit`.
-5. Copy, progreso, XP, privacidad y reglas del vinculo permanecen intactos.
+5. Copy, progreso, puntos, privacidad y reglas del vinculo permanecen intactos.
+
+### Slice 11 - El progreso se expresa como puntos *(completado)*
+
+**Problema:** La interfaz muestra «XP», una abreviatura asociada a videojuegos que no todas las
+personas reconocen.
+
+**Ahorro:** «Puntos» comunica el progreso sin obligar a descifrar una sigla.
+
+**Por que:** Los retos deben usar palabras cotidianas y accesibles, especialmente al explicar salud y
+constancia.
+
+**Alcance**
+
+- Espanol muestra «puntos» e ingles «points» en progreso, avisos, celebraciones y privacidad.
+- Gherkin, pruebas de componentes y expectativas Playwright usan el texto visible nuevo.
+- El campo interno `xp`, sus calculos y los contratos persistidos no cambian.
+- No hay migracion, recuento nuevo ni transformacion de datos.
+
+**Criterios de aceptacion**
+
+1. Cero, una y cinco repeticiones muestran 0, 10 y 50 puntos respectivamente.
+2. La interfaz no muestra «XP» ni «EXP» en ninguno de los dos idiomas.
+3. Reintentos y volumen adicional siguen sin sumar puntos.
+4. El valor interno continua calculandose como `xp` para evitar cambios sin valor en dominio y base.
 
 ### Gramatica compartida, identidad distinta
 
 Los cuatro retos comparten estructura, no contenido: hero inmersivo, declaracion de identidad, senal,
-accion minima, cadena que crece, advertencia responsable, calendario, XP y celebraciones. La
+accion minima, cadena que crece, advertencia responsable, calendario, puntos y celebraciones. La
 implementacion extraera calendario, check-in, recompensas y consentimiento hacia presentacion de
 habitos; cada reto entregara su configuracion cerrada de textos, iconos y tokens. No se importa UI
 entre rutas ni se crean cuatro copias que diverjan.
@@ -393,13 +417,13 @@ atencion profesional.
 | Compartir expone salud | Solo se publica el hito, por consentimiento posterior y revocable. |
 | La celebracion invade el feed | Solo la ultima va fijada; no entra a `posts` ni a su paginacion. |
 | El aviso se vuelve ruido | Primera accion y final; lo intermedio se queda personal o agregado. |
-| La gamificacion premia exceso | XP topado por ciclo y ninguna recompensa por volumen. |
+| La gamificacion premia exceso | Puntos topados por ciclo y ninguna recompensa por volumen. |
 | El reto cruza medianoche | El slice 2 acuerda zona local y rangos `[inicio, fin)` antes de rachas. |
 | La tabla nueva afecta al bot | Migracion Alembic aditiva; ningun contrato existente cambia. |
 
 ## Pruebas
 
-- **Dominio/Vitest:** pasos minimos, XP, transicion Semilla a Brote, idempotencia y visibilidad por
+- **Dominio/Vitest:** pasos minimos, puntos, transicion Semilla a Brote, idempotencia y visibilidad por
   consentimiento.
 - **Use cases/Vitest:** sesion resuelta fuera del caso de uso, puertos falsos y doble envio.
 - **Componentes/Vitest:** ritual, celebracion y mensaje global con `renderWithIntl`.

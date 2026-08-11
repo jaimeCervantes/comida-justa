@@ -126,4 +126,45 @@ describe("HabitChallengePanel", () => {
     expect(screen.getAllByRole("checkbox")).toHaveLength(2);
     expect(screen.queryByRole("checkbox", { name: /respondió/i })).toBeNull();
   });
+
+  it.each([
+    ["es", 0, "0 puntos"],
+    ["es", 1, "10 puntos"],
+    ["es", 5, "50 puntos"],
+    ["en", 0, "0 points"],
+    ["en", 1, "10 points"],
+    ["en", 5, "50 points"],
+  ] as const)(
+    "shows everyday progress wording for $locale with $completedCycles cycles",
+    (locale, completedCycles, label) => {
+      renderWithIntl(
+        <HabitChallengePanel
+          action={action}
+          challenge="nutrition"
+          initialProgress={{
+            ...progress,
+            level:
+              completedCycles === 5
+                ? "harvest"
+                : completedCycles === 1
+                  ? "sprout"
+                  : "seed",
+            xp: completedCycles * 10,
+            completedCycles,
+            completedDates: Array.from(
+              { length: completedCycles },
+              (_, index) => `2026-08-${String(index + 6).padStart(2, "0")}`,
+            ),
+            succeeded: completedCycles === 5,
+          }}
+          signedIn
+          signInHref="/auth/signin"
+        />,
+        { locale },
+      );
+
+      expect(screen.getAllByText(label).length).toBeGreaterThan(0);
+      expect(document.body).not.toHaveTextContent(/\b(?:XP|EXP)\b/);
+    },
+  );
 });

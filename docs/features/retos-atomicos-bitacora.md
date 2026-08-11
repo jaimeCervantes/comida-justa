@@ -916,3 +916,69 @@ la misma paleta azul definida por el pilar, sin modificar progreso ni datos pers
 
 - No queda accion funcional pendiente. Playwright completo permanece sin ejecutar por instruccion
   expresa; puede retomarse en otro momento sin necesidad de cambios de datos o migraciones.
+
+## 2026-08-11 - Slice 11: el progreso se expresa como puntos
+
+### Objetivo
+
+Reemplazar la sigla de videojuegos «XP» por palabras que cualquier persona pueda entender al ver su
+progreso.
+
+### Decisiones y rationale
+
+- Espanol muestra «puntos» e ingles «points». Como los valores visibles avanzan de diez en diez, no
+  hace falta introducir pluralizacion especial para una unidad que nunca aparece como 1.
+- El campo `xp` permanece en dominio, casos de uso y persistencia. Renombrarlo no cambiaria conducta
+  y agregaria riesgo a contratos que no ve la persona usuaria.
+- Avisos, recompensas, resumen y privacidad usan el mismo vocabulario para no dejar una mezcla de
+  «XP» y «puntos» en distintas superficies.
+- La bitacora anterior se conserva append-only; el roadmap y la especificacion activa si adoptan el
+  termino actual del producto.
+
+### Archivos tocados
+
+- Catalogos: `src/i18n/messages/es.json` y `src/i18n/messages/en.json`.
+- Componentes y pruebas: `SleepChallengePanel.test.tsx` y `HabitChallengePanel.test.tsx`.
+- Especificacion de navegador: `atomicSleepChallenge.feature` y `atomicSleepChallenge.spec.ts`.
+- Documentacion: roadmap y esta entrada append-only.
+
+### Comandos clave
+
+- `pnpm run test:run -- src/app/[locale]/habitos/sueno/ui/SleepChallengePanel.test.tsx src/presentation/habits/HabitChallengePanel.test.tsx`
+- `pnpm run test:run`
+- `pnpm run typecheck`
+- `pnpm run typecheck:tests`
+- `pnpm run lint`
+- `pnpm run check:i18n`
+- `pnpm run build`
+- `git diff --check`
+
+### Validacion
+
+- Pruebas dirigidas: 16/16 en 2 archivos.
+- Vitest completo: 1277/1277 en 134 archivos.
+- Typecheck de producto y pruebas: verdes.
+- Lint: verde en 751 archivos, con el aviso informativo preexistente de
+  `IndexingStatusPanel.tsx`.
+- i18n: catalogos estructuralmente iguales y sin texto espanol escrito a mano.
+- Build de Next.js 16.2.1: compilacion y TypeScript verdes, 37 paginas generadas.
+- Playwright no se ejecuto por instruccion expresa; sus expectativas quedaron actualizadas.
+
+### Base compartida y reversa
+
+- No hubo lecturas, escrituras ni migraciones en la base compartida.
+- La reversa afecta solo copy y expectativas; los valores persistidos permanecen iguales.
+
+### Desviaciones y follow-ups
+
+- No hubo desviaciones de alcance. El nombre tecnico `xp` queda deliberadamente fuera de la interfaz.
+
+### Recap
+
+Los cuatro retos muestran ahora 0, 10 o 50 puntos en espanol y points en ingles, mientras el calculo y
+la persistencia siguen usando el contrato interno probado.
+
+### Próximos pasos (opciones)
+
+- No queda accion funcional pendiente. Playwright puede ejecutarse mas adelante si se levanta la
+  restriccion actual; no hay acciones de datos pendientes para esta slice.
