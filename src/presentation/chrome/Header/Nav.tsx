@@ -52,11 +52,11 @@ function SectionControl({
         <CaretDownIcon className={CARET_CLASS} aria-hidden />
         <span
           aria-hidden
-          className="pointer-events-none absolute top-full left-1/2 z-1 h-[22px] w-4 -translate-x-1/2 opacity-0 transition-opacity group-data-[state=open]:opacity-100"
+          className="pointer-events-none absolute top-full left-1/2 z-1 h-2 w-4 -translate-x-1/2 opacity-0 transition-opacity group-data-[state=open]:opacity-100"
         >
           <span
             data-testid="submenu-indicator"
-            className="absolute bottom-0 left-1/2 h-0 w-0 -translate-x-1/2 border-x-8 border-x-transparent border-b-8 border-b-white dark:border-b-gray-900"
+            className="absolute inset-0 bg-white dark:bg-gray-900 [clip-path:polygon(50%_0,100%_100%,0_100%)]"
           />
         </span>
       </NavigationMenu.Trigger>
@@ -191,10 +191,10 @@ export default function Nav({
           </NavigationMenu.Link>
         </NavigationMenu.Item>
       </NavigationMenu.List>
-      <div className="absolute top-full left-0 pt-2">
+      <div className="absolute top-full left-0 pt-1">
         <NavigationMenu.Viewport
           data-testid="desktop-submenu"
-          className="data-[state=open]:animate-scaleIn data-[state=closed]:animate-scaleOut relative mt-[10px] h-(--radix-navigation-menu-viewport-height) w-(--radix-navigation-menu-viewport-width) origin-[top_center] overflow-hidden rounded-[10px] bg-white dark:bg-gray-900 shadow-[0_10px_38px_-10px_hsla(206,22%,7%,.35),0_10px_20px_-15px_hsla(206,22%,7%,.2)] transition-[width,height] duration-300 border border-gray-200 dark:border-gray-800"
+          className="data-[state=open]:animate-scaleIn data-[state=closed]:animate-scaleOut relative h-(--radix-navigation-menu-viewport-height) w-(--radix-navigation-menu-viewport-width) origin-[top_center] overflow-hidden rounded-[10px] bg-white dark:bg-gray-900 shadow-[0_10px_38px_-10px_hsla(206,22%,7%,.35),0_10px_20px_-15px_hsla(206,22%,7%,.2)] transition-[width,height] duration-300 border border-gray-200 dark:border-gray-800"
         />
       </div>
     </NavigationMenu.Root>

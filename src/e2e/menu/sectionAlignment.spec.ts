@@ -47,6 +47,22 @@ test.describe("La sección abierta del menú principal", () => {
       const indicatorToSubmenu =
         submenu.y - (whiteIndicator.y + whiteIndicator.height);
       expect(Math.abs(indicatorToSubmenu)).toBeLessThanOrEqual(1);
+
+      const controlBottom = controlBox.y + controlBox.height;
+      const controlToSubmenu = submenu.y - controlBottom;
+      expect(controlToSubmenu).toBeCloseTo(8, 1);
+      expect(whiteIndicator.y - controlBottom).toBeCloseTo(0, 1);
+      expect(whiteIndicator.height).toBeCloseTo(controlToSubmenu, 1);
+
+      const [indicatorColor, submenuColor] = await Promise.all([
+        control
+          .getByTestId("submenu-indicator")
+          .evaluate((element) => getComputedStyle(element).backgroundColor),
+        menu
+          .getByTestId("desktop-submenu")
+          .evaluate((element) => getComputedStyle(element).backgroundColor),
+      ]);
+      expect(indicatorColor).toBe(submenuColor);
     });
   }
 });
