@@ -197,3 +197,93 @@ suite global incompleta.
    botón y mantener las mismas pruebas geométricas.
 3. **Deuda separada:** diagnosticar el proveedor de Google, la carga incremental y la carrera de
    traducciones observados en la suite global.
+
+## 2026-08-10 - Slice 3: solo el triángulo separa el control del panel
+
+### Objetivo
+
+Eliminar el hueco vertical que todavía hacía ver el submenú como una pieza flotante y asegurar que
+el triángulo use exactamente el mismo color de superficie que el panel.
+
+### Decisiones y racional
+
+- La separación medida era de 22 píxeles: 4 de padding interno de la lista, 8 de `pt-2` y 10 de
+  margen del viewport. El panel se acercó hasta dejar exactamente 8 píxeles desde el control.
+- Esos 8 píxeles son la altura completa del indicador. Ya no existe aire adicional antes ni después
+  del triángulo.
+- El indicador dejó de construirse con bordes CSS. Ahora es una superficie rectangular de 16 por 8
+  píxeles, recortada como triángulo con `clip-path` y pintada con las mismas clases `bg-white` y
+  `dark:bg-gray-900` que el viewport. Así su color calculado coincide, no solo su valor aparente.
+- No se alteraron la posición horizontal, los enlaces, los botones accesibles ni el menú móvil.
+
+### Archivos tocados
+
+- **Cabecera:** `src/presentation/chrome/Header/Nav.tsx`.
+- **Prueba y especificación:** `src/e2e/menu/sectionAlignment.spec.ts`,
+  `src/e2e/menu/sectionAlignment.feature`.
+- **Documentación:** `docs/features/menu-secciones-navegables.md`,
+  `docs/features/menu-secciones-navegables-bitacora.md`.
+
+### Comandos clave
+
+```bash
+pnpm exec playwright test src/e2e/menu/sectionAlignment.spec.ts
+pnpm exec playwright test src/e2e/menu/sectionAlignment.spec.ts src/e2e/menu/sectionLinks.spec.ts
+pnpm run test:run
+pnpm run typecheck
+pnpm run lint
+pnpm run check:i18n
+pnpm run test:e2e:run
+pnpm exec biome check src/presentation/chrome/Header/Nav.tsx src/e2e/menu/sectionAlignment.spec.ts
+git diff --check
+```
+
+### Resultados de validación
+
+- La prueba geométrica confirmó primero el defecto en **2/2 casos**: esperaba 8 píxeles y midió 22
+  tanto en «Comunidad» como en «4 Pilares». No se hicieron más corridas E2E solo para comprobar rojo.
+- Tras la corrección, la prueba específica quedó en **2/2 casos verdes**: separación de 8 píxeles,
+  triángulo ocupando toda la distancia, contacto con el panel e igualdad de `background-color`.
+- La regresión del menú quedó en **12/12 casos verdes**, incluidos enlaces, despliegues, inglés y
+  móvil.
+- `pnpm run test:run`: **1,211/1,211 pruebas verdes**, 124 archivos.
+- `pnpm run typecheck`: exit 0. El timeout global truncó `routes.d.ts` y `validator.ts` bajo
+  `.next/dev/types`; se eliminaron solo esos artefactos generados y la repetición pasó.
+- `pnpm run lint`: exit 0, con la información preexistente de `IndexingStatusPanel.tsx`.
+- `pnpm run check:i18n`, Biome dirigido y `git diff --check`: limpios.
+- `pnpm run test:e2e:run`: **incompleto**. Planeó 237 casos y solo alcanzó 35 antes del timeout de 15
+  minutos porque acumuló 30 fallos de páginas y datos ajenos al menú; el bloque del menú aún no había
+  empezado. La cobertura dirigida del menú sí se ejecutó completa y verde.
+- La suite global escribió fixtures en la base compartida. El teardown oficial posterior no tuvo que
+  borrar residuos y verificó **0 publicaciones, 0 categorías, 0 sucursales, 0 tiendas y 0 direcciones
+  personales E2E**. No quedó nada que deshacer.
+
+### Desviaciones del roadmap
+
+- No hubo desviaciones visuales ni funcionales: la distancia y el color quedaron exactamente bajo
+  los contratos acordados.
+- La suite global no alcanzó los escenarios del menú por inestabilidad externa, pero la suite dirigida
+  cubrió los doce casos relevantes.
+
+### Seguimiento
+
+- Solo queda la comprobación perceptiva en el dispositivo objetivo: el contrato geométrico ya evita
+  que vuelva el hueco de 22 píxeles o un color distinto.
+- Los fallos masivos de páginas, búsquedas y fixtures requieren una tarea separada sobre el entorno
+  E2E compartido.
+
+### Recap
+
+El panel de escritorio queda ahora a 8 píxeles del control, y esos 8 píxeles están ocupados por el
+triángulo completo: no hay margen adicional. Indicador y panel comparten las mismas clases de color
+para claro y oscuro, y la prueba confirma el color calculado del tema activo. La regresión dirigida,
+Vitest, tipos, lint e i18n están verdes; la suite global no llegó al menú por fallos externos, pero
+dejó la base compartida sin residuos.
+
+### Próximos pasos (opciones)
+
+1. **Revisión visual final:** abrir «Comunidad» y «4 Pilares» en el navegador objetivo y confirmar que
+   el panel se percibe unido al control.
+2. **Cerrar la rama:** crear los commits semánticos y, cuando se solicite, integrar en `dev`.
+3. **Deuda separada:** estabilizar la base y las páginas que provocaron 30 fallos antes del caso 36 de
+   la suite global.

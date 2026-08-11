@@ -54,4 +54,22 @@ justifique otra portada. El mismo modelo se aplica en escritorio y móvil y cons
 - El triángulo blanco toca el borde superior del submenú, con una separación máxima de 1 píxel.
 - «Comunidad» y «4 Pilares» conservan sus enlaces, botones accesibles y destinos actuales.
 
-No hay slices futuros: la navegación queda completa al corregir la cohesión visual detectada en uso.
+### Slice 3 - Dejar solo el triángulo entre control y panel
+
+**Alcance**
+
+- Reducir la separación vertical entre el control principal y el submenú de escritorio.
+- Hacer que los 8 píxeles del triángulo ocupen toda la separación, sin margen adicional.
+- Dibujar el triángulo con el mismo color de fondo que la superficie del submenú.
+- Conservar la alineación horizontal, navegación, accesibilidad y menú móvil ya entregados.
+
+**Criterios de aceptación**
+
+- La distancia entre el borde inferior del control y el borde superior del submenú es exactamente 8
+  píxeles, la altura del triángulo.
+- El triángulo ocupa esa separación completa y toca el borde superior del submenú.
+- El color de fondo calculado del triángulo es idéntico al del submenú abierto.
+- «Comunidad» y «4 Pilares» cumplen la misma geometría.
+
+No hay slices futuros: la navegación queda completa al unir control, indicador y panel en una sola
+composición visual.
