@@ -10,6 +10,7 @@ export interface TestDataCount {
   sellers: number;
   /** Direcciones personales reclamadas por la suite sobre cuentas reales. */
   usernames: number;
+  habits: number;
 }
 
 const SLUG_PATTERN = `${TEST_SLUG_PREFIX}%`;
@@ -55,6 +56,15 @@ const TEST_SELLER_IDS = sql`SELECT id FROM sellers WHERE ${TEST_SELLER_MATCH}`;
  * también tiene publicaciones reales del catálogo, y son de la cuenta, no de la corrida.
  */
 export async function sweepTestData(): Promise<TestDataCount> {
+  await db.execute(sql`
+    DELETE FROM habit_league_opt_ins
+    WHERE user_id IN (SELECT id FROM users WHERE email = ${SUITE_ACCOUNT_EMAIL})
+  `);
+  const habits = await db.execute(sql`
+    DELETE FROM habit_challenge_progress
+    WHERE user_id IN (SELECT id FROM users WHERE email = ${SUITE_ACCOUNT_EMAIL})
+  `);
+
   const posts = await db.execute(sql`
     DELETE FROM posts
     WHERE id IN (
@@ -101,6 +111,7 @@ export async function sweepTestData(): Promise<TestDataCount> {
     branches: branches.rowCount ?? 0,
     sellers: sellers.rowCount ?? 0,
     usernames: usernames.rowCount ?? 0,
+    habits: habits.rowCount ?? 0,
   };
 }
 
@@ -113,7 +124,11 @@ export async function countTestData(): Promise<TestDataCount> {
       (SELECT count(*)::int FROM branches b
         WHERE b.seller_id IN (${TEST_SELLER_IDS})) AS branches,
       (SELECT count(*)::int FROM sellers WHERE ${TEST_SELLER_MATCH}) AS sellers,
-      (SELECT count(*)::int FROM users WHERE username LIKE ${SLUG_PATTERN}) AS usernames
+      (SELECT count(*)::int FROM users WHERE username LIKE ${SLUG_PATTERN}) AS usernames,
+      ((SELECT count(*)::int FROM habit_challenge_progress
+        WHERE user_id IN (SELECT id FROM users WHERE email = ${SUITE_ACCOUNT_EMAIL})) +
+       (SELECT count(*)::int FROM habit_league_opt_ins
+        WHERE user_id IN (SELECT id FROM users WHERE email = ${SUITE_ACCOUNT_EMAIL}))) AS habits
   `);
 
   return result.rows[0] as unknown as TestDataCount;
@@ -131,6 +146,6 @@ export function describeTestData(count: TestDataCount): string {
   return (
     `${count.posts} publicación(es), ${count.categories} categoría(s), ` +
     `${count.branches} sucursal(es), ${count.sellers} tienda(s) y ` +
-    `${count.usernames} dirección(es) personal(es) de prueba`
+    `${count.usernames} dirección(es) personal(es) y ${count.habits} reto(s) de prueba`
   );
 }
