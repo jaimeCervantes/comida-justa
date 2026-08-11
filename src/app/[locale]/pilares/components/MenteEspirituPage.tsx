@@ -1,4 +1,5 @@
 import { useTranslations } from "next-intl";
+import AtomicChallengeCta from "~/presentation/habits/AtomicChallengeCta";
 import PillarArticle, {
   LabeledItem,
   PillarCallout,
@@ -10,6 +11,7 @@ import { MIND_SPIRIT_REFERENCES } from "./references";
 
 export default function MenteEspirituPage() {
   const t = useTranslations("pillarPages.mindSpirit");
+  const tChallenge = useTranslations("atomicChallenges.mind");
 
   return (
     <PillarArticle
@@ -42,6 +44,11 @@ export default function MenteEspirituPage() {
         <PillarCallout pillar="mindSpirit">{t("callout")}</PillarCallout>
       </section>
 
+      <AtomicChallengeCta
+        href="/habitos/mente-espiritu"
+        title={tChallenge("cta")}
+        body={tChallenge("intro")}
+      />
       <PillarReferences
         pillar="mindSpirit"
         references={MIND_SPIRIT_REFERENCES}

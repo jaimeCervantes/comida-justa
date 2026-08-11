@@ -1,4 +1,5 @@
 import { useTranslations } from "next-intl";
+import AtomicChallengeCta from "~/presentation/habits/AtomicChallengeCta";
 import PillarArticle, {
   LabeledItem,
   PillarCallout,
@@ -10,6 +11,7 @@ import { NUTRITION_REFERENCES } from "./references";
 
 export default function AlimentacionPage() {
   const t = useTranslations("pillarPages.nutrition");
+  const tChallenge = useTranslations("atomicChallenges.nutrition");
 
   return (
     <PillarArticle
@@ -42,6 +44,11 @@ export default function AlimentacionPage() {
         </ul>
       </section>
 
+      <AtomicChallengeCta
+        href="/habitos/alimentacion"
+        title={tChallenge("cta")}
+        body={tChallenge("intro")}
+      />
       <PillarReferences pillar="nutrition" references={NUTRITION_REFERENCES} />
     </PillarArticle>
   );

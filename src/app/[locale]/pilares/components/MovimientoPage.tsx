@@ -1,4 +1,5 @@
 import { useTranslations } from "next-intl";
+import AtomicChallengeCta from "~/presentation/habits/AtomicChallengeCta";
 import PillarArticle, {
   LabeledItem,
   PillarCallout,
@@ -10,6 +11,7 @@ import { MOVEMENT_REFERENCES } from "./references";
 
 export default function MovimientoPage() {
   const t = useTranslations("pillarPages.movement");
+  const tChallenge = useTranslations("atomicChallenges.movement");
 
   return (
     <PillarArticle
@@ -31,6 +33,11 @@ export default function MovimientoPage() {
         <PillarCallout pillar="movement">{t("callout")}</PillarCallout>
       </section>
 
+      <AtomicChallengeCta
+        href="/habitos/movimiento"
+        title={tChallenge("cta")}
+        body={tChallenge("intro")}
+      />
       <PillarReferences pillar="movement" references={MOVEMENT_REFERENCES} />
     </PillarArticle>
   );

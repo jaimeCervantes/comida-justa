@@ -10,6 +10,7 @@ import { setRequestLocale } from "next-intl/server";
 import { routing } from "~/i18n/routing";
 import { CANONICAL_URL, PUBLIC_BRAND_NAME } from "~/infra/constants";
 import { readVisitorFix } from "~/infra/location/visitorLocation";
+import SiteCelebrationMessage from "~/presentation/chrome/SiteMessage/SiteCelebrationMessage";
 import LocationRefresher from "~/presentation/location/LocationRefresher";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -81,6 +82,7 @@ export default async function RootLayout({
           <LocationRefresher fix={await readVisitorFix()} />
           <div className="flex flex-col min-h-screen">
             <Header />
+            <SiteCelebrationMessage />
             <main className="flex-1 pt-4 pb-12">
               <div className="container-width">{children}</div>
             </main>

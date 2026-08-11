@@ -18,11 +18,16 @@ import {
   PUBLIC_BRAND_NAME,
 } from "~/infra/constants";
 import { createPostQueryRepository } from "~/infra/dataAccess/getMultiplePosts";
+import { readCommunityGarden } from "~/infra/habits/readCommunityGarden";
+import { readLatestPublicCelebration } from "~/infra/habits/readLatestPublicCelebration";
 import { readViewerLocationContext } from "~/infra/location/viewerLocationContext";
 import { mapPostsToCardsForLocale } from "~/infra/UI/mappers/posts/mapPostsToCardsForLocale";
 import { localizedAlternates } from "~/infra/UI/metadata/alternates";
+import CommunityHabitGarden from "~/presentation/habits/CommunityHabitGarden";
+import PublicHabitCelebrationCard from "~/presentation/habits/PublicHabitCelebrationCard";
 import LocationBanner from "~/presentation/location/LocationBanner";
 import JsonLd from "~/presentation/seo/JsonLd";
+import { setHabitCelebrationReaction } from "./habitCommunityActions";
 
 export async function generateMetadata({
   params,
@@ -92,7 +97,13 @@ export default async function Inicio({
   const viewerId = await readViewerId();
   const t = await getTranslations({ locale, namespace: "home" });
   const { visitor, showSellerCta } = await readViewerLocationContext();
-  const { posts, total, totalPages } = await getPosts(locale, visitor);
+  const [{ posts, total, totalPages }, celebration, garden] = await Promise.all(
+    [
+      getPosts(locale, visitor),
+      readLatestPublicCelebration(viewerId),
+      readCommunityGarden(),
+    ],
+  );
 
   return (
     <main className="">
@@ -115,6 +126,16 @@ export default async function Inicio({
       <p>{t("p2")}</p>
 
       <LocationBanner showSellerCta={showSellerCta} />
+
+      <CommunityHabitGarden garden={garden} />
+
+      {celebration && (
+        <PublicHabitCelebrationCard
+          celebration={celebration}
+          viewerSignedIn={viewerId !== null}
+          reactionAction={setHabitCelebrationReaction}
+        />
+      )}
 
       {/* La `key` es desde dónde se midieron estas distancias. El feed acumula en estado las
           páginas que pide, así que sin esto una ubicación corregida repintaba el chip y dejaba las

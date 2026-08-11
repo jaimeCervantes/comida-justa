@@ -29,10 +29,8 @@ export interface SitemapContent {
 /**
  * Las páginas fijas que existen de verdad.
  *
- * **No están las seis secciones del menú que responden 404** (`habitos`, `deportes`,
- * `medio-ambiente`, `negocios-locales`, `salud-infantil`, `productores-locales`): hoy son stubs
- * que llaman a `notFound()`, y publicar un 404 en el sitemap es la forma más rápida de perder
- * confianza con un rastreador. Cuando tengan contenido, se agregan aquí.
+ * Las secciones se agregan solo al dejar de ser stubs. `habitos` ya tiene índice y cuatro retos;
+ * deportes, medio ambiente y salud infantil todavía responden 404.
  */
 export const STATIC_SITEMAP_PATHS: readonly string[] = [
   "/",
@@ -43,6 +41,11 @@ export const STATIC_SITEMAP_PATHS: readonly string[] = [
   "/pilares/alimentacion",
   "/pilares/movimiento",
   "/pilares/mente-espiritu",
+  "/habitos",
+  "/habitos/sueno",
+  "/habitos/alimentacion",
+  "/habitos/movimiento",
+  "/habitos/mente-espiritu",
   "/politica-de-privacidad",
   "/condiciones-de-servicio",
 ];

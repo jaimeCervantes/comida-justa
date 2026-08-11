@@ -32,12 +32,13 @@ describe("buildSitemap", () => {
     expect(urls).toContain(`${BASE}/productos`);
     expect(urls).toContain(`${BASE}/nosotros`);
     expect(urls).toContain(`${BASE}/pilares/alimentacion`);
+    expect(urls).toContain(`${BASE}/habitos`);
+    expect(urls).toContain(`${BASE}/habitos/mente-espiritu`);
     expect(urls).toHaveLength(STATIC_SITEMAP_PATHS.length);
   });
 
   it.each([
     "/deportes",
-    "/habitos",
     "/medio-ambiente",
     "/negocios-locales",
     "/salud-infantil",

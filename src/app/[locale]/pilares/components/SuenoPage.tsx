@@ -1,5 +1,6 @@
 import { useTranslations } from "next-intl";
 import { PUBLIC_BRAND_NAME } from "~/infra/constants";
+import AtomicChallengeCta from "~/presentation/habits/AtomicChallengeCta";
 import PillarArticle, {
   LabeledItem,
   PillarCallout,
@@ -60,6 +61,11 @@ export default function SuenoPage() {
         </PillarCallout>
       </section>
 
+      <AtomicChallengeCta
+        href="/habitos/sueno"
+        title={t("challengeCta")}
+        body={t("challengeIntro")}
+      />
       <PillarReferences pillar="sleep" references={SLEEP_REFERENCES} />
     </PillarArticle>
   );
