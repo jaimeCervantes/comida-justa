@@ -19,10 +19,10 @@ Feature: Retos atomicos - del pilar a una practica con identidad propia
   # del feed para no contaminar busqueda, RSS, catalogo, carrito ni paginacion.
 
   @slice-1
-  Scenario: El pilar Sueno termina en una accion concreta
+  Scenario: El pilar Sueno incluye una accion concreta
     Given que leo el pilar "Sueno y Descanso"
-    When sigo la invitacion "Empieza tu primer ritual"
-    Then llego al reto "Del atardecer al amanecer"
+    When avanzo hasta "Ponlo en practica"
+    Then encuentro el reto "Del atardecer al amanecer" sin salir del pilar
     And el minimo distingue "Cerrar la noche" de "Abrir la manana"
     And cena, ropa, ambiente fresco y movimiento aparecen como recomendados, no obligatorios
 
@@ -42,7 +42,7 @@ Feature: Retos atomicos - del pilar a una practica con identidad propia
     Then el inicio no muestra mi logro antes de las publicaciones
     And ninguna pagina muestra un aviso comunitario sobre mi
     When acepto "Compartir con la comunidad"
-    Then el inicio muestra una sola celebracion antes de la primera publicacion
+    Then el inicio muestra mi celebracion antes de la primera publicacion
     And el sitio muestra un mensaje de que una persona completo su primer ritual
 
   @slice-1
@@ -61,9 +61,9 @@ Feature: Retos atomicos - del pilar a una practica con identidad propia
 
   @slice-1
   Scenario: Iniciar el reto requiere una identidad a la cual regresar
-    Given que abro "/habitos/sueno" sin sesion
+    Given que abro "/pilares/sueno" sin sesion
     When intento iniciar "Del atardecer al amanecer"
-    Then llego a iniciar sesion con "/habitos/sueno" como destino de regreso
+    Then llego a iniciar sesion con "/pilares/sueno" como destino de regreso
 
   @slice-1 @component
   Scenario Outline: Solo el minimo completo produce la primera repeticion
@@ -157,10 +157,10 @@ Feature: Retos atomicos - del pilar a una practica con identidad propia
 
   @slice-4
   Scenario: Elijo un reto atomico de otro pilar
-    Given que el onboarding activo es "Del atardecer al amanecer"
+    Given que tengo progreso en "Del atardecer al amanecer"
     When abro el pilar Alimentacion y elijo "Una planta más"
     Then la ruta y el contenido se muestran en mi idioma
-    And "Una planta más" queda como unica practica activa sin borrar mi progreso de descanso
+    And "Una planta más" y mi progreso de descanso permanecen disponibles al mismo tiempo
 
   @slice-4 @component
   Scenario Outline: Cada pilar ofrece una practica curada y minima
@@ -178,7 +178,7 @@ Feature: Retos atomicos - del pilar a una practica con identidad propia
   Scenario: El recordatorio permanece bloqueado si el canal no esta probado
     Given que external_id puede pertenecer a WhatsApp, Telegram, Instagram o Messenger
     And existe un puerto de envio pero no una vinculacion de canal para mi cuenta web
-    When consulto recordatorios para mi practica activa
+    When consulto recordatorios para mis practicas iniciadas
     Then Telegram aparece como no disponible y no se afirma que se enviara un mensaje
 
   @slice-5
@@ -235,7 +235,7 @@ Feature: Retos atomicos - del pilar a una practica con identidad propia
     When otra persona abre el inicio
     Then la tarjeta usa la identidad naranja de Alimentacion
     And dice que cultive mi primera eleccion real
-    And enlaza a "/habitos/alimentacion", no a "/habitos/sueno"
+    And enlaza a "/pilares/alimentacion", no a "/pilares/sueno"
 
   @slice-6 @component
   Scenario Outline: Alimentacion conserva la mecanica sin heredar la identidad de Sueno
@@ -249,7 +249,7 @@ Feature: Retos atomicos - del pilar a una practica con identidad propia
       | senal             | Elegir mi comida ancla               | Cerrar la noche          |
       | minimo            | Sumar una planta                     | Abrir la mañana          |
       | celebracion final | Cultivaste cinco elecciones reales   | Protegiste tu descanso   |
-      | destino publico   | /habitos/alimentacion                | /habitos/sueno           |
+      | destino publico   | /pilares/alimentacion                | /pilares/sueno           |
 
   @slice-7
   Scenario: Dos minutos cuentan se convierte en un ritual de movimiento
@@ -275,7 +275,7 @@ Feature: Retos atomicos - del pilar a una practica con identidad propia
     When otra persona abre el inicio
     Then la tarjeta usa la identidad verde de Movimiento
     And dice que empece a moverme
-    And enlaza a "/habitos/movimiento", no a otro pilar
+    And enlaza a "/pilares/movimiento", no a otro pilar
 
   @slice-7 @component
   Scenario Outline: El volumen opcional nunca compra mas puntos
@@ -312,7 +312,7 @@ Feature: Retos atomicos - del pilar a una practica con identidad propia
     When otra persona abre el inicio
     Then la tarjeta usa los colores del pilar Mente y Espíritu
     And dice que cultive un vinculo real
-    And enlaza a "/habitos/mente-espiritu", no a otro pilar
+    And enlaza a "/pilares/mente-espiritu", no a otro pilar
 
   @slice-8 @component
   Scenario Outline: Una respuesta nunca es requisito del check-in
@@ -330,17 +330,17 @@ Feature: Retos atomicos - del pilar a una practica con identidad propia
   # reserva los detalles tecnicos para la documentacion, no para quien quiere empezar.
 
   @slice-9
-  Scenario Outline: Cada pilar invita a empezar antes de las referencias
+  Scenario Outline: Cada pilar integra su practica antes de las referencias
     Given que leo el pilar "<pilar>"
     When llego al final de su explicacion
-    Then la invitacion centrada "<invitacion>" aparece antes de "Referencias"
+    Then la practica "<practica>" aparece antes de "Referencias"
 
-    Examples: los cuatro pilares siguen el patron de Sueno
-      | pilar                         | invitacion                    |
-      | Sueño y Descanso              | Empieza tu primer ritual      |
-      | Alimentación natural          | Empieza Una planta más        |
-      | Movimiento y actividad física | Empieza Dos minutos cuentan   |
-      | Mente y espíritu              | Empieza Un vínculo consciente |
+    Examples: los cuatro pilares unen informacion y accion
+      | pilar                         | practica                      |
+      | Sueño y Descanso              | Del atardecer al amanecer     |
+      | Alimentación natural          | Una planta más                |
+      | Movimiento y actividad física | Dos minutos cuentan           |
+      | Mente y espíritu              | Un vínculo consciente         |
 
   @slice-9
   Scenario Outline: Los retos hablan de la accion y no del sistema
@@ -351,10 +351,10 @@ Feature: Retos atomicos - del pilar a una practica con identidad propia
     Examples: indice y experiencias de los cuatro pilares
       | ruta                       |
       | /habitos                   |
-      | /habitos/sueno             |
-      | /habitos/alimentacion      |
-      | /habitos/movimiento        |
-      | /habitos/mente-espiritu    |
+      | /pilares/sueno             |
+      | /pilares/alimentacion      |
+      | /pilares/movimiento        |
+      | /pilares/mente-espiritu    |
 
   @slice-9
   Scenario: Un recordatorio no disponible se explica sin detalles internos
@@ -366,16 +366,16 @@ Feature: Retos atomicos - del pilar a una practica con identidad propia
   # Slice 10 hace que la practica sea una continuacion literal de su pilar en URL y paleta.
 
   @slice-10
-  Scenario Outline: Mente y Espiritu conserva su nombre al entrar a la practica
+  Scenario Outline: Mente y Espiritu conserva su nombre dentro de la practica
     Given que abro el pilar "<pilar>"
-    When sigo la invitacion "<invitacion>"
-    Then llego a "<practica>"
+    When avanzo hasta la practica "<invitacion>"
+    Then sigo en "<practica>"
     And veo "<titulo>" con la identidad visual de Mente y Espiritu
 
     Examples: ruta canonica por idioma
       | pilar                    | invitacion                       | practica                   | titulo                   |
-      | /pilares/mente-espiritu  | Empieza Un vínculo consciente    | /habitos/mente-espiritu    | Un vínculo consciente    |
-      | /en/pillars/mind-spirit  | Start One conscious connection   | /en/habits/mind-spirit     | One conscious connection |
+      | /pilares/mente-espiritu       | Un vínculo consciente      | /pilares/mente-espiritu       | Un vínculo consciente    |
+      | /en/pillars/mente-espiritu    | One conscious connection   | /en/pillars/mente-espiritu    | One conscious connection |
 
   @slice-10 @component
   Scenario Outline: Cada superficie usa la paleta oficial de Mente y Espiritu

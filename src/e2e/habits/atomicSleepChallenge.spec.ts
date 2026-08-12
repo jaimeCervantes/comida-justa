@@ -6,9 +6,11 @@ import {
 } from "~/e2e/testUtils/simulateLogin";
 import {
   backdateAtomicSleepChallengeForSevenDayTest,
+  clearHabitMilestoneMarker,
   countAtomicSleepRepetitions,
+  countStartedHabitRituals,
   deleteAtomicSleepChallengeTestData,
-  readHabitOnboardingTestState,
+  readSuiteAccountDisplayName,
 } from "./testData";
 
 test.describe("Del atardecer al amanecer", () => {
@@ -25,13 +27,11 @@ test.describe("Del atardecer al amanecer", () => {
     session = null;
   });
 
-  test("the sleep pillar leads to a first cycle with an immediate reward", async ({
+  test("the sleep pillar includes a first cycle with an immediate reward", async ({
     page,
   }) => {
     await page.goto("/pilares/sueno");
-    await page.getByRole("link", { name: "Empieza tu primer ritual" }).click();
-
-    await expect(page).toHaveURL(/\/habitos\/sueno$/, { timeout: 30_000 });
+    await expect(page).toHaveURL(/\/pilares\/sueno$/, { timeout: 30_000 });
     await expect(
       page.getByRole("heading", { name: "Del atardecer al amanecer" }),
     ).toBeVisible();
@@ -64,16 +64,19 @@ test.describe("Del atardecer al amanecer", () => {
     page,
   }) => {
     await completeFirstCycle(page);
+    const suiteDisplayName = await readSuiteAccountDisplayName();
+    const celebration = page
+      .getByTestId("public-habit-celebration")
+      .filter({ hasText: suiteDisplayName });
 
     await page.goto("/");
-    await expect(page.getByTestId("public-habit-celebration")).toHaveCount(0);
-    await page.goto("/habitos/sueno");
+    await expect(celebration).toHaveCount(0);
+    await page.goto("/pilares/sueno");
     await page
       .getByRole("button", { name: "Compartir con la comunidad" })
       .click();
     await page.goto("/");
 
-    const celebration = page.getByTestId("public-habit-celebration");
     await expect(celebration).toBeVisible();
     await expect(
       page.getByText("Nuevo logro comunitario", { exact: false }),
@@ -87,13 +90,15 @@ test.describe("Del atardecer al amanecer", () => {
     });
     expect(beforeFeed).toBe(true);
 
-    await page.getByRole("button", { name: "Celebrar" }).click();
+    await celebration.getByRole("button", { name: "Celebrar" }).click();
     await expect(
-      page.getByRole("button", { name: "Retirar celebración" }),
+      celebration.getByRole("button", { name: "Retirar celebración" }),
     ).toBeVisible();
-    await expect(page.getByText("1 celebraciones")).toBeVisible();
-    await page.getByRole("button", { name: "Retirar celebración" }).click();
-    await expect(page.getByText("0 celebraciones")).toBeVisible();
+    await expect(celebration.getByText("1 celebraciones")).toBeVisible();
+    await celebration
+      .getByRole("button", { name: "Retirar celebración" })
+      .click();
+    await expect(celebration.getByText("0 celebraciones")).toBeVisible();
 
     await page.getByRole("button", { name: "Cerrar este mensaje" }).click();
     await expect(
@@ -106,19 +111,88 @@ test.describe("Del atardecer al amanecer", () => {
     await page.goto("/");
     await expect(celebration).toBeVisible();
 
-    await page.goto("/habitos/sueno");
+    await page.goto("/pilares/sueno");
     await page.getByRole("button", { name: "Dejar de compartir" }).click();
     await page.goto("/");
-    await expect(page.getByTestId("public-habit-celebration")).toHaveCount(0);
-    await page.goto("/habitos/sueno");
+    await expect(celebration).toHaveCount(0);
+    await page.goto("/pilares/sueno");
     await expect(page.getByText("Nivel: Brote")).toBeVisible();
     await expect(page.getByText("10 puntos").first()).toBeVisible();
+  });
+
+  test("sharing several pillars keeps one recent card per celebration", async ({
+    page,
+  }) => {
+    const suiteDisplayName = await readSuiteAccountDisplayName();
+    await completeFirstCycle(page);
+    await page
+      .getByRole("button", { name: "Compartir con la comunidad" })
+      .click();
+
+    await page.goto("/pilares/alimentacion");
+    await page.getByRole("button", { name: "Empezar Una planta más" }).click();
+    await page.getByRole("checkbox", { name: "Elegí mi comida ancla" }).check();
+    await page.getByRole("checkbox", { name: "Sumé una planta" }).check();
+    await page
+      .getByRole("button", { name: "Cultivar mi primera elección" })
+      .click();
+    await page
+      .getByRole("button", { name: "Compartir con la comunidad" })
+      .click();
+    await page.goto("/");
+
+    const suiteCelebrations = page
+      .getByTestId("public-habit-celebration")
+      .filter({ hasText: suiteDisplayName });
+    await expect(suiteCelebrations).toHaveCount(2);
+    await expect(
+      suiteCelebrations.filter({
+        has: page.getByRole("link", { name: /Conocer Una planta más/ }),
+      }),
+    ).toBeVisible();
+    await expect(
+      suiteCelebrations.filter({
+        has: page.getByRole("link", { name: /Conocer el ritual/ }),
+      }),
+    ).toBeVisible();
+    expect(
+      await suiteCelebrations.evaluateAll((cards) =>
+        cards.map((card) => card.getAttribute("data-pillar")),
+      ),
+    ).toEqual(["nutrition", "sleep"]);
+  });
+
+  test("legacy nutrition progress can publish from its persisted repetition", async ({
+    page,
+  }) => {
+    const suiteDisplayName = await readSuiteAccountDisplayName();
+    await page.goto("/pilares/alimentacion");
+    await page.getByRole("button", { name: "Empezar Una planta más" }).click();
+    await page.getByRole("checkbox", { name: "Elegí mi comida ancla" }).check();
+    await page.getByRole("checkbox", { name: "Sumé una planta" }).check();
+    await page
+      .getByRole("button", { name: "Cultivar mi primera elección" })
+      .click();
+    await clearHabitMilestoneMarker("nutrition-one-plant-v1", "first_cycle");
+
+    await page
+      .getByRole("button", { name: "Compartir con la comunidad" })
+      .click();
+    await page.goto("/");
+
+    await expect(
+      page
+        .locator(
+          '[data-testid="public-habit-celebration"][data-pillar="nutrition"]',
+        )
+        .filter({ hasText: suiteDisplayName }),
+    ).toBeVisible();
   });
 
   test("five distinct local mornings complete the seven-day challenge", async ({
     page,
   }) => {
-    await page.goto("/habitos/sueno");
+    await page.goto("/pilares/sueno");
     await page
       .getByRole("button", { name: "Empezar Del atardecer al amanecer" })
       .click();
@@ -170,7 +244,7 @@ test.describe("Del atardecer al amanecer", () => {
     const sleepPlot = page.locator('[data-pillar="sleep"]');
     const before = Number(await sleepPlot.locator("strong").textContent());
 
-    await page.goto("/habitos/sueno");
+    await page.goto("/pilares/sueno");
     await page
       .getByRole("button", { name: "Aportar mis repeticiones al jardín" })
       .click();
@@ -182,7 +256,7 @@ test.describe("Del atardecer al amanecer", () => {
     await page.goto("/");
     await expect(sleepPlot.locator("strong")).toHaveText(String(before + 1));
 
-    await page.goto("/habitos/sueno");
+    await page.goto("/pilares/sueno");
     await page
       .getByRole("button", { name: "Retirar mis repeticiones del jardín" })
       .click();
@@ -193,25 +267,22 @@ test.describe("Del atardecer al amanecer", () => {
     );
   });
 
-  test("another pillar becomes the only active practice and keeps prior progress", async ({
+  test("two pillars keep independent progress at the same time", async ({
     page,
   }) => {
-    await page.goto("/habitos/sueno");
+    await page.goto("/pilares/sueno");
     await page
       .getByRole("button", { name: "Empezar Del atardecer al amanecer" })
       .click();
-    await expect(page.getByText("0 de 7 ciclos")).toBeVisible();
+    await page.getByRole("checkbox").nth(0).check();
+    await page.getByRole("checkbox").nth(1).check();
+    await page
+      .getByRole("button", { name: "Completar mi primer ciclo" })
+      .click();
+    await expect(page.getByText("1 de 7 ciclos")).toBeVisible();
 
     await page.goto("/pilares/alimentacion");
-    const nutritionChallengeLink = page.getByRole("link", {
-      name: "Empieza Una planta más",
-    });
-    await expect(nutritionChallengeLink).toHaveAttribute(
-      "href",
-      "/habitos/alimentacion",
-    );
-    await page.goto("/habitos/alimentacion");
-    await expect(page).toHaveURL(/\/habitos\/alimentacion$/);
+    await expect(page).toHaveURL(/\/pilares\/alimentacion$/);
     await page.getByRole("button", { name: "Empezar Una planta más" }).click();
     await expect(page.getByText("0 de 7 elecciones")).toBeVisible();
     await page.getByRole("checkbox", { name: "Elegí mi comida ancla" }).check();
@@ -221,11 +292,17 @@ test.describe("Del atardecer al amanecer", () => {
       .click();
     await expect(page.getByText("1 de 7 elecciones")).toBeVisible();
 
-    expect(await readHabitOnboardingTestState()).toEqual({
-      active: 1,
-      progress: 2,
-    });
-    await page.goto("/en/habits/nutrition");
+    expect(await countStartedHabitRituals()).toBe(2);
+    await page.goto("/pilares/sueno");
+    await expect(page.getByText("1 de 7 ciclos")).toBeVisible();
+    await expect(page.getByText("10 puntos").first()).toBeVisible();
+    await expect(
+      page.getByRole("button", {
+        name: "Continuar con mi semana de descanso",
+      }),
+    ).toHaveCount(0);
+
+    await page.goto("/en/pillars/alimentacion");
     await expect(
       page.getByRole("heading", { name: "One more plant" }),
     ).toBeVisible();
@@ -238,7 +315,6 @@ test.describe("Del atardecer al amanecer", () => {
     page,
   }) => {
     await page.goto("/pilares/alimentacion");
-    await page.getByRole("link", { name: "Empieza Una planta más" }).click();
     await expect(
       page.getByRole("heading", { name: "Una planta más" }),
     ).toBeVisible();
@@ -287,7 +363,6 @@ test.describe("Del atardecer al amanecer", () => {
     page,
   }) => {
     await page.goto("/pilares/alimentacion");
-    await page.getByRole("link", { name: "Empieza Una planta más" }).click();
     await page.getByRole("button", { name: "Empezar Una planta más" }).click();
     await page.getByRole("checkbox", { name: "Elegí mi comida ancla" }).check();
     await page.getByRole("checkbox", { name: "Sumé una planta" }).check();
@@ -304,7 +379,7 @@ test.describe("Del atardecer al amanecer", () => {
     await expect(card).toContainText("cultivó su primera elección real");
     await expect(
       card.getByRole("link", { name: /Conocer Una planta más/ }),
-    ).toHaveAttribute("href", "/habitos/alimentacion");
+    ).toHaveAttribute("href", "/pilares/alimentacion");
     await expect(page.getByText(/primera elección real/).first()).toBeVisible();
   });
 
@@ -312,9 +387,6 @@ test.describe("Del atardecer al amanecer", () => {
     page,
   }) => {
     await page.goto("/pilares/movimiento");
-    await page
-      .getByRole("link", { name: "Empieza Dos minutos cuentan" })
-      .click();
     await expect(
       page.getByRole("heading", { name: "Dos minutos cuentan" }),
     ).toBeVisible();
@@ -365,9 +437,6 @@ test.describe("Del atardecer al amanecer", () => {
   }) => {
     await page.goto("/pilares/movimiento");
     await page
-      .getByRole("link", { name: "Empieza Dos minutos cuentan" })
-      .click();
-    await page
       .getByRole("button", { name: "Empezar Dos minutos cuentan" })
       .click();
     await page
@@ -391,16 +460,13 @@ test.describe("Del atardecer al amanecer", () => {
     await expect(card).toContainText("empezó a moverse");
     await expect(
       card.getByRole("link", { name: /Conocer Dos minutos cuentan/ }),
-    ).toHaveAttribute("href", "/habitos/movimiento");
+    ).toHaveAttribute("href", "/pilares/movimiento");
   });
 
   test("mind and community rewards presence without requiring a reply", async ({
     page,
   }) => {
     await page.goto("/pilares/mente-espiritu");
-    await page
-      .getByRole("link", { name: "Empieza Un vínculo consciente" })
-      .click();
     await expect(
       page.getByRole("heading", { name: "Un vínculo consciente" }),
     ).toBeVisible();
@@ -453,9 +519,6 @@ test.describe("Del atardecer al amanecer", () => {
   }) => {
     await page.goto("/pilares/mente-espiritu");
     await page
-      .getByRole("link", { name: "Empieza Un vínculo consciente" })
-      .click();
-    await page
       .getByRole("button", { name: "Empezar Un vínculo consciente" })
       .click();
     await page
@@ -481,7 +544,7 @@ test.describe("Del atardecer al amanecer", () => {
     await expect(card).toContainText("cultivó un vínculo real");
     await expect(
       card.getByRole("link", { name: /Conocer Un vínculo consciente/ }),
-    ).toHaveAttribute("href", "/habitos/mente-espiritu");
+    ).toHaveAttribute("href", "/pilares/mente-espiritu");
     await expect(card).not.toContainText(/respuestas|popularidad/);
   });
 
@@ -501,45 +564,96 @@ test.describe("Del atardecer al amanecer", () => {
     ).toHaveCount(0);
   });
 
-  test("every pillar centers its challenge invitation before references", async ({
+  test("the sleep practice is part of its pillar before references", async ({
+    page,
+  }) => {
+    await page.goto("/pilares/sueno");
+
+    await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
+    const pageTitle = page.getByRole("heading", {
+      level: 1,
+      name: "1. Sueño y Descanso",
+    });
+    const pageHero = pageTitle.locator("xpath=ancestor::header");
+    await expect(pageHero).toContainText(
+      "La base de la recuperación biológica y la salud a largo plazo.",
+    );
+    await expect(pageHero).toContainText(
+      "Soy una persona que protege su descanso.",
+    );
+    const practice = page.getByRole("heading", {
+      level: 2,
+      name: "Del atardecer al amanecer",
+    });
+    await expect(practice).toBeVisible();
+
+    const precedesReferences = await practice.evaluate((heading) => {
+      const section = heading.closest("section");
+      const references = [...document.querySelectorAll("h3")]
+        .find((candidate) => candidate.textContent?.trim() === "Referencias")
+        ?.closest("section");
+      return Boolean(
+        section &&
+          references &&
+          section.compareDocumentPosition(references) &
+            Node.DOCUMENT_POSITION_FOLLOWING,
+      );
+    });
+    expect(precedesReferences).toBe(true);
+  });
+
+  test("the remaining pillars embed a specific ritual before references", async ({
     page,
   }) => {
     const pillars = [
-      ["/pilares/sueno", "Empieza tu primer ritual"],
-      ["/pilares/alimentacion", "Empieza Una planta más"],
-      ["/pilares/movimiento", "Empieza Dos minutos cuentan"],
-      ["/pilares/mente-espiritu", "Empieza Un vínculo consciente"],
+      [
+        "/pilares/alimentacion",
+        "Una planta más",
+        "Soy una persona que hace fácil elegir comida real",
+        "Elegir, preparar, sumar y notar",
+      ],
+      [
+        "/pilares/movimiento",
+        "Dos minutos cuentan",
+        "Soy una persona que empieza a moverse",
+        "Preparar, empezar, moverse y notar",
+      ],
+      [
+        "/pilares/mente-espiritu",
+        "Un vínculo consciente",
+        "Soy una persona que cultiva vínculos reales",
+        "Pausar, elegir, contactar, escuchar y agradecer",
+      ],
     ] as const;
 
-    for (const [path, invitation] of pillars) {
+    for (const [path, challenge, identity, ritual] of pillars) {
       await page.goto(path);
-      const link = page.getByRole("link", { name: invitation });
-      await expect(link).toBeVisible();
+      await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
+      await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+        /Alimentación|Movimiento|Emociones/,
+      );
+      await expect(page.getByText(identity)).toBeVisible();
+      const practice = page.getByRole("heading", { level: 2, name: challenge });
+      await expect(practice).toBeVisible();
+      const ritualSection = page
+        .getByRole("heading", { level: 2, name: ritual })
+        .locator("xpath=ancestor::section");
+      await expect(ritualSection.getByRole("listitem")).toHaveCount(5);
 
-      const layout = await link.evaluate((element) => {
-        const callToAction = element.closest("section");
+      const precedesReferences = await practice.evaluate((heading) => {
+        const practiceSection = heading.closest("section");
         const references = [...document.querySelectorAll("h3")]
           .find((heading) => heading.textContent?.trim() === "Referencias")
           ?.closest("section");
-        if (!callToAction || !references) return null;
-
-        const callToActionBox = callToAction.getBoundingClientRect();
-        const linkBox = element.getBoundingClientRect();
-        return {
-          centerDistance: Math.abs(
-            callToActionBox.left +
-              callToActionBox.width / 2 -
-              (linkBox.left + linkBox.width / 2),
-          ),
-          precedesReferences: Boolean(
-            callToAction.compareDocumentPosition(references) &
+        return Boolean(
+          practiceSection &&
+            references &&
+            practiceSection.compareDocumentPosition(references) &
               Node.DOCUMENT_POSITION_FOLLOWING,
-          ),
-        };
+        );
       });
 
-      expect(layout?.precedesReferences, path).toBe(true);
-      expect(layout?.centerDistance, path).toBeLessThan(2);
+      expect(precedesReferences, path).toBe(true);
     }
   });
 
@@ -549,26 +663,32 @@ test.describe("Del atardecer al amanecer", () => {
     const routes = [
       ["/habitos", /at[oó]mico|external_id|puerto de env[ií]o|onboarding/i],
       [
-        "/habitos/sueno",
+        "/pilares/sueno",
         /at[oó]mico|external_id|puerto de env[ií]o|onboarding/i,
       ],
       [
-        "/habitos/alimentacion",
+        "/pilares/alimentacion",
         /at[oó]mico|external_id|puerto de env[ií]o|onboarding/i,
       ],
       [
-        "/habitos/movimiento",
+        "/pilares/movimiento",
         /at[oó]mico|external_id|puerto de env[ií]o|onboarding/i,
       ],
       [
-        "/habitos/mente-espiritu",
+        "/pilares/mente-espiritu",
         /at[oó]mico|external_id|puerto de env[ií]o|onboarding/i,
       ],
       ["/en/habits", /atomic|external_id|sending port|onboarding/i],
-      ["/en/habits/sleep", /atomic|external_id|sending port|onboarding/i],
-      ["/en/habits/nutrition", /atomic|external_id|sending port|onboarding/i],
-      ["/en/habits/movement", /atomic|external_id|sending port|onboarding/i],
-      ["/en/habits/mind-spirit", /atomic|external_id|sending port|onboarding/i],
+      ["/en/pillars/sueno", /atomic|external_id|sending port|onboarding/i],
+      [
+        "/en/pillars/alimentacion",
+        /atomic|external_id|sending port|onboarding/i,
+      ],
+      ["/en/pillars/movimiento", /atomic|external_id|sending port|onboarding/i],
+      [
+        "/en/pillars/mente-espiritu",
+        /atomic|external_id|sending port|onboarding/i,
+      ],
     ] as const;
 
     for (const [path, internalTerms] of routes) {
@@ -588,20 +708,53 @@ test.describe("Del atardecer al amanecer", () => {
   });
 });
 
-test("starting without a session preserves the return destination", async ({
+test("starting without a session preserves each pillar destination", async ({
   page,
 }) => {
-  await page.goto("/habitos/sueno");
+  const pillars = [
+    ["/pilares/sueno", "/auth/signin?callbackUrl=%2Fpilares%2Fsueno"],
+    [
+      "/pilares/alimentacion",
+      "/auth/signin?callbackUrl=%2Fpilares%2Falimentacion",
+    ],
+    ["/pilares/movimiento", "/auth/signin?callbackUrl=%2Fpilares%2Fmovimiento"],
+    [
+      "/pilares/mente-espiritu",
+      "/auth/signin?callbackUrl=%2Fpilares%2Fmente-espiritu",
+    ],
+  ] as const;
 
-  await expect(
-    page.getByRole("link", { name: "Inicia sesión para empezar" }),
-  ).toHaveAttribute("href", "/auth/signin?callbackUrl=%2Fhabitos%2Fsueno");
+  for (const [path, callback] of pillars) {
+    await page.goto(path);
+    await expect(
+      page.getByRole("link", { name: "Inicia sesión para empezar" }),
+    ).toHaveAttribute("href", callback);
+  }
+});
+
+test("the unpublished habit detail URLs no longer exist or redirect", async ({
+  request,
+}) => {
+  for (const path of [
+    "/habitos/sueno",
+    "/en/habits/sleep",
+    "/habitos/alimentacion",
+    "/en/habits/nutrition",
+    "/habitos/movimiento",
+    "/en/habits/movement",
+    "/habitos/mente-espiritu",
+    "/en/habits/mind-spirit",
+  ]) {
+    const response = await request.get(path, { maxRedirects: 0 });
+
+    expect(response.status(), path).toBe(404);
+  }
 });
 
 async function completeFirstCycle(
   page: import("@playwright/test").Page,
 ): Promise<void> {
-  await page.goto("/habitos/sueno");
+  await page.goto("/pilares/sueno");
   await page
     .getByRole("button", { name: "Empezar Del atardecer al amanecer" })
     .click();

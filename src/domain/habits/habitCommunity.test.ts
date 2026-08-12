@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   applyCelebrationReactionIntent,
   buildCommunityGarden,
+  canPublishHabitCelebration,
 } from "./habitCommunity";
 
 describe("habit community", () => {
@@ -31,6 +32,21 @@ describe("habit community", () => {
     "applies current=%s intent=%s idempotently as %s",
     (current, intent, expected) => {
       expect(applyCelebrationReactionIntent(current, intent)).toBe(expected);
+    },
+  );
+
+  it.each([
+    [0, "first_cycle", false],
+    [1, "first_cycle", true],
+    [4, "first_cycle", true],
+    [4, "challenge_completed", false],
+    [5, "challenge_completed", true],
+  ] as const)(
+    "allows %i persisted repetitions for milestone %s as %s",
+    (completedRepetitions, milestone, expected) => {
+      expect(canPublishHabitCelebration(completedRepetitions, milestone)).toBe(
+        expected,
+      );
     },
   );
 });

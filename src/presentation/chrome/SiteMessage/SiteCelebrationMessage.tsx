@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { getTranslations } from "next-intl/server";
 import { Link } from "~/i18n/navigation";
+import { pillarHref } from "~/i18n/routes";
 import {
   CELEBRATION_DISMISSAL_COOKIE,
   isCelebrationDismissed,
@@ -34,7 +35,7 @@ export default async function SiteCelebrationMessage(): Promise<React.ReactNode>
         body: final
           ? habitT("nutritionExperience.siteMessageFinalBody", { name })
           : habitT("nutritionExperience.siteMessageBody", { name }),
-        href: "/habitos/alimentacion" as const,
+        href: pillarHref("alimentacion"),
         link: habitT("nutritionExperience.publicLink"),
       }
     : movement
@@ -42,7 +43,7 @@ export default async function SiteCelebrationMessage(): Promise<React.ReactNode>
           body: final
             ? habitT("movementExperience.siteMessageFinalBody", { name })
             : habitT("movementExperience.siteMessageBody", { name }),
-          href: "/habitos/movimiento" as const,
+          href: pillarHref("movimiento"),
           link: habitT("movementExperience.publicLink"),
         }
       : mind
@@ -50,14 +51,14 @@ export default async function SiteCelebrationMessage(): Promise<React.ReactNode>
             body: final
               ? habitT("mindExperience.siteMessageFinalBody", { name })
               : habitT("mindExperience.siteMessageBody", { name }),
-            href: "/habitos/mente-espiritu" as const,
+            href: pillarHref("mente-espiritu"),
             link: habitT("mindExperience.publicLink"),
           }
         : {
             body: final
               ? t("siteMessageFinalBody", { name })
               : t("siteMessageBody", { name }),
-            href: "/habitos/sueno" as const,
+            href: pillarHref("sueno"),
             link: t("communityLink"),
           };
   const theme = getHabitPublicTheme(

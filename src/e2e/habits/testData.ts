@@ -1,15 +1,18 @@
-import { eq, sql } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import {
+  ATOMIC_SLEEP_CHALLENGE_KEY,
   addLocalDays,
   localDateAt,
 } from "~/domain/habits/atomicSleepChallenge";
 import { findSuiteUserId } from "~/e2e/testUtils/suiteAccount";
 import { db } from "~/infra/dataAccess/db/connection";
+import { users } from "~/infra/dataAccess/db/schema/auth";
 import {
   habitChallengeProgress,
   habitLeagueOptIns,
   habitRepetitions,
 } from "~/infra/dataAccess/db/schema/habits";
+import type { HabitCelebrationMilestone } from "~/use_cases/habits/ports/AtomicSleepChallengeRepository";
 
 export async function deleteAtomicSleepChallengeTestData(): Promise<void> {
   const userId = await findSuiteUserId();
@@ -35,7 +38,12 @@ export async function backdateAtomicSleepChallengeForSevenDayTest(): Promise<
       periodStartDate: startDate,
       periodEndDate: addLocalDays(startDate, 7),
     })
-    .where(eq(habitChallengeProgress.userId, userId))
+    .where(
+      and(
+        eq(habitChallengeProgress.userId, userId),
+        eq(habitChallengeProgress.challengeKey, ATOMIC_SLEEP_CHALLENGE_KEY),
+      ),
+    )
     .returning({ userId: habitChallengeProgress.userId });
   if (updated.length !== 1) {
     throw new Error(
@@ -52,21 +60,53 @@ export async function countAtomicSleepRepetitions(): Promise<number> {
   const rows = await db
     .select({ id: habitRepetitions.id })
     .from(habitRepetitions)
-    .where(eq(habitRepetitions.userId, userId));
+    .where(
+      and(
+        eq(habitRepetitions.userId, userId),
+        eq(habitRepetitions.challengeKey, ATOMIC_SLEEP_CHALLENGE_KEY),
+      ),
+    );
   return rows.length;
 }
 
-export async function readHabitOnboardingTestState(): Promise<{
-  active: number;
-  progress: number;
-}> {
+export async function readSuiteAccountDisplayName(): Promise<string> {
   const userId = await findSuiteUserId();
-  const result = await db.execute(sql`
-    SELECT
-      count(*) FILTER (WHERE active_for_onboarding = true)::int AS active,
-      count(*)::int AS progress
-    FROM habit_challenge_progress
-    WHERE user_id = ${userId}
-  `);
-  return result.rows[0] as { active: number; progress: number };
+  const [suiteUser] = await db
+    .select({ name: users.name })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
+  if (!suiteUser?.name) {
+    throw new Error("The E2E suite account needs a display name.");
+  }
+  return suiteUser.name;
+}
+
+export async function countStartedHabitRituals(): Promise<number> {
+  const userId = await findSuiteUserId();
+  const rows = await db
+    .select({ challengeKey: habitChallengeProgress.challengeKey })
+    .from(habitChallengeProgress)
+    .where(eq(habitChallengeProgress.userId, userId));
+  return rows.length;
+}
+
+export async function clearHabitMilestoneMarker(
+  challengeKey: string,
+  milestone: HabitCelebrationMilestone,
+): Promise<void> {
+  const userId = await findSuiteUserId();
+  await db
+    .update(habitChallengeProgress)
+    .set(
+      milestone === "first_cycle"
+        ? { firstCycleCompletedAt: null }
+        : { finalCompletedAt: null },
+    )
+    .where(
+      and(
+        eq(habitChallengeProgress.userId, userId),
+        eq(habitChallengeProgress.challengeKey, challengeKey),
+      ),
+    );
 }

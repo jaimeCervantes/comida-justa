@@ -5,8 +5,12 @@ import type { PublicFirstCycleCelebration } from "~/use_cases/habits/ports/Atomi
 export const readLatestPublicCelebration = cache(
   async (
     viewerId?: string | null,
-  ): Promise<PublicFirstCycleCelebration | null> =>
-    createAtomicSleepChallengeRepository().findLatestPublicCelebration(
-      viewerId,
-    ),
+  ): Promise<PublicFirstCycleCelebration | null> => {
+    const celebrations =
+      await createAtomicSleepChallengeRepository().findRecentPublicCelebrations(
+        1,
+        viewerId,
+      );
+    return celebrations[0] ?? null;
+  },
 );

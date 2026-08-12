@@ -1,5 +1,6 @@
 export type HabitPillar = "sleep" | "nutrition" | "movement" | "mind";
 export type CelebrationReactionIntent = "celebrate" | "withdraw";
+export type HabitCelebrationMilestone = "first_cycle" | "challenge_completed";
 
 export type CommunityGarden = Record<HabitPillar, number> & { total: number };
 
@@ -34,4 +35,11 @@ export function applyCelebrationReactionIntent(
   intent: CelebrationReactionIntent,
 ): boolean {
   return intent === "celebrate";
+}
+
+export function canPublishHabitCelebration(
+  completedRepetitions: number,
+  milestone: HabitCelebrationMilestone,
+): boolean {
+  return completedRepetitions >= (milestone === "challenge_completed" ? 5 : 1);
 }
