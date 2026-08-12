@@ -12,6 +12,10 @@ import { getPillarTheme } from "./pillarThemes";
  *
  * Cada clave se escribe entera y a mano: una clave compuesta en tiempo de ejecución es una clave
  * que no aparece al buscarla, y `AGENTS.md` lo prohíbe fuera de uniones cerradas.
+ *
+ * Los pasos del ritual salen aparte (`experienceRitualSteps`) y no de esta unión: Alimentación
+ * tiene seis y los demás cinco, así que un traductor común que prometiera `ritualStep6` dejaría de
+ * aceptar a Movimiento y a Mente. La forma que comparten los tres es todo lo demás.
  */
 type ExperienceKey = Exclude<HabitChallengeExperienceKey, "sleep">;
 
@@ -25,11 +29,6 @@ type ExperienceCopyKey =
   | "preparationBody"
   | "preparationTitle"
   | "ritualBody"
-  | "ritualStep1"
-  | "ritualStep2"
-  | "ritualStep3"
-  | "ritualStep4"
-  | "ritualStep5"
   | "ritualTitle"
   | "safety"
   | "title";
@@ -78,7 +77,10 @@ export async function getPillarPracticeCopy(
     };
   }
 
-  const t = await experienceTranslator(challenge);
+  const [t, steps] = await Promise.all([
+    experienceTranslator(challenge),
+    experienceRitualSteps(challenge),
+  ]);
   return {
     eyebrow: t("eyebrow"),
     title: t("title"),
@@ -96,13 +98,7 @@ export async function getPillarPracticeCopy(
       eyebrow: ritualEyebrow,
       title: t("ritualTitle"),
       body: t("ritualBody"),
-      steps: [
-        t("ritualStep1"),
-        t("ritualStep2"),
-        t("ritualStep3"),
-        t("ritualStep4"),
-        t("ritualStep5"),
-      ],
+      steps,
       safety: t("safety"),
     },
   };
@@ -118,4 +114,45 @@ async function experienceTranslator(
     return getTranslations("atomicChallenges.movementExperience");
   }
   return getTranslations("atomicChallenges.mindExperience");
+}
+
+/**
+ * Los pasos del ritual, uno por uno y por reto.
+ *
+ * Alimentación tiene seis —abastecer, anclar, cocinar, servir, estar y notar— y los otros dos
+ * cinco. El número no es un detalle de redacción que se pueda deducir: es el catálogo quien decide
+ * cuántos pasos existen, y la sección los pinta todos sin contarlos.
+ */
+async function experienceRitualSteps(
+  challenge: ExperienceKey,
+): Promise<readonly string[]> {
+  if (challenge === "nutrition") {
+    const t = await getTranslations("atomicChallenges.nutritionExperience");
+    return [
+      t("ritualStep1"),
+      t("ritualStep2"),
+      t("ritualStep3"),
+      t("ritualStep4"),
+      t("ritualStep5"),
+      t("ritualStep6"),
+    ];
+  }
+  if (challenge === "movement") {
+    const t = await getTranslations("atomicChallenges.movementExperience");
+    return [
+      t("ritualStep1"),
+      t("ritualStep2"),
+      t("ritualStep3"),
+      t("ritualStep4"),
+      t("ritualStep5"),
+    ];
+  }
+  const t = await getTranslations("atomicChallenges.mindExperience");
+  return [
+    t("ritualStep1"),
+    t("ritualStep2"),
+    t("ritualStep3"),
+    t("ritualStep4"),
+    t("ritualStep5"),
+  ];
 }

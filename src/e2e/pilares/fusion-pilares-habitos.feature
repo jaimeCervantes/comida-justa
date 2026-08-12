@@ -69,14 +69,14 @@ Feature: Explicacion y practica viven juntas en Pilares
     Then sigo en "<ruta>" y la practica aparece antes de "Referencias"
     And el hero inicial reune el titulo del pilar y la identidad "<identidad>"
     And la practica distingue la senal "<senal>" del minimo "<minimo>"
-    And el ritual "<ritual>" contiene cinco pasos y termina con "<ultimo-paso>"
+    And el ritual "<ritual>" contiene "<pasos>" pasos y termina con "<ultimo-paso>"
     And la pagina conserva un solo encabezado principal
 
     Examples: informacion y accion especificas por pilar
-      | pilar            | ruta                       | reto                  | identidad                                               | senal                        | minimo                      | ritual                                              | ultimo-paso                                      |
-      | Alimentacion     | /pilares/alimentacion      | Una planta más        | Soy una persona que hace fácil elegir comida real       | Elegir mi comida ancla       | Sumar una planta            | Elegir, preparar, sumar y notar                     | Notar qué combinación resultó fácil.             |
-      | Movimiento       | /pilares/movimiento        | Dos minutos cuentan   | Soy una persona que empieza a moverse                   | Elegir una señal de inicio   | Moverme dos minutos         | Preparar, empezar, moverse y notar                 | Decidir libremente si continuar o cerrar.        |
-      | Mente/Espiritu   | /pilares/mente-espiritu    | Un vínculo consciente | Soy una persona que cultiva vínculos reales             | Pausar fuera del ruido digital| Enviar presencia y dejar espacio | Pausar, elegir, contactar, escuchar y agradecer | Agradecer el vínculo sin exigir reacción.        |
+      | pilar            | ruta                       | reto                            | identidad                                                                   | senal                         | minimo                           | ritual                                            | pasos | ultimo-paso                                    |
+      | Alimentacion     | /pilares/alimentacion      | Cena real, local y al atardecer | Soy una persona que hace fácil elegir comida real, fresca y de origen local | Cenar al atardecer            | Servir la triada local           | Abastecer, anclar, cocinar, servir, estar y notar | 6     | Notar el triple impacto a la mañana siguiente. |
+      | Movimiento       | /pilares/movimiento        | Dos minutos cuentan             | Soy una persona que empieza a moverse                                       | Elegir una señal de inicio    | Moverme dos minutos              | Preparar, empezar, moverse y notar                | 5     | Decidir libremente si continuar o cerrar.      |
+      | Mente/Espiritu   | /pilares/mente-espiritu    | Un vínculo consciente           | Soy una persona que cultiva vínculos reales                                 | Pausar fuera del ruido digital| Enviar presencia y dejar espacio | Pausar, elegir, contactar, escuchar y agradecer   | 5     | Agradecer el vínculo sin exigir reacción.      |
 
   @slice-2
   Scenario Outline: La autenticacion vuelve a la practica dentro de su pilar
@@ -85,13 +85,13 @@ Feature: Explicacion y practica viven juntas en Pilares
     Then llego a iniciar sesion con "<ruta>" como destino de regreso
 
     Examples: callbacks localizados sin traducir el slug del pilar
-      | ruta                            | reto                     |
-      | /pilares/alimentacion           | Una planta más           |
-      | /en/pillars/alimentacion        | One more plant           |
-      | /pilares/movimiento             | Dos minutos cuentan      |
-      | /en/pillars/movimiento          | Two minutes count        |
-      | /pilares/mente-espiritu         | Un vínculo consciente    |
-      | /en/pillars/mente-espiritu      | One conscious connection |
+      | ruta                            | reto                            |
+      | /pilares/alimentacion           | Cena real, local y al atardecer |
+      | /en/pillars/alimentacion        | A real, local dinner at sunset  |
+      | /pilares/movimiento             | Dos minutos cuentan             |
+      | /en/pillars/movimiento          | Two minutes count               |
+      | /pilares/mente-espiritu         | Un vínculo consciente           |
+      | /en/pillars/mente-espiritu      | One conscious connection        |
 
   @slice-2
   Scenario Outline: Las URL antiguas de los otros pilares dejan de existir
@@ -116,10 +116,10 @@ Feature: Explicacion y practica viven juntas en Pilares
     Then llego a "<destino>" y encuentro "<reto>" dentro del pilar
 
     Examples: destinos publicos nuevos
-      | reto                  | destino                    |
-      | Una planta más        | /pilares/alimentacion      |
-      | Dos minutos cuentan   | /pilares/movimiento        |
-      | Un vínculo consciente | /pilares/mente-espiritu    |
+      | reto                            | destino                 |
+      | Cena real, local y al atardecer | /pilares/alimentacion   |
+      | Dos minutos cuentan             | /pilares/movimiento     |
+      | Un vínculo consciente           | /pilares/mente-espiritu |
 
   @slice-3 @future
   Scenario: El indice de Pilares sustituye al indice de Habitos

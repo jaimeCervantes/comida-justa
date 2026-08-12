@@ -142,4 +142,34 @@ describe("the optional pieces", () => {
     expect(screen.queryByText("Tu versión mínima")).not.toBeInTheDocument();
     expect(screen.getAllByRole("heading", { level: 3 })).toHaveLength(2);
   });
+
+  /**
+   * Alimentación cerró su ritual con un sexto paso —notar el triple impacto— y los otros tres
+   * siguen en cinco. La sección pinta los pasos que le den y no cuenta: si volviera a asumir cinco,
+   * el paso que cierra la práctica desaparecería sin que fallara nada más.
+   */
+  it("paints as many ritual steps as the pillar hands it", () => {
+    renderPractice(
+      "nutrition",
+      practiceCopy({
+        ritual: {
+          eyebrow: "Ritual recomendado",
+          title: "Abastecer, anclar, cocinar, servir, estar y notar",
+          body: "Seis pasos que se sostienen entre sí.",
+          steps: ["Uno.", "Dos.", "Tres.", "Cuatro.", "Cinco.", "Seis."],
+          safety: "Adapta la práctica a tu contexto.",
+        },
+      }),
+    );
+
+    const ritual = screen
+      .getByRole("heading", {
+        level: 2,
+        name: "Abastecer, anclar, cocinar, servir, estar y notar",
+      })
+      .closest("section") as HTMLElement;
+
+    expect(within(ritual).getAllByRole("listitem")).toHaveLength(6);
+    expect(within(ritual).getByText("Seis.")).toBeInTheDocument();
+  });
 });

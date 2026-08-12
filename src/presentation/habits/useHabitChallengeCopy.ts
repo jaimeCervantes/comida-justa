@@ -69,9 +69,46 @@ type SleepTranslator = ReturnType<
 type CommonTranslator = ReturnType<
   typeof useTranslations<"atomicChallenges.experienceCommon">
 >;
-type ExperienceTranslator = ReturnType<
-  typeof useTranslations<"atomicChallenges.nutritionExperience">
->;
+
+/**
+ * Lo que el panel le pide a un reto, escrito como unión y no derivado del espacio de nombres de
+ * Alimentación.
+ *
+ * Derivarlo de Alimentación funcionaba solo mientras los tres retos fueran idénticos: en cuanto uno
+ * estrenó una clave propia (`ritualStep6`, del ritual de seis pasos), Movimiento y Mente dejaron de
+ * ser asignables a un traductor que prometía esa clave, y el error salía aquí —lejos de la línea
+ * que lo causó—. La unión explícita dice lo que el panel realmente lee, que es lo que los tres sí
+ * comparten.
+ */
+type ExperiencePanelKey =
+  | "badgeHarvest"
+  | "celebrationBody"
+  | "celebrationEyebrow"
+  | "celebrationTitle"
+  | "comebackBody"
+  | "comebackTitle"
+  | "complete"
+  | "continueWeek"
+  | "cueCheckbox"
+  | "cycleDate"
+  | "cycleRecorded"
+  | "cycleRecordedBody"
+  | "finalBody"
+  | "finalEyebrow"
+  | "finalTitle"
+  | "incomplete"
+  | "minimumCheckbox"
+  | "minimumHeading"
+  | "noHabitClaim"
+  | "progressCounter"
+  | "recordCycle"
+  | "start"
+  | "weekEyebrow";
+
+type ExperienceTranslator = (
+  key: ExperiencePanelKey,
+  values?: Record<string, number | string>,
+) => string;
 
 export function useHabitChallengeCopy(
   challenge: HabitChallengeExperienceKey,

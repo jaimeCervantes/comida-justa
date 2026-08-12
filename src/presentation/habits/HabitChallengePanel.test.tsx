@@ -1,13 +1,13 @@
 import { screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { renderWithIntl } from "~/infra/test-utils/renderWithIntl";
-import type { AtomicSleepProgress } from "~/use_cases/habits/atomicSleepChallengeUseCase";
+import type { HabitChallengeProgress } from "~/use_cases/habits/habitChallengeUseCase";
 import HabitChallengePanel from "./HabitChallengePanel";
 
 const action = vi.fn(async (state) => state);
 
 describe("HabitChallengePanel", () => {
-  const progress: AtomicSleepProgress = {
+  const progress: HabitChallengeProgress = {
     level: "seed",
     xp: 0,
     badge: null,
@@ -45,11 +45,11 @@ describe("HabitChallengePanel", () => {
       />,
     );
 
-    expect(screen.getByText("1 de 7 elecciones")).toBeInTheDocument();
+    expect(screen.getByText("1 de 7 cenas")).toBeInTheDocument();
     expect(screen.getAllByText("10 puntos").length).toBeGreaterThan(0);
     expect(
       screen.queryByRole("button", {
-        name: "Continuar mi semana de elecciones reales",
+        name: "Continuar mi semana de cenas reales",
       }),
     ).not.toBeInTheDocument();
   });
@@ -66,13 +66,15 @@ describe("HabitChallengePanel", () => {
     );
 
     expect(
-      screen.getByRole("checkbox", { name: "Elegí mi comida ancla" }),
+      screen.getByRole("checkbox", { name: "Cené al atardecer" }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("checkbox", { name: "Sumé una planta" }),
+      screen.getByRole("checkbox", {
+        name: "Serví la triada con una planta más",
+      }),
     ).toBeInTheDocument();
     expect(screen.getAllByRole("checkbox")).toHaveLength(2);
-    expect(screen.queryByText(/lavad[oa]/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/a granel/i)).not.toBeInTheDocument();
   });
 
   it("renders Nutrition's own final milestone", () => {
@@ -101,10 +103,10 @@ describe("HabitChallengePanel", () => {
 
     expect(
       screen.getByRole("heading", {
-        name: "Cultivaste cinco elecciones reales",
+        name: "Cultivaste cinco cenas reales",
       }),
     ).toBeInTheDocument();
-    expect(screen.getByText("5 de 7 elecciones")).toBeInTheDocument();
+    expect(screen.getByText("5 de 7 cenas")).toBeInTheDocument();
   });
 
   it("scores Movement's cue and two-minute minimum without scoring continuation", () => {
@@ -282,7 +284,7 @@ describe("HabitChallengePanel", () => {
             ...progress,
             level: "harvest",
             xp: 50,
-            badge: "sleep-harvest",
+            badge: "harvest",
             completedCycles: 5,
             completedDates: [
               "2026-08-06",

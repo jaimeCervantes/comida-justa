@@ -7,9 +7,9 @@ import {
 import {
   backdateHabitChallengeForSevenDayTest,
   clearHabitMilestoneMarker,
-  countAtomicSleepRepetitions,
+  countSleepRepetitions,
   countStartedHabitRituals,
-  deleteAtomicSleepChallengeTestData,
+  deleteHabitChallengeTestData,
   readSuiteAccountDisplayName,
 } from "./testData";
 
@@ -17,12 +17,12 @@ test.describe("Del atardecer al amanecer", () => {
   let session: DbSession | null = null;
 
   test.beforeEach(async ({ page, browserName }) => {
-    await deleteAtomicSleepChallengeTestData();
+    await deleteHabitChallengeTestData();
     session = await simulateLogin(page, browserName);
   });
 
   test.afterEach(async () => {
-    await deleteAtomicSleepChallengeTestData();
+    await deleteHabitChallengeTestData();
     if (session) await deleteSession(session.sessionToken);
     session = null;
   });
@@ -130,11 +130,15 @@ test.describe("Del atardecer al amanecer", () => {
       .click();
 
     await page.goto("/pilares/alimentacion");
-    await page.getByRole("button", { name: "Empezar Una planta más" }).click();
-    await page.getByRole("checkbox", { name: "Elegí mi comida ancla" }).check();
-    await page.getByRole("checkbox", { name: "Sumé una planta" }).check();
     await page
-      .getByRole("button", { name: "Cultivar mi primera elección" })
+      .getByRole("button", { name: "Empezar Cena real, local y al atardecer" })
+      .click();
+    await page.getByRole("checkbox", { name: "Cené al atardecer" }).check();
+    await page
+      .getByRole("checkbox", { name: "Serví la triada con una planta más" })
+      .check();
+    await page
+      .getByRole("button", { name: "Cultivar mi primera cena" })
       .click();
     await page
       .getByRole("button", { name: "Compartir con la comunidad" })
@@ -147,7 +151,9 @@ test.describe("Del atardecer al amanecer", () => {
     await expect(suiteCelebrations).toHaveCount(2);
     await expect(
       suiteCelebrations.filter({
-        has: page.getByRole("link", { name: /Conocer Una planta más/ }),
+        has: page.getByRole("link", {
+          name: /Conocer Cena real, local y al atardecer/,
+        }),
       }),
     ).toBeVisible();
     await expect(
@@ -167,11 +173,15 @@ test.describe("Del atardecer al amanecer", () => {
   }) => {
     const suiteDisplayName = await readSuiteAccountDisplayName();
     await page.goto("/pilares/alimentacion");
-    await page.getByRole("button", { name: "Empezar Una planta más" }).click();
-    await page.getByRole("checkbox", { name: "Elegí mi comida ancla" }).check();
-    await page.getByRole("checkbox", { name: "Sumé una planta" }).check();
     await page
-      .getByRole("button", { name: "Cultivar mi primera elección" })
+      .getByRole("button", { name: "Empezar Cena real, local y al atardecer" })
+      .click();
+    await page.getByRole("checkbox", { name: "Cené al atardecer" }).check();
+    await page
+      .getByRole("checkbox", { name: "Serví la triada con una planta más" })
+      .check();
+    await page
+      .getByRole("button", { name: "Cultivar mi primera cena" })
       .click();
     await clearHabitMilestoneMarker("nutrition-one-plant-v1", "first_cycle");
 
@@ -226,7 +236,7 @@ test.describe("Del atardecer al amanecer", () => {
     await expect(
       page.getByText(/Siete días no bastan para afirmar/),
     ).toBeVisible();
-    expect(await countAtomicSleepRepetitions()).toBe(5);
+    expect(await countSleepRepetitions()).toBe(5);
 
     await page
       .getByRole("button", { name: "Compartir con la comunidad" })
@@ -280,14 +290,18 @@ test.describe("Del atardecer al amanecer", () => {
 
     await page.goto("/pilares/alimentacion");
     await expect(page).toHaveURL(/\/pilares\/alimentacion$/);
-    await page.getByRole("button", { name: "Empezar Una planta más" }).click();
-    await expect(page.getByText("0 de 7 elecciones")).toBeVisible();
-    await page.getByRole("checkbox", { name: "Elegí mi comida ancla" }).check();
-    await page.getByRole("checkbox", { name: "Sumé una planta" }).check();
     await page
-      .getByRole("button", { name: "Cultivar mi primera elección" })
+      .getByRole("button", { name: "Empezar Cena real, local y al atardecer" })
       .click();
-    await expect(page.getByText("1 de 7 elecciones")).toBeVisible();
+    await expect(page.getByText("0 de 7 cenas")).toBeVisible();
+    await page.getByRole("checkbox", { name: "Cené al atardecer" }).check();
+    await page
+      .getByRole("checkbox", { name: "Serví la triada con una planta más" })
+      .check();
+    await page
+      .getByRole("button", { name: "Cultivar mi primera cena" })
+      .click();
+    await expect(page.getByText("1 de 7 cenas")).toBeVisible();
 
     expect(await countStartedHabitRituals()).toBe(2);
     await page.goto("/pilares/sueno");
@@ -301,7 +315,9 @@ test.describe("Del atardecer al amanecer", () => {
 
     await page.goto("/en/pillars/alimentacion");
     await expect(
-      page.getByRole("heading", { name: "One more plant" }),
+      page.getByRole("heading", {
+        name: "A real, local dinner at sunset",
+      }),
     ).toBeVisible();
     /* La práctica del pilar cerraba con un botón de recordatorios permanentemente deshabilitado:
        prometía algo que la página no puede dar. El aviso sigue en el índice de Hábitos, que es donde
@@ -316,48 +332,71 @@ test.describe("Del atardecer al amanecer", () => {
   }) => {
     await page.goto("/pilares/alimentacion");
     await expect(
-      page.getByRole("heading", { name: "Una planta más" }),
+      page.getByRole("heading", {
+        name: "Cena real, local y al atardecer",
+      }),
     ).toBeVisible();
     await expect(
-      page.getByText("Soy una persona que hace fácil elegir comida real"),
+      page.getByText(
+        "Soy una persona que hace fácil elegir comida real, fresca y de origen local",
+      ),
     ).toBeVisible();
-    await expect(page.getByText("Elegir mi comida ancla")).toBeVisible();
+    await expect(page.getByText("Cenar al atardecer")).toBeVisible();
     await expect(
-      page.getByText("Sumar una planta", { exact: true }),
+      page.getByText("Servir la triada local", { exact: true }),
     ).toBeVisible();
-    await expect(page.getByText(/visible, lavado o porcionado/i)).toBeVisible();
+    await expect(
+      page.getByText(/a granel y en tus propios frascos/i),
+    ).toBeVisible();
+    /* El ancla temporal se enuncia con la hora y con la regla relativa. La hora sola deja fuera a
+       quien trabaja de noche; la regla sola no dice cuándo empezar hoy.
 
-    await page.getByRole("button", { name: "Empezar Una planta más" }).click();
-    await expect(page.getByText("0 de 7 elecciones")).toBeVisible();
+       `.first()` no es descuido: la hora aparece dos veces a propósito —en el ancla y en el segundo
+       paso del ritual—, y sin él el modo estricto de Playwright falla por ambigüedad en vez de por
+       la ausencia que esto vigila. Lo mismo con el abastecimiento, que es nota de preparación y
+       primer paso. */
+    await expect(
+      page.getByText(/entre las 6:00 y las 7:30 PM/).first(),
+    ).toBeVisible();
+    await expect(
+      page.getByText(/2\.5 a 3 horas antes de dormir/),
+    ).toBeVisible();
+    /* El ritual abre en el mercado y cierra en el triple impacto: si volviera a leer cinco pasos,
+       el que cierra la práctica desaparecería en silencio. */
+    await expect(page.getByText(/Abastecerte cerca/).first()).toBeVisible();
+    await expect(page.getByText(/Notar el triple impacto/)).toBeVisible();
+
+    await page
+      .getByRole("button", { name: "Empezar Cena real, local y al atardecer" })
+      .click();
+    await expect(page.getByText("0 de 7 cenas")).toBeVisible();
     const cycleDates = await backdateHabitChallengeForSevenDayTest(
       "nutrition-one-plant-v1",
     );
     await page.reload();
     for (const [index, cycleDate] of cycleDates.entries()) {
+      await page.getByRole("checkbox", { name: "Cené al atardecer" }).check();
       await page
-        .getByRole("checkbox", { name: "Elegí mi comida ancla" })
+        .getByRole("checkbox", { name: "Serví la triada con una planta más" })
         .check();
-      await page.getByRole("checkbox", { name: "Sumé una planta" }).check();
       await page.locator('select[name="cycleDate"]').selectOption(cycleDate);
       await page
         .getByRole("button", {
           name:
             cycleDate === cycleDates[0]
-              ? "Cultivar mi primera elección"
-              : "Registrar esta elección",
+              ? "Cultivar mi primera cena"
+              : "Registrar esta cena",
         })
         .click();
-      await expect(
-        page.getByText(`${index + 1} de 7 elecciones`),
-      ).toBeVisible();
+      await expect(page.getByText(`${index + 1} de 7 cenas`)).toBeVisible();
     }
 
     await expect(
       page.getByRole("heading", {
-        name: "Cultivaste cinco elecciones reales",
+        name: "Cultivaste cinco cenas reales",
       }),
     ).toBeVisible();
-    await expect(page.getByText("5 de 7 elecciones")).toBeVisible();
+    await expect(page.getByText("5 de 7 cenas")).toBeVisible();
     await expect(page.getByText("50 puntos").first()).toBeVisible();
   });
 
@@ -366,11 +405,15 @@ test.describe("Del atardecer al amanecer", () => {
   }) => {
     const suiteDisplayName = await readSuiteAccountDisplayName();
     await page.goto("/pilares/alimentacion");
-    await page.getByRole("button", { name: "Empezar Una planta más" }).click();
-    await page.getByRole("checkbox", { name: "Elegí mi comida ancla" }).check();
-    await page.getByRole("checkbox", { name: "Sumé una planta" }).check();
     await page
-      .getByRole("button", { name: "Cultivar mi primera elección" })
+      .getByRole("button", { name: "Empezar Cena real, local y al atardecer" })
+      .click();
+    await page.getByRole("checkbox", { name: "Cené al atardecer" }).check();
+    await page
+      .getByRole("checkbox", { name: "Serví la triada con una planta más" })
+      .check();
+    await page
+      .getByRole("button", { name: "Cultivar mi primera cena" })
       .click();
     await page
       .getByRole("button", { name: "Compartir con la comunidad" })
@@ -384,11 +427,13 @@ test.describe("Del atardecer al amanecer", () => {
       .getByTestId("public-habit-celebration")
       .filter({ hasText: suiteDisplayName });
     await expect(card).toHaveAttribute("data-pillar", "nutrition");
-    await expect(card).toContainText("cultivó su primera elección real");
+    await expect(card).toContainText("cultivó su primera cena real");
     await expect(
-      card.getByRole("link", { name: /Conocer Una planta más/ }),
+      card.getByRole("link", {
+        name: /Conocer Cena real, local y al atardecer/,
+      }),
     ).toHaveAttribute("href", "/pilares/alimentacion");
-    await expect(page.getByText(/primera elección real/).first()).toBeVisible();
+    await expect(page.getByText(/primera cena real/).first()).toBeVisible();
   });
 
   test("movement turns two minutes into a green ritual without volume scoring", async ({
@@ -635,25 +680,31 @@ test.describe("Del atardecer al amanecer", () => {
     const pillars = [
       [
         "/pilares/alimentacion",
-        "Una planta más",
-        "Soy una persona que hace fácil elegir comida real",
-        "Elegir, preparar, sumar y notar",
+        "Cena real, local y al atardecer",
+        "Soy una persona que hace fácil elegir comida real, fresca y de origen local",
+        "Abastecer, anclar, cocinar, servir, estar y notar",
+        6,
       ],
       [
         "/pilares/movimiento",
         "Dos minutos cuentan",
         "Soy una persona que empieza a moverse",
         "Preparar, empezar, moverse y notar",
+        5,
       ],
       [
         "/pilares/mente-espiritu",
         "Un vínculo consciente",
         "Soy una persona que cultiva vínculos reales",
         "Pausar, elegir, contactar, escuchar y agradecer",
+        5,
       ],
     ] as const;
 
-    for (const [path, challenge, identity, ritual] of pillars) {
+    /* El número de pasos entra por pilar y no como constante: Alimentación cerró su ritual con un
+       sexto paso —notar el triple impacto— y los otros dos siguen en cinco. Afirmar «cinco» para
+       los tres volvía a atar la prueba a una redacción que ya no es la de todos. */
+    for (const [path, challenge, identity, ritual, steps] of pillars) {
       await page.goto(path);
       await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
       await expect(page.getByRole("heading", { level: 1 })).toHaveText(
@@ -665,7 +716,9 @@ test.describe("Del atardecer al amanecer", () => {
       const ritualSection = page
         .getByRole("heading", { level: 2, name: ritual })
         .locator("xpath=ancestor::section");
-      await expect(ritualSection.getByRole("listitem")).toHaveCount(5);
+      await expect(ritualSection.getByRole("listitem"), path).toHaveCount(
+        steps,
+      );
 
       const precedesReferences = await practice.evaluate((heading) => {
         const practiceSection = heading.closest("section");

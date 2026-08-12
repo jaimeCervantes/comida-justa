@@ -158,9 +158,9 @@ Feature: Retos atomicos - del pilar a una practica con identidad propia
   @slice-4
   Scenario: Elijo un reto atomico de otro pilar
     Given que tengo progreso en "Del atardecer al amanecer"
-    When abro el pilar Alimentacion y elijo "Una planta más"
+    When abro el pilar Alimentacion y elijo "Cena real, local y al atardecer"
     Then la ruta y el contenido se muestran en mi idioma
-    And "Una planta más" y mi progreso de descanso permanecen disponibles al mismo tiempo
+    And "Cena real, local y al atardecer" y mi progreso de descanso permanecen disponibles al mismo tiempo
 
   @slice-4 @component
   Scenario Outline: Cada pilar ofrece una practica curada y minima
@@ -169,10 +169,10 @@ Feature: Retos atomicos - del pilar a una practica con identidad propia
     Then conozco la practica "<reto>" y su minimo "<minimo>"
 
     Examples:
-      | pilar            | reto                 | minimo                                      |
-      | Alimentacion     | Una planta más       | sumar una planta poco procesada a una comida|
-      | Movimiento       | Dos minutos cuentan  | moverse dos minutos según capacidad         |
-      | Mente y comunidad| Un vínculo consciente| enviar un mensaje de presencia real         |
+      | pilar            | reto                            | minimo                                      |
+      | Alimentacion     | Cena real, local y al atardecer | cenar al atardecer y servir la triada local |
+      | Movimiento       | Dos minutos cuentan             | moverse dos minutos según capacidad         |
+      | Mente y comunidad| Un vínculo consciente           | enviar un mensaje de presencia real         |
 
   @slice-4
   Scenario: El recordatorio permanece bloqueado si el canal no esta probado
@@ -213,42 +213,42 @@ Feature: Retos atomicos - del pilar a una practica con identidad propia
   # propios. Movimiento y Mente quedan como esqueletos hasta que Alimentacion ensene que extraer.
 
   @slice-6
-  Scenario: Una planta mas deja de ser una accion suelta y se vuelve ritual
-    Given que leo el pilar "Alimentacion natural y nutritiva"
-    When sigo la invitacion al reto "Una planta más"
+  Scenario: La cena deja de ser una accion suelta y se vuelve ritual
+    Given que leo el pilar "Alimentacion natural, nutritiva y local"
+    When sigo la invitacion al reto "Cena real, local y al atardecer"
     Then entro a una experiencia naranja propia de Alimentacion
-    And declaro "Soy una persona que hace fácil elegir comida real"
-    And el ritual distingue la senal "Elegir mi comida ancla" de la accion "Sumar una planta"
-    And dejar el alimento visible o preparado aparece como ayuda, no como requisito
+    And declaro "Soy una persona que hace fácil elegir comida real, fresca y de origen local"
+    And el ritual distingue la senal "Cenar al atardecer" de la accion "Servir la triada local"
+    And abastecerse en el mercado local aparece como ayuda, no como requisito
 
   @slice-6
-  Scenario: Cinco elecciones reales reciben una celebracion propia
-    Given que empece "Una planta más" en mi zona local cuatro dias antes de hoy
-    When registro cinco fechas distintas en las que elegi una comida ancla y sume una planta
-    Then veo "5 de 7 elecciones" y 50 puntos
-    And la celebracion dice "Cultivaste cinco elecciones reales"
+  Scenario: Cinco cenas reales reciben una celebracion propia
+    Given que empece "Cena real, local y al atardecer" en mi zona local cuatro dias antes de hoy
+    When registro cinco fechas distintas en las que cene al atardecer y servi la triada
+    Then veo "5 de 7 cenas" y 50 puntos
+    And la celebracion dice "Cultivaste cinco cenas reales"
     And la pagina no habla de luna, amanecer ni ritual de descanso
 
   @slice-6
   Scenario: Compartir Alimentacion no manda a Sueno
-    Given que complete y comparti el hito de "Una planta más"
+    Given que complete y comparti el hito de "Cena real, local y al atardecer"
     When otra persona abre el inicio
     Then la tarjeta usa la identidad naranja de Alimentacion
-    And dice que cultive mi primera eleccion real
+    And dice que cultive mi primera cena real
     And enlaza a "/pilares/alimentacion", no a "/pilares/sueno"
 
   @slice-6 @component
   Scenario Outline: Alimentacion conserva la mecanica sin heredar la identidad de Sueno
     Given el elemento de experiencia "<elemento>"
-    When se configura para "Una planta más"
+    When se configura para "Cena real, local y al atardecer"
     Then usa "<alimentacion>" y no "<sueno>"
 
     Examples: identidad visual y conductual
       | elemento          | alimentacion                         | sueno                    |
       | color solido      | pillar-nutrition-solid               | pillar-sleep-solid       |
-      | senal             | Elegir mi comida ancla               | Cerrar la noche          |
-      | minimo            | Sumar una planta                     | Abrir la mañana          |
-      | celebracion final | Cultivaste cinco elecciones reales   | Protegiste tu descanso   |
+      | senal             | Cenar al atardecer                   | Cerrar la noche          |
+      | minimo            | Servir la triada local               | Abrir la mañana          |
+      | celebracion final | Cultivaste cinco cenas reales        | Protegiste tu descanso   |
       | destino publico   | /pilares/alimentacion                | /pilares/sueno           |
 
   @slice-7
@@ -336,11 +336,11 @@ Feature: Retos atomicos - del pilar a una practica con identidad propia
     Then la practica "<practica>" aparece antes de "Referencias"
 
     Examples: los cuatro pilares unen informacion y accion
-      | pilar                         | practica                      |
-      | Sueño y Descanso              | Del atardecer al amanecer     |
-      | Alimentación natural          | Una planta más                |
-      | Movimiento y actividad física | Dos minutos cuentan           |
-      | Mente y espíritu              | Un vínculo consciente         |
+      | pilar                         | practica                        |
+      | Sueño y Descanso              | Del atardecer al amanecer       |
+      | Alimentación natural          | Cena real, local y al atardecer |
+      | Movimiento y actividad física | Dos minutos cuentan             |
+      | Mente y espíritu              | Un vínculo consciente           |
 
   @slice-9
   Scenario Outline: Los retos hablan de la accion y no del sistema

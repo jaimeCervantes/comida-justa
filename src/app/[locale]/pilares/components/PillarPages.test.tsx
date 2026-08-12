@@ -25,9 +25,10 @@ describe.each([
   },
   {
     Page: AlimentacionPage as PillarPage,
-    heading: "2. Alimentación natural y nutritiva",
-    intro: "Reconectando con el origen y la comida real.",
-    identity: "Soy una persona que hace fácil elegir comida real",
+    heading: "2. Alimentación natural, nutritiva y local",
+    intro: "Reconectando con el origen, la temporada y quien la cultiva.",
+    identity:
+      "Soy una persona que hace fácil elegir comida real, fresca y de origen local",
     theme: "color-pillar-nutrition-solid",
   },
   {
