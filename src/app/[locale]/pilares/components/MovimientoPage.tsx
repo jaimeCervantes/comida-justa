@@ -1,5 +1,9 @@
 import { useTranslations } from "next-intl";
 import type { AppLocale } from "~/i18n/routing";
+import { Heading } from "~/presentation/design_system/typography/Heading";
+import MovementCatalog from "./MovementCatalog";
+import MovementDailyCadence from "./MovementDailyCadence";
+import MovementFootAndTerrain from "./MovementFootAndTerrain";
 import PillarArticle, {
   LabeledItem,
   PillarCallout,
@@ -31,7 +35,34 @@ export default function MovimientoPage({ locale }: { locale: AppLocale }) {
         </PillarPanel>
       </section>
 
+      {/* El costo del trayecto motorizado va junto a su contrapeso, como en Alimentación:
+          separarlos convertía la movilidad activa en una preferencia y no en la respuesta a algo
+          que ya se está pagando. */}
+      <section>
+        <PillarSectionHeading>{t("hiddenCostHeading")}</PillarSectionHeading>
+        <p className="mb-4">{t("hiddenCostIntro")}</p>
+
+        <PillarPanel pillar="movement">
+          <LabeledItem label={t("fuelLabel")} text={t("fuelText")} />
+          <LabeledItem label={t("airLabel")} text={t("airText")} />
+          <LabeledItem label={t("vitalityLabel")} text={t("vitalityText")} />
+        </PillarPanel>
+
+        <Heading level={3}>{t("localSolutionHeading")}</Heading>
+        <PillarCallout pillar="movement">
+          {t("localSolutionText")}
+        </PillarCallout>
+      </section>
+
       <PillarPractice challenge="movement" locale={locale} />
+
+      {/* La guía va después de la práctica: quien ya se comprometió con el trayecto y los dos
+          minutos es quien necesita saber cada cuánto vuelve y con qué pisa. */}
+      <MovementDailyCadence />
+
+      <MovementFootAndTerrain />
+
+      <MovementCatalog />
 
       <section>
         <PillarCallout pillar="movement">{t("callout")}</PillarCallout>

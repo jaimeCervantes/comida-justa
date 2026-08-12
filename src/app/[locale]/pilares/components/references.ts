@@ -114,6 +114,30 @@ export const MOVEMENT_REFERENCES: readonly string[] = [
   "https://doi.org/10.1123/jpah.2012-0423",
   "https://doi.org/10.1007/s12603-019-1298-3",
   "https://doi.org/10.37268/mjphm/vol.23/no.1/art.1816",
+  /*
+   * Lo que el ritual de la cadencia añadió y la lista anterior no sostenía.
+   *
+   * Interrumpir la silla: un par de minutos de sentadillas o de caminata cada media hora bajan la
+   * glucosa y la insulina posprandiales tanto como caminar seguido (Diabetes Care 2012; J Appl
+   * Physiol 2021). Es la evidencia del bloque «cada 50 minutos».
+   */
+  "https://doi.org/10.2337/dc11-1931",
+  "https://doi.org/10.1152/japplphysiol.00796.2020",
+  /*
+   * El gasto espontáneo de energía —el que no es ejercicio ni deporte— explica por qué motorizar
+   * los trayectos cortos pesa mucho más de lo que parece.
+   */
+  "https://doi.org/10.1053/beem.2002.0227",
+  /*
+   * Luz exterior: la exposición diaria a luz natural adelanta el sueño y reduce la somnolencia
+   * diurna. Es el puente medido entre este pilar y el del descanso.
+   */
+  "https://doi.org/10.1073/pnas.2301608120",
+  /*
+   * Calzado minimalista: seis meses de actividad cotidiana con calzado sin soporte aumentan la
+   * fuerza del pie. Sostiene la sección del pie y el terreno, incluida su nota de transición.
+   */
+  "https://doi.org/10.1038/s41598-021-98070-0",
 ];
 
 export const MIND_SPIRIT_REFERENCES: readonly string[] = [
