@@ -1,5 +1,9 @@
 import { useTranslations } from "next-intl";
 import type { AppLocale } from "~/i18n/routing";
+import { Heading } from "~/presentation/design_system/typography/Heading";
+import MindGroundingAndBreath from "./MindGroundingAndBreath";
+import MindPracticeCatalog from "./MindPracticeCatalog";
+import MindSilenceWindows from "./MindSilenceWindows";
 import PillarArticle, {
   LabeledItem,
   PillarCallout,
@@ -31,7 +35,36 @@ export default function MenteEspirituPage({ locale }: { locale: AppLocale }) {
         </PillarPanel>
       </section>
 
+      {/* El costo va junto a su contrapeso, como en los otros tres pilares: separarlos convertía el
+          silencio en una preferencia y no en la respuesta a algo que ya se está pagando. */}
+      <section>
+        <PillarSectionHeading>{t("hiddenCostHeading")}</PillarSectionHeading>
+        <p className="mb-4">{t("hiddenCostIntro")}</p>
+
+        <PillarPanel pillar="mindSpirit">
+          <LabeledItem label={t("overloadLabel")} text={t("overloadText")} />
+          <LabeledItem label={t("uprootLabel")} text={t("uprootText")} />
+          <LabeledItem
+            label={t("lonelinessLabel")}
+            text={t("lonelinessText")}
+          />
+        </PillarPanel>
+
+        <Heading level={3}>{t("localSolutionHeading")}</Heading>
+        <PillarCallout pillar="mindSpirit">
+          {t("localSolutionText")}
+        </PillarCallout>
+      </section>
+
       <PillarPractice challenge="mind" locale={locale} />
+
+      {/* La guía va después de la práctica: quien ya se comprometió con el silencio y la
+          conversación es quien necesita saber en qué ratos del día caben. */}
+      <MindSilenceWindows />
+
+      <MindGroundingAndBreath />
+
+      <MindPracticeCatalog />
 
       <section>
         <PillarSectionHeading>{t("mismatchHeading")}</PillarSectionHeading>

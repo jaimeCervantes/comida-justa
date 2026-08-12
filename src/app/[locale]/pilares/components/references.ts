@@ -161,4 +161,25 @@ export const MIND_SPIRIT_REFERENCES: readonly string[] = [
   "https://doi.org/10.1002/cl2.1369",
   "https://doi.org/10.1016/j.bbi.2022.01.009",
   "https://doi.org/10.1177/0265407519836170",
+  /*
+   * Lo que el ritual de la presencia añadió y la lista anterior no sostenía.
+   *
+   * Soledad y aislamiento: el metaanálisis de setenta estudios que los pone a la altura de los
+   * factores de riesgo de mortalidad ya establecidos. Es la base de todo el bloque del costo.
+   */
+  "https://doi.org/10.1177/1745691614568352",
+  /*
+   * Respiración: una sola sesión de respiración lenta y profunda sube el tono vagal y baja la
+   * ansiedad. Sostiene la sección tal y como está escrita —«respirar despacio»—, y NO la versión
+   * anterior de esa nota, que atribuía el efecto a alargar la exhalación: el ensayo de 2024 y su
+   * réplica no hallaron diferencia de HRV entre 1:1 y 1:2. Se citan los dos: el que sostiene la
+   * afirmación y el que acotó su alcance.
+   */
+  "https://doi.org/10.1038/s41598-021-98736-9",
+  "https://doi.org/10.1007/s10484-024-09637-2",
+  /*
+   * Naturaleza cercana: metaanálisis de exposición a espacios verdes sobre depresión y ansiedad.
+   * Es la evidencia del arraigo al aire libre.
+   */
+  "https://doi.org/10.1016/j.envres.2023.116303",
 ];
