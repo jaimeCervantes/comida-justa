@@ -825,7 +825,16 @@
       "catalogServiceItem4": "Sumarte a una jornada de limpieza o a un mercado artesanal.",
       "catalogServiceBody": "Da sentido de propósito y pertenencia, corta la apatía y construye una autoestima que se apoya en hechos.",
       "catalogServiceLocal": "Crea redes de apoyo mutuo que sostienen cuando algo va mal, y convierten al entorno cercano en un lugar seguro.",
-      "callout": "Este pilar reconoce que la salud no es solo física. Se centra en la gestión emocional, la claridad mental y la conexión con los demás —empezando por quien vive cerca—. La salud «espíritu/comunidad» implica sentirse parte de algo más grande, cultivar relaciones sanas y mantener un propósito claro que impulse los otros tres pilares."
+      "callout": "Este pilar reconoce que la salud no es solo física. Se centra en la gestión emocional, la claridad mental y la conexión con los demás —empezando por quien vive cerca—. La salud «espíritu/comunidad» implica sentirse parte de algo más grande, cultivar relaciones sanas y mantener un propósito claro que impulse los otros tres pilares.",
+      "bridgeHeading": "Cómo se conecta con los otros tres pilares",
+      "bridgeIntro": "No son tres tareas más. Dos de estos puentes son el mismo acto que ya haces, contado desde el otro pilar.",
+      "bridgeSleepTitle": "Con Sueño: la última hora es la misma frontera",
+      "bridgeSleepBody": "Cerrar el día sin pantalla y dejar la cabeza descargada es lo que allí protege el sueño profundo: llegas a la cama sin nada corriendo por dentro.",
+      "bridgeNutritionTitle": "Con Alimentación: la mesa es donde ocurre",
+      "bridgeNutritionBody": "La cena sin dispositivos a la vista es tu ventana de silencio y, a la vez, el momento del otro pilar. Ahí la conversación de verdad ya cabe sin buscarle hueco.",
+      "bridgeMovementTitle": "Con Movimiento: salir calma y arraiga",
+      "bridgeMovementBody": "El rato al aire libre que baja el ruido de la cabeza es el mismo que allí despierta el cuerpo y el pie. Una sola salida sirve para los dos.",
+      "bridgeLink": "Ir al pilar"
     },
     "movement": {
       "heading": "3. Movimiento natural, local y comunitario",
@@ -899,7 +908,16 @@
       "catalogEnduranceItem4": "Clases colectivas —baile, box, funcional— en un estudio de la zona.",
       "catalogEnduranceBody": "Fortalece el sistema cardiorrespiratorio, baja los niveles de cortisol y libera endorfinas.",
       "catalogEnduranceLocal": "Teje comunidad, reduce el aislamiento, crea pertenencia y recupera los espacios públicos que dejan de usarse cuando nadie sale.",
-      "callout": "Este pilar está enfocado en combatir el sedentarismo integrando la actividad física en la vida diaria. No se limita al gimnasio ni lo excluye: abarca caminar, pedalear, jugar fútbol, trabajar la tierra o entrenar en un estudio del barrio. El objetivo es que el movimiento vuelva a caber en el día y que el entorno —calles, senderos, canchas y negocios de la zona— sea el lugar donde ocurre."
+      "callout": "Este pilar está enfocado en combatir el sedentarismo integrando la actividad física en la vida diaria. No se limita al gimnasio ni lo excluye: abarca caminar, pedalear, jugar fútbol, trabajar la tierra o entrenar en un estudio del barrio. El objetivo es que el movimiento vuelva a caber en el día y que el entorno —calles, senderos, canchas y negocios de la zona— sea el lugar donde ocurre.",
+      "bridgeHeading": "Cómo se conecta con los otros tres pilares",
+      "bridgeIntro": "No son tres tareas más. Dos de estos puentes son el mismo acto que ya haces, contado desde el otro pilar.",
+      "bridgeSleepTitle": "Con Sueño: moverte de día hace que el cuerpo pida la noche",
+      "bridgeSleepBody": "La actividad del día acumula la presión de sueño que hace que te dé sueño al anochecer, y la luz exterior de tu rato al aire libre ancla el mismo reloj que allí abre tu mañana.",
+      "bridgeNutritionTitle": "Con Alimentación: el mandado a pie es abastecerte",
+      "bridgeNutritionBody": "Tu trayecto sin motor al mercado es, a la vez, el ancla de este pilar y el abastecimiento cercano del otro. No hay que elegir entre los dos: es el mismo viaje.",
+      "bridgeMindTitle": "Con Mente y Espíritu: el mismo rato al aire libre",
+      "bridgeMindBody": "Los 20 a 30 minutos en tierra o sendero que pide este pilar son los mismos que allí sirven para bajar el ruido de la cabeza. Uno solo alcanza para los dos.",
+      "bridgeLink": "Ir al pilar"
     },
     "nutrition": {
       "heading": "2. Alimentación natural, nutritiva y local",
@@ -980,7 +998,16 @@
       "includesHeading": "Incluye:",
       "includes1": "El apoyo a restaurantes y pequeños productores que ofrecen opciones nutritivas y de temporada.",
       "includes2": "La promoción de la siembra propia de insumos (huertos urbanos o células de permacultura).",
-      "includes3": "La creación de un entorno donde elegir comida sana, fresca y cercana sea la opción más sencilla."
+      "includes3": "La creación de un entorno donde elegir comida sana, fresca y cercana sea la opción más sencilla.",
+      "bridgeHeading": "Cómo se conecta con los otros tres pilares",
+      "bridgeIntro": "No son tres tareas más. Dos de estos puentes son el mismo acto que ya haces, contado desde el otro pilar.",
+      "bridgeSleepTitle": "Con Sueño: la cena marca la hora de dormir",
+      "bridgeSleepBody": "Cenar al atardecer deja que la digestión termine antes de acostarte, y no estorba la bajada de temperatura corporal que el sueño profundo necesita. Es el mismo gesto que allí protege tu descanso.",
+      "bridgeMovementTitle": "Con Movimiento: ir al mercado ya es moverte",
+      "bridgeMovementBody": "El trayecto a pie o en bici a comprar lo fresco de la semana es, a la vez, el abastecimiento de este pilar y el desplazamiento sin motor del otro. Un solo viaje cuenta en los dos.",
+      "bridgeMindTitle": "Con Mente y Espíritu: la mesa sin pantallas",
+      "bridgeMindBody": "La cena sin dispositivos a la vista es también la ventana de silencio de aquel pilar, y el rato donde la conversación de verdad cabe sin agendar nada.",
+      "bridgeLink": "Ir al pilar"
     },
     "sleep": {
       "heading": "1. Sueño y descanso profundo",
@@ -1057,7 +1084,7 @@
       "catalogUnloadBody": "Libera la cabeza de lo pendiente, frena la rumiación y baja el pulso para entrar a la cama en calma.",
       "catalogUnloadLocal": "Se apoya en plantas que se consiguen a granel y de temporada, en vez de en una compra envasada más.",
       "bridgeHeading": "Cómo llegan aquí los otros tres pilares",
-      "bridgeIntro": "El descanso es donde se cobra todo lo demás. Estos tres puentes ya existen en las otras páginas; aquí es donde se nota si se cumplieron.",
+      "bridgeIntro": "El descanso es donde se cobra todo lo demás. Y no son tareas extra: estos tres puentes ya existen en las otras páginas, y aquí es donde se nota si se cumplieron.",
       "bridgeNutritionTitle": "Desde Alimentación: cenar al atardecer",
       "bridgeNutritionBody": "Una cena temprana deja que la digestión termine antes de dormir, y no estorba la bajada de temperatura corporal que el sueño profundo necesita.",
       "bridgeMovementTitle": "Desde Movimiento: moverte de día y al aire libre",

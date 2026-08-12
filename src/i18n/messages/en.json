@@ -825,7 +825,16 @@
       "catalogServiceItem4": "Joining a clean-up day or a craft market.",
       "catalogServiceBody": "Gives a sense of purpose and belonging, cuts apathy and builds self-esteem that rests on actual deeds.",
       "catalogServiceLocal": "Creates mutual support networks that hold when something goes wrong, and turn the nearby surroundings into a safe place.",
-      "callout": "This pillar recognises that health is not only physical. It centres on emotional regulation, mental clarity and connection with others —starting with whoever lives nearby—. «Spirit/community» health means feeling part of something larger, cultivating healthy relationships and holding a clear purpose that drives the other three pillars."
+      "callout": "This pillar recognises that health is not only physical. It centres on emotional regulation, mental clarity and connection with others —starting with whoever lives nearby—. «Spirit/community» health means feeling part of something larger, cultivating healthy relationships and holding a clear purpose that drives the other three pillars.",
+      "bridgeHeading": "How it connects with the other three pillars",
+      "bridgeIntro": "These are not three more tasks. Two of these bridges are the same act you already do, told from the other pillar.",
+      "bridgeSleepTitle": "With Sleep: the last hour is the same boundary",
+      "bridgeSleepBody": "Closing the day screen-free and with your head unloaded is what protects deep sleep over there: you get to bed with nothing still running inside.",
+      "bridgeNutritionTitle": "With Nutrition: the table is where it happens",
+      "bridgeNutritionBody": "Dinner with no devices in sight is your window of silence and, at the same time, the other pillar’s moment. A real conversation already fits there without looking for a slot.",
+      "bridgeMovementTitle": "With Movement: stepping out calms and grounds",
+      "bridgeMovementBody": "The time outdoors that brings the noise in your head down is the same that wakes up the body and the foot over there. One outing serves both.",
+      "bridgeLink": "Go to the pillar"
     },
     "movement": {
       "heading": "3. Natural, Local, Community Movement",
@@ -899,7 +908,16 @@
       "catalogEnduranceItem4": "Group classes —dance, boxing, functional training— at a local studio.",
       "catalogEnduranceBody": "Strengthens the cardiorespiratory system, lowers cortisol levels and releases endorphins.",
       "catalogEnduranceLocal": "Weaves community, reduces isolation, creates belonging and reclaims the public spaces that fall out of use when nobody goes out.",
-      "callout": "This pillar is about pushing back on sedentariness by working physical activity into daily life. It is not limited to the gym, and it does not exclude it either: it covers walking, cycling, playing football, working the land or training at a neighbourhood studio. The aim is for movement to fit back into the day, and for your surroundings —streets, trails, pitches and local businesses— to be where it happens."
+      "callout": "This pillar is about pushing back on sedentariness by working physical activity into daily life. It is not limited to the gym, and it does not exclude it either: it covers walking, cycling, playing football, working the land or training at a neighbourhood studio. The aim is for movement to fit back into the day, and for your surroundings —streets, trails, pitches and local businesses— to be where it happens.",
+      "bridgeHeading": "How it connects with the other three pillars",
+      "bridgeIntro": "These are not three more tasks. Two of these bridges are the same act you already do, told from the other pillar.",
+      "bridgeSleepTitle": "With Sleep: moving by day makes the body ask for night",
+      "bridgeSleepBody": "The day’s activity builds up the sleep pressure that makes you sleepy at dusk, and the outdoor light of your time outside anchors the same clock that opens your morning over there.",
+      "bridgeNutritionTitle": "With Nutrition: the errand on foot is your sourcing",
+      "bridgeNutritionBody": "Your engine-free trip to the market is at once this pillar’s anchor and the other one’s nearby sourcing. You do not have to choose between them: it is the same journey.",
+      "bridgeMindTitle": "With Mind and Spirit: the same time outdoors",
+      "bridgeMindBody": "The 20 to 30 minutes on soil or a trail this pillar asks for are the same ones that bring the noise in your head down over there. One is enough for both.",
+      "bridgeLink": "Go to the pillar"
     },
     "nutrition": {
       "heading": "2. Natural, Nourishing, Local Food",
@@ -980,7 +998,16 @@
       "includesHeading": "It covers:",
       "includes1": "Backing restaurants and small producers that offer nourishing, seasonal options.",
       "includes2": "Encouraging people to grow their own (urban gardens or permaculture cells).",
-      "includes3": "Building a setting where choosing healthy, fresh, nearby food is the easiest option."
+      "includes3": "Building a setting where choosing healthy, fresh, nearby food is the easiest option.",
+      "bridgeHeading": "How it connects with the other three pillars",
+      "bridgeIntro": "These are not three more tasks. Two of these bridges are the same act you already do, told from the other pillar.",
+      "bridgeSleepTitle": "With Sleep: dinner sets your bedtime",
+      "bridgeSleepBody": "Having dinner at sunset lets digestion finish before you lie down, and does not get in the way of the drop in body temperature deep sleep needs. It is the same act that protects your rest over there.",
+      "bridgeMovementTitle": "With Movement: going to the market is already moving",
+      "bridgeMovementBody": "Walking or cycling to buy the week’s fresh food is at once this pillar’s sourcing and the other one’s engine-free trip. One journey counts for both.",
+      "bridgeMindTitle": "With Mind and Spirit: the table without screens",
+      "bridgeMindBody": "Dinner with no devices in sight is also that pillar’s window of silence, and the stretch where a real conversation fits without scheduling anything.",
+      "bridgeLink": "Go to the pillar"
     },
     "sleep": {
       "heading": "1. Sleep and Deep Rest",
@@ -1057,7 +1084,7 @@
       "catalogUnloadBody": "Frees your head of what is pending, stops rumination and slows the pulse so you get into bed calm.",
       "catalogUnloadLocal": "Leans on plants you can buy in bulk and in season, rather than on one more packaged purchase.",
       "bridgeHeading": "How the other three pillars arrive here",
-      "bridgeIntro": "Rest is where everything else is settled up. These three bridges already exist on the other pages; here is where you find out whether they were kept.",
+      "bridgeIntro": "Rest is where everything else is settled up. And these are not extra tasks: the three bridges already exist on the other pages, and here is where you find out whether they were kept.",
       "bridgeNutritionTitle": "From Nutrition: dinner at sunset",
       "bridgeNutritionBody": "An early dinner lets digestion finish before bed, and does not get in the way of the drop in body temperature deep sleep needs.",
       "bridgeMovementTitle": "From Movement: moving by day and outdoors",

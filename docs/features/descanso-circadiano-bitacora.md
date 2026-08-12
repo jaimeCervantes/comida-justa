@@ -91,3 +91,33 @@ Alimentación, Movimiento y Mente aportan al descanso, con enlaces reales a cada
    forma ya existen; faltaría la copia de las otras nueve.
 3. **Enlazar los catálogos con el directorio local**, que los cuatro nombran y ninguno enlaza.
 4. **Abrir el PR** de la rama: son diez commits locales sin subir.
+
+## 2026-08-12 — Adenda: los puentes con los otros tres pilares
+
+Sueño estrenó la sección de puentes y las otras tres páginas la pedían igual, así que la forma se
+extrajo a `PillarBridges` —el mismo reparto que `PillarCatalog`— y cada pilar aporta solo sus datos.
+`SleepPillarBridges` pasó de pintar la tarjeta a solo describirla.
+
+**El encuadre cambió al escribir las nueve conexiones que faltaban.** En Sueño los tres puentes
+apuntan hacia dentro: es el pilar que recibe. Al escribir los de los otros tres apareció algo que no
+estaba en el material y que es lo más útil que se les puede decir a quien los lee: **varios puentes
+son el mismo acto contado dos veces.**
+
+- El trayecto a pie al mercado es el ancla «moverme sin motor» de Movimiento **y** el
+  «abastecerte cerca» de Alimentación. Un solo viaje, dos pilares.
+- La cena sin dispositivos es la cena de Alimentación **y** la ventana de silencio «en la mesa» de
+  Mente.
+- El rato al aire libre es el de Movimiento **y** el arraigo de Mente —esto ya estaba dicho en
+  Mente; ahora se dice desde los dos lados.
+
+Por eso el intro de los tres pilares nuevos abre con «no son tres tareas más», y el de Sueño se
+reencuadró igual. Los cuatro pilares piden alrededor de cinco actos, no ocho; que la página lo diga
+es la diferencia entre un sistema y una lista de deberes.
+
+**Cada tarjeta se pinta con el color de su destino**, no con el del pilar que se lee: es lo que la
+hace verse como un puente. `PillarBridges.test.tsx` recorre las cuatro páginas y comprueba destino,
+color e idioma; lo que puede romperse no es la tarjeta sino que un pilar enlace mal por copiar el
+bloque de otro, o que se quede sin sección.
+
+**Validación:** `typecheck`, `typecheck:tests`, `lint` (778 archivos) y `check:i18n` en verde;
+paridad de catálogos en 1216 claves. La E2E sigue pendiente del usuario.

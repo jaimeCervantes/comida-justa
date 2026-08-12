@@ -128,23 +128,11 @@ describe("la descarga mental", () => {
   });
 });
 
+/**
+ * Los destinos, el color y el idioma de los puentes se comprueban para los cuatro pilares a la vez
+ * en `PillarBridges.test.tsx`. Aquí queda lo que es propio de Sueño: qué dice cada puente.
+ */
 describe("los puentes con los otros pilares", () => {
-  /**
-   * Los tres enlaces son de verdad y conservan el idioma: una cadena escrita a mano mandaría a un
-   * lector en inglés a la versión en español.
-   */
-  it("enlaza a los otros tres pilares desde su propia tarjeta", () => {
-    renderWithIntl(<SuenoPage locale="es" />);
-    const bridges = sectionOf("Cómo llegan aquí los otros tres pilares");
-    const links = within(bridges).getAllByRole("link");
-
-    expect(links.map((link) => link.getAttribute("href"))).toEqual([
-      "/pilares/alimentacion",
-      "/pilares/movimiento",
-      "/pilares/mente-espiritu",
-    ]);
-  });
-
   it("nombra el mecanismo de cada puente, no solo el pilar", () => {
     renderWithIntl(<SuenoPage locale="es" />);
     const bridges = sectionOf("Cómo llegan aquí los otros tres pilares");
@@ -156,21 +144,6 @@ describe("los puentes con los otros pilares", () => {
     expect(
       within(bridges).getByText(/calman el sistema nervioso/),
     ).toBeInTheDocument();
-  });
-
-  it("conserva el idioma en los enlaces", () => {
-    renderWithIntl(<SuenoPage locale="en" />, { locale: "en" });
-    const bridges = sectionOf("How the other three pillars arrive here");
-
-    expect(
-      within(bridges)
-        .getAllByRole("link")
-        .map((link) => link.getAttribute("href")),
-    ).toEqual([
-      "/en/pillars/alimentacion",
-      "/en/pillars/movimiento",
-      "/en/pillars/mente-espiritu",
-    ]);
   });
 });
 

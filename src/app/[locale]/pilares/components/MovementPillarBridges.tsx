@@ -2,25 +2,24 @@ import { useTranslations } from "next-intl";
 import PillarBridges, { type PillarBridge } from "./PillarBridges";
 
 /**
- * Lo que Alimentación, Movimiento y Mente aportan al descanso.
+ * Cómo se conecta Movimiento con los otros tres.
  *
- * Aquí solo viven los datos; la tarjeta la pinta `PillarBridges`, que comparten los cuatro pilares.
- * El orden es el de los pilares, no el de importancia: es el mismo en las cuatro páginas para que
- * quien recorra el sitio encuentre siempre el mismo mapa.
+ * El puente con Alimentación es el mismo viaje contado dos veces —el mandado a pie es el ancla de
+ * aquí y el abastecimiento de allá—, y el rato al aire libre lo comparte con Mente.
  */
-export default function SleepPillarBridges(): React.ReactNode {
-  const t = useTranslations("pillarPages.sleep");
+export default function MovementPillarBridges(): React.ReactNode {
+  const t = useTranslations("pillarPages.movement");
 
   const bridges: readonly PillarBridge[] = [
+    {
+      to: "sleep",
+      title: t("bridgeSleepTitle"),
+      body: t("bridgeSleepBody"),
+    },
     {
       to: "nutrition",
       title: t("bridgeNutritionTitle"),
       body: t("bridgeNutritionBody"),
-    },
-    {
-      to: "movement",
-      title: t("bridgeMovementTitle"),
-      body: t("bridgeMovementBody"),
     },
     {
       to: "mindSpirit",

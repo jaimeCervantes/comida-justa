@@ -2,6 +2,7 @@ import { useTranslations } from "next-intl";
 import type { AppLocale } from "~/i18n/routing";
 import { Heading } from "~/presentation/design_system/typography/Heading";
 import MindGroundingAndBreath from "./MindGroundingAndBreath";
+import MindPillarBridges from "./MindPillarBridges";
 import MindPracticeCatalog from "./MindPracticeCatalog";
 import MindSilenceWindows from "./MindSilenceWindows";
 import PillarArticle, {
@@ -65,6 +66,9 @@ export default function MenteEspirituPage({ locale }: { locale: AppLocale }) {
       <MindGroundingAndBreath />
 
       <MindPracticeCatalog />
+
+      {/* Los puentes cierran la pagina: se leen mejor cuando ya se entendio la practica. */}
+      <MindPillarBridges />
 
       <section>
         <PillarSectionHeading>{t("mismatchHeading")}</PillarSectionHeading>

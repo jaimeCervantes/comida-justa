@@ -4,6 +4,7 @@ import { Heading } from "~/presentation/design_system/typography/Heading";
 import MovementCatalog from "./MovementCatalog";
 import MovementDailyCadence from "./MovementDailyCadence";
 import MovementFootAndTerrain from "./MovementFootAndTerrain";
+import MovementPillarBridges from "./MovementPillarBridges";
 import PillarArticle, {
   LabeledItem,
   PillarCallout,
@@ -63,6 +64,9 @@ export default function MovimientoPage({ locale }: { locale: AppLocale }) {
       <MovementFootAndTerrain />
 
       <MovementCatalog />
+
+      {/* Los puentes cierran la pagina: se leen mejor cuando ya se entendio la practica. */}
+      <MovementPillarBridges />
 
       <section>
         <PillarCallout pillar="movement">{t("callout")}</PillarCallout>

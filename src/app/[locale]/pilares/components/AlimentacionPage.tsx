@@ -3,6 +3,7 @@ import type { AppLocale } from "~/i18n/routing";
 import { Heading } from "~/presentation/design_system/typography/Heading";
 import NutritionCleanCooking from "./NutritionCleanCooking";
 import NutritionIngredientCatalog from "./NutritionIngredientCatalog";
+import NutritionPillarBridges from "./NutritionPillarBridges";
 import NutritionPlateTriad from "./NutritionPlateTriad";
 import PillarArticle, {
   LabeledItem,
@@ -62,6 +63,9 @@ export default function AlimentacionPage({ locale }: { locale: AppLocale }) {
       <NutritionCleanCooking />
 
       <NutritionIngredientCatalog />
+
+      {/* Los puentes cierran la pagina: se leen mejor cuando ya se entendio la practica. */}
+      <NutritionPillarBridges />
 
       <section>
         <p className="mb-6">{t("evidence")}</p>
