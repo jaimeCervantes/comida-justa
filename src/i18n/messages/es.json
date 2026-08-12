@@ -109,6 +109,7 @@
       "reactionCount": "{count} celebraciones",
       "reactionSignIn": "Inicia sesión para celebrar",
       "reactionWithdraw": "Retirar celebración",
+      "ritualEyebrow": "Ritual recomendado",
       "share": "Compartir con la comunidad",
       "shared": "Tu logro ya inspira a la comunidad.",
       "shareNote": "Es privado hasta que tú decidas compartir. Solo publicaremos el hito, nunca tus fechas ni lo que faltó.",
@@ -627,14 +628,11 @@
   },
   "home": {
     "description": "❤️💚 Hazlo sano: Cuando cuidas tu salud, también estás cuidando lo más valioso que tienes: tu tiempo. Tu recurso máximo no renovable.",
-    "h1": "❤️💚 Hazlo sano: Cuando cuidas tu salud, también estás cuidando lo más valioso que tienes: tu tiempo. Tu recurso máximo no renovable.",
-    "p1": "🕒 No se compra. No se recupera. Pero con solo 10 minutos al día ⏳, puedes ganar salud 🧘‍♂️, belleza ✨ y longevidad 🌸… 🌍 mejorar tu entorno, fortalecer tu comunidad 🤝 y convertirte en inspiración para los demás 🔥.",
-    "p2": "💫 Vivir bien no es un lujo. Es un acto de amor propio… que se contagia.",
-    "pillarsTeaserEyebrow": "Una vista rápida del mundo de los pilares",
-    "pillarsTeaserTitle": "Prácticas de salud en formato compacto",
-    "pillarsTeaserBody": "Aquí tienes el estado de nuestro jardín comunitario y un par de celebraciones recientes. Ve a /pilares para ver todas las prácticas y el detalle completo.",
-    "pillarsTeaserFooter": "Solo mostramos un pequeño avance aquí. En pilares está toda la experiencia.",
-    "pillarsTeaserCta": "Ver todo en pilares",
+    "heroEyebrow": "Salud que se practica en comunidad",
+    "heroTitle": "Cuidar tu salud es cuidar tu tiempo",
+    "heroIntro": "Tu recurso máximo no renovable: no se compra y no se recupera. Con diez minutos al día ganas salud, belleza y longevidad — y de paso fortaleces a tu comunidad.",
+    "heroIdentity": "Vivir bien no es un lujo. Es un acto de amor propio que se contagia.",
+    "heroLocationTitle": "Tu ubicación",
     "title": "❤️💚 Hazlo sano: Cuando cuidas tu salud, también estás cuidando lo más valioso que tienes: tu tiempo. Tu recurso máximo no renovable."
   },
   "nav": {

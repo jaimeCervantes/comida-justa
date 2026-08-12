@@ -109,6 +109,7 @@
       "reactionCount": "{count} celebrations",
       "reactionSignIn": "Sign in to celebrate",
       "reactionWithdraw": "Withdraw celebration",
+      "ritualEyebrow": "Recommended ritual",
       "share": "Share with the community",
       "shared": "Your achievement is now inspiring the community.",
       "shareNote": "It stays private until you choose to share. We publish only the milestone, never your dates or what you missed.",
@@ -627,14 +628,11 @@
   },
   "home": {
     "description": "❤️💚 Just Health: When you take care of your health, you're also protecting the most valuable thing you have: your time. Your ultimate non-renewable resource.",
-    "h1": "❤️💚 Just Health: When you take care of your health, you're also protecting the most valuable thing you have: your time. Your ultimate non-renewable resource.",
-    "p1": "🕒 You can't buy it. You can't get it back. But with just 10 minutes a day ⏳, you can gain health 🧘‍♂️, beauty ✨, and longevity 🌸… 🌍 improve your environment, strengthen your community 🤝, and become an inspiration to others 🔥.",
-    "p2": "💫 Living well isn’t a luxury. It’s an act of self-love… that spreads.",
-    "pillarsTeaserEyebrow": "A quick view of the pillar world",
-    "pillarsTeaserTitle": "Healthy habits in compact form",
-    "pillarsTeaserBody": "Here is the current state of our community garden and a couple of recent celebrations. Go to /pilares to see all the practices and full detail.",
-    "pillarsTeaserFooter": "This is only a small preview. The full experience lives under /pilares.",
-    "pillarsTeaserCta": "See everything in pillars",
+    "heroEyebrow": "Health practiced together",
+    "heroTitle": "Caring for your health is caring for your time",
+    "heroIntro": "Your one non-renewable resource: you can't buy it and you can't get it back. Ten minutes a day earn you health, beauty and longevity — and they strengthen your community along the way.",
+    "heroIdentity": "Living well isn't a luxury. It's an act of self-love, and it spreads.",
+    "heroLocationTitle": "Your location",
     "title": "❤️💚 Just Health: When you take care of your health, you're also protecting the most valuable thing you have: your time. Your ultimate non-renewable resource."
   },
   "nav": {

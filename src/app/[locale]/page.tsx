@@ -2,12 +2,12 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { hasLocale } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import HomeHero from "~/app/(home)/HomeHero";
 import { measuredFrom } from "~/app/(home)/measuredFrom";
 import PostsWithLoadMore from "~/app/(home)/PostsWithLoadMore";
 import type { Coordinates } from "~/domain/entities/seller/coordinates";
 import { buildSiteJsonLd } from "~/domain/seo/jsonLd/site";
 import { ensureAbsoluteUrl } from "~/domain/seo/url";
-import { Link } from "~/i18n/navigation";
 import { resolveLocale, routing } from "~/i18n/routing";
 import { readViewerId } from "~/infra/auth/readViewerId";
 import {
@@ -24,10 +24,7 @@ import { readRecentPublicCelebrations } from "~/infra/habits/readRecentPublicCel
 import { readViewerLocationContext } from "~/infra/location/viewerLocationContext";
 import { mapPostsToCardsForLocale } from "~/infra/UI/mappers/posts/mapPostsToCardsForLocale";
 import { localizedAlternates } from "~/infra/UI/metadata/alternates";
-import { PILLARS_OVERVIEW_HREF } from "~/presentation/chrome/Header/menuItems";
 import CommunityHabitGarden from "~/presentation/habits/CommunityHabitGarden";
-import { getDeepHabitChallengeTheme } from "~/presentation/habits/deepHabitChallengeThemes";
-import PillarHero from "~/presentation/habits/PillarHero";
 import PublicHabitCelebrationList from "~/presentation/habits/PublicHabitCelebrationList";
 import LocationBanner from "~/presentation/location/LocationBanner";
 import JsonLd from "~/presentation/seo/JsonLd";
@@ -131,24 +128,20 @@ export default async function Inicio({
           inLanguage: locale,
         })}
       />
-      <PillarHero
-        level={1}
-        title={t("h1")}
-        intro={t("p1")}
-        identity={t("p2")}
-        theme={getDeepHabitChallengeTheme("nutrition")}
-        className="mb-10 rounded-[2rem] shadow-xl"
+      {/* La ubicación sube a la portada: es lo primero que decide si el feed de abajo puede hablar
+          de distancias, y como aviso suelto entre el hero y las tarjetas se leía como un error. */}
+      <HomeHero
+        locationPanel={<LocationBanner showSellerCta={showSellerCta} />}
       />
-
-      <LocationBanner showSellerCta={showSellerCta} />
 
       <section className="relative isolate overflow-hidden">
         {/* Jardín y celebraciones comparten una fila: son la misma idea —lo que la comunidad
               lleva hecho— y apiladas empujaban el feed muy abajo. Si no hay celebraciones que
               mostrar, el jardín se queda con todo el ancho en vez de dejar media fila vacía. */}
         <div
-          className={`grid gap-6 lg:items-start ${celebrations.length > 0 ? "lg:grid-cols-2" : ""
-            }`}
+          className={`grid gap-6 lg:items-start ${
+            celebrations.length > 0 ? "lg:grid-cols-2" : ""
+          }`}
         >
           <CommunityHabitGarden garden={garden} variant="compact" />
 
