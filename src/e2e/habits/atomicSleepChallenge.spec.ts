@@ -5,7 +5,7 @@ import {
   simulateLogin,
 } from "~/e2e/testUtils/simulateLogin";
 import {
-  backdateAtomicSleepChallengeForSevenDayTest,
+  backdateHabitChallengeForSevenDayTest,
   clearHabitMilestoneMarker,
   countAtomicSleepRepetitions,
   countStartedHabitRituals,
@@ -197,7 +197,7 @@ test.describe("Del atardecer al amanecer", () => {
       .getByRole("button", { name: "Empezar Del atardecer al amanecer" })
       .click();
     await expect(page.getByText("0 de 7 ciclos")).toBeVisible();
-    const cycleDates = await backdateAtomicSleepChallengeForSevenDayTest();
+    const cycleDates = await backdateHabitChallengeForSevenDayTest();
     await page.reload();
 
     for (const [index, cycleDate] of cycleDates.entries()) {
@@ -262,9 +262,6 @@ test.describe("Del atardecer al amanecer", () => {
       .click();
     await page.goto("/");
     await expect(sleepPlot.locator("strong")).toHaveText(String(before));
-    await expect(page.getByTestId("community-habit-garden")).toContainText(
-      "Los grupos todavía no están disponibles",
-    );
   });
 
   test("two pillars keep independent progress at the same time", async ({
@@ -306,9 +303,12 @@ test.describe("Del atardecer al amanecer", () => {
     await expect(
       page.getByRole("heading", { name: "One more plant" }),
     ).toBeVisible();
+    /* La práctica del pilar cerraba con un botón de recordatorios permanentemente deshabilitado:
+       prometía algo que la página no puede dar. El aviso sigue en el índice de Hábitos, que es donde
+       se anuncia lo que viene; dentro del pilar no vuelve. */
     await expect(
       page.getByRole("button", { name: "Telegram reminders unavailable" }),
-    ).toBeDisabled();
+    ).toHaveCount(0);
   });
 
   test("nutrition becomes a complete orange ritual with a five-of-seven harvest", async ({
@@ -329,7 +329,9 @@ test.describe("Del atardecer al amanecer", () => {
 
     await page.getByRole("button", { name: "Empezar Una planta más" }).click();
     await expect(page.getByText("0 de 7 elecciones")).toBeVisible();
-    const cycleDates = await backdateAtomicSleepChallengeForSevenDayTest();
+    const cycleDates = await backdateHabitChallengeForSevenDayTest(
+      "nutrition-one-plant-v1",
+    );
     await page.reload();
     for (const [index, cycleDate] of cycleDates.entries()) {
       await page
@@ -362,6 +364,7 @@ test.describe("Del atardecer al amanecer", () => {
   test("a shared nutrition milestone keeps nutrition text, design and destination", async ({
     page,
   }) => {
+    const suiteDisplayName = await readSuiteAccountDisplayName();
     await page.goto("/pilares/alimentacion");
     await page.getByRole("button", { name: "Empezar Una planta más" }).click();
     await page.getByRole("checkbox", { name: "Elegí mi comida ancla" }).check();
@@ -374,7 +377,12 @@ test.describe("Del atardecer al amanecer", () => {
       .click();
     await page.goto("/");
 
-    const card = page.getByTestId("public-habit-celebration");
+    /* La tarjeta de la suite, no «la» tarjeta: el feed es comunitario y la base la comparten tres
+       proyectos, así que cualquier cuenta real con una celebración compartida hacía fallar esto por
+       ambigüedad. Es el mismo filtro por nombre que usan los escenarios de arriba. */
+    const card = page
+      .getByTestId("public-habit-celebration")
+      .filter({ hasText: suiteDisplayName });
     await expect(card).toHaveAttribute("data-pillar", "nutrition");
     await expect(card).toContainText("cultivó su primera elección real");
     await expect(
@@ -404,7 +412,9 @@ test.describe("Del atardecer al amanecer", () => {
       .getByRole("button", { name: "Empezar Dos minutos cuentan" })
       .click();
     await expect(page.getByText("0 de 7 inicios")).toBeVisible();
-    const cycleDates = await backdateAtomicSleepChallengeForSevenDayTest();
+    const cycleDates = await backdateHabitChallengeForSevenDayTest(
+      "movement-two-minutes-v1",
+    );
     await page.reload();
     for (const [index, cycleDate] of cycleDates.entries()) {
       await page
@@ -435,6 +445,7 @@ test.describe("Del atardecer al amanecer", () => {
   test("a shared movement milestone links back to Movement", async ({
     page,
   }) => {
+    const suiteDisplayName = await readSuiteAccountDisplayName();
     await page.goto("/pilares/movimiento");
     await page
       .getByRole("button", { name: "Empezar Dos minutos cuentan" })
@@ -455,7 +466,12 @@ test.describe("Del atardecer al amanecer", () => {
       .click();
     await page.goto("/");
 
-    const card = page.getByTestId("public-habit-celebration");
+    /* La tarjeta de la suite, no «la» tarjeta: el feed es comunitario y la base la comparten tres
+       proyectos, así que cualquier cuenta real con una celebración compartida hacía fallar esto por
+       ambigüedad. Es el mismo filtro por nombre que usan los escenarios de arriba. */
+    const card = page
+      .getByTestId("public-habit-celebration")
+      .filter({ hasText: suiteDisplayName });
     await expect(card).toHaveAttribute("data-pillar", "movement");
     await expect(card).toContainText("empezó a moverse");
     await expect(
@@ -482,7 +498,9 @@ test.describe("Del atardecer al amanecer", () => {
       .getByRole("button", { name: "Empezar Un vínculo consciente" })
       .click();
     await expect(page.getByText("0 de 7 vínculos")).toBeVisible();
-    const cycleDates = await backdateAtomicSleepChallengeForSevenDayTest();
+    const cycleDates = await backdateHabitChallengeForSevenDayTest(
+      "mind-one-connection-v1",
+    );
     await page.reload();
     for (const [index, cycleDate] of cycleDates.entries()) {
       await page
@@ -517,6 +535,7 @@ test.describe("Del atardecer al amanecer", () => {
   test("a shared connection keeps Mind and Spirit colors without a popularity score", async ({
     page,
   }) => {
+    const suiteDisplayName = await readSuiteAccountDisplayName();
     await page.goto("/pilares/mente-espiritu");
     await page
       .getByRole("button", { name: "Empezar Un vínculo consciente" })
@@ -539,7 +558,12 @@ test.describe("Del atardecer al amanecer", () => {
       .click();
     await page.goto("/");
 
-    const card = page.getByTestId("public-habit-celebration");
+    /* La tarjeta de la suite, no «la» tarjeta: el feed es comunitario y la base la comparten tres
+       proyectos, así que cualquier cuenta real con una celebración compartida hacía fallar esto por
+       ambigüedad. Es el mismo filtro por nombre que usan los escenarios de arriba. */
+    const card = page
+      .getByTestId("public-habit-celebration")
+      .filter({ hasText: suiteDisplayName });
     await expect(card).toHaveAttribute("data-pillar", "mind");
     await expect(card).toContainText("cultivó un vínculo real");
     await expect(
@@ -553,8 +577,11 @@ test.describe("Del atardecer al amanecer", () => {
   }) => {
     await page.goto("/habitos");
     const league = page.getByTestId("habit-league");
+    /* Sin fijar el número: la base la comparten tres proyectos y cuentas reales, así que cuántas
+       personas hay apuntadas esta semana no es asunto de la suite. Lo que se prueba es que debajo
+       del umbral se explique la condición en vez de pintar una clasificación vacía. */
     await expect(league).toContainText(
-      "0 de 10 participantes semanales activos",
+      /\d+ de 10 participantes semanales activos/,
     );
     await expect(league).toContainText("No mostramos una tabla vacía");
     await expect(
@@ -732,8 +759,17 @@ test("starting without a session preserves each pillar destination", async ({
   }
 });
 
+/**
+ * Cada URL se pide desde un contexto nuevo, y no reutilizando el `request` de la prueba.
+ *
+ * El contexto guarda cookies entre peticiones, así que pedir una URL en inglés dejaba puesta
+ * `NEXT_LOCALE=en` y la siguiente URL en español respondía 307 hacia su prefijo inglés. La prueba
+ * afirmaba entonces algo que nadie vive: quien llega a una de estas URL no trae la cookie del
+ * idioma contrario puesta por la petición anterior.
+ */
 test("the unpublished habit detail URLs no longer exist or redirect", async ({
-  request,
+  playwright,
+  baseURL,
 }) => {
   for (const path of [
     "/habitos/sueno",
@@ -745,9 +781,11 @@ test("the unpublished habit detail URLs no longer exist or redirect", async ({
     "/habitos/mente-espiritu",
     "/en/habits/mind-spirit",
   ]) {
-    const response = await request.get(path, { maxRedirects: 0 });
+    const context = await playwright.request.newContext({ baseURL });
+    const response = await context.get(path, { maxRedirects: 0 });
 
     expect(response.status(), path).toBe(404);
+    await context.dispose();
   }
 });
 

@@ -19,13 +19,18 @@ const PANTALLAS = [
 const MINIMO_PARA_DISTINGUIR_COLUMNAS = 3;
 
 /**
- * Las coordenadas horizontales distintas que ocupan las tarjetas: cuántas columnas se ven.
+ * Las coordenadas horizontales distintas que ocupan las tarjetas del feed: cuántas columnas se ven.
  *
  * Se mide la caja y no las clases a propósito. Un test que afirmara `columns-[300px]` pasaría
  * igual aunque el CSS no llegara a aplicarse, y lo que se reportó es dónde acaban las tarjetas.
+ *
+ * Se mide **dentro del feed** y no en toda la página: el inicio también pinta las celebraciones de
+ * la comunidad, que son `<article>` y viven en su propia fila de dos columnas. Contarlas aquí
+ * convertía «el feed sale en tres columnas» en «la página tiene cinco posiciones distintas», que no
+ * es lo que nadie reportó ni lo que este escenario defiende.
  */
 async function columnasVisibles(page: Page): Promise<number[]> {
-  const tarjetas = page.getByRole("article");
+  const tarjetas = page.getByTestId("feed-masonry").getByRole("article");
   const cuantas = await tarjetas.count();
   const izquierdas = new Set<number>();
 
@@ -80,7 +85,10 @@ test.describe("Cuando alguien abre el home y el JavaScript todavía no llega", (
       });
       await abrirSinScripts(page);
 
-      const publicadas = await page.getByRole("article").count();
+      const publicadas = await page
+        .getByTestId("feed-masonry")
+        .getByRole("article")
+        .count();
       test.skip(
         publicadas < MINIMO_PARA_DISTINGUIR_COLUMNAS,
         "el home no tiene publicaciones suficientes para distinguir columnas",
@@ -102,7 +110,10 @@ test.describe("Cuando el JavaScript termina de llegar", () => {
       await page.setViewportSize(medidas);
       await abrirSinScripts(page);
 
-      const publicadas = await page.getByRole("article").count();
+      const publicadas = await page
+        .getByTestId("feed-masonry")
+        .getByRole("article")
+        .count();
       test.skip(
         publicadas < MINIMO_PARA_DISTINGUIR_COLUMNAS,
         "el home no tiene publicaciones suficientes para distinguir columnas",

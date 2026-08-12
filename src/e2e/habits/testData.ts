@@ -24,9 +24,16 @@ export async function deleteAtomicSleepChallengeTestData(): Promise<void> {
     .where(eq(habitChallengeProgress.userId, userId));
 }
 
-export async function backdateAtomicSleepChallengeForSevenDayTest(): Promise<
-  string[]
-> {
+/**
+ * Retrasa la ventana de siete días de UN ritual para poder registrar cinco fechas seguidas.
+ *
+ * El reto entra por parámetro desde que los cuatro pueden estar iniciados a la vez: antes esto
+ * tocaba siempre el de Sueño, así que los escenarios de Alimentación, Movimiento y Mente pedían
+ * retrasar una ventana que nunca habían abierto y morían en la comprobación de abajo.
+ */
+export async function backdateHabitChallengeForSevenDayTest(
+  challengeKey: string = ATOMIC_SLEEP_CHALLENGE_KEY,
+): Promise<string[]> {
   const userId = await findSuiteUserId();
   const timezone = "America/Mexico_City";
   const today = localDateAt(new Date(), timezone);
@@ -41,13 +48,13 @@ export async function backdateAtomicSleepChallengeForSevenDayTest(): Promise<
     .where(
       and(
         eq(habitChallengeProgress.userId, userId),
-        eq(habitChallengeProgress.challengeKey, ATOMIC_SLEEP_CHALLENGE_KEY),
+        eq(habitChallengeProgress.challengeKey, challengeKey),
       ),
     )
     .returning({ userId: habitChallengeProgress.userId });
   if (updated.length !== 1) {
     throw new Error(
-      "The E2E sleep challenge was not started before backdating it.",
+      `The E2E ritual ${challengeKey} was not started before backdating it.`,
     );
   }
   return Array.from({ length: 5 }, (_, index) =>
