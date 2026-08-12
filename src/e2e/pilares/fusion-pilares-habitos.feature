@@ -76,7 +76,7 @@ Feature: Explicacion y practica viven juntas en Pilares
       | pilar            | ruta                       | reto                            | identidad                                                                   | senal                         | minimo                           | ritual                                            | pasos | ultimo-paso                                    |
       | Alimentacion     | /pilares/alimentacion      | Cena real, local y al atardecer | Soy una persona que hace fácil elegir comida real, fresca y de origen local | Cenar al atardecer            | Servir la triada local           | Abastecer, anclar, cocinar, servir, estar y notar | 6     | Notar el triple impacto a la mañana siguiente. |
       | Movimiento       | /pilares/movimiento        | Movimiento vivo, local y funcional | Soy una persona que se mueve de forma natural y reconecta con su entorno y comunidad todos los días | Moverme sin motor | Dos minutos que cuentan | Salir, pausar, asolearse, fortalecer y notar | 5 | Notar el triple impacto al día siguiente. |
-      | Mente/Espiritu   | /pilares/mente-espiritu    | Un vínculo consciente           | Soy una persona que cultiva vínculos reales                                 | Pausar fuera del ruido digital| Enviar presencia y dejar espacio | Pausar, elegir, contactar, escuchar y agradecer   | 5     | Agradecer el vínculo sin exigir reacción.      |
+      | Mente/Espiritu   | /pilares/mente-espiritu    | Presencia, paz y conexión local | Soy una persona que cultiva la paz interior, la presencia y lazos sólidos con su comunidad todos los días | Abrir el día sin pantalla | Presencia con alguien | Callar, salir, conversar, agradecer y notar | 5 | Notar el triple impacto al día siguiente. |
 
   @slice-2
   Scenario Outline: La autenticacion vuelve a la practica dentro de su pilar
@@ -90,8 +90,8 @@ Feature: Explicacion y practica viven juntas en Pilares
       | /en/pillars/alimentacion        | A real, local dinner at sunset  |
       | /pilares/movimiento             | Movimiento vivo, local y funcional |
       | /en/pillars/movimiento          | Living, local, functional movement |
-      | /pilares/mente-espiritu         | Un vínculo consciente           |
-      | /en/pillars/mente-espiritu      | One conscious connection        |
+      | /pilares/mente-espiritu         | Presencia, paz y conexión local |
+      | /en/pillars/mente-espiritu      | Presence, peace and local connection |
 
   @slice-2
   Scenario Outline: Las URL antiguas de los otros pilares dejan de existir
@@ -119,7 +119,7 @@ Feature: Explicacion y practica viven juntas en Pilares
       | reto                            | destino                 |
       | Cena real, local y al atardecer | /pilares/alimentacion   |
       | Movimiento vivo, local y funcional | /pilares/movimiento  |
-      | Un vínculo consciente           | /pilares/mente-espiritu |
+      | Presencia, paz y conexión local | /pilares/mente-espiritu |
 
   @slice-3 @future
   Scenario: El indice de Pilares sustituye al indice de Habitos

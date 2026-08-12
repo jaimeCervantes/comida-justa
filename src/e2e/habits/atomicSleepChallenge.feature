@@ -172,7 +172,7 @@ Feature: Retos atomicos - del pilar a una practica con identidad propia
       | pilar            | reto                              | minimo                                     |
       | Alimentacion     | Cena real, local y al atardecer   | cenar al atardecer y servir la triada local |
       | Movimiento       | Movimiento vivo, local y funcional | un trayecto sin motor y dos minutos de pie |
-      | Mente y comunidad| Un vínculo consciente             | enviar un mensaje de presencia real        |
+      | Mente y comunidad| Presencia, paz y conexión local    | abrir el dia sin pantalla y dar presencia  |
 
   @slice-4
   Scenario: El recordatorio permanece bloqueado si el canal no esta probado
@@ -291,9 +291,9 @@ Feature: Retos atomicos - del pilar a una practica con identidad propia
   @slice-8
   Scenario: Un vinculo consciente se convierte en un ritual de presencia
     Given que leo el pilar "Mente y espíritu"
-    When sigo la invitacion al reto "Un vínculo consciente"
+    When sigo la invitacion al reto "Presencia, paz y conexión local"
     Then entro a una experiencia con los colores del pilar Mente y Espíritu
-    And declaro "Soy una persona que cultiva vínculos reales"
+    And declaro "Soy una persona que cultiva la paz interior, la presencia y lazos solidos con su comunidad"
     And la senal es una pausa cotidiana lejos del ruido digital
     And el minimo es enviar un mensaje de presencia real y dejar espacio para escuchar
 
@@ -304,11 +304,11 @@ Feature: Retos atomicos - del pilar a una practica con identidad propia
     Then puedo registrar la fecha local con 10 puntos
     And no se puntua cantidad de respuestas, contactos ni popularidad
     When completo cinco fechas distintas
-    Then veo "5 de 7 vínculos" y la celebracion "Cultivaste cinco vínculos reales"
+    Then veo "5 de 7 días" y la celebracion "Sostuviste cinco días de presencia"
 
   @slice-8
   Scenario: Compartir Mente y Comunidad conserva su identidad y destino
-    Given que complete y comparti el primer hito de "Un vínculo consciente"
+    Given que complete y comparti el primer hito de "Presencia, paz y conexión local"
     When otra persona abre el inicio
     Then la tarjeta usa los colores del pilar Mente y Espíritu
     And dice que cultive un vinculo real
@@ -340,7 +340,7 @@ Feature: Retos atomicos - del pilar a una practica con identidad propia
       | Sueño y Descanso              | Del atardecer al amanecer          |
       | Alimentación natural          | Cena real, local y al atardecer    |
       | Movimiento y actividad física | Movimiento vivo, local y funcional |
-      | Mente y espíritu              | Un vínculo consciente              |
+      | Mente y espíritu              | Presencia, paz y conexión local     |
 
   @slice-9
   Scenario Outline: Los retos hablan de la accion y no del sistema
@@ -374,8 +374,8 @@ Feature: Retos atomicos - del pilar a una practica con identidad propia
 
     Examples: ruta canonica por idioma
       | pilar                    | invitacion                       | practica                   | titulo                   |
-      | /pilares/mente-espiritu       | Un vínculo consciente      | /pilares/mente-espiritu       | Un vínculo consciente    |
-      | /en/pillars/mente-espiritu    | One conscious connection   | /en/pillars/mente-espiritu    | One conscious connection |
+      | /pilares/mente-espiritu       | Presencia, paz y conexión local | /pilares/mente-espiritu   | Presencia, paz y conexión local |
+      | /en/pillars/mente-espiritu    | Presence, peace and local connection | /en/pillars/mente-espiritu | Presence, peace and local connection |
 
   @slice-10 @component
   Scenario Outline: Cada superficie usa la paleta oficial de Mente y Espiritu

@@ -42,9 +42,10 @@ describe.each([
   },
   {
     Page: MenteEspirituPage as PillarPage,
-    heading: "4. Emociones, Mente, Espíritu y Comunidad",
-    intro: "Reconectando con nosotros mismos y nuestra tribu.",
-    identity: "Soy una persona que cultiva vínculos reales",
+    heading: "4. Mente, espíritu y comunidad cercana",
+    intro: "Recuperar el silencio, la presencia y la gente que vive cerca.",
+    identity:
+      "Soy una persona que cultiva la paz interior, la presencia y lazos sólidos con su comunidad todos los días",
     theme: "bg-pillar-mind-spirit-solid",
   },
 ])("$heading", ({ Page, heading, intro, identity, theme }) => {

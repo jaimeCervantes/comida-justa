@@ -145,12 +145,12 @@ describe("HabitChallengePanel", () => {
 
     expect(
       screen.getByRole("checkbox", {
-        name: "Hice una pausa lejos del ruido digital",
+        name: "Abrí el día sin pantalla",
       }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole("checkbox", {
-        name: "Envié un mensaje genuino y dejé espacio para escuchar",
+        name: "Le di presencia real a alguien",
       }),
     ).toBeInTheDocument();
     expect(screen.getAllByRole("checkbox")).toHaveLength(2);

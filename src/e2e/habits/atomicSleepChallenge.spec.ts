@@ -543,10 +543,14 @@ test.describe("Del atardecer al amanecer", () => {
   }) => {
     await page.goto("/pilares/mente-espiritu");
     await expect(
-      page.getByRole("heading", { name: "Un vínculo consciente" }),
+      page.getByRole("heading", {
+        name: "Presencia, paz y conexión local",
+      }),
     ).toBeVisible();
     await expect(
-      page.getByText("Soy una persona que cultiva vínculos reales"),
+      page.getByText(
+        "Soy una persona que cultiva la paz interior, la presencia y lazos sólidos con su comunidad todos los días",
+      ),
     ).toBeVisible();
     await expect(page.getByText(/pausa.*ruido digital/i).first()).toBeVisible();
     await expect(
@@ -554,9 +558,9 @@ test.describe("Del atardecer al amanecer", () => {
     ).toBeVisible();
 
     await page
-      .getByRole("button", { name: "Empezar Un vínculo consciente" })
+      .getByRole("button", { name: "Empezar Presencia, paz y conexión local" })
       .click();
-    await expect(page.getByText("0 de 7 vínculos")).toBeVisible();
+    await expect(page.getByText("0 de 7 días")).toBeVisible();
     const cycleDates = await backdateHabitChallengeForSevenDayTest(
       "mind-one-connection-v1",
     );
@@ -564,12 +568,12 @@ test.describe("Del atardecer al amanecer", () => {
     for (const [index, cycleDate] of cycleDates.entries()) {
       await page
         .getByRole("checkbox", {
-          name: "Hice una pausa lejos del ruido digital",
+          name: "Abrí el día sin pantalla",
         })
         .check();
       await page
         .getByRole("checkbox", {
-          name: "Envié un mensaje genuino y dejé espacio para escuchar",
+          name: "Le di presencia real a alguien",
         })
         .check();
       await page.locator('select[name="cycleDate"]').selectOption(cycleDate);
@@ -581,11 +585,11 @@ test.describe("Del atardecer al amanecer", () => {
               : "Registrar este vínculo",
         })
         .click();
-      await expect(page.getByText(`${index + 1} de 7 vínculos`)).toBeVisible();
+      await expect(page.getByText(`${index + 1} de 7 días`)).toBeVisible();
     }
     await expect(
       page.getByRole("heading", {
-        name: "Cultivaste cinco vínculos reales",
+        name: "Sostuviste cinco días de presencia",
       }),
     ).toBeVisible();
     await expect(page.getByText("50 puntos").first()).toBeVisible();
@@ -597,16 +601,16 @@ test.describe("Del atardecer al amanecer", () => {
     const suiteDisplayName = await readSuiteAccountDisplayName();
     await page.goto("/pilares/mente-espiritu");
     await page
-      .getByRole("button", { name: "Empezar Un vínculo consciente" })
+      .getByRole("button", { name: "Empezar Presencia, paz y conexión local" })
       .click();
     await page
       .getByRole("checkbox", {
-        name: "Hice una pausa lejos del ruido digital",
+        name: "Abrí el día sin pantalla",
       })
       .check();
     await page
       .getByRole("checkbox", {
-        name: "Envié un mensaje genuino y dejé espacio para escuchar",
+        name: "Le di presencia real a alguien",
       })
       .check();
     await page
@@ -626,7 +630,9 @@ test.describe("Del atardecer al amanecer", () => {
     await expect(card).toHaveAttribute("data-pillar", "mind");
     await expect(card).toContainText("cultivó un vínculo real");
     await expect(
-      card.getByRole("link", { name: /Conocer Un vínculo consciente/ }),
+      card.getByRole("link", {
+        name: /Conocer Presencia, paz y conexión local/,
+      }),
     ).toHaveAttribute("href", "/pilares/mente-espiritu");
     await expect(card).not.toContainText(/respuestas|popularidad/);
   });
@@ -708,9 +714,9 @@ test.describe("Del atardecer al amanecer", () => {
       ],
       [
         "/pilares/mente-espiritu",
-        "Un vínculo consciente",
-        "Soy una persona que cultiva vínculos reales",
-        "Pausar, elegir, contactar, escuchar y agradecer",
+        "Presencia, paz y conexión local",
+        "Soy una persona que cultiva la paz interior, la presencia y lazos sólidos con su comunidad todos los días",
+        "Callar, salir, conversar, agradecer y notar",
         5,
       ],
     ] as const;

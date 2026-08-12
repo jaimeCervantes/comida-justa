@@ -75,7 +75,7 @@ Feature: Cena real, local y al atardecer
       | pilar          | ruta                    | reto                      |
       | Sueno          | /pilares/sueno          | Del atardecer al amanecer |
       | Movimiento     | /pilares/movimiento     | Movimiento vivo, local y funcional |
-      | Mente/Espiritu | /pilares/mente-espiritu | Un vínculo consciente     |
+      | Mente/Espiritu | /pilares/mente-espiritu | Presencia, paz y conexión local |
 
   @slice-2 @component
   # Vitest y no Playwright: es contenido de una pagina estatica, sin sesion ni ida y vuelta al
