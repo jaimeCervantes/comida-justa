@@ -35,8 +35,10 @@ test.describe("Cuando un rastreador pide el sitemap", () => {
     expect(xml).toContain("/productos<");
     expect(xml).toContain("/nosotros<");
     expect(xml).toContain("/pilares/alimentacion<");
+    expect(xml).toContain("/pilares/movimiento<");
+    expect(xml).toContain("/pilares/mente-espiritu<");
     expect(xml).toContain("/habitos<");
-    expect(xml).toContain("/habitos/alimentacion<");
+    expect(xml).not.toContain("/habitos/alimentacion<");
 
     // Lo que hay en la base: la publicación recién sembrada y la tienda real.
     expect(xml).toContain(`/${seeded.slug}<`);

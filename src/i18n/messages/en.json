@@ -57,6 +57,7 @@
     "nightHeading": "Close the night",
     "noHabitClaim": "Seven days are not enough to claim you formed a habit; they are five pieces of evidence that you can protect your rest.",
     "pillarCta": "Start your first ritual",
+    "practiceEyebrow": "Put it into practice",
     "recommendedBody": "We will build this chain gradually. You do not need to tick it off today to earn your first repetition.",
     "recommendedHeading": "The ritual that will grow",
     "reactionCelebrate": "Celebrate",
@@ -82,9 +83,6 @@
     "progressCounter": "{completed} of {total} cycles"
   },
   "atomicChallenges": {
-    "activate": "Choose as my active practice",
-    "activePractice": "Active practice",
-    "activeSummary": "Your active practice is {challenge}.",
     "alreadyToday": "Today's repetition already counts",
     "completeToday": "Record today's repetition",
     "eyebrow": "Practices for your wellbeing",
@@ -93,6 +91,7 @@
       "alreadyCountedBody": "Your progress and points stay the same; a retry never adds points twice.",
       "badgeFirst": "First step",
       "communityAnonymous": "Someone in the community",
+      "communityCelebrationsTitle": "Community celebrations",
       "dateUnavailable": "That date is not available",
       "dateUnavailableBody": "Choose a date that has arrived within your local seven-day window.",
       "dayCompleted": "Complete",
@@ -309,7 +308,6 @@
       "weekEyebrow": "Your local seven-day window",
       "progressCounter": "{completed} of {total} starts"
     },
-    "noActiveSummary": "You have not chosen an active practice yet.",
     "nutrition": {
       "cta": "Start One more plant",
       "intro": "Do not change your whole diet today: add one minimally processed plant food to a meal.",
@@ -632,6 +630,11 @@
     "h1": "❤️💚 Just Health: When you take care of your health, you're also protecting the most valuable thing you have: your time. Your ultimate non-renewable resource.",
     "p1": "🕒 You can't buy it. You can't get it back. But with just 10 minutes a day ⏳, you can gain health 🧘‍♂️, beauty ✨, and longevity 🌸… 🌍 improve your environment, strengthen your community 🤝, and become an inspiration to others 🔥.",
     "p2": "💫 Living well isn’t a luxury. It’s an act of self-love… that spreads.",
+    "pillarsTeaserEyebrow": "A quick view of the pillar world",
+    "pillarsTeaserTitle": "Healthy habits in compact form",
+    "pillarsTeaserBody": "Here is the current state of our community garden and a couple of recent celebrations. Go to /pilares to see all the practices and full detail.",
+    "pillarsTeaserFooter": "This is only a small preview. The full experience lives under /pilares.",
+    "pillarsTeaserCta": "See everything in pillars",
     "title": "❤️💚 Just Health: When you take care of your health, you're also protecting the most valuable thing you have: your time. Your ultimate non-renewable resource."
   },
   "nav": {
@@ -845,6 +848,8 @@
   },
   "pillarsOverview": {
     "heading": "The 4 Pillars of <brand>{brandName}</brand>",
+    "heroEyebrow": "A complete summary of our practices",
+    "heroIdentity": "Explore the pillar universe in full: sleep, nutrition, movement and mind.",
     "intro": "A whole framework for reconnecting with your biology and getting your health back. Four interdependent areas that, worked on together, change your physical, mental and emotional wellbeing.",
     "metaDescription": "Sleep and rest, natural food, movement and mind: the four pillars a healthy life is built on.",
     "metaTitle": "The 4 pillars of {brand}",

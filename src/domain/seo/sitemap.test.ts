@@ -31,9 +31,19 @@ describe("buildSitemap", () => {
     expect(urls).toContain(`${BASE}/`);
     expect(urls).toContain(`${BASE}/productos`);
     expect(urls).toContain(`${BASE}/nosotros`);
+    expect(urls).toContain(`${BASE}/pilares/sueno`);
     expect(urls).toContain(`${BASE}/pilares/alimentacion`);
+    expect(urls).toContain(`${BASE}/pilares/movimiento`);
+    expect(urls).toContain(`${BASE}/pilares/mente-espiritu`);
     expect(urls).toContain(`${BASE}/habitos`);
-    expect(urls).toContain(`${BASE}/habitos/mente-espiritu`);
+    for (const path of [
+      "/habitos/sueno",
+      "/habitos/alimentacion",
+      "/habitos/movimiento",
+      "/habitos/mente-espiritu",
+    ]) {
+      expect(urls).not.toContain(`${BASE}${path}`);
+    }
     expect(urls).toHaveLength(STATIC_SITEMAP_PATHS.length);
   });
 

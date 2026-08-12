@@ -4,7 +4,7 @@ import { renderWithIntl } from "~/infra/test-utils/renderWithIntl";
 import type { AtomicSleepProgress } from "~/use_cases/habits/atomicSleepChallengeUseCase";
 import SleepChallengePanel from "./SleepChallengePanel";
 
-vi.mock("../actions", () => ({
+vi.mock("../sleepChallengeActions", () => ({
   manageAtomicSleepChallenge: vi.fn(),
 }));
 
@@ -36,7 +36,7 @@ describe("SleepChallengePanel", () => {
       <SleepChallengePanel
         initialProgress={null}
         signedIn
-        signInHref="/auth/signin?callbackUrl=%2Fhabitos%2Fsueno"
+        signInHref="/auth/signin?callbackUrl=%2Fpilares%2Fsueno"
       />,
     );
 

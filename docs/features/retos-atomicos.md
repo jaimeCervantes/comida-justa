@@ -207,7 +207,8 @@ aparecer. Este mecanismo tambien alcanza a visitantes sin cuenta.
 ### Slice 4 - Los otros pilares y recordatorios *(completado)*
 
 - Retos atomicos curados para alimentacion, movimiento y mente/comunidad.
-- Una sola practica activa a la vez durante onboarding; despues se aprende si conviene combinar.
+- Los cuatro rituales pueden avanzar simultaneamente. La exclusividad inicial de onboarding fue
+  reemplazada por el modelo de `docs/features/rituales-concurrentes.md`.
 - Recordatorios por Telegram en el momento elegido, condicionados a comprobar que `external_id`
   identifica el chat correcto y a consentimiento separado.
 

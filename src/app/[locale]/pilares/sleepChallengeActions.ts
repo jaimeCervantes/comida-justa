@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import type { SleepCycleInput } from "~/domain/habits/atomicSleepChallenge";
 import { revalidateLocalizedPath } from "~/i18n/revalidateLocalizedPath";
+import { pillarHref } from "~/i18n/routes";
 import { readViewerId } from "~/infra/auth/readViewerId";
 import { createAtomicSleepChallengeRepository } from "~/infra/dataAccess/habits/PostgresAtomicSleepChallengeRepository";
 import AtomicSleepChallengeUseCase, {
@@ -68,7 +69,7 @@ export async function manageAtomicSleepChallenge(
       };
     }
 
-    revalidateLocalizedPath("/habitos/sueno");
+    revalidateSleepPillar();
     return {
       status:
         result.recognition === "first"
@@ -112,7 +113,7 @@ export async function manageAtomicSleepChallenge(
   if (intent === "garden-share" || intent === "garden-withdraw") {
     await challenge.setGardenSharing(userId, intent === "garden-share");
     revalidateLocalizedPath("/");
-    revalidateLocalizedPath("/habitos/sueno");
+    revalidateSleepPillar();
     return {
       status: intent === "garden-share" ? "garden-shared" : "garden-withdrawn",
       progress: await challenge.getProgress(userId),
@@ -124,6 +125,10 @@ export async function manageAtomicSleepChallenge(
 
 function revalidateHabitCelebration(): void {
   revalidateLocalizedPath("/");
-  revalidateLocalizedPath("/habitos/sueno");
+  revalidateSleepPillar();
   revalidatePath("/", "layout");
+}
+
+function revalidateSleepPillar(): void {
+  revalidateLocalizedPath(pillarHref("sueno"));
 }

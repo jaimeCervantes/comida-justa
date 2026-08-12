@@ -67,19 +67,6 @@ export const pathnames = {
     es: "/habitos/[[...slug]]",
     en: "/habits/[[...slug]]",
   },
-  "/habitos/sueno": { es: "/habitos/sueno", en: "/habits/sleep" },
-  "/habitos/alimentacion": {
-    es: "/habitos/alimentacion",
-    en: "/habits/nutrition",
-  },
-  "/habitos/movimiento": {
-    es: "/habitos/movimiento",
-    en: "/habits/movement",
-  },
-  "/habitos/mente-espiritu": {
-    es: "/habitos/mente-espiritu",
-    en: "/habits/mind-spirit",
-  },
   "/deportes/[[...slug]]": {
     es: "/deportes/[[...slug]]",
     en: "/sports/[[...slug]]",

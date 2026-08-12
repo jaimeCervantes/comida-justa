@@ -41,15 +41,15 @@ test.describe("Cuando un rastreador visita las secciones fijas", () => {
   }) => {
     const routes = [
       ["/habitos", /at[oó]mico|onboarding/i],
-      ["/habitos/sueno", /at[oó]mico|onboarding/i],
-      ["/habitos/alimentacion", /at[oó]mico|onboarding/i],
-      ["/habitos/movimiento", /at[oó]mico|onboarding/i],
-      ["/habitos/mente-espiritu", /at[oó]mico|onboarding/i],
+      ["/pilares/sueno", /at[oó]mico|onboarding/i],
+      ["/pilares/alimentacion", /at[oó]mico|onboarding/i],
+      ["/pilares/movimiento", /at[oó]mico|onboarding/i],
+      ["/pilares/mente-espiritu", /at[oó]mico|onboarding/i],
       ["/en/habits", /atomic|onboarding/i],
-      ["/en/habits/sleep", /atomic|onboarding/i],
-      ["/en/habits/nutrition", /atomic|onboarding/i],
-      ["/en/habits/movement", /atomic|onboarding/i],
-      ["/en/habits/mind-spirit", /atomic|onboarding/i],
+      ["/en/pillars/sueno", /atomic|onboarding/i],
+      ["/en/pillars/alimentacion", /atomic|onboarding/i],
+      ["/en/pillars/movimiento", /atomic|onboarding/i],
+      ["/en/pillars/mente-espiritu", /atomic|onboarding/i],
     ] as const;
 
     for (const [path, internalTerms] of routes) {

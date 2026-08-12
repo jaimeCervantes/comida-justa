@@ -1,5 +1,8 @@
 import { useTranslations } from "next-intl";
-import AtomicChallengeCta from "~/presentation/habits/AtomicChallengeCta";
+import type { AppLocale } from "~/i18n/routing";
+import { getDeepHabitChallengeTheme } from "~/presentation/habits/deepHabitChallengeThemes";
+import PillarHero from "~/presentation/habits/PillarHero";
+import CuratedPracticeSection from "./CuratedPracticeSection";
 import PillarArticle, {
   LabeledItem,
   PillarCallout,
@@ -9,15 +12,26 @@ import PillarArticle, {
 import PillarReferences from "./PillarReferences";
 import { MIND_SPIRIT_REFERENCES } from "./references";
 
-export default function MenteEspirituPage() {
+export default function MenteEspirituPage({ locale }: { locale: AppLocale }) {
   const t = useTranslations("pillarPages.mindSpirit");
-  const tChallenge = useTranslations("atomicChallenges.mind");
+  const tChallenge = useTranslations("atomicChallenges.mindExperience");
+  const theme = getDeepHabitChallengeTheme("mind");
 
   return (
     <PillarArticle
       pillar="mindSpirit"
       heading={t("heading")}
       subtitle={t("subtitle")}
+      header={
+        <PillarHero
+          level={1}
+          title={t("heading")}
+          intro={t("subtitle")}
+          identity={tChallenge("identity")}
+          theme={theme}
+          className="mb-10 rounded-[2rem] shadow-xl"
+        />
+      }
     >
       <section>
         <PillarSectionHeading>{t("breakHeading")}</PillarSectionHeading>
@@ -28,6 +42,8 @@ export default function MenteEspirituPage() {
           <LabeledItem label={t("impactLabel")} text={t("impactText")} />
         </PillarPanel>
       </section>
+
+      <CuratedPracticeSection challenge="mind" locale={locale} />
 
       <section>
         <PillarSectionHeading>{t("mismatchHeading")}</PillarSectionHeading>
@@ -44,11 +60,6 @@ export default function MenteEspirituPage() {
         <PillarCallout pillar="mindSpirit">{t("callout")}</PillarCallout>
       </section>
 
-      <AtomicChallengeCta
-        href="/habitos/mente-espiritu"
-        title={tChallenge("cta")}
-        body={tChallenge("intro")}
-      />
       <PillarReferences
         pillar="mindSpirit"
         references={MIND_SPIRIT_REFERENCES}

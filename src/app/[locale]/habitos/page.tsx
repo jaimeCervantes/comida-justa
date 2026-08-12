@@ -2,12 +2,11 @@ import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { CURATED_CHALLENGES } from "~/domain/habits/curatedChallenges";
 import { Link } from "~/i18n/navigation";
+import { pillarHref } from "~/i18n/routes";
 import { resolveLocale } from "~/i18n/routing";
 import { readViewerId } from "~/infra/auth/readViewerId";
-import { createCuratedHabitRepository } from "~/infra/dataAccess/habits/PostgresCuratedHabitRepository";
 import { createHabitLeagueRepository } from "~/infra/dataAccess/habits/PostgresHabitLeagueRepository";
 import { localizedAlternates } from "~/infra/UI/metadata/alternates";
-import CuratedHabitUseCase from "~/use_cases/habits/curatedHabitUseCase";
 import HabitLeagueUseCase from "~/use_cases/habits/habitLeagueUseCase";
 import { setHabitLeagueOptIn } from "./leagueActions";
 
@@ -34,11 +33,6 @@ export default async function AtomicChallengesPage({
   setRequestLocale(locale);
   const t = await getTranslations("atomicChallenges");
   const userId = await readViewerId();
-  const active = userId
-    ? await new CuratedHabitUseCase(createCuratedHabitRepository()).getActive(
-        userId,
-      )
-    : null;
   const league = await new HabitLeagueUseCase(
     createHabitLeagueRepository(),
   ).getState(userId);
@@ -53,20 +47,13 @@ export default async function AtomicChallengesPage({
           {t("indexTitle")}
         </h1>
         <p className="mt-4 max-w-3xl text-lg text-body">{t("indexIntro")}</p>
-        <p className="mt-3 font-semibold text-text-strong">
-          {active
-            ? t("activeSummary", {
-                challenge: titleForKey(t, active.challengeKey),
-              })
-            : t("noActiveSummary")}
-        </p>
       </header>
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2">
         {CURATED_CHALLENGES.map((challenge) => (
           <Link
             key={challenge.challengeKey}
-            href={pathForChallenge(challenge.slug)}
+            href={pillarHref(challenge.slug)}
             className="focus-ring rounded-3xl border border-separator bg-surface-elevation-1 p-6 transition hover:-translate-y-1 hover:shadow-lg"
           >
             <span className="text-xs font-bold uppercase tracking-[0.16em] text-pw-green">
@@ -78,11 +65,6 @@ export default async function AtomicChallengesPage({
             <p className="mt-2 text-body">
               {minimumForPillar(t, challenge.pillar)}
             </p>
-            {active?.challengeKey === challenge.challengeKey && (
-              <strong className="mt-4 block text-pw-green">
-                {t("activePractice")}
-              </strong>
-            )}
           </Link>
         ))}
       </div>
@@ -187,17 +169,4 @@ function pillarLabel(
   if (pillar === "nutrition") return t("nutrition.pillar");
   if (pillar === "movement") return t("movement.pillar");
   return t("mind.pillar");
-}
-
-function pathForChallenge(
-  slug: "sueno" | "alimentacion" | "movimiento" | "mente-espiritu",
-):
-  | "/habitos/sueno"
-  | "/habitos/alimentacion"
-  | "/habitos/movimiento"
-  | "/habitos/mente-espiritu" {
-  if (slug === "sueno") return "/habitos/sueno";
-  if (slug === "alimentacion") return "/habitos/alimentacion";
-  if (slug === "movimiento") return "/habitos/movimiento";
-  return "/habitos/mente-espiritu";
 }

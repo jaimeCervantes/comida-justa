@@ -52,10 +52,10 @@ const RUTAS = [
      primer segmento y nada más. La usan los dos escenarios de `cartFromSearch`, que fueron dos de
      aquellos siete fallos. */
   "/buscar/pan/page/1",
-  "/habitos/sueno",
-  "/habitos/alimentacion",
-  "/habitos/movimiento",
-  "/habitos/mente-espiritu",
+  "/pilares/sueno",
+  "/pilares/alimentacion",
+  "/pilares/movimiento",
+  "/pilares/mente-espiritu",
 ] as const;
 
 /** Compilar una ruta pesada en frío pasa de largo cualquier plazo corto. */

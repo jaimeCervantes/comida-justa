@@ -18,29 +18,33 @@ export default function PillarArticle({
   pillar,
   heading,
   subtitle,
+  header,
   children,
 }: {
   pillar: PillarKey;
   heading: string;
   subtitle: string;
+  header?: ReactNode;
   children: ReactNode;
 }) {
   const color = pillarColorClasses[pillar];
 
   return (
     <article>
-      <header className="mb-10">
-        <Heading
-          level={1}
-          tone="inherit"
-          className={`sm:text-5xl mb-4 ${color.text}`}
-        >
-          {heading}
-        </Heading>
-        <Text variant="lead" tone="support" className="text-xl">
-          {subtitle}
-        </Text>
-      </header>
+      {header ?? (
+        <header className="mb-10">
+          <Heading
+            level={1}
+            tone="inherit"
+            className={`sm:text-5xl mb-4 ${color.text}`}
+          >
+            {heading}
+          </Heading>
+          <Text variant="lead" tone="support" className="text-xl">
+            {subtitle}
+          </Text>
+        </header>
+      )}
 
       <div className="space-y-8 text-lg leading-relaxed">{children}</div>
     </article>

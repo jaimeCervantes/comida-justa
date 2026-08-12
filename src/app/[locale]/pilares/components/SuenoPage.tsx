@@ -1,6 +1,9 @@
 import { useTranslations } from "next-intl";
+import type { AppLocale } from "~/i18n/routing";
 import { PUBLIC_BRAND_NAME } from "~/infra/constants";
-import AtomicChallengeCta from "~/presentation/habits/AtomicChallengeCta";
+import PillarHero, {
+  SLEEP_PILLAR_HERO_THEME,
+} from "~/presentation/habits/PillarHero";
 import PillarArticle, {
   LabeledItem,
   PillarCallout,
@@ -9,9 +12,11 @@ import PillarArticle, {
 } from "./PillarArticle";
 import PillarReferences from "./PillarReferences";
 import { SLEEP_REFERENCES } from "./references";
+import SleepPracticeSection from "./SleepPracticeSection";
 
-export default function SuenoPage() {
+export default function SuenoPage({ locale }: { locale: AppLocale }) {
   const t = useTranslations("pillarPages.sleep");
+  const challengeT = useTranslations("atomicSleepChallenge");
   const bold = (chunks: React.ReactNode) => <strong>{chunks}</strong>;
 
   return (
@@ -19,6 +24,16 @@ export default function SuenoPage() {
       pillar="sleep"
       heading={t("heading")}
       subtitle={t("subtitle")}
+      header={
+        <PillarHero
+          level={1}
+          title={t("heading")}
+          intro={t("subtitle")}
+          identity={challengeT("identity")}
+          theme={SLEEP_PILLAR_HERO_THEME}
+          className="mb-10 rounded-[2rem] shadow-xl"
+        />
+      }
     >
       <section>
         <PillarSectionHeading>{t("lightHeading")}</PillarSectionHeading>
@@ -29,6 +44,8 @@ export default function SuenoPage() {
           <LabeledItem label={t("impactLabel")} text={t("impactText")} />
         </PillarPanel>
       </section>
+
+      <SleepPracticeSection locale={locale} />
 
       <section>
         <PillarSectionHeading>{t("processesHeading")}</PillarSectionHeading>
@@ -61,11 +78,6 @@ export default function SuenoPage() {
         </PillarCallout>
       </section>
 
-      <AtomicChallengeCta
-        href="/habitos/sueno"
-        title={t("challengeCta")}
-        body={t("challengeIntro")}
-      />
       <PillarReferences pillar="sleep" references={SLEEP_REFERENCES} />
     </PillarArticle>
   );

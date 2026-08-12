@@ -2,7 +2,7 @@
 
 import HabitChallengePanel from "~/presentation/habits/HabitChallengePanel";
 import type { AtomicSleepProgress } from "~/use_cases/habits/atomicSleepChallengeUseCase";
-import { manageAtomicSleepChallenge } from "../actions";
+import { manageAtomicSleepChallenge } from "../sleepChallengeActions";
 
 export default function SleepChallengePanel({
   initialProgress,

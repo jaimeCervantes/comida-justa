@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { findHabitChallengeExperience } from "~/domain/habits/habitChallengeExperiences";
 import { revalidateLocalizedPath } from "~/i18n/revalidateLocalizedPath";
+import { pillarHref } from "~/i18n/routes";
 import { readViewerId } from "~/infra/auth/readViewerId";
 import { createHabitChallengeRepository } from "~/infra/dataAccess/habits/PostgresAtomicSleepChallengeRepository";
 import type { HabitChallengeActionState } from "~/presentation/habits/HabitChallengePanel";
@@ -22,6 +23,7 @@ export async function manageCuratedHabitChallenge(
   const useCase = new AtomicSleepChallengeUseCase(
     createHabitChallengeRepository(experience.challengeKey),
   );
+  const path = pillarHref(experience.slug);
   const intent = String(formData.get("intent") ?? "");
   if (intent === "start") {
     return {
@@ -45,7 +47,7 @@ export async function manageCuratedHabitChallenge(
         progress: await useCase.getProgress(userId),
       };
     }
-    revalidateExperience(experience.path);
+    revalidateExperience(path);
     return {
       status:
         result.recognition === "first"
@@ -70,7 +72,7 @@ export async function manageCuratedHabitChallenge(
     } else {
       await useCase.shareFirstCelebration(userId);
     }
-    revalidateExperience(experience.path, true);
+    revalidateExperience(path, true);
     return { status: "shared", progress: await useCase.getProgress(userId) };
   }
   if (intent === "withdraw") {
@@ -79,12 +81,12 @@ export async function manageCuratedHabitChallenge(
     } else {
       await useCase.withdrawFirstCelebration(userId);
     }
-    revalidateExperience(experience.path, true);
+    revalidateExperience(path, true);
     return { status: "withdrawn", progress: await useCase.getProgress(userId) };
   }
   if (intent === "garden-share" || intent === "garden-withdraw") {
     await useCase.setGardenSharing(userId, intent === "garden-share");
-    revalidateExperience(experience.path);
+    revalidateExperience(path);
     return {
       status: intent === "garden-share" ? "garden-shared" : "garden-withdrawn",
       progress: await useCase.getProgress(userId),
@@ -94,11 +96,7 @@ export async function manageCuratedHabitChallenge(
 }
 
 function revalidateExperience(
-  path:
-    | "/habitos/sueno"
-    | "/habitos/alimentacion"
-    | "/habitos/movimiento"
-    | "/habitos/mente-espiritu",
+  path: ReturnType<typeof pillarHref>,
   layout = false,
 ): void {
   revalidateLocalizedPath("/");

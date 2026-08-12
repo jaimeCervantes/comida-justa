@@ -1,5 +1,8 @@
 import { useTranslations } from "next-intl";
-import AtomicChallengeCta from "~/presentation/habits/AtomicChallengeCta";
+import type { AppLocale } from "~/i18n/routing";
+import { getDeepHabitChallengeTheme } from "~/presentation/habits/deepHabitChallengeThemes";
+import PillarHero from "~/presentation/habits/PillarHero";
+import CuratedPracticeSection from "./CuratedPracticeSection";
 import PillarArticle, {
   LabeledItem,
   PillarCallout,
@@ -9,15 +12,26 @@ import PillarArticle, {
 import PillarReferences from "./PillarReferences";
 import { NUTRITION_REFERENCES } from "./references";
 
-export default function AlimentacionPage() {
+export default function AlimentacionPage({ locale }: { locale: AppLocale }) {
   const t = useTranslations("pillarPages.nutrition");
-  const tChallenge = useTranslations("atomicChallenges.nutrition");
+  const tChallenge = useTranslations("atomicChallenges.nutritionExperience");
+  const theme = getDeepHabitChallengeTheme("nutrition");
 
   return (
     <PillarArticle
       pillar="nutrition"
       heading={t("heading")}
       subtitle={t("subtitle")}
+      header={
+        <PillarHero
+          level={1}
+          title={t("heading")}
+          intro={t("subtitle")}
+          identity={tChallenge("identity")}
+          theme={theme}
+          className="mb-10 rounded-[2rem] shadow-xl"
+        />
+      }
     >
       <section>
         <PillarSectionHeading>{t("breakHeading")}</PillarSectionHeading>
@@ -28,6 +42,8 @@ export default function AlimentacionPage() {
           <LabeledItem label={t("impactLabel")} text={t("impactText")} />
         </PillarPanel>
       </section>
+
+      <CuratedPracticeSection challenge="nutrition" locale={locale} />
 
       <section>
         <p className="mb-6">{t("evidence")}</p>
@@ -44,11 +60,6 @@ export default function AlimentacionPage() {
         </ul>
       </section>
 
-      <AtomicChallengeCta
-        href="/habitos/alimentacion"
-        title={tChallenge("cta")}
-        body={tChallenge("intro")}
-      />
       <PillarReferences pillar="nutrition" references={NUTRITION_REFERENCES} />
     </PillarArticle>
   );

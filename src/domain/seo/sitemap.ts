@@ -42,10 +42,6 @@ export const STATIC_SITEMAP_PATHS: readonly string[] = [
   "/pilares/movimiento",
   "/pilares/mente-espiritu",
   "/habitos",
-  "/habitos/sueno",
-  "/habitos/alimentacion",
-  "/habitos/movimiento",
-  "/habitos/mente-espiritu",
   "/politica-de-privacidad",
   "/condiciones-de-servicio",
 ];
