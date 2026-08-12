@@ -35,6 +35,28 @@ test.describe("Cuando un rastreador visita las secciones fijas", () => {
     await page.goto("/pilares");
     await expect(page).toHaveTitle(/4 pilares/i);
   });
+
+  test("Entonces las prácticas se describen sin lenguaje interno", async ({
+    page,
+  }) => {
+    const routes = [
+      ["/habitos", /at[oó]mico|onboarding/i],
+      ["/pilares/sueno", /at[oó]mico|onboarding/i],
+      ["/pilares/alimentacion", /at[oó]mico|onboarding/i],
+      ["/pilares/movimiento", /at[oó]mico|onboarding/i],
+      ["/pilares/mente-espiritu", /at[oó]mico|onboarding/i],
+      ["/en/habits", /atomic|onboarding/i],
+      ["/en/pillars/sueno", /atomic|onboarding/i],
+      ["/en/pillars/alimentacion", /atomic|onboarding/i],
+      ["/en/pillars/movimiento", /atomic|onboarding/i],
+      ["/en/pillars/mente-espiritu", /atomic|onboarding/i],
+    ] as const;
+
+    for (const [path, internalTerms] of routes) {
+      await page.goto(path);
+      expect(await meta(page, "description"), path).not.toMatch(internalTerms);
+    }
+  });
 });
 
 test.describe("Cuando un rastreador visita lo que no es contenido", () => {

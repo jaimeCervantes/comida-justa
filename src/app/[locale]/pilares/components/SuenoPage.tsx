@@ -1,4 +1,5 @@
 import { useTranslations } from "next-intl";
+import type { AppLocale } from "~/i18n/routing";
 import { PUBLIC_BRAND_NAME } from "~/infra/constants";
 import PillarArticle, {
   LabeledItem,
@@ -6,18 +7,21 @@ import PillarArticle, {
   PillarPanel,
   PillarSectionHeading,
 } from "./PillarArticle";
+import PillarPractice from "./PillarPractice";
 import PillarReferences from "./PillarReferences";
 import { SLEEP_REFERENCES } from "./references";
 
-export default function SuenoPage() {
+export default function SuenoPage({ locale }: { locale: AppLocale }) {
   const t = useTranslations("pillarPages.sleep");
+  const challengeT = useTranslations("atomicSleepChallenge");
   const bold = (chunks: React.ReactNode) => <strong>{chunks}</strong>;
 
   return (
     <PillarArticle
-      pillar="sleep"
+      challenge="sleep"
       heading={t("heading")}
       subtitle={t("subtitle")}
+      identity={challengeT("identity")}
     >
       <section>
         <PillarSectionHeading>{t("lightHeading")}</PillarSectionHeading>
@@ -28,6 +32,8 @@ export default function SuenoPage() {
           <LabeledItem label={t("impactLabel")} text={t("impactText")} />
         </PillarPanel>
       </section>
+
+      <PillarPractice challenge="sleep" locale={locale} />
 
       <section>
         <PillarSectionHeading>{t("processesHeading")}</PillarSectionHeading>

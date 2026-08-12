@@ -62,6 +62,7 @@ export const pathnames = {
     es: "/pilares/[[...slug]]",
     en: "/pillars/[[...slug]]",
   },
+  "/habitos": { es: "/habitos", en: "/habits" },
   "/habitos/[[...slug]]": {
     es: "/habitos/[[...slug]]",
     en: "/habits/[[...slug]]",

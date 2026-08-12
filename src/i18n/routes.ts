@@ -1,3 +1,5 @@
+import type { CuratedChallengeSlug } from "~/domain/habits/curatedChallenges";
+
 /**
  * Los destinos tipados de una tienda y de una persona.
  *
@@ -20,4 +22,15 @@ export function storeHref(handle: string) {
 /** El destino tipado de una persona. */
 export function profileHref(username: string) {
   return { pathname: "/u/[username]", params: { username } } as const;
+}
+
+/** El destino tipado de un pilar; el slug estable no se traduce. */
+export function pillarHref(slug: CuratedChallengeSlug): {
+  pathname: "/pilares/[[...slug]]";
+  params: { slug: CuratedChallengeSlug[] };
+} {
+  return {
+    pathname: "/pilares/[[...slug]]",
+    params: { slug: [slug] },
+  };
 }

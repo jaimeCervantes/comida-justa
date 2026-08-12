@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { pillarHref } from "~/i18n/routes";
 import { CANONICAL_URL } from "~/infra/constants";
 import { type AlternateHref, localizedAlternates } from "./alternates";
 
@@ -22,13 +23,17 @@ describe("localizedAlternates", () => {
       "/categoria/panaderia",
       "/en/category/panaderia",
     ],
+    [pillarHref("sueno"), "/pilares/sueno", "/en/pillars/sueno"],
     [
-      {
-        pathname: "/pilares/[[...slug]]",
-        params: { slug: ["sueno"] },
-      } as AlternateHref,
-      "/pilares/sueno",
-      "/en/pillars/sueno",
+      pillarHref("alimentacion"),
+      "/pilares/alimentacion",
+      "/en/pillars/alimentacion",
+    ],
+    [pillarHref("movimiento"), "/pilares/movimiento", "/en/pillars/movimiento"],
+    [
+      pillarHref("mente-espiritu"),
+      "/pilares/mente-espiritu",
+      "/en/pillars/mente-espiritu",
     ],
     [
       {

@@ -1,31 +1,46 @@
 import { useTranslations } from "next-intl";
+import type { CommunityGarden } from "~/domain/habits/habitCommunity";
 import { Link } from "~/i18n/navigation";
 import { PUBLIC_BRAND_NAME } from "~/infra/constants";
+import CommunityHabitGarden from "~/presentation/habits/CommunityHabitGarden";
+import PillarHero from "~/presentation/habits/PillarHero";
+import PublicHabitCelebrationList from "~/presentation/habits/PublicHabitCelebrationList";
+import { getPillarTheme } from "~/presentation/habits/pillarThemes";
+import type { PublicFirstCycleCelebration } from "~/use_cases/habits/ports/AtomicSleepChallengeRepository";
+import { setHabitCelebrationReaction } from "../../habitCommunityActions";
 import { PILLARS, pillarColorClasses } from "./pilaresData";
 
-export default function PilaresOverviewPage() {
+export default function PilaresOverviewPage({
+  celebrations,
+  garden,
+  viewerSignedIn,
+}: {
+  celebrations: PublicFirstCycleCelebration[];
+  garden: CommunityGarden;
+  viewerSignedIn: boolean;
+}) {
   const t = useTranslations("pillarsOverview");
   const tPillars = useTranslations("pillars");
   const tPages = useTranslations("pillarPages");
+  const habitT = useTranslations("atomicChallenges");
 
   return (
     <article>
-      <header className="mb-12 text-center">
-        <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-slate-50 mb-4">
-          {t.rich("heading", {
+      <section className="relative isolate overflow-hidden rounded-4xl border border-pillar-sleep-ink/20 bg-surface-base shadow-xl mb-10">
+        <PillarHero
+          level={2}
+          eyebrow={t("heroEyebrow")}
+          title={t.rich("heading", {
             brandName: PUBLIC_BRAND_NAME,
-            brand: (chunks) => (
-              <span className="text-pw-lightgreen">{chunks}</span>
-            ),
+            brand: (chunks) => <span>{chunks}</span>,
           })}
-        </h1>
-        <p className="text-xl text-slate-600 dark:text-slate-400 max-w-3xl mx-auto">
-          {t("intro")}
-        </p>
-      </header>
+          intro={t("intro")}
+          identity={t("heroIdentity")}
+          theme={getPillarTheme("nutrition")}
+          className="rounded-t-4xl"
+        />
 
-      <section>
-        <div className="grid gap-6 sm:grid-cols-2">
+        <div className="grid gap-6 sm:grid-cols-2 px-6 py-8 sm:px-10 sm:py-10">
           {PILLARS.map((pillar) => {
             const c = pillarColorClasses[pillar.key];
             return (
@@ -72,6 +87,16 @@ export default function PilaresOverviewPage() {
               </Link>
             );
           })}
+        </div>
+
+        <div className="px-6 sm:px-10 pb-8 sm:pb-10 space-y-10">
+          <CommunityHabitGarden garden={garden} />
+          <PublicHabitCelebrationList
+            title={habitT("experienceCommon.communityCelebrationsTitle")}
+            celebrations={celebrations}
+            viewerSignedIn={viewerSignedIn}
+            reactionAction={setHabitCelebrationReaction}
+          />
         </div>
       </section>
 

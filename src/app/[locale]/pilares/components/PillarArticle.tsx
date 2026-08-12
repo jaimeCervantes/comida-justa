@@ -1,46 +1,50 @@
 import type { ReactNode } from "react";
+import type { HabitChallengeExperienceKey } from "~/domain/habits/habitChallengeExperiences";
 import { Surface } from "~/presentation/design_system/surfaces/Surface";
 import { Heading } from "~/presentation/design_system/typography/Heading";
 import { Text } from "~/presentation/design_system/typography/Text";
+import PillarHero from "~/presentation/habits/PillarHero";
+import { getPillarTheme } from "~/presentation/habits/pillarThemes";
 import { type PillarKey, pillarColorClasses } from "./pilaresData";
 
 /**
- * El armazón que comparten las cuatro páginas de pilar: cabecera, subtítulo y el cuerpo con su
- * ritmo tipográfico. Solo cambia el color, y ya no entra como cadena de clases: entra la clave del
- * pilar y el color se resuelve aquí.
+ * El armazón que comparten las cuatro páginas de pilar: su hero, y el cuerpo con su ritmo
+ * tipográfico. Solo cambia el color, y no entra como cadena de clases: entra la clave del pilar y el
+ * color se resuelve aquí.
  *
  * Antes cada página se traía sus propias clases (`text-violet-500`, `bg-emerald-50/50 dark:…`) y
  * eso fue justo lo que se pudrió: un find/replace dejó `da dark:` como clase suelta,
  * `bg-violet-50/da` y `text-violet-100xt-lg`, y nadie lo notó porque el color estaba escrito
  * cuatro veces en cuatro archivos. Con la clave, un pilar solo puede pintarse de su color.
+ *
+ * El hero también se arma aquí y no en cada página: las cuatro lo montaban con las mismas seis
+ * propiedades y las mismas clases, y era cuestión de tiempo que una se quedara sin la sombra o con
+ * otro radio. Entra el reto —no el color ni el tema— y de él salen la paleta y la identidad.
  */
 export default function PillarArticle({
-  pillar,
+  challenge,
   heading,
   subtitle,
+  identity,
   children,
 }: {
-  pillar: PillarKey;
+  challenge: HabitChallengeExperienceKey;
   heading: string;
   subtitle: string;
+  /** La frase en primera persona del reto: quién es alguien que practica este pilar. */
+  identity: string;
   children: ReactNode;
 }) {
-  const color = pillarColorClasses[pillar];
-
   return (
     <article>
-      <header className="mb-10">
-        <Heading
-          level={1}
-          tone="inherit"
-          className={`sm:text-5xl mb-4 ${color.text}`}
-        >
-          {heading}
-        </Heading>
-        <Text variant="lead" tone="support" className="text-xl">
-          {subtitle}
-        </Text>
-      </header>
+      <PillarHero
+        level={1}
+        title={heading}
+        intro={subtitle}
+        identity={identity}
+        theme={getPillarTheme(challenge)}
+        className="mb-10 rounded-[2rem] shadow-xl"
+      />
 
       <div className="space-y-8 text-lg leading-relaxed">{children}</div>
     </article>

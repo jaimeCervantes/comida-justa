@@ -73,7 +73,7 @@ export default function IndexingStatusPanel({
         className="text-sm text-gray-600 dark:text-gray-400"
       >
         {allIndexed ? (
-          <>{t("indexingAllDone", { total })}</>
+          t("indexingAllDone", { total })
         ) : (
           <>
             {t("indexingPendingHint")}{" "}

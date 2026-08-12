@@ -1,21 +1,25 @@
 import { useTranslations } from "next-intl";
+import type { AppLocale } from "~/i18n/routing";
 import PillarArticle, {
   LabeledItem,
   PillarCallout,
   PillarPanel,
   PillarSectionHeading,
 } from "./PillarArticle";
+import PillarPractice from "./PillarPractice";
 import PillarReferences from "./PillarReferences";
 import { NUTRITION_REFERENCES } from "./references";
 
-export default function AlimentacionPage() {
+export default function AlimentacionPage({ locale }: { locale: AppLocale }) {
   const t = useTranslations("pillarPages.nutrition");
+  const tChallenge = useTranslations("atomicChallenges.nutritionExperience");
 
   return (
     <PillarArticle
-      pillar="nutrition"
+      challenge="nutrition"
       heading={t("heading")}
       subtitle={t("subtitle")}
+      identity={tChallenge("identity")}
     >
       <section>
         <PillarSectionHeading>{t("breakHeading")}</PillarSectionHeading>
@@ -26,6 +30,8 @@ export default function AlimentacionPage() {
           <LabeledItem label={t("impactLabel")} text={t("impactText")} />
         </PillarPanel>
       </section>
+
+      <PillarPractice challenge="nutrition" locale={locale} />
 
       <section>
         <p className="mb-6">{t("evidence")}</p>

@@ -35,6 +35,10 @@ test.describe("Cuando un rastreador pide el sitemap", () => {
     expect(xml).toContain("/productos<");
     expect(xml).toContain("/nosotros<");
     expect(xml).toContain("/pilares/alimentacion<");
+    expect(xml).toContain("/pilares/movimiento<");
+    expect(xml).toContain("/pilares/mente-espiritu<");
+    expect(xml).toContain("/habitos<");
+    expect(xml).not.toContain("/habitos/alimentacion<");
 
     // Lo que hay en la base: la publicación recién sembrada y la tienda real.
     expect(xml).toContain(`/${seeded.slug}<`);
@@ -48,10 +52,9 @@ test.describe("Cuando un rastreador pide el sitemap", () => {
 
     /* `/negocios-locales` y `/productores-locales` salieron de esta lista al entregarse: ya no son
        stubs, y ahora entran al sitemap **si tienen contenido**, que es lo que comprueba
-       `directories.spec.ts`. Las otras cuatro secciones siguen siendo 404. */
+       `directories.spec.ts`. `/habitos` también salió al entregar los retos atómicos. */
     for (const path of [
       "/deportes",
-      "/habitos",
       "/medio-ambiente",
       "/salud-infantil",
       "/cuenta",
@@ -69,7 +72,7 @@ test.describe("Cuando un rastreador pide el sitemap", () => {
     request,
   }) => {
     // Si algún día dejan de ser stubs, esta prueba falla y recuerda meterlas al sitemap.
-    for (const path of ["/deportes", "/habitos", "/salud-infantil"]) {
+    for (const path of ["/deportes", "/salud-infantil"]) {
       const response = await request.get(path);
 
       expect(response.status(), `${path} ya no es un stub`).toBe(404);

@@ -1,21 +1,25 @@
 import { useTranslations } from "next-intl";
+import type { AppLocale } from "~/i18n/routing";
 import PillarArticle, {
   LabeledItem,
   PillarCallout,
   PillarPanel,
   PillarSectionHeading,
 } from "./PillarArticle";
+import PillarPractice from "./PillarPractice";
 import PillarReferences from "./PillarReferences";
 import { MIND_SPIRIT_REFERENCES } from "./references";
 
-export default function MenteEspirituPage() {
+export default function MenteEspirituPage({ locale }: { locale: AppLocale }) {
   const t = useTranslations("pillarPages.mindSpirit");
+  const tChallenge = useTranslations("atomicChallenges.mindExperience");
 
   return (
     <PillarArticle
-      pillar="mindSpirit"
+      challenge="mind"
       heading={t("heading")}
       subtitle={t("subtitle")}
+      identity={tChallenge("identity")}
     >
       <section>
         <PillarSectionHeading>{t("breakHeading")}</PillarSectionHeading>
@@ -26,6 +30,8 @@ export default function MenteEspirituPage() {
           <LabeledItem label={t("impactLabel")} text={t("impactText")} />
         </PillarPanel>
       </section>
+
+      <PillarPractice challenge="mind" locale={locale} />
 
       <section>
         <PillarSectionHeading>{t("mismatchHeading")}</PillarSectionHeading>
