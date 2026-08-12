@@ -69,7 +69,7 @@ Feature: Presencia, paz y conexion local
 
     Examples: tres ventanas y ningun conteo de minutos sin telefono
       | ventana      | que                              |
-      | Primera hora | Abrir el día sin pantalla        |
+      | Primera hora | Nada de redes ni noticias        |
       | En la mesa   | Comidas y cenas sin dispositivos |
       | Última hora  | Cerrar el día sin scroll         |
 

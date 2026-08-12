@@ -341,9 +341,13 @@ test.describe("Del atardecer al amanecer", () => {
         "Soy una persona que hace fácil elegir comida real, fresca y de origen local",
       ),
     ).toBeVisible();
-    await expect(page.getByText("Cenar al atardecer")).toBeVisible();
+    /* Por rol y no por texto suelto: «Cenar al atardecer» abre tambien el puente con Sueño,
+       y el ancla es lo que esta prueba vigila. */
     await expect(
-      page.getByText("Servir la triada local", { exact: true }),
+      page.getByRole("heading", { name: "Cenar al atardecer" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Servir la triada local" }),
     ).toBeVisible();
     await expect(
       page.getByText(/a granel y en tus propios frascos/i),
@@ -509,9 +513,7 @@ test.describe("Del atardecer al amanecer", () => {
         name: "Empezar Movimiento vivo, local y funcional",
       })
       .click();
-    await page
-      .getByRole("checkbox", { name: "Usé mi señal para empezar" })
-      .check();
+    await page.getByRole("checkbox", { name: "Me moví sin motor" }).check();
     await page
       .getByRole("checkbox", {
         name: "Me moví dos minutos según mi capacidad",
@@ -530,7 +532,7 @@ test.describe("Del atardecer al amanecer", () => {
       .getByTestId("public-habit-celebration")
       .filter({ hasText: suiteDisplayName });
     await expect(card).toHaveAttribute("data-pillar", "movement");
-    await expect(card).toContainText("empezó a moverse");
+    await expect(card).toContainText("movió su primer día");
     await expect(
       card.getByRole("link", {
         name: /Conocer Movimiento vivo, local y funcional/,
@@ -552,9 +554,17 @@ test.describe("Del atardecer al amanecer", () => {
         "Soy una persona que cultiva la paz interior, la presencia y lazos sólidos con su comunidad todos los días",
       ),
     ).toBeVisible();
-    await expect(page.getByText(/pausa.*ruido digital/i).first()).toBeVisible();
+    /* Por rol: «Abrir el día sin pantalla» es tambien el titulo de la primera ventana de
+       silencio, y el ancla es lo que esta prueba vigila. */
     await expect(
-      page.getByText(/la respuesta de la otra persona no es requisito/i),
+      page.getByRole("heading", { name: "Abrir el día sin pantalla" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Presencia con alguien" }),
+    ).toBeVisible();
+    /* El minimo empuja a lo presencial sin dejar fuera a quien hoy no tiene a nadie cerca. */
+    await expect(
+      page.getByText(/una llamada o un mensaje sincero cuentan igual/i),
     ).toBeVisible();
 
     await page
@@ -579,10 +589,7 @@ test.describe("Del atardecer al amanecer", () => {
       await page.locator('select[name="cycleDate"]').selectOption(cycleDate);
       await page
         .getByRole("button", {
-          name:
-            index === 0
-              ? "Cultivar mi primer vínculo"
-              : "Registrar este vínculo",
+          name: index === 0 ? "Registrar mi primer día" : "Registrar este día",
         })
         .click();
       await expect(page.getByText(`${index + 1} de 7 días`)).toBeVisible();
@@ -613,9 +620,7 @@ test.describe("Del atardecer al amanecer", () => {
         name: "Le di presencia real a alguien",
       })
       .check();
-    await page
-      .getByRole("button", { name: "Cultivar mi primer vínculo" })
-      .click();
+    await page.getByRole("button", { name: "Registrar mi primer día" }).click();
     await page
       .getByRole("button", { name: "Compartir con la comunidad" })
       .click();
@@ -628,7 +633,7 @@ test.describe("Del atardecer al amanecer", () => {
       .getByTestId("public-habit-celebration")
       .filter({ hasText: suiteDisplayName });
     await expect(card).toHaveAttribute("data-pillar", "mind");
-    await expect(card).toContainText("cultivó un vínculo real");
+    await expect(card).toContainText("sostuvo su primer día de presencia");
     await expect(
       card.getByRole("link", {
         name: /Conocer Presencia, paz y conexión local/,
@@ -728,7 +733,7 @@ test.describe("Del atardecer al amanecer", () => {
       await page.goto(path);
       await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
       await expect(page.getByRole("heading", { level: 1 })).toHaveText(
-        /Alimentación|Movimiento|Emociones/,
+        /Alimentación|Movimiento|Mente/,
       );
       await expect(page.getByText(identity)).toBeVisible();
       const practice = page.getByRole("heading", { level: 2, name: challenge });
