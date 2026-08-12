@@ -47,6 +47,25 @@ export const SLEEP_REFERENCES: readonly string[] = [
   "https://doi.org/10.1007/164_2018_140",
   "https://doi.org/10.1016/s2468-2667(23)00182-2",
   "https://doi.org/10.1016/j.sleep.2020.07.048",
+  /*
+   * Lo que el ritual circadiano añadió y la lista anterior no sostenía.
+   *
+   * Luz de casa por la noche: la luz de una habitación normal antes de dormir retrasó el inicio de
+   * la melatonina en el 99 % de las personas y acortó su duración unos 90 minutos. Es la evidencia
+   * del paso de atenuar la casa una hora antes.
+   */
+  "https://doi.org/10.1210/jc.2010-2098",
+  /*
+   * Cuarto fresco: el ambiente térmico cambia la arquitectura del sueño; el calor recorta sueño
+   * profundo y REM. Sostiene la condición «fresco y ventilado» del santuario.
+   */
+  "https://doi.org/10.1186/1880-6805-31-14",
+  /*
+   * Descarga mental: escribir la lista de pendientes cinco minutos antes de acostarse hizo dormirse
+   * antes que escribir lo ya hecho, medido con polisomnografía. De ahí salen los cinco minutos y el
+   * «pendientes, no lo ya hecho» de esa sección.
+   */
+  "https://doi.org/10.1037/xge0000374",
 ];
 
 export const NUTRITION_REFERENCES: readonly string[] = [

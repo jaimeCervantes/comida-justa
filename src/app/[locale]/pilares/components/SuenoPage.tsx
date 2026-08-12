@@ -1,6 +1,7 @@
 import { useTranslations } from "next-intl";
 import type { AppLocale } from "~/i18n/routing";
 import { PUBLIC_BRAND_NAME } from "~/infra/constants";
+import { Heading } from "~/presentation/design_system/typography/Heading";
 import PillarArticle, {
   LabeledItem,
   PillarCallout,
@@ -10,6 +11,10 @@ import PillarArticle, {
 import PillarPractice from "./PillarPractice";
 import PillarReferences from "./PillarReferences";
 import { SLEEP_REFERENCES } from "./references";
+import SleepMentalUnload from "./SleepMentalUnload";
+import SleepPillarBridges from "./SleepPillarBridges";
+import SleepPracticeCatalog from "./SleepPracticeCatalog";
+import SleepSanctuary from "./SleepSanctuary";
 
 export default function SuenoPage({ locale }: { locale: AppLocale }) {
   const t = useTranslations("pillarPages.sleep");
@@ -33,7 +38,40 @@ export default function SuenoPage({ locale }: { locale: AppLocale }) {
         </PillarPanel>
       </section>
 
+      {/* El costo va junto a su contrapeso, como en los otros tres pilares. */}
+      <section>
+        <PillarSectionHeading>{t("hiddenCostHeading")}</PillarSectionHeading>
+        <p className="mb-4">{t("hiddenCostIntro")}</p>
+
+        <PillarPanel pillar="sleep">
+          <LabeledItem
+            label={t("fragmentedLabel")}
+            text={t("fragmentedText")}
+          />
+          <LabeledItem label={t("stimulantLabel")} text={t("stimulantText")} />
+          <LabeledItem
+            label={t("lightPollutionLabel")}
+            text={t("lightPollutionText")}
+          />
+        </PillarPanel>
+
+        <Heading level={3}>{t("localSolutionHeading")}</Heading>
+        <PillarCallout pillar="sleep">{t("localSolutionText")}</PillarCallout>
+      </section>
+
       <PillarPractice challenge="sleep" locale={locale} />
+
+      {/* La guía va después de la práctica: quien ya se comprometió con las dos anclas es quien
+          necesita saber cómo dejar el cuarto y la cabeza listos. */}
+      <SleepSanctuary />
+
+      <SleepMentalUnload />
+
+      <SleepPracticeCatalog />
+
+      {/* Los puentes cierran el círculo de los cuatro pilares, y por eso van al final: se leen
+          mejor cuando ya se entendió qué protege el descanso. */}
+      <SleepPillarBridges />
 
       <section>
         <PillarSectionHeading>{t("processesHeading")}</PillarSectionHeading>
