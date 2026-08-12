@@ -26,6 +26,34 @@ describe("HabitChallengePanel", () => {
     succeeded: false,
   };
 
+  it("shows saved progress even when the old onboarding flag is inactive", () => {
+    const historicalProgress = {
+      ...progress,
+      active: false,
+      level: "sprout" as const,
+      xp: 10,
+      completedCycles: 1,
+      completedDates: ["2026-08-06"],
+    };
+    renderWithIntl(
+      <HabitChallengePanel
+        action={action}
+        challenge="nutrition"
+        initialProgress={historicalProgress}
+        signedIn
+        signInHref="/auth/signin"
+      />,
+    );
+
+    expect(screen.getByText("1 de 7 elecciones")).toBeInTheDocument();
+    expect(screen.getAllByText("10 puntos").length).toBeGreaterThan(0);
+    expect(
+      screen.queryByRole("button", {
+        name: "Continuar mi semana de elecciones reales",
+      }),
+    ).not.toBeInTheDocument();
+  });
+
   it("requires the nutrition cue and minimum but not advance preparation", () => {
     renderWithIntl(
       <HabitChallengePanel

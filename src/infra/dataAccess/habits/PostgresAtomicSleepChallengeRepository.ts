@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, isNotNull, isNull, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import { ATOMIC_SLEEP_CHALLENGE_KEY } from "~/domain/habits/atomicSleepChallenge";
 import {
   CURATED_CHALLENGE_KEYS,
@@ -9,6 +9,7 @@ import {
   buildCommunityGarden,
   type CelebrationReactionIntent,
   type CommunityGarden,
+  canPublishHabitCelebration,
 } from "~/domain/habits/habitCommunity";
 import { db } from "~/infra/dataAccess/db/connection";
 import { users } from "~/infra/dataAccess/db/schema/auth";
@@ -42,34 +43,26 @@ export default class PostgresAtomicSleepChallengeRepository
   ) {}
 
   async start(userId: string, schedule: HabitChallengeSchedule): Promise<void> {
-    await db.transaction(async (transaction): Promise<void> => {
-      await transaction
-        .update(habitChallengeProgress)
-        .set({ activeForOnboarding: false })
-        .where(eq(habitChallengeProgress.userId, userId));
-      await transaction
-        .insert(habitChallengeProgress)
-        .values({
-          userId,
-          challengeKey: this.challengeKey,
-          timezone: schedule.timezone,
-          periodStartDate: schedule.startDate,
-          periodEndDate: schedule.endDate,
-          activeForOnboarding: true,
-        })
-        .onConflictDoUpdate({
-          target: [
-            habitChallengeProgress.userId,
-            habitChallengeProgress.challengeKey,
-          ],
-          set: {
-            timezone: sql`coalesce(${habitChallengeProgress.timezone}, ${schedule.timezone})`,
-            periodStartDate: sql`coalesce(${habitChallengeProgress.periodStartDate}, ${schedule.startDate})`,
-            periodEndDate: sql`coalesce(${habitChallengeProgress.periodEndDate}, ${schedule.endDate})`,
-            activeForOnboarding: true,
-          },
-        });
-    });
+    await db
+      .insert(habitChallengeProgress)
+      .values({
+        userId,
+        challengeKey: this.challengeKey,
+        timezone: schedule.timezone,
+        periodStartDate: schedule.startDate,
+        periodEndDate: schedule.endDate,
+      })
+      .onConflictDoUpdate({
+        target: [
+          habitChallengeProgress.userId,
+          habitChallengeProgress.challengeKey,
+        ],
+        set: {
+          timezone: sql`coalesce(${habitChallengeProgress.timezone}, ${schedule.timezone})`,
+          periodStartDate: sql`coalesce(${habitChallengeProgress.periodStartDate}, ${schedule.startDate})`,
+          periodEndDate: sql`coalesce(${habitChallengeProgress.periodEndDate}, ${schedule.endDate})`,
+        },
+      });
   }
 
   async findProgress(
@@ -86,7 +79,6 @@ export default class PostgresAtomicSleepChallengeRepository
         firstCycleCompletedAt: habitChallengeProgress.firstCycleCompletedAt,
         finalCompletedAt: habitChallengeProgress.finalCompletedAt,
         gardenSharingEnabled: habitChallengeProgress.gardenSharingEnabled,
-        activeForOnboarding: habitChallengeProgress.activeForOnboarding,
       })
       .from(habitChallengeProgress)
       .where(
@@ -195,22 +187,17 @@ export default class PostgresAtomicSleepChallengeRepository
     userId: string,
     milestone: HabitCelebrationMilestone,
   ): Promise<boolean> {
-    const completionColumn =
-      milestone === FIRST_CYCLE_MILESTONE
-        ? habitChallengeProgress.firstCycleCompletedAt
-        : habitChallengeProgress.finalCompletedAt;
-    const completed = await db
-      .select({ userId: habitChallengeProgress.userId })
-      .from(habitChallengeProgress)
+    const [summary] = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(habitRepetitions)
       .where(
         and(
-          eq(habitChallengeProgress.userId, userId),
-          eq(habitChallengeProgress.challengeKey, this.challengeKey),
-          isNotNull(completionColumn),
+          eq(habitRepetitions.userId, userId),
+          eq(habitRepetitions.challengeKey, this.challengeKey),
         ),
-      )
-      .limit(1);
-    if (completed.length === 0) return false;
+      );
+    if (!canPublishHabitCelebration(summary?.count ?? 0, milestone))
+      return false;
 
     await db
       .insert(habitCelebrations)
@@ -248,10 +235,11 @@ export default class PostgresAtomicSleepChallengeRepository
       );
   }
 
-  async findLatestPublicCelebration(
+  async findRecentPublicCelebrations(
+    limit: number,
     viewerId?: string | null,
-  ): Promise<PublicFirstCycleCelebration | null> {
-    const [row] = await db
+  ): Promise<PublicFirstCycleCelebration[]> {
+    const rows = await db
       .select({
         id: habitCelebrations.id,
         displayName: users.name,
@@ -260,6 +248,19 @@ export default class PostgresAtomicSleepChallengeRepository
         publishedAt: habitCelebrations.publishedAt,
         milestone: habitCelebrations.milestone,
         challengeKey: habitCelebrations.challengeKey,
+        reactionCount: sql<number>`(
+          SELECT count(*)::int
+          FROM ${habitCelebrationReactions}
+          WHERE ${habitCelebrationReactions.celebrationId} = ${habitCelebrations.id}
+        )`,
+        viewerReacted: viewerId
+          ? sql<boolean>`EXISTS (
+              SELECT 1
+              FROM ${habitCelebrationReactions}
+              WHERE ${habitCelebrationReactions.celebrationId} = ${habitCelebrations.id}
+                AND ${habitCelebrationReactions.userId} = ${viewerId}
+            )`
+          : sql<boolean>`false`,
       })
       .from(habitCelebrations)
       .innerJoin(users, eq(users.id, habitCelebrations.userId))
@@ -270,38 +271,21 @@ export default class PostgresAtomicSleepChallengeRepository
         ),
       )
       .orderBy(desc(habitCelebrations.publishedAt), desc(habitCelebrations.id))
-      .limit(1);
+      .limit(limit);
 
-    if (!row || !isCuratedChallengeKey(row.challengeKey)) return null;
-    const challengeKey = row.challengeKey;
-    const [reactionSummary, viewerReaction] = await Promise.all([
-      db
-        .select({ count: sql<number>`count(*)::int` })
-        .from(habitCelebrationReactions)
-        .where(eq(habitCelebrationReactions.celebrationId, row.id)),
-      viewerId
-        ? db
-            .select({ userId: habitCelebrationReactions.userId })
-            .from(habitCelebrationReactions)
-            .where(
-              and(
-                eq(habitCelebrationReactions.celebrationId, row.id),
-                eq(habitCelebrationReactions.userId, viewerId),
-              ),
-            )
-            .limit(1)
-        : Promise.resolve([]),
-    ]);
-    return {
-      ...row,
-      challengeKey,
-      milestone:
-        row.milestone === FINAL_MILESTONE
-          ? FINAL_MILESTONE
-          : FIRST_CYCLE_MILESTONE,
-      reactionCount: reactionSummary[0]?.count ?? 0,
-      viewerReacted: viewerReaction.length === 1,
-    };
+    return rows.flatMap((row): PublicFirstCycleCelebration[] => {
+      if (!isCuratedChallengeKey(row.challengeKey)) return [];
+      return [
+        {
+          ...row,
+          challengeKey: row.challengeKey,
+          milestone:
+            row.milestone === FINAL_MILESTONE
+              ? FINAL_MILESTONE
+              : FIRST_CYCLE_MILESTONE,
+        },
+      ];
+    });
   }
 
   async setGardenSharing(userId: string, enabled: boolean): Promise<void> {

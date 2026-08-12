@@ -5,11 +5,20 @@ import {
 } from "./habitChallengeExperiences";
 
 describe("habit challenge experiences", () => {
+  it("keeps Sleep inside its pillar instead of a separate Habits route", () => {
+    expect(findHabitChallengeExperience("sueno")).toMatchObject({
+      challengeKey: "sleep-evening-to-morning-v1",
+      pillar: "sleep",
+      path: "/pilares/sueno",
+      theme: "sleep",
+    });
+  });
+
   it("defines Nutrition as a closed experience distinct from Sleep", () => {
     expect(findHabitChallengeExperience("alimentacion")).toMatchObject({
       challengeKey: "nutrition-one-plant-v1",
       pillar: "nutrition",
-      path: "/habitos/alimentacion",
+      path: "/pilares/alimentacion",
       theme: "nutrition",
       minimumFields: ["cueCompleted", "minimumCompleted"],
     });
@@ -29,7 +38,7 @@ describe("habit challenge experiences", () => {
     expect(findHabitChallengeExperience("movimiento")).toMatchObject({
       challengeKey: "movement-two-minutes-v1",
       pillar: "movement",
-      path: "/habitos/movimiento",
+      path: "/pilares/movimiento",
       theme: "movement",
       minimumFields: ["cueCompleted", "minimumCompleted"],
     });
@@ -39,7 +48,7 @@ describe("habit challenge experiences", () => {
     expect(findHabitChallengeExperience("mente-espiritu")).toMatchObject({
       challengeKey: "mind-one-connection-v1",
       pillar: "mind",
-      path: "/habitos/mente-espiritu",
+      path: "/pilares/mente-espiritu",
       theme: "mind",
       minimumFields: ["cueCompleted", "minimumCompleted"],
     });

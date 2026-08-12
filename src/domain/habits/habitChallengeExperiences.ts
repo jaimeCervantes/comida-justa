@@ -21,10 +21,10 @@ export type HabitChallengeExperience = {
     | "mind-one-connection-v1";
   pillar: CuratedHabitPillar;
   path:
-    | "/habitos/sueno"
-    | "/habitos/alimentacion"
-    | "/habitos/movimiento"
-    | "/habitos/mente-espiritu";
+    | "/pilares/sueno"
+    | "/pilares/alimentacion"
+    | "/pilares/movimiento"
+    | "/pilares/mente-espiritu";
   theme: HabitChallengeTheme;
   minimumFields: readonly [HabitMinimumField, HabitMinimumField];
 };
@@ -35,7 +35,7 @@ export const HABIT_CHALLENGE_EXPERIENCES = {
     slug: "sueno",
     challengeKey: "sleep-evening-to-morning-v1",
     pillar: "sleep",
-    path: "/habitos/sueno",
+    path: "/pilares/sueno",
     theme: "sleep",
     minimumFields: ["cueCompleted", "minimumCompleted"],
   },
@@ -44,7 +44,7 @@ export const HABIT_CHALLENGE_EXPERIENCES = {
     slug: "alimentacion",
     challengeKey: "nutrition-one-plant-v1",
     pillar: "nutrition",
-    path: "/habitos/alimentacion",
+    path: "/pilares/alimentacion",
     theme: "nutrition",
     minimumFields: ["cueCompleted", "minimumCompleted"],
   },
@@ -53,7 +53,7 @@ export const HABIT_CHALLENGE_EXPERIENCES = {
     slug: "movimiento",
     challengeKey: "movement-two-minutes-v1",
     pillar: "movement",
-    path: "/habitos/movimiento",
+    path: "/pilares/movimiento",
     theme: "movement",
     minimumFields: ["cueCompleted", "minimumCompleted"],
   },
@@ -62,7 +62,7 @@ export const HABIT_CHALLENGE_EXPERIENCES = {
     slug: "mente-espiritu",
     challengeKey: "mind-one-connection-v1",
     pillar: "mind",
-    path: "/habitos/mente-espiritu",
+    path: "/pilares/mente-espiritu",
     theme: "mind",
     minimumFields: ["cueCompleted", "minimumCompleted"],
   },

@@ -38,12 +38,7 @@ export const habitChallengeProgress = pgTable(
       .notNull()
       .default(false),
   },
-  (table) => [
-    primaryKey({ columns: [table.userId, table.challengeKey] }),
-    uniqueIndex("uq_habit_one_active_onboarding")
-      .on(table.userId)
-      .where(sql`${table.activeForOnboarding} = true`),
-  ],
+  (table) => [primaryKey({ columns: [table.userId, table.challengeKey] })],
 );
 
 export const habitCelebrations = pgTable(

@@ -1,7 +1,8 @@
 # Base de datos
 
-> Volcado del esquema **real** el 2026-08-09, contra la base compartida (`alembic_version` =
-> `0032_2026_08_09`). La versión anterior de este documento describía una base que ya no existía:
+> Volcado del esquema **real** el 2026-08-09, cuando la base compartida estaba en `0032_2026_08_09`.
+> El head se verificó después de las migraciones de hábitos y hoy es `0038_2026_08_11`. La versión
+> anterior de este documento describía una base que ya no existía:
 > tres tablas, `posts.id` como `uuid` cuando es `text`, un `UNIQUE(post_id, locale)` que nunca se
 > creó, y una sección entera sobre leer de Firestore. Si vuelves a dudar, el volcado se reproduce
 > con las consultas de `information_schema` en vez de creerle a este archivo.
@@ -456,8 +457,14 @@ pnpm dev
 | `0030` | `post_media.width` y `post_media.height` |
 | `0031` | `follows`, con sus dos únicos parciales |
 | `0032` | `customer_orders` y `customer_order_items` |
+| `0033` | Progreso e hitos públicos de rituales |
+| `0034` | Ventanas locales y repeticiones diarias de rituales |
+| `0035` | Consentimiento del jardín y reacciones a celebraciones |
+| `0036` | Bandera histórica de onboarding e índice de una sola práctica |
+| `0037` | Opt-in revocable para la liga semanal |
+| `0038` | Retiro del índice exclusivo para permitir rituales concurrentes |
 
 `0028` es del bot (ledger de publicación en redes) y se aplicó de camino al `0029`: estaba escrita
 sin aplicar y `alembic upgrade head` no la puede saltar.
 
-Head actual: **`0032_2026_08_09`**.
+Head actual: **`0038_2026_08_11`**.

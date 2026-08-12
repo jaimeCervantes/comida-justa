@@ -7,9 +7,10 @@ import type { CuratedChallengeKey } from "~/domain/habits/curatedChallenges";
 import type {
   CelebrationReactionIntent,
   CommunityGarden,
+  HabitCelebrationMilestone,
 } from "~/domain/habits/habitCommunity";
 
-export type HabitCelebrationMilestone = "first_cycle" | "challenge_completed";
+export type { HabitCelebrationMilestone } from "~/domain/habits/habitCommunity";
 export type HabitChallengeSchedule = HabitChallengePeriod;
 
 export type StoredAtomicSleepProgress = {
@@ -25,7 +26,6 @@ export type StoredAtomicSleepProgress = {
   celebrationStatus: CelebrationStatus;
   finalCelebrationStatus: CelebrationStatus;
   gardenSharingEnabled: boolean;
-  activeForOnboarding?: boolean;
 };
 
 export type PublicFirstCycleCelebration = {
@@ -60,9 +60,10 @@ export interface AtomicSleepChallengeRepository {
 }
 
 export interface AtomicSleepCelebrationQuery {
-  findLatestPublicCelebration(
+  findRecentPublicCelebrations(
+    limit: number,
     viewerId?: string | null,
-  ): Promise<PublicFirstCycleCelebration | null>;
+  ): Promise<PublicFirstCycleCelebration[]>;
 }
 
 export interface HabitCommunityRepository {

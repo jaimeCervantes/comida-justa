@@ -22,7 +22,6 @@ export type AtomicSleepProgress = Omit<SleepChallengeProgress, "period"> & {
   celebrationStatus: CelebrationStatus;
   finalCelebrationStatus: CelebrationStatus;
   gardenSharingEnabled: boolean;
-  active?: boolean;
 };
 
 export type CompleteCycleResult =
@@ -180,7 +179,6 @@ export default class AtomicSleepChallengeUseCase {
         celebrationStatus: stored.celebrationStatus,
         finalCelebrationStatus: stored.finalCelebrationStatus,
         gardenSharingEnabled: stored.gardenSharingEnabled,
-        active: stored.activeForOnboarding ?? true,
       };
     }
 
@@ -192,7 +190,6 @@ export default class AtomicSleepChallengeUseCase {
       celebrationStatus: stored.celebrationStatus,
       finalCelebrationStatus: stored.finalCelebrationStatus,
       gardenSharingEnabled: stored.gardenSharingEnabled,
-      active: stored.activeForOnboarding ?? true,
     };
   }
 

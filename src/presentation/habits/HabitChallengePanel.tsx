@@ -82,7 +82,7 @@ export default function HabitChallengePanel({
     return <SignInLink href={signInHref} label={copy.signInStart} />;
   }
 
-  if (!progress?.period || progress.active === false) {
+  if (!progress?.period) {
     return (
       <form action={action} className="mt-8 flex justify-center">
         <input type="hidden" name="intent" value="start" />
