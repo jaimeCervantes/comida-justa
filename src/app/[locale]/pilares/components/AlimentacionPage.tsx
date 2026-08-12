@@ -1,5 +1,9 @@
 import { useTranslations } from "next-intl";
 import type { AppLocale } from "~/i18n/routing";
+import { Heading } from "~/presentation/design_system/typography/Heading";
+import NutritionCleanCooking from "./NutritionCleanCooking";
+import NutritionIngredientCatalog from "./NutritionIngredientCatalog";
+import NutritionPlateTriad from "./NutritionPlateTriad";
 import PillarArticle, {
   LabeledItem,
   PillarCallout,
@@ -31,7 +35,33 @@ export default function AlimentacionPage({ locale }: { locale: AppLocale }) {
         </PillarPanel>
       </section>
 
+      {/* El costo del viaje va junto a su contrapeso y no en otra sección: separarlos convertía la
+          proximidad en una preferencia estética en vez de en la respuesta a un costo concreto. */}
+      <section>
+        <PillarSectionHeading>{t("hiddenCostHeading")}</PillarSectionHeading>
+        <p className="mb-4">{t("hiddenCostIntro")}</p>
+
+        <PillarPanel pillar="nutrition">
+          <LabeledItem label={t("transportLabel")} text={t("transportText")} />
+          <LabeledItem label={t("packagingLabel")} text={t("packagingText")} />
+          <LabeledItem label={t("wasteLabel")} text={t("wasteText")} />
+        </PillarPanel>
+
+        <Heading level={3}>{t("localSolutionHeading")}</Heading>
+        <PillarCallout pillar="nutrition">
+          {t("localSolutionText")}
+        </PillarCallout>
+      </section>
+
       <PillarPractice challenge="nutrition" locale={locale} />
+
+      {/* La guía va después de la práctica y no antes: quien acaba de comprometerse con la cena es
+          quien necesita saber en qué proporción sirve el plato y con qué lo cocina. */}
+      <NutritionPlateTriad />
+
+      <NutritionCleanCooking />
+
+      <NutritionIngredientCatalog />
 
       <section>
         <p className="mb-6">{t("evidence")}</p>
