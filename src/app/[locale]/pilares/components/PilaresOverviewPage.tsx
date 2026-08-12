@@ -3,9 +3,9 @@ import type { CommunityGarden } from "~/domain/habits/habitCommunity";
 import { Link } from "~/i18n/navigation";
 import { PUBLIC_BRAND_NAME } from "~/infra/constants";
 import CommunityHabitGarden from "~/presentation/habits/CommunityHabitGarden";
-import { getDeepHabitChallengeTheme } from "~/presentation/habits/deepHabitChallengeThemes";
 import PillarHero from "~/presentation/habits/PillarHero";
 import PublicHabitCelebrationList from "~/presentation/habits/PublicHabitCelebrationList";
+import { getPillarTheme } from "~/presentation/habits/pillarThemes";
 import type { PublicFirstCycleCelebration } from "~/use_cases/habits/ports/AtomicSleepChallengeRepository";
 import { setHabitCelebrationReaction } from "../../habitCommunityActions";
 import { PILLARS, pillarColorClasses } from "./pilaresData";
@@ -32,13 +32,11 @@ export default function PilaresOverviewPage({
           eyebrow={t("heroEyebrow")}
           title={t.rich("heading", {
             brandName: PUBLIC_BRAND_NAME,
-            brand: (chunks) => (
-              <span className="">{chunks}</span>
-            ),
+            brand: (chunks) => <span>{chunks}</span>,
           })}
           intro={t("intro")}
           identity={t("heroIdentity")}
-          theme={getDeepHabitChallengeTheme("nutrition")}
+          theme={getPillarTheme("nutrition")}
           className="rounded-t-4xl"
         />
 

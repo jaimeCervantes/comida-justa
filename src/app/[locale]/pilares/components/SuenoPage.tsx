@@ -1,18 +1,15 @@
 import { useTranslations } from "next-intl";
 import type { AppLocale } from "~/i18n/routing";
 import { PUBLIC_BRAND_NAME } from "~/infra/constants";
-import PillarHero, {
-  SLEEP_PILLAR_HERO_THEME,
-} from "~/presentation/habits/PillarHero";
 import PillarArticle, {
   LabeledItem,
   PillarCallout,
   PillarPanel,
   PillarSectionHeading,
 } from "./PillarArticle";
+import PillarPractice from "./PillarPractice";
 import PillarReferences from "./PillarReferences";
 import { SLEEP_REFERENCES } from "./references";
-import SleepPracticeSection from "./SleepPracticeSection";
 
 export default function SuenoPage({ locale }: { locale: AppLocale }) {
   const t = useTranslations("pillarPages.sleep");
@@ -21,19 +18,10 @@ export default function SuenoPage({ locale }: { locale: AppLocale }) {
 
   return (
     <PillarArticle
-      pillar="sleep"
+      challenge="sleep"
       heading={t("heading")}
       subtitle={t("subtitle")}
-      header={
-        <PillarHero
-          level={1}
-          title={t("heading")}
-          intro={t("subtitle")}
-          identity={challengeT("identity")}
-          theme={SLEEP_PILLAR_HERO_THEME}
-          className="mb-10 rounded-[2rem] shadow-xl"
-        />
-      }
+      identity={challengeT("identity")}
     >
       <section>
         <PillarSectionHeading>{t("lightHeading")}</PillarSectionHeading>
@@ -45,7 +33,7 @@ export default function SuenoPage({ locale }: { locale: AppLocale }) {
         </PillarPanel>
       </section>
 
-      <SleepPracticeSection locale={locale} />
+      <PillarPractice challenge="sleep" locale={locale} />
 
       <section>
         <PillarSectionHeading>{t("processesHeading")}</PillarSectionHeading>

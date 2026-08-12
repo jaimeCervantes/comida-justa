@@ -1,20 +1,5 @@
-import type { DeepHabitChallengeTheme } from "./deepHabitChallengeThemes";
 import type { ReactNode } from "react";
-
-export type PillarHeroTheme = Pick<
-  DeepHabitChallengeTheme,
-  "hero" | "heroBody" | "heroEyebrow" | "orbit" | "pattern" | "quoteBorder"
->;
-
-export const SLEEP_PILLAR_HERO_THEME: PillarHeroTheme = {
-  hero: "bg-[linear-gradient(145deg,#17112f_0%,#35245f_48%,#e98a45_140%)]",
-  heroBody: "text-white/90",
-  heroEyebrow: "text-white/80",
-  orbit: "rounded-full bg-orange-300/20 blur-3xl",
-  pattern:
-    "[background-image:radial-gradient(circle_at_20%_20%,rgba(255,255,255,.2)_0_1px,transparent_1.5px),radial-gradient(circle_at_80%_45%,rgba(255,255,255,.18)_0_1px,transparent_1.5px)] [background-size:54px_54px,76px_76px]",
-  quoteBorder: "border-orange-300",
-};
+import type { PillarHeroTheme } from "./pillarThemes";
 
 type PillarHeroProps = {
   level: 1 | 2;

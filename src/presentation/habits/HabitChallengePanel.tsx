@@ -15,35 +15,12 @@ import {
   HabitChallengeCelebrations,
   HabitChallengeReward,
 } from "./HabitChallengeCelebrations";
-import {
-  getHabitChallengeTheme,
-  type HabitChallengeThemeConfig,
-} from "./habitChallengeThemes";
+import type {
+  HabitChallengeAction,
+  HabitChallengeActionState,
+} from "./habitChallengeAction";
+import { getPillarTheme, type HabitChallengeThemeConfig } from "./pillarThemes";
 import { useHabitChallengeCopy } from "./useHabitChallengeCopy";
-
-export type HabitChallengeActionState = {
-  status:
-    | "idle"
-    | "started"
-    | "completed"
-    | "shared"
-    | "withdrawn"
-    | "incomplete"
-    | "recorded"
-    | "comeback"
-    | "final"
-    | "duplicate"
-    | "unavailable"
-    | "garden-shared"
-    | "garden-withdrawn";
-  progress: AtomicSleepProgress | null;
-  needsSignIn?: boolean;
-};
-
-export type HabitChallengeAction = (
-  previous: HabitChallengeActionState,
-  formData: FormData,
-) => Promise<HabitChallengeActionState>;
 
 export type HabitChallengePanelProps = {
   challenge: HabitChallengeExperienceKey;
@@ -61,7 +38,7 @@ export default function HabitChallengePanel({
   signInHref,
 }: HabitChallengePanelProps): React.ReactNode {
   const copy = useHabitChallengeCopy(challenge);
-  const theme = getHabitChallengeTheme(challenge);
+  const theme = getPillarTheme(challenge);
   const locale = useLocale();
   const [timezone, setTimezone] = useState("UTC");
   const [today, setToday] = useState<LocalDate>("");

@@ -124,9 +124,9 @@ describe("AtomicSleepChallengeUseCase", () => {
     await useCase.start(USER_ID, "America/Mexico_City");
 
     expect(
-      await useCase.completeCycle(USER_ID, {
-        nightPrepared: true,
-        morningLight: false,
+      await useCase.completeCheckIn(USER_ID, {
+        cueCompleted: true,
+        minimumCompleted: false,
         cycleDate: "2026-08-10",
       }),
     ).toEqual({ ok: false, reason: "incomplete" });
@@ -139,17 +139,17 @@ describe("AtomicSleepChallengeUseCase", () => {
     await useCase.start(USER_ID, "America/Mexico_City");
 
     const input = {
-      nightPrepared: true,
-      morningLight: true,
+      cueCompleted: true,
+      minimumCompleted: true,
       cycleDate: "2026-08-10",
     };
-    expect(await useCase.completeCycle(USER_ID, input)).toMatchObject({
+    expect(await useCase.completeCheckIn(USER_ID, input)).toMatchObject({
       ok: true,
       newlyCompleted: true,
       recognition: "first",
       progress: { level: "sprout", xp: 10, badge: "first-step" },
     });
-    expect(await useCase.completeCycle(USER_ID, input)).toMatchObject({
+    expect(await useCase.completeCheckIn(USER_ID, input)).toMatchObject({
       ok: true,
       newlyCompleted: false,
       progress: { level: "sprout", xp: 10, badge: "first-step" },
@@ -162,21 +162,21 @@ describe("AtomicSleepChallengeUseCase", () => {
     const useCase = new AtomicSleepChallengeUseCase(repository, clock);
     await useCase.start(USER_ID, "America/Mexico_City");
 
-    expect(await useCase.shareFirstCelebration(USER_ID)).toBe(false);
+    expect(await useCase.shareCelebration(USER_ID, "first_cycle")).toBe(false);
 
-    await useCase.completeCycle(USER_ID, {
-      nightPrepared: true,
-      morningLight: true,
+    await useCase.completeCheckIn(USER_ID, {
+      cueCompleted: true,
+      minimumCompleted: true,
       cycleDate: "2026-08-10",
     });
-    expect(await useCase.shareFirstCelebration(USER_ID)).toBe(true);
+    expect(await useCase.shareCelebration(USER_ID, "first_cycle")).toBe(true);
     expect(await useCase.getProgress(USER_ID)).toMatchObject({
       level: "sprout",
       xp: 10,
       celebrationStatus: "active",
     });
 
-    await useCase.withdrawFirstCelebration(USER_ID);
+    await useCase.withdrawCelebration(USER_ID, "first_cycle");
     expect(await useCase.getProgress(USER_ID)).toMatchObject({
       level: "sprout",
       xp: 10,
@@ -202,9 +202,9 @@ describe("AtomicSleepChallengeUseCase", () => {
       "2026-08-08",
       "2026-08-10",
     ]) {
-      const result = await useCase.completeCycle(USER_ID, {
-        nightPrepared: true,
-        morningLight: true,
+      const result = await useCase.completeCheckIn(USER_ID, {
+        cueCompleted: true,
+        minimumCompleted: true,
         cycleDate,
       });
       if (cycleDate === "2026-08-09") {
@@ -219,8 +219,10 @@ describe("AtomicSleepChallengeUseCase", () => {
       badge: "sleep-harvest",
       succeeded: true,
     });
-    expect(await useCase.shareFinalCelebration(USER_ID)).toBe(true);
-    await useCase.withdrawFinalCelebration(USER_ID);
+    expect(await useCase.shareCelebration(USER_ID, "challenge_completed")).toBe(
+      true,
+    );
+    await useCase.withdrawCelebration(USER_ID, "challenge_completed");
     expect(await useCase.getProgress(USER_ID)).toMatchObject({
       finalCelebrationStatus: "withdrawn",
       xp: 50,

@@ -4,7 +4,7 @@ import {
   buildSleepChallengeProgress,
   createLocalChallengePeriod,
   evaluateCycleDate,
-  evaluateFirstSleepCycle,
+  evaluateHabitCheckIn,
   firstCycleProgress,
   isPublicCelebration,
   recognizeCycleCompletion,
@@ -16,14 +16,14 @@ describe("atomic sleep challenge", () => {
   });
 
   it.each([
-    { nightPrepared: true, morningLight: true, expected: "completed" },
-    { nightPrepared: true, morningLight: false, expected: "incomplete" },
-    { nightPrepared: false, morningLight: true, expected: "incomplete" },
-    { nightPrepared: false, morningLight: false, expected: "incomplete" },
+    { cueCompleted: true, minimumCompleted: true, expected: "completed" },
+    { cueCompleted: true, minimumCompleted: false, expected: "incomplete" },
+    { cueCompleted: false, minimumCompleted: true, expected: "incomplete" },
+    { cueCompleted: false, minimumCompleted: false, expected: "incomplete" },
   ] as const)(
-    "returns $expected for night=$nightPrepared and morning=$morningLight",
-    ({ nightPrepared, morningLight, expected }) => {
-      expect(evaluateFirstSleepCycle({ nightPrepared, morningLight })).toBe(
+    "returns $expected for cue=$cueCompleted and minimum=$minimumCompleted",
+    ({ cueCompleted, minimumCompleted, expected }) => {
+      expect(evaluateHabitCheckIn({ cueCompleted, minimumCompleted })).toBe(
         expected,
       );
     },

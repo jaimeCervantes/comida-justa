@@ -1,37 +1,25 @@
 import { useTranslations } from "next-intl";
 import type { AppLocale } from "~/i18n/routing";
-import { getDeepHabitChallengeTheme } from "~/presentation/habits/deepHabitChallengeThemes";
-import PillarHero from "~/presentation/habits/PillarHero";
-import CuratedPracticeSection from "./CuratedPracticeSection";
 import PillarArticle, {
   LabeledItem,
   PillarCallout,
   PillarPanel,
   PillarSectionHeading,
 } from "./PillarArticle";
+import PillarPractice from "./PillarPractice";
 import PillarReferences from "./PillarReferences";
 import { MIND_SPIRIT_REFERENCES } from "./references";
 
 export default function MenteEspirituPage({ locale }: { locale: AppLocale }) {
   const t = useTranslations("pillarPages.mindSpirit");
   const tChallenge = useTranslations("atomicChallenges.mindExperience");
-  const theme = getDeepHabitChallengeTheme("mind");
 
   return (
     <PillarArticle
-      pillar="mindSpirit"
+      challenge="mind"
       heading={t("heading")}
       subtitle={t("subtitle")}
-      header={
-        <PillarHero
-          level={1}
-          title={t("heading")}
-          intro={t("subtitle")}
-          identity={tChallenge("identity")}
-          theme={theme}
-          className="mb-10 rounded-[2rem] shadow-xl"
-        />
-      }
+      identity={tChallenge("identity")}
     >
       <section>
         <PillarSectionHeading>{t("breakHeading")}</PillarSectionHeading>
@@ -43,7 +31,7 @@ export default function MenteEspirituPage({ locale }: { locale: AppLocale }) {
         </PillarPanel>
       </section>
 
-      <CuratedPracticeSection challenge="mind" locale={locale} />
+      <PillarPractice challenge="mind" locale={locale} />
 
       <section>
         <PillarSectionHeading>{t("mismatchHeading")}</PillarSectionHeading>

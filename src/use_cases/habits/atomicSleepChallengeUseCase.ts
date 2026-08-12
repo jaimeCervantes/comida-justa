@@ -3,17 +3,18 @@ import {
   type CelebrationStatus,
   createLocalChallengePeriod,
   evaluateCycleDate,
-  evaluateFirstSleepCycle,
+  evaluateHabitCheckIn,
   firstCycleProgress,
   type HabitChallengePeriod,
+  type HabitCheckInAnchors,
   isValidTimeZone,
   type LocalDate,
   recognizeCycleCompletion,
   type SleepChallengeProgress,
-  type SleepCycleInput,
 } from "~/domain/habits/atomicSleepChallenge";
 import type {
   AtomicSleepChallengeRepository,
+  HabitCelebrationMilestone,
   StoredAtomicSleepProgress,
 } from "./ports/AtomicSleepChallengeRepository";
 
@@ -45,8 +46,7 @@ export interface Clock {
   now(): Date;
 }
 
-export type HabitCheckInInput = {
-  minimumCompleted: boolean;
+export type HabitCheckInInput = HabitCheckInAnchors & {
   cycleDate: LocalDate;
 };
 
@@ -74,24 +74,11 @@ export default class AtomicSleepChallengeUseCase {
     return this.toProgress(stored);
   }
 
-  async completeCycle(
-    userId: string,
-    input: SleepCycleInput & { cycleDate: LocalDate },
-  ): Promise<CompleteCycleResult> {
-    if (evaluateFirstSleepCycle(input) === "incomplete") {
-      return { ok: false, reason: "incomplete" };
-    }
-    return this.completeCheckIn(userId, {
-      minimumCompleted: true,
-      cycleDate: input.cycleDate,
-    });
-  }
-
   async completeCheckIn(
     userId: string,
     input: HabitCheckInInput,
   ): Promise<CompleteCycleResult> {
-    if (!input.minimumCompleted) {
+    if (evaluateHabitCheckIn(input) === "incomplete") {
       return { ok: false, reason: "incomplete" };
     }
     const stored = await this.repository.findProgress(userId);
@@ -127,27 +114,18 @@ export default class AtomicSleepChallengeUseCase {
     };
   }
 
-  async completeFirstCycle(
+  async shareCelebration(
     userId: string,
-    input: SleepCycleInput & { cycleDate: LocalDate },
-  ): Promise<CompleteCycleResult> {
-    return this.completeCycle(userId, input);
+    milestone: HabitCelebrationMilestone,
+  ): Promise<boolean> {
+    return this.repository.publishCelebration(userId, milestone);
   }
 
-  async shareFirstCelebration(userId: string): Promise<boolean> {
-    return this.repository.publishCelebration(userId, "first_cycle");
-  }
-
-  async withdrawFirstCelebration(userId: string): Promise<void> {
-    await this.repository.withdrawCelebration(userId, "first_cycle");
-  }
-
-  async shareFinalCelebration(userId: string): Promise<boolean> {
-    return this.repository.publishCelebration(userId, "challenge_completed");
-  }
-
-  async withdrawFinalCelebration(userId: string): Promise<void> {
-    await this.repository.withdrawCelebration(userId, "challenge_completed");
+  async withdrawCelebration(
+    userId: string,
+    milestone: HabitCelebrationMilestone,
+  ): Promise<void> {
+    await this.repository.withdrawCelebration(userId, milestone);
   }
 
   async setGardenSharing(userId: string, enabled: boolean): Promise<void> {

@@ -5,12 +5,19 @@ export const FIRST_SLEEP_CYCLE_XP = 10;
 export const SLEEP_CHALLENGE_DAYS = 7;
 export const SLEEP_CHALLENGE_TARGET = 5;
 
-export type SleepCycleInput = {
-  nightPrepared: boolean;
-  morningLight: boolean;
+/**
+ * Las dos anclas que confirma una repetición: la señal que la dispara y el mínimo que cuenta.
+ *
+ * Los cuatro rituales piden lo mismo aunque lo llamen distinto —cerrar la noche y abrir la mañana,
+ * elegir la comida ancla y sumar una planta—, así que la regla es una y vive aquí. Estuvo duplicada:
+ * el dominio la aplicaba para Sueño y la acción de los otros tres repetía el `&&` a mano.
+ */
+export type HabitCheckInAnchors = {
+  cueCompleted: boolean;
+  minimumCompleted: boolean;
 };
 
-export type SleepCycleEvaluation = "completed" | "incomplete";
+export type HabitCheckInEvaluation = "completed" | "incomplete";
 export type HabitLevel = "seed" | "sprout" | "root" | "harvest";
 export type HabitBadge = "first-step" | "sleep-harvest" | null;
 export type CelebrationStatus = "absent" | "active" | "withdrawn";
@@ -48,10 +55,12 @@ export type FirstCycleProgress = {
   badge: HabitBadge;
 };
 
-export function evaluateFirstSleepCycle(
-  input: SleepCycleInput,
-): SleepCycleEvaluation {
-  return input.nightPrepared && input.morningLight ? "completed" : "incomplete";
+export function evaluateHabitCheckIn(
+  anchors: HabitCheckInAnchors,
+): HabitCheckInEvaluation {
+  return anchors.cueCompleted && anchors.minimumCompleted
+    ? "completed"
+    : "incomplete";
 }
 
 export function firstCycleProgress(completed: boolean): FirstCycleProgress {

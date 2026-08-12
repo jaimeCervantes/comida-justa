@@ -6,14 +6,23 @@ import { renderWithIntl } from "~/infra/test-utils/renderWithIntl";
 import AlimentacionPage from "./AlimentacionPage";
 import MenteEspirituPage from "./MenteEspirituPage";
 import MovimientoPage from "./MovimientoPage";
+import SuenoPage from "./SuenoPage";
 
-vi.mock("./CuratedPracticeSection", () => ({
-  default: () => <section data-testid="curated-practice" />,
+/** La práctica es asíncrona y lee la sesión; aquí se comprueba el artículo que la envuelve. */
+vi.mock("./PillarPractice", () => ({
+  default: () => <section data-testid="pillar-practice" />,
 }));
 
 type PillarPage = ComponentType<{ locale: AppLocale }>;
 
 describe.each([
+  {
+    Page: SuenoPage as PillarPage,
+    heading: "1. Sueño y Descanso",
+    intro: "La base de la recuperación biológica y la salud a largo plazo.",
+    identity: "Soy una persona que protege su descanso.",
+    theme: "linear-gradient(145deg,#17112f",
+  },
   {
     Page: AlimentacionPage as PillarPage,
     heading: "2. Alimentación natural y nutritiva",
@@ -45,6 +54,6 @@ describe.each([
     expect(within(hero as HTMLElement).getByText(intro)).toBeInTheDocument();
     expect(hero?.querySelector("blockquote")).toHaveTextContent(identity);
     expect(container.querySelector('a[href^="/habitos/"]')).toBeNull();
-    expect(screen.getByTestId("curated-practice")).toBeInTheDocument();
+    expect(screen.getByTestId("pillar-practice")).toBeInTheDocument();
   });
 });
