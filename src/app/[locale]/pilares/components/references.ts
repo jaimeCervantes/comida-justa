@@ -70,6 +70,28 @@ export const NUTRITION_REFERENCES: readonly string[] = [
   "https://doi.org/10.1111/1541-4337.13331",
   "https://doi.org/10.1155/2022/6627013",
   "https://doi.org/10.3390/su12156280",
+  /*
+   * Las tres afirmaciones que el ritual de la cena añadió y que la lista anterior no sostenía.
+   *
+   * Crononutrición: la tolerancia a la glucosa cae por la tarde-noche por el sistema circadiano
+   * endógeno, no solo por el desorden de horarios (PNAS 2015), y el efecto se explica sobre todo
+   * por la respuesta de la célula beta (Diabetes Obes Metab 2018).
+   */
+  "https://doi.org/10.1073/pnas.1418955112",
+  "https://doi.org/10.1111/dom.13391",
+  /*
+   * Aldehídos: los aceites ricos en poliinsaturados generan órdenes de magnitud más productos
+   * aldehídicos de oxidación al calentarse que los ricos en monoinsaturados, y esos productos
+   * pasan al alimento (Sci Rep 2019; Front Nutr 2022).
+   */
+  "https://doi.org/10.1038/s41598-019-39767-1",
+  "https://doi.org/10.3389/fnut.2021.711640",
+  /*
+   * Punto de humo del aceite de aguacate: 250 °C sin refinar y 271 °C refinado. Es la fuente de
+   * la que salen esas dos cifras; conviene no confundirlas, que es justo lo que hace la mitad de
+   * internet al atribuirle al prensado en frío el punto de humo del refinado.
+   */
+  "https://doi.org/10.1016/b978-1-893997-97-4.50008-5",
 ];
 
 export const MOVEMENT_REFERENCES: readonly string[] = [
