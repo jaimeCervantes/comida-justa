@@ -2,7 +2,7 @@ import { getTranslations } from "next-intl/server";
 import { Link } from "~/i18n/navigation";
 import { pillarHref } from "~/i18n/routes";
 import Avatar from "~/presentation/user/Avatar/Avatar";
-import type { PublicFirstCycleCelebration } from "~/use_cases/habits/ports/AtomicSleepChallengeRepository";
+import type { PublicHabitCelebration } from "~/use_cases/habits/ports/HabitChallengeRepository";
 import type { CommunitySectionVariant } from "./communitySectionVariant";
 import { getHabitPublicTheme } from "./habitPublicThemes";
 
@@ -57,7 +57,7 @@ export default async function PublicHabitCelebrationCard({
   reactionAction,
   variant = "full",
 }: {
-  celebration: PublicFirstCycleCelebration;
+  celebration: PublicHabitCelebration;
   headingLevel?: 2 | 3;
   viewerSignedIn?: boolean;
   reactionAction?: (formData: FormData) => Promise<void>;

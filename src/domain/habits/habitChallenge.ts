@@ -1,15 +1,27 @@
-export const ATOMIC_SLEEP_CHALLENGE_KEY =
-  "sleep-evening-to-morning-v1" as const;
+/**
+ * Las reglas de un ritual: su ventana local de siete días, qué hace contar una repetición, cómo se
+ * reconoce cada una y en qué nivel deja a quien la practica.
+ *
+ * Son las mismas para los cuatro pilares. El archivo se llamaba `atomicSleepChallenge` y todo aquí
+ * dentro hablaba de Sueño porque Sueño fue el piloto; cuando Alimentación, Movimiento y Mente
+ * llegaron, heredaron estas reglas sin que los nombres se enteraran. Un `SLEEP_CHALLENGE_TARGET`
+ * gobernando la meta de los cuatro no es un detalle cosmético: es una pista falsa para quien venga
+ * a cambiar solo el de Sueño.
+ *
+ * Lo único que sigue siendo de Sueño es su clave, y por eso es lo único que la nombra.
+ */
+export const SLEEP_CHALLENGE_KEY = "sleep-evening-to-morning-v1" as const;
 
-export const FIRST_SLEEP_CYCLE_XP = 10;
-export const SLEEP_CHALLENGE_DAYS = 7;
-export const SLEEP_CHALLENGE_TARGET = 5;
+/** Diez puntos por repetición, en los cuatro rituales. Registrar más de una al día no suma. */
+export const HABIT_REPETITION_XP = 10;
+export const HABIT_CHALLENGE_DAYS = 7;
+export const HABIT_CHALLENGE_TARGET = 5;
 
 /**
  * Las dos anclas que confirma una repetición: la señal que la dispara y el mínimo que cuenta.
  *
  * Los cuatro rituales piden lo mismo aunque lo llamen distinto —cerrar la noche y abrir la mañana,
- * elegir la comida ancla y sumar una planta—, así que la regla es una y vive aquí. Estuvo duplicada:
+ * cenar al atardecer y servir la triada—, así que la regla es una y vive aquí. Estuvo duplicada:
  * el dominio la aplicaba para Sueño y la acción de los otros tres repetía el `&&` a mano.
  */
 export type HabitCheckInAnchors = {
@@ -19,7 +31,7 @@ export type HabitCheckInAnchors = {
 
 export type HabitCheckInEvaluation = "completed" | "incomplete";
 export type HabitLevel = "seed" | "sprout" | "root" | "harvest";
-export type HabitBadge = "first-step" | "sleep-harvest" | null;
+export type HabitBadge = "first-step" | "harvest" | null;
 export type CelebrationStatus = "absent" | "active" | "withdrawn";
 export type LocalDate = string;
 
@@ -37,7 +49,7 @@ export type CycleRecognition =
   | "final"
   | "duplicate";
 
-export type SleepChallengeProgress = {
+export type PeriodHabitProgress = {
   level: HabitLevel;
   xp: number;
   badge: HabitBadge;
@@ -65,7 +77,7 @@ export function evaluateHabitCheckIn(
 
 export function firstCycleProgress(completed: boolean): FirstCycleProgress {
   return completed
-    ? { level: "sprout", xp: FIRST_SLEEP_CYCLE_XP, badge: "first-step" }
+    ? { level: "sprout", xp: HABIT_REPETITION_XP, badge: "first-step" }
     : { level: "seed", xp: 0, badge: null };
 }
 
@@ -80,7 +92,7 @@ export function createLocalChallengePeriod(
   const startDate = localDateAt(now, timezone);
   return {
     startDate,
-    endDate: addLocalDays(startDate, SLEEP_CHALLENGE_DAYS),
+    endDate: addLocalDays(startDate, HABIT_CHALLENGE_DAYS),
     timezone,
   };
 }
@@ -108,7 +120,7 @@ export function recognizeCycleCompletion(
 ): CycleRecognition {
   if (!inserted) return "duplicate";
   if (existingDates.length === 0) return "first";
-  if (existingDates.length + 1 >= SLEEP_CHALLENGE_TARGET) return "final";
+  if (existingDates.length + 1 >= HABIT_CHALLENGE_TARGET) return "final";
 
   const previousDate = addLocalDays(cycleDate, -1);
   const hasEarlierCycle = existingDates.some((date) => date < previousDate);
@@ -117,16 +129,16 @@ export function recognizeCycleCompletion(
     : "repeat";
 }
 
-export function buildSleepChallengeProgress({
+export function buildPeriodHabitProgress({
   completedDates,
   period,
 }: {
   completedDates: LocalDate[];
   period: HabitChallengePeriod;
-}): SleepChallengeProgress {
+}): PeriodHabitProgress {
   const distinctDates = [...new Set(completedDates)].sort();
   const completedCycles = distinctDates.length;
-  const succeeded = completedCycles >= SLEEP_CHALLENGE_TARGET;
+  const succeeded = completedCycles >= HABIT_CHALLENGE_TARGET;
 
   return {
     level: succeeded
@@ -136,15 +148,11 @@ export function buildSleepChallengeProgress({
         : completedCycles >= 1
           ? "sprout"
           : "seed",
-    xp: completedCycles * FIRST_SLEEP_CYCLE_XP,
-    badge: succeeded
-      ? "sleep-harvest"
-      : completedCycles > 0
-        ? "first-step"
-        : null,
+    xp: completedCycles * HABIT_REPETITION_XP,
+    badge: succeeded ? "harvest" : completedCycles > 0 ? "first-step" : null,
     completedCycles,
-    targetCycles: SLEEP_CHALLENGE_TARGET,
-    totalDays: SLEEP_CHALLENGE_DAYS,
+    targetCycles: HABIT_CHALLENGE_TARGET,
+    totalDays: HABIT_CHALLENGE_DAYS,
     completedDates: distinctDates,
     period,
     succeeded,
@@ -152,7 +160,7 @@ export function buildSleepChallengeProgress({
 }
 
 export function listPeriodDates(period: HabitChallengePeriod): LocalDate[] {
-  return Array.from({ length: SLEEP_CHALLENGE_DAYS }, (_, index) =>
+  return Array.from({ length: HABIT_CHALLENGE_DAYS }, (_, index) =>
     addLocalDays(period.startDate, index),
   );
 }

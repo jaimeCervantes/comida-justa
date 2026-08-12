@@ -2,7 +2,7 @@
 
 import { revalidateLocalizedPath } from "~/i18n/revalidateLocalizedPath";
 import { readViewerId } from "~/infra/auth/readViewerId";
-import { createAtomicSleepChallengeRepository } from "~/infra/dataAccess/habits/PostgresAtomicSleepChallengeRepository";
+import { createHabitCommunityRepository } from "~/infra/dataAccess/habits/PostgresHabitChallengeRepository";
 
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -17,7 +17,7 @@ export async function setHabitCelebrationReaction(
   if (!UUID_PATTERN.test(celebrationId)) return;
   if (intent !== "celebrate" && intent !== "withdraw") return;
 
-  await createAtomicSleepChallengeRepository().setCelebrationReaction(
+  await createHabitCommunityRepository().setCelebrationReaction(
     userId,
     celebrationId,
     intent,

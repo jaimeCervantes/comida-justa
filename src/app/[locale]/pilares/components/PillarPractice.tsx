@@ -7,12 +7,12 @@ import { pillarHref } from "~/i18n/routes";
 import type { AppLocale } from "~/i18n/routing";
 import { readViewerId } from "~/infra/auth/readViewerId";
 import { SIGNIN_PATH } from "~/infra/constants";
-import { createHabitChallengeRepository } from "~/infra/dataAccess/habits/PostgresAtomicSleepChallengeRepository";
+import { createHabitChallengeRepository } from "~/infra/dataAccess/habits/PostgresHabitChallengeRepository";
 import HabitChallengePanel from "~/presentation/habits/HabitChallengePanel";
 import PillarPracticeSection from "~/presentation/habits/PillarPracticeSection";
 import { getPillarPracticeCopy } from "~/presentation/habits/pillarPracticeCopy";
 import { getPillarTheme } from "~/presentation/habits/pillarThemes";
-import AtomicSleepChallengeUseCase from "~/use_cases/habits/atomicSleepChallengeUseCase";
+import HabitChallengeUseCase from "~/use_cases/habits/habitChallengeUseCase";
 import { manageHabitChallenge } from "../habitChallengeActions";
 
 /**
@@ -33,7 +33,7 @@ export default async function PillarPractice({
   const experience = HABIT_CHALLENGE_EXPERIENCES[challenge];
   const userId = await readViewerId();
   const progress = userId
-    ? await new AtomicSleepChallengeUseCase(
+    ? await new HabitChallengeUseCase(
         createHabitChallengeRepository(experience.challengeKey),
       ).getProgress(userId)
     : null;

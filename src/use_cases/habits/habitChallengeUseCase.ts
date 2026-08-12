@@ -1,24 +1,34 @@
 import {
-  buildSleepChallengeProgress,
+  buildPeriodHabitProgress,
   type CelebrationStatus,
   createLocalChallengePeriod,
   evaluateCycleDate,
   evaluateHabitCheckIn,
   firstCycleProgress,
+  HABIT_CHALLENGE_DAYS,
+  HABIT_CHALLENGE_TARGET,
   type HabitChallengePeriod,
   type HabitCheckInAnchors,
   isValidTimeZone,
   type LocalDate,
+  type PeriodHabitProgress,
   recognizeCycleCompletion,
-  type SleepChallengeProgress,
-} from "~/domain/habits/atomicSleepChallenge";
+} from "~/domain/habits/habitChallenge";
 import type {
-  AtomicSleepChallengeRepository,
   HabitCelebrationMilestone,
-  StoredAtomicSleepProgress,
-} from "./ports/AtomicSleepChallengeRepository";
+  HabitChallengeRepository,
+  StoredHabitChallengeProgress,
+} from "./ports/HabitChallengeRepository";
 
-export type AtomicSleepProgress = Omit<SleepChallengeProgress, "period"> & {
+/**
+ * El progreso tal como lo consume la interfaz, para cualquiera de los cuatro rituales.
+ *
+ * Se distingue de `PeriodHabitProgress` en el `period`: el dominio calcula sobre una ventana que
+ * existe, y aquí puede no haberla todavía —alguien que abrió el pilar y aún no empezó—. Lo demás
+ * que se suma son decisiones de la persona, no del cálculo: si compartió sus celebraciones y si
+ * aporta sus repeticiones al jardín.
+ */
+export type HabitChallengeProgress = Omit<PeriodHabitProgress, "period"> & {
   period: HabitChallengePeriod | null;
   celebrationStatus: CelebrationStatus;
   finalCelebrationStatus: CelebrationStatus;
@@ -39,7 +49,7 @@ export type CompleteCycleResult =
       ok: true;
       newlyCompleted: boolean;
       recognition: ReturnType<typeof recognizeCycleCompletion>;
-      progress: AtomicSleepProgress;
+      progress: HabitChallengeProgress;
     };
 
 export interface Clock {
@@ -52,13 +62,24 @@ export type HabitCheckInInput = HabitCheckInAnchors & {
 
 const systemClock: Clock = { now: (): Date => new Date() };
 
-export default class AtomicSleepChallengeUseCase {
+/**
+ * Empezar un ritual, registrar una repetición, compartir un hito y aportar al jardín.
+ *
+ * Uno solo para los cuatro pilares: el reto no entra por aquí, entra en el repositorio con el que
+ * se construye. Se llamaba `AtomicSleepChallengeUseCase` desde el piloto, y para cuando servía a
+ * los cuatro el nombre ya solo servía para hacer dudar de si Alimentación estaba usando el caso de
+ * uso correcto.
+ */
+export default class HabitChallengeUseCase {
   constructor(
-    private readonly repository: AtomicSleepChallengeRepository,
+    private readonly repository: HabitChallengeRepository,
     private readonly clock: Clock = systemClock,
   ) {}
 
-  async start(userId: string, timezone: string): Promise<AtomicSleepProgress> {
+  async start(
+    userId: string,
+    timezone: string,
+  ): Promise<HabitChallengeProgress> {
     const safeTimezone = isValidTimeZone(timezone) ? timezone : "UTC";
     await this.repository.start(
       userId,
@@ -67,7 +88,7 @@ export default class AtomicSleepChallengeUseCase {
     return this.requiredProgress(userId);
   }
 
-  async getProgress(userId: string): Promise<AtomicSleepProgress | null> {
+  async getProgress(userId: string): Promise<HabitChallengeProgress | null> {
     const stored = await this.repository.findProgress(userId);
     if (!stored) return null;
 
@@ -132,7 +153,9 @@ export default class AtomicSleepChallengeUseCase {
     await this.repository.setGardenSharing(userId, enabled);
   }
 
-  private async requiredProgress(userId: string): Promise<AtomicSleepProgress> {
+  private async requiredProgress(
+    userId: string,
+  ): Promise<HabitChallengeProgress> {
     const progress = await this.getProgress(userId);
     if (!progress) {
       throw new Error(
@@ -142,15 +165,17 @@ export default class AtomicSleepChallengeUseCase {
     return progress;
   }
 
-  private toProgress(stored: StoredAtomicSleepProgress): AtomicSleepProgress {
+  private toProgress(
+    stored: StoredHabitChallengeProgress,
+  ): HabitChallengeProgress {
     const period = this.periodFrom(stored);
     if (!period) {
       const first = firstCycleProgress(stored.firstCycleCompletedAt !== null);
       return {
         ...first,
         completedCycles: stored.firstCycleCompletedAt ? 1 : 0,
-        targetCycles: 5,
-        totalDays: 7,
+        targetCycles: HABIT_CHALLENGE_TARGET,
+        totalDays: HABIT_CHALLENGE_DAYS,
         completedDates: stored.completedDates,
         period: null,
         succeeded: false,
@@ -161,7 +186,7 @@ export default class AtomicSleepChallengeUseCase {
     }
 
     return {
-      ...buildSleepChallengeProgress({
+      ...buildPeriodHabitProgress({
         completedDates: stored.completedDates,
         period,
       }),
@@ -172,7 +197,7 @@ export default class AtomicSleepChallengeUseCase {
   }
 
   private periodFrom(
-    stored: StoredAtomicSleepProgress,
+    stored: StoredHabitChallengeProgress,
   ): HabitChallengePeriod | null {
     if (!stored.startDate || !stored.endDate || !stored.timezone) return null;
     return {

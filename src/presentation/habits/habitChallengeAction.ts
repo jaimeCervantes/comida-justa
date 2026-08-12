@@ -1,4 +1,4 @@
-import type { AtomicSleepProgress } from "~/use_cases/habits/atomicSleepChallengeUseCase";
+import type { HabitChallengeProgress } from "~/use_cases/habits/habitChallengeUseCase";
 
 /**
  * El contrato entre el panel de seguimiento y la Server Action que lo atiende.
@@ -24,7 +24,7 @@ export type HabitChallengeStatus =
 
 export type HabitChallengeActionState = {
   status: HabitChallengeStatus;
-  progress: AtomicSleepProgress | null;
+  progress: HabitChallengeProgress | null;
   needsSignIn?: boolean;
 };
 

@@ -1,9 +1,9 @@
+import type { CuratedChallengeKey } from "~/domain/habits/curatedChallenges";
 import type {
   CelebrationStatus,
   HabitChallengePeriod,
   LocalDate,
-} from "~/domain/habits/atomicSleepChallenge";
-import type { CuratedChallengeKey } from "~/domain/habits/curatedChallenges";
+} from "~/domain/habits/habitChallenge";
 import type {
   CelebrationReactionIntent,
   CommunityGarden,
@@ -13,7 +13,7 @@ import type {
 export type { HabitCelebrationMilestone } from "~/domain/habits/habitCommunity";
 export type HabitChallengeSchedule = HabitChallengePeriod;
 
-export type StoredAtomicSleepProgress = {
+export type StoredHabitChallengeProgress = {
   userId: string;
   challengeKey: string;
   startedAt: Date;
@@ -28,7 +28,14 @@ export type StoredAtomicSleepProgress = {
   gardenSharingEnabled: boolean;
 };
 
-export type PublicFirstCycleCelebration = {
+/**
+ * Una celebración que alguien decidió hacer pública.
+ *
+ * Se llamaba `PublicFirstCycleCelebration` cuando lo único compartible era la primera repetición.
+ * Desde que también se puede compartir la meta cumplida lleva `milestone`, así que el nombre decía
+ * lo contrario de lo que trae el campo.
+ */
+export type PublicHabitCelebration = {
   id: string;
   displayName: string | null;
   username: string | null;
@@ -40,9 +47,9 @@ export type PublicFirstCycleCelebration = {
   viewerReacted: boolean;
 };
 
-export interface AtomicSleepChallengeRepository {
+export interface HabitChallengeRepository {
   start(userId: string, schedule: HabitChallengeSchedule): Promise<void>;
-  findProgress(userId: string): Promise<StoredAtomicSleepProgress | null>;
+  findProgress(userId: string): Promise<StoredHabitChallengeProgress | null>;
   recordCycle(
     userId: string,
     cycleDate: LocalDate,
@@ -59,11 +66,11 @@ export interface AtomicSleepChallengeRepository {
   setGardenSharing(userId: string, enabled: boolean): Promise<void>;
 }
 
-export interface AtomicSleepCelebrationQuery {
+export interface HabitCelebrationQuery {
   findRecentPublicCelebrations(
     limit: number,
     viewerId?: string | null,
-  ): Promise<PublicFirstCycleCelebration[]>;
+  ): Promise<PublicHabitCelebration[]>;
 }
 
 export interface HabitCommunityRepository {

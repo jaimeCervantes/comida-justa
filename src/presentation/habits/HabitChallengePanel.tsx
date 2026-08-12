@@ -6,11 +6,11 @@ import {
   type LocalDate,
   listPeriodDates,
   localDateAt,
-} from "~/domain/habits/atomicSleepChallenge";
+} from "~/domain/habits/habitChallenge";
 import type { HabitChallengeExperienceKey } from "~/domain/habits/habitChallengeExperiences";
 import { Button } from "~/presentation/design_system/buttons/Button";
 import { Alert } from "~/presentation/design_system/feedback/Alert";
-import type { AtomicSleepProgress } from "~/use_cases/habits/atomicSleepChallengeUseCase";
+import type { HabitChallengeProgress } from "~/use_cases/habits/habitChallengeUseCase";
 import {
   HabitChallengeCelebrations,
   HabitChallengeReward,
@@ -25,7 +25,7 @@ import { useHabitChallengeCopy } from "./useHabitChallengeCopy";
 export type HabitChallengePanelProps = {
   challenge: HabitChallengeExperienceKey;
   action: HabitChallengeAction;
-  initialProgress: AtomicSleepProgress | null;
+  initialProgress: HabitChallengeProgress | null;
   signedIn: boolean;
   signInHref: string;
 };

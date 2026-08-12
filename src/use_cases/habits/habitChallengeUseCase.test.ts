@@ -1,18 +1,16 @@
 import { describe, expect, it } from "vitest";
-import AtomicSleepChallengeUseCase from "./atomicSleepChallengeUseCase";
+import HabitChallengeUseCase from "./habitChallengeUseCase";
 import type {
-  AtomicSleepChallengeRepository,
   HabitCelebrationMilestone,
+  HabitChallengeRepository,
   HabitChallengeSchedule,
-  StoredAtomicSleepProgress,
-} from "./ports/AtomicSleepChallengeRepository";
+  StoredHabitChallengeProgress,
+} from "./ports/HabitChallengeRepository";
 
 const USER_ID = "pw-healthy-food";
 
-class FakeAtomicSleepChallengeRepository
-  implements AtomicSleepChallengeRepository
-{
-  private progress: StoredAtomicSleepProgress | null = null;
+class FakeHabitChallengeRepository implements HabitChallengeRepository {
+  private progress: StoredHabitChallengeProgress | null = null;
   completeWrites = 0;
 
   async start(userId: string, schedule: HabitChallengeSchedule): Promise<void> {
@@ -33,7 +31,7 @@ class FakeAtomicSleepChallengeRepository
 
   async findProgress(
     userId: string,
-  ): Promise<StoredAtomicSleepProgress | null> {
+  ): Promise<StoredHabitChallengeProgress | null> {
     return this.progress?.userId === userId ? this.progress : null;
   }
 
@@ -98,10 +96,10 @@ class FakeAtomicSleepChallengeRepository
 
 const clock = { now: (): Date => new Date("2026-08-10T14:00:00Z") };
 
-describe("AtomicSleepChallengeUseCase", () => {
+describe("HabitChallengeUseCase", () => {
   it("starts once and exposes a private seed", async () => {
-    const repository = new FakeAtomicSleepChallengeRepository();
-    const useCase = new AtomicSleepChallengeUseCase(repository, clock);
+    const repository = new FakeHabitChallengeRepository();
+    const useCase = new HabitChallengeUseCase(repository, clock);
 
     expect(await useCase.start(USER_ID, "America/Mexico_City")).toMatchObject({
       level: "seed",
@@ -119,8 +117,8 @@ describe("AtomicSleepChallengeUseCase", () => {
   });
 
   it("rejects an incomplete minimum without writing progress", async () => {
-    const repository = new FakeAtomicSleepChallengeRepository();
-    const useCase = new AtomicSleepChallengeUseCase(repository, clock);
+    const repository = new FakeHabitChallengeRepository();
+    const useCase = new HabitChallengeUseCase(repository, clock);
     await useCase.start(USER_ID, "America/Mexico_City");
 
     expect(
@@ -134,8 +132,8 @@ describe("AtomicSleepChallengeUseCase", () => {
   });
 
   it("awards the first cycle once even when the intent is sent twice", async () => {
-    const repository = new FakeAtomicSleepChallengeRepository();
-    const useCase = new AtomicSleepChallengeUseCase(repository, clock);
+    const repository = new FakeHabitChallengeRepository();
+    const useCase = new HabitChallengeUseCase(repository, clock);
     await useCase.start(USER_ID, "America/Mexico_City");
 
     const input = {
@@ -158,8 +156,8 @@ describe("AtomicSleepChallengeUseCase", () => {
   });
 
   it("does not publish before completion and can withdraw without losing progress", async () => {
-    const repository = new FakeAtomicSleepChallengeRepository();
-    const useCase = new AtomicSleepChallengeUseCase(repository, clock);
+    const repository = new FakeHabitChallengeRepository();
+    const useCase = new HabitChallengeUseCase(repository, clock);
     await useCase.start(USER_ID, "America/Mexico_City");
 
     expect(await useCase.shareCelebration(USER_ID, "first_cycle")).toBe(false);
@@ -187,9 +185,9 @@ describe("AtomicSleepChallengeUseCase", () => {
   });
 
   it("recognizes a comeback and completes the challenge at five distinct dates", async () => {
-    const repository = new FakeAtomicSleepChallengeRepository();
+    const repository = new FakeHabitChallengeRepository();
     let now = new Date("2026-08-06T14:00:00Z");
-    const useCase = new AtomicSleepChallengeUseCase(repository, {
+    const useCase = new HabitChallengeUseCase(repository, {
       now: (): Date => now,
     });
     await useCase.start(USER_ID, "America/Mexico_City");
@@ -216,7 +214,7 @@ describe("AtomicSleepChallengeUseCase", () => {
       completedCycles: 5,
       xp: 50,
       level: "harvest",
-      badge: "sleep-harvest",
+      badge: "harvest",
       succeeded: true,
     });
     expect(await useCase.shareCelebration(USER_ID, "challenge_completed")).toBe(
@@ -226,7 +224,7 @@ describe("AtomicSleepChallengeUseCase", () => {
     expect(await useCase.getProgress(USER_ID)).toMatchObject({
       finalCelebrationStatus: "withdrawn",
       xp: 50,
-      badge: "sleep-harvest",
+      badge: "harvest",
     });
   });
 });

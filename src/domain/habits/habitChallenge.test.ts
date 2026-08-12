@@ -1,18 +1,18 @@
 import { describe, expect, it } from "vitest";
 import {
-  ATOMIC_SLEEP_CHALLENGE_KEY,
-  buildSleepChallengeProgress,
+  buildPeriodHabitProgress,
   createLocalChallengePeriod,
   evaluateCycleDate,
   evaluateHabitCheckIn,
   firstCycleProgress,
   isPublicCelebration,
   recognizeCycleCompletion,
-} from "./atomicSleepChallenge";
+  SLEEP_CHALLENGE_KEY,
+} from "./habitChallenge";
 
-describe("atomic sleep challenge", () => {
+describe("the rules every habit ritual shares", () => {
   it("uses a versioned key so changing the ritual does not rewrite old progress", () => {
-    expect(ATOMIC_SLEEP_CHALLENGE_KEY).toBe("sleep-evening-to-morning-v1");
+    expect(SLEEP_CHALLENGE_KEY).toBe("sleep-evening-to-morning-v1");
   });
 
   it.each([
@@ -99,7 +99,7 @@ describe("atomic sleep challenge", () => {
 
   it("caps XP at ten per distinct cycle and succeeds at five of seven", () => {
     expect(
-      buildSleepChallengeProgress({
+      buildPeriodHabitProgress({
         completedDates: [
           "2026-08-06",
           "2026-08-07",
@@ -116,7 +116,7 @@ describe("atomic sleep challenge", () => {
     ).toEqual({
       level: "harvest",
       xp: 50,
-      badge: "sleep-harvest",
+      badge: "harvest",
       completedCycles: 5,
       targetCycles: 5,
       totalDays: 7,

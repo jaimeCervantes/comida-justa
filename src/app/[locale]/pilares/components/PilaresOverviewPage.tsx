@@ -6,7 +6,7 @@ import CommunityHabitGarden from "~/presentation/habits/CommunityHabitGarden";
 import PillarHero from "~/presentation/habits/PillarHero";
 import PublicHabitCelebrationList from "~/presentation/habits/PublicHabitCelebrationList";
 import { getPillarTheme } from "~/presentation/habits/pillarThemes";
-import type { PublicFirstCycleCelebration } from "~/use_cases/habits/ports/AtomicSleepChallengeRepository";
+import type { PublicHabitCelebration } from "~/use_cases/habits/ports/HabitChallengeRepository";
 import { setHabitCelebrationReaction } from "../../habitCommunityActions";
 import { PILLARS, pillarColorClasses } from "./pilaresData";
 
@@ -15,7 +15,7 @@ export default function PilaresOverviewPage({
   garden,
   viewerSignedIn,
 }: {
-  celebrations: PublicFirstCycleCelebration[];
+  celebrations: PublicHabitCelebration[];
   garden: CommunityGarden;
   viewerSignedIn: boolean;
 }) {

@@ -1,6 +1,6 @@
 import { cache } from "react";
-import { createAtomicSleepChallengeRepository } from "~/infra/dataAccess/habits/PostgresAtomicSleepChallengeRepository";
-import type { PublicFirstCycleCelebration } from "~/use_cases/habits/ports/AtomicSleepChallengeRepository";
+import { createHabitCommunityRepository } from "~/infra/dataAccess/habits/PostgresHabitChallengeRepository";
+import type { PublicHabitCelebration } from "~/use_cases/habits/ports/HabitChallengeRepository";
 
 export const PUBLIC_CELEBRATION_LIST_LIMIT = 8;
 
@@ -16,12 +16,12 @@ export const readRecentPublicCelebrations = cache(
   async (
     viewerId?: string | null,
     limit: number = PUBLIC_CELEBRATION_LIST_LIMIT,
-  ): Promise<PublicFirstCycleCelebration[]> => {
+  ): Promise<PublicHabitCelebration[]> => {
     const size = Math.max(0, Math.trunc(limit));
     if (size === 0) return [];
 
     const celebrations =
-      await createAtomicSleepChallengeRepository().findRecentPublicCelebrations(
+      await createHabitCommunityRepository().findRecentPublicCelebrations(
         size,
         viewerId,
       );

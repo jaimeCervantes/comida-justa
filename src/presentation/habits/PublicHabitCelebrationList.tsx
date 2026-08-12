@@ -1,10 +1,10 @@
-import type { PublicFirstCycleCelebration } from "~/use_cases/habits/ports/AtomicSleepChallengeRepository";
+import type { PublicHabitCelebration } from "~/use_cases/habits/ports/HabitChallengeRepository";
 import type { CommunitySectionVariant } from "./communitySectionVariant";
 import PublicHabitCelebrationCard from "./PublicHabitCelebrationCard";
 
 export type PublicHabitCelebrationListProps = {
   title: string;
-  celebrations: PublicFirstCycleCelebration[];
+  celebrations: PublicHabitCelebration[];
   viewerSignedIn: boolean;
   reactionAction?: (formData: FormData) => Promise<void>;
   variant?: CommunitySectionVariant;

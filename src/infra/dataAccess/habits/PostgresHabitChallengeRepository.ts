@@ -1,10 +1,10 @@
 import { and, desc, eq, inArray, isNull, sql } from "drizzle-orm";
-import { ATOMIC_SLEEP_CHALLENGE_KEY } from "~/domain/habits/atomicSleepChallenge";
 import {
   CURATED_CHALLENGE_KEYS,
   type CuratedChallengeKey,
   isCuratedChallengeKey,
 } from "~/domain/habits/curatedChallenges";
+import { SLEEP_CHALLENGE_KEY } from "~/domain/habits/habitChallenge";
 import {
   buildCommunityGarden,
   type CelebrationReactionIntent,
@@ -20,26 +20,26 @@ import {
   habitRepetitions,
 } from "~/infra/dataAccess/db/schema/habits";
 import type {
-  AtomicSleepCelebrationQuery,
-  AtomicSleepChallengeRepository,
   HabitCelebrationMilestone,
+  HabitCelebrationQuery,
+  HabitChallengeRepository,
   HabitChallengeSchedule,
   HabitCommunityRepository,
-  PublicFirstCycleCelebration,
-  StoredAtomicSleepProgress,
-} from "~/use_cases/habits/ports/AtomicSleepChallengeRepository";
+  PublicHabitCelebration,
+  StoredHabitChallengeProgress,
+} from "~/use_cases/habits/ports/HabitChallengeRepository";
 
 const FIRST_CYCLE_MILESTONE: HabitCelebrationMilestone = "first_cycle";
 const FINAL_MILESTONE: HabitCelebrationMilestone = "challenge_completed";
 
-export default class PostgresAtomicSleepChallengeRepository
+export default class PostgresHabitChallengeRepository
   implements
-    AtomicSleepChallengeRepository,
-    AtomicSleepCelebrationQuery,
+    HabitChallengeRepository,
+    HabitCelebrationQuery,
     HabitCommunityRepository
 {
   constructor(
-    private readonly challengeKey: CuratedChallengeKey = ATOMIC_SLEEP_CHALLENGE_KEY,
+    private readonly challengeKey: CuratedChallengeKey = SLEEP_CHALLENGE_KEY,
   ) {}
 
   async start(userId: string, schedule: HabitChallengeSchedule): Promise<void> {
@@ -67,7 +67,7 @@ export default class PostgresAtomicSleepChallengeRepository
 
   async findProgress(
     userId: string,
-  ): Promise<StoredAtomicSleepProgress | null> {
+  ): Promise<StoredHabitChallengeProgress | null> {
     const [row] = await db
       .select({
         userId: habitChallengeProgress.userId,
@@ -117,7 +117,7 @@ export default class PostgresAtomicSleepChallengeRepository
     ]);
     const celebrationStatus = (
       milestone: HabitCelebrationMilestone,
-    ): StoredAtomicSleepProgress["celebrationStatus"] => {
+    ): StoredHabitChallengeProgress["celebrationStatus"] => {
       const celebration = celebrations.find(
         (candidate) => candidate.milestone === milestone,
       );
@@ -238,7 +238,7 @@ export default class PostgresAtomicSleepChallengeRepository
   async findRecentPublicCelebrations(
     limit: number,
     viewerId?: string | null,
-  ): Promise<PublicFirstCycleCelebration[]> {
+  ): Promise<PublicHabitCelebration[]> {
     const rows = await db
       .select({
         id: habitCelebrations.id,
@@ -273,7 +273,7 @@ export default class PostgresAtomicSleepChallengeRepository
       .orderBy(desc(habitCelebrations.publishedAt), desc(habitCelebrations.id))
       .limit(limit);
 
-    return rows.flatMap((row): PublicFirstCycleCelebration[] => {
+    return rows.flatMap((row): PublicHabitCelebration[] => {
       if (!isCuratedChallengeKey(row.challengeKey)) return [];
       return [
         {
@@ -347,15 +347,15 @@ export default class PostgresAtomicSleepChallengeRepository
 
 const challengeInstances = new Map<
   CuratedChallengeKey,
-  PostgresAtomicSleepChallengeRepository
+  PostgresHabitChallengeRepository
 >();
 
 export function createHabitChallengeRepository(
   challengeKey: CuratedChallengeKey,
-): PostgresAtomicSleepChallengeRepository {
+): PostgresHabitChallengeRepository {
   const existing = challengeInstances.get(challengeKey);
   if (existing) return existing;
-  const repository = new PostgresAtomicSleepChallengeRepository(challengeKey);
+  const repository = new PostgresHabitChallengeRepository(challengeKey);
   challengeInstances.set(challengeKey, repository);
   return repository;
 }
@@ -365,6 +365,6 @@ export function createHabitChallengeRepository(
  * los cuatro y sus reacciones. Es el de Sueño porque esas consultas ignoran la clave del reto, y
  * tener su propia instancia solo servía para mantener dos cachés de lo mismo.
  */
-export function createAtomicSleepChallengeRepository(): PostgresAtomicSleepChallengeRepository {
-  return createHabitChallengeRepository(ATOMIC_SLEEP_CHALLENGE_KEY);
+export function createHabitCommunityRepository(): PostgresHabitChallengeRepository {
+  return createHabitChallengeRepository(SLEEP_CHALLENGE_KEY);
 }

@@ -1,13 +1,13 @@
 import type { HabitChallengeExperienceKey } from "~/domain/habits/habitChallengeExperiences";
 import { Button } from "~/presentation/design_system/buttons/Button";
-import type { AtomicSleepProgress } from "~/use_cases/habits/atomicSleepChallengeUseCase";
+import type { HabitChallengeProgress } from "~/use_cases/habits/habitChallengeUseCase";
 import type { HabitChallengeThemeConfig } from "./pillarThemes";
 import type { HabitChallengeCopy } from "./useHabitChallengeCopy";
 
 type HabitChallengeDispatch = (payload: FormData) => void;
 
 export type HabitChallengeCelebrationsProps = {
-  progress: AtomicSleepProgress;
+  progress: HabitChallengeProgress;
   action: HabitChallengeDispatch;
   pending: boolean;
   copy: HabitChallengeCopy;

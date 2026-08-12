@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { PublicFirstCycleCelebration } from "~/use_cases/habits/ports/AtomicSleepChallengeRepository";
+import type { PublicHabitCelebration } from "~/use_cases/habits/ports/HabitChallengeRepository";
 import { readLatestPublicCelebration } from "./readLatestPublicCelebration";
 import {
   PUBLIC_CELEBRATION_LIST_LIMIT,
@@ -10,14 +10,11 @@ const { findRecentPublicCelebrations } = vi.hoisted(() => ({
   findRecentPublicCelebrations: vi.fn().mockResolvedValue([]),
 }));
 
-vi.mock(
-  "~/infra/dataAccess/habits/PostgresAtomicSleepChallengeRepository",
-  () => ({
-    createAtomicSleepChallengeRepository: () => ({
-      findRecentPublicCelebrations,
-    }),
+vi.mock("~/infra/dataAccess/habits/PostgresHabitChallengeRepository", () => ({
+  createHabitCommunityRepository: () => ({
+    findRecentPublicCelebrations,
   }),
-);
+}));
 
 describe("public celebration readers", () => {
   beforeEach(() => {
@@ -83,7 +80,7 @@ describe("public celebration readers", () => {
   });
 });
 
-function celebration(id: string): PublicFirstCycleCelebration {
+function celebration(id: string): PublicHabitCelebration {
   return {
     id,
     challengeKey: "sleep-evening-to-morning-v1",

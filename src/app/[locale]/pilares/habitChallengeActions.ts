@@ -1,18 +1,18 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import type { CycleRecognition } from "~/domain/habits/atomicSleepChallenge";
+import type { CycleRecognition } from "~/domain/habits/habitChallenge";
 import { findHabitChallengeExperience } from "~/domain/habits/habitChallengeExperiences";
 import { revalidateLocalizedPath } from "~/i18n/revalidateLocalizedPath";
 import { pillarHref } from "~/i18n/routes";
 import { readViewerId } from "~/infra/auth/readViewerId";
-import { createHabitChallengeRepository } from "~/infra/dataAccess/habits/PostgresAtomicSleepChallengeRepository";
+import { createHabitChallengeRepository } from "~/infra/dataAccess/habits/PostgresHabitChallengeRepository";
 import type {
   HabitChallengeActionState,
   HabitChallengeStatus,
 } from "~/presentation/habits/habitChallengeAction";
-import AtomicSleepChallengeUseCase from "~/use_cases/habits/atomicSleepChallengeUseCase";
-import type { HabitCelebrationMilestone } from "~/use_cases/habits/ports/AtomicSleepChallengeRepository";
+import HabitChallengeUseCase from "~/use_cases/habits/habitChallengeUseCase";
+import type { HabitCelebrationMilestone } from "~/use_cases/habits/ports/HabitChallengeRepository";
 
 /**
  * La única acción de los cuatro rituales.
@@ -45,7 +45,7 @@ export async function manageHabitChallenge(
   );
   if (!experience) return previous;
 
-  const useCase = new AtomicSleepChallengeUseCase(
+  const useCase = new HabitChallengeUseCase(
     createHabitChallengeRepository(experience.challengeKey),
   );
   const pillarPath = pillarHref(experience.slug);

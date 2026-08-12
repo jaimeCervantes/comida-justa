@@ -1,4 +1,4 @@
-import type { PublicFirstCycleCelebration } from "~/use_cases/habits/ports/AtomicSleepChallengeRepository";
+import type { PublicHabitCelebration } from "~/use_cases/habits/ports/HabitChallengeRepository";
 import { readRecentPublicCelebrations } from "./readRecentPublicCelebrations";
 
 /**
@@ -10,7 +10,7 @@ import { readRecentPublicCelebrations } from "./readRecentPublicCelebrations";
  */
 export async function readLatestPublicCelebration(
   viewerId?: string | null,
-): Promise<PublicFirstCycleCelebration | null> {
+): Promise<PublicHabitCelebration | null> {
   const [latest] = await readRecentPublicCelebrations(viewerId, 1);
   return latest ?? null;
 }

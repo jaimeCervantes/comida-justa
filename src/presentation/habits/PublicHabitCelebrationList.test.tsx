@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import type { PublicFirstCycleCelebration } from "~/use_cases/habits/ports/AtomicSleepChallengeRepository";
+import type { PublicHabitCelebration } from "~/use_cases/habits/ports/HabitChallengeRepository";
 import type { CommunitySectionVariant } from "./communitySectionVariant";
 import PublicHabitCelebrationList from "./PublicHabitCelebrationList";
 
@@ -10,7 +10,7 @@ vi.mock("./PublicHabitCelebrationCard", () => ({
     headingLevel,
     variant,
   }: {
-    celebration: PublicFirstCycleCelebration;
+    celebration: PublicHabitCelebration;
     headingLevel: 2 | 3;
     variant?: CommunitySectionVariant;
   }) => (
@@ -75,8 +75,8 @@ describe("PublicHabitCelebrationList", () => {
 
 function celebration(
   id: string,
-  challengeKey: PublicFirstCycleCelebration["challengeKey"],
-): PublicFirstCycleCelebration {
+  challengeKey: PublicHabitCelebration["challengeKey"],
+): PublicHabitCelebration {
   return {
     id,
     challengeKey,

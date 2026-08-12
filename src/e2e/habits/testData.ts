@@ -1,9 +1,9 @@
 import { and, eq } from "drizzle-orm";
 import {
-  ATOMIC_SLEEP_CHALLENGE_KEY,
   addLocalDays,
   localDateAt,
-} from "~/domain/habits/atomicSleepChallenge";
+  SLEEP_CHALLENGE_KEY,
+} from "~/domain/habits/habitChallenge";
 import { findSuiteUserId } from "~/e2e/testUtils/suiteAccount";
 import { db } from "~/infra/dataAccess/db/connection";
 import { users } from "~/infra/dataAccess/db/schema/auth";
@@ -12,9 +12,9 @@ import {
   habitLeagueOptIns,
   habitRepetitions,
 } from "~/infra/dataAccess/db/schema/habits";
-import type { HabitCelebrationMilestone } from "~/use_cases/habits/ports/AtomicSleepChallengeRepository";
+import type { HabitCelebrationMilestone } from "~/use_cases/habits/ports/HabitChallengeRepository";
 
-export async function deleteAtomicSleepChallengeTestData(): Promise<void> {
+export async function deleteHabitChallengeTestData(): Promise<void> {
   const userId = await findSuiteUserId();
   await db
     .delete(habitLeagueOptIns)
@@ -32,7 +32,7 @@ export async function deleteAtomicSleepChallengeTestData(): Promise<void> {
  * retrasar una ventana que nunca habían abierto y morían en la comprobación de abajo.
  */
 export async function backdateHabitChallengeForSevenDayTest(
-  challengeKey: string = ATOMIC_SLEEP_CHALLENGE_KEY,
+  challengeKey: string = SLEEP_CHALLENGE_KEY,
 ): Promise<string[]> {
   const userId = await findSuiteUserId();
   const timezone = "America/Mexico_City";
@@ -62,7 +62,7 @@ export async function backdateHabitChallengeForSevenDayTest(
   );
 }
 
-export async function countAtomicSleepRepetitions(): Promise<number> {
+export async function countSleepRepetitions(): Promise<number> {
   const userId = await findSuiteUserId();
   const rows = await db
     .select({ id: habitRepetitions.id })
@@ -70,7 +70,7 @@ export async function countAtomicSleepRepetitions(): Promise<number> {
     .where(
       and(
         eq(habitRepetitions.userId, userId),
-        eq(habitRepetitions.challengeKey, ATOMIC_SLEEP_CHALLENGE_KEY),
+        eq(habitRepetitions.challengeKey, SLEEP_CHALLENGE_KEY),
       ),
     );
   return rows.length;
