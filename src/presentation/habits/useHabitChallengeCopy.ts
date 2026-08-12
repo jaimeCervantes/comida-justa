@@ -3,6 +3,18 @@
 import { useTranslations } from "next-intl";
 import type { HabitChallengeExperienceKey } from "~/domain/habits/habitChallengeExperiences";
 
+/**
+ * Las palabras del panel de seguimiento para un reto.
+ *
+ * Sueño escribe las suyas en su propio espacio de nombres, con nombres heredados del piloto
+ * (`nightCheckbox`, `morningDate`); los otros tres comparten forma y solo cambia el espacio. Por eso
+ * hay dos lecturas y no cuatro: la de Sueño traduce sus nombres viejos al vocabulario común, y la de
+ * los demás se escribe una vez y sirve para los tres. Antes eran cuatro bloques casi idénticos de
+ * veintitantas líneas y cada palabra nueva había que añadirla cuatro veces.
+ *
+ * Los cuatro `useTranslations` se piden siempre, no dentro del `if`: son hooks, y saltárselos según
+ * el reto rompería el orden entre renderizados.
+ */
 export type HabitChallengeCopy = {
   alreadyCounted: string;
   alreadyCountedBody: string;
@@ -51,172 +63,139 @@ export type HabitChallengeCopy = {
   xp: (xp: number) => string;
 };
 
+type SleepTranslator = ReturnType<
+  typeof useTranslations<"atomicSleepChallenge">
+>;
+type CommonTranslator = ReturnType<
+  typeof useTranslations<"atomicChallenges.experienceCommon">
+>;
+type ExperienceTranslator = ReturnType<
+  typeof useTranslations<"atomicChallenges.nutritionExperience">
+>;
+
 export function useHabitChallengeCopy(
   challenge: HabitChallengeExperienceKey,
 ): HabitChallengeCopy {
   const sleepT = useTranslations("atomicSleepChallenge");
-  const habitT = useTranslations("atomicChallenges");
+  const commonT = useTranslations("atomicChallenges.experienceCommon");
+  const nutritionT = useTranslations("atomicChallenges.nutritionExperience");
+  const movementT = useTranslations("atomicChallenges.movementExperience");
+  const mindT = useTranslations("atomicChallenges.mindExperience");
 
-  if (challenge === "sleep") {
-    return {
-      alreadyCounted: sleepT("alreadyCounted"),
-      alreadyCountedBody: sleepT("alreadyCountedBody"),
-      badgeFirst: sleepT("badgeFirst"),
-      badgeHarvest: sleepT("badgeHarvest"),
-      celebrationBody: sleepT("celebrationBody"),
-      celebrationEyebrow: sleepT("celebrationEyebrow"),
-      celebrationTitle: sleepT("celebrationTitle"),
-      comebackBody: sleepT("comebackBody"),
-      comebackTitle: sleepT("comebackTitle"),
-      complete: sleepT("complete"),
-      continueWeek: sleepT("continueWeek"),
-      cueCheckbox: sleepT("nightCheckbox"),
-      cycleDate: sleepT("morningDate"),
-      cycleRecorded: sleepT("cycleRecorded"),
-      cycleRecordedBody: sleepT("cycleRecordedBody"),
-      dateUnavailable: sleepT("dateUnavailable"),
-      dateUnavailableBody: sleepT("dateUnavailableBody"),
-      dayCompleted: sleepT("dayCompleted"),
-      dayLabel: (day: number): string => sleepT("dayLabel", { day }),
-      dayPending: sleepT("dayPending"),
-      finalBody: sleepT("finalBody"),
-      finalEyebrow: sleepT("finalEyebrow"),
-      finalTitle: sleepT("finalTitle"),
-      gardenSharingBody: sleepT("gardenSharingBody"),
-      gardenSharingEnable: sleepT("gardenSharingEnable"),
-      gardenSharingTitle: sleepT("gardenSharingTitle"),
-      gardenSharingWithdraw: sleepT("gardenSharingWithdraw"),
-      incomplete: sleepT("incomplete"),
-      levelHarvest: sleepT("levelHarvest"),
-      levelLabel: sleepT("levelLabel"),
-      levelSprout: sleepT("levelSprout"),
-      loading: sleepT("loading"),
-      minimumCheckbox: sleepT("morningCheckbox"),
-      minimumHeading: sleepT("minimumHeading"),
-      noHabitClaim: sleepT("noHabitClaim"),
-      progressCounter: (completed: number, total: number): string =>
-        sleepT("progressCounter", { completed, total }),
-      recordCycle: sleepT("recordCycle"),
-      share: sleepT("share"),
-      shared: sleepT("shared"),
-      shareNote: sleepT("shareNote"),
-      signInStart: sleepT("signInStart"),
-      start: sleepT("start"),
-      weekEyebrow: sleepT("weekEyebrow"),
-      withdraw: sleepT("withdraw"),
-      xp: (xp: number): string => sleepT("xp", { xp }),
-    };
-  }
+  if (challenge === "sleep") return sleepCopy(sleepT);
 
-  const common = {
-    alreadyCounted: habitT("experienceCommon.alreadyCounted"),
-    alreadyCountedBody: habitT("experienceCommon.alreadyCountedBody"),
-    badgeFirst: habitT("experienceCommon.badgeFirst"),
-    dateUnavailable: habitT("experienceCommon.dateUnavailable"),
-    dateUnavailableBody: habitT("experienceCommon.dateUnavailableBody"),
-    dayCompleted: habitT("experienceCommon.dayCompleted"),
-    dayLabel: (day: number): string =>
-      habitT("experienceCommon.dayLabel", { day }),
-    dayPending: habitT("experienceCommon.dayPending"),
-    gardenSharingBody: habitT("experienceCommon.gardenSharingBody"),
-    gardenSharingEnable: habitT("experienceCommon.gardenSharingEnable"),
-    gardenSharingTitle: habitT("experienceCommon.gardenSharingTitle"),
-    gardenSharingWithdraw: habitT("experienceCommon.gardenSharingWithdraw"),
-    levelHarvest: habitT("experienceCommon.levelHarvest"),
-    levelLabel: habitT("experienceCommon.levelLabel"),
-    levelSprout: habitT("experienceCommon.levelSprout"),
-    loading: habitT("experienceCommon.loading"),
-    share: habitT("experienceCommon.share"),
-    shared: habitT("experienceCommon.shared"),
-    shareNote: habitT("experienceCommon.shareNote"),
-    signInStart: habitT("experienceCommon.signInStart"),
-    withdraw: habitT("experienceCommon.withdraw"),
-    xp: (xp: number): string => habitT("experienceCommon.xp", { xp }),
-  };
+  const experienceT: ExperienceTranslator = {
+    nutrition: nutritionT,
+    movement: movementT,
+    mind: mindT,
+  }[challenge];
 
-  if (challenge === "nutrition") {
-    return {
-      ...common,
-      badgeHarvest: habitT("nutritionExperience.badgeHarvest"),
-      celebrationBody: habitT("nutritionExperience.celebrationBody"),
-      celebrationEyebrow: habitT("nutritionExperience.celebrationEyebrow"),
-      celebrationTitle: habitT("nutritionExperience.celebrationTitle"),
-      comebackBody: habitT("nutritionExperience.comebackBody"),
-      comebackTitle: habitT("nutritionExperience.comebackTitle"),
-      complete: habitT("nutritionExperience.complete"),
-      continueWeek: habitT("nutritionExperience.continueWeek"),
-      cueCheckbox: habitT("nutritionExperience.cueCheckbox"),
-      cycleDate: habitT("nutritionExperience.cycleDate"),
-      cycleRecorded: habitT("nutritionExperience.cycleRecorded"),
-      cycleRecordedBody: habitT("nutritionExperience.cycleRecordedBody"),
-      finalBody: habitT("nutritionExperience.finalBody"),
-      finalEyebrow: habitT("nutritionExperience.finalEyebrow"),
-      finalTitle: habitT("nutritionExperience.finalTitle"),
-      incomplete: habitT("nutritionExperience.incomplete"),
-      minimumCheckbox: habitT("nutritionExperience.minimumCheckbox"),
-      minimumHeading: habitT("nutritionExperience.minimumHeading"),
-      noHabitClaim: habitT("nutritionExperience.noHabitClaim"),
-      progressCounter: (completed: number, total: number): string =>
-        habitT("nutritionExperience.progressCounter", { completed, total }),
-      recordCycle: habitT("nutritionExperience.recordCycle"),
-      start: habitT("nutritionExperience.start"),
-      weekEyebrow: habitT("nutritionExperience.weekEyebrow"),
-    };
-  }
-  if (challenge === "movement") {
-    return {
-      ...common,
-      badgeHarvest: habitT("movementExperience.badgeHarvest"),
-      celebrationBody: habitT("movementExperience.celebrationBody"),
-      celebrationEyebrow: habitT("movementExperience.celebrationEyebrow"),
-      celebrationTitle: habitT("movementExperience.celebrationTitle"),
-      comebackBody: habitT("movementExperience.comebackBody"),
-      comebackTitle: habitT("movementExperience.comebackTitle"),
-      complete: habitT("movementExperience.complete"),
-      continueWeek: habitT("movementExperience.continueWeek"),
-      cueCheckbox: habitT("movementExperience.cueCheckbox"),
-      cycleDate: habitT("movementExperience.cycleDate"),
-      cycleRecorded: habitT("movementExperience.cycleRecorded"),
-      cycleRecordedBody: habitT("movementExperience.cycleRecordedBody"),
-      finalBody: habitT("movementExperience.finalBody"),
-      finalEyebrow: habitT("movementExperience.finalEyebrow"),
-      finalTitle: habitT("movementExperience.finalTitle"),
-      incomplete: habitT("movementExperience.incomplete"),
-      minimumCheckbox: habitT("movementExperience.minimumCheckbox"),
-      minimumHeading: habitT("movementExperience.minimumHeading"),
-      noHabitClaim: habitT("movementExperience.noHabitClaim"),
-      progressCounter: (completed: number, total: number): string =>
-        habitT("movementExperience.progressCounter", { completed, total }),
-      recordCycle: habitT("movementExperience.recordCycle"),
-      start: habitT("movementExperience.start"),
-      weekEyebrow: habitT("movementExperience.weekEyebrow"),
-    };
-  }
+  return { ...commonCopy(commonT), ...experienceCopy(experienceT) };
+}
+
+function sleepCopy(t: SleepTranslator): HabitChallengeCopy {
   return {
-    ...common,
-    badgeHarvest: habitT("mindExperience.badgeHarvest"),
-    celebrationBody: habitT("mindExperience.celebrationBody"),
-    celebrationEyebrow: habitT("mindExperience.celebrationEyebrow"),
-    celebrationTitle: habitT("mindExperience.celebrationTitle"),
-    comebackBody: habitT("mindExperience.comebackBody"),
-    comebackTitle: habitT("mindExperience.comebackTitle"),
-    complete: habitT("mindExperience.complete"),
-    continueWeek: habitT("mindExperience.continueWeek"),
-    cueCheckbox: habitT("mindExperience.cueCheckbox"),
-    cycleDate: habitT("mindExperience.cycleDate"),
-    cycleRecorded: habitT("mindExperience.cycleRecorded"),
-    cycleRecordedBody: habitT("mindExperience.cycleRecordedBody"),
-    finalBody: habitT("mindExperience.finalBody"),
-    finalEyebrow: habitT("mindExperience.finalEyebrow"),
-    finalTitle: habitT("mindExperience.finalTitle"),
-    incomplete: habitT("mindExperience.incomplete"),
-    minimumCheckbox: habitT("mindExperience.minimumCheckbox"),
-    minimumHeading: habitT("mindExperience.minimumHeading"),
-    noHabitClaim: habitT("mindExperience.noHabitClaim"),
+    alreadyCounted: t("alreadyCounted"),
+    alreadyCountedBody: t("alreadyCountedBody"),
+    badgeFirst: t("badgeFirst"),
+    badgeHarvest: t("badgeHarvest"),
+    celebrationBody: t("celebrationBody"),
+    celebrationEyebrow: t("celebrationEyebrow"),
+    celebrationTitle: t("celebrationTitle"),
+    comebackBody: t("comebackBody"),
+    comebackTitle: t("comebackTitle"),
+    complete: t("complete"),
+    continueWeek: t("continueWeek"),
+    cueCheckbox: t("nightCheckbox"),
+    cycleDate: t("morningDate"),
+    cycleRecorded: t("cycleRecorded"),
+    cycleRecordedBody: t("cycleRecordedBody"),
+    dateUnavailable: t("dateUnavailable"),
+    dateUnavailableBody: t("dateUnavailableBody"),
+    dayCompleted: t("dayCompleted"),
+    dayLabel: (day: number): string => t("dayLabel", { day }),
+    dayPending: t("dayPending"),
+    finalBody: t("finalBody"),
+    finalEyebrow: t("finalEyebrow"),
+    finalTitle: t("finalTitle"),
+    gardenSharingBody: t("gardenSharingBody"),
+    gardenSharingEnable: t("gardenSharingEnable"),
+    gardenSharingTitle: t("gardenSharingTitle"),
+    gardenSharingWithdraw: t("gardenSharingWithdraw"),
+    incomplete: t("incomplete"),
+    levelHarvest: t("levelHarvest"),
+    levelLabel: t("levelLabel"),
+    levelSprout: t("levelSprout"),
+    loading: t("loading"),
+    minimumCheckbox: t("morningCheckbox"),
+    minimumHeading: t("minimumHeading"),
+    noHabitClaim: t("noHabitClaim"),
     progressCounter: (completed: number, total: number): string =>
-      habitT("mindExperience.progressCounter", { completed, total }),
-    recordCycle: habitT("mindExperience.recordCycle"),
-    start: habitT("mindExperience.start"),
-    weekEyebrow: habitT("mindExperience.weekEyebrow"),
+      t("progressCounter", { completed, total }),
+    recordCycle: t("recordCycle"),
+    share: t("share"),
+    shared: t("shared"),
+    shareNote: t("shareNote"),
+    signInStart: t("signInStart"),
+    start: t("start"),
+    weekEyebrow: t("weekEyebrow"),
+    withdraw: t("withdraw"),
+    xp: (xp: number): string => t("xp", { xp }),
+  };
+}
+
+function commonCopy(t: CommonTranslator) {
+  return {
+    alreadyCounted: t("alreadyCounted"),
+    alreadyCountedBody: t("alreadyCountedBody"),
+    badgeFirst: t("badgeFirst"),
+    dateUnavailable: t("dateUnavailable"),
+    dateUnavailableBody: t("dateUnavailableBody"),
+    dayCompleted: t("dayCompleted"),
+    dayLabel: (day: number): string => t("dayLabel", { day }),
+    dayPending: t("dayPending"),
+    gardenSharingBody: t("gardenSharingBody"),
+    gardenSharingEnable: t("gardenSharingEnable"),
+    gardenSharingTitle: t("gardenSharingTitle"),
+    gardenSharingWithdraw: t("gardenSharingWithdraw"),
+    levelHarvest: t("levelHarvest"),
+    levelLabel: t("levelLabel"),
+    levelSprout: t("levelSprout"),
+    loading: t("loading"),
+    share: t("share"),
+    shared: t("shared"),
+    shareNote: t("shareNote"),
+    signInStart: t("signInStart"),
+    withdraw: t("withdraw"),
+    xp: (xp: number): string => t("xp", { xp }),
+  };
+}
+
+function experienceCopy(t: ExperienceTranslator) {
+  return {
+    badgeHarvest: t("badgeHarvest"),
+    celebrationBody: t("celebrationBody"),
+    celebrationEyebrow: t("celebrationEyebrow"),
+    celebrationTitle: t("celebrationTitle"),
+    comebackBody: t("comebackBody"),
+    comebackTitle: t("comebackTitle"),
+    complete: t("complete"),
+    continueWeek: t("continueWeek"),
+    cueCheckbox: t("cueCheckbox"),
+    cycleDate: t("cycleDate"),
+    cycleRecorded: t("cycleRecorded"),
+    cycleRecordedBody: t("cycleRecordedBody"),
+    finalBody: t("finalBody"),
+    finalEyebrow: t("finalEyebrow"),
+    finalTitle: t("finalTitle"),
+    incomplete: t("incomplete"),
+    minimumCheckbox: t("minimumCheckbox"),
+    minimumHeading: t("minimumHeading"),
+    noHabitClaim: t("noHabitClaim"),
+    progressCounter: (completed: number, total: number): string =>
+      t("progressCounter", { completed, total }),
+    recordCycle: t("recordCycle"),
+    start: t("start"),
+    weekEyebrow: t("weekEyebrow"),
   };
 }

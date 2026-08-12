@@ -345,16 +345,10 @@ export default class PostgresAtomicSleepChallengeRepository
   }
 }
 
-let instance: PostgresAtomicSleepChallengeRepository | null = null;
 const challengeInstances = new Map<
   CuratedChallengeKey,
   PostgresAtomicSleepChallengeRepository
 >();
-
-export function createAtomicSleepChallengeRepository(): PostgresAtomicSleepChallengeRepository {
-  if (!instance) instance = new PostgresAtomicSleepChallengeRepository();
-  return instance;
-}
 
 export function createHabitChallengeRepository(
   challengeKey: CuratedChallengeKey,
@@ -364,4 +358,13 @@ export function createHabitChallengeRepository(
   const repository = new PostgresAtomicSleepChallengeRepository(challengeKey);
   challengeInstances.set(challengeKey, repository);
   return repository;
+}
+
+/**
+ * El adaptador para lo que no pertenece a un reto concreto: el jardín, las celebraciones públicas de
+ * los cuatro y sus reacciones. Es el de Sueño porque esas consultas ignoran la clave del reto, y
+ * tener su propia instancia solo servía para mantener dos cachés de lo mismo.
+ */
+export function createAtomicSleepChallengeRepository(): PostgresAtomicSleepChallengeRepository {
+  return createHabitChallengeRepository(ATOMIC_SLEEP_CHALLENGE_KEY);
 }

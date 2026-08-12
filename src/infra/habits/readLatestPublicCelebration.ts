@@ -1,16 +1,16 @@
-import { cache } from "react";
-import { createAtomicSleepChallengeRepository } from "~/infra/dataAccess/habits/PostgresAtomicSleepChallengeRepository";
 import type { PublicFirstCycleCelebration } from "~/use_cases/habits/ports/AtomicSleepChallengeRepository";
+import { readRecentPublicCelebrations } from "./readRecentPublicCelebrations";
 
-export const readLatestPublicCelebration = cache(
-  async (
-    viewerId?: string | null,
-  ): Promise<PublicFirstCycleCelebration | null> => {
-    const celebrations =
-      await createAtomicSleepChallengeRepository().findRecentPublicCelebrations(
-        1,
-        viewerId,
-      );
-    return celebrations[0] ?? null;
-  },
-);
+/**
+ * La última celebración compartida, para el mensaje del sitio.
+ *
+ * Es la lista pidiendo una sola: repetir aquí la consulta era arriesgar que un día ordenaran
+ * distinto y el mensaje del encabezado anunciara una celebración que no es la primera de la lista.
+ * `cache` ya lo pone `readRecentPublicCelebrations`, y con el mismo argumento devuelve lo mismo.
+ */
+export async function readLatestPublicCelebration(
+  viewerId?: string | null,
+): Promise<PublicFirstCycleCelebration | null> {
+  const [latest] = await readRecentPublicCelebrations(viewerId, 1);
+  return latest ?? null;
+}

@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { CURATED_CHALLENGES } from "~/domain/habits/curatedChallenges";
+import {
+  CURATED_CHALLENGES,
+  type CuratedHabitPillar,
+} from "~/domain/habits/curatedChallenges";
 import { Link } from "~/i18n/navigation";
 import { pillarHref } from "~/i18n/routes";
 import { resolveLocale } from "~/i18n/routing";
@@ -50,23 +53,24 @@ export default async function AtomicChallengesPage({
       </header>
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2">
-        {CURATED_CHALLENGES.map((challenge) => (
-          <Link
-            key={challenge.challengeKey}
-            href={pillarHref(challenge.slug)}
-            className="focus-ring rounded-3xl border border-separator bg-surface-elevation-1 p-6 transition hover:-translate-y-1 hover:shadow-lg"
-          >
-            <span className="text-xs font-bold uppercase tracking-[0.16em] text-pw-green">
-              {pillarLabel(t, challenge.pillar)}
-            </span>
-            <h2 className="mt-2 text-2xl font-black text-text-strong">
-              {titleForKey(t, challenge.challengeKey)}
-            </h2>
-            <p className="mt-2 text-body">
-              {minimumForPillar(t, challenge.pillar)}
-            </p>
-          </Link>
-        ))}
+        {CURATED_CHALLENGES.map(({ challengeKey, pillar, slug }) => {
+          const copy = pillarCopy(t, pillar);
+          return (
+            <Link
+              key={challengeKey}
+              href={pillarHref(slug)}
+              className="focus-ring rounded-3xl border border-separator bg-surface-elevation-1 p-6 transition hover:-translate-y-1 hover:shadow-lg"
+            >
+              <span className="text-xs font-bold uppercase tracking-[0.16em] text-pw-green">
+                {copy.pillar}
+              </span>
+              <h2 className="mt-2 text-2xl font-black text-text-strong">
+                {copy.title}
+              </h2>
+              <p className="mt-2 text-body">{copy.minimum}</p>
+            </Link>
+          );
+        })}
       </div>
 
       <section className="mt-8 rounded-3xl border border-feedback-warning/40 bg-feedback-warning/10 p-6">
@@ -142,31 +146,44 @@ export default async function AtomicChallengesPage({
   );
 }
 
-type Translator = Awaited<ReturnType<typeof getTranslations>>;
+type Translator = Awaited<
+  ReturnType<typeof getTranslations<"atomicChallenges">>
+>;
 
-function titleForKey(t: Translator, challengeKey: string): string {
-  if (challengeKey === "sleep-evening-to-morning-v1") return t("sleep.title");
-  if (challengeKey === "nutrition-one-plant-v1") return t("nutrition.title");
-  if (challengeKey === "movement-two-minutes-v1") return t("movement.title");
-  return t("mind.title");
-}
-
-function minimumForPillar(
+/**
+ * Las tres frases de la tarjeta de un pilar. Eran tres funciones con la misma cadena de `if` —una
+ * indexada además por la clave versionada del reto, que no es la del texto—, así que añadir un pilar
+ * significaba acordarse de tres sitios. Las claves siguen escritas enteras: `AGENTS.md` no admite
+ * componerlas en tiempo de ejecución, y así se encuentran buscando.
+ */
+function pillarCopy(
   t: Translator,
-  pillar: "sleep" | "nutrition" | "movement" | "mind",
-): string {
-  if (pillar === "sleep") return t("sleep.minimum");
-  if (pillar === "nutrition") return t("nutrition.minimum");
-  if (pillar === "movement") return t("movement.minimum");
-  return t("mind.minimum");
-}
-
-function pillarLabel(
-  t: Translator,
-  pillar: "sleep" | "nutrition" | "movement" | "mind",
-): string {
-  if (pillar === "sleep") return t("sleep.pillar");
-  if (pillar === "nutrition") return t("nutrition.pillar");
-  if (pillar === "movement") return t("movement.pillar");
-  return t("mind.pillar");
+  pillar: CuratedHabitPillar,
+): { minimum: string; pillar: string; title: string } {
+  if (pillar === "sleep") {
+    return {
+      minimum: t("sleep.minimum"),
+      pillar: t("sleep.pillar"),
+      title: t("sleep.title"),
+    };
+  }
+  if (pillar === "nutrition") {
+    return {
+      minimum: t("nutrition.minimum"),
+      pillar: t("nutrition.pillar"),
+      title: t("nutrition.title"),
+    };
+  }
+  if (pillar === "movement") {
+    return {
+      minimum: t("movement.minimum"),
+      pillar: t("movement.pillar"),
+      title: t("movement.title"),
+    };
+  }
+  return {
+    minimum: t("mind.minimum"),
+    pillar: t("mind.pillar"),
+    title: t("mind.title"),
+  };
 }
