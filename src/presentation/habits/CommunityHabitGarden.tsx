@@ -1,12 +1,21 @@
 import { getTranslations } from "next-intl/server";
 import type { CommunityGarden } from "~/domain/habits/habitCommunity";
+import type { CommunitySectionVariant } from "./communitySectionVariant";
 
+/**
+ * `full` cuenta el jardín (título, relato y nota de privacidad); `compact` solo enseña el dato:
+ * los cuatro canteros con su número. La variante corta existe para poder poner el jardín al lado
+ * de otra sección en una fila de dos columnas, donde el relato lo repetiría el bloque vecino.
+ */
 export default async function CommunityHabitGarden({
   garden,
+  variant = "full",
 }: {
   garden: CommunityGarden;
+  variant?: CommunitySectionVariant;
 }): Promise<React.ReactNode> {
   const t = await getTranslations("habitCommunity");
+  const compact = variant === "compact";
   const plots = [
     { key: "sleep", count: garden.sleep, color: "bg-pillar-sleep-solid" },
     {
@@ -29,18 +38,33 @@ export default async function CommunityHabitGarden({
   return (
     <section
       data-testid="community-habit-garden"
-      className="mt-6 rounded-3xl border border-separator bg-surface-elevation-1 p-6 sm:p-8"
+      data-variant={variant}
+      className={`@container rounded-3xl border border-separator bg-surface-elevation-1 ${
+        compact ? "p-6" : "mt-6 p-6 sm:p-8"
+      }`}
     >
-      <p className="text-xs font-bold uppercase tracking-[0.18em] text-pw-green">
-        {t("eyebrow")}
-      </p>
-      <h2 className="mt-1 text-2xl font-black text-text-strong">
-        {t("title")}
-      </h2>
-      <p className="mt-2 max-w-3xl text-body">
-        {t("body", { total: garden.total })}
-      </p>
-      <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+      {/* Sin título grande, el eyebrow es quien nombra la sección: si fuera un `<p>` el jardín se
+          quedaría sin encabezado accesible dentro de la fila. */}
+      {compact ? (
+        <h2 className="text-xs font-bold uppercase tracking-[0.18em] text-pw-green">
+          {t("eyebrow")}
+        </h2>
+      ) : (
+        <>
+          <p className="text-xs font-bold uppercase tracking-[0.18em] text-pw-green">
+            {t("eyebrow")}
+          </p>
+          <h2 className="mt-1 text-2xl font-black text-text-strong">
+            {t("title")}
+          </h2>
+          <p className="mt-2 max-w-3xl text-body">
+            {t("body", { total: garden.total })}
+          </p>
+        </>
+      )}
+      {/* Las columnas se deciden por el ancho del propio jardín, no por el de la ventana: el mismo
+          componente vive a todo lo ancho en pilares y en media columna en el home. */}
+      <div className="mt-5 grid grid-cols-2 gap-3 @xl:grid-cols-4">
         {plots.map((plot) => (
           <div
             key={plot.key}
@@ -58,10 +82,12 @@ export default async function CommunityHabitGarden({
           </div>
         ))}
       </div>
-      <p className="mt-5 text-sm text-body">{t("privacy")}</p>
-      <p className="mt-2 rounded-xl bg-surface-elevation-2 p-3 text-sm text-body">
+      {compact ? null : (
+        <p className="mt-5 text-sm text-body">{t("privacy")}</p>
+      )}
+      {/* <p className="mt-2 rounded-xl bg-surface-elevation-2 p-3 text-sm text-body">
         {t("groupsUnavailable")}
-      </p>
+      </p> */}
     </section>
   );
 }

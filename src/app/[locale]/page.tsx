@@ -7,6 +7,7 @@ import PostsWithLoadMore from "~/app/(home)/PostsWithLoadMore";
 import type { Coordinates } from "~/domain/entities/seller/coordinates";
 import { buildSiteJsonLd } from "~/domain/seo/jsonLd/site";
 import { ensureAbsoluteUrl } from "~/domain/seo/url";
+import { Link } from "~/i18n/navigation";
 import { resolveLocale, routing } from "~/i18n/routing";
 import { readViewerId } from "~/infra/auth/readViewerId";
 import {
@@ -19,12 +20,15 @@ import {
 } from "~/infra/constants";
 import { createPostQueryRepository } from "~/infra/dataAccess/getMultiplePosts";
 import { readCommunityGarden } from "~/infra/habits/readCommunityGarden";
-import { readLatestPublicCelebration } from "~/infra/habits/readLatestPublicCelebration";
+import { readRecentPublicCelebrations } from "~/infra/habits/readRecentPublicCelebrations";
 import { readViewerLocationContext } from "~/infra/location/viewerLocationContext";
 import { mapPostsToCardsForLocale } from "~/infra/UI/mappers/posts/mapPostsToCardsForLocale";
 import { localizedAlternates } from "~/infra/UI/metadata/alternates";
+import { PILLARS_OVERVIEW_HREF } from "~/presentation/chrome/Header/menuItems";
 import CommunityHabitGarden from "~/presentation/habits/CommunityHabitGarden";
-import PublicHabitCelebrationCard from "~/presentation/habits/PublicHabitCelebrationCard";
+import { getDeepHabitChallengeTheme } from "~/presentation/habits/deepHabitChallengeThemes";
+import PillarHero from "~/presentation/habits/PillarHero";
+import PublicHabitCelebrationList from "~/presentation/habits/PublicHabitCelebrationList";
 import LocationBanner from "~/presentation/location/LocationBanner";
 import JsonLd from "~/presentation/seo/JsonLd";
 import { setHabitCelebrationReaction } from "./habitCommunityActions";
@@ -64,6 +68,12 @@ export async function generateMetadata({
 }
 
 /**
+ * El home enseña dos celebraciones, las que caben en la media fila que comparte con el jardín. Las
+ * ocho de la lista completa viven en `/pilares`, donde la sección ocupa todo el ancho.
+ */
+const HOME_CELEBRATION_LIST_LIMIT = 2;
+
+/**
  * El home mantiene su orden cronológico y **solo** gana distancias.
  *
  * Es un feed: lo que promete es lo último que publicó la comunidad, y reordenarlo por cercanía
@@ -95,18 +105,20 @@ export default async function Inicio({
   const locale = resolveLocale(rawLocale);
   setRequestLocale(locale);
   const viewerId = await readViewerId();
-  const t = await getTranslations({ locale, namespace: "home" });
+  const [t, habitT] = await Promise.all([
+    getTranslations({ locale, namespace: "home" }),
+    getTranslations({ locale, namespace: "atomicChallenges" }),
+  ]);
   const { visitor, showSellerCta } = await readViewerLocationContext();
-  const [{ posts, total, totalPages }, celebration, garden] = await Promise.all(
-    [
+  const [{ posts, total, totalPages }, celebrations, garden] =
+    await Promise.all([
       getPosts(locale, visitor),
-      readLatestPublicCelebration(viewerId),
+      readRecentPublicCelebrations(viewerId, HOME_CELEBRATION_LIST_LIMIT),
       readCommunityGarden(),
-    ],
-  );
+    ]);
 
   return (
-    <main className="">
+    <main className="space-y-8">
       {/* Quién publica el sitio. Va en el home y no en el layout: repetir la organización en cada
           página no la hace más creíble, y aquí es donde un rastreador entra primero. */}
       <JsonLd
@@ -119,23 +131,36 @@ export default async function Inicio({
           inLanguage: locale,
         })}
       />
-      <h1 className="text-xl font-bold mb-2">{t("h1")}</h1>
-
-      <p className="mb-2">{t("p1")}</p>
-
-      <p>{t("p2")}</p>
+      <PillarHero
+        level={1}
+        title={t("h1")}
+        intro={t("p1")}
+        identity={t("p2")}
+        theme={getDeepHabitChallengeTheme("nutrition")}
+        className="mb-10 rounded-[2rem] shadow-xl"
+      />
 
       <LocationBanner showSellerCta={showSellerCta} />
 
-      <CommunityHabitGarden garden={garden} />
+      <section className="relative isolate overflow-hidden">
+        {/* Jardín y celebraciones comparten una fila: son la misma idea —lo que la comunidad
+              lleva hecho— y apiladas empujaban el feed muy abajo. Si no hay celebraciones que
+              mostrar, el jardín se queda con todo el ancho en vez de dejar media fila vacía. */}
+        <div
+          className={`grid gap-6 lg:items-start ${celebrations.length > 0 ? "lg:grid-cols-2" : ""
+            }`}
+        >
+          <CommunityHabitGarden garden={garden} variant="compact" />
 
-      {celebration && (
-        <PublicHabitCelebrationCard
-          celebration={celebration}
-          viewerSignedIn={viewerId !== null}
-          reactionAction={setHabitCelebrationReaction}
-        />
-      )}
+          <PublicHabitCelebrationList
+            title={habitT("experienceCommon.communityCelebrationsTitle")}
+            celebrations={celebrations}
+            viewerSignedIn={viewerId !== null}
+            reactionAction={setHabitCelebrationReaction}
+            variant="compact"
+          />
+        </div>
+      </section>
 
       {/* La `key` es desde dónde se midieron estas distancias. El feed acumula en estado las
           páginas que pide, así que sin esto una ubicación corregida repintaba el chip y dejaba las
