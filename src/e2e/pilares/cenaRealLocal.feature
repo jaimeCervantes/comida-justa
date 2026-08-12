@@ -74,7 +74,7 @@ Feature: Cena real, local y al atardecer
     Examples: la sexta linea es solo de Alimentacion
       | pilar          | ruta                    | reto                      |
       | Sueno          | /pilares/sueno          | Del atardecer al amanecer |
-      | Movimiento     | /pilares/movimiento     | Dos minutos cuentan       |
+      | Movimiento     | /pilares/movimiento     | Movimiento vivo, local y funcional |
       | Mente/Espiritu | /pilares/mente-espiritu | Un vínculo consciente     |
 
   @slice-2 @component

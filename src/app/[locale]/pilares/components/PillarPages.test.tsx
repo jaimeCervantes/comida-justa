@@ -33,9 +33,11 @@ describe.each([
   },
   {
     Page: MovimientoPage as PillarPage,
-    heading: "3. Movimiento y ejercicio",
-    intro: "Combatiendo el sedentarismo en la vida diaria.",
-    identity: "Soy una persona que empieza a moverse",
+    heading: "3. Movimiento natural, local y comunitario",
+    intro:
+      "Recuperar el cuerpo en la calle, el sendero y la cancha del barrio.",
+    identity:
+      "Soy una persona que se mueve de forma natural y reconecta con su entorno y comunidad todos los días",
     theme: "color-pillar-movement-solid",
   },
   {

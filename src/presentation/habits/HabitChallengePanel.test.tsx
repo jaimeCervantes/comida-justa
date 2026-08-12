@@ -109,7 +109,7 @@ describe("HabitChallengePanel", () => {
     expect(screen.getByText("5 de 7 cenas")).toBeInTheDocument();
   });
 
-  it("scores Movement's cue and two-minute minimum without scoring continuation", () => {
+  it("scores Movement's engine-free trip and two-minute minimum, never the extra time", () => {
     renderWithIntl(
       <HabitChallengePanel
         action={action}
@@ -121,7 +121,7 @@ describe("HabitChallengePanel", () => {
     );
 
     expect(
-      screen.getByRole("checkbox", { name: "Usé mi señal para empezar" }),
+      screen.getByRole("checkbox", { name: "Me moví sin motor" }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole("checkbox", {

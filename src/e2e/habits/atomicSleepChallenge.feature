@@ -169,10 +169,10 @@ Feature: Retos atomicos - del pilar a una practica con identidad propia
     Then conozco la practica "<reto>" y su minimo "<minimo>"
 
     Examples:
-      | pilar            | reto                            | minimo                                      |
-      | Alimentacion     | Cena real, local y al atardecer | cenar al atardecer y servir la triada local |
-      | Movimiento       | Dos minutos cuentan             | moverse dos minutos según capacidad         |
-      | Mente y comunidad| Un vínculo consciente           | enviar un mensaje de presencia real         |
+      | pilar            | reto                              | minimo                                     |
+      | Alimentacion     | Cena real, local y al atardecer   | cenar al atardecer y servir la triada local |
+      | Movimiento       | Movimiento vivo, local y funcional | un trayecto sin motor y dos minutos de pie |
+      | Mente y comunidad| Un vínculo consciente             | enviar un mensaje de presencia real        |
 
   @slice-4
   Scenario: El recordatorio permanece bloqueado si el canal no esta probado
@@ -252,26 +252,26 @@ Feature: Retos atomicos - del pilar a una practica con identidad propia
       | destino publico   | /pilares/alimentacion                | /pilares/sueno           |
 
   @slice-7
-  Scenario: Dos minutos cuentan se convierte en un ritual de movimiento
+  Scenario: El movimiento deja de ser una sesion y se vuelve un dia entero
     Given que leo el pilar "Movimiento y actividad física"
-    When sigo la invitacion al reto "Dos minutos cuentan"
+    When sigo la invitacion al reto "Movimiento vivo, local y funcional"
     Then entro a una experiencia verde propia de Movimiento
-    And declaro "Soy una persona que empieza a moverse"
+    And declaro "Soy una persona que se mueve de forma natural y reconecta con su entorno y comunidad todos los dias"
     And puedo anclar el inicio a ropa preparada, una pausa o una ruta cotidiana
     And el minimo son dos minutos segun mi capacidad
     But continuar es opcional y no suma puntos adicionales
 
   @slice-7
-  Scenario: Cinco inicios de movimiento reciben una celebracion propia
-    Given que empece "Dos minutos cuentan" en mi zona local cuatro dias antes de hoy
+  Scenario: Cinco dias de movimiento reciben una celebracion propia
+    Given que empece "Movimiento vivo, local y funcional" en mi zona local cuatro dias antes de hoy
     When registro cinco fechas distintas con mi senal elegida y dos minutos de movimiento
-    Then veo "5 de 7 inicios" y 50 puntos
+    Then veo "5 de 7 días" y 50 puntos
     And la celebracion dice "Empezaste a moverte cinco veces"
     And el ritual me invita a preparar, empezar, moverme dos minutos y notar mi cuerpo
 
   @slice-7
   Scenario: Compartir Movimiento conserva su identidad y destino
-    Given que complete y comparti el primer hito de "Dos minutos cuentan"
+    Given que complete y comparti el primer hito de "Movimiento vivo, local y funcional"
     When otra persona abre el inicio
     Then la tarjeta usa la identidad verde de Movimiento
     And dice que empece a moverme
@@ -336,11 +336,11 @@ Feature: Retos atomicos - del pilar a una practica con identidad propia
     Then la practica "<practica>" aparece antes de "Referencias"
 
     Examples: los cuatro pilares unen informacion y accion
-      | pilar                         | practica                        |
-      | Sueño y Descanso              | Del atardecer al amanecer       |
-      | Alimentación natural          | Cena real, local y al atardecer |
-      | Movimiento y actividad física | Dos minutos cuentan             |
-      | Mente y espíritu              | Un vínculo consciente           |
+      | pilar                         | practica                           |
+      | Sueño y Descanso              | Del atardecer al amanecer          |
+      | Alimentación natural          | Cena real, local y al atardecer    |
+      | Movimiento y actividad física | Movimiento vivo, local y funcional |
+      | Mente y espíritu              | Un vínculo consciente              |
 
   @slice-9
   Scenario Outline: Los retos hablan de la accion y no del sistema

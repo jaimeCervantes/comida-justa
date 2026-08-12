@@ -26,7 +26,7 @@ Característica: Practicar varios rituales al mismo tiempo
       | pilar               | ritual                       |
       | Sueño               | Del atardecer al amanecer    |
       | Alimentacion        | Una planta mas               |
-      | Movimiento          | Dos minutos cuentan          |
+      | Movimiento          | Movimiento vivo, local y funcional |
       | Mente y comunidad   | Un vinculo consciente        |
 
   @slice-1 @integration

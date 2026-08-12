@@ -441,30 +441,45 @@ test.describe("Del atardecer al amanecer", () => {
   }) => {
     await page.goto("/pilares/movimiento");
     await expect(
-      page.getByRole("heading", { name: "Dos minutos cuentan" }),
+      page.getByRole("heading", {
+        name: "Movimiento vivo, local y funcional",
+      }),
     ).toBeVisible();
     await expect(
-      page.getByText("Soy una persona que empieza a moverse"),
+      page.getByText(
+        "Soy una persona que se mueve de forma natural y reconecta con su entorno y comunidad todos los días",
+      ),
     ).toBeVisible();
     await expect(
-      page.getByText(/ropa preparada, una pausa o una ruta cotidiana/i),
+      page.getByText(/calzado junto a la puerta y la bici lista/i),
     ).toBeVisible();
     await expect(
-      page.getByText(/continuar es opcional y no suma puntos/i),
+      page.getByText(/los puntos cuentan días, no volumen/i).first(),
+    ).toBeVisible();
+    /* El mínimo es un piso, no un techo: la copia dice las dos cosas —alargarlo te conviene, y
+       alargarlo no da más puntos— y esta afirmación existe para que sigan juntas. */
+    await expect(
+      page.getByText(/le hace bien a tu cuerpo/i).first(),
+    ).toBeVisible();
+    /* El ancla sin motor no puede leerse como un requisito de caminar. Aparece dos veces a
+       propósito —en el ancla y en la nota de seguridad— y de ahí el `.first()`: la accesibilidad
+       tiene que llegar antes de la letra pequeña, no solo dentro de ella. */
+    await expect(
+      page.getByText(/silla, muletas o bastón/i).first(),
     ).toBeVisible();
 
     await page
-      .getByRole("button", { name: "Empezar Dos minutos cuentan" })
+      .getByRole("button", {
+        name: "Empezar Movimiento vivo, local y funcional",
+      })
       .click();
-    await expect(page.getByText("0 de 7 inicios")).toBeVisible();
+    await expect(page.getByText("0 de 7 días")).toBeVisible();
     const cycleDates = await backdateHabitChallengeForSevenDayTest(
       "movement-two-minutes-v1",
     );
     await page.reload();
     for (const [index, cycleDate] of cycleDates.entries()) {
-      await page
-        .getByRole("checkbox", { name: "Usé mi señal para empezar" })
-        .check();
+      await page.getByRole("checkbox", { name: "Me moví sin motor" }).check();
       await page
         .getByRole("checkbox", {
           name: "Me moví dos minutos según mi capacidad",
@@ -473,16 +488,13 @@ test.describe("Del atardecer al amanecer", () => {
       await page.locator('select[name="cycleDate"]').selectOption(cycleDate);
       await page
         .getByRole("button", {
-          name:
-            index === 0
-              ? "Registrar mi primer inicio"
-              : "Registrar este inicio",
+          name: index === 0 ? "Registrar mi primer día" : "Registrar este día",
         })
         .click();
-      await expect(page.getByText(`${index + 1} de 7 inicios`)).toBeVisible();
+      await expect(page.getByText(`${index + 1} de 7 días`)).toBeVisible();
     }
     await expect(
-      page.getByRole("heading", { name: "Empezaste a moverte cinco veces" }),
+      page.getByRole("heading", { name: "Moviste tu semana cinco veces" }),
     ).toBeVisible();
     await expect(page.getByText("50 puntos").first()).toBeVisible();
   });
@@ -493,7 +505,9 @@ test.describe("Del atardecer al amanecer", () => {
     const suiteDisplayName = await readSuiteAccountDisplayName();
     await page.goto("/pilares/movimiento");
     await page
-      .getByRole("button", { name: "Empezar Dos minutos cuentan" })
+      .getByRole("button", {
+        name: "Empezar Movimiento vivo, local y funcional",
+      })
       .click();
     await page
       .getByRole("checkbox", { name: "Usé mi señal para empezar" })
@@ -503,9 +517,7 @@ test.describe("Del atardecer al amanecer", () => {
         name: "Me moví dos minutos según mi capacidad",
       })
       .check();
-    await page
-      .getByRole("button", { name: "Registrar mi primer inicio" })
-      .click();
+    await page.getByRole("button", { name: "Registrar mi primer día" }).click();
     await page
       .getByRole("button", { name: "Compartir con la comunidad" })
       .click();
@@ -520,7 +532,9 @@ test.describe("Del atardecer al amanecer", () => {
     await expect(card).toHaveAttribute("data-pillar", "movement");
     await expect(card).toContainText("empezó a moverse");
     await expect(
-      card.getByRole("link", { name: /Conocer Dos minutos cuentan/ }),
+      card.getByRole("link", {
+        name: /Conocer Movimiento vivo, local y funcional/,
+      }),
     ).toHaveAttribute("href", "/pilares/movimiento");
   });
 
@@ -687,9 +701,9 @@ test.describe("Del atardecer al amanecer", () => {
       ],
       [
         "/pilares/movimiento",
-        "Dos minutos cuentan",
-        "Soy una persona que empieza a moverse",
-        "Preparar, empezar, moverse y notar",
+        "Movimiento vivo, local y funcional",
+        "Soy una persona que se mueve de forma natural y reconecta con su entorno y comunidad todos los días",
+        "Salir, pausar, asolearse, fortalecer y notar",
         5,
       ],
       [
