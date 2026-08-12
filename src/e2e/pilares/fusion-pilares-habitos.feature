@@ -24,8 +24,8 @@ Feature: Explicacion y practica viven juntas en Pilares
 
     Examples: recorrido localizado dentro del pilar
       | ruta                | reto                         | noche             | manana            | referencias | identidad                                      |
-      | /pilares/sueno      | Del atardecer al amanecer    | Cerrar la noche   | Abrir la manana   | Referencias | Soy una persona que protege su descanso.       |
-      | /en/pillars/sueno   | From sunset to sunrise       | Close the evening | Open the morning  | References  | I am a person who protects my rest.            |
+      | /pilares/sueno      | Del atardecer al amanecer    | Cerrar la noche   | Abrir la manana   | Referencias | Soy una persona que respeta los ritmos naturales de su cuerpo |
+      | /en/pillars/sueno   | From sunset to sunrise       | Close the evening | Open the morning  | References  | I am a person who respects their body’s natural rhythms      |
 
   @slice-1
   Scenario Outline: Las URL antiguas de Sueno dejan de existir sin redireccion

@@ -664,14 +664,14 @@ test.describe("Del atardecer al amanecer", () => {
     await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
     const pageTitle = page.getByRole("heading", {
       level: 1,
-      name: "1. Sueño y Descanso",
+      name: "1. Sueño y descanso profundo",
     });
     const pageHero = pageTitle.locator("xpath=ancestor::header");
     await expect(pageHero).toContainText(
-      "La base de la recuperación biológica y la salud a largo plazo.",
+      "Volver a dormir al ritmo de la luz, no al de las pantallas.",
     );
     await expect(pageHero).toContainText(
-      "Soy una persona que protege su descanso.",
+      "Soy una persona que respeta los ritmos naturales de su cuerpo y se regala un descanso profundo y reparador cada noche",
     );
     const practice = page.getByRole("heading", {
       level: 2,

@@ -24,7 +24,7 @@ Feature: Retos atomicos - del pilar a una practica con identidad propia
     When avanzo hasta "Ponlo en practica"
     Then encuentro el reto "Del atardecer al amanecer" sin salir del pilar
     And el minimo distingue "Cerrar la noche" de "Abrir la manana"
-    And cena, ropa, ambiente fresco y movimiento aparecen como recomendados, no obligatorios
+    And sol matutino, atenuar la casa, descargar la mente y un cuarto fresco aparecen como recomendados, no obligatorios
 
   @slice-1
   Scenario: Completo mi primer ciclo y la recompensa llega ahora

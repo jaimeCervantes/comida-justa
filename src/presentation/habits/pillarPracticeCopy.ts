@@ -10,6 +10,10 @@ import { getPillarTheme } from "./pillarThemes";
  * por su función (`cueTitle`, `minimumTitle`). Son dos vocabularios de verdad, no un descuido, así
  * que aquí hay dos lecturas y una sola forma de salida; el componente ya no distingue.
  *
+ * Los pasos del ritual sí se llaman igual en los cuatro (`ritualStep1`…). Sueño los tenía bajo
+ * nombres de contenido —`dinner`, `clothes`, `room`— heredados del piloto, y al reescribirse el
+ * ritual esos nombres habrían quedado describiendo pasos que ya no existen.
+ *
  * Cada clave se escribe entera y a mano: una clave compuesta en tiempo de ejecución es una clave
  * que no aparece al buscarla, y `AGENTS.md` lo prohíbe fuera de uniones cerradas.
  *
@@ -66,11 +70,11 @@ export async function getPillarPracticeCopy(
         title: t("recommendedHeading"),
         body: t("recommendedBody"),
         steps: [
-          t("eveningLight"),
-          t("dinner"),
-          t("clothes"),
-          t("room"),
-          t("movement"),
+          t("ritualStep1"),
+          t("ritualStep2"),
+          t("ritualStep3"),
+          t("ritualStep4"),
+          t("ritualStep5"),
         ],
         safety: t("safety"),
       },

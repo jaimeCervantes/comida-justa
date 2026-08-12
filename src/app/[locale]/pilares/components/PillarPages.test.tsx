@@ -18,9 +18,10 @@ type PillarPage = ComponentType<{ locale: AppLocale }>;
 describe.each([
   {
     Page: SuenoPage as PillarPage,
-    heading: "1. Sueño y Descanso",
-    intro: "La base de la recuperación biológica y la salud a largo plazo.",
-    identity: "Soy una persona que protege su descanso.",
+    heading: "1. Sueño y descanso profundo",
+    intro: "Volver a dormir al ritmo de la luz, no al de las pantallas.",
+    identity:
+      "Soy una persona que respeta los ritmos naturales de su cuerpo y se regala un descanso profundo y reparador cada noche",
     theme: "linear-gradient(145deg,#17112f",
   },
   {
