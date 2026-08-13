@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { hasLocale } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import CommunityPracticeInvitation from "~/app/(home)/CommunityPracticeInvitation";
 import HomeHero from "~/app/(home)/HomeHero";
 import { measuredFrom } from "~/app/(home)/measuredFrom";
 import PostsWithLoadMore from "~/app/(home)/PostsWithLoadMore";
@@ -140,7 +141,9 @@ export default async function Inicio({
               mostrar, el jardín se queda con todo el ancho en vez de dejar media fila vacía. */}
         <div
           className={`grid gap-6 lg:items-start ${
-            celebrations.length > 0 ? "lg:grid-cols-2" : ""
+            celebrations.length > 0
+              ? "lg:grid-cols-[minmax(210px,1fr)_minmax(0,1.5fr)_minmax(0,1fr)]"
+              : "lg:grid-cols-2"
           }`}
         >
           <CommunityHabitGarden garden={garden} variant="compact" />
@@ -152,6 +155,8 @@ export default async function Inicio({
             reactionAction={setHabitCelebrationReaction}
             variant="compact"
           />
+
+          <CommunityPracticeInvitation />
         </div>
       </section>
 

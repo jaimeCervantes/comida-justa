@@ -114,9 +114,9 @@ export default function PostsWithLoadMore({
   return (
     <>
       {posts.length === 0 ? (
-        <p className="pt-6">{t("empty")}</p>
+        <p className="pt-3">{t("empty")}</p>
       ) : (
-        <MasonryColumns className="pt-6" testId="feed-masonry">
+        <MasonryColumns className="pt-3" testId="feed-masonry">
           {posts.map((post: Post) => (
             <CardForList
               {...post}

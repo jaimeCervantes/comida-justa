@@ -1,6 +1,17 @@
 import { describe, expect, it } from "vitest";
 import { getPathname } from "./navigation";
-import { pillarHref } from "./routes";
+import { PILLARS_OVERVIEW_HREF, pillarHref } from "./routes";
+
+describe("PILLARS_OVERVIEW_HREF", () => {
+  it("resuelve la portada sin segmento y traduce la ruta, no el slug", () => {
+    expect(getPathname({ locale: "es", href: PILLARS_OVERVIEW_HREF })).toBe(
+      "/pilares",
+    );
+    expect(getPathname({ locale: "en", href: PILLARS_OVERVIEW_HREF })).toBe(
+      "/en/pillars",
+    );
+  });
+});
 
 describe("pillarHref", () => {
   it.each([

@@ -333,6 +333,12 @@
     "body": "{total} shared repetitions feed this garden. Growth is collective, not a ranking.",
     "eyebrow": "Aggregate activity",
     "groupsUnavailable": "Groups are not available yet because there is no real model for creating and caring for them. We do not show empty teams or invented activity.",
+    "invitation": {
+      "body": "The garden only grows on real repetitions. Pick a pillar, do today's minimum version and share it: what you keep up is what someone else dares to begin.",
+      "cta": "Choose my practice",
+      "eyebrow": "Your turn",
+      "title": "Practise something that inspires the community"
+    },
     "mind": "Mind and spirit",
     "movement": "Movement",
     "nutrition": "Nutrition",

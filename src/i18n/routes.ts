@@ -1,4 +1,5 @@
 import type { CuratedChallengeSlug } from "~/domain/habits/curatedChallenges";
+import type { AppHref } from "./navigation";
 
 /**
  * Los destinos tipados de una tienda y de una persona.
@@ -23,6 +24,19 @@ export function storeHref(handle: string) {
 export function profileHref(username: string) {
   return { pathname: "/u/[username]", params: { username } } as const;
 }
+
+/**
+ * La portada de los cuatro pilares: el mismo catch-all, sin segmento.
+ *
+ * Vivía en `presentation/chrome/Header/menuItems.ts`, que bastaba mientras el menú fuera el único
+ * que llevaba ahí. Desde que el inicio también invita a practicar habría dos copias del literal, y
+ * eso es garantizar que el día que la ruta cambie una de las dos se quede atrás. `menuItems.ts` la
+ * reexporta para que el menú siga importándola de donde siempre.
+ */
+export const PILLARS_OVERVIEW_HREF = {
+  pathname: "/pilares/[[...slug]]",
+  params: { slug: [] },
+} as const satisfies AppHref;
 
 /** El destino tipado de un pilar; el slug estable no se traduce. */
 export function pillarHref(slug: CuratedChallengeSlug): {

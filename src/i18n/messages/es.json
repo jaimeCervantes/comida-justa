@@ -333,6 +333,12 @@
     "body": "{total} repeticiones compartidas alimentan este jardín. El crecimiento es colectivo, no una clasificación.",
     "eyebrow": "Actividad agregada",
     "groupsUnavailable": "Los grupos todavía no están disponibles porque no existe un modelo real para crearlos y cuidarlos. No mostramos equipos vacíos ni actividad inventada.",
+    "invitation": {
+      "body": "El jardín solo crece con repeticiones reales. Elige un pilar, haz hoy su versión mínima y comparte la repetición: lo que tú sostienes es lo que otra persona se anima a empezar.",
+      "cta": "Elegir mi práctica",
+      "eyebrow": "Tu turno",
+      "title": "Practica algo que inspire a la comunidad"
+    },
     "mind": "Mente y espíritu",
     "movement": "Movimiento",
     "nutrition": "Alimentación",

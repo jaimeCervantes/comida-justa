@@ -50,10 +50,10 @@ export const PILLAR_ITEMS = [
 
 export const COMMUNITY_OVERVIEW_HREF = "/" as const satisfies AppHref;
 
-export const PILLARS_OVERVIEW_HREF = {
-  pathname: "/pilares/[[...slug]]",
-  params: { slug: [] },
-} as const satisfies AppHref;
+/* La portada de los pilares se define en `~/i18n/routes`: el inicio también enlaza ahí y el literal
+   de la ruta tiene que estar escrito en un solo sitio. Se reexporta para que el menú la siga
+   importando de aquí, junto al resto de sus destinos. */
+export { PILLARS_OVERVIEW_HREF } from "~/i18n/routes";
 
 /**
  * Las seis secciones de «Comunidad», **con el interruptor de si ya existen**.
