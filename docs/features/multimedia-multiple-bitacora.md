@@ -655,3 +655,167 @@ indicacion del usuario.
 pnpm exec playwright test --shard=1/2
 pnpm exec playwright test --shard=2/2
 ```
+
+## 2026-08-13 - Slice 5: Que se vea que estan cargando, y que tarden menos
+
+### Objetivo
+
+El usuario reporto tres cosas en una frase: las imagenes tardan en reflejarse, la primera carga se
+siente lenta, y no hay ningun indicador de que algo esta cargando —ni en la ficha del visitante, ni
+en publicar, ni en editar—. Son tres sintomas con tres causas distintas, y solo el tercero se arregla
+poniendo un indicador.
+
+### Decisiones y racional
+
+- **`loading="eager"` estaba en TODAS las imagenes, y esa era la causa de la primera carga lenta.**
+  No era una optimizacion: era su contrario. Un listado de nueve tarjetas abria nueve descargas en el
+  primer pintado, todas peleandose el mismo ancho de banda, y la que la persona estaba mirando
+  llegaba la ultima. Ahora la carga es diferida por defecto y `priority` es un prop que pone **quien
+  coloca la imagen**, porque es el unico que sabe si se ve sin desplazarse. Lo lleva un solo sitio en
+  toda la aplicacion: la galeria de la ficha.
+
+- **Sin `sizes`, el navegador elige por ancho de ventana y no por el hueco.** Pedia la variante de
+  1920 para una tarjeta de 380 px, y la misma para una miniatura de 112. Ahora cada uno declara lo
+  que ocupa: `Thumbnail` lo sabe exactamente (`${size}px`) y `MediaContent` trae un valor por defecto
+  para sus dos usos de siempre, que quien tenga un hueco raro puede pisar.
+
+- **El esqueleto es un componente de cliente, y se penso lo contrario primero.** Se puede pintar un
+  hueco que late solo con CSS, sin JavaScript ninguno; el problema es que entonces late **para
+  siempre** por detras de una imagen ya cargada, y en un listado de nueve tarjetas son nueve
+  animaciones infinitas que nadie ve. Con estado, la animacion se acaba cuando el archivo llega. Se
+  queda en la hoja del arbol, asi que `MediaContent` y `Thumbnail` siguen siendo de servidor.
+
+- **El esqueleto va DETRAS del archivo, no en su lugar.** Asi no hay cambio de arbol ni salto de
+  maquetacion: el hueco ya tiene su tamano final —lo reserva `next/image` con `width`/`height`— y lo
+  unico que cambia es lo que se ve dentro.
+
+- **Hay que preguntar por `complete`, y esto es lo que no se ve venir.** Si la imagen estaba en cache,
+  el navegador puede decodificarla **antes** de que React hidrate: el `load` ya ocurrio y no vuelve a
+  ocurrir, asi que el esqueleto se quedaba latiendo debajo de una imagen perfectamente visible, para
+  siempre. Tiene su prueba, con el getter mockeado.
+
+- **El video recibe el mismo trato, y no, el `<video>` de HTML no lo trae resuelto.** Fue la pregunta
+  del usuario y merece respuesta escrita: lo unico nativo parecido es `poster`, una imagen fija que
+  hay que generar y guardar por cada archivo, y aqui no se generan. Sin `poster` y con
+  `preload="metadata"` lo que queda en pantalla es una caja vacia sin ninguna senal. La senal es
+  `loadedmetadata` y **no** `loadeddata`: con `preload="metadata"` el navegador se compromete a lo
+  primero, mientras que lo segundo exige el primer fotograma decodificado y puede no llegar nunca,
+  dejando el esqueleto encima de un video listo.
+
+- **Una imagen rota apaga el esqueleto igual que una que carga.** Dejarlo latiendo se lee como «sigue
+  cargando» y quien mira espera algo que no va a llegar.
+
+- **`minimumCacheTTL` sube a 30 dias.** El valor por defecto es de minutos, y con el el servidor
+  vuelve a descargar el original de Cloud Storage y a reoptimizarlo en cada visita: es el "tarda en
+  reflejarse" de la segunda vez, cuando la imagen ya se habia visto. Es seguro estirarlo porque
+  **estas URL no cambian de contenido**: el nombre lleva marca de tiempo y un discriminante desde el
+  slice 1, asi que editar produce una URL nueva en vez de pisar la anterior. Nunca se sirve una
+  imagen vieja por esto.
+
+- **El esqueleto no se anuncia a un lector de pantalla.** Quien lo ve sabe que espera porque lo ve
+  latir; anunciarlo seria contarle un detalle visual que no puede usar, y en un listado de nueve
+  tarjetas, contarselo nueve veces.
+
+### Archivos tocados
+
+**Presentacion (lo nuevo)**
+
+- `src/presentation/media/MediaSkeleton/MediaSkeleton.tsx` (nuevo): el hueco que late y el marco que
+  lo sostiene. Aparte porque lo comparten la imagen y el video.
+- `src/presentation/media/ImageWithSkeleton/` y `src/presentation/media/VideoWithSkeleton/` (nuevos),
+  con sus pruebas.
+
+**Presentacion (conectado)**
+
+- `src/presentation/media/MediaContent/MediaContent.tsx`: `priority`, `sizes`, y las dos piezas
+  nuevas. Es el cuello de botella por el que pasan la ficha, la galeria, las tarjetas del listado y
+  la vista grande del slice 4.
+- `src/presentation/media/Thumbnail/Thumbnail.tsx`: la bandeja de publicar y editar, el carrito y los
+  pedidos.
+- `src/presentation/media/MediaGallery/MediaGallery.tsx` y
+  `src/app/[locale]/[slug]/ui/PostDetail.tsx`: el `priority` de la unica imagen que lo lleva.
+- `src/presentation/media/PostMediaTray/PostMediaTray.tsx`: la miniatura de video.
+
+**Configuracion**
+
+- `next.config.mjs`: `minimumCacheTTL`.
+
+**Documentacion**
+
+- `docs/features/multimedia-multiple.md`: el slice 5.
+
+### Comandos clave
+
+```
+pnpm vitest --run src/presentation/media
+pnpm run format && pnpm run lint
+pnpm run typecheck && pnpm run typecheck:tests
+pnpm run check:i18n
+pnpm run test:run
+rm -rf .next/dev/types    # ver "Desviaciones"
+```
+
+### Resultados de validacion
+
+- `pnpm run test:run`: **1563 pruebas en 154 archivos, todas en verde**. El slice 4 cerro en
+  1552/152, o sea **11 pruebas nuevas**: 6 de `ImageWithSkeleton` y 5 de `VideoWithSkeleton`.
+- `pnpm run typecheck` y `pnpm run typecheck:tests`: exit 0.
+- `pnpm run lint`: 806 archivos, exit 0 y **sin advertencias**.
+- `pnpm run check:i18n`: exit 0. El slice no anade ni una clave: un esqueleto no lleva texto.
+- **`pnpm run test:e2e:run`: NO se ejecuto**, por indicacion del usuario.
+
+### Desviaciones del roadmap
+
+- **No habia roadmap para este slice**: sale de un reporte del usuario, no del plan. Se documenta
+  aqui y en `multimedia-multiple.md` para que no quede como un cambio sin motivo escrito.
+- **El video entro a mitad del slice**, preguntado por el usuario ("y lo mismo debe aplicar para
+  video, aunque a lo mejor eso ya se resuelve con el tag video de html"). No se resuelve solo, y por
+  eso hay un `VideoWithSkeleton` y no solo un `ImageWithSkeleton`.
+- **`pnpm run typecheck` fallo con 15 errores que no eran del codigo.** Estaban todos en
+  `.next/dev/types/`, tipos que genera Next: un `next dev` que el usuario tenia abierto los dejo
+  truncados al morir. Se borro la carpeta y volvieron a exit 0. Conviene reconocer la firma —errores
+  de sintaxis en `.next/`, no en `src/`— para no perder tiempo buscandolos en el codigo.
+- **Dos pruebas de `ImageWithSkeleton` nacieron en rojo por una razon util**: `next/image` no llama al
+  `onLoad` de quien lo usa en el mismo evento, lo pone detras de `img.decode()`. Afirmar en seco
+  pasaba a veces; ahora esperan con `waitFor`, que es lo que describe el comportamiento real.
+
+### Pendientes
+
+- **Medirlo.** Todo lo de aqui es razonamiento sobre como pide las imagenes el navegador; nadie ha
+  puesto un numero antes y despues. Un Lighthouse sobre `/` y sobre una ficha, en produccion, diria
+  si el LCP se movio de verdad.
+- **Correr la e2e**, que sigue pendiente desde el slice 4 y ahora ademas cambia cuando se descargan
+  las imagenes: un escenario que esperaba una imagen visible en una tarjeta de mas abajo podria
+  necesitar desplazarse. **Es el riesgo concreto de este slice.**
+- **Las tarjetas del listado no pasan `sizes` propio** y se quedan con el de por defecto, que apunta
+  a 768 px cuando en escritorio miden unos 380. Ya es muchisimo mejor que 1920, pero se puede afinar
+  cuando alguien mida.
+- Sin tocar: el gancho `pre-commit`, `Posts.d.ts` y los dummies repetidos.
+
+### Recap
+
+Las imagenes ya no se piden todas a la vez —solo se adelanta la de la ficha, que es la unica que se
+ve sin desplazarse—, se piden del tamano del hueco en vez de por ancho de ventana, y la version
+optimizada se guarda 30 dias en vez de minutos. Mientras llegan, tanto las imagenes como los videos
+enseñan un hueco que late del tamano final, sin salto de maquetacion, y que se apaga cuando el
+archivo llega, cuando falla, o cuando ya estaba en cache. Todo pasa por `MediaContent` y `Thumbnail`,
+asi que lo reciben a la vez la ficha del visitante, las tarjetas del listado, publicar y editar.
+Validacion local completa en verde; falta medirlo y falta la e2e.
+
+### Proximos pasos (opciones)
+
+1. **Correr la e2e** (recomendado): arrastra pendiente desde el slice 4 y este slice cambia **cuando**
+   se descargan las imagenes, que es justo lo que un escenario podria estar esperando.
+2. **Medir con Lighthouse** antes/despues en produccion, para saber si el LCP se movio o solo se
+   siente mejor.
+3. **Mirarlo a mano** con `pnpm run dev`: si el gris del esqueleto es el adecuado en modo oscuro y si
+   los 300 ms de transicion se sienten bien o se sienten lentos.
+4. **Mergear a `dev`** los slices 4 y 5 juntos cuando la e2e pase; la rama es
+   `feat/multimedia-arrastrar`.
+
+**Acciones pendientes del usuario:**
+
+```
+pnpm exec playwright test --shard=1/2
+pnpm exec playwright test --shard=2/2
+```

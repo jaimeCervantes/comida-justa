@@ -176,6 +176,40 @@ flecha. Las tres piezas son de `PostMediaTray`, asi que publicar y editar las re
 - Las flechas siguen haciendo lo mismo que antes, y el orden que producen es el mismo que el del
   arrastre.
 
+### Slice 5 - Que se vea que estan cargando, y que tarden menos
+
+**Alcance**
+
+Tres sintomas distintos con tres causas distintas, y solo el tercero es "poner un indicador":
+
+- **El listado tardaba en la primera carga** porque `MediaContent` pedia **todas** las imagenes con
+  `loading="eager"`. Nueve tarjetas eran nueve descargas simultaneas peleandose el mismo ancho de
+  banda, y la que la persona miraba llegaba la ultima. Ahora la carga es diferida y solo se adelanta
+  la de la ficha (`priority`), que es la unica que se ve sin desplazarse.
+- **Se pedian imagenes mas grandes que el hueco.** Sin `sizes`, `next/image` deja que el navegador
+  elija por ancho de ventana y no por el hueco real: la variante de 1920 para una tarjeta de 380, o
+  la de 1920 para una miniatura de 112. Cada uno declara lo que ocupa.
+- **No habia ninguna senal mientras llegaban.** `ImageWithSkeleton` y `VideoWithSkeleton` pintan un
+  hueco que late detras del archivo, del tamano final, y lo apagan cuando llega. Los usan
+  `MediaContent` y `Thumbnail`, o sea la ficha del visitante, las tarjetas del listado, la bandeja de
+  publicar y la de editar, sin tocar ninguna de esas pantallas.
+
+Y una cuarta, invisible: `minimumCacheTTL` sube a 30 dias. El valor por defecto es de minutos, con lo
+que el servidor volvia a descargar el original de Cloud Storage y a reoptimizarlo en visitas
+sucesivas. Es seguro porque estas URL no cambian de contenido: llevan marca de tiempo y
+discriminante, asi que editar produce una URL nueva en vez de pisar la anterior.
+
+**Criterios de aceptacion**
+
+- Mientras una imagen no ha llegado se ve un hueco que late, del tamano que va a ocupar, y no un
+  salto de maquetacion cuando llega.
+- El hueco deja de latir cuando la imagen carga, cuando falla, y cuando ya estaba en cache antes de
+  que la pagina hidratara.
+- Un video hace lo mismo: el `<video>` de HTML no lo trae resuelto —solo `poster`, que aqui no se
+  genera—, asi que la senal es `loadedmetadata`.
+- En el listado, las imagenes de mas abajo no se descargan hasta que se llega a ellas; la de la ficha
+  si se adelanta.
+
 ## Validacion
 
 - `pnpm run test:run`
