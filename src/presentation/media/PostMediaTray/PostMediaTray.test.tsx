@@ -49,6 +49,53 @@ describe("PostMediaTray", () => {
     );
   });
 
+  /*
+   * Reordenar es opcional en la bandeja: nació sin ello en el slice 1 y el logo de una tienda —un
+   * archivo y solo uno— no tiene nada que ordenar. Sin `onMove` no se pinta ni un botón de más.
+   */
+  it("no ofrece mover cuando nadie escucha el movimiento", () => {
+    renderWithIntl(<PostMediaTray items={images(3)} onRemove={vi.fn()} />);
+
+    expect(
+      screen.queryByRole("button", { name: /mover/i }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("mueve un archivo diciendo de dónde a dónde", async () => {
+    const onMove = vi.fn();
+    renderWithIntl(
+      <PostMediaTray items={images(3)} onRemove={vi.fn()} onMove={onMove} />,
+    );
+
+    await userEvent.click(
+      screen.getByRole("button", { name: /archivo 3 antes/i }),
+    );
+
+    expect(onMove).toHaveBeenCalledWith(2, 1);
+  });
+
+  it("a los extremos no se les ofrece salir del borde", () => {
+    /* Un botón deshabilitado en cada punta sería una parada más del teclado para no hacer nada, en
+       una fila que ya lleva una insignia, una cruz y dos flechas por archivo. */
+    renderWithIntl(
+      <PostMediaTray items={images(3)} onRemove={vi.fn()} onMove={vi.fn()} />,
+    );
+
+    expect(
+      screen.queryByRole("button", { name: /archivo 1 antes/i }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /archivo 3 después/i }),
+    ).not.toBeInTheDocument();
+    // Y el de en medio sí ofrece las dos.
+    expect(
+      screen.getByRole("button", { name: /archivo 2 antes/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /archivo 2 después/i }),
+    ).toBeInTheDocument();
+  });
+
   it("cada botón de quitar dice qué archivo quita, no solo «quitar»", async () => {
     /* Tres botones idénticos en una fila son inservibles con lector de pantalla: la posición es lo
        único que los distingue, y es además lo que decide cuál queda de portada. */
