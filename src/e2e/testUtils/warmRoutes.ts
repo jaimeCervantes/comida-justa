@@ -67,6 +67,13 @@ const RUTAS = [
      Calentar la página sin la API no serviría de nada: es la API la que llega tarde. */
   "/auth/signin",
   "/api/auth/providers",
+
+  /* La edición. La pisan siete escenarios —los tres de `managePost` y los cuatro de `editarMedia`—
+     y acaba de encarecerse: desde que se puede cambiar la media, arrastra el selector de archivos,
+     la bandeja con sus miniaturas y la medición de imágenes, que antes solo compilaba `/publicar`.
+     Sin sesión redirige a identificarse, y eso basta: lo que se busca es compilar el segmento, no
+     ver una publicación. El slug no existe ni tiene que existir. */
+  "/editar/e2e-calentar",
 ] as const;
 
 /** Compilar una ruta pesada en frío pasa de largo cualquier plazo corto. */

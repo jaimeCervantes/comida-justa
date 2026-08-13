@@ -11,6 +11,13 @@ import UpdateOnePostUseCase from "./updateOnePostUseCase";
 const OWNER = "44pZIIJ5w1vSYkDQ6gfb";
 const SOMEONE_ELSE = "ksivIlKXNlbjXPMZBb4a";
 
+const BUCKET = "https://firebasestorage.googleapis.com/v0/b/hazlo-sano/o";
+
+/** Los archivos que la publicación ya tiene guardados, en su `sort_order`. */
+function archivos(...names: string[]) {
+  return names.map((name) => ({ url: `${BUCKET}/${name}`, type: "image" }));
+}
+
 // "Jugo Verde" a 40: producto real del catálogo de Hazlo Sano.
 const jugoVerde: EditablePost = {
   id: "post-jugo-verde",
@@ -26,6 +33,7 @@ const jugoVerde: EditablePost = {
   category: "alimentacion",
   subCategory: "jugos",
   isAvailable: true,
+  media: archivos("jugo-verde.jpg"),
 };
 
 const anuncio: EditablePost = {
@@ -128,6 +136,7 @@ describe("UpdateOnePostUseCase", () => {
     origin: "productor",
     category: "alimentacion",
     subCategory: "jugos",
+    media: archivos("jugo-verde.jpg"),
   };
 
   beforeEach(() => {
@@ -205,6 +214,53 @@ describe("UpdateOnePostUseCase", () => {
 
     expect(result.errorMessage).toBeDefined();
     expect(repository.updates).toHaveLength(0);
+  });
+
+  /*
+   * Los archivos. Hasta este slice la edición no los tocaba —`updateOnePostUseCase` pasaba una lista
+   * vacía solo para satisfacer al validador—, así que lo que sigue describe el camino nuevo: lo que
+   * llega del formulario es **la lista completa que la publicación va a tener**, no un delta.
+   */
+  it("guarda la lista de archivos tal y como llega, que es el orden de la publicación", async () => {
+    const result = await useCase.execute({
+      ...edit,
+      media: archivos("etiqueta.jpg", "frente.jpg", "interior.jpg"),
+    });
+
+    expect(result.errorMessage).toBeUndefined();
+    expect(repository.updates[0].media.map((file) => file.url)).toEqual([
+      `${BUCKET}/etiqueta.jpg`,
+      `${BUCKET}/frente.jpg`,
+      `${BUCKET}/interior.jpg`,
+    ]);
+  });
+
+  /* El tope es de la entidad y no del formulario: la base no limita las filas de `post_media`, así
+     que sin esto una petición forjada dejaría una publicación con doscientos archivos. */
+  it("rechaza una edición con más archivos de los que caben", async () => {
+    const result = await useCase.execute({
+      ...edit,
+      media: archivos(
+        ...Array.from({ length: 11 }, (_, index) => `foto-${index}.jpg`),
+      ),
+    });
+
+    expect(result.errorMessage).toContain("10");
+    expect(repository.updates).toHaveLength(0);
+  });
+
+  /* El vector se deriva del TEXTO. Cambiar qué fotos lleva no cambia lo que la publicación dice, así
+     que reindexar aquí sería pagarle al proveedor por volver a calcular lo mismo. */
+  it("no pide reindexar cuando solo cambiaron los archivos", async () => {
+    const result = await useCase.execute({
+      ...edit,
+      title: jugoVerde.title,
+      content: jugoVerde.content,
+      media: archivos("frente.jpg", "etiqueta.jpg"),
+    });
+
+    expect(result).toMatchObject({ textChanged: false });
+    expect(repository.updates[0].media).toHaveLength(2);
   });
 
   it("propaga lo inesperado como mensaje genérico, no como pantalla en blanco", async () => {

@@ -10,6 +10,9 @@ import { Button } from "~/presentation/design_system/buttons/Button";
 import { Select } from "~/presentation/design_system/forms/Select";
 import { TextArea } from "~/presentation/design_system/forms/TextArea";
 import { TextField } from "~/presentation/design_system/forms/TextField";
+import PostMediaField, {
+  type PostMediaFieldItem,
+} from "~/presentation/media/PostMediaField/PostMediaField";
 import type { EditPostState } from "../actions";
 
 export type EditablePostValues = {
@@ -21,15 +24,18 @@ export type EditablePostValues = {
   origin: string | null;
   category: string | null;
   subCategory: string | null;
+  /** Los archivos que ya tiene, en su orden. El primero es la portada. */
+  media: PostMediaFieldItem[];
 };
 
 /**
- * Edita el texto, el precio, la categoría y la procedencia de una publicación.
+ * Edita el texto, el precio, la categoría, la procedencia y los archivos de una publicación.
  *
- * **No se puede cambiar la media ni el tipo**: la primera exige rehacer la subida y el segundo
- * cambiaría lo que la publicación *es* (un anuncio no tiene precio). La procedencia sí, y es lo
- * que vuelve reversible una declaración equivocada: sin esta pantalla, corregirla exigía entrar a
- * la base.
+ * **El tipo sigue sin poder cambiarse**: cambiaría lo que la publicación *es* (un anuncio no tiene
+ * precio). Los archivos sí, desde este slice: es el mismo `PostMediaField` que pinta `/publicar`, así
+ * que añadir, quitar y reordenar se comportan igual en las dos pantallas y hay un solo sitio donde
+ * arreglarlo. Antes esta pantalla ni los mostraba, y corregir una foto equivocada exigía volver a
+ * publicar entera la ficha.
  */
 export default function EditPostForm({
   action,
@@ -161,6 +167,8 @@ export default function EditPostForm({
           maxLength={Number(POST_CONTENT_MAX_LENGTH)}
           className="mb-6"
         />
+
+        <PostMediaField initialItems={post.media} />
 
         <footer className="flex justify-center gap-5 mt-4">
           <Link href={{ pathname: "/[slug]", params: { slug: post.slug } }}>

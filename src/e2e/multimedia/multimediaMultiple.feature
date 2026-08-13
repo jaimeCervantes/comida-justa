@@ -4,6 +4,7 @@ Feature: Una publicacion lleva varias imagenes y videos
   # distintas y mezclarlas haria que un fallo de lectura pareciera uno de subida:
   #   - multimediaMultiple.spec.ts  (@slice-1) publica desde la UI y comprueba lo que llega a la base.
   #   - galeriaDeMedia.spec.ts      (@slice-2) siembra por el repositorio y comprueba lo que se ve.
+  #   - editarMedia.spec.ts         (@slice-3) siembra, edita desde la UI y vuelve a mirar la base.
 
   Context:
   - Problem: quien publica un producto tiene varias fotos —el frente, la etiqueta, el interior— y hoy
@@ -183,21 +184,75 @@ Feature: Una publicacion lleva varias imagenes y videos
   # Slice 3 - Editar la media de una publicacion
   # ---------------------------------------------------------------------------
 
-  @slice-3 @future
-  Scenario: Quien edita su publicacion puede quitar un archivo
-    Given la duena de una publicacion con 3 archivos en su formulario de edicion
-    When quita uno y guarda
-    Then la publicacion queda con 2 archivos
+  # Los escenarios de este slice viven en editarMedia.spec.ts. Siembran por el repositorio —lo que
+  # se prueba es la EDICION, no la subida— y comprueban `post_media` en la base, porque el orden es
+  # lo que leen la tarjeta, el carrito y el bot con `ORDER BY sort_order LIMIT 1`.
+  #
+  # Los archivos sembrados se distinguen por su direccion: `seed-0.jpg`, `seed-1.jpg`, `seed-2.jpg`
+  # (ver `testUtils/seedPost.ts`). Sin eso, "quito el de en medio" no se puede afirmar: tres filas
+  # indistinguibles pasarian la prueba aunque se hubiera borrado la equivocada.
 
-  @slice-3 @future
-  Scenario: Quien edita su publicacion puede anadir un archivo
-    Given la duena de una publicacion con 2 archivos en su formulario de edicion
-    When anade uno y guarda
-    Then la publicacion queda con 3 archivos y el nuevo va al final
+  @slice-3
+  Scenario: Quitar el archivo de en medio deja a los otros dos en su orden
+    Given la duena de "Crema de cacahuate artesanal" con 3 archivos abre su edicion
+    Then la bandeja muestra 3 archivos y el contador dice "3 de 10"
+    When quita el archivo de la posicion 2 y guarda
+    Then la publicacion queda con:
+      | sort_order | archivo    |
+      | 0          | seed-0.jpg |
+      | 1          | seed-2.jpg |
 
-  @slice-3 @future
-  Scenario: Cambiar la portada cambia lo que ven el listado, el carrito y el bot
-    Given la duena de una publicacion con 3 archivos
-    When mueve el tercero a la primera posicion y guarda
-    Then ese archivo pasa a sort_order 0
-    And la tarjeta del listado lo ensena como portada
+  @slice-3
+  Scenario: El archivo anadido se va al final, detras de los que ya estaban
+    Given la duena de "Tonico de jengibre y curcuma" con 2 archivos abre su edicion
+    When anade "post.jpg" y guarda
+    Then la publicacion queda con 3 archivos
+    And los dos que ya estaban conservan sort_order 0 y 1
+    And el anadido queda en sort_order 2
+
+  @slice-3
+  Scenario: Mover el tercero hasta la portada cambia lo que ven el listado, el carrito y el bot
+    Given la duena de "Ensalada griega con queso feta" con 3 archivos abre su edicion
+    When mueve el archivo de la posicion 3 hasta la primera y guarda
+    Then la publicacion queda con:
+      | sort_order | archivo    |
+      | 0          | seed-2.jpg |
+      | 1          | seed-0.jpg |
+      | 2          | seed-1.jpg |
+    And la tarjeta del listado ensena "seed-2.jpg" como portada
+
+  @slice-3 @component
+  # Reordenar es de la BANDEJA, no de la pantalla: el mismo componente lo pintan publicar y editar,
+  # asi que probarlo dos veces contra un navegador seria pagar dos minutos por la misma certeza. La
+  # e2e de arriba comprueba que lo reordenado llega a `post_media`; esta, la aritmetica del orden.
+  Scenario Outline: Mover un archivo lo desplaza un puesto y arrastra al que estaba ahi
+    Given una bandeja con "A, B, C"
+    When se mueve el archivo de la posicion <posicion> <hacia>
+    Then la bandeja queda "<resultado>"
+
+    Examples: moviendo hacia la portada
+      | posicion | hacia  | resultado | reason                                        |
+      | 3        | antes  | A, C, B   | un puesto, no hasta el principio              |
+      | 2        | antes  | B, A, C   | el segundo pasa a portada de un solo toque    |
+
+    Examples: moviendo hacia el final
+      | posicion | hacia   | resultado | reason                                       |
+      | 1        | despues | B, A, C   | quitar la portada es mover el primero        |
+      | 2        | despues | A, C, B   | y el de en medio baja un puesto              |
+
+  @slice-3 @component
+  Scenario: A los extremos no se les ofrece salir del borde
+    Given una bandeja con "A, B, C"
+    Then el primero no ofrece moverse antes
+    And el ultimo no ofrece moverse despues
+
+  @slice-3
+  # No estaba en el roadmap y es la unica regla nueva del slice: hasta ahora ningun camino podia
+  # dejar una publicacion sin archivos, asi que nadie tuvo que prohibirlo. Quitar el ultimo si
+  # podria, y una publicacion sin media no se pinta —lo dice el limite conocido de `globalSetup`—,
+  # o sea que el fallo no se veria al guardar sino al abrir la ficha.
+  Scenario: Quitar el ultimo archivo no deja la publicacion sin ninguno
+    Given la duena de "Guia como leer etiquetas" con 1 archivo abre su edicion
+    When quita el unico archivo e intenta guardar
+    Then no se guarda, se explica que hace falta al menos un archivo
+    And la publicacion conserva el archivo que tenia

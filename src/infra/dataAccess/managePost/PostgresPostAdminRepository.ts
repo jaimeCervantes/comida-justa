@@ -1,10 +1,60 @@
 import { sql } from "drizzle-orm";
+import type { PostMediaFile } from "~/domain/entities/post/types";
 import { db } from "~/infra/dataAccess/db/connection";
+import { postMedia } from "~/infra/dataAccess/db/schema/posts";
 import type IPostAdminRepository from "~/use_cases/managePost/ports/IPostAdminRepository";
 import type {
   EditablePost,
   PostContentUpdate,
 } from "~/use_cases/managePost/ports/IPostAdminRepository";
+
+/** La transacción que abre `db.transaction`, sin tener que nombrar los genéricos de Drizzle. */
+type Transaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
+
+interface MediaRow {
+  url: string;
+  type: string;
+  alt: string | null;
+  width: number | null;
+  height: number | null;
+}
+
+/**
+ * Deja `post_media` valiendo exactamente lo que trae la edición.
+ *
+ * **Se reemplaza el conjunto en vez de calcular un diff.** Un diff necesitaría una identidad estable
+ * por archivo, y lo único que las dos partes comparten es la URL de Cloud Storage; con ella, mover
+ * dos archivos de sitio se vería igual que borrarlos y volverlos a crear. Reemplazar es seguro
+ * porque **nada apunta a `post_media.id`**: el carrito, los pedidos y el bot leen por `post_id` con
+ * `ORDER BY sort_order LIMIT 1`, así que ninguna fila de otra tabla se queda huérfana al rehacerlas.
+ *
+ * El `sort_order` se asigna por posición **después** de filtrar, igual que al publicar: la posición
+ * es la de la publicación, no la del array que llegó, y un hueco no debe dejar un salto.
+ */
+async function replaceMedia(
+  tx: Transaction,
+  update: PostContentUpdate,
+): Promise<void> {
+  await tx.execute(
+    sql`DELETE FROM post_media WHERE post_id = ${update.postId}`,
+  );
+
+  const files = update.media.filter((file) => file?.url);
+
+  if (files.length === 0) return;
+
+  await tx.insert(postMedia).values(
+    files.map((file, index) => ({
+      postId: update.postId,
+      url: file.url,
+      type: file.type ?? "image",
+      alt: file.alt ?? null,
+      sortOrder: index,
+      width: file.width ?? null,
+      height: file.height ?? null,
+    })),
+  );
+}
 
 interface EditableRow {
   id: string;
@@ -47,6 +97,10 @@ export class PostgresPostAdminRepository implements IPostAdminRepository {
   /**
    * El `slug` queda fuera del `UPDATE` a propósito: la dirección ya se compartió y moverla
    * dejaría muertos los enlaces repartidos.
+   *
+   * Los archivos van **dentro de la misma transacción** que el texto. Separarlos dejaría el hueco
+   * en el que una publicación se queda sin ninguno: entre el `DELETE` y el `INSERT` no hay portada
+   * que enseñar, y la tarjeta, el carrito y el bot leen esa fila con `ORDER BY sort_order LIMIT 1`.
    */
   async updateContent(update: PostContentUpdate): Promise<void> {
     await db.transaction(async (tx) => {
@@ -65,6 +119,8 @@ export class PostgresPostAdminRepository implements IPostAdminRepository {
             content = ${update.content}
         WHERE post_id = ${update.postId} AND locale = ${update.locale}
       `);
+
+      await replaceMedia(tx, update);
     });
   }
 
@@ -98,6 +154,7 @@ export class PostgresPostAdminRepository implements IPostAdminRepository {
     const row = rows[0];
 
     return {
+      media: await this.readMedia(row.id),
       id: row.id,
       ownerId: row.owner_id,
       slug: row.slug,
@@ -111,5 +168,30 @@ export class PostgresPostAdminRepository implements IPostAdminRepository {
       subCategory: row.sub_category,
       isAvailable: row.is_available,
     };
+  }
+
+  /**
+   * Los archivos de la publicación, en su orden.
+   *
+   * En su propia consulta y no en un `JOIN` con la de arriba: unir multiplicaría la fila de la
+   * publicación por cada archivo, y habría que volver a plegarla —el mismo trabajo, hecho a mano y
+   * con un `LIMIT 1` que de pronto significaría otra cosa—. Son dos preguntas distintas sobre la
+   * misma publicación y se hacen por separado.
+   */
+  private async readMedia(postId: string): Promise<PostMediaFile[]> {
+    const result = await db.execute(sql`
+      SELECT url, type, alt, width, height
+      FROM post_media
+      WHERE post_id = ${postId}
+      ORDER BY sort_order
+    `);
+
+    return (result.rows as unknown as MediaRow[]).map((row) => ({
+      url: row.url,
+      type: row.type,
+      alt: row.alt ?? undefined,
+      width: row.width,
+      height: row.height,
+    }));
   }
 }
