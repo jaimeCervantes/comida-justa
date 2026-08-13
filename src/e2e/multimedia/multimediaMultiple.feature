@@ -1,5 +1,10 @@
 Feature: Una publicacion lleva varias imagenes y videos
 
+  # Los escenarios de este archivo se reparten en dos specs porque preparan el estado de dos maneras
+  # distintas y mezclarlas haria que un fallo de lectura pareciera uno de subida:
+  #   - multimediaMultiple.spec.ts  (@slice-1) publica desde la UI y comprueba lo que llega a la base.
+  #   - galeriaDeMedia.spec.ts      (@slice-2) siembra por el repositorio y comprueba lo que se ve.
+
   Context:
   - Problem: quien publica un producto tiene varias fotos —el frente, la etiqueta, el interior— y hoy
     el formulario solo guarda una: cada subida pisa la anterior. Sube la que mejor se ve y descarta

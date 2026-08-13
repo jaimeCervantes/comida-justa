@@ -86,6 +86,7 @@ export default function CardForList(
      base y por eso se resuelve en el servidor; esto es solo una cadena del catálogo, que el
      proveedor de next-intl tiene disponible también en el árbol cliente. */
   const tShare = useTranslations("share");
+  const t = useTranslations("post");
 
   return (
     <Card
@@ -112,11 +113,23 @@ export default function CardForList(
          son verticales y se les tiraba el 36%. Y es lo que da altura distinta a cada tarjeta, que
          es de lo que vive la mampostería. */
       media={
-        <Link {...anchorProps}>
+        <Link {...anchorProps} className="relative block">
           <MediaContent
             media={media[0]}
             className={hasKnownAspect(media[0] ?? {}) ? "" : "h-64"}
           />
+
+          {/* Cuántos hay, sin tener que abrir la ficha. La portada sigue siendo `media[0]` —el de
+              `sort_order` 0, el mismo que leen el carrito y el bot—; lo que se añade es el aviso de
+              que detrás hay más, que es lo que convierte una tarjeta en algo que se toca. */}
+          {media.length > 1 ? (
+            <span
+              data-testid="post-media-count"
+              className="absolute right-2 top-2 rounded-full bg-black/70 px-2 py-0.5 text-xs text-white"
+            >
+              {t("mediaCount", { count: media.length })}
+            </span>
+          ) : null}
         </Link>
       }
     >

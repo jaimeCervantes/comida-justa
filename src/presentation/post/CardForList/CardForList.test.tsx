@@ -273,4 +273,47 @@ describe("When a card is listed", () => {
       );
     });
   });
+
+  /*
+   * La portada no cambia —sigue siendo el archivo de `sort_order` 0, el mismo que leen el carrito,
+   * los pedidos y el bot—; lo que se añade es el aviso de que detrás hay más. Sin él, una
+   * publicación con cuatro fotos se ve idéntica a una con una y nadie la abre por ellas.
+   */
+  describe("cuántos archivos hay", () => {
+    it("no dice nada cuando solo hay uno, que es el caso de siempre", () => {
+      const { queryByTestId } = render(<CardForList {...baseProps} />);
+
+      expect(queryByTestId("post-media-count")).not.toBeInTheDocument();
+    });
+
+    it("los cuenta cuando hay más de uno", () => {
+      const { getByTestId } = render(
+        <CardForList
+          {...baseProps}
+          media={[
+            { url: "https://ruta/1.webp", type: "image", alt: "Miel" },
+            { url: "https://ruta/2.webp", type: "image", alt: "Miel" },
+            { url: "https://ruta/3.webp", type: "image", alt: "Miel" },
+            { url: "https://ruta/4.mp4", type: "video", alt: "Miel" },
+          ]}
+        />,
+      );
+
+      expect(getByTestId("post-media-count")).toHaveTextContent("4");
+    });
+
+    it("la portada sigue siendo el primero", () => {
+      const { getByRole } = render(
+        <CardForList
+          {...baseProps}
+          media={[
+            { url: "https://ruta/portada.webp", type: "image", alt: "Miel" },
+            { url: "https://ruta/segunda.webp", type: "image", alt: "Miel" },
+          ]}
+        />,
+      );
+
+      expect(getByRole("img").getAttribute("src")).toContain("portada.webp");
+    });
+  });
 });

@@ -194,3 +194,148 @@ pnpm run test:e2e:run -- src/e2e/createPost      # los que tocaban PublishPage y
 pnpm run test:e2e:run                            # la completa, en dos mitades si la RAM protesta:
                                                  #   --shard=1/2 y --shard=2/2, matando los node huerfanos antes
 ```
+
+## 2026-08-12 - Slice 2: Verlos en la ficha y saber cuantos hay en la tarjeta
+
+### Objetivo
+
+Que los archivos que el slice 1 ya guarda se vean: un carrusel con miniaturas en la ficha y una
+insignia con el conteo en la tarjeta del listado.
+
+### Decisiones y racional
+
+- **Con un solo archivo no hay galeria.** `MediaGallery` devuelve el mismo `MediaContent` de siempre
+  —sin flechas, sin miniaturas, sin contador— cuando hay uno. Es la mitad del trabajo del componente
+  y la que mas facil se rompe: las 23 publicaciones de la base tienen exactamente un archivo y
+  ninguna debe cambiar de aspecto por una funcion que no usa. Tiene sus propias pruebas, de
+  componente y de e2e, precisamente porque es una ausencia y las ausencias no se notan al mirar.
+
+- **La galeria no pinta archivos, solo decide cual se ve.** Delega en `MediaContent`, que ya sabe
+  distinguir imagen de video y ya respeta `width`/`height` reales via `hasKnownAspect`. Escribir un
+  segundo renderizador habria significado que las diez imagenes verticales de la base se recortaran
+  de nuevo en un sitio y no en el otro.
+
+- **`aria-current` y no `aria-selected` en las miniaturas.** Esto no es un `tablist`: el archivo
+  grande no es un panel con contenido interactivo propio, es la misma vista. Anunciarlo como pestanas
+  le prometeria a un lector de pantalla una navegacion que no existe.
+
+- **El contador va en `aria-live="polite"`.** Cambiar de archivo no recarga nada; sin esto, quien
+  navega con lector de pantalla pulsa «siguiente» y no se entera de que paso algo.
+
+- **Da la vuelta en los dos extremos.** Llegar al ultimo y que la flecha siguiente no haga nada se
+  lee como que la galeria se rompio, no como que se acabo.
+
+- **El video se pausa al cambiar de lamina.** Es el fallo mas molesto que puede tener un carrusel y
+  no se ve en una captura de pantalla: solo se oye.
+
+- **El `alt` del segundo archivo en adelante lleva su posicion.** Sale de la traduccion, como ya
+  hacia la ficha, pero cuatro imagenes con el mismo texto alternativo hacen que un lector de pantalla
+  repita la misma frase cuatro veces sin distinguir nada.
+
+- **La miniatura de la galeria usa `img` y no `next/image`.** Son 64 px de un archivo que el
+  navegador ya tiene en cache desde la vista grande; `next/image` pediria una segunda version
+  optimizada por cada archivo para ahorrar unos kilobytes de algo ya descargado.
+
+- **La portada de la tarjeta no cambia**: sigue siendo el archivo de `sort_order` 0, el mismo que
+  leen el carrito, los pedidos y el bot de Python. Lo unico que se anade es el aviso de que detras
+  hay mas.
+
+- **`shareMedia.ts` no se toco.** `buildSharePreview` ya recorria el array buscando la primera imagen
+  y el primer video por separado, asi que el `og:image` sigue siendo una imagen aunque el primer
+  archivo sea un video.
+
+- **Los escenarios del slice 2 siembran por el repositorio en vez de publicar desde la UI**, y por eso
+  van en su propio spec (`galeriaDeMedia.spec.ts`). Lo que se prueba aqui es lo que ve quien lee;
+  arrastrar el formulario de publicar haria que un fallo de presentacion pareciera uno de subida. El
+  `.feature` lleva arriba un comentario diciendo que sus escenarios se reparten en dos specs y por
+  que.
+
+- **Una prueba de `PublishForm` pasaba aislada y fallaba en la corrida completa.** No era un fallo del
+  codigo: subir es asincrono y las aserciones eran sincronas, asi que con la maquina cargada el DOM
+  aun no tenia la bandeja. Se extrajo un `pickFiles` que espera con `findAllBy*`, que ademas describe
+  mejor el flujo real.
+
+### Archivos tocados
+
+**Presentacion**
+- `src/presentation/media/MediaGallery/MediaGallery.tsx` (nuevo).
+- `src/app/[locale]/[slug]/ui/PostDetail.tsx` — mapea el array entero, `alt` con posicion, y entrega
+  el resultado a `MediaGallery`.
+- `src/presentation/post/CardForList/CardForList.tsx` — insignia de conteo.
+
+**i18n**
+- `src/i18n/messages/es.json` y `en.json` — ocho claves nuevas en `post`.
+
+**Especificacion y pruebas**
+- `src/presentation/media/MediaGallery/MediaGallery.test.tsx` (nuevo, 11 pruebas).
+- `src/e2e/multimedia/galeriaDeMedia.spec.ts` (nuevo, 4 escenarios).
+- `src/presentation/post/CardForList/CardForList.test.tsx` — tres pruebas de la insignia.
+- `src/app/[locale]/publicar/PublishForm.test.tsx` — `pickFiles` con espera.
+- `src/e2e/multimedia/multimediaMultiple.feature` — el puntero a los dos specs.
+
+### Comandos clave
+
+```
+pnpm exec biome check --write .
+pnpm run typecheck
+pnpm run typecheck:tests
+pnpm run lint
+pnpm run check:i18n
+pnpm run test:run
+```
+
+### Resultados de validacion
+
+- `pnpm run test:run`: **1491 pruebas en 148 archivos, todas en verde**. El slice 1 cerro en 1477/147,
+  o sea **14 pruebas nuevas** (11 de `MediaGallery`, 3 de la insignia).
+- `pnpm run typecheck` y `pnpm run typecheck:tests`: sin errores.
+- `pnpm run lint`: 786 archivos, sin hallazgos.
+- `pnpm run check:i18n`: sin texto espanol escrito a mano en los componentes.
+- **`pnpm run test:e2e:run`: NO se ejecuto.** Sigue pendiente; ahora son nueve escenarios nuevos.
+
+### Desviaciones del roadmap
+
+- El roadmap decia «un carrusel» sin decir donde vivia el manejador de teclado. Quedo en el
+  contenedor, recogiendo lo que burbujea desde las miniaturas: un `section` no es enfocable por si
+  mismo, y hacerlo enfocable habria anadido una parada de tabulacion que no lleva a ninguna parte.
+- `PostDetail` necesito una anotacion de tipo que no estaba prevista: el `Post` de
+  `src/infra/types/Posts.d.ts` acaba en una firma de indice `{ [k: string]: unknown }`, asi que
+  `postDetails.media` llega sin forma y recorrerla dejaria los parametros en `any` implicito. Es
+  deuda anterior a esta entrega —el tipo bueno es el del dominio— y aqui solo se le puso nombre a lo
+  que ya viajaba.
+
+### Pendientes
+
+- **La suite de Playwright sigue sin correrse** (nueve escenarios nuevos entre los dos slices).
+- `src/infra/types/Posts.d.ts` define un `Post` auto-referencial que termina en una firma de indice,
+  o sea que no tipa nada. Deberia ser el `Post` del dominio. Es una limpieza aparte.
+- Los dummies `post-2.jpg` y `post-3.jpg` siguen siendo copias byte a byte de `post.jpg`.
+
+### Recap
+
+La feature esta completa de punta a punta: se suben varios archivos, se guardan ordenados y se ven.
+La ficha los recorre con flechas, miniaturas y contador, con teclado y con anuncios para lector de
+pantalla; la tarjeta del listado dice cuantos hay sin que haya que abrirla; y una publicacion con un
+solo archivo —las 23 que hay hoy— se ve exactamente igual que antes, cosa que comprueban una prueba
+de componente y un escenario de e2e. Lo unico que queda fuera es editar la media de una publicacion
+ya creada, que es el slice 3 y sigue marcado `@future`. Validacion local completa salvo Playwright.
+
+### Proximos pasos (opciones)
+
+1. **Correr la e2e** (recomendado): es lo unico que falta para dar por cerrados los dos slices.
+2. **Abrir el PR contra `dev`** una vez la e2e pase.
+3. **Seguir con el slice 3** (editar: anadir, quitar y reordenar), que exige un `updateMedia`
+   transaccional nuevo en `PostgresPostAdminRepository` y llevar `media` hasta `EditablePostValues` y
+   `PostContentUpdate`.
+4. **Ver la feature funcionando a mano** con `pnpm run dev` antes de nada.
+
+**Acciones pendientes del usuario:**
+
+```
+pnpm run test:e2e:run -- src/e2e/multimedia      # los 9 escenarios nuevos
+pnpm run test:e2e:run -- src/e2e/createPost      # los que tocaban PublishPage y el stub
+pnpm run test:e2e:run                            # la completa, en dos mitades si la RAM protesta
+```
+
+La rama es `feat/multimedia-multiple` en
+`C:\Users\S2G52\personal\DEV\salud-justa\comida-justa-multimedia`, y va contra `dev`.

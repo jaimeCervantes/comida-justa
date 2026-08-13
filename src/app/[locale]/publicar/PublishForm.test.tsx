@@ -77,6 +77,23 @@ beforeEach(() => {
   uploadedCount = 0;
 });
 
+/**
+ * Elige archivos y espera a que la bandeja los tenga.
+ *
+ * La espera no es cosmética: subir es asíncrono —el efecto que reporta la tanda hacia arriba corre
+ * después de que React confirme el estado del hook—, así que afirmar en seco pasaba en aislamiento y
+ * fallaba en la corrida completa, cuando la máquina va cargada. `findAllBy*` reintenta hasta que el
+ * DOM tiene lo que se espera, que es lo que describe de verdad este flujo.
+ */
+async function pickFiles(names: string[]): Promise<HTMLElement[]> {
+  await userEvent.upload(
+    fileInput(),
+    names.map((name) => imageFile(name)),
+  );
+
+  return screen.findAllByTestId("post-media-tray-item");
+}
+
 const ALIMENTACION = { value: "alimentacion", label: "Alimentación" } as const;
 const JUGOS = { value: "jugos", label: "Jugos" } as const;
 
@@ -230,17 +247,15 @@ describe("PublishForm — la bandeja de archivos", () => {
   it("guarda los tres archivos elegidos de una vez, en su orden", async () => {
     renderForm();
 
-    await userEvent.upload(fileInput(), [
-      imageFile("frente.jpg"),
-      imageFile("etiqueta.jpg"),
-      imageFile("interior.jpg"),
+    const items = await pickFiles([
+      "frente.jpg",
+      "etiqueta.jpg",
+      "interior.jpg",
     ]);
 
-    expect(screen.getAllByTestId("post-media-tray-item")).toHaveLength(3);
+    expect(items).toHaveLength(3);
     expect(
-      screen
-        .getAllByTestId("post-media-tray-item")
-        .map((item) => within(item).getByText(/^\d$/).textContent),
+      items.map((item) => within(item).getByText(/^\d$/).textContent),
     ).toEqual(["1", "2", "3"]);
     expect(hiddenMediaValue()).toHaveLength(3);
   });
@@ -248,23 +263,19 @@ describe("PublishForm — la bandeja de archivos", () => {
   it("suma la segunda tanda en vez de reemplazar la primera", async () => {
     renderForm();
 
-    await userEvent.upload(fileInput(), [imageFile("frente.jpg")]);
-    await userEvent.upload(fileInput(), [imageFile("etiqueta.jpg")]);
+    await pickFiles(["frente.jpg"]);
+    await pickFiles(["etiqueta.jpg"]);
 
+    expect(
+      await screen.findByTestId("post-media-tray-counter"),
+    ).toHaveTextContent("2 de 10");
     expect(screen.getAllByTestId("post-media-tray-item")).toHaveLength(2);
-    expect(screen.getByTestId("post-media-tray-counter")).toHaveTextContent(
-      "2 de 10",
-    );
   });
 
   it("quitar el de en medio deja los otros dos y los renumera", async () => {
     renderForm();
 
-    await userEvent.upload(fileInput(), [
-      imageFile("frente.jpg"),
-      imageFile("etiqueta.jpg"),
-      imageFile("interior.jpg"),
-    ]);
+    await pickFiles(["frente.jpg", "etiqueta.jpg", "interior.jpg"]);
 
     await userEvent.click(screen.getByRole("button", { name: /archivo 2/i }));
 
@@ -283,10 +294,7 @@ describe("PublishForm — la bandeja de archivos", () => {
   it("el campo oculto lleva la lista entera, que es lo único que ve el servidor", async () => {
     renderForm();
 
-    await userEvent.upload(fileInput(), [
-      imageFile("frente.jpg"),
-      imageFile("etiqueta.jpg"),
-    ]);
+    await pickFiles(["frente.jpg", "etiqueta.jpg"]);
 
     expect(hiddenMediaValue()).toEqual([
       expect.objectContaining({ url: expect.stringMatching(/frente\.jpg$/) }),
@@ -299,12 +307,11 @@ describe("PublishForm — la bandeja de archivos", () => {
        rechazar la selección completa y dejar a la persona empezando de nuevo. */
     renderForm();
 
-    await userEvent.upload(
-      fileInput(),
-      Array.from({ length: 12 }, (_, index) => imageFile(`foto-${index}.jpg`)),
+    const items = await pickFiles(
+      Array.from({ length: 12 }, (_, index) => `foto-${index}.jpg`),
     );
 
-    expect(screen.getAllByTestId("post-media-tray-item")).toHaveLength(10);
+    expect(items).toHaveLength(10);
     expect(screen.getByTestId("post-media-tray-counter")).toHaveTextContent(
       /Llegaste al máximo/,
     );
@@ -313,9 +320,8 @@ describe("PublishForm — la bandeja de archivos", () => {
   it("al llegar al tope el selector deja de aceptar", async () => {
     renderForm();
 
-    await userEvent.upload(
-      fileInput(),
-      Array.from({ length: 10 }, (_, index) => imageFile(`foto-${index}.jpg`)),
+    await pickFiles(
+      Array.from({ length: 10 }, (_, index) => `foto-${index}.jpg`),
     );
 
     expect(fileInput()).toBeDisabled();
@@ -328,7 +334,7 @@ describe("PublishForm — la bandeja de archivos", () => {
       screen.getByLabelText(/sube tus mejores imágenes o videos/i),
     ).toBeInTheDocument();
 
-    await userEvent.upload(fileInput(), [imageFile("frente.jpg")]);
+    await pickFiles(["frente.jpg"]);
 
     expect(
       screen.getByLabelText(/agrega otra imagen u otro video/i),
