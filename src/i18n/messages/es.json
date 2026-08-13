@@ -746,6 +746,28 @@
     "total": "Total",
     "viewOrder": "Ver el pedido"
   },
+  "pillarLocal": {
+    "heading": "Cerca de ti",
+    "mind": {
+      "empty": "Todavía nadie ha publicado nada de mente y espíritu cerca de ti. Si acompañas, facilitas o abres un espacio de encuentro, esta sección es tuya.",
+      "intro": "Quién sostiene la calma y el vínculo cerca de ti: espacios de encuentro, talleres y personas que acompañan. Lo más cercano va primero."
+    },
+    "movement": {
+      "empty": "Todavía nadie ha publicado nada de movimiento cerca de ti. Si das clases, entrenas o abres una cancha, esta sección es tuya.",
+      "intro": "Gimnasios de barrio, entrenadores y clases para moverte aquí mismo. Lo más cercano va primero, porque el trayecto corto es parte de la práctica."
+    },
+    "nutrition": {
+      "empty": "Todavía no hay nada de alimentación publicado cerca de ti. Si cocinas, cultivas o vendes comida real, esta sección es tuya.",
+      "intro": "Lo que se cocina y se cultiva cerca, con lo que tienes más a mano primero. Comprar aquí acorta el camino hasta tu plato y deja el dinero en el pueblo."
+    },
+    "publish": "Publica tu negocio o tu producto",
+    "seeAll": "Ver todo en {category}",
+    "sleep": {
+      "empty": "Todavía nadie ha publicado nada de sueño y descanso cerca de ti. Si vendes o acompañas algo que ayude a dormir mejor, esta sección es tuya.",
+      "intro": "Lo que ayuda a dormir mejor y se consigue cerca, de quien lo tiene más a mano. El descanso también se abastece en el pueblo."
+    },
+    "storesHeading": "Quién lo tiene cerca"
+  },
   "pillarPages": {
     "mindSpirit": {
       "heading": "4. Mente, espíritu y comunidad cercana",

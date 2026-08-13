@@ -746,6 +746,28 @@
     "total": "Total",
     "viewOrder": "View order"
   },
+  "pillarLocal": {
+    "heading": "Near you",
+    "mind": {
+      "empty": "Nobody has published anything for mind and spirit near you yet. If you guide, facilitate or host a place to gather, this section is yours.",
+      "intro": "Who holds calm and connection close to you: places to gather, workshops and people who walk alongside. The closest comes first."
+    },
+    "movement": {
+      "empty": "Nobody has published anything for movement near you yet. If you teach, coach or open a court, this section is yours.",
+      "intro": "Neighbourhood gyms, coaches and classes to move right here. The closest comes first, because the short trip is part of the practice."
+    },
+    "nutrition": {
+      "empty": "Nothing for food has been published near you yet. If you cook, grow or sell real food, this section is yours.",
+      "intro": "What is cooked and grown nearby, with whatever is closest to you first. Buying here shortens the trip to your plate and keeps the money in town."
+    },
+    "publish": "Publish your business or product",
+    "seeAll": "See everything in {category}",
+    "sleep": {
+      "empty": "Nobody has published anything for sleep and rest near you yet. If you sell or offer something that helps people sleep better, this section is yours.",
+      "intro": "What helps you sleep better and can be found nearby, from whoever has it closest. Rest is stocked in town too."
+    },
+    "storesHeading": "Who has it nearby"
+  },
   "pillarPages": {
     "mindSpirit": {
       "heading": "4. Mind, Spirit and the Community Next Door",

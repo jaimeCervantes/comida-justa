@@ -11,6 +11,7 @@ import PillarArticle, {
   PillarPanel,
   PillarSectionHeading,
 } from "./PillarArticle";
+import PillarLocal from "./PillarLocal";
 import PillarPractice from "./PillarPractice";
 import PillarReferences from "./PillarReferences";
 import { MIND_SPIRIT_REFERENCES } from "./references";
@@ -58,6 +59,10 @@ export default function MenteEspirituPage({ locale }: { locale: AppLocale }) {
       </section>
 
       <PillarPractice challenge="mind" locale={locale} />
+
+      {/* El vínculo que pide el ritual necesita gente y sitios concretos, no una recomendación
+          genérica de "busca comunidad". Va pegada a la práctica. */}
+      <PillarLocal challenge="mind" locale={locale} />
 
       {/* La guía va después de la práctica: quien ya se comprometió con el silencio y la
           conversación es quien necesita saber en qué ratos del día caben. */}

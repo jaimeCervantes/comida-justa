@@ -5,6 +5,8 @@
  * —añadir un pilar es editar esta lista— y la redacción es traducción. Cada pilar apunta a su
  * clave del catálogo y el texto lo pone quien traduce.
  */
+import type { HabitChallengeExperienceKey } from "~/domain/habits/habitChallengeExperiences";
+
 export type PillarKey = "sleep" | "nutrition" | "movement" | "mindSpirit";
 
 export interface PillarData {
@@ -21,6 +23,25 @@ export const PILLARS: PillarData[] = [
   { slug: "movimiento", key: "movement", number: 3 },
   { slug: "mente-espiritu", key: "mindSpirit", number: 4 },
 ];
+
+/**
+ * El mismo pilar visto desde el reto (`mind`) y desde la presentación (`mindSpirit`).
+ *
+ * Son dos vocabularios de verdad —el dominio de hábitos nombra el reto, esta lista nombra el
+ * artículo— y solo difieren en el cuarto. Hasta ahora cada página resolvía la equivalencia a mano
+ * pasando las dos claves como literales (`challenge="mind"` junto a `pillar="mindSpirit"`), que
+ * funciona mientras nadie se equivoque de fila. Escrita una vez, un componente que reciba el reto
+ * puede sacar el color sin que quien lo monte tenga que acordarse.
+ */
+export const PILLAR_KEY_BY_CHALLENGE: Record<
+  HabitChallengeExperienceKey,
+  PillarKey
+> = {
+  sleep: "sleep",
+  nutrition: "nutrition",
+  movement: "movement",
+  mind: "mindSpirit",
+};
 
 export interface PillarColorClasses {
   /** Tinta del pilar: títulos y texto de acento. */

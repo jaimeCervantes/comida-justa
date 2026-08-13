@@ -24,6 +24,11 @@ export function profileHref(username: string) {
   return { pathname: "/u/[username]", params: { username } } as const;
 }
 
+/** El destino tipado de una categoría del catálogo. */
+export function categoryHref(key: string) {
+  return { pathname: "/categoria/[key]", params: { key } } as const;
+}
+
 /** El destino tipado de un pilar; el slug estable no se traduce. */
 export function pillarHref(slug: CuratedChallengeSlug): {
   pathname: "/pilares/[[...slug]]";

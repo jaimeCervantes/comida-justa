@@ -8,6 +8,7 @@ import PillarArticle, {
   PillarPanel,
   PillarSectionHeading,
 } from "./PillarArticle";
+import PillarLocal from "./PillarLocal";
 import PillarPractice from "./PillarPractice";
 import PillarReferences from "./PillarReferences";
 import { SLEEP_REFERENCES } from "./references";
@@ -60,6 +61,10 @@ export default function SuenoPage({ locale }: { locale: AppLocale }) {
       </section>
 
       <PillarPractice challenge="sleep" locale={locale} />
+
+      {/* El descanso también se abastece cerca: textiles, luz, quien acompañe. Va pegada a la
+          práctica, como en los otros tres. */}
+      <PillarLocal challenge="sleep" locale={locale} />
 
       {/* La guía va después de la práctica: quien ya se comprometió con las dos anclas es quien
           necesita saber cómo dejar el cuarto y la cabeza listos. */}
