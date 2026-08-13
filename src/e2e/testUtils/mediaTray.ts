@@ -41,6 +41,18 @@ export class MediaTray {
     });
   }
 
+  /** The thumbnail itself, which opens the file at full size. */
+  preview(position: number): Locator {
+    return this.page.getByRole("button", {
+      name: new RegExp(`ver el archivo ${position} en grande`, "i"),
+    });
+  }
+
+  /** The full-size view, once open. */
+  previewDialog(): Locator {
+    return this.page.getByTestId("media-preview");
+  }
+
   /** The file input of the picker that feeds the tray. */
   filePicker(): Locator {
     return this.page.locator('form input[type="file"]');

@@ -24,9 +24,18 @@ const THUMBNAIL_SIZE = 64;
 export default function MediaGallery({
   items,
   className,
+  priority = false,
 }: {
   items: readonly MediaItem[];
   className?: string;
+  /**
+   * Que el archivo grande no espere su turno.
+   *
+   * Es la imagen por la que se entra a la ficha —lo primero que se ve y, casi siempre, la que mide
+   * el navegador como "contenido más grande"—, así que ahí sí conviene adelantarla. Las miniaturas
+   * no la llevan: son de 64 px y están al lado, no delante.
+   */
+  priority?: boolean;
 }) {
   const t = useTranslations("post");
   const [active, setActive] = useState(0);
@@ -54,7 +63,13 @@ export default function MediaGallery({
     return <MediaContent media={undefined} className={className} />;
 
   if (items.length === 1) {
-    return <MediaContent media={items[0]} className={className} />;
+    return (
+      <MediaContent
+        media={items[0]}
+        className={className}
+        priority={priority}
+      />
+    );
   }
 
   return (
@@ -77,7 +92,11 @@ export default function MediaGallery({
       }}
     >
       <div className="relative">
-        <MediaContent media={items[active]} className="h-auto" />
+        <MediaContent
+          media={items[active]}
+          className="h-auto"
+          priority={priority}
+        />
 
         <GalleryArrow
           side="left"

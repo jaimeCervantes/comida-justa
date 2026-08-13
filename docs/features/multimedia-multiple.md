@@ -148,6 +148,109 @@ camino entero: `EditablePostValues` (`EditPostForm.tsx`), `EditablePost` y `Post
 - Quitar el ultimo archivo no se guarda: se explica que hace falta al menos uno, y la publicacion
   conserva el que tenia. (No estaba en el roadmap; ver la bitacora del slice 3.)
 
+### Slice 4 - Verla en grande y arrastrarla de sitio
+
+**Alcance**
+
+La bandeja se quedo corta en cuanto se pudo editar: 88 px no bastan para reconocer cual de tres
+etiquetas parecidas es cual, y para llevar el cuarto archivo a la portada hacen falta tres toques de
+flecha. Las tres piezas son de `PostMediaTray`, asi que publicar y editar las reciben a la vez.
+
+- **Ver en grande.** La miniatura pasa a ser un boton que abre el archivo a tamano completo sobre la
+  pantalla. Lo pinta `MediaContent`, el mismo que la ficha publica, para que un video se vea como
+  video y una foto vertical no se recorte; el tipo se normaliza antes con `mediaTypeFromMime`,
+  porque en el formulario todavia es un MIME (`image/jpeg`) y `MediaContent` conmuta por categoria.
+- **Arrastrar para ordenar.** Con el raton se arrastra la miniatura hasta el sitio que le toca, en
+  vez de empujarla de una en una. **Las flechas se quedan**: son el unico camino con teclado y con
+  lector de pantalla, y quitarlas cambiaria una mejora por una regresion de accesibilidad.
+- **Miniaturas mas grandes**: de 88 a 112 px.
+
+**Criterios de aceptacion**
+
+- Tocar una miniatura abre el archivo en grande; `Escape`, el boton de cerrar y el clic fuera lo
+  cierran, y el foco vuelve a la miniatura desde la que se abrio.
+- Un video se abre como video —con sus controles— y no como una imagen rota.
+- Arrastrar el tercer archivo sobre el primero lo deja de portada, y los otros dos corren un puesto
+  sin cambiar su orden relativo.
+- Soltar un archivo sobre si mismo no cambia nada.
+- Las flechas siguen haciendo lo mismo que antes, y el orden que producen es el mismo que el del
+  arrastre.
+
+### Slice 5 - Que se vea que estan cargando, y que tarden menos
+
+**Alcance**
+
+Tres sintomas distintos con tres causas distintas, y solo el tercero es "poner un indicador":
+
+- **El listado tardaba en la primera carga** porque `MediaContent` pedia **todas** las imagenes con
+  `loading="eager"`. Nueve tarjetas eran nueve descargas simultaneas peleandose el mismo ancho de
+  banda, y la que la persona miraba llegaba la ultima. Ahora la carga es diferida y solo se adelanta
+  la de la ficha (`priority`), que es la unica que se ve sin desplazarse.
+- **Se pedian imagenes mas grandes que el hueco.** Sin `sizes`, `next/image` deja que el navegador
+  elija por ancho de ventana y no por el hueco real: la variante de 1920 para una tarjeta de 380, o
+  la de 1920 para una miniatura de 112. Cada uno declara lo que ocupa.
+- **No habia ninguna senal mientras llegaban.** `ImageWithSkeleton` y `VideoWithSkeleton` pintan un
+  hueco que late detras del archivo, del tamano final, y lo apagan cuando llega. Los usan
+  `MediaContent` y `Thumbnail`, o sea la ficha del visitante, las tarjetas del listado, la bandeja de
+  publicar y la de editar, sin tocar ninguna de esas pantallas.
+
+Y una cuarta, invisible: `minimumCacheTTL` sube a 30 dias. El valor por defecto es de minutos, con lo
+que el servidor volvia a descargar el original de Cloud Storage y a reoptimizarlo en visitas
+sucesivas. Es seguro porque estas URL no cambian de contenido: llevan marca de tiempo y
+discriminante, asi que editar produce una URL nueva en vez de pisar la anterior.
+
+**Criterios de aceptacion**
+
+- Mientras una imagen no ha llegado se ve un hueco que late, del tamano que va a ocupar, y no un
+  salto de maquetacion cuando llega.
+- El hueco deja de latir cuando la imagen carga, cuando falla, y cuando ya estaba en cache antes de
+  que la pagina hidratara.
+- Un video hace lo mismo: el `<video>` de HTML no lo trae resuelto —solo `poster`, que aqui no se
+  genera—, asi que la senal es `loadedmetadata`.
+- En el listado, las imagenes de mas abajo no se descargan hasta que se llega a ellas; la de la ficha
+  si se adelanta.
+
+### Slice 6 - Que no se suba un archivo diez veces mas grande de lo que se ve
+
+**Alcance**
+
+Hasta aqui no se optimizaba **nada**: `useStorageUpload` hacia `xhr.send(file)` con el archivo tal y
+como salio del telefono, y no habia ningun tope de tamano en el picker, ni en el hook, ni en
+`/api/storage/signed-url`. Una foto de un telefono actual son 4000x3000 y entre 3 y 8 MB, y el sitio
+no la ensena nunca a mas de unos 800 px de ancho. Ese archivo se paga tres veces: disco en Cloud
+Storage, datos moviles de quien publica —que es quien menos puede pagarlos— y el trabajo del
+optimizador de Next, que se descarga el original para reducirlo en cada tamano que sirve.
+
+- `shrinkImageForUpload` encoge la imagen en el navegador antes de subirla: tope de 2048 px en el
+  lado largo y WebP al 82 %. El tope no es el tamano con el que se ve, es el techo de calidad del que
+  se podra tirar despues.
+- **Nunca bloquea.** Ante cualquier problema devuelve el archivo original, igual que `readImageSize`:
+  publicar no puede fallar porque un ahorro no salga. Tampoco sube el resultado si peso mas que el
+  original.
+- Las dimensiones que se guardan pasan a ser **las del archivo que se sube**, no las del que se
+  eligio.
+- **El video no se toca**, y no por olvido: ver "Lo que no se puede hacer en el navegador".
+
+**Criterios de aceptacion**
+
+- Una foto de 4000x3000 llega a Cloud Storage con el lado largo en 2048 y en WebP, y `post_media`
+  guarda esas medidas y no las del original.
+- Una foto que ya cabe no se recodifica ni se agranda.
+- Un GIF, un SVG y un video suben intactos.
+- Si el navegador no sabe decodificar, se sube el original y se publica igual.
+
+**Lo que no se puede hacer en el navegador**
+
+Recodificar video exige un codec: `ffmpeg.wasm` son unos 25 MB que habria que descargar antes de
+subir nada, y un telefono de gama media tarda mas en recodificar un minuto de video que en subirlo
+tal cual. `WebCodecs` lo haria bien pero no esta en las versiones de Safari que usa buena parte de la
+comunidad. Las dos salidas son de producto y estan sin decidir:
+
+1. **Un tope de tamano o duracion**, dicho al elegir el archivo. Barato y honesto, pero es un numero
+   que puede dejar fuera a un vendedor con un video legitimo.
+2. **Recodificar del lado del servidor**, con un trabajo aparte que reemplace el archivo cuando
+   termine. Es lo correcto y es infraestructura nueva.
+
 ## Validacion
 
 - `pnpm run test:run`

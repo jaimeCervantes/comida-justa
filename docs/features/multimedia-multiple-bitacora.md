@@ -502,3 +502,454 @@ que es lo que quedaba pendiente desde el slice 1: 280 escenarios en verde.
 
 **Acciones pendientes del usuario:** ninguna para dar por cerrada la feature. `dev` esta pusheado en
 `e3336b9`.
+
+## 2026-08-13 - Slice 4: Verla en grande y arrastrarla de sitio
+
+### Objetivo
+
+La bandeja se quedo corta en cuanto se pudo editar. Con 88 px se distingue que hay tres archivos
+pero no cual es cada uno, y llevar el cuarto a la portada costaba tres toques de flecha. Tres piezas:
+ver el archivo en grande, arrastrarlo de sitio, y miniaturas mas grandes.
+
+### Decisiones y racional
+
+- **Las tres piezas son de `PostMediaTray`**, asi que publicar y editar las reciben a la vez sin
+  tocar ninguna de las dos pantallas. Es el dividendo del slice anterior: cuando la bandeja vivia
+  dentro de `PublishForm`, esto habria sido dos cambios o —mas probable— uno.
+
+- **La vista grande no pinta el archivo: se lo pide a `MediaContent`.** Es el mismo que usan la ficha
+  publica y la galeria, y ya sabe distinguir un video de una imagen y respetar `width`/`height`
+  reales. Un segundo renderizador habria vuelto a decidir por su cuenta que hacer con una foto
+  vertical, y las dos pantallas se habrian separado el dia que una cambiara.
+
+- **El tipo se normaliza con `mediaTypeFromMime` antes de entrar.** `MediaContent` conmuta por
+  categoria (`image`, `video`) y en el formulario el tipo todavia puede ser el MIME del archivo
+  recien subido (`image/jpeg`). Sin normalizar, un video caia en `DefaultContent` y se pintaba como
+  un enlace de descarga. Tiene su prueba.
+
+- **No es un `<dialog>` nativo, y no por gusto.** El nativo trae foco atrapado y `Escape` de fabrica,
+  pero `showModal()` no existe en el jsdom 24 con el que corren las pruebas de componente: la mitad
+  del comportamiento no se podria comprobar en ninguna parte. Se escribe a mano lo que el nativo
+  daria —`Escape`, clic en el fondo, foco al abrir y devuelto al cerrar—, y asi cada pieza tiene su
+  prueba. Si algun dia sube el jsdom, esto se puede cambiar por el nativo con las pruebas ya escritas.
+
+- **Solo el fondo cierra, y se compara `event.target` con `event.currentTarget`.** Con un
+  `onClick={onClose}` a secas en el fondo, el clic en el boton de cerrar burbujeaba hasta el y
+  `onClose` corria **dos veces**. Lo encontro la prueba antes que nadie. Comparar el objetivo evita
+  ademas tener que parar la burbuja en cada hijo, que era la otra salida y deja mas codigo.
+
+- **El titulo y la etiqueta de cerrar llegan como props.** La vista grande no sabe si la abre
+  publicar o editar, asi que no puede saber de que espacio de nombres salen sus textos. Es la misma
+  regla que `loadingLabel` en `Button`.
+
+- **Las flechas se quedan.** Arrastrar es de raton; el teclado y el lector de pantalla solo tienen
+  las flechas. Cambiar una mejora por una regresion de accesibilidad no es un cambio que valga la
+  pena, y hay una prueba que falla si alguien las quita.
+
+- **De donde sale el arrastre va en una `ref`, no en el estado.** Cambia en cada `dragover`, y un
+  `setState` por evento repintaria la lista entera decenas de veces mientras se arrastra. Lo que si
+  se pinta —cual se esta arrastrando, que se ve translucido— va en estado y cambia dos veces: al
+  empezar y al soltar.
+
+- **Soltar un archivo sobre si mismo no llama a `onMove`.** Es un no-cambio, y anunciarlo como
+  movimiento haria que el formulario se marcara como tocado sin que nadie tocara nada.
+
+- **Una linea dice que se puede arrastrar.** El arrastre no se ve: sin decirlo, quien no lo intente
+  nunca lo descubre. Solo aparece con mas de un archivo, que es cuando hay algo que ordenar.
+
+- **112 px y no mas.** La bandeja es un indice, no una galeria; para mirar de verdad esta la vista
+  grande. Con diez archivos, una miniatura mas grande empujaria el boton de publicar fuera de la
+  pantalla en un telefono.
+
+### Archivos tocados
+
+**Presentacion**
+
+- `src/presentation/media/MediaPreviewDialog/MediaPreviewDialog.tsx` y `.test.tsx` (nuevos).
+- `src/presentation/media/PostMediaTray/PostMediaTray.tsx` y `.test.tsx`: la miniatura pasa a ser un
+  boton, el arrastre, el aviso y los 112 px.
+
+**i18n**
+
+- `src/i18n/messages/{es,en}.json`: `mediaPreview`, `mediaPreviewTitle`, `mediaPreviewClose` y
+  `mediaDragHint`.
+
+**Especificacion y e2e**
+
+- `src/e2e/multimedia/multimediaMultiple.feature`: los escenarios `@slice-4`.
+- `src/e2e/testUtils/mediaTray.ts`: los localizadores `preview` y `previewDialog`.
+- `src/e2e/createPost/PublishPage.ts`: solo el comentario, que ya contaba mal los botones por fila.
+
+**Documentacion**
+
+- `docs/features/multimedia-multiple.md`: el slice 4.
+
+### Comandos clave
+
+```
+pnpm vitest --run src/presentation/media    # el bucle corto mientras se escribe
+pnpm run typecheck && pnpm run typecheck:tests
+pnpm run format                             # biome reformateo dos archivos
+pnpm run lint
+pnpm run check:i18n
+pnpm run test:run
+```
+
+### Resultados de validacion
+
+- `pnpm run test:run`: **1552 pruebas en 152 archivos, todas en verde**. El slice 3 cerro en
+  1536/151, o sea **16 pruebas nuevas**: 7 de `MediaPreviewDialog` y 9 de la bandeja (3 de la vista
+  grande, 6 del arrastre y el aviso).
+- `pnpm run typecheck` y `pnpm run typecheck:tests`: exit 0.
+- `pnpm run lint`: 801 archivos, exit 0 —despues de `pnpm run format`, que reformateo dos.
+- `pnpm run check:i18n`: exit 0.
+- **`pnpm run test:e2e:run`: NO se ejecuto**, por indicacion del usuario, que la corre cuando quiera.
+  Ver "Pendientes": hay un motivo concreto para correrla en este slice y no solo por costumbre.
+
+### Desviaciones del roadmap
+
+- **Ningun escenario nuevo de Playwright.** Los cinco del slice van en `@component`, y el `.feature`
+  dice por que: las tres piezas son estado de cliente del mismo componente que ya comparten las dos
+  pantallas —no hay ida y vuelta al servidor que observar—, y lo unico que acaba en `post_media` es
+  el orden, que la e2e del slice 3 ya comprueba a traves de las flechas. El arrastrar y soltar de
+  HTML5 ademas se prueba mal en un navegador: no se simula con un `dragTo` sino con una secuencia de
+  raton que no dispara los mismos eventos, asi que un escenario verde ahi no diria que la funcion
+  sirve.
+- **Una prueba existente hubo que precisarla.** `cada boton de quitar dice que archivo quita` buscaba
+  por `/archivo 2/i`, y con la miniatura convertida en boton eso casa con dos. Pasa a
+  `/quitar el archivo 2/i`, que es lo que ya hacian las pruebas de `PostMediaField`.
+
+### Pendientes
+
+- **Correr la e2e completa** (`--shard=1/2` y `2/2`). No es tramite: la bandeja cambio de forma y hay
+  cuatro botones por archivo donde habia tres. Los localizadores de `MediaTray` son precisos y no
+  deberian romperse —`quitar el archivo N`, `archivo N antes`, `archivo N despues` siguen siendo
+  unicos—, pero eso es un razonamiento, no una corrida.
+- **Mirar la pantalla de verdad.** El tamano de las flechas sobre una miniatura de 112 px y el
+  contraste del aviso solo se juzgan viendolos; ninguna prueba dice si el arrastre "se siente" bien.
+- Sin tocar, del slice anterior: el gancho `pre-commit` que corre la e2e entera, `Posts.d.ts`, y los
+  dummies que son el mismo archivo tres veces.
+
+### Recap
+
+La bandeja dejo de ser solo un indice: la miniatura abre el archivo a tamano completo —con
+`MediaContent`, el mismo que la ficha publica, asi que un video se ve como video—, se puede arrastrar
+para reordenar sin ir de flecha en flecha, y las miniaturas pasan de 88 a 112 px. Las flechas siguen
+donde estaban porque son el unico camino con teclado. Todo vive en `PostMediaTray`, asi que publicar
+y editar lo reciben a la vez. Validacion local completa en verde; la e2e queda pendiente por
+indicacion del usuario.
+
+### Proximos pasos (opciones)
+
+1. **Correr la e2e** (recomendado): es lo unico que falta para dar el slice por cerrado, y este es el
+   slice que mas cambia la forma de la bandeja.
+2. **Verlo a mano** con `pnpm run dev` en `/publicar` y en `/editar/<slug>`: el arrastre y el tamano
+   de las flechas son juicios visuales.
+3. **Mergear a `dev`** cuando la e2e pase; la rama es `feat/multimedia-arrastrar`.
+4. **Arreglar el gancho `pre-commit`**, que sigue corriendo la e2e entera de una sola vez y es lo que
+   obliga a commitear con `--no-verify`.
+
+**Acciones pendientes del usuario:**
+
+```
+pnpm exec playwright test --shard=1/2
+pnpm exec playwright test --shard=2/2
+```
+
+## 2026-08-13 - Slice 5: Que se vea que estan cargando, y que tarden menos
+
+### Objetivo
+
+El usuario reporto tres cosas en una frase: las imagenes tardan en reflejarse, la primera carga se
+siente lenta, y no hay ningun indicador de que algo esta cargando —ni en la ficha del visitante, ni
+en publicar, ni en editar—. Son tres sintomas con tres causas distintas, y solo el tercero se arregla
+poniendo un indicador.
+
+### Decisiones y racional
+
+- **`loading="eager"` estaba en TODAS las imagenes, y esa era la causa de la primera carga lenta.**
+  No era una optimizacion: era su contrario. Un listado de nueve tarjetas abria nueve descargas en el
+  primer pintado, todas peleandose el mismo ancho de banda, y la que la persona estaba mirando
+  llegaba la ultima. Ahora la carga es diferida por defecto y `priority` es un prop que pone **quien
+  coloca la imagen**, porque es el unico que sabe si se ve sin desplazarse. Lo lleva un solo sitio en
+  toda la aplicacion: la galeria de la ficha.
+
+- **Sin `sizes`, el navegador elige por ancho de ventana y no por el hueco.** Pedia la variante de
+  1920 para una tarjeta de 380 px, y la misma para una miniatura de 112. Ahora cada uno declara lo
+  que ocupa: `Thumbnail` lo sabe exactamente (`${size}px`) y `MediaContent` trae un valor por defecto
+  para sus dos usos de siempre, que quien tenga un hueco raro puede pisar.
+
+- **El esqueleto es un componente de cliente, y se penso lo contrario primero.** Se puede pintar un
+  hueco que late solo con CSS, sin JavaScript ninguno; el problema es que entonces late **para
+  siempre** por detras de una imagen ya cargada, y en un listado de nueve tarjetas son nueve
+  animaciones infinitas que nadie ve. Con estado, la animacion se acaba cuando el archivo llega. Se
+  queda en la hoja del arbol, asi que `MediaContent` y `Thumbnail` siguen siendo de servidor.
+
+- **El esqueleto va DETRAS del archivo, no en su lugar.** Asi no hay cambio de arbol ni salto de
+  maquetacion: el hueco ya tiene su tamano final —lo reserva `next/image` con `width`/`height`— y lo
+  unico que cambia es lo que se ve dentro.
+
+- **Hay que preguntar por `complete`, y esto es lo que no se ve venir.** Si la imagen estaba en cache,
+  el navegador puede decodificarla **antes** de que React hidrate: el `load` ya ocurrio y no vuelve a
+  ocurrir, asi que el esqueleto se quedaba latiendo debajo de una imagen perfectamente visible, para
+  siempre. Tiene su prueba, con el getter mockeado.
+
+- **El video recibe el mismo trato, y no, el `<video>` de HTML no lo trae resuelto.** Fue la pregunta
+  del usuario y merece respuesta escrita: lo unico nativo parecido es `poster`, una imagen fija que
+  hay que generar y guardar por cada archivo, y aqui no se generan. Sin `poster` y con
+  `preload="metadata"` lo que queda en pantalla es una caja vacia sin ninguna senal. La senal es
+  `loadedmetadata` y **no** `loadeddata`: con `preload="metadata"` el navegador se compromete a lo
+  primero, mientras que lo segundo exige el primer fotograma decodificado y puede no llegar nunca,
+  dejando el esqueleto encima de un video listo.
+
+- **Una imagen rota apaga el esqueleto igual que una que carga.** Dejarlo latiendo se lee como «sigue
+  cargando» y quien mira espera algo que no va a llegar.
+
+- **`minimumCacheTTL` sube a 30 dias.** El valor por defecto es de minutos, y con el el servidor
+  vuelve a descargar el original de Cloud Storage y a reoptimizarlo en cada visita: es el "tarda en
+  reflejarse" de la segunda vez, cuando la imagen ya se habia visto. Es seguro estirarlo porque
+  **estas URL no cambian de contenido**: el nombre lleva marca de tiempo y un discriminante desde el
+  slice 1, asi que editar produce una URL nueva en vez de pisar la anterior. Nunca se sirve una
+  imagen vieja por esto.
+
+- **El esqueleto no se anuncia a un lector de pantalla.** Quien lo ve sabe que espera porque lo ve
+  latir; anunciarlo seria contarle un detalle visual que no puede usar, y en un listado de nueve
+  tarjetas, contarselo nueve veces.
+
+### Archivos tocados
+
+**Presentacion (lo nuevo)**
+
+- `src/presentation/media/MediaSkeleton/MediaSkeleton.tsx` (nuevo): el hueco que late y el marco que
+  lo sostiene. Aparte porque lo comparten la imagen y el video.
+- `src/presentation/media/ImageWithSkeleton/` y `src/presentation/media/VideoWithSkeleton/` (nuevos),
+  con sus pruebas.
+
+**Presentacion (conectado)**
+
+- `src/presentation/media/MediaContent/MediaContent.tsx`: `priority`, `sizes`, y las dos piezas
+  nuevas. Es el cuello de botella por el que pasan la ficha, la galeria, las tarjetas del listado y
+  la vista grande del slice 4.
+- `src/presentation/media/Thumbnail/Thumbnail.tsx`: la bandeja de publicar y editar, el carrito y los
+  pedidos.
+- `src/presentation/media/MediaGallery/MediaGallery.tsx` y
+  `src/app/[locale]/[slug]/ui/PostDetail.tsx`: el `priority` de la unica imagen que lo lleva.
+- `src/presentation/media/PostMediaTray/PostMediaTray.tsx`: la miniatura de video.
+
+**Configuracion**
+
+- `next.config.mjs`: `minimumCacheTTL`.
+
+**Documentacion**
+
+- `docs/features/multimedia-multiple.md`: el slice 5.
+
+### Comandos clave
+
+```
+pnpm vitest --run src/presentation/media
+pnpm run format && pnpm run lint
+pnpm run typecheck && pnpm run typecheck:tests
+pnpm run check:i18n
+pnpm run test:run
+rm -rf .next/dev/types    # ver "Desviaciones"
+```
+
+### Resultados de validacion
+
+- `pnpm run test:run`: **1563 pruebas en 154 archivos, todas en verde**. El slice 4 cerro en
+  1552/152, o sea **11 pruebas nuevas**: 6 de `ImageWithSkeleton` y 5 de `VideoWithSkeleton`.
+- `pnpm run typecheck` y `pnpm run typecheck:tests`: exit 0.
+- `pnpm run lint`: 806 archivos, exit 0 y **sin advertencias**.
+- `pnpm run check:i18n`: exit 0. El slice no anade ni una clave: un esqueleto no lleva texto.
+- **`pnpm run test:e2e:run`: NO se ejecuto**, por indicacion del usuario.
+
+### Desviaciones del roadmap
+
+- **No habia roadmap para este slice**: sale de un reporte del usuario, no del plan. Se documenta
+  aqui y en `multimedia-multiple.md` para que no quede como un cambio sin motivo escrito.
+- **El video entro a mitad del slice**, preguntado por el usuario ("y lo mismo debe aplicar para
+  video, aunque a lo mejor eso ya se resuelve con el tag video de html"). No se resuelve solo, y por
+  eso hay un `VideoWithSkeleton` y no solo un `ImageWithSkeleton`.
+- **`pnpm run typecheck` fallo con 15 errores que no eran del codigo.** Estaban todos en
+  `.next/dev/types/`, tipos que genera Next: un `next dev` que el usuario tenia abierto los dejo
+  truncados al morir. Se borro la carpeta y volvieron a exit 0. Conviene reconocer la firma —errores
+  de sintaxis en `.next/`, no en `src/`— para no perder tiempo buscandolos en el codigo.
+- **Dos pruebas de `ImageWithSkeleton` nacieron en rojo por una razon util**: `next/image` no llama al
+  `onLoad` de quien lo usa en el mismo evento, lo pone detras de `img.decode()`. Afirmar en seco
+  pasaba a veces; ahora esperan con `waitFor`, que es lo que describe el comportamiento real.
+
+### Pendientes
+
+- **Medirlo.** Todo lo de aqui es razonamiento sobre como pide las imagenes el navegador; nadie ha
+  puesto un numero antes y despues. Un Lighthouse sobre `/` y sobre una ficha, en produccion, diria
+  si el LCP se movio de verdad.
+- **Correr la e2e**, que sigue pendiente desde el slice 4 y ahora ademas cambia cuando se descargan
+  las imagenes: un escenario que esperaba una imagen visible en una tarjeta de mas abajo podria
+  necesitar desplazarse. **Es el riesgo concreto de este slice.**
+- **Las tarjetas del listado no pasan `sizes` propio** y se quedan con el de por defecto, que apunta
+  a 768 px cuando en escritorio miden unos 380. Ya es muchisimo mejor que 1920, pero se puede afinar
+  cuando alguien mida.
+- Sin tocar: el gancho `pre-commit`, `Posts.d.ts` y los dummies repetidos.
+
+### Recap
+
+Las imagenes ya no se piden todas a la vez —solo se adelanta la de la ficha, que es la unica que se
+ve sin desplazarse—, se piden del tamano del hueco en vez de por ancho de ventana, y la version
+optimizada se guarda 30 dias en vez de minutos. Mientras llegan, tanto las imagenes como los videos
+enseñan un hueco que late del tamano final, sin salto de maquetacion, y que se apaga cuando el
+archivo llega, cuando falla, o cuando ya estaba en cache. Todo pasa por `MediaContent` y `Thumbnail`,
+asi que lo reciben a la vez la ficha del visitante, las tarjetas del listado, publicar y editar.
+Validacion local completa en verde; falta medirlo y falta la e2e.
+
+### Proximos pasos (opciones)
+
+1. **Correr la e2e** (recomendado): arrastra pendiente desde el slice 4 y este slice cambia **cuando**
+   se descargan las imagenes, que es justo lo que un escenario podria estar esperando.
+2. **Medir con Lighthouse** antes/despues en produccion, para saber si el LCP se movio o solo se
+   siente mejor.
+3. **Mirarlo a mano** con `pnpm run dev`: si el gris del esqueleto es el adecuado en modo oscuro y si
+   los 300 ms de transicion se sienten bien o se sienten lentos.
+4. **Mergear a `dev`** los slices 4 y 5 juntos cuando la e2e pase; la rama es
+   `feat/multimedia-arrastrar`.
+
+**Acciones pendientes del usuario:**
+
+```
+pnpm exec playwright test --shard=1/2
+pnpm exec playwright test --shard=2/2
+```
+
+## 2026-08-13 - Slice 6: Encoger la imagen antes de subirla
+
+### Objetivo
+
+El usuario pregunto si optimizamos el tamano de lo que se sube. La respuesta era **no, nada**:
+`useStorageUpload` hacia `xhr.send(file)` con el archivo tal cual salio del telefono, y no habia
+ningun tope de tamano en el picker, ni en el hook, ni en `/api/storage/signed-url`.
+
+### Decisiones y racional
+
+- **El tope es 2048 px en el lado largo, no 800.** Lo que se sube es lo que se guarda para siempre,
+  asi que el numero no es "el tamano con el que se ve" sino **el techo de calidad del que se podra
+  tirar despues**: la variante mas grande que piden los disenos de hoy anda por 1920, y una pantalla
+  de alta densidad mirando la vista grande del slice 4 quiere mas que eso. Bajar de 2048 empezaria a
+  notarse al ampliar; subir deja de ahorrar.
+
+- **WebP y no JPEG.** Pesa entre un 25 % y un 35 % menos con la misma calidad **y conserva la
+  transparencia**, asi que el logo de una tienda en PNG con fondo transparente no se convierte en un
+  rectangulo blanco. Todos los navegadores que soporta el sitio saben codificarlo desde un `canvas`.
+
+- **`imageOrientation: "from-image"`, y esto es una trampa de verdad.** El sensor del telefono guarda
+  los pixeles girados y una etiqueta EXIF que dice como mirarlos; al redibujar en un `canvas` esa
+  etiqueta **se pierde**. Sin esa opcion, las fotos hechas en vertical se subirian acostadas, y el
+  fallo no aparece en el escritorio de quien lo programa sino en el telefono de quien publica.
+
+- **Nunca bloquea ni lanza.** Ante un formato que el navegador no decodifica, un `canvas` sin
+  contexto o un entorno sin `createImageBitmap`, devuelve el archivo original. Es la misma regla que
+  ya seguia `readImageSize`: publicar no puede fallar porque un ahorro no salga. Es la prueba mas
+  importante del modulo.
+
+- **Si el resultado pesa mas, se queda el original.** Recodificar una imagen ya optimizada la deja
+  mas grande, y subir eso seria trabajar para empeorar.
+
+- **Nunca se agranda.** `planResize` devuelve `null` cuando la foto ya cabe: estirarla no le anade
+  informacion, solo peso.
+
+- **GIF y SVG quedan fuera.** Un GIF pierde la animacion al pasar por un `canvas`, que solo sabe del
+  primer fotograma; un SVG es texto, y redibujarlo lo convierte en pixeles, o sea lo empeora en todo.
+
+- **Las dimensiones que se guardan pasan a ser las del archivo subido.** Encoger cambia los dos
+  numeros, y guardar los del original haria que la ficha reservara un hueco con la proporcion
+  correcta pero el tamano equivocado. Encoger ya las devuelve —acaba de dibujarlas—, asi que
+  `readImageSize` solo se llama cuando no vienen: un archivo que no se pudo decodificar, o uno que no
+  paso por ahi.
+
+- **Encoger va ANTES de pedir la URL firmada.** Esa peticion lleva dentro el nombre y el tipo del
+  archivo, y tras recodificar a WebP los dos cambian. `foto.jpg` sube como `foto.webp`: el nombre no
+  puede decir una cosa y el contenido otra.
+
+- **El video no se toca, y no por olvido.** Recodificarlo en el navegador exige un codec:
+  `ffmpeg.wasm` son unos 25 MB que habria que descargar antes de subir nada, y un telefono de gama
+  media tarda mas en recodificar un minuto de video que en subirlo tal cual. `WebCodecs` lo haria
+  bien pero no esta en las versiones de Safari que usa buena parte de la comunidad. Queda escrito
+  dentro del propio modulo para que nadie lo intente dos veces.
+
+### Archivos tocados
+
+- `src/infra/UI/media/shrinkImage.ts` y `.test.ts` (nuevos): `planResize` —la decision, pura y
+  probada a fondo— y `shrinkImageForUpload` —el trabajo con el navegador, con su red de seguridad—.
+- `src/infra/UI/hooks/useStorageUpload.ts`: encoge antes de pedir la URL firmada y se queda con las
+  medidas que le devuelve.
+- `docs/features/multimedia-multiple.md`: el slice 6, con las dos salidas posibles para el video.
+
+### Comandos clave
+
+```
+pnpm vitest --run src/infra/UI/media
+pnpm run typecheck && pnpm run typecheck:tests
+pnpm run lint && pnpm run check:i18n
+pnpm run test:run
+```
+
+### Resultados de validacion
+
+- `pnpm run test:run`: **1579 pruebas en 155 archivos, todas en verde**. El slice 5 cerro en
+  1563/154, o sea **16 pruebas nuevas**, todas de `shrinkImage`.
+- `pnpm run typecheck` y `pnpm run typecheck:tests`: exit 0.
+- `pnpm run lint`: 808 archivos, exit 0.
+- `pnpm run check:i18n`: exit 0. El slice no anade texto: encoger no se le cuenta a nadie.
+- **`pnpm run test:e2e:run`: NO se ejecuto**, por indicacion del usuario.
+
+**El ahorro no esta medido con archivos reales.** Una foto de 12 MP a 2048 px y WebP 82 % suele
+quedar entre 300 y 500 KB frente a 3-8 MB, o sea del orden de 10x, pero eso es la expectativa
+razonable y no una medicion de esta implementacion. Se mide subiendo una foto de verdad y mirando el
+tamano en Cloud Storage.
+
+### Desviaciones del roadmap
+
+- **No habia roadmap**: sale de una pregunta del usuario. Se documenta en `multimedia-multiple.md`
+  como slice 6 para que el cambio no quede sin motivo escrito.
+- **El video queda sin resolver a proposito**, con las dos salidas escritas y ninguna elegida: las
+  dos son decisiones de producto —un numero que puede dejar fuera a un vendedor legitimo, o
+  infraestructura nueva— y no de codigo.
+
+### Pendientes
+
+- **Medir el ahorro de verdad**: subir una foto de telefono y comparar el peso en Cloud Storage.
+- **Decidir que hacer con el video** (tope declarado, o recodificar en el servidor).
+- **Correr la e2e.** El riesgo concreto de este slice: en Chromium el encogido **si** corre, asi que
+  los dummies se recodifican a WebP antes de "subirse". El stub ignora el nombre y el tipo —contesta
+  con URLs fijas por contador— y ningun escenario afirma dimensiones de un archivo subido, asi que no
+  deberia romperse nada; pero eso es un razonamiento, no una corrida.
+- **Lo ya subido sigue pesando lo que pesaba.** Este cambio solo afecta a lo nuevo. Reducir las 23
+  publicaciones existentes seria un script aparte que reescribe `post_media.url`, y toca datos de
+  verdad.
+- Sin tocar: el gancho `pre-commit`, `Posts.d.ts` y los dummies repetidos.
+
+### Recap
+
+Lo que se sube deja de ser lo que salio del telefono: las imagenes se encogen en el navegador a 2048
+px de lado largo y se recodifican a WebP al 82 % antes de pedir la URL firmada, conservando la
+orientacion EXIF y la transparencia, y guardando en `post_media` las medidas del archivo que
+realmente se subio. Si algo falla —formato raro, navegador sin `createImageBitmap`, resultado mas
+pesado que el original— se sube el original y se publica igual. El video sigue subiendo intacto
+porque no se puede recodificar en el navegador a un coste razonable, y las dos salidas posibles
+quedan escritas para decidirlas. Validacion local completa en verde; el ahorro real esta sin medir.
+
+### Proximos pasos (opciones)
+
+1. **Correr la e2e** (recomendado): arrastra pendiente desde el slice 4 y este slice cambia lo que
+   viaja en la subida.
+2. **Medir el ahorro** con una foto de telefono de verdad, para poner un numero donde hoy hay una
+   expectativa.
+3. **Decidir el video**: tope declarado al elegir el archivo, o recodificado en el servidor.
+4. **Mergear a `dev`** los slices 4, 5 y 6 juntos cuando la e2e pase; la rama es
+   `feat/multimedia-arrastrar`.
+
+**Acciones pendientes del usuario:**
+
+```
+pnpm exec playwright test --shard=1/2
+pnpm exec playwright test --shard=2/2
+```

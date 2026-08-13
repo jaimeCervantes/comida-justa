@@ -10,6 +10,17 @@ const nextConfig = {
     NEXT_PUBLIC_LOGIN_PATH: process.env.NEXT_PUBLIC_LOGIN_PATH,
   },
   images: {
+    /*
+     * Treinta días de caché para la imagen ya optimizada.
+     *
+     * El valor por defecto es de minutos, y con él el servidor vuelve a descargar el original de
+     * Cloud Storage y a reoptimizarlo una y otra vez: es el "tarda en reflejarse" de la segunda
+     * visita, cuando la imagen ya se había visto. Aquí es seguro estirarlo porque **estas URL no
+     * cambian de contenido**: el nombre del archivo lleva marca de tiempo y un discriminante (ver
+     * `useStorageUpload`), así que editar una publicación produce una URL nueva en vez de pisar la
+     * anterior. Nunca se sirve una imagen vieja por esto.
+     */
+    minimumCacheTTL: 60 * 60 * 24 * 30,
     remotePatterns: [
       {
         protocol: "https",

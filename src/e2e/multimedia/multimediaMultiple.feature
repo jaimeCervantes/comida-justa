@@ -256,3 +256,62 @@ Feature: Una publicacion lleva varias imagenes y videos
     When quita el unico archivo e intenta guardar
     Then no se guarda, se explica que hace falta al menos un archivo
     And la publicacion conserva el archivo que tenia
+
+  # ---------------------------------------------------------------------------
+  # Slice 4 - Verla en grande y arrastrarla de sitio
+  # ---------------------------------------------------------------------------
+
+  # Todo este slice va en `@component`, y conviene decir por que antes de que alguien lo tome por
+  # pereza. Las tres piezas —abrir en grande, arrastrar, el tamano de la miniatura— son estado de
+  # cliente de `PostMediaTray`, el mismo componente que ya pintan publicar y editar: no hay ida y
+  # vuelta al servidor que observar, y lo unico que acaba en `post_media` es el orden, que la e2e del
+  # slice 3 ya comprueba a traves de las flechas.
+  #
+  # El arrastre ademas se prueba mal en un navegador: el arrastrar y soltar de HTML5 no se simula con
+  # un `dragTo`, sino con una secuencia de raton que no dispara los mismos eventos, asi que un
+  # escenario verde ahi no diria que la funcion sirve.
+
+  @slice-4 @component
+  Scenario: Tocar una miniatura la abre en grande
+    Given una bandeja con 3 archivos
+    When se toca la miniatura del archivo 2
+    Then se abre la vista grande de ese archivo
+    And el foco queda dentro de ella
+
+  @slice-4 @component
+  Scenario Outline: La vista grande se cierra por donde uno espera
+    Given la vista grande del archivo 2 abierta
+    When <accion>
+    Then se cierra y el foco vuelve a la miniatura del archivo 2
+
+    Examples:
+      | accion                    | reason                                         |
+      | se pulsa Escape           | es lo primero que prueba quien usa teclado     |
+      | se toca el boton de cerrar| es lo primero que busca quien usa raton        |
+      | se toca fuera de la vista | el fondo oscuro se lee como "toca aqui y sale" |
+
+  @slice-4 @component
+  Scenario: Un video se abre como video y no como una imagen rota
+    Given una bandeja con un archivo "video/mp4"
+    When se abre su vista grande
+    Then se pinta un video con sus controles
+
+  @slice-4 @component
+  Scenario Outline: Arrastrar un archivo lo lleva al sitio donde se suelta
+    Given una bandeja con "A, B, C"
+    When se arrastra el archivo de la posicion <desde> hasta la <hasta>
+    Then la bandeja queda "<resultado>"
+
+    Examples: el caso que motivo el slice
+      | desde | hasta | resultado | reason                                              |
+      | 3     | 1     | C, A, B   | llevar el ultimo a portada, que con flechas son 2   |
+      | 1     | 3     | B, C, A   | y el de vuelta, que es el mismo camino al reves     |
+
+    Examples: los que no mueven nada
+      | desde | hasta | resultado | reason                                              |
+      | 2     | 2     | A, B, C   | soltar un archivo sobre si mismo no es un cambio    |
+
+  @slice-4 @component
+  Scenario: Las flechas siguen estando para quien no puede arrastrar
+    Given una bandeja con "A, B, C"
+    Then el archivo 2 sigue ofreciendo moverse antes y despues
