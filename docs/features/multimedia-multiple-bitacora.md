@@ -819,3 +819,137 @@ Validacion local completa en verde; falta medirlo y falta la e2e.
 pnpm exec playwright test --shard=1/2
 pnpm exec playwright test --shard=2/2
 ```
+
+## 2026-08-13 - Slice 6: Encoger la imagen antes de subirla
+
+### Objetivo
+
+El usuario pregunto si optimizamos el tamano de lo que se sube. La respuesta era **no, nada**:
+`useStorageUpload` hacia `xhr.send(file)` con el archivo tal cual salio del telefono, y no habia
+ningun tope de tamano en el picker, ni en el hook, ni en `/api/storage/signed-url`.
+
+### Decisiones y racional
+
+- **El tope es 2048 px en el lado largo, no 800.** Lo que se sube es lo que se guarda para siempre,
+  asi que el numero no es "el tamano con el que se ve" sino **el techo de calidad del que se podra
+  tirar despues**: la variante mas grande que piden los disenos de hoy anda por 1920, y una pantalla
+  de alta densidad mirando la vista grande del slice 4 quiere mas que eso. Bajar de 2048 empezaria a
+  notarse al ampliar; subir deja de ahorrar.
+
+- **WebP y no JPEG.** Pesa entre un 25 % y un 35 % menos con la misma calidad **y conserva la
+  transparencia**, asi que el logo de una tienda en PNG con fondo transparente no se convierte en un
+  rectangulo blanco. Todos los navegadores que soporta el sitio saben codificarlo desde un `canvas`.
+
+- **`imageOrientation: "from-image"`, y esto es una trampa de verdad.** El sensor del telefono guarda
+  los pixeles girados y una etiqueta EXIF que dice como mirarlos; al redibujar en un `canvas` esa
+  etiqueta **se pierde**. Sin esa opcion, las fotos hechas en vertical se subirian acostadas, y el
+  fallo no aparece en el escritorio de quien lo programa sino en el telefono de quien publica.
+
+- **Nunca bloquea ni lanza.** Ante un formato que el navegador no decodifica, un `canvas` sin
+  contexto o un entorno sin `createImageBitmap`, devuelve el archivo original. Es la misma regla que
+  ya seguia `readImageSize`: publicar no puede fallar porque un ahorro no salga. Es la prueba mas
+  importante del modulo.
+
+- **Si el resultado pesa mas, se queda el original.** Recodificar una imagen ya optimizada la deja
+  mas grande, y subir eso seria trabajar para empeorar.
+
+- **Nunca se agranda.** `planResize` devuelve `null` cuando la foto ya cabe: estirarla no le anade
+  informacion, solo peso.
+
+- **GIF y SVG quedan fuera.** Un GIF pierde la animacion al pasar por un `canvas`, que solo sabe del
+  primer fotograma; un SVG es texto, y redibujarlo lo convierte en pixeles, o sea lo empeora en todo.
+
+- **Las dimensiones que se guardan pasan a ser las del archivo subido.** Encoger cambia los dos
+  numeros, y guardar los del original haria que la ficha reservara un hueco con la proporcion
+  correcta pero el tamano equivocado. Encoger ya las devuelve —acaba de dibujarlas—, asi que
+  `readImageSize` solo se llama cuando no vienen: un archivo que no se pudo decodificar, o uno que no
+  paso por ahi.
+
+- **Encoger va ANTES de pedir la URL firmada.** Esa peticion lleva dentro el nombre y el tipo del
+  archivo, y tras recodificar a WebP los dos cambian. `foto.jpg` sube como `foto.webp`: el nombre no
+  puede decir una cosa y el contenido otra.
+
+- **El video no se toca, y no por olvido.** Recodificarlo en el navegador exige un codec:
+  `ffmpeg.wasm` son unos 25 MB que habria que descargar antes de subir nada, y un telefono de gama
+  media tarda mas en recodificar un minuto de video que en subirlo tal cual. `WebCodecs` lo haria
+  bien pero no esta en las versiones de Safari que usa buena parte de la comunidad. Queda escrito
+  dentro del propio modulo para que nadie lo intente dos veces.
+
+### Archivos tocados
+
+- `src/infra/UI/media/shrinkImage.ts` y `.test.ts` (nuevos): `planResize` —la decision, pura y
+  probada a fondo— y `shrinkImageForUpload` —el trabajo con el navegador, con su red de seguridad—.
+- `src/infra/UI/hooks/useStorageUpload.ts`: encoge antes de pedir la URL firmada y se queda con las
+  medidas que le devuelve.
+- `docs/features/multimedia-multiple.md`: el slice 6, con las dos salidas posibles para el video.
+
+### Comandos clave
+
+```
+pnpm vitest --run src/infra/UI/media
+pnpm run typecheck && pnpm run typecheck:tests
+pnpm run lint && pnpm run check:i18n
+pnpm run test:run
+```
+
+### Resultados de validacion
+
+- `pnpm run test:run`: **1579 pruebas en 155 archivos, todas en verde**. El slice 5 cerro en
+  1563/154, o sea **16 pruebas nuevas**, todas de `shrinkImage`.
+- `pnpm run typecheck` y `pnpm run typecheck:tests`: exit 0.
+- `pnpm run lint`: 808 archivos, exit 0.
+- `pnpm run check:i18n`: exit 0. El slice no anade texto: encoger no se le cuenta a nadie.
+- **`pnpm run test:e2e:run`: NO se ejecuto**, por indicacion del usuario.
+
+**El ahorro no esta medido con archivos reales.** Una foto de 12 MP a 2048 px y WebP 82 % suele
+quedar entre 300 y 500 KB frente a 3-8 MB, o sea del orden de 10x, pero eso es la expectativa
+razonable y no una medicion de esta implementacion. Se mide subiendo una foto de verdad y mirando el
+tamano en Cloud Storage.
+
+### Desviaciones del roadmap
+
+- **No habia roadmap**: sale de una pregunta del usuario. Se documenta en `multimedia-multiple.md`
+  como slice 6 para que el cambio no quede sin motivo escrito.
+- **El video queda sin resolver a proposito**, con las dos salidas escritas y ninguna elegida: las
+  dos son decisiones de producto —un numero que puede dejar fuera a un vendedor legitimo, o
+  infraestructura nueva— y no de codigo.
+
+### Pendientes
+
+- **Medir el ahorro de verdad**: subir una foto de telefono y comparar el peso en Cloud Storage.
+- **Decidir que hacer con el video** (tope declarado, o recodificar en el servidor).
+- **Correr la e2e.** El riesgo concreto de este slice: en Chromium el encogido **si** corre, asi que
+  los dummies se recodifican a WebP antes de "subirse". El stub ignora el nombre y el tipo —contesta
+  con URLs fijas por contador— y ningun escenario afirma dimensiones de un archivo subido, asi que no
+  deberia romperse nada; pero eso es un razonamiento, no una corrida.
+- **Lo ya subido sigue pesando lo que pesaba.** Este cambio solo afecta a lo nuevo. Reducir las 23
+  publicaciones existentes seria un script aparte que reescribe `post_media.url`, y toca datos de
+  verdad.
+- Sin tocar: el gancho `pre-commit`, `Posts.d.ts` y los dummies repetidos.
+
+### Recap
+
+Lo que se sube deja de ser lo que salio del telefono: las imagenes se encogen en el navegador a 2048
+px de lado largo y se recodifican a WebP al 82 % antes de pedir la URL firmada, conservando la
+orientacion EXIF y la transparencia, y guardando en `post_media` las medidas del archivo que
+realmente se subio. Si algo falla —formato raro, navegador sin `createImageBitmap`, resultado mas
+pesado que el original— se sube el original y se publica igual. El video sigue subiendo intacto
+porque no se puede recodificar en el navegador a un coste razonable, y las dos salidas posibles
+quedan escritas para decidirlas. Validacion local completa en verde; el ahorro real esta sin medir.
+
+### Proximos pasos (opciones)
+
+1. **Correr la e2e** (recomendado): arrastra pendiente desde el slice 4 y este slice cambia lo que
+   viaja en la subida.
+2. **Medir el ahorro** con una foto de telefono de verdad, para poner un numero donde hoy hay una
+   expectativa.
+3. **Decidir el video**: tope declarado al elegir el archivo, o recodificado en el servidor.
+4. **Mergear a `dev`** los slices 4, 5 y 6 juntos cuando la e2e pase; la rama es
+   `feat/multimedia-arrastrar`.
+
+**Acciones pendientes del usuario:**
+
+```
+pnpm exec playwright test --shard=1/2
+pnpm exec playwright test --shard=2/2
+```

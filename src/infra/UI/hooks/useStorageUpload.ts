@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { readImageSize } from "~/infra/UI/media/readImageSize";
+import { shrinkImageForUpload } from "~/infra/UI/media/shrinkImage";
 
 interface useStorageUpload {
   directory?: string;
@@ -45,8 +46,14 @@ export default function useStorageUpload(options: useStorageUpload = {}) {
   const [error, setError] = useState<string | null>(null);
   const [isCompleted, setIsCompleted] = useState<boolean>(false);
 
-  /** Un archivo: pide la URL firmada, sube, lo hace público y lo mide. Lanza si algo falla. */
-  const uploadOne = async (file: File): Promise<UploadedMedia> => {
+  /** Un archivo: lo encoge, pide la URL firmada, sube y lo hace público. Lanza si algo falla. */
+  const uploadOne = async (original: File): Promise<UploadedMedia> => {
+    /* 0. Encogerlo, si es una imagen y hay algo que ganar.
+       Antes de pedir la URL firmada, porque la petición lleva dentro el nombre y el tipo del
+       archivo, y tras recodificar a WebP los dos cambian. Si no hay nada que ganar —un vídeo, un
+       GIF, una foto ya pequeña— devuelve el mismo archivo y esto no cuesta nada. */
+    const { file, width, height } = await shrinkImageForUpload(original);
+
     // 1. Obtener URL firmada desde el servidor
     const response = await fetch("/api/storage/signed-url", {
       method: "POST",
@@ -109,11 +116,18 @@ export default function useStorageUpload(options: useStorageUpload = {}) {
     const data = await res.json();
 
     /* 4. Guardar la URL pública y la forma del archivo.
-       Se mide aquí y no en el servidor porque **este es el único momento en que el archivo está
-       en la mano**: a la Server Action le llega solo una URL, y medirla la obligaría a descargar
-       lo que el navegador acaba de subir. Se mide después de subir, no antes, para no retrasar
-       la subida; y si falla no devuelve nada, porque publicar no puede depender de esto. */
-    const size = await readImageSize(file);
+       Se mide en el navegador y no en el servidor porque **este es el único momento en que el
+       archivo está en la mano**: a la Server Action le llega solo una URL, y medirla la obligaría a
+       descargar lo que el navegador acaba de subir. Si falla no devuelve nada, porque publicar no
+       puede depender de esto.
+
+       Las medidas son **las del archivo que se subió**, no las del que se eligió: encoger cambia los
+       dos números, y guardar los del original haría que la ficha reservara un hueco con la
+       proporción correcta pero el tamaño equivocado. Encoger ya las devuelve —acaba de dibujarlas—,
+       así que solo se vuelve a medir cuando no las trae: un archivo que no se pudo decodificar, o
+       uno que no pasó por ahí. */
+    const size =
+      width && height ? { width, height } : await readImageSize(file);
 
     return {
       url: data.publicUrl,

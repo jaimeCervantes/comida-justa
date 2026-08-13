@@ -210,6 +210,47 @@ discriminante, asi que editar produce una URL nueva en vez de pisar la anterior.
 - En el listado, las imagenes de mas abajo no se descargan hasta que se llega a ellas; la de la ficha
   si se adelanta.
 
+### Slice 6 - Que no se suba un archivo diez veces mas grande de lo que se ve
+
+**Alcance**
+
+Hasta aqui no se optimizaba **nada**: `useStorageUpload` hacia `xhr.send(file)` con el archivo tal y
+como salio del telefono, y no habia ningun tope de tamano en el picker, ni en el hook, ni en
+`/api/storage/signed-url`. Una foto de un telefono actual son 4000x3000 y entre 3 y 8 MB, y el sitio
+no la ensena nunca a mas de unos 800 px de ancho. Ese archivo se paga tres veces: disco en Cloud
+Storage, datos moviles de quien publica —que es quien menos puede pagarlos— y el trabajo del
+optimizador de Next, que se descarga el original para reducirlo en cada tamano que sirve.
+
+- `shrinkImageForUpload` encoge la imagen en el navegador antes de subirla: tope de 2048 px en el
+  lado largo y WebP al 82 %. El tope no es el tamano con el que se ve, es el techo de calidad del que
+  se podra tirar despues.
+- **Nunca bloquea.** Ante cualquier problema devuelve el archivo original, igual que `readImageSize`:
+  publicar no puede fallar porque un ahorro no salga. Tampoco sube el resultado si peso mas que el
+  original.
+- Las dimensiones que se guardan pasan a ser **las del archivo que se sube**, no las del que se
+  eligio.
+- **El video no se toca**, y no por olvido: ver "Lo que no se puede hacer en el navegador".
+
+**Criterios de aceptacion**
+
+- Una foto de 4000x3000 llega a Cloud Storage con el lado largo en 2048 y en WebP, y `post_media`
+  guarda esas medidas y no las del original.
+- Una foto que ya cabe no se recodifica ni se agranda.
+- Un GIF, un SVG y un video suben intactos.
+- Si el navegador no sabe decodificar, se sube el original y se publica igual.
+
+**Lo que no se puede hacer en el navegador**
+
+Recodificar video exige un codec: `ffmpeg.wasm` son unos 25 MB que habria que descargar antes de
+subir nada, y un telefono de gama media tarda mas en recodificar un minuto de video que en subirlo
+tal cual. `WebCodecs` lo haria bien pero no esta en las versiones de Safari que usa buena parte de la
+comunidad. Las dos salidas son de producto y estan sin decidir:
+
+1. **Un tope de tamano o duracion**, dicho al elegir el archivo. Barato y honesto, pero es un numero
+   que puede dejar fuera a un vendedor con un video legitimo.
+2. **Recodificar del lado del servidor**, con un trabajo aparte que reemplace el archivo cuando
+   termine. Es lo correcto y es infraestructura nueva.
+
 ## Validacion
 
 - `pnpm run test:run`
