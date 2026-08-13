@@ -339,3 +339,166 @@ pnpm run test:e2e:run                            # la completa, en dos mitades s
 
 La rama es `feat/multimedia-multiple` en
 `C:\Users\S2G52\personal\DEV\salud-justa\comida-justa-multimedia`, y va contra `dev`.
+
+## 2026-08-13 - Slice 3: Editar la media de una publicacion
+
+### Objetivo
+
+Que quien ya publico pueda anadir, quitar y reordenar sus archivos sin volver a publicar la ficha
+entera. Era el ultimo slice del roadmap y el unico que seguia `@future`.
+
+### Decisiones y racional
+
+- **Un solo campo para las dos pantallas.** La aritmetica de la lista —acumular, deduplicar, quitar,
+  mover, recortar al tope— vivia dentro de `PublishForm`. Editar habria exigido copiarla entera a un
+  segundo formulario, y a partir de ahi cada arreglo habria tenido que hacerse dos veces o, mas
+  probable, una. Sale a `PostMediaField`, y la unica diferencia entre publicar y editar pasa a ser un
+  prop: de donde sale la lista inicial.
+
+- **Se reemplaza el conjunto, no se calcula un diff.** Un diff necesitaria una identidad estable por
+  archivo, y lo unico que el formulario y la base comparten es la URL de Cloud Storage; con ella,
+  mover dos archivos de sitio se veria igual que borrarlos y volverlos a crear. Reemplazar es seguro
+  porque **nada apunta a `post_media.id`**: el carrito, los pedidos y el bot leen por `post_id`, asi
+  que ninguna fila de otra tabla se queda huerfana al rehacerlas.
+
+- **Los archivos van en la misma transaccion que el texto.** Separarlos dejaria el hueco en el que la
+  publicacion se queda sin portada que ensenar, y esa fila es justo la que piden esas tres consultas
+  con `ORDER BY sort_order LIMIT 1`. Por eso no hay un `updateMedia` en el puerto —que era lo que
+  preveia el roadmap— sino un `replaceMedia` privado dentro de `updateContent`.
+
+- **Leer los archivos en su propia consulta y no en un `JOIN`.** Unir multiplicaria la fila de la
+  publicacion por cada archivo y habria que volver a plegarla: el mismo trabajo, hecho a mano y con
+  un `LIMIT 1` que de pronto significaria otra cosa. Son dos preguntas distintas sobre la misma
+  publicacion.
+
+- **Al menos un archivo, y la regla vive en la Server Action.** No es una condicion para que la
+  entidad sea coherente —`validateMedia` sigue sin exigir minimo, y si lo exigiera corregir un titulo
+  seria imposible—: es del formulario, porque quien puede contestarle a la persona en su idioma es
+  esa capa. Es la misma decision que su gemela al publicar.
+
+- **Reordenar es de a un puesto, con dos flechas.** No hay arrastrar y soltar: con un tope de 10
+  miniaturas, dos toques llevan cualquier archivo a la portada, y el arrastre habria traido su propia
+  accesibilidad de teclado que hay que escribir aparte. Las flechas solo se pintan donde pueden hacer
+  algo; un boton deshabilitado en cada punta seria una parada mas del teclado para no hacer nada.
+
+- **Reordenar se prueba como componente, no dos veces en e2e.** El mismo `PostMediaTray` lo pintan
+  las dos pantallas, asi que llevarlo al navegador por duplicado seria pagar dos minutos por la misma
+  certeza. La e2e comprueba que lo reordenado **llega a `post_media`**; el componente, la aritmetica
+  del orden. Los escenarios de la bandeja van marcados `@component` en el `.feature`.
+
+- **La deduplicacion cae a la URL cuando no hay `path`.** Los recien subidos traen su ruta en Cloud
+  Storage, unica por archivo; los que vienen de `post_media` no tienen ninguna. Sin esa caida, dos
+  archivos guardados se habrian visto como «el mismo indefinido» y la bandeja habria ensenado uno.
+
+- **Cambiar solo los archivos no pide reindexar.** El vector se deriva del texto, asi que reindexar
+  ahi seria pagarle al proveedor por volver a calcular lo mismo. Tiene su prueba.
+
+- **`MediaTray` centraliza las etiquetas de la bandeja en la e2e.** `PublishPage` las buscaba con un
+  regex local de `archivo N` que, desde que cada archivo tiene sus dos flechas, casa con tres
+  botones: Playwright falla por ambiguo. Ahora el proximo boton de la bandeja rompe un archivo y no
+  cada pantalla que la maneja.
+
+### Archivos tocados
+
+**Presentacion (el campo compartido)**
+
+- `src/presentation/media/PostMediaField/PostMediaField.tsx` y `.test.tsx` (nuevos): la lista, su
+  bandeja y el campo oculto, con 18 pruebas.
+- `src/presentation/media/PostMediaTray/PostMediaTray.tsx` y `.test.tsx`: las dos flechas y `onMove`.
+- `src/app/[locale]/publicar/PublishForm.tsx` y `.test.tsx`: adelgazados; el formulario ya solo
+  comprueba que **lleva el campo puesto**, que es lo unico que ninguna prueba del componente ve.
+
+**Edicion**
+
+- `src/app/[locale]/editar/[slug]/ui/EditPostForm.tsx`, `page.tsx` y `actions.ts`.
+- `src/use_cases/managePost/updateOnePostUseCase.ts`, `ports/IPostAdminRepository.ts` y
+  `managePost.test.ts`.
+- `src/infra/dataAccess/managePost/PostgresPostAdminRepository.ts`: `replaceMedia` y `readMedia`.
+
+**i18n**
+
+- `src/i18n/messages/{es,en}.json`: `mediaMoveEarlier` y `mediaMoveLater`.
+
+**e2e**
+
+- `src/e2e/multimedia/editarMedia.spec.ts` (nuevo): 4 escenarios.
+- `src/e2e/testUtils/mediaTray.ts` y `readPostMedia.ts` (nuevos).
+- `src/e2e/createPost/PublishPage.ts`, `src/e2e/multimedia/multimediaMultiple.spec.ts` y su
+  `.feature`.
+- `src/e2e/testUtils/warmRoutes.ts`: `/editar/...` entra a la lista de rutas calientes; con el campo
+  de archivos, ese segmento se volvio caro de compilar.
+
+### Comandos clave
+
+```
+pnpm run typecheck && pnpm run typecheck:tests
+pnpm run lint
+pnpm run check:i18n
+pnpm run test:run
+pnpm exec playwright test --shard=1/2      # y --shard=2/2; nunca de una sola vez
+```
+
+### Resultados de validacion
+
+- `pnpm run test:run`: **1536 pruebas en 151 archivos, todas en verde**. El slice 2 cerro en
+  1491/148, o sea **45 pruebas nuevas** (18 de `PostMediaField`, 3 de mover en la bandeja, 3 del caso
+  de uso, y el resto redistribuidas al mudar la lista fuera de `PublishForm`).
+- `pnpm run typecheck` y `pnpm run typecheck:tests`: exit 0.
+- `pnpm run lint`: 799 archivos, sin hallazgos.
+- `pnpm run check:i18n`: exit 0.
+- **`pnpm run test:e2e:run`: ejecutada, y por fin completa.** En dos mitades: `--shard=1/2` dio
+  **139 pasados, 3 saltados** (8.4 min) y `--shard=2/2` **141 pasados** (8.6 min). Total: **280 en
+  verde, 3 saltados, 0 fallos**. El `globalTeardown` no protesto en ninguna, asi que la base
+  compartida quedo sin residuos.
+- La carpeta sola, para iterar rapido: `playwright test src/e2e/multimedia` da **13 pasados** (2.4
+  min).
+
+### Desviaciones del roadmap
+
+- **`PostMediaField` no estaba previsto.** El roadmap daba por hecho que la edicion pintaria la
+  bandeja por su cuenta; al escribirlo se vio que eso era copiar la lista entera, y la extraccion
+  acabo siendo el grueso del slice. Va en su propio commit (`refactor`), separada de la feature.
+- **No hay `updateMedia` en el puerto.** El roadmap pedia «un `updateMedia` transaccional»; lo que
+  hay es un `replaceMedia` privado **dentro** de `updateContent`, porque el texto y los archivos
+  tienen que viajar en la misma transaccion y dos metodos habrian invitado a llamarlos por separado.
+- **Una regla nueva: al menos un archivo.** No estaba en ningun criterio de aceptacion. Aparecio al
+  probar «quito el unico que hay»: hasta este slice ningun camino de escritura podia dejar una
+  publicacion sin archivos, asi que nadie habia tenido que prohibirlo.
+- **La portada se cambia moviendo de a un puesto**, no arrastrando el tercero al primer sitio como
+  sugeria el criterio. El resultado en `post_media` es el mismo y lo comprueba la e2e.
+- **El fallo de `createPost.spec.ts:31`** que aparecio en la primera corrida de la suite no era de
+  este slice: `/api/auth/providers` se compilaba en frio dentro de los 5 s de `toBeVisible`. Se
+  arreglo calentando esa ruta (commit `b8a691a`, anterior a este slice).
+
+### Pendientes
+
+- **Los tres commits se hicieron con `--no-verify`, a peticion del usuario.** El gancho `pre-commit`
+  corre `pnpm run validate`, que incluye `test:e2e:run` **de una sola vez** —justo lo que esta
+  maquina no aguanta, y unos 20 min por commit—. La validacion se corrio a mano y esta arriba.
+  Conviene arreglar el gancho: que no corra la e2e, o que la corra en mitades.
+- `src/infra/types/Posts.d.ts` sigue definiendo un `Post` auto-referencial que termina en una firma
+  de indice, o sea que no tipa nada. Deuda anterior, limpieza aparte.
+- Los dummies `post-2.jpg` y `post-3.jpg` siguen siendo copias byte a byte de `post.jpg`.
+
+### Recap
+
+La feature esta cerrada de punta a punta y los tres slices estan en `dev`. Una publicacion lleva
+hasta 10 archivos, se suben de golpe y acumulando, se ven en la ficha con galeria y en la tarjeta con
+su insignia, y desde este slice se editan: anadir, quitar y cambiar cual es la portada, con el mismo
+campo en las dos pantallas y una sola transaccion que guarda el texto y los archivos juntos. Lo unico
+que no se puede es dejar la publicacion sin ninguno. Validacion local completa **incluida la e2e**,
+que es lo que quedaba pendiente desde el slice 1: 280 escenarios en verde.
+
+### Proximos pasos (opciones)
+
+1. **Arreglar el gancho `pre-commit`** (recomendado): hoy corre la e2e completa de una sola vez, que
+   es lo que obligo a saltarselo. Sin eso, el proximo commit vuelve a elegir entre 20 minutos o
+   `--no-verify`.
+2. **Ver la edicion a mano** con `pnpm run dev`: es la primera pantalla donde se reordena, y el
+   tamano de las flechas sobre la miniatura solo se juzga mirandolo.
+3. **Limpiar `src/infra/types/Posts.d.ts`** y dejar el `Post` del dominio como unico tipo.
+4. **Dummies de verdad** para `post-2.jpg` y `post-3.jpg`: hoy son el mismo archivo tres veces, asi
+   que ningun escenario podria detectar que se ensena la imagen equivocada.
+
+**Acciones pendientes del usuario:** ninguna para dar por cerrada la feature. `dev` esta pusheado en
+`e3336b9`.

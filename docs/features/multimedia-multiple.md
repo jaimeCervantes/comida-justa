@@ -59,8 +59,10 @@ en las 15 imagenes y nulas en los 8 videos.
   aspecto, y por eso el slice 2 no necesita sembrar nada para no romper lo que ya hay.
 - **La bandeja acumula, el selector no reemplaza.** Hoy cada subida pisa la anterior
   (`PublishForm.tsx:63`); el modelo nuevo es el de Facebook: se anade y se quita de una lista.
-- **Editar la media no entra ahora.** El formulario de edicion hoy ni la toca, y es una decision ya
-  documentada en `EditPostForm.tsx:26-33`. Queda como slice 3 `@future`.
+- **Editar la media es el slice 3**, y ya esta hecho. Cuando se acordo este modelo el formulario de
+  edicion ni la tocaba —una decision documentada entonces en `EditPostForm.tsx:26-33`—; desde el
+  slice 3 pinta el mismo campo que `/publicar`. Trajo una regla que no estaba prevista: **al menos
+  un archivo**, porque quitar el ultimo si podia dejar una publicacion que no se puede pintar.
 
 ## Roadmap
 
@@ -121,20 +123,30 @@ en las 15 imagenes y nulas en los 8 videos.
 
 ### Slice 3 - Editar la media de una publicacion
 
-@future
-
 **Alcance**
 
-Anadir, quitar y reordenar los archivos de una publicacion ya creada. Hoy no existe **ningun** camino
-de escritura que toque `post_media` despues de crear: harian falta `media` en `EditablePostValues`
-(`EditPostForm.tsx:15-24`), en `PostContentUpdate` (`IPostAdminRepository.ts:17-27`) y un
-`updateMedia` transaccional en `PostgresPostAdminRepository.ts:51-69`.
+Anadir, quitar y reordenar los archivos de una publicacion ya creada. Al empezar no existia **ningun**
+camino de escritura que tocara `post_media` despues de crear, asi que `media` tuvo que recorrer el
+camino entero: `EditablePostValues` (`EditPostForm.tsx`), `EditablePost` y `PostContentUpdate`
+(`IPostAdminRepository.ts`), `UpdateOnePostInput`, y de ahi a la escritura.
+
+- La aritmetica de la lista sale de `PublishForm` a `src/presentation/media/PostMediaField/`, que
+  pintan las dos pantallas. La unica diferencia entre ellas es de donde sale la lista inicial: vacia
+  al publicar, la que ya tiene la publicacion al editar.
+- `PostMediaTray` gana dos flechas por archivo (`onMove`, opcional), que solo se pintan donde pueden
+  hacer algo. Reordenar es de la bandeja, no de la pantalla, y por eso lo prueba el componente.
+- El repositorio **reemplaza** el conjunto en vez de calcular un diff, y lo hace **dentro de la misma
+  transaccion** que el texto: separarlos dejaria el hueco en el que la publicacion se queda sin la
+  fila que leen la tarjeta, el carrito y el bot con `ORDER BY sort_order LIMIT 1`.
+- Regla nueva, en la Server Action: **al menos un archivo**.
 
 **Criterios de aceptacion**
 
 - Quien edita su publicacion ve los archivos que ya tiene y puede quitar uno.
-- Puede anadir uno nuevo respetando el mismo tope de 10.
+- Puede anadir uno nuevo respetando el mismo tope de 10, y el anadido va al final.
 - Puede cambiar cual es la portada, y el cambio se refleja en la tarjeta, en el carrito y en el bot.
+- Quitar el ultimo archivo no se guarda: se explica que hace falta al menos uno, y la publicacion
+  conserva el que tenia. (No estaba en el roadmap; ver la bitacora del slice 3.)
 
 ## Validacion
 
@@ -142,5 +154,6 @@ de escritura que toque `post_media` despues de crear: harian falta `media` en `E
 - `pnpm run typecheck`
 - `pnpm run lint`
 - `pnpm run check:i18n`
-- `pnpm run test:e2e:run` (la corre el usuario; en dos mitades con `--shard=1/2` y `--shard=2/2` si
-  la memoria protesta)
+- `pnpm run test:e2e:run` **en dos mitades**, `--shard=1/2` y `--shard=2/2`, y no de una sola vez: de
+  corrido la maquina se queda sin memoria y Chromium deja de arrancar (ver la bitacora de i18n). Con
+  el slice 3 cerrado dio **280 escenarios en verde, 3 saltados, 0 fallos**.

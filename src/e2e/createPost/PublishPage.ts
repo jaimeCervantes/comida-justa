@@ -87,10 +87,10 @@ export default class PublishPage {
   /**
    * Removes the file at `position` (1-based, the number shown on the thumbnail).
    *
-   * Through `MediaTray` and no longer through a local `archivo ${position}` regex: since editing
-   * added a second button per file ("hacer portada"), that regex matches two buttons and Playwright
-   * fails on the ambiguity. One place knows the tray's labels, so the next button added to it breaks
-   * one file instead of every screen that drives it.
+   * Through `MediaTray` and no longer through a local `archivo ${position}` regex: since the tray
+   * gained its two move arrows, that regex matches three buttons per file and Playwright fails on
+   * the ambiguity. One place knows the tray's labels, so the next button added to it breaks one file
+   * instead of every screen that drives it.
    */
   async removeFile(position: number) {
     await this.tray.remove(position).click();
