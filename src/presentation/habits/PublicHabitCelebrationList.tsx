@@ -28,9 +28,8 @@ export default function PublicHabitCelebrationList({
     >
       <h2
         id="community-celebrations-title"
-        className={`font-black text-text-strong ${
-          compact ? "text-lg" : "text-2xl sm:text-3xl"
-        }`}
+        className={`font-black text-text-strong ${compact ? "text-lg" : "text-2xl sm:text-3xl"
+          }`}
       >
         {title}
       </h2>
@@ -39,9 +38,8 @@ export default function PublicHabitCelebrationList({
           dos en cuanto hay 384 px —es su motivo de existir, dos tarjetas cuadradas en una fila—;
           `full` espera a los 768 px que piden las tarjetas grandes. */}
       <div
-        className={`grid ${
-          compact ? "mt-3 gap-4 @sm:grid-cols-2" : "mt-6 gap-6 @3xl:grid-cols-2"
-        }`}
+        className={`grid ${compact ? "mt-3 gap-4 @sm:grid-cols-2" : "mt-6 gap-4 @3xl:grid-cols-2"
+          }`}
       >
         {celebrations.map((celebration) => (
           <PublicHabitCelebrationCard
