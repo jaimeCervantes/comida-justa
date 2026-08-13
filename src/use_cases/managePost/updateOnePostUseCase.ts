@@ -3,7 +3,11 @@ import {
   PostNotFoundError,
   PostOwnershipError,
 } from "~/domain/entities/post/errors";
-import type { IPostValidator, User } from "~/domain/entities/post/types";
+import type {
+  IPostValidator,
+  PostMediaFile,
+  User,
+} from "~/domain/entities/post/types";
 import getErrorMessage from "~/domain/shared/getErrorMessage";
 import type IPostAdminRepository from "./ports/IPostAdminRepository";
 
@@ -21,6 +25,15 @@ export interface UpdateOnePostInput {
   origin: string | null;
   category: string | null;
   subCategory: string | null;
+  /**
+   * Los archivos que la publicación tendrá al guardar, en orden. Lista completa, no un delta.
+   *
+   * **El mínimo de uno no se comprueba aquí**, igual que al publicar: es una regla del formulario
+   * —quien puede contestarle a la persona en su idioma es la Server Action, ver `errors.media`— y no
+   * una condición para que la entidad sea coherente. Lo que sí vive en el dominio es la forma y el
+   * tope, que los aplica `PostValidator.validateMedia`.
+   */
+  media: PostMediaFile[];
 }
 
 export type UpdateOnePostResult =
@@ -89,11 +102,11 @@ export default class UpdateOnePostUseCase {
       kind: post.kind as never,
       origin: input.origin as never,
       contactInfo: { phone: "" },
-      /* Vacía, y ya no falsa. Editar no toca `post_media` (ver `EditPostForm`), así que aquí no hay
-         nada que validar; antes se pasaba un archivo inventado con la URL en blanco solo para
-         satisfacer el tipo singular. Por eso `validateMedia` no exige un mínimo: si lo exigiera,
-         corregir un título sería imposible. */
-      media: [],
+      /* Ya no va vacía: desde que la edición muestra los archivos, lo que llega aquí es la lista que
+         la publicación va a tener, y el validador comprueba su forma y su tope igual que al
+         publicar. Sigue sin exigir un mínimo, y ahí no ha cambiado nada: quien lo exige es la Server
+         Action, que puede decirlo en el idioma de quien está mirando. */
+      media: input.media,
       user: { id: post.ownerId } as User,
       createdAt: new Date(),
     });
@@ -107,6 +120,7 @@ export default class UpdateOnePostUseCase {
       origin: input.origin,
       category: input.category,
       subCategory: input.subCategory,
+      media: input.media,
     });
 
     return {

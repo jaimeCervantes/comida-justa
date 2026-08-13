@@ -1,8 +1,7 @@
 import { expect, test } from "@playwright/test";
-import { sql } from "drizzle-orm";
-import { db } from "~/infra/dataAccess/db/connection";
 import PublishPage from "../createPost/PublishPage";
 import { deleteOnePostBySlug } from "../testUtils/deleteOnePost";
+import { readPostMediaBySlug as storedMedia } from "../testUtils/readPostMedia";
 import {
   type DbSession,
   deleteSession,
@@ -16,38 +15,6 @@ const DUMMIES = {
   third: "./src/e2e/dummies/post-3.jpg",
   video: "./src/e2e/dummies/post.mp4",
 } as const;
-
-/**
- * What actually landed in `post_media`, in `sort_order`.
- *
- * The assertion goes to the database and not only to the page because the order **is** the feature:
- * `sort_order` 0 is the cover that the listing card, the cart and the WhatsApp bot all read with
- * `ORDER BY sort_order LIMIT 1`. A gallery that looks right while the rows are shuffled would still
- * show the wrong cover everywhere else.
- */
-async function storedMedia(
-  slug: string,
-): Promise<Array<{ sortOrder: number; type: string; url: string }>> {
-  const result = await db.execute(sql`
-    SELECT m.sort_order, m.type, m.url
-    FROM post_media m
-    JOIN post_translations t ON t.post_id = m.post_id
-    WHERE t.slug = ${slug}
-    ORDER BY m.sort_order
-  `);
-
-  return (
-    result.rows as unknown as Array<{
-      sort_order: number;
-      type: string;
-      url: string;
-    }>
-  ).map((row) => ({
-    sortOrder: Number(row.sort_order),
-    type: row.type,
-    url: row.url,
-  }));
-}
 
 test.describe("Given someone publishing a product with several files", () => {
   let dbSession: DbSession | undefined;

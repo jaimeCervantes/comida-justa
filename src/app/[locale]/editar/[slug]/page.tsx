@@ -67,6 +67,7 @@ export default async function EditarPage({
         origin: post.origin,
         category: post.category,
         subCategory: post.subCategory,
+        media: post.media,
       }}
       isAdmin={isAdmin(session.user?.email)}
       categoryOptions={categoryOptions}

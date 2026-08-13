@@ -1296,6 +1296,8 @@
     "mediaAddMore": "Add another picture or video",
     "mediaCounter": "{count} of {max}",
     "mediaLimitReached": "You reached the maximum.",
+    "mediaMoveEarlier": "Move file {position} earlier",
+    "mediaMoveLater": "Move file {position} later",
     "mediaRemove": "Remove file {position}",
     "mediaUploaded": "✅ {count, plural, one {Uploaded} other {# uploaded}}",
     "mediaUploading": "⏳ Uploading... {progress}%",

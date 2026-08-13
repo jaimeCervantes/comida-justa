@@ -1,6 +1,7 @@
 "use server";
 import { after } from "next/server";
-import { getLocale } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
+import { parsePostMediaPayload } from "~/domain/entities/post/mediaPayload";
 import { resolveOriginForUser } from "~/domain/entities/post/origin";
 import { resolveKeyStrict } from "~/domain/entities/post/taxonomy";
 import type { User } from "~/domain/entities/post/types";
@@ -62,6 +63,26 @@ export async function updatePost(
       ? requestedSubCategory
       : null;
 
+  const title = String(formData.get("title") ?? "");
+
+  /* La lista completa que la publicación va a tener, en el orden en que se ve en pantalla: el índice
+     acaba en `post_media.sort_order`. Se interpreta con la misma función que al publicar, así que un
+     JSON roto llega aquí como lista vacía y lo atrapa la comprobación de abajo en vez de vaciarle
+     los archivos a la publicación sin decir nada. */
+  const media = parsePostMediaPayload(formData.get("media") as string, {
+    alt: title,
+  });
+
+  /* **Al menos uno**, la única regla nueva de este slice, y vive aquí por lo mismo que su gemela al
+     publicar: es del formulario y no de la entidad —quien puede contestarle a la persona en su
+     idioma es esta capa—. Sin ella, quitar el último archivo dejaba una publicación que no se puede
+     pintar, y el fallo no se vería al guardar sino al abrir la ficha. */
+  if (media.length === 0) {
+    return {
+      errorMessage: (await getTranslations("publish"))("errorMediaRequired"),
+    };
+  }
+
   const useCase = new UpdateOnePostUseCase(
     createPostAdminRepository(),
     new PostValidator(),
@@ -70,12 +91,13 @@ export async function updatePost(
   const result = await useCase.execute({
     userId,
     slug: String(formData.get("slug") ?? ""),
-    title: String(formData.get("title") ?? ""),
+    title,
     content: String(formData.get("content") ?? ""),
     price: Number(formData.get("price")) || null,
     origin,
     category,
     subCategory,
+    media,
   });
 
   if ("errorMessage" in result && result.errorMessage) {

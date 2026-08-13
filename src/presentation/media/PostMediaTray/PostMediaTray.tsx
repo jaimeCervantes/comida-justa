@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { MdClose } from "react-icons/md";
+import { MdChevronLeft, MdChevronRight, MdClose } from "react-icons/md";
 import {
   MAX_POST_MEDIA_FILES,
   mediaTypeFromMime,
@@ -32,11 +32,17 @@ const THUMBNAIL_SIZE = 88;
 export default function PostMediaTray({
   items,
   onRemove,
+  onMove,
   max = MAX_POST_MEDIA_FILES,
   className,
 }: {
   items: readonly PostMediaTrayItem[];
   onRemove: (index: number) => void;
+  /**
+   * Mueve el archivo de `from` a `to`. Opcional: sin él la bandeja no ofrece reordenar, que es como
+   * nació en el slice 1.
+   */
+  onMove?: (from: number, to: number) => void;
   max?: number;
   className?: string;
 }) {
@@ -73,6 +79,35 @@ export default function PostMediaTray({
             >
               <MdClose aria-hidden />
             </button>
+
+            {/* Los dos de mover. Solo se pintan donde pueden hacer algo: un botón deshabilitado en
+                cada extremo sería ruido en una fila que ya tiene una insignia y una cruz por
+                archivo, y el foco del teclado tendría que pasar por él para nada. */}
+            {onMove ? (
+              <span className="absolute inset-x-0 bottom-1 flex justify-between px-1">
+                {index > 0 ? (
+                  <MoveButton
+                    label={t("mediaMoveEarlier", { position: index + 1 })}
+                    onClick={() => onMove(index, index - 1)}
+                  >
+                    <MdChevronLeft aria-hidden />
+                  </MoveButton>
+                ) : (
+                  <span />
+                )}
+
+                {index < items.length - 1 ? (
+                  <MoveButton
+                    label={t("mediaMoveLater", { position: index + 1 })}
+                    onClick={() => onMove(index, index + 1)}
+                  >
+                    <MdChevronRight aria-hidden />
+                  </MoveButton>
+                ) : (
+                  <span />
+                )}
+              </span>
+            ) : null}
           </li>
         ))}
       </ol>
@@ -88,6 +123,34 @@ export default function PostMediaTray({
         {items.length >= max ? ` ${t("mediaLimitReached")}` : ""}
       </p>
     </section>
+  );
+}
+
+/**
+ * Uno de los dos botones de mover.
+ *
+ * La etiqueta la escribe quien lo pinta y ya lleva la posición dentro («Mover el archivo 2 antes»):
+ * dos flechas idénticas por archivo son inservibles con lector de pantalla, que es el mismo motivo
+ * por el que el botón de quitar dice cuál quita.
+ */
+function MoveButton({
+  label,
+  onClick,
+  children,
+}: {
+  label: string;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={label}
+      className="rounded-full bg-black/70 p-0.5 text-white hover:bg-black focus-visible:outline-2 focus-visible:outline-offset-2"
+    >
+      {children}
+    </button>
   );
 }
 
