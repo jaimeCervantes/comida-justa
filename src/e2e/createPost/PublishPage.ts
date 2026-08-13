@@ -1,4 +1,5 @@
 import { expect, type Locator, type Page } from "@playwright/test";
+import { MediaTray } from "../testUtils/mediaTray";
 import { stubStorageUpload } from "../testUtils/stubStorageUpload";
 
 type PublishValues = {
@@ -22,9 +23,11 @@ export default class PublishPage {
   readonly score: Locator;
   private values: Partial<PublishValues> = {};
   private uploaded: Locator;
+  private tray: MediaTray;
 
   constructor(page: Page) {
     this.page = page;
+    this.tray = new MediaTray(page);
     this.form = this.page.getByRole("form").first();
     this.submitButton = this.form.getByRole("button", {
       name: "Publicar",
@@ -74,18 +77,23 @@ export default class PublishPage {
 
   /** How many files the tray is holding right now. */
   trayItems(): Locator {
-    return this.page.getByTestId("post-media-tray-item");
+    return this.tray.items();
   }
 
   trayCounter(): Locator {
-    return this.page.getByTestId("post-media-tray-counter");
+    return this.tray.counter();
   }
 
-  /** Removes the file at `position` (1-based, the number shown on the thumbnail). */
+  /**
+   * Removes the file at `position` (1-based, the number shown on the thumbnail).
+   *
+   * Through `MediaTray` and no longer through a local `archivo ${position}` regex: since editing
+   * added a second button per file ("hacer portada"), that regex matches two buttons and Playwright
+   * fails on the ambiguity. One place knows the tray's labels, so the next button added to it breaks
+   * one file instead of every screen that drives it.
+   */
   async removeFile(position: number) {
-    await this.page
-      .getByRole("button", { name: new RegExp(`archivo ${position}`, "i") })
-      .click();
+    await this.tray.remove(position).click();
   }
 
   async verifyForm() {

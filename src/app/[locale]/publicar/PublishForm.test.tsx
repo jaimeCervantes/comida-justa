@@ -1,98 +1,10 @@
-import { screen, within } from "@testing-library/react";
+import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { renderWithIntl } from "~/infra/test-utils/renderWithIntl";
 import PublishForm from "./PublishForm";
 
-/**
- * El hook de subida, falso.
- *
- * Se sustituye entero y no solo `fetch` porque lo que se prueba aquí es **la aritmética de la
- * lista** —acumular, deduplicar, quitar, recortar—, y esa vive en el formulario. Cloud Storage y sus
- * tres llamadas son cosa del hook, y meterlas en esta prueba solo añadiría formas de que falle por
- * algo que no está midiendo.
- *
- * Devuelve una URL distinta por archivo: dos subidas que compartieran `path` se fundirían en una al
- * deduplicar, que es justo el error que la prueba tiene que poder ver.
- */
-let uploadedCount = 0;
-
-vi.mock("~/infra/UI/hooks/useStorageUpload", async () => {
-  const { useState } = await import("react");
-
-  return {
-    default: () => {
-      const [media, setMedia] = useState<
-        Array<{ url: string; type: string; path: string }>
-      >([]);
-      const [isCompleted, setIsCompleted] = useState(false);
-
-      return {
-        uploadFiles: async (files: File[]) => {
-          const batch = files.map((file) => {
-            uploadedCount += 1;
-
-            return {
-              url: `https://firebasestorage.googleapis.com/posts/${uploadedCount}-${file.name}`,
-              type: file.type,
-              path: `posts/${uploadedCount}-${file.name}`,
-            };
-          });
-
-          setMedia(batch);
-          setIsCompleted(true);
-
-          return batch;
-        },
-        uploadFile: async () => [],
-        progress: 100,
-        isCompleted,
-        isLoading: false,
-        media,
-        error: null,
-      };
-    },
-  };
-});
-
 const noop = vi.fn();
-
-function imageFile(name: string): File {
-  return new File(["contenido"], name, { type: "image/jpeg" });
-}
-
-function fileInput(): HTMLInputElement {
-  return document.querySelector('form input[type="file"]') as HTMLInputElement;
-}
-
-function hiddenMediaValue(): unknown {
-  const input = document.querySelector(
-    'input[name="media"]',
-  ) as HTMLInputElement;
-
-  return JSON.parse(input.value);
-}
-
-beforeEach(() => {
-  uploadedCount = 0;
-});
-
-/**
- * Elige archivos y espera a que la bandeja los tenga.
- *
- * La espera no es cosmética: subir es asíncrono —el efecto que reporta la tanda hacia arriba corre
- * después de que React confirme el estado del hook—, así que afirmar en seco pasaba en aislamiento y
- * fallaba en la corrida completa, cuando la máquina va cargada. `findAllBy*` reintenta hasta que el
- * DOM tiene lo que se espera, que es lo que describe de verdad este flujo.
- */
-async function pickFiles(names: string[]): Promise<HTMLElement[]> {
-  await userEvent.upload(
-    fileInput(),
-    names.map((name) => imageFile(name)),
-  );
-
-  return screen.findAllByTestId("post-media-tray-item");
-}
 
 const ALIMENTACION = { value: "alimentacion", label: "Alimentación" } as const;
 const JUGOS = { value: "jugos", label: "Jugos" } as const;
@@ -231,113 +143,18 @@ describe("PublishForm — la categoría", () => {
 });
 
 /**
- * Cada subida pisaba la anterior (`setMediaJSON(JSON.stringify(data?.media))`), así que no había
- * forma de juntar dos archivos ni queriendo. Lo que sigue describe la lista: qué la hace crecer, qué
- * la hace encoger, y qué acaba viajando en el campo oculto —que es lo único que la Server Action
- * llega a ver—.
+ * La aritmética de la lista —acumular, deduplicar, quitar, mover, recortar— dejó de vivir aquí: es
+ * de `PostMediaField`, que ahora pintan las dos pantallas, y allí están sus pruebas. Lo que queda por
+ * comprobar en este formulario es que **lo lleva puesto**: sin el campo, publicar volvería a mandar
+ * una publicación sin archivos y ninguna prueba del componente se enteraría.
  */
-describe("PublishForm — la bandeja de archivos", () => {
-  it("empieza vacía y sin bandeja que enseñar", () => {
-    renderForm();
-
-    expect(screen.queryByTestId("post-media-tray")).not.toBeInTheDocument();
-    expect(hiddenMediaValue()).toEqual([]);
-  });
-
-  it("guarda los tres archivos elegidos de una vez, en su orden", async () => {
-    renderForm();
-
-    const items = await pickFiles([
-      "frente.jpg",
-      "etiqueta.jpg",
-      "interior.jpg",
-    ]);
-
-    expect(items).toHaveLength(3);
-    expect(
-      items.map((item) => within(item).getByText(/^\d$/).textContent),
-    ).toEqual(["1", "2", "3"]);
-    expect(hiddenMediaValue()).toHaveLength(3);
-  });
-
-  it("suma la segunda tanda en vez de reemplazar la primera", async () => {
-    renderForm();
-
-    await pickFiles(["frente.jpg"]);
-    await pickFiles(["etiqueta.jpg"]);
-
-    expect(
-      await screen.findByTestId("post-media-tray-counter"),
-    ).toHaveTextContent("2 de 10");
-    expect(screen.getAllByTestId("post-media-tray-item")).toHaveLength(2);
-  });
-
-  it("quitar el de en medio deja los otros dos y los renumera", async () => {
-    renderForm();
-
-    await pickFiles(["frente.jpg", "etiqueta.jpg", "interior.jpg"]);
-
-    await userEvent.click(screen.getByRole("button", { name: /archivo 2/i }));
-
-    const urls = (hiddenMediaValue() as Array<{ url: string }>).map(
-      (file) => file.url,
-    );
-
-    expect(urls).toHaveLength(2);
-    expect(urls[0]).toMatch(/frente\.jpg$/);
-    expect(urls[1]).toMatch(/interior\.jpg$/);
-    expect(screen.getByTestId("post-media-tray-counter")).toHaveTextContent(
-      "2 de 10",
-    );
-  });
-
-  it("el campo oculto lleva la lista entera, que es lo único que ve el servidor", async () => {
-    renderForm();
-
-    await pickFiles(["frente.jpg", "etiqueta.jpg"]);
-
-    expect(hiddenMediaValue()).toEqual([
-      expect.objectContaining({ url: expect.stringMatching(/frente\.jpg$/) }),
-      expect.objectContaining({ url: expect.stringMatching(/etiqueta\.jpg$/) }),
-    ]);
-  });
-
-  it("de doce elegidos entran los diez que caben", async () => {
-    /* Elegir la galería entera del teléfono es el caso normal, no el raro. Recortar es mejor que
-       rechazar la selección completa y dejar a la persona empezando de nuevo. */
-    renderForm();
-
-    const items = await pickFiles(
-      Array.from({ length: 12 }, (_, index) => `foto-${index}.jpg`),
-    );
-
-    expect(items).toHaveLength(10);
-    expect(screen.getByTestId("post-media-tray-counter")).toHaveTextContent(
-      /Llegaste al máximo/,
-    );
-  });
-
-  it("al llegar al tope el selector deja de aceptar", async () => {
-    renderForm();
-
-    await pickFiles(
-      Array.from({ length: 10 }, (_, index) => `foto-${index}.jpg`),
-    );
-
-    expect(fileInput()).toBeDisabled();
-  });
-
-  it("cambia la invitación una vez hay algo elegido", async () => {
+describe("PublishForm — el campo de archivos", () => {
+  it("lleva el selector y el campo oculto que lee la Server Action", () => {
     renderForm();
 
     expect(
       screen.getByLabelText(/sube tus mejores imágenes o videos/i),
     ).toBeInTheDocument();
-
-    await pickFiles(["frente.jpg"]);
-
-    expect(
-      screen.getByLabelText(/agrega otra imagen u otro video/i),
-    ).toBeInTheDocument();
+    expect(document.querySelector('form input[name="media"]')).not.toBeNull();
   });
 });
