@@ -56,6 +56,17 @@ const RUTAS = [
   "/pilares/alimentacion",
   "/pilares/movimiento",
   "/pilares/mente-espiritu",
+
+  /* Identificarse son **dos unidades de compilación**, y la que muerde es la segunda.
+     `/auth/signin` se pinta sola, pero los botones de proveedor no vienen del servidor: los trae
+     `getProviders()` desde el navegador contra `/api/auth/providers`, y ese controlador no lo
+     compila nadie más en toda la corrida —la aplicación no monta `SessionProvider`, la sesión se
+     lee en el servidor—. Así que el primer escenario que pide el botón de Google paga ahí la
+     compilación, y la paga con el plazo corto de `toBeVisible` (5 s), no con los 90 s del
+     escenario. Eso es lo que tumbó a `createPost.spec.ts:31` el 2026-08-12; en aislamiento pasa.
+     Calentar la página sin la API no serviría de nada: es la API la que llega tarde. */
+  "/auth/signin",
+  "/api/auth/providers",
 ] as const;
 
 /** Compilar una ruta pesada en frío pasa de largo cualquier plazo corto. */

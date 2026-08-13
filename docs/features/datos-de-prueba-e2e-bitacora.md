@@ -200,3 +200,91 @@ Pendiente en el usuario: `src/e2e/i18n/i18n.spec.ts` tiene cambios sin confirmar
 «Comunidad» sacó *Products* del menú principal y el escenario pasó a *About us*). Pasa en verde en
 esta corrida; falta decidir si se confirma y corregir un comentario que quedó diciendo «ya no es
 `/en/nosotros` sino `/en/nosotros`».
+
+---
+
+## Corrección — Identificarse también hay que calentarlo *(2026-08-12)*
+
+### Objetivo
+
+Correr la suite completa en dos mitades (`--shard=1/2` y `--shard=2/2`) sobre `dev` y dejar en verde
+lo que saliera rojo.
+
+### El diagnóstico
+
+Un solo fallo en las dos mitades: `createPost.spec.ts:31` («Then a Google Sigin provider should be
+presented»), esperando 5 s un botón que no llegó.
+
+No era una regresión, era **compilación en frío**, el mismo patrón que ya documenta `warmRoutes.ts`.
+La diferencia es que aquí no bastaba con calentar la página, porque identificarse son **dos unidades
+de compilación**:
+
+- `/auth/signin` la pinta el servidor, y de eso el escenario tenía tiempo de sobra: `waitForURL` va
+  contra el presupuesto del escenario (90 s).
+- Los botones de proveedor **no vienen en ese HTML**. Los pide el navegador con `getProviders()`
+  contra `/api/auth/providers`, y ese controlador **no lo compila nadie más en toda la corrida**: la
+  aplicación no monta `SessionProvider` —la sesión se lee en el servidor con `auth()`—, así que la
+  única llamada de cliente a `/api/auth/*` que existe en el proyecto es justo esa. Se comprobó con
+  `grep`: `next-auth/react` aparece en un solo archivo.
+- Y eso lo pagaba `toBeVisible`, cuyo plazo es de **5 s**, no de 90.
+
+De ahí que fallara en la corrida completa y pasara en aislamiento: en aislamiento la ruta ya estaba
+compilada en `.next` de la vez anterior.
+
+### Decisiones
+
+- **Se calientan las dos, y la que importa es la API.** Calentar solo `/auth/signin` habría dejado el
+  fallo intacto: lo que llega tarde es `/api/auth/providers`. Van juntas porque la página sin sus
+  botones tampoco sirve de nada.
+- **No se tocó el spec.** Subir el plazo del `toBeVisible` habría escondido el problema en vez de
+  quitarlo, y además se lo habría cobrado a todas las corridas calientes. La lista de calentamiento
+  espera **el hecho** —la ruta respondió— y cuando ya está caliente cuesta milisegundos: el
+  calentamiento pasó de 16 a 18 rutas sin coste apreciable (54 s antes, 29 s después, sobre caché).
+- **Verificado en la condición que lo rompía, no en una cómoda.** Se borró `.next` entero y se corrió
+  ese spec solo: **18/18 rutas calientes en 56 s y 3/3 en verde**. En frío es donde fallaba.
+
+### Archivos tocados
+
+- `src/e2e/testUtils/warmRoutes.ts` — dos entradas nuevas en `RUTAS` (`/auth/signin` y
+  `/api/auth/providers`) con el porqué escrito al lado.
+
+### Validación
+
+| | |
+|---|---|
+| `pnpm exec playwright test --shard=1/2` *(antes del arreglo)* | 136 pasan, 3 saltados, **1 falla** *(14.4 min)* |
+| `pnpm exec playwright test --shard=2/2` | **139 pasan, 0 fallan** *(8.7 min)* |
+| `createPost.spec.ts` con `.next` borrado *(verificación en frío)* | **3 pasan** *(1.7 min)* |
+| `pnpm exec playwright test --shard=1/2` *(después del arreglo)* | **137 pasan, 3 saltados, 0 fallan** *(10.0 min)* |
+| `pnpm exec biome check src/e2e/testUtils/warmRoutes.ts` | limpio |
+| `pnpm run typecheck:tests` | exit 0 |
+
+**Total de la suite: 276 pasan, 3 saltados, 0 fallan.**
+
+Las mitades se corrieron **en serie, nunca en paralelo**, y no por memoria: `globalSetup` barre por
+prefijo *toda* la base y `globalTeardown` falla si algo quedó, así que dos mitades a la vez se
+borrarían los datos la una a la otra a media corrida. El puerto también es uno solo
+(`reuseExistingServer: false`).
+
+### Escrito en recursos compartidos
+
+Nada que deshacer. El `globalSetup` de la primera mitad barrió **1 publicación** residual de una
+corrida anterior a esta sesión —el aviso está para eso— y los tres `globalTeardown` terminaron sin
+protestar, que es la forma que tiene la suite de afirmar que no dejó nada. También se borró `.next`,
+que es caché de compilación local y se rehace solo.
+
+### Recap
+
+La suite está completa en verde sobre `dev`. El único rojo era un escenario que medía la velocidad
+del compilador y no el comportamiento de la aplicación, y el arreglo es una línea en la lista de
+calentamiento más la explicación de por qué la API va aparte de su página. El cambio vive en
+`src/e2e/testUtils/warmRoutes.ts` y está **sin confirmar**.
+
+### Próximos pasos (opciones)
+
+1. **Confirmar el cambio** — es el único pendiente inmediato; queda en el árbol de trabajo de `dev`.
+2. **Revisar el resto de rutas de cliente que piden API propia**, si algún día se añade una: el
+   patrón «la página está caliente pero su API no» se repetirá igual, y hoy la lista solo lo cubre
+   para identificarse.
+3. **Los tres pendientes de la corrección anterior siguen abiertos** (barrer `sessions`, la simetría
+   de `usernames` en `countTestData`, y la búsqueda semántica).
