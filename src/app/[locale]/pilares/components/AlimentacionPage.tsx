@@ -11,6 +11,7 @@ import PillarArticle, {
   PillarPanel,
   PillarSectionHeading,
 } from "./PillarArticle";
+import PillarLocal from "./PillarLocal";
 import PillarPractice from "./PillarPractice";
 import PillarReferences from "./PillarReferences";
 import { NUTRITION_REFERENCES } from "./references";
@@ -55,6 +56,10 @@ export default function AlimentacionPage({ locale }: { locale: AppLocale }) {
       </section>
 
       <PillarPractice challenge="nutrition" locale={locale} />
+
+      {/* El abastecimiento cercano que pide el ritual, con nombres y distancias en vez de en
+          abstracto. Va pegada a la práctica: es la parte accionable. */}
+      <PillarLocal challenge="nutrition" locale={locale} />
 
       {/* La guía va después de la práctica y no antes: quien acaba de comprometerse con la cena es
           quien necesita saber en qué proporción sirve el plato y con qué lo cocina. */}

@@ -1,9 +1,10 @@
-import { sql } from "drizzle-orm";
+import { type SQL, sql } from "drizzle-orm";
 import type { Coordinates } from "~/domain/entities/seller/coordinates";
 import {
   type DirectoryKind,
   type DirectoryPage,
   onlyProducers,
+  type StoreSummary,
 } from "~/domain/entities/seller/directory";
 import {
   anchorFor,
@@ -44,7 +45,12 @@ export async function listStores(
   pageSize: number,
   near: Coordinates | null = null,
 ): Promise<DirectoryPage> {
-  const withRadius = await queryStores(kind, page, pageSize, near, true);
+  const withRadius = await queryStores(
+    producerFilter(kind, near, true),
+    page,
+    pageSize,
+    near,
+  );
 
   /*
    * El respaldo para quien mira desde lejos.
@@ -62,19 +68,62 @@ export async function listStores(
   if (withRadius.total > 0 || !near || !onlyProducers(kind)) return withRadius;
 
   return {
-    ...(await queryStores(kind, page, pageSize, near, false)),
+    ...(await queryStores(
+      producerFilter(kind, near, false),
+      page,
+      pageSize,
+      near,
+    )),
     outsideRadius: true,
   };
 }
 
-async function queryStores(
+/**
+ * Las tiendas que tienen algo publicado en un subárbol del catálogo, lo más cercano primero.
+ *
+ * Es lo que pide la sección «Cerca de ti» de cada pilar: quién de la zona sostiene *este* hábito.
+ * El pilar de una tienda **se deriva de lo que publica** y no de una columna suya — `sellers.category`
+ * es todavía el texto libre que dejó el chatbot—, así que el filtro es el mismo `EXISTS` sobre
+ * `posts` que usa el directorio de productores, cambiando el `origin` por las claves de categoría.
+ *
+ * **No filtra por radio, solo ordena por distancia.** El directorio de productores sí lo hace porque
+ * promete proximidad verificada; aquí la promesa es otra —lo más cercano que hay de este pilar— y
+ * cada tarjeta enseña su distancia real, así que nada se vende como cercano sin serlo. Filtrar
+ * además por radio dejaría la sección vacía para casi todo visitante mientras las publicaciones del
+ * mismo pilar sí salen (`getPostsByCategory` tampoco filtra), y esa incoherencia se lee como un
+ * error.
+ */
+export async function listStoresByCategory(
+  categoryKeys: readonly string[],
+  limit: number,
+  near: Coordinates | null = null,
+): Promise<readonly StoreSummary[]> {
+  // `IN ()` no es SQL válido: una clave desconocida llega aquí como lista vacía, no como error.
+  if (categoryKeys.length === 0) return [];
+
+  const keys = sql.join(
+    categoryKeys.map((key) => sql`${key}`),
+    sql`, `,
+  );
+  const filter = sql`AND EXISTS (
+        SELECT 1 FROM posts p
+        WHERE p.seller_id = s.id
+          AND (p.category IN (${keys}) OR p.sub_category IN (${keys}))
+      )`;
+
+  const { stores } = await queryStores(filter, 1, limit, near);
+
+  return stores;
+}
+
+/** Quién produce, y —cuando se pide— si eso cae dentro del radio sostenible. */
+function producerFilter(
   kind: DirectoryKind,
-  page: number,
-  pageSize: number,
   near: Coordinates | null,
   withinRadius: boolean,
-): Promise<DirectoryPage> {
-  const offset = (page - 1) * pageSize;
+): SQL {
+  if (!onlyProducers(kind)) return sql``;
+
   const anchor = anchorFor(near);
   const radiusFilter = withinRadius
     ? sql`AND EXISTS (
@@ -93,13 +142,29 @@ async function queryStores(
             )
         )`
     : sql``;
-  const producerFilter = onlyProducers(kind)
-    ? sql`AND EXISTS (
-          SELECT 1 FROM posts p
-          WHERE p.seller_id = s.id AND p.origin = 'productor'
-        )
-        ${radiusFilter}`
-    : sql``;
+
+  return sql`AND EXISTS (
+        SELECT 1 FROM posts p
+        WHERE p.seller_id = s.id AND p.origin = 'productor'
+      )
+      ${radiusFilter}`;
+}
+
+/**
+ * El listado de tiendas con su distancia, paginado. Quien llama pone **su** filtro.
+ *
+ * La forma —qué columnas, cómo se mide la distancia, cómo se ordena y cómo se cuenta el total— es la
+ * misma para el directorio y para la sección de un pilar; lo único que cambia es a quién se deja
+ * entrar. Copiar la consulta para cambiar un `EXISTS` habría sido el segundo bloque casi idéntico
+ * que `AGENTS.md` llama fallo de diseño.
+ */
+async function queryStores(
+  filter: SQL,
+  page: number,
+  pageSize: number,
+  near: Coordinates | null,
+): Promise<DirectoryPage> {
+  const offset = (page - 1) * pageSize;
 
   /*
    * La distancia a la sucursal más cercana de cada tienda, o `NULL`.
@@ -140,7 +205,7 @@ async function queryStores(
       COUNT(*) OVER()::int AS total_count
     FROM sellers s
     WHERE s.slug IS NOT NULL
-    ${producerFilter}
+    ${filter}
     ORDER BY ${order}
     LIMIT ${pageSize} OFFSET ${offset}
   `);

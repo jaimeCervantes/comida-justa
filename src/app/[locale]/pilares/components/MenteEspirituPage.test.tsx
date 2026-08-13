@@ -8,6 +8,11 @@ vi.mock("./PillarPractice", () => ({
   default: () => <section data-testid="pillar-practice" />,
 }));
 
+/* Y la seccion local lee la base y la sesion: misma frontera, mismo corte. */
+vi.mock("./PillarLocal", () => ({
+  default: () => <section data-testid="pillar-local" />,
+}));
+
 function sectionOf(heading: string): HTMLElement {
   const title = screen.getByRole("heading", { name: heading });
   const section = title.closest("section");

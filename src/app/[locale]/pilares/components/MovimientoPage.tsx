@@ -11,6 +11,7 @@ import PillarArticle, {
   PillarPanel,
   PillarSectionHeading,
 } from "./PillarArticle";
+import PillarLocal from "./PillarLocal";
 import PillarPractice from "./PillarPractice";
 import PillarReferences from "./PillarReferences";
 import { MOVEMENT_REFERENCES } from "./references";
@@ -56,6 +57,10 @@ export default function MovimientoPage({ locale }: { locale: AppLocale }) {
       </section>
 
       <PillarPractice challenge="movement" locale={locale} />
+
+      {/* Quien acaba de comprometerse con el trayecto es quien puede querer saber con quién de la
+          zona sostenerlo. Va pegada a la práctica y antes de la guía: es la parte accionable. */}
+      <PillarLocal challenge="movement" locale={locale} />
 
       {/* La guía va después de la práctica: quien ya se comprometió con el trayecto y los dos
           minutos es quien necesita saber cada cuánto vuelve y con qué pisa. */}

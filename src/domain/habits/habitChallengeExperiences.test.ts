@@ -54,3 +54,32 @@ describe("habit challenge experiences", () => {
     });
   });
 });
+
+/**
+ * El mapeo pilar → raíz del catálogo, como corrida de escritorio.
+ *
+ * Es la tabla que decide qué se le ofrece de la zona a quien acaba de leer un ritual. Una errata
+ * aquí no revienta nada: devuelve cero filas, y eso se ve **exactamente igual** que "todavía no hay
+ * nadie registrado cerca", que es hoy el estado legítimo de tres de los cuatro pilares. Por eso se
+ * afirma fila por fila en vez de confiar en que la página se vea bien.
+ */
+describe("la categoría del catálogo de cada pilar", () => {
+  it.each([
+    ["sleep", "sueno_y_descanso"],
+    ["nutrition", "alimentacion"],
+    ["movement", "movimiento_y_ejercicio"],
+    ["mind", "mente_y_espiritu"],
+  ] as const)("%s ofrece lo publicado en %s", (experience, categoryKey) => {
+    expect(HABIT_CHALLENGE_EXPERIENCES[experience].categoryKey).toBe(
+      categoryKey,
+    );
+  });
+
+  it("no le da la misma categoría a dos pilares", () => {
+    const keys = Object.values(HABIT_CHALLENGE_EXPERIENCES).map(
+      (experience) => experience.categoryKey,
+    );
+
+    expect(new Set(keys).size).toBe(keys.length);
+  });
+});
