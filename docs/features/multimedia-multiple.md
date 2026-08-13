@@ -148,6 +148,34 @@ camino entero: `EditablePostValues` (`EditPostForm.tsx`), `EditablePost` y `Post
 - Quitar el ultimo archivo no se guarda: se explica que hace falta al menos uno, y la publicacion
   conserva el que tenia. (No estaba en el roadmap; ver la bitacora del slice 3.)
 
+### Slice 4 - Verla en grande y arrastrarla de sitio
+
+**Alcance**
+
+La bandeja se quedo corta en cuanto se pudo editar: 88 px no bastan para reconocer cual de tres
+etiquetas parecidas es cual, y para llevar el cuarto archivo a la portada hacen falta tres toques de
+flecha. Las tres piezas son de `PostMediaTray`, asi que publicar y editar las reciben a la vez.
+
+- **Ver en grande.** La miniatura pasa a ser un boton que abre el archivo a tamano completo sobre la
+  pantalla. Lo pinta `MediaContent`, el mismo que la ficha publica, para que un video se vea como
+  video y una foto vertical no se recorte; el tipo se normaliza antes con `mediaTypeFromMime`,
+  porque en el formulario todavia es un MIME (`image/jpeg`) y `MediaContent` conmuta por categoria.
+- **Arrastrar para ordenar.** Con el raton se arrastra la miniatura hasta el sitio que le toca, en
+  vez de empujarla de una en una. **Las flechas se quedan**: son el unico camino con teclado y con
+  lector de pantalla, y quitarlas cambiaria una mejora por una regresion de accesibilidad.
+- **Miniaturas mas grandes**: de 88 a 112 px.
+
+**Criterios de aceptacion**
+
+- Tocar una miniatura abre el archivo en grande; `Escape`, el boton de cerrar y el clic fuera lo
+  cierran, y el foco vuelve a la miniatura desde la que se abrio.
+- Un video se abre como video —con sus controles— y no como una imagen rota.
+- Arrastrar el tercer archivo sobre el primero lo deja de portada, y los otros dos corren un puesto
+  sin cambiar su orden relativo.
+- Soltar un archivo sobre si mismo no cambia nada.
+- Las flechas siguen haciendo lo mismo que antes, y el orden que producen es el mismo que el del
+  arrastre.
+
 ## Validacion
 
 - `pnpm run test:run`

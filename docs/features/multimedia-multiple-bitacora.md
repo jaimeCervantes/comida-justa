@@ -502,3 +502,156 @@ que es lo que quedaba pendiente desde el slice 1: 280 escenarios en verde.
 
 **Acciones pendientes del usuario:** ninguna para dar por cerrada la feature. `dev` esta pusheado en
 `e3336b9`.
+
+## 2026-08-13 - Slice 4: Verla en grande y arrastrarla de sitio
+
+### Objetivo
+
+La bandeja se quedo corta en cuanto se pudo editar. Con 88 px se distingue que hay tres archivos
+pero no cual es cada uno, y llevar el cuarto a la portada costaba tres toques de flecha. Tres piezas:
+ver el archivo en grande, arrastrarlo de sitio, y miniaturas mas grandes.
+
+### Decisiones y racional
+
+- **Las tres piezas son de `PostMediaTray`**, asi que publicar y editar las reciben a la vez sin
+  tocar ninguna de las dos pantallas. Es el dividendo del slice anterior: cuando la bandeja vivia
+  dentro de `PublishForm`, esto habria sido dos cambios o —mas probable— uno.
+
+- **La vista grande no pinta el archivo: se lo pide a `MediaContent`.** Es el mismo que usan la ficha
+  publica y la galeria, y ya sabe distinguir un video de una imagen y respetar `width`/`height`
+  reales. Un segundo renderizador habria vuelto a decidir por su cuenta que hacer con una foto
+  vertical, y las dos pantallas se habrian separado el dia que una cambiara.
+
+- **El tipo se normaliza con `mediaTypeFromMime` antes de entrar.** `MediaContent` conmuta por
+  categoria (`image`, `video`) y en el formulario el tipo todavia puede ser el MIME del archivo
+  recien subido (`image/jpeg`). Sin normalizar, un video caia en `DefaultContent` y se pintaba como
+  un enlace de descarga. Tiene su prueba.
+
+- **No es un `<dialog>` nativo, y no por gusto.** El nativo trae foco atrapado y `Escape` de fabrica,
+  pero `showModal()` no existe en el jsdom 24 con el que corren las pruebas de componente: la mitad
+  del comportamiento no se podria comprobar en ninguna parte. Se escribe a mano lo que el nativo
+  daria —`Escape`, clic en el fondo, foco al abrir y devuelto al cerrar—, y asi cada pieza tiene su
+  prueba. Si algun dia sube el jsdom, esto se puede cambiar por el nativo con las pruebas ya escritas.
+
+- **Solo el fondo cierra, y se compara `event.target` con `event.currentTarget`.** Con un
+  `onClick={onClose}` a secas en el fondo, el clic en el boton de cerrar burbujeaba hasta el y
+  `onClose` corria **dos veces**. Lo encontro la prueba antes que nadie. Comparar el objetivo evita
+  ademas tener que parar la burbuja en cada hijo, que era la otra salida y deja mas codigo.
+
+- **El titulo y la etiqueta de cerrar llegan como props.** La vista grande no sabe si la abre
+  publicar o editar, asi que no puede saber de que espacio de nombres salen sus textos. Es la misma
+  regla que `loadingLabel` en `Button`.
+
+- **Las flechas se quedan.** Arrastrar es de raton; el teclado y el lector de pantalla solo tienen
+  las flechas. Cambiar una mejora por una regresion de accesibilidad no es un cambio que valga la
+  pena, y hay una prueba que falla si alguien las quita.
+
+- **De donde sale el arrastre va en una `ref`, no en el estado.** Cambia en cada `dragover`, y un
+  `setState` por evento repintaria la lista entera decenas de veces mientras se arrastra. Lo que si
+  se pinta —cual se esta arrastrando, que se ve translucido— va en estado y cambia dos veces: al
+  empezar y al soltar.
+
+- **Soltar un archivo sobre si mismo no llama a `onMove`.** Es un no-cambio, y anunciarlo como
+  movimiento haria que el formulario se marcara como tocado sin que nadie tocara nada.
+
+- **Una linea dice que se puede arrastrar.** El arrastre no se ve: sin decirlo, quien no lo intente
+  nunca lo descubre. Solo aparece con mas de un archivo, que es cuando hay algo que ordenar.
+
+- **112 px y no mas.** La bandeja es un indice, no una galeria; para mirar de verdad esta la vista
+  grande. Con diez archivos, una miniatura mas grande empujaria el boton de publicar fuera de la
+  pantalla en un telefono.
+
+### Archivos tocados
+
+**Presentacion**
+
+- `src/presentation/media/MediaPreviewDialog/MediaPreviewDialog.tsx` y `.test.tsx` (nuevos).
+- `src/presentation/media/PostMediaTray/PostMediaTray.tsx` y `.test.tsx`: la miniatura pasa a ser un
+  boton, el arrastre, el aviso y los 112 px.
+
+**i18n**
+
+- `src/i18n/messages/{es,en}.json`: `mediaPreview`, `mediaPreviewTitle`, `mediaPreviewClose` y
+  `mediaDragHint`.
+
+**Especificacion y e2e**
+
+- `src/e2e/multimedia/multimediaMultiple.feature`: los escenarios `@slice-4`.
+- `src/e2e/testUtils/mediaTray.ts`: los localizadores `preview` y `previewDialog`.
+- `src/e2e/createPost/PublishPage.ts`: solo el comentario, que ya contaba mal los botones por fila.
+
+**Documentacion**
+
+- `docs/features/multimedia-multiple.md`: el slice 4.
+
+### Comandos clave
+
+```
+pnpm vitest --run src/presentation/media    # el bucle corto mientras se escribe
+pnpm run typecheck && pnpm run typecheck:tests
+pnpm run format                             # biome reformateo dos archivos
+pnpm run lint
+pnpm run check:i18n
+pnpm run test:run
+```
+
+### Resultados de validacion
+
+- `pnpm run test:run`: **1552 pruebas en 152 archivos, todas en verde**. El slice 3 cerro en
+  1536/151, o sea **16 pruebas nuevas**: 7 de `MediaPreviewDialog` y 9 de la bandeja (3 de la vista
+  grande, 6 del arrastre y el aviso).
+- `pnpm run typecheck` y `pnpm run typecheck:tests`: exit 0.
+- `pnpm run lint`: 801 archivos, exit 0 —despues de `pnpm run format`, que reformateo dos.
+- `pnpm run check:i18n`: exit 0.
+- **`pnpm run test:e2e:run`: NO se ejecuto**, por indicacion del usuario, que la corre cuando quiera.
+  Ver "Pendientes": hay un motivo concreto para correrla en este slice y no solo por costumbre.
+
+### Desviaciones del roadmap
+
+- **Ningun escenario nuevo de Playwright.** Los cinco del slice van en `@component`, y el `.feature`
+  dice por que: las tres piezas son estado de cliente del mismo componente que ya comparten las dos
+  pantallas —no hay ida y vuelta al servidor que observar—, y lo unico que acaba en `post_media` es
+  el orden, que la e2e del slice 3 ya comprueba a traves de las flechas. El arrastrar y soltar de
+  HTML5 ademas se prueba mal en un navegador: no se simula con un `dragTo` sino con una secuencia de
+  raton que no dispara los mismos eventos, asi que un escenario verde ahi no diria que la funcion
+  sirve.
+- **Una prueba existente hubo que precisarla.** `cada boton de quitar dice que archivo quita` buscaba
+  por `/archivo 2/i`, y con la miniatura convertida en boton eso casa con dos. Pasa a
+  `/quitar el archivo 2/i`, que es lo que ya hacian las pruebas de `PostMediaField`.
+
+### Pendientes
+
+- **Correr la e2e completa** (`--shard=1/2` y `2/2`). No es tramite: la bandeja cambio de forma y hay
+  cuatro botones por archivo donde habia tres. Los localizadores de `MediaTray` son precisos y no
+  deberian romperse —`quitar el archivo N`, `archivo N antes`, `archivo N despues` siguen siendo
+  unicos—, pero eso es un razonamiento, no una corrida.
+- **Mirar la pantalla de verdad.** El tamano de las flechas sobre una miniatura de 112 px y el
+  contraste del aviso solo se juzgan viendolos; ninguna prueba dice si el arrastre "se siente" bien.
+- Sin tocar, del slice anterior: el gancho `pre-commit` que corre la e2e entera, `Posts.d.ts`, y los
+  dummies que son el mismo archivo tres veces.
+
+### Recap
+
+La bandeja dejo de ser solo un indice: la miniatura abre el archivo a tamano completo —con
+`MediaContent`, el mismo que la ficha publica, asi que un video se ve como video—, se puede arrastrar
+para reordenar sin ir de flecha en flecha, y las miniaturas pasan de 88 a 112 px. Las flechas siguen
+donde estaban porque son el unico camino con teclado. Todo vive en `PostMediaTray`, asi que publicar
+y editar lo reciben a la vez. Validacion local completa en verde; la e2e queda pendiente por
+indicacion del usuario.
+
+### Proximos pasos (opciones)
+
+1. **Correr la e2e** (recomendado): es lo unico que falta para dar el slice por cerrado, y este es el
+   slice que mas cambia la forma de la bandeja.
+2. **Verlo a mano** con `pnpm run dev` en `/publicar` y en `/editar/<slug>`: el arrastre y el tamano
+   de las flechas son juicios visuales.
+3. **Mergear a `dev`** cuando la e2e pase; la rama es `feat/multimedia-arrastrar`.
+4. **Arreglar el gancho `pre-commit`**, que sigue corriendo la e2e entera de una sola vez y es lo que
+   obliga a commitear con `--no-verify`.
+
+**Acciones pendientes del usuario:**
+
+```
+pnpm exec playwright test --shard=1/2
+pnpm exec playwright test --shard=2/2
+```
