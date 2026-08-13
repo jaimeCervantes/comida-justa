@@ -8,7 +8,7 @@ function makePost(overrides: Partial<Post> = {}): Post {
     slug: "producto-de-prueba",
     content: "Contenido válido de prueba",
     contactInfo: { phone: "2781092116" },
-    media: { url: "http://hazlosano.com/x.jpg", type: "image", alt: "x" },
+    media: [{ url: "http://hazlosano.com/x.jpg", type: "image", alt: "x" }],
     user: { id: "user123" },
     createdAt: new Date(),
     ...overrides,
@@ -76,5 +76,50 @@ describe("PostValidator — kind & origin", () => {
         makePost({ kind: "producto", price: 50, origin: "hazlo_sano_propio" }),
       ),
     ).not.toThrow();
+  });
+});
+
+describe("PostValidator — media", () => {
+  const validator = new PostValidator();
+
+  function files(count: number) {
+    return Array.from({ length: count }, (_, index) => ({
+      url: `http://hazlosano.com/${index}.jpg`,
+      type: "image",
+    }));
+  }
+
+  it.each([0, 1, 5, 10])("acepta %i archivos", (count) => {
+    expect(() =>
+      validator.validate(makePost({ media: files(count) })),
+    ).not.toThrow();
+  });
+
+  it("acepta ninguno porque editar valida sin tocar la media", () => {
+    /* `updateOnePostUseCase` pasa una lista vacía: su formulario no muestra los archivos. Un mínimo
+       aquí haría imposible corregir un título. Que publicar exija uno es regla del formulario, y
+       vive en `errors.media` de la Server Action, que sí puede contestarle a la persona. */
+    expect(() => validator.validate(makePost({ media: [] }))).not.toThrow();
+  });
+
+  it("rechaza pasarse del tope, que la base no impone", () => {
+    expect(() => validator.validate(makePost({ media: files(11) }))).toThrow(
+      /10 archivos/,
+    );
+  });
+
+  it("rechaza un archivo sin direccion", () => {
+    expect(() =>
+      validator.validate(makePost({ media: [{ url: "", type: "image" }] })),
+    ).toThrow(/dirección/);
+  });
+
+  it("rechaza un archivo que no dice si es imagen o video", () => {
+    /* `MediaContent` despacha por `type`; sin él la ficha enseñaría un enlace de descarga. */
+    expect(() =>
+      validator.validate(
+        makePost({ media: [{ url: "http://hazlosano.com/x.jpg", type: "" }] }),
+      ),
+    ).toThrow(/imagen o vídeo/);
   });
 });

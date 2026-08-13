@@ -36,12 +36,16 @@ export default class PostgresPostRepository implements IPostRepository {
         content: postData.content ?? "",
       });
 
-      const mediaItems = Array.isArray(postData.media)
-        ? postData.media
-        : [postData.media];
+      /* El filtro es por elemento y no por el primero. Antes bastaba con que el primero trajera URL
+         —la media era una sola—, así que una lista con un hueco en medio habría insertado una fila
+         con `url` vacía, que es `NOT NULL` pero no rechaza la cadena en blanco: una publicación con
+         un archivo fantasma en la posición 2. */
+      const mediaItems = postData.media.filter((item) => item?.url);
 
-      if (mediaItems.length > 0 && mediaItems[0]?.url) {
+      if (mediaItems.length > 0) {
         await tx.insert(postMedia).values(
+          /* El índice **después** de filtrar: `sort_order` es la posición en la publicación, no en
+             lo que llegó, así que quitar un hueco no debe dejar un salto en la numeración. */
           mediaItems.map((item, index) => ({
             postId,
             url: item.url,

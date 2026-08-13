@@ -26,7 +26,17 @@ export default function ImagePicker({
   const id = useId();
   const inputId = `${id}-${name}`;
 
+  /**
+   * La vista previa local del archivo elegido.
+   *
+   * **Solo cuando se elige de uno en uno.** Con `multiple`, quien pinta lo elegido es la bandeja de
+   * quien usa este selector —ahí están todos, numerados y con su botón de quitar—, y dejar además
+   * esta previa mostraría el primero de la última tanda como si fuera el único: dos vistas del mismo
+   * dato discrepando. El caso de uno solo (el logo de una tienda) sí la necesita, porque ahí no hay
+   * ninguna otra.
+   */
   function readFile(files: FileList | null) {
+    if (multiple) return;
     if (files === null) return;
     const file = files.item(0);
     if (file === null) return;

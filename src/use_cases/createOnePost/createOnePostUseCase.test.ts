@@ -47,11 +47,13 @@ describe("CreatePostUseCase", () => {
         subCategory: null,
         // Sin tienda, la publicación nace sin vendedor; `/publicar` lo llena cuando lo hay.
         sellerId: null,
-        media: {
-          url: expectedFileUrl,
-          type: expectedFileType,
-          alt: samplePostInfo.title,
-        },
+        media: [
+          {
+            url: expectedFileUrl,
+            type: expectedFileType,
+            alt: samplePostInfo.title,
+          },
+        ],
         user: samplePostInfo.user,
         createdAt: expect.any(Date),
       },
@@ -162,11 +164,13 @@ describe("CreatePostUseCase", () => {
         subCategory: null,
         // Sin tienda, la publicación nace sin vendedor; `/publicar` lo llena cuando lo hay.
         sellerId: null,
-        media: {
-          url: expectedFileUrl,
-          type: expectedFileType,
-          alt: samplePostInfo.title,
-        },
+        media: [
+          {
+            url: expectedFileUrl,
+            type: expectedFileType,
+            alt: samplePostInfo.title,
+          },
+        ],
         user: samplePostInfo.user,
         createdAt: expect.any(Date),
       },

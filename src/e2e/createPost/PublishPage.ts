@@ -4,7 +4,8 @@ import { stubStorageUpload } from "../testUtils/stubStorageUpload";
 type PublishValues = {
   title: string;
   price: string;
-  file: string;
+  /** One path, or several: a publication now carries up to ten files. */
+  file: string | string[];
   phone: string;
   description: string;
 };
@@ -63,6 +64,28 @@ export default class PublishPage {
     // fields above guarantees hydration happened, so the event isn't dropped and the
     // "Subido" state actually appears.
     await this.file.setInputFiles(values.file);
+  }
+
+  /** Adds files to whatever is already in the tray, the way a second trip to the picker does. */
+  async addFiles(files: string | string[]) {
+    await this.file.setInputFiles(files);
+    await expect(this.uploaded).toBeVisible({ timeout: 45_000 });
+  }
+
+  /** How many files the tray is holding right now. */
+  trayItems(): Locator {
+    return this.page.getByTestId("post-media-tray-item");
+  }
+
+  trayCounter(): Locator {
+    return this.page.getByTestId("post-media-tray-counter");
+  }
+
+  /** Removes the file at `position` (1-based, the number shown on the thumbnail). */
+  async removeFile(position: number) {
+    await this.page
+      .getByRole("button", { name: new RegExp(`archivo ${position}`, "i") })
+      .click();
   }
 
   async verifyForm() {

@@ -32,7 +32,7 @@ describe("SearchPostsUseCase", () => {
         title: "Test Post",
         content: "Content",
         slug: "test-post",
-        media: { url: "", type: "image" },
+        media: [{ url: "", type: "image" }],
         user: { id: "u1" },
         createdAt: new Date(),
         contactInfo: { phone: "123" },

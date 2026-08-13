@@ -1,4 +1,5 @@
 import { isValidKind } from "~/domain/entities/post/kind";
+import { MAX_POST_MEDIA_FILES } from "~/domain/entities/post/mediaPayload";
 import { isValidOrigin } from "~/domain/entities/post/origin";
 import type {
   IPostValidator,
@@ -25,6 +26,45 @@ export default class PostValidator implements IPostValidator {
     );
     this.validateUser(post.user);
     this.validateKindAndOrigin(post);
+    this.validateMedia(post);
+  }
+
+  /**
+   * Los archivos de la publicación: forma y tope, **sin mínimo**.
+   *
+   * No exige que haya al menos uno a propósito. La edición valida una publicación cuyo formulario ni
+   * siquiera muestra la media (`updateOnePostUseCase` pasa una lista vacía), así que un mínimo aquí
+   * haría imposible corregir un título. Que publicar exija un archivo sigue siendo cierto, pero es
+   * una regla del formulario —vive en `errors.media` de la Server Action, que es quien puede
+   * contestarle a la persona— y no una condición para que la entidad sea coherente.
+   *
+   * El tope, en cambio, sí es de la entidad: la base no lo impone (no hay límite de filas en
+   * `post_media`) y sin él una publicación con doscientas imágenes sería un dato válido.
+   */
+  private validateMedia(post: Post): VoidOrError {
+    const media = post.media ?? [];
+
+    if (!Array.isArray(media)) {
+      throw new PostMediaError("La media de una publicación es una lista.");
+    }
+
+    if (media.length > MAX_POST_MEDIA_FILES) {
+      throw new PostMediaError(
+        `Una publicación no lleva más de ${MAX_POST_MEDIA_FILES} archivos.`,
+      );
+    }
+
+    for (const file of media) {
+      if (!file?.url) {
+        throw new PostMediaError("Cada archivo necesita su dirección.");
+      }
+
+      if (!file.type) {
+        throw new PostMediaError(
+          `El archivo "${file.url}" no dice si es imagen o vídeo.`,
+        );
+      }
+    }
   }
 
   /**
@@ -138,6 +178,14 @@ class PostClassificationError extends Error {
   constructor(message: string) {
     super(message);
     this.name = "PostClassificationError";
+    this.message = message;
+  }
+}
+
+class PostMediaError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "PostMediaError";
     this.message = message;
   }
 }

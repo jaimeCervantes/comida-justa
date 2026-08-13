@@ -89,7 +89,11 @@ export default class UpdateOnePostUseCase {
       kind: post.kind as never,
       origin: input.origin as never,
       contactInfo: { phone: "" },
-      media: { url: "", type: "" },
+      /* Vacía, y ya no falsa. Editar no toca `post_media` (ver `EditPostForm`), así que aquí no hay
+         nada que validar; antes se pasaba un archivo inventado con la URL en blanco solo para
+         satisfacer el tipo singular. Por eso `validateMedia` no exige un mínimo: si lo exigiera,
+         corregir un título sería imposible. */
+      media: [],
       user: { id: post.ownerId } as User,
       createdAt: new Date(),
     });

@@ -33,8 +33,10 @@ export default function StoreProfileForm({
   >(action, {});
   const [logoUrl, setLogoUrl] = useState<string>("");
 
+  /* El logo es uno solo, así que se toma el primero de la tanda: el selector de aquí no lleva
+     `multiple`, con lo que la lista nunca trae más de un elemento. */
   const onLogoUploaded = useCallback((data: UploadedMediaResult | null) => {
-    setLogoUrl(data?.media?.url ?? "");
+    setLogoUrl(data?.media?.[0]?.url ?? "");
   }, []);
 
   return (

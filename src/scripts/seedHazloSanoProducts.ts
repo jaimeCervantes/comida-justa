@@ -175,7 +175,7 @@ async function seedHazloSanoProducts() {
       kind: "producto",
       origin: product.origin,
       contactInfo: CONTACT,
-      media: { url: MEDIA_URL, type: "image", alt: product.title },
+      media: [{ url: MEDIA_URL, type: "image", alt: product.title }],
       user: { id: ownerId },
       createdAt: new Date(),
     });
