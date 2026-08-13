@@ -11,6 +11,15 @@ import { findSuiteUserId } from "./suiteAccount";
 const SEED_MEDIA_URL =
   "https://firebasestorage.googleapis.com/v0/b/test/o/seed.jpg?alt=media";
 
+/** Un archivo sembrado, con la dirección variando para que las filas no salgan indistinguibles. */
+function seedMediaFile(index: number, alt: string) {
+  return {
+    url: `https://firebasestorage.googleapis.com/v0/b/test/o/seed-${index}.jpg?alt=media`,
+    type: "image",
+    alt,
+  };
+}
+
 export type SeedPostInput = {
   title: string;
   slug: string;
@@ -33,6 +42,13 @@ export type SeedPostInput = {
    * falta poder poner el término **solo** en el texto.
    */
   content?: string;
+  /**
+   * Cuántos archivos lleva. Uno por omisión, que es lo que tienen las 23 publicaciones reales.
+   *
+   * Lo necesita la galería: probar que con un archivo no salen ni flechas ni miniaturas, y que con
+   * varios sí, exige poder sembrar las dos formas.
+   */
+  mediaCount?: number;
 };
 
 /**
@@ -59,7 +75,12 @@ export async function seedPost(input: SeedPostInput): Promise<string> {
     category: input.category ?? null,
     subCategory: input.subCategory ?? null,
     contactInfo: { phone: "2781092116" },
-    media: { url: SEED_MEDIA_URL, type: "image", alt: input.title },
+    media:
+      (input.mediaCount ?? 1) <= 1
+        ? [{ url: SEED_MEDIA_URL, type: "image", alt: input.title }]
+        : Array.from({ length: input.mediaCount ?? 1 }, (_, index) =>
+            seedMediaFile(index, input.title),
+          ),
     user: { id: userId },
     createdAt: new Date(),
   });

@@ -2,6 +2,7 @@
 import { after } from "next/server";
 import { getLocale, getTranslations } from "next-intl/server";
 import { DEFAULT_POST_KIND, type PostKind } from "~/domain/entities/post/kind";
+import { parsePostMediaPayload } from "~/domain/entities/post/mediaPayload";
 import { resolveOriginForUser } from "~/domain/entities/post/origin";
 import PostEntity from "~/domain/entities/post/Post";
 import { resolveKeyStrict } from "~/domain/entities/post/taxonomy";
@@ -147,30 +148,25 @@ export async function createPost(
       ? requestedSubCategory
       : null;
 
+  /* El campo oculto trae la lista entera, en el orden en que se subieron; el índice acaba en
+     `sort_order`. Las dimensiones las midió el navegador antes de subir (`readImageSize`) y viajan
+     en este mismo JSON: aquí no se validan más allá de que sean números utilizables, porque el
+     `CHECK` de `post_media` ya rechaza un cero o un negativo y el dominio trata «falta una» como
+     «no lo sabemos».
+
+     El `alt` se fija al título por la misma razón de siempre: la columna no tiene idioma, así que
+     quien pinta lo reemplaza por el de la traducción activa. */
+  const media = parsePostMediaPayload(mediaJSON, { alt: title });
+
   const errors = {
     title: title ? null : t("errorTitleRequired"),
-    content: content ? null : "El contenido es obligatorio",
+    content: content ? null : t("errorContentRequired"),
     phone: phone ? null : t("errorPhoneRequired"),
-    media: mediaJSON
-      ? null
-      : "Los datos del recourso(video, imagen) son obligatorios",
+    /* Se comprueba lo que se pudo interpretar y no que el campo traiga texto. Antes bastaba con que
+       el campo no estuviera vacío, así que un JSON roto pasaba el filtro y la publicación se
+       guardaba sin ninguna imagen. */
+    media: media.length > 0 ? null : t("errorMediaRequired"),
   };
-
-  /* Las dimensiones las mide el navegador antes de subir (`readImageSize`) y viajan en este mismo
-     JSON. Aquí no se validan más allá de que sean números: el `CHECK` de `post_media` rechaza un
-     cero o un negativo, y el dominio ya trata «falta una» como «no lo sabemos». */
-  let media: {
-    url: string;
-    type: string;
-    alt: string;
-    width?: number;
-    height?: number;
-  } = { url: "", type: "", alt: "" };
-  try {
-    media = JSON.parse(mediaJSON);
-  } catch (error) {
-    console.log(error);
-  }
 
   const hasErrors = Object.values(errors).some((errMsg) => errMsg);
 
@@ -201,13 +197,7 @@ export async function createPost(
       subCategory,
       sellerId: seller?.id ?? null,
       createdAt: new Date(),
-      media: {
-        url: media.url,
-        type: media.type.split("/")[0],
-        alt: title,
-        width: media.width,
-        height: media.height,
-      },
+      media,
       user: session?.user as User,
     });
   } catch (err) {

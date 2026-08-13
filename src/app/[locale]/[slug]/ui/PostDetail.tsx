@@ -2,6 +2,7 @@ import { getTranslations } from "next-intl/server";
 import { MdPhone } from "react-icons/md";
 import { canBeOrdered, isSellable } from "~/domain/entities/post/availability";
 import { resolvePostTranslation } from "~/domain/entities/post/translations";
+import type { PostMediaFile } from "~/domain/entities/post/types";
 import { buildWhatsappOrderLink } from "~/domain/entities/post/whatsappOrder";
 import { routing } from "~/i18n/routing";
 import { PUBLIC_BASE_URL, SITE_CURRENCY } from "~/infra/constants";
@@ -12,7 +13,7 @@ import { CARD_ROW } from "~/presentation/design_system/surfaces/cardSpacing";
 import { Heading } from "~/presentation/design_system/typography/Heading";
 import ShareLocationButton from "~/presentation/location/ShareLocationButton";
 import StoreDistance from "~/presentation/location/StoreDistance";
-import MediaContent from "~/presentation/media/MediaContent/MediaContent";
+import MediaGallery from "~/presentation/media/MediaGallery/MediaGallery";
 import CurrencyAmount from "~/presentation/money/CurrencyAmount";
 import { setAvailability } from "~/presentation/post/availabilityAction";
 import CategoryTag from "~/presentation/post/CategoryTag/CategoryTag";
@@ -93,9 +94,26 @@ export default async function PostDetail({
    * equivalente y además lo traduce, sin migración: quien lee con lector de pantalla en inglés deja
    * de oír el título en español.
    */
-  const media = postDetails.media[0]
-    ? { ...postDetails.media[0], alt: title ?? postDetails.media[0].alt }
-    : { url: "", type: "", alt: "" };
+  /* La anotación es necesaria: el `Post` de `infra/types/Posts.d.ts` acaba en una firma de índice
+     `{ [k: string]: unknown }`, así que `postDetails.media` llega sin forma y recorrerla dejaría los
+     parámetros en `any` implícito. Es deuda anterior a esta entrega —el tipo bueno es el de
+     `~/domain/entities/post/types`— y aquí solo se le pone nombre a lo que ya viaja. */
+  const files = (postDetails.media ?? []) as PostMediaFile[];
+
+  const media = files.map((file, index) => ({
+    ...file,
+    /* El primero se anuncia con el título a secas, que es lo que era cuando solo había uno. Del
+       segundo en adelante lleva su posición: cuatro imágenes con el mismo texto alternativo hacen
+       que un lector de pantalla repita la misma frase cuatro veces sin distinguir nada. */
+    alt:
+      index === 0
+        ? (title ?? file.alt ?? "")
+        : t("mediaAltNumbered", {
+            title: title ?? "",
+            position: index + 1,
+            count: files.length,
+          }),
+  }));
 
   /* La dirección pública de la ficha. La usan el pedido por WhatsApp y el botón de compartir: si
      se calcularan por separado, un cambio de ruta dejaría a uno de los dos apuntando al vacío. */
@@ -127,7 +145,7 @@ export default async function PostDetail({
         {title}
       </Heading>
 
-      <MediaContent media={media} className="h-auto mb-4" />
+      <MediaGallery items={media} className="mb-4" />
 
       {/* Todo lo que se mira para decidir, en un solo bloque bajo la imagen: de quién es, qué es, a
           qué distancia queda, cuánto cuesta y a qué número se llama.

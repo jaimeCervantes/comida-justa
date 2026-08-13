@@ -59,7 +59,16 @@ export type Post = {
     email?: string;
     whatsapp?: string;
   };
-  media: PostMediaFile;
+  /**
+   * Los archivos de la publicación, **en su orden**: el índice acaba en `post_media.sort_order` y
+   * el 0 es la portada que piden el carrito, los pedidos y el bot.
+   *
+   * Fue singular hasta esta entrega, y eso era una mentira que costaba: todo el que la lee la trata
+   * como lista —las cuatro consultas la devuelven con `jsonb_agg ... ORDER BY sort_order`— y el
+   * repositorio de búsqueda tenía que romper el tipo con un `as unknown as` para poder devolver lo
+   * que la base sí guardaba.
+   */
+  media: PostMediaFile[];
   user: User;
   createdAt: Date;
 };

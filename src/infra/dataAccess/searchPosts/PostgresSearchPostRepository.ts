@@ -1,4 +1,6 @@
 import { inArray, sql } from "drizzle-orm";
+import { DEFAULT_POST_KIND, isValidKind } from "~/domain/entities/post/kind";
+import { isValidOrigin } from "~/domain/entities/post/origin";
 import type { PostMediaFile } from "~/domain/entities/post/types";
 import type { Coordinates } from "~/domain/entities/seller/coordinates";
 import { db } from "~/infra/dataAccess/db/connection";
@@ -9,21 +11,11 @@ import {
   postTranslations,
 } from "~/infra/dataAccess/db/schema/posts";
 import { sellers } from "~/infra/dataAccess/db/schema/sellers";
-import type { ISearchPostResultDTO } from "~/use_cases/searchPosts/dtos/ISearchPostResultDTO";
+import type {
+  ISearchPostResultDTO,
+  SearchStoreIdentity,
+} from "~/use_cases/searchPosts/dtos/ISearchPostResultDTO";
 import type { ISearchPostRepository } from "~/use_cases/searchPosts/ports/ISearchPostRepository";
-
-/**
- * Lo mínimo para pintar una tienda en una tarjeta y llegar a ella.
- *
- * Se declara aquí y no se importa de `presentation/identity/StoreIdentity` porque `infra` no puede
- * depender de la capa de presentación. Es la misma forma que ya declara `PostData.seller` en
- * `IPostQueryRepository`, por el mismo motivo.
- */
-type SearchStoreIdentity = {
-  handle: string;
-  name: string;
-  logoUrl?: string | null;
-};
 
 /**
  * La tienda de una publicación, o `null` cuando no hay a dónde enlazar.
@@ -535,11 +527,16 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
            * y ni el botón de añadir ni la insignia de agotado aparecían en un resultado de
            * búsqueda, mientras la misma publicación sí los mostraba en `/productos`.
            */
-          kind: row.kind,
+          /* `kind` y `origin` son columnas `text`: la base los entrega como cadena pelada y el
+             dominio los tiene como uniones cerradas. Se estrechan con los mismos type guards que
+             usa el validador, así que un valor que alguien metiera a mano en la base cae al
+             predeterminado en vez de viajar disfrazado de miembro de la unión. Lo destapó quitar el
+             `as unknown as`; con el cast, esta discrepancia no existía para TypeScript. */
+          kind: isValidKind(row.kind) ? row.kind : DEFAULT_POST_KIND,
           isAvailable: row.isAvailable,
           /* El resto de la línea de insignias, para que un resultado de búsqueda enseñe lo mismo
              que la misma publicación en `/productos`: de dónde viene, qué es y de quién es. */
-          origin: row.origin ?? null,
+          origin: isValidOrigin(row.origin) ? row.origin : null,
           category: row.category ?? null,
           subCategory: row.subCategory ?? null,
           seller: toStoreIdentity(sellerById.get(row.sellerId ?? "")),
@@ -558,13 +555,13 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
             image: user?.image ?? undefined,
           },
           createdAt: row.createdAt,
-          /* El `as unknown as` sigue aquí por **una** discrepancia concreta y no por comodidad: el
-             `Post` del dominio declara `media: PostMediaFile` en singular, mientras que todo el que
-             la lee la trata como lista. Mientras ese tipo no se arregle, cualquier campo que se
-             olvide aquí se pierde en silencio — que es exactamente lo que pasó con `kind` e
-             `isAvailable` —y antes con `origin`, `category`, `subCategory` y `seller`—. Ya no falta
-             ninguno; lo que queda es el tipo de `media`. */
-        } as unknown as ISearchPostResultDTO,
+          /* Sin `as unknown as`. Vivió aquí mientras el `Post` del dominio declaró `media` en
+             singular y todo el que la leía la trataba como lista: el cast tapaba esa discrepancia y
+             de paso silenciaba cualquier campo que se olvidara —así se perdieron `kind` e
+             `isAvailable`, y antes `origin`, `category`, `subCategory` y `seller`—. Ahora que el
+             tipo es plural el objeto encaja de verdad, y olvidar un campo vuelve a ser un error de
+             compilación en vez de un dato que desaparece. */
+        } satisfies ISearchPostResultDTO,
       ];
     });
   }

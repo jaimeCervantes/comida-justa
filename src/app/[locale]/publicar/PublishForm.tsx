@@ -2,10 +2,12 @@
 import { useTranslations } from "next-intl";
 import { useActionState, useCallback, useState } from "react";
 import { MdOutlinePriceChange, MdPhone, MdTitle } from "react-icons/md";
+import { MAX_POST_MEDIA_FILES } from "~/domain/entities/post/mediaPayload";
 import type { CategoryOption } from "~/domain/entities/post/taxonomy";
 import { Link } from "~/i18n/navigation";
 import { POST_CONTENT_MAX_LENGTH } from "~/infra/constants";
 import type { ActionState } from "~/infra/types/Actions";
+import type { UploadedMedia } from "~/infra/UI/hooks/useStorageUpload";
 import { originOptionsFor } from "~/infra/UI/labels/postOriginLabels";
 import { Button } from "~/presentation/design_system/buttons/Button";
 import { Alert } from "~/presentation/design_system/feedback/Alert";
@@ -15,6 +17,7 @@ import { TextField } from "~/presentation/design_system/forms/TextField";
 import ImageVideoUploader, {
   type UploadedMediaResult,
 } from "~/presentation/media/ImageVideoUploader/ImageVideoUploader";
+import PostMediaTray from "~/presentation/media/PostMediaTray/PostMediaTray";
 
 export default function PublishForm({
   action,
@@ -50,24 +53,40 @@ export default function PublishForm({
   const [kind, setKind] = useState<string>("anuncio");
   const [origin, setOrigin] = useState<string>("");
   const [category, setCategory] = useState<string>("");
-  const [mediaJSON, setMediaJSON] = useState<string>("");
+  const [media, setMedia] = useState<UploadedMedia[]>([]);
   const [isLoadingMedia, setIsLoadingMedia] = useState<boolean | null>(null);
-  const [imagePickerLabel, setImageVideoPickerLabel] = useState(t("media"));
 
+  /**
+   * Cada tanda **se suma** a lo que ya había.
+   *
+   * Antes se hacía `setMediaJSON(JSON.stringify(data?.media))`, o sea que volver a abrir el selector
+   * borraba lo anterior: no había forma de juntar dos archivos ni equivocándose. Se deduplica por
+   * `path` —la ruta en Cloud Storage, única por archivo— porque el efecto que dispara esto depende
+   * de `media`, y sin el filtro un renderizado extra volvería a añadir la misma tanda.
+   */
   const onUploadedCallback = useCallback(
     async (data: UploadedMediaResult | null) => {
-      setImageVideoPickerLabel(
-        "Cambia tu mejor imagen o cambia tu mejor video",
-      );
-      try {
-        setMediaJSON(JSON.stringify(data?.media));
-        setIsLoadingMedia(data?.isLoading ?? null);
-      } catch (error) {
-        console.log(error);
-      }
+      setIsLoadingMedia(data?.isLoading ?? null);
+
+      const uploaded = data?.media ?? [];
+      if (uploaded.length === 0) return;
+
+      setMedia((current) => {
+        const known = new Set(current.map((item) => item.path));
+        const added = uploaded.filter((item) => !known.has(item.path));
+
+        return [...current, ...added].slice(0, MAX_POST_MEDIA_FILES);
+      });
     },
     [],
   );
+
+  const removeMedia = useCallback((index: number) => {
+    setMedia((current) => current.filter((_, position) => position !== index));
+  }, []);
+
+  const remaining = MAX_POST_MEDIA_FILES - media.length;
+  const pickerLabel = media.length === 0 ? t("media") : t("mediaAddMore");
 
   return (
     <section className="p-4">
@@ -192,20 +211,32 @@ export default function PublishForm({
         />
 
         <ImageVideoUploader
-          label={imagePickerLabel}
+          label={pickerLabel}
           name={""}
           onUploaded={onUploadedCallback}
-          className="mb-6"
+          className="mb-2"
           accept="image/*,video/*"
           required={false}
+          multiple
+          remaining={remaining}
+          uploadingLabel={(progress) =>
+            t("mediaUploading", { progress: Math.round(progress) })
+          }
+          uploadedLabel={(count) => t("mediaUploaded", { count })}
         />
 
-        <input
-          name="media"
-          hidden
-          defaultValue={mediaJSON}
-          required={true}
-        ></input>
+        <PostMediaTray
+          items={media}
+          onRemove={removeMedia}
+          max={MAX_POST_MEDIA_FILES}
+          className="mb-6"
+        />
+
+        {/* El array entero, en orden: su índice acaba en `post_media.sort_order`.
+            Sin `required`: el navegador no valida un input oculto, así que ese atributo prometía
+            una comprobación que nunca ocurrió. Quien exige al menos un archivo es la Server
+            Action, que además puede decir por qué. */}
+        <input name="media" hidden readOnly value={JSON.stringify(media)} />
 
         <TextField
           required
