@@ -10,6 +10,7 @@ import {
 import { cn } from "~/presentation/design_system/styling/merge-class-names";
 import MediaPreviewDialog from "~/presentation/media/MediaPreviewDialog/MediaPreviewDialog";
 import Thumbnail from "~/presentation/media/Thumbnail/Thumbnail";
+import VideoWithSkeleton from "~/presentation/media/VideoWithSkeleton/VideoWithSkeleton";
 
 /** Un archivo ya subido, tal y como lo devuelve `useStorageUpload`. */
 export interface PostMediaTrayItem {
@@ -297,12 +298,13 @@ function MoveButton({
 function MediaThumbnail({ item }: { item: PostMediaTrayItem }) {
   if (mediaTypeFromMime(item.type) === "video") {
     return (
-      <video
+      <VideoWithSkeleton
         src={item.url}
         muted
         preload="metadata"
         aria-hidden
-        className={cn("shrink-0 rounded-lg object-cover")}
+        frameClassName="shrink-0 rounded-lg"
+        className={cn("rounded-lg object-cover")}
         style={{ width: THUMBNAIL_SIZE, height: THUMBNAIL_SIZE }}
       />
     );

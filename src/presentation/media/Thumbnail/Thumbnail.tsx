@@ -1,5 +1,5 @@
-import Image from "next/image";
 import { cn } from "~/presentation/design_system/styling/merge-class-names";
+import ImageWithSkeleton from "~/presentation/media/ImageWithSkeleton/ImageWithSkeleton";
 
 /**
  * La foto pequeña de un producto en una lista: carrito, pedido, cualquier renglón.
@@ -30,14 +30,18 @@ export default function Thumbnail({
   if (!url) return null;
 
   return (
-    <Image
+    <ImageWithSkeleton
       src={url}
       alt=""
       aria-hidden
       width={size}
       height={size}
+      /* El hueco se sabe exactamente —es cuadrado y mide `size`—, así que no hay que adivinarlo: el
+         navegador pide esa variante y no una de 1920 para enseñarla a 112. */
+      sizes={`${size}px`}
       data-testid={testId}
-      className={cn("shrink-0 rounded-lg object-cover", className)}
+      frameClassName="shrink-0 rounded-lg"
+      className={cn("rounded-lg object-cover", className)}
       style={{ width: size, height: size }}
     />
   );
