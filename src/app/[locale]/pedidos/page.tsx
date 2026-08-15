@@ -10,8 +10,9 @@ import { findSellerOfUser } from "~/infra/dataAccess/identity/sessionIdentity";
 import { createOrderRepository } from "~/infra/dataAccess/orders/factory";
 import { Heading } from "~/presentation/design_system/typography/Heading";
 import BuyerOrders from "./ui/BuyerOrders";
-import OrdersControls, { type OrdersParams } from "./ui/OrdersControls";
+import OrdersControls from "./ui/OrdersControls";
 import OrdersPagination from "./ui/OrdersPagination";
+import type { OrdersParams } from "./ui/ordersHref";
 import SellerOrders from "./ui/SellerOrders";
 
 /**

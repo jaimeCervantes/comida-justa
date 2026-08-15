@@ -1,11 +1,11 @@
 "use client";
-import { useFormatter, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 import { useActionState } from "react";
-import { nextStatuses, type Order } from "~/domain/order/order";
+import { nextStatuses } from "~/domain/order/order";
+import type { OrderWithBuyer } from "~/domain/order/ports";
 import { Button } from "~/presentation/design_system/buttons/Button";
-import { Surface } from "~/presentation/design_system/surfaces/Surface";
-import OrderLines from "~/presentation/orders/OrderLines/OrderLines";
-import OrderStatusBadge from "~/presentation/orders/OrderStatusBadge/OrderStatusBadge";
+import OrderBuyer from "~/presentation/orders/OrderBuyer/OrderBuyer";
+import OrderCard from "~/presentation/orders/OrderCard/OrderCard";
 import {
   type AdvanceOrderState,
   advanceOrder,
@@ -26,7 +26,7 @@ export default function SellerOrders({
   orders,
   emptyKey,
 }: {
-  orders: Order[];
+  orders: OrderWithBuyer[];
   /** No es lo mismo «no te han pedido nada» que «no hay nada con ese filtro». */
   emptyKey: "filtered" | "none";
 }) {
@@ -49,40 +49,29 @@ export default function SellerOrders({
   );
 }
 
-function SellerOrderCard({ order }: { order: Order }) {
+function SellerOrderCard({ order }: { order: OrderWithBuyer }) {
   const t = useTranslations("orders");
-  const format = useFormatter();
   const [state, action, isPending] = useActionState<
     AdvanceOrderState,
     FormData
   >(advanceOrder, {});
 
   return (
-    <Surface
-      as="li"
-      radius="lg"
-      background="raised"
-      border="subtle"
-      className="p-4"
-      data-testid="seller-order"
-      data-order-id={order.id}
+    <OrderCard
+      order={order}
+      testId="seller-order"
+      /* Quién lo pidió va donde en la otra lista va la tienda: es la contraparte, y quien prepara
+         algo necesita saber para quién antes que ninguna otra cosa. */
+      party={
+        <OrderBuyer
+          name={order.buyerName}
+          handle={order.buyerHandle}
+          image={order.buyerImage}
+        />
+      }
     >
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <OrderStatusBadge status={order.status} />
-        {/* `useFormatter` y no `toLocaleDateString`: el idioma es el de la ruta y no el del
-            navegador, así que el servidor y el cliente pintan lo mismo. Mismo motivo que en
-            `FormattedDate`. */}
-        <span className="text-label text-text-support">
-          {t("placedOn", {
-            date: format.dateTime(order.createdAt, { dateStyle: "medium" }),
-          })}
-        </span>
-      </div>
-
-      <OrderLines lines={order.lines} />
-
       {/* Un pedido entregado o cancelado no ofrece nada: `nextStatuses` devuelve la lista vacía. */}
-      <div className="mt-4 flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2">
         {nextStatuses(order.status).map((status) => (
           <form key={status} action={action}>
             <input type="hidden" name="orderId" value={order.id} />
@@ -109,6 +98,6 @@ function SellerOrderCard({ order }: { order: Order }) {
           {t("errorTransition")}
         </p>
       ) : null}
-    </Surface>
+    </OrderCard>
   );
 }

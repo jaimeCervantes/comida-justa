@@ -9,6 +9,7 @@ import {
   ORDER_STATUSES,
   type OrderLine,
   type OrderStatus,
+  orderItemCount,
   orderTotal,
 } from "./order";
 
@@ -150,5 +151,33 @@ describe("checkoutTotal", () => {
 
   it("sin pedidos no inventa un importe", () => {
     expect(checkoutTotal([])).toBe(0);
+  });
+});
+
+/* La corrida de escritorio de `orders.feature` (@slice-6). Se cuentan CANTIDADES, no renglones: el
+   pedido real del 14 de agosto tiene 3 filas en la tabla y 9 cosas que preparar. */
+describe("orderItemCount", () => {
+  const pechugaNaranja: OrderLine = {
+    postId: "d4e1a70e-9f43-4b25-9a0c-3c9e2a0b1f11",
+    title: "Pechuga de pollo a la naranja en bistec",
+    unitPrice: 105,
+    quantity: 1,
+    slug: "pechuga-de-pollo-a-la-naranja-en-bistec",
+    imageUrl: null,
+  };
+
+  it("suma las cantidades, no los renglones", () => {
+    const seisSueros = { ...sueroNatural, quantity: 6 };
+    const dosAsadas = { ...pechugaNaranja, title: "asada", quantity: 2 };
+
+    expect(orderItemCount([pechugaNaranja, dosAsadas, seisSueros])).toBe(9);
+  });
+
+  it("dos renglones de uno son dos artículos", () => {
+    expect(orderItemCount([sueroNatural, pechugaNaranja])).toBe(2);
+  });
+
+  it("un pedido sin renglones no lleva nada", () => {
+    expect(orderItemCount([])).toBe(0);
   });
 });

@@ -1,40 +1,11 @@
 import { getTranslations } from "next-intl/server";
 import type { OrderScope } from "~/domain/order/order";
 import { Link } from "~/i18n/navigation";
-
-export type OrdersView = "received" | "placed";
-
-export interface OrdersParams {
-  view: OrdersView;
-  scope: OrderScope;
-  term: string;
-  page: number;
-}
+import OrdersSearchField from "./OrdersSearchField";
+import { type OrdersParams, type OrdersView, ordersHref } from "./ordersHref";
 
 /** Los tres ámbitos, en el orden en que se ofrecen. */
 const SCOPES: readonly OrderScope[] = ["open", "closed", "all"];
-
-/**
- * Arma la dirección de la lista cambiando **solo** lo que se pide.
- *
- * Todo lo demás se conserva: cambiar de estado no puede perder la búsqueda, y buscar no puede
- * dejarte en la página 4 de un resultado que tiene una.
- */
-export function ordersHref(
-  current: OrdersParams,
-  change: Partial<OrdersParams>,
-): { pathname: "/pedidos"; query: Record<string, string> } {
-  const next = { ...current, ...change };
-  const query: Record<string, string> = { vista: next.view };
-
-  if (next.scope !== "open") query.estado = next.scope;
-  if (next.term) query.q = next.term;
-  // La página vuelve a 1 en cuanto cambia el filtro: `change.page` manda si viene.
-  if (next.page > 1 && change.page !== undefined)
-    query.pagina = String(next.page);
-
-  return { pathname: "/pedidos", query };
-}
 
 /**
  * Las pestañas, el filtro de estado y la búsqueda.
@@ -44,8 +15,10 @@ export function ordersHref(
  * pantalla. Con pestañas hay un solo juego de controles, y el número que llevan al lado dice si hay
  * algo esperando **en la otra** — que es lo único que se perdía al no verlas juntas.
  *
- * La búsqueda es un `<form method="get">`: sin JavaScript sigue funcionando, y el navegador arma la
- * URL solo. Los demás filtros viajan como campos ocultos para no perderse al buscar.
+ * La búsqueda sigue siendo un `<form method="get">` —sin JavaScript funciona igual, y el navegador
+ * arma la URL solo— pero ya no espera al Enter: `OrdersSearchField` es la única pieza de cliente de
+ * esta barra, y está sola en su archivo precisamente para que el resto siga pintándose en el
+ * servidor.
  */
 export default async function OrdersControls({
   current,
@@ -96,21 +69,7 @@ export default async function OrdersControls({
           ))}
         </div>
 
-        <form method="get" className="flex grow items-center gap-2">
-          <input type="hidden" name="vista" value={current.view} />
-          {current.scope === "open" ? null : (
-            <input type="hidden" name="estado" value={current.scope} />
-          )}
-          <input
-            type="search"
-            name="q"
-            defaultValue={current.term}
-            placeholder={t("searchPlaceholder")}
-            aria-label={t("searchLabel")}
-            data-testid="orders-search"
-            className="min-w-40 grow rounded-lg border border-separator bg-transparent px-3 py-1"
-          />
-        </form>
+        <OrdersSearchField current={current} />
       </div>
     </div>
   );

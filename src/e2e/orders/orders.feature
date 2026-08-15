@@ -380,7 +380,83 @@ Feature: Carrito y pedidos
       | ' OR 1=1 --                          | nulo      | una cookie la escribe cualquiera            |
       | (vacía)                              | nulo      | todavía no hay compra empezada              |
 
-  @slice-6 @future
+  # Slice 6. La tarjeta del comprador se escribió "resumida, no desglosada", apostando a que el
+  # detalle podía esperar a /pedido/<id>. Los pedidos reales tumbaron la apuesta: cuatro de los cinco
+  # son a la MISMA tienda, los cuatro Pendientes y tres de la misma semana. Tienda, estado y fecha ya
+  # no distinguen nada, y lo único que los separa —qué se pidió— era justo lo que no se enseñaba.
+  @slice-6
+  Scenario: Distingo un pedido de otro sin abrir ninguno
+    Given dos pedidos míos a la misma tienda, los dos Pendientes: uno de 6 "Suero natural" a 35 y
+      otro de 1 "Pechuga de pollo asada en bistec" a 105
+    When abro "/pedidos" en "Tus pedidos"
+    Then cada tarjeta enseña sus renglones con miniatura, cantidad e importe, y su total
+    And la del suero dice que lleva 6 artículos y suma 210
+    And "Ver el pedido" lleva a su página
+
+  # La contrapartida de enseñar el desglose: la tarjeta deja de ser un enlace entero, porque un
+  # enlace no puede llevar enlaces dentro. El destino no se pierde, se nombra.
+  @slice-6
+  Scenario: Desde la lista salto al producto que pedí
+    Given un pedido mío de "Suero natural", que sigue publicado
+    When pulso su renglón en "/pedidos"
+    Then llego a la publicación del producto, no a la del pedido
+
+  # No es que no se pintara: `listBySeller` no traía el comprador. La clave "Lo pidió {name}" llevaba
+  # en los dos catálogos desde el slice 2 sin que nadie la usara.
+  @slice-6
+  Scenario: El vendedor ve a quién le está preparando el pedido
+    Given un pedido que me hizo alguien con perfil público
+    When abro "/pedidos" en "Pedidos que te han hecho"
+    Then la tarjeta dice "Lo pidió <nombre>", con su avatar
+    And su nombre lleva a "/u/<username>"
+
+  @slice-6
+  Scenario: Y también al abrirlo
+    Given ese mismo pedido
+    When lo abro como vendedor
+    Then su página también dice quién lo pidió
+    But quien compró no ve ese renglón: decirle que lo pidió él no le informa de nada
+
+  @slice-6
+  Scenario: La lista se filtra mientras escribo
+    Given pedidos con "Suero natural" y con "Pechuga de pollo asada en bistec"
+    When escribo "suero" y NO pulso Enter
+    Then la lista se queda solo con los que llevaban suero
+    And la dirección conserva la pestaña y el estado, y vuelve a la página 1
+    And pulsar Enter sigue funcionando igual, porque el formulario no se quitó
+
+  @slice-6 @component
+  Scenario Outline: Cuándo se consulta al servidor mientras se escribe
+    # Vitest con temporizadores falsos sobre `OrdersSearchField`: son cuestiones de tiempo, y
+    # montarlas en el navegador sería medir esperas reales en cada corrida.
+    Given la lista de pedidos abierta
+    When <gesto>
+    Then se pide la lista <veces>
+
+    Examples:
+      | gesto                                        | veces                   | razón                                            |
+      | escribo "sue" y espero                       | una vez, con "sue"      | el caso normal                                   |
+      | escribo "s", "u", "e" sin parar              | una vez, con "sue"      | por letra sería una consulta por tecla           |
+      | escribo "sue" y borro hasta dejarlo vacío    | una vez, sin término    | volver a la lista entera es un filtro más        |
+      | escribo "sue" y no espero nada               | ninguna vez             | 300 ms es lo que separa teclear de haber escrito |
+
+  @slice-6 @component
+  Scenario Outline: Cuántos artículos lleva un pedido
+    # Vitest sobre `orderItemCount`: se cuentan CANTIDADES, no renglones. El pedido real de 3
+    # renglones lleva 9 artículos, y decir "3" sería contar filas de una tabla, no cosas que entregar.
+    Given un pedido con <renglones>
+    When se cuenta lo que lleva
+    Then son <artículos> artículos
+
+    Examples:
+      | renglones                                  | artículos | razón                                    |
+      | 1 × naranja, 2 × asada, 6 × suero          | 9         | el pedido real de 525 del 14 de agosto   |
+      | 1 × electrolitos, 1 × dona                 | 2         | dos renglones de uno                     |
+      | ninguno                                    | 0         | un pedido vacío no lleva nada            |
+
+  # El pago en línea es lo único que queda sin fecha: sigue condicionado a que el volumen de pedidos
+  # lo justifique. Es el slice 7 porque el 5 y el 6 ya se hicieron, cada uno en su rama.
+  @slice-7 @future
   Scenario: Se paga en línea
     Given un pedido aceptado
     When pago

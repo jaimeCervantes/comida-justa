@@ -31,7 +31,15 @@ export function renderWithIntl(
 ): RenderResult {
   function Wrapper({ children }: { children: ReactNode }) {
     return (
-      <NextIntlClientProvider locale={locale} messages={CATALOGS[locale]}>
+      <NextIntlClientProvider
+        locale={locale}
+        messages={CATALOGS[locale]}
+        /* La misma que fija `i18n/request.ts` en producción. Sin ella, `format.dateTime` avisa por
+           consola y formatea en la zona de la máquina: una fecha afirmada en una prueba pasaría en
+           local y fallaría en CI, que corre en otra. Se copia el valor y no se importa porque
+           `request.ts` es un `getRequestConfig`, que no se puede evaluar fuera de una petición. */
+        timeZone="America/Mexico_City"
+      >
         {children}
       </NextIntlClientProvider>
     );

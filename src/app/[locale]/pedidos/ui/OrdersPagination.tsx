@@ -1,6 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import { Link } from "~/i18n/navigation";
-import { type OrdersParams, ordersHref } from "./OrdersControls";
+import { type OrdersParams, ordersHref } from "./ordersHref";
 
 const LINK =
   "focus-ring rounded-full border border-separator bg-surface-elevation-1 px-4 py-2 text-text-base transition-colors hover:bg-surface-elevation-2";

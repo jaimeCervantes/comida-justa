@@ -28,6 +28,28 @@ export interface OrderWithSeller extends Order {
 }
 
 /**
+ * Un pedido con **quién lo hizo** ya resuelto.
+ *
+ * Es lo que el vendedor necesita para saber a quién le está preparando algo, y no estaba: la
+ * consulta traía la tienda —que al vendedor le sobra— y no el comprador. Los tres campos son nulos
+ * porque las tres columnas lo son: `users.name` puede faltar, el `username` sólo lo tiene quien lo
+ * eligió, y sin él no hay perfil al que enlazar.
+ */
+export interface OrderWithBuyer extends Order {
+  buyerName: string | null;
+  buyerHandle: string | null;
+  buyerImage: string | null;
+}
+
+/**
+ * Las dos partes, que es lo que la consulta produce de todas formas.
+ *
+ * Cada lista se queda con la mitad que le sirve —quien compra ya sabe quién es— y la ficha del
+ * pedido las necesita las dos, porque la miran los dos.
+ */
+export interface OrderWithParties extends OrderWithSeller, OrderWithBuyer {}
+
+/**
  * Qué trozo de la lista se pide.
  *
  * **Nunca se lee la lista entera.** Un vendedor con trescientos pedidos entregados no puede pagar
@@ -61,8 +83,11 @@ export interface OrderRepository {
    */
   createAll(orders: readonly NewOrder[]): Promise<Order[]>;
 
-  /** Lo que le han pedido a esa tienda, de lo más reciente a lo más viejo. */
-  listBySeller(sellerId: string, query: OrderQuery): Promise<OrderPage<Order>>;
+  /** Lo que le han pedido a esa tienda, con quien lo pidió ya resuelto. */
+  listBySeller(
+    sellerId: string,
+    query: OrderQuery,
+  ): Promise<OrderPage<OrderWithBuyer>>;
 
   /**
    * Los pedidos hermanos: los que salieron del mismo carrito.
@@ -102,7 +127,7 @@ export interface OrderRepository {
     orderId: string,
     locale: string,
     fallbackLocale: string,
-  ): Promise<OrderWithSeller | null>;
+  ): Promise<OrderWithParties | null>;
 
   /**
    * Solo de quién es y en qué estado está.

@@ -1,19 +1,19 @@
 "use client";
-import { useFormatter, useTranslations } from "next-intl";
-import { orderTotal } from "~/domain/order/order";
+import { useTranslations } from "next-intl";
 import type { OrderWithSeller } from "~/domain/order/ports";
 import { Link } from "~/i18n/navigation";
-import { SITE_CURRENCY } from "~/infra/constants";
-import { Surface } from "~/presentation/design_system/surfaces/Surface";
-import CurrencyAmount from "~/presentation/money/CurrencyAmount";
-import OrderStatusBadge from "~/presentation/orders/OrderStatusBadge/OrderStatusBadge";
+import OrderCard from "~/presentation/orders/OrderCard/OrderCard";
 
 /**
- * Lo que ha pedido quien mira, con su estado.
+ * Lo que ha pedido quien mira, **desglosado**.
  *
- * **Resumido, no desglosado**: la tienda, en qué va y cuánto suma. El detalle vive en
- * `/pedido/<id>`, que es además de donde se avisa al vendedor — repetir aquí los renglones haría la
- * lista ilegible en cuanto haya tres pedidos.
+ * Antes era un resumen —la tienda, el estado y el total— porque el detalle vivía en `/pedido/<id>`.
+ * Con los pedidos reales eso dejó de servir: cuatro de los cinco son a la misma tienda y los cuatro
+ * están Pendientes, así que la lista enseñaba cuatro tarjetas idénticas y había que abrirlas una a
+ * una para saber cuál era cuál.
+ *
+ * **Por eso la tarjeta ya no es un enlace entero.** Los renglones llevan a su producto, y un enlace
+ * no puede llevar enlaces dentro; el destino no se pierde, se nombra al pie.
  */
 export default function BuyerOrders({
   orders,
@@ -24,7 +24,6 @@ export default function BuyerOrders({
   emptyKey: "filtered" | "none";
 }) {
   const t = useTranslations("orders");
-  const format = useFormatter();
 
   if (orders.length === 0) {
     if (emptyKey === "filtered") {
@@ -46,42 +45,24 @@ export default function BuyerOrders({
   }
 
   return (
-    <ul className="flex flex-col gap-3" data-testid="buyer-orders">
+    <ul className="flex flex-col gap-4" data-testid="buyer-orders">
       {orders.map((order) => (
-        <Surface
+        <OrderCard
           key={order.id}
-          as="li"
-          radius="lg"
-          background="raised"
-          border="subtle"
-          interactive
-          data-testid="buyer-order"
+          order={order}
+          testId="buyer-order"
+          party={<span className="font-medium">{order.sellerName}</span>}
         >
-          <Link
-            href={{ pathname: "/pedido/[id]", params: { id: order.id } }}
-            className="flex flex-wrap items-center justify-between gap-3 p-4"
-            aria-label={t("viewOrder")}
-          >
-            <span className="flex min-w-0 flex-col">
-              <span className="font-medium">{order.sellerName}</span>
-              <span className="text-label text-text-support">
-                {t("placedOn", {
-                  date: format.dateTime(order.createdAt, {
-                    dateStyle: "medium",
-                  }),
-                })}
-              </span>
-            </span>
-
-            <span className="flex items-center gap-3">
-              <OrderStatusBadge status={order.status} />
-              <CurrencyAmount
-                value={orderTotal(order.lines)}
-                currency={SITE_CURRENCY}
-              />
-            </span>
-          </Link>
-        </Surface>
+          <div className="flex justify-end">
+            <Link
+              href={{ pathname: "/pedido/[id]", params: { id: order.id } }}
+              data-testid="buyer-order-link"
+              className="focus-ring rounded-lg px-2 py-1 font-medium text-pw-green hover:underline"
+            >
+              {t("viewOrder")}
+            </Link>
+          </div>
+        </OrderCard>
       ))}
     </ul>
   );

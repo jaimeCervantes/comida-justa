@@ -364,7 +364,66 @@ mal.
    engancha a la de hoy.
 7. Una cookie `hs_checkout` manipulada no rompe la confirmación: se descarta y se empieza de nuevo.
 
-### Slice 6 — Pago en línea  *(@future, condicionado)*
+### Slice 6 — El pedido se reconoce sin abrirlo  *(actual)*
+
+**El defecto son tres, y los tres se ven en la base de hoy** (5 pedidos, 15 de agosto de 2026):
+
+1. `BuyerOrders` se escribió "resumido, no desglosado" a propósito, y la premisa era que el detalle
+   podía esperar a `/pedido/<id>`. Con los pedidos reales esa premisa se cae: **cuatro son a la misma
+   tienda, los cuatro `PENDING`, tres de la misma semana**. Tienda, estado y fecha ya no distinguen
+   nada, y lo único que los separa —qué se pidió— es justo lo que no se enseña. El de 525 lleva 3
+   renglones y 9 artículos; el de 70, dos renglones. Desde la lista los dos se ven igual.
+2. **El vendedor no ve a quién le prepara el pedido.** No es que no se pinte: `listBySeller` no trae
+   el comprador, y `listWhere` sólo hace `JOIN sellers`. La clave `orders.buyer` («Lo pidió {name}»)
+   lleva en los dos catálogos desde el slice 2 sin que nadie la use.
+3. **La búsqueda sólo dispara con Enter**, porque es un `<form method="get">` pelado. La búsqueda
+   principal del sitio (`SearchBar`) filtra mientras se escribe: dos comportamientos distintos para
+   el mismo gesto, en el mismo sitio.
+
+- **Una sola tarjeta para los dos papeles** (`presentation/orders/OrderCard/`): la contraparte y el
+  estado arriba, la fecha y cuántos artículos debajo, los renglones de `OrderLines` en medio, y un
+  pie que cambia — las acciones del vendedor, o «Ver el pedido» para quien compró.
+- **La tarjeta del comprador deja de ser un enlace entero.** Es la consecuencia directa de la
+  decisión de arriba, no un capricho: los renglones ahora enlazan a su producto, y un enlace no puede
+  llevar enlaces dentro. El destino no se pierde, se nombra («Ver el pedido»).
+- **Quién pidió**, con avatar y enlazado a `/u/<username>` cuando lo tiene: `users` entra en la misma
+  consulta que ya hacía `JOIN sellers`, por el mismo motivo que se escribió allí — es una fila que ya
+  está en memoria. También en `/pedido/<id>`, y **sólo para el vendedor**: a quien compró decirle que
+  lo pidió él no le informa de nada.
+- **La búsqueda filtra mientras se escribe**, con 300 ms de espera y `router.replace` para no llenar
+  el historial de un teclazo por letra. El `<form method="get">` **se queda**: es lo que hace que
+  Enter siga funcionando y que la pantalla sirva sin JavaScript.
+- **Sin migración.** Todo sale de columnas que ya existen.
+
+#### Por qué `replace` y no `push`
+
+Escribir «suero» son cinco cambios de URL. Con `push`, el botón de atrás obliga a deshacerlos letra
+por letra antes de salir de la página; con `replace`, atrás devuelve a donde se estaba antes de
+buscar, que es lo que quiere quien pulsa atrás. El precio es que no se puede "deshacer" una letra con
+el navegador, que nadie hace: para eso está la tecla de borrar.
+
+#### Por qué 300 ms y no los 500 de `SearchBar`
+
+No son la misma operación. `SearchBar` va a la API de búsqueda semántica y pinta un desplegable
+encima de lo que estás leyendo; equivocarse ahí cuesta una consulta cara y un parpadeo. Aquí se
+refiltra una lista que ya estás mirando, contra un `ILIKE` sobre los pedidos de una sola persona.
+
+**Criterios de aceptación:**
+1. Una tarjeta de «Tus pedidos» enseña sus renglones con miniatura, cantidad e importe, y su total,
+   sin abrir el pedido.
+2. Cada renglón enlaza a su producto, y «Ver el pedido» al detalle.
+3. La tarjeta del vendedor dice quién lo pidió y su nombre lleva a su perfil cuando tiene `username`;
+   sin `username` se lee igual, sin enlace.
+4. Las dos tarjetas dicen cuántos artículos lleva el pedido, contando cantidades y no renglones.
+5. Escribir «suero» filtra la lista sin pulsar Enter, conserva pestaña y estado, y vuelve a la
+   página 1.
+6. Pulsar Enter sigue funcionando, y la búsqueda sigue siendo un `<form method="get">` con su campo
+   `q`, así que también funciona sin JavaScript.
+
+### Slice 7 — Pago en línea  *(@future, condicionado)*
+
+El 5 y el 6 se hicieron en paralelo, en dos ramas, y el pago se quedó donde estaba: sin fecha. Es el
+7 porque los otros dos ya existen, no porque se haya acercado.
 
 **No se empieza hasta que los pedidos del slice 2 lo justifiquen.** No es una pantalla de checkout:
 es repartir dinero entre vendedores, y eso trae KYC por vendedor, datos fiscales, devoluciones y
@@ -383,7 +442,7 @@ cuántos se caen entre `PENDING` y `DELIVERED`, y si a quien compra local le est
 
 ## Fuera de alcance (por ahora)
 
-Pago en línea (slice 6, condicionado). Envíos, paquetería y costos de entrega. Inventario y descuento
+Pago en línea (slice 7, condicionado). Envíos, paquetería y costos de entrega. Inventario y descuento
 de existencias — hoy `is_available` es un sí/no, no una cantidad. Cupones y promociones. Facturación.
 Calificaciones del vendedor tras la compra.
 
