@@ -145,6 +145,73 @@ test.describe("Cuando miro lo que he pedido", () => {
     await expect(page.getByTestId("order-detail")).toBeVisible();
   });
 
+  /* Slice 7. El botón de avisar existía desde el slice 2, pero sólo en la ficha: una pantalla por la
+     que se pasa UNA vez, al confirmar. De los 7 pedidos reales, 6 seguían Pendientes. */
+  test("Entonces aviso a la tienda sin abrir el pedido", async ({ page }) => {
+    await placeOrder(page, suero.slug, 6);
+
+    await openPlaced(page);
+
+    const aviso = page
+      .getByTestId("buyer-order")
+      .first()
+      .getByTestId("buyer-order-notify");
+
+    await expect(aviso).toBeVisible();
+
+    const href = (await aviso.getAttribute("href")) ?? "";
+    const mensaje = decodeURIComponent(href);
+
+    // Al número de ESA tienda, con lada.
+    expect(href).toContain(`wa.me/52${TIENDA.phone}`);
+    // Y con el desglose, el total y la dirección del pedido: lo mismo que manda la ficha.
+    expect(mensaje).toContain(`6 × ${suero.title}`);
+    expect(mensaje).toContain("Total: $210");
+    expect(mensaje).toContain("/pedido/");
+    /* El mensaje lo lee el vendedor: lo que encabeza es un saludo, no la instrucción que se le da al
+       comprador en la pantalla. */
+    expect(mensaje).toContain("te acabo de hacer un pedido");
+  });
+
+  /* La otra mitad de la regla: se avisa mientras el pedido siga abierto. Se entrega desde el panel
+     del vendedor —la misma cuenta vende— y la tarjeta deja de ofrecerlo. */
+  test("Entonces un pedido entregado ya no ofrece avisar, ni en la lista ni en la ficha", async ({
+    page,
+  }) => {
+    await placeOrder(page, suero.slug);
+    const orderUrl = page.url();
+
+    /* Se avanza hasta Entregado desde la lista de lo que le han pedido. Con `estado=all` a
+       propósito: la vista por omisión son los abiertos, así que al marcarlo entregado el pedido
+       desaparecería de la lista justo antes de poder comprobarlo. */
+    await page.goto("/pedidos?vista=received&estado=all");
+    for (const destino of ["CONFIRMED", "PREPARING", "DELIVERED"]) {
+      await page
+        .getByTestId("seller-order")
+        .first()
+        .getByTestId(`order-action-${destino}`)
+        .click();
+      await expect(
+        page.getByTestId("seller-order").first().getByTestId("order-status"),
+      ).toHaveAttribute("data-status", destino);
+    }
+
+    /* En la lista del comprador hay que pedir "Todos": un pedido entregado ya no está en abiertos,
+       que es por donde se entra. */
+    await page.goto("/pedidos?vista=placed&estado=all");
+
+    const card = page.getByTestId("buyer-order").first();
+
+    await expect(card.getByTestId("buyer-order-notify")).toHaveCount(0);
+    // El destino de siempre no se pierde: sólo desaparece la acción que ya no aplica.
+    await expect(card.getByTestId("buyer-order-link")).toBeVisible();
+
+    // Y la ficha dice lo mismo, porque la regla vive en el dominio y no en cada pantalla.
+    await page.goto(orderUrl);
+    await expect(page.getByTestId("order-detail")).toBeVisible();
+    await expect(page.getByTestId("order-notify")).toHaveCount(0);
+  });
+
   test("Entonces desde la lista salto al producto que pedí", async ({
     page,
   }) => {

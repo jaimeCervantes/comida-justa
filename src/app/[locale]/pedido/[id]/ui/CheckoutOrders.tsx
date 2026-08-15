@@ -2,9 +2,12 @@ import { getTranslations } from "next-intl/server";
 import { checkoutTotal, orderTotal } from "~/domain/order/order";
 import type { OrderWithSeller } from "~/domain/order/ports";
 import { Link } from "~/i18n/navigation";
+import type { AppLocale } from "~/i18n/routing";
 import { SITE_CURRENCY } from "~/infra/constants";
+import { absoluteOrderUrl } from "~/infra/UI/mappers/absoluteOrderUrl";
 import { Surface } from "~/presentation/design_system/surfaces/Surface";
 import CurrencyAmount from "~/presentation/money/CurrencyAmount";
+import NotifySellerButton from "~/presentation/orders/NotifySellerButton/NotifySellerButton";
 import OrderStatusBadge from "~/presentation/orders/OrderStatusBadge/OrderStatusBadge";
 
 /**
@@ -17,14 +20,24 @@ import OrderStatusBadge from "~/presentation/orders/OrderStatusBadge/OrderStatus
  * Al vendedor no se le pinta: comparte el carrito de su cliente, no su lista de proveedores.
  *
  * El pedido que se está mirando **se marca y no se enlaza a sí mismo**. Un enlace que no lleva a
- * ninguna parte es la forma más barata de que alguien crea que la página se quedó colgada.
+ * ninguna parte es la forma más barata de que alguien crea que la página se quedó colgada. Por el
+ * mismo motivo **tampoco repite su botón de avisar**: ya lo tiene arriba, en su propia tarjeta, y la
+ * misma acción dos veces en una pantalla no es el doble de accesible. Los hermanos sí lo llevan, y es
+ * lo que convierte este bloque en el sitio donde una compra de varias tiendas se avisa entera.
+ *
+ * **Un solo botón para las N tiendas no existe**: `wa.me` abre UNA conversación, y el mensaje de cada
+ * tienda lleva sus renglones y su total — uno común le contaría a cada una lo que se le compró a la
+ * otra, que es justo lo que el `user_id` del `WHERE` de `listByCheckout` evita.
  */
 export default async function CheckoutOrders({
   orders,
   currentId,
+  locale,
 }: {
   orders: OrderWithSeller[];
   currentId: string;
+  /** Sólo para armar la dirección que viaja dentro de cada mensaje. */
+  locale: AppLocale;
 }) {
   const t = await getTranslations("orders");
 
@@ -74,12 +87,26 @@ export default async function CheckoutOrders({
               ) : null}
             </span>
 
-            <span className="flex items-center gap-3">
+            <span className="flex flex-wrap items-center justify-end gap-3">
               <OrderStatusBadge status={order.status} />
               <CurrencyAmount
                 value={orderTotal(order.lines)}
                 currency={SITE_CURRENCY}
               />
+
+              {order.id === currentId ? null : (
+                <NotifySellerButton
+                  order={order}
+                  sellerPhone={order.sellerPhone}
+                  orderUrl={absoluteOrderUrl(locale, order.id)}
+                  labels={{
+                    intro: t("noticeIntro"),
+                    total: t("total"),
+                    cta: t("notifyShort"),
+                  }}
+                  testId="checkout-order-notify"
+                />
+              )}
             </span>
           </li>
         ))}

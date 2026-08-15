@@ -454,9 +454,98 @@ Feature: Carrito y pedidos
       | 1 × electrolitos, 1 × dona                 | 2         | dos renglones de uno                     |
       | ninguno                                    | 0         | un pedido vacío no lleva nada            |
 
-  # El pago en línea es lo único que queda sin fecha: sigue condicionado a que el volumen de pedidos
-  # lo justifique. Es el slice 7 porque el 5 y el 6 ya se hicieron, cada uno en su rama.
-  @slice-7 @future
+  # Slice 7. De los 7 pedidos que hay en la base, SEIS siguen Pendientes y el único que llegó a
+  # Entregado es el más viejo. El botón de avisar existe desde el slice 2, pero sólo en /pedido/<id>:
+  # una pantalla por la que se pasa UNA vez, al confirmar. Quien no lo pulsa entonces lo tiene a dos
+  # clics, y el vendedor no se entera de que le compraron.
+  @slice-7
+  Scenario: Aviso a la tienda sin abrir el pedido
+    Given mi pedido a "Hazlo Sano" de 1 "Pechuga de pollo a la naranja en bistec" a 105,
+      2 "Pechuga de pollo asada en bistec" a 105 y 6 "Suero natural" a 35, Pendiente
+    When abro "/pedidos" en "Tus pedidos"
+    Then su tarjeta ofrece avisar a la tienda por WhatsApp
+    And el enlace va al 2781126948, que es el número de esa tienda y no el de otra
+    And el mensaje lleva los tres renglones, el total 525 y la dirección de ese pedido
+
+  # Cada tienda cobra y prepara lo suyo, así que cada tienda se entera por su cuenta. Es el mismo
+  # criterio del slice 5: una compra, un pedido por tienda.
+  @slice-7
+  Scenario: Las dos tiendas de una compra se avisan por separado
+    Given una compra con un pedido a "Hazlo Sano" por 250 y otro a "Panadería de prueba" por 132
+    When abro "/pedidos"
+    Then cada tarjeta tiene su botón, con el número de su tienda y su propio total
+    And el mensaje de una no menciona lo que se le pidió a la otra
+
+  # Un solo botón para N tiendas no existe: `wa.me` abre UNA conversación, y el mensaje de cada
+  # tienda lleva sus renglones y su total — uno común le contaría a cada una lo que se le compró a la
+  # otra, que es justo lo que el slice 5 decidió no hacer. Lo que sí se puede es que no haya que
+  # navegar: el bloque de la compra ya lista a las hermanas, y ahí caben sus botones.
+  @slice-7
+  Scenario: Aviso a las dos tiendas de una compra desde una sola pantalla
+    Given una compra con un pedido a "Hazlo Sano" por 250 y otro a "Panadería de prueba" por 132
+    When abro el pedido de "Hazlo Sano"
+    Then arriba tengo el botón de avisar a "Hazlo Sano", que es el pedido que estoy mirando
+    And en el bloque de la compra, "Panadería de prueba" tiene el suyo, con su número y su total
+    But el pedido que miro no repite el suyo dentro del bloque: ya está arriba y va marcado "(este)"
+
+  @slice-7
+  Scenario: En el bloque tampoco se avisa a lo que ya está cerrado
+    Given una compra cuyo pedido a "Panadería de prueba" ya se entregó
+    When abro el otro pedido de esa compra
+    Then el renglón de "Panadería de prueba" no ofrece avisar
+    And sigue enseñando su estado y su importe, que es para lo que está el bloque
+
+  @slice-7
+  Scenario: Un pedido que ya se entregó no ofrece avisar
+    Given mi pedido de 4 "Pechuga de pollo asada en bistec" a 105, Entregado
+    When abro "/pedidos" con el estado "Todos"
+    Then su tarjeta no ofrece el botón
+    But sigue llevando a "Ver el pedido"
+
+  # Antes la ficha lo ofrecía SIEMPRE a quien compró, incluido un pedido entregado hace una semana.
+  # La regla vive en el dominio para que las dos pantallas no puedan discrepar.
+  @slice-7
+  Scenario: La ficha dice lo mismo que la lista
+    Given ese mismo pedido entregado
+    When lo abro
+    Then tampoco ofrece avisar
+    And uno Pendiente sí lo sigue ofreciendo, como hasta ahora
+
+  @slice-7 @component
+  Scenario Outline: Hasta cuándo tiene sentido avisar
+    # Vitest sobre `canNotifySeller`: es una regla del dominio, y montar cinco estados en el navegador
+    # sería probar cinco veces la misma condición a través de una pantalla.
+    Given un pedido <estado>
+    When se mira si todavía se puede avisar
+    Then <resultado>
+
+    Examples:
+      | estado         | resultado | razón                                                     |
+      | Pendiente      | sí        | el vendedor ni siquiera lo ha visto — es el caso de hoy   |
+      | Aceptado       | sí        | ya lo vio, pero el pedido sigue vivo y hay de qué hablar  |
+      | En preparación | sí        | lo mismo: alguien espera al otro lado                     |
+      | Entregado      | no        | ya está en manos del cliente; no hay nada que avisar      |
+      | Cancelado      | no        | tampoco: el pedido dejó de moverse                        |
+      | Borrador       | no        | no existe como pedido; el borrador es el carrito          |
+      | Pagado         | no        | no participa todavía; cuando el pago exista se decide     |
+
+  @slice-7 @component
+  Scenario Outline: Una tienda sin número no pinta un enlace roto
+    # Vitest sobre `NotifySellerButton`, que es el componente que comparten los tres sitios.
+    # `whatsappLink` ya devuelve nulo sin teléfono y `WhatsappButton` no pinta nada con `href` nulo:
+    # lo que se comprueba es que se apoya en eso y no repite el condicional por su cuenta.
+    Given un pedido Pendiente de una tienda <teléfono>
+    When se pinta su tarjeta
+    Then <resultado>
+
+    Examples:
+      | teléfono        | resultado                                       |
+      | con 2781126948  | el botón aparece y apunta a wa.me               |
+      | sin teléfono    | no hay botón, y la tarjeta se lee igual de bien |
+
+  # El pago en línea es lo único sin fecha: sigue condicionado a que el volumen de pedidos lo
+  # justifique. Va siempre al final, así que cada slice entregado lo empuja un número más abajo.
+  @slice-8 @future
   Scenario: Se paga en línea
     Given un pedido aceptado
     When pago

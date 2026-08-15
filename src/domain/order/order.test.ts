@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  canNotifySeller,
   canTransition,
   checkoutTotal,
   INITIAL_STATUS,
@@ -108,6 +109,37 @@ describe("isFinal", () => {
       expect(nextStatuses(status)).toEqual([]);
     },
   );
+});
+
+/* La corrida de escritorio de `orders.feature` (@slice-7). Se avisa mientras el pedido siga ABIERTO,
+   no sólo cuando esté pendiente: la puerta la cierra que el pedido deje de moverse. */
+describe("canNotifySeller", () => {
+  it.each([
+    [
+      "PENDING",
+      true,
+      "el vendedor ni siquiera lo ha visto — es el caso de hoy",
+    ],
+    ["CONFIRMED", true, "ya lo vio, pero el pedido sigue vivo"],
+    ["PREPARING", true, "lo mismo: alguien espera al otro lado"],
+    ["DELIVERED", false, "ya está en manos del cliente"],
+    ["CANCELLED", false, "el pedido dejó de moverse"],
+    ["DRAFT", false, "no existe como pedido: el borrador es el carrito"],
+    ["PAID", false, "no participa todavía; cuando el pago exista se decide"],
+  ] as Array<[OrderStatus, boolean, string]>)(
+    "%s: %s (%s)",
+    (status, expected) => {
+      expect(canNotifySeller(status)).toBe(expected);
+    },
+  );
+
+  /* No se deriva de `isFinal` aunque hoy coincidan en cinco de siete: `DRAFT` y `PAID` son finales
+     por no tener salidas y aun así no se avisan. Si mañana `PAID` gana su transición, `isFinal`
+     dejaría de decir que no — y este test es lo que obliga a decidirlo a mano. */
+  it("no es lo contrario de isFinal: DRAFT y PAID no son finales por el mismo motivo", () => {
+    expect(canNotifySeller("PAID")).toBe(false);
+    expect(isFinal("PAID")).toBe(true);
+  });
 });
 
 describe("orderTotal", () => {
