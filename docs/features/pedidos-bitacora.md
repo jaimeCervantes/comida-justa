@@ -1108,3 +1108,140 @@ migración y sin nada escrito en la base; falta la e2e, que la corre el usuario.
    `docs/pendientes.md`.
 
 **Pendiente del usuario:** correr la e2e y confirmar el commit de fusión.
+
+---
+
+## Slice 7 — Avisar a la tienda desde la lista (2026-08-15)
+
+### Objetivo
+
+Que el pedido se avise donde se ve, y no una pantalla más adentro.
+
+### Lo que decidió el diseño: otra vez la base, no la intuición
+
+La pregunta llegó como una mejora («ya que está el detalle, pon ahí el botón»). La consulta la
+convirtió en un defecto medible: **de los 7 pedidos reales, 6 seguían `PENDING`, y el único que llegó
+a `DELIVERED` es el más viejo de todos.** El botón de avisar existe desde el slice 2, pero sólo en
+`/pedido/<id>` — una pantalla por la que se pasa **una vez**, justo después de confirmar. Quien no lo
+pulsa en ese momento lo tiene después a dos clics, y el vendedor no se entera de que le compraron.
+
+No se puede demostrar desde la base que esos 6 nunca se avisaran —el aviso no deja rastro, y ésa es
+otra conclusión de este slice—, pero la forma de la distribución es la que es.
+
+### Decisiones y por qué
+
+- **Se avisa mientras el pedido siga ABIERTO, no sólo cuando esté `PENDING`.** `PENDING` era el
+  candidato obvio: es el estado en que el vendedor ni lo ha visto. Pero `CONFIRMED` y `PREPARING`
+  también son pedidos en los que alguien espera al otro lado —que es literalmente lo que significa
+  `OPEN_STATUSES`, que ya existía y es lo que cuentan las pestañas—. Lo que cierra la puerta es que
+  el pedido **deje de moverse**.
+- **La regla es una función de dominio, `canNotifySeller`, y no un condicional repetido.** La
+  preguntan tres pantallas. Que el mismo pedido ofrezca el botón en una y no en otra es la clase de
+  incoherencia que hace dudar de si algo falló.
+- **La ficha cambió de comportamiento**, y es la parte de este slice que no se pidió: ofrecía el
+  botón a quien compró en *cualquier* estado, incluido un pedido entregado hace una semana. Ahora
+  aplica la misma regla que la lista.
+- **Un solo botón para las N tiendas de una compra no existe, y no es una limitación nuestra.**
+  `wa.me` abre UNA conversación; disparar N serían N `window.open`, que el navegador bloquea a partir
+  del primero. Y el obstáculo de fondo no es técnico: el mensaje de cada tienda lleva **sus**
+  renglones y **su** total, así que uno común le contaría a cada una lo que se le compró a la otra —
+  justo lo que evita el `user_id` en el `WHERE` de `listByCheckout`. La variante `wa.me/?text=` sin
+  número (el selector de chats, que sí admite varios destinatarios) manda el mismo texto a todos, o
+  sea exactamente ese problema. **Queda escrito en el `.feature` y en el docstring de
+  `CheckoutOrders`**, para que la próxima vez que se pregunte la respuesta esté al lado del código.
+- **Lo que sí se puede: que no haya que navegar.** El bloque «Esta compra tiene N pedidos» ya lista a
+  las tiendas hermanas, así que cada renglón lleva su botón. Siguen siendo N toques, pero en una sola
+  pantalla.
+- **El pedido que se está mirando no repite el suyo en el bloque.** Ya lo tiene arriba, con su
+  «falta un paso». El bloque ya trataba distinto a ese pedido —lo marca «(este)» y no se enlaza a sí
+  mismo—; repetirle el botón habría puesto la misma acción dos veces en una pantalla.
+- **`NotifySellerButton` recibe los textos como props en vez de leer el catálogo.** Es lo que le
+  permite servir a los tres sitios: la lista es un componente de cliente y el bloque de la compra es
+  uno de servidor asíncrono, y un componente con `useTranslations` no vale para los dos. Es el mismo
+  criterio que ya obliga a `design_system` a no traducir.
+- **En la tarjeta el botón no dice el nombre de la tienda** (`notifyShort`): está escrito arriba, en
+  la misma tarjeta, y «Avisar a Panadería de prueba por WhatsApp» se desbordaba junto a «Ver el
+  pedido» en pantallas estrechas. En la ficha se queda el largo, que es donde hay sitio.
+- **`absoluteOrderUrl` se mudó a `infra/UI/mappers/`** — un movimiento, no una copia. Y se apoya en
+  `PUBLIC_BASE_URL` y nunca en `window.location`, al revés que su vecina `createAbsoluteUrl`: ahora
+  la calcula también el navegador, y con el origen del navegador el HTML del servidor y el de la
+  hidratación no coincidirían.
+- **Sin migración.**
+
+### El defecto que apareció de paso: el mensaje que se mandaba al vendedor
+
+El aviso se armaba con `intro: t("placedHint")`, y `placedHint` es el texto de **pantalla**: «Falta
+un paso: avísale a la tienda por WhatsApp para que lo prepare». Es decir, el vendedor recibía por
+WhatsApp una instrucción dirigida al comprador, encabezando su propio pedido. Nadie lo vio porque el
+único escenario que miraba el enlace comprobaba el teléfono y el total, no el saludo.
+
+Se separa en `noticeIntro` («Hola, te acabo de hacer un pedido:»), que es lo que el docstring de
+`OrderNoticeLabels` decía que tenía que ser desde el principio. `placedHint` se queda donde le toca:
+en la pantalla.
+
+### Archivos tocados
+
+- **Dominio:** `order/order.ts` (`canNotifySeller`) + su corrida de escritorio en `order.test.ts`.
+- **Infra:** `UI/mappers/absoluteOrderUrl.ts` (mudado desde `pedido/[id]/page.tsx`).
+- **Presentación:** `orders/NotifySellerButton/` (nuevo, con test).
+- **Rutas:** `pedidos/ui/BuyerOrders.tsx`, `pedido/[id]/page.tsx` (la regla y la mudanza),
+  `pedido/[id]/ui/CheckoutOrders.tsx` (botón por hermano + `locale`).
+- **Catálogos:** `orders.noticeIntro` y `orders.notifyShort`, en `es.json` y `en.json`.
+- **Specs:** `orders.feature` (8 escenarios `@slice-7`; el pago en línea pasa a `@slice-8`),
+  `ordersList.spec.ts` (+2) y `multiSeller.spec.ts` (+1).
+- **Docs:** `pedidos.md` (roadmap del slice 7 y «Fuera de alcance»).
+
+### Validación
+
+| Comando | Resultado |
+| --- | --- |
+| `pnpm run typecheck` / `typecheck:tests` | limpios, exit 0 |
+| `pnpm run lint` | limpio (826 archivos), exit 0 |
+| `pnpm run check:i18n` | limpio |
+| `pnpm run test:run` | **160 archivos, 1628 tests, todos verdes** (+15 de este slice) |
+| `pnpm run build` | compila |
+
+**Nada escrito en la base compartida.** Se leyeron los 7 pedidos, sus renglones y las 4 tiendas para
+decidir el diseño y escribir los escenarios con datos que existen; no se tocó ninguna fila.
+
+### Pendiente declarado: la e2e
+
+**No se corrió**, según lo acordado: la lanza el usuario.
+
+```
+pnpm exec playwright test src/e2e/orders          # lo de este slice
+pnpm exec playwright test --shard=1/2             # y la completa, en dos mitades
+pnpm exec playwright test --shard=2/2
+```
+
+Lo que hay que mirar si algo sale rojo:
+
+1. **`ordersList.spec.ts`** trae dos escenarios nuevos. El de «ya no ofrece avisar» avanza el pedido
+   hasta `DELIVERED` desde el panel del vendedor y **entra con `?estado=all` a propósito**: en la
+   vista por omisión —los abiertos— el pedido desaparece de la lista justo antes de poder
+   comprobarlo. Si falla ahí, es esto y no la funcionalidad.
+2. **`multiSeller.spec.ts`** trae uno: los dos botones de una compra de dos tiendas.
+3. La suite **es floja en frío**: repetir antes de diagnosticar.
+
+### Recap
+
+El pedido ya se avisa donde se ve: cada tarjeta de «Tus pedidos» lleva su botón de WhatsApp con el
+desglose, el total y su dirección, y el bloque de la compra lleva el de cada tienda hermana, así que
+una compra de varias tiendas se avisa entera desde una pantalla. Cuándo aparece lo decide una sola
+regla del dominio —mientras el pedido siga abierto—, que aplican igual la lista, la ficha y el bloque.
+De paso, el mensaje que le llega al vendedor dejó de ser la instrucción que se le da al comprador.
+Sin migración y sin escribir nada en la base; falta la e2e.
+
+### Próximos pasos (opciones)
+
+1. **Correr la e2e** con los comandos de arriba: es lo único pendiente de este slice.
+2. **Limpiar dos tiendas huérfanas** que dejó una corrida e2e que murió a medias:
+   `E2E Panadería de Otro Estado 178681167862330` y `E2E Panadería del Pueblo 178681167862431`. No
+   estorban a este slice, pero pueden hacer ruido en el `globalSetup` de la próxima corrida.
+3. **Que el aviso deje rastro.** Hoy la tarjeta no puede decir «a ésta ya le avisaste» porque no hay
+   dónde guardarlo: pide una columna, y el esquema lo manda Alembic desde el backend de Python. Es la
+   continuación natural de este slice y la única que necesita una decisión fuera de este repo.
+4. **`cardControls.spec.ts:39`** y **el `<main>` anidado en 21 rutas**, con receta en
+   `docs/pendientes.md`.
+
+**Pendiente del usuario:** correr la e2e, y decidir 2 y 3.
