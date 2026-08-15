@@ -140,10 +140,11 @@ export default async function Inicio({
               lleva hecho— y apiladas empujaban el feed muy abajo. Si no hay celebraciones que
               mostrar, el jardín se queda con todo el ancho en vez de dejar media fila vacía. */}
         <div
-          className={`grid gap-4 lg:items-start ${celebrations.length > 0
+          className={`grid gap-4 lg:items-start ${
+            celebrations.length > 0
               ? "lg:grid-cols-[minmax(210px,1fr)_minmax(0,1.5fr)_minmax(0,1fr)]"
               : "lg:grid-cols-2"
-            }`}
+          }`}
         >
           <CommunityHabitGarden garden={garden} variant="compact" />
 
