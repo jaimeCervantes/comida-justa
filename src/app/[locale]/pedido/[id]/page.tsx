@@ -21,6 +21,7 @@ import { findSellerOfUser } from "~/infra/dataAccess/identity/sessionIdentity";
 import { createOrderRepository } from "~/infra/dataAccess/orders/factory";
 import { Surface } from "~/presentation/design_system/surfaces/Surface";
 import { Heading } from "~/presentation/design_system/typography/Heading";
+import OrderBuyer from "~/presentation/orders/OrderBuyer/OrderBuyer";
 import OrderLines from "~/presentation/orders/OrderLines/OrderLines";
 import OrderStatusBadge from "~/presentation/orders/OrderStatusBadge/OrderStatusBadge";
 import WhatsappButton from "~/presentation/post/WhatsappButton/WhatsappButton";
@@ -116,6 +117,17 @@ export default async function PedidoPage({
         data-testid="order-detail"
       >
         <h2 className="mb-3 text-body-lg font-bold">{order.sellerName}</h2>
+
+        {/* Sólo al vendedor: a quien compró, decirle que lo pidió él no le informa de nada. */}
+        {isSeller ? (
+          <div className="mb-3">
+            <OrderBuyer
+              name={order.buyerName}
+              handle={order.buyerHandle}
+              image={order.buyerImage}
+            />
+          </div>
+        ) : null}
 
         <OrderLines lines={order.lines} />
 

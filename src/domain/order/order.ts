@@ -161,3 +161,14 @@ export function lineAmount(line: OrderLine): number {
 export function orderTotal(lines: readonly OrderLine[]): number {
   return lines.reduce((total, line) => total + lineAmount(line), 0);
 }
+
+/**
+ * Cuántas cosas lleva el pedido: **cantidades, no renglones**.
+ *
+ * `lines.length` habría sido contar filas de una tabla. El pedido real de tres renglones —1 pechuga
+ * a la naranja, 2 asadas y 6 sueros— son **nueve cosas que alguien tiene que preparar y entregar**,
+ * y decir "3" describe la base de datos, no el pedido.
+ */
+export function orderItemCount(lines: readonly OrderLine[]): number {
+  return lines.reduce((count, line) => count + line.quantity, 0);
+}

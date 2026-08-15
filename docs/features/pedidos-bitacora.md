@@ -727,3 +727,148 @@ quitar, y la fila se parte sola en pantallas estrechas. Sin nada que aplicar en 
    inicio tras una mutación.
 2. **Slice 5 — pago en línea**, cuando los pedidos digan que vale la pena.
 3. **Las 75 vulnerabilidades que reporta Dependabot** en el repositorio, avisadas en el último push.
+
+---
+
+## Slice 6 — El pedido se reconoce sin abrirlo (2026-08-15)
+
+### Objetivo
+
+`/pedidos` tenía tres carencias que sólo se ven con pedidos de verdad, y hoy ya los hay: **la lista
+del comprador no decía qué se había pedido**, **la del vendedor no decía quién lo pedía**, y **la
+búsqueda esperaba al Enter** mientras la búsqueda principal del sitio filtra al teclear.
+
+### Lo que decidió el diseño: la base, no la intuición
+
+La tarjeta del comprador se escribió en el slice 2 «resumida, no desglosada», y estaba razonado: el
+detalle vivía en `/pedido/<id>` y repetir los renglones haría la lista ilegible en cuanto hubiera
+tres pedidos. La apuesta era que tienda + estado + fecha bastarían para distinguirlos.
+
+Los cinco pedidos reales la tumbaron: **cuatro son a la misma tienda, los cuatro `PENDING`, y tres
+de la misma semana.** Las tres señales en las que se apoyaba la tarjeta valen exactamente lo mismo
+en cuatro de cinco filas, y lo único que las separa —qué se pidió— era lo que no se enseñaba. El de
+525 lleva 3 renglones y 9 artículos; el de 70, dos renglones de uno. Desde la lista se veían igual.
+
+No fue un error de quien lo escribió: era una premisa razonable que los datos desmintieron. Por eso
+consultar la base antes de decidir sigue siendo el paso que más veces cambia el plan.
+
+### Decisiones y por qué
+
+- **Una sola tarjeta para los dos papeles** (`presentation/orders/OrderCard/`). Las dos eran
+  distintas por accidente, no por decisión. Lo que de verdad cambia entre comprar y vender cabe en
+  dos props: **con quién es** el pedido y **qué se puede hacer** con él. Lo demás —estado, fecha,
+  cuántos artículos, renglones y total— es el mismo pedido visto desde los dos lados.
+- **La tarjeta del comprador deja de ser un enlace entero.** Es la consecuencia directa de
+  desglosar: los renglones enlazan a su producto y un enlace no puede llevar enlaces dentro. El
+  destino no se pierde, se nombra («Ver el pedido»). Y se le quitó el `interactive` del `Surface`:
+  un realce al pasar el cursor sobre algo que ya no es pulsable promete un clic que no existe.
+- **`orderItemCount` cuenta cantidades, no renglones.** `lines.length` habría dicho «3» de un pedido
+  que son nueve cosas que preparar y entregar: eso describe la tabla, no el pedido.
+- **Quién pidió sale de la consulta que ya estaba**, con un `JOIN users` al lado del `JOIN sellers`.
+  No era que no se pintara: `listBySeller` nunca trajo el comprador. La clave `orders.buyer` («Lo
+  pidió {name}») llevaba **desde el slice 2 en los dos catálogos sin que nadie la usara**.
+- **`OrderBuyer` no es un componente nuevo, es una composición.** `IdentityLink` + `profileHref` +
+  `Avatar` ya resolvían «cara y nombre enlazados a un perfil» en cuatro sitios. Escribir aquí otro
+  par `Avatar` + `Link` habría sido la quinta copia. Buscar antes de crear ahorró el componente.
+- **Sin `username` no hay enlace, pero sí nombre.** Hoy 1 de 21 cuentas tiene dirección personal, así
+  que enlazar a ciegas mandaría a la mayoría a un 404.
+- **Quién pidió sólo se le dice al vendedor**, también en `/pedido/<id>`. A quien compró, decirle que
+  lo pidió él no le informa de nada.
+- **Cada lista se queda con la mitad que le sirve** (`OrderWithBuyer` / `OrderWithSeller`, y
+  `OrderWithParties` para la ficha, que la miran los dos). No es ahorro de bytes —las dos filas ya
+  vinieron en la misma consulta— sino de tipos: así la pantalla del vendedor no puede pintar por
+  descuido el teléfono de su propia tienda donde va quien le pidió.
+- **La búsqueda filtra al escribir, y el `<form method="get">` se queda.** Lo que se añade es el
+  disparo automático; quitar el formulario habría cambiado una carencia por otra, porque es lo que
+  hace que Enter funcione y que la pantalla sirva sin JavaScript.
+- **`replace` y no `push`:** escribir «suero» son cinco cambios de dirección, y con `push` el botón
+  de atrás obliga a deshacerlos letra por letra antes de salir de la página.
+- **300 ms y no los 500 de `SearchBar`.** No son la misma operación: aquél va a la búsqueda semántica
+  y pinta un desplegable **encima** de lo que estás leyendo; éste refiltra una lista que ya estás
+  mirando, con un `ILIKE` sobre los pedidos de una sola persona.
+- **`ordersHref` sale a su propio módulo.** Lo usan las dos orillas —pestañas y paginación, que son
+  de servidor; el campo de búsqueda, que es de cliente— y un `"use client"` no puede importar de un
+  componente servidor asíncrono sin arrastrarlo al paquete del navegador.
+- **Sin migración.** Todo sale de columnas que ya existían.
+
+### El detalle que casi se cuela: el efecto que se repite solo
+
+El campo compara **ya normalizado** contra lo que dice la URL. Sin eso, un espacio final dejaba
+`term` («suero ») y `current.term` («suero», que el servidor recorta al leer) distintos para siempre:
+el efecto disparaba, el servidor contestaba lo mismo, y volvía a disparar cada 300 ms. Tiene su
+prueba, porque es la clase de fallo que no se ve mirando la pantalla.
+
+Y un `useRef` con lo último que **este campo** pidió, para distinguir «el servidor contestó a lo que
+escribí» de «el término cambió por fuera» (el botón de atrás). Sin esa distinción, la respuesta a la
+tercera letra llega cuando ya vas por la quinta y devuelve el campo atrás mientras escribes.
+
+### Archivos tocados
+
+- **Dominio:** `order/order.ts` (`orderItemCount` + su test), `order/ports.ts` (`OrderWithBuyer`,
+  `OrderWithParties`, y las firmas de `listBySeller` y `findById`).
+- **Infra:** `PostgresOrderRepository` (el `JOIN users`, las tres columnas y las dos proyecciones).
+- **Presentación:** `orders/OrderCard/` y `orders/OrderBuyer/` (nuevos, con test).
+- **Rutas:** `pedidos/ui/ordersHref.ts` (extraído), `pedidos/ui/OrdersSearchField.tsx` (nuevo, con
+  test), `OrdersControls`, `OrdersPagination`, `BuyerOrders`, `SellerOrders`, `pedidos/page.tsx`,
+  `pedido/[id]/page.tsx`.
+- **Catálogos:** `orders.items` (plural ICU) y `orders.buyerUnknown`, en `es.json` y `en.json`.
+- **Pruebas:** `e2e/orders/ordersList.spec.ts` (nuevo), `orders.feature` (7 escenarios `@slice-6`),
+  `placeOrder.spec.ts` (adaptado), `infra/test-utils/renderWithIntl.tsx`.
+
+### Una corrección de paso: la zona horaria de las pruebas
+
+`renderWithIntl` no fijaba `timeZone` y producción sí (`America/Mexico_City`, en `i18n/request.ts`).
+Con `OrderCard` formateando fechas, next-intl empezó a avisar por consola y a formatear **en la zona
+de la máquina**: una fecha afirmada en una prueba habría pasado en local y fallado en CI, que corre
+en otra. Se alinea el ayudante con producción. No estaba en el roadmap; sale gratis y cierra una
+fuente de intermitencia antes de que muerda.
+
+### Validación
+
+| Comando | Resultado |
+| --- | --- |
+| `pnpm run typecheck` | limpio, exit 0 |
+| `pnpm run typecheck:tests` | limpio, exit 0 |
+| `pnpm run lint` | limpio (816 archivos), exit 0 |
+| `pnpm run test:run` | **158 archivos, 1596 tests, verdes** |
+| `pnpm run build` | compila; `/[locale]/pedidos` y `/[locale]/pedido/[id]` siguen dinámicas |
+
+**Nada escrito en la base compartida:** ni migración, ni seeds, ni pedidos de prueba. Los cinco
+pedidos reales se leyeron para decidir el diseño y para escribir los escenarios con datos que
+existen; no se tocó ninguno.
+
+### Pendiente declarado: la e2e
+
+**No se corrió**, según lo acordado: la lanza el usuario. Los comandos, en orden de coste:
+
+```
+pnpm exec playwright test src/e2e/orders          # lo de este slice
+pnpm exec playwright test --shard=1/2             # y la completa, en dos mitades
+pnpm exec playwright test --shard=2/2
+```
+
+Lo que hay que mirar si algo sale rojo:
+
+1. **`ordersList.spec.ts`** es nuevo (5 escenarios). Reclama `username` sobre la cuenta de la suite
+   con prefijo `e2e-` y lo libera en el `afterEach`; el barrido de `testData.ts` lo cubre igual.
+2. **`placeOrder.spec.ts`** cambió una línea: el último escenario pulsaba la tarjeta entera del
+   comprador y ahora pulsa `buyer-order-link`. Es el único ajuste forzado por el rediseño.
+3. Recordar que **la suite es floja en frío**: repetir antes de diagnosticar.
+
+### Recap
+
+`/pedidos` enseña ahora el mismo pedido desde los dos lados con una sola tarjeta: quien compró ve
+qué pidió, cuánto de cada cosa, con su foto y su total, y llega al producto o al detalle desde ahí;
+quien vende ve además a quién le está preparando el pedido, con enlace a su perfil. Y la búsqueda
+filtra mientras se escribe sin dejar de funcionar con Enter ni sin JavaScript. Sin migración, sin
+nada escrito en la base, y con la e2e pendiente de que la corra el usuario.
+
+### Próximos pasos (opciones)
+
+1. **Correr la e2e** con los comandos de arriba: es lo único que queda de este slice.
+2. **`cardControls.spec.ts:39`**, con el diagnóstico ya hecho desde el slice 3: decidir cómo refresca
+   el feed del inicio tras una mutación.
+3. **El vendedor todavía no puede escribirle a quien le pidió.** Ahora que sabe quién es, el eslabón
+   siguiente es el camino de vuelta —hoy la conversación sólo la abre el comprador—, y `users` no
+   guarda teléfono: habría que decidir por dónde.
+4. **Slice 5 — pago en línea**, cuando los pedidos digan que vale la pena.

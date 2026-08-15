@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { type OrdersParams, ordersHref } from "./OrdersControls";
+import { type OrdersParams, ordersHref } from "./ordersHref";
 
 const enLoAbierto: OrdersParams = {
   view: "received",

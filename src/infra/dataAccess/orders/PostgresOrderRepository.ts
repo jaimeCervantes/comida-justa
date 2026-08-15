@@ -11,6 +11,8 @@ import type {
   OrderPage,
   OrderQuery,
   OrderRepository,
+  OrderWithBuyer,
+  OrderWithParties,
   OrderWithSeller,
 } from "~/domain/order/ports";
 import { db } from "~/infra/dataAccess/db/connection";
@@ -37,6 +39,10 @@ interface OrderRow {
   seller_name: string;
   seller_slug: string | null;
   seller_phone: string;
+  /** Las tres columnas del comprador son nulas en la base; no se rellenan al leer. */
+  buyer_name: string | null;
+  buyer_username: string | null;
+  buyer_image: string | null;
   [key: string]: unknown;
 }
 
@@ -137,10 +143,13 @@ export class PostgresOrderRepository implements OrderRepository {
     }));
   }
 
+  /* Cada lista se queda con la mitad que le sirve. No es ahorro de bytes —las dos filas ya vinieron
+     en la misma consulta— sino de tipos: así la pantalla del vendedor no puede pintar por descuido
+     el teléfono de su propia tienda donde va quien le pidió. */
   async listBySeller(
     sellerId: string,
     query: OrderQuery,
-  ): Promise<OrderPage<Order>> {
+  ): Promise<OrderPage<OrderWithBuyer>> {
     const page = await this.listWhere(
       sql`o.seller_id = ${sellerId}::uuid`,
       query,
@@ -154,11 +163,18 @@ export class PostgresOrderRepository implements OrderRepository {
     };
   }
 
-  listByBuyer(
+  async listByBuyer(
     buyerId: string,
     query: OrderQuery,
   ): Promise<OrderPage<OrderWithSeller>> {
-    return this.listWhere(sql`o.user_id = ${buyerId}`, query);
+    const page = await this.listWhere(sql`o.user_id = ${buyerId}`, query);
+
+    return {
+      total: page.total,
+      orders: page.orders.map(
+        ({ buyerName, buyerHandle, buyerImage, ...order }) => order,
+      ),
+    };
   }
 
   /**
@@ -193,7 +209,7 @@ export class PostgresOrderRepository implements OrderRepository {
     orderId: string,
     locale: string,
     fallbackLocale: string,
-  ): Promise<OrderWithSeller | null> {
+  ): Promise<OrderWithParties | null> {
     const page = await this.listWhere(sql`o.id = ${orderId}::uuid`, {
       page: 1,
       pageSize: 1,
@@ -256,9 +272,11 @@ export class PostgresOrderRepository implements OrderRepository {
   /**
    * La consulta que comparten las dos listas y la ficha.
    *
-   * Una sola porque solo cambian el `WHERE` de a quién pertenece y los datos de la tienda, que se
-   * traen siempre: al comprador le hacen falta para decir a quién le pidió, y al vendedor le sobran
-   * pero cuestan un `JOIN` sobre una fila que ya está en memoria.
+   * Una sola porque solo cambia el `WHERE` de a quién pertenece: **las dos partes se traen
+   * siempre**. Al comprador le hace falta la tienda para decir a quién le pidió, y al vendedor le
+   * hace falta el comprador para saber a quién le prepara; cada uno sobra en la lista del otro, y
+   * cuesta un `JOIN` sobre una fila que ya está en memoria. Partir la consulta en dos para ahorrarse
+   * eso habría sido dos consultas que mantener sincronizadas.
    *
    * **El total viaja en la misma consulta** (`count(*) OVER ()`), no en un segundo `SELECT count`:
    * son dos viajes a la base para pintar una barra de paginación.
@@ -266,7 +284,7 @@ export class PostgresOrderRepository implements OrderRepository {
   private async listWhere(
     owner: ReturnType<typeof sql>,
     query: OrderQuery,
-  ): Promise<OrderPage<OrderWithSeller>> {
+  ): Promise<OrderPage<OrderWithParties>> {
     const statuses = statusList(statusesInScope(query.scope));
     const term = query.term?.trim();
     const offset = Math.max(0, (query.page - 1) * query.pageSize);
@@ -275,9 +293,14 @@ export class PostgresOrderRepository implements OrderRepository {
       SELECT
         o.id, o.checkout_id, o.seller_id, o.user_id, o.status, o.created_at,
         s.name AS seller_name, s.slug AS seller_slug, s.phone AS seller_phone,
+        u.name AS buyer_name, u.username AS buyer_username, u.image AS buyer_image,
         count(*) OVER ()::int AS total_count
       FROM customer_orders o
       JOIN sellers s ON s.id = o.seller_id
+      /* JOIN y no LEFT JOIN: customer_orders.user_id es NOT NULL y apunta a users, así que un
+         pedido sin comprador no existe. Con LEFT, la consulta admitiría una fila que la base ya
+         impide, y escondería el día que dejara de impedirla. */
+      JOIN users u ON u.id = o.user_id
       WHERE ${owner}
         AND o.status::text IN (${statuses})
         ${term ? sql`AND ${matchesTerm(term)}` : sql``}
@@ -305,6 +328,9 @@ export class PostgresOrderRepository implements OrderRepository {
         sellerName: row.seller_name,
         sellerHandle: row.seller_slug,
         sellerPhone: row.seller_phone,
+        buyerName: row.buyer_name,
+        buyerHandle: row.buyer_username,
+        buyerImage: row.buyer_image,
       })),
     };
   }

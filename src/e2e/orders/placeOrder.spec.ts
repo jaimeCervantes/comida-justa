@@ -206,8 +206,10 @@ test.describe("Cuando alguien quiere ver sus pedidos", () => {
     await page.getByTestId("orders-tab-placed").click();
     await expect(page.getByTestId("orders-placed")).toBeVisible();
 
-    // Desde el resumen se llega al detalle.
-    await page.getByTestId("buyer-order").first().click();
+    /* Desde el resumen se llega al detalle. Ya no pulsando la tarjeta entera: desde el slice 6 sus
+       renglones enlazan a su producto, y un enlace no puede llevar enlaces dentro, así que el
+       destino se nombra al pie. */
+    await page.getByTestId("buyer-order-link").first().click();
     await expect(page.getByTestId("order-detail")).toBeVisible();
   });
 });
