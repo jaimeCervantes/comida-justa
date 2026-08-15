@@ -7,26 +7,22 @@ import {
   setRequestLocale,
 } from "next-intl/server";
 import type { User } from "~/domain/entities/post/types";
-import { buildWhatsappOrderNoticeLink } from "~/domain/order/whatsappOrderNotice";
+import { canNotifySeller } from "~/domain/order/order";
 import { Link } from "~/i18n/navigation";
 import { redirectKeepingLocale } from "~/i18n/redirectKeepingLocale";
-import {
-  type AppLocale,
-  pathnames,
-  resolveLocale,
-  routing,
-} from "~/i18n/routing";
+import { resolveLocale, routing } from "~/i18n/routing";
 import { auth } from "~/infra/auth";
 import { readCartSelection } from "~/infra/cart/readCart";
-import { PUBLIC_BASE_URL, SIGNIN_PATH } from "~/infra/constants";
+import { SIGNIN_PATH } from "~/infra/constants";
 import { findSellerOfUser } from "~/infra/dataAccess/identity/sessionIdentity";
 import { createOrderRepository } from "~/infra/dataAccess/orders/factory";
+import { absoluteOrderUrl } from "~/infra/UI/mappers/absoluteOrderUrl";
 import { Surface } from "~/presentation/design_system/surfaces/Surface";
 import { Heading } from "~/presentation/design_system/typography/Heading";
+import NotifySellerButton from "~/presentation/orders/NotifySellerButton/NotifySellerButton";
 import OrderBuyer from "~/presentation/orders/OrderBuyer/OrderBuyer";
 import OrderLines from "~/presentation/orders/OrderLines/OrderLines";
 import OrderStatusBadge from "~/presentation/orders/OrderStatusBadge/OrderStatusBadge";
-import WhatsappButton from "~/presentation/post/WhatsappButton/WhatsappButton";
 import CheckoutOrders from "./ui/CheckoutOrders";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -95,14 +91,6 @@ export default async function PedidoPage({
       ])
     : [[], []];
 
-  const orderUrl = absoluteOrderUrl(locale, order.id);
-  const noticeLink = buildWhatsappOrderNoticeLink(
-    order,
-    order.sellerPhone,
-    orderUrl,
-    { intro: t("placedHint"), total: t("total") },
-  );
-
   return (
     <main>
       <Heading level={1} className="mb-2">
@@ -145,20 +133,34 @@ export default async function PedidoPage({
 
         <OrderLines lines={order.lines} />
 
-        {/* Solo a quien compró se le pide que avise: el vendedor ya está del otro lado. */}
-        {isBuyer ? (
+        {/* Solo a quien compró se le pide que avise: el vendedor ya está del otro lado. Y solo
+            mientras el pedido siga abierto — a un entregado no hay nada que avisarle, que es la
+            misma regla que aplica la lista. */}
+        {isBuyer && canNotifySeller(order.status) ? (
           <div className="mt-4 border-t border-separator pt-4">
             <p className="mb-3 text-text-support">{t("placedHint")}</p>
-            <WhatsappButton href={noticeLink} testId="order-notify">
-              {t("notifySeller", { store: order.sellerName })}
-            </WhatsappButton>
+            <NotifySellerButton
+              order={order}
+              sellerPhone={order.sellerPhone}
+              orderUrl={absoluteOrderUrl(locale, order.id)}
+              labels={{
+                intro: t("noticeIntro"),
+                total: t("total"),
+                cta: t("notifySeller", { store: order.sellerName }),
+              }}
+              testId="order-notify"
+            />
           </div>
         ) : null}
       </Surface>
 
       {/* Un solo pedido no es "una compra de varios": no hay nada que juntar y el bloque sobraría. */}
       {siblings.length > 1 ? (
-        <CheckoutOrders orders={siblings} currentId={order.id} />
+        <CheckoutOrders
+          orders={siblings}
+          currentId={order.id}
+          locale={locale}
+        />
       ) : null}
 
       {/* Lo que quedó en el carrito. Confirmar es por tienda, así que la segunda mitad de una compra
@@ -173,19 +175,4 @@ export default async function PedidoPage({
       ) : null}
     </main>
   );
-}
-
-/**
- * La dirección absoluta del pedido, en el idioma en que se hizo.
- *
- * Sale de `pathnames` y no de una plantilla escrita aquí: la ruta **está traducida**
- * (`/pedido/[id]` y `/order/[id]`), así que un `${base}/pedido/${id}` mandaría al vendedor inglés a
- * una dirección que no existe. Y `localePrefix` es `as-needed`, así que el prefijo solo lo lleva el
- * inglés.
- */
-function absoluteOrderUrl(locale: AppLocale, id: string): string {
-  const path = pathnames["/pedido/[id]"][locale].replace("[id]", id);
-  const prefix = locale === routing.defaultLocale ? "" : `/${locale}`;
-
-  return `${PUBLIC_BASE_URL}${prefix}${path}`;
 }

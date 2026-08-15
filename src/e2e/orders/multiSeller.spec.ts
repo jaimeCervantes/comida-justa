@@ -248,6 +248,48 @@ test.describe("Cuando confirmo las dos tiendas de un mismo carrito", () => {
     expect(new Set(checkouts).size).toBe(1);
   });
 
+  /* Slice 7. Un solo botón para las dos tiendas no existe —`wa.me` abre UNA conversación y el
+     mensaje de cada tienda lleva lo suyo—, así que lo que se comprueba es lo que sí se puede: que la
+     compra entera se avise desde esta pantalla, sin ir y volver por la lista. */
+  test("Entonces aviso a las dos tiendas desde una sola pantalla", async ({
+    page,
+  }) => {
+    await addFromDetail(page, panDeCampo.slug, 1);
+    await addFromDetail(page, jugoVerde.slug, 2);
+    await confirmStore(page, PANADERIA.name);
+    await confirmStore(page, JUGUERIA.name);
+
+    // El pedido que se está mirando tiene el suyo arriba, en su propia tarjeta.
+    const propio = page.getByTestId("order-notify");
+
+    await expect(propio).toBeVisible();
+    await expect(propio).toHaveAttribute(
+      "href",
+      new RegExp(`wa\\.me/52${JUGUERIA.phone}`),
+    );
+
+    const compra = page.getByTestId("checkout-orders");
+    const hermano = compra.getByTestId("checkout-order-notify");
+
+    /* Y en el bloque hay UNO solo: el de la panadería. El que se mira no lo repite —ya está arriba—,
+       por el mismo motivo por el que tampoco se enlaza a sí mismo. */
+    await expect(hermano).toHaveCount(1);
+    await expect(hermano).toHaveAttribute(
+      "href",
+      new RegExp(`wa\\.me/52${PANADERIA.phone}`),
+    );
+
+    /* Cada mensaje lleva lo de SU tienda: el de la panadería no menciona el jugo. Es la misma regla
+       que el `user_id` del `WHERE`: compartir el carrito no es compartir la clientela. */
+    const mensaje = decodeURIComponent(
+      (await hermano.getAttribute("href")) ?? "",
+    );
+
+    expect(mensaje).toContain(panDeCampo.title);
+    expect(mensaje).not.toContain(jugoVerde.title);
+    expect(mensaje).toContain("60");
+  });
+
   test("Entonces el vendedor ve su pedido y no a quién más le compré", async ({
     page,
     browserName,

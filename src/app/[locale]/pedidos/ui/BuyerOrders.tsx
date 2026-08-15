@@ -1,7 +1,10 @@
 "use client";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import type { OrderWithSeller } from "~/domain/order/ports";
 import { Link } from "~/i18n/navigation";
+import { resolveLocale } from "~/i18n/routing";
+import { absoluteOrderUrl } from "~/infra/UI/mappers/absoluteOrderUrl";
+import NotifySellerButton from "~/presentation/orders/NotifySellerButton/NotifySellerButton";
 import OrderCard from "~/presentation/orders/OrderCard/OrderCard";
 
 /**
@@ -24,6 +27,9 @@ export default function BuyerOrders({
   emptyKey: "filtered" | "none";
 }) {
   const t = useTranslations("orders");
+  /* `useLocale` y no una prop: el idioma ya viaja en el contexto de next-intl, y sólo hace falta
+     para armar la dirección que va dentro del mensaje. `resolveLocale` porque llega como `string`. */
+  const locale = resolveLocale(useLocale());
 
   if (orders.length === 0) {
     if (emptyKey === "filtered") {
@@ -53,7 +59,24 @@ export default function BuyerOrders({
           testId="buyer-order"
           party={<span className="font-medium">{order.sellerName}</span>}
         >
-          <div className="flex justify-end">
+          {/* Avisar es la acción que cierra la venta, así que va primero y con peso; abrir el
+              pedido es el destino de siempre. Envuelve porque «Avisar por WhatsApp» y «Ver el
+              pedido» no caben en una línea de móvil. */}
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <NotifySellerButton
+              order={order}
+              sellerPhone={order.sellerPhone}
+              orderUrl={absoluteOrderUrl(locale, order.id)}
+              labels={{
+                intro: t("noticeIntro"),
+                total: t("total"),
+                /* Sin el nombre de la tienda: está escrito arriba, en esta misma tarjeta, y
+                   repetirlo desbordaba el botón en pantallas estrechas. */
+                cta: t("notifyShort"),
+              }}
+              testId="buyer-order-notify"
+            />
+
             <Link
               href={{ pathname: "/pedido/[id]", params: { id: order.id } }}
               data-testid="buyer-order-link"

@@ -119,6 +119,23 @@ export function resolveScope(candidate: string | undefined): OrderScope {
   return candidate === "closed" || candidate === "all" ? candidate : "open";
 }
 
+/**
+ * Si todavía tiene sentido avisarle al vendedor por WhatsApp.
+ *
+ * **Mientras el pedido siga abierto**, y no sólo cuando esté `PENDING`. `PENDING` era el candidato
+ * obvio —es el estado en que el vendedor ni siquiera lo ha visto—, pero `CONFIRMED` y `PREPARING`
+ * también son pedidos en los que alguien espera al otro lado, que es literalmente lo que significa
+ * `OPEN_STATUSES`. Lo que cierra la puerta es que el pedido **deje de moverse**: entregado ya está en
+ * manos del cliente y cancelado no tiene nada que preparar.
+ *
+ * Vive en el dominio porque lo preguntan tres pantallas —la lista, la ficha y el bloque de la
+ * compra—, y que el mismo pedido ofrezca el botón en una y no en otra es la clase de incoherencia
+ * que hace dudar de si algo falló.
+ */
+export function canNotifySeller(status: OrderStatus): boolean {
+  return OPEN_STATUSES.includes(status);
+}
+
 export interface OrderLine {
   /** `null` cuando la publicación se borró: el renglón sobrevive con su copia. */
   postId: string | null;

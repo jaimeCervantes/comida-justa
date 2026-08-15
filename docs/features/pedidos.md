@@ -420,10 +420,61 @@ refiltra una lista que ya estás mirando, contra un `ILIKE` sobre los pedidos de
 6. Pulsar Enter sigue funcionando, y la búsqueda sigue siendo un `<form method="get">` con su campo
    `q`, así que también funciona sin JavaScript.
 
-### Slice 7 — Pago en línea  *(@future, condicionado)*
+### Slice 7 — Avisar a la tienda desde la lista  *(actual)*
 
-El 5 y el 6 se hicieron en paralelo, en dos ramas, y el pago se quedó donde estaba: sin fecha. Es el
-7 porque los otros dos ya existen, no porque se haya acercado.
+**El defecto lo dice la base sin ambigüedad:** de los 7 pedidos que hay, **6 siguen `PENDING`**, y el
+único que llegó a `DELIVERED` es el más viejo. Un pedido que el vendedor no ve no se prepara, y hoy
+el único botón para avisarle vive en `/pedido/<id>` — una pantalla por la que se pasa **una vez**,
+justo después de confirmar. Quien no lo pulsa en ese momento lo tiene después a dos clics: entrar a
+la lista, abrir el pedido, avisar. El pedido queda registrado y la venta se queda a medias.
+
+Ahora que la tarjeta de «Tus pedidos» enseña el desglose (slice 6), el sitio natural del botón es
+justo ahí: donde ya se ve qué se pidió y a quién.
+
+- **El botón «Avisar por WhatsApp» en cada tarjeta de «Tus pedidos»**, con el mismo mensaje que la
+  ficha: los renglones, el total y la dirección del pedido. No hace falta tocar la consulta —
+  `listByBuyer` ya trae `sellerPhone`— ni la base.
+- **Una regla de dominio, `canNotifySeller(status)`**, y no un condicional repetido en dos pantallas:
+  se avisa **mientras el pedido siga abierto** (`OPEN_STATUSES`: `PENDING`, `CONFIRMED`,
+  `PREPARING`). Entregado o cancelado, no hay nada que avisar.
+- **La ficha se alinea con la lista.** Hoy ofrece el botón a quien compró en *cualquier* estado,
+  incluido un pedido entregado hace una semana. Que el mismo pedido ofrezca el botón en una pantalla
+  y no en la otra es la clase de incoherencia que hace dudar de si algo falló.
+- **También en el bloque «Esta compra tiene N pedidos»**, que ya lista las tiendas hermanas con su
+  estado y su importe: con su botón en cada renglón, una compra de varias tiendas se avisa entera
+  desde una sola pantalla, sin ir y volver por la lista. **El pedido que se está mirando no repite el
+  suyo**: ya lo tiene arriba, en su tarjeta, y el bloque ya lo trata distinto —lo marca «(este)» y no
+  se enlaza a sí mismo—. La misma acción dos veces en una pantalla no es el doble de accesible.
+- **`absoluteOrderUrl` sale de `pedido/[id]/page.tsx`** a `infra/UI/mappers/`, al lado de
+  `createAbsoluteUrl`. Estaba al final de una página porque sólo la usaba una página; ahora la usan
+  dos, y copiarla habría sido la segunda versión de una regla que ya tiene truco (la ruta está
+  traducida y `localePrefix` es `as-needed`).
+- **Sin migración.** Nada de esto se guarda: que el aviso se haya mandado no deja rastro, y por eso
+  no se puede marcar en la tarjeta. Ver «Fuera de alcance».
+
+#### Por qué abierto y no sólo pendiente
+
+`PENDING` es el estado en que el vendedor **todavía no lo ha visto**, y era el candidato obvio. Pero
+`CONFIRMED` y `PREPARING` también son pedidos en los que alguien espera al otro lado —es literalmente
+lo que significa `OPEN_STATUSES`, que ya existe y es lo que cuentan las pestañas—, y ahí el comprador
+sigue teniendo motivos para escribir. Lo que cierra la puerta es que el pedido deje de moverse.
+
+**Criterios de aceptación:**
+1. Una tarjeta de «Tus pedidos» de un pedido abierto ofrece el botón, con el número de **su** tienda
+   y un mensaje que lleva sus renglones, su total y la dirección de ese pedido.
+2. Los dos pedidos de una misma compra se avisan por separado, cada uno a su tienda.
+3. Desde la ficha de un pedido, el bloque de la compra ofrece el botón de **las otras** tiendas; el
+   pedido que se está mirando no lo repite.
+4. Un pedido entregado o cancelado no ofrece el botón: ni en la lista, ni en la ficha, ni como
+   renglón del bloque de la compra.
+5. La lista del vendedor no cambia: quien recibe el pedido no se avisa a sí mismo.
+6. Una tienda sin teléfono no pinta un enlace roto.
+
+### Slice 8 — Pago en línea  *(@future, condicionado)*
+
+El pago **siempre va al final**: no tiene fecha, y cada slice que se entrega lo empuja un número más
+abajo. Ya pasó del 5 al 6, del 6 al 7 y ahora al 8. No es que se aleje — es que sigue esperando la
+misma respuesta.
 
 **No se empieza hasta que los pedidos del slice 2 lo justifiquen.** No es una pantalla de checkout:
 es repartir dinero entre vendedores, y eso trae KYC por vendedor, datos fiscales, devoluciones y
@@ -442,7 +493,10 @@ cuántos se caen entre `PENDING` y `DELIVERED`, y si a quien compra local le est
 
 ## Fuera de alcance (por ahora)
 
-Pago en línea (slice 7, condicionado). Envíos, paquetería y costos de entrega. Inventario y descuento
+Pago en línea (slice 8, condicionado). **Marcar que ya avisaste a la tienda**: necesitaría una
+columna nueva, y el esquema lo manda Alembic desde el backend de Python — no se decide aquí. **El
+vendedor escribiéndole al comprador**: `users` no guarda teléfono, así que hoy la conversación sólo
+la puede abrir quien compra. Envíos, paquetería y costos de entrega. Inventario y descuento
 de existencias — hoy `is_available` es un sí/no, no una cantidad. Cupones y promociones. Facturación.
 Calificaciones del vendedor tras la compra.
 
