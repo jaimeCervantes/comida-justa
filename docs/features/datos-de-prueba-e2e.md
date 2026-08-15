@@ -108,6 +108,25 @@ es matar el proceso, y para eso está el barrido de la siguiente corrida.
 1. Ninguna publicación de prueba queda atribuida a un usuario real.
 2. El barrido por `user_id` deja la base en cero sin depender del slug.
 
+### Slice 2 (adelanto parcial) — Cuentas de prueba propias *(2026-08-14)*
+
+Lo hizo caer el slice 5 de `pedidos.md`: el escenario "el vendedor no ve a quién más le compré"
+necesita **dos personas a la vez** —quien compra y quien vende— y con una sola cuenta no comprueba
+nada. Así que la suite sí crea una cuenta, aunque solo para eso.
+
+- Se reconocen por el correo: `pw.%@example.com`. El dominio `example.com` está **reservado por la
+  RFC 2606**, así que el patrón no puede alcanzar a nadie real. La cuenta fija de la suite es
+  `pw.…@gmail.com` y se queda fuera a propósito: es real y no se borra.
+- El barrido las borra **las últimas** —`sellers.user_id` y `sessions.user_id` las referencian— y
+  `globalTeardown` las cuenta, así que una cuenta huérfana falla la corrida en vez de quedarse.
+- Sigue sin cumplirse el resto del slice 2: `seedPost` y el `simulateLogin` por omisión siguen
+  publicando y entrando con una cuenta real.
+
+**De paso, un agujero del barrido:** `customer_orders.seller_id` apunta a `sellers` desde la
+migración `0032`, y el barrido borraba las tiendas de prueba **sin borrar antes sus pedidos**. Una
+corrida que muriera dejando una tienda con pedidos hacía fallar el `DELETE FROM sellers` de la
+siguiente por el FK, y con él el `globalSetup` entero. Solo `deleteTestSellerByHandle` lo hacía bien.
+
 ### Slice 3 — Que el CI lo note *(futuro)*
 
 - Una comprobación que falle si la base tiene datos de prueba al terminar el pipeline.

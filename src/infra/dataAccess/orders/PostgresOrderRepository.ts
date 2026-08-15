@@ -52,6 +52,14 @@ interface LineRow {
   [key: string]: unknown;
 }
 
+/**
+ * Cuántos pedidos como mucho se leen de una compra.
+ *
+ * No es paginación: es un techo, para que la consulta de una ficha no pueda crecer sin límite si
+ * algún día un carrito se reparte entre muchas tiendas. Con las dos de hoy sobra de largo.
+ */
+const CHECKOUT_MAX_ORDERS = 20;
+
 /** `status IN (…)`: drizzle no serializa un array de JS, así que se emite un marcador por valor. */
 function statusList(statuses: readonly OrderStatus[]) {
   return sql.join(
@@ -162,6 +170,42 @@ export class PostgresOrderRepository implements OrderRepository {
   }
 
   /**
+   * Los pedidos de una misma compra, del más viejo al más nuevo.
+   *
+   * **En orden de confirmación** y no descendente como las listas: aquí no se busca lo último sino
+   * que se lee una compra entera, y se lee en el orden en que se hizo.
+   *
+   * El `user_id` viaja en el `WHERE` junto al checkout: un `checkout_id` es un uuid que aparece en
+   * la ficha del pedido, y sin esa condición el vendedor que la abre vería a qué otras tiendas le
+   * compró su cliente en ese mismo carrito.
+   */
+  async listByCheckout({
+    checkoutId,
+    buyerId,
+    locale,
+    fallbackLocale,
+  }: {
+    checkoutId: string;
+    buyerId: string;
+    locale: string;
+    fallbackLocale: string;
+  }): Promise<OrderWithSeller[]> {
+    const page = await this.listWhere(
+      sql`o.checkout_id = ${checkoutId}::uuid AND o.user_id = ${buyerId}`,
+      {
+        page: 1,
+        pageSize: CHECKOUT_MAX_ORDERS,
+        scope: "all",
+        locale,
+        fallbackLocale,
+      },
+      sql`o.created_at ASC`,
+    );
+
+    return page.orders;
+  }
+
+  /**
    * Cuántos pedidos abiertos hay en cada papel, en **una** consulta.
    *
    * Dos `SELECT count(*)` habrían sido dos viajes para pintar dos números en unas pestañas.
@@ -266,6 +310,7 @@ export class PostgresOrderRepository implements OrderRepository {
   private async listWhere(
     owner: ReturnType<typeof sql>,
     query: OrderQuery,
+    order: ReturnType<typeof sql> = sql`o.created_at DESC`,
   ): Promise<OrderPage<OrderWithSeller>> {
     const statuses = statusList(statusesInScope(query.scope));
     const term = query.term?.trim();
@@ -281,7 +326,7 @@ export class PostgresOrderRepository implements OrderRepository {
       WHERE ${owner}
         AND o.status::text IN (${statuses})
         ${term ? sql`AND ${matchesTerm(term)}` : sql``}
-      ORDER BY o.created_at DESC
+      ORDER BY ${order}
       LIMIT ${query.pageSize} OFFSET ${offset}
     `);
 

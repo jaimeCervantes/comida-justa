@@ -151,6 +151,30 @@ vez de solo reportar, así que un problema de formato nunca aparece al validar: 
 el árbol sucio sin decirlo. Para ver el estado real hay que correr `eslint` sin la bandera. Los otros
 paquetes no lo hacen (`apps/telegram` usa `eslint .`).
 
+### Hay un `<main>` dentro de otro `<main>` en 21 rutas *(visto el 2026-08-15)*
+
+`src/app/[locale]/layout.tsx:86` envuelve todas las páginas en `<main className="flex-1 pt-4 pb-12">`,
+y **21 páginas abren su propio `<main>` dentro**. Anidar landmarks es HTML inválido: un lector de
+pantalla anuncia dos regiones principales y no sabe cuál es la de verdad.
+
+El repositorio ya conoce la convención correcta —el layout es el dueño del landmark— y la afirma en
+tres tests de componente (`PillarPracticeSection.test.tsx:58` y los tres `pilares/components/*`
+comprueban que la página **no** pinta un `<main>`). Las páginas viejas nunca se alinearon.
+
+Se ve en las pruebas antes que en la pantalla: cualquier localizador `page.locator("main")` falla por
+modo estricto al resolver dos elementos. `atomicSleepChallenge.spec.ts:801` ya lo esquiva con
+`.last()`, y `multiSeller.spec.ts` tuvo que afirmar sobre `body`.
+
+**No se arregló** porque toca 21 archivos de rutas que no eran de ningún slice, y es un cambio de
+estructura de toda la aplicación, no de una feature. La receta, cuando se decida:
+
+- `<main>` sin atributos → fragmento (`<>…</>`): el elemento no aporta nada.
+- `<main className="…">` → `<div className="…">` (4 casos: inicio, hábitos, nosotros, tienda paginada).
+- `<main className="">` → fragmento (2 casos: condiciones de servicio y política de privacidad).
+
+`container-width` es `max-width + mx-auto + padding`, ni flex ni grid, así que quitar un envoltorio
+de bloque no mueve nada de sitio.
+
 ### `loadMorePosts.spec.ts:24` es intermitente
 
 Falló una vez y pasó al reintentar, sin relación con los cambios de la taxonomía. Queda anotado por

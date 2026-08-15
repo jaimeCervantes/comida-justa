@@ -77,49 +77,49 @@ export default async function PublicHabitCelebrationCard({
   const final = celebration.milestone === "challenge_completed";
   const copy = nutrition
     ? {
-      eyebrow: habitT("nutritionExperience.publicCardEyebrow"),
-      title: final
-        ? habitT("nutritionExperience.publicFinalCardTitle", { name })
-        : habitT("nutritionExperience.publicCardTitle", { name }),
-      body: final
-        ? habitT("nutritionExperience.publicFinalCardBody")
-        : habitT("nutritionExperience.publicCardBody"),
-      link: habitT("nutritionExperience.publicLink"),
-      href: pillarHref("alimentacion"),
-    }
+        eyebrow: habitT("nutritionExperience.publicCardEyebrow"),
+        title: final
+          ? habitT("nutritionExperience.publicFinalCardTitle", { name })
+          : habitT("nutritionExperience.publicCardTitle", { name }),
+        body: final
+          ? habitT("nutritionExperience.publicFinalCardBody")
+          : habitT("nutritionExperience.publicCardBody"),
+        link: habitT("nutritionExperience.publicLink"),
+        href: pillarHref("alimentacion"),
+      }
     : movement
       ? {
-        eyebrow: habitT("movementExperience.publicCardEyebrow"),
-        title: final
-          ? habitT("movementExperience.publicFinalCardTitle", { name })
-          : habitT("movementExperience.publicCardTitle", { name }),
-        body: final
-          ? habitT("movementExperience.publicFinalCardBody")
-          : habitT("movementExperience.publicCardBody"),
-        link: habitT("movementExperience.publicLink"),
-        href: pillarHref("movimiento"),
-      }
+          eyebrow: habitT("movementExperience.publicCardEyebrow"),
+          title: final
+            ? habitT("movementExperience.publicFinalCardTitle", { name })
+            : habitT("movementExperience.publicCardTitle", { name }),
+          body: final
+            ? habitT("movementExperience.publicFinalCardBody")
+            : habitT("movementExperience.publicCardBody"),
+          link: habitT("movementExperience.publicLink"),
+          href: pillarHref("movimiento"),
+        }
       : mind
         ? {
-          eyebrow: habitT("mindExperience.publicCardEyebrow"),
-          title: final
-            ? habitT("mindExperience.publicFinalCardTitle", { name })
-            : habitT("mindExperience.publicCardTitle", { name }),
-          body: final
-            ? habitT("mindExperience.publicFinalCardBody")
-            : habitT("mindExperience.publicCardBody"),
-          link: habitT("mindExperience.publicLink"),
-          href: pillarHref("mente-espiritu"),
-        }
+            eyebrow: habitT("mindExperience.publicCardEyebrow"),
+            title: final
+              ? habitT("mindExperience.publicFinalCardTitle", { name })
+              : habitT("mindExperience.publicCardTitle", { name }),
+            body: final
+              ? habitT("mindExperience.publicFinalCardBody")
+              : habitT("mindExperience.publicCardBody"),
+            link: habitT("mindExperience.publicLink"),
+            href: pillarHref("mente-espiritu"),
+          }
         : {
-          eyebrow: t("communityCardEyebrow"),
-          title: final
-            ? t("communityFinalCardTitle", { name })
-            : t("communityCardTitle", { name }),
-          body: final ? t("communityFinalCardBody") : t("communityCardBody"),
-          link: t("communityLink"),
-          href: pillarHref("sueno"),
-        };
+            eyebrow: t("communityCardEyebrow"),
+            title: final
+              ? t("communityFinalCardTitle", { name })
+              : t("communityCardTitle", { name }),
+            body: final ? t("communityFinalCardBody") : t("communityCardBody"),
+            link: t("communityLink"),
+            href: pillarHref("sueno"),
+          };
   const theme = getHabitPublicTheme(
     nutrition ? "nutrition" : movement ? "movement" : mind ? "mind" : "sleep",
   );

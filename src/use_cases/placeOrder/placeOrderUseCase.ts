@@ -19,6 +19,14 @@ export interface PlaceOrderInput {
   fallbackLocale: string;
   /** Qué tienda se confirma. El resto del carrito se queda donde está. */
   sellerId: string;
+  /**
+   * La compra de la que este pedido forma parte.
+   *
+   * **Lo pone quien llama, y es el mismo para todas las tiendas del carrito.** Antes se generaba
+   * aquí dentro, uno por ejecución, así que confirmar dos tiendas daba dos checkouts y el campo no
+   * hermanaba nada — que era justo para lo que existía.
+   */
+  checkoutId: string;
 }
 
 export type PlaceOrderResult =
@@ -42,14 +50,12 @@ export type PlaceOrderError =
  * no se crea un pedido vacío: se devuelve el motivo para poder decirlo.
  *
  * **Un pedido por vendedor**: aunque el carrito lleve varias tiendas, aquí se confirma una. El
- * `checkoutId` es lo que las volverá a juntar cuando se confirmen varias seguidas.
+ * `checkoutId` que trae la entrada es lo que las vuelve a juntar: viene del carrito, no de aquí.
  */
 export default class PlaceOrderUseCase {
   constructor(
     private readonly products: CartProductRepository,
     private readonly orders: OrderRepository,
-    /** Inyectado para que la prueba pueda fijarlo; en producción es `crypto.randomUUID`. */
-    private readonly newCheckoutId: () => string,
   ) {}
 
   async execute({
@@ -58,6 +64,7 @@ export default class PlaceOrderUseCase {
     locale,
     fallbackLocale,
     sellerId,
+    checkoutId,
   }: PlaceOrderInput): Promise<PlaceOrderResult> {
     const group = await this.findGroup(
       selection,
@@ -73,7 +80,7 @@ export default class PlaceOrderUseCase {
     if (lines.length === 0) return { error: "nothing-available" };
 
     const newOrder: NewOrder = {
-      checkoutId: this.newCheckoutId(),
+      checkoutId,
       sellerId: group.seller.id,
       buyerId,
       lines,

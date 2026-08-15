@@ -76,6 +76,7 @@ function build(products: CartProduct[]) {
     }),
     listBySeller: vi.fn(),
     listByBuyer: vi.fn(),
+    listByCheckout: vi.fn(),
     countOpen: vi.fn(),
     findById: vi.fn(),
     findHeader: vi.fn(),
@@ -86,7 +87,7 @@ function build(products: CartProduct[]) {
   };
 
   return {
-    useCase: new PlaceOrderUseCase(cart, orders, () => CHECKOUT_ID),
+    useCase: new PlaceOrderUseCase(cart, orders),
     created,
     orders,
     cart,
@@ -98,6 +99,7 @@ const baseInput = {
   locale: "es",
   fallbackLocale: "es",
   sellerId: hazloSano.id,
+  checkoutId: CHECKOUT_ID,
 };
 
 describe("PlaceOrderUseCase", () => {
@@ -209,6 +211,29 @@ describe("PlaceOrderUseCase", () => {
     expect("orderedPostIds" in result && result.orderedPostIds).toEqual([
       jugoVerde.postId,
     ]);
+  });
+
+  /* Las dos tiendas de un mismo carrito son UNA compra. El checkout llega de fuera —de la cookie que
+     acompaña al carrito— justamente por esto: cuando lo generaba el propio caso de uso, cada
+     confirmación estrenaba uno y los pedidos hermanos no quedaban unidos por nada. */
+  it("las dos tiendas de un carrito comparten el checkout que se le pasa", async () => {
+    const { useCase, created } = build([jugoVerde, panDeCampo]);
+    const selection = [
+      { postId: jugoVerde.postId, quantity: 1 },
+      { postId: panDeCampo.postId, quantity: 1 },
+    ];
+
+    await useCase.execute({ ...baseInput, selection });
+    await useCase.execute({
+      ...baseInput,
+      selection: [{ postId: panDeCampo.postId, quantity: 1 }],
+      sellerId: panaderia.id,
+    });
+
+    expect(created).toHaveLength(2);
+    expect(created[0].sellerId).not.toBe(created[1].sellerId);
+    expect(created[0].checkoutId).toBe(CHECKOUT_ID);
+    expect(created[1].checkoutId).toBe(CHECKOUT_ID);
   });
 
   it("una tienda que no está en el carrito no crea nada", async () => {

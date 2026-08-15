@@ -39,8 +39,9 @@ export default async function CommunityHabitGarden({
     <section
       data-testid="community-habit-garden"
       data-variant={variant}
-      className={`@container rounded-3xl border border-separator bg-surface-elevation-1 ${compact ? "p-4" : "mt-6 p-4"
-        }`}
+      className={`@container rounded-3xl border border-separator bg-surface-elevation-1 ${
+        compact ? "p-4" : "mt-6 p-4"
+      }`}
     >
       {/* Sin título grande, el eyebrow es quien nombra la sección: si fuera un `<p>` el jardín se
           quedaría sin encabezado accesible dentro de la fila. */}

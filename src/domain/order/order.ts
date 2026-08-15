@@ -139,11 +139,12 @@ export interface OrderLine {
 export interface Order {
   id: string;
   /**
-   * El carrito del que nació.
+   * El carrito del que nació. **Los N pedidos de un mismo carrito lo comparten.**
    *
-   * Los N pedidos que salen de un mismo carrito lo comparten. Hoy N es siempre 1 porque hay un solo
-   * vendedor, y aun así se guarda: es lo que permitirá decir "de esta compra" cuando sean varios, y
-   * es a lo que apuntará un pago que cubra más de una tienda.
+   * Es lo que deja decir "de esta compra" cuando son varias tiendas, y es a lo que apuntará un pago
+   * que cubra más de una. El id lo pone quien confirma —vive en la cookie `hs_checkout`, al lado del
+   * propio carrito— y no este caso de uso: generarlo aquí, como hacía la primera versión, daba un
+   * checkout distinto por tienda y no hermanaba nada.
    */
   checkoutId: string;
   sellerId: string;
@@ -160,4 +161,14 @@ export function lineAmount(line: OrderLine): number {
 /** Lo que se le debe a esa tienda. Se calcula sobre los renglones, nunca se lee de una columna. */
 export function orderTotal(lines: readonly OrderLine[]): number {
   return lines.reduce((total, line) => total + lineAmount(line), 0);
+}
+
+/**
+ * Lo que costó la compra entera: todos los pedidos que salieron del mismo carrito.
+ *
+ * Igual que `cartTotal`, **no es una cifra cobrable**: son varias tiendas y cada una cobra la suya.
+ * Es lo que se gastó, que es lo que se quiere saber al mirar atrás.
+ */
+export function checkoutTotal(orders: readonly Pick<Order, "lines">[]): number {
+  return orders.reduce((total, order) => total + orderTotal(order.lines), 0);
 }

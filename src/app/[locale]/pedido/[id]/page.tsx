@@ -8,6 +8,7 @@ import {
 } from "next-intl/server";
 import type { User } from "~/domain/entities/post/types";
 import { buildWhatsappOrderNoticeLink } from "~/domain/order/whatsappOrderNotice";
+import { Link } from "~/i18n/navigation";
 import { redirectKeepingLocale } from "~/i18n/redirectKeepingLocale";
 import {
   type AppLocale,
@@ -16,6 +17,7 @@ import {
   routing,
 } from "~/i18n/routing";
 import { auth } from "~/infra/auth";
+import { readCartSelection } from "~/infra/cart/readCart";
 import { PUBLIC_BASE_URL, SIGNIN_PATH } from "~/infra/constants";
 import { findSellerOfUser } from "~/infra/dataAccess/identity/sessionIdentity";
 import { createOrderRepository } from "~/infra/dataAccess/orders/factory";
@@ -24,6 +26,7 @@ import { Heading } from "~/presentation/design_system/typography/Heading";
 import OrderLines from "~/presentation/orders/OrderLines/OrderLines";
 import OrderStatusBadge from "~/presentation/orders/OrderStatusBadge/OrderStatusBadge";
 import WhatsappButton from "~/presentation/post/WhatsappButton/WhatsappButton";
+import CheckoutOrders from "./ui/CheckoutOrders";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("orders");
@@ -64,11 +67,8 @@ export default async function PedidoPage({
     redirectKeepingLocale(SIGNIN_PATH, await getLocale());
   }
 
-  const order = await createOrderRepository().findById(
-    id,
-    locale,
-    routing.defaultLocale,
-  );
+  const repository = createOrderRepository();
+  const order = await repository.findById(id, locale, routing.defaultLocale);
 
   if (!order) notFound();
 
@@ -79,6 +79,20 @@ export default async function PedidoPage({
     !isBuyer && (await findSellerOfUser(userId))?.id === order.sellerId;
 
   if (!isBuyer && !isSeller) notFound();
+
+  /* La compra completa y lo que queda en el carrito, **solo para quien compró**. Al vendedor no le
+     incumbe a qué otras tiendas le pidieron en el mismo carrito, ni qué lleva ahora mismo. */
+  const [siblings, pendingInCart] = isBuyer
+    ? await Promise.all([
+        repository.listByCheckout({
+          checkoutId: order.checkoutId,
+          buyerId: order.buyerId,
+          locale,
+          fallbackLocale: routing.defaultLocale,
+        }),
+        readCartSelection(),
+      ])
+    : [[], []];
 
   const orderUrl = absoluteOrderUrl(locale, order.id);
   const noticeLink = buildWhatsappOrderNoticeLink(
@@ -129,6 +143,22 @@ export default async function PedidoPage({
           </div>
         ) : null}
       </Surface>
+
+      {/* Un solo pedido no es "una compra de varios": no hay nada que juntar y el bloque sobraría. */}
+      {siblings.length > 1 ? (
+        <CheckoutOrders orders={siblings} currentId={order.id} />
+      ) : null}
+
+      {/* Lo que quedó en el carrito. Confirmar es por tienda, así que la segunda mitad de una compra
+          se queda esperando ahí — y sin decirlo, depende de que el comprador se acuerde de volver. */}
+      {pendingInCart.length > 0 ? (
+        <p className="mt-6 text-text-support" data-testid="order-cart-pending">
+          {t("cartPending")}{" "}
+          <Link href="/carrito" className="font-medium text-pw-green underline">
+            {t("cartPendingCta")}
+          </Link>
+        </p>
+      ) : null}
     </main>
   );
 }

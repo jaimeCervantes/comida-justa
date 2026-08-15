@@ -88,6 +88,37 @@ Consecuencias que se asumen desde ahora:
   confirma en dos pasos, uno por tienda, cada uno con su botón. Hoy es invisible porque solo hay una;
   el modelo tiene que soportarlo sin cambiar de forma.
 
+### El total de la compra se enseña aunque no se pueda pagar de una vez  *(slice 5)*
+
+La primera versión **se negó a sumar dos tiendas**: el argumento era que una cifra que las mezclara
+no se la podría cobrar nadie. Es cierto para cobrar y falso para decidir. Quien llena un carrito no
+está preguntando "¿cuánto le debo a cada tienda?" sino **"¿cuánto me voy a gastar?"**, y esa pregunta
+no tiene dueño ni hace falta que lo tenga.
+
+Se enseñan las dos cifras y cada una dice lo que es: el subtotal por tienda es **lo que se le pide a
+esa tienda**, y el total de la compra es **lo que sale del bolsillo**, con la nota de que se confirma
+en un pedido por tienda. Sigue sin existir en la base: se calcula al pintar, igual que los subtotales.
+
+### Un carrito es un `checkout`, aunque produzca varios pedidos  *(slice 5)*
+
+`customer_orders.checkout_id` existía desde `0032` y **no cumplía su promesa**: se generaba uno nuevo
+dentro de `PlaceOrderUseCase` en cada confirmación, así que dos tiendas del mismo carrito salían con
+dos checkouts distintos y nada las volvía a juntar.
+
+El identificador **pertenece al carrito, no al pedido**, así que vive donde vive el carrito: en una
+cookie, `hs_checkout`, al lado de `hs_cart`. Nace la primera vez que se confirma algo y **muere
+cuando el carrito se vacía** —por confirmarlo todo o por quitarlo a mano—, que es exactamente la vida
+de la compra que representa.
+
+Consecuencias:
+
+- Confirmar la segunda tienda **reutiliza** el id, y los dos pedidos quedan hermanados.
+- La página del pedido enseña la compra completa: los N pedidos, su estado y **el total de todo**.
+- **Solo al comprador.** El vendedor ve su pedido y nada más: a qué otras tiendas le compraste no es
+  asunto suyo, y el `WHERE` de la consulta lleva el `user_id`, no solo el `checkout_id`.
+- La cookie la escribe cualquiera y su valor va a una columna `uuid`: **se valida antes de creerle**,
+  igual que `hs_cart`. Lo que no sea un uuid se descarta y se empieza un checkout nuevo.
+
 ### El carrito guarda ids y cantidades — nunca precios
 
 Una cookie `hs_cart` con `postId:cantidad|postId:cantidad`, y **el título, el precio y la
@@ -302,7 +333,38 @@ no mirando, y poner tres unidades pedía abrir una lista y buscar el número.
 3. Dos toques seguidos en «más» suman dos, no uno.
 4. Un producto sin imagen —o con solo vídeo— se lee igual, sin marco vacío.
 
-### Slice 5 — Pago en línea  *(@future, condicionado)*
+### Slice 5 — Una compra, aunque sean varias tiendas  *(actual)*
+
+Los cuatro slices anteriores construyeron el carrito de varias tiendas **y nunca lo vieron funcionar**:
+la base tiene un solo vendedor, así que `groupBySeller` siempre devolvía un grupo y las dos piezas que
+solo importan con dos tiendas —el total y el checkout— quedaron sin ejercitar. Una de las dos estaba
+mal.
+
+- **Total de la compra** bajo los grupos, con la nota de que se confirma un pedido por tienda. Se
+  calcula al pintar, como los subtotales; no hay columna nueva.
+- **Un `checkout_id` por carrito**, en la cookie `hs_checkout`. Nace al confirmar la primera tienda,
+  lo reutiliza la segunda y se borra cuando el carrito se queda vacío.
+- **La página del pedido enseña la compra entera** cuando tiene hermanos: cada tienda con su estado y
+  su importe, el total de todo, y el pedido que se está mirando marcado. Solo al comprador.
+- **Aviso de lo que queda por confirmar**: recién hecho un pedido, si el carrito todavía lleva otra
+  tienda, se dice y se enlaza. Sin esto, la segunda mitad de la compra depende de que el comprador se
+  acuerde de volver al carrito.
+- **Una segunda tienda de verdad**, sembrada con `pnpm run seed:demo-seller`, reversible con
+  `--remove`. Es lo que permite probar todo esto en el navegador en vez de solo en Vitest.
+- **Sin migración.** `checkout_id` y su índice están desde `0032`.
+
+**Criterios de aceptación:**
+1. Un carrito con dos tiendas enseña dos grupos con su subtotal y, debajo, el total de los dos.
+2. Con una sola tienda no se pinta un segundo total: sería la misma cifra dos veces.
+3. Confirmar la primera tienda deja la segunda en el carrito, y confirmar la segunda produce dos
+   pedidos con **el mismo** `checkout_id`.
+4. La página de cualquiera de los dos pedidos lista los dos, con el total de la compra.
+5. El vendedor que abre ese mismo pedido **no** ve la otra tienda.
+6. Vaciar el carrito a mano y empezar otro produce un checkout distinto: la compra de ayer no se
+   engancha a la de hoy.
+7. Una cookie `hs_checkout` manipulada no rompe la confirmación: se descarta y se empieza de nuevo.
+
+### Slice 6 — Pago en línea  *(@future, condicionado)*
 
 **No se empieza hasta que los pedidos del slice 2 lo justifiquen.** No es una pantalla de checkout:
 es repartir dinero entre vendedores, y eso trae KYC por vendedor, datos fiscales, devoluciones y
@@ -321,7 +383,7 @@ cuántos se caen entre `PENDING` y `DELIVERED`, y si a quien compra local le est
 
 ## Fuera de alcance (por ahora)
 
-Pago en línea (slice 4, condicionado). Envíos, paquetería y costos de entrega. Inventario y descuento
+Pago en línea (slice 6, condicionado). Envíos, paquetería y costos de entrega. Inventario y descuento
 de existencias — hoy `is_available` es un sí/no, no una cantidad. Cupones y promociones. Facturación.
 Calificaciones del vendedor tras la compra.
 
@@ -331,5 +393,7 @@ Calificaciones del vendedor tras la compra.
   modelo tiene que sostener); subtotales y total; el `parse`/`serialize` de la cookie con entradas
   manipuladas; el armado del mensaje de WhatsApp del grupo.
 - **Component (Vitest):** el botón de añadir sobre un anuncio y sobre un producto agotado.
-- **Behavior (Playwright):** `src/e2e/orders/orders.feature`. Solo los escenarios de `@slice-1` están
-  detallados y conectados; los de los slices 2–4 llevan `@future` y no corren en CI.
+- **Behavior (Playwright):** `src/e2e/orders/orders.feature`. Los escenarios de los slices 1–5 están
+  detallados y conectados; el del slice 6 lleva `@future` y no corre en CI. Desde el slice 5 **las dos
+  tiendas se prueban también en el navegador** (`multiSeller.spec.ts`, que siembra las suyas), no solo
+  en Vitest.

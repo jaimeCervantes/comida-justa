@@ -727,3 +727,151 @@ quitar, y la fila se parte sola en pantallas estrechas. Sin nada que aplicar en 
    inicio tras una mutación.
 2. **Slice 5 — pago en línea**, cuando los pedidos digan que vale la pena.
 3. **Las 75 vulnerabilidades que reporta Dependabot** en el repositorio, avisadas en el último push.
+
+---
+
+## Slice 5 — Una compra, aunque sean varias tiendas (2026-08-15)
+
+### Las tres preguntas que lo abrieron
+
+«¿La funcionalidad del carrito puede tener elementos de más de un vendedor?» Sí, desde el slice 1 y
+por diseño. Al mirarlo de cerca para contestar salieron tres cosas, y el usuario decidió las tres:
+
+1. **Que se vea el total de la compra**, aunque no se pueda pagar de una vez: «el usuario debe ver
+   cuánto se va a gastar».
+2. **Que haya una segunda tienda de verdad** en la base, porque con una sola nunca se había visto
+   funcionar nada de esto fuera de Vitest.
+3. **Que las tiendas de un mismo carrito compartan checkout**, «para que cuando busque su pedido vea
+   todos sus productos y no sean checkouts diferentes».
+
+La tercera no era una mejora: era un **defecto**. `checkout_id` existía desde `0032` con el propósito
+escrito en su docstring —«los N pedidos que salen de un mismo carrito lo comparten»— y no lo cumplía,
+porque `PlaceOrderUseCase` llamaba a `newCheckoutId()` en **cada** ejecución y confirmar es por
+tienda. Dos tiendas del mismo carrito salían con dos checkouts. Nunca se notó por lo mismo que no se
+notaba nada más: hay un solo vendedor en la base.
+
+### Decisiones y por qué
+
+- **El total de la compra existe y dice lo que es.** La primera versión se negó a sumarlo con un
+  argumento que sigue siendo cierto para cobrar y falso para decidir: «nadie puede cobrar una cifra
+  que mezcle dos negocios». Correcto — pero quien llena un carrito no pregunta cuánto le debe a cada
+  tienda, pregunta cuánto se va a gastar, y esa pregunta no necesita dueño. Se enseñan las dos cifras
+  con su nombre: subtotal por tienda (cobrable) y total de la compra (informativo, con la nota de que
+  se confirma en un pedido por tienda).
+- **Con una sola tienda no se pinta el total.** Sería la misma cifra dos veces seguidas, y un número
+  repetido hace dudar de si son el mismo.
+- **El `checkout_id` es del carrito, no del pedido**, así que vive donde vive el carrito: en una
+  cookie, `hs_checkout`, al lado de `hs_cart`. Nace al confirmar la primera tienda, lo reutiliza la
+  segunda y **muere cuando el carrito se vacía**, por las dos salidas: confirmarlo todo (`placeOrder`)
+  y quitarlo a mano (`cartActions`). Sin la segunda, el pedido de la semana que viene se engancharía a
+  la compra de esta.
+- **Cookie propia y no un campo dentro de `hs_cart`.** El checkout no es un renglón: no se añade, no
+  se quita y no tiene cantidad. Meterlo en el mismo valor obligaba a `parseCart` a distinguir dos
+  formas de renglón, que es como empiezan los errores de formato.
+- **Se valida como un uuid antes de creerle.** Una cookie la escribe cualquiera y este valor va a una
+  columna `uuid`: lo que no lo sea reventaría el `INSERT` justo en el momento de comprar. Mismo
+  criterio que `parseCart`.
+- **`PlaceOrderUseCase` ya no genera el id: lo recibe.** Se le quitó la dependencia inyectada
+  `newCheckoutId`. Un caso de uso que inventa la identidad de algo que no le pertenece es exactamente
+  el error que se está corrigiendo.
+- **La compra completa se enseña solo al comprador.** `listByCheckout` lleva el `user_id` en el
+  `WHERE`, no solo el `checkout_id`: compartir el carrito no es compartir la clientela, y sin esa
+  condición la ficha de un pedido le enseñaría al vendedor a qué otras tiendas le compró su cliente.
+- **El pedido que se mira se marca y no se enlaza a sí mismo.** Un enlace que no lleva a ninguna parte
+  es la forma más barata de que alguien crea que la página se colgó.
+- **Aviso de lo que queda en el carrito**, en la ficha del pedido recién hecho. Confirmar es por
+  tienda; sin decirlo, la segunda mitad de la compra depende de que el comprador se acuerde de volver.
+- **La segunda tienda de la base es un script reversible**, no un `INSERT` a mano:
+  `pnpm run seed:demo-seller`, con `--dry-run` y `--remove`. Se llama «Panadería de prueba» y sus dos
+  productos llevan `[PRUEBA]` en el título: cualquiera que los vea en el catálogo tiene que saber que
+  no le van a vender nada. Su `user_id` queda en `NULL`, como en `seedStore`: colgarla de una cuenta
+  real le quitaría a su dueño el formulario de alta de tienda.
+- **`listByCheckout` no pagina**: un carrito tiene tantas tiendas como tiendas hay, y hoy son dos.
+  Lleva un techo de 20 para que la consulta no pueda crecer sin límite, no para paginar.
+- **Se acepta una consulta de más** por visita a la ficha del pedido: se piden los hermanos aunque
+  casi siempre haya uno solo. Contar primero y leer después serían dos viajes en el caso que importa,
+  y esta pantalla no es la de tráfico.
+
+### Archivos tocados
+
+- **Dominio:** `cart/cart.ts` (`cartTotal`), `order/order.ts` (`checkoutTotal` y el docstring de
+  `checkoutId`), `order/ports.ts` (`listByCheckout`) + sus tests.
+- **Infra:** `cart/checkoutCookie.ts` y `cart/readCheckout.ts` (nuevos, + test),
+  `PostgresOrderRepository` (`listByCheckout` y el `ORDER BY` parametrizado de `listWhere`).
+- **Casos de uso:** `placeOrder` recibe `checkoutId` en vez de generarlo.
+- **Presentación:** `orderActions` (ciclo de vida del checkout), `cartActions` (cerrarlo al vaciar),
+  `carrito/ui/CartSummary.tsx` y `pedido/[id]/ui/CheckoutOrders.tsx` (nuevos).
+- **i18n:** `cart.grandTotal(+Note)` y `orders.checkout*` / `orders.cartPending*` en los dos catálogos.
+- **Scripts:** `src/scripts/seedDemoSeller.ts` y `seed:demo-seller` en `package.json`.
+- **Specs:** `orders.feature` (slice 5; el pago en línea pasa a slice 6),
+  `src/e2e/orders/multiSeller.spec.ts` (nuevo).
+- **Docs:** `pedidos.md`, `datos-de-prueba-e2e.md`, `pendientes.md`.
+
+### Lo que la corrida destapó, y que no era de este slice
+
+1. **El barrido de la e2e no podía borrar una tienda con pedidos.** `sweepTestData` borraba
+   publicaciones y sucursales antes de la tienda, pero **no los pedidos**, y
+   `customer_orders.seller_id` la referencia desde `0032`. Solo `deleteTestSellerByHandle` lo hacía
+   bien. Una corrida que muriera dejando una tienda de prueba con pedidos habría tumbado el
+   `globalSetup` de la siguiente por el FK — y este slice, que crea pedidos en dos tiendas sembradas,
+   lo habría provocado tarde o temprano.
+2. **`dimensionesMedia.spec.ts` fijaba «Jugo Verde» en la primera página de `/productos`.** Sembrar dos
+   productos lo empujó a la segunda y el escenario se puso rojo por dónde quedó el producto, no por lo
+   que prueba — el mismo error que el otro escenario del archivo ya había corregido. Ahora recorre el
+   catálogo hasta encontrarlo. De paso: **`locator.count()` no espera a nada**, así que hay que esperar
+   a que la página esté pintada antes de contar; el escenario original no lo necesitaba porque
+   `expect(...).toHaveAttribute` sí espera.
+3. **Tres escenarios de hábitos afirmaban un texto que `a528a52` dejó de pintar.** Ese commit
+   —«reduce spacing…»— condicionó el cuerpo de la tarjeta de celebración a `variant === "full"`, y el
+   feed del inicio usa `compact`. Se afirma el **título**, que sigue distinguiendo el primer hito del
+   final. Rojo preexistente en `dev`, no de este slice, pero el `pre-commit` corre `pnpm run validate`
+   entero: sin arreglarlo no se puede commitear nada.
+4. **Hay un `<main>` dentro de otro `<main>` en 21 rutas.** El layout ya pinta el landmark y las
+   páginas abren el suyo dentro. Se vio porque `page.locator("main")` falla por modo estricto. **No se
+   arregló**: son 21 archivos de rutas ajenas a esta feature. Queda con receta en `docs/pendientes.md`.
+
+### Validación
+
+| Comando | Resultado |
+| --- | --- |
+| `pnpm run typecheck` / `typecheck:tests` | limpios |
+| `pnpm run lint` | exit 0 — **tras arreglar 4 ficheros de hábitos que ya estaban sin formatear en `dev`**: el `pre-commit` corre `biome check .` y no dejaba commitear nada |
+| `pnpm run check:i18n` | limpio |
+| `pnpm run test:run` | **156 archivos, 1596 tests, todos verdes** |
+| `pnpm exec playwright test src/e2e/orders` | **19/19**, con los 5 escenarios nuevos de dos tiendas |
+| `pnpm run validate` (suite completa) | **282 pasados, 3 saltados, 3 caídos por `ERR_CONNECTION_REFUSED`** |
+
+Los tres caídos son los de `notFound.spec.ts` y **no son un defecto**: el dev server se cayó unos
+segundos a mitad de la corrida y esas tres navegaciones no encontraron a nadie escuchando. Repetidos
+en aislamiento, **3/3 en verde**. Es el mismo tipo de ruido que ya documenta `pendientes.md` sobre el
+dev server en Windows, no una regresión.
+
+### Lo que se escribió en la base compartida
+
+**Una tienda permanente y a propósito:** `Panadería de prueba` (`/tienda/panaderia-de-prueba`),
+teléfono `2789990088`, una sucursal a 3 km del ancla y dos productos `[PRUEBA]` (60 y 12). Es lo que
+se pidió, para poder ver el carrito de dos tiendas en el sitio de verdad. **Se deshace entera con
+`pnpm run seed:demo-seller -- --remove`**, pedidos incluidos.
+
+Del resto, nada: la suite siembra sus dos tiendas y su cuenta `@example.com` y las borra en cada
+prueba, y `globalTeardown` falla si queda algo. Ninguno de los productos reales se tocó.
+
+### Recap
+
+Un carrito con dos tiendas ya se entiende y se compra entero: cada tienda con su subtotal y su botón,
+el total de la compra debajo diciendo en cuántos pedidos se parte, y los pedidos que salen de ahí
+quedan hermanados por un solo `checkout_id`, así que desde cualquiera de ellos se ve la compra
+completa con lo que costó — y solo la ve quien la hizo. Hay una segunda tienda en la base para
+comprobarlo a mano, y cinco escenarios de Playwright que lo comprueban solos. **Sin migración.**
+
+### Próximos pasos (opciones)
+
+1. **Borrar la tienda de prueba** cuando ya no haga falta: `pnpm run seed:demo-seller -- --remove`.
+2. **El `<main>` anidado en 21 rutas**, con la receta ya escrita en `docs/pendientes.md`.
+3. **`cardControls.spec.ts:39`**, el rojo con diagnóstico hecho desde el slice 3.
+4. **Slice 6 — pago en línea**, cuando los pedidos digan que vale la pena. Ahora el `checkout_id` ya
+   significa lo que decía significar, que es a lo que tendría que apuntar un pago de varias tiendas.
+5. **Las 75 vulnerabilidades de Dependabot**, avisadas en el último push.
+
+**Pendiente del usuario:** decidir 1 y 2, y si esta rama (`feat/compra-multitienda`) se fusiona en
+`dev`.

@@ -8,6 +8,11 @@ import { redirectKeepingLocale } from "~/i18n/redirectKeepingLocale";
 import { resolveLocale, routing } from "~/i18n/routing";
 import { auth } from "~/infra/auth";
 import { readCartSelection, writeCartSelection } from "~/infra/cart/readCart";
+import {
+  clearCheckoutId,
+  readCheckoutId,
+  writeCheckoutId,
+} from "~/infra/cart/readCheckout";
 import { SIGNIN_PATH } from "~/infra/constants";
 import { createCartProductRepository } from "~/infra/dataAccess/cart/factory";
 import { findSellerOfUser } from "~/infra/dataAccess/identity/sessionIdentity";
@@ -28,6 +33,10 @@ export type PlaceOrderState = { error?: PlaceOrderError };
  *
  * Del carrito se vacía **solo lo que se pidió**: lo de otras tiendas se queda, y lo agotado también,
  * porque nadie lo pidió y quien lo puso ahí decide si lo quita.
+ *
+ * **Las tiendas de un mismo carrito son una sola compra.** El `checkoutId` se lee de la cookie y solo
+ * se estrena si no había ninguna: así la segunda tienda que se confirma se engancha a la primera. Y
+ * se cierra en cuanto el carrito se queda vacío, que es donde acaba esa compra.
  */
 export async function placeOrder(
   _prevState: PlaceOrderState,
@@ -46,10 +55,10 @@ export async function placeOrder(
   if (!sellerId) return { error: "empty-for-seller" };
 
   const selection = await readCartSelection();
+  const checkoutId = (await readCheckoutId()) ?? crypto.randomUUID();
   const useCase = new PlaceOrderUseCase(
     createCartProductRepository(),
     createOrderRepository(),
-    () => crypto.randomUUID(),
   );
 
   const result = await useCase.execute({
@@ -58,6 +67,7 @@ export async function placeOrder(
     locale,
     fallbackLocale: routing.defaultLocale,
     sellerId,
+    checkoutId,
   });
 
   if ("error" in result) return { error: result.error };
@@ -68,6 +78,16 @@ export async function placeOrder(
   );
 
   await writeCartSelection(remaining);
+
+  /* La compra se cierra con el carrito. Si queda otra tienda dentro, el checkout sigue abierto para
+     que su pedido salga hermanado; si no queda nada, se borra — un checkout que sobreviviera al
+     carrito metería la compra de la semana que viene dentro de la de hoy. */
+  if (remaining.length === 0) {
+    await clearCheckoutId();
+  } else {
+    await writeCheckoutId(checkoutId);
+  }
+
   revalidatePath("/", "layout");
 
   /* Se sale a la página del pedido en vez de abrir WhatsApp directamente: `window.open` después de

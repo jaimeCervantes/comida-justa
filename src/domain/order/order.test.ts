@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   canTransition,
+  checkoutTotal,
   INITIAL_STATUS,
   isFinal,
   lineAmount,
@@ -129,5 +130,25 @@ describe("orderTotal", () => {
     const subido = { ...jugoVerde, unitPrice: 999 };
 
     expect(orderTotal([subido])).toBe(1998);
+  });
+});
+
+describe("checkoutTotal", () => {
+  /* Lo que costó la compra entera cuando el carrito se partió en dos tiendas. No es cobrable —cada
+     tienda cobra la suya— pero es lo que se gastó, que es lo que se mira al volver al pedido. */
+  it("suma los pedidos hermanos de una misma compra", () => {
+    expect(
+      checkoutTotal([{ lines: [jugoVerde] }, { lines: [sueroNatural] }]),
+    ).toBe(115);
+  });
+
+  it("con un solo pedido es su total", () => {
+    expect(checkoutTotal([{ lines: [jugoVerde, sueroNatural] }])).toBe(
+      orderTotal([jugoVerde, sueroNatural]),
+    );
+  });
+
+  it("sin pedidos no inventa un importe", () => {
+    expect(checkoutTotal([])).toBe(0);
   });
 });

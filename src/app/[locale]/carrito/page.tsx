@@ -7,6 +7,7 @@ import { createCartProductRepository } from "~/infra/dataAccess/cart/factory";
 import { Heading } from "~/presentation/design_system/typography/Heading";
 import ViewCartUseCase from "~/use_cases/viewCart/viewCartUseCase";
 import CartGroup from "./ui/CartGroup";
+import CartSummary from "./ui/CartSummary";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("cart");
@@ -64,6 +65,10 @@ export default async function CarritoPage({
           {groups.map((group) => (
             <CartGroup key={group.seller.id} group={group} />
           ))}
+
+          {/* Con una sola tienda su subtotal YA es el total de la compra: repetirlo debajo solo
+              haría dudar de si son dos cifras distintas. */}
+          {groups.length > 1 ? <CartSummary groups={groups} /> : null}
         </div>
       )}
     </main>

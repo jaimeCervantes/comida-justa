@@ -64,6 +64,23 @@ export interface OrderRepository {
   /** Lo que le han pedido a esa tienda, de lo más reciente a lo más viejo. */
   listBySeller(sellerId: string, query: OrderQuery): Promise<OrderPage<Order>>;
 
+  /**
+   * Los pedidos hermanos: los que salieron del mismo carrito.
+   *
+   * **Va acotado al comprador, no solo al checkout.** Es su compra, y la otra tienda a la que le
+   * pidió no es asunto de nadie más: sin el `user_id` en el `WHERE`, la ficha de un pedido le estaría
+   * enseñando al vendedor la lista de sus competidores en ese carrito.
+   *
+   * No pagina, al revés que las listas: un carrito tiene tantas tiendas como tiendas hay, y hoy son
+   * dos. El día que un carrito reparta entre veinte, esto se mira otra vez.
+   */
+  listByCheckout(input: {
+    checkoutId: string;
+    buyerId: string;
+    locale: string;
+    fallbackLocale: string;
+  }): Promise<OrderWithSeller[]>;
+
   /** Lo que ha pedido esa persona, con la tienda ya resuelta para poder enseñarla. */
   listByBuyer(
     buyerId: string,

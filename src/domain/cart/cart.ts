@@ -38,8 +38,8 @@ export interface CartLine {
 /**
  * Los renglones de una sola tienda, con lo que hay que pagarle a ella.
  *
- * No existe —a propósito— ningún total que sume varias tiendas: cada una acepta, prepara y entrega
- * por su cuenta, así que una cifra que las mezclara no se la podría cobrar nadie.
+ * Es la cifra **cobrable**: cada tienda acepta, prepara y entrega por su cuenta, así que es la única
+ * que alguien puede reclamar. Lo que se gasta en total lo dice `cartTotal`, que es otra pregunta.
  */
 export interface CartSellerGroup {
   seller: CartSeller;
@@ -106,4 +106,18 @@ export function groupBySeller(lines: readonly CartLine[]): CartSellerGroup[] {
   }
 
   return [...groups.values()];
+}
+
+/**
+ * Lo que va a costar la compra entera, sumando todas las tiendas.
+ *
+ * **No es una cifra cobrable y no pretende serlo.** Nadie puede pasar un cobro que mezcle dos
+ * negocios: para eso están los subtotales. Esto contesta la otra pregunta, la que se hace quien llena
+ * el carrito —«¿cuánto me voy a gastar?»—, que no tiene por qué tener dueño.
+ *
+ * La primera versión se negó a calcularla y era un error de bulto: obligaba a sumar de cabeza el
+ * único número por el que se decide si se sigue comprando o no.
+ */
+export function cartTotal(groups: readonly CartSellerGroup[]): number {
+  return groups.reduce((total, group) => total + group.subtotal, 0);
 }

@@ -431,7 +431,11 @@ test.describe("Del atardecer al amanecer", () => {
       .getByTestId("public-habit-celebration")
       .filter({ hasText: suiteDisplayName });
     await expect(card).toHaveAttribute("data-pillar", "nutrition");
-    await expect(card).toContainText("cultivó su primera cena real");
+    /* El TÍTULO y no el cuerpo: la tarjeta del feed es la variante `compact`, que desde
+       `a528a52` («reduce spacing…») se queda con encabezado, título y enlace. El cuerpo
+       —«cultivó su primera cena real»— solo lo pinta la variante `full`. El título distingue
+       igual el primer hito del final, que es lo que este escenario comprueba. */
+    await expect(card).toContainText("hizo fácil cenar comida real y local");
     await expect(
       card.getByRole("link", {
         name: /Conocer Cena real, local y al atardecer/,
@@ -532,7 +536,8 @@ test.describe("Del atardecer al amanecer", () => {
       .getByTestId("public-habit-celebration")
       .filter({ hasText: suiteDisplayName });
     await expect(card).toHaveAttribute("data-pillar", "movement");
-    await expect(card).toContainText("movió su primer día");
+    // El título, no el cuerpo: la variante `compact` del feed no lo pinta (ver el de nutrición).
+    await expect(card).toContainText("se movió sin motor");
     await expect(
       card.getByRole("link", {
         name: /Conocer Movimiento vivo, local y funcional/,
@@ -633,7 +638,8 @@ test.describe("Del atardecer al amanecer", () => {
       .getByTestId("public-habit-celebration")
       .filter({ hasText: suiteDisplayName });
     await expect(card).toHaveAttribute("data-pillar", "mind");
-    await expect(card).toContainText("sostuvo su primer día de presencia");
+    // El título, no el cuerpo: la variante `compact` del feed no lo pinta (ver el de nutrición).
+    await expect(card).toContainText("abrió su día en calma");
     await expect(
       card.getByRole("link", {
         name: /Conocer Presencia, paz y conexión local/,

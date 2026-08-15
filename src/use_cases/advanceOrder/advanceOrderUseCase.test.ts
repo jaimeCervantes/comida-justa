@@ -39,6 +39,7 @@ function build(current: OrderWithSeller | null, applied?: OrderStatus | null) {
     createAll: vi.fn(),
     listBySeller: vi.fn(),
     listByBuyer: vi.fn(),
+    listByCheckout: vi.fn(),
     countOpen: vi.fn(),
     findById: vi.fn(),
     /* El caso de uso solo pregunta de quién es y en qué estado está: no pinta nada, así que no pide

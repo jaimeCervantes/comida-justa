@@ -3,6 +3,7 @@ import {
   buildCartLines,
   type CartProduct,
   type CartSeller,
+  cartTotal,
   groupBySeller,
 } from "./cart";
 
@@ -180,5 +181,51 @@ describe("groupBySeller", () => {
 
   it("un carrito vacío no inventa grupos", () => {
     expect(groupBySeller([])).toEqual([]);
+  });
+});
+
+describe("cartTotal", () => {
+  /* La pregunta que contesta no es «¿cuánto le debo a cada tienda?» sino «¿cuánto me voy a gastar?».
+     La primera versión se negó a sumarlas y dejaba ese número a cargo de la cabeza del comprador. */
+  it("suma lo de todas las tiendas, que es lo que sale del bolsillo", () => {
+    const groups = groupBySeller(
+      buildCartLines(
+        [
+          { postId: jugoVerde.postId, quantity: 1 },
+          { postId: panDeCampo.postId, quantity: 2 },
+          { postId: sueroNatural.postId, quantity: 1 },
+        ],
+        [jugoVerde, panDeCampo, sueroNatural],
+      ),
+    );
+
+    // 40 + 35 de Hazlo Sano, 120 de la panadería.
+    expect(cartTotal(groups)).toBe(195);
+  });
+
+  it("con una sola tienda es su subtotal", () => {
+    const groups = groupBySeller(
+      buildCartLines([{ postId: jugoVerde.postId, quantity: 2 }], [jugoVerde]),
+    );
+
+    expect(cartTotal(groups)).toBe(groups[0].subtotal);
+  });
+
+  it("no cuenta lo agotado, igual que no lo cuenta el subtotal", () => {
+    const groups = groupBySeller(
+      buildCartLines(
+        [
+          { postId: jugoVerde.postId, quantity: 1 },
+          { postId: panDeCampo.postId, quantity: 1 },
+        ],
+        [jugoVerde, { ...panDeCampo, isAvailable: false }],
+      ),
+    );
+
+    expect(cartTotal(groups)).toBe(40);
+  });
+
+  it("un carrito vacío cuesta cero, no rompe", () => {
+    expect(cartTotal([])).toBe(0);
   });
 });

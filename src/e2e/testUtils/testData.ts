@@ -11,10 +11,26 @@ export interface TestDataCount {
   /** Direcciones personales reclamadas por la suite sobre cuentas reales. */
   usernames: number;
   habits: number;
+  /** Cuentas que la suite sí crea, las de `@example.com`. */
+  accounts: number;
 }
 
 const SLUG_PATTERN = `${TEST_SLUG_PREFIX}%`;
 const CATEGORY_PATTERN = `${TEST_CATEGORY_PREFIX}%`;
+
+/**
+ * Las cuentas que la suite **sí** crea y sí borra.
+ *
+ * La regla general sigue siendo que la suite no crea usuarios: entra con la cuenta fijada en
+ * `suiteAccount.ts`. La excepción es el escenario que necesita a dos personas distintas a la vez
+ * —un comprador y el dueño de una tienda, en `multiSeller.spec.ts`—, que con una sola cuenta no
+ * comprobaría nada.
+ *
+ * El dominio `example.com` está **reservado por la RFC 2606** justo para esto: ninguna cuenta real
+ * puede tenerlo, así que este patrón no puede alcanzar a nadie. La cuenta de la suite es
+ * `pw.…@gmail.com` y se queda fuera a propósito: es real y no se borra.
+ */
+const TEST_ACCOUNT_EMAIL_PATTERN = "pw.%@example.com";
 
 /**
  * Qué tienda es de prueba.
@@ -65,6 +81,14 @@ export async function sweepTestData(): Promise<TestDataCount> {
     WHERE user_id IN (SELECT id FROM users WHERE email = ${SUITE_ACCOUNT_EMAIL})
   `);
 
+  /* Los pedidos de una tienda de prueba, ANTES que la tienda: `customer_orders.seller_id` la
+     referencia desde la migración 0032, así que sin esto el `DELETE FROM sellers` de más abajo
+     revienta por el FK y deja la suite bloqueada — que es exactamente lo que este barrido existe
+     para evitar. Sus renglones caen por `ON DELETE CASCADE`. */
+  await db.execute(sql`
+    DELETE FROM customer_orders WHERE seller_id IN (${TEST_SELLER_IDS})
+  `);
+
   const posts = await db.execute(sql`
     DELETE FROM posts
     WHERE id IN (
@@ -105,6 +129,19 @@ export async function sweepTestData(): Promise<TestDataCount> {
       AND (username LIKE ${SLUG_PATTERN} OR email = ${SUITE_ACCOUNT_EMAIL})
   `);
 
+  /* Las cuentas de prueba van las ÚLTIMAS: `sellers.user_id` y `sessions.user_id` apuntan aquí, así
+     que hasta que la tienda no se ha ido no se puede borrar a su dueña. */
+  await db.execute(sql`
+    DELETE FROM sessions
+    WHERE user_id IN (
+      SELECT id FROM users WHERE email LIKE ${TEST_ACCOUNT_EMAIL_PATTERN}
+    )
+  `);
+
+  const accounts = await db.execute(sql`
+    DELETE FROM users WHERE email LIKE ${TEST_ACCOUNT_EMAIL_PATTERN}
+  `);
+
   return {
     posts: posts.rowCount ?? 0,
     categories: categories.rowCount ?? 0,
@@ -112,6 +149,7 @@ export async function sweepTestData(): Promise<TestDataCount> {
     sellers: sellers.rowCount ?? 0,
     usernames: usernames.rowCount ?? 0,
     habits: habits.rowCount ?? 0,
+    accounts: accounts.rowCount ?? 0,
   };
 }
 
@@ -128,7 +166,9 @@ export async function countTestData(): Promise<TestDataCount> {
       ((SELECT count(*)::int FROM habit_challenge_progress
         WHERE user_id IN (SELECT id FROM users WHERE email = ${SUITE_ACCOUNT_EMAIL})) +
        (SELECT count(*)::int FROM habit_league_opt_ins
-        WHERE user_id IN (SELECT id FROM users WHERE email = ${SUITE_ACCOUNT_EMAIL}))) AS habits
+        WHERE user_id IN (SELECT id FROM users WHERE email = ${SUITE_ACCOUNT_EMAIL}))) AS habits,
+      (SELECT count(*)::int FROM users
+        WHERE email LIKE ${TEST_ACCOUNT_EMAIL_PATTERN}) AS accounts
   `);
 
   return result.rows[0] as unknown as TestDataCount;
@@ -145,7 +185,8 @@ export function hasTestData(count: TestDataCount): boolean {
 export function describeTestData(count: TestDataCount): string {
   return (
     `${count.posts} publicación(es), ${count.categories} categoría(s), ` +
-    `${count.branches} sucursal(es), ${count.sellers} tienda(s) y ` +
-    `${count.usernames} dirección(es) personal(es) y ${count.habits} reto(s) de prueba`
+    `${count.branches} sucursal(es), ${count.sellers} tienda(s), ` +
+    `${count.usernames} dirección(es) personal(es), ${count.habits} reto(s) y ` +
+    `${count.accounts} cuenta(s) de prueba`
   );
 }

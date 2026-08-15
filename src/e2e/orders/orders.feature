@@ -124,12 +124,13 @@ Feature: Carrito y pedidos
 
   @slice-1 @component
   Scenario: Dos tiendas se cobran y se piden por separado
-    # Vitest sobre `groupBySeller`: hoy la base tiene UN vendedor, así que este caso no se puede
-    # montar en Playwright sin inventar una segunda tienda — pero es el que sostiene todo el modelo.
+    # Vitest sobre `groupBySeller`. En el slice 5 esto se prueba además en el navegador
+    # (`multiSeller.spec.ts`, que siembra sus dos tiendas), pero la regla es de dominio y se queda aquí.
     Given un carrito con "Jugo Verde" de "Hazlo Sano" y "Pan de campo" de "Panadería La Luz"
     When se agrupa por vendedor
     Then salen dos grupos, cada uno con su subtotal y su propio botón de confirmar
-    And no existe ningún total que mezcle a las dos tiendas, porque cada una entrega por su cuenta
+    # El total de los dos SÍ existe desde el slice 5, y es informativo: dice lo que se va a gastar,
+    # no lo que se le cobra a nadie.
 
   # Confirmar ya no salta a WhatsApp: primero se registra el pedido y el aviso se manda desde su
   # página. Si el aviso fuera lo primero, un pedido existiría solo dentro de una conversación y nadie
@@ -316,7 +317,70 @@ Feature: Carrito y pedidos
       | solo un vídeo  | no se pinta nada: el texto se lee igual            |
       | ningún archivo | tampoco, y sin dejar un marco vacío                |
 
-  @slice-5 @future
+  # Slice 5. Los cuatro slices anteriores construyeron el carrito de varias tiendas y nunca lo vieron
+  # funcionar: con un solo vendedor en la base, `groupBySeller` siempre devolvía un grupo. Las dos
+  # piezas que solo importan con dos tiendas —el total de la compra y el checkout compartido— quedaron
+  # sin ejercitar, y una de las dos estaba mal: el `checkout_id` se generaba nuevo en CADA
+  # confirmación, así que las dos tiendas del mismo carrito no quedaban hermanadas por nada.
+  #
+  # Las dos tiendas se siembran (`E2E Panadería` y `E2E Jugos`): la base real sigue teniendo una sola
+  # de verdad, y `pnpm run seed:demo-seller` crea una permanente para mirarlo a mano, no para la suite.
+  @slice-5
+  Scenario: Veo cuánto me voy a gastar en total, aunque pague por tienda
+    Given un carrito con un producto a 60 de una panadería y otro a 40 de una juguería
+    When abro "/carrito"
+    Then cada tienda enseña su subtotal: 60 y 40
+    And debajo aparece el total de la compra, 100
+    And dice que se confirma en 2 pedidos, uno por tienda
+
+  @slice-5
+  Scenario: Con una sola tienda no se repite el total
+    Given un carrito con dos productos de la misma tienda
+    When abro "/carrito"
+    Then no aparece un segundo total: sería la misma cifra dos veces
+
+  @slice-5
+  Scenario: Las dos tiendas de un carrito son una sola compra
+    Given un carrito con productos de dos tiendas y sesión iniciada
+    When confirmo la primera tienda
+    Then llego a su pedido y el carrito conserva lo de la otra
+    And se me avisa de que todavía me queda algo por confirmar
+    When vuelvo al carrito y confirmo la segunda
+    Then los dos pedidos comparten el mismo checkout
+    And la página de cualquiera de los dos lista los dos, con el total de la compra
+
+  @slice-5
+  Scenario: El vendedor no ve a quién más le compré
+    Given una compra con pedidos en dos tiendas
+    When el dueño de una de las dos abre el pedido que le hicieron
+    Then ve el suyo y nada más: la otra tienda no aparece
+    # Compartir el carrito no es compartir la clientela. El `WHERE` de la consulta lleva el
+    # `user_id` del comprador, no solo el `checkout_id`.
+
+  @slice-5
+  Scenario: Una compra nueva no se engancha a la anterior
+    Given una compra ya confirmada del todo
+    When empiezo otro carrito y lo confirmo
+    Then su pedido tiene un checkout distinto
+    # La cookie `hs_checkout` muere cuando el carrito se vacía, que es la vida de la compra que
+    # representa. Sin eso, el pedido de hoy aparecería dentro de la compra de la semana pasada.
+
+  @slice-5 @component
+  Scenario Outline: Una cookie de checkout manipulada no rompe el pedido
+    # Vitest sobre `parseCheckoutId`. El valor va a una columna `uuid`: lo que no lo sea reventaría el
+    # INSERT, así que se descarta antes y se empieza un checkout nuevo. Mismo criterio que `parseCart`.
+    Given la cookie "hs_checkout" con el valor "<cookie>"
+    When se lee el checkout en curso
+    Then el resultado es <resultado>
+
+    Examples:
+      | cookie                               | resultado | razón                                       |
+      | 11111111-2222-3333-4444-555555555555 | el uuid   | el caso normal                              |
+      | 11111111222233334444555555555555     | nulo      | sin guiones no es un uuid para Postgres     |
+      | ' OR 1=1 --                          | nulo      | una cookie la escribe cualquiera            |
+      | (vacía)                              | nulo      | todavía no hay compra empezada              |
+
+  @slice-6 @future
   Scenario: Se paga en línea
     Given un pedido aceptado
     When pago

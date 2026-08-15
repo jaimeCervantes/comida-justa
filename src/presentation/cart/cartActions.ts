@@ -8,6 +8,7 @@ import {
   setSelectionQuantity,
 } from "~/domain/cart/cartSelection";
 import { readCartSelection, writeCartSelection } from "~/infra/cart/readCart";
+import { clearCheckoutId } from "~/infra/cart/readCheckout";
 
 export type CartActionState = {
   /** Cuántos artículos quedaron. Es lo que deja al botón decir que ya lo añadió. */
@@ -100,6 +101,13 @@ async function writeCart(
   selection: readonly CartSelection[],
 ): Promise<CartActionState> {
   await writeCartSelection(selection);
+
+  /* Un carrito vacío cierra la compra. La otra salida —confirmarlo todo— la cierra en `placeOrder`;
+     esta es la de quien se arrepiente y quita los renglones a mano. Sin las dos, el siguiente pedido
+     se engancharía a una compra que ya terminó. */
+  if (selection.length === 0) {
+    await clearCheckoutId();
+  }
 
   /* El layout entero, no solo la página: el contador de la cabecera sale de esta misma cookie y se
      pinta en todas las pantallas. Sin esto, añadir desde una tarjeta parecería no hacer nada. */

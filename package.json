@@ -28,6 +28,7 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "seed:products": "tsx src/scripts/seedHazloSanoProducts.ts",
+    "seed:demo-seller": "tsx src/scripts/seedDemoSeller.ts",
     "migrate:products": "tsx src/scripts/migrateProductsToPosts.ts",
     "verify:embedding-space": "tsx src/scripts/verifyEmbeddingSpace.ts",
     "check:i18n": "tsx src/scripts/checkI18n.ts",
