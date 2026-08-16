@@ -470,11 +470,73 @@ sigue teniendo motivos para escribir. Lo que cierra la puerta es que el pedido d
 5. La lista del vendedor no cambia: quien recibe el pedido no se avisa a sí mismo.
 6. Una tienda sin teléfono no pinta un enlace roto.
 
-### Slice 8 — Pago en línea  *(@future, condicionado)*
+### Slice 8 — El pedido recuerda su recorrido  *(actual)*
+
+**El defecto, con el único pedido que se movió como prueba.** El del 10 de agosto se creó a las
+01:58 y su `updated_at` dice 03:25. Eso es todo lo que queda: tardó 1 h 27 min **en total**, y
+cuándo se aceptó y cuándo empezó a prepararse los pisó el mismo `updated_at` del paso siguiente.
+Cada transición borra a la anterior, así que el proceso que el slice 2 modeló con cuidado no deja
+rastro de haber ocurrido.
+
+De los 7 pedidos de hoy, **6 siguen en `PENDING` sin que nadie los haya tocado nunca** y 1 está
+`DELIVERED`. O sea que el histórico no llega tarde: llega antes de que haya casi nada que perder.
+
+> **«Fecha y hora de entrega» es esto mismo, no otra cosa.** Se planteó si hacía falta una fecha de
+> entrega *pedida* por el comprador o *prometida* por el vendedor, y se descartaron las dos: lo que
+> se quería saber es **cuándo se entregó de verdad**, que es la marca de tiempo del salto a
+> `DELIVERED`. Sin campo nuevo, sin pantalla nueva y sin tocar el flujo.
+
+#### Dos fuentes, y cada una contesta lo suyo
+
+**`updated_at` ya dice cuándo entró al estado en que está.** No hace falta nada para contestar
+«¿cuándo se entregó?» de un pedido `DELIVERED`: es su `updated_at`, exacto, y funciona **hacia
+atrás** — el pedido del 10 de agosto sabe decirlo hoy mismo, sin migración y sin backfill. Es lo que
+esa columna significa desde `0032`; sólo faltaba leerla.
+
+**La tabla nueva contesta el recorrido**, que es lo que ninguna columna puede: cuánto tardó el
+vendedor en aceptar, cuánto en preparar, y en qué paso se quedaron los que no llegaron.
+
+#### `customer_order_status_changes`
+
+- **Sólo transiciones. No hay fila de nacimiento.** `created_at` ya *es* «cuándo pasó a `PENDING`»,
+  y una fila que lo repitiera sería una copia denormalizada — lo mismo que este roadmap rechazó al
+  no crear una columna `total`. Consecuencia: `from_status` es `NOT NULL` y la tabla no tiene casos
+  especiales que interpretar al leer.
+- **`changed_by` es el usuario que la aplicó**, nulo para cuando el cambio no lo haga una persona
+  (el pago, el bot). Hoy siempre es el vendedor; se guarda porque el día que haya dos manos sobre la
+  misma tienda, «¿quién canceló esto?» no se puede reconstruir hacia atrás.
+- **Se escribe en la misma transacción que el `UPDATE`.** `updateStatus` ya lleva el estado de
+  partida en el `WHERE`: si no tocó fila no hubo cambio y no hay nada que registrar. Atarlos es lo
+  que impide que vuelva a existir un pedido entregado sin constancia de cuándo.
+- **Sin backfill, y dicho en voz alta.** Del pedido entregado sabemos *cuándo terminó* pero no por
+  dónde pasó. Escribir un `PREPARING → DELIVERED` inventado sería fabricar datos en una base
+  compartida para que una pantalla se vea completa. El histórico empieza el día que se aplique la
+  migración.
+- **Sin índice propio más allá del de `order_id`.** Un pedido tiene como mucho cuatro transiciones
+  en toda su vida; el umbral para pensar en otro es que alguien empiece a preguntarle a la tabla por
+  rangos de fecha, y eso todavía no existe.
+
+#### El efecto secundario que vale más que la pantalla
+
+El slice 9 dice que el pago no se empieza hasta responder, con números, *«cuántos se caen entre
+`PENDING` y `DELIVERED`»*. Hoy esa pregunta **no tiene respuesta posible**, y no por falta de
+volumen: por falta de historial. Con esta tabla es una consulta. Es la primera vez que un slice de
+este roadmap desbloquea a otro en vez de sólo precederlo.
+
+**Criterios de aceptación:**
+1. Un pedido entregado dice cuándo se entregó, con fecha y hora, en su ficha y en la lista.
+2. Lo mismo un cancelado, con su fecha — y ninguno de los dos lo dice mientras sigue abierto.
+3. La ficha enseña el recorrido completo: qué paso, cuándo, y cuánto pasó entre uno y otro.
+4. Un pedido de los de antes de la migración se lee sin huecos raros: dice cuándo se hizo y cuándo
+   entró a su estado actual, y no finge un recorrido que nadie registró.
+5. Mover un pedido deja su fila; un intento rechazado —el de la segunda pestaña— no deja ninguna.
+6. Si la escritura del histórico falla, el estado tampoco cambia.
+
+### Slice 9 — Pago en línea  *(@future, condicionado)*
 
 El pago **siempre va al final**: no tiene fecha, y cada slice que se entrega lo empuja un número más
-abajo. Ya pasó del 5 al 6, del 6 al 7 y ahora al 8. No es que se aleje — es que sigue esperando la
-misma respuesta.
+abajo. Ya pasó del 5 al 6, del 6 al 7, del 7 al 8 y ahora al 9. No es que se aleje — es que sigue
+esperando la misma respuesta, sólo que desde este slice **ya se puede contestar**.
 
 **No se empieza hasta que los pedidos del slice 2 lo justifiquen.** No es una pantalla de checkout:
 es repartir dinero entre vendedores, y eso trae KYC por vendedor, datos fiscales, devoluciones y

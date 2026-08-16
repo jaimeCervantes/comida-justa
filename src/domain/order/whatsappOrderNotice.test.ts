@@ -14,6 +14,7 @@ const order: Order = {
   sellerId: "05bea858-88d0-4ff3-a531-3d82a7ad6fcc",
   buyerId: "user-jaime",
   status: "PENDING",
+  updatedAt: new Date("2026-08-09T12:00:00Z"),
   lines: [
     {
       postId: "f5258215-a56c-4c86-813e-89177f2860d2",

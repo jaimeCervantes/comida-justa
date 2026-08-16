@@ -169,6 +169,83 @@ export interface Order {
   status: OrderStatus;
   lines: OrderLine[];
   createdAt: Date;
+  /**
+   * Desde cuándo está en el estado en que está.
+   *
+   * Para un pedido **final** es la fecha en que se entregó o se canceló, exacta y sin consultar
+   * nada más — por eso el histórico de pasos no hace falta para contestar "¿cuándo se entregó?", ni
+   * siquiera de los pedidos anteriores a que ese histórico existiera. Para uno abierto no significa
+   * eso y no se enseña: `PREPARING` desde el martes no es "entregado el martes".
+   */
+  updatedAt: Date;
+}
+
+/**
+ * Un paso del pedido: de dónde venía, a dónde fue y cuándo.
+ *
+ * **Sólo transiciones.** El nacimiento no es un paso: `createdAt` ya dice cuándo el pedido pasó a
+ * `PENDING`, y una fila que lo repitiera sería una copia denormalizada de una columna que ya está.
+ * Por eso `from` no es opcional y leer esto nunca obliga a interpretar un nulo.
+ */
+export interface OrderStatusChange {
+  from: OrderStatus;
+  to: OrderStatus;
+  at: Date;
+}
+
+/**
+ * La fecha en que el pedido terminó, o `null` si todavía no ha terminado.
+ *
+ * Sale de `updatedAt` y no del histórico **a propósito**: es la única de las dos que también
+ * contesta por los pedidos anteriores a la migración, y para un estado final las dos dirían lo
+ * mismo. Preguntarle al histórico habría dejado sin fecha justo al pedido más viejo, que es el único
+ * que ya estaba entregado.
+ */
+export function closedAt(
+  order: Pick<Order, "status" | "updatedAt">,
+): Date | null {
+  /* `CLOSED_STATUSES` y no `isFinal`: `isFinal` dice que sí de `DRAFT` y `PAID` —hoy no tienen
+     salidas— y ninguno de los dos es un pedido terminado. Son listas parecidas que contestan
+     preguntas distintas, y aquí la pregunta es "¿se acabó?", no "¿se puede mover?". */
+  return CLOSED_STATUSES.includes(order.status) ? order.updatedAt : null;
+}
+
+/**
+ * Lo que pasó entre dos pasos, ya reducido a la unidad en que se cuenta.
+ *
+ * Se devuelve estructurado en vez de una cadena porque el texto es cosa del catálogo, no del
+ * dominio. Y con umbrales y no con la unidad más grande a secas: "1 h 27 min" es lo que se quiere
+ * leer de un pedido que tardó eso, mientras que a los tres días los minutos ya no le importan a
+ * nadie.
+ */
+export type Elapsed =
+  | { unit: "minutes"; minutes: number }
+  | { unit: "hours"; hours: number; minutes: number }
+  | { unit: "days"; days: number };
+
+const MINUTE = 60_000;
+const HOUR = 60;
+const DAY = 24 * HOUR;
+
+export function elapsedBetween(from: Date, to: Date): Elapsed {
+  /* Hacia abajo: un paso que tardó 89 segundos tardó "1 min", no "2". Y el máximo con 0 evita que
+     un reloj torcido —o dos filas escritas en el mismo milisegundo— produzcan un negativo. */
+  const minutes = Math.max(
+    0,
+    Math.floor((to.getTime() - from.getTime()) / MINUTE),
+  );
+
+  if (minutes < HOUR) return { unit: "minutes", minutes };
+
+  if (minutes < DAY) {
+    return {
+      unit: "hours",
+      hours: Math.floor(minutes / HOUR),
+      minutes: minutes % HOUR,
+    };
+  }
+
+  return { unit: "days", days: Math.floor(minutes / DAY) };
 }
 
 export function lineAmount(line: OrderLine): number {

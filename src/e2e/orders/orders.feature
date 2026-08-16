@@ -543,9 +543,82 @@ Feature: Carrito y pedidos
       | con 2781126948  | el botón aparece y apunta a wa.me               |
       | sin teléfono    | no hay botón, y la tarjeta se lee igual de bien |
 
+  # Slice 8. El pedido del 10 de agosto es la prueba del defecto: se creó a las 01:58 y su
+  # `updated_at` dice 03:25. Tardó 1 h 27 min en total y no queda ni rastro de cuándo se aceptó ni
+  # cuándo empezó a prepararse — cada paso pisó el `updated_at` del anterior.
+  @slice-8
+  Scenario: Un pedido entregado dice cuándo se entregó
+    Given un pedido mío que el vendedor acepta, prepara y entrega
+    When lo miro en "/pedidos" con el estado "Terminados"
+    Then su tarjeta dice cuándo se entregó, con fecha y hora
+    And su ficha lo dice también
+
+  @slice-8
+  Scenario: Y uno que sigue abierto no finge una fecha que no tiene
+    Given un pedido Pendiente
+    When lo miro
+    Then dice cuándo se hizo, como siempre
+    But no dice ninguna fecha de entrega, porque no se ha entregado
+
+  @slice-8
+  Scenario: La ficha enseña el recorrido, no sólo el final
+    Given un pedido que pasó por Aceptado y En preparación antes de entregarse
+    When abro su ficha
+    Then veo los tres pasos con su hora, en el orden en que ocurrieron
+    And veo cuánto pasó entre uno y el siguiente
+
+  # Lo que NO se hizo: rellenar hacia atrás. Del entregado del 10 de agosto sabemos cuándo terminó
+  # pero no por dónde pasó, y escribir un `PREPARING → DELIVERED` inventado seria fabricar datos en
+  # la base compartida para que una pantalla se vea completa.
+  @slice-8
+  Scenario: Un pedido anterior a la migración se lee sin huecos raros
+    Given un pedido que se movió antes de que existiera el histórico
+    When abro su ficha
+    Then dice cuándo se hizo y cuándo entró a su estado actual
+    But no enseña un recorrido inventado, porque nadie lo registró
+
+  # La fila y el UPDATE van juntos o no van. Si se pudieran separar, volvería a existir justo lo que
+  # este slice viene a arreglar: un pedido entregado sin constancia de cuándo.
+  @slice-8
+  Scenario: Lo que no cambió de estado no deja rastro
+    Given un pedido Pendiente abierto en dos pestañas
+    When en la primera se acepta y en la segunda se cancela
+    Then el histórico tiene UNA fila, la de la primera
+    And la segunda avisa de que el pedido ya se movió, como antes
+
+  @slice-8 @component
+  Scenario Outline: Cuándo se enseña la fecha del último paso
+    # Vitest: `updated_at` dice desde cuándo el pedido está como está, así que para un estado final
+    # ES la fecha en que se entregó o se canceló. Para uno abierto no significa eso y no se enseña.
+    Given un pedido en "<estado>"
+    When se pinta su tarjeta
+    Then <resultado>
+
+    Examples:
+      | estado     | resultado                                    | razón                                     |
+      | DELIVERED  | dice "Entregado el …"                        | el estado final ES la entrega             |
+      | CANCELLED  | dice "Cancelado el …"                        | también es final, y también importa cuándo |
+      | PENDING    | no dice ninguna de las dos                   | no ha pasado ni lo uno ni lo otro          |
+      | PREPARING  | tampoco                                      | está en marcha, no terminado               |
+
+  @slice-8 @component
+  Scenario Outline: Cuánto pasó entre dos pasos
+    # Vitest sobre el dominio: es aritmética de fechas y no necesita ni base ni navegador.
+    Given un paso a las "<desde>" y el siguiente a las "<hasta>"
+    When se calcula lo que pasó en medio
+    Then son <duración>
+
+    Examples:
+      | desde            | hasta            | duración   | razón                                    |
+      | 2026-08-10 01:58 | 2026-08-10 03:25 | 1 h 27 min | el pedido real del 10 de agosto          |
+      | 2026-08-10 01:58 | 2026-08-10 02:14 | 16 min     | menos de una hora se dice en minutos     |
+      | 2026-08-10 01:58 | 2026-08-13 01:58 | 3 días     | más de un día se dice en días            |
+
   # El pago en línea es lo único sin fecha: sigue condicionado a que el volumen de pedidos lo
   # justifique. Va siempre al final, así que cada slice entregado lo empuja un número más abajo.
-  @slice-8 @future
+  # Desde el slice 8, la pregunta que lo condiciona —cuántos se caen entre PENDING y DELIVERED— por
+  # fin se puede contestar.
+  @slice-9 @future
   Scenario: Se paga en línea
     Given un pedido aceptado
     When pago

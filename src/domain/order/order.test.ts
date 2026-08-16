@@ -3,6 +3,9 @@ import {
   canNotifySeller,
   canTransition,
   checkoutTotal,
+  closedAt,
+  type Elapsed,
+  elapsedBetween,
   INITIAL_STATUS,
   isFinal,
   lineAmount,
@@ -212,4 +215,60 @@ describe("orderItemCount", () => {
   it("un pedido sin renglones no lleva nada", () => {
     expect(orderItemCount([])).toBe(0);
   });
+});
+
+/* La corrida de escritorio de `orders.feature` (@slice-8). El pedido real del 10 de agosto tardó
+   1 h 27 min de punta a punta, y ese tramo es justo lo que hasta ahora no se podía leer. */
+describe("elapsedBetween", () => {
+  const alas = (hhmm: string) => new Date(`2026-08-10T${hhmm}:00Z`);
+
+  it.each([
+    ["01:58", "03:25", { unit: "hours", hours: 1, minutes: 27 }],
+    ["01:58", "02:14", { unit: "minutes", minutes: 16 }],
+    ["01:58", "02:58", { unit: "hours", hours: 1, minutes: 0 }],
+    ["01:58", "01:58", { unit: "minutes", minutes: 0 }],
+  ] as Array<[string, string, Elapsed]>)("de %s a %s", (from, to, expected) => {
+    expect(elapsedBetween(alas(from), alas(to))).toEqual(expected);
+  });
+
+  it("a partir de un día se cuenta en días y los minutos dejan de importar", () => {
+    expect(
+      elapsedBetween(alas("01:58"), new Date("2026-08-13T01:58:00Z")),
+    ).toEqual({ unit: "days", days: 3 });
+  });
+
+  /* Dos filas escritas en el mismo milisegundo, o un reloj torcido, no pueden producir "-3 min". */
+  it("nunca da un tiempo negativo", () => {
+    expect(elapsedBetween(alas("03:25"), alas("01:58"))).toEqual({
+      unit: "minutes",
+      minutes: 0,
+    });
+  });
+});
+
+describe("closedAt", () => {
+  const updatedAt = new Date("2026-08-10T03:25:39.277Z");
+
+  it.each([
+    ["DELIVERED", true, "el estado final ES la entrega"],
+    ["CANCELLED", true, "también terminó, y también importa cuándo"],
+    ["PENDING", false, "no ha pasado ni lo uno ni lo otro"],
+    ["PREPARING", false, "está en marcha, no terminado"],
+  ] as Array<[OrderStatus, boolean, string]>)(
+    "%s: %s (%s)",
+    (status, expected) => {
+      const result = closedAt({ status, updatedAt });
+
+      expect(result === null).toBe(!expected);
+    },
+  );
+
+  /* `isFinal` diría que sí de los dos: hoy no tienen salidas. Pero un pedido pagado no está
+     terminado, y uno en borrador tampoco — por eso esto mira `CLOSED_STATUSES`. */
+  it.each([["PAID"], ["DRAFT"]] as Array<[OrderStatus]>)(
+    "%s no está terminado, aunque no tenga salidas",
+    (status) => {
+      expect(closedAt({ status, updatedAt })).toBeNull();
+    },
+  );
 });

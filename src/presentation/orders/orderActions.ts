@@ -130,6 +130,9 @@ export async function advanceOrder(
       orderId: String(formData.get("orderId") ?? ""),
       sellerId: seller.id,
       status: String(formData.get("status") ?? "") as OrderStatus,
+      /* La persona y la tienda son cosas distintas: el `WHERE` de la escritura lleva la tienda, y el
+         histórico guarda a quién movió el pedido. Hoy coinciden porque una tienda tiene un dueño. */
+      changedBy: userId,
     },
   );
 

@@ -28,6 +28,7 @@ function orderInStatus(
       },
     ],
     createdAt: new Date("2026-08-09T12:00:00Z"),
+    updatedAt: new Date("2026-08-09T12:00:00Z"),
     sellerName: "Hazlo Sano",
     sellerHandle: "hazlo-sano",
     sellerPhone: "2781126948",
@@ -42,6 +43,7 @@ function build(current: OrderWithSeller | null, applied?: OrderStatus | null) {
     listByCheckout: vi.fn(),
     countOpen: vi.fn(),
     findById: vi.fn(),
+    historyOf: vi.fn(),
     /* El caso de uso solo pregunta de quién es y en qué estado está: no pinta nada, así que no pide
        `findById` ni sus renglones. */
     findHeader: vi

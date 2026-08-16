@@ -4,6 +4,7 @@ import {
   type Order,
   type OrderLine,
   type OrderStatus,
+  type OrderStatusChange,
   statusesInScope,
 } from "~/domain/order/order";
 import type {
@@ -18,6 +19,7 @@ import type {
 import { db } from "~/infra/dataAccess/db/connection";
 import {
   customerOrderItems,
+  customerOrderStatusChanges,
   customerOrders,
 } from "~/infra/dataAccess/db/schema/orders";
 
@@ -35,6 +37,8 @@ interface OrderRow {
    * ficha del pedido. Se convierte al mapear, una sola vez.
    */
   created_at: string;
+  /** Texto por lo mismo que `created_at`, y se convierte al mapear. */
+  updated_at: string;
   total_count: number;
   seller_name: string;
   seller_slug: string | null;
@@ -148,6 +152,7 @@ export class PostgresOrderRepository implements OrderRepository {
       status: header.status,
       lines: linesByOrder.get(header.id) ?? [],
       createdAt: header.createdAt,
+      updatedAt: header.updatedAt,
     }));
   }
 
@@ -286,31 +291,73 @@ export class PostgresOrderRepository implements OrderRepository {
    * `sellerId` para que el pedido de otro no se pueda tocar mandando su id, y `fromStatus` para que
    * dos pestañas abiertas no apliquen una transición calculada sobre un estado que ya cambió. Sin
    * fila devuelta, no se hizo nada — y quien llama no distingue por qué.
+   *
+   * **El paso se registra en la misma transacción que el `UPDATE`.** Las dos escrituras son una
+   * sola cosa: un pedido que cambia de estado sin dejar constancia de cuándo es exactamente el
+   * defecto que el slice 8 vino a arreglar, y si la constancia se escribiera fuera de la
+   * transacción podría faltar por un fallo a mitad. Y como el `UPDATE` sólo toca fila cuando el
+   * cambio es real, el intento de la segunda pestaña no escribe historia de algo que no pasó.
    */
   async updateStatus({
     orderId,
     sellerId,
     fromStatus,
     status,
+    changedBy,
   }: {
     orderId: string;
     sellerId: string;
     fromStatus: OrderStatus;
     status: OrderStatus;
+    changedBy?: string | null;
   }): Promise<OrderStatus | null> {
-    const [header] = await db
-      .update(customerOrders)
-      .set({ status, updatedAt: new Date() })
-      .where(
-        and(
-          eq(customerOrders.id, orderId),
-          eq(customerOrders.sellerId, sellerId),
-          eq(customerOrders.status, fromStatus),
-        ),
-      )
-      .returning();
+    return db.transaction(async (tx) => {
+      const [header] = await tx
+        .update(customerOrders)
+        .set({ status, updatedAt: new Date() })
+        .where(
+          and(
+            eq(customerOrders.id, orderId),
+            eq(customerOrders.sellerId, sellerId),
+            eq(customerOrders.status, fromStatus),
+          ),
+        )
+        .returning();
 
-    return header?.status ?? null;
+      if (!header) return null;
+
+      await tx.insert(customerOrderStatusChanges).values({
+        orderId,
+        fromStatus,
+        toStatus: status,
+        /* `changedAt` lo pone la base con su `now()`, no el proceso de Node: el reloj de la base es
+           el mismo para todos los pasos y `created_at`/`updated_at` ya salen de ahí. Mezclar dos
+           relojes en una línea de tiempo es cómo se acaba viendo un paso "antes" del anterior. */
+        changedBy: changedBy ?? null,
+      });
+
+      return header.status;
+    });
+  }
+
+  /**
+   * El recorrido de un pedido, del primer paso al último.
+   *
+   * Vacío para los pedidos anteriores a la migración, y eso **es** la respuesta correcta: nadie
+   * registró sus pasos y rellenarlos ahora sería inventarlos.
+   */
+  async historyOf(orderId: string): Promise<OrderStatusChange[]> {
+    const rows = await db
+      .select({
+        from: customerOrderStatusChanges.fromStatus,
+        to: customerOrderStatusChanges.toStatus,
+        at: customerOrderStatusChanges.changedAt,
+      })
+      .from(customerOrderStatusChanges)
+      .where(eq(customerOrderStatusChanges.orderId, orderId))
+      .orderBy(customerOrderStatusChanges.changedAt);
+
+    return rows;
   }
 
   /**
@@ -336,7 +383,7 @@ export class PostgresOrderRepository implements OrderRepository {
 
     const raw = await db.execute(sql`
       SELECT
-        o.id, o.checkout_id, o.seller_id, o.user_id, o.status, o.created_at,
+        o.id, o.checkout_id, o.seller_id, o.user_id, o.status, o.created_at, o.updated_at,
         s.name AS seller_name, s.slug AS seller_slug, s.phone AS seller_phone,
         u.name AS buyer_name, u.username AS buyer_username, u.image AS buyer_image,
         count(*) OVER ()::int AS total_count
@@ -370,6 +417,7 @@ export class PostgresOrderRepository implements OrderRepository {
         status: row.status,
         lines: linesByOrder.get(row.id) ?? [],
         createdAt: new Date(row.created_at),
+        updatedAt: new Date(row.updated_at),
         sellerName: row.seller_name,
         sellerHandle: row.seller_slug,
         sellerPhone: row.seller_phone,

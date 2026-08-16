@@ -6,6 +6,14 @@ export interface AdvanceOrderInput {
   /** El de la tienda de quien pide el cambio. Sale de la sesión, **nunca** del formulario. */
   sellerId: string;
   status: OrderStatus;
+  /**
+   * La persona que lo mueve, para el histórico. De la sesión, como `sellerId`.
+   *
+   * Es distinto de la tienda: una tienda puede tener varias manos encima, y «¿quién canceló esto?»
+   * no se reconstruye hacia atrás. Opcional porque el día que un pedido lo mueva el pago o el bot no
+   * habrá nadie a quien apuntar.
+   */
+  changedBy?: string | null;
 }
 
 export type AdvanceOrderResult =
@@ -36,6 +44,7 @@ export default class AdvanceOrderUseCase {
     orderId,
     sellerId,
     status,
+    changedBy,
   }: AdvanceOrderInput): Promise<AdvanceOrderResult> {
     const current = await this.orders.findHeader(orderId);
 
@@ -53,6 +62,7 @@ export default class AdvanceOrderUseCase {
       sellerId,
       fromStatus: current.status,
       status,
+      changedBy,
     });
 
     /* Sin fila devuelta, alguien lo movió entre la lectura y la escritura. No se reintenta: la

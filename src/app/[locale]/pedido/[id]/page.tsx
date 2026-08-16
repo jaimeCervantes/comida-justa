@@ -21,6 +21,8 @@ import { Surface } from "~/presentation/design_system/surfaces/Surface";
 import { Heading } from "~/presentation/design_system/typography/Heading";
 import NotifySellerButton from "~/presentation/orders/NotifySellerButton/NotifySellerButton";
 import OrderBuyer from "~/presentation/orders/OrderBuyer/OrderBuyer";
+import OrderClosedOn from "~/presentation/orders/OrderClosedOn/OrderClosedOn";
+import OrderHistory from "~/presentation/orders/OrderHistory/OrderHistory";
 import OrderLines from "~/presentation/orders/OrderLines/OrderLines";
 import OrderStatusBadge from "~/presentation/orders/OrderStatusBadge/OrderStatusBadge";
 import CheckoutOrders from "./ui/CheckoutOrders";
@@ -69,6 +71,11 @@ export default async function PedidoPage({
 
   if (!order) notFound();
 
+  /* El recorrido se pide sólo aquí y sólo después de saber que el pedido existe: las listas traen
+     diez por página, y meterlo en la consulta común habría sido leer diez recorridos para tirar
+     nueve. */
+  const history = await repository.historyOf(order.id);
+
   /* La tienda solo se consulta si hace falta: quien compró ya está autorizado por la primera mitad
      de la condición, y es el caso normal de esta página. */
   const isBuyer = order.buyerId === userId;
@@ -107,6 +114,8 @@ export default async function PedidoPage({
             date: format.dateTime(order.createdAt, { dateStyle: "medium" }),
           })}
         </span>
+        {/* Y cuándo se entregó o se canceló, si ya terminó. */}
+        <OrderClosedOn order={order} />
       </p>
 
       <Surface
@@ -153,6 +162,8 @@ export default async function PedidoPage({
           </div>
         ) : null}
       </Surface>
+
+      <OrderHistory order={order} history={history} />
 
       {/* Un solo pedido no es "una compra de varios": no hay nada que juntar y el bloque sobraría. */}
       {siblings.length > 1 ? (

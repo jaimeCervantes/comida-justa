@@ -11,6 +11,7 @@ const pedido: Order = {
   buyerId: "b0000000-0000-0000-0000-000000000000",
   status: "PENDING",
   createdAt: new Date("2026-08-14T01:45:00Z"),
+  updatedAt: new Date("2026-08-14T01:45:00Z"),
   lines: [
     {
       postId: null,

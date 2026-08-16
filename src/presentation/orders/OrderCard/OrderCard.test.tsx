@@ -31,6 +31,7 @@ const pedido: Order = {
     line("Suero natural", 35, 6, "suero-natural"),
   ],
   createdAt: new Date("2026-08-14T01:45:34.024Z"),
+  updatedAt: new Date("2026-08-14T01:45:34.024Z"),
 };
 
 const renderCard = (order: Order = pedido) =>

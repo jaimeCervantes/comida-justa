@@ -1245,3 +1245,171 @@ Sin migración y sin escribir nada en la base; falta la e2e.
    `docs/pendientes.md`.
 
 **Pendiente del usuario:** correr la e2e, y decidir 2 y 3.
+
+---
+
+## Slice 8 — El pedido recuerda su recorrido (2026-08-16)
+
+### Objetivo
+
+Registrar la fecha y hora de cada paso del pedido, y decir cuándo se entregó.
+
+### Lo que decidió el alcance: una pregunta, no dos
+
+Se planteó como dos cosas —«fecha y hora de entrega» y «registrar cada paso»— y resultó ser una.
+«Fecha de entrega» podía significar tres funciones muy distintas: cuándo la **quiere** el comprador
+(un campo en el checkout), cuándo la **promete** el vendedor (un formulario al aceptar), o cuándo se
+**entregó de verdad**. Preguntado, era la tercera — y ésa no necesita campo ni pantalla: es la marca
+de tiempo del salto a `DELIVERED`.
+
+Las otras dos se descartaron explícitamente. Media hora de conversación se ahorró semanas de
+formularios que nadie había pedido.
+
+### El defecto, con su prueba
+
+El único pedido que se había movido de verdad, el del 10 de agosto: creado a la 01:58, `updated_at`
+a las 03:25. De ahí sólo se deduce que tardó **1 h 27 min en total**. Cuándo se aceptó y cuándo
+empezó a prepararse los pisó el `updated_at` del paso siguiente. El proceso que el slice 2 modeló
+con cuidado no dejaba rastro de haber ocurrido.
+
+### Decisiones y por qué
+
+- **Dos fuentes, y cada una contesta lo suyo.** `updated_at` ya dice cuándo el pedido entró al
+  estado en que está, así que para un `DELIVERED` **es** la fecha de entrega, exacta — y funciona
+  **hacia atrás**, sin migración y sin backfill. La tabla nueva contesta lo que ninguna columna
+  puede: dónde se fue el tiempo entre un paso y otro. Haber montado todo sobre la tabla habría
+  dejado sin fecha justo al único pedido que ya estaba entregado.
+- **Sólo transiciones: no hay fila de nacimiento.** `created_at` ya es «cuándo pasó a `PENDING`», y
+  repetirlo sería una copia denormalizada — lo mismo que este roadmap rechazó al no crear una
+  columna `total`. Consecuencia: `from_status` es `NOT NULL` y leer la tabla nunca obliga a
+  interpretar un nulo.
+- **La fila y el `UPDATE`, en la misma transacción.** `updateStatus` ya llevaba el estado de partida
+  en el `WHERE`, así que sólo toca fila cuando el cambio es real: el intento de la segunda pestaña
+  no escribe historia de algo que no pasó. Y si la fila no se pudiera escribir, el estado tampoco
+  cambia — volvería a existir justo el agujero que este slice cierra.
+- **`changed_at` lo pone la base con su `now()`**, no el proceso de Node. `created_at` y
+  `updated_at` ya salen de ahí, y mezclar dos relojes en una línea de tiempo es cómo se acaba viendo
+  un paso «antes» del anterior.
+- **`changed_by` es la persona, no la tienda.** Hoy coinciden porque una tienda tiene un dueño; el
+  día que haya dos manos encima, «¿quién canceló esto?» no se reconstruye hacia atrás. Nullable
+  porque el pago y el bot moverán pedidos sin sesión detrás.
+- **Sin backfill, y dicho en voz alta.** Del entregado sabemos cuándo terminó pero no por dónde
+  pasó. Escribir un `PREPARING → DELIVERED` inventado sería fabricar datos en una base compartida
+  para que una pantalla se vea completa. La ficha de un pedido sin recorrido lo explica en vez de
+  disimularlo.
+- **`closedAt` mira `CLOSED_STATUSES`, no `isFinal`.** Son listas parecidas que contestan preguntas
+  distintas: `isFinal` dice que sí de `DRAFT` y `PAID` —hoy no tienen salidas— y ninguno de los dos
+  es un pedido terminado. Usar `isFinal` habría puesto «entregado el…» sobre un pedido pagado el día
+  que el pago exista.
+- **El recorrido se lee sólo en la ficha** (`historyOf`), no en la consulta común. Las listas traen
+  diez pedidos por página: meterlo dentro habría sido leer diez recorridos para tirar nueve.
+
+### El efecto secundario que vale más que la pantalla
+
+El slice del pago está condicionado, por escrito, a responder «cuántos se caen entre `PENDING` y
+`DELIVERED`». Hoy esa pregunta no tenía respuesta posible — y no por falta de volumen, sino por
+falta de historial. Ahora es una consulta. Es la primera vez que un slice de este roadmap desbloquea
+a otro en vez de sólo precederlo.
+
+### La migración, aplicada
+
+`0039_2026-08-16_add_customer_order_status_changes.py`, encadenada desde `0038_2026_08_11`, en el
+repo del bot. **Aplicada con `uv run alembic upgrade head`** con autorización explícita del usuario.
+
+Verificado después: la tabla existe con sus 6 columnas, su `CHECK` (`from_status <> to_status`), sus
+dos FK y su índice; `alembic_version` en `0039_2026_08_16`; y los pedidos existentes **intactos**.
+Es aditiva: crea una tabla vacía y no toca ninguna fila. Para deshacerla,
+`uv run alembic downgrade 0038_2026_08_11`, que la borra sin tocar nada más.
+
+### Archivos tocados
+
+- **Backend (bot):** `alembic/versions/0039_2026-08-16_add_customer_order_status_changes.py`.
+- **Dominio:** `order/order.ts` (`updatedAt` en `Order`, `OrderStatusChange`, `closedAt`,
+  `elapsedBetween`), `order/ports.ts` (`historyOf`, `changedBy` en `updateStatus`).
+- **Infra:** `db/schema/orders.ts` (espejo), `PostgresOrderRepository` (transacción, `historyOf`,
+  `updated_at` en la consulta común).
+- **Caso de uso:** `advanceOrderUseCase` pasa quién movió el pedido; `orderActions` lo saca de la
+  sesión.
+- **Presentación:** `orders/OrderClosedOn/` y `orders/OrderHistory/` (nuevos, con test), `OrderCard`
+  y `pedido/[id]/page.tsx` los pintan.
+- **Catálogos:** 9 claves nuevas en `es.json` y `en.json`.
+- **Pruebas:** `e2e/orders/orderHistory.spec.ts` (nuevo), `orders.feature` (7 escenarios
+  `@slice-8`), y los fixtures de cinco tests que ganaron `updatedAt` / `historyOf`.
+
+### El fallo que salió en la e2e y no era de este slice
+
+Los 7 escenarios de `ordersList.spec.ts` fallaban **en el `beforeEach`**, antes de abrir el
+navegador: `duplicate key value violates unique constraint "ix_sellers_phone"`.
+
+No era un residuo de una corrida caída. `sellers.phone` es **único en toda la tabla**, y el número
+que usaba ese spec (`2789990088`) se lo había quedado `src/scripts/seedDemoSeller.ts` al sembrar
+«Panadería de prueba», la segunda tienda permanente del slice 7. Dos cosas escritas con semanas de
+diferencia eligieron el mismo teléfono de mentira, y la unicidad las puso a competir.
+
+Se cambió el del spec a `2789990111`, con el porqué escrito al lado. **Vale la pena recordarlo**: un
+teléfono de prueba no es un dato local de su archivo, es una clave única compartida por todo el
+repositorio.
+
+### Validación
+
+| Comando | Resultado |
+| --- | --- |
+| `pnpm run typecheck` / `typecheck:tests` | limpios, exit 0 |
+| `pnpm run lint` | limpio (831 archivos), exit 0 |
+| `pnpm run test:run` | **162 archivos, 1651 tests, verdes** |
+| `pnpm run build` | compila en 25.7 s |
+| `playwright test src/e2e/orders` | **31/31**, incluidos los 4 del histórico |
+| `playwright test --shard=1/2` | **147 pasados, 3 saltados, 0 fallos** |
+| La otra mitad, por directorios | `sellerStore` 33, `seo` 39, `ubicacionFresca`+`pilares` 27, el resto 28 — **todo verde** |
+
+**La suite entera, en verde.** La base quedó sin residuos: 0 tiendas, 0 publicaciones y 0 direcciones
+personales con prefijo `e2e-`, y los 12 pedidos reales intactos. `customer_order_status_changes`
+volvió a 0 filas porque las que escribió la suite colgaban de pedidos de prueba y se fueron con
+ellos por cascada — que es exactamente lo que la FK promete.
+
+### Por qué la segunda mitad se corrió por directorios
+
+`--shard=2/2` no llegó al final dos veces seguidas, por dos motivos distintos y vale la pena
+separarlos:
+
+1. **La primera vez, sin RAM.** 95 escenarios en rojo con `worker process exited unexpectedly
+   (code=3221225794)`, precedidos de un `browserContext.newPage: Target crashed`. Ninguno era un
+   fallo de código. El disparador estaba a la vista: el shard anterior había dejado **un servidor de
+   dev huérfano con 5,1 GB** aferrado al puerto 3000. Matar los huérfanos entre corridas quitó los
+   crashes por completo.
+2. **La segunda, por duración.** Sin un solo crash, pero cortada en el test 38 de 75: media suite
+   pasa del límite de una tarea en segundo plano.
+
+Partirla por directorios arregla las dos cosas a la vez —cada lote arranca con la memoria limpia y
+dura entre 1,5 y 3 min— y de paso el resultado se lee por área en vez de como un número único.
+**El paso que de verdad importa es matar el servidor de dev entre lote y lote**; sin eso, el
+siguiente arranca con varios GB ya comprometidos.
+
+### Recap
+
+Un pedido ya no olvida por dónde pasó. Cada transición deja su fila —en la misma transacción que el
+cambio, así que no puede haber una sin la otra—, la ficha enseña el recorrido con lo que tardó cada
+paso, y la lista y la ficha dicen cuándo se entregó o se canceló. Los pedidos anteriores a la
+migración siguen diciendo su fecha de cierre, porque sale de `updated_at`, y explican que no tienen
+recorrido en vez de fingir uno. La migración está aplicada sobre la base compartida.
+
+### Pendiente en el repo del bot
+
+La migración **está aplicada** pero su archivo **quedó sin commitear**, y a propósito. El backend
+está en la rama `feat/retos-atomicos` y su `0038_2026-08-11_allow_concurrent_habit_rituals.py`
+—que es el `down_revision` de la mía— **también está sin trackear** ahí. Commitear la `0039` sola
+dejaría en el historial una migración que encadena desde una revisión que no existe en el
+repositorio. Y commitear la `0038` ajena, en una rama de otro trabajo, no es de este slice.
+
+Lo que hay que hacer, en este orden: commitear primero la `0038` en su rama, y después la `0039`.
+
+### Próximos pasos (opciones)
+
+1. **La primera consulta que ya se puede hacer:** cuántos pedidos se caen entre `PENDING` y
+   `DELIVERED`, y cuánto tarda la tienda en aceptar. Es la pregunta que condiciona el pago en línea,
+   y ahora tiene respuesta.
+2. **Enseñarle al vendedor cuánto lleva esperando un pedido** («Pendiente desde hace 3 días») en su
+   lista. El dato ya está y hoy no se usa: 6 de los pedidos reales llevan semanas sin que nadie los
+   toque.
+3. **`cardControls.spec.ts:39`**, con el diagnóstico hecho desde el slice 3.
+4. **Slice 9 — pago en línea**, cuando los números del punto 1 lo justifiquen.

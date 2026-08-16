@@ -3,6 +3,7 @@ import { useFormatter, useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 import { type Order, orderItemCount } from "~/domain/order/order";
 import { Surface } from "~/presentation/design_system/surfaces/Surface";
+import OrderClosedOn from "~/presentation/orders/OrderClosedOn/OrderClosedOn";
 import OrderLines from "~/presentation/orders/OrderLines/OrderLines";
 import OrderStatusBadge from "~/presentation/orders/OrderStatusBadge/OrderStatusBadge";
 
@@ -59,6 +60,9 @@ export default function OrderCard({
               {t("items", { count: orderItemCount(order.lines) })}
             </span>
           </span>
+
+          {/* Sólo cuando terminó. Un pedido abierto no tiene fecha de entrega que enseñar. */}
+          <OrderClosedOn order={order} />
         </div>
 
         <OrderStatusBadge status={order.status} />

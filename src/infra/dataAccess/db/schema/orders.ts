@@ -110,3 +110,47 @@ export const customerOrderItems = pgTable(
     ),
   ],
 );
+
+/**
+ * Por dónde pasó un pedido. Espejo de la tabla que crea Alembic (`0039`).
+ *
+ * **Sólo transiciones, no nacimientos.** `customerOrders.createdAt` ya es «cuándo pasó a
+ * `PENDING`», así que una fila que lo repitiera sería una copia denormalizada — el mismo motivo por
+ * el que no hay columna `total`. De ahí que `fromStatus` sea `NOT NULL`: una fila de aquí siempre
+ * significa lo mismo, un cambio de A a B.
+ *
+ * La tabla **no se rellenó hacia atrás**. De los pedidos anteriores a la migración se sabe cuándo se
+ * hicieron y cuándo entraron a su estado actual (`updatedAt`), que para un entregado es exactamente
+ * la fecha de entrega; lo que no tendrán nunca es el tramo intermedio, porque nadie lo registró.
+ */
+export const customerOrderStatusChanges = pgTable(
+  "customer_order_status_changes",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    orderId: uuid("order_id")
+      .notNull()
+      .references(() => customerOrders.id, { onDelete: "cascade" }),
+    fromStatus: orderStatus("from_status").notNull(),
+    toStatus: orderStatus("to_status").notNull(),
+    changedAt: timestamp("changed_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    /**
+     * Quién lo movió. Nulo cuando no hay una persona detrás —el pago, el bot—, y por eso la FK va
+     * con `ON DELETE SET NULL`: el histórico no puede bloquear el borrado de una cuenta.
+     */
+    changedBy: text("changed_by").references(() => users.id, {
+      onDelete: "set null",
+    }),
+  },
+  (table) => [
+    index("ix_customer_order_status_changes_order").on(
+      table.orderId,
+      table.changedAt,
+    ),
+    check(
+      "customer_order_status_changes_actually_changes",
+      sql`${table.fromStatus} <> ${table.toStatus}`,
+    ),
+  ],
+);

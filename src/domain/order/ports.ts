@@ -1,4 +1,10 @@
-import type { Order, OrderLine, OrderScope, OrderStatus } from "./order";
+import type {
+  Order,
+  OrderLine,
+  OrderScope,
+  OrderStatus,
+  OrderStatusChange,
+} from "./order";
 
 /**
  * Lo que de un renglón se **escribe**.
@@ -155,11 +161,30 @@ export interface OrderRepository {
    *
    * Devuelve el estado y no el pedido entero porque nadie lo pinta: la pantalla se recarga sola por
    * `revalidatePath`. Traer los renglones aquí era una consulta que se tiraba a la basura.
+   *
+   * **Deja constancia del paso en la misma transacción.** Si la fila del histórico no se pudiera
+   * escribir, el estado tampoco cambia: volvería a existir justo lo que el slice 8 vino a arreglar,
+   * un pedido entregado sin constancia de cuándo. Y al revés, un intento que no encuentra fila que
+   * tocar —el de la segunda pestaña— no deja rastro, porque no pasó nada.
    */
   updateStatus(input: {
     orderId: string;
     sellerId: string;
     fromStatus: OrderStatus;
     status: OrderStatus;
+    /** Quién lo movió, para el histórico. Nulo cuando no hay una persona detrás. */
+    changedBy?: string | null;
   }): Promise<OrderStatus | null>;
+
+  /**
+   * Por dónde pasó un pedido, del primer paso al último.
+   *
+   * Va aparte de `findById` y no dentro: lo pinta **una** pantalla —la ficha— y las listas traen
+   * diez pedidos por página. Meterlo en la consulta común habría sido diez recorridos leídos para
+   * tirar nueve.
+   *
+   * Devuelve vacío para los pedidos anteriores a la migración, que es la verdad: nadie registró sus
+   * pasos. Quien lo pinta lo dice en vez de disimularlo.
+   */
+  historyOf(orderId: string): Promise<OrderStatusChange[]>;
 }
