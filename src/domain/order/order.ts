@@ -194,20 +194,28 @@ export interface OrderStatusChange {
 }
 
 /**
- * La fecha en que el pedido terminó, o `null` si todavía no ha terminado.
+ * Desde cuándo el pedido está en el estado en que está, o `null` si nunca se movió.
+ *
+ * **Es la fecha que va junto a la insignia**, y no `createdAt`. Poner la de creación al lado de un
+ * "Aceptado" se lee como "aceptado ese día", que es falso en cuanto el pedido lleva más de un rato:
+ * la insignia habla del presente y la fecha hablaba del pasado. La de creación no se pierde — se
+ * dice aparte, que es lo que de verdad es: un dato secundario.
+ *
+ * **Nunca movido devuelve `null`, no `createdAt`.** `updatedAt` nace igual a `createdAt` y sólo lo
+ * mueve un cambio de estado, así que si coinciden no hay ninguna noticia que dar y repetir la misma
+ * fecha dos veces con dos nombres distintos confundiría más que callar. Es la misma regla de
+ * `Thumbnail`: si no hay nada que enseñar, no se pinta un hueco.
  *
  * Sale de `updatedAt` y no del histórico **a propósito**: es la única de las dos que también
- * contesta por los pedidos anteriores a la migración, y para un estado final las dos dirían lo
- * mismo. Preguntarle al histórico habría dejado sin fecha justo al pedido más viejo, que es el único
- * que ya estaba entregado.
+ * contesta por los pedidos anteriores a la migración, y para el estado actual las dos dirían lo
+ * mismo. Preguntarle al histórico habría dejado sin fecha justo al pedido más viejo.
  */
-export function closedAt(
-  order: Pick<Order, "status" | "updatedAt">,
+export function statusSince(
+  order: Pick<Order, "createdAt" | "updatedAt">,
 ): Date | null {
-  /* `CLOSED_STATUSES` y no `isFinal`: `isFinal` dice que sí de `DRAFT` y `PAID` —hoy no tienen
-     salidas— y ninguno de los dos es un pedido terminado. Son listas parecidas que contestan
-     preguntas distintas, y aquí la pregunta es "¿se acabó?", no "¿se puede mover?". */
-  return CLOSED_STATUSES.includes(order.status) ? order.updatedAt : null;
+  return order.updatedAt.getTime() === order.createdAt.getTime()
+    ? null
+    : order.updatedAt;
 }
 
 /**

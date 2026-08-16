@@ -718,7 +718,6 @@
     "buyerEmptyCta": "Ver el catálogo",
     "buyerHeading": "Tus pedidos",
     "buyerUnknown": "alguien",
-    "cancelledOn": "Cancelado el {date}",
     "cartPending": "Todavía te queda algo en el carrito por confirmar.",
     "cartPendingCta": "Ver tu carrito",
     "checkoutCurrent": "(este)",
@@ -726,7 +725,6 @@
     "checkoutNote": "Salieron del mismo carrito. Cada tienda lo acepta y lo entrega por su cuenta.",
     "checkoutTotal": "Total de la compra",
     "confirm": "Hacer el pedido a {store}",
-    "deliveredOn": "Entregado el {date}",
     "elapsedDays": "{days, plural, one {1 día después} other {# días después}}",
     "elapsedHours": "{hours, plural, one {1 h} other {# h}} después",
     "elapsedHoursMinutes": "{hours} h {minutes} min después",
@@ -760,6 +758,15 @@
     "sellerEmpty": "Todavía no te han hecho ningún pedido.",
     "sellerHeading": "Pedidos que te han hecho",
     "signInToOrder": "Inicia sesión para hacer tu pedido",
+    "since": {
+      "DRAFT": "En borrador desde el {date}",
+      "PENDING": "Pendiente desde el {date}",
+      "CONFIRMED": "Aceptado el {date}",
+      "PAID": "Pagado el {date}",
+      "PREPARING": "En preparación desde el {date}",
+      "DELIVERED": "Entregado el {date}",
+      "CANCELLED": "Cancelado el {date}"
+    },
     "status": {
       "CANCELLED": "Cancelado",
       "CONFIRMED": "Aceptado",

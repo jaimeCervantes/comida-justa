@@ -21,10 +21,10 @@ import { Surface } from "~/presentation/design_system/surfaces/Surface";
 import { Heading } from "~/presentation/design_system/typography/Heading";
 import NotifySellerButton from "~/presentation/orders/NotifySellerButton/NotifySellerButton";
 import OrderBuyer from "~/presentation/orders/OrderBuyer/OrderBuyer";
-import OrderClosedOn from "~/presentation/orders/OrderClosedOn/OrderClosedOn";
 import OrderHistory from "~/presentation/orders/OrderHistory/OrderHistory";
 import OrderLines from "~/presentation/orders/OrderLines/OrderLines";
 import OrderStatusBadge from "~/presentation/orders/OrderStatusBadge/OrderStatusBadge";
+import OrderStatusSince from "~/presentation/orders/OrderStatusSince/OrderStatusSince";
 import CheckoutOrders from "./ui/CheckoutOrders";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -104,18 +104,18 @@ export default async function PedidoPage({
         {isBuyer ? t("placed") : t("title")}
       </Heading>
 
-      <p className="mb-6 flex flex-wrap items-center gap-3 text-text-support">
+      <p className="mb-6 flex flex-wrap items-center gap-x-3 gap-y-1 text-text-support">
+        {/* La insignia y desde cuándo está así, juntas: las dos hablan del presente. */}
         <OrderStatusBadge status={order.status} />
-        {/* `getFormatter` y no `toLocaleDateString(locale)`: el locale del routing es `es` a secas e
-            `Intl` lo lee como español de España. Es el mismo tropiezo que ya arregló
-            `CurrencyAmount`. */}
-        <span data-testid="order-placed-on">
+        <OrderStatusSince order={order} />
+        {/* Y la de creación aparte, que es el dato secundario. `getFormatter` y no
+            `toLocaleDateString(locale)`: el locale del routing es `es` a secas e `Intl` lo lee como
+            español de España. Es el mismo tropiezo que ya arregló `CurrencyAmount`. */}
+        <span data-testid="order-placed-on" className="text-label">
           {t("placedOn", {
             date: format.dateTime(order.createdAt, { dateStyle: "medium" }),
           })}
         </span>
-        {/* Y cuándo se entregó o se canceló, si ya terminó. */}
-        <OrderClosedOn order={order} />
       </p>
 
       <Surface

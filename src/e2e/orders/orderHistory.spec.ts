@@ -101,7 +101,7 @@ test.describe("Cuando un pedido recorre su proceso", () => {
     const orderUrl = await placeOrder(page);
 
     // Antes de moverlo no hay ni fecha de entrega ni recorrido que enseñar.
-    await expect(page.getByTestId("order-closed-on")).toHaveCount(0);
+    await expect(page.getByTestId("order-status-since")).toHaveCount(0);
     await expect(page.getByTestId("order-history-step")).toHaveCount(1);
 
     await advance(page, ["CONFIRMED", "PREPARING", "DELIVERED"]);
@@ -109,11 +109,11 @@ test.describe("Cuando un pedido recorre su proceso", () => {
     await page.goto(orderUrl);
 
     // La fecha de entrega, que es lo que se pidió, con su hora.
-    const closed = page.getByTestId("order-closed-on");
+    const since = page.getByTestId("order-status-since");
 
-    await expect(closed).toHaveAttribute("data-status", "DELIVERED");
-    await expect(closed).toContainText("Entregado el");
-    await expect(closed).toContainText(String(new Date().getFullYear()));
+    await expect(since).toHaveAttribute("data-status", "DELIVERED");
+    await expect(since).toContainText("Entregado el");
+    await expect(since).toContainText(String(new Date().getFullYear()));
 
     /* Y el recorrido: Pendiente (de `created_at`) más los tres pasos registrados. Esto es lo que
        antes se perdía — cada transición pisaba el `updated_at` de la anterior. */
@@ -126,6 +126,26 @@ test.describe("Cuando un pedido recorre su proceso", () => {
     await expect(page.getByTestId("order-history-empty")).toHaveCount(0);
   });
 
+  /* El hueco que dejó la primera versión: sólo hablaba de los estados finales, así que un pedido
+     "Aceptado" enseñaba junto a la insignia la fecha en que se HIZO, y se leía como la fecha en que
+     se aceptó. */
+  test("Entonces un estado intermedio también dice desde cuándo, sin pisar la fecha de creación", async ({
+    page,
+  }) => {
+    const orderUrl = await placeOrder(page);
+
+    await advance(page, ["CONFIRMED"]);
+    await page.goto(orderUrl);
+
+    const since = page.getByTestId("order-status-since");
+
+    await expect(since).toHaveAttribute("data-status", "CONFIRMED");
+    await expect(since).toContainText("Aceptado el");
+
+    // Y la de creación sigue estando, aparte y como dato secundario.
+    await expect(page.getByTestId("order-placed-on")).toContainText("Hecho el");
+  });
+
   test("Entonces la lista también dice cuándo se entregó", async ({ page }) => {
     await placeOrder(page);
     await advance(page, ["CONFIRMED", "PREPARING", "DELIVERED"]);
@@ -134,7 +154,10 @@ test.describe("Cuando un pedido recorre su proceso", () => {
     await page.getByTestId("orders-scope-closed").click();
 
     await expect(
-      page.getByTestId("seller-order").first().getByTestId("order-closed-on"),
+      page
+        .getByTestId("seller-order")
+        .first()
+        .getByTestId("order-status-since"),
     ).toContainText("Entregado el");
   });
 
@@ -149,11 +172,11 @@ test.describe("Cuando un pedido recorre su proceso", () => {
 
     await page.goto(orderUrl);
 
-    const closed = page.getByTestId("order-closed-on");
+    const since = page.getByTestId("order-status-since");
 
-    await expect(closed).toHaveAttribute("data-status", "CANCELLED");
-    await expect(closed).toContainText("Cancelado el");
-    await expect(closed).not.toContainText("Entregado");
+    await expect(since).toHaveAttribute("data-status", "CANCELLED");
+    await expect(since).toContainText("Cancelado el");
+    await expect(since).not.toContainText("Entregado");
   });
 });
 
@@ -163,7 +186,7 @@ test.describe("Cuando un pedido no se movió", () => {
   }) => {
     await placeOrder(page);
 
-    await expect(page.getByTestId("order-closed-on")).toHaveCount(0);
+    await expect(page.getByTestId("order-status-since")).toHaveCount(0);
     // Sólo el punto de partida, que sale de `created_at` y no del histórico.
     await expect(page.getByTestId("order-history-step")).toHaveCount(1);
     await expect(page.getByTestId("order-history-step")).toContainText(

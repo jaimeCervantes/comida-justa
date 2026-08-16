@@ -1413,3 +1413,35 @@ Lo que hay que hacer, en este orden: commitear primero la `0038` en su rama, y d
    toque.
 3. **`cardControls.spec.ts:39`**, con el diagnóstico hecho desde el slice 3.
 4. **Slice 9 — pago en línea**, cuando los números del punto 1 lo justifiquen.
+
+### Addendum (2026-08-16): la fecha de al lado de la insignia
+
+Se detectó al revisar la pantalla, y era un defecto que introdujo este mismo slice.
+
+**Lo que estaba mal.** Junto a la insignia iba `created_at`. Con un pedido «Aceptado», eso se lee
+como «aceptado ese día» — y es falso en cuanto lleva un rato en ese estado. La insignia habla del
+presente y la fecha hablaba del pasado. Encima, `OrderClosedOn` sólo cubría los estados finales, así
+que los dos intermedios —`CONFIRMED` y `PREPARING`, justo donde el vendedor pasa el tiempo— no
+decían desde cuándo estaban así.
+
+**Lo que se hizo.** `closedAt` se generalizó a `statusSince`, que ya no pregunta por el estado sino
+por lo único que importa: **si el pedido se movió**. `updated_at` nace igual a `created_at` y sólo
+lo mueve un cambio de estado, así que la comparación entre las dos columnas es toda la regla. El
+componente pasó a llamarse `OrderStatusSince` y pinta la frase entera de cada estado —«Aceptado
+el…», «En preparación desde el…»— y no un «desde el…» suelto que dependa de leer la insignia de al
+lado: quien escucha puede llegar a ese texto solo.
+
+La fecha de creación no se perdió: bajó a segunda línea, que es su sitio.
+
+**Un pedido que nunca se movió no pinta ninguna fecha junto a la insignia.** Repetir la de creación
+con otro nombre es exactamente lo que confundía. Es el caso de 11 de los 12 pedidos reales.
+
+**El reparto de las pruebas cambió con el diseño.** El dominio ya no prueba estado por estado —no
+mira el estado— sino la regla («¿se movió?»), incluida la comparación **por valor y no por
+identidad**: el repositorio construye dos `Date` distintos desde las dos columnas, así que un `===`
+entre objetos habría dicho «se movió» siempre. Qué frase le toca a cada estado lo prueba el
+componente.
+
+**Validación:** `typecheck`, `typecheck:tests` y `lint` limpios; `test:run` **162 archivos, 1649
+tests**; `playwright test src/e2e/orders` **32/32** — uno más, el del estado intermedio, que es el
+caso que se había quedado sin cubrir.

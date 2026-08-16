@@ -586,20 +586,41 @@ Feature: Carrito y pedidos
     Then el histórico tiene UNA fila, la de la primera
     And la segunda avisa de que el pedido ya se movió, como antes
 
+  # La fecha que va JUNTO A LA INSIGNIA es la del estado actual, no la de creación. Poner la de
+  # creación ahí se lee como "aceptado ese día", que es falso en cuanto el pedido lleva un rato en
+  # ese estado: la insignia habla del presente y la fecha hablaba del pasado. La de creación no se
+  # pierde, se dice aparte — que es lo que de verdad es, un dato secundario.
+  @slice-8
+  Scenario: La fecha de al lado de la insignia habla del presente
+    Given un pedido que el vendedor acaba de aceptar
+    When lo miro
+    Then junto a la insignia dice cuándo se aceptó, con su hora
+    And la fecha en que lo hice sigue estando, aparte
+
   @slice-8 @component
-  Scenario Outline: Cuándo se enseña la fecha del último paso
-    # Vitest: `updated_at` dice desde cuándo el pedido está como está, así que para un estado final
-    # ES la fecha en que se entregó o se canceló. Para uno abierto no significa eso y no se enseña.
-    Given un pedido en "<estado>"
-    When se pinta su tarjeta
-    Then <resultado>
+  Scenario Outline: Qué dice la fecha del estado actual
+    # Vitest: `updated_at` dice desde cuándo el pedido está como está, y eso vale para CUALQUIER
+    # estado, no sólo para los finales. Cada frase es entera —"Aceptado el …", no un "desde el …"
+    # suelto— porque quien escucha puede llegar a este texto sin la insignia de al lado.
+    Given un pedido en "<estado>" que llegó ahí después de crearse
+    When se pinta
+    Then dice "<frase>"
 
     Examples:
-      | estado     | resultado                                    | razón                                     |
-      | DELIVERED  | dice "Entregado el …"                        | el estado final ES la entrega             |
-      | CANCELLED  | dice "Cancelado el …"                        | también es final, y también importa cuándo |
-      | PENDING    | no dice ninguna de las dos                   | no ha pasado ni lo uno ni lo otro          |
-      | PREPARING  | tampoco                                      | está en marcha, no terminado               |
+      | estado     | frase                     | razón                                          |
+      | CONFIRMED  | Aceptado el …             | el estado intermedio que antes no decía nada   |
+      | PREPARING  | En preparación desde el … | sigue en marcha: "desde", no "el"              |
+      | DELIVERED  | Entregado el …            | terminó, y la entrega tiene su día y su hora   |
+      | CANCELLED  | Cancelado el …            | también terminó, y también importa cuándo      |
+
+  @slice-8 @component
+  Scenario: Un pedido que nunca se movió no repite su fecha dos veces
+    # `updated_at` nace igual a `created_at` y sólo lo mueve un cambio de estado. Es el caso de 11 de
+    # los 12 pedidos reales: nadie los ha tocado.
+    Given un pedido Pendiente que nadie ha tocado
+    When se pinta
+    Then junto a la insignia no hay ninguna fecha
+    But sigue diciendo cuándo se hizo
 
   @slice-8 @component
   Scenario Outline: Cuánto pasó entre dos pasos

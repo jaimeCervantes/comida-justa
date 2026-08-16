@@ -523,9 +523,25 @@ El slice 9 dice que el pago no se empieza hasta responder, con números, *«cuá
 volumen: por falta de historial. Con esta tabla es una consulta. Es la primera vez que un slice de
 este roadmap desbloquea a otro en vez de sólo precederlo.
 
+#### La fecha de al lado de la insignia habla del presente
+
+Corregido sobre la marcha: ahí iba `created_at`, así que un pedido «Aceptado» enseñaba el día en que
+se **hizo** y se leía como el día en que se **aceptó**. La insignia habla del presente y la fecha
+hablaba del pasado.
+
+Ahora junto a la insignia va la fecha del **estado actual, sea cual sea** —«Aceptado el…»,
+«En preparación desde el…», «Entregado el…»— y la de creación baja a segunda línea, que es lo que de
+verdad es: un dato secundario. Un pedido que nunca se movió no pinta ninguna, porque repetir la
+misma fecha con dos nombres confunde más que callar.
+
+Eso obligó a generalizar el componente: la primera versión (`OrderClosedOn`) sólo hablaba de los
+estados finales, así que los dos intermedios —justo donde el vendedor pasa el tiempo— se quedaban
+sin decir desde cuándo.
+
 **Criterios de aceptación:**
-1. Un pedido entregado dice cuándo se entregó, con fecha y hora, en su ficha y en la lista.
-2. Lo mismo un cancelado, con su fecha — y ninguno de los dos lo dice mientras sigue abierto.
+1. Junto a la insignia va la fecha del estado actual, con hora, para cualquier estado.
+2. La fecha en que se hizo el pedido sigue estando, aparte; y un pedido que nunca se movió no
+   enseña ninguna fecha junto a la insignia.
 3. La ficha enseña el recorrido completo: qué paso, cuándo, y cuánto pasó entre uno y otro.
 4. Un pedido de los de antes de la migración se lee sin huecos raros: dice cuándo se hizo y cuándo
    entró a su estado actual, y no finge un recorrido que nadie registró.

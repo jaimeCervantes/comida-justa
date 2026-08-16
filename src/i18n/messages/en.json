@@ -718,7 +718,6 @@
     "buyerEmptyCta": "Browse the catalog",
     "buyerHeading": "Your orders",
     "buyerUnknown": "someone",
-    "cancelledOn": "Cancelled on {date}",
     "cartPending": "You still have something in your cart to confirm.",
     "cartPendingCta": "View your cart",
     "checkoutCurrent": "(this one)",
@@ -726,7 +725,6 @@
     "checkoutNote": "They came from the same cart. Each store accepts and delivers on its own.",
     "checkoutTotal": "Purchase total",
     "confirm": "Send your order to {store}",
-    "deliveredOn": "Delivered on {date}",
     "elapsedDays": "{days, plural, one {1 day later} other {# days later}}",
     "elapsedHours": "{hours, plural, one {1 h} other {# h}} later",
     "elapsedHoursMinutes": "{hours} h {minutes} min later",
@@ -760,6 +758,15 @@
     "sellerEmpty": "Nobody has ordered from you yet.",
     "sellerHeading": "Orders you have received",
     "signInToOrder": "Sign in to place your order",
+    "since": {
+      "DRAFT": "Draft since {date}",
+      "PENDING": "Pending since {date}",
+      "CONFIRMED": "Accepted on {date}",
+      "PAID": "Paid on {date}",
+      "PREPARING": "Being prepared since {date}",
+      "DELIVERED": "Delivered on {date}",
+      "CANCELLED": "Cancelled on {date}"
+    },
     "status": {
       "CANCELLED": "Cancelled",
       "CONFIRMED": "Accepted",

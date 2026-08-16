@@ -3,7 +3,6 @@ import {
   canNotifySeller,
   canTransition,
   checkoutTotal,
-  closedAt,
   type Elapsed,
   elapsedBetween,
   INITIAL_STATUS,
@@ -15,6 +14,7 @@ import {
   type OrderStatus,
   orderItemCount,
   orderTotal,
+  statusSince,
 } from "./order";
 
 /* Datos reales del catálogo: "Jugo Verde" a 40 y "Suero natural" a 35. */
@@ -246,29 +246,31 @@ describe("elapsedBetween", () => {
   });
 });
 
-describe("closedAt", () => {
+/* La fecha que va junto a la insignia. Antes ahí iba la de creación, y con un "Aceptado" al lado se
+   leía como "aceptado ese día" — falso en cuanto el pedido lleva un rato en ese estado. */
+describe("statusSince", () => {
+  const createdAt = new Date("2026-08-10T01:58:42.873Z");
   const updatedAt = new Date("2026-08-10T03:25:39.277Z");
 
-  it.each([
-    ["DELIVERED", true, "el estado final ES la entrega"],
-    ["CANCELLED", true, "también terminó, y también importa cuándo"],
-    ["PENDING", false, "no ha pasado ni lo uno ni lo otro"],
-    ["PREPARING", false, "está en marcha, no terminado"],
-  ] as Array<[OrderStatus, boolean, string]>)(
-    "%s: %s (%s)",
-    (status, expected) => {
-      const result = closedAt({ status, updatedAt });
+  /* **No mira el estado, sólo si se movió**, y por eso vale para todos por igual: el hueco de la
+     primera versión era justamente que sólo hablaba de los finales. Qué frase le toca a cada estado
+     es cosa del catálogo, y lo prueba `OrderStatusSince.test.tsx`. */
+  it("un pedido que se movió dice desde cuándo está así", () => {
+    expect(statusSince({ createdAt, updatedAt })).toEqual(updatedAt);
+  });
 
-      expect(result === null).toBe(!expected);
-    },
-  );
+  /* `updatedAt` nace igual a `createdAt` y sólo lo mueve un cambio de estado: si coinciden no hay
+     noticia que dar, y repetir la misma fecha con dos nombres confunde más que callar. Es el caso
+     de 11 de los 12 pedidos reales, que siguen sin que nadie los toque. */
+  it("y uno que nunca se movió no tiene nada que decir", () => {
+    expect(statusSince({ createdAt, updatedAt: createdAt })).toBeNull();
+  });
 
-  /* `isFinal` diría que sí de los dos: hoy no tienen salidas. Pero un pedido pagado no está
-     terminado, y uno en borrador tampoco — por eso esto mira `CLOSED_STATUSES`. */
-  it.each([["PAID"], ["DRAFT"]] as Array<[OrderStatus]>)(
-    "%s no está terminado, aunque no tenga salidas",
-    (status) => {
-      expect(closedAt({ status, updatedAt })).toBeNull();
-    },
-  );
+  /* Se compara por valor y no por identidad: el repositorio construye dos `Date` distintos a partir
+     de las dos columnas, así que `===` entre objetos habría dicho "se movió" siempre. */
+  it("y se compara por valor, no por identidad del objeto Date", () => {
+    const gemela = new Date(createdAt.getTime());
+
+    expect(statusSince({ createdAt, updatedAt: gemela })).toBeNull();
+  });
 });

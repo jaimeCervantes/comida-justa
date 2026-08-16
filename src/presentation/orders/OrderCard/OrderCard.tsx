@@ -3,9 +3,9 @@ import { useFormatter, useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 import { type Order, orderItemCount } from "~/domain/order/order";
 import { Surface } from "~/presentation/design_system/surfaces/Surface";
-import OrderClosedOn from "~/presentation/orders/OrderClosedOn/OrderClosedOn";
 import OrderLines from "~/presentation/orders/OrderLines/OrderLines";
 import OrderStatusBadge from "~/presentation/orders/OrderStatusBadge/OrderStatusBadge";
+import OrderStatusSince from "~/presentation/orders/OrderStatusSince/OrderStatusSince";
 
 /**
  * Un pedido en una lista, **igual para quien compró y para quien vende**.
@@ -50,8 +50,9 @@ export default function OrderCard({
         <div className="flex min-w-0 flex-col gap-1">
           {party}
           <span className="text-label text-text-support">
-            {/* `useFormatter` y no `toLocaleDateString`: el idioma es el de la ruta y no el del
-                navegador, así que el servidor y el cliente pintan lo mismo. */}
+            {/* La de creación, en segunda línea y no junto a la insignia: es el dato secundario.
+                `useFormatter` y no `toLocaleDateString`, para que el idioma sea el de la ruta y no
+                el del navegador, y el servidor y el cliente pinten lo mismo. */}
             {t("placedOn", {
               date: format.dateTime(order.createdAt, { dateStyle: "medium" }),
             })}
@@ -60,12 +61,16 @@ export default function OrderCard({
               {t("items", { count: orderItemCount(order.lines) })}
             </span>
           </span>
-
-          {/* Sólo cuando terminó. Un pedido abierto no tiene fecha de entrega que enseñar. */}
-          <OrderClosedOn order={order} />
         </div>
 
-        <OrderStatusBadge status={order.status} />
+        {/* La insignia y **desde cuándo**, juntas: la insignia habla del presente, así que la fecha
+            de al lado tiene que hablar del presente también. */}
+        <span className="flex flex-wrap items-center justify-end gap-2">
+          <OrderStatusBadge status={order.status} />
+          <span className="text-label text-text-support">
+            <OrderStatusSince order={order} />
+          </span>
+        </span>
       </div>
 
       <OrderLines lines={order.lines} />
