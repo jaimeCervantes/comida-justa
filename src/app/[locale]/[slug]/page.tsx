@@ -27,6 +27,7 @@ import { getPostDetails, getRelatedPosts } from "./data";
 import { buildPostStructuredData } from "./jsonLd";
 import CommentList from "./loadComments/CommentList";
 import { buildPostMetadata } from "./metadata";
+import ModerationControls from "./ui/ModerationControls";
 import ModerationNotice from "./ui/ModerationNotice";
 import PostDetail from "./ui/PostDetail";
 import RelatedPosts from "./ui/RelatedPosts";
@@ -164,6 +165,13 @@ export default async function Slug({
       <ModerationNotice
         status={resolveModerationStatus(moderation.moderationStatus)}
         reason={moderation.moderationReason}
+      />
+      {/* El interruptor va donde el admin se topa con el problema, no en un panel aparte: la
+          bandeja de `/admin/moderacion` solo lista lo que YA no está publicado. */}
+      <ModerationControls
+        postId={String(post.id ?? "")}
+        status={resolveModerationStatus(moderation.moderationStatus)}
+        isAdmin={viewerIsAdmin}
       />
       <JsonLd
         data={buildPostStructuredData(

@@ -48,8 +48,9 @@ export async function decideModeration(formData: FormData): Promise<void> {
 
   await createModeratePostUseCase().execute({ postId, decision });
 
-  /* El panel y el inicio: bajar algo tiene que desaparecerlo del feed en el acto, no cuando
-     caduque la caché. */
-  revalidatePath("/admin/moderacion");
-  revalidatePath("/");
+  /* Una publicación aparece en el feed, en la búsqueda, en su ficha, en la tienda de su vendedor y
+     en el sitemap, y cada una cuelga de una ruta distinta y con idioma. Enumerarlas sería una lista
+     que se queda corta la próxima vez que alguien añada una pantalla, así que se revalida el árbol
+     entero: bajar algo pasa un puñado de veces al mes y tiene que desaparecer de todas partes. */
+  revalidatePath("/", "layout");
 }
