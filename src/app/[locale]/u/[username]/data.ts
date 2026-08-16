@@ -24,6 +24,8 @@ export async function getProfileByUsername(
   username: string,
   page: number,
   locale: string,
+  /** Quién mira. Si es su propio perfil, también ve lo que se le bajó. */
+  viewerId?: string | null,
 ): Promise<ProfilePageData | null> {
   const profile = await createUserProfileRepository().findByUsername(username);
 
@@ -36,6 +38,7 @@ export async function getProfileByUsername(
       profile.id,
       pageNum,
       PAGINATION_PAGE_SIZE,
+      viewerId,
     ),
     createSellerRepository().findByUserId(profile.id),
   ]);

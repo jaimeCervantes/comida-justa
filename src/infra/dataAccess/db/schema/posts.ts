@@ -7,6 +7,7 @@ import {
   pgTable,
   text,
   timestamp,
+  unique,
   uuid,
   vector,
 } from "drizzle-orm/pg-core";
@@ -29,6 +30,16 @@ export const posts = pgTable(
     subCategory: text("sub_category"),
     /** Lo que filtra el chatbot; por defecto true para no ocultar lo ya publicado. */
     isAvailable: boolean("is_available").notNull().default(true),
+    /**
+     * `published` | `in_review` | `rejected`, con `CHECK` en la base (migración `0040_2026_08_16`).
+     * Por omisión `published`: quien inserte sin conocer la columna —el bot— sigue funcionando.
+     */
+    moderationStatus: text("moderation_status").notNull().default("published"),
+    /** Código de `MODERATION_REASONS`, nunca texto redactado por un modelo. */
+    moderationReason: text("moderation_reason"),
+    moderationReviewedAt: timestamp("moderation_reviewed_at", {
+      withTimezone: true,
+    }),
     sellerId: uuid("seller_id"),
     /** Enlace externo heredado del catálogo del bot (`products.product_url`). */
     externalUrl: text("external_url"),
@@ -43,6 +54,9 @@ export const posts = pgTable(
     index("idx_posts_created_at").on(table.createdAt.desc()),
     index("ix_posts_category").on(table.category),
     index("ix_posts_seller_id").on(table.sellerId),
+    /* Parcial en la base sobre `<> 'published'`: sirve al panel de moderación, no al feed. Drizzle
+       solo espeja su existencia; la definición real vive en la migración. */
+    index("ix_posts_moderation_pending").on(table.moderationStatus),
   ],
 );
 
@@ -94,4 +108,32 @@ export const postMedia = pgTable(
     height: integer("height"),
   },
   (table) => [index("idx_media_post_id").on(table.postId)],
+);
+
+/**
+ * Las denuncias de la comunidad. Espejo de la migración `0041_2026_08_16`.
+ *
+ * **Denunciar avisa, no oculta**: la publicación no cambia de estado, solo aparece en el panel con
+ * su cuenta. Es una tabla y no una bandera en `posts` porque el número tiene que significar algo —
+ * cuántas personas distintas—, y eso lo sostiene el `UNIQUE(post_id, user_id)`.
+ */
+export const postReports = pgTable(
+  "post_reports",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    postId: text("post_id")
+      .notNull()
+      .references(() => posts.id, { onDelete: "cascade" }),
+    /** Sin identidad no hay a qué aplicarle el UNIQUE: una denuncia anónima no se puede contar. */
+    userId: text("user_id").notNull(),
+    /** Código de `MODERATION_REASONS`, el mismo vocabulario que usa el clasificador. */
+    reason: text("reason").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    index("ix_post_reports_post_id").on(table.postId),
+    unique("post_reports_one_per_person").on(table.postId, table.userId),
+  ],
 );

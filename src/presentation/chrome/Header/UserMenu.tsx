@@ -155,6 +155,11 @@ export default function UserMenu({
                   {t("report")}
                 </Link>
               </DropdownMenu.Item>
+              <DropdownMenu.Item asChild>
+                <Link href="/admin/moderacion" className={ITEM_CLASS}>
+                  {t("moderation")}
+                </Link>
+              </DropdownMenu.Item>
             </>
           ) : null}
 

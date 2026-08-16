@@ -2,6 +2,12 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Suspense } from "react";
+import {
+  canBeReportedBy,
+  canBeViewedBy,
+  MODERATION_REASONS,
+  resolveModerationStatus,
+} from "~/domain/entities/post/moderation";
 import { resolvePostTranslation } from "~/domain/entities/post/translations";
 import type { Coordinates } from "~/domain/entities/seller/coordinates";
 import type { MappedStore } from "~/domain/entities/seller/map";
@@ -9,6 +15,7 @@ import { buildBreadcrumbJsonLd } from "~/domain/seo/jsonLd/breadcrumbs";
 import { redirectKeepingLocale } from "~/i18n/redirectKeepingLocale";
 import { resolveLocale, routing } from "~/i18n/routing";
 import { auth } from "~/infra/auth";
+import { isAdmin } from "~/infra/auth/isAdmin";
 import { readViewerId } from "~/infra/auth/readViewerId";
 import { storeOfPost } from "~/infra/dataAccess/sellers/PostgresPostStore";
 import { readVisitorLocation } from "~/infra/location/visitorLocation";
@@ -22,8 +29,27 @@ import { getPostDetails, getRelatedPosts } from "./data";
 import { buildPostStructuredData } from "./jsonLd";
 import CommentList from "./loadComments/CommentList";
 import { buildPostMetadata } from "./metadata";
+import ModerationControls from "./ui/ModerationControls";
+import ModerationNotice from "./ui/ModerationNotice";
 import PostDetail from "./ui/PostDetail";
 import RelatedPosts from "./ui/RelatedPosts";
+import ReportPostForm, { type ReportLabels } from "./ui/ReportPostForm";
+
+/**
+ * El mismo código de motivo, redactado como **pregunta a quien denuncia**.
+ *
+ * El panel y el aviso al autor usan `reasonOffTopic` («No trata de descanso, alimentación…»), que
+ * es el nombre que lee quien modera. A quien está mirando una publicación se le pregunta otra cosa
+ * («No tiene que ver con salud ni bienestar»). Dos redacciones para un solo valor, igual que hizo
+ * `origin` con el selector del vendedor y el reporte de admin.
+ */
+const REPORT_REASON_KEYS = {
+  off_topic: "reportOffTopic",
+  health_claim: "reportHealthClaim",
+  spam: "reportSpam",
+  offensive: "reportOffensive",
+  restricted_product: "reportRestrictedProduct",
+} as const;
 
 export async function generateMetadata({
   params,
@@ -77,6 +103,37 @@ export default async function Slug({
   if (!post) {
     notFound();
   }
+
+  /* Lo que un admin bajó no existe para el resto del mundo, pero sigue existiendo para su autor:
+     es la única forma que tiene de enterarse, porque el sitio no manda correos. Va aquí y no en la
+     consulta a propósito — el repositorio devuelve el estado y quien decide es esta página, que es
+     la que sabe quién está mirando. */
+  const viewerIsAdmin = isAdmin(session?.user?.email);
+  const moderation = {
+    userId: String((post.user as PostUser | undefined)?.id ?? ""),
+    moderationStatus: post.moderationStatus as string | undefined,
+    moderationReason: post.moderationReason as string | undefined,
+  };
+
+  if (!canBeViewedBy(moderation, { id: viewerId, isAdmin: viewerIsAdmin })) {
+    notFound();
+  }
+
+  /* El botón de avisar: solo a quien puede accionarlo de verdad —con sesión, que no sea su autor, y
+     sobre algo que está publicado—. El gate real vuelve a comprobarse en la acción, porque una
+     Server Action se puede invocar sin pasar por esta pantalla. */
+  const canReport = canBeReportedBy(moderation, { id: viewerId });
+  const tModeration = await getTranslations("moderation");
+  const reportLabels: ReportLabels = {
+    cta: tModeration("reportCta"),
+    heading: tModeration("reportHeading"),
+    placeholder: tModeration("reportPlaceholder"),
+    done: tModeration("reportDone"),
+    reasons: MODERATION_REASONS.map((reason) => ({
+      value: reason,
+      label: tModeration(REPORT_REASON_KEYS[reason]),
+    })),
+  };
 
   // Lo que declara el producto es la misma etiqueta que ve quien lo lee.
   const categoryLabel = await postCategoryLabel(
@@ -138,6 +195,19 @@ export default async function Slug({
         ariaLabel={tCommon("breadcrumb")}
         className="w-full mb-3"
       />
+      {/* Arriba del todo: quien llega aquí y ve su publicación tiene que enterarse antes de
+          leerla, no después de bajar hasta los comentarios. */}
+      <ModerationNotice
+        status={resolveModerationStatus(moderation.moderationStatus)}
+        reason={moderation.moderationReason}
+      />
+      {/* El interruptor va donde el admin se topa con el problema, no en un panel aparte: la
+          bandeja de `/admin/moderacion` solo lista lo que YA no está publicado. */}
+      <ModerationControls
+        postId={String(post.id ?? "")}
+        status={resolveModerationStatus(moderation.moderationStatus)}
+        isAdmin={viewerIsAdmin}
+      />
       <JsonLd
         data={buildPostStructuredData(
           post,
@@ -184,6 +254,15 @@ export default async function Slug({
             initialComments={post.comments}
           />
         </Suspense>
+
+        {/* Abajo del todo a propósito: avisar es el último recurso de quien ya leyó la
+            publicación entera, no una acción que compita con leerla. */}
+        {canReport ? (
+          <ReportPostForm
+            postId={String(post.id ?? "")}
+            labels={reportLabels}
+          />
+        ) : null}
       </section>
 
       {/* Se resuelve aquí y no dentro del detalle: son dos columnas hermanas, y el parecido no

@@ -6,6 +6,10 @@ import type { OriginCount } from "~/domain/entities/post/originReport";
 import type { PostMediaFile } from "~/domain/entities/post/types";
 import type { Coordinates } from "~/domain/entities/seller/coordinates";
 import { db } from "~/infra/dataAccess/db/connection";
+import {
+  PUBLISHED_POSTS,
+  publishedOrOwnedBy,
+} from "~/infra/dataAccess/db/publishedPosts";
 import type {
   IPostQueryRepository,
   PaginatedPostsResult,
@@ -177,6 +181,13 @@ interface ListingOptions {
   near?: Coordinates | null;
   /** Si además de calcularla, la distancia manda en el orden. */
   sortByDistance?: boolean;
+  /**
+   * Qué se deja ver. Por omisión, solo lo publicado.
+   *
+   * Es un `option` con valor por defecto y no un parámetro más para que un listado nuevo nazca
+   * filtrado sin que su autor tenga que acordarse: olvidarlo enseña lo que un admin bajó.
+   */
+  visibility?: SQL;
 }
 
 /** La misma forma que devuelve `getPaginatedPosts` cuando la consulta no encuentra nada. */
@@ -263,17 +274,28 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
     );
   }
 
+  /**
+   * El perfil público de alguien — y, cuando ese alguien es quien mira, también lo suyo bajado.
+   *
+   * Es por donde una persona se entera de que le quitaron algo. No hay correo ni notificaciones en
+   * el sitio, así que si su propio perfil le escondiera su publicación rechazada, el aviso viviría
+   * solo en una URL que a lo mejor ya no tiene.
+   */
   async getPostsByUser(
     userId: string,
     page: number,
     pageSize: number,
+    viewerId?: string | null,
   ): Promise<PaginatedPostsResult> {
-    return this.getPaginatedPosts(sql`p.user_id = ${userId}`, page, pageSize);
+    return this.getPaginatedPosts(sql`p.user_id = ${userId}`, page, pageSize, {
+      visibility: publishedOrOwnedBy(viewerId === userId ? viewerId : null),
+    });
   }
 
+  /** El total que pagina el feed público, así que cuenta lo mismo que el feed enseña. */
   async getTotalPosts(): Promise<number> {
     const raw = await db.execute(sql`
-      SELECT COUNT(*)::int AS count FROM posts
+      SELECT COUNT(*)::int AS count FROM posts p WHERE ${PUBLISHED_POSTS}
     `);
     const row = raw.rows[0] as { count: number };
     return Number(row.count);
@@ -365,7 +387,7 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
       ${POST_JOINS}
       JOIN vecinas v ON v.post_id = p.id
       CROSS JOIN referencia r
-      WHERE p.id <> r.post_id
+      WHERE ${PUBLISHED_POSTS} AND p.id <> r.post_id
       ORDER BY v.embedding <=> r.embedding
       LIMIT ${limit}
     `);
@@ -381,13 +403,14 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
   ): Promise<PaginatedPostsResult> {
     const offset = (page - 1) * pageSize;
     const near = options.near ?? null;
+    const visibility = options.visibility ?? PUBLISHED_POSTS;
 
     const raw = await db.execute(sql`
       SELECT ${POST_COLUMNS},
         ${distanceColumn(near)},
         COUNT(*) OVER()::int AS total_count
       ${POST_JOINS}
-      WHERE ${where}
+      WHERE ${visibility} AND ${where}
       ORDER BY ${orderClause(near, options.sortByDistance ?? false)}
       LIMIT ${pageSize} OFFSET ${offset}
     `);
