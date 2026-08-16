@@ -27,7 +27,12 @@ import { testSlug } from "../testUtils/testSlug";
 const TIENDA = {
   name: "E2E Tienda de la Lista",
   handle: "e2e-tienda-de-la-lista",
-  phone: "2789990088",
+  /* `sellers.phone` es ÚNICO en toda la tabla, así que este número no puede coincidir con el de
+     ninguna otra tienda — ni siquiera con una que no sea de prueba. El 2789990088 se lo quedó
+     `src/scripts/seedDemoSeller.ts` ("Panadería de prueba", la segunda tienda permanente para
+     probar a mano la compra de dos tiendas), y la colisión tumbaba los 7 escenarios de este
+     archivo en el `beforeEach`, antes de abrir el navegador. */
+  phone: "2789990111",
 };
 
 /** La dirección personal se reclama sobre la cuenta real; el prefijo `e2e-` la hace barrible. */
