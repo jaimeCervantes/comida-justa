@@ -325,3 +325,53 @@ positivos en 27.
 
 **Pendiente del usuario:** correr el resto de la e2e por lotes (`orders`, `unifiedCatalog`,
 `busqueda*`, `habits`, `menu`), que no se tocó en este slice pero comparte las consultas del 1.
+
+---
+
+## 2026-08-16 (noche) — La e2e completa, por lotes
+
+Cierra el pendiente declarado en las dos entradas anteriores. **308 pruebas, todas verdes**, corridas
+en seis lotes por el problema de RAM ya conocido.
+
+| Lote | Carpetas | Resultado |
+|---|---|---|
+| — | `seo`, `products`, `sellerStore`, `localProducers` | 104/104 |
+| — | `filtroAlPublicar` | 7/7 |
+| 1 | `orders` | 32/32 |
+| 2 | `habits`, `pilares` | 30/32 → **32/32 al repetir** |
+| 3 | `menu`, `compartir` | 38/38 |
+| 4 | `ubicacionFresca`, `busquedaRelevante` | 32/32 |
+| 5 | `multimedia`, `unifiedCatalog`, `i18n`, `busquedaEntreIdiomas` | 22/34 → **34/34 al repetir** |
+| 6 | las catorce carpetas restantes | 28/28 |
+
+### Los 14 fallos que no eran fallos
+
+Ninguno sobrevivió a repetirse, y ninguno tocaba código de esta feature.
+
+**Lote 2 (2 fallos)**: contadores de rituales en `atomicSleepChallenge`. `habits` no lee `posts`.
+19/19 al repetir el spec solo.
+
+**Lote 5 (12 fallos)**, agrupados en tres specs, que es lo que hizo sospechar de verdad. La hipótesis
+era razonable y **resultó falsa**: como el slice 2 hace que editar dispare una revisión, y el texto
+que siembra la suite es relleno genérico ("Publicación de prueba para el listado de productos"),
+parecía que Gemini estaba bajando las publicaciones sembradas al editarlas y dejando al resto del
+escenario sin nada que mirar. Se comprobó corriendo `editarMedia` sola: **4/4**. Y
+`busquedaEntreIdiomas` + `unifiedCatalog` juntas: **14/14**.
+
+Entre esas 14 pasó **"its embedding lands after the response, and the chatbot can find it"**, que es
+la prueba directa de que reordenar los `after()` —revisar primero, indexar después— no rompió el
+indexado que ya existía.
+
+Así que los 12 son interferencia entre carpetas en el mismo proceso, la misma flakiness en frío que
+ya está anotada. Se deja escrito para no volver a sospechar del clasificador la próxima vez.
+
+### Recap
+
+La suite entera está verde con la moderación dentro. Las ~18 consultas que el slice 1 tocó no
+rompieron ninguna pantalla —búsqueda, tienda, directorio, carrito, sitemap y feed pasaron todas— y el
+reordenado del slice 2 no le quitó el vector a nada que deba tenerlo.
+
+### Próximos pasos (opciones)
+
+Sin cambios respecto a la entrada anterior: slice 3 (la denuncia), slice 4 (los comentarios), o el
+límite de publicaciones por persona. Ya no queda nada pendiente del usuario.
