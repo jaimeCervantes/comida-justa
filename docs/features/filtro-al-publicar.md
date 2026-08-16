@@ -218,7 +218,7 @@ poner un veredicto, y sin panel "oculta" es un callejón sin salida.
 4. Las 27 publicaciones existentes siguen visibles después de la migración, sin excepción.
 5. `/admin/moderacion` es admin-only: un usuario normal recibe 404.
 
-### Slice 2 — el clasificador que decide solo
+### Slice 2 — el clasificador que decide solo *(entregado 2026-08-16)*
 
 **Alcance:**
 

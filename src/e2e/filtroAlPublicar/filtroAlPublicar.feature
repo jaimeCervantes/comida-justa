@@ -78,7 +78,11 @@ Feature: Se publica, se revisa, y lo que no cumple se baja
     And no moderation entry is shown in the navigation
 
   # ---------------------------------------------------------------------------
-  # Slice 2 — el clasificador que decide solo
+  # Slice 2 — el clasificador que decide solo  (entregado 2026-08-16)
+  #
+  # CALIBRADO CONTRA LA BASE REAL el 2026-08-16, antes de dejarlo suelto:
+  # las 27 publicaciones que existen hoy → 27 aceptadas, 0 falsos positivos.
+  # Las 6 basuras inventadas de abajo    → 6 rechazadas, cada una con SU motivo.
   #
   # El tema válido son los CUATRO PILARES (descanso, alimentación, movimiento,
   # mente-espíritu), no la comida. De las 27 publicaciones reales, 10 son anuncios
@@ -88,7 +92,7 @@ Feature: Se publica, se revisa, y lo que no cumple se baja
   # esta tabla lo dice.
   # ---------------------------------------------------------------------------
 
-  @slice-2 @future
+  @slice-2
   Scenario Outline: Lo que pertenece a los cuatro pilares queda publicado
     Given a signed-in user on "/publicar"
     When this user publishes:
@@ -116,7 +120,7 @@ Feature: Se publica, se revisa, y lo que no cumple se baja
       | Perfil Tiroideo Completo - La Orquesta Hormonal de tu Cuerpo | Qué mide cada valor del perfil tiroideo y cómo leerlo con tu médico.             | 0     | informa, no promete curar             |
       | Suero natural                                                | Suero de agua de coco con limón y sal de mar. Para reponer después de entrenar.  | 35    | "suero" no es promesa de curación     |
 
-  @slice-2 @future
+  @slice-2
   Scenario Outline: Lo que no cumple se baja, y su autor sabe por qué
     Given a signed-in user on "/publicar"
     When this user publishes:
@@ -142,7 +146,7 @@ Feature: Se publica, se revisa, y lo que no cumple se baja
       | Cigarros electrónicos sabor mango       | Vapeador desechable, 5000 puffs, varios sabores. Envío a todo el estado.            | 320   | restricted_product |
 
   # El camino de salida: nadie depende del admin para arreglar su propio error.
-  @slice-2 @future
+  @slice-2
   Scenario: Corregir una publicación rechazada la restituye sola
     Given the post "Vendo Nissan Tsuru 2015" rejected with reason "off_topic"
     When its owner rewrites it as "Dona Chocolate Keto" and saves
@@ -151,14 +155,14 @@ Feature: Se publica, se revisa, y lo que no cumple se baja
     And it appears in the feed again
 
   # Sin esto el filtro dura dos clics: publicas algo sano y luego lo editas.
-  @slice-2 @future
+  @slice-2
   Scenario: Editar una publicación viva pasa por el mismo filtro
     Given the published post "Dona Chocolate Keto"
     When its owner edits its title to "Vendo Nissan Tsuru 2015" and saves
     And the review runs
     Then the post becomes "rejected" with reason "off_topic"
 
-  @slice-2 @future
+  @slice-2
   Scenario: Si Gemini no contesta, queda en revisión y no en vivo a ciegas
     Given a moderation service that throws
     When a user publishes "Dona Chocolate Keto"
@@ -167,7 +171,7 @@ Feature: Se publica, se revisa, y lo que no cumple se baja
     And a warning is logged
 
   # Vitest: es una regla del puerto, no un recorrido de pantalla.
-  @slice-2 @future @component
+  @slice-2 @component
   Scenario Outline: Un motivo fuera de la lista cerrada se trata como no revisado
     Given the model answers with reason "<respuesta>"
     When the verdict is interpreted
@@ -184,7 +188,7 @@ Feature: Se publica, se revisa, y lo que no cumple se baja
       |                    | in_review |
 
   # Vitest: el orden importa y no se ve desde la pantalla.
-  @slice-2 @future @component
+  @slice-2 @component
   Scenario: La revisión corre antes que el indexado y la traducción
     Given a post that will be rejected
     When the after-response jobs run

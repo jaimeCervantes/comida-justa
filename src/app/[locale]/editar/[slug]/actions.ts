@@ -13,6 +13,7 @@ import { SIGNIN_PATH } from "~/infra/constants";
 import { getCategoryTaxonomy } from "~/infra/dataAccess/categories/cachedCategoryTaxonomy";
 import { createIndexPostEmbeddingUseCase } from "~/infra/dataAccess/indexPostEmbedding/factory";
 import { createPostAdminRepository } from "~/infra/dataAccess/managePost/factory";
+import { createReviewPostContentUseCase } from "~/infra/dataAccess/moderatePost/factory";
 import UpdateOnePostUseCase from "~/use_cases/managePost/updateOnePostUseCase";
 
 export type EditPostState = {
@@ -104,8 +105,16 @@ export async function updatePost(
     return { errorMessage: result.errorMessage };
   }
 
+  /* Se revisa **siempre que cambie el texto**, no solo al publicar. Sin esto el filtro duraría dos
+     clics: se publica algo sano y se edita a cualquier cosa. Y es además el camino de salida —una
+     publicación bajada que su autor corrige se restituye sola, sin depender del admin. */
   if ("textChanged" in result && result.textChanged) {
-    reindexAfterResponse(result.postId, result.locale);
+    reviewAfterResponse(
+      result.postId,
+      result.locale,
+      title,
+      String(formData.get("content") ?? ""),
+    );
   }
 
   redirectKeepingLocale(
@@ -117,8 +126,38 @@ export async function updatePost(
   );
 }
 
-function reindexAfterResponse(postId: string, locale: string): void {
+/**
+ * Vuelve a juzgar el texto editado y, solo si pasa, lo reindexa.
+ *
+ * El orden importa igual que al publicar: el vector es la puerta del chatbot, así que reindexar
+ * antes de juzgar dejaría entrar por detrás lo que la edición acaba de romper.
+ *
+ * Y al revés también funciona, que es lo que hace justa esta feature: si la publicación estaba
+ * bajada y el texto nuevo cumple, el veredicto la devuelve a `published` y el reindexado la pone
+ * otra vez a disposición del bot.
+ */
+function reviewAfterResponse(
+  postId: string,
+  locale: string,
+  title: string,
+  content: string,
+): void {
   after(async () => {
+    const verdict = await createReviewPostContentUseCase().execute({
+      postId,
+      title,
+      content,
+    });
+
+    if (!verdict.worthIndexing) {
+      console.warn(
+        // i18n-ignore: traza de servidor, no llega a ninguna pantalla.
+        `[moderation] post ${postId} quedó en "${verdict.status}" tras editarlo; no se reindexa.`,
+        verdict.error,
+      );
+      return;
+    }
+
     const outcome = await createIndexPostEmbeddingUseCase().execute({
       postId,
       locale,

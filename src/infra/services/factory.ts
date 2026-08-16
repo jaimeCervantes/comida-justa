@@ -1,10 +1,13 @@
+import type IContentModerationService from "~/use_cases/common/ports/IContentModerationService";
 import type IEmbeddingService from "~/use_cases/common/ports/IEmbeddingService";
 import type ITranslationService from "~/use_cases/common/ports/ITranslationService";
+import GeminiContentModerationService from "./GeminiContentModerationService";
 import GeminiEmbeddingService from "./GeminiEmbeddingService";
 import GeminiTranslationService from "./GeminiTranslationService";
 
 let instance: IEmbeddingService | null = null;
 let translator: ITranslationService | null = null;
+let moderator: IContentModerationService | null = null;
 
 /**
  * El proveedor de embeddings del sitio. Se lee `GEMINI_API_KEY` aquí y no en el constructor para
@@ -25,4 +28,13 @@ export function createTranslationService(): ITranslationService {
     apiKey: process.env.GEMINI_API_KEY ?? "",
   });
   return translator;
+}
+
+/** El clasificador que decide si una publicación pertenece al catálogo. Misma clave que los demás. */
+export function createContentModerationService(): IContentModerationService {
+  if (moderator) return moderator;
+  moderator = new GeminiContentModerationService({
+    apiKey: process.env.GEMINI_API_KEY ?? "",
+  });
+  return moderator;
 }

@@ -17,6 +17,7 @@ import { SIGNIN_PATH } from "~/infra/constants";
 import { getCategoryTaxonomy } from "~/infra/dataAccess/categories/cachedCategoryTaxonomy";
 import { createPostRepository } from "~/infra/dataAccess/createOnePost/factory";
 import { createIndexPostEmbeddingUseCase } from "~/infra/dataAccess/indexPostEmbedding/factory";
+import { createReviewPostContentUseCase } from "~/infra/dataAccess/moderatePost/factory";
 import { createSellerRepository } from "~/infra/dataAccess/sellers/factory";
 import { createTranslatePostUseCase } from "~/infra/dataAccess/translatePost/factory";
 import type { ActionState } from "~/infra/types/Actions";
@@ -37,70 +38,116 @@ const TRANSLATION_TARGETS = routing.locales.filter(
 );
 
 /**
- * Deja la publicación indexada para el chatbot **después** de responderle a quien publicó.
+ * Deja la publicación indexada para el chatbot.
  *
- * `after()` es lo que mantiene a Gemini fuera del camino crítico: el redirect al detalle no
- * espera al proveedor, y si el proveedor falla la publicación ya existe — queda pendiente de
- * indexar y el backfill la recoge. Publicar nunca se rompe por un embedding.
+ * Corre dentro del `after()` de la revisión y **solo si pasó**: el vector es justamente lo que la
+ * hace encontrable por el bot, así que dárselo a algo que se acaba de bajar sería abrirle la puerta
+ * de atrás. Si el proveedor falla, la publicación ya existe y queda pendiente para el backfill.
  */
-function indexAfterResponse(postId: string): void {
-  after(async () => {
-    const result = await createIndexPostEmbeddingUseCase().execute({
-      postId,
-      locale: PUBLISH_LOCALE,
-    });
-
-    if (!result.indexed) {
-      console.warn(
-        `[embeddings] post ${postId} queda pendiente de indexar: ${result.reason}`,
-        result.error,
-      );
-    }
+async function indexNow(postId: string): Promise<void> {
+  const result = await createIndexPostEmbeddingUseCase().execute({
+    postId,
+    locale: PUBLISH_LOCALE,
   });
+
+  if (!result.indexed) {
+    console.warn(
+      `[embeddings] post ${postId} queda pendiente de indexar: ${result.reason}`,
+      result.error,
+    );
+  }
 }
 
 /**
- * Traduce la publicación a los demás idiomas **después** de responder.
+ * Traduce la publicación a los demás idiomas.
  *
- * Va en su propio `after()` y no dentro del anterior a propósito: si Gemini tarda 30 segundos en
- * traducir, el embedding —que es lo que hace que el chatbot la encuentre— no tiene por qué esperar
- * detrás. Son dos trabajos independientes que fallan por su cuenta.
+ * Corre **en paralelo** al indexado y no detrás: si Gemini tarda 30 segundos en traducir, el
+ * embedding —que es lo que hace que el chatbot la encuentre— no tiene por qué esperar. Son dos
+ * trabajos independientes que fallan por su cuenta, y por eso quien los lanza usa `allSettled`.
+ *
+ * También cuelga de la revisión: traducir algo que se acaba de bajar es pagarle a Gemini por un
+ * texto que nadie va a leer.
  *
  * El caso de uso no lanza nunca: lo que no se pueda traducir queda pendiente y lo recoge
  * `pnpm run backfill-translations`.
  */
-function translateAfterResponse(postId: string): void {
+async function translateNow(postId: string): Promise<void> {
   if (TRANSLATION_TARGETS.length === 0) return;
 
-  after(async () => {
-    const useCaseInstance = createTranslatePostUseCase();
+  const useCaseInstance = createTranslatePostUseCase();
 
-    for (const targetLocale of TRANSLATION_TARGETS) {
-      const result = await useCaseInstance.execute({
-        postId,
-        sourceLocale: PUBLISH_LOCALE,
-        targetLocale,
-      });
+  for (const targetLocale of TRANSLATION_TARGETS) {
+    const result = await useCaseInstance.execute({
+      postId,
+      sourceLocale: PUBLISH_LOCALE,
+      targetLocale,
+    });
 
-      if (result.translated) continue;
+    if (result.translated) continue;
 
-      /* Dos avisos y no uno: "queda pendiente, lo recoge el backfill" solo es verdad cuando falló
+    /* Dos avisos y no uno: "queda pendiente, lo recoge el backfill" solo es verdad cuando falló
          el proveedor. Si lo que falló fue guardar, el backfill volverá a pagarle a Gemini para
          estrellarse contra la misma base, y quien lea el registro tiene que ir a mirar ahí. */
-      if (result.reason === "provider-failed") {
-        console.warn(
-          // i18n-ignore: registro del servidor; lo lee quien opera, no un visitante.
-          `[translations] post ${postId} queda pendiente en ${targetLocale}: no contestó el traductor. Lo recoge \`pnpm run backfill-translations\`.`,
-          result.error,
-        );
-      } else if (result.reason === "storage-failed") {
-        console.error(
-          // i18n-ignore: registro del servidor; lo lee quien opera, no un visitante.
-          `[translations] post ${postId} NO se guardó en ${targetLocale}: falló la base, no el traductor. La traducción ya se pagó y se perdió; revisa la conexión antes de relanzar el backfill.`,
-          result.error,
-        );
-      }
+    if (result.reason === "provider-failed") {
+      console.warn(
+        // i18n-ignore: registro del servidor; lo lee quien opera, no un visitante.
+        `[translations] post ${postId} queda pendiente en ${targetLocale}: no contestó el traductor. Lo recoge \`pnpm run backfill-translations\`.`,
+        result.error,
+      );
+    } else if (result.reason === "storage-failed") {
+      console.error(
+        // i18n-ignore: registro del servidor; lo lee quien opera, no un visitante.
+        `[translations] post ${postId} NO se guardó en ${targetLocale}: falló la base, no el traductor. La traducción ya se pagó y se perdió; revisa la conexión antes de relanzar el backfill.`,
+        result.error,
+      );
     }
+  }
+}
+
+/**
+ * Revisa la publicación **después** de responder, y solo entonces la indexa y la traduce.
+ *
+ * El orden es la mitad del valor de este slice, y por dos razones:
+ *
+ * 1. **El vector es la puerta del chatbot.** Indexar antes de juzgar dejaría lo rechazado
+ *    encontrable por el bot durante la ventana en que se revisa, que es justo lo que se quiere
+ *    cerrar.
+ * 2. **Traducir cuesta dinero.** Pagarle a Gemini por el texto en inglés de algo que se acaba de
+ *    bajar es tirarlo.
+ *
+ * Los dos trabajos de después van con `allSettled` y no en serie: son independientes, y que la
+ * traducción tarde treinta segundos no puede retrasar el embedding.
+ */
+function reviewAfterResponse(
+  postId: string,
+  title: string,
+  content: string,
+): void {
+  after(async () => {
+    const outcome = await createReviewPostContentUseCase().execute({
+      postId,
+      title,
+      content,
+    });
+
+    if (outcome.status === "in_review") {
+      console.warn(
+        // i18n-ignore: registro del servidor; lo lee quien opera, no un visitante.
+        `[moderation] post ${postId} quedó sin revisar y espera en /admin/moderacion.`,
+        outcome.error,
+      );
+      return;
+    }
+
+    if (!outcome.worthIndexing) {
+      console.info(
+        // i18n-ignore: registro del servidor; lo lee quien opera, no un visitante.
+        `[moderation] post ${postId} se bajó por "${outcome.reason}"; no se indexa ni se traduce.`,
+      );
+      return;
+    }
+
+    await Promise.allSettled([indexNow(postId), translateNow(postId)]);
   });
 }
 
@@ -220,8 +267,7 @@ export async function createPost(
   }
 
   if (result?.id) {
-    indexAfterResponse(result.id);
-    translateAfterResponse(result.id);
+    reviewAfterResponse(result.id, title, content);
   }
 
   redirectKeepingLocale(

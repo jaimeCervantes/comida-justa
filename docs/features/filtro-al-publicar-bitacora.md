@@ -180,3 +180,148 @@ existe, pero depende de que alguien mire. Eso es justo lo que automatiza el slic
    resultado sin escribirlo, para calibrar el prompt antes de dejarlo suelto. Va después del slice 2.
 
 **Pendiente del usuario:** correr la e2e con el comando de arriba.
+
+---
+
+## 2026-08-16 (tarde) — Corrección del slice 1: el interruptor no se podía accionar
+
+La e2e destapó un hueco de diseño, no un fallo de la prueba. La entrada de arriba afirma que un
+admin ya podía bajar cualquier cosa desde la web. **No era cierto.** El panel lista lo que
+`moderation_status <> 'published'`, o sea la bandeja de lo ya retirado; nada publicado aparecía
+ahí, así que no había ninguna pantalla desde la que bajar algo. El estado existía y el interruptor
+no tenía manija.
+
+El recorrido real es el inverso del que había supuesto: el admin **navega el sitio**, se topa con
+algo que no cumple, y lo baja sin salir de ahí. El panel viene después, para deshacerlo. Así que
+`ModerationControls` vive en la ficha (`[slug]/ui/`) y solo se le pinta a quien puede decidir; el
+panel se queda como bandeja.
+
+De paso, dos arreglos que **sí** eran de la prueba:
+
+1. Afirmaba `toHaveCount(0)` sobre el título "Dona Chocolate Keto", y esa publicación **existe de
+   verdad en el catálogo y sigue publicada con razón**. La aserción se caía por un acierto del
+   código. Ahora afirma sobre el slug sembrado, que lleva el prefijo de `testSlug`.
+2. Esperaba `waitForLoadState("networkidle")` tras pulsar, y eso se resolvía con la carga de la
+   propia ficha en vez de con la respuesta de la Server Action: la lectura llegaba antes que la
+   escritura. Ahora el page object espera al **efecto visible** (el aviso aparece, la fila
+   desaparece), que es determinista.
+
+**Validación:** `filtroAlPublicar` 5/5. Regresión en `seo`, `products`, `sellerStore` y
+`localProducers`: **104/104** — son las carpetas que más ejercitan las ~18 consultas tocadas. Lint,
+`typecheck` y `typecheck:tests` limpios.
+
+**Lección para el slice 2:** el estado no sirve de nada sin algo que lo escriba. En el slice 1 ese
+algo era una persona y faltaba dársela; en el slice 2 va a ser el clasificador.
+
+---
+
+## 2026-08-16 (tarde) — Slice 2: el clasificador que decide solo
+
+### Objetivo
+
+Que la revisión deje de depender de que alguien mire. Gemini corre en `after()` al publicar y al
+editar, y escribe el estado que el slice 1 dejó preparado.
+
+### La calibración fue antes que el código de producción, y era el riesgo real
+
+El peligro de esta feature nunca fue que fallara el cableado: era **que el prompt tirara catálogo
+legítimo**. Así que antes de dejarlo suelto se pasó por el clasificador el catálogo entero contra la
+base real:
+
+| | |
+|---|---|
+| Publicaciones reales juzgadas | **27** |
+| Aceptadas | **27** |
+| Falsos positivos | **0** |
+| Basura inventada juzgada | 6 |
+| Rechazadas, cada una con SU motivo exacto | **6** |
+
+Pasaron las tres que más miedo daban: **"Perfil Tiroideo Completo"** (habla de análisis clínicos),
+**"Suero natural"** (la palabra suena a medicamento) y **"¿Por Qué Comer Despacio es la Clave para
+Bajar de Peso?"** (un titular de adelgazamiento, que es justo la forma de un `health_claim`). El
+número está anotado en el `.feature` para que se sepa cuándo se midió.
+
+### Decisiones y por qué
+
+**El prompt habla de los cuatro pilares y lleva anclas.** Las publicaciones reales que no van de
+comida están escritas dentro del prompt como ejemplos de lo que SÍ pasa. No es decoración: son las
+mismas filas que afirma el `.feature`, así que aflojar el prompt rompe una prueba.
+
+**La respuesta es un `enum`, no texto.** `responseMimeType: "text/x.enum"` con la lista cerrada de
+seis valores. Es la petición más barata que se le puede hacer y, sobre todo, hace **imposible** que
+el modelo escriba en la interfaz: lo que devuelve es una clave que el sitio traduce con su catálogo.
+
+**Un veredicto desconocido lanza, no se da por bueno.** Si Gemini contestara `politico`, tratarlo
+como aceptado sería publicar a ciegas creyendo que se revisó. Lanza, y la publicación queda
+`in_review`.
+
+**El orden es la mitad del valor.** La revisión corre **antes** que el indexado y la traducción, y
+estos dos solo si pasó. Dos razones: el vector es la puerta del chatbot —indexar antes de juzgar
+dejaría lo rechazado encontrable durante la ventana de revisión— y traducir algo que se acaba de
+bajar es pagarle a Gemini por un texto que nadie va a leer. Los dos trabajos de después van con
+`Promise.allSettled` y no en serie: son independientes, y que la traducción tarde treinta segundos
+no puede retrasar el embedding.
+
+**15 s de tiempo límite, no los 30 de la traducción.** Nadie mira un botón —corre en `after()`—
+pero sí hay una publicación **en vivo** mientras tanto, y cada segundo de más es un segundo que algo
+que no cumple está visible.
+
+**El caso de uso no lanza nunca.** Si el clasificador falla, `in_review`, que es donde el panel del
+slice 1 ya sabe mirar. Ésa fue la razón entera de revisar después en vez de antes.
+
+**La edición pasa por el mismo filtro**, y no solo por simetría: es el **camino de salida**. Una
+publicación bajada que su autor corrige se restituye sola, sin depender del admin.
+
+### Archivos tocados
+
+- `src/use_cases/common/ports/IContentModerationService.ts` — el puerto.
+- `src/domain/errors/ModerationProviderError.ts`.
+- `src/infra/services/GeminiContentModerationService.ts` + su prueba — el prompt y el `enum`.
+- `src/infra/services/factory.ts`, `src/infra/dataAccess/moderatePost/factory.ts`.
+- `src/use_cases/moderatePost/reviewPostContentUseCase.ts` + su prueba.
+- `src/app/[locale]/publicar/actions.ts` y `editar/[slug]/actions.ts` — el orden de los `after()`.
+- `src/e2e/filtroAlPublicar/clasificador.spec.ts`, `.feature` (slice 2 deja de ser `@future`).
+
+### Comandos y resultados
+
+| Comando | Resultado |
+|---|---|
+| Calibración contra la base real | **27/27 aceptadas, 0 falsos positivos; 6/6 basuras rechazadas con su motivo** |
+| `pnpm run test:run` | **1720/1720**, 168 archivos (antes del slice: 1695 en 166) |
+| `pnpm run test:e2e:run -- src/e2e/filtroAlPublicar` | **7/7** |
+| `typecheck`, `typecheck:tests`, `lint`, `check:i18n`, `check:directives` | limpios |
+
+**Escrito en la base compartida:** nada permanente. La calibración solo leyó; la e2e creó y borró
+sus propias publicaciones (`afterEach`).
+
+### Desviaciones
+
+1. **La e2e no prueba si el prompt acierta.** Eso lo mide la calibración, con 33 llamadas reales;
+   la e2e prueba el **cableado**, que es lo que la calibración no puede ver. Duplicarlo habría
+   hecho la suite lenta y flaky por una API de terceros.
+2. **Dos aserciones mías estaban mal y el código tenía razón**, y las dos enseñan algo: el
+   formulario publica `anuncio` por omisión, así que a lo rechazado no se le toca `is_available`
+   —el bot solo mira productos—; y la fila de `post_translations` nace con la publicación, así que
+   lo que tiene que faltar es el `embedding`, no la fila.
+
+### Recap
+
+El filtro ya funciona solo. Se publica, se responde al instante como siempre, y unos segundos
+después Gemini juzga el texto: lo que pertenece a los cuatro pilares se queda publicado y recibe su
+vector y su traducción; lo que no, se baja con su motivo, se silencia para el chatbot si es
+producto, y **no llega a tener embedding**. Si Gemini no contesta, la publicación queda en revisión
+y aparece en el panel. Su autor lo ve todo desde su propia publicación, en su idioma, y puede
+corregirla para restituirla sin pedirle nada a nadie. Medido contra el catálogo real: 0 falsos
+positivos en 27.
+
+### Próximos pasos (opciones)
+
+1. **Slice 3 — la denuncia.** Un botón que devuelva algo vivo a `in_review`. Es lo que atrapa lo que
+   el clasificador deje pasar, y ahora es la única pieza que falta para cerrar el círculo.
+2. **Slice 4 — los comentarios**, que hoy siguen sin ninguna revisión. El puerto ya existe; es
+   reusarlo en otra puerta.
+3. **Un límite de publicaciones por persona.** El filtro no frena a quien publique cien veces algo
+   aceptable, y esa es la otra forma de ensuciar el catálogo.
+
+**Pendiente del usuario:** correr el resto de la e2e por lotes (`orders`, `unifiedCatalog`,
+`busqueda*`, `habits`, `menu`), que no se tocó en este slice pero comparte las consultas del 1.
