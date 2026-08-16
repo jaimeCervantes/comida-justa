@@ -2,6 +2,10 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Suspense } from "react";
+import {
+  canBeViewedBy,
+  resolveModerationStatus,
+} from "~/domain/entities/post/moderation";
 import { resolvePostTranslation } from "~/domain/entities/post/translations";
 import type { Coordinates } from "~/domain/entities/seller/coordinates";
 import type { MappedStore } from "~/domain/entities/seller/map";
@@ -9,6 +13,7 @@ import { buildBreadcrumbJsonLd } from "~/domain/seo/jsonLd/breadcrumbs";
 import { redirectKeepingLocale } from "~/i18n/redirectKeepingLocale";
 import { resolveLocale, routing } from "~/i18n/routing";
 import { auth } from "~/infra/auth";
+import { isAdmin } from "~/infra/auth/isAdmin";
 import { readViewerId } from "~/infra/auth/readViewerId";
 import { storeOfPost } from "~/infra/dataAccess/sellers/PostgresPostStore";
 import { readVisitorLocation } from "~/infra/location/visitorLocation";
@@ -22,6 +27,7 @@ import { getPostDetails, getRelatedPosts } from "./data";
 import { buildPostStructuredData } from "./jsonLd";
 import CommentList from "./loadComments/CommentList";
 import { buildPostMetadata } from "./metadata";
+import ModerationNotice from "./ui/ModerationNotice";
 import PostDetail from "./ui/PostDetail";
 import RelatedPosts from "./ui/RelatedPosts";
 
@@ -75,6 +81,21 @@ export default async function Slug({
   const post = await getPostDetails(slug);
 
   if (!post) {
+    notFound();
+  }
+
+  /* Lo que un admin bajó no existe para el resto del mundo, pero sigue existiendo para su autor:
+     es la única forma que tiene de enterarse, porque el sitio no manda correos. Va aquí y no en la
+     consulta a propósito — el repositorio devuelve el estado y quien decide es esta página, que es
+     la que sabe quién está mirando. */
+  const viewerIsAdmin = isAdmin(session?.user?.email);
+  const moderation = {
+    userId: String((post.user as PostUser | undefined)?.id ?? ""),
+    moderationStatus: post.moderationStatus as string | undefined,
+    moderationReason: post.moderationReason as string | undefined,
+  };
+
+  if (!canBeViewedBy(moderation, { id: viewerId, isAdmin: viewerIsAdmin })) {
     notFound();
   }
 
@@ -137,6 +158,12 @@ export default async function Slug({
         items={crumbs}
         ariaLabel={tCommon("breadcrumb")}
         className="w-full mb-3"
+      />
+      {/* Arriba del todo: quien llega aquí y ve su publicación tiene que enterarse antes de
+          leerla, no después de bajar hasta los comentarios. */}
+      <ModerationNotice
+        status={resolveModerationStatus(moderation.moderationStatus)}
+        reason={moderation.moderationReason}
       />
       <JsonLd
         data={buildPostStructuredData(

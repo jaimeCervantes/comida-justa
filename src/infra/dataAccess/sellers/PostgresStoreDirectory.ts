@@ -11,6 +11,7 @@ import {
   SUSTAINABLE_RADIUS_METERS,
 } from "~/domain/entities/seller/proximity";
 import { db } from "~/infra/dataAccess/db/connection";
+import { PUBLISHED_POSTS } from "~/infra/dataAccess/db/publishedPosts";
 
 interface StoreRow {
   slug: string;
@@ -107,7 +108,8 @@ export async function listStoresByCategory(
   );
   const filter = sql`AND EXISTS (
         SELECT 1 FROM posts p
-        WHERE p.seller_id = s.id
+        WHERE ${PUBLISHED_POSTS}
+          AND p.seller_id = s.id
           AND (p.category IN (${keys}) OR p.sub_category IN (${keys}))
       )`;
 
@@ -145,7 +147,7 @@ function producerFilter(
 
   return sql`AND EXISTS (
         SELECT 1 FROM posts p
-        WHERE p.seller_id = s.id AND p.origin = 'productor'
+        WHERE ${PUBLISHED_POSTS} AND p.seller_id = s.id AND p.origin = 'productor'
       )
       ${radiusFilter}`;
 }
@@ -201,7 +203,10 @@ async function queryStores(
       s.description,
       s.logo_url,
       ${distance} AS distance_meters,
-      (SELECT COUNT(*) FROM posts p WHERE p.seller_id = s.id)::int AS publication_count,
+      /* Cuenta lo mismo que la tienda va a enseñar: si dijera 12 y al entrar hubiera 11 porque una
+         está bajada, el número sería una promesa que la página incumple. */
+      (SELECT COUNT(*) FROM posts p
+        WHERE ${PUBLISHED_POSTS} AND p.seller_id = s.id)::int AS publication_count,
       COUNT(*) OVER()::int AS total_count
     FROM sellers s
     WHERE s.slug IS NOT NULL

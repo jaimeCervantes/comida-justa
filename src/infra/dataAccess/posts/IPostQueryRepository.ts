@@ -133,6 +133,11 @@ export interface IPostQueryRepository {
     userId: string,
     page: number,
     pageSize: number,
+    /**
+     * Quién está mirando. Cuando coincide con `userId`, el perfil también enseña lo que se le bajó
+     * a esa persona: es por donde se entera, porque el sitio no manda correos.
+     */
+    viewerId?: string | null,
   ): Promise<PaginatedPostsResult>;
   getTotalPosts(): Promise<number>;
   /** Cuántos productos hay por `origin` (`null` incluido). Base del reporte de procedencia. */

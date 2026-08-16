@@ -2,6 +2,7 @@ import { sql } from "drizzle-orm";
 import type { Coordinates } from "~/domain/entities/seller/coordinates";
 import type { MappedStore } from "~/domain/entities/seller/map";
 import { db } from "~/infra/dataAccess/db/connection";
+import { PUBLISHED_POSTS } from "~/infra/dataAccess/db/publishedPosts";
 
 interface NearbyStoreRow {
   slug: string;
@@ -40,7 +41,9 @@ export async function listStoresToMap(
     FROM sellers s
     JOIN branches b ON b.seller_id = s.id
     WHERE s.slug IS NOT NULL
-      AND EXISTS (SELECT 1 FROM posts p WHERE p.seller_id = s.id)
+      AND EXISTS (
+        SELECT 1 FROM posts p WHERE ${PUBLISHED_POSTS} AND p.seller_id = s.id
+      )
     ORDER BY s.id, meters ASC
   `);
 

@@ -43,7 +43,7 @@ export default async function ProfilePaginatedPage({ params }: Props) {
     notFound();
   }
 
-  const data = await getProfileByUsername(username, page, locale);
+  const data = await getProfileByUsername(username, page, locale, viewerId);
 
   if (!data || (data.publications.length === 0 && page > 1)) {
     notFound();

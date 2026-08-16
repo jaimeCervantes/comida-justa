@@ -1,0 +1,169 @@
+/**
+ * El estado de moderación de una publicación: quién la puede ver y por qué.
+ *
+ * Espeja la columna `posts.moderation_status` que crea la migración `0040_2026_08_16` del backend
+ * Python. Ver `docs/features/filtro-al-publicar.md`.
+ */
+
+import { PRODUCT_KIND } from "./hazloSanoProduct";
+
+export const MODERATION_STATUSES = [
+  /** Pasó la revisión, o un admin la aprobó. La ve todo el mundo. */
+  "published",
+  /** No se pudo revisar, o alguien la denunció. Espera decisión. */
+  "in_review",
+  /** El admin —o, desde el slice 2, el clasificador— dijo que no. */
+  "rejected",
+] as const;
+
+export type ModerationStatus = (typeof MODERATION_STATUSES)[number];
+
+/**
+ * Lo que se publica sigue naciendo visible.
+ *
+ * Es el mismo valor que el `server_default` de la columna, y a propósito: el slice 1 no cambia lo
+ * que le pasa a quien publica, solo le da al admin un interruptor que antes no existía.
+ */
+export const DEFAULT_MODERATION_STATUS: ModerationStatus = "published";
+
+/**
+ * Por qué se bajó algo. La lista la valida la app y no la base (la columna no lleva `CHECK`),
+ * porque estos motivos van a moverse conforme se vea qué intenta colarse de verdad.
+ *
+ * Cada valor tiene su clave en `es.json`/`en.json`. **Nunca guarda texto redactado por un modelo**:
+ * lo que se le enseña a la persona sale del catálogo, no de la columna.
+ */
+export const MODERATION_REASONS = [
+  /** No pertenece a ninguno de los cuatro pilares: vendo mi coche, alquilo cuarto, cripto. */
+  "off_topic",
+  /** Promesa de salud peligrosa: cura enfermedades, sustituye medicación, adelgaza sin fundamento. */
+  "health_claim",
+  /** Estafa, ganancia fácil, enlaces de afiliado, texto repetido. */
+  "spam",
+  /** Insultos, contenido sexual, discriminación. */
+  "offensive",
+  /** Alcohol, tabaco, vapeadores, sustancias, armas. */
+  "restricted_product",
+] as const;
+
+export type ModerationReason = (typeof MODERATION_REASONS)[number];
+
+export type PostModeration = {
+  status: ModerationStatus;
+  reason: ModerationReason | null;
+};
+
+type ModerationFields = {
+  /** `posts.moderation_status`. Ausente en lecturas que no piden la columna. */
+  moderationStatus?: string | null;
+  moderationReason?: string | null;
+};
+
+export function isModerationStatus(value: unknown): value is ModerationStatus {
+  return MODERATION_STATUSES.includes(value as ModerationStatus);
+}
+
+export function isModerationReason(value: unknown): value is ModerationReason {
+  return MODERATION_REASONS.includes(value as ModerationReason);
+}
+
+/**
+ * Interpreta lo que vino de la base.
+ *
+ * Un valor ausente o desconocido cae a `published`, igual que `isAvailable` trata la ausencia como
+ * disponible. El motivo es el mismo: una consulta que no pidió la columna no debe hacer desaparecer
+ * una publicación de la pantalla. La base ya impone la lista con su `CHECK`, así que "desconocido"
+ * solo puede venir de una lectura incompleta, no de un dato corrupto.
+ */
+export function resolveModerationStatus(
+  value: string | null | undefined,
+): ModerationStatus {
+  return isModerationStatus(value) ? value : DEFAULT_MODERATION_STATUS;
+}
+
+/** El motivo solo significa algo cuando hay algo que explicar. */
+export function resolveModerationReason(
+  value: string | null | undefined,
+): ModerationReason | null {
+  return isModerationReason(value) ? value : null;
+}
+
+/** ¿La ve cualquiera? Es la condición que filtra el feed, la búsqueda, el sitemap y el resto. */
+export function isPubliclyVisible(post: ModerationFields): boolean {
+  return resolveModerationStatus(post.moderationStatus) === "published";
+}
+
+/**
+ * ¿La puede ver esta persona?
+ *
+ * Lo que no está publicado no desaparece para su autor: la sigue viendo, con el aviso de por qué,
+ * y ese es el único camino por el que se entera. No hay correo ni notificaciones en el sitio, así
+ * que si también se le ocultara a quien la escribió, nadie sabría nunca que se le bajó algo.
+ */
+export function canBeViewedBy(
+  post: ModerationFields & { userId: string },
+  viewer: { id?: string | null; isAdmin?: boolean } | null | undefined,
+): boolean {
+  if (isPubliclyVisible(post)) return true;
+  if (viewer?.isAdmin) return true;
+
+  return Boolean(viewer?.id) && viewer?.id === post.userId;
+}
+
+/** Lo que un admin puede hacer desde el panel. */
+export type ModerationDecision =
+  | { action: "approve" }
+  | { action: "reject"; reason: ModerationReason };
+
+/**
+ * Qué queda guardado tras una decisión del panel.
+ *
+ * Aprobar **borra el motivo**: dejarlo puesto haría que una publicación restituida siguiera
+ * cargando la explicación de por qué se bajó, y esa explicación es justamente lo que se pinta.
+ */
+export function applyModerationDecision(
+  decision: ModerationDecision,
+): PostModeration {
+  if (decision.action === "approve") {
+    return { status: "published", reason: null };
+  }
+
+  return { status: "rejected", reason: decision.reason };
+}
+
+/**
+ * Qué hacer con el interruptor que el chatbot sí mira.
+ *
+ * El bot es otro proceso sobre la misma base y no conoce `moderation_status`: consulta
+ * `WHERE kind = 'producto' AND is_available`. O sea que **nunca ve los anuncios** —un anuncio
+ * bajado no necesita nada— y a los productos los gatea con `is_available`, que el sitio ya sabe
+ * escribir. Bajar un producto lo silencia para el bot sin tocar una línea de Python.
+ *
+ * No es un booleano porque hay **tres** respuestas, y la tercera importa: en un anuncio no se
+ * toca nada. `is_available` en un anuncio no significa nada (ver `isSellable`), y escribirlo
+ * ensuciaría una columna con un dato sin sentido.
+ */
+export type ChatbotVisibility = "silence" | "restore" | "leave";
+
+export function chatbotVisibilityFor(post: {
+  kind?: string | null;
+  moderationStatus?: string | null;
+}): ChatbotVisibility {
+  if (post.kind !== PRODUCT_KIND) return "leave";
+
+  return isPubliclyVisible(post) ? "restore" : "silence";
+}
+
+/**
+ * Nota sobre `restore`, que es una decisión con un costo.
+ *
+ * `is_available` tiene dos dueños: el vendedor lo usa para decir "se me acabó" y aquí se usa para
+ * silenciar lo bajado. Al restituir no hay forma de saber cuál de los dos lo apagó, así que se
+ * elige encenderlo.
+ *
+ * El caso que se rompe —un producto que YA estaba agotado, se baja y se restituye— vuelve a
+ * ofrecerse aunque no haya existencias, que es exactamente lo que pasaba antes de esta feature y
+ * el vendedor corrige en un clic desde su tarjeta. La alternativa era dejarlo apagado y enseñar
+ * "Agotado" en el sitio público sobre algo que nunca se agotó: una mentira visible, y en todos los
+ * casos en vez de en uno raro.
+ */

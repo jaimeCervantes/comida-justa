@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import { db } from "~/infra/dataAccess/db/connection";
+import { PUBLISHED_POSTS } from "~/infra/dataAccess/db/publishedPosts";
 
 export interface FeedPost {
   slug: string;
@@ -26,7 +27,7 @@ export async function getLatestPosts(limit: number): Promise<FeedPost[]> {
     SELECT t.slug, t.title, LEFT(t.content, 400) AS content, p.created_at
     FROM post_translations t
     JOIN posts p ON p.id = t.post_id
-    WHERE t.locale = 'es'
+    WHERE ${PUBLISHED_POSTS} AND t.locale = 'es'
     ORDER BY p.created_at DESC
     LIMIT ${limit}
   `);

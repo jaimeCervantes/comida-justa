@@ -37,6 +37,7 @@ export default async function ProfilePage({ params }: Props) {
     username,
     PAGINATION_INIT_PAGE,
     locale,
+    viewerId,
   );
 
   if (!data) {

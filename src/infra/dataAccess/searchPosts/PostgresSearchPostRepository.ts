@@ -4,6 +4,7 @@ import { isValidOrigin } from "~/domain/entities/post/origin";
 import type { PostMediaFile } from "~/domain/entities/post/types";
 import type { Coordinates } from "~/domain/entities/seller/coordinates";
 import { db } from "~/infra/dataAccess/db/connection";
+import { PUBLISHED_POSTS } from "~/infra/dataAccess/db/publishedPosts";
 import { users } from "~/infra/dataAccess/db/schema/auth";
 import {
   postMedia,
@@ -317,6 +318,7 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
         FROM post_translations t
         WHERE t.post_id = p.id AND ${matchesQuery(query)}
       ) r ON r.relevance IS NOT NULL
+      WHERE ${PUBLISHED_POSTS}
       ORDER BY
         r.own_relevance DESC NULLS LAST,
         r.relevance DESC,
@@ -374,7 +376,7 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
         COUNT(*) OVER()::int AS total_count
       FROM posts p
       JOIN vecinas v ON v.post_id = p.id
-      WHERE v.dist <= ${maxDistance}
+      WHERE ${PUBLISHED_POSTS} AND v.dist <= ${maxDistance}
       ORDER BY v.dist ASC, p.id
       LIMIT ${pageSize} OFFSET ${offset}
     `);
@@ -396,6 +398,7 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
         ${distanceColumn(near)} AS distance_meters,
         COUNT(*) OVER()::int AS total_count
       FROM posts p
+      WHERE ${PUBLISHED_POSTS}
       ORDER BY
         distance_meters ASC NULLS LAST,
         p.created_at DESC,

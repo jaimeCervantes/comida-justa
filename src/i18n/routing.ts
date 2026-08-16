@@ -98,6 +98,7 @@ export const pathnames = {
 
   "/admin/catalogo": { es: "/admin/catalogo", en: "/admin/catalog" },
   "/admin/productos": { es: "/admin/productos", en: "/admin/products" },
+  "/admin/moderacion": { es: "/admin/moderacion", en: "/admin/moderation" },
 
   /* Iguales en los dos idiomas, cada una por su motivo:
      - `/[slug]` y `/page/[page]` son la publicación y la paginación del inicio; el slug se queda

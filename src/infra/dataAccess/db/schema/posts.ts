@@ -29,6 +29,16 @@ export const posts = pgTable(
     subCategory: text("sub_category"),
     /** Lo que filtra el chatbot; por defecto true para no ocultar lo ya publicado. */
     isAvailable: boolean("is_available").notNull().default(true),
+    /**
+     * `published` | `in_review` | `rejected`, con `CHECK` en la base (migración `0040_2026_08_16`).
+     * Por omisión `published`: quien inserte sin conocer la columna —el bot— sigue funcionando.
+     */
+    moderationStatus: text("moderation_status").notNull().default("published"),
+    /** Código de `MODERATION_REASONS`, nunca texto redactado por un modelo. */
+    moderationReason: text("moderation_reason"),
+    moderationReviewedAt: timestamp("moderation_reviewed_at", {
+      withTimezone: true,
+    }),
     sellerId: uuid("seller_id"),
     /** Enlace externo heredado del catálogo del bot (`products.product_url`). */
     externalUrl: text("external_url"),
@@ -43,6 +53,9 @@ export const posts = pgTable(
     index("idx_posts_created_at").on(table.createdAt.desc()),
     index("ix_posts_category").on(table.category),
     index("ix_posts_seller_id").on(table.sellerId),
+    /* Parcial en la base sobre `<> 'published'`: sirve al panel de moderación, no al feed. Drizzle
+       solo espeja su existencia; la definición real vive en la migración. */
+    index("ix_posts_moderation_pending").on(table.moderationStatus),
   ],
 );
 

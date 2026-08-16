@@ -1,6 +1,7 @@
 import { sql } from "drizzle-orm";
 import type { SitemapContent } from "~/domain/seo/sitemap";
 import { db } from "~/infra/dataAccess/db/connection";
+import { PUBLISHED_POSTS } from "~/infra/dataAccess/db/publishedPosts";
 
 /**
  * Todo lo que hay que publicar en el sitemap, en una sola ida a la base.
@@ -15,6 +16,7 @@ export async function getSitemapContent(): Promise<SitemapContent> {
       SELECT t.slug, t.locale, p.created_at
       FROM post_translations t
       JOIN posts p ON p.id = t.post_id
+      WHERE ${PUBLISHED_POSTS}
       ORDER BY p.created_at DESC, t.locale
     `),
     db.execute(sql`
@@ -39,7 +41,8 @@ export async function getSitemapContent(): Promise<SitemapContent> {
         AND EXISTS (
           SELECT 1
           FROM posts p
-          WHERE p.category = c.key OR p.sub_category = c.key
+          WHERE ${PUBLISHED_POSTS}
+            AND (p.category = c.key OR p.sub_category = c.key)
         )
       ORDER BY c.level, c.sort_order
     `),
@@ -51,7 +54,10 @@ export async function getSitemapContent(): Promise<SitemapContent> {
       WHERE EXISTS (SELECT 1 FROM sellers WHERE slug IS NOT NULL)
       UNION ALL
       SELECT '/productores-locales' AS path
-      WHERE EXISTS (SELECT 1 FROM posts WHERE origin = 'productor_local')
+      WHERE EXISTS (
+        SELECT 1 FROM posts p
+        WHERE ${PUBLISHED_POSTS} AND p.origin = 'productor_local'
+      )
     `),
   ]);
 

@@ -3,6 +3,7 @@ import type { CartProduct } from "~/domain/cart/cart";
 import type { CartProductRepository } from "~/domain/cart/ports";
 import { PRODUCT_KIND } from "~/domain/entities/post/hazloSanoProduct";
 import { db } from "~/infra/dataAccess/db/connection";
+import { PUBLISHED_POSTS } from "~/infra/dataAccess/db/publishedPosts";
 
 interface CartProductRow {
   id: string;
@@ -77,7 +78,8 @@ export class PostgresCartProductRepository implements CartProductRepository {
         ORDER BY sort_order
         LIMIT 1
       ) m ON TRUE
-      WHERE p.id IN (${ids})
+      WHERE ${PUBLISHED_POSTS}
+        AND p.id IN (${ids})
         AND p.kind = ${PRODUCT_KIND}
         /* Sin precio no se puede sumar. Es lo que deja fuera a los 10 anuncios, que no tienen
            ninguno, incluso si alguien mete su id en la cookie a mano. */
