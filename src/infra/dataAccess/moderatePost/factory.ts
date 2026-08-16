@@ -1,5 +1,6 @@
 import { createContentModerationService } from "~/infra/services/factory";
 import ModeratePostUseCase from "~/use_cases/moderatePost/moderatePostUseCase";
+import ReportPostUseCase from "~/use_cases/moderatePost/reportPostUseCase";
 import ReviewPostContentUseCase from "~/use_cases/moderatePost/reviewPostContentUseCase";
 import { PostgresModerationRepository } from "./PostgresModerationRepository";
 
@@ -20,4 +21,8 @@ export function createReviewPostContentUseCase(): ReviewPostContentUseCase {
     createContentModerationService(),
     createModerationRepository(),
   );
+}
+
+export function createReportPostUseCase(): ReportPostUseCase {
+  return new ReportPostUseCase(createModerationRepository());
 }

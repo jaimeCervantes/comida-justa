@@ -59,6 +59,8 @@ export default async function ModeracionPage({
     reasonPlaceholder: t("moderationReasonPlaceholder"),
     statusInReview: t("moderationStatusInReview"),
     statusRejected: t("moderationStatusRejected"),
+    statusPublished: t("moderationStatusPublished"),
+    reportCount: (count: number) => tModeration("reportCount", { count }),
     reasons: Object.fromEntries(
       MODERATION_REASONS.map((reason) => [
         reason,

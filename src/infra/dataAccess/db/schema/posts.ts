@@ -7,6 +7,7 @@ import {
   pgTable,
   text,
   timestamp,
+  unique,
   uuid,
   vector,
 } from "drizzle-orm/pg-core";
@@ -107,4 +108,32 @@ export const postMedia = pgTable(
     height: integer("height"),
   },
   (table) => [index("idx_media_post_id").on(table.postId)],
+);
+
+/**
+ * Las denuncias de la comunidad. Espejo de la migración `0041_2026_08_16`.
+ *
+ * **Denunciar avisa, no oculta**: la publicación no cambia de estado, solo aparece en el panel con
+ * su cuenta. Es una tabla y no una bandera en `posts` porque el número tiene que significar algo —
+ * cuántas personas distintas—, y eso lo sostiene el `UNIQUE(post_id, user_id)`.
+ */
+export const postReports = pgTable(
+  "post_reports",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    postId: text("post_id")
+      .notNull()
+      .references(() => posts.id, { onDelete: "cascade" }),
+    /** Sin identidad no hay a qué aplicarle el UNIQUE: una denuncia anónima no se puede contar. */
+    userId: text("user_id").notNull(),
+    /** Código de `MODERATION_REASONS`, el mismo vocabulario que usa el clasificador. */
+    reason: text("reason").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    index("ix_post_reports_post_id").on(table.postId),
+    unique("post_reports_one_per_person").on(table.postId, table.userId),
+  ],
 );

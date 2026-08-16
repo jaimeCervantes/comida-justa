@@ -16,9 +16,11 @@ const DONA: ModeratedPost = {
   kind: "producto",
   status: "published",
   reason: null,
+  authorId: "user-hazlo-sano",
   authorName: "Hazlo Sano",
   createdAt: new Date("2026-08-16T10:00:00Z"),
   reviewedAt: null,
+  reportCount: 0,
 };
 
 const SUENO: ModeratedPost = {
@@ -47,6 +49,7 @@ function build(
     applyDecision: vi.fn(async (update: ModerationUpdate) => {
       applied.push(update);
     }),
+    saveReport: vi.fn(async () => true),
   };
 
   return {

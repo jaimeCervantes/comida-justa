@@ -196,14 +196,48 @@ Feature: Se publica, se revisa, y lo que no cumple se baja
     And neither the embedding nor the translation is ever requested
 
   # ---------------------------------------------------------------------------
-  # Slice 3 (opción) — que la comunidad denuncie
+  # Slice 3 — que la comunidad denuncie  (entregado 2026-08-16)
+  #
+  # CAMBIO SOBRE EL ROADMAP: denunciar AVISA, no oculta.
+  # La versión de arriba decía que una denuncia mandara la publicación a
+  # `in_review`, o sea que la ocultara. Eso convierte el botón en un arma:
+  # cualquiera podría vaciar el catálogo denunciando una publicación tras otra.
+  # El daño no es simétrico — una denuncia falsa le quita la venta a un vendedor
+  # real EN EL ACTO; una legítima esperando al admin cuesta unas horas de una
+  # publicación mala arriba, y esa ya pasó por el clasificador.
   # ---------------------------------------------------------------------------
 
-  @slice-3 @future
-  Scenario: Una denuncia devuelve la publicación a revisión
-    Given a published post
-    When a visitor reports it
-    Then it goes back to "in_review" until an admin decides
+  @slice-3
+  Scenario: Una denuncia avisa al panel y NO oculta la publicación
+    Given the published product "Jugo Verde" at 45
+    When someone other than its author reports it as "spam"
+    Then the publication stays "published" and stays visible to everyone
+    And it appears in "/admin/moderacion" with 1 report
+    And the panel says it is still "Publicada", not "En revisión"
+
+  @slice-3
+  Scenario Outline: A quién NO se le ofrece el botón
+    Given the published product "Jugo Verde" at 45
+    When "<quien>" opens its detail page
+    Then no report button is offered
+
+    Examples:
+      | quien           | razon                                                        |
+      | su autor        | denunciarse a uno mismo no es un aviso                       |
+      | alguien sin sesión | sin identidad no se puede contar una denuncia por persona |
+
+  @slice-3
+  Scenario: La misma persona denunciando dos veces cuenta una
+    Given a published post already reported by someone
+    When that same person reports it again
+    Then the count stays at 1
+    And they are told their report is already in
+
+  @slice-3
+  Scenario: Decidir cierra las denuncias
+    Given a published post with reports
+    When an admin approves it from the panel
+    Then its reports are cleared and it leaves the queue
 
   # ---------------------------------------------------------------------------
   # Slice 4 (opción) — el mismo filtro en los comentarios

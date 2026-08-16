@@ -167,3 +167,55 @@ export function chatbotVisibilityFor(post: {
  * "Agotado" en el sitio público sobre algo que nunca se agotó: una mentira visible, y en todos los
  * casos en vez de en uno raro.
  */
+
+/**
+ * Una denuncia de la comunidad.
+ *
+ * Habla el **mismo vocabulario cerrado** que el clasificador (`MODERATION_REASONS`): que quien
+ * denuncia, el modelo y el panel usen las mismas cinco palabras es lo que permite leer las tres
+ * cosas juntas sin traducir nada por el camino.
+ */
+export type PostReport = {
+  postId: string;
+  reporterId: string;
+  reason: ModerationReason;
+};
+
+/**
+ * ¿Esta persona puede denunciar esta publicación?
+ *
+ * Tres condiciones, y cada una tapa un agujero distinto:
+ *
+ * - **Con sesión.** Sin identidad no hay a qué aplicarle el "una por persona", y la cuenta dejaría
+ *   de significar cuánta gente distinta avisó — que es todo lo que el número aporta.
+ * - **No siendo su autor.** Denunciarse a uno mismo no es un aviso; quien quiera bajar lo suyo lo
+ *   edita o lo borra.
+ * - **Solo lo que está publicado.** Lo que ya está bajado o en revisión no necesita que nadie
+ *   avise: ya está en el panel.
+ */
+export function canBeReportedBy(
+  post: ModerationFields & { userId: string },
+  viewer: { id?: string | null } | null | undefined,
+): boolean {
+  if (!viewer?.id) return false;
+  if (viewer.id === post.userId) return false;
+
+  return isPubliclyVisible(post);
+}
+
+/**
+ * Una denuncia **no cambia el estado** de la publicación.
+ *
+ * Se descartó lo contrario —que mandara a `in_review`, o sea que ocultara— porque convierte el
+ * botón en un arma: cualquiera podría vaciar el catálogo denunciando una publicación tras otra.
+ *
+ * El daño no es simétrico. Una denuncia falsa que oculta le quita la venta a un vendedor real en el
+ * acto; una legítima esperando a que el admin la mire cuesta unas horas de una publicación mala
+ * arriba, y esa ya pasó por el clasificador, así que no es de las evidentes.
+ *
+ * Existe como función y no como comentario para que la regla se pueda probar y para que quien
+ * quiera cambiarla tenga que venir aquí a discutirla.
+ */
+export function statusAfterReport(current: ModerationStatus): ModerationStatus {
+  return current;
+}

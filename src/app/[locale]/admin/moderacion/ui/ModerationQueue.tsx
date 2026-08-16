@@ -15,8 +15,21 @@ export interface QueueLabels {
   reasonPlaceholder: string;
   statusInReview: string;
   statusRejected: string;
+  statusPublished: string;
+  /** Ya formateado con su plural por quien tiene el catálogo; aquí solo se pinta. */
+  reportCount: (count: number) => string;
   reasons: Record<string, string>;
 }
+
+/** Cada estado dice lo que es. Cerrado: un estado nuevo obliga a decidir cómo se llama. */
+const STATUS_LABEL: Record<
+  ModeratedPost["status"],
+  (labels: QueueLabels) => string
+> = {
+  published: (labels) => labels.statusPublished,
+  in_review: (labels) => labels.statusInReview,
+  rejected: (labels) => labels.statusRejected,
+};
 
 interface Props {
   posts: readonly ModeratedPost[];
@@ -43,10 +56,22 @@ function Row({ post, labels }: { post: ModeratedPost; labels: QueueLabels }) {
         data-testid={`moderation-status-${post.id}`}
         className="text-xs px-2 py-0.5 rounded-full bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-300"
       >
-        {post.status === "rejected"
-          ? labels.statusRejected
-          : labels.statusInReview}
+        {/* Una publicada que llegó aquí por una denuncia SIGUE publicada: denunciar avisa, no
+            oculta. Decir "en revisión" sobre algo que cualquiera puede ver sería mentir en la
+            única pantalla donde el admin decide. */}
+        {STATUS_LABEL[post.status](labels)}
       </span>
+
+      {/* La señal más fuerte que produce este sistema: varias personas distintas avisando de lo
+          mismo. Se pinta solo cuando la hay, para que su ausencia no compita con el estado. */}
+      {post.reportCount > 0 ? (
+        <span
+          data-testid={`moderation-reports-${post.id}`}
+          className="text-xs px-2 py-0.5 rounded-full bg-feedback-warning/15 text-text-base"
+        >
+          {labels.reportCount(post.reportCount)}
+        </span>
+      ) : null}
 
       <span
         data-testid={`moderation-reason-label-${post.id}`}

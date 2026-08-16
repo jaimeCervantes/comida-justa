@@ -152,6 +152,7 @@
     "moderationReasonPlaceholder": "— Elige un motivo —",
     "moderationReject": "Bajar",
     "moderationStatusInReview": "En revisión",
+    "moderationStatusPublished": "Publicada",
     "moderationStatusRejected": "Retirada",
     "originReportHeading": "Productos por procedencia",
     "originReportIntro": "Publicaciones con tipo <b>producto</b>, agrupadas por su procedencia. Los anuncios no se cuentan aquí.",
@@ -668,7 +669,17 @@
     "reasonRestrictedProduct": "Ofrece algo que no se puede vender aquí: alcohol, tabaco, vapeadores, sustancias o armas.",
     "reasonSpam": "Parece publicidad engañosa o una oferta de ganancia fácil.",
     "rejectedBody": "Un moderador la retiró, así que ahora mismo solo la ves tú.",
-    "rejectedLabel": "No publicada"
+    "rejectedLabel": "No publicada",
+    "reportCount": "{count, plural, one {1 reporte} other {# reportes}}",
+    "reportCta": "Reportar",
+    "reportDone": "Gracias, ya lo revisamos.",
+    "reportHeading": "¿Esta publicación no cumple las normas?",
+    "reportHealthClaim": "Promete curar o sustituir un tratamiento",
+    "reportOffensive": "Es ofensivo",
+    "reportOffTopic": "No tiene que ver con salud ni bienestar",
+    "reportPlaceholder": "— ¿Qué problema tiene? —",
+    "reportRestrictedProduct": "Vende algo que no debería venderse aquí",
+    "reportSpam": "Es publicidad engañosa o una estafa"
   },
   "nav": {
     "about": "Nosotros",

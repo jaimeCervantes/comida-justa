@@ -3,7 +3,9 @@ import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Suspense } from "react";
 import {
+  canBeReportedBy,
   canBeViewedBy,
+  MODERATION_REASONS,
   resolveModerationStatus,
 } from "~/domain/entities/post/moderation";
 import { resolvePostTranslation } from "~/domain/entities/post/translations";
@@ -31,6 +33,23 @@ import ModerationControls from "./ui/ModerationControls";
 import ModerationNotice from "./ui/ModerationNotice";
 import PostDetail from "./ui/PostDetail";
 import RelatedPosts from "./ui/RelatedPosts";
+import ReportPostForm, { type ReportLabels } from "./ui/ReportPostForm";
+
+/**
+ * El mismo código de motivo, redactado como **pregunta a quien denuncia**.
+ *
+ * El panel y el aviso al autor usan `reasonOffTopic` («No trata de descanso, alimentación…»), que
+ * es el nombre que lee quien modera. A quien está mirando una publicación se le pregunta otra cosa
+ * («No tiene que ver con salud ni bienestar»). Dos redacciones para un solo valor, igual que hizo
+ * `origin` con el selector del vendedor y el reporte de admin.
+ */
+const REPORT_REASON_KEYS = {
+  off_topic: "reportOffTopic",
+  health_claim: "reportHealthClaim",
+  spam: "reportSpam",
+  offensive: "reportOffensive",
+  restricted_product: "reportRestrictedProduct",
+} as const;
 
 export async function generateMetadata({
   params,
@@ -99,6 +118,22 @@ export default async function Slug({
   if (!canBeViewedBy(moderation, { id: viewerId, isAdmin: viewerIsAdmin })) {
     notFound();
   }
+
+  /* El botón de avisar: solo a quien puede accionarlo de verdad —con sesión, que no sea su autor, y
+     sobre algo que está publicado—. El gate real vuelve a comprobarse en la acción, porque una
+     Server Action se puede invocar sin pasar por esta pantalla. */
+  const canReport = canBeReportedBy(moderation, { id: viewerId });
+  const tModeration = await getTranslations("moderation");
+  const reportLabels: ReportLabels = {
+    cta: tModeration("reportCta"),
+    heading: tModeration("reportHeading"),
+    placeholder: tModeration("reportPlaceholder"),
+    done: tModeration("reportDone"),
+    reasons: MODERATION_REASONS.map((reason) => ({
+      value: reason,
+      label: tModeration(REPORT_REASON_KEYS[reason]),
+    })),
+  };
 
   // Lo que declara el producto es la misma etiqueta que ve quien lo lee.
   const categoryLabel = await postCategoryLabel(
@@ -219,6 +254,15 @@ export default async function Slug({
             initialComments={post.comments}
           />
         </Suspense>
+
+        {/* Abajo del todo a propósito: avisar es el último recurso de quien ya leyó la
+            publicación entera, no una acción que compita con leerla. */}
+        {canReport ? (
+          <ReportPostForm
+            postId={String(post.id ?? "")}
+            labels={reportLabels}
+          />
+        ) : null}
       </section>
 
       {/* Se resuelve aquí y no dentro del detalle: son dos columnas hermanas, y el parecido no

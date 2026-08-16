@@ -19,6 +19,8 @@ const LABELS: QueueLabels = {
   reasonPlaceholder: "— Elige un motivo —",
   statusInReview: "En revisión",
   statusRejected: "Retirada",
+  statusPublished: "Publicada",
+  reportCount: (count: number) => `${count} reportes`,
   reasons: {
     off_topic:
       "No trata de descanso, alimentación, movimiento ni mente y espíritu.",
@@ -36,9 +38,11 @@ const tsuru: ModeratedPost = {
   kind: "producto",
   status: "rejected",
   reason: "off_topic",
+  authorId: "user-jaime",
   authorName: "Jaime",
   createdAt: new Date("2026-08-14T09:00:00Z"),
   reviewedAt: new Date("2026-08-16T11:00:00Z"),
+  reportCount: 0,
 };
 
 const sinRevisar: ModeratedPost = {
@@ -49,6 +53,16 @@ const sinRevisar: ModeratedPost = {
   status: "in_review",
   reason: null,
   reviewedAt: null,
+};
+
+const denunciada: ModeratedPost = {
+  ...tsuru,
+  id: "post-denunciada",
+  slug: "jugo-verde",
+  title: "Jugo Verde",
+  status: "published",
+  reason: null,
+  reportCount: 3,
 };
 
 describe("ModerationQueue", () => {
@@ -119,5 +133,35 @@ describe("ModerationQueue", () => {
     expect(select).toBeRequired();
     expect(within(select).getAllByRole("option")).toHaveLength(6);
     expect(select).toHaveValue("");
+  });
+});
+
+describe("ModerationQueue y las denuncias", () => {
+  /* Denunciar AVISA, no oculta: decir "en revisión" sobre algo que cualquiera puede ver sería
+     mentir en la única pantalla donde el admin decide. */
+  it("una publicada que llegó por denuncias sigue diciendo que está publicada", () => {
+    render(<ModerationQueue posts={[denunciada]} labels={LABELS} />);
+
+    expect(
+      screen.getByTestId(`moderation-status-${denunciada.id}`),
+    ).toHaveTextContent("Publicada");
+  });
+
+  it("enseña cuánta gente avisó", () => {
+    render(<ModerationQueue posts={[denunciada]} labels={LABELS} />);
+
+    expect(
+      screen.getByTestId(`moderation-reports-${denunciada.id}`),
+    ).toHaveTextContent("3 reportes");
+  });
+
+  /* Sin denuncias no se pinta nada: un "0 reportes" competiria con el estado por la atencion del
+     admin sin aportar nada. */
+  it("sin denuncias no pinta la cuenta", () => {
+    render(<ModerationQueue posts={[tsuru]} labels={LABELS} />);
+
+    expect(
+      screen.queryByTestId(`moderation-reports-${tsuru.id}`),
+    ).not.toBeInTheDocument();
   });
 });

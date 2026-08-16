@@ -2,6 +2,7 @@ import { sql } from "drizzle-orm";
 import { db } from "~/infra/dataAccess/db/connection";
 
 export type PostRowSnapshot = {
+  id: string;
   kind: string | null;
   origin: string | null;
   is_available: boolean;
@@ -21,7 +22,7 @@ export async function readPostRowBySlug(
   slug: string,
 ): Promise<PostRowSnapshot | null> {
   const result = await db.execute(sql`
-    SELECT p.kind, p.origin, p.is_available, p.category, p.sub_category, p.seller_id,
+    SELECT p.id, p.kind, p.origin, p.is_available, p.category, p.sub_category, p.seller_id,
            p.external_url, p.moderation_status, p.moderation_reason
     FROM posts p
     JOIN post_translations pt ON pt.post_id = p.id

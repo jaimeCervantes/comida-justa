@@ -1,12 +1,14 @@
 import { describe, expect, it } from "vitest";
 import {
   applyModerationDecision,
+  canBeReportedBy,
   canBeViewedBy,
   chatbotVisibilityFor,
   DEFAULT_MODERATION_STATUS,
   isPubliclyVisible,
   resolveModerationReason,
   resolveModerationStatus,
+  statusAfterReport,
 } from "./moderation";
 
 const OWNER = "user-dona-keto";
@@ -134,6 +136,53 @@ describe("chatbotVisibilityFor", () => {
       expect(
         chatbotVisibilityFor({ kind: "anuncio", moderationStatus: status }),
       ).toBe("leave");
+    },
+  );
+});
+
+describe("canBeReportedBy", () => {
+  const publicada = {
+    userId: OWNER,
+    moderationStatus: "published",
+  };
+
+  it("cualquiera con sesión puede avisar", () => {
+    expect(canBeReportedBy(publicada, { id: "otra-persona" })).toBe(true);
+  });
+
+  /* Sin identidad no hay a qué aplicarle el "una por persona", y la cuenta dejaría de significar
+     cuánta gente distinta avisó, que es todo lo que el número aporta. */
+  it("sin sesión, no", () => {
+    expect(canBeReportedBy(publicada, null)).toBe(false);
+    expect(canBeReportedBy(publicada, undefined)).toBe(false);
+    expect(canBeReportedBy(publicada, { id: "" })).toBe(false);
+  });
+
+  it("su autor no se denuncia a sí mismo", () => {
+    expect(canBeReportedBy(publicada, { id: OWNER })).toBe(false);
+  });
+
+  /* Lo que ya está bajado o esperando no necesita que nadie avise: ya está en el panel. */
+  it.each(["rejected", "in_review"])(
+    "lo que está %s ya no se denuncia",
+    (status) => {
+      expect(
+        canBeReportedBy(
+          { ...publicada, moderationStatus: status },
+          { id: "x" },
+        ),
+      ).toBe(false);
+    },
+  );
+});
+
+describe("statusAfterReport", () => {
+  /* La regla que decide el slice: denunciar AVISA, no oculta. Si mandara a `in_review`, cualquiera
+     podría vaciar el catálogo denunciando una publicación tras otra. */
+  it.each(["published", "in_review", "rejected"] as const)(
+    "una denuncia no mueve el estado %s",
+    (status) => {
+      expect(statusAfterReport(status)).toBe(status);
     },
   );
 });

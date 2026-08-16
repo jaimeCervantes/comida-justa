@@ -375,3 +375,109 @@ reordenado del slice 2 no le quitó el vector a nada que deba tenerlo.
 
 Sin cambios respecto a la entrada anterior: slice 3 (la denuncia), slice 4 (los comentarios), o el
 límite de publicaciones por persona. Ya no queda nada pendiente del usuario.
+
+---
+
+## 2026-08-16 (noche) — Slice 3: que la comunidad denuncie
+
+### Objetivo
+
+Cerrar el círculo. El clasificador acierta con lo evidente, pero lo que deje pasar no lo ve nadie:
+el admin tendría que toparse con ello navegando, y nadie navega su propio catálogo buscando
+problemas. Quien sí se topa es la comunidad.
+
+### El roadmap tenía un agujero, y se corrigió antes de escribir código
+
+El roadmap decía: *"un botón de reportar que devuelve algo vivo a `in_review`"*. Literalmente eso
+significa que **una sola denuncia oculta una publicación**, o sea que cualquier visitante podría
+vaciar el catálogo denunciando una publicación tras otra. Se le planteó al usuario y eligió que
+**denunciar avise sin ocultar**.
+
+El argumento es la asimetría del daño: una denuncia falsa que oculta le quita la venta a un vendedor
+real **en el acto**; una legítima esperando a que el admin la mire cuesta unas horas de una
+publicación mala arriba — y esa ya pasó por el clasificador, así que no es de las evidentes.
+
+La regla vive como función (`statusAfterReport`) y no como comentario, para que se pueda probar y
+para que quien quiera cambiarla tenga que venir a discutirla.
+
+### Decisiones y por qué
+
+**Tabla, no columna.** Hace falta saber **cuántas** y **de quién**. Una bandera `is_reported` no
+distingue una denuncia de doce ni impide que la misma persona la levante cien veces.
+
+**`UNIQUE(post_id, user_id)` es lo que hace que el número signifique algo.** Sin él, "5 denuncias"
+podría ser una persona pulsando cinco veces, y el dato que el admin usa para priorizar sería ruido.
+Es también la razón por la que denunciar exige sesión, con su costo aceptado: quien ve algo grave y
+no tiene cuenta no puede avisar.
+
+**`ON CONFLICT DO NOTHING` en vez de comprobar-y-luego-insertar.** Deja que la base resuelva la
+duplicación y evita la carrera en la que dos pulsaciones simultáneas de la misma persona pasan las
+dos la comprobación. `rowCount` distingue "se guardó" de "ya estaba", y **ya estaba no es un error**:
+quien vuelve a pulsar quiere saber que su aviso está, no leer que algo falló.
+
+**Decidir borra las denuncias.** Sin esto, una publicación denunciada por error se quedaría en la
+bandeja para siempre: el admin la aprobaría, seguiría teniendo su denuncia y volvería a aparecer al
+recargar. Aprobar significa "esto está bien", que es exactamente la respuesta al aviso.
+
+**La bandeja mezcla las dos cosas** —lo no publicado y lo publicado denunciado— porque piden lo
+mismo: que una persona decida. Ordena **primero por número de denuncias**: varias personas avisando
+de lo mismo es la señal más fuerte que produce este sistema, y enterrarla bajo lo que el clasificador
+dejó pendiente sería desperdiciarla.
+
+**El badge de estado dice la verdad.** Una publicada que llegó por denuncias sigue diciendo
+"Publicada". Decir "En revisión" sobre algo que cualquiera puede ver sería mentir en la única
+pantalla donde el admin decide. Obligó a añadir el tercer estado al badge, que hasta ahora solo
+distinguía dos.
+
+**Dos redacciones para un mismo código.** El panel dice «No trata de descanso, alimentación…»
+—el nombre que lee quien modera— y a quien denuncia se le pregunta «No tiene que ver con salud ni
+bienestar». Mismo valor, dos voces, igual que hizo `origin` con el selector del vendedor y el reporte.
+
+### Archivos tocados
+
+- **Backend**: `alembic/versions/0041_2026-08-16_add_post_reports.py`.
+- **Dominio**: `moderation.ts` — `PostReport`, `canBeReportedBy`, `statusAfterReport`.
+- **Caso de uso**: `reportPostUseCase.ts` + su prueba.
+- **Infra**: `PostgresModerationRepository` (bandeja, `saveReport`, borrado al decidir), espejo
+  Drizzle, factory.
+- **App**: `[slug]/reportActions.ts`, `[slug]/ui/ReportPostForm.tsx`, la ficha, el panel y su cola.
+- **Especificación**: `denuncia.spec.ts`, `.feature`, los dos catálogos.
+
+### Comandos y resultados
+
+| Comando | Resultado |
+|---|---|
+| `uv run alembic upgrade head` | `0040 → 0041`; tabla, UNIQUE, dos FKs e índice verificados; 27 publicaciones intactas |
+| `pnpm run test:run` | **1739/1739**, 169 archivos (antes del slice: 1720 en 168) |
+| `pnpm run test:e2e:run -- src/e2e/filtroAlPublicar/denuncia.spec.ts` | **5/5** |
+| `typecheck`, `typecheck:tests`, `lint`, `check:i18n`, `check:directives` | limpios |
+
+**Escrito en la base compartida:** una tabla nueva, vacía. Se deshace con
+`uv run alembic downgrade 0040_2026_08_16`. Ninguna fila de `posts` cambió.
+
+### Desviaciones
+
+1. **Denunciar no oculta**, contra lo que decía el roadmap. Explicado arriba; lo decidió el usuario.
+2. **Tres fallos de e2e que eran míos, no del código.** `simulateLogin` sin correo entra con la
+   **misma cuenta que siembra las publicaciones**, así que mi denunciante era el autor y el botón
+   —correctamente— no se pintaba. El escenario necesita dos identidades: ahora el denunciante entra
+   con la cuenta de admin, y hay un `skip` si resultara ser la misma que la de la suite.
+
+### Recap
+
+El círculo está cerrado. El clasificador atrapa lo evidente al publicar y al editar; lo que se le
+escapa lo puede señalar cualquiera con cuenta, una vez por publicación, y eso **no oculta nada**:
+solo hace que aparezca en el panel, ordenada por cuánta gente avisó, con su estado real. El admin
+decide, y al decidir las denuncias se cierran. Nadie puede tumbar el catálogo, y nada se queda sin
+que alguien pueda avisar.
+
+### Próximos pasos (opciones)
+
+1. **Slice 4 — los comentarios**, que siguen sin ninguna revisión. El puerto del clasificador ya
+   existe; es reusarlo en otra puerta.
+2. **Un límite de publicaciones por persona.** El filtro no frena a quien publique cien veces algo
+   aceptable, y esa es la otra forma de ensuciar el catálogo.
+3. **Mirar el dato dentro de unas semanas.** Cuántas denuncias llegan y cuántas resultan ciertas dice
+   si hace falta un umbral automático o si con el panel basta. Hoy sería adivinar.
+
+**Pendiente del usuario:** nada.

@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import {
+  type PostReport,
   resolveModerationReason,
   resolveModerationStatus,
 } from "~/domain/entities/post/moderation";
@@ -17,9 +18,11 @@ interface ModerationRow {
   kind: string | null;
   moderation_status: string | null;
   moderation_reason: string | null;
+  author_id: string;
   author_name: string | null;
   created_at: Date;
   moderation_reviewed_at: Date | null;
+  report_count: number;
 }
 
 /**
@@ -34,9 +37,11 @@ const PANEL_COLUMNS = sql`
   p.kind,
   p.moderation_status,
   p.moderation_reason,
+  p.user_id AS author_id,
   u.name AS author_name,
   p.created_at,
-  p.moderation_reviewed_at`;
+  p.moderation_reviewed_at,
+  (SELECT COUNT(*)::int FROM post_reports r WHERE r.post_id = p.id) AS report_count`;
 
 const PANEL_JOINS = sql`
   FROM posts p
@@ -57,31 +62,58 @@ function toModeratedPost(row: ModerationRow): ModeratedPost {
     kind: row.kind ?? "anuncio",
     status: resolveModerationStatus(row.moderation_status),
     reason: resolveModerationReason(row.moderation_reason),
+    authorId: row.author_id,
     authorName: row.author_name,
     createdAt: new Date(row.created_at),
     reviewedAt: row.moderation_reviewed_at
       ? new Date(row.moderation_reviewed_at)
       : null,
+    reportCount: Number(row.report_count ?? 0),
   };
 }
 
 export class PostgresModerationRepository implements IModerationRepository {
   /**
-   * La bandeja: todo lo que no está publicado.
+   * La bandeja: lo que no está publicado **y** lo publicado que alguien denunció.
    *
-   * Ordena por `moderation_reviewed_at` y no por `created_at` porque lo que interesa es **cuándo
-   * entró a la bandeja**, no cuándo se publicó. En cuanto existan las denuncias, una publicación de
-   * hace un mes puede entrar hoy, y ordenarla por su fecha de creación la mandaría al final.
+   * Las dos cosas piden lo mismo —que una persona decida— así que van en la misma lista. Lo
+   * denunciado no está oculto: sigue en el sitio mientras espera, que es la decisión entera del
+   * slice 3.
+   *
+   * Ordena primero por número de denuncias: cinco personas avisando de lo mismo es la señal más
+   * fuerte que produce este sistema, y enterrarla bajo lo que el clasificador dejó pendiente sería
+   * desperdiciarla. Después, por cuándo entró a la bandeja —no por cuándo se publicó, porque una
+   * publicación de hace un mes puede ser denunciada hoy y su fecha de creación la mandaría al final.
    */
   async findPendingReview(): Promise<ModeratedPost[]> {
     const raw = await db.execute(sql`
       SELECT ${PANEL_COLUMNS}
       ${PANEL_JOINS}
       WHERE p.moderation_status <> 'published'
-      ORDER BY p.moderation_reviewed_at DESC NULLS LAST, p.created_at DESC
+         OR EXISTS (SELECT 1 FROM post_reports r WHERE r.post_id = p.id)
+      ORDER BY report_count DESC,
+               p.moderation_reviewed_at DESC NULLS LAST,
+               p.created_at DESC
     `);
 
     return (raw.rows as unknown as ModerationRow[]).map(toModeratedPost);
+  }
+
+  /**
+   * Guarda la denuncia, o dice que ya estaba.
+   *
+   * `ON CONFLICT DO NOTHING` contra el `UNIQUE(post_id, user_id)`: dejar que la base resuelva la
+   * duplicación evita la carrera de comprobar-y-luego-insertar, en la que dos pulsaciones
+   * simultáneas de la misma persona pasan las dos la comprobación. `rowCount` distingue los casos.
+   */
+  async saveReport(report: PostReport): Promise<boolean> {
+    const result = await db.execute(sql`
+      INSERT INTO post_reports (post_id, user_id, reason)
+      VALUES (${report.postId}, ${report.reporterId}, ${report.reason})
+      ON CONFLICT ON CONSTRAINT post_reports_one_per_person DO NOTHING
+    `);
+
+    return (result.rowCount ?? 0) > 0;
   }
 
   async findById(postId: string): Promise<ModeratedPost | null> {
@@ -118,5 +150,14 @@ export class PostgresModerationRepository implements IModerationRepository {
           ${availability}
       WHERE id = ${update.postId}
     `);
+
+    /* Decidir cierra las denuncias abiertas, y por eso se borran.
+       Sin esto, una publicación denunciada por error se quedaría en la bandeja para siempre: el
+       admin la aprobaría, seguiría teniendo su denuncia, y volvería a aparecer en la lista al
+       recargar. Aprobar significa "esto está bien", que es exactamente la respuesta al aviso.
+       Al rechazar salen igual, porque a partir de ahí quien la sostiene en la bandeja es su estado. */
+    await db.execute(
+      sql`DELETE FROM post_reports WHERE post_id = ${update.postId}`,
+    );
   }
 }

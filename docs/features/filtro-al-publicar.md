@@ -244,7 +244,7 @@ poner un veredicto, y sin panel "oculta" es un callejón sin salida.
 7. Si el servicio lanza, queda `in_review` y aparece en el panel.
 8. Un producto rechazado nunca llega a tener embedding.
 
-### Slice 3 *(opción)* — que la comunidad denuncie
+### Slice 3 — que la comunidad denuncie *(entregado 2026-08-16)*
 
 Un botón de "reportar" que devuelve algo vivo a `in_review`. Es lo que atrapa lo que el clasificador
 dejó pasar.

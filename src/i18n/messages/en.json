@@ -152,6 +152,7 @@
     "moderationReasonPlaceholder": "— Pick a reason —",
     "moderationReject": "Take down",
     "moderationStatusInReview": "Under review",
+    "moderationStatusPublished": "Published",
     "moderationStatusRejected": "Taken down",
     "originReportHeading": "Products by provenance",
     "originReportIntro": "Publications of type <b>product</b>, grouped by provenance. Announcements are not counted here.",
@@ -668,7 +669,17 @@
     "reasonRestrictedProduct": "It offers something that cannot be sold here: alcohol, tobacco, vapes, drugs, or weapons.",
     "reasonSpam": "It reads as misleading advertising or an easy-money offer.",
     "rejectedBody": "A moderator took it down, so right now you are the only one who sees it.",
-    "rejectedLabel": "Not published"
+    "rejectedLabel": "Not published",
+    "reportCount": "{count, plural, one {1 report} other {# reports}}",
+    "reportCta": "Report",
+    "reportDone": "Thanks, we are on it.",
+    "reportHeading": "Does this post break the rules?",
+    "reportHealthClaim": "Promises to cure or replace a treatment",
+    "reportOffensive": "It is offensive",
+    "reportOffTopic": "Nothing to do with health or well-being",
+    "reportPlaceholder": "— What is wrong with it? —",
+    "reportRestrictedProduct": "Sells something that should not be sold here",
+    "reportSpam": "Misleading advertising or a scam"
   },
   "nav": {
     "about": "About us",
