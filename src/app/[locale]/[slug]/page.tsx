@@ -17,9 +17,11 @@ import { resolveLocale, routing } from "~/i18n/routing";
 import { auth } from "~/infra/auth";
 import { isAdmin } from "~/infra/auth/isAdmin";
 import { readViewerId } from "~/infra/auth/readViewerId";
+import { createRouteRepository } from "~/infra/dataAccess/routes/factory";
 import { storeOfPost } from "~/infra/dataAccess/sellers/PostgresPostStore";
 import { readVisitorLocation } from "~/infra/location/visitorLocation";
 import type { PostUser } from "~/infra/types/Posts";
+import RouteMap from "~/presentation/location/RouteMap";
 import StoresMap from "~/presentation/location/StoresMap";
 import Breadcrumbs from "~/presentation/navigation/Breadcrumbs";
 import JsonLd from "~/presentation/seo/JsonLd";
@@ -188,6 +190,12 @@ export default async function Slug({
   const breadcrumbJsonLd = buildBreadcrumbJsonLd(jsonLdItems);
   const { visitor, store } = await resolveStoreContext(slug);
 
+  /* El recorrido, si lo tiene. Se pide aparte y no con la ficha porque vive en su propia tabla,
+     justamente para no arrastrar ~32 KB de geografía en cada consulta que lee publicaciones. */
+  const route = await createRouteRepository().findByPostId(
+    String(post.id ?? ""),
+  );
+
   return (
     <section className="sm:flex sm:gap-4 flex-wrap">
       <Breadcrumbs
@@ -236,6 +244,17 @@ export default async function Slug({
         slug={slug}
         distanceMeters={store?.meters ?? null}
       />
+
+      {/* El recorrido va ANTES del mapa de la tienda: en un evento, "por dónde vamos" es la
+          pregunta principal y "dónde está la tienda" es la secundaria — al revés que en un
+          producto, donde ni siquiera hay recorrido. */}
+      {route ? (
+        <RouteMap
+          points={route.points}
+          lengthMeters={route.lengthMeters}
+          className="w-full sm:order-3"
+        />
+      ) : null}
 
       {store ? (
         <StoresMap

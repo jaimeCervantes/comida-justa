@@ -1,6 +1,7 @@
 "use server";
 import { after } from "next/server";
 import { getLocale, getTranslations } from "next-intl/server";
+import { type ParsedRoute, parseGpx } from "~/domain/entities/post/gpx";
 import {
   DEFAULT_POST_KIND,
   isValidKind,
@@ -11,6 +12,9 @@ import { resolveOriginForUser } from "~/domain/entities/post/origin";
 import PostEntity from "~/domain/entities/post/Post";
 import { resolveKeyStrict } from "~/domain/entities/post/taxonomy";
 import type { User } from "~/domain/entities/post/types";
+import RouteFileError, {
+  type RouteFileProblem,
+} from "~/domain/errors/RouteFileError";
 import PostValidator from "~/domain/schemas/PostValidator";
 import getErrorMessage from "~/domain/shared/getErrorMessage";
 import { redirectKeepingLocale } from "~/i18n/redirectKeepingLocale";
@@ -22,6 +26,7 @@ import { getCategoryTaxonomy } from "~/infra/dataAccess/categories/cachedCategor
 import { createPostRepository } from "~/infra/dataAccess/createOnePost/factory";
 import { createIndexPostEmbeddingUseCase } from "~/infra/dataAccess/indexPostEmbedding/factory";
 import { createReviewPostContentUseCase } from "~/infra/dataAccess/moderatePost/factory";
+import { createRouteRepository } from "~/infra/dataAccess/routes/factory";
 import { createSellerRepository } from "~/infra/dataAccess/sellers/factory";
 import { createTranslatePostUseCase } from "~/infra/dataAccess/translatePost/factory";
 import type { ActionState } from "~/infra/types/Actions";
@@ -32,6 +37,37 @@ const useCase = new CreateOnePostUseCase(
   new PostEntity(),
   createPostRepository(),
 );
+
+/** Cada problema del archivo tiene su clave: "no se dibujó nada" no le dice a nadie qué corregir. */
+const ROUTE_ERROR_KEYS = {
+  empty: "errorRouteEmpty",
+  "not-gpx": "errorRouteNotGpx",
+  "too-few-points": "errorRouteTooFewPoints",
+} as const;
+
+/**
+ * Lee el `.gpx` que venga en el formulario.
+ *
+ * **No se guarda el archivo**: se le saca el trazo y se tira. Por eso viaja en el propio formulario
+ * y no pasa por Cloud Storage como las fotos — de un GPX solo interesan los puntos, y guardarlos
+ * en la base es guardarlo todo.
+ *
+ * Devuelve el problema en vez de lanzarlo para que la acción pueda contestarle a la persona en su
+ * idioma y **sin perder lo que ya escribió**.
+ */
+async function readRoute(
+  entry: FormDataEntryValue | null,
+): Promise<{ route: ParsedRoute | null; problem?: RouteFileProblem }> {
+  if (!(entry instanceof File) || entry.size === 0) return { route: null };
+
+  try {
+    return { route: parseGpx(await entry.text()) };
+  } catch (error) {
+    if (error instanceof RouteFileError)
+      return { route: null, problem: error.problem };
+    throw error;
+  }
+}
 
 /** Lo que llega de un `datetime-local`: texto local sin zona, o vacío. Ilegible cuenta como vacío. */
 function readDate(value: FormDataEntryValue | null): Date | null {
@@ -193,6 +229,13 @@ export async function createPost(
     kind === "evento" ? readDate(formData.get("startsAt")) : null;
   const endsAt = kind === "evento" ? readDate(formData.get("endsAt")) : null;
 
+  /* El recorrido solo se lee en un evento, y es opcional: una rodada sin GPX sigue siendo una
+     rodada. Lo que NO se hace es guardar la publicación y perder el archivo en silencio. */
+  const { route, problem: routeProblem } =
+    kind === "evento"
+      ? await readRoute(formData.get("route"))
+      : { route: null, problem: undefined };
+
   // Server-side defense: only an admin may assign a "hazlo_sano_*" origin.
   const admin = isAdmin(session?.user?.email);
   const origin = resolveOriginForUser(formData.get("origin") as string, admin);
@@ -235,6 +278,7 @@ export async function createPost(
       startsAt && endsAt && endsAt < startsAt
         ? t("errorEndsBeforeStarts")
         : null,
+    route: routeProblem ? t(ROUTE_ERROR_KEYS[routeProblem]) : null,
     content: content ? null : t("errorContentRequired"),
     phone: phone ? null : t("errorPhoneRequired"),
     /* Se comprueba lo que se pudo interpretar y no que el campo traiga texto. Antes bastaba con que
@@ -294,6 +338,28 @@ export async function createPost(
 
   if (result?.error) {
     return { errors: { errorMessage: result.errorMessage }, success: false };
+  }
+
+  /* El recorrido se guarda con la publicación ya creada, porque cuelga de su id. Va antes de
+     responder —y no en un `after()`— a propósito: sin ruta el evento se ve incompleto, y ya está
+     todo en memoria, así que cuesta una inserción y ninguna llamada de red. */
+  if (result?.id && route) {
+    try {
+      await createRouteRepository().save({
+        postId: result.id,
+        points: route.points,
+        lengthMeters: route.meters,
+        sourcePoints: route.originalPoints,
+      });
+    } catch (error) {
+      /* La publicación ya existe y es válida sin ruta: perderla entera por un fallo al guardar el
+         trazo sería peor. Se avisa y quien la editó puede volver a subir el archivo. */
+      console.error(
+        // i18n-ignore: registro del servidor; lo lee quien opera, no un visitante.
+        `[routes] post ${result.id} se publicó sin su recorrido: falló al guardarlo.`,
+        error,
+      );
+    }
   }
 
   if (result?.id) {

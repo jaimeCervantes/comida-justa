@@ -146,3 +146,31 @@ export const postReports = pgTable(
     unique("post_reports_one_per_person").on(table.postId, table.userId),
   ],
 );
+
+/**
+ * El recorrido de una publicación. Espejo de la migración `0043_2026_08_16`.
+ *
+ * **1:1 impuesto por la forma**: la clave primaria es el `post_id`, así que dos recorridos para la
+ * misma publicación no son un caso a resolver más tarde, son un imposible.
+ *
+ * Vive aparte de `posts` por **tamaño**: una ruta de 2.000 puntos son ~32 KB, el valor más grande
+ * del esquema, y `posts` es la tabla que leen el feed, la búsqueda, el sitemap, la tienda y el bot.
+ *
+ * `path` es `geography(LINESTRING,4326)`, igual que `branches.location`, para que el día que se
+ * pregunte "¿qué rutas pasan cerca?" sirvan las mismas funciones que ya se usan. Drizzle no tiene
+ * tipo para geografía, así que se declara como texto: **se lee y se escribe con SQL explícito**
+ * (`ST_AsGeoJSON` / `ST_GeogFromText`), nunca por esta columna directamente.
+ */
+export const postRoutes = pgTable("post_routes", {
+  postId: text("post_id")
+    .primaryKey()
+    .references(() => posts.id, { onDelete: "cascade" }),
+  path: text("path"),
+  /** Medidos sobre el archivo COMPLETO, antes de reducir los puntos para dibujar. */
+  lengthMeters: integer("length_meters").notNull(),
+  /** Cuántos puntos traía el original: dice cuánto se redujo sin reabrir el archivo. */
+  sourcePoints: integer("source_points").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+});

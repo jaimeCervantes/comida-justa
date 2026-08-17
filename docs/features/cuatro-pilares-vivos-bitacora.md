@@ -114,3 +114,95 @@ el cliente, así que la rodada del sábado deja de anunciarse el domingo **sin q
 
 **Pendiente del usuario:** nada de este slice. Sigue abierto lo de los comentarios, en
 `pendientes.md`.
+
+---
+
+## 2026-08-16 (noche) — Slice 2: la ruta, por GPX
+
+### Objetivo
+
+Que un evento pueda decir **por dónde**, no solo cuándo. `branches.location` es un `POINT` —sirve
+para el punto de reunión— y una ruta es una línea.
+
+### El GPX es lo que hace barata esta feature
+
+El roadmap la llamaba "la cara" porque asumía un editor de mapa. Quien corre ya tiene su recorrido
+en Strava, Garmin o Wikiloc: exporta y sube. Eso aplaza el editor entero, que sigue fuera de alcance.
+
+Y **el archivo no se guarda**: se le saca el trazo y se tira. Por eso viaja en el propio formulario
+en vez de pasar por Cloud Storage como las fotos — de un GPX solo interesan los puntos.
+
+### Decisiones y por qué
+
+**Parser propio, sin dependencia de XML.** Mismo criterio que `GeminiTranslationService` ("~40
+líneas contra una dependencia más"): de un GPX solo hacen falta los pares `lat`/`lon` en orden. Un
+parser completo traería namespaces, entidades y validación de esquema para leer dos atributos.
+Acepta `trkpt` y `rtept`, y **no asume el orden de los atributos** — hay exportadores que ponen `lon`
+primero, y un parser que lo asumiera fallaría solo con algunos relojes, que es el peor fallo posible.
+
+**Un punto ilegible se salta; el archivo no.** Un GPX de 7.000 puntos con uno corrupto sigue siendo
+una ruta perfectamente utilizable.
+
+**Se reduce a 2.000 puntos, pero se mide sobre todos.** Una carrera grabada cada segundo trae
+~7.000 puntos y las hay de 50.000 (~800 KB). Dibujar eso en una pantalla de 1.000 píxeles no se ve
+mejor. Pero **la distancia se calcula antes de reducir**: quien corre sabe si su ruta son 8 km o
+7,6, y encoger el número con cada punto descartado sería mentirle. El dibujo solo tiene que
+parecerse; el número tiene que ser fiel. Y se conservan siempre el primero y el último, porque
+perder el último movería el final de la ruta.
+
+**Tabla aparte, pero por una razón distinta a la del slice 1 de moderación.** Allí fue cardinalidad
+(1:N); aquí es **tamaño**: una ruta son ~32 KB, el valor más grande del esquema, y `posts` es la
+tabla que leen el feed, la búsqueda, el sitemap, la tienda y el bot. La clave primaria es el
+`post_id`, así que el 1:1 lo impone la forma de la tabla: dos rutas para una publicación no son un
+caso a resolver más tarde, son un imposible.
+
+**`spatial_index=False` explícito.** GeoAlchemy2 crea un índice espacial por omisión —así apareció
+el de `branches.location`, sin que ninguna migración lo pidiera—. La única lectura de hoy es por
+clave primaria, así que no hace falta; pero un índice implícito que contradijera el docstring sería
+peor que cualquiera de las dos decisiones.
+
+**Haversine sobre esfera, y la diferencia está medida.** PostGIS sobre `geography` usa el elipsoide
+WGS84: en la comprobación cruzada dio **2.203 m** donde el dominio dio **2.213** — un 0,45%. Se
+acepta a sabiendas y está escrito junto a la constante: pesa mucho más medir sobre todos los puntos
+que la forma exacta del planeta, y quien necesite el número del elipsoide lo tiene en `ST_Length`.
+
+**`LINESTRING(lon lat)` se construye en un solo sitio.** WKT pide longitud primero, al revés de como
+la gente lo dice en voz alta. Invertirlo pone la ruta en otro continente **sin que nada falle**, así
+que hay una única función que lo hace, con la nota al lado. La ida y vuelta contra la base lo
+confirmó: la ruta quedó en Córdoba.
+
+**Guardar la ruta no puede tumbar la publicación.** Si la inserción del trazo falla, la publicación
+ya existe y es válida sin él: se avisa en el registro y quien publicó puede volver a subir el
+archivo. Perderla entera por eso sería peor.
+
+### Comandos y resultados
+
+| Comando | Resultado |
+|---|---|
+| `uv run alembic upgrade head` | `0042 → 0043`; tabla creada **solo con su clave primaria** — el `spatial_index=False` funcionó |
+| Ida y vuelta contra la base real | GPX de 200 puntos → guardado como geografía → leído con las coordenadas en su sitio; PostGIS 2.203 m vs dominio 2.213 m; reemplazar no duplica; borrar la publicación se lleva la ruta |
+| `pnpm run test:run` | **1791/1791**, 172 archivos (antes del slice: 1773 en 171) |
+| `typecheck`, `typecheck:tests`, `lint`, `check:i18n`, `check:directives` | limpios |
+
+**Escrito en la base compartida:** una tabla nueva, vacía. Se deshace con
+`uv run alembic downgrade 0042_2026_08_16`.
+
+### Pendiente declarado
+
+**La e2e de la ruta no se escribió.** Subir un archivo por Playwright y comprobar que Leaflet pinta
+la línea es el escenario del `.feature` (`@slice-2`), y quedó sin implementar. El parser tiene 18
+pruebas y el ida y vuelta se comprobó contra la base a mano, así que lo que falta cubrir es el
+recorrido de pantalla completo.
+
+### Recap
+
+Un evento ya puede llevar su recorrido: se sube un `.gpx`, el sitio lo lee sin dependencias nuevas,
+lo guarda como geografía de PostGIS —lista para el día que alguien pregunte qué rutas pasan cerca— y
+lo dibuja con `<Polyline>` encuadrado al propio trazo, con salida, llegada y sus kilómetros arriba.
+El editor de dibujo sigue fuera, que era el objetivo.
+
+### Próximos pasos (opciones)
+
+1. **La e2e del slice 2**, que es lo único declarado como pendiente.
+2. **Slice 3 — `servicio`**, y luego el 4, la agenda con su restricción de exclusión.
+3. **El índice GIST** sobre `path`, el día que exista la consulta de cercanía que lo justifique.

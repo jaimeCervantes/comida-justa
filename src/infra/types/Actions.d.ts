@@ -9,6 +9,7 @@ export type ActionState = Partial<{
     /** Solo un evento las usa; en lo demás llegan siempre `null`. */
     startsAt: string | null;
     endsAt: string | null;
+    route: string | null;
     errorMessage: string;
   }>;
   success: boolean;

@@ -182,6 +182,27 @@ export default function PublishForm({
               label={t("endsAt")}
               error={state?.errors?.endsAt}
             />
+
+            {/* El GPX no se guarda: se lee, se saca el trazo y se tira. Por eso viaja en el propio
+                formulario y no pasa por Cloud Storage como las fotos. */}
+            <label className="sm:col-span-2 block">
+              <span className="block mb-1">{t("route")}</span>
+              <input
+                type="file"
+                name="route"
+                accept=".gpx,application/gpx+xml"
+                data-testid="route-file"
+                className="block w-full text-sm"
+              />
+              <span className="block mt-1 text-sm text-gray-500 dark:text-gray-400">
+                {t("routeHint")}
+              </span>
+              {state?.errors?.route ? (
+                <span className="block mt-1 text-sm text-feedback-error">
+                  {state.errors.route}
+                </span>
+              ) : null}
+            </label>
           </div>
         ) : null}
 
