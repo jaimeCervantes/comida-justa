@@ -70,6 +70,7 @@ export default function ScheduleForm({
         {rows.map((row, index) => (
           <li
             // El índice ES la identidad aquí: las filas no tienen id hasta guardarse.
+            // biome-ignore lint/suspicious/noArrayIndexKey: ver la línea de arriba.
             key={`${row.weekday}-${index}`}
             data-testid={`schedule-row-${index}`}
             className="flex flex-wrap items-end gap-2 mb-3"
