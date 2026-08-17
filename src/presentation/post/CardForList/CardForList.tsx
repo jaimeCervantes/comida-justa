@@ -16,6 +16,7 @@ import CurrencyAmount from "~/presentation/money/CurrencyAmount";
 import Card from "~/presentation/post/Card";
 import CardOwnerControls from "~/presentation/post/CardOwnerControls";
 import CategoryTag from "~/presentation/post/CategoryTag/CategoryTag";
+import EventDate from "~/presentation/post/EventDate/EventDate";
 import ProvenanceBadge, {
   showsProvenanceBadge,
 } from "~/presentation/post/ProvenanceBadge";
@@ -73,6 +74,8 @@ export default function CardForList(
     slug,
     kind,
     origin,
+    startsAt,
+    endsAt,
     distanceMeters,
     isAvailable,
     categoryLabel,
@@ -167,6 +170,8 @@ export default function CardForList(
         ) : null}
         <CategoryTag label={categoryLabel} />
         <SoldOutBadge kind={kind} isAvailable={isAvailable} />
+        {/* Solo se pinta en un evento: es lo que responde "¿todavía puedo ir?". */}
+        <EventDate kind={kind} startsAt={startsAt} endsAt={endsAt} />
         <StoreDistance meters={distanceMeters ?? null} />
 
         {/* Sin `block mt-1`: dentro de la fila, un salto de línea y un margen propio peleaban con

@@ -72,6 +72,11 @@ export function mapOnePostToCard(item: Post, context: CardMappingContext) {
     category: item.category ?? null,
     subCategory: item.subCategory ?? null,
     isAvailable: item.isAvailable,
+    /* Solo un evento las trae; en lo demás llegan nulas y la tarjeta no pinta nada. El estado
+       (próximo / en curso / pasado) NO se calcula aquí: se deriva del reloj al pintar, o una
+       página cacheada seguiría diciendo "próximo" al día siguiente. */
+    startsAt: item.startsAt ?? null,
+    endsAt: item.endsAt ?? null,
     /** La sub-categoría gana sobre la categoría por ser la más específica. */
     categoryLabel:
       labelFor(context.taxonomy, item.subCategory, context.locale) ??

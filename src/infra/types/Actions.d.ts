@@ -6,6 +6,9 @@ export type ActionState = Partial<{
     phone: string | null;
     content: string | null;
     image: string | null;
+    /** Solo un evento las usa; en lo demás llegan siempre `null`. */
+    startsAt: string | null;
+    endsAt: string | null;
     errorMessage: string;
   }>;
   success: boolean;

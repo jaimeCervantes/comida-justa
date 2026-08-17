@@ -23,7 +23,10 @@ function seedMediaFile(index: number, alt: string) {
 export type SeedPostInput = {
   title: string;
   slug: string;
-  kind: "anuncio" | "producto";
+  kind: "anuncio" | "producto" | "evento";
+  /** Cuándo ocurre. Solo un `evento` la usa; sin ella, el validador lo rechaza. */
+  startsAt?: Date | null;
+  endsAt?: Date | null;
   /**
    * `PostOrigin` y no `string`: un escenario que siembre una procedencia inventada la insertaría en
    * la base sin queja y luego fallaría en la aserción, que es el peor sitio para enterarse.
@@ -69,9 +72,13 @@ export async function seedPost(input: SeedPostInput): Promise<string> {
     content:
       input.content ??
       `${input.title}. Publicación de prueba para el listado de productos.`,
-    price: input.price ?? 100,
+    /* `?? 100` seguiría valiendo para producto, pero un evento gratis es lo normal: si se pidió
+       explícitamente `null`, se respeta. */
+    price: input.price === null ? null : (input.price ?? 100),
     kind: input.kind,
     origin: input.origin,
+    startsAt: input.startsAt ?? null,
+    endsAt: input.endsAt ?? null,
     category: input.category ?? null,
     subCategory: input.subCategory ?? null,
     contactInfo: { phone: "2781092116" },

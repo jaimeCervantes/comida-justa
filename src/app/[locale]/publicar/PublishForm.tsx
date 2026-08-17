@@ -85,6 +85,7 @@ export default function PublishForm({
         >
           <option value="anuncio">{t("kindAnnouncement")}</option>
           <option value="producto">{t("kindProduct")}</option>
+          <option value="evento">{t("kindEvent")}</option>
         </Select>
 
         {/*
@@ -163,10 +164,31 @@ export default function PublishForm({
           </div>
         ) : null}
 
+        {/* Solo un evento ocurre en un momento, así que solo ahí se pregunta. La fecha es
+            obligatoria porque es lo que lo hace evento; la de fin es opcional, y sin ella el evento
+            caduca en su hora de inicio (ver `domain/entities/post/event.ts`). */}
+        {kind === "evento" ? (
+          <div className="mb-6 grid gap-4 sm:grid-cols-2">
+            <TextField
+              required
+              name="startsAt"
+              type="datetime-local"
+              label={t("startsAt")}
+              error={state?.errors?.startsAt}
+            />
+            <TextField
+              name="endsAt"
+              type="datetime-local"
+              label={t("endsAt")}
+              error={state?.errors?.endsAt}
+            />
+          </div>
+        ) : null}
+
         <TextField
           name="price"
           type="number"
-          label={t("price")}
+          label={kind === "evento" ? t("priceOptional") : t("price")}
           icon={<MdOutlinePriceChange />}
           error={state?.errors?.price}
           containerClassName="mb-6"

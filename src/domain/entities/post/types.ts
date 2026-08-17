@@ -43,8 +43,18 @@ export type Post = {
   content?: string;
   translations?: Record<string, PostTranslation>;
   price?: number | null;
-  /** Qué es: "anuncio" (default) o "producto" (requiere precio). */
+  /** Qué es: "anuncio" (default), "producto" (requiere precio) o "evento" (requiere fecha). */
   kind?: PostKind;
+  /**
+   * Cuándo ocurre. **Solo un `evento` la usa**, y ahí es obligatoria: es lo que lo hace evento.
+   * Nula en todo lo demás — un producto no ocurre a una hora.
+   */
+  startsAt?: Date | string | null;
+  /**
+   * Cuándo termina. Opcional incluso en un evento: sin ella, caduca en su hora de inicio.
+   * Con ella, el dominio sabe además distinguir "en curso" de "ya pasó" (ver `event.ts`).
+   */
+  endsAt?: Date | string | null;
   /** De dónde/quién viene. `null`/ausente = comunidad sin especificar. */
   origin?: PostOrigin | null;
   /** Clave del catálogo (`categories.key`), nunca la etiqueta: esa depende del idioma. */

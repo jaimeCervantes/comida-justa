@@ -40,6 +40,15 @@ export const posts = pgTable(
     moderationReviewedAt: timestamp("moderation_reviewed_at", {
       withTimezone: true,
     }),
+    /**
+     * Cuándo ocurre. **Solo un `evento` la usa** (migración `0042_2026_08_16`); nula en todo lo
+     * demás, que es lo que hace que las 27 publicaciones de antes no cambien. Que un evento SÍ la
+     * necesite es una regla del tipo y vive en `PostValidator`, no en un `CHECK`: la base no sabe
+     * qué es un evento.
+     */
+    startsAt: timestamp("starts_at", { withTimezone: true }),
+    /** Cuándo termina. Sin ella, un evento caduca en su hora de inicio (ver `event.ts`). */
+    endsAt: timestamp("ends_at", { withTimezone: true }),
     sellerId: uuid("seller_id"),
     /** Enlace externo heredado del catálogo del bot (`products.product_url`). */
     externalUrl: text("external_url"),

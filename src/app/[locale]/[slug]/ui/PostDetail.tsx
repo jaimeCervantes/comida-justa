@@ -17,6 +17,7 @@ import MediaGallery from "~/presentation/media/MediaGallery/MediaGallery";
 import CurrencyAmount from "~/presentation/money/CurrencyAmount";
 import { setAvailability } from "~/presentation/post/availabilityAction";
 import CategoryTag from "~/presentation/post/CategoryTag/CategoryTag";
+import EventDate from "~/presentation/post/EventDate/EventDate";
 import OpenStoreHint from "~/presentation/post/OpenStoreHint";
 import ProvenanceBadge, {
   showsProvenanceBadge,
@@ -72,6 +73,8 @@ export default async function PostDetail({
   const {
     price,
     kind,
+    startsAt,
+    endsAt,
     origin,
     category,
     subCategory,
@@ -176,6 +179,9 @@ export default async function PostDetail({
           ) : null}
           <CategoryTag label={categoryLabel} />
           <SoldOutBadge kind={kind} isAvailable={isAvailable} />
+          {/* Aquí aterriza quien recibe el enlace por WhatsApp: es donde más importa que diga
+              cuándo, y si todavía se puede ir. */}
+          <EventDate kind={kind} startsAt={startsAt} endsAt={endsAt} />
           {/* Solo cuando las dos partes dieron ubicación: si falta una, no se pinta nada y quien
             mira puede compartir la suya desde aquí mismo. */}
           {distanceMeters === null ? (

@@ -1,4 +1,4 @@
-import { isValidKind } from "~/domain/entities/post/kind";
+import { EVENT_KIND, isValidKind } from "~/domain/entities/post/kind";
 import { MAX_POST_MEDIA_FILES } from "~/domain/entities/post/mediaPayload";
 import { isValidOrigin } from "~/domain/entities/post/origin";
 import type {
@@ -7,6 +7,15 @@ import type {
   User,
   VoidOrError,
 } from "~/domain/entities/post/types";
+
+/** Una fecha puede llegar como texto desde un formulario; una rota no cuenta como fecha. */
+function toEventDate(value: unknown): Date | null {
+  if (!value) return null;
+
+  const date = value instanceof Date ? value : new Date(String(value));
+
+  return Number.isNaN(date.getTime()) ? null : date;
+}
 
 export default class PostValidator implements IPostValidator {
   MIN_LENGTH_TITLE = 5;
@@ -106,6 +115,28 @@ export default class PostValidator implements IPostValidator {
           "Un producto necesita que digas de dónde viene.",
         );
       }
+    }
+
+    /* Un evento exige lo contrario que un producto, y por eso vive aquí al lado: la fecha es lo que
+       lo convierte en evento, el precio es opcional —los gratis son lo normal— y la procedencia ni
+       se menciona, porque responde "¿lo haces o lo revendes?" y eso solo significa algo en
+       mercancía. Una meditación no se revende. */
+    if (post.kind === EVENT_KIND && !toEventDate(post.startsAt)) {
+      throw new PostClassificationError(
+        "Un evento necesita decir cuándo ocurre.",
+      );
+    }
+
+    /* Lo único que se comprueba del rango es que no vaya al revés, y lo comprueba también la base
+       (`posts_event_ends_after_it_starts`). Aquí para poder contestarle a quien publica en vez de
+       dejar que reviente la inserción. */
+    const starts = toEventDate(post.startsAt);
+    const ends = toEventDate(post.endsAt);
+
+    if (starts && ends && ends < starts) {
+      throw new PostClassificationError(
+        "Un evento no puede terminar antes de empezar.",
+      );
     }
 
     if (

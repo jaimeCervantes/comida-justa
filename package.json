@@ -32,7 +32,8 @@
     "migrate:products": "tsx src/scripts/migrateProductsToPosts.ts",
     "verify:embedding-space": "tsx src/scripts/verifyEmbeddingSpace.ts",
     "check:i18n": "tsx src/scripts/checkI18n.ts",
-    "check:directives": "tsx src/scripts/checkDirectives.ts"
+    "check:directives": "tsx src/scripts/checkDirectives.ts",
+    "seed:pillar-subcategories": "tsx src/scripts/seedPillarSubcategories.ts"
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^1.11.2",

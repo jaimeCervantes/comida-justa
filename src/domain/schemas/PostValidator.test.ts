@@ -123,3 +123,93 @@ describe("PostValidator — media", () => {
     ).toThrow(/imagen o vídeo/);
   });
 });
+
+/**
+ * La tabla del `.feature`: qué se le exige a cada tipo, leída de un golpe.
+ *
+ * Un evento exige justo lo contrario que un producto — la fecha es obligatoria, el precio es
+ * opcional y la procedencia ni se menciona— y por eso su regla vive al lado de la del producto.
+ */
+describe("PostValidator — el evento y su fecha", () => {
+  const validator = new PostValidator();
+  const CUANDO = "2026-08-22T06:00:00Z";
+
+  it("un evento gratis es normal, y se acepta", () => {
+    expect(() =>
+      validator.validate(
+        makePost({
+          title: "Rodada del sábado en el kiosco",
+          kind: "evento",
+          startsAt: CUANDO,
+        }),
+      ),
+    ).not.toThrow();
+  });
+
+  it("y uno de paga también", () => {
+    expect(() =>
+      validator.validate(
+        makePost({ kind: "evento", price: 150, startsAt: CUANDO }),
+      ),
+    ).not.toThrow();
+  });
+
+  /* Es lo que lo hace evento: sin fecha es un anuncio con otro nombre. */
+  it.each([undefined, null, "", "el sábado por la mañana"])(
+    "sin fecha utilizable (%s) se rechaza",
+    (startsAt) => {
+      expect(() =>
+        validator.validate(
+          makePost({ kind: "evento", startsAt: startsAt as string }),
+        ),
+      ).toThrow(/cuándo ocurre/i);
+    },
+  );
+
+  /* A un evento NO se le pide procedencia: responde "¿lo haces o lo revendes?" y eso solo significa
+     algo en mercancía. Una meditación no se revende. */
+  it("no necesita procedencia, al revés que un producto", () => {
+    expect(() =>
+      validator.validate(
+        makePost({ kind: "evento", startsAt: CUANDO, origin: null }),
+      ),
+    ).not.toThrow();
+  });
+
+  it("un rango al revés se rechaza antes de llegar a la base", () => {
+    expect(() =>
+      validator.validate(
+        makePost({
+          kind: "evento",
+          startsAt: CUANDO,
+          endsAt: "2026-08-22T05:00:00Z",
+        }),
+      ),
+    ).toThrow(/terminar antes de empezar/i);
+  });
+
+  it("un rango correcto pasa", () => {
+    expect(() =>
+      validator.validate(
+        makePost({
+          kind: "evento",
+          startsAt: CUANDO,
+          endsAt: "2026-08-22T08:00:00Z",
+        }),
+      ),
+    ).not.toThrow();
+  });
+
+  /* Lo que ya existía no gana requisitos: 17 productos y 10 anuncios sin fecha siguen siendo
+     válidos. */
+  it("a un producto y a un anuncio no se les pide fecha", () => {
+    expect(() =>
+      validator.validate(
+        makePost({ kind: "producto", price: 35, origin: "hazlo_sano_propio" }),
+      ),
+    ).not.toThrow();
+    expect(() =>
+      validator.validate(makePost({ kind: "anuncio" })),
+    ).not.toThrow();
+  });
+});

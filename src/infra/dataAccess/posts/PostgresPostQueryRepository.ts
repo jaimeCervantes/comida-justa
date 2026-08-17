@@ -25,6 +25,8 @@ interface PostRow {
   category: string | null;
   sub_category: string | null;
   is_available: boolean;
+  starts_at: Date | null;
+  ends_at: Date | null;
   contact_phone: string | null;
   contact_email: string | null;
   contact_whatsapp: string | null;
@@ -83,6 +85,8 @@ const POST_COLUMNS: SQL = sql`
         p.category,
         p.sub_category,
         p.is_available,
+        p.starts_at,
+        p.ends_at,
         p.contact_phone,
         p.contact_email,
         p.contact_whatsapp,
@@ -502,6 +506,8 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
         category: row.category ?? null,
         subCategory: row.sub_category ?? null,
         isAvailable: row.is_available,
+        startsAt: row.starts_at,
+        endsAt: row.ends_at,
         contactInfo: {
           phone: row.contact_phone ?? "",
           email: row.contact_email ?? undefined,

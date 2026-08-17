@@ -1,7 +1,11 @@
 "use server";
 import { after } from "next/server";
 import { getLocale, getTranslations } from "next-intl/server";
-import { DEFAULT_POST_KIND, type PostKind } from "~/domain/entities/post/kind";
+import {
+  DEFAULT_POST_KIND,
+  isValidKind,
+  type PostKind,
+} from "~/domain/entities/post/kind";
 import { parsePostMediaPayload } from "~/domain/entities/post/mediaPayload";
 import { resolveOriginForUser } from "~/domain/entities/post/origin";
 import PostEntity from "~/domain/entities/post/Post";
@@ -28,6 +32,15 @@ const useCase = new CreateOnePostUseCase(
   new PostEntity(),
   createPostRepository(),
 );
+
+/** Lo que llega de un `datetime-local`: texto local sin zona, o vacío. Ilegible cuenta como vacío. */
+function readDate(value: FormDataEntryValue | null): Date | null {
+  if (!value) return null;
+
+  const date = new Date(String(value));
+
+  return Number.isNaN(date.getTime()) ? null : date;
+}
 
 /** El idioma en el que se escribe hoy toda publicación; la traducción vive bajo esa clave. */
 const PUBLISH_LOCALE = "es";
@@ -167,10 +180,18 @@ export async function createPost(
   const mediaJSON = formData.get("media") as string;
   const price = formData.get("price");
   const phone = formData.get("phone") as string;
-  const kind: PostKind =
-    (formData.get("kind") as string) === "producto"
-      ? "producto"
-      : DEFAULT_POST_KIND;
+  /* Se resuelve contra la allowlist del dominio en vez de comparar contra un literal: así sumar un
+     tipo no exige acordarse de tocar también esta línea, que es justo lo que se olvidaría. */
+  const requestedKind = formData.get("kind") as string;
+  const kind: PostKind = isValidKind(requestedKind)
+    ? requestedKind
+    : DEFAULT_POST_KIND;
+
+  /* Las fechas solo se leen en un evento. En lo demás viajan como `null` a propósito: afirmar que
+     un producto no ocurre a una hora es distinto de dejarlo sin decidir. */
+  const startsAt =
+    kind === "evento" ? readDate(formData.get("startsAt")) : null;
+  const endsAt = kind === "evento" ? readDate(formData.get("endsAt")) : null;
 
   // Server-side defense: only an admin may assign a "hazlo_sano_*" origin.
   const admin = isAdmin(session?.user?.email);
@@ -207,6 +228,13 @@ export async function createPost(
 
   const errors = {
     title: title ? null : t("errorTitleRequired"),
+    /* La fecha es lo que convierte una publicación en evento, así que se comprueba aquí —donde se
+       le puede contestar a la persona en su idioma— además de en el validador del dominio. */
+    startsAt: kind !== "evento" || startsAt ? null : t("errorStartsAtRequired"),
+    endsAt:
+      startsAt && endsAt && endsAt < startsAt
+        ? t("errorEndsBeforeStarts")
+        : null,
     content: content ? null : t("errorContentRequired"),
     phone: phone ? null : t("errorPhoneRequired"),
     /* Se comprueba lo que se pudo interpretar y no que el campo traiga texto. Antes bastaba con que
@@ -243,6 +271,8 @@ export async function createPost(
       category,
       subCategory,
       sellerId: seller?.id ?? null,
+      startsAt,
+      endsAt,
       createdAt: new Date(),
       media,
       user: session?.user as User,

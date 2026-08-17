@@ -359,3 +359,59 @@ Slices 1–9 hechos. Ver `docs/features/design-system.md` y su bitácora.
 - **La suite e2e completa tarda ~7 min** y roza los límites de ejecución. Partirla en dos mitades
   por carpetas funciona bien. Lo de que *el primer test tras borrar `.next` suele fallar* ya lo
   cubre `warmRoutes`; si aparece de nuevo, mira primero si la ruta del test está en su lista.
+
+---
+
+## Abierto el 2026-08-16 — Los comentarios están sin cubrir, y no solo por el filtro
+
+Salió al preguntar "¿hicimos el filtro de comentarios?". La respuesta corta es **no**: era el slice 4
+de `filtro-al-publicar.md` y quedó como opción, sin construir. La respuesta larga es que ahí hay tres
+huecos distintos y **el del filtro es el menos grave**.
+
+Todo esto vive en `src/app/[locale]/[slug]/data-access/actions.ts` y en
+`src/infra/dataAccess/comments/PostgresCommentRepository.ts`.
+
+### 1. La acción no comprueba la sesión — **el más grave**
+
+```ts
+export async function addCommentToPost(postId, commentContent, user: PostUser) {
+  return await commentRepo.addComment(postId, commentContent, user);
+}
+```
+
+Una Server Action **es un endpoint HTTP público**. Esta recibe el `user` **como parámetro desde el
+cliente** y no llama a `auth()` ni una vez: quien comenta es quien diga el cliente que es, no quien
+tenga la sesión.
+
+La FK `comments.user_id → users.id` impide inventarse un identificador, así que no se puede comentar
+como un usuario que no existe. Lo que **no** impide es pasar el id de **otra persona real** y firmar
+un comentario con su nombre.
+
+Es el mismo patrón que ya se cerró en otros sitios del repo —`resolveOriginForUser` al publicar, el
+`requireAdmin` del panel de moderación, el `reporterId` que sale de la sesión y no del formulario—.
+Aquí falta.
+
+**El arreglo es pequeño:** leer `auth()` dentro de la acción y **ignorar** el `user` que llega por
+parámetro. Lo que puede doler es que `AddCommentForm` le pasa el usuario para pintar el comentario
+al instante, así que hay que devolver el autor desde el servidor en vez de dárselo por adelantado.
+
+### 2. No hay ninguna validación del contenido
+
+Ni largo mínimo ni máximo. `comments.content` es `text`, así que la base tampoco pone techo: un
+comentario puede ser un megabyte. Tampoco hay límite de cuántos seguidos.
+
+### 3. No hay filtro de contenido — el slice 4 que no se hizo
+
+El clasificador de `filtro-al-publicar.md` ya existe y su puerto
+(`IContentModerationService`) es reusable tal cual: título y contenido entran, veredicto de lista
+cerrada sale. Un comentario es contenido más corto, así que es la misma llamada.
+
+Lo que **no** existe para comentarios es lo que sí tienen las publicaciones: estado de moderación,
+panel donde verlos, aviso a su autor y denuncia. Ponerle el clasificador sin nada de eso significaría
+que un comentario rechazado se borra o se esconde sin que nadie pueda revisarlo — justo el callejón
+sin salida que el slice 1 de moderación existió para evitar.
+
+### Por dónde
+
+El orden por gravedad es **1 → 2 → 3**, y no es el orden en que se descubrió. El 1 es un defecto de
+autorización que se arregla en un rato; el 3 es una feature con su propio roadmap.

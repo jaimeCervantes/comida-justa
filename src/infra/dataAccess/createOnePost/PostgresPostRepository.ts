@@ -8,6 +8,21 @@ import {
 import type IPostCreationDTO from "~/use_cases/createOnePost/dtos/IPostCreationDTO";
 import type IPostRepository from "~/use_cases/createOnePost/ports/IPostRepository";
 
+/**
+ * La fecha tal y como la quiere la columna, o `null`.
+ *
+ * El formulario la manda como texto y el dominio la acepta de las dos formas; aquí se normaliza una
+ * sola vez. Una fecha ilegible cae a `null` en vez de propagarse como `Invalid Date`, que Postgres
+ * rechazaría con un error mucho menos claro — y el validador ya la rechazó antes de llegar aquí.
+ */
+function toTimestamp(value: Date | string | null | undefined): Date | null {
+  if (!value) return null;
+
+  const date = value instanceof Date ? value : new Date(value);
+
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
 export default class PostgresPostRepository implements IPostRepository {
   async save(postData: IPostCreationDTO, lang: string = "es"): Promise<string> {
     const postId = crypto.randomUUID();
@@ -21,6 +36,10 @@ export default class PostgresPostRepository implements IPostRepository {
         origin: postData.origin ?? null,
         category: postData.category ?? null,
         subCategory: postData.subCategory ?? null,
+        /* `null` y no `undefined`: Drizzle omite del INSERT las claves indefinidas, y lo que se
+           quiere afirmar es que un producto NO ocurre a una hora, no dejarlo al azar del default. */
+        startsAt: toTimestamp(postData.startsAt),
+        endsAt: toTimestamp(postData.endsAt),
         sellerId: postData.sellerId ?? null,
         contactPhone: postData.contactInfo.phone,
         contactEmail: postData.contactInfo.email ?? null,
