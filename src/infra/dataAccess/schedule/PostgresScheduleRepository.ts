@@ -14,6 +14,13 @@ export type BookingRequest = {
   during: Interval;
 };
 
+export type TimeOff = {
+  id: string;
+  startsAt: Date;
+  endsAt: Date;
+  reason: string | null;
+};
+
 export type BookingResult =
   | { booked: true; orderId: string }
   | { booked: false; reason: typeof SLOT_TAKEN };
@@ -99,6 +106,58 @@ export class PostgresScheduleRepository {
       startsAt: new Date(row.starts_at),
       endsAt: new Date(row.ends_at),
     }));
+  }
+
+  /**
+   * Las ausencias declaradas, de hoy en adelante.
+   *
+   * Las pasadas no se listan: una vacación de hace dos años no es algo que nadie vaya a querer
+   * editar, y enseñarlas convertiría la pantalla en un archivo histórico. Siguen en la tabla —
+   * borrarlas sería tocar datos que no molestan a nadie.
+   */
+  async findUpcomingTimeOff(sellerId: string): Promise<TimeOff[]> {
+    const raw = await db.execute(sql`
+      SELECT id, starts_at, ends_at, reason
+      FROM provider_time_off
+      WHERE seller_id = ${sellerId}::uuid AND ends_at >= now()
+      ORDER BY starts_at
+    `);
+
+    return (
+      raw.rows as unknown as Array<{
+        id: string;
+        starts_at: string;
+        ends_at: string;
+        reason: string | null;
+      }>
+    ).map((row) => ({
+      id: row.id,
+      startsAt: new Date(row.starts_at),
+      endsAt: new Date(row.ends_at),
+      reason: row.reason,
+    }));
+  }
+
+  async addTimeOff(
+    sellerId: string,
+    period: Interval,
+    reason: string | null,
+  ): Promise<void> {
+    await db.execute(sql`
+      INSERT INTO provider_time_off (seller_id, starts_at, ends_at, reason)
+      VALUES (${sellerId}::uuid, ${period.startsAt}, ${period.endsAt}, ${reason})
+    `);
+  }
+
+  /**
+   * Quita una ausencia. Se comprueba el dueño en el `WHERE`, no antes: así no existe el instante
+   * entre comprobar y borrar en el que otra petición podría cambiar las cosas.
+   */
+  async removeTimeOff(sellerId: string, id: string): Promise<void> {
+    await db.execute(sql`
+      DELETE FROM provider_time_off
+      WHERE id = ${id}::uuid AND seller_id = ${sellerId}::uuid
+    `);
   }
 
   /**

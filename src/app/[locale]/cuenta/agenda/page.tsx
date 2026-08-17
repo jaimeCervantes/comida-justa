@@ -8,6 +8,7 @@ import { SIGNIN_PATH } from "~/infra/constants";
 import { createScheduleRepository } from "~/infra/dataAccess/schedule/factory";
 import { createSellerRepository } from "~/infra/dataAccess/sellers/factory";
 import ScheduleForm, { type ScheduleLabels } from "./ui/ScheduleForm";
+import TimeOffList from "./ui/TimeOffList";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("account");
@@ -48,7 +49,11 @@ export default async function AgendaPage({
     );
   }
 
-  const hours = await createScheduleRepository().findWeeklyHours(seller.id);
+  const schedule = createScheduleRepository();
+  const [hours, timeOff] = await Promise.all([
+    schedule.findWeeklyHours(seller.id),
+    schedule.findUpcomingTimeOff(seller.id),
+  ]);
 
   const labels: ScheduleLabels = {
     weekday: t("scheduleWeekday"),
@@ -79,6 +84,23 @@ export default async function AgendaPage({
       </p>
 
       <ScheduleForm initial={hours} labels={labels} />
+
+      {/* Debajo del horario y no en otra página: son las dos mitades de la misma respuesta —cuándo
+          atiendo y cuándo no— y separarlas obligaría a ir y volver para entender la agenda. */}
+      <TimeOffList
+        periods={timeOff}
+        labels={{
+          heading: t("timeOffHeading"),
+          intro: t("timeOffIntro"),
+          from: t("timeOffFrom"),
+          to: t("timeOffTo"),
+          reason: t("timeOffReason"),
+          add: t("timeOffAdd"),
+          remove: t("timeOffRemove"),
+          empty: t("timeOffEmpty"),
+          invalid: t("timeOffInvalid"),
+        }}
+      />
     </main>
   );
 }

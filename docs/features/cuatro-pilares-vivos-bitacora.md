@@ -578,3 +578,51 @@ calendario, que es otra feature.
 El slice 4 está cerrado en lo esencial: un proveedor declara su horario desde su cuenta, quien quiere
 una cita ve los huecos reales —horario menos ausencias menos citas— y se queda con uno, y si dos
 pulsan a la vez solo uno se lo lleva y al otro se le dice exactamente eso.
+
+---
+
+## 2026-08-16 (noche) — Slice 4, última parte: las ausencias
+
+Cierra el último pendiente de la agenda. Ya no queda nada del slice 4 que se haga a mano.
+
+### Fecha **y hora**, no solo el día
+
+Es lo que permite anotar "el jueves solo por la mañana" sin inventar otra forma de decirlo, y es la
+razón de que la tabla guarde instantes en vez de fechas. El formulario pide dos `datetime-local`.
+
+### Las ausencias pasadas no se listan
+
+Una vacación de hace dos años no es algo que nadie vaya a editar, y enseñarlas convertiría la
+pantalla en un archivo histórico. Siguen en la tabla: borrarlas sería tocar datos que no molestan a
+nadie.
+
+### Anotar una ausencia NO comprueba que no pise una cita
+
+Irse de vacaciones con gente ya citada es un problema real, pero se resuelve hablando con esa gente
+—no impidiéndole al proveedor anotar la verdad de su calendario—. Lo que sí pasa es que a partir de
+ese momento esas horas dejan de ofrecerse a nadie más.
+
+Es la misma clase de decisión que el fallo abierto de la moderación: elegir qué se le impide a la
+persona y qué se le deja resolver fuera del sistema.
+
+### El dueño se comprueba en el `WHERE`, no antes
+
+Al quitar una ausencia, la condición de propiedad va dentro del `DELETE` en vez de en una lectura
+previa. Así no existe el instante entre comprobar y borrar en el que otra petición podría cambiar
+las cosas — el mismo criterio que ya usa `ON CONFLICT` en las denuncias y la restricción de
+exclusión en las citas.
+
+### Comandos y resultados
+
+| Comando | Resultado |
+|---|---|
+| Recorrido contra la base real | horario 9–12 → huecos 15, 16 y 17 UTC; ausencia de 16 a 17 → **quedan 15 y 17**; al quitarla vuelven los tres |
+| `pnpm run test:run` | **1833/1833**, 174 archivos |
+| `typecheck`, `typecheck:tests`, `lint`, `check:i18n`, `check:directives` | limpios |
+
+### Recap del slice 4, completo
+
+La agenda está entera: el proveedor declara desde su cuenta cuándo atiende y cuándo no, quien quiere
+cita ve los huecos reales —horario menos ausencias menos citas—, y si dos personas pulsan el mismo a
+la vez solo una se lo lleva y a la otra se le dice exactamente eso. Lo único que queda del roadmap
+son las **e2e de los slices 2, 3 y 4**.
