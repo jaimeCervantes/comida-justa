@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import PostEntity from "~/domain/entities/post/Post";
 import PublishPage from "../createPost/PublishPage";
 import { deleteOnePostBySlug } from "../testUtils/deleteOnePost";
 import { readEmbeddingBySlug } from "../testUtils/readEmbedding";
@@ -22,6 +23,24 @@ import {
  */
 const MEDIA = "./src/e2e/dummies/post.jpg";
 
+/**
+ * El slug que va a tener la publicación, calculado **antes** de enviarla.
+ *
+ * Se leía de la URL después del redirect, y eso dejaba un agujero por el que la suite se rompió sola:
+ * una corrida que se cortaba entre el envío y el redirect —bajo carga, el `waitForURL` se pasa de los
+ * 90 s— dejaba la publicación creada y `afterEach` sin nada que borrar. El barrido global tampoco
+ * podía recogerla, porque solo alcanza a los slugs con el prefijo `e2e-` y **estos títulos están
+ * escritos a mano a propósito**: son lo que el clasificador tiene que juzgar, así que no pueden
+ * llevar un marcador. A partir de ahí, cada corrida chocaba contra el índice único de
+ * `post_translations` y el escenario no volvía a pasar hasta limpiar la base a mano. Pasó.
+ *
+ * Con el slug calculado antes, la limpieza no depende de que el escenario llegue vivo al final.
+ * `generateSlug` es el mismo código que corre al publicar, igual que hace `testPost`.
+ */
+function slugFor(title: string): string {
+  return new PostEntity().generateSlug(title);
+}
+
 test.describe("When a publication goes through the classifier", () => {
   let dbSession: DbSession | undefined;
   let slug = "";
@@ -41,11 +60,15 @@ test.describe("When a publication goes through the classifier", () => {
     page,
   }) => {
     const publishPage = new PublishPage(page);
+    const title = "Vendo Nissan Tsuru 2015";
+
+    // Antes de enviar: es lo que garantiza que `afterEach` pueda limpiar aunque esto se corte.
+    slug = slugFor(title);
 
     await publishPage.stubStorageUpload();
     await publishPage.goToPublish();
     await publishPage.fillFields({
-      title: "Vendo Nissan Tsuru 2015",
+      title,
       description:
         "Motor en buen estado, cuatro llantas nuevas, papeles en regla. Facilidades de pago y se acepta cambio.",
       price: "45000",
@@ -55,8 +78,7 @@ test.describe("When a publication goes through the classifier", () => {
     await publishPage.send();
 
     // Publicar NO espera al clasificador: el redirect llega igual, como el resto de los `after()`.
-    await page.waitForURL(/\/vendo-nissan-tsuru/);
-    slug = new URL(page.url()).pathname.replace(/^\//, "");
+    await page.waitForURL(`**/${slug}`);
 
     await expect
       .poll(async () => (await readPostRowBySlug(slug))?.moderation_status, {
@@ -89,11 +111,15 @@ test.describe("When a publication goes through the classifier", () => {
     page,
   }) => {
     const publishPage = new PublishPage(page);
+    const title = "Dona Chocolate Keto de prueba";
+
+    // Antes de enviar: es lo que garantiza que `afterEach` pueda limpiar aunque esto se corte.
+    slug = slugFor(title);
 
     await publishPage.stubStorageUpload();
     await publishPage.goToPublish();
     await publishPage.fillFields({
-      title: "Dona Chocolate Keto de prueba",
+      title,
       description:
         "Dona horneada sin azúcar añadida, endulzada con monk fruit. Harina de almendra y cacao puro.",
       price: "35",
@@ -102,8 +128,7 @@ test.describe("When a publication goes through the classifier", () => {
     });
     await publishPage.send();
 
-    await page.waitForURL(/\/dona-chocolate-keto-de-prueba/);
-    slug = new URL(page.url()).pathname.replace(/^\//, "");
+    await page.waitForURL(`**/${slug}`);
 
     /* Se espera al vector y no al estado: el estado ya nace `published`, así que afirmarlo sin más
        pasaría igual aunque la revisión no hubiera corrido nunca. El embedding solo aparece DESPUÉS
