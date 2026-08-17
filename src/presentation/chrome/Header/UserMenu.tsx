@@ -109,6 +109,21 @@ export default function UserMenu({
             </DropdownMenu.Item>
           ) : null}
 
+          {/* Mismo gate que la tienda —`storeHandle`—, porque la agenda solo le sirve a quien
+              atiende. Está aquí además de en `/cuenta` porque es de las pocas cosas que se abren
+              a diario: quien atiende revisa su semana mucho más de lo que edita su ficha. */}
+          {storeHandle ? (
+            <DropdownMenu.Item asChild>
+              <Link
+                href="/cuenta/agenda"
+                className={ITEM_CLASS}
+                data-testid="menu-my-schedule"
+              >
+                {t("schedule")}
+              </Link>
+            </DropdownMenu.Item>
+          ) : null}
+
           {username ? (
             <DropdownMenu.Item asChild>
               <Link

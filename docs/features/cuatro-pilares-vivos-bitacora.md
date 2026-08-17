@@ -626,3 +626,26 @@ La agenda está entera: el proveedor declara desde su cuenta cuándo atiende y c
 cita ve los huecos reales —horario menos ausencias menos citas—, y si dos personas pulsan el mismo a
 la vez solo una se lo lleva y a la otra se le dice exactamente eso. Lo único que queda del roadmap
 son las **e2e de los slices 2, 3 y 4**.
+
+---
+
+## 2026-08-16 (noche) — La agenda estaba huérfana
+
+`/cuenta/agenda` existía y **no se llegaba a ella**: ni un enlace, ni una entrada de menú. Solo
+escribiendo la dirección a mano. Lo detectó el usuario, no una prueba — y no lo habría detectado
+ninguna, porque todas las que escribí navegan directo a la URL.
+
+Es el fallo que se repite en este roadmap: el mismo del slice 1, donde la fecha estaba en la tarjeta
+del listado pero no en la ficha, y el del slice 1 de moderación, donde el panel no tenía forma de
+bajar nada. **Construir la pantalla no es entregarla; hay que poder llegar.**
+
+### Dos entradas, y el mismo gate en las dos
+
+- **En `/cuenta`**, dentro de `StoreCard` — la tarjeta que solo se pinta cuando hay tienda, así que
+  el gate sale gratis.
+- **En el menú del avatar**, con el mismo `storeHandle` que ya decide si se enseña "Mi tienda".
+
+Está en los dos sitios a propósito: `/cuenta` es donde se configura algo una vez, y el menú es donde
+se abre lo que se usa a diario. Quien atiende revisa su semana mucho más de lo que edita su ficha.
+
+`pnpm run test:run`: **1833/1833**. Lint, typechecks e i18n limpios.

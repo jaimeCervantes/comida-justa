@@ -1,5 +1,6 @@
 import { useLocale, useTranslations } from "next-intl";
 import type { Seller } from "~/domain/entities/seller/types";
+import { Link } from "~/i18n/navigation";
 import { resolveLocale } from "~/i18n/routing";
 import { PUBLIC_BASE_URL } from "~/infra/constants";
 import { storeHref, storePath } from "../storePath";
@@ -35,6 +36,22 @@ export default function StoreCard({ seller }: { seller: Seller }) {
         // Los vendedores que creó el chatbot no tienen dirección; darles una es otro slice.
         <p className="mt-4">{t("storeCardNoPublicPage")}</p>
       )}
+
+      {/* La agenda vive aquí y no en el menú del avatar porque solo le sirve a quien tiene tienda,
+          y esta tarjeta es justo la que solo se pinta cuando la hay. Sin este enlace la pantalla
+          existía pero no se llegaba a ella salvo escribiendo la dirección a mano. */}
+      <p className="mt-6">
+        <Link
+          href="/cuenta/agenda"
+          className="underline text-pw-green hover:text-pw-lightgreen"
+          data-testid="schedule-link"
+        >
+          {t("scheduleLink")}
+        </Link>
+        <span className="block text-sm text-gray-500 dark:text-gray-400">
+          {t("scheduleLinkHint")}
+        </span>
+      </p>
     </AccountCard>
   );
 }

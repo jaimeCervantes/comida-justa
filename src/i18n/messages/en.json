@@ -103,6 +103,8 @@
     "scheduleHeading": "Your schedule",
     "scheduleIntro": "Say when you are available and people will be able to pick a slot when they book your services. Without a schedule, your services are requested like anything else and you reply yourself.",
     "scheduleInvalid": "The end time has to come after the start time.",
+    "scheduleLink": "Set up your schedule",
+    "scheduleLinkHint": "Say when you are available and people will be able to pick a time when they book your services.",
     "scheduleNeedsStore": "To have a schedule you need your store open.",
     "scheduleRemove": "Remove",
     "scheduleSaved": "Done, your schedule is saved.",
@@ -760,6 +762,7 @@
     "publicationsDescription": "Everything the community shares, newest first.",
     "publish": "Publish",
     "report": "Report",
+    "schedule": "My schedule",
     "signIn": "Sign in",
     "signOut": "Sign out",
     "signOutShort": "Sign out"

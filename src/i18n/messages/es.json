@@ -103,6 +103,8 @@
     "scheduleHeading": "Tu agenda",
     "scheduleIntro": "Di cuándo atiendes y la gente podrá elegir un hueco al pedir tus servicios. Sin horario, tus servicios se piden como cualquier cosa y contestas tú.",
     "scheduleInvalid": "La hora de fin tiene que ir después de la de inicio.",
+    "scheduleLink": "Define tu agenda",
+    "scheduleLinkHint": "Di cuándo atiendes y la gente podrá elegir hora al pedir tus servicios.",
     "scheduleNeedsStore": "Para tener agenda necesitas tener tu tienda abierta.",
     "scheduleRemove": "Quitar",
     "scheduleSaved": "Listo, tu horario quedó guardado.",
@@ -760,6 +762,7 @@
     "publicationsDescription": "Todo lo que comparte la comunidad, de lo más reciente a lo más antiguo.",
     "publish": "Publicar",
     "report": "Reporte",
+    "schedule": "Mi agenda",
     "signIn": "Iniciar sesión",
     "signOut": "Cerrar sesión",
     "signOutShort": "Salir"
