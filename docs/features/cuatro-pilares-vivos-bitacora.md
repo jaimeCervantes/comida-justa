@@ -294,3 +294,109 @@ que ocurre y lo que se hace.
    huecos derivados como función pura, y la restricción de exclusión que impide solapamientos.
 2. **Las e2e pendientes** de los slices 2 y 3.
 3. **Enseñarle los servicios al chatbot**, que sigue filtrando `kind = 'producto'` literal.
+
+---
+
+## 2026-08-16 (noche) — Slice 4: la agenda (base y cálculo; falta la pantalla)
+
+### Objetivo
+
+Que el proveedor deje de contestar "¿tienes hueco el jueves?" veinte veces.
+
+### Lo entregado y lo que falta — dicho primero
+
+**Entregado y probado:** el esquema con su restricción de exclusión (migración `0045`, aplicada y
+verificada contra la base) y **el cálculo de huecos** como función pura, con 19 pruebas.
+
+**NO entregado:** los repositorios que lean y escriban ese esquema, la pantalla donde el proveedor
+declara su horario, y la pantalla donde alguien elige un hueco. Sin ellas la agenda **no se puede
+usar todavía**: lo que existe es la mitad difícil, no la mitad visible.
+
+### La restricción de exclusión, y por qué no un UNIQUE
+
+Comprobar-y-luego-insertar pierde la carrera: dos peticiones simultáneas leen "libre" y las dos
+escriben. Da igual lo cuidadoso que sea el código de arriba, así que lo impide la base:
+
+```sql
+EXCLUDE USING gist (seller_id WITH =, during WITH &&)
+WHERE (during IS NOT NULL AND status <> 'CANCELLED')
+```
+
+`during` es un `tstzrange`, así que `&&` compara **solapamientos** y no igualdades. Se comprobó
+contra la base real, y el resultado es exactamente el argumento:
+
+| Intento sobre una cita de 9:00–10:00 | Resultado |
+|---|---|
+| Misma hora exacta | rechazada |
+| **9:30–10:00** | **rechazada** — la que un `UNIQUE(seller_id, starts_at)` habría dejado pasar |
+| 8:30–9:30 | rechazada |
+| 10:00–11:00 (pegada) | **entró** — con `[)` el final no cuenta |
+| Repetir la primera tras cancelarla | **entró** — cancelar libera el hueco |
+
+Necesita `btree_gist`, porque `seller_id` es un `uuid` y GiST no sabe indexarlo por sí solo.
+
+### El horario es del proveedor, no del servicio
+
+Una masajista con "masaje 30" y "masaje 60" tiene **una** agenda: no puede dar los dos a las 9:00.
+Si la disponibilidad colgara de cada publicación —que es lo primero que se piensa— dos servicios
+suyos se pisarían y nadie se enteraría hasta que llegaran dos personas.
+
+El horario cuelga de `sellers`; la duración, de `posts`. El proveedor dice **cuándo** atiende y cada
+servicio dice **cuánto** ocupa.
+
+### Los huecos no se guardan
+
+No hay tabla de huecos libres: materializarlos sería escribir un calendario infinito y mantenerlo
+sincronizado con cada cita, cada cambio de horario y cada cierre. Se derivan al vuelo, y esa es la
+parte que vive en el dominio y se prueba entera sin base de datos.
+
+**Restar antes de partir, y no al revés.** Es la decisión que más se puede equivocar. Si se partiera
+la jornada en huecos y luego se descartaran los que chocan, una cita de 9:15 a 9:45 inutilizaría los
+huecos de 9:00 y de 9:30 — cuando de 9:45 a 10:30 cabe uno perfectamente. Hay una prueba que afirma
+justo eso.
+
+**Restar puede devolver DOS trozos.** Una cita de 11:00 a 12:00 en mitad de una jornada de 9:00 a
+14:00 no la acorta, la parte en dos. Una resta que devolviera un solo tramo perdería la tarde entera.
+
+**Lo que sobra al final se tira.** Media hora libre no es un hueco para una consulta de 45 minutos:
+ofrecerla sería citar a alguien para echarlo a medias.
+
+### Un bug que la prueba atrapó, y que habría sido muy difícil de ver
+
+`expandWeeklyHours` calculaba el día de la semana desplazando por la zona horaria, cuando el
+desplazamiento ya se aplica al convertir la hora en instante. Aplicado dos veces, **un miércoles se
+leía como martes**: el horario aparecía el día equivocado.
+
+En producción eso no revienta nada — simplemente el proveedor no tiene huecos el día que atiende y
+sí el día que descansa. Lo atrapó la prueba del recorrido completo, que es la que usa una fecha real
+y una zona real (Córdoba, UTC−6).
+
+### Comandos y resultados
+
+| Comando | Resultado |
+|---|---|
+| `uv run alembic upgrade head` | `0044 → 0045`; `btree_gist`, dos tablas, `during` y la exclusión |
+| Prueba de solapamiento contra la base real | 5 casos, todos como se diseñaron (tabla de arriba) |
+| `pnpm run test:run` | **1828/1828**, 173 archivos (antes del slice: 1809 en 172) |
+| `typecheck`, `typecheck:tests`, `lint` | limpios |
+
+**Escrito en la base compartida:** la extensión `btree_gist`, dos tablas vacías, una columna
+nullable y una restricción sobre `customer_orders`. Se deshace con
+`uv run alembic downgrade 0044_2026_08_16` (la extensión no se quita: puede haberla pedido otra cosa).
+
+### Pendiente declarado
+
+1. **Repositorios** para el horario, las ausencias y las citas.
+2. **Pantalla del proveedor** para declarar su horario y sus días libres.
+3. **Selector de hueco** en la publicación del servicio, y la cita como pedido con su `during`.
+4. **La zona horaria del proveedor.** Hoy `expandWeeklyHours` la recibe como parámetro y no hay de
+   dónde sacarla: `sellers` no tiene columna de zona. Para una comunidad en una sola ciudad basta
+   una constante del sitio; el día que haya proveedores en otra zona, es una columna.
+5. Las e2e de los slices 2, 3 y 4.
+
+### Recap
+
+La agenda tiene ya lo que más se puede diseñar mal: una base que **impide de verdad** que dos
+personas se queden con el mismo hueco —solapamientos, no solo horas iguales, y cancelar libera— y un
+cálculo de huecos que se prueba entero sin tocar nada. Lo que falta es cablearlo y darle pantallas,
+que es trabajo directo y sin incógnitas.

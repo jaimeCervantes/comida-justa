@@ -203,7 +203,7 @@ eventos, así que es una decisión aparte y no un detalle de este slice.
 - Se puede pedir como se pide un producto. **Todavía sin agenda**: es una solicitud y el vendedor
   contesta, que es lo que ya hace hoy por WhatsApp.
 
-### Slice 4 — la agenda
+### Slice 4 — la agenda *(base y cálculo entregados 2026-08-16; faltan pantallas)*
 
 - Horario semanal del proveedor y sus excepciones.
 - Cálculo de huecos como función pura del dominio.
