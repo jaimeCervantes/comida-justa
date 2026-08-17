@@ -400,3 +400,42 @@ La agenda tiene ya lo que más se puede diseñar mal: una base que **impide de v
 personas se queden con el mismo hueco —solapamientos, no solo horas iguales, y cancelar libera— y un
 cálculo de huecos que se prueba entero sin tocar nada. Lo que falta es cablearlo y darle pantallas,
 que es trabajo directo y sin incógnitas.
+
+---
+
+## 2026-08-16 (noche) — La e2e completa tras los cuatro slices
+
+**269 pruebas, todas verdes**, en seis lotes. Cierra el pendiente de comprobar que los cuatro slices
+no rompieron nada, que era el riesgo real: se tocó el esquema de `posts` (tres migraciones), la lista
+de tipos, `isSellable` —que decide carrito, botón de WhatsApp, insignia de agotado y distancia—, el
+formulario de publicar, la ficha y el mapper de tarjetas.
+
+| Lote | Carpetas | Resultado |
+|---|---|---|
+| A | `eventos`, `orders` | 37/37 |
+| B | `sellerStore`, `products`, `publishProduct`, `productsReport`, `createPost` | 41/41 |
+| C | `seo`, `unifiedCatalog`, `busquedaRelevante`, `busquedaEntreIdiomas` | 54/68 → **22/22 al repetir las de búsqueda** |
+| D | `habits`, `pilares`, `menu`, `compartir` | 70/70 |
+| E | `localProducers`, `ubicacionFresca`, `multimedia`, `i18n`, `filtroAlPublicar` | 77/77 |
+| F | las once carpetas restantes | 22/22 |
+
+### Los 14 fallos del lote C
+
+Todos en las dos carpetas de búsqueda (y un `seo` arrastrado), y el síntoma era fuerte: la búsqueda
+devolvía **vacío** para una publicación recién sembrada, no un orden distinto.
+
+Había una hipótesis propia que valía la pena descartar: este trabajo **sembró 10 categorías nuevas**
+para los tres pilares vacíos, y la búsqueda mira categorías. Antes de repetir nada se comprobó que
+la rama **no toca la búsqueda** —`git diff dev..HEAD` sobre `searchPosts`, `domain/search` y
+`/buscar` sale vacío— y después, en aislamiento: **22/22**.
+
+O sea, la misma interferencia entre carpetas en el mismo proceso que ya está documentada en
+`filtro-al-publicar-bitacora.md`. Se anota otra vez porque es la segunda vez que ese grupo concreto
+—`busqueda*` corriendo junto a `seo` y `unifiedCatalog`— produce un fallo que no sobrevive a
+repetirse: quien lo vea una tercera vez que empiece por aquí.
+
+### Recap
+
+Las cuatro migraciones del roadmap (`0042` a `0045`) están aplicadas y la suite entera pasa con
+ellas. Lo entregado —eventos con fecha, ruta por GPX, servicios, y la base y el cálculo de la
+agenda— convive con todo lo anterior sin romperlo.
