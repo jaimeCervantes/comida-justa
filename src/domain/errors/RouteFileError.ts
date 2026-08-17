@@ -3,6 +3,10 @@ export const ROUTE_FILE_PROBLEMS = [
   "empty",
   "not-gpx",
   "too-few-points",
+  /** Tan grande que ni se intenta leer en el navegador. */
+  "too-large",
+  /** Lo que llegó al servidor no tiene la forma de un recorrido. Ver `routeFile.ts`. */
+  "invalid",
 ] as const;
 
 export type RouteFileProblem = (typeof ROUTE_FILE_PROBLEMS)[number];

@@ -44,19 +44,37 @@ export type ParsedRoute = {
  */
 export const MAX_ROUTE_POINTS = 2_000;
 
+/**
+ * Lo más que puede llegar a salir de `reducePoints`, y por tanto lo más que se guarda o viaja.
+ *
+ * Es `MAX_ROUTE_POINTS + 1` **y el uno de más no es un descuido**: el muestreo deja como mucho `max`
+ * puntos y después añade el último del original si no lo cogió, porque perderlo movería el sitio
+ * donde la ruta termina —que es justo donde la gente mira—. Quien valide un recorrido tiene que
+ * aceptar ese punto extra; comprobar contra `MAX_ROUTE_POINTS` a secas rechaza rutas legítimas.
+ */
+export const MAX_REDUCED_ROUTE_POINTS = MAX_ROUTE_POINTS + 1;
+
 /** Una línea necesita dos puntos. Con uno no hay recorrido, hay un sitio. */
-const MIN_ROUTE_POINTS = 2;
+export const MIN_ROUTE_POINTS = 2;
 
 /** Los puntos de un track (`trkpt`) y, si no hay, los de una ruta declarada (`rtept`). */
 const TRACK_POINT = /<(trkpt|rtept)\b([^>]*)>/gi;
 const LATITUDE = /\blat\s*=\s*["']([^"']+)["']/i;
 const LONGITUDE = /\blon\s*=\s*["']([^"']+)["']/i;
 
-function isUsableLatitude(value: number): boolean {
+/*
+ * Exportadas porque el recorrido dejó de llegar como archivo.
+ *
+ * Se interpreta en el navegador y al servidor le llegan los puntos ya hechos, así que **la misma
+ * comprobación** que aquí filtra un punto ilegible del XML tiene que volver a correr sobre lo que
+ * entra por el formulario — ver `routeFile.ts`. Dos definiciones del mismo rango habrían sido dos
+ * definiciones para desincronizar.
+ */
+export function isUsableLatitude(value: number): boolean {
   return Number.isFinite(value) && value >= -90 && value <= 90;
 }
 
-function isUsableLongitude(value: number): boolean {
+export function isUsableLongitude(value: number): boolean {
   return Number.isFinite(value) && value >= -180 && value <= 180;
 }
 

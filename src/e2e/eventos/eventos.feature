@@ -125,7 +125,11 @@ Feature: Que en los cuatro pilares se pueda hacer algo, no solo comprar comida
 
   # ---------------------------------------------------------------------------
   # Slice 2 — la ruta, por GPX
-  # Esqueletos: se detallan cuando el slice 1 esté verde.
+  #
+  # Entregado el 2026-08-16 y corregido el 2026-08-17: el archivo viajaba dentro
+  # del cuerpo de la Server Action y en produccion reventaba con
+  # `Body exceeded 1 MB limit` (413), perdiendo todo lo escrito. Ahora se
+  # interpreta en el navegador y lo que viaja son los puntos que se guardan.
   # ---------------------------------------------------------------------------
 
   @slice-2 @future
@@ -135,12 +139,61 @@ Feature: Que en los cuatro pilares se pueda hacer algo, no solo comprar comida
     Then the route is drawn on the map
     And its length in kilometres is shown, calculated by the database
 
-  @slice-2 @future
-  Scenario: Un GPX que no se puede leer se rechaza sin romper la publicación
-    Given an event published by a running group
-    When its author uploads a file that is not a valid GPX
-    Then the publication keeps whatever route it had
-    And the error explains what was wrong with the file
+  # El fallo de produccion, escrito como regla. Lo cubre Vitest
+  # (`RouteFileField.test.tsx`) porque lo observable es que el campo del
+  # formulario lleva los puntos y no el archivo, y eso se ve sin navegador.
+  @slice-2 @component
+  Scenario Outline: Lo que viaja no depende del tamano del archivo
+    Given a ".gpx" with <puntos_del_archivo> points
+    When its author picks it on "/publicar"
+    Then the form carries <puntos_que_viajan> points
+    And the file itself never leaves the browser
+
+    # 2.000 es `MAX_ROUTE_POINTS`, y el punto de mas es el ultimo del original,
+    # que `reducePoints` conserva para no mover donde la ruta termina.
+    Examples:
+      | puntos_del_archivo | puntos_que_viajan | razon                            |
+      | 2                  | 2                 | una ruta corta viaja entera      |
+      | 10000              | 2001              | una larga viaja ya reducida      |
+
+  # Leerlo en el navegador adelanta el aviso: antes habia que enviar el
+  # formulario entero para enterarse de que el archivo no servia.
+  @slice-2 @component
+  Scenario Outline: Un archivo que no sirve se rechaza al elegirlo
+    Given someone on "/publicar" publishing an event
+    When they pick a file that is <problema>
+    Then the error explains what is wrong before submitting anything
+    And the form carries no route
+
+    Examples:
+      | problema                        |
+      | not a GPX at all                |
+      | a GPX with a single point       |
+      | heavier than the reading limit  |
+
+  # Interpretarlo en el cliente hace que los puntos sean datos del cliente, y de
+  # ahi van derechos a ST_GeogFromText. Corrida de escritorio en
+  # `routeFile.test.ts`; cada fila es algo que NO puede llegar a la base.
+  @slice-2 @component
+  Scenario Outline: Lo que llega al servidor se comprueba antes de guardarlo
+    Given a form that submits <recorrido> as its route
+    When the Server Action reads it
+    Then it is "<resultado>"
+
+    Examples: se guarda
+      | recorrido                                      | resultado |
+      | 2 points, positive metres, coherent counters   | guardado  |
+      | 2001 points, the most the reducer can produce  | guardado  |
+
+    Examples: se rechaza
+      | recorrido                                      | resultado |
+      | a latitude of 91                               | rechazado |
+      | a longitude of -181                            | rechazado |
+      | coordinates written as text                    | rechazado |
+      | 2002 points, one over what the reducer emits   | rechazado |
+      | zero or negative metres                        | rechazado |
+      | fewer original points than points received     | rechazado |
+      | something that is not JSON                     | rechazado |
 
   # ---------------------------------------------------------------------------
   # Slice 3 — `servicio`

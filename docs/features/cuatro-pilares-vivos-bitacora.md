@@ -649,3 +649,183 @@ Está en los dos sitios a propósito: `/cuenta` es donde se configura algo una v
 se abre lo que se usa a diario. Quien atiende revisa su semana mucho más de lo que edita su ficha.
 
 `pnpm run test:run`: **1833/1833**. Lint, typechecks e i18n limpios.
+
+---
+
+## 2026-08-17 — El GPX no cabía por la puerta
+
+Lo reportó el usuario con el error de producción en la mano:
+
+```
+Error: Body exceeded 1 MB limit.   { statusCode: 413 }
+```
+
+Publicar una rodada con su recorrido devolvía un 413 **y quien publicaba perdía todo lo que había
+escrito**. En local nunca se vio: los GPX de prueba son de juguete.
+
+### El diagnóstico, y lo que NO estaba mal
+
+La primera reacción fue suponer que el diseño estaba mal. No lo estaba. Leyendo el código, el slice 2
+ya hacía exactamente lo correcto:
+
+- `parseGpx` sacaba `{points, meters, originalPoints}` y **tiraba el archivo**.
+- `PostgresRouteRepository.save()` guardaba los puntos como `LINESTRING`, los metros y cuántos puntos
+  traía el original.
+- El `.gpx` no se guardaba en ningún sitio: ni en Cloud Storage ni en la base.
+
+**El único error era el transporte.** El archivo viajaba como `File` dentro del cuerpo de la Server
+Action, y ese cuerpo admite 1 MB. Era además el único `File` que viajaba por una Server Action en
+todo el repositorio: las fotos y los vídeos suben a Cloud Storage desde el navegador y en el
+formulario solo dejan URLs.
+
+Y el peaje era absurdo además de roto: `parseGpx` recorta a `MAX_ROUTE_POINTS`, así que de un GPX de
+50.000 puntos **el 96% cruzaba la red para ser descartado al llegar**.
+
+### Dos caminos descartados, y por qué
+
+**Subir `serverActions.bodySizeLimit`.** Es lo que sugiere el propio mensaje de Next y es una línea.
+Se descartó: mueve el techo en vez de quitarlo —hay que elegir un número nuevo y arbitrario, y el
+reloj siguiente que grabe cada segundo vuelve a chocar—, deja la subida de megabytes en el camino
+crítico del envío —justo cuando el formulario ya está lleno y perderlo duele— y sigue mandando datos
+que el servidor tira.
+
+**Subirlo a Cloud Storage con el uploader de las fotos.** Se llegó a implementar entera y se tiró.
+Quita el problema del cuerpo, sí, pero guarda para siempre un archivo que nadie va a volver a leer, y
+abre un agujero nuevo: el servidor tendría que descargar la URL que le mande el cliente, o sea un
+SSRF que hay que tapar con lista blanca de anfitriones. Unas 800 líneas para acabar peor.
+
+Lo dijo el usuario en una frase que resume el criterio: *nosotros solo leemos el GPX y se guardan los
+puntos en la base*. Si el archivo no hace falta, no tiene por qué salir del navegador.
+
+### La decisión: `parseGpx` corre en el navegador
+
+Lo que viaja son los puntos ya reducidos. **Unos 88 KB venga el archivo de donde venga** — no hay
+techo que ajustar, ni ahora ni nunca.
+
+| | Antes | Ahora |
+|---|---|---|
+| Qué viaja en el POST | el `.gpx` entero (MBs) | los puntos reducidos (~88 KB) |
+| Quién interpreta | la Server Action | el navegador |
+| Qué se guarda | puntos + metros + nº original | *igual, sin cambios* |
+
+Ni la tabla `post_routes`, ni el repositorio, ni `gpx.ts` cambian. **Sin migración.**
+
+De regalo, algo que antes era imposible: **el archivo equivocado se rechaza al elegirlo**, no después
+de enviar el formulario entero. Quien exporta el fichero que no era se entera antes de escribir nada.
+
+### Lo que sí hubo que construir
+
+Los puntos pasan a ser **datos del cliente** en vez de derivarse en el servidor. No baja la
+confianza —quien quisiera mentir sobre su ruta ya podía editar el GPX antes de subirlo—, pero sí
+obliga a comprobar la forma antes de que nada llegue a `ST_GeogFromText`, donde un valor raro no da
+un error legible sino un `INSERT` roto o una ruta dibujada en otro continente. Eso es
+`parseRoutePayload`, con su corrida de escritorio: latitudes fuera de rango, coordenadas de texto,
+metros en cero, contadores que no cuadran, JSON que no parsea.
+
+Los **metros no se recalculan, se comprueban**. `gpx.ts` los mide sobre *todos* los puntos originales
+a propósito —para que la distancia sea la que la persona corrió y no la del dibujo— y al servidor
+solo le llegan los reducidos: volver a medirlos ahí encogería el número, que es justo lo que aquel
+diseño evita.
+
+### Un fallo que encontró la prueba, no el repaso
+
+`reducePoints` puede devolver **2.001** puntos, no 2.000: muestrea hasta el tope y luego añade el
+último del original si el muestreo no lo cogió, porque perderlo movería el sitio donde la ruta
+termina. El validador comparaba contra `MAX_ROUTE_POINTS` y **habría rechazado rutas largas
+perfectamente normales** — el mismo fallo que veníamos a arreglar, con otra cara.
+
+Lo cazó la prueba del componente al leer un GPX de 10.000 puntos de verdad. Está arreglado nombrando
+la garantía real del reductor: `MAX_REDUCED_ROUTE_POINTS`, exportada desde `gpx.ts` con la
+explicación al lado, para que las dos no puedan volver a separarse.
+
+Es el argumento de escribir la prueba con `parseGpx` real en vez de con un doble: un mock del
+interpretador habría devuelto los 2.000 que yo esperaba y el fallo habría llegado a producción.
+
+### Archivos
+
+- **Dominio:** `entities/post/routeFile.ts` (+test) — serialización y validación del recorrido en
+  tránsito; `entities/post/gpx.ts` — exporta `MIN_ROUTE_POINTS`, `MAX_REDUCED_ROUTE_POINTS` e
+  `isUsableLatitude`/`isUsableLongitude` para no tener dos definiciones del mismo rango;
+  `errors/RouteFileError.ts` — dos motivos nuevos (`too-large`, `invalid`).
+- **Presentación:** `publicar/ui/RouteFileField.tsx` (+test) — lee, interpreta y resume;
+  `publicar/PublishForm.tsx`; `infra/UI/labels/routeFileErrorKeys.ts` — el mapa motivo → clave, que
+  ahora traducen las dos orillas.
+- **Acción:** `publicar/actions.ts` — `readRoute` valida un JSON en vez de interpretar un `File`, y
+  deja de ser `async`.
+- **Catálogos:** `es.json` / `en.json` — dos errores y dos textos del campo.
+- **Gherkin:** `e2e/eventos/eventos.feature` — el slice 2 deja de ser esqueleto en lo que cubre
+  Vitest, con las tres corridas de escritorio.
+
+Se arregló además un `lint` en rojo que venía de la sesión anterior (`ScheduleForm.tsx`,
+`noArrayIndexKey`): el índice ahí es deliberado y solo le faltaba decirlo.
+
+### Comandos y resultados
+
+| Comando | Resultado |
+|---|---|
+| `pnpm run test:run` | **1867/1867**, 176 archivos (1833 → 1867: +34 de las dos pruebas nuevas) |
+| `typecheck`, `typecheck:tests`, `lint`, `check:i18n`, `check:directives` | limpios |
+| `pnpm run build` | compila en 39,7 s |
+| e2e — suite completa, antes de tocar nada | **318/318** en 10 lotes (3 saltados a propósito) |
+| e2e — lo que toca el formulario de publicar | ver más abajo |
+
+Sobre la suite completa: hubo dos rachas de fallos en frío —`loadMorePosts` primero, ocho escenarios
+de `multimedia`/`filtroAlPublicar`/`unifiedCatalog` después— que **pasaron todas al repetirlas sin
+tocar una línea**. Es la flakiness ya documentada del entorno, no del código.
+
+### Lo que este cambio NO hace
+
+- **No toca `next.config.mjs`.** No hay `bodySizeLimit` que declarar.
+- **No toca la base.** `post_routes` ya era la tabla correcta; sin migración.
+- **No toca la edición.** `/editar/[slug]` nunca pidió recorrido; sigue sin pedirlo, así que una ruta
+  publicada aún no se puede cambiar ni quitar. Es un hueco anterior a esto.
+- **No añade la e2e de navegador del slice 2.** Sigue `@future`, como ya declaraba
+  `retomar-2026-08-16.md`. Lo que se puede ver sin navegador está cubierto en Vitest, y es lo que
+  importa aquí: qué acaba en el campo del formulario.
+
+### De paso: la e2e del clasificador se estaba envenenando sola
+
+Mientras se validaba esto, `clasificador.spec.ts` empezó a fallar **siempre**, y el síntoma engañaba:
+un `waitForURL` agotando sus 90 s, que se lee como lentitud. El error de verdad estaba en la página,
+en el `Alert` del formulario: `Failed query: insert into "post_translations"`. O sea, el slug ya
+existía.
+
+Los títulos de ese archivo están escritos a mano **a propósito** —son lo que el clasificador tiene
+que juzgar, así que no pueden llevar el marcador `E2E ` que pone `testPost()`—, de modo que su slug
+no empieza por `e2e-` y el barrido global **no puede recogerlo**. Y el `slug` se leía de la URL
+*después* del redirect: una corrida que se cortaba entre el envío y el redirect dejaba la publicación
+creada y `afterEach` sin nada que borrar. A partir de ahí, cada corrida chocaba contra el índice
+único y el escenario no volvía a pasar nunca más sin limpiar la base a mano.
+
+Se arregla calculando el slug **antes** de enviar, con el mismo `generateSlug` que corre al publicar:
+la limpieza deja de depender de que el escenario llegue vivo al final.
+
+**Escrito en la base compartida:** se borró la publicación `5bedc4c0-6a79-4bef-bc9f-66bd8ae18dcf`
+(slug `dona-chocolate-keto-de-prueba`, creada el 2026-08-17 a las 14:21 UTC por la cuenta de
+Playwright). Era justo lo que ese `afterEach` debía haber borrado; no hay nada que deshacer.
+
+### Un hallazgo suelto, sin arreglar
+
+`PostsWithLoadMore.loadMorePosts` trata **una petición fallida como «ya no hay más»**: si
+`/api/posts/…` contesta un error, `data.posts` llega indefinido, `hasMore` se pone en falso y el feed
+se acaba en silencio. Es lo que explica el fallo intermitente de `loadMorePosts.spec.ts`. Queda fuera
+de lo que se vino a arreglar.
+
+### Recap
+
+Publicar un evento con recorrido vuelve a funcionar y deja de depender de cuánto pese el archivo: el
+`.gpx` se interpreta en el navegador y a la Server Action le llegan los 2.000 y pico puntos que se
+iban a guardar de todos modos. El diseño original —leer el GPX y quedarse solo con los puntos— era el
+correcto desde el principio; lo único que estaba mal era mandar el archivo para hacerlo. Como los
+puntos ahora son datos del cliente, el servidor los valida antes de que toquen PostGIS.
+
+### Próximos pasos (opciones)
+
+1. **La e2e de los slices 2, 3 y 4**, lo único pendiente del roadmap de pilares.
+2. **Poder cambiar o quitar el recorrido de un evento ya publicado**, que hoy no se puede.
+3. **Grupos**, el roadmap acordado y sin escribir (`retomar-2026-08-16.md`, sección 2).
+4. **Los tres huecos de comentarios**, empezando por el grave: `addCommentToPost` no comprueba la
+   sesión y recibe el `user` desde el cliente.
+
+**Pendiente del usuario:** tras desplegar, publicar un evento con un GPX grande de verdad y
+comprobar que entra. Es el único punto que esta entrega no puede cerrar por su cuenta.

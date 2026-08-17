@@ -1,7 +1,7 @@
 "use server";
 import { after } from "next/server";
 import { getLocale, getTranslations } from "next-intl/server";
-import { type ParsedRoute, parseGpx } from "~/domain/entities/post/gpx";
+import type { ParsedRoute } from "~/domain/entities/post/gpx";
 import {
   DEFAULT_POST_KIND,
   isValidKind,
@@ -10,6 +10,7 @@ import {
 import { parsePostMediaPayload } from "~/domain/entities/post/mediaPayload";
 import { resolveOriginForUser } from "~/domain/entities/post/origin";
 import PostEntity from "~/domain/entities/post/Post";
+import { parseRoutePayload } from "~/domain/entities/post/routeFile";
 import { resolveKeyStrict } from "~/domain/entities/post/taxonomy";
 import type { User } from "~/domain/entities/post/types";
 import RouteFileError, {
@@ -30,6 +31,7 @@ import { createRouteRepository } from "~/infra/dataAccess/routes/factory";
 import { createSellerRepository } from "~/infra/dataAccess/sellers/factory";
 import { createTranslatePostUseCase } from "~/infra/dataAccess/translatePost/factory";
 import type { ActionState } from "~/infra/types/Actions";
+import { ROUTE_FILE_ERROR_KEYS } from "~/infra/UI/labels/routeFileErrorKeys";
 import CreateOnePostUseCase from "~/use_cases/createOnePost/createOnePostUseCase";
 
 const useCase = new CreateOnePostUseCase(
@@ -38,30 +40,31 @@ const useCase = new CreateOnePostUseCase(
   createPostRepository(),
 );
 
-/** Cada problema del archivo tiene su clave: "no se dibujó nada" no le dice a nadie qué corregir. */
-const ROUTE_ERROR_KEYS = {
-  empty: "errorRouteEmpty",
-  "not-gpx": "errorRouteNotGpx",
-  "too-few-points": "errorRouteTooFewPoints",
-} as const;
-
 /**
- * Lee el `.gpx` que venga en el formulario.
+ * Comprueba el recorrido que llega del formulario.
  *
- * **No se guarda el archivo**: se le saca el trazo y se tira. Por eso viaja en el propio formulario
- * y no pasa por Cloud Storage como las fotos — de un GPX solo interesan los puntos, y guardarlos
- * en la base es guardarlo todo.
+ * **Ya no llega el archivo, llegan sus puntos.** El `.gpx` viajaba aquí dentro y el cuerpo de una
+ * Server Action admite 1 MB: en producción reventaba con un 413 y quien publicaba perdía todo lo
+ * escrito. Como del archivo solo interesan los puntos —y `parseGpx` recorta a 2.000—, ahora lo
+ * interpreta el navegador (`RouteFileField`) y lo que cruza la red es lo que se va a guardar.
+ *
+ * De ahí que esto valide en vez de interpretar: los puntos son datos del cliente, y de aquí van
+ * derechos a `ST_GeogFromText`. Ver `domain/entities/post/routeFile.ts`.
  *
  * Devuelve el problema en vez de lanzarlo para que la acción pueda contestarle a la persona en su
  * idioma y **sin perder lo que ya escribió**.
  */
-async function readRoute(
-  entry: FormDataEntryValue | null,
-): Promise<{ route: ParsedRoute | null; problem?: RouteFileProblem }> {
-  if (!(entry instanceof File) || entry.size === 0) return { route: null };
+function readRoute(entry: FormDataEntryValue | null): {
+  route: ParsedRoute | null;
+  problem?: RouteFileProblem;
+} {
+  const payload = typeof entry === "string" ? entry.trim() : "";
+
+  // Sin recorrido no hay nada que comprobar: una rodada sin GPX sigue siendo una rodada.
+  if (!payload) return { route: null };
 
   try {
-    return { route: parseGpx(await entry.text()) };
+    return { route: parseRoutePayload(payload) };
   } catch (error) {
     if (error instanceof RouteFileError)
       return { route: null, problem: error.problem };
@@ -247,7 +250,7 @@ export async function createPost(
      rodada. Lo que NO se hace es guardar la publicación y perder el archivo en silencio. */
   const { route, problem: routeProblem } =
     kind === "evento"
-      ? await readRoute(formData.get("route"))
+      ? readRoute(formData.get("route"))
       : { route: null, problem: undefined };
 
   // Server-side defense: only an admin may assign a "hazlo_sano_*" origin.
@@ -292,7 +295,7 @@ export async function createPost(
       startsAt && endsAt && endsAt < startsAt
         ? t("errorEndsBeforeStarts")
         : null,
-    route: routeProblem ? t(ROUTE_ERROR_KEYS[routeProblem]) : null,
+    route: routeProblem ? t(ROUTE_FILE_ERROR_KEYS[routeProblem]) : null,
     durationMinutes:
       kind !== "servicio" || durationMinutes
         ? null

@@ -13,6 +13,7 @@ import { Select } from "~/presentation/design_system/forms/Select";
 import { TextArea } from "~/presentation/design_system/forms/TextArea";
 import { TextField } from "~/presentation/design_system/forms/TextField";
 import PostMediaField from "~/presentation/media/PostMediaField/PostMediaField";
+import RouteFileField from "./ui/RouteFileField";
 
 export default function PublishForm({
   action,
@@ -184,26 +185,14 @@ export default function PublishForm({
               error={state?.errors?.endsAt}
             />
 
-            {/* El GPX no se guarda: se lee, se saca el trazo y se tira. Por eso viaja en el propio
-                formulario y no pasa por Cloud Storage como las fotos. */}
-            <label className="sm:col-span-2 block">
-              <span className="block mb-1">{t("route")}</span>
-              <input
-                type="file"
-                name="route"
-                accept=".gpx,application/gpx+xml"
-                data-testid="route-file"
-                className="block w-full text-sm"
-              />
-              <span className="block mt-1 text-sm text-gray-500 dark:text-gray-400">
-                {t("routeHint")}
-              </span>
-              {state?.errors?.route ? (
-                <span className="block mt-1 text-sm text-feedback-error">
-                  {state.errors.route}
-                </span>
-              ) : null}
-            </label>
+            {/* El GPX no se guarda: se lee, se saca el trazo y se tira. Y se lee **en el
+                navegador**: mandar el archivo entero reventaba con `Body exceeded 1 MB limit` para
+                que el servidor descartara el 96% de sus puntos. Lo que viaja son los 2.000 que se
+                guardan. Ver `domain/entities/post/routeFile.ts`. */}
+            <RouteFileField
+              className="sm:col-span-2"
+              error={state?.errors?.route}
+            />
           </div>
         ) : null}
 
