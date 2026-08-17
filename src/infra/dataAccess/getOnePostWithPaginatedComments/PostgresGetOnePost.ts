@@ -29,6 +29,7 @@ interface PostRow {
   starts_at: Date | null;
   ends_at: Date | null;
   duration_minutes: number | null;
+  seller_id: string | null;
   moderation_status: string | null;
   moderation_reason: string | null;
   contact_phone: string | null;
@@ -83,6 +84,7 @@ export async function getPostBySlug(slug: string) {
       p.starts_at,
       p.ends_at,
       p.duration_minutes,
+      p.seller_id,
       /* La ficha NO filtra por estado: es la única pantalla que su autor y el admin tienen que
          poder abrir cuando está bajada, con el aviso de por qué. Quién puede verla lo decide
          canBeViewedBy en la página, que es quien sabe quién está mirando. */
@@ -228,6 +230,7 @@ export async function getPostBySlug(slug: string) {
     startsAt: row.starts_at,
     endsAt: row.ends_at,
     durationMinutes: row.duration_minutes,
+    sellerId: row.seller_id,
     moderationStatus: resolveModerationStatus(row.moderation_status),
     moderationReason: resolveModerationReason(row.moderation_reason),
     media: mediaArr,

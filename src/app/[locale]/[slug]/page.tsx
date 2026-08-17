@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Suspense } from "react";
+import { SERVICE_KIND } from "~/domain/entities/post/kind";
 import {
   canBeReportedBy,
   canBeViewedBy,
@@ -11,6 +12,7 @@ import {
 import { resolvePostTranslation } from "~/domain/entities/post/translations";
 import type { Coordinates } from "~/domain/entities/seller/coordinates";
 import type { MappedStore } from "~/domain/entities/seller/map";
+import { COMMUNITY_UTC_OFFSET_MINUTES } from "~/domain/schedule/timezone";
 import { buildBreadcrumbJsonLd } from "~/domain/seo/jsonLd/breadcrumbs";
 import { redirectKeepingLocale } from "~/i18n/redirectKeepingLocale";
 import { resolveLocale, routing } from "~/i18n/routing";
@@ -18,9 +20,10 @@ import { auth } from "~/infra/auth";
 import { isAdmin } from "~/infra/auth/isAdmin";
 import { readViewerId } from "~/infra/auth/readViewerId";
 import { createRouteRepository } from "~/infra/dataAccess/routes/factory";
+import { createBookAppointmentUseCase } from "~/infra/dataAccess/schedule/factory";
 import { storeOfPost } from "~/infra/dataAccess/sellers/PostgresPostStore";
 import { readVisitorLocation } from "~/infra/location/visitorLocation";
-import type { PostUser } from "~/infra/types/Posts";
+import type { Post, PostUser } from "~/infra/types/Posts";
 import RouteMap from "~/presentation/location/RouteMap";
 import StoresMap from "~/presentation/location/StoresMap";
 import Breadcrumbs from "~/presentation/navigation/Breadcrumbs";
@@ -36,6 +39,7 @@ import ModerationNotice from "./ui/ModerationNotice";
 import PostDetail from "./ui/PostDetail";
 import RelatedPosts from "./ui/RelatedPosts";
 import ReportPostForm, { type ReportLabels } from "./ui/ReportPostForm";
+import SlotPicker, { type OfferedSlot } from "./ui/SlotPicker";
 
 /**
  * El mismo código de motivo, redactado como **pregunta a quien denuncia**.
@@ -76,6 +80,45 @@ export async function generateMetadata({
  * compartido su ubicación**, porque el mapa vale igual —"¿dónde está esta tienda?" es una pregunta
  * completa— y solo se queda sin la distancia.
  */
+/**
+ * Cuánto se ofrece por delante.
+ *
+ * Dos semanas: es lo que alguien mira de un vistazo para decidir, y estirarlo convertiría un
+ * selector en un calendario — que es otra feature y no ésta.
+ */
+const BOOKING_WINDOW_DAYS = 14;
+
+/**
+ * Los huecos libres del proveedor para este servicio.
+ *
+ * Devuelve una lista vacía —y el selector no se pinta— en los tres casos en que no hay nada que
+ * ofrecer: no es un servicio, no cuelga de ninguna tienda, o su tienda no declaró horario. Un
+ * servicio sin agenda sigue pidiéndose como cualquier otra cosa, que es lo que hacía el slice 3.
+ */
+async function resolveSlots(post: Post): Promise<OfferedSlot[]> {
+  const sellerId = post.sellerId as string | null | undefined;
+  const durationMinutes = post.durationMinutes as number | null | undefined;
+
+  if (post.kind !== SERVICE_KIND || !sellerId || !durationMinutes) return [];
+
+  const now = new Date();
+  const slots = await createBookAppointmentUseCase().freeSlots({
+    sellerId,
+    durationMinutes,
+    offsetMinutes: COMMUNITY_UTC_OFFSET_MINUTES,
+    window: {
+      startsAt: now,
+      endsAt: new Date(now.getTime() + BOOKING_WINDOW_DAYS * 86_400_000),
+    },
+    now,
+  });
+
+  return slots.map((slot) => ({
+    startsAt: slot.startsAt.toISOString(),
+    endsAt: slot.endsAt.toISOString(),
+  }));
+}
+
 async function resolveStoreContext(slug: string): Promise<{
   visitor: Coordinates | null;
   store: MappedStore | null;
@@ -196,6 +239,10 @@ export default async function Slug({
     String(post.id ?? ""),
   );
 
+  /* Los huecos de un servicio, si su tienda declaró horario. Se calculan en el servidor: el cliente
+     no sabe el horario del proveedor ni sus ausencias, y no debería. */
+  const offeredSlots = await resolveSlots(post);
+
   return (
     <section className="sm:flex sm:gap-4 flex-wrap">
       <Breadcrumbs
@@ -276,6 +323,19 @@ export default async function Slug({
 
         {/* Abajo del todo a propósito: avisar es el último recurso de quien ya leyó la
             publicación entera, no una acción que compita con leerla. */}
+        {/* Elegir hora va justo encima de avisar: es la acción principal de un servicio, y el
+            aviso es el último recurso. */}
+        {offeredSlots.length > 0 ? (
+          <SlotPicker
+            postId={String(post.id ?? "")}
+            sellerId={String(post.sellerId ?? "")}
+            title={title}
+            unitPrice={Number(post.price ?? 0)}
+            durationMinutes={Number(post.durationMinutes ?? 0)}
+            slots={offeredSlots}
+          />
+        ) : null}
+
         {canReport ? (
           <ReportPostForm
             postId={String(post.id ?? "")}

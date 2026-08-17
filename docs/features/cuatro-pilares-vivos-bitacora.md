@@ -511,3 +511,70 @@ y sus citas.
 La agenda funciona entera del lado del servidor: se leen los huecos, se agenda, y **dos personas no
 pueden quedarse con el mismo** — probado con dos peticiones simultáneas de verdad, no simuladas. Lo
 que falta son dos pantallas.
+
+---
+
+## 2026-08-16 (noche) — Slice 4, tercera parte: las pantallas
+
+Cierra el slice. Ya se puede usar la agenda de punta a punta sin tocar la base a mano.
+
+### Dónde vive cada una
+
+**`/cuenta/agenda`** — el proveedor declara su semana tipo. Cuelga de la cuenta y no de la tienda
+porque la agenda es **de quien atiende**, no de un servicio: una masajista con dos servicios tiene
+una sola semana. Es la misma decisión que ya tomó el esquema al colgar `provider_availability` de
+`sellers`, y la pantalla no la contradice.
+
+Sin tienda no se enseña un formulario inútil: se dice que hace falta abrirla.
+
+**El selector de hueco** vive en la ficha del servicio, justo encima del botón de denunciar —elegir
+hora es la acción principal de un servicio; avisar es el último recurso—. No se pinta en tres casos,
+y en los tres el servicio sigue pidiéndose como en el slice 3: no es un servicio, no cuelga de
+ninguna tienda, o su tienda no declaró horario.
+
+### El horario se reemplaza entero, no se calcula el diff
+
+El formulario manda la semana completa —es lo que la persona está viendo— y la acción borra y
+reescribe en una transacción. Un diff necesitaría una identidad estable por franja que ni el
+formulario ni ella tienen. Es el mismo criterio que `replaceMedia` al editar una publicación.
+
+Por eso el formulario es Client Component: quien atiende martes y jueves no debería tener que
+guardar dos veces para decirlo.
+
+### Tres capas de validación, y qué atrapa cada una
+
+Suena a exceso hasta que se mira para qué sirve cada una:
+
+| Capa | Atrapa |
+|---|---|
+| El selector | que no se pueda **elegir** lo que no se ofrece |
+| La Server Action | un formulario manipulado: revalida contra los huecos reales |
+| La restricción de exclusión | **la carrera** entre dos personas pulsando el mismo hueco a la vez |
+
+Ninguna sustituye a la siguiente. La tercera es la única que gana la carrera, y las dos primeras son
+las que permiten contestar algo con sentido en vez de un error de base.
+
+### Una ventana de dos semanas
+
+Es lo que alguien mira de un vistazo para decidir. Estirarla convertiría un selector en un
+calendario, que es otra feature.
+
+### Comandos y resultados
+
+| Comando | Resultado |
+|---|---|
+| `pnpm run test:run` | **1833/1833**, 174 archivos |
+| `pnpm run build` | compila en 24,4 s; `/[locale]/cuenta/agenda` en el manifiesto |
+| `typecheck`, `typecheck:tests`, `lint`, `check:i18n`, `check:directives` | limpios |
+
+### Sigue pendiente
+
+- **Las ausencias** (vacaciones, un día que se cierra) no tienen pantalla: la tabla existe y el
+  cálculo las resta, pero hoy se insertan a mano. Es la pieza más pequeña que queda.
+- Las **e2e** de los slices 2, 3 y 4.
+
+### Recap
+
+El slice 4 está cerrado en lo esencial: un proveedor declara su horario desde su cuenta, quien quiere
+una cita ve los huecos reales —horario menos ausencias menos citas— y se queda con uno, y si dos
+pulsan a la vez solo uno se lo lleva y al otro se le dice exactamente eso.
