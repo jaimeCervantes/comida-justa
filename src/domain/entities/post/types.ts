@@ -51,6 +51,11 @@ export type Post = {
    */
   startsAt?: Date | string | null;
   /**
+   * Cuánto dura, en minutos enteros. **Solo un `servicio` la usa**, y ahí es obligatoria: es lo
+   * que definirá el hueco cuando llegue la agenda. Un evento dice cuánto dura con sus dos fechas.
+   */
+  durationMinutes?: number | null;
+  /**
    * Cuándo termina. Opcional incluso en un evento: sin ella, caduca en su hora de inicio.
    * Con ella, el dominio sabe además distinguir "en curso" de "ya pasó" (ver `event.ts`).
    */

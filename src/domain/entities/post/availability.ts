@@ -1,4 +1,4 @@
-import { PRODUCT_KIND } from "./hazloSanoProduct";
+import { SELLABLE_KINDS } from "./kind";
 
 export const SOLD_OUT_LABEL = "Agotado";
 
@@ -11,11 +11,15 @@ type AvailabilityFields = {
 /**
  * La disponibilidad solo significa algo en lo que se vende.
  *
- * Un anuncio no se agota, así que `is_available` en un `anuncio` no debe pintar nada ni cambiar
- * ningún comportamiento: la columna existe para el chatbot, que filtra productos.
+ * Un anuncio no se agota y un evento no se agota —caduca, que es otra cosa y la decide el reloj—,
+ * así que `is_available` en ellos no debe pintar nada ni cambiar ningún comportamiento.
+ *
+ * Desde el slice 3 son **dos** los tipos que se venden, y por eso se pregunta a `SELLABLE_KINDS` en
+ * vez de comparar contra un literal: la pregunta se hace en media docena de sitios y sumar un tipo
+ * no puede obligar a encontrarlos todos.
  */
 export function isSellable(post: AvailabilityFields): boolean {
-  return post.kind === PRODUCT_KIND;
+  return SELLABLE_KINDS.includes(post.kind as never);
 }
 
 export function isSoldOut(post: AvailabilityFields): boolean {

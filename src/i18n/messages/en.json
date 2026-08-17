@@ -1252,6 +1252,7 @@
     "routeMeters": "{meters} m",
     "routeStart": "Start",
     "seeCategory": "See more from {category}",
+    "serviceDuration": "{minutes} min",
     "soldBy": "Sold by {name}"
   },
   "privacyPolicy": {
@@ -1356,8 +1357,10 @@
     "cancel": "Cancel",
     "category": "Category:",
     "content": "Product description:",
+    "durationMinutes": "How long it takes (minutes):",
     "endsAt": "Ends (optional):",
     "errorContentRequired": "The content is required.",
+    "errorDurationRequired": "A service needs to say how long it takes, in minutes.",
     "errorEndsBeforeStarts": "An event cannot end before it starts.",
     "errorMediaRequired": "Upload at least one picture or video.",
     "errorPhoneRequired": "The phone number is required.",
@@ -1373,6 +1376,7 @@
     "kindAnnouncement": "Announcement",
     "kindEvent": "Event",
     "kindProduct": "Product",
+    "kindService": "Service",
     "media": "Upload your best pictures or videos",
     "mediaAddMore": "Add another picture or video",
     "mediaCounter": "{count} of {max}",
@@ -1519,7 +1523,8 @@
   },
   "vocabulary": {
     "availability": {
-      "soldOut": "Sold out"
+      "soldOut": "Sold out",
+      "notOffered": "No longer offered"
     },
     "origin": {
       "hazlo_sano_propio": "Hazlo Sano — own",

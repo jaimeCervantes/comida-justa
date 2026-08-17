@@ -213,3 +213,64 @@ describe("PostValidator — el evento y su fecha", () => {
     ).not.toThrow();
   });
 });
+
+/**
+ * El servicio: precio como el producto, duración como nadie más, y procedencia ninguna.
+ *
+ * La duración se exige **ya**, aunque la agenda no exista: si se dejara para entonces, ese día
+ * habría servicios publicados sin ella y habría que perseguir a sus dueños.
+ */
+describe("PostValidator — el servicio y su duración", () => {
+  const validator = new PostValidator();
+
+  const servicio = (overrides: Partial<Post> = {}) =>
+    makePost({
+      title: "Consulta nutricional",
+      kind: "servicio",
+      price: 500,
+      durationMinutes: 45,
+      ...overrides,
+    });
+
+  it("con precio y duración se acepta", () => {
+    expect(() => validator.validate(servicio())).not.toThrow();
+  });
+
+  /* Un masaje siempre lo das tú: `origin` responde "¿lo haces o lo revendes?" y ahí no significa
+     nada, al revés que en un producto. */
+  it("no necesita procedencia, al revés que un producto", () => {
+    expect(() => validator.validate(servicio({ origin: null }))).not.toThrow();
+  });
+
+  it.each([undefined, null, 0, -30])(
+    "sin precio utilizable (%s) se rechaza",
+    (price) => {
+      expect(() =>
+        validator.validate(servicio({ price: price as number })),
+      ).toThrow(/precio mayor a cero/i);
+    },
+  );
+
+  it.each([undefined, null, 0, -45, 30.5])(
+    "sin duración utilizable (%s) se rechaza",
+    (duration) => {
+      expect(() =>
+        validator.validate(servicio({ durationMinutes: duration as number })),
+      ).toThrow(/cuánto dura/i);
+    },
+  );
+
+  /* Lo que ya existía no gana requisitos: a un producto y a un evento nadie les pide duración. */
+  it("a los demás tipos no se les pide duración", () => {
+    expect(() =>
+      validator.validate(
+        makePost({ kind: "producto", price: 35, origin: "hazlo_sano_propio" }),
+      ),
+    ).not.toThrow();
+    expect(() =>
+      validator.validate(
+        makePost({ kind: "evento", startsAt: "2026-08-22T06:00:00Z" }),
+      ),
+    ).not.toThrow();
+  });
+});

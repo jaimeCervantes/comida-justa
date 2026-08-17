@@ -69,6 +69,13 @@ async function readRoute(
   }
 }
 
+/** Minutos enteros y positivos. Cualquier otra cosa cuenta como ausente y la contesta el error. */
+function readPositiveInt(value: FormDataEntryValue | null): number | null {
+  const parsed = Number(value);
+
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
+}
+
 /** Lo que llega de un `datetime-local`: texto local sin zona, o vacío. Ilegible cuenta como vacío. */
 function readDate(value: FormDataEntryValue | null): Date | null {
   if (!value) return null;
@@ -229,6 +236,13 @@ export async function createPost(
     kind === "evento" ? readDate(formData.get("startsAt")) : null;
   const endsAt = kind === "evento" ? readDate(formData.get("endsAt")) : null;
 
+  /* La duración solo se lee en un servicio. En lo demás viaja como `null`: un producto no dura, y
+     un evento ya dice cuánto con sus dos fechas. */
+  const durationMinutes =
+    kind === "servicio"
+      ? readPositiveInt(formData.get("durationMinutes"))
+      : null;
+
   /* El recorrido solo se lee en un evento, y es opcional: una rodada sin GPX sigue siendo una
      rodada. Lo que NO se hace es guardar la publicación y perder el archivo en silencio. */
   const { route, problem: routeProblem } =
@@ -279,6 +293,10 @@ export async function createPost(
         ? t("errorEndsBeforeStarts")
         : null,
     route: routeProblem ? t(ROUTE_ERROR_KEYS[routeProblem]) : null,
+    durationMinutes:
+      kind !== "servicio" || durationMinutes
+        ? null
+        : t("errorDurationRequired"),
     content: content ? null : t("errorContentRequired"),
     phone: phone ? null : t("errorPhoneRequired"),
     /* Se comprueba lo que se pudo interpretar y no que el campo traiga texto. Antes bastaba con que
@@ -317,6 +335,7 @@ export async function createPost(
       sellerId: seller?.id ?? null,
       startsAt,
       endsAt,
+      durationMinutes,
       createdAt: new Date(),
       media,
       user: session?.user as User,

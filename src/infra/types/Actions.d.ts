@@ -10,6 +10,7 @@ export type ActionState = Partial<{
     startsAt: string | null;
     endsAt: string | null;
     route: string | null;
+    durationMinutes: string | null;
     errorMessage: string;
   }>;
   success: boolean;

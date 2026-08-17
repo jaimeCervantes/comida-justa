@@ -190,14 +190,14 @@ cronológico por `created_at`, y un evento publicado hace tres semanas para el s
 enterrado. Arreglarlo cambia el significado del feed para **todo** el catálogo, no solo para los
 eventos, así que es una decisión aparte y no un detalle de este slice.
 
-### Slice 2 — la ruta, por GPX
+### Slice 2 — la ruta, por GPX *(entregado 2026-08-16)*
 
 - `post_routes` (o columna) con `geography(LINESTRING,4326)`; los kilómetros los da `ST_Length`.
 - Subir un `.gpx` y verlo pintado con `<Polyline>`; opcional en cualquier publicación, pero su casa
   natural es el `evento`.
 - Dibujar a mano en el mapa queda **fuera**: es lo caro y el GPX lo aplaza.
 
-### Slice 3 — `servicio`
+### Slice 3 — `servicio` *(entregado 2026-08-16)*
 
 - `kind` gana `servicio`: precio obligatorio, procedencia no aplica, duración obligatoria.
 - Se puede pedir como se pide un producto. **Todavía sin agenda**: es una solicitud y el vendedor

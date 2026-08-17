@@ -77,6 +77,7 @@ export function mapOnePostToCard(item: Post, context: CardMappingContext) {
        página cacheada seguiría diciendo "próximo" al día siguiente. */
     startsAt: item.startsAt ?? null,
     endsAt: item.endsAt ?? null,
+    durationMinutes: item.durationMinutes ?? null,
     /** La sub-categoría gana sobre la categoría por ser la más específica. */
     categoryLabel:
       labelFor(context.taxonomy, item.subCategory, context.locale) ??

@@ -49,6 +49,11 @@ export const posts = pgTable(
     startsAt: timestamp("starts_at", { withTimezone: true }),
     /** Cuándo termina. Sin ella, un evento caduca en su hora de inicio (ver `event.ts`). */
     endsAt: timestamp("ends_at", { withTimezone: true }),
+    /**
+     * Cuánto dura, en minutos. **Solo un `servicio` la usa** (migración `0044_2026_08_16`); es lo
+     * que definirá el hueco cuando llegue la agenda. La base solo afirma que sea positiva.
+     */
+    durationMinutes: integer("duration_minutes"),
     sellerId: uuid("seller_id"),
     /** Enlace externo heredado del catálogo del bot (`products.product_url`). */
     externalUrl: text("external_url"),

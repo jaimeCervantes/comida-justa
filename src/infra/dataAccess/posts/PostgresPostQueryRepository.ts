@@ -27,6 +27,7 @@ interface PostRow {
   is_available: boolean;
   starts_at: Date | null;
   ends_at: Date | null;
+  duration_minutes: number | null;
   contact_phone: string | null;
   contact_email: string | null;
   contact_whatsapp: string | null;
@@ -87,6 +88,7 @@ const POST_COLUMNS: SQL = sql`
         p.is_available,
         p.starts_at,
         p.ends_at,
+        p.duration_minutes,
         p.contact_phone,
         p.contact_email,
         p.contact_whatsapp,
@@ -508,6 +510,7 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
         isAvailable: row.is_available,
         startsAt: row.starts_at,
         endsAt: row.ends_at,
+        durationMinutes: row.duration_minutes,
         contactInfo: {
           phone: row.contact_phone ?? "",
           email: row.contact_email ?? undefined,

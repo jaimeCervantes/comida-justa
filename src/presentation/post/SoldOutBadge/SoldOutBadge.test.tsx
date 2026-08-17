@@ -1,3 +1,4 @@
+import { screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import type { AppLocale } from "~/i18n/routing";
 import { renderWithIntl } from "~/infra/test-utils/renderWithIntl";
@@ -27,5 +28,29 @@ describe("SoldOutBadge", () => {
     );
 
     expect(queryByTestId("sold-out-badge")).not.toBeInTheDocument();
+  });
+});
+
+/* "Agotado" es verdad de una mercancía y mentira de un servicio: a una masajista no se le acaban
+   los masajes, deja de ofrecerlos. */
+describe("SoldOutBadge — servicios", () => {
+  it("un servicio dice que ya no se ofrece, no que se agotó", () => {
+    renderWithIntl(<SoldOutBadge kind="servicio" isAvailable={false} />);
+
+    expect(screen.getByTestId("sold-out-badge")).toHaveTextContent(
+      /ya no se ofrece/i,
+    );
+  });
+
+  it("un producto sigue diciendo agotado", () => {
+    renderWithIntl(<SoldOutBadge kind="producto" isAvailable={false} />);
+
+    expect(screen.getByTestId("sold-out-badge")).toHaveTextContent(/agotado/i);
+  });
+
+  it("un servicio que sigue ofreciéndose no pinta nada", () => {
+    renderWithIntl(<SoldOutBadge kind="servicio" isAvailable={true} />);
+
+    expect(screen.queryByTestId("sold-out-badge")).not.toBeInTheDocument();
   });
 });

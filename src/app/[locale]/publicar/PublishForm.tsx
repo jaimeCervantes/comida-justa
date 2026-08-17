@@ -86,6 +86,7 @@ export default function PublishForm({
           <option value="anuncio">{t("kindAnnouncement")}</option>
           <option value="producto">{t("kindProduct")}</option>
           <option value="evento">{t("kindEvent")}</option>
+          <option value="servicio">{t("kindService")}</option>
         </Select>
 
         {/*
@@ -204,6 +205,22 @@ export default function PublishForm({
               ) : null}
             </label>
           </div>
+        ) : null}
+
+        {/* Un servicio se agenda, y agendar es repartir el tiempo del proveedor: la duración es
+            lo que convertirá "las 9:00" en "de 9:00 a 9:45". Se pide ya, aunque la agenda no
+            exista, para que ningún servicio nazca sin ella. */}
+        {kind === "servicio" ? (
+          <TextField
+            required
+            name="durationMinutes"
+            type="number"
+            min="1"
+            step="5"
+            label={t("durationMinutes")}
+            error={state?.errors?.durationMinutes}
+            containerClassName="mb-6"
+          />
         ) : null}
 
         <TextField

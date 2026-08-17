@@ -1,4 +1,8 @@
-import { EVENT_KIND, isValidKind } from "~/domain/entities/post/kind";
+import {
+  EVENT_KIND,
+  isValidKind,
+  SERVICE_KIND,
+} from "~/domain/entities/post/kind";
 import { MAX_POST_MEDIA_FILES } from "~/domain/entities/post/mediaPayload";
 import { isValidOrigin } from "~/domain/entities/post/origin";
 import type {
@@ -121,6 +125,31 @@ export default class PostValidator implements IPostValidator {
        lo convierte en evento, el precio es opcional —los gratis son lo normal— y la procedencia ni
        se menciona, porque responde "¿lo haces o lo revendes?" y eso solo significa algo en
        mercancía. Una meditación no se revende. */
+    /* Un servicio exige precio como el producto y duración como nadie más: la duración es lo que
+       convertirá "las 9:00" en "de 9:00 a 9:45" cuando llegue la agenda, y se pide ya para que
+       ningún servicio nazca sin ella. La procedencia tampoco aplica: un masaje siempre lo das tú. */
+    if (post.kind === SERVICE_KIND) {
+      if (
+        typeof post.price !== "number" ||
+        Number.isNaN(post.price) ||
+        post.price <= 0
+      ) {
+        throw new PostClassificationError(
+          "Un servicio necesita un precio mayor a cero.",
+        );
+      }
+
+      if (
+        typeof post.durationMinutes !== "number" ||
+        !Number.isInteger(post.durationMinutes) ||
+        post.durationMinutes <= 0
+      ) {
+        throw new PostClassificationError(
+          "Un servicio necesita decir cuánto dura, en minutos.",
+        );
+      }
+    }
+
     if (post.kind === EVENT_KIND && !toEventDate(post.startsAt)) {
       throw new PostClassificationError(
         "Un evento necesita decir cuándo ocurre.",

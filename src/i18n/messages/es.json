@@ -1252,6 +1252,7 @@
     "routeMeters": "{meters} m",
     "routeStart": "Salida",
     "seeCategory": "Ver más de {category}",
+    "serviceDuration": "{minutes} min",
     "soldBy": "Lo vende {name}"
   },
   "privacyPolicy": {
@@ -1356,8 +1357,10 @@
     "cancel": "Cancelar",
     "category": "Categoría:",
     "content": "Descripción del producto:",
+    "durationMinutes": "Cuánto dura (minutos):",
     "endsAt": "Cuándo termina (opcional):",
     "errorContentRequired": "El contenido es obligatorio.",
+    "errorDurationRequired": "Un servicio necesita decir cuánto dura, en minutos.",
     "errorEndsBeforeStarts": "Un evento no puede terminar antes de empezar.",
     "errorMediaRequired": "Sube al menos una imagen o un video.",
     "errorPhoneRequired": "El Télefono es obligatorio.",
@@ -1373,6 +1376,7 @@
     "kindAnnouncement": "Anuncio",
     "kindEvent": "Evento",
     "kindProduct": "Producto",
+    "kindService": "Servicio",
     "media": "Sube tus mejores imágenes o videos",
     "mediaAddMore": "Agrega otra imagen u otro video",
     "mediaCounter": "{count} de {max}",
@@ -1519,7 +1523,8 @@
   },
   "vocabulary": {
     "availability": {
-      "soldOut": "Agotado"
+      "soldOut": "Agotado",
+      "notOffered": "Ya no se ofrece"
     },
     "origin": {
       "hazlo_sano_propio": "Hazlo Sano — propio",

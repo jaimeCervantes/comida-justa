@@ -1,5 +1,6 @@
 import { useTranslations } from "next-intl";
 import { isSoldOut } from "~/domain/entities/post/availability";
+import { SERVICE_KIND } from "~/domain/entities/post/kind";
 import { Badge } from "~/presentation/design_system/badges/Badge";
 
 /**
@@ -19,9 +20,17 @@ export default function SoldOutBadge({
 
   if (!isSoldOut({ kind, isAvailable })) return null;
 
+  /* "Agotado" es verdad de una mercancía y mentira de un servicio: a una masajista no se le acaban
+     los masajes, deja de ofrecerlos. Mismo interruptor, dos frases — igual que `origin` tiene un
+     nombre para el reporte y una pregunta para el formulario. */
+  const label =
+    kind === SERVICE_KIND
+      ? t("availability.notOffered")
+      : t("availability.soldOut");
+
   return (
     <Badge tone="neutral" data-testid="sold-out-badge">
-      {t("availability.soldOut")}
+      {label}
     </Badge>
   );
 }

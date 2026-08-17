@@ -40,6 +40,7 @@ export default class PostgresPostRepository implements IPostRepository {
            quiere afirmar es que un producto NO ocurre a una hora, no dejarlo al azar del default. */
         startsAt: toTimestamp(postData.startsAt),
         endsAt: toTimestamp(postData.endsAt),
+        durationMinutes: postData.durationMinutes ?? null,
         sellerId: postData.sellerId ?? null,
         contactPhone: postData.contactInfo.phone,
         contactEmail: postData.contactInfo.email ?? null,

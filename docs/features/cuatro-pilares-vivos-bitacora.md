@@ -206,3 +206,91 @@ El editor de dibujo sigue fuera, que era el objetivo.
 1. **La e2e del slice 2**, que es lo único declarado como pendiente.
 2. **Slice 3 — `servicio`**, y luego el 4, la agenda con su restricción de exclusión.
 3. **El índice GIST** sobre `path`, el día que exista la consulta de cercanía que lo justifique.
+
+---
+
+## 2026-08-16 (noche) — Slice 3: `servicio`
+
+### Objetivo
+
+Que se pueda publicar lo que se **hace**: la consulta nutricional, el masaje, la sesión con el
+quiropráctico, el entrenador. Hoy eso solo se puede fingir con `producto`, y fingir tiene precio: a
+un producto se le exige procedencia, y un masaje siempre lo das tú, así que el vendedor rellena un
+campo vacío de significado para poder publicar.
+
+### La decisión que evita una migración de datos el año que viene
+
+**La duración se pide ahora, no cuando llegue la agenda.** Un servicio se agenda, y agendar es
+repartir el tiempo del proveedor: la duración es lo que convierte "las 9:00" en "de 9:00 a 9:45", o
+sea lo que permite que dos citas no se pisen.
+
+Si se dejara para el slice 4, ese día habría servicios publicados sin duración y habría que
+perseguir a sus dueños para completarla. Que nazcan con ella cuesta un campo más hoy. Y además sirve
+por sí sola: "Consulta de 45 minutos" le dice a quien la pide cuánto tiene que apartar, sin que
+exista ninguna agenda.
+
+### "Vendible" dejó de significar "producto"
+
+Es el cambio con más alcance del slice, y estaba repartido. `isSellable` decidía media docena de
+comportamientos —el carrito, el botón de WhatsApp, la insignia de agotado, la distancia a la
+tienda— y cada sitio comparaba contra el literal `"producto"`.
+
+Ahora hay `SELLABLE_KINDS` y la pregunta se hace una vez. Sumar un tercer tipo que se cobre será una
+línea en vez de una búsqueda por todo el repositorio.
+
+**Un evento NO entró en esa lista**, y es deliberado: apuntarse a una rodada no es comprarla, y
+meterlo ahí lo habría metido en el carrito de paso. Es otra decisión y otro slice.
+
+### "Agotado" era mentira en un servicio
+
+A una masajista no se le acaban los masajes: deja de ofrecerlos. Mismo interruptor —`is_available`—
+y dos frases distintas, igual que `origin` ya tiene un nombre para el reporte y una pregunta para el
+formulario. Un producto sigue diciendo "Agotado"; un servicio dice "Ya no se ofrece".
+
+Es el tipo de detalle que no rompe ninguna prueba y hace que el sitio suene a que nadie lo pensó.
+
+### Decisiones menores, y por qué
+
+**`integer` de minutos y no un `interval`.** Nadie ofrece un servicio de 20 minutos y medio, y los
+minutos son directamente lo que pinta la pantalla y lo que sumará el calendario. Un `interval`
+traería precisión de microsegundos para un dato que va de quince en quince.
+
+**Nullable, con `CHECK` de positividad.** Solo un servicio la usa; que un servicio SÍ la necesite es
+regla del tipo y vive en `PostValidator`, porque la base no sabe qué es un servicio. Lo único que la
+base afirma es que cero minutos no es un servicio corto, es un dato roto.
+
+**El servicio no aparece en `/productos`.** Esa página es de productos y un servicio no lo es. Sale
+en el feed, en su categoría, en su pilar y en su tienda, que es donde tiene sentido.
+
+### Comandos y resultados
+
+| Comando | Resultado |
+|---|---|
+| `uv run alembic upgrade head` | `0043 → 0044`; columna nullable y su `CHECK` |
+| Ida y vuelta contra la base real | guardado como `servicio` con **procedencia nula**, duración 45; **aparece en el carrito**; el `CHECK` rechazó cero minutos |
+| `pnpm run test:run` | **1809/1809**, 172 archivos (antes del slice: 1791) |
+| `typecheck`, `typecheck:tests`, `lint`, `check:i18n`, `check:directives` | limpios |
+
+**Escrito en la base compartida:** una columna nullable y un `CHECK` sobre `posts`. Se deshace con
+`uv run alembic downgrade 0043_2026_08_16`. Ninguna publicación cambió de valor.
+
+### Pendiente declarado
+
+**La e2e del slice 3 no se escribió**, como tampoco la del 2. Lo cubierto es el dominio (validador y
+`isSellable`), el componente de la insignia y el ida y vuelta contra la base a mano. Lo que falta es
+el recorrido de pantalla: publicar un servicio desde el formulario y meterlo al carrito.
+
+### Recap
+
+Ya se puede publicar un servicio: precio y duración obligatorios, procedencia ninguna, y se pide
+como se pide un producto —mismo carrito, mismo checkout, mismo aviso al vendedor, misma máquina de
+estados—. Todavía **sin agenda**: es una solicitud y el proveedor contesta, que es exactamente lo
+que ya hace hoy por WhatsApp. Con esto los cuatro pilares tienen las tres formas: lo que se lee, lo
+que ocurre y lo que se hace.
+
+### Próximos pasos (opciones)
+
+1. **Slice 4 — la agenda.** La única pieza con ideas nuevas de verdad: horario del proveedor,
+   huecos derivados como función pura, y la restricción de exclusión que impide solapamientos.
+2. **Las e2e pendientes** de los slices 2 y 3.
+3. **Enseñarle los servicios al chatbot**, que sigue filtrando `kind = 'producto'` literal.

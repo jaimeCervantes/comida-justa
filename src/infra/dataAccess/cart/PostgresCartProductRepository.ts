@@ -1,7 +1,7 @@
 import { sql } from "drizzle-orm";
 import type { CartProduct } from "~/domain/cart/cart";
 import type { CartProductRepository } from "~/domain/cart/ports";
-import { PRODUCT_KIND } from "~/domain/entities/post/hazloSanoProduct";
+import { SELLABLE_KINDS } from "~/domain/entities/post/kind";
 import { db } from "~/infra/dataAccess/db/connection";
 import { PUBLISHED_POSTS } from "~/infra/dataAccess/db/publishedPosts";
 
@@ -45,6 +45,10 @@ export class PostgresCartProductRepository implements CartProductRepository {
       postIds.map((id) => sql`${id}`),
       sql`, `,
     );
+    const sellableKinds = sql.join(
+      SELLABLE_KINDS.map((kind) => sql`${kind}`),
+      sql`, `,
+    );
 
     const raw = await db.execute(sql`
       SELECT
@@ -80,7 +84,9 @@ export class PostgresCartProductRepository implements CartProductRepository {
       ) m ON TRUE
       WHERE ${PUBLISHED_POSTS}
         AND p.id IN (${ids})
-        AND p.kind = ${PRODUCT_KIND}
+        /* Producto y servicio: desde el slice 3 son dos los tipos que se cobran, y preguntarle a
+           SELLABLE_KINDS evita que sumar un tercero obligue a encontrar esta línea. */
+        AND p.kind IN (${sellableKinds})
         /* Sin precio no se puede sumar. Es lo que deja fuera a los 10 anuncios, que no tienen
            ninguno, incluso si alguien mete su id en la cookie a mano. */
         AND p.price IS NOT NULL
