@@ -439,3 +439,75 @@ repetirse: quien lo vea una tercera vez que empiece por aquí.
 Las cuatro migraciones del roadmap (`0042` a `0045`) están aplicadas y la suite entera pasa con
 ellas. Lo entregado —eventos con fecha, ruta por GPX, servicios, y la base y el cálculo de la
 agenda— convive con todo lo anterior sin romperlo.
+
+---
+
+## 2026-08-16 (noche) — Slice 4, segunda parte: el servidor de la agenda
+
+Cierra dos de los cinco pendientes que dejó la primera parte: **la zona horaria** y **los
+repositorios y el caso de uso**. Siguen faltando las pantallas.
+
+### La zona horaria: constante, y con una razón que caduca
+
+`COMMUNITY_UTC_OFFSET_MINUTES = -360`. Es una constante del sitio y no una columna de `sellers`
+porque la comunidad cabe en un radio de 50 km —el mismo que ya usa `SUSTAINABLE_RADIUS_KM`— y hoy
+todos los proveedores están en la misma zona: una columna pediría un dato que nadie sabría contestar
+mejor que este valor.
+
+**Y es un desplazamiento fijo, no un identificador IANA, porque en México se puede**: el horario de
+verano se abolió en 2022, así que Veracruz está en UTC−6 todo el año. Sin esa ley un número fijo
+sería un error esperando a abril, con las citas corriéndose una hora dos veces al año. Está escrito
+junto a la constante, porque el día que la ley cambie hay que volver aquí.
+
+`expandWeeklyHours` sigue recibiendo el desplazamiento como parámetro y no leyendo la constante: el
+día que haya un proveedor en otra zona, es una columna y la función no se entera.
+
+### Dos guardas, y ninguna sobra
+
+Al agendar se comprueba **antes** que el hueco sea uno de los ofrecidos, y aun así se deja que la
+base tenga la última palabra:
+
+- La primera atrapa a quien pide una hora que **nunca** se ofreció —fuera del horario, a las 3 de la
+  madrugada— y le contesta con sentido, sin tocar la base.
+- La segunda atrapa a quien pidió una hora que **sí** se ofrecía y dejó de estarlo entre que la vio
+  y pulsó. Esa carrera no la gana ninguna comprobación previa.
+
+### El error que casi se traga la carrera
+
+La primera corrida contra la base **reventó**: la violación de la restricción de exclusión se
+escapaba de `isSlotTaken`. Drizzle envuelve el error de `pg` en uno suyo cuya `message` es
+"Failed query: INSERT…", así que ni el `code` ni el texto del driver están donde uno los busca. El
+que sí sobrevive intacto es `constraint`.
+
+Ahora se miran tres señales y se baja por `cause`. Sin eso, a quien le ganaran el hueco por medio
+segundo le habría salido un error genérico en vez de "alguien se te adelantó" — y el caso más
+importante de la feature habría quedado indistinguible de un fallo del servidor.
+
+### `findBusy` devuelve ausencias y citas mezcladas, a propósito
+
+Para calcular huecos da exactamente igual si una hora está ocupada porque el proveedor se fue de
+vacaciones o porque ya citó a alguien: en las dos no se puede citar. Separarlas obligaría a quien
+llama a volver a juntarlas.
+
+### Comandos y resultados
+
+| Comando | Resultado |
+|---|---|
+| Recorrido completo contra la base real | horario 9–12 local → huecos 15:00, 16:00 y 17:00 UTC; **dos peticiones simultáneas al mismo hueco: una agendó y la otra `slot-taken`**; el hueco desaparece de la lista; una hora nunca ofrecida da `not-offered` |
+| `pnpm run test:run` | **1833/1833**, 174 archivos |
+| `typecheck`, `typecheck:tests`, `lint` | limpios |
+
+**Escrito en la base compartida:** nada permanente — la prueba creó y borró su horario, su servicio
+y sus citas.
+
+### Sigue pendiente
+
+1. **Pantalla del proveedor** para declarar horario y días libres. Hoy se insertan a mano.
+2. **Selector de hueco** en la publicación del servicio.
+3. Las e2e de los slices 2, 3 y 4.
+
+### Recap
+
+La agenda funciona entera del lado del servidor: se leen los huecos, se agenda, y **dos personas no
+pueden quedarse con el mismo** — probado con dos peticiones simultáneas de verdad, no simuladas. Lo
+que falta son dos pantallas.
