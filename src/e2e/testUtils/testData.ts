@@ -89,6 +89,14 @@ export async function sweepTestData(): Promise<TestDataCount> {
     DELETE FROM customer_orders WHERE seller_id IN (${TEST_SELLER_IDS})
   `);
 
+  const sellerPosts = await db.execute(sql`
+    DELETE FROM posts
+    USING sellers
+    LEFT JOIN users ON users.id = sellers.user_id
+    WHERE posts.seller_id = sellers.id
+      AND (sellers.slug LIKE ${SLUG_PATTERN} OR users.email = ${SUITE_ACCOUNT_EMAIL})
+  `);
+
   const posts = await db.execute(sql`
     DELETE FROM posts
     WHERE id IN (
@@ -96,7 +104,11 @@ export async function sweepTestData(): Promise<TestDataCount> {
     )
     OR category LIKE ${CATEGORY_PATTERN}
     OR sub_category LIKE ${CATEGORY_PATTERN}
-    OR seller_id IN (${TEST_SELLER_IDS})
+    OR EXISTS (
+      SELECT 1 FROM sellers
+      WHERE ${TEST_SELLER_MATCH}
+        AND sellers.id = posts.seller_id
+    )
   `);
 
   const categories = await db.execute(sql`
@@ -143,7 +155,7 @@ export async function sweepTestData(): Promise<TestDataCount> {
   `);
 
   return {
-    posts: posts.rowCount ?? 0,
+    posts: (sellerPosts.rowCount ?? 0) + (posts.rowCount ?? 0),
     categories: categories.rowCount ?? 0,
     branches: branches.rowCount ?? 0,
     sellers: sellers.rowCount ?? 0,
