@@ -9,20 +9,15 @@ import { testSlug, testStore } from "../testUtils/testSlug";
 /**
  * Slice 6 de `docs/features/productores-locales.md`.
  *
- * Dos afirmaciones: que el home también pone distancias, y que **cuando no las hay se dice por
- * qué**. La segunda importa tanto como la primera — un listado sin distancias parece un listado
- * roto si nadie aclara que la parte que falta es la del visitante.
+ * Dos afirmaciones: que los listados con intención local ponen distancias, y que **cuando no las
+ * hay se dice por qué**. La segunda importa tanto como la primera — un listado sin distancias
+ * parece roto si nadie aclara que la parte que falta es la del visitante.
  */
 const CON_SUCURSAL = testStore("Panadería La Luz");
 const SIN_SUCURSAL = testStore("Panadería Sin Domicilio");
 const VISITOR = coordinatesAtKm(1.65);
 
-const SECCIONES = [
-  "/",
-  "/productos",
-  "/negocios-locales",
-  "/productores-locales",
-];
+const SECCIONES = ["/productos", "/negocios-locales", "/productores-locales"];
 
 test.describe("Cuando alguien no ha compartido su ubicación", () => {
   for (const seccion of SECCIONES) {

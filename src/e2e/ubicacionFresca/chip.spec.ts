@@ -13,9 +13,9 @@ import { testSlug, testStore } from "../testUtils/testSlug";
  * desaparecía y **no quedaba nada en su lugar**. La cookie duraba un año, así que una ubicación
  * equivocada no se podía corregir sin ir a borrarla a las herramientas del navegador.
  *
- * Las mismas cuatro rutas que recorre `locationNotice.spec.ts` para el caso contrario.
+ * Las mismas rutas con intención local que recorre `locationNotice.spec.ts` para el caso contrario.
  */
-const RUTAS = ["/", "/productos", "/negocios-locales", "/productores-locales"];
+const RUTAS = ["/productos", "/negocios-locales", "/productores-locales"];
 
 const TIENDA = testStore("Panadería La Luz");
 const VISITOR = coordinatesAtKm(2 - 0.35);

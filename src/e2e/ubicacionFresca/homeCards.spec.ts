@@ -23,7 +23,7 @@ const SUCURSAL_KM = 2;
 const ENCIMA_DE_LA_TIENDA = coordinatesAtKm(SUCURSAL_KM);
 const A_CUARENTA_KM = coordinatesAtKm(SUCURSAL_KM + 40);
 
-test.describe("Cuando alguien mira el home con el permiso de ubicación dado", () => {
+test.describe("Cuando alguien mira publicaciones con el permiso de ubicación dado", () => {
   const slug = testSlug("pan-del-feed");
   const title = `E2E Pan del feed ${Date.now()}`;
 
@@ -70,7 +70,7 @@ test.describe("Cuando alguien mira el home con el permiso de ubicación dado", (
     context,
   }) => {
     await context.setGeolocation(ENCIMA_DE_LA_TIENDA);
-    await page.goto("/");
+    await page.goto("/productos");
     await expect(
       tarjetaDelPan(page).getByTestId("store-distance"),
     ).toContainText(/m|km/, { timeout: 20_000 });
