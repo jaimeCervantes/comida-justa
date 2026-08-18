@@ -152,7 +152,7 @@ describe("RouteFileField", () => {
 
     await userEvent.upload(fileInput(), gpxFile(gpxWith([[19, -99]])));
 
-    expect(screen.getByText(/al menos dos puntos/i)).toBeInTheDocument();
+    expect(await screen.findByText(/al menos dos puntos/i)).toBeInTheDocument();
     expect(hiddenRouteValue()).toBe("");
   });
 
