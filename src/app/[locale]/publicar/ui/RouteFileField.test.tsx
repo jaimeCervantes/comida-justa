@@ -143,7 +143,7 @@ describe("RouteFileField", () => {
       gpxFile("esto es una lista de la compra", "notas.gpx"),
     );
 
-    expect(screen.getByText(/no es un GPX/i)).toBeInTheDocument();
+    expect(await screen.findByText(/no es un GPX/i)).toBeInTheDocument();
     expect(hiddenRouteValue()).toBe("");
   });
 
