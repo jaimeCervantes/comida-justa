@@ -16,4 +16,6 @@ export interface ISearchPostDTO {
   locale?: string;
   /** Desde dónde medir las distancias. `null` cuando no sabemos dónde está quien busca. */
   near?: Coordinates | null;
+  /** Claves de taxonomía permitidas por el filtro de pilar. */
+  categoryKeys?: readonly string[];
 }

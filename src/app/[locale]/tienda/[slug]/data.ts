@@ -1,7 +1,9 @@
+import type { PublicationPillar } from "~/domain/entities/post/publicationPillars";
 import type { Branch, Seller } from "~/domain/entities/seller/types";
 import { PAGINATION_INIT_PAGE, PAGINATION_PAGE_SIZE } from "~/infra/constants";
 import { createBranchRepository } from "~/infra/dataAccess/branches/factory";
 import { createPostQueryRepository } from "~/infra/dataAccess/getMultiplePosts";
+import { categoryKeysForActivePublicationPillar } from "~/infra/dataAccess/posts/publicationPillarFilter";
 import { createSellerRepository } from "~/infra/dataAccess/sellers/factory";
 import { createUserProfileRepository } from "~/infra/dataAccess/users/factory";
 import { readVisitorLocation } from "~/infra/location/visitorLocation";
@@ -37,6 +39,7 @@ export async function getStoreByHandle(
   locale: string,
   /** Quién mira. Su dueño ve lo agotado —lo necesita para volver a ofrecerlo—; el resto no. */
   viewerId?: string | null,
+  currentPillar: PublicationPillar | null = null,
 ): Promise<StorePageData | null> {
   const seller = await createSellerRepository().findByHandle(handle);
 
@@ -52,7 +55,11 @@ export async function getStoreByHandle(
       seller.id,
       pageNum,
       PAGINATION_PAGE_SIZE,
-      { includeSoldOut: isOwner },
+      {
+        includeSoldOut: isOwner,
+        categoryKeys:
+          await categoryKeysForActivePublicationPillar(currentPillar),
+      },
     ),
     createBranchRepository().listBySeller(seller.id),
     // Un vendedor puede existir sin cuenta (alta manual de proveedor local): entonces no hay perfil.

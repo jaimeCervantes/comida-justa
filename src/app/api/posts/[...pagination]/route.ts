@@ -1,6 +1,11 @@
+import {
+  PUBLICATION_PILLAR_QUERY_PARAM,
+  parsePublicationPillar,
+} from "~/domain/entities/post/publicationPillars";
 import { routing } from "~/i18n/routing";
 import { PAGINATION_INIT_PAGE, PAGINATION_PAGE_SIZE } from "~/infra/constants";
 import { createPostQueryRepository } from "~/infra/dataAccess/getMultiplePosts";
+import { categoryKeysForActivePublicationPillar } from "~/infra/dataAccess/posts/publicationPillarFilter";
 import { readVisitorLocation } from "~/infra/location/visitorLocation";
 import { mapPostsToCardsForLocale } from "~/infra/UI/mappers/posts/mapPostsToCardsForLocale";
 
@@ -22,6 +27,9 @@ export async function GET(
 
   try {
     const postRepo = createPostQueryRepository();
+    const currentPillar = parsePublicationPillar(
+      new URL(request.url).searchParams.get(PUBLICATION_PILLAR_QUERY_PARAM),
+    );
 
     // La misma ubicación que usó el primer render: si la página 2 llegara sin ella, las tarjetas
     // perderían la distancia a medio scroll y parecería que el dato se agota.
@@ -29,6 +37,10 @@ export async function GET(
       page,
       pageSize,
       await readVisitorLocation(),
+      {
+        categoryKeys:
+          await categoryKeysForActivePublicationPillar(currentPillar),
+      },
     );
 
     const posts = await mapPostsToCardsForLocale(

@@ -1,7 +1,9 @@
+import type { PublicationPillar } from "~/domain/entities/post/publicationPillars";
 import type { Seller } from "~/domain/entities/seller/types";
 import type { UserProfile } from "~/domain/entities/user/types";
 import { PAGINATION_INIT_PAGE, PAGINATION_PAGE_SIZE } from "~/infra/constants";
 import { createPostQueryRepository } from "~/infra/dataAccess/getMultiplePosts";
+import { categoryKeysForActivePublicationPillar } from "~/infra/dataAccess/posts/publicationPillarFilter";
 import { createSellerRepository } from "~/infra/dataAccess/sellers/factory";
 import { createUserProfileRepository } from "~/infra/dataAccess/users/factory";
 import type { Post } from "~/infra/types/Posts";
@@ -26,6 +28,7 @@ export async function getProfileByUsername(
   locale: string,
   /** Quién mira. Si es su propio perfil, también ve lo que se le bajó. */
   viewerId?: string | null,
+  currentPillar: PublicationPillar | null = null,
 ): Promise<ProfilePageData | null> {
   const profile = await createUserProfileRepository().findByUsername(username);
 
@@ -39,6 +42,10 @@ export async function getProfileByUsername(
       pageNum,
       PAGINATION_PAGE_SIZE,
       viewerId,
+      {
+        categoryKeys:
+          await categoryKeysForActivePublicationPillar(currentPillar),
+      },
     ),
     createSellerRepository().findByUserId(profile.id),
   ]);

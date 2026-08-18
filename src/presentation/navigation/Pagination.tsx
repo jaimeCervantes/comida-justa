@@ -16,6 +16,8 @@ interface PaginationProps {
   pathname: PaginatedPathname;
   /** Los segmentos que la ruta necesita **además** de `page`: `slug`, `term`, `username`. */
   params?: Record<string, string>;
+  /** Query string que debe sobrevivir al cambio de página, como `pillar=movement`. */
+  query?: Record<string, string | undefined>;
 }
 
 /**
@@ -37,6 +39,7 @@ export default function Pagination({
   totalPages,
   pathname,
   params,
+  query,
 }: PaginationProps) {
   const t = useTranslations("feed");
   if (totalPages <= 1) return null;
@@ -58,6 +61,7 @@ export default function Pagination({
     ({
       pathname,
       params: { ...params, page: String(page) },
+      query,
     }) as AppHref;
 
   return (

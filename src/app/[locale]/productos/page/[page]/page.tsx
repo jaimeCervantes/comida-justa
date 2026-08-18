@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { parsePublicationPillar } from "~/domain/entities/post/publicationPillars";
 import { Link } from "~/i18n/navigation";
 import { resolveLocale } from "~/i18n/routing";
 import { readViewerId } from "~/infra/auth/readViewerId";
@@ -12,6 +13,7 @@ import ProductsList from "../../ui/ProductsList";
 
 type Props = {
   params: Promise<{ locale: string; page: string }>;
+  searchParams: Promise<{ pillar?: string }>;
 };
 
 function parsePage(value: string): number | null {
@@ -26,9 +28,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return page ? buildProductsMetadata(resolveLocale(locale), page) : {};
 }
 
-export default async function ProductosPaginatedPage({ params }: Props) {
+export default async function ProductosPaginatedPage({
+  params,
+  searchParams,
+}: Props) {
   const { page: pageStr, locale: rawLocale } = await params;
+  const { pillar } = await searchParams;
   const locale = resolveLocale(rawLocale);
+  const currentPillar = parsePublicationPillar(pillar);
   setRequestLocale(locale);
   const viewerId = await readViewerId();
   const t = await getTranslations("products");
@@ -46,7 +53,7 @@ export default async function ProductosPaginatedPage({ params }: Props) {
     visitor,
     storesToMap,
     showSellerCta,
-  } = await getProducts(page, locale);
+  } = await getProducts(page, locale, currentPillar);
 
   if (products.length === 0 && page > 1) {
     notFound();
@@ -76,6 +83,7 @@ export default async function ProductosPaginatedPage({ params }: Props) {
         products={products}
         currentPage={page}
         totalPages={totalPages}
+        currentPillar={currentPillar}
       />
 
       <div className="text-center mt-4">

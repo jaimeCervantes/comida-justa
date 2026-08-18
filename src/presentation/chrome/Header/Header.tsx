@@ -15,7 +15,7 @@ import { findPublicAddresses } from "~/infra/dataAccess/identity/sessionIdentity
 import { SignIn, SignOut } from "~/presentation/auth/auth-buttons";
 import CartLink from "~/presentation/cart/CartLink/CartLink";
 import LinkButton from "~/presentation/navigation/LinkButton/LinkButton";
-import SearchBar from "~/presentation/search/SearchBar";
+import HeaderSearchBar from "~/presentation/search/HeaderSearchBar";
 import Avatar from "~/presentation/user/Avatar/Avatar";
 import LanguageSwitcher from "../LanguageSwitcher/LanguageSwitcher";
 import MobileAccountCard from "./MobileAccountCard";
@@ -102,7 +102,7 @@ export default async function Header() {
         </div>
 
         <div className="hidden md:flex flex-1 max-w-md mx-8">
-          <SearchBar />
+          <HeaderSearchBar />
         </div>
 
         <div className="flex gap-4 items-center">
@@ -150,7 +150,7 @@ export default async function Header() {
       </div>
       {/* Mobile Search Bar - Visible only on small/medium screens below navigation depending on layout space */}
       <div className="md:hidden px-4 pb-3">
-        <SearchBar />
+        <HeaderSearchBar />
       </div>
     </header>
   );

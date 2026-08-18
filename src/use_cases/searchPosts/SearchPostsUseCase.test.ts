@@ -52,6 +52,7 @@ describe("SearchPostsUseCase", () => {
       10,
       undefined,
       null,
+      undefined,
     );
     expect(result).toEqual({ results: mockResults, total: 1 });
   });
@@ -73,6 +74,7 @@ describe("SearchPostsUseCase", () => {
       6,
       undefined,
       near,
+      undefined,
     );
   });
 
@@ -87,6 +89,27 @@ describe("SearchPostsUseCase", () => {
       6,
       undefined,
       null,
+      undefined,
+    );
+  });
+
+  it("pasa las claves de categoria del pilar al repositorio", async () => {
+    mockRepository.search.mockResolvedValue({ results: [], total: 0 });
+
+    await useCase.execute({
+      query: "ritual",
+      page: 1,
+      pageSize: 6,
+      categoryKeys: ["sueno_y_descanso", "rituales_de_sueno"],
+    });
+
+    expect(mockRepository.search).toHaveBeenCalledWith(
+      "ritual",
+      1,
+      6,
+      undefined,
+      null,
+      ["sueno_y_descanso", "rituales_de_sueno"],
     );
   });
 });
@@ -116,7 +139,14 @@ describe("SearchPostsUseCase y el idioma de quien busca", () => {
       locale: "en",
     });
 
-    expect(repository.search).toHaveBeenCalledWith("pan", 1, 6, "en", null);
+    expect(repository.search).toHaveBeenCalledWith(
+      "pan",
+      1,
+      6,
+      "en",
+      null,
+      undefined,
+    );
   });
 });
 
@@ -180,6 +210,7 @@ describe("SearchPostsUseCase y el rescate semántico", () => {
       6,
       SEMANTIC_MAX_DISTANCE,
       null,
+      undefined,
     );
     expect(result.total).toBe(1);
   });

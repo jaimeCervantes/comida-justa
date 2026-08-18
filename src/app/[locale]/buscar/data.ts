@@ -1,4 +1,6 @@
 import { cache } from "react";
+import type { PublicationPillar } from "~/domain/entities/post/publicationPillars";
+import { categoryKeysForActivePublicationPillar } from "~/infra/dataAccess/posts/publicationPillarFilter";
 import {
   createSearchPostRepository,
   createSearchReporter,
@@ -26,6 +28,7 @@ export const searchPosts = cache(async function searchPosts(
   query: string,
   page: number,
   locale: string,
+  currentPillar: PublicationPillar | null,
 ): Promise<{ results: ISearchPostResultDTO[]; total: number }> {
   if (!query) return { results: [], total: 0 };
 
@@ -41,5 +44,6 @@ export const searchPosts = cache(async function searchPosts(
     pageSize: SEARCH_PAGE_SIZE,
     locale,
     near: await readVisitorLocation(),
+    categoryKeys: await categoryKeysForActivePublicationPillar(currentPillar),
   });
 });

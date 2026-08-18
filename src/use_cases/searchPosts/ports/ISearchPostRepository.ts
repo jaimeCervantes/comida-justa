@@ -17,6 +17,7 @@ export interface ISearchPostRepository {
      */
     locale?: string,
     near?: Coordinates | null,
+    categoryKeys?: readonly string[],
   ): Promise<{ results: ISearchPostResultDTO[]; total: number }>;
 
   /**
@@ -36,5 +37,6 @@ export interface ISearchPostRepository {
     pageSize: number,
     maxDistance: number,
     near?: Coordinates | null,
+    categoryKeys?: readonly string[],
   ): Promise<{ results: ISearchPostResultDTO[]; total: number }>;
 }

@@ -170,7 +170,7 @@ describe("SearchBar", () => {
 
   it("navigates to the full results page and closes the dropdown", async () => {
     vi.stubGlobal("fetch", givenResults(["Pan de masa madre"]));
-    render(<SearchBar />);
+    render(<SearchBar activePillar="sleep" />);
 
     await user.type(screen.getByRole("searchbox"), "pan");
     vi.advanceTimersByTime(DEBOUNCE_MS);
@@ -182,7 +182,7 @@ describe("SearchBar", () => {
        `pathnames` según el idioma, y eso ya lo cubren las pruebas de routing. */
     expect(push).toHaveBeenCalledWith({
       pathname: "/buscar",
-      query: { q: "pan" },
+      query: { q: "pan", pillar: "sleep" },
     });
     await waitFor(() => expect(dropdown()).not.toBeInTheDocument());
   });
@@ -227,6 +227,18 @@ describe("SearchBar", () => {
       expect(fetchMock.mock.calls[0][0]).toContain(`locale=${locale}`);
     },
   );
+
+  it("pide resultados dentro del pilar activo", async () => {
+    const fetchMock = givenResults(["Ritual de sueño"]);
+    vi.stubGlobal("fetch", fetchMock);
+    render(<SearchBar activePillar="sleep" />);
+
+    await user.type(screen.getByRole("searchbox"), "ritual");
+    vi.advanceTimersByTime(DEBOUNCE_MS);
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+    expect(fetchMock.mock.calls[0][0]).toContain("pillar=sleep");
+  });
 
   it("closes the dropdown when the query is cleared", async () => {
     vi.stubGlobal("fetch", givenResults(["Pan de masa madre"]));

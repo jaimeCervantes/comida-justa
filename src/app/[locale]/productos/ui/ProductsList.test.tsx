@@ -27,7 +27,12 @@ const product = {
 describe("When the products list is rendered", () => {
   it("shows the empty state instead of the grid when there are no products", () => {
     const { getByTestId, queryByTestId } = render(
-      <ProductsList products={[]} currentPage={1} totalPages={0} />,
+      <ProductsList
+        products={[]}
+        currentPage={1}
+        totalPages={0}
+        currentPillar={null}
+      />,
     );
 
     /* El texto dejó de nombrar a la marca cuando la página pasó a listar a toda la comunidad:
@@ -40,7 +45,12 @@ describe("When the products list is rendered", () => {
 
   it("renders a card with its provenance badge for each product", () => {
     const { getByTestId, getByText } = render(
-      <ProductsList products={[product]} currentPage={1} totalPages={1} />,
+      <ProductsList
+        products={[product]}
+        currentPage={1}
+        totalPages={1}
+        currentPillar={null}
+      />,
     );
 
     expect(getByText(product.title)).toBeInTheDocument();
@@ -49,12 +59,32 @@ describe("When the products list is rendered", () => {
 
   it("links to the next products page when there is more than one", () => {
     const { getByRole } = render(
-      <ProductsList products={[product]} currentPage={1} totalPages={3} />,
+      <ProductsList
+        products={[product]}
+        currentPage={1}
+        totalPages={3}
+        currentPillar="movement"
+      />,
     );
 
     expect(getByRole("link", { name: "Siguiente" })).toHaveAttribute(
       "href",
-      "/productos/page/2",
+      "/productos/page/2?pillar=movement",
+    );
+  });
+
+  it("nombra el pilar cuando el filtro deja vacia la lista", () => {
+    const { getByTestId } = render(
+      <ProductsList
+        products={[]}
+        currentPage={1}
+        totalPages={0}
+        currentPillar="movement"
+      />,
+    );
+
+    expect(getByTestId("products-empty")).toHaveTextContent(
+      "Todavía no hay publicaciones de Movimiento aquí.",
     );
   });
 });

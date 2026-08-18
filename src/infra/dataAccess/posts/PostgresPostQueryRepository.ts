@@ -194,6 +194,7 @@ interface ListingOptions {
    * filtrado sin que su autor tenga que acordarse: olvidarlo enseña lo que un admin bajó.
    */
   visibility?: SQL;
+  categoryKeys?: readonly string[];
 }
 
 /** La misma forma que devuelve `getPaginatedPosts` cuando la consulta no encuentra nada. */
@@ -207,16 +208,30 @@ function emptyPage(page: number): PaginatedPostsResult {
   };
 }
 
+function categoryWhere(categoryKeys: readonly string[] | undefined): SQL {
+  if (categoryKeys === undefined) return sql`TRUE`;
+  if (categoryKeys.length === 0) return sql`FALSE`;
+
+  const keys = sql.join(
+    categoryKeys.map((key) => sql`${key}`),
+    sql`, `,
+  );
+
+  return sql`(p.category IN (${keys}) OR p.sub_category IN (${keys}))`;
+}
+
 export class PostgresPostQueryRepository implements IPostQueryRepository {
   async getMultiplePosts(
     page: number,
     pageSize: number,
     near: Coordinates | null = null,
+    filters: { categoryKeys?: readonly string[] } = {},
   ): Promise<PaginatedPostsResult> {
     // El home es un feed: gana la distancia, conserva el orden cronológico.
     return this.getPaginatedPosts(ALL_POSTS_WHERE, page, pageSize, {
       near,
       sortByDistance: false,
+      categoryKeys: filters.categoryKeys,
     });
   }
 
@@ -224,10 +239,12 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
     page: number,
     pageSize: number,
     near: Coordinates | null = null,
+    filters: { categoryKeys?: readonly string[] } = {},
   ): Promise<PaginatedPostsResult> {
     return this.getPaginatedPosts(PRODUCTS_WHERE, page, pageSize, {
       near,
       sortByDistance: true,
+      categoryKeys: filters.categoryKeys,
     });
   }
 
@@ -243,6 +260,7 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
     page: number,
     pageSize: number,
     near: Coordinates | null = null,
+    filters: { categoryKeys?: readonly string[] } = {},
   ): Promise<PaginatedPostsResult> {
     // Una clave desconocida llega aquí como lista vacía. Un `IN ()` es un error de sintaxis en
     // Postgres, así que se corta antes de consultar: sin resultados es la respuesta correcta.
@@ -258,7 +276,7 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
       sql`(p.category IN (${keys}) OR p.sub_category IN (${keys}))`,
       page,
       pageSize,
-      { near, sortByDistance: true },
+      { near, sortByDistance: true, categoryKeys: filters.categoryKeys },
     );
   }
 
@@ -266,7 +284,7 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
     sellerId: string,
     page: number,
     pageSize: number,
-    options?: { includeSoldOut?: boolean },
+    options?: { includeSoldOut?: boolean; categoryKeys?: readonly string[] },
   ): Promise<PaginatedPostsResult> {
     // Un anuncio no se agota, así que el filtro solo aplica a los productos.
     const availability = options?.includeSoldOut
@@ -277,6 +295,7 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
       sql`p.seller_id = ${sellerId}::uuid AND ${availability}`,
       page,
       pageSize,
+      { categoryKeys: options?.categoryKeys },
     );
   }
 
@@ -292,9 +311,11 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
     page: number,
     pageSize: number,
     viewerId?: string | null,
+    filters: { categoryKeys?: readonly string[] } = {},
   ): Promise<PaginatedPostsResult> {
     return this.getPaginatedPosts(sql`p.user_id = ${userId}`, page, pageSize, {
       visibility: publishedOrOwnedBy(viewerId === userId ? viewerId : null),
+      categoryKeys: filters.categoryKeys,
     });
   }
 
@@ -416,7 +437,7 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
         ${distanceColumn(near)},
         COUNT(*) OVER()::int AS total_count
       ${POST_JOINS}
-      WHERE ${visibility} AND ${where}
+      WHERE ${visibility} AND ${where} AND ${categoryWhere(options.categoryKeys)}
       ORDER BY ${orderClause(near, options.sortByDistance ?? false)}
       LIMIT ${pageSize} OFFSET ${offset}
     `);

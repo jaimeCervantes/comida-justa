@@ -1,3 +1,4 @@
+import type { PublicationPillar } from "~/domain/entities/post/publicationPillars";
 import {
   isActiveKey,
   labelFor,
@@ -7,6 +8,7 @@ import type { Coordinates } from "~/domain/entities/seller/coordinates";
 import { PAGINATION_INIT_PAGE, PAGINATION_PAGE_SIZE } from "~/infra/constants";
 import { getCategoryTaxonomy } from "~/infra/dataAccess/categories/cachedCategoryTaxonomy";
 import { createPostQueryRepository } from "~/infra/dataAccess/getMultiplePosts";
+import { categoryKeysForActivePublicationPillar } from "~/infra/dataAccess/posts/publicationPillarFilter";
 import { readViewerLocationContext } from "~/infra/location/viewerLocationContext";
 import type { Post } from "~/infra/types/Posts";
 import { mapPostsToCardsForLocale } from "~/infra/UI/mappers/posts/mapPostsToCardsForLocale";
@@ -38,6 +40,7 @@ export async function getPostsByCategory(
   key: string,
   page: number,
   locale: string,
+  currentPillar: PublicationPillar | null,
 ): Promise<CategoryPageData | null> {
   const taxonomy = await getCategoryTaxonomy();
 
@@ -50,6 +53,9 @@ export async function getPostsByCategory(
     pageNum,
     PAGINATION_PAGE_SIZE,
     visitor,
+    {
+      categoryKeys: await categoryKeysForActivePublicationPillar(currentPillar),
+    },
   );
 
   return {

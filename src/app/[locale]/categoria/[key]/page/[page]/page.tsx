@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { parsePublicationPillar } from "~/domain/entities/post/publicationPillars";
 import { Link } from "~/i18n/navigation";
 import { resolveLocale } from "~/i18n/routing";
 import { readViewerId } from "~/infra/auth/readViewerId";
@@ -11,6 +12,7 @@ import CategoryPosts from "../../ui/CategoryPosts";
 
 type Props = {
   params: Promise<{ locale: string; key: string; page: string }>;
+  searchParams: Promise<{ pillar?: string }>;
 };
 
 function parsePage(value: string): number | null {
@@ -25,14 +27,19 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!page) return {};
 
   const locale = resolveLocale(rawLocale);
-  const data = await getPostsByCategory(key, page, locale);
+  const data = await getPostsByCategory(key, page, locale, null);
 
   return data ? buildCategoryMetadata(key, data.label, { page }) : {};
 }
 
-export default async function CategoryPaginatedPage({ params }: Props) {
+export default async function CategoryPaginatedPage({
+  params,
+  searchParams,
+}: Props) {
   const { key, page: pageStr, locale: rawLocale } = await params;
+  const { pillar } = await searchParams;
   const locale = resolveLocale(rawLocale);
+  const currentPillar = parsePublicationPillar(pillar);
   setRequestLocale(locale);
   const viewerId = await readViewerId();
   const t = await getTranslations("category");
@@ -42,7 +49,7 @@ export default async function CategoryPaginatedPage({ params }: Props) {
     notFound();
   }
 
-  const data = await getPostsByCategory(key, page, locale);
+  const data = await getPostsByCategory(key, page, locale, currentPillar);
 
   // Ni una categoría inexistente ni una página fuera de rango son contenido.
   if (!data || (data.posts.length === 0 && page > 1)) {
@@ -64,6 +71,7 @@ export default async function CategoryPaginatedPage({ params }: Props) {
         label={data.label}
         currentPage={page}
         totalPages={data.totalPages}
+        currentPillar={currentPillar}
       />
 
       <div className="text-center mt-4">

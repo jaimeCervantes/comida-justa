@@ -15,9 +15,10 @@ vi.mock("~/presentation/post/availabilityAction", () => ({
   setAvailability: setAvailabilityMock,
 }));
 
+import type { PublicationPillar } from "~/domain/entities/post/publicationPillars";
 import type { Coordinates } from "~/domain/entities/seller/coordinates";
 import { renderWithIntl } from "~/infra/test-utils/renderWithIntl";
-import { measuredFrom } from "./measuredFrom";
+import { homeFeedKey } from "./homeFeedKey";
 import PostsWithLoadMore from "./PostsWithLoadMore";
 
 /** Encima de la panadería y a 40 km de ella: los dos sitios del escenario del slice 5. */
@@ -46,14 +47,16 @@ function feed(
   visitor: Coordinates | null,
   initialPosts: TarjetaSembrada[],
   totalPosts: number,
+  currentPillar: PublicationPillar | null = null,
 ) {
   return (
     <PostsWithLoadMore
-      key={measuredFrom(visitor)}
+      key={homeFeedKey(visitor, currentPillar)}
       initialPosts={initialPosts}
       totalPosts={totalPosts}
       totalPages={1}
       locale="es"
+      currentPillar={currentPillar}
     />
   );
 }
@@ -145,6 +148,7 @@ describe("El feed del home", () => {
         totalPages={1}
         locale="es"
         viewerId="user-1"
+        currentPillar={null}
       />,
     );
 
@@ -198,5 +202,45 @@ describe("El feed del home", () => {
     rerender(feed(A_CUARENTA_KM, [tarjeta("uno", 39_800)], 1));
 
     expect(distancias()).toEqual(["a 39.8 km"]);
+  });
+
+  it("y empieza de nuevo cuando cambia el pilar activo", async () => {
+    const { rerender } = renderWithIntl(
+      feed(ENCIMA, [tarjeta("alimentacion", 2000)], 1, null),
+    );
+
+    expect(
+      screen.getByRole("heading", { name: "E2E Pan alimentacion" }),
+    ).toBeVisible();
+
+    rerender(feed(ENCIMA, [tarjeta("movimiento", 2500)], 1, "movement"));
+
+    expect(
+      screen.getByRole("heading", { name: "E2E Pan movimiento" }),
+    ).toBeVisible();
+    expect(
+      screen.queryByRole("heading", { name: "E2E Pan alimentacion" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("conserva el pilar activo al cargar mas", async () => {
+    const fetchMock = vi.fn(async () => ({
+      json: async () => ({ posts: [tarjeta("dos", 2500)], nextPage: null }),
+    }));
+    vi.stubGlobal("fetch", fetchMock);
+    renderWithIntl(
+      <PostsWithLoadMore
+        initialPosts={[tarjeta("uno", 2000)]}
+        totalPosts={2}
+        totalPages={1}
+        locale="es"
+        currentPillar="movement"
+      />,
+    );
+
+    await userEvent.click(screen.getByRole("button", { name: "Cargar más" }));
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+    expect(fetchMock.mock.calls[0][0]).toContain("pillar=movement");
   });
 });

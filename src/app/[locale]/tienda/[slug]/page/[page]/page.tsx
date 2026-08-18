@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { parsePublicationPillar } from "~/domain/entities/post/publicationPillars";
 import { Link } from "~/i18n/navigation";
 import { resolveLocale } from "~/i18n/routing";
 import { readViewerId } from "~/infra/auth/readViewerId";
@@ -14,6 +15,7 @@ import StoreHeader from "../../ui/StoreHeader";
 
 type Props = {
   params: Promise<{ locale: string; slug: string; page: string }>;
+  searchParams: Promise<{ pillar?: string }>;
 };
 
 function parsePage(value: string): number | null {
@@ -31,9 +33,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return seller && page ? buildStoreMetadata(seller, page) : {};
 }
 
-export default async function StorePaginatedPage({ params }: Props) {
+export default async function StorePaginatedPage({
+  params,
+  searchParams,
+}: Props) {
   const { slug, locale: rawLocale, page: pageStr } = await params;
+  const { pillar } = await searchParams;
   const locale = resolveLocale(rawLocale);
+  const currentPillar = parsePublicationPillar(pillar);
   setRequestLocale(locale);
   const viewerId = await readViewerId();
   const t = await getTranslations("store");
@@ -43,7 +50,13 @@ export default async function StorePaginatedPage({ params }: Props) {
     notFound();
   }
 
-  const store = await getStoreByHandle(slug, page, locale);
+  const store = await getStoreByHandle(
+    slug,
+    page,
+    locale,
+    viewerId,
+    currentPillar,
+  );
 
   if (!store || (store.catalog.length === 0 && page > 1)) {
     notFound();
@@ -72,6 +85,7 @@ export default async function StorePaginatedPage({ params }: Props) {
         handle={slug}
         currentPage={page}
         totalPages={store.totalPages}
+        currentPillar={currentPillar}
       />
 
       <div className="text-center mt-4">

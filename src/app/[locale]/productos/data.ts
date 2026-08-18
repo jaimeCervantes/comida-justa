@@ -1,3 +1,4 @@
+import type { PublicationPillar } from "~/domain/entities/post/publicationPillars";
 import type { Coordinates } from "~/domain/entities/seller/coordinates";
 import {
   MAP_STORES_LIMIT,
@@ -9,6 +10,7 @@ import {
   createPostQueryRepository,
   type PostData,
 } from "~/infra/dataAccess/getMultiplePosts";
+import { categoryKeysForActivePublicationPillar } from "~/infra/dataAccess/posts/publicationPillarFilter";
 import { listStoresToMap } from "~/infra/dataAccess/sellers/PostgresNearbyStores";
 import { readViewerLocationContext } from "~/infra/location/viewerLocationContext";
 import type { Post } from "~/infra/types/Posts";
@@ -47,6 +49,7 @@ export type ProductsPageData = {
 export async function getProducts(
   page: number,
   locale: string,
+  currentPillar: PublicationPillar | null,
 ): Promise<ProductsPageData> {
   const pageNum = Math.max(PAGINATION_INIT_PAGE, page);
   const postRepo = createPostQueryRepository();
@@ -56,6 +59,9 @@ export async function getProducts(
     pageNum,
     PAGINATION_PAGE_SIZE,
     near,
+    {
+      categoryKeys: await categoryKeysForActivePublicationPillar(currentPillar),
+    },
   );
 
   return {

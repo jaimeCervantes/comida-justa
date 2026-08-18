@@ -1,6 +1,11 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import {
+  PUBLICATION_PILLAR_QUERY_PARAM,
+  type PublicationPillar,
+  parsePublicationPillar,
+} from "~/domain/entities/post/publicationPillars";
 import { Link } from "~/i18n/navigation";
 import { resolveLocale } from "~/i18n/routing";
 import { readViewerId } from "~/infra/auth/readViewerId";
@@ -11,6 +16,7 @@ import {
   PUBLIC_BRAND_NAME,
 } from "~/infra/constants";
 import { createPostQueryRepository } from "~/infra/dataAccess/getMultiplePosts";
+import { categoryKeysForActivePublicationPillar } from "~/infra/dataAccess/posts/publicationPillarFilter";
 import { readVisitorLocation } from "~/infra/location/visitorLocation";
 import type { Post } from "~/infra/types/Posts";
 import { mapPostsToCardsForLocale } from "~/infra/UI/mappers/posts/mapPostsToCardsForLocale";
@@ -18,9 +24,12 @@ import { localizedAlternates } from "~/infra/UI/metadata/alternates";
 import { CARD_MASONRY } from "~/presentation/design_system/surfaces/cardList";
 import Pagination from "~/presentation/navigation/Pagination";
 import CardForList from "~/presentation/post/CardForList/CardForList";
+import PublicationPillarFilter from "~/presentation/post/PublicationPillarFilter";
+import { publicationPillarEmptyMessage } from "~/presentation/post/publicationPillarEmptyMessage";
 
 type Props = {
   params: Promise<{ locale: string; page: string }>;
+  searchParams: Promise<{ pillar?: string }>;
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -55,7 +64,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-async function getPosts(page: number, locale: string) {
+async function getPosts(
+  page: number,
+  locale: string,
+  currentPillar: PublicationPillar | null,
+) {
   const pageNum = Math.max(PAGINATION_INIT_PAGE, page);
   const postRepo = createPostQueryRepository();
 
@@ -63,6 +76,9 @@ async function getPosts(page: number, locale: string) {
     pageNum,
     PAGINATION_PAGE_SIZE,
     await readVisitorLocation(),
+    {
+      categoryKeys: await categoryKeysForActivePublicationPillar(currentPillar),
+    },
   );
 
   return {
@@ -72,12 +88,15 @@ async function getPosts(page: number, locale: string) {
   };
 }
 
-export default async function PaginatedPage({ params }: Props) {
+export default async function PaginatedPage({ params, searchParams }: Props) {
   const { page: pageStr, locale: rawLocale } = await params;
+  const { pillar } = await searchParams;
   const locale = resolveLocale(rawLocale);
+  const currentPillar = parsePublicationPillar(pillar);
   setRequestLocale(locale);
   const viewerId = await readViewerId();
   const t = await getTranslations("feed");
+  const pillarT = await getTranslations("publicationPillars");
   const page = parseInt(pageStr, 10);
 
   // Validar que la página sea válida
@@ -85,7 +104,7 @@ export default async function PaginatedPage({ params }: Props) {
     notFound();
   }
 
-  const { posts, totalPages } = await getPosts(page, locale);
+  const { posts, totalPages } = await getPosts(page, locale, currentPillar);
 
   // Si la página no tiene contenido y está fuera de rango, mostrar 404
   if (posts.length === 0 && page > 1 && page > totalPages) {
@@ -98,9 +117,17 @@ export default async function PaginatedPage({ params }: Props) {
         {t("pageHeading", { brand: PUBLIC_BRAND_NAME })}
       </h1>
 
+      <PublicationPillarFilter currentPillar={currentPillar} pathname="/" />
+
       <section className={`${CARD_MASONRY} pt-6`}>
         {posts.length === 0 ? (
-          <p>{t("emptyPage")}</p>
+          <p>
+            {publicationPillarEmptyMessage({
+              currentPillar,
+              fallback: t("emptyPage"),
+              t: pillarT,
+            })}
+          </p>
         ) : (
           posts.map((post: Post) => {
             return <CardForList {...post} viewerId={viewerId} key={post.id} />;
@@ -115,6 +142,11 @@ export default async function PaginatedPage({ params }: Props) {
         currentPage={page}
         totalPages={totalPages}
         pathname="/page/[page]"
+        query={
+          currentPillar
+            ? { [PUBLICATION_PILLAR_QUERY_PARAM]: currentPillar }
+            : undefined
+        }
       />
 
       {/* Enlace para volver a la página principal si no estamos en ella */}

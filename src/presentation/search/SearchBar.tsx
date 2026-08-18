@@ -3,6 +3,10 @@ import { useLocale, useTranslations } from "next-intl";
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
 import { MdSearch } from "react-icons/md";
+import {
+  PUBLICATION_PILLAR_QUERY_PARAM,
+  type PublicationPillar,
+} from "~/domain/entities/post/publicationPillars";
 import { resolvePostTranslation } from "~/domain/entities/post/translations";
 import type { Post } from "~/domain/entities/post/types";
 import { useRouter } from "~/i18n/navigation";
@@ -15,6 +19,7 @@ interface SearchResult extends Post {
 
 interface SearchBarProps {
   placeholder?: string;
+  activePillar?: PublicationPillar | null;
 }
 
 /** Debajo de este largo no se busca, salvo que el usuario cierre una palabra con espacio. */
@@ -31,10 +36,14 @@ const DEBOUNCE_MS = 500;
  */
 type SearchOutcome = {
   forQuery: string;
+  forPillar: PublicationPillar | null;
   items: SearchResult[] | null;
 };
 
-const SearchBar: React.FC<SearchBarProps> = ({ placeholder }) => {
+const SearchBar: React.FC<SearchBarProps> = ({
+  placeholder,
+  activePillar = null,
+}) => {
   const t = useTranslations("search");
   /* El repositorio de búsqueda ya indexa la traducción por su locale real, así que leer `.es` a
      secas dejaba cada resultado sin título ni slug en cuanto se buscaba en inglés. */
@@ -42,6 +51,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ placeholder }) => {
   const [query, setQuery] = useState("");
   const [outcome, setOutcome] = useState<SearchOutcome>({
     forQuery: "",
+    forPillar: null,
     items: [],
   });
   /**
@@ -59,7 +69,8 @@ const SearchBar: React.FC<SearchBarProps> = ({ placeholder }) => {
   const shouldSearch =
     trimmed.length > 0 && (endsWithSpace || trimmed.length >= MIN_QUERY_LENGTH);
   /** Lo que hay en `outcome` corresponde a lo que está escrito. */
-  const isSettled = outcome.forQuery === query;
+  const isSettled =
+    outcome.forQuery === query && outcome.forPillar === activePillar;
   const loading = shouldSearch && !isSettled;
   const failed = isSettled && outcome.items === null;
   const results = isSettled && outcome.items ? outcome.items : [];
@@ -77,13 +88,27 @@ const SearchBar: React.FC<SearchBarProps> = ({ placeholder }) => {
         /* El idioma viaja en la petición: sin él la ruta caía a español y el desplegable buscaba
            en español aunque el sitio estuviera en inglés. Se arregló leer la traducción correcta al
            pintar (ver arriba) y se quedó sin arreglar el pedirla. */
-        const res = await fetch(
-          `/api/search?q=${encodeURIComponent(query)}&limit=5&locale=${locale}`,
-        );
+        const params = new URLSearchParams({
+          q: query,
+          limit: "5",
+          locale,
+        });
+        if (activePillar) {
+          params.set(PUBLICATION_PILLAR_QUERY_PARAM, activePillar);
+        }
+        const res = await fetch(`/api/search?${params.toString()}`);
         const data = await res.json();
-        if (active) setOutcome({ forQuery: query, items: data.results || [] });
+        if (active) {
+          setOutcome({
+            forQuery: query,
+            forPillar: activePillar,
+            items: data.results || [],
+          });
+        }
       } catch {
-        if (active) setOutcome({ forQuery: query, items: null });
+        if (active) {
+          setOutcome({ forQuery: query, forPillar: activePillar, items: null });
+        }
       }
     };
 
@@ -101,7 +126,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ placeholder }) => {
       active = false;
       clearTimeout(timer);
     };
-  }, [query, shouldSearch, isSettled, endsWithSpace, locale]);
+  }, [query, shouldSearch, isSettled, endsWithSpace, locale, activePillar]);
 
   // Hide dropdown when clicking outside
   useEffect(() => {
@@ -122,7 +147,12 @@ const SearchBar: React.FC<SearchBarProps> = ({ placeholder }) => {
     /* La ruta se nombra por su clave interna (`/buscar`); cuál se ve —`/buscar` o `/search`— lo
        resuelve `pathnames` según el idioma. El término va en `query`, así que ya no hace falta
        escaparlo a mano. */
-    router.push({ pathname: "/buscar", query: { q: query } });
+    router.push({
+      pathname: "/buscar",
+      query: activePillar
+        ? { q: query, [PUBLICATION_PILLAR_QUERY_PARAM]: activePillar }
+        : { q: query },
+    });
   };
 
   return (
@@ -139,7 +169,10 @@ const SearchBar: React.FC<SearchBarProps> = ({ placeholder }) => {
         name="search"
       />
       {showDropdown && (
-        <div className="absolute left-0 right-0 mt-1 bg-white dark:bg-pw-gray border border-gray-200 dark:border-pw-gray rounded-sm shadow-lg z-50">
+        <div
+          className="absolute left-0 right-0 mt-1 bg-white dark:bg-pw-gray border border-gray-200 dark:border-pw-gray rounded-sm shadow-lg z-50"
+          data-testid="search-dropdown"
+        >
           {loading ? (
             <div className="p-2">
               <ul className="animate-pulse">

@@ -1,10 +1,16 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import {
+  PUBLICATION_PILLAR_QUERY_PARAM,
+  parsePublicationPillar,
+} from "~/domain/entities/post/publicationPillars";
 import { resolveLocale } from "~/i18n/routing";
 import { readViewerId } from "~/infra/auth/readViewerId";
 import { mapPostsToCardsForLocale } from "~/infra/UI/mappers/posts/mapPostsToCardsForLocale";
 import { CARD_MASONRY } from "~/presentation/design_system/surfaces/cardList";
 import Pagination from "~/presentation/navigation/Pagination";
 import CardForList from "~/presentation/post/CardForList/CardForList";
+import PublicationPillarFilter from "~/presentation/post/PublicationPillarFilter";
+import { publicationPillarEmptyMessage } from "~/presentation/post/publicationPillarEmptyMessage";
 import { SEARCH_PAGE_SIZE, searchPosts } from "./data";
 
 /**
@@ -18,17 +24,19 @@ export default async function SearchPage({
   searchParams,
   params,
 }: {
-  searchParams: Promise<{ q?: string; page?: string }>;
+  searchParams: Promise<{ q?: string; page?: string; pillar?: string }>;
   params: Promise<{ locale: string }>;
 }) {
-  const { q = "", page = "1" } = await searchParams;
+  const { q = "", page = "1", pillar } = await searchParams;
   const { locale: rawLocale } = await params;
   const locale = resolveLocale(rawLocale);
+  const currentPillar = parsePublicationPillar(pillar);
   setRequestLocale(locale);
   const viewerId = await readViewerId();
   const t = await getTranslations("search");
+  const pillarT = await getTranslations("publicationPillars");
   const pageInt = parseInt(page || "1", 10);
-  const data = await searchPosts(q, pageInt, locale);
+  const data = await searchPosts(q, pageInt, locale, currentPillar);
   const cards = await mapPostsToCardsForLocale(data.results, locale);
   const totalPages = Math.ceil(data.total / SEARCH_PAGE_SIZE);
 
@@ -46,7 +54,20 @@ export default async function SearchPage({
           </span>
         </div>
       )}
-      {q && cards.length === 0 && <div>{t("noResults")}</div>}
+      <PublicationPillarFilter
+        currentPillar={currentPillar}
+        pathname="/buscar"
+        query={{ q }}
+      />
+      {q && cards.length === 0 && (
+        <div>
+          {publicationPillarEmptyMessage({
+            currentPillar,
+            fallback: t("noResults"),
+            t: pillarT,
+          })}
+        </div>
+      )}
       <section className={`${CARD_MASONRY} pt-6`}>
         {cards.map((card) => (
           <CardForList key={card.id} {...card} viewerId={viewerId} />
@@ -57,6 +78,11 @@ export default async function SearchPage({
         totalPages={totalPages}
         pathname="/buscar/[term]/page/[page]"
         params={{ term: q }}
+        query={
+          currentPillar
+            ? { [PUBLICATION_PILLAR_QUERY_PARAM]: currentPillar }
+            : undefined
+        }
       />
     </>
   );

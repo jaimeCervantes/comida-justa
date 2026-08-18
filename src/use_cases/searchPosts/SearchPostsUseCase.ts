@@ -50,6 +50,7 @@ export class SearchPostsUseCase {
       dto.pageSize,
       dto.locale,
       dto.near ?? null,
+      dto.categoryKeys,
     );
 
     if (textual.total > 0) {
@@ -120,6 +121,7 @@ export class SearchPostsUseCase {
         dto.pageSize,
         SEMANTIC_MAX_DISTANCE,
         dto.near ?? null,
+        dto.categoryKeys,
       );
     } catch {
       return empty;

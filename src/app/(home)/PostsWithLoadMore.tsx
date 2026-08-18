@@ -2,11 +2,17 @@
 
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  PUBLICATION_PILLAR_QUERY_PARAM,
+  type PublicationPillar,
+} from "~/domain/entities/post/publicationPillars";
 import { Link } from "~/i18n/navigation";
 import { PAGINATION_INIT_PAGE, PAGINATION_PAGE_SIZE } from "~/infra/constants";
 import type { Post } from "~/infra/types/Posts";
 import MasonryColumns from "~/presentation/design_system/surfaces/MasonryColumns";
 import CardForList from "~/presentation/post/CardForList/CardForList";
+import PublicationPillarFilter from "~/presentation/post/PublicationPillarFilter";
+import { publicationPillarEmptyMessage } from "~/presentation/post/publicationPillarEmptyMessage";
 
 /**
  * El feed del home: la primera página la pinta el servidor y el resto la pide este componente.
@@ -24,6 +30,7 @@ export default function PostsWithLoadMore({
   totalPages = Math.ceil(totalPosts / PAGINATION_PAGE_SIZE),
   locale,
   viewerId,
+  currentPillar,
 }: {
   initialPosts: Post[];
   /** Quién mira: decide si sus propias publicaciones le ofrecen editar y marcar agotado. */
@@ -34,8 +41,10 @@ export default function PostsWithLoadMore({
   totalPages: number;
   /** Viaja al endpoint para que las páginas siguientes traigan la etiqueta en el mismo idioma. */
   locale: string;
+  currentPillar: PublicationPillar | null;
 }) {
   const t = useTranslations("feed");
+  const pillarT = useTranslations("publicationPillars");
   /**
    * Una sola lista, otra vez.
    *
@@ -68,8 +77,12 @@ export default function PostsWithLoadMore({
       setLoading(true);
       const nextPage = currentPage + 1;
 
+      const query = new URLSearchParams({ locale });
+      if (currentPillar) {
+        query.set(PUBLICATION_PILLAR_QUERY_PARAM, currentPillar);
+      }
       const response = await fetch(
-        `/api/posts/page/${nextPage}/pageSize/${PAGINATION_PAGE_SIZE}?locale=${encodeURIComponent(locale)}`,
+        `/api/posts/page/${nextPage}/pageSize/${PAGINATION_PAGE_SIZE}?${query.toString()}`,
       );
       const data = await response.json();
 
@@ -86,7 +99,7 @@ export default function PostsWithLoadMore({
     } finally {
       setLoading(false);
     }
-  }, [currentPage, hasMore, loading, locale]);
+  }, [currentPage, hasMore, loading, locale, currentPillar]);
 
   useEffect(() => {
     if (!loaderRef.current || !hasMore) return;
@@ -113,8 +126,15 @@ export default function PostsWithLoadMore({
 
   return (
     <>
+      <PublicationPillarFilter currentPillar={currentPillar} pathname="/" />
       {posts.length === 0 ? (
-        <p className="pt-3">{t("empty")}</p>
+        <p className="pt-3" data-testid="feed-empty">
+          {publicationPillarEmptyMessage({
+            currentPillar,
+            fallback: t("empty"),
+            t: pillarT,
+          })}
+        </p>
       ) : (
         <MasonryColumns className="pt-3" testId="feed-masonry">
           {posts.map((post: Post) => (
@@ -156,6 +176,9 @@ export default function PostsWithLoadMore({
                 href={{
                   pathname: "/page/[page]",
                   params: { page: String(page) },
+                  query: currentPillar
+                    ? { [PUBLICATION_PILLAR_QUERY_PARAM]: currentPillar }
+                    : undefined,
                 }}
               >
                 {t("page", { page })}

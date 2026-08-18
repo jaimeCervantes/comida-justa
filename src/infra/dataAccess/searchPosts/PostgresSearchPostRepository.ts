@@ -203,6 +203,19 @@ function toMatches(rows: RankedRow[]): {
   };
 }
 
+function categoryWhere(categoryKeys: readonly string[] | undefined) {
+  if (categoryKeys === undefined) return sql`TRUE`;
+  if (categoryKeys.length === 0) return sql`FALSE`;
+
+  return sql`(p.category IN (${sql.join(
+    categoryKeys.map((key) => sql`${key}`),
+    sql`, `,
+  )}) OR p.sub_category IN (${sql.join(
+    categoryKeys.map((key) => sql`${key}`),
+    sql`, `,
+  )}))`;
+}
+
 export class PostgresSearchPostRepository implements ISearchPostRepository {
   async search(
     query: string,
@@ -210,11 +223,19 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
     pageSize: number,
     locale: string = "es",
     near: Coordinates | null = null,
+    categoryKeys?: readonly string[],
   ): Promise<{ results: ISearchPostResultDTO[]; total: number }> {
     const trimmed = query?.trim() ?? "";
     const { matches, total } = trimmed
-      ? await this.rankedMatches(trimmed, page, pageSize, locale, near)
-      : await this.newestFirst(page, pageSize, near);
+      ? await this.rankedMatches(
+          trimmed,
+          page,
+          pageSize,
+          locale,
+          near,
+          categoryKeys,
+        )
+      : await this.newestFirst(page, pageSize, near, categoryKeys);
 
     if (matches.length === 0) return { results: [], total };
 
@@ -227,6 +248,7 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
     pageSize: number,
     maxDistance: number,
     near: Coordinates | null = null,
+    categoryKeys?: readonly string[],
   ): Promise<{ results: ISearchPostResultDTO[]; total: number }> {
     const { matches, total } = await this.semanticMatches(
       embedding,
@@ -234,6 +256,7 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
       pageSize,
       maxDistance,
       near,
+      categoryKeys,
     );
 
     if (matches.length === 0) return { results: [], total };
@@ -285,6 +308,7 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
     pageSize: number,
     locale: string,
     near: Coordinates | null,
+    categoryKeys: readonly string[] | undefined,
   ): Promise<{ matches: RankedMatch[]; total: number }> {
     const offset = Math.max(0, (page - 1) * pageSize);
 
@@ -318,7 +342,7 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
         FROM post_translations t
         WHERE t.post_id = p.id AND ${matchesQuery(query)}
       ) r ON r.relevance IS NOT NULL
-      WHERE ${PUBLISHED_POSTS}
+      WHERE ${PUBLISHED_POSTS} AND ${categoryWhere(categoryKeys)}
       ORDER BY
         r.own_relevance DESC NULLS LAST,
         r.relevance DESC,
@@ -357,6 +381,7 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
     pageSize: number,
     maxDistance: number,
     near: Coordinates | null,
+    categoryKeys: readonly string[] | undefined,
   ): Promise<{ matches: RankedMatch[]; total: number }> {
     const offset = Math.max(0, (page - 1) * pageSize);
     const vector = `[${embedding.join(",")}]`;
@@ -376,7 +401,9 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
         COUNT(*) OVER()::int AS total_count
       FROM posts p
       JOIN vecinas v ON v.post_id = p.id
-      WHERE ${PUBLISHED_POSTS} AND v.dist <= ${maxDistance}
+      WHERE ${PUBLISHED_POSTS}
+        AND v.dist <= ${maxDistance}
+        AND ${categoryWhere(categoryKeys)}
       ORDER BY v.dist ASC, p.id
       LIMIT ${pageSize} OFFSET ${offset}
     `);
@@ -389,6 +416,7 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
     page: number,
     pageSize: number,
     near: Coordinates | null,
+    categoryKeys: readonly string[] | undefined,
   ): Promise<{ matches: RankedMatch[]; total: number }> {
     const offset = Math.max(0, (page - 1) * pageSize);
 
@@ -398,7 +426,7 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
         ${distanceColumn(near)} AS distance_meters,
         COUNT(*) OVER()::int AS total_count
       FROM posts p
-      WHERE ${PUBLISHED_POSTS}
+      WHERE ${PUBLISHED_POSTS} AND ${categoryWhere(categoryKeys)}
       ORDER BY
         distance_meters ASC NULLS LAST,
         p.created_at DESC,

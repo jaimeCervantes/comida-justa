@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { setRequestLocale } from "next-intl/server";
+import { parsePublicationPillar } from "~/domain/entities/post/publicationPillars";
 import { buildProfileJsonLd } from "~/domain/seo/jsonLd/site";
 import { resolveLocale } from "~/i18n/routing";
 import { readViewerId } from "~/infra/auth/readViewerId";
@@ -16,6 +17,7 @@ import ProfilePublications from "./ui/ProfilePublications";
 
 type Props = {
   params: Promise<{ locale: string; username: string }>;
+  searchParams: Promise<{ pillar?: string }>;
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -25,9 +27,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return profile ? buildProfileMetadata(profile) : {};
 }
 
-export default async function ProfilePage({ params }: Props) {
+export default async function ProfilePage({ params, searchParams }: Props) {
   const { username, locale: rawLocale } = await params;
+  const { pillar } = await searchParams;
   const locale = resolveLocale(rawLocale);
+  const currentPillar = parsePublicationPillar(pillar);
   setRequestLocale(locale);
   const viewerId = await readViewerId();
 
@@ -38,6 +42,7 @@ export default async function ProfilePage({ params }: Props) {
     PAGINATION_INIT_PAGE,
     locale,
     viewerId,
+    currentPillar,
   );
 
   if (!data) {
@@ -74,6 +79,7 @@ export default async function ProfilePage({ params }: Props) {
         username={username}
         currentPage={PAGINATION_INIT_PAGE}
         totalPages={data.totalPages}
+        currentPillar={currentPillar}
       />
     </main>
   );

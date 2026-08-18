@@ -51,12 +51,18 @@ export interface PaginatedPostsResult {
   totalPages: number;
 }
 
+export interface PostListingFilters {
+  /** Claves de taxonomía permitidas; `[]` significa "no hay ninguna activa", no "sin filtro". */
+  categoryKeys?: readonly string[];
+}
+
 export interface IPostQueryRepository {
   getMultiplePosts(
     page: number,
     pageSize: number,
     /** Dónde está quien mira. El home no reordena por cercanía: solo pone la distancia. */
     near?: Coordinates | null,
+    filters?: PostListingFilters,
   ): Promise<PaginatedPostsResult>;
   /**
    * Todo lo que se vende, sea de quien sea: `kind = producto`, cualquier `origin`.
@@ -69,6 +75,7 @@ export interface IPostQueryRepository {
     pageSize: number,
     /** Dónde está quien mira. Con ella el listado sale por cercanía; sin ella, por fecha. */
     near?: Coordinates | null,
+    filters?: PostListingFilters,
   ): Promise<PaginatedPostsResult>;
   /**
    * Solo lo que vende Hazlo Sano: `kind = producto` con `origin` `hazlo_sano_*`.
@@ -91,7 +98,7 @@ export interface IPostQueryRepository {
     sellerId: string,
     page: number,
     pageSize: number,
-    options?: { includeSoldOut?: boolean },
+    options?: { includeSoldOut?: boolean; categoryKeys?: readonly string[] },
   ): Promise<PaginatedPostsResult>;
   /**
    * El catálogo filtrado por categoría. Recibe **las claves ya resueltas** —la clave pedida más
@@ -107,6 +114,7 @@ export interface IPostQueryRepository {
     pageSize: number,
     /** Dónde está quien mira: una categoría ordena por cercanía, igual que el catálogo. */
     near?: Coordinates | null,
+    filters?: PostListingFilters,
   ): Promise<PaginatedPostsResult>;
   /**
    * Las publicaciones más parecidas a una, ordenadas por su vector (`embedding <=>`).
@@ -138,6 +146,7 @@ export interface IPostQueryRepository {
      * a esa persona: es por donde se entera, porque el sitio no manda correos.
      */
     viewerId?: string | null,
+    filters?: PostListingFilters,
   ): Promise<PaginatedPostsResult>;
   getTotalPosts(): Promise<number>;
   /** Cuántos productos hay por `origin` (`null` incluido). Base del reporte de procedencia. */

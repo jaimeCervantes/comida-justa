@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { parsePublicationPillar } from "~/domain/entities/post/publicationPillars";
 import { Link } from "~/i18n/navigation";
 import { resolveLocale } from "~/i18n/routing";
 import { readViewerId } from "~/infra/auth/readViewerId";
@@ -14,6 +15,7 @@ import ProfilePublications from "../../ui/ProfilePublications";
 
 type Props = {
   params: Promise<{ locale: string; username: string; page: string }>;
+  searchParams: Promise<{ pillar?: string }>;
 };
 
 function parsePage(value: string): number | null {
@@ -31,9 +33,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return profile && page ? buildProfileMetadata(profile, page) : {};
 }
 
-export default async function ProfilePaginatedPage({ params }: Props) {
+export default async function ProfilePaginatedPage({
+  params,
+  searchParams,
+}: Props) {
   const { username, locale: rawLocale, page: pageStr } = await params;
+  const { pillar } = await searchParams;
   const locale = resolveLocale(rawLocale);
+  const currentPillar = parsePublicationPillar(pillar);
   setRequestLocale(locale);
   const viewerId = await readViewerId();
   const t = await getTranslations("profile");
@@ -43,7 +50,13 @@ export default async function ProfilePaginatedPage({ params }: Props) {
     notFound();
   }
 
-  const data = await getProfileByUsername(username, page, locale, viewerId);
+  const data = await getProfileByUsername(
+    username,
+    page,
+    locale,
+    viewerId,
+    currentPillar,
+  );
 
   if (!data || (data.publications.length === 0 && page > 1)) {
     notFound();
@@ -72,6 +85,7 @@ export default async function ProfilePaginatedPage({ params }: Props) {
         username={username}
         currentPage={page}
         totalPages={data.totalPages}
+        currentPillar={currentPillar}
       />
 
       <div className="text-center mt-4">

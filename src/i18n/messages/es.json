@@ -1457,6 +1457,15 @@
     "seeAll": "Ver todos los resultados",
     "showingResultsFor": "Mostrando resultados para:"
   },
+  "publicationPillars": {
+    "all": "Todo",
+    "empty": "Todavía no hay publicaciones de {pillar} aquí.",
+    "filterLabel": "Filtrar por pilar",
+    "mindSpirit": "Mente/Espíritu",
+    "movement": "Movimiento",
+    "nutrition": "Alimentación",
+    "sleep": "Sueño"
+  },
   "share": {
     "copied": "¡Copiado!",
     "copyFailed": "No se pudo copiar. Selecciona la dirección de arriba.",

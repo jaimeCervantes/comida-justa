@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { parsePublicationPillar } from "~/domain/entities/post/publicationPillars";
 import { resolveLocale } from "~/i18n/routing";
 import { readViewerId } from "~/infra/auth/readViewerId";
 import { PAGINATION_INIT_PAGE } from "~/infra/constants";
@@ -21,11 +22,15 @@ export async function generateMetadata({
 
 export default async function ProductosPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<{ pillar?: string }>;
 }) {
   const { locale: rawLocale } = await params;
+  const { pillar } = await searchParams;
   const locale = resolveLocale(rawLocale);
+  const currentPillar = parsePublicationPillar(pillar);
   setRequestLocale(locale);
   const viewerId = await readViewerId();
   const t = await getTranslations("products");
@@ -37,7 +42,7 @@ export default async function ProductosPage({
     visitor,
     storesToMap,
     showSellerCta,
-  } = await getProducts(PAGINATION_INIT_PAGE, locale);
+  } = await getProducts(PAGINATION_INIT_PAGE, locale, currentPillar);
 
   return (
     <main>
@@ -66,6 +71,7 @@ export default async function ProductosPage({
         products={products}
         currentPage={PAGINATION_INIT_PAGE}
         totalPages={totalPages}
+        currentPillar={currentPillar}
       />
     </main>
   );

@@ -2,8 +2,12 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { hasLocale } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { measuredFrom } from "~/app/(home)/measuredFrom";
+import { homeFeedKey } from "~/app/(home)/homeFeedKey";
 import PostsWithLoadMore from "~/app/(home)/PostsWithLoadMore";
+import {
+  type PublicationPillar,
+  parsePublicationPillar,
+} from "~/domain/entities/post/publicationPillars";
 import type { Coordinates } from "~/domain/entities/seller/coordinates";
 import { buildSiteJsonLd } from "~/domain/seo/jsonLd/site";
 import { ensureAbsoluteUrl } from "~/domain/seo/url";
@@ -18,6 +22,7 @@ import {
   PUBLIC_BRAND_NAME,
 } from "~/infra/constants";
 import { createPostQueryRepository } from "~/infra/dataAccess/getMultiplePosts";
+import { categoryKeysForActivePublicationPillar } from "~/infra/dataAccess/posts/publicationPillarFilter";
 import { readViewerLocationContext } from "~/infra/location/viewerLocationContext";
 import { mapPostsToCardsForLocale } from "~/infra/UI/mappers/posts/mapPostsToCardsForLocale";
 import { localizedAlternates } from "~/infra/UI/metadata/alternates";
@@ -65,13 +70,20 @@ export async function generateMetadata({
  * es del catálogo, donde la pregunta es "¿dónde compro esto?". Aquí la distancia es un dato de cada
  * tarjeta, no un criterio.
  */
-async function getPosts(locale: string, near: Coordinates | null) {
+async function getPosts(
+  locale: string,
+  near: Coordinates | null,
+  currentPillar: PublicationPillar | null,
+) {
   const postRepo = createPostQueryRepository();
 
   const result = await postRepo.getMultiplePosts(
     PAGINATION_INIT_PAGE,
     PAGINATION_PAGE_SIZE,
     near,
+    {
+      categoryKeys: await categoryKeysForActivePublicationPillar(currentPillar),
+    },
   );
 
   return {
@@ -82,16 +94,24 @@ async function getPosts(locale: string, near: Coordinates | null) {
 
 export default async function Inicio({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<{ pillar?: string }>;
 }) {
   const { locale: rawLocale } = await params;
+  const { pillar } = await searchParams;
   const locale = resolveLocale(rawLocale);
+  const currentPillar = parsePublicationPillar(pillar);
   setRequestLocale(locale);
   const viewerId = await readViewerId();
   const t = await getTranslations({ locale, namespace: "home" });
   const { visitor } = await readViewerLocationContext();
-  const { posts, total, totalPages } = await getPosts(locale, visitor);
+  const { posts, total, totalPages } = await getPosts(
+    locale,
+    visitor,
+    currentPillar,
+  );
 
   return (
     <main className="space-y-8">
@@ -108,16 +128,17 @@ export default async function Inicio({
         })}
       />
 
-      {/* La `key` es desde dónde se midieron estas distancias. El feed acumula en estado las
-          páginas que pide, así que sin esto una ubicación corregida repintaba el chip y dejaba las
-          tarjetas como estaban. Ver `measuredFrom`. */}
+      {/* La `key` cubre lo que invalida el estado acumulado del feed: desde dónde se miden las
+          distancias y qué pilar se pidió. El feed guarda páginas en cliente; sin remount, cambiar
+          `?pillar=` deja visibles tarjetas del filtro anterior. */}
       <PostsWithLoadMore
-        key={measuredFrom(visitor)}
+        key={homeFeedKey(visitor, currentPillar)}
         viewerId={viewerId}
         initialPosts={posts}
         totalPosts={total}
         totalPages={totalPages}
         locale={locale}
+        currentPillar={currentPillar}
       />
     </main>
   );

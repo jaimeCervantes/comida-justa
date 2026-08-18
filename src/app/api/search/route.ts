@@ -1,5 +1,10 @@
 import type { NextRequest } from "next/server";
+import {
+  PUBLICATION_PILLAR_QUERY_PARAM,
+  parsePublicationPillar,
+} from "~/domain/entities/post/publicationPillars";
 import { resolveLocale } from "~/i18n/routing";
+import { categoryKeysForActivePublicationPillar } from "~/infra/dataAccess/posts/publicationPillarFilter";
 import {
   createSearchPostRepository,
   createSearchReporter,
@@ -21,6 +26,9 @@ export async function GET(req: NextRequest) {
   const q = searchParams.get("q") || "";
   const limit = parseInt(searchParams.get("limit") || "5", 10);
   const page = parseInt(searchParams.get("page") || "1", 10);
+  const currentPillar = parsePublicationPillar(
+    searchParams.get(PUBLICATION_PILLAR_QUERY_PARAM),
+  );
   /* `resolveLocale` y no `|| "es"`: el parámetro llega de la barra de direcciones y un `?locale=fr`
      entraba tal cual en la consulta, donde ningún diccionario le corresponde. Aquí cae al español,
      que es lo mismo que hace cualquier ruta con un segmento de idioma desconocido. */
@@ -39,6 +47,7 @@ export async function GET(req: NextRequest) {
     pageSize: limit,
     locale,
     near: await readVisitorLocation(),
+    categoryKeys: await categoryKeysForActivePublicationPillar(currentPillar),
   });
 
   return Response.json({ results, total });
