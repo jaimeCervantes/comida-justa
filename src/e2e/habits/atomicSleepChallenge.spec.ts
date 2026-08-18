@@ -13,6 +13,8 @@ import {
   readSuiteAccountDisplayName,
 } from "./testData";
 
+const HABIT_COMMUNITY_PATH = "/pilares";
+
 test.describe("Del atardecer al amanecer", () => {
   let session: DbSession | null = null;
 
@@ -69,26 +71,27 @@ test.describe("Del atardecer al amanecer", () => {
       .getByTestId("public-habit-celebration")
       .filter({ hasText: suiteDisplayName });
 
-    await page.goto("/");
+    await page.goto(HABIT_COMMUNITY_PATH);
     await expect(celebration).toHaveCount(0);
     await page.goto("/pilares/sueno");
-    await page
-      .getByRole("button", { name: "Compartir con la comunidad" })
-      .click();
-    await page.goto("/");
+    await shareWithCommunity(page);
+    await page.goto(HABIT_COMMUNITY_PATH);
 
     await expect(celebration).toBeVisible();
     await expect(
       page.getByText("Nuevo logro comunitario", { exact: false }),
     ).toBeVisible();
-    const beforeFeed = await celebration.evaluate((card) => {
-      const feed = document.querySelector('[data-testid="feed-masonry"]');
+    const afterGarden = await celebration.evaluate((card) => {
+      const garden = document.querySelector(
+        '[data-testid="community-habit-garden"]',
+      );
       return Boolean(
-        feed &&
-          card.compareDocumentPosition(feed) & Node.DOCUMENT_POSITION_FOLLOWING,
+        garden &&
+          garden.compareDocumentPosition(card) &
+            Node.DOCUMENT_POSITION_FOLLOWING,
       );
     });
-    expect(beforeFeed).toBe(true);
+    expect(afterGarden).toBe(true);
 
     await celebration.getByRole("button", { name: "Celebrar" }).click();
     await expect(
@@ -108,12 +111,12 @@ test.describe("Del atardecer al amanecer", () => {
     await expect(
       page.getByText("Nuevo logro comunitario", { exact: false }),
     ).toHaveCount(0);
-    await page.goto("/");
+    await page.goto(HABIT_COMMUNITY_PATH);
     await expect(celebration).toBeVisible();
 
     await page.goto("/pilares/sueno");
-    await page.getByRole("button", { name: "Dejar de compartir" }).click();
-    await page.goto("/");
+    await withdrawFromCommunity(page);
+    await page.goto(HABIT_COMMUNITY_PATH);
     await expect(celebration).toHaveCount(0);
     await page.goto("/pilares/sueno");
     await expect(page.getByText("Nivel: Brote")).toBeVisible();
@@ -125,9 +128,7 @@ test.describe("Del atardecer al amanecer", () => {
   }) => {
     const suiteDisplayName = await readSuiteAccountDisplayName();
     await completeFirstCycle(page);
-    await page
-      .getByRole("button", { name: "Compartir con la comunidad" })
-      .click();
+    await shareWithCommunity(page);
 
     await page.goto("/pilares/alimentacion");
     await page
@@ -140,10 +141,8 @@ test.describe("Del atardecer al amanecer", () => {
     await page
       .getByRole("button", { name: "Cultivar mi primera cena" })
       .click();
-    await page
-      .getByRole("button", { name: "Compartir con la comunidad" })
-      .click();
-    await page.goto("/");
+    await shareWithCommunity(page);
+    await page.goto(HABIT_COMMUNITY_PATH);
 
     const suiteCelebrations = page
       .getByTestId("public-habit-celebration")
@@ -185,10 +184,8 @@ test.describe("Del atardecer al amanecer", () => {
       .click();
     await clearHabitMilestoneMarker("nutrition-one-plant-v1", "first_cycle");
 
-    await page
-      .getByRole("button", { name: "Compartir con la comunidad" })
-      .click();
-    await page.goto("/");
+    await shareWithCommunity(page);
+    await page.goto(HABIT_COMMUNITY_PATH);
 
     await expect(
       page
@@ -238,10 +235,8 @@ test.describe("Del atardecer al amanecer", () => {
     ).toBeVisible();
     expect(await countSleepRepetitions()).toBe(5);
 
-    await page
-      .getByRole("button", { name: "Compartir con la comunidad" })
-      .click();
-    await page.getByRole("button", { name: "Dejar de compartir" }).click();
+    await shareWithCommunity(page);
+    await withdrawFromCommunity(page);
     await expect(page.getByText("50 puntos").first()).toBeVisible();
     await expect(page.getByText("Cosecha de descanso")).toBeVisible();
   });
@@ -250,7 +245,7 @@ test.describe("Del atardecer al amanecer", () => {
     page,
   }) => {
     await completeFirstCycle(page);
-    await page.goto("/");
+    await page.goto(HABIT_COMMUNITY_PATH);
     const sleepPlot = page.locator('[data-pillar="sleep"]');
     const before = Number(await sleepPlot.locator("strong").textContent());
 
@@ -263,14 +258,17 @@ test.describe("Del atardecer al amanecer", () => {
         name: "Retirar mis repeticiones del jardín",
       }),
     ).toBeVisible();
-    await page.goto("/");
+    await page.goto(HABIT_COMMUNITY_PATH);
     await expect(sleepPlot.locator("strong")).toHaveText(String(before + 1));
 
     await page.goto("/pilares/sueno");
     await page
       .getByRole("button", { name: "Retirar mis repeticiones del jardín" })
       .click();
-    await page.goto("/");
+    await expect(
+      page.getByRole("button", { name: "Aportar mis repeticiones al jardín" }),
+    ).toBeVisible();
+    await page.goto(HABIT_COMMUNITY_PATH);
     await expect(sleepPlot.locator("strong")).toHaveText(String(before));
   });
 
@@ -419,10 +417,8 @@ test.describe("Del atardecer al amanecer", () => {
     await page
       .getByRole("button", { name: "Cultivar mi primera cena" })
       .click();
-    await page
-      .getByRole("button", { name: "Compartir con la comunidad" })
-      .click();
-    await page.goto("/");
+    await shareWithCommunity(page);
+    await page.goto(HABIT_COMMUNITY_PATH);
 
     /* La tarjeta de la suite, no «la» tarjeta: el feed es comunitario y la base la comparten tres
        proyectos, así que cualquier cuenta real con una celebración compartida hacía fallar esto por
@@ -524,10 +520,8 @@ test.describe("Del atardecer al amanecer", () => {
       })
       .check();
     await page.getByRole("button", { name: "Registrar mi primer día" }).click();
-    await page
-      .getByRole("button", { name: "Compartir con la comunidad" })
-      .click();
-    await page.goto("/");
+    await shareWithCommunity(page);
+    await page.goto(HABIT_COMMUNITY_PATH);
 
     /* La tarjeta de la suite, no «la» tarjeta: el feed es comunitario y la base la comparten tres
        proyectos, así que cualquier cuenta real con una celebración compartida hacía fallar esto por
@@ -626,10 +620,8 @@ test.describe("Del atardecer al amanecer", () => {
       })
       .check();
     await page.getByRole("button", { name: "Registrar mi primer día" }).click();
-    await page
-      .getByRole("button", { name: "Compartir con la comunidad" })
-      .click();
-    await page.goto("/");
+    await shareWithCommunity(page);
+    await page.goto(HABIT_COMMUNITY_PATH);
 
     /* La tarjeta de la suite, no «la» tarjeta: el feed es comunitario y la base la comparten tres
        proyectos, así que cualquier cuenta real con una celebración compartida hacía fallar esto por
@@ -885,5 +877,25 @@ async function completeFirstCycle(
   await page.getByRole("button", { name: "Completar mi primer ciclo" }).click();
   await expect(
     page.getByRole("heading", { name: "Tu semilla despertó" }),
+  ).toBeVisible();
+}
+
+async function shareWithCommunity(
+  page: import("@playwright/test").Page,
+): Promise<void> {
+  await page
+    .getByRole("button", { name: "Compartir con la comunidad" })
+    .click();
+  await expect(
+    page.getByRole("button", { name: "Dejar de compartir" }),
+  ).toBeVisible();
+}
+
+async function withdrawFromCommunity(
+  page: import("@playwright/test").Page,
+): Promise<void> {
+  await page.getByRole("button", { name: "Dejar de compartir" }).click();
+  await expect(
+    page.getByRole("button", { name: "Compartir con la comunidad" }),
   ).toBeVisible();
 }

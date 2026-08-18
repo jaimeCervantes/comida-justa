@@ -17,64 +17,49 @@ function overviewHeading(template: string): string {
 const invitations = [
   {
     locale: "español",
-    home: "/",
-    cta: es.habitCommunity.invitation.cta,
-    destination: /\/pilares\/?$/,
+    hub: "/pilares",
     heading: overviewHeading(es.pillarsOverview.heading),
   },
   {
     locale: "inglés",
-    home: "/en",
-    cta: en.habitCommunity.invitation.cta,
-    destination: /\/en\/pillars\/?$/,
+    hub: "/en/pillars",
     heading: overviewHeading(en.pillarsOverview.heading),
   },
 ] as const;
 
-test.describe("La invitación a practicar del inicio", () => {
-  for (const { locale, home, cta, destination, heading } of invitations) {
-    test(`en ${locale} lleva al hub de los cuatro pilares`, async ({
-      page,
-    }) => {
-      await page.goto(home);
+test.describe("El hub de práctica de los cuatro pilares", () => {
+  for (const { locale, hub, heading } of invitations) {
+    test(`en ${locale} muestra el jardín comunitario`, async ({ page }) => {
+      await page.goto(hub);
 
-      await page
-        .getByTestId("community-practice-invitation")
-        .getByRole("link", { name: cta })
-        .click();
-
-      await expect(page).toHaveURL(destination);
       await expect(page.getByRole("heading", { name: heading })).toBeVisible();
+      await expect(page.getByTestId("community-habit-garden")).toBeVisible();
     });
   }
 
-  /* El jardín cuenta lo que la comunidad lleva hecho y el feed es otra conversación. La invitación
-     solo hace su trabajo entre los dos: pegada al número que la motiva y antes de que la portada
-     cambie de tema. */
-  test("se lee entre la actividad de la comunidad y el feed", async ({
+  /* El jardín cuenta lo que la comunidad lleva hecho; cuando además hay celebraciones públicas,
+     el hub las presenta después de ese resumen colectivo. */
+  test("muestra las celebraciones después de la actividad comunitaria", async ({
     page,
   }) => {
-    await page.goto("/");
+    await page.goto("/pilares");
 
     const sequence = await page.evaluate(() =>
       Array.from(
         document.querySelectorAll(
-          '[data-testid="community-habit-garden"], #community-celebrations-title, [data-testid="community-practice-invitation"], [data-testid="feed-masonry"]',
+          '[data-testid="community-habit-garden"], #community-celebrations-title',
         ),
       ).map((node) => node.getAttribute("data-testid") ?? node.id),
     );
 
-    const invitation = sequence.indexOf("community-practice-invitation");
-    expect(invitation).toBeGreaterThan(
-      sequence.indexOf("community-habit-garden"),
-    );
-    expect(invitation).toBeLessThan(sequence.indexOf("feed-masonry"));
+    const garden = sequence.indexOf("community-habit-garden");
+    expect(garden).toBeGreaterThanOrEqual(0);
 
     /* Las celebraciones dependen de que alguien haya compartido un hito: si la comunidad todavía
        no publicó ninguno, la lista no se pinta y no hay orden que afirmar. */
     const celebrations = sequence.indexOf("community-celebrations-title");
     if (celebrations !== -1) {
-      expect(invitation).toBeGreaterThan(celebrations);
+      expect(celebrations).toBeGreaterThan(garden);
     }
   });
 });
