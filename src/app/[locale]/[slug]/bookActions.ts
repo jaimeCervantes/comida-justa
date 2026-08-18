@@ -9,6 +9,7 @@ import { createBookAppointmentUseCase } from "~/infra/dataAccess/schedule/factor
 
 export interface BookActionState {
   booked?: boolean;
+  orderId?: string;
   error?: "slot-taken" | "not-offered" | "no-session";
 }
 
@@ -54,5 +55,5 @@ export async function bookSlot(
      enseñan la cita nueva. */
   revalidatePath("/pedidos");
 
-  return { booked: true };
+  return { booked: true, orderId: result.orderId };
 }

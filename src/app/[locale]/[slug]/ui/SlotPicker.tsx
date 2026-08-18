@@ -2,6 +2,7 @@
 
 import { useFormatter, useTranslations } from "next-intl";
 import { useActionState } from "react";
+import { Link } from "~/i18n/navigation";
 import { bookSlot } from "../bookActions";
 
 export type OfferedSlot = {
@@ -44,9 +45,19 @@ export default function SlotPicker({
 
   if (state.booked) {
     return (
-      <p className="mt-6 text-sm" data-testid="book-done">
-        {t("bookDone")}
-      </p>
+      <div className="mt-6 text-sm" data-testid="book-done">
+        <p className="font-medium text-pw-green">{t("bookDone")}</p>
+        <p className="mt-1 text-text-support">
+          {t("bookDoneHelp")}{" "}
+          <Link
+            href={{ pathname: "/pedidos", query: { vista: "placed" } }}
+            data-testid="book-orders-link"
+            className="font-medium text-pw-green underline"
+          >
+            {t("bookOrdersLink")}
+          </Link>
+        </p>
+      </div>
     );
   }
 
@@ -120,6 +131,14 @@ export default function SlotPicker({
       {state.error === "not-offered" ? (
         <p className="mt-2 text-sm text-feedback-error" data-testid="book-gone">
           {t("bookNotOffered")}
+        </p>
+      ) : null}
+      {state.error === "no-session" ? (
+        <p
+          className="mt-2 text-sm text-feedback-error"
+          data-testid="book-no-session"
+        >
+          {t("bookNoSession")}
         </p>
       ) : null}
     </form>

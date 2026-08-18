@@ -89,6 +89,14 @@ export async function sweepTestData(): Promise<TestDataCount> {
     DELETE FROM customer_orders WHERE seller_id IN (${TEST_SELLER_IDS})
   `);
 
+  await db.execute(sql`
+    DELETE FROM provider_time_off WHERE seller_id IN (${TEST_SELLER_IDS})
+  `);
+
+  await db.execute(sql`
+    DELETE FROM provider_availability WHERE seller_id IN (${TEST_SELLER_IDS})
+  `);
+
   const sellerPosts = await db.execute(sql`
     DELETE FROM posts
     USING sellers

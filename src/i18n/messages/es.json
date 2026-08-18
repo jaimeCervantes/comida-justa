@@ -1258,10 +1258,13 @@
     "whyHeading": "¿Por qué estos cuatro pilares?"
   },
   "post": {
-    "bookDone": "Listo, tu cita quedó pedida. Te avisan al confirmarla.",
+    "bookDone": "Tu cita quedó agendada.",
+    "bookDoneHelp": "Puedes verla y darle seguimiento en",
     "bookHeading": "Elige tu hora",
+    "bookNoSession": "Inicia sesión para agendar este servicio.",
     "bookNoSlots": "No hay huecos libres en los próximos días.",
     "bookNotOffered": "Esa hora ya no está disponible.",
+    "bookOrdersLink": "Mis pedidos",
     "bookSlotTaken": "Alguien se te adelantó por poco. Elige otra hora.",
     "bookSubmit": "Agendar",
     "edit": "Editar",

@@ -1258,10 +1258,13 @@
     "whyHeading": "Why these four pillars?"
   },
   "post": {
-    "bookDone": "Done, your appointment is requested. They will let you know when it is confirmed.",
+    "bookDone": "Your appointment is scheduled.",
+    "bookDoneHelp": "You can view it and follow up in",
     "bookHeading": "Pick your time",
+    "bookNoSession": "Sign in to book this service.",
     "bookNoSlots": "No free slots in the coming days.",
     "bookNotOffered": "That time is no longer available.",
+    "bookOrdersLink": "My orders",
     "bookSlotTaken": "Someone beat you to it by a moment. Pick another time.",
     "bookSubmit": "Book",
     "edit": "Edit",

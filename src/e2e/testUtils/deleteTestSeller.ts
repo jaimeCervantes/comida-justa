@@ -19,6 +19,16 @@ export async function deleteTestSellerByHandle(handle: string): Promise<void> {
   `);
 
   await db.execute(sql`
+    DELETE FROM provider_time_off
+    WHERE seller_id IN (SELECT id FROM sellers WHERE slug = ${handle})
+  `);
+
+  await db.execute(sql`
+    DELETE FROM provider_availability
+    WHERE seller_id IN (SELECT id FROM sellers WHERE slug = ${handle})
+  `);
+
+  await db.execute(sql`
     DELETE FROM posts
     WHERE seller_id IN (SELECT id FROM sellers WHERE slug = ${handle})
   `);
