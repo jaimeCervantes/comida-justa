@@ -14,6 +14,26 @@ import CardForList from "~/presentation/post/CardForList/CardForList";
 import PublicationPillarFilter from "~/presentation/post/PublicationPillarFilter";
 import { publicationPillarEmptyMessage } from "~/presentation/post/publicationPillarEmptyMessage";
 
+type PostsPageResponse = {
+  posts?: Post[];
+  nextPage: number | null;
+};
+
+async function readPostsPage(response: Response): Promise<PostsPageResponse> {
+  if (!response.ok) {
+    throw new Error(`GET /api/posts failed with status ${response.status}`);
+  }
+
+  const contentType = response.headers.get("content-type") ?? "";
+  if (!contentType.toLowerCase().includes("application/json")) {
+    throw new Error(
+      `GET /api/posts did not return JSON (${contentType || "no content-type"})`,
+    );
+  }
+
+  return (await response.json()) as PostsPageResponse;
+}
+
 /**
  * El feed del home: la primera página la pinta el servidor y el resto la pide este componente.
  *
@@ -84,10 +104,11 @@ export default function PostsWithLoadMore({
       const response = await fetch(
         `/api/posts/page/${nextPage}/pageSize/${PAGINATION_PAGE_SIZE}?${query.toString()}`,
       );
-      const data = await response.json();
+      const data = await readPostsPage(response);
+      const newPosts = data.posts ?? [];
 
-      if (data.posts && data.posts.length > 0) {
-        setPosts((prevPosts) => [...prevPosts, ...data.posts]);
+      if (newPosts.length > 0) {
+        setPosts((prevPosts) => [...prevPosts, ...newPosts]);
         setCurrentPage(nextPage);
         setHasMore(data.nextPage !== null);
       } else {

@@ -71,7 +71,12 @@ function distancias(): string[] {
 function respondeConUnaPaginaMas(posts: TarjetaSembrada[]): void {
   vi.stubGlobal(
     "fetch",
-    vi.fn(async () => ({ json: async () => ({ posts, nextPage: null }) })),
+    vi.fn(async () => ({
+      ok: true,
+      status: 200,
+      headers: new Headers({ "content-type": "application/json" }),
+      json: async () => ({ posts, nextPage: null }),
+    })),
   );
 }
 
@@ -105,6 +110,31 @@ describe("El feed del home", () => {
     await userEvent.click(screen.getByRole("button", { name: "Cargar más" }));
 
     await waitFor(() => expect(distancias()).toEqual(["a 2 km", "a 2.5 km"]));
+  });
+
+  it("no intenta parsear como JSON una respuesta HTML de error", async () => {
+    const json = vi.fn();
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => ({
+        ok: false,
+        status: 404,
+        headers: new Headers({ "content-type": "text/html" }),
+        json,
+      })),
+    );
+    renderWithIntl(feed(ENCIMA, [tarjeta("uno", 2000)], 2));
+
+    await userEvent.click(screen.getByRole("button", { name: "Cargar más" }));
+
+    await waitFor(() => expect(consoleError).toHaveBeenCalledTimes(1));
+    expect(json).not.toHaveBeenCalled();
+    expect(screen.getByRole("heading", { name: "E2E Pan uno" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Cargar más" })).toBeEnabled();
+    consoleError.mockRestore();
   });
 
   /*
@@ -225,6 +255,9 @@ describe("El feed del home", () => {
 
   it("conserva el pilar activo al cargar mas", async () => {
     const fetchMock = vi.fn(async () => ({
+      ok: true,
+      status: 200,
+      headers: new Headers({ "content-type": "application/json" }),
       json: async () => ({ posts: [tarjeta("dos", 2500)], nextPage: null }),
     }));
     vi.stubGlobal("fetch", fetchMock);
