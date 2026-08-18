@@ -2,16 +2,15 @@
 import { useTranslations } from "next-intl";
 import { useActionState } from "react";
 import { MdAddShoppingCart } from "react-icons/md";
-import { canBeOrdered } from "~/domain/entities/post/availability";
+import { canBeAddedToCart } from "~/domain/entities/post/availability";
 import { Button } from "~/presentation/design_system/buttons/Button";
 import { addToCart, type CartActionState } from "../cartActions";
 
 /**
  * Junta un producto para pedirlo con los demás.
  *
- * **No se pinta si no se puede pedir**, y la regla es la misma que apaga el botón de WhatsApp
- * (`canBeOrdered`): un anuncio no se vende y lo agotado no se puede entregar. Vive en un solo sitio
- * para que la ficha y la tarjeta no puedan discrepar.
+ * **No se pinta si no puede ir al carrito**: un servicio se agenda con horario y un evento ocurre en
+ * una fecha, así que ninguno debe mezclarse con inventario de producto.
  */
 export default function AddToCartButton({
   postId,
@@ -32,7 +31,7 @@ export default function AddToCartButton({
     {},
   );
 
-  if (!canBeOrdered({ kind, isAvailable })) return null;
+  if (!canBeAddedToCart({ kind, isAvailable })) return null;
 
   return (
     <form action={action} className={className}>

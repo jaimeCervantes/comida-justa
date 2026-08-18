@@ -18,6 +18,8 @@ describe("AddToCartButton", () => {
   it.each([
     ["producto", true, true, "es lo que esta feature viene a resolver"],
     ["producto", false, false, "no se junta lo que no se puede entregar"],
+    ["servicio", true, false, "se agenda con horario y crea pedido directo"],
+    ["evento", true, false, "ocurre en una fecha; no es inventario"],
     ["anuncio", true, false, "un anuncio no tiene precio: no suma"],
     ["anuncio", false, false, "un anuncio tampoco se agota"],
   ])(

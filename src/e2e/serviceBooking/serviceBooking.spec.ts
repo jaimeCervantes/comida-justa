@@ -58,6 +58,9 @@ test.describe("Cuando una persona agenda un servicio", () => {
   }) => {
     await page.goto(`/${servicio.slug}`);
 
+    await expect(
+      page.getByTestId("post-detail").getByTestId("add-to-cart"),
+    ).toHaveCount(0);
     await page.getByTestId("slot-select").selectOption({ index: 1 });
     await page.getByTestId("book-submit").click();
 

@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { canBeOrdered, isSellable, isSoldOut } from "./availability";
+import {
+  canBeAddedToCart,
+  canBeOrdered,
+  isSellable,
+  isSoldOut,
+} from "./availability";
 
 // Datos reales: "Jugo Verde" es producto; los 10 anuncios de la comunidad no se agotan.
 describe("isSoldOut", () => {
@@ -28,6 +33,30 @@ describe("canBeOrdered", () => {
     ],
   ])("%s → %s", (_caso, post, expected) => {
     expect(canBeOrdered(post)).toBe(expected);
+  });
+});
+
+describe("canBeAddedToCart", () => {
+  it.each([
+    ["producto disponible", { kind: "producto", isAvailable: true }, true],
+    ["producto agotado", { kind: "producto", isAvailable: false }, false],
+    [
+      "servicio disponible: se agenda con horario",
+      { kind: "servicio", isAvailable: true },
+      false,
+    ],
+    [
+      "evento con fecha: no es inventario",
+      { kind: "evento", isAvailable: true },
+      false,
+    ],
+    [
+      "anuncio: no hay nada que juntar",
+      { kind: "anuncio", isAvailable: true },
+      false,
+    ],
+  ])("%s → %s", (_caso, post, expected) => {
+    expect(canBeAddedToCart(post)).toBe(expected);
   });
 });
 

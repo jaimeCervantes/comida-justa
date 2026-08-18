@@ -229,3 +229,75 @@ la comunidad de habitos se valida en `/pilares`, no en el home.
 - Opcion A: commitear el slice de cards de servicio junto con la validacion e2e.
 - Opcion B: crear un follow-up para reducir ruido de Playwright por assets remotos.
 - Opcion C: avanzar al horario visible de citas en pedidos.
+
+## 2026-08-18 - Slice 4: carrito solo para productos
+
+### Objective
+
+Corregir que el detalle de publicaciones tipo servicio siguiera mostrando "Añadir al carrito" aunque
+el modelo acordado dice que un servicio se agenda con horario y crea pedido directo. Se cubrio
+tambien evento porque el detalle no debe sugerir carrito para algo que ocurre en una fecha.
+
+### Decisions + rationale
+
+- Se separo `canBeOrdered` de `canBeAddedToCart`. Un servicio sigue siendo pedible porque tiene
+precio y disponibilidad, pero no es agregable al carrito porque necesita horario.
+- `AddToCartButton` consume la nueva regla de carrito. Esto arregla el detalle y cualquier otra
+superficie futura que use el boton directo.
+- Se mantuvo `CardForList` como estaba: servicios disponibles muestran "Agendar"; productos
+mantienen carrito.
+
+### Files touched
+
+- Dominio:
+  - `src/domain/entities/post/availability.ts`
+  - `src/domain/entities/post/availability.test.ts`
+- Carrito:
+  - `src/presentation/cart/AddToCartButton/AddToCartButton.tsx`
+  - `src/presentation/cart/AddToCartButton/AddToCartButton.test.tsx`
+- E2E:
+  - `src/e2e/serviceBooking/serviceBooking.spec.ts`
+  - `src/e2e/eventos/eventos.spec.ts`
+- Roadmap:
+  - `docs/features/agendar-servicios.md`
+  - `docs/features/agendar-servicios-bitacora.md`
+
+### Key commands
+
+- `pnpm exec vitest --run src/domain/entities/post/availability.test.ts src/presentation/cart/AddToCartButton/AddToCartButton.test.tsx src/presentation/post/CardForList/CardForList.test.tsx`
+- `pnpm run typecheck`
+- `pnpm run lint`
+- `pnpm exec playwright test src/e2e/serviceBooking src/e2e/eventos --reporter=dot`
+- `pnpm run test:run`
+
+### Validation results
+
+- Vitest focal: 3 files, 50 tests passed.
+- Typecheck: passed.
+- Lint: passed, 904 files checked.
+- E2E focal servicio/evento: 7 tests passed.
+- Vitest completo: 180 files, 1906 tests passed.
+
+### Deviations from roadmap
+
+- El fix se hizo como slice adicional porque el bug aparecio despues de separar las cards: el detalle
+seguia usando la regla vieja de "pedible" para decidir carrito.
+
+### Follow-ups
+
+- Revisar si el boton de WhatsApp en servicios tambien debe cambiar de texto o desaparecer cuando
+hay agenda disponible, para que el detalle no mezcle "pedir" con "agendar".
+- Slice 3 pendiente: mostrar horario de cita en pedidos.
+
+### Recap
+
+El carrito queda limitado a productos disponibles. Los servicios pueden seguir siendo pedibles por el
+flujo de agenda, pero `AddToCartButton` ya no se pinta para ellos; los eventos tampoco muestran
+carrito en el detalle.
+
+### Proximos pasos (opciones)
+
+- Opcion A: probar manualmente `/descanso-reparador` y un evento publicado para confirmar que no
+  aparece "Añadir al carrito".
+- Opcion B: decidir si el CTA de WhatsApp debe ocultarse o renombrarse para servicios con agenda.
+- Opcion C: continuar con horario visible en pedidos para comprador y proveedor.

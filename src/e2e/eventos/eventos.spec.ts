@@ -67,6 +67,9 @@ test.describe("When a group publishes something that happens", () => {
         "data-state",
         "proximo",
       );
+      await expect(
+        page.getByTestId("post-detail").getByTestId("add-to-cart"),
+      ).toHaveCount(0);
     });
   }
 });

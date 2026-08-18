@@ -48,3 +48,15 @@ Scope:
 Acceptance criteria:
 - Comprador y vendedor distinguen una cita sin abrir conversaciones externas.
 - Los pedidos de producto siguen viendose sin bloque de cita.
+
+### Slice 4 - El detalle no mete servicios ni eventos al carrito
+
+Scope:
+- Separar la regla de "pedible" de la regla de "agregable al carrito".
+- Mantener carrito solo para productos disponibles.
+- Ocultar "Añadir al carrito" en el detalle de servicios y eventos.
+
+Acceptance criteria:
+- Un producto disponible conserva "Añadir al carrito".
+- Un servicio disponible no muestra "Añadir al carrito" en su detalle.
+- Un evento no muestra "Añadir al carrito" en su detalle.

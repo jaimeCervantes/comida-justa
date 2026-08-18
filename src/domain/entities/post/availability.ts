@@ -1,3 +1,4 @@
+import { PRODUCT_KIND } from "./hazloSanoProduct";
 import { SELLABLE_KINDS } from "./kind";
 
 export const SOLD_OUT_LABEL = "Agotado";
@@ -34,4 +35,14 @@ export function isSoldOut(post: AvailabilityFields): boolean {
  */
 export function canBeOrdered(post: AvailabilityFields): boolean {
   return isSellable(post) && !isSoldOut(post);
+}
+
+/**
+ * El carrito junta entregables, no reservas.
+ *
+ * Un servicio si se cobra, pero se agenda con horario y crea un pedido directo; meterlo al carrito
+ * pierde ese dato. Un evento tampoco entra: asistir a una fecha concreta no es comprar inventario.
+ */
+export function canBeAddedToCart(post: AvailabilityFields): boolean {
+  return post.kind === PRODUCT_KIND && !isSoldOut(post);
 }
