@@ -41,6 +41,16 @@ Justicia para las familias, tanto de productores locales como de consumidores y 
 
 # Development
 
+## GitHub Actions e2e toggle
+
+The Playwright workflow is disabled by default while the e2e suite is being split into
+resource-safe shards.
+
+- Push/PR e2e runs stay skipped unless the repository variable `RUN_E2E` is set to `true`.
+- For a one-off run without changing the variable, use `Actions > Playwright Tests > Run workflow`
+  and enable `run_e2e`.
+- To disable it again, delete `RUN_E2E` or set it to anything other than `true`.
+
 ## Playwright test with Google Sigin Provider
 
 Just use page.waitForURL() to get the correct url path, this function waits until the correct url is available. In this case if there is redirects like google sign in, it waits anyway until google sign in url is available.
