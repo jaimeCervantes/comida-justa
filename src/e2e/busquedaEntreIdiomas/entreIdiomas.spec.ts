@@ -57,7 +57,7 @@ test.describe("Cuando el término está en el otro idioma del sitio", () => {
   test("Entonces el término inglés lo encuentra navegando en español", async ({
     page,
   }) => {
-    await page.goto(`/buscar/${RAIZ_EN}/page/1`);
+    await page.goto(`/buscar?q=${RAIZ_EN}&page=1`);
 
     expect(await resultTitles(page)).toContain(tituloEs);
   });
@@ -68,7 +68,7 @@ test.describe("Cuando el término está en el otro idioma del sitio", () => {
   test("Y se ve con su título en español, no con el que coincidió", async ({
     page,
   }) => {
-    await page.goto(`/buscar/${RAIZ_EN}/page/1`);
+    await page.goto(`/buscar?q=${RAIZ_EN}&page=1`);
 
     const titles = await resultTitles(page);
     expect(titles).toContain(tituloEs);
@@ -78,7 +78,7 @@ test.describe("Cuando el término está en el otro idioma del sitio", () => {
   test("Entonces el término español lo encuentra navegando en inglés", async ({
     page,
   }) => {
-    await page.goto(`/en/search/${RAIZ_ES}/page/1`);
+    await page.goto(`/en/search?q=${RAIZ_ES}&page=1`);
 
     expect(await resultTitles(page)).toContain(tituloEn);
   });
@@ -98,7 +98,9 @@ test.describe("Cuando el término está en el otro idioma del sitio", () => {
   test("Y la fila inglesa se lematiza en inglés aunque yo esté en español", async ({
     page,
   }) => {
-    await page.goto(`/buscar/${encodeURIComponent(`${RAIZ_EN} bake`)}/page/1`);
+    await page.goto(
+      `/buscar?q=${encodeURIComponent(`${RAIZ_EN} bake`)}&page=1`,
+    );
 
     expect(await resultTitles(page)).toContain(tituloEs);
   });
@@ -111,7 +113,7 @@ test.describe("Cuando el término está en el otro idioma del sitio", () => {
   }) => {
     /* "E2E" está en los dos títulos, así que el término coincide en la fila española y en la
        inglesa a la vez. */
-    await page.goto(`/buscar/${RAIZ_ES}/page/1`);
+    await page.goto(`/buscar?q=${RAIZ_ES}&page=1`);
 
     const titles = await resultTitles(page);
     expect(titles.filter((title) => title === tituloEs)).toHaveLength(1);
@@ -163,7 +165,7 @@ test.describe("Cuando dos publicaciones coinciden en idiomas distintos", () => {
   test("Entonces la que coincide en mi idioma sale primero", async ({
     page,
   }) => {
-    await page.goto(`/buscar/${RAIZ}/page/1`);
+    await page.goto(`/buscar?q=${RAIZ}&page=1`);
 
     const titles = await resultTitles(page);
     expect(titles.indexOf(propioTitulo)).toBeGreaterThanOrEqual(0);
@@ -174,7 +176,7 @@ test.describe("Cuando dos publicaciones coinciden en idiomas distintos", () => {
 
   /* Y en inglés se invierte, por el mismo motivo y sin una regla aparte. */
   test("Y navegando en inglés se invierte", async ({ page }) => {
-    await page.goto(`/en/search/${RAIZ}/page/1`);
+    await page.goto(`/en/search?q=${RAIZ}&page=1`);
 
     const titles = await resultTitles(page);
     expect(titles.indexOf(ajenoTituloEn)).toBeGreaterThanOrEqual(0);

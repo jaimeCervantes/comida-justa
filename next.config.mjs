@@ -58,6 +58,21 @@ const nextConfig = {
         destination: "/:locale/nosotros",
         permanent: true,
       },
+      {
+        source: "/buscar/:term/page/:page",
+        destination: "/buscar?q=:term&page=:page",
+        permanent: false,
+      },
+      {
+        source: "/en/search/:term/page/:page",
+        destination: "/en/search?q=:term&page=:page",
+        permanent: false,
+      },
+      {
+        source: "/en/buscar/:term/page/:page",
+        destination: "/en/search?q=:term&page=:page",
+        permanent: false,
+      },
     ];
   },
 };

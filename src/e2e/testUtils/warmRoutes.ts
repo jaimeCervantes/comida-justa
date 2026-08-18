@@ -48,10 +48,9 @@ const RUTAS = [
      ver un pedido. El uuid de ceros no existe ni existirá. */
   "/pedido/00000000-0000-0000-0000-000000000000",
 
-  /* `/buscar/[term]/page/[page]` es **otra unidad de compilación** que `/buscar`: comparten el
-     primer segmento y nada más. La usan los dos escenarios de `cartFromSearch`, que fueron dos de
-     aquellos siete fallos. */
-  "/buscar/pan/page/1",
+  /* La búsqueda pagina por query string: es la misma unidad de compilación que `/buscar`, pero con
+     datos suficientes para calentar el flujo que usan los escenarios de resultados. */
+  "/buscar?q=pan&page=1",
   "/pilares/sueno",
   "/pilares/alimentacion",
   "/pilares/movimiento",

@@ -151,3 +151,80 @@ que no estaban dichas:
    **buscar en inglés devolvía cero resultados siempre**. Hoy queda tapado porque las 23 están
    traducidas, pero reaparece en cuanto una publicación nueva se quede sin su fila `en`.
 
+---
+
+## Nota posterior (2026-08-18): la búsqueda pagina con query strings
+
+### Objetivo
+
+Quitar la ruta de resultados `/buscar/[term]/page/[page]` del flujo principal. Aunque parecía más
+semántica, los resultados de búsqueda ya son `noindex` y el término es input libre: espacios,
+acentos, `%` y otros signos pertenecen mejor al query string. Además, el shard 3/4 de e2e fallaba
+de forma estable porque `cartFromSearch` entraba por `/buscar/<token>/page/1` y recibía la página
+404 antes de poder afirmar nada del carrito.
+
+### Decisiones y racional
+
+- `/buscar?q=...&page=...` queda como la única ruta que renderiza resultados. Es la forma que ya
+  usaba `SearchBar` y la mayoría de specs.
+- `Pagination` ahora soporta paginación por query param con `pageQueryParam`, sin duplicar la UI ni
+  romper las rutas que sí paginan por segmento (`/productos/page/2`, `/tienda/.../page/2`).
+- La ruta antigua `buscar/[term]/page/[page]` queda como redirect liviano y `next.config.mjs`
+  añade redirects tempranos para las URLs viejas en español e inglés.
+- Se quitó `/buscar/[term]/page/[page]` de `routing.ts` para que los enlaces tipados nuevos no
+  puedan volver a apuntar ahí por accidente.
+
+### Archivos tocados
+
+- Búsqueda/routing: `src/app/[locale]/buscar/page.tsx`,
+  `src/app/[locale]/buscar/[term]/page/[page]/page.tsx`, `src/i18n/routing.ts`,
+  `next.config.mjs`.
+- Paginación compartida: `src/presentation/navigation/Pagination.tsx`,
+  `src/presentation/navigation/Pagination.test.tsx`.
+- E2E: `src/e2e/orders/cartFromSearch.spec.ts`,
+  `src/e2e/busquedaEntreIdiomas/entreIdiomas.spec.ts`,
+  `src/e2e/busquedaRelevante/textoCompleto.spec.ts`, `src/e2e/testUtils/warmRoutes.ts`.
+- Documentación viva: `docs/features/busqueda-relevante.md`,
+  `docs/features/busqueda-relevante-bitacora.md`.
+
+### Comandos clave y validación
+
+| Comando | Resultado |
+| --- | --- |
+| `pnpm exec vitest --run src/presentation/navigation/Pagination.test.tsx` | **2 pasados** |
+| `pnpm run typecheck` | limpio |
+| `pnpm exec vitest --run "src/presentation/navigation/Pagination.test.tsx" "src/app/(home)/PostsWithLoadMore.test.tsx"` | **10 pasados**, 2 archivos |
+| `pnpm run lint` | limpio, 911 archivos |
+| `pnpm run test:run` | **1912 pasados**, 181 archivos |
+| `pnpm run test:e2e:run -- src/e2e/orders/cartFromSearch.spec.ts --reporter=line` | **2 pasados** |
+| `pnpm run test:e2e:run -- src/e2e/busquedaEntreIdiomas/entreIdiomas.spec.ts src/e2e/busquedaRelevante/textoCompleto.spec.ts --reporter=line` | **14 pasados** |
+| `pnpm run test:e2e:run -- --shard=3/4 --reporter=line` | **81 pasados** |
+
+### Desviaciones
+
+No se relanzaron los shards 1/4, 2/4 y 4/4 después de esta corrección porque ya estaban verdes en
+la corrida anterior y el único shard rojo era 3/4. Se corrigió y se relanzó completo.
+
+### Follow-ups
+
+- Considerar borrar físicamente la ruta legacy en un release posterior, cuando ya no necesitemos
+  compatibilidad con enlaces viejos.
+- Si se quieren redirects permanentes para `/buscar/<term>/page/<page>`, hacerlo después de ver que
+  no hay clientes internos dependiendo del formato antiguo.
+
+### Recap
+
+La búsqueda queda con una sola URL real: `/buscar?q=termino&page=n` en español y `/en/search?q=term&page=n`
+en inglés. La ruta vieja ya no renderiza resultados, solo redirige, y `Pagination` puede seguir
+sirviendo tanto listados semánticos por segmento como búsquedas por query string. El fallo estable de
+`cartFromSearch` quedó verde y el shard 3/4 completo volvió a pasar.
+
+### Próximos pasos (opciones)
+
+1. **Seguir con el roadmap de eventos/productos**, ya con la suite del shard afectado limpia.
+2. **Revisar redirects legacy de búsqueda** en analytics/logs antes de convertirlos en permanentes.
+3. **Atacar los avisos de imágenes e2e** (`seed.jpg` 412/404) como deuda separada; no fallan la
+   suite, pero ensucian mucho el diagnóstico.
+
+**Pendiente del usuario:** decidir si quiere relanzar otra vez la suite e2e completa en 4 shards
+después del cambio, aunque el shard que fallaba ya quedó verde.

@@ -43,7 +43,7 @@ test.describe("Cuando alguien escribe el término con otra forma", () => {
     /* `ILIKE '%buñuelos%'` no encontraba «buñuelo», y al revés tampoco: sin lematización, cada
        forma de una palabra era una palabra distinta. La configuración `spanish` de Postgres las
        reduce a la misma raíz. */
-    await page.goto(`/buscar/${encodeURIComponent("buñuelo")}/page/1`);
+    await page.goto(`/buscar?q=${encodeURIComponent("buñuelo")}&page=1`);
 
     expect(await resultTitles(page)).toContain(title);
   });
@@ -51,13 +51,13 @@ test.describe("Cuando alguien escribe el término con otra forma", () => {
   test("Entonces el acento de más no lo hace desaparecer", async ({ page }) => {
     /* Escribir `Buñuélos` devolvía cero. El diccionario español normaliza los diacríticos por su
        cuenta, así que **no hizo falta instalar `unaccent`** en la base compartida. */
-    await page.goto(`/buscar/${encodeURIComponent("buñuélos")}/page/1`);
+    await page.goto(`/buscar?q=${encodeURIComponent("buñuélos")}&page=1`);
 
     expect(await resultTitles(page)).toContain(title);
   });
 
   test("Entonces las mayúsculas siguen dando igual", async ({ page }) => {
-    await page.goto(`/buscar/${encodeURIComponent("BUÑUELOS")}/page/1`);
+    await page.goto(`/buscar?q=${encodeURIComponent("BUÑUELOS")}&page=1`);
 
     expect(await resultTitles(page)).toContain(title);
   });
@@ -86,13 +86,13 @@ test.describe("Cuando el término cae dentro de otra palabra", () => {
    * el término, peor la precisión — y «pan» es de lo más buscado en un catálogo de comida.
    */
   test("Entonces no sale por emparejar a medias", async ({ page }) => {
-    await page.goto("/buscar/pan/page/1");
+    await page.goto("/buscar?q=pan&page=1");
 
     expect(await resultTitles(page)).not.toContain(title);
   });
 
   test("Pero sí sale cuando se busca la palabra entera", async ({ page }) => {
-    await page.goto("/buscar/panela/page/1");
+    await page.goto("/buscar?q=panela&page=1");
 
     expect(await resultTitles(page)).toContain(title);
   });
@@ -124,13 +124,13 @@ test.describe("Cuando alguien busca en un idioma sin traducir", () => {
    * entero en español, buscar en inglés devolvía cero resultados para todo.
    */
   test("Entonces aparece igual, con su texto en español", async ({ page }) => {
-    await page.goto(`/en/buscar/${RAIZ}/page/1`);
+    await page.goto(`/en/search?q=${RAIZ}&page=1`);
 
     expect(await resultTitles(page)).toContain(title);
   });
 
   test("Y en español sigue apareciendo, claro", async ({ page }) => {
-    await page.goto(`/buscar/${RAIZ}/page/1`);
+    await page.goto(`/buscar?q=${RAIZ}&page=1`);
 
     expect(await resultTitles(page)).toContain(title);
   });

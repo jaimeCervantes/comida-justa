@@ -50,10 +50,6 @@ export const pathnames = {
      vende—, así que su dirección no se reparte ni se indexa. */
   "/pedido/[id]": { es: "/pedido/[id]", en: "/order/[id]" },
   "/buscar": { es: "/buscar", en: "/search" },
-  "/buscar/[term]/page/[page]": {
-    es: "/buscar/[term]/page/[page]",
-    en: "/search/[term]/page/[page]",
-  },
   "/condiciones-de-servicio": {
     es: "/condiciones-de-servicio",
     en: "/terms-of-service",

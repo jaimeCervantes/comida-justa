@@ -19,4 +19,21 @@ describe("Pagination", () => {
       "/productos/page/2?pillar=movement",
     );
   });
+
+  it("pagina por query string cuando la ruta no lleva el numero en el path", () => {
+    renderWithIntl(
+      <Pagination
+        currentPage={1}
+        totalPages={3}
+        pathname="/buscar"
+        query={{ q: "jugo verde", pillar: "nutrition" }}
+        pageQueryParam="page"
+      />,
+    );
+
+    expect(screen.getByRole("link", { name: "Siguiente" })).toHaveAttribute(
+      "href",
+      "/buscar?q=jugo+verde&pillar=nutrition&page=2",
+    );
+  });
 });

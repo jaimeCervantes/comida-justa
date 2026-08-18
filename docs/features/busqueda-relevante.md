@@ -41,10 +41,11 @@ existe y llega siempre vacío**, porque la consulta nunca calcula la distancia.
 
 ### 4. El servidor se llama a sí mismo por HTTP
 
-`buscar/page.tsx:21` y `buscar/[term]/page/[page]/page.tsx:14` son Server Components que hacen
-`fetch` a su propia API `/api/search`. Cuesta un viaje HTTP completo por búsqueda, y —lo que
-importa aquí— **ese fetch no reenvía las cookies**, así que `readVisitorLocation()` dentro del route
-handler no vería nada. Toda otra página del repo llama a su repositorio directamente.
+`buscar/page.tsx` era un Server Component que hacía `fetch` a su propia API `/api/search`. Cuesta
+un viaje HTTP completo por búsqueda, y —lo que importa aquí— **ese fetch no reenvía las cookies**,
+así que `readVisitorLocation()` dentro del route handler no vería nada. Toda otra página del repo
+llama a su repositorio directamente. La ruta antigua `buscar/[term]/page/[page]` ya no renderiza:
+solo redirige a `/buscar?q=...&page=...`.
 
 `/api/search` sí tiene un consumidor legítimo: `SearchBar.tsx:73`, el autocompletado del cliente. Ese
 se queda.

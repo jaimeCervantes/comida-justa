@@ -1,9 +1,19 @@
 import { useTranslations } from "next-intl";
-import { type AppHref, Link, type PaginatedPathname } from "~/i18n/navigation";
+import {
+  type AppHref,
+  type AppPathname,
+  Link,
+  type PaginatedPathname,
+} from "~/i18n/navigation";
 
-interface PaginationProps {
+type CommonPaginationProps = {
   currentPage: number;
   totalPages: number;
+  /** Query string que debe sobrevivir al cambio de página, como `pillar=movement`. */
+  query?: Record<string, string | undefined>;
+};
+
+type SegmentPaginationProps = CommonPaginationProps & {
   /**
    * La ruta que pagina, declarada en `routing.ts`: `"/page/[page]"`,
    * `"/productos/page/[page]"`, `"/tienda/[slug]/page/[page]"`…
@@ -16,9 +26,17 @@ interface PaginationProps {
   pathname: PaginatedPathname;
   /** Los segmentos que la ruta necesita **además** de `page`: `slug`, `term`, `username`. */
   params?: Record<string, string>;
-  /** Query string que debe sobrevivir al cambio de página, como `pillar=movement`. */
-  query?: Record<string, string | undefined>;
-}
+  pageQueryParam?: never;
+};
+
+type QueryPaginationProps = CommonPaginationProps & {
+  /** Ruta estable; el número de página viaja como query string. */
+  pathname: AppPathname;
+  params?: Record<string, string>;
+  pageQueryParam: string;
+};
+
+type PaginationProps = SegmentPaginationProps | QueryPaginationProps;
 
 /**
  * El aspecto de un enlace de paginación.
@@ -40,6 +58,7 @@ export default function Pagination({
   pathname,
   params,
   query,
+  pageQueryParam,
 }: PaginationProps) {
   const t = useTranslations("feed");
   if (totalPages <= 1) return null;
@@ -57,12 +76,21 @@ export default function Pagination({
   /* El cast es la única costura: TypeScript no puede comprobar que estos `params` son los que pide
      *esta* ruta concreta, porque `pathname` llega como unión. Lo que sí queda garantizado por el
      tipo es lo que importaba: que la ruta exista y que sea una que pagina. */
-  const hrefForPage = (page: number): AppHref =>
-    ({
+  const hrefForPage = (page: number): AppHref => {
+    if (pageQueryParam) {
+      return {
+        pathname,
+        params,
+        query: { ...query, [pageQueryParam]: String(page) },
+      } as AppHref;
+    }
+
+    return {
       pathname,
       params: { ...params, page: String(page) },
       query,
-    }) as AppHref;
+    } as AppHref;
+  };
 
   return (
     <nav

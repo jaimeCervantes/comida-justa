@@ -50,7 +50,7 @@ test.describe("Cuando alguien busca y quiere comprar sin abrir la publicación",
   test("Entonces el producto se añade desde su resultado y el anuncio no lo ofrece", async ({
     page,
   }) => {
-    await page.goto(`/buscar/${TOKEN}/page/1`);
+    await page.goto(`/buscar?q=${TOKEN}&page=1`);
 
     const tarjetaProducto = page
       .locator("article")
@@ -82,7 +82,7 @@ test.describe("Cuando alguien busca y quiere comprar sin abrir la publicación",
   test("Entonces su tarjeta enseña las mismas insignias que en el catálogo", async ({
     page,
   }) => {
-    await page.goto(`/buscar/${TOKEN}/page/1`);
+    await page.goto(`/buscar?q=${TOKEN}&page=1`);
 
     const enBusqueda = page
       .locator("article")

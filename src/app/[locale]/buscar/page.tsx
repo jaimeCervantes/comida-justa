@@ -76,13 +76,12 @@ export default async function SearchPage({
       <Pagination
         currentPage={pageInt}
         totalPages={totalPages}
-        pathname="/buscar/[term]/page/[page]"
-        params={{ term: q }}
-        query={
-          currentPillar
-            ? { [PUBLICATION_PILLAR_QUERY_PARAM]: currentPillar }
-            : undefined
-        }
+        pathname="/buscar"
+        pageQueryParam="page"
+        query={{
+          q,
+          [PUBLICATION_PILLAR_QUERY_PARAM]: currentPillar ?? undefined,
+        }}
       />
     </>
   );
