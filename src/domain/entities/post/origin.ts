@@ -11,10 +11,12 @@
  * - Si lo **revende**, el producto viajó desde otra parte y sus coordenadas no dicen nada de eso.
  *   Solo él sabe de dónde lo trajo, así que ahí sí hay que preguntar.
  */
+export const PRODUCER_ORIGIN = "productor";
+
 export const POST_ORIGINS = [
   "hazlo_sano_propio",
   "hazlo_sano_reventa",
-  "productor",
+  PRODUCER_ORIGIN,
   "reventa_cercana",
   "reventa_lejana",
 ] as const;
@@ -45,7 +47,7 @@ export function isHazloSanoOrigin(value: string | null | undefined): boolean {
  * puede contestar aquí porque no vive en el post sino en la sucursal de su tienda.
  */
 export function isProducerOrigin(value: string | null | undefined): boolean {
-  return value === "productor";
+  return value === PRODUCER_ORIGIN;
 }
 
 /** ¿El vendedor declaró que lo consiguió cerca? Es lo único que la insignia puede afirmar sola. */

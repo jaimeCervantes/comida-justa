@@ -1,4 +1,5 @@
 import { sql } from "drizzle-orm";
+import { PRODUCER_ORIGIN } from "~/domain/entities/post/origin";
 import type { SitemapContent } from "~/domain/seo/sitemap";
 import { db } from "~/infra/dataAccess/db/connection";
 import { PUBLISHED_POSTS } from "~/infra/dataAccess/db/publishedPosts";
@@ -56,7 +57,7 @@ export async function getSitemapContent(): Promise<SitemapContent> {
       SELECT '/productores-locales' AS path
       WHERE EXISTS (
         SELECT 1 FROM posts p
-        WHERE ${PUBLISHED_POSTS} AND p.origin = 'productor_local'
+        WHERE ${PUBLISHED_POSTS} AND p.origin = ${PRODUCER_ORIGIN}
       )
     `),
   ]);
