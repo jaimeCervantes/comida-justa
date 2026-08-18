@@ -72,3 +72,18 @@ test.describe("Cuando una persona agenda un servicio", () => {
     await expect(page.getByTestId("cart-count")).toHaveCount(0);
   });
 });
+
+test.describe("Cuando un servicio aparece en un listado", () => {
+  test("Entonces su card lleva a agendar y no al carrito", async ({ page }) => {
+    await page.goto("/");
+
+    const card = page.locator("article").filter({ hasText: servicio.title });
+
+    await expect(card.getByTestId("card-book-service")).toBeVisible();
+    await expect(card.getByTestId("card-book-service")).toHaveAttribute(
+      "href",
+      `/${servicio.slug}`,
+    );
+    await expect(card.getByTestId("add-to-cart")).toHaveCount(0);
+  });
+});

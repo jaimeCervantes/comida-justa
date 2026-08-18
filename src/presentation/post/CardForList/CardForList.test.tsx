@@ -120,6 +120,37 @@ describe("When a card is listed", () => {
     expect(queryByTestId("card-owner-controls")).not.toBeInTheDocument();
   });
 
+  it("a un producto disponible le ofrece agregar al carrito", () => {
+    const { getByTestId, queryByTestId } = render(
+      <CardForList {...baseProps} kind="producto" isAvailable={true} />,
+    );
+
+    expect(getByTestId("add-to-cart")).toBeInTheDocument();
+    expect(queryByTestId("card-book-service")).not.toBeInTheDocument();
+  });
+
+  it("a un servicio disponible le ofrece agendar, no agregar al carrito", () => {
+    const { getByTestId, queryByTestId } = render(
+      <CardForList {...baseProps} kind="servicio" isAvailable={true} />,
+    );
+
+    expect(getByTestId("card-book-service")).toHaveAttribute(
+      "href",
+      "/miel-de-abeja",
+    );
+    expect(getByTestId("card-book-service")).toHaveTextContent("Agendar");
+    expect(queryByTestId("add-to-cart")).not.toBeInTheDocument();
+  });
+
+  it("a un servicio agotado no le ofrece agendar ni carrito", () => {
+    const { queryByTestId } = render(
+      <CardForList {...baseProps} kind="servicio" isAvailable={false} />,
+    );
+
+    expect(queryByTestId("card-book-service")).not.toBeInTheDocument();
+    expect(queryByTestId("add-to-cart")).not.toBeInTheDocument();
+  });
+
   /* Un anuncio no se agota: a su dueño se le ofrece editarlo y nada más. */
   it("a un anuncio propio solo le ofrece editar", () => {
     const { getByTestId } = render(

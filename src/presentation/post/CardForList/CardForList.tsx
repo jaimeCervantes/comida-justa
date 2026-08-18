@@ -1,11 +1,13 @@
 import { useTranslations } from "next-intl";
-import { isSellable } from "~/domain/entities/post/availability";
+import { canBeOrdered, isSellable } from "~/domain/entities/post/availability";
+import { SERVICE_KIND } from "~/domain/entities/post/kind";
 import { hasKnownAspect } from "~/domain/entities/post/mediaAspect";
 import { Link } from "~/i18n/navigation";
 import { storeHref } from "~/i18n/routes";
 import { PUBLIC_BASE_URL, SITE_CURRENCY } from "~/infra/constants";
 import type { Post } from "~/infra/types/Posts";
 import AddToCartButton from "~/presentation/cart/AddToCartButton/AddToCartButton";
+import { cn } from "~/presentation/design_system/styling/merge-class-names";
 import { CARD_ROW } from "~/presentation/design_system/surfaces/cardSpacing";
 import IdentityLink from "~/presentation/identity/IdentityLink";
 import type { StoreIdentity } from "~/presentation/identity/StoreIdentity";
@@ -84,6 +86,7 @@ export default function CardForList(
     onAvailabilityChange,
   } = props;
   const anchorProps = { href: to, title: title };
+  const detailHref = slug ? `/${String(slug)}` : to;
   const isOwner = Boolean(viewerId) && user?.id === viewerId;
   /* Se lee del catálogo y no viaja como dato, a diferencia de `categoryLabel`: ese necesita la
      base y por eso se resuelve en el servidor; esto es solo una cadena del catálogo, que el
@@ -185,16 +188,29 @@ export default function CardForList(
         />
       </span>
 
-      {/* Juntar sin abrir la publicación: el camino real de quien compra es recorrer el listado y
-          echar al carrito lo que reconoce, no entrar y volver trece veces. La regla de cuándo se
-          pinta vive dentro del botón, que es el mismo que usa la ficha. */}
-      <AddToCartButton
-        postId={String(id ?? "")}
-        kind={kind}
-        isAvailable={isAvailable}
-        size="xs"
-        className="mt-2"
-      />
+      {kind === SERVICE_KIND && canBeOrdered({ kind, isAvailable }) ? (
+        <Link
+          href={detailHref}
+          data-testid="card-book-service"
+          className={cn(
+            "focus-ring mt-2 inline-flex w-fit items-center justify-center rounded-lg",
+            "bg-pw-green px-2 py-2 text-xs text-white transition-colors hover:bg-pw-green/80",
+          )}
+        >
+          {t("bookSubmit")}
+        </Link>
+      ) : (
+        /* Juntar sin abrir la publicación: el camino real de quien compra productos es recorrer el
+           listado y echar al carrito lo que reconoce, no entrar y volver trece veces. Un servicio
+           con agenda no pasa por este camino: primero se elige horario en la ficha. */
+        <AddToCartButton
+          postId={String(id ?? "")}
+          kind={kind}
+          isAvailable={isAvailable}
+          size="xs"
+          className="mt-2"
+        />
+      )}
 
       {isOwner ? (
         <CardOwnerControls

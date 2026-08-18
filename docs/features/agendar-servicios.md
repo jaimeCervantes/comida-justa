@@ -25,7 +25,20 @@ Acceptance criteria:
 - La confirmacion incluye un enlace a "Mis pedidos" que apunta a `/pedidos?vista=placed`.
 - El contador del carrito no cambia por agendar un servicio.
 
-### Slice 2 - Horario visible en listas y detalle de pedidos
+### Slice 2 - Las cards de servicio llevan a agendar
+
+Scope:
+- Las tarjetas/listados que usan `CardForList` muestran "Agendar" para servicios disponibles.
+- Las tarjetas de servicios no muestran "Añadir al carrito".
+- El CTA de la tarjeta lleva al detalle del servicio; ahi se elige el horario real.
+- Los productos conservan "Añadir al carrito".
+
+Acceptance criteria:
+- Una card de servicio disponible muestra "Agendar" y enlaza a su detalle.
+- Esa misma card no muestra "Añadir al carrito".
+- Una card de producto disponible sigue mostrando "Añadir al carrito".
+
+### Slice 3 - Horario visible en listas y detalle de pedidos
 
 Scope:
 - Leer `customer_orders.during` en el repositorio de pedidos.
@@ -35,4 +48,3 @@ Scope:
 Acceptance criteria:
 - Comprador y vendedor distinguen una cita sin abrir conversaciones externas.
 - Los pedidos de producto siguen viendose sin bloque de cita.
-

@@ -83,3 +83,149 @@ enlace de seguimiento y la limpieza e2e necesaria para probar agendas sin dejar 
 - Opcion B: avanzar al slice 2 para mostrar el horario de la cita en las listas y el detalle de
   pedidos.
 - Opcion C: ocultar o condicionar el boton de carrito en servicios con agenda.
+
+## 2026-08-18 - Slice 2: las cards de servicio llevan a agendar
+
+### Objective
+
+Hacer que la separacion producto/carrito y servicio/agenda tambien se vea en los listados: una card
+de servicio no debe invitar a agregar al carrito, sino a abrir la ficha para elegir horario.
+
+### Decisions + rationale
+
+- La regla se centralizo en `CardForList`, que es la tarjeta compartida por home, busqueda,
+  productos/listados y relacionados. Cambiarla ahi evita repetir la misma decision por cada seccion.
+- Los productos conservan `AddToCartButton`; los servicios disponibles muestran un enlace "Agendar"
+  al detalle. En la card no se calculan slots porque hacerlo por cada item multiplicaria consultas de
+  agenda en cada listado.
+- El enlace usa el `slug` local cuando viene disponible. Los listados pueden entregar `to` absoluto,
+  pero la accion de la app se lee mejor como ruta interna.
+- Un servicio agotado no muestra ni agenda ni carrito. Si no se puede pedir, tampoco debe empujar al
+  usuario a reservar.
+
+### Files touched
+
+- Specs y documentacion:
+  - `docs/features/agendar-servicios.md`
+  - `docs/features/agendar-servicios-bitacora.md`
+  - `src/e2e/serviceBooking/serviceBooking.feature`
+  - `src/e2e/serviceBooking/serviceBooking.spec.ts`
+- Card/listados:
+  - `src/presentation/post/CardForList/CardForList.tsx`
+  - `src/presentation/post/CardForList/CardForList.test.tsx`
+
+### Key commands
+
+- `pnpm exec vitest --run src/presentation/post/CardForList/CardForList.test.tsx`
+- `pnpm run typecheck`
+- `pnpm run lint`
+- `pnpm exec playwright test src/e2e/serviceBooking/serviceBooking.spec.ts --reporter=line`
+
+### Validation results
+
+- Componente focal: 1 file, 27 tests passed.
+- Typecheck: passed.
+- Lint: passed, 904 files checked.
+- E2E focal de agendar servicios: 2 tests passed.
+
+### Deviations from roadmap
+
+- La primera corrida focal encontro que el link salia absoluto porque `to` llega absoluto desde el
+  mapper de listados. Se ajusto a `slug` para que la accion use una ruta interna.
+- La suite e2e completa queda para el cierre de este bloque de trabajo, como validacion final
+  solicitada por el usuario.
+
+### Follow-ups
+
+- Slice 3: leer `customer_orders.during` y mostrar horario de cita en pedidos.
+- Revisar si la ficha de detalle tambien debe ocultar el boton de carrito para servicios con agenda,
+  no solo las cards.
+
+### Recap
+
+Los listados ya expresan la separacion acordada: productos van al carrito y servicios disponibles
+llevan a agendar desde el detalle. La card no decide horarios ni reserva espacios; solo dirige al
+lugar donde esa decision se puede hacer con disponibilidad real.
+
+### Proximos pasos (opciones)
+
+- Opcion A: correr la suite e2e completa y corregir cualquier falla.
+- Opcion B: despues de e2e verde, commit semantico del slice de cards.
+- Opcion C: avanzar al horario visible en pedidos como siguiente slice funcional.
+
+## 2026-08-18 - Cierre e2e por lotes
+
+### Objective
+
+Validar el cambio de cards sin saturar la maquina local y dejar la suite e2e verde por lotes, como
+pidio el usuario.
+
+### Decisions + rationale
+
+- La corrida monolitica de Playwright hizo timeout despues de unos 20 minutos y dejo muchos tests
+marcados como fallidos por interrupcion. Se descarto ese resultado como diagnostico funcional y se
+partio la suite por areas.
+- Los fallos reales aparecieron solo en `habits`: los specs seguian buscando el jardin y las
+celebraciones en `/`, pero el home ya no renderiza esos bloques. La validacion se movio a
+`/pilares`, que es el hub vigente de los cuatro pilares.
+- Las acciones de compartir celebraciones ahora esperan a que la Server Action confirme el nuevo
+estado antes de navegar. Eso elimina carreras donde la prueba abria el hub antes de que la
+celebracion se guardara.
+
+### Files touched
+
+- Specs de habitos:
+  - `src/e2e/habits/atomicSleepChallenge.spec.ts`
+  - `src/e2e/habits/invitacionAPracticar.spec.ts`
+- Bitacora:
+  - `docs/features/agendar-servicios-bitacora.md`
+
+### Key commands
+
+- `pnpm exec playwright test src/e2e/serviceBooking src/e2e/orders src/e2e/products src/e2e/publishProduct --reporter=dot`
+- `pnpm exec playwright test src/e2e/busquedaRelevante src/e2e/busquedaEntreIdiomas src/e2e/publicationPillarFilter src/e2e/loadMorePosts src/e2e/unifiedCatalog src/e2e/pilares --reporter=dot`
+- `pnpm exec playwright test src/e2e/createPost src/e2e/editPublicationTypes src/e2e/eventos src/e2e/filtroAlPublicar src/e2e/createComments src/e2e/multimedia src/e2e/adminCatalog src/e2e/dimensionesMedia --reporter=dot`
+- `pnpm exec playwright test src/e2e/localProducers src/e2e/sellerStore src/e2e/ubicacionFresca src/e2e/menu --reporter=dot`
+- `pnpm exec playwright test src/e2e/habits --reporter=dot`
+- `pnpm exec playwright test src/e2e/about src/e2e/compartir src/e2e/design-system src/e2e/seo src/e2e/notFound src/e2e/createSession src/e2e/productsReport src/e2e/i18n src/e2e/habits --reporter=dot`
+- `pnpm run typecheck`
+- `pnpm run lint`
+- `pnpm run test:run`
+
+### Validation results
+
+- Comercio/agenda/productos: 39 tests passed.
+- Busqueda/filtros/listados/catalogo/pilares: 44 tests passed.
+- Creacion/edicion/eventos/comentarios/multimedia/admin: 45 tests passed, 2 skipped.
+- Productores/tienda/ubicacion/menu: 96 tests passed.
+- Habitos aislado, despues del ajuste: 22 tests passed.
+- Transversal final: 99 tests passed, 1 skipped.
+- Typecheck: passed.
+- Lint: passed, 904 files checked.
+- Vitest completo: 180 files, 1899 tests passed.
+
+### Deviations from roadmap
+
+- La validacion completa no se hizo como una sola corrida porque la maquina local no aguanto la
+duracion y salida acumuladas. La cobertura se mantuvo ejecutando todos los specs por lotes.
+- Se corrigieron specs de `habits` aunque no son parte directa de servicios, porque quedaron
+desalineados con el home actual que el usuario habia limpiado.
+
+### Follow-ups
+
+- Reducir el ruido de e2e por imagenes remotas 412/404 y avisos LCP para que los fallos reales se
+lean mas rapido.
+- Revisar el guardado async de traducciones en pruebas de publicar: no fallo la suite, pero a veces
+intenta persistir despues de que la limpieza borro el post de prueba.
+
+### Recap
+
+La suite e2e quedo verde por lotes y el cambio de servicios no rompio carrito, productos, busqueda,
+listados ni tienda. El unico ajuste fuera de servicios fue alinear `habits` con la estructura actual:
+la comunidad de habitos se valida en `/pilares`, no en el home.
+
+### Proximos pasos (opciones)
+
+- Opcion A: commitear el slice de cards de servicio junto con la validacion e2e.
+- Opcion B: crear un follow-up para reducir ruido de Playwright por assets remotos.
+- Opcion C: avanzar al horario visible de citas en pedidos.

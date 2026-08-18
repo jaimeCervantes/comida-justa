@@ -17,7 +17,14 @@ Feature: Agendar servicios
     And the confirmation links to "/pedidos?vista=placed"
     And the cart count stays empty
 
-  @future @slice-2
+  @slice-2
+  Scenario: La card de servicio lleva a agendar sin pasar por carrito
+    Given a published service "E2E Masaje de recuperacion" appears in a listing
+    When the listing is opened
+    Then the service card shows "Agendar"
+    And the service card does not show "Añadir al carrito"
+
+  @future @slice-3
   Scenario: Comprador y tienda ven el horario de la cita en pedidos
     Given a user booked "E2E Masaje de recuperacion"
     When buyer and seller open their order lists
