@@ -1,4 +1,5 @@
 import { sql } from "drizzle-orm";
+import type { PostKind } from "~/domain/entities/post/kind";
 import type { PostOrigin } from "~/domain/entities/post/origin";
 import PostgresPostRepository from "~/infra/dataAccess/createOnePost/PostgresPostRepository";
 import { db } from "~/infra/dataAccess/db/connection";
@@ -23,10 +24,12 @@ function seedMediaFile(index: number, alt: string) {
 export type SeedPostInput = {
   title: string;
   slug: string;
-  kind: "anuncio" | "producto" | "evento";
+  kind: PostKind;
   /** Cuándo ocurre. Solo un `evento` la usa; sin ella, el validador lo rechaza. */
   startsAt?: Date | null;
   endsAt?: Date | null;
+  /** Duracion del servicio en minutos. Solo `servicio` la usa. */
+  durationMinutes?: number | null;
   /**
    * `PostOrigin` y no `string`: un escenario que siembre una procedencia inventada la insertaría en
    * la base sin queja y luego fallaría en la aserción, que es el peor sitio para enterarse.
@@ -79,6 +82,7 @@ export async function seedPost(input: SeedPostInput): Promise<string> {
     origin: input.origin,
     startsAt: input.startsAt ?? null,
     endsAt: input.endsAt ?? null,
+    durationMinutes: input.durationMinutes ?? null,
     category: input.category ?? null,
     subCategory: input.subCategory ?? null,
     contactInfo: { phone: "2781092116" },

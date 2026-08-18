@@ -4,6 +4,7 @@ import { db } from "~/infra/dataAccess/db/connection";
 export type PostRowSnapshot = {
   id: string;
   kind: string | null;
+  price: string | null;
   origin: string | null;
   is_available: boolean;
   category: string | null;
@@ -12,6 +13,7 @@ export type PostRowSnapshot = {
   external_url: string | null;
   starts_at: Date | null;
   ends_at: Date | null;
+  duration_minutes: number | null;
   moderation_status: string | null;
   moderation_reason: string | null;
 };
@@ -24,8 +26,8 @@ export async function readPostRowBySlug(
   slug: string,
 ): Promise<PostRowSnapshot | null> {
   const result = await db.execute(sql`
-    SELECT p.id, p.kind, p.origin, p.is_available, p.category, p.sub_category, p.seller_id,
-           p.external_url, p.starts_at, p.ends_at,
+    SELECT p.id, p.kind, p.price::text, p.origin, p.is_available, p.category, p.sub_category, p.seller_id,
+           p.external_url, p.starts_at, p.ends_at, p.duration_minutes,
            p.moderation_status, p.moderation_reason
     FROM posts p
     JOIN post_translations pt ON pt.post_id = p.id

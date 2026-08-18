@@ -45,6 +45,29 @@ const anuncio: EditablePost = {
   price: null,
 };
 
+const evento: EditablePost = {
+  ...jugoVerde,
+  id: "post-rodada-nocturna",
+  slug: "rodada-nocturna",
+  title: "Rodada nocturna",
+  kind: "evento",
+  price: null,
+  origin: null,
+  startsAt: new Date("2027-09-04T18:30:00Z"),
+  endsAt: new Date("2027-09-04T20:00:00Z"),
+};
+
+const servicio: EditablePost = {
+  ...jugoVerde,
+  id: "post-sesion-respiracion",
+  slug: "sesion-respiracion",
+  title: "Sesion de respiracion",
+  kind: "servicio",
+  price: 350,
+  origin: null,
+  durationMinutes: 45,
+};
+
 class FakePostAdminRepository implements IPostAdminRepository {
   readonly availabilityCalls: Array<[string, boolean]> = [];
   readonly updates: PostContentUpdate[] = [];
@@ -261,6 +284,77 @@ describe("UpdateOnePostUseCase", () => {
 
     expect(result).toMatchObject({ textChanged: false });
     expect(repository.updates[0].media).toHaveLength(2);
+  });
+
+  it("guarda las fechas de un evento", async () => {
+    repository = new FakePostAdminRepository([evento]);
+    useCase = new UpdateOnePostUseCase(repository, new PostValidator());
+
+    const startsAt = new Date("2027-09-05T07:15:00Z");
+    const endsAt = new Date("2027-09-05T09:00:00Z");
+    const result = await useCase.execute({
+      ...edit,
+      slug: evento.slug,
+      price: null,
+      origin: null,
+      startsAt,
+      endsAt,
+    });
+
+    expect(result.errorMessage).toBeUndefined();
+    expect(repository.updates[0]).toMatchObject({ startsAt, endsAt });
+  });
+
+  it("rechaza un evento sin fecha de inicio", async () => {
+    repository = new FakePostAdminRepository([evento]);
+    useCase = new UpdateOnePostUseCase(repository, new PostValidator());
+
+    const result = await useCase.execute({
+      ...edit,
+      slug: evento.slug,
+      price: null,
+      origin: null,
+      startsAt: null,
+      endsAt: new Date("2027-09-05T09:00:00Z"),
+    });
+
+    expect(result.errorMessage).toContain("cuándo ocurre");
+    expect(repository.updates).toHaveLength(0);
+  });
+
+  it("guarda precio y duración de un servicio", async () => {
+    repository = new FakePostAdminRepository([servicio]);
+    useCase = new UpdateOnePostUseCase(repository, new PostValidator());
+
+    const result = await useCase.execute({
+      ...edit,
+      slug: servicio.slug,
+      price: 420,
+      origin: null,
+      durationMinutes: 60,
+    });
+
+    expect(result.errorMessage).toBeUndefined();
+    expect(repository.updates[0]).toMatchObject({
+      price: 420,
+      durationMinutes: 60,
+    });
+  });
+
+  it("rechaza un servicio sin duración", async () => {
+    repository = new FakePostAdminRepository([servicio]);
+    useCase = new UpdateOnePostUseCase(repository, new PostValidator());
+
+    const result = await useCase.execute({
+      ...edit,
+      slug: servicio.slug,
+      price: 420,
+      origin: null,
+      durationMinutes: null,
+    });
+
+    expect(result.errorMessage).toContain("cuánto dura");
+    expect(repository.updates).toHaveLength(0);
   });
 
   it("propaga lo inesperado como mensaje genérico, no como pantalla en blanco", async () => {

@@ -13,6 +13,9 @@ export interface EditablePost {
   origin: string | null;
   category: string | null;
   subCategory: string | null;
+  startsAt: Date | null;
+  endsAt: Date | null;
+  durationMinutes: number | null;
   isAvailable: boolean;
   /**
    * Los archivos que ya tiene, en su `sort_order`.
@@ -34,6 +37,9 @@ export interface PostContentUpdate {
   origin: string | null;
   category: string | null;
   subCategory: string | null;
+  startsAt: Date | null;
+  endsAt: Date | null;
+  durationMinutes: number | null;
   /**
    * La lista **completa** que la publicación va a tener, no un delta.
    *

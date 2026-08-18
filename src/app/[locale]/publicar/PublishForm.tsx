@@ -204,7 +204,7 @@ export default function PublishForm({
             required
             name="durationMinutes"
             type="number"
-            min="1"
+            min="5"
             step="5"
             label={t("durationMinutes")}
             error={state?.errors?.durationMinutes}

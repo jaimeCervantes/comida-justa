@@ -67,6 +67,9 @@ export default async function EditarPage({
         origin: post.origin,
         category: post.category,
         subCategory: post.subCategory,
+        startsAt: post.startsAt,
+        endsAt: post.endsAt,
+        durationMinutes: post.durationMinutes,
         media: post.media,
       }}
       isAdmin={isAdmin(session.user?.email)}

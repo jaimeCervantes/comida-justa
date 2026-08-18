@@ -3,6 +3,7 @@ import {
   PostNotFoundError,
   PostOwnershipError,
 } from "~/domain/entities/post/errors";
+import { EVENT_KIND, SERVICE_KIND } from "~/domain/entities/post/kind";
 import type {
   IPostValidator,
   PostMediaFile,
@@ -25,6 +26,9 @@ export interface UpdateOnePostInput {
   origin: string | null;
   category: string | null;
   subCategory: string | null;
+  startsAt?: Date | null;
+  endsAt?: Date | null;
+  durationMinutes?: number | null;
   /**
    * Los archivos que la publicación tendrá al guardar, en orden. Lista completa, no un delta.
    *
@@ -91,6 +95,12 @@ export default class UpdateOnePostUseCase {
 
     const title = input.title?.trim() ?? "";
     const content = input.content?.trim() ?? "";
+    const startsAt = post.kind === EVENT_KIND ? (input.startsAt ?? null) : null;
+    const endsAt = post.kind === EVENT_KIND ? (input.endsAt ?? null) : null;
+    const durationMinutes =
+      post.kind === SERVICE_KIND ? (input.durationMinutes ?? null) : null;
+    const price = input.price;
+    const origin = post.kind === "producto" ? input.origin : null;
 
     // Se valida con las mismas reglas que al publicar: un producto sigue necesitando precio y
     // procedencia. `kind` no viaja en el formulario —editar no cambia lo que la publicación es—,
@@ -98,9 +108,12 @@ export default class UpdateOnePostUseCase {
     this.postValidator.validate({
       title,
       content,
-      price: input.price,
+      price,
       kind: post.kind as never,
-      origin: input.origin as never,
+      origin: origin as never,
+      startsAt,
+      endsAt,
+      durationMinutes,
       contactInfo: { phone: "" },
       /* Ya no va vacía: desde que la edición muestra los archivos, lo que llega aquí es la lista que
          la publicación va a tener, y el validador comprueba su forma y su tope igual que al
@@ -116,10 +129,13 @@ export default class UpdateOnePostUseCase {
       locale: post.locale,
       title,
       content,
-      price: input.price,
-      origin: input.origin,
+      price,
+      origin,
       category: input.category,
       subCategory: input.subCategory,
+      startsAt,
+      endsAt,
+      durationMinutes,
       media: input.media,
     });
 

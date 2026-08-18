@@ -68,6 +68,9 @@ interface EditableRow {
   origin: string | null;
   category: string | null;
   sub_category: string | null;
+  starts_at: Date | null;
+  ends_at: Date | null;
+  duration_minutes: number | null;
   is_available: boolean;
   [key: string]: unknown;
 }
@@ -109,7 +112,10 @@ export class PostgresPostAdminRepository implements IPostAdminRepository {
         SET price        = ${update.price},
             origin       = ${update.origin},
             category     = ${update.category},
-            sub_category = ${update.subCategory}
+            sub_category = ${update.subCategory},
+            starts_at    = ${update.startsAt},
+            ends_at      = ${update.endsAt},
+            duration_minutes = ${update.durationMinutes}
         WHERE id = ${update.postId}
       `);
 
@@ -140,6 +146,9 @@ export class PostgresPostAdminRepository implements IPostAdminRepository {
         p.origin,
         p.category,
         p.sub_category,
+        p.starts_at,
+        p.ends_at,
+        p.duration_minutes,
         p.is_available
       FROM posts p
       JOIN post_translations t ON t.post_id = p.id
@@ -166,6 +175,9 @@ export class PostgresPostAdminRepository implements IPostAdminRepository {
       origin: row.origin,
       category: row.category,
       subCategory: row.sub_category,
+      startsAt: row.starts_at,
+      endsAt: row.ends_at,
+      durationMinutes: row.duration_minutes,
       isAvailable: row.is_available,
     };
   }

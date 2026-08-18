@@ -2,6 +2,7 @@
 import { useTranslations } from "next-intl";
 import { useActionState, useState } from "react";
 import { MdOutlinePriceChange, MdTitle } from "react-icons/md";
+import { EVENT_KIND, SERVICE_KIND } from "~/domain/entities/post/kind";
 import type { CategoryOption } from "~/domain/entities/post/taxonomy";
 import { Link } from "~/i18n/navigation";
 import { POST_CONTENT_MAX_LENGTH } from "~/infra/constants";
@@ -24,9 +25,26 @@ export type EditablePostValues = {
   origin: string | null;
   category: string | null;
   subCategory: string | null;
+  startsAt: Date | string | null;
+  endsAt: Date | string | null;
+  durationMinutes: number | null;
   /** Los archivos que ya tiene, en su orden. El primero es la portada. */
   media: PostMediaFieldItem[];
 };
+
+function toDateTimeLocalValue(value: Date | string | null): string {
+  if (!value) return "";
+
+  const date = value instanceof Date ? value : new Date(value);
+
+  if (Number.isNaN(date.getTime())) return "";
+
+  const pad = (part: number): string => String(part).padStart(2, "0");
+
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
+    date.getDate(),
+  )}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
 
 /**
  * Edita el texto, el precio, la categoría, la procedencia y los archivos de una publicación.
@@ -60,6 +78,9 @@ export default function EditPostForm({
   const [category, setCategory] = useState<string>(post.category ?? "");
 
   const isProduct = post.kind === "producto";
+  const isEvent = post.kind === EVENT_KIND;
+  const isService = post.kind === SERVICE_KIND;
+  const showsPrice = isProduct || isEvent || isService;
 
   return (
     <section>
@@ -87,6 +108,20 @@ export default function EditPostForm({
           icon={<MdTitle />}
           containerClassName="mb-6"
         />
+
+        <Select
+          id="kind"
+          name="kind"
+          label={tPublish("kind")}
+          value={post.kind}
+          disabled
+          containerClassName="mb-6"
+        >
+          <option value="anuncio">{tPublish("kindAnnouncement")}</option>
+          <option value="producto">{tPublish("kindProduct")}</option>
+          <option value="evento">{tPublish("kindEvent")}</option>
+          <option value="servicio">{tPublish("kindService")}</option>
+        </Select>
 
         {/*
           La categoría aplica a los dos kinds, igual que al publicar. Es por aquí por donde el
@@ -145,17 +180,50 @@ export default function EditPostForm({
                 </option>
               ))}
             </Select>
+          </>
+        ) : null}
 
+        {isEvent ? (
+          <div className="mb-6 grid gap-4 sm:grid-cols-2">
             <TextField
               required
-              name="price"
-              type="number"
-              label={tPublish("price")}
-              defaultValue={post.price ?? ""}
-              icon={<MdOutlinePriceChange />}
-              containerClassName="mb-6"
+              name="startsAt"
+              type="datetime-local"
+              label={tPublish("startsAt")}
+              defaultValue={toDateTimeLocalValue(post.startsAt)}
             />
-          </>
+            <TextField
+              name="endsAt"
+              type="datetime-local"
+              label={tPublish("endsAt")}
+              defaultValue={toDateTimeLocalValue(post.endsAt)}
+            />
+          </div>
+        ) : null}
+
+        {isService ? (
+          <TextField
+            required
+            name="durationMinutes"
+            type="number"
+            min="5"
+            step="5"
+            label={tPublish("durationMinutes")}
+            defaultValue={post.durationMinutes ?? ""}
+            containerClassName="mb-6"
+          />
+        ) : null}
+
+        {showsPrice ? (
+          <TextField
+            required={isProduct || isService}
+            name="price"
+            type="number"
+            label={isEvent ? tPublish("priceOptional") : tPublish("price")}
+            defaultValue={post.price ?? ""}
+            icon={<MdOutlinePriceChange />}
+            containerClassName="mb-6"
+          />
         ) : null}
 
         <TextArea

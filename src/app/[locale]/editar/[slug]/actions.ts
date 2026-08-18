@@ -20,6 +20,20 @@ export type EditPostState = {
   errorMessage?: string;
 };
 
+function readPositiveInt(value: FormDataEntryValue | null): number | null {
+  const parsed = Number(value);
+
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
+}
+
+function readDate(value: FormDataEntryValue | null): Date | null {
+  if (!value) return null;
+
+  const date = new Date(String(value));
+
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
 /**
  * Guarda los cambios de una publicación propia y **reindexa si el texto cambió**.
  *
@@ -98,6 +112,9 @@ export async function updatePost(
     origin,
     category,
     subCategory,
+    startsAt: readDate(formData.get("startsAt")),
+    endsAt: readDate(formData.get("endsAt")),
+    durationMinutes: readPositiveInt(formData.get("durationMinutes")),
     media,
   });
 
