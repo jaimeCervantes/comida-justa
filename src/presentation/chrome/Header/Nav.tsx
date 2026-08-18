@@ -109,6 +109,9 @@ export default function Nav({
                 <ListItem href="/productos" title={t("brandProducts")}>
                   {t("brandProductsDescription", { brand: PUBLIC_BRAND_NAME })}
                 </ListItem>
+                <ListItem href="/eventos" title={t("events")}>
+                  {t("eventsDescription")}
+                </ListItem>
               </ul>
 
               {categories.length > 0 ? (

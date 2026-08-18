@@ -15,6 +15,7 @@ describe("localizedAlternates", () => {
     ["/" as AlternateHref, "/", "/en"],
     ["/nosotros" as AlternateHref, "/nosotros", "/en/about"],
     ["/productos" as AlternateHref, "/productos", "/en/products"],
+    ["/eventos" as AlternateHref, "/eventos", "/en/events"],
     [
       {
         pathname: "/categoria/[key]",

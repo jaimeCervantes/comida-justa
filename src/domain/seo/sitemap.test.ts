@@ -30,6 +30,7 @@ describe("buildSitemap", () => {
 
     expect(urls).toContain(`${BASE}/`);
     expect(urls).toContain(`${BASE}/productos`);
+    expect(urls).toContain(`${BASE}/eventos`);
     expect(urls).toContain(`${BASE}/nosotros`);
     expect(urls).toContain(`${BASE}/pilares/sueno`);
     expect(urls).toContain(`${BASE}/pilares/alimentacion`);

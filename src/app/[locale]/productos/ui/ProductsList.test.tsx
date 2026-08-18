@@ -24,8 +24,20 @@ const product = {
   media: [{ url: "https://ruta/de/imagen/1.webp", type: "image", alt: "Miel" }],
 };
 
-describe("When the products list is rendered", () => {
-  it("shows the empty state instead of the grid when there are no products", () => {
+const service = {
+  ...product,
+  id: "service-1",
+  title: "Masaje relajante 30 minutos",
+  price: 300,
+  origin: null,
+  kind: "servicio",
+  to: "/masaje-relajante-30-minutos",
+  slug: "masaje-relajante-30-minutos",
+  durationMinutes: 30,
+};
+
+describe("When the products and services list is rendered", () => {
+  it("shows the empty state instead of the grid when there are no commercial posts", () => {
     const { getByTestId, queryByTestId } = render(
       <ProductsList
         products={[]}
@@ -35,18 +47,16 @@ describe("When the products list is rendered", () => {
       />,
     );
 
-    /* El texto dejó de nombrar a la marca cuando la página pasó a listar a toda la comunidad:
-       decía "Aún no hay productos de Hazlo Sano publicados". */
     expect(getByTestId("products-empty")).toHaveTextContent(
-      "Aún no hay productos publicados.",
+      "Aún no hay productos ni servicios publicados.",
     );
     expect(queryByTestId("products-grid")).not.toBeInTheDocument();
   });
 
-  it("renders a card with its provenance badge for each product", () => {
-    const { getByTestId, getByText } = render(
+  it("renders products and services with the action each one needs", () => {
+    const { getByTestId, getByText, queryByTestId } = render(
       <ProductsList
-        products={[product]}
+        products={[product, service]}
         currentPage={1}
         totalPages={1}
         currentPillar={null}
@@ -54,7 +64,10 @@ describe("When the products list is rendered", () => {
     );
 
     expect(getByText(product.title)).toBeInTheDocument();
+    expect(getByText(service.title)).toBeInTheDocument();
     expect(getByTestId("provenance-badge")).toHaveTextContent("Hazlo Sano");
+    expect(getByTestId("card-book-service")).toHaveTextContent("Agendar");
+    expect(queryByTestId("add-to-cart")).toBeInTheDocument();
   });
 
   it("links to the next products page when there is more than one", () => {

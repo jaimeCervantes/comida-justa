@@ -237,6 +237,12 @@ export default function MobileNav({
           label: t("brandProducts"),
           href: "/productos",
         },
+        {
+          kind: "link",
+          id: "events",
+          label: t("events"),
+          href: "/eventos",
+        },
         ...VISIBLE_COMMUNITY_ITEMS.map(
           (item): MenuEntry => ({
             kind: "link",

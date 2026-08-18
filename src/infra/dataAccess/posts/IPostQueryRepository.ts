@@ -65,10 +65,11 @@ export interface IPostQueryRepository {
     filters?: PostListingFilters,
   ): Promise<PaginatedPostsResult>;
   /**
-   * Todo lo que se vende, sea de quien sea: `kind = producto`, cualquier `origin`.
+   * Todo lo comercial, sea de quien sea: productos que se entregan y servicios que se agendan.
    *
-   * Es lo que lista `/productos`. No filtra por procedencia a propósito: la página dejó de ser el
-   * escaparate de la marca para ser el de la comunidad.
+   * Es lo que lista `/productos`. La URL queda por compatibilidad, pero la página ya no es solo
+   * mercancía: entra lo que la comunidad vende o atiende. Los eventos quedan fuera porque ocurren
+   * en una fecha y tienen su propia agenda pública.
    */
   getProducts(
     page: number,
@@ -77,6 +78,13 @@ export interface IPostQueryRepository {
     near?: Coordinates | null,
     filters?: PostListingFilters,
   ): Promise<PaginatedPostsResult>;
+  /**
+   * La agenda pública: solo publicaciones que ocurren, ordenadas por `starts_at`.
+   *
+   * No usa cercanía todavía. Un evento puede tener ruta o punto de encuentro, pero la pregunta
+   * principal de esta página es "qué viene primero", no "qué tienda queda más cerca".
+   */
+  getEvents(page: number, pageSize: number): Promise<PaginatedPostsResult>;
   /**
    * Solo lo que vende Hazlo Sano: `kind = producto` con `origin` `hazlo_sano_*`.
    *

@@ -21,6 +21,20 @@ export default class ProductsPage {
     await expect(this.cardTitle(title)).toHaveCount(0);
   }
 
+  card(title: string): Locator {
+    return this.cardTitle(title).locator("xpath=ancestor::article[1]");
+  }
+
+  async expectCanBeAddedToCart(title: string) {
+    await expect(this.card(title).getByTestId("add-to-cart")).toBeVisible();
+  }
+
+  async expectLinksToBooking(title: string) {
+    await expect(
+      this.card(title).getByTestId("card-book-service"),
+    ).toBeVisible();
+  }
+
   /**
    * La procedencia sigue a la vista. Desde que la página lista a toda la comunidad es lo único
    * que distingue lo de la marca de lo de un vecino, así que dejar de pintarla sería perder la

@@ -40,6 +40,7 @@ export async function GET(): Promise<Response> {
   const staticTitles: Record<string, string> = {
     "/": t("common.home"),
     "/productos": t("products.title"),
+    "/eventos": t("events.title"),
     "/nosotros": t("nav.about"),
     "/pilares": t("nav.pillarsMenu"),
     "/pilares/sueno": t("pillars.sleep.title"),

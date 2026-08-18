@@ -714,8 +714,8 @@
   "nav": {
     "about": "Nosotros",
     "back": "Volver",
-    "brandProducts": "Productos",
-    "brandProductsDescription": "Lo que elabora y vende la comunidad",
+    "brandProducts": "Productos y servicios",
+    "brandProductsDescription": "Lo que la comunidad vende, entrega o atiende",
     "byCategory": "Por categoría",
     "catalog": "Catálogo de categorías",
     "changeLanguage": "Cambiar idioma",
@@ -748,6 +748,8 @@
     },
     "communityMenu": "Comunidad",
     "communitySections": "Secciones",
+    "events": "Eventos",
+    "eventsDescription": "Talleres, rodadas, meditaciones y encuentros con fecha",
     "moderation": "Moderación",
     "myAccount": "Mi cuenta",
     "myAccountAndStore": "Mi cuenta y mi tienda",
@@ -1380,11 +1382,18 @@
     "title": "Política de Privacidad | Hazlo Sano"
   },
   "products": {
-    "backToList": "Volver a los productos",
-    "description": "Todo lo que vende la comunidad, con su procedencia visible en cada tarjeta.",
-    "empty": "Aún no hay productos publicados.",
+    "backToList": "Volver a productos y servicios",
+    "description": "Todo lo que la comunidad vende, entrega o atiende: productos al carrito y servicios para agendar.",
+    "empty": "Aún no hay productos ni servicios publicados.",
     "pagedTitle": "{title} - Página {page}",
-    "title": "Productos"
+    "title": "Productos y servicios"
+  },
+  "events": {
+    "backToList": "Volver a los eventos",
+    "description": "Talleres, rodadas, meditaciones y encuentros de la comunidad, ordenados por fecha.",
+    "empty": "Aún no hay eventos publicados.",
+    "pagedTitle": "{title} - Página {page}",
+    "title": "Eventos"
   },
   "profile": {
     "backToProfile": "Volver al perfil",

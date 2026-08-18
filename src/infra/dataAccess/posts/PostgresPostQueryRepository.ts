@@ -1,6 +1,7 @@
 import { type SQL, sql } from "drizzle-orm";
 import { PRODUCT_KIND } from "~/domain/entities/post/hazloSanoProduct";
 import type { IndexingCounts } from "~/domain/entities/post/indexingReport";
+import { EVENT_KIND, SELLABLE_KINDS } from "~/domain/entities/post/kind";
 import { HAZLO_SANO_ORIGIN_PREFIX } from "~/domain/entities/post/origin";
 import type { OriginCount } from "~/domain/entities/post/originReport";
 import type { PostMediaFile } from "~/domain/entities/post/types";
@@ -58,12 +59,19 @@ interface PostRow {
 }
 
 /**
- * Todo lo que es un producto, lo venda quien lo venda.
+ * Todo lo comercial, lo venda o atienda quien lo atienda.
  *
  * Solo mira `kind` y **no** `origin`: `/productos` pasó de ser el escaparate de la marca a ser el
- * de la comunidad entera. Lo que separa un producto de un anuncio es que se vende, no de quién es.
+ * de la comunidad entera. Lo que separa el catálogo comercial de un anuncio o un evento es que se
+ * puede pedir: un producto se agrega al carrito y un servicio se agenda.
  */
-const PRODUCTS_WHERE: SQL = sql`p.kind = ${PRODUCT_KIND}`;
+const PRODUCTS_WHERE: SQL = sql`p.kind IN (${sql.join(
+  SELLABLE_KINDS.map((kind) => sql`${kind}`),
+  sql`, `,
+)})`;
+
+/** La agenda publica lista eventos, no mercancía ni servicios agendables. */
+const EVENTS_WHERE: SQL = sql`p.kind = ${EVENT_KIND}`;
 
 /** Solo lo que vende Hazlo Sano: `kind = producto` + `origin` `hazlo_sano_*`. */
 const HAZLO_SANO_PRODUCTS_WHERE: SQL = sql`p.kind = ${PRODUCT_KIND} AND p.origin LIKE ${`${HAZLO_SANO_ORIGIN_PREFIX}%`}`;
@@ -182,6 +190,27 @@ function orderClause(near: Coordinates | null, sortByDistance: boolean): SQL {
   return sql`distance_meters ASC NULLS LAST, p.created_at DESC`;
 }
 
+/**
+ * Orden de agenda: lo que todavía puede ocurrir va primero, lo ya pasado baja como archivo.
+ *
+ * `ends_at` extiende la vida del evento cuando existe; sin ella, el evento caduca en su inicio, que
+ * es la misma regla del dominio (`eventStateAt`). Los datos rotos sin `starts_at` quedan al final.
+ */
+const EVENTS_ORDER: SQL = sql`
+  CASE
+    WHEN p.starts_at IS NULL THEN 2
+    WHEN COALESCE(p.ends_at, p.starts_at) >= NOW() THEN 0
+    ELSE 1
+  END ASC,
+  CASE
+    WHEN COALESCE(p.ends_at, p.starts_at) >= NOW() THEN p.starts_at
+  END ASC NULLS LAST,
+  CASE
+    WHEN COALESCE(p.ends_at, p.starts_at) < NOW() THEN p.starts_at
+  END DESC NULLS LAST,
+  p.created_at DESC
+`;
+
 interface ListingOptions {
   /** Dónde está quien mira; sin ella no se calcula ninguna distancia. */
   near?: Coordinates | null;
@@ -195,6 +224,8 @@ interface ListingOptions {
    */
   visibility?: SQL;
   categoryKeys?: readonly string[];
+  /** Orden especial de listados que no son feed ni catálogo por cercanía, como `/eventos`. */
+  order?: SQL;
 }
 
 /** La misma forma que devuelve `getPaginatedPosts` cuando la consulta no encuentra nada. */
@@ -245,6 +276,15 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
       near,
       sortByDistance: true,
       categoryKeys: filters.categoryKeys,
+    });
+  }
+
+  async getEvents(
+    page: number,
+    pageSize: number,
+  ): Promise<PaginatedPostsResult> {
+    return this.getPaginatedPosts(EVENTS_WHERE, page, pageSize, {
+      order: EVENTS_ORDER,
     });
   }
 
@@ -438,7 +478,7 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
         COUNT(*) OVER()::int AS total_count
       ${POST_JOINS}
       WHERE ${visibility} AND ${where} AND ${categoryWhere(options.categoryKeys)}
-      ORDER BY ${orderClause(near, options.sortByDistance ?? false)}
+      ORDER BY ${options.order ?? orderClause(near, options.sortByDistance ?? false)}
       LIMIT ${pageSize} OFFSET ${offset}
     `);
     const rows = raw.rows as unknown as PostRow[];

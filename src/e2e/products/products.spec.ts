@@ -5,11 +5,11 @@ import { testSlug } from "../testUtils/testSlug";
 import ProductsPage from "./ProductsPage";
 
 /*
- * `/productos` lista lo que vende **toda la comunidad**, no solo la marca.
+ * `/productos` lista lo que vende **toda la comunidad**, no solo la marca ni solo mercancia.
  *
  * Antes filtraba por `origin` `hazlo_sano_*`, así que lo que publicaba un vendedor local no salía
  * en la única pantalla llamada «Productos». Ahora la línea la marca `kind`: entra todo el que
- * vende y quedan fuera los anuncios.
+ * vende o agenda y quedan fuera los anuncios y eventos.
  *
  * Seeds go straight through the write repository (no UI, no admin gate) because this
  * scenario is about the read model; the publish flow is already covered by publishProduct.
@@ -30,6 +30,23 @@ const communityProduct = {
   origin: "productor",
 } satisfies SeedPostInput;
 
+const communityService = {
+  title: `Masaje relajante del vecino ${stamp}`,
+  slug: testSlug("masaje-relajante-del-vecino"),
+  kind: "servicio",
+  origin: null,
+  durationMinutes: 30,
+} satisfies SeedPostInput;
+
+const communityEvent = {
+  title: `Meditacion guiada del vecino ${stamp}`,
+  slug: testSlug("meditacion-guiada-del-vecino"),
+  kind: "evento",
+  origin: null,
+  price: null,
+  startsAt: new Date("2027-08-23T07:30:00Z"),
+} satisfies SeedPostInput;
+
 const hazloSanoAnuncio = {
   title: `Aviso de Hazlo Sano ${stamp}`,
   slug: testSlug("aviso-de-hazlo-sano"),
@@ -37,7 +54,13 @@ const hazloSanoAnuncio = {
   origin: "hazlo_sano_propio",
 } satisfies SeedPostInput;
 
-const seeded = [hazloSanoProduct, communityProduct, hazloSanoAnuncio];
+const seeded = [
+  hazloSanoProduct,
+  communityProduct,
+  communityService,
+  communityEvent,
+  hazloSanoAnuncio,
+];
 
 test.describe("When a visitor opens the products page", () => {
   test.beforeEach(async () => {
@@ -54,7 +77,9 @@ test.describe("When a visitor opens the products page", () => {
     }
   });
 
-  test("Then every product is listed, whoever sells it", async ({ page }) => {
+  test("Then every product and service is listed, whoever sells it", async ({
+    page,
+  }) => {
     const productsPage = new ProductsPage(page);
 
     await productsPage.goto();
@@ -62,6 +87,9 @@ test.describe("When a visitor opens the products page", () => {
     await productsPage.expectListed(hazloSanoProduct.title);
     // Lo que cambió: antes esta línea era `expectNotListed`.
     await productsPage.expectListed(communityProduct.title);
+    await productsPage.expectListed(communityService.title);
+    await productsPage.expectCanBeAddedToCart(hazloSanoProduct.title);
+    await productsPage.expectLinksToBooking(communityService.title);
     await productsPage.expectProvenanceIsShown();
   });
 
@@ -75,5 +103,6 @@ test.describe("When a visitor opens the products page", () => {
     /* La distinción que la página sí hace: `kind`. El anuncio es de la marca y aun así no
        aparece, que es la prueba de que el filtro ya no mira la procedencia. */
     await productsPage.expectNotListed(hazloSanoAnuncio.title);
+    await productsPage.expectNotListed(communityEvent.title);
   });
 });

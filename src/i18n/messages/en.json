@@ -714,8 +714,8 @@
   "nav": {
     "about": "About us",
     "back": "Back",
-    "brandProducts": "Products",
-    "brandProductsDescription": "What the community makes and sells directly.",
+    "brandProducts": "Products and services",
+    "brandProductsDescription": "What the community sells, delivers or provides",
     "byCategory": "By category",
     "catalog": "Category catalogue",
     "changeLanguage": "Change language",
@@ -748,6 +748,8 @@
     },
     "communityMenu": "Community",
     "communitySections": "Sections",
+    "events": "Events",
+    "eventsDescription": "Workshops, rides, meditations and dated gatherings",
     "moderation": "Moderation",
     "myAccount": "My account",
     "myAccountAndStore": "My account and my store",
@@ -1380,11 +1382,18 @@
     "title": "Privacy Policy | Hazlo Sano"
   },
   "products": {
-    "backToList": "Back to products",
-    "description": "Everything the community sells, with its provenance visible on every card.",
-    "empty": "No products have been published yet.",
+    "backToList": "Back to products and services",
+    "description": "Everything the community sells, delivers or provides: products go to the cart and services can be booked.",
+    "empty": "No products or services have been published yet.",
     "pagedTitle": "{title} - Page {page}",
-    "title": "Products"
+    "title": "Products and services"
+  },
+  "events": {
+    "backToList": "Back to events",
+    "description": "Community workshops, rides, meditations and gatherings, ordered by date.",
+    "empty": "No events have been published yet.",
+    "pagedTitle": "{title} - Page {page}",
+    "title": "Events"
   },
   "profile": {
     "backToProfile": "Back to the profile",

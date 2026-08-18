@@ -35,6 +35,7 @@ export interface SitemapContent {
 export const STATIC_SITEMAP_PATHS: readonly string[] = [
   "/",
   "/productos",
+  "/eventos",
   "/nosotros",
   "/pilares",
   "/pilares/sueno",
