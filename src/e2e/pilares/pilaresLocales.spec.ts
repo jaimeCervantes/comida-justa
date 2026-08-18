@@ -80,12 +80,12 @@ test.describe("Cuando el pilar tiene negocios cerca", () => {
 });
 
 test.describe("Cuando todavia no hay nadie de ese pilar", () => {
-  /* Sueño es el que ningún escenario siembra, así que es el único cuyo vacío es estable en una base
-     compartida. Movimiento se usa más abajo justo porque ahí sí se siembra. */
+  /* Mente/Espíritu es el que no tiene publicaciones en la base compartida actual. Movimiento se usa
+     más abajo justo porque ahí sí se siembra. */
   test("Entonces lo dice e invita a publicar, sin fingir una lista", async ({
     page,
   }) => {
-    await page.goto("/pilares/sueno");
+    await page.goto("/pilares/mente-espiritu");
 
     const seccion = page.getByTestId("pillar-local");
 
@@ -131,13 +131,15 @@ test.describe("Cuando alguien publica bajo un pilar que estaba vacio", () => {
     await deleteTestSellerByHandle(LEJOS.handle);
   });
 
-  test("Entonces Movimiento se llena y Sueño sigue vacio", async ({ page }) => {
+  test("Entonces Movimiento se llena y Mente/Espiritu sigue vacio", async ({
+    page,
+  }) => {
     await page.goto("/pilares/movimiento");
     await expect(page.getByTestId("pillar-local")).toContainText(
       "Clases de baile en la plaza",
     );
 
-    await page.goto("/pilares/sueno");
+    await page.goto("/pilares/mente-espiritu");
     await expect(page.getByTestId("pillar-local-empty")).toBeVisible();
   });
 
@@ -168,7 +170,7 @@ test.describe("La seccion en ingles", () => {
   test("Entonces dice lo mismo sin perder el idioma en sus enlaces", async ({
     page,
   }) => {
-    await page.goto("/en/pillars/sueno");
+    await page.goto("/en/pillars/mente-espiritu");
 
     await expect(page.getByTestId("pillar-local-empty")).toBeVisible();
     await expect(

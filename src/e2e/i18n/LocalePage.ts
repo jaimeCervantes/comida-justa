@@ -16,7 +16,7 @@ export default class LocalePage {
   /** El enlace del menú principal de escritorio, rotulado en el idioma activo. */
   async openFromMainMenu(label: string): Promise<void> {
     await this.page
-      .getByRole("navigation")
+      .getByTestId("desktop-menu")
       .getByRole("link", { name: label, exact: true })
       .click();
   }

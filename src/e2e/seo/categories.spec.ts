@@ -2,9 +2,9 @@ import { expect, test } from "@playwright/test";
 import { meta } from "../testUtils/metaTags";
 
 // Slice 5 de docs/features/seo.md. Corre contra la taxonomía real: `alimentacion` y `panaderia`
-// tienen publicaciones; `abarrotes` y `movimiento_y_ejercicio` están activas y vacías.
+// tienen publicaciones; `abarrotes` está activa y vacía.
 const CON_CONTENIDO = ["alimentacion", "panaderia"];
-const VACIAS = ["abarrotes", "movimiento_y_ejercicio"];
+const VACIAS = ["abarrotes"];
 const PAN = "pan-de-masa-madre-natural";
 
 test.describe("Cuando un rastreador pide el sitemap", () => {

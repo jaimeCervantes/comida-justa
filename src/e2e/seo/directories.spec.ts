@@ -82,5 +82,8 @@ test.describe("Cuando una tienda publica algo que elabora", () => {
     await expect(
       page.getByTestId("store-summary").filter({ hasText: TIENDA.name }),
     ).toBeVisible();
+
+    const xml = await (await page.request.get("/sitemap.xml")).text();
+    expect(xml).toContain("/productores-locales<");
   });
 });
