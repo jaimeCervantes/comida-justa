@@ -90,3 +90,10 @@ Feature: Editar cualquier tipo de publicacion
       | evento   |
       | servicio |
 
+  @slice-4
+  Scenario: La agenda del servicio aparece junto a las acciones
+    Given the service "Descanso reparador" belongs to "Hazlo Sano" and has available schedule slots
+    When I open "/descanso-reparador"
+    Then the share action appears before the heading "Elige tu hora"
+    And the heading "Elige tu hora" appears before the heading "Comentarios"
+    And the cart button does not ask for a schedule slot

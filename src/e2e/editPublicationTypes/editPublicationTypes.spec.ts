@@ -22,6 +22,27 @@ async function save(page: Page): Promise<void> {
   await page.getByRole("button", { name: /guardar cambios/i }).click();
 }
 
+async function appearsBefore(
+  page: Page,
+  firstTestId: string,
+  secondTestId: string,
+): Promise<boolean> {
+  return page.evaluate(
+    ([first, second]) => {
+      const firstElement = document.querySelector(`[data-testid="${first}"]`);
+      const secondElement = document.querySelector(`[data-testid="${second}"]`);
+
+      if (!firstElement || !secondElement) return false;
+
+      return Boolean(
+        firstElement.compareDocumentPosition(secondElement) &
+          Node.DOCUMENT_POSITION_FOLLOWING,
+      );
+    },
+    [firstTestId, secondTestId],
+  );
+}
+
 test.describe("Editing publications with type-specific fields", () => {
   let dbSession: DbSession | undefined;
   const seeded: string[] = [];
@@ -128,5 +149,24 @@ test.describe("Editing publications with type-specific fields", () => {
     expect(row?.kind).toBe("servicio");
     expect(Number(row?.price)).toBe(420);
     expect(row?.duration_minutes).toBe(60);
+  });
+});
+
+test.describe("Service schedule placement", () => {
+  test("Then the schedule picker appears after the share action and before comments", async ({
+    page,
+  }) => {
+    await page.goto("/descanso-reparador");
+
+    await expect(page.getByTestId("share-post-trigger")).toBeVisible();
+    await expect(page.getByTestId("slot-picker")).toBeVisible();
+    await expect(page.getByTestId("comments")).toBeVisible();
+
+    await expect
+      .poll(() => appearsBefore(page, "share-post-trigger", "slot-picker"))
+      .toBe(true);
+    await expect
+      .poll(() => appearsBefore(page, "slot-picker", "comments"))
+      .toBe(true);
   });
 });

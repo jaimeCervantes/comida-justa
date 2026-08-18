@@ -75,3 +75,60 @@ La edicion ya hidrata y persiste los campos propios de eventos y servicios: fech
 - Opcion B: avanzar al slice 2 para editar recorridos GPX de eventos.
 - Opcion C: limpiar el proceso Node viejo y correr la suite e2e completa en 3000.
 
+## 2026-08-18 - Slice 4: agenda junto a las acciones del servicio
+
+### Objective
+
+Hacer que los espacios disponibles de un servicio se vean como parte de la decision principal de compra/contacto en el detalle de la publicacion, no enterrados despues de comentarios.
+
+### Decisions + rationale
+
+- `PostDetail` recibe un `bookingSlot` como contenido opcional. La pagina sigue calculando disponibilidad porque ahi ya vive la carga de datos del post y del vendedor; el componente de detalle solo decide la posicion visual.
+- La agenda se renderiza despues del bloque de acciones (`agregar al carrito`, WhatsApp y compartir) y antes de controles del dueno, descripcion extendida, reportes, comentarios y relacionados. Asi el usuario primero entiende el servicio, luego ve como actuar, y justo despues elige horario.
+- No se cambio el modelo de carrito ni el calculo de espacios. El boton de carrito sigue sin pedir horario; la seleccion de espacios queda visible en el detalle como flujo independiente.
+- El e2e valida orden real en el DOM con `data-testid` para evitar depender de posiciones visuales fragiles o texto duplicado.
+
+### Files touched
+
+- Specs y documentacion:
+  - `docs/features/editar-tipos-publicacion.md`
+  - `docs/features/editar-tipos-publicacion-bitacora.md`
+  - `src/e2e/editPublicationTypes/editPublicationTypes.feature`
+  - `src/e2e/editPublicationTypes/editPublicationTypes.spec.ts`
+- Detalle de publicacion:
+  - `src/app/[locale]/[slug]/page.tsx`
+  - `src/app/[locale]/[slug]/ui/PostDetail.tsx`
+
+### Key commands
+
+- `pnpm run typecheck`
+- `pnpm run lint`
+- `pnpm run test:run`
+- `pnpm exec playwright test src/e2e/editPublicationTypes/editPublicationTypes.spec.ts --reporter=line`
+
+### Validation results
+
+- Typecheck: passed.
+- Lint: passed.
+- Vitest completo: 180 files, 1896 tests passed.
+- E2E focal de editar tipos/publicacion: 3 tests passed.
+
+### Deviations from roadmap
+
+- No hubo cambios de alcance. El primer intento del e2e fallo porque el `data-testid` real del trigger de compartir es `share-post-trigger`, no `share-post`; se corrigio el test y la corrida final paso.
+- Antes de la corrida final habia un proceso ocupando el puerto 3000. Se uso la limpieza manual que hizo el usuario y despues se valido en el puerto esperado.
+
+### Follow-ups
+
+- Probar manualmente `/descanso-reparador` con datos locales para confirmar que la agenda se percibe en el lugar correcto dentro del flujo visual.
+- Decidir si el siguiente slice debe conectar la seleccion de horario con carrito/checkout, porque hoy el carrito no requiere espacio y esa regla se mantuvo.
+
+### Recap
+
+La agenda de servicios ya queda integrada al detalle de la publicacion: aparece despues de los botones de accion y antes de comentarios, reportes y relacionados. El calculo de espacios se conserva donde estaba, pero la posicion deja de hacer que el usuario tenga que bajar hasta despues de comentarios para encontrar disponibilidad.
+
+### Proximos pasos (opciones)
+
+- Opcion A: revisar manualmente `/descanso-reparador` y cerrar el ajuste de posicion.
+- Opcion B: avanzar a conectar horario seleccionado con carrito/checkout si la compra de servicios debe reservar un espacio.
+- Opcion C: continuar con otro slice pendiente del roadmap de edicion de publicaciones.

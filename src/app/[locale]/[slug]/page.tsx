@@ -290,6 +290,18 @@ export default async function Slug({
         locale={locale}
         slug={slug}
         distanceMeters={store?.meters ?? null}
+        bookingSlot={
+          offeredSlots.length > 0 ? (
+            <SlotPicker
+              postId={String(post.id ?? "")}
+              sellerId={String(post.sellerId ?? "")}
+              title={title}
+              unitPrice={Number(post.price ?? 0)}
+              durationMinutes={Number(post.durationMinutes ?? 0)}
+              slots={offeredSlots}
+            />
+          ) : null
+        }
       />
 
       {/* El recorrido va ANTES del mapa de la tienda: en un evento, "por dónde vamos" es la
@@ -320,21 +332,6 @@ export default async function Slug({
             initialComments={post.comments}
           />
         </Suspense>
-
-        {/* Abajo del todo a propósito: avisar es el último recurso de quien ya leyó la
-            publicación entera, no una acción que compita con leerla. */}
-        {/* Elegir hora va justo encima de avisar: es la acción principal de un servicio, y el
-            aviso es el último recurso. */}
-        {offeredSlots.length > 0 ? (
-          <SlotPicker
-            postId={String(post.id ?? "")}
-            sellerId={String(post.sellerId ?? "")}
-            title={title}
-            unitPrice={Number(post.price ?? 0)}
-            durationMinutes={Number(post.durationMinutes ?? 0)}
-            slots={offeredSlots}
-          />
-        ) : null}
 
         {canReport ? (
           <ReportPostForm

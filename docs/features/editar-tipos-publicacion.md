@@ -47,3 +47,17 @@ Acceptance criteria:
 - Cada tipo conserva sus campos propios y limpia los campos que no aplican.
 - La navegacion vuelve al detalle de la publicacion despues de guardar.
 
+### Slice 4 - La agenda se ve junto a las acciones del servicio
+
+Scope:
+- El selector de espacios de agenda se muestra dentro del detalle de un servicio, debajo del bloque
+  de acciones de la publicacion: carrito, WhatsApp y compartir.
+- Los comentarios, reportes y publicaciones relacionadas quedan despues de la decision principal de
+  agenda.
+- No cambia el calculo de espacios ni el modelo de carrito; solo la colocacion de la accion de
+  agendar.
+
+Acceptance criteria:
+- En `/descanso-reparador`, si hay espacios disponibles, el bloque "Elige tu hora" aparece despues
+  del boton de compartir y antes de "Comentarios".
+- Agregar al carrito no pide horario; la seleccion de horario vive en el detalle del servicio.

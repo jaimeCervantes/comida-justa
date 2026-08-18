@@ -1,4 +1,5 @@
 import { getTranslations } from "next-intl/server";
+import type { ReactNode } from "react";
 import { MdPhone } from "react-icons/md";
 import { canBeOrdered, isSellable } from "~/domain/entities/post/availability";
 import { resolvePostTranslation } from "~/domain/entities/post/translations";
@@ -45,6 +46,7 @@ export default async function PostDetail({
   locale,
   slug,
   distanceMeters = null,
+  bookingSlot = null,
 }: {
   post: Post;
   className: string;
@@ -59,6 +61,8 @@ export default async function PostDetail({
   locale?: string;
   /** El de la ruta: es lo que se manda en el mensaje de WhatsApp para identificar el producto. */
   slug?: string;
+  /** Acción principal de agenda para servicios. La página calcula los huecos; el detalle la ubica. */
+  bookingSlot?: ReactNode;
 }) {
   const t = await getTranslations("post");
   const tShare = await getTranslations("share");
@@ -235,6 +239,8 @@ export default async function PostDetail({
           text={tShare("postText", { title: String(title ?? "") })}
         />
       </div>
+
+      {bookingSlot}
 
       {isOwner ? (
         <>
