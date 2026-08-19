@@ -99,19 +99,57 @@ acepta `serverErrorSignal` y, cuando cambia, busca el primer control inválido �
 | `pnpm run check:i18n` | limpio |
 | `pnpm run build` | compila |
 | `pnpm run typecheck:tests` | **6 errores, todos previos.** Se comprobó con `git stash` que el conjunto es idéntico en `HEAD`: `EditPostForm.test.tsx` (4, tipos inferidos de un literal por defecto), `managePost.test.ts` (1), `PostsWithLoadMore.test.tsx` (1). No se tocaron: son de otro trabajo. |
-| `pnpm run test:e2e:run` | **PENDIENTE — la corre el usuario.** Ver abajo. |
+| Playwright, `src/e2e/validacionFormularios` | **7 pasan / 7** (1.4 min). |
 
-### Pendiente de validar
+### La Playwright de este slice, y lo que destapó
 
-La Playwright de este slice no se ejecutó. Los comandos, en dos partes para no quedarse sin memoria:
+Se corrió por lotes, matando al dueño del puerto 3000 entre uno y otro (no la suite completa).
 
-```
-pnpm exec playwright test src/e2e/validacionFormularios
-pnpm exec playwright test src/e2e/createPost src/e2e/editPublicationTypes src/e2e/publishProduct
-```
+| Lote | Resultado |
+| --- | --- |
+| `src/e2e/validacionFormularios` | **7 / 7**. Un fallo inicial fue del propio escenario, no del código: `getByRole("button", { name: /^publicar$/i })` casaba también con el botón de la cabecera. Se acotó al formulario. |
+| `createPost` + `editPublicationTypes` + `localProducers/fixProvenance` | 7 pasan, 1 salta, **1 falla**: `createPost.spec.ts`. |
+| `multimedia` + `eventos` + `sellerStore/managePost` | 16 pasan, **5 fallan**, las cinco de `multimediaMultiple.spec.ts`. |
 
-La segunda línea es la regresión que importa: son las suites que conducen los dos formularios que
-cambiaron. Entre lote y lote, matar al dueño del puerto 3000.
+**Los seis fallos son la misma avería, y es previa a este trabajo.** Se comprobó con `git stash`:
+`createPost.spec.ts` falla igual en `HEAD` limpio, sin una línea de este slice. Son dos roturas
+encadenadas, cada una del commit anterior a esta rama, y ninguna se vio porque la Playwright no se
+había vuelto a correr:
+
+1. **`507241d` («align type-specific field validation») hizo condicionales el precio y la
+   procedencia** —sólo se pintan en lo que se vende— y no tocó los page objects. `/publicar` abre en
+   `anuncio`, así que `fillFields` esperaba un `spinbutton` de precio que no existe en la página, y
+   el escenario moría por tiempo agotado a los 90 s.
+2. **`b9ebdf2` («complete editable contact fields») cambió la etiqueta del teléfono a «Teléfono»** y
+   los page objects seguían buscando `/t[eé]lefono/i`, que casa «telefono» y «télefono» pero no
+   «teléfono». Esta sólo salió a la luz al arreglar la primera: antes el escenario ya había muerto
+   en el precio.
+
+Al arreglar esas dos apareció una tercera, del mismo tipo:
+
+3. **`multimediaMultiple.spec.ts` publicaba un producto con `price: "0"`.** Un producto lleva
+   `min="1"`, y la Server Action ya lo rechazaba con «El precio debe ser mayor a cero», así que ese
+   camino nunca pudo publicar: lo único que cambió es *dónde* se rechaza. Sus cinco escenarios
+   hermanos usan precios reales (120, 80, 45, 25); ese `0` era el único fuera de línea, y el
+   escenario prueba que una imagen y un vídeo conviven, no el precio.
+
+Se repararon las tres, sólo en los page objects y el escenario:
+
+- `src/e2e/createPost/PublishPage.ts` — elige el tipo (y la procedencia) **antes** del precio, con
+  `producto` y `reventa_cercana` por omisión, que es lo que implica pasar `price`. Locator del
+  teléfono corregido.
+- `src/e2e/publishProduct/PublishProductPage.ts` y `src/e2e/unifiedCatalog/UnifiedCatalogPage.ts` —
+  la selección del tipo sube al principio de `fill`, por la misma razón. Locator corregido.
+- `src/e2e/multimedia/multimediaMultiple.spec.ts` — precio válido en el escenario del vídeo.
+
+Es reparación de andamiaje: **ningún archivo de producción cambió por esto.**
+
+Después de las tres:
+
+| Lote | Antes | Después |
+| --- | --- | --- |
+| `createPost` | 2 / 3 | **3 / 3**, incluida la publicación completa — la señal que importaba |
+| `multimedia/multimediaMultiple` | 0 / 5 | **5 / 5**. El del vídeo pasa en 5,1 s donde antes agotaba los 90: era el precio, no la lentitud |
 
 ### Desviaciones del roadmap
 
@@ -132,6 +170,9 @@ cambiaron. Entre lote y lote, matar al dueño del puerto 3000.
 - `state.errors.media` sigue sin pintarse en `PublishForm`. Es el slice 2.
 - Los seis errores previos de `typecheck:tests` no son de este trabajo, pero conviene que alguien los
   recoja: mientras estén, ese comando no sirve como señal.
+- **La Playwright no se corría desde hace al menos dos commits.** Es lo que dejó pasar las dos
+  roturas de los page objects. Cualquier cambio a los campos de `/publicar` obliga a correr al menos
+  `createPost`, `multimedia` y `unifiedCatalog`, que son los que lo conducen.
 
 ### Recap
 
@@ -142,8 +183,11 @@ aparece al salir del campo o al primer envío fallido, se borra en la tecla que 
 enviar con errores el foco salta al primer campo inválido en vez de dejar a la persona buscando. El
 mecanismo vive en el design system sin tocar el catálogo, y las frases las ponen dos hooks de
 `presentation/`, así que los formularios de cuenta, tienda y admin ya sólo necesitan cambiar su
-`<form>` por `ValidatedForm` para heredarlo. Todo verde salvo la Playwright, que queda declarada
-como pendiente.
+`<form>` por `ValidatedForm` para heredarlo. Vitest, typecheck, lint y check:i18n en verde, y la
+Playwright de este slice también (7/7). El lote de regresión destapó de paso seis escenarios que
+llevaban rotos desde los dos commits anteriores a esta rama —los page objects de `/publicar` no se
+actualizaron cuando el precio se volvió condicional ni cuando cambió la etiqueta del teléfono—; se
+repararon sin tocar una línea de producción.
 
 ### Próximos pasos (opciones)
 
@@ -157,5 +201,5 @@ como pendiente.
 3. **Cerrar la deuda de `typecheck:tests`** antes de seguir, para que ese comando vuelva a ser una
    señal utilizable.
 
-**Pendiente del usuario:** correr la Playwright con los dos comandos de arriba y decir cuál de las
-tres opciones sigue.
+**Pendiente del usuario:** decir cuál de las tres opciones sigue. La Playwright de este slice y su
+regresión ya se corrieron por lotes; la suite completa no, por decisión suya.
