@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { useMemo } from "react";
 import type { ValidationMessages } from "~/presentation/design_system/forms/validity";
+import { usePhoneValidationMessages } from "~/presentation/forms/usePhoneValidationMessages";
 
 /** Los campos de una publicación que dicen algo más preciso que la frase genérica. */
 export type PostFieldValidationMessages = {
@@ -29,17 +30,15 @@ export type PostFieldValidationMessages = {
  */
 export function usePostValidationMessages(): PostFieldValidationMessages {
   const t = useTranslations("publish");
+  const phone = usePhoneValidationMessages();
 
   return useMemo(
     () => ({
       title: { valueMissing: t("errorTitleRequired") },
       content: { valueMissing: t("errorContentRequired") },
-      phone: {
-        valueMissing: t("errorPhoneRequired"),
-        /* La peor frase que dejaba el navegador: para `pattern` sólo sabe decir «coincide con el
-           formato solicitado», que no nombra el formato. Aquí se nombra, con ejemplo. */
-        patternMismatch: t("errorPhoneFormat"),
-      },
+      /* El formato lo dice `usePhoneValidationMessages`, que es de quien también lo toman la tienda
+         y el alta de vendedor: una regla, una frase. */
+      phone: { valueMissing: t("errorPhoneRequired"), ...phone },
       price: {
         valueMissing: t("errorPriceRequired"),
         /* `min="1"` y «mayor a cero» son la misma regla dicha dos veces: el atributo la declara y
@@ -59,6 +58,6 @@ export function usePostValidationMessages(): PostFieldValidationMessages {
       },
       origin: { valueMissing: t("errorOriginRequired") },
     }),
-    [t],
+    [t, phone],
   );
 }
