@@ -30,6 +30,15 @@ export type TextAreaProps = Omit<ComponentPropsWithRef<"textarea">, "id"> & {
   containerClassName?: string;
 };
 
+function textValueLength(
+  value: TextAreaProps["value"] | TextAreaProps["defaultValue"],
+): number {
+  if (value === undefined || value === null) return 0;
+  if (Array.isArray(value)) return value.join("").length;
+
+  return String(value).length;
+}
+
 export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
   function TextArea(
     {
@@ -45,6 +54,8 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
       containerClassName,
       maxLength = 250,
       rows = 4,
+      defaultValue,
+      value,
       onBlur,
       onChange,
       ...props
@@ -54,10 +65,18 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
     const generatedId = useId();
     const id = providedId ?? generatedId;
 
-    const [textLength, setTextLength] = useState(0);
+    /* El contador arranca contando lo que ya venía escrito. Con el estado sembrado en `0`, editar
+       una publicación de 1205 caracteres decía `0/2500` hasta la primera tecla. Si el campo es
+       controlado la cuenta sale de `value` en cada render, así que no hace falta un efecto que
+       sincronice —y que pintaría un fotograma con la cifra vieja—. */
+    const [typedLength, setTypedLength] = useState(() =>
+      textValueLength(defaultValue),
+    );
+    const textLength =
+      value === undefined ? typedLength : textValueLength(value);
 
     const handleChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
-      setTextLength(event.target.value.length);
+      setTypedLength(event.target.value.length);
       onChange?.(event);
     };
 
@@ -79,7 +98,11 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
 
     const message = validity.error;
     const hasError = Boolean(message) || legacyInvalid;
-    const describedBy = (message ?? hint) ? `${id}-helper` : undefined;
+    /* El error manda sobre la pista: cuando el campo está mal, el hueco cuenta qué hay que
+       arreglar, no lo que se sugería antes de escribir. */
+    const helperText = hasError ? (message ?? genericErrorLabel) : hint;
+    const showsHelper = hasError || Boolean(hint);
+    const describedBy = showsHelper ? `${id}-helper` : undefined;
 
     return (
       <div className={cn("flex flex-col mt-6", containerClassName)}>
@@ -98,6 +121,8 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
           maxLength={maxLength}
           onBlur={validity.onBlur}
           onChange={validity.onChange}
+          defaultValue={defaultValue}
+          value={value}
           aria-describedby={describedBy}
           aria-invalid={hasError ? true : undefined}
           className={cn(
@@ -111,16 +136,25 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
           {...props}
         />
 
-        {hasError ? (
-          <FieldHelper id={describedBy} tone="error">
-            <MdError aria-hidden="true" className="size-4" />
-            {message ?? genericErrorLabel}
+        {showsHelper ? (
+          <FieldHelper id={describedBy} tone={hasError ? "error" : "neutral"}>
+            {hasError ? (
+              <MdError aria-hidden="true" className="size-4" />
+            ) : null}
+            {helperText}
           </FieldHelper>
-        ) : (
-          <span className="block text-right mt-1 text-sm text-text-support">
-            {textLength}/{maxLength}
-          </span>
-        )}
+        ) : null}
+
+        {/* El contador convive con el error en vez de cederle el sitio: cuando el texto está mal
+            es justo cuando importa saber cuánto cabe todavía. */}
+        <span
+          className={cn(
+            "block text-right mt-1 text-sm",
+            hasError ? "text-feedback-error" : "text-text-support",
+          )}
+        >
+          {textLength}/{maxLength}
+        </span>
 
         {/* Support for legacy children if any */}
         {(props as { children?: React.ReactNode }).children}

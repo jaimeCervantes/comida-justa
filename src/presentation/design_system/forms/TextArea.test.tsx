@@ -87,4 +87,33 @@ describe("TextArea Component", () => {
     expect(textarea).toHaveValue(text);
     expect(textarea.value.length).toBeLessThanOrEqual(maxLength);
   });
+
+  it("should count the text that arrived as defaultValue", () => {
+    render(
+      <TextArea
+        label={labelText}
+        defaultValue={"a".repeat(1205)}
+        maxLength={2500}
+      />,
+    );
+
+    expect(screen.getByText("1205/2500")).toBeInTheDocument();
+    expect(screen.queryByText("0/2500")).not.toBeInTheDocument();
+  });
+
+  it("should keep the counter visible when an error is shown", () => {
+    render(
+      <TextArea
+        label={labelText}
+        defaultValue="Pan de masa madre"
+        maxLength={2500}
+        error="El contenido es obligatorio."
+      />,
+    );
+
+    expect(
+      screen.getByText("El contenido es obligatorio."),
+    ).toBeInTheDocument();
+    expect(screen.getByText("17/2500")).toBeInTheDocument();
+  });
 });
