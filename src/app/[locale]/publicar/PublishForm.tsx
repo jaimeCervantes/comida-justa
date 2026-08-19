@@ -231,6 +231,7 @@ export default function PublishForm({
             required
             name="durationMinutes"
             type="number"
+            inputMode="numeric"
             min="5"
             step="5"
             label={t("durationMinutes")}
@@ -245,6 +246,7 @@ export default function PublishForm({
             required={requiresPrice}
             name="price"
             type="number"
+            inputMode="numeric"
             min={requiresPrice ? "1" : "0"}
             step="1"
             label={isEvent ? t("priceOptional") : t("price")}
@@ -264,6 +266,7 @@ export default function PublishForm({
           required
           name="phone"
           type="tel"
+          autoComplete="tel"
           label={t("phone")}
           pattern={"^\\+?(\\d{1,3})?[0-9]{10}$"}
           placeholder={t("phonePlaceholder")}

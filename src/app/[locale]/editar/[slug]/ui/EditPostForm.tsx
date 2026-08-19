@@ -232,6 +232,7 @@ export default function EditPostForm({
             required
             name="durationMinutes"
             type="number"
+            inputMode="numeric"
             min="5"
             step="5"
             label={tPublish("durationMinutes")}
@@ -247,6 +248,7 @@ export default function EditPostForm({
             required={isProduct || isService}
             name="price"
             type="number"
+            inputMode="numeric"
             label={isEvent ? tPublish("priceOptional") : tPublish("price")}
             defaultValue={post.price ?? ""}
             icon={<MdOutlinePriceChange />}
@@ -276,6 +278,7 @@ export default function EditPostForm({
           required
           name="phone"
           type="tel"
+          autoComplete="tel"
           label={tPublish("phone")}
           defaultValue={post.contactPhone ?? ""}
           pattern={"^\\+?(\\d{1,3})?[0-9]{10}$"}
