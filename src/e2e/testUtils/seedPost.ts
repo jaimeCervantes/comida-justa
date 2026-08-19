@@ -40,6 +40,8 @@ export type SeedPostInput = {
   subCategory?: string | null;
   /** Para sembrar dentro del catálogo de una tienda, como haría `/publicar` con su dueño. */
   sellerHandle?: string;
+  /** Telefono de contacto. Cadena vacia cuando el escenario necesita una publicacion sin WhatsApp. */
+  contactPhone?: string;
   /**
    * El texto de la publicación, cuando el escenario necesita controlarlo aparte del título.
    *
@@ -85,7 +87,7 @@ export async function seedPost(input: SeedPostInput): Promise<string> {
     durationMinutes: input.durationMinutes ?? null,
     category: input.category ?? null,
     subCategory: input.subCategory ?? null,
-    contactInfo: { phone: "2781092116" },
+    contactInfo: { phone: input.contactPhone ?? "2781092116" },
     media:
       (input.mediaCount ?? 1) <= 1
         ? [{ url: SEED_MEDIA_URL, type: "image", alt: input.title }]
