@@ -1,6 +1,11 @@
 "use server";
 import { after } from "next/server";
 import { getLocale, getTranslations } from "next-intl/server";
+import {
+  EVENT_KIND,
+  isValidKind,
+  SERVICE_KIND,
+} from "~/domain/entities/post/kind";
 import { parsePostMediaPayload } from "~/domain/entities/post/mediaPayload";
 import { resolveOriginForUser } from "~/domain/entities/post/origin";
 import { resolveKeyStrict } from "~/domain/entities/post/taxonomy";
@@ -19,12 +24,26 @@ import UpdateOnePostUseCase from "~/use_cases/managePost/updateOnePostUseCase";
 
 export type EditPostState = {
   errorMessage?: string;
+  errors?: {
+    errorMessage?: string;
+    startsAt?: string | null;
+    endsAt?: string | null;
+    durationMinutes?: string | null;
+    price?: string | null;
+    origin?: string | null;
+  };
 };
 
 function readPositiveInt(value: FormDataEntryValue | null): number | null {
   const parsed = Number(value);
 
   return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
+}
+
+function readPositiveNumber(value: FormDataEntryValue | null): number | null {
+  const parsed = Number(value);
+
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
 }
 
 /**
@@ -72,6 +91,7 @@ export async function updatePost(
       : null;
 
   const title = String(formData.get("title") ?? "");
+  const tPublish = await getTranslations("publish");
 
   /* La lista completa que la publicación va a tener, en el orden en que se ve en pantalla: el índice
      acaba en `post_media.sort_order`. Se interpreta con la misma función que al publicar, así que un
@@ -87,7 +107,7 @@ export async function updatePost(
      pintar, y el fallo no se vería al guardar sino al abrir la ficha. */
   if (media.length === 0) {
     return {
-      errorMessage: (await getTranslations("publish"))("errorMediaRequired"),
+      errorMessage: tPublish("errorMediaRequired"),
     };
   }
 
@@ -96,19 +116,50 @@ export async function updatePost(
     new PostValidator(),
   );
   const timeZone = formData.get("timeZone");
+  const kindEntry = formData.get("kind");
+  const kind = isValidKind(kindEntry) ? kindEntry : null;
+  const price = readPositiveNumber(formData.get("price"));
+  const startsAt = parseDateTimeLocalInTimeZone(
+    formData.get("startsAt"),
+    timeZone,
+  );
+  const endsAt = parseDateTimeLocalInTimeZone(formData.get("endsAt"), timeZone);
+  const durationMinutes = readPositiveInt(formData.get("durationMinutes"));
+  const requiresPrice = kind === "producto" || kind === SERVICE_KIND;
+  const fieldErrors = {
+    startsAt:
+      kind !== EVENT_KIND || startsAt
+        ? null
+        : tPublish("errorStartsAtRequired"),
+    endsAt:
+      startsAt && endsAt && endsAt < startsAt
+        ? tPublish("errorEndsBeforeStarts")
+        : null,
+    durationMinutes:
+      kind !== SERVICE_KIND || durationMinutes
+        ? null
+        : tPublish("errorDurationRequired"),
+    price: !requiresPrice || price ? null : tPublish("errorPriceRequired"),
+    origin:
+      kind !== "producto" || origin ? null : tPublish("errorOriginRequired"),
+  };
+
+  if (Object.values(fieldErrors).some(Boolean)) {
+    return { errors: fieldErrors };
+  }
 
   const result = await useCase.execute({
     userId,
     slug: String(formData.get("slug") ?? ""),
     title,
     content: String(formData.get("content") ?? ""),
-    price: Number(formData.get("price")) || null,
+    price: kind === "anuncio" ? null : price,
     origin,
     category,
     subCategory,
-    startsAt: parseDateTimeLocalInTimeZone(formData.get("startsAt"), timeZone),
-    endsAt: parseDateTimeLocalInTimeZone(formData.get("endsAt"), timeZone),
-    durationMinutes: readPositiveInt(formData.get("durationMinutes")),
+    startsAt,
+    endsAt,
+    durationMinutes,
     media,
   });
 

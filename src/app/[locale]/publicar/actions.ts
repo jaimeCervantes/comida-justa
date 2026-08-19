@@ -80,6 +80,12 @@ function readPositiveInt(value: FormDataEntryValue | null): number | null {
   return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
 }
 
+function readPositiveNumber(value: FormDataEntryValue | null): number | null {
+  const parsed = Number(value);
+
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+}
+
 /** El idioma en el que se escribe hoy toda publicación; la traducción vive bajo esa clave. */
 const PUBLISH_LOCALE = "es";
 
@@ -216,7 +222,7 @@ export async function createPost(
   const title = formData.get("title") as string;
   const content = formData.get("content") as string;
   const mediaJSON = formData.get("media") as string;
-  const price = formData.get("price");
+  const price = readPositiveNumber(formData.get("price"));
   const phone = formData.get("phone") as string;
   /* Se resuelve contra la allowlist del dominio en vez de comparar contra un literal: así sumar un
      tipo no exige acordarse de tocar también esta línea, que es justo lo que se olvidaría. */
@@ -254,6 +260,7 @@ export async function createPost(
   // Server-side defense: only an admin may assign a "hazlo_sano_*" origin.
   const admin = isAdmin(session?.user?.email);
   const origin = resolveOriginForUser(formData.get("origin") as string, admin);
+  const requiresPrice = kind === "producto" || kind === "servicio";
 
   // Fuera del catálogo se ignora (queda `null`) en vez de romper la publicación.
   const taxonomy = await getCategoryTaxonomy();
@@ -298,6 +305,8 @@ export async function createPost(
       kind !== "servicio" || durationMinutes
         ? null
         : t("errorDurationRequired"),
+    price: !requiresPrice || price ? null : t("errorPriceRequired"),
+    origin: kind !== "producto" || origin ? null : t("errorOriginRequired"),
     content: content ? null : t("errorContentRequired"),
     phone: phone ? null : t("errorPhoneRequired"),
     /* Se comprueba lo que se pudo interpretar y no que el campo traiga texto. Antes bastaba con que
@@ -328,7 +337,7 @@ export async function createPost(
       contactInfo: {
         phone,
       },
-      price: Number(price) || null,
+      price: kind === "anuncio" ? null : price,
       kind,
       origin,
       category,

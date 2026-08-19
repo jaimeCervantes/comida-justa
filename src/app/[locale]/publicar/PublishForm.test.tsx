@@ -30,9 +30,13 @@ function renderForm(
 }
 
 async function selectProduct(): Promise<void> {
+  await selectKind("producto");
+}
+
+async function selectKind(kind: string): Promise<void> {
   await userEvent.selectOptions(
     screen.getByRole("combobox", { name: /tipo de publicación/i }),
-    "producto",
+    kind,
   );
 }
 
@@ -171,5 +175,58 @@ describe("PublishForm — zona horaria del evento", () => {
     expect(
       document.querySelector('form input[name="timeZone"]'),
     ).not.toBeNull();
+  });
+});
+
+describe("PublishForm — campos por tipo", () => {
+  it("un anuncio no pide precio, procedencia, fecha ni duración", () => {
+    renderForm();
+
+    expect(screen.queryByLabelText(/^precio/i)).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("combobox", { name: /de dónde viene/i }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/cuándo empieza/i)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/cuánto dura/i)).not.toBeInTheDocument();
+  });
+
+  it("un producto exige precio y procedencia", async () => {
+    renderForm();
+
+    await selectProduct();
+
+    expect(screen.getByLabelText(/^precio/i)).toBeRequired();
+    expect(
+      screen.getByRole("combobox", { name: /de dónde viene/i }),
+    ).toBeRequired();
+    expect(screen.queryByLabelText(/cuánto dura/i)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/cuándo empieza/i)).not.toBeInTheDocument();
+  });
+
+  it("un evento exige inicio, pero deja el precio opcional", async () => {
+    renderForm();
+
+    await selectKind("evento");
+
+    expect(screen.getByLabelText(/cuándo empieza/i)).toBeRequired();
+    expect(screen.getByLabelText(/cuándo termina/i)).not.toBeRequired();
+    expect(screen.getByLabelText(/^precio/i)).not.toBeRequired();
+    expect(screen.queryByLabelText(/cuánto dura/i)).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("combobox", { name: /de dónde viene/i }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("un servicio exige duración y precio, sin procedencia ni fechas", async () => {
+    renderForm();
+
+    await selectKind("servicio");
+
+    expect(screen.getByLabelText(/cuánto dura/i)).toBeRequired();
+    expect(screen.getByLabelText(/^precio/i)).toBeRequired();
+    expect(screen.queryByLabelText(/cuándo empieza/i)).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("combobox", { name: /de dónde viene/i }),
+    ).not.toBeInTheDocument();
   });
 });

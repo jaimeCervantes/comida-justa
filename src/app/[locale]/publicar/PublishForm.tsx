@@ -2,6 +2,7 @@
 import { useTranslations } from "next-intl";
 import { useActionState, useState } from "react";
 import { MdOutlinePriceChange, MdPhone, MdTitle } from "react-icons/md";
+import { EVENT_KIND, SERVICE_KIND } from "~/domain/entities/post/kind";
 import type { CategoryOption } from "~/domain/entities/post/taxonomy";
 import { Link } from "~/i18n/navigation";
 import { POST_CONTENT_MAX_LENGTH } from "~/infra/constants";
@@ -54,6 +55,11 @@ export default function PublishForm({
   const [category, setCategory] = useState<string>("");
   const [isLoadingMedia, setIsLoadingMedia] = useState<boolean | null>(null);
   const timeZone = useBrowserTimeZone();
+  const isProduct = kind === "producto";
+  const isEvent = kind === EVENT_KIND;
+  const isService = kind === SERVICE_KIND;
+  const showsPrice = isProduct || isEvent || isService;
+  const requiresPrice = isProduct || isService;
 
   return (
     <section className="p-4">
@@ -135,7 +141,7 @@ export default function PublishForm({
         ) : null}
 
         {/* La procedencia solo aplica a lo que se vende, igual que la categoría. */}
-        {kind === "producto" ? (
+        {isProduct ? (
           <div className="mb-6">
             <Select
               id="origin"
@@ -144,6 +150,7 @@ export default function PublishForm({
               value={origin}
               onChange={(event) => setOrigin(event.target.value)}
               required
+              error={state?.errors?.origin}
             >
               <option value="">{t("originPlaceholder")}</option>
               {originOptionsFor(isAdmin).map((option) => (
@@ -173,7 +180,7 @@ export default function PublishForm({
         {/* Solo un evento ocurre en un momento, así que solo ahí se pregunta. La fecha es
             obligatoria porque es lo que lo hace evento; la de fin es opcional, y sin ella el evento
             caduca en su hora de inicio (ver `domain/entities/post/event.ts`). */}
-        {kind === "evento" ? (
+        {isEvent ? (
           <div className="mb-6 grid gap-4 sm:grid-cols-2">
             <EventTimeZoneField timeZone={timeZone} />
             <TextField
@@ -204,7 +211,7 @@ export default function PublishForm({
         {/* Un servicio se agenda, y agendar es repartir el tiempo del proveedor: la duración es
             lo que convertirá "las 9:00" en "de 9:00 a 9:45". Se pide ya, aunque la agenda no
             exista, para que ningún servicio nazca sin ella. */}
-        {kind === "servicio" ? (
+        {isService ? (
           <TextField
             required
             name="durationMinutes"
@@ -217,14 +224,19 @@ export default function PublishForm({
           />
         ) : null}
 
-        <TextField
-          name="price"
-          type="number"
-          label={kind === "evento" ? t("priceOptional") : t("price")}
-          icon={<MdOutlinePriceChange />}
-          error={state?.errors?.price}
-          containerClassName="mb-6"
-        />
+        {showsPrice ? (
+          <TextField
+            required={requiresPrice}
+            name="price"
+            type="number"
+            min={requiresPrice ? "1" : "0"}
+            step="1"
+            label={isEvent ? t("priceOptional") : t("price")}
+            icon={<MdOutlinePriceChange />}
+            error={state?.errors?.price}
+            containerClassName="mb-6"
+          />
+        ) : null}
 
         <PostMediaField onLoadingChange={setIsLoadingMedia} />
 

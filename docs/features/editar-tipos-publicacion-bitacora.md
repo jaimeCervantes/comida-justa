@@ -132,3 +132,85 @@ La agenda de servicios ya queda integrada al detalle de la publicacion: aparece 
 - Opcion A: revisar manualmente `/descanso-reparador` y cerrar el ajuste de posicion.
 - Opcion B: avanzar a conectar horario seleccionado con carrito/checkout si la compra de servicios debe reservar un espacio.
 - Opcion C: continuar con otro slice pendiente del roadmap de edicion de publicaciones.
+
+## 2026-08-18 - Slice 5: validaciones coherentes por tipo en publicar y editar
+
+### Objective
+
+Corregir la friccion donde un servicio con campos incompletos podia terminar señalando el precio
+cuando lo que faltaba era la duracion, y revisar la matriz completa de campos propios por tipo en
+publicar y editar.
+
+### Decisions + rationale
+
+- `PublishForm` ahora usa la misma matriz que `EditPostForm`: anuncio sin precio, producto con
+  precio/procedencia, evento con inicio obligatorio y precio opcional, servicio con precio/duracion.
+- Se oculto precio en `anuncio`. El dominio ya dice que un anuncio no se vende; mostrar precio hacia
+  que el formulario prometiera un dato que la edicion no ofrece y que no tiene regla de negocio.
+- La Server Action de publicar pre-valida `price` y `origin` igual que ya hacia con `startsAt` y
+  `durationMinutes`, para que el error caiga en el campo correcto y no como mensaje generico del
+  validador.
+- La Server Action de edicion recibe `kind` como hidden solo para UX de validacion. El caso de uso
+  sigue usando el tipo guardado en base, asi que manipular ese hidden no cambia el modelo ni autoriza
+  cambiar tipo.
+- Edicion conserva `errorMessage` por compatibilidad, pero ahora tambien puede pintar errores de
+  campo (`price`, `origin`, `startsAt`, `endsAt`, `durationMinutes`).
+
+### Files touched
+
+- Publicar:
+  - `src/app/[locale]/publicar/PublishForm.tsx`
+  - `src/app/[locale]/publicar/PublishForm.test.tsx`
+  - `src/app/[locale]/publicar/actions.ts`
+- Editar:
+  - `src/app/[locale]/editar/[slug]/actions.ts`
+  - `src/app/[locale]/editar/[slug]/ui/EditPostForm.tsx`
+  - `src/app/[locale]/editar/[slug]/ui/EditPostForm.test.tsx`
+- Textos y tipos:
+  - `src/i18n/messages/es.json`
+  - `src/i18n/messages/en.json`
+  - `src/infra/types/Actions.d.ts`
+- Docs:
+  - `docs/features/editar-tipos-publicacion.md`
+  - `docs/features/editar-tipos-publicacion-bitacora.md`
+
+### Key commands
+
+- `pnpm exec vitest --run src/app/[locale]/publicar/PublishForm.test.tsx src/app/[locale]/editar/[slug]/ui/EditPostForm.test.tsx`
+- `pnpm exec biome check src/app/[locale]/publicar/PublishForm.tsx src/app/[locale]/publicar/PublishForm.test.tsx src/app/[locale]/publicar/actions.ts src/app/[locale]/editar/[slug]/actions.ts src/app/[locale]/editar/[slug]/ui/EditPostForm.tsx src/app/[locale]/editar/[slug]/ui/EditPostForm.test.tsx src/infra/types/Actions.d.ts src/i18n/messages/es.json src/i18n/messages/en.json`
+- `pnpm run typecheck`
+- `pnpm run test:run`
+
+### Validation results
+
+- Vitest focal: 2 files, 18 tests passed.
+- Typecheck: passed.
+- Vitest completo: 190 files, 1969 tests passed.
+- Lint: 935 files checked.
+- E2E completo: no corrido por instruccion del usuario; queda para el cierre por shards.
+
+### Deviations from roadmap
+
+- Este slice correctivo no estaba en el roadmap original. Se agrego porque al revisar servicios se
+  encontro una divergencia real entre publicar y editar: publicar mostraba precio para anuncios y no
+  lo marcaba requerido para servicios.
+
+### Follow-ups
+
+- Validar en navegador el flujo exacto de publicar servicio sin duracion/precio cuando toque correr
+  el shard e2e.
+- Decidir si el telefono debe tener tambien validacion server-side de formato; hoy el navegador lo
+  valida con `pattern`, y la Server Action solo exige presencia.
+
+### Recap
+
+Publicar y editar ya presentan la misma matriz por tipo: anuncio no vende, producto pide precio y
+procedencia, evento pide fecha y servicio pide precio y duracion. Las acciones devuelven errores de
+campo antes de caer a mensajes genericos, por lo que faltar duracion en un servicio ya no se mezcla
+con el error de precio.
+
+### Proximos pasos (opciones)
+
+- Opcion A: probar manualmente publicar un servicio dejando vacia la duracion.
+- Opcion B: correr el shard e2e de publicar/editar cuando cierres los slices.
+- Opcion C: revisar validacion server-side del telefono.

@@ -28,16 +28,52 @@ const EVENT_POST = {
   ],
 };
 
+const PRODUCT_POST = {
+  ...EVENT_POST,
+  slug: "jugo-verde",
+  title: "Jugo verde",
+  kind: "producto",
+  origin: "productor",
+  price: 40,
+  startsAt: null,
+  endsAt: null,
+};
+
+const SERVICE_POST = {
+  ...EVENT_POST,
+  slug: "consulta-nutricional",
+  title: "Consulta nutricional",
+  kind: "servicio",
+  price: 500,
+  startsAt: null,
+  endsAt: null,
+  durationMinutes: 45,
+};
+
+const ANNOUNCEMENT_POST = {
+  ...EVENT_POST,
+  slug: "aviso-comunidad",
+  title: "Aviso comunidad",
+  kind: "anuncio",
+  price: null,
+  startsAt: null,
+  endsAt: null,
+};
+
+function renderForm(post: typeof EVENT_POST): void {
+  renderWithIntl(
+    <EditPostForm
+      action={noop}
+      post={post}
+      categoryOptions={[]}
+      subCategoryOptionsByCategory={{}}
+    />,
+  );
+}
+
 describe("EditPostForm — fechas de evento", () => {
   it("muestra el instante guardado como hora local de la comunidad", () => {
-    renderWithIntl(
-      <EditPostForm
-        action={noop}
-        post={EVENT_POST}
-        categoryOptions={[]}
-        subCategoryOptionsByCategory={{}}
-      />,
-    );
+    renderForm(EVENT_POST);
 
     expect(screen.getByLabelText(/cuándo empieza/i)).toHaveValue(
       "2027-08-23T07:30",
@@ -45,5 +81,52 @@ describe("EditPostForm — fechas de evento", () => {
     expect(screen.getByLabelText(/cuándo termina/i)).toHaveValue(
       "2027-08-23T09:00",
     );
+  });
+});
+
+describe("EditPostForm — campos por tipo", () => {
+  it("un anuncio no edita precio, procedencia, fecha ni duración", () => {
+    renderForm(ANNOUNCEMENT_POST);
+
+    expect(screen.queryByLabelText(/^precio/i)).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("combobox", { name: /de dónde viene/i }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/cuándo empieza/i)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/cuánto dura/i)).not.toBeInTheDocument();
+  });
+
+  it("un producto exige precio y procedencia", () => {
+    renderForm(PRODUCT_POST);
+
+    expect(screen.getByLabelText(/^precio/i)).toBeRequired();
+    expect(
+      screen.getByRole("combobox", { name: /de dónde viene/i }),
+    ).toBeRequired();
+    expect(screen.queryByLabelText(/cuánto dura/i)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/cuándo empieza/i)).not.toBeInTheDocument();
+  });
+
+  it("un evento exige inicio, pero deja el precio opcional", () => {
+    renderForm(EVENT_POST);
+
+    expect(screen.getByLabelText(/cuándo empieza/i)).toBeRequired();
+    expect(screen.getByLabelText(/cuándo termina/i)).not.toBeRequired();
+    expect(screen.getByLabelText(/^precio/i)).not.toBeRequired();
+    expect(screen.queryByLabelText(/cuánto dura/i)).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("combobox", { name: /de dónde viene/i }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("un servicio exige duración y precio, sin procedencia ni fechas", () => {
+    renderForm(SERVICE_POST);
+
+    expect(screen.getByLabelText(/cuánto dura/i)).toBeRequired();
+    expect(screen.getByLabelText(/^precio/i)).toBeRequired();
+    expect(screen.queryByLabelText(/cuándo empieza/i)).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("combobox", { name: /de dónde viene/i }),
+    ).not.toBeInTheDocument();
   });
 });

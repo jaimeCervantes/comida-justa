@@ -72,22 +72,24 @@ export default function EditPostForm({
   const isEvent = post.kind === EVENT_KIND;
   const isService = post.kind === SERVICE_KIND;
   const showsPrice = isProduct || isEvent || isService;
+  const errorMessage = state.errors?.errorMessage ?? state.errorMessage;
 
   return (
     <section>
       <h1 className="text-xl mb-4">{t("heading")}</h1>
 
-      {state.errorMessage ? (
+      {errorMessage ? (
         <p
           data-testid="edit-post-error"
           className="pt-1 mb-4 text-red-700 dark:text-red-400"
         >
-          {state.errorMessage}
+          {errorMessage}
         </p>
       ) : null}
 
       <form action={updateAction} aria-label={t("heading")}>
         <input type="hidden" name="slug" value={post.slug} />
+        <input type="hidden" name="kind" value={post.kind} />
 
         <TextField
           autoFocus
@@ -162,6 +164,7 @@ export default function EditPostForm({
               label={tPublish("origin")}
               defaultValue={post.origin ?? ""}
               required
+              error={state.errors?.origin}
               containerClassName="mb-6"
             >
               <option value="">{tPublish("originPlaceholder")}</option>
@@ -183,6 +186,7 @@ export default function EditPostForm({
               name="startsAt"
               type="datetime-local"
               label={tPublish("startsAt")}
+              error={state.errors?.startsAt}
               defaultValue={formatDateTimeLocalInTimeZone(
                 post.startsAt,
                 timeZone,
@@ -193,6 +197,7 @@ export default function EditPostForm({
               name="endsAt"
               type="datetime-local"
               label={tPublish("endsAt")}
+              error={state.errors?.endsAt}
               defaultValue={formatDateTimeLocalInTimeZone(
                 post.endsAt,
                 timeZone,
@@ -210,6 +215,7 @@ export default function EditPostForm({
             step="5"
             label={tPublish("durationMinutes")}
             defaultValue={post.durationMinutes ?? ""}
+            error={state.errors?.durationMinutes}
             containerClassName="mb-6"
           />
         ) : null}
@@ -222,6 +228,9 @@ export default function EditPostForm({
             label={isEvent ? tPublish("priceOptional") : tPublish("price")}
             defaultValue={post.price ?? ""}
             icon={<MdOutlinePriceChange />}
+            min={isProduct || isService ? "1" : "0"}
+            step="1"
+            error={state.errors?.price}
             containerClassName="mb-6"
           />
         ) : null}

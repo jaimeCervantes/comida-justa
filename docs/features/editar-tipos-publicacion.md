@@ -61,3 +61,20 @@ Acceptance criteria:
 - En `/descanso-reparador`, si hay espacios disponibles, el bloque "Elige tu hora" aparece despues
   del boton de compartir y antes de "Comentarios".
 - Agregar al carrito no pide horario; la seleccion de horario vive en el detalle del servicio.
+
+### Slice 5 - Validaciones coherentes por tipo al publicar y editar
+
+Scope:
+- Publicar y editar comparten la misma matriz visible de campos por tipo.
+- `anuncio` no muestra precio, procedencia, fechas ni duracion.
+- `producto` exige precio y procedencia.
+- `evento` exige inicio, permite fin opcional y precio opcional.
+- `servicio` exige precio y duracion, sin procedencia ni fechas.
+- Las Server Actions devuelven errores de campo para precio, procedencia, fecha y duracion antes de
+  caer a errores genericos del dominio.
+
+Acceptance criteria:
+- Al publicar un servicio sin duracion se muestra el error de duracion, no un error de precio.
+- Al publicar o editar un servicio, precio y duracion aparecen como requeridos.
+- Al publicar o editar un anuncio, el campo precio no aparece.
+- Producto, evento y servicio no muestran campos que no aplican a su tipo.
