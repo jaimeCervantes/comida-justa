@@ -32,7 +32,7 @@ Feature: Traducciones (i18n) — que el sitio hable de verdad dos idiomas
   @slice-0
   Scenario: Un idioma que no existe da 404 limpio, no un 500
     # Servir español bajo "/fr/…" sería la misma página en dos direcciones: contenido duplicado,
-    # justo lo que `docs/features/seo.md` evita. El 404 es la respuesta correcta. Lo que no puede
+    # justo lo que `docs/features/content/003-2026-08-01-seo.md` evita. El 404 es la respuesta correcta. Lo que no puede
     # pasar es que la resolución del idioma reviente antes de llegar a él.
     Given un visitante que pide "/fr/productos"
     When se resuelve el idioma de la ruta

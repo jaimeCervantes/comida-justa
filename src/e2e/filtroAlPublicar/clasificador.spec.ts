@@ -11,7 +11,7 @@ import {
 } from "../testUtils/simulateLogin";
 
 /**
- * Slice 2 de `docs/features/filtro-al-publicar.md`: el clasificador que decide solo.
+ * Slice 2 de `docs/features/platform/005-2026-08-16-filtro-al-publicar.md`: el clasificador que decide solo.
  *
  * Lo que NO se prueba aquí es si el prompt acierta: eso se midió aparte contra las 27 publicaciones
  * reales de la base (27 aceptadas, 0 falsos positivos) y lo vigilan las tablas del `.feature`.

@@ -1,6 +1,6 @@
 import { expect, type Page, test } from "@playwright/test";
 
-// Slice 4 de docs/features/seo.md. Corre contra lo que ya existe en el catálogo: "Jugo Verde"
+// Slice 4 de docs/features/content/003-2026-08-01-seo.md. Corre contra lo que ya existe en el catálogo: "Jugo Verde"
 // (producto de 40, disponible), "La clave para dormir profundo" (anuncio en video) y la tienda
 // "hazlo-sano" con su sucursal de Tezonapa. No siembra nada.
 type JsonLdNode = Record<string, unknown>;

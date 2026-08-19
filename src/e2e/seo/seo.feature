@@ -243,7 +243,7 @@ Feature: SEO — que el sitio se pueda encontrar
       | un producto agotado        | no se ofrece                                |
       | un anuncio no disponible   | se ofrece igual, porque un anuncio no se agota |
 
-  # Los directorios de la comunidad viven en docs/features/secciones-comunidad.md; sus escenarios
+  # Los directorios de la comunidad viven en docs/features/community/001-2026-08-02-secciones-comunidad.md; sus escenarios
   # están aquí porque lo que se afirma es de descubrimiento: qué entra al sitemap y qué se indexa.
   @directorios
   Scenario: El directorio de negocios lista las tiendas de la comunidad

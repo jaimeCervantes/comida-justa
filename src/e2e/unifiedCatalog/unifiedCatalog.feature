@@ -23,7 +23,7 @@ Feature: Unified catalog
   Background:
     Given the app is running with PostgreSQL as the database
     # The taxonomy moved out of TypeScript constants and into the `categories` table.
-    # See docs/features/taxonomia-centralizada.md — this Background now describes stored data.
+    # See docs/features/catalog/003-2026-07-30-taxonomia-centralizada.md — this Background now describes stored data.
     And the catalog holds one root category and six sub-categories:
       | key          | parent_key   | label es     | label en  |
       | alimentacion |              | Alimentación | Food      |
@@ -124,7 +124,7 @@ Feature: Unified catalog
   # Script: src/scripts/migrateProductsToPosts.ts  (pnpm run migrate:products)
   # Mapping rules covered by Vitest: src/domain/entities/post/legacyCatalog.test.ts
   # The run itself is verified against the shared database; numbers in
-  # docs/features/catalogo-unificado-bitacora.md
+  # docs/features/catalog/002-2026-07-25-catalogo-unificado-bitacora.md
   # ---------------------------------------------------------------------------
 
   @slice-2

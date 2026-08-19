@@ -5,7 +5,7 @@ import { seedPost } from "../testUtils/seedPost";
 import { coordinatesAtKm, seedStore } from "../testUtils/seedStore";
 import { testSlug, testStore } from "../testUtils/testSlug";
 
-/** Slice 5 de `docs/features/productores-locales.md`. */
+/** Slice 5 de `docs/features/commerce/002-2026-08-02-productores-locales.md`. */
 const TIENDA = testStore("Panadería La Luz");
 const VISITOR = coordinatesAtKm(1.65);
 

@@ -7,7 +7,7 @@ import { coordinatesAtKm, seedStore } from "../testUtils/seedStore";
 import { testSlug, testStore } from "../testUtils/testSlug";
 
 /**
- * Slice 2 de `docs/features/busqueda-relevante.md`.
+ * Slice 2 de `docs/features/search/001-2026-08-05-busqueda-relevante.md`.
  *
  * La búsqueda era la única sección sin cercanía, y no por falta de UI: usa el mismo `CardForList` y
  * `mapPostsToCards:62` ya leía `item.distanceMeters`. El hueco existía y llegaba siempre vacío

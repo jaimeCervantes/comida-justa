@@ -4,7 +4,7 @@ import { config } from "dotenv";
 config({ path: resolve(process.cwd(), ".env.development") });
 
 /**
- * Slice 2 de `docs/features/catalogo-unificado.md`: trae el catálogo del chatbot (`products`)
+ * Slice 2 de `docs/features/catalog/002-2026-07-25-catalogo-unificado.md`: trae el catálogo del chatbot (`products`)
  * a `posts`, sin tocar `products` — el bot lo sigue leyendo hasta el slice 3.
  *
  * Dos decisiones que explican la forma del script:

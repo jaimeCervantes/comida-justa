@@ -28,7 +28,7 @@ Feature: Publish Hazlo Sano product
     Then the post is saved with kind "producto" and origin "hazlo_sano_propio"
     And the post detail page shows a "🌿 Hazlo Sano" badge
 
-  # Reescrito por el slice 1 de `docs/features/productores-locales.md`: el selector dejó de ser
+  # Reescrito por el slice 1 de `docs/features/commerce/002-2026-08-02-productores-locales.md`: el selector dejó de ser
   # admin-only —lo ve cualquiera que publique un producto— y lo admin-only pasó a ser *qué
   # procedencias ofrece*. Los escenarios vivos de esa regla están en
   # `src/e2e/localProducers/localProducers.feature`.

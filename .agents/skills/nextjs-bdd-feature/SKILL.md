@@ -67,7 +67,13 @@ branch) directly.
 11. Run validations with the correct command or commands
 12. In the final response, include the exact validation commands you ran (or that the user should run if blocked).
 13. Suggest the next scenario instead of forcing an artificial loop.
-14. After each slice, append an entry to `docs/features/<feature>-bitacora.md` (append-only): objective, decisions + rationale, files touched (grouped), key commands, validation results (with numbers), deviations, follow-ups. **Every entry MUST end with a `Recap` (one-paragraph current state) and `Próximos pasos (opciones)` (concrete next choices + any actions pending on the user).** Mandatory for every slice. See "Autonomous delivery mode" in `AGENTS.md` for the full flow.
+14. After each slice, append an entry to the matching bitacora under `docs/features/<semantic-area>/<NNN>-<YYYY-MM-DD>-<feature>-bitacora.md` (append-only): objective, decisions + rationale, files touched (grouped), key commands, validation results (with numbers), deviations, follow-ups. **Every entry MUST end with a `Recap` (one-paragraph current state) and `Próximos pasos (opciones)` (concrete next choices + any actions pending on the user).** Mandatory for every slice. See "Autonomous delivery mode" and "Documentation organization" in `AGENTS.md` for the full flow.
+
+## Documentation naming
+
+- New feature roadmaps and bitacoras live in semantic subfolders under `docs/features/`, not in the root of `docs/features/`.
+- Name them `<NNN>-<YYYY-MM-DD>-<feature>.md` and `<NNN>-<YYYY-MM-DD>-<feature>-bitacora.md`, using the current local date and the next three-digit sequence number in that semantic folder.
+- If continuing an existing legacy roadmap or bitacora, append to that existing file. Do not rename old docs during unrelated feature delivery.
 
 ## Blocker handling
 
@@ -115,7 +121,7 @@ Feature: [Feature Name]
 
 ### Scenario writing rules (mandatory)
 
-- **The `Context:` block lives inside the `.feature` itself**, not only in `docs/features/<feature>.md`.
+- **The `Context:` block lives inside the `.feature` itself**, not only in the feature roadmap under `docs/features/<semantic-area>/`.
   A reader who never opens another document must still know the Problem, the Savings and the Why.
 - **Use concrete, real data — never placeholders.** Take the values from the shared/production
   database, the seeds or the existing UI: `"Jugo Verde"` at `40`, not `"a product"` at `"some price"`.

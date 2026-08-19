@@ -13,7 +13,7 @@ import { findSuiteUserId } from "../testUtils/suiteAccount";
 import { testSlug } from "../testUtils/testSlug";
 
 /**
- * Slice 8 de `docs/features/pedidos.md`: el pedido recuerda su recorrido.
+ * Slice 8 de `docs/features/commerce/003-2026-08-09-pedidos.md`: el pedido recuerda su recorrido.
  *
  * **La tienda es de la cuenta de la suite**, como en los demás specs de pedidos: el panel del
  * vendedor solo se pinta si la sesión es dueña de la tienda. Aquí además viene bien que la misma

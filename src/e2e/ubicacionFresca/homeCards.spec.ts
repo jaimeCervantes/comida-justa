@@ -6,7 +6,7 @@ import { coordinatesAtKm, seedStore } from "../testUtils/seedStore";
 import { testSlug, testStore } from "../testUtils/testSlug";
 
 /**
- * Slice 5 de `docs/features/ubicacion-fresca.md`.
+ * Slice 5 de `docs/features/wellbeing/001-2026-08-05-ubicacion-fresca.md`.
  *
  * El slice 3 puso un chip para corregir la ubicación y el 2 la detección automática, pero en el
  * home no se notaba ninguno de los dos: `PostsWithLoadMore` copia `initialPosts` a `useState`, y

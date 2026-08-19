@@ -31,7 +31,7 @@ export type ReviewPostContentResult = {
  *
  * Corre **después** de responderle a quien publicó, así que su trabajo no es impedir nada: es
  * bajar lo que no cumpla. La publicación estuvo en vivo unos segundos y eso es el costo aceptado
- * del modelo (ver `docs/features/filtro-al-publicar.md`).
+ * del modelo (ver `docs/features/platform/005-2026-08-16-filtro-al-publicar.md`).
  *
  * **No lanza nunca.** Si el clasificador falla, la publicación queda `in_review` —visible solo para
  * su autor y el admin— y aparece en el panel. Es la diferencia que justificó revisar después en vez

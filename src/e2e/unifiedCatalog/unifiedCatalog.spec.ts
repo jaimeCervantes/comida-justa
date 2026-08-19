@@ -10,7 +10,7 @@ import {
 import { testPost, testSlug } from "../testUtils/testSlug";
 import UnifiedCatalogPage from "./UnifiedCatalogPage";
 
-// Slice 1 de docs/features/catalogo-unificado.md — esquema unificado y categoría al publicar.
+// Slice 1 de docs/features/catalog/002-2026-07-25-catalogo-unificado.md — esquema unificado y categoría al publicar.
 // Escenarios en src/e2e/unifiedCatalog/unifiedCatalog.feature.
 const adminEmail = (process.env.HAZLO_SANO_ADMIN_EMAILS ?? "")
   .split(",")

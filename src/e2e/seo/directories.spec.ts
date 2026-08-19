@@ -4,7 +4,7 @@ import { meta } from "../testUtils/metaTags";
 import { seedPost } from "../testUtils/seedPost";
 import { testSlug } from "../testUtils/testSlug";
 
-// Slice 1 de docs/features/secciones-comunidad.md.
+// Slice 1 de docs/features/community/001-2026-08-02-secciones-comunidad.md.
 // "hazlo-sano" es la única tienda con dirección pública y hoy **ninguna** publicación tiene origen
 // `productor`: por eso negocios lista y productores está vacía. El orden de los escenarios
 // importa —el último siembra lo que los primeros afirman que no existe— y Playwright los corre en

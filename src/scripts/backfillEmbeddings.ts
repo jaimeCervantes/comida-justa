@@ -4,7 +4,7 @@ import { config } from "dotenv";
 config({ path: resolve(process.cwd(), ".env.development") });
 
 /**
- * Slice 4 de `docs/features/catalogo-unificado.md`: indexa lo que quedó sin vector.
+ * Slice 4 de `docs/features/catalog/002-2026-07-25-catalogo-unificado.md`: indexa lo que quedó sin vector.
  *
  * Dos poblaciones caen aquí: las publicaciones anteriores a este slice (que nacieron sin
  * embedding y por eso el chatbot no las ve) y las que se crearon mientras Gemini estaba caído

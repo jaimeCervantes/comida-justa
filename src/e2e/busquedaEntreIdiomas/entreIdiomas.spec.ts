@@ -5,7 +5,7 @@ import { seedTranslation } from "../testUtils/seedTranslation";
 import { testSlug } from "../testUtils/testSlug";
 
 /**
- * Slice 1 de `docs/features/busqueda-entre-idiomas.md`.
+ * Slice 1 de `docs/features/search/002-2026-08-07-busqueda-entre-idiomas.md`.
  *
  * El defecto, medido contra la base antes del cambio: los tres panes del catálogo tienen su fila
  * `en` con "Sourdough Bread" en el título, y `websearch_to_tsquery('english','bread')` los devuelve

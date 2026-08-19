@@ -9,7 +9,7 @@ import {
 } from "../testUtils/simulateLogin";
 import { testStore } from "../testUtils/testSlug";
 
-// Slice 3 de docs/features/compartir-y-cuenta.md.
+// Slice 3 de docs/features/content/004-2026-08-08-compartir-y-cuenta.md.
 
 test.describe("Cuando una vendedora abre su cuenta", () => {
   let dbSession: DbSession | undefined;

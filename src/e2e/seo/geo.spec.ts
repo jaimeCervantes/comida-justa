@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-// Slice 7 de docs/features/seo.md. Todo se pide como documento: es como lo lee un rastreador.
+// Slice 7 de docs/features/content/003-2026-08-01-seo.md. Todo se pide como documento: es como lo lee un rastreador.
 const AGENTES = ["GPTBot", "ClaudeBot", "PerplexityBot", "Google-Extended"];
 
 test.describe("Cuando un asistente lee robots.txt", () => {

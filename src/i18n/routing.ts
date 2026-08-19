@@ -120,7 +120,7 @@ export const routing = defineRouting({
   defaultLocale: "es",
   /* `as-needed` deja el español sin prefijo (`/productos`) y solo prefija el inglés (`/en/…`).
      No se cambia a `always`: las URL en español ya están repartidas e indexadas, y moverlas a
-     `/es/…` rompería enlaces. Ver `docs/features/i18n.md`, "Lo que no se copia". */
+     `/es/…` rompería enlaces. Ver `docs/features/content/002-2026-08-01-i18n.md`, "Lo que no se copia". */
   localePrefix: "as-needed",
   pathnames,
 });

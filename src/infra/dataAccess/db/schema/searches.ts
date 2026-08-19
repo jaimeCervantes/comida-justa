@@ -11,7 +11,7 @@ import {
 
 /**
  * Espejo de la tabla que crea la migración Alembic `0029_2026_08_08`.
- * Nunca correr `drizzle-kit generate/migrate` contra esta BD; ver `docs/database.md`.
+ * Nunca correr `drizzle-kit generate/migrate` contra esta BD; ver `docs/data/001-2026-06-19-database.md`.
  *
  * Qué se busca en el sitio y cuánta gente se va con las manos vacías. Sin `user_id` ni IP a
  * propósito: la pregunta es agregada y no necesita saber quién buscó.

@@ -4,7 +4,7 @@ import { config } from "dotenv";
 config({ path: resolve(process.cwd(), ".env.development") });
 
 /**
- * Slice 3 de `docs/features/i18n.md`: traduce lo que ya estaba publicado.
+ * Slice 3 de `docs/features/content/002-2026-08-01-i18n.md`: traduce lo que ya estaba publicado.
  *
  * Las 24 publicaciones existentes nacieron solo en español, así que `/en/<slug>` sirve el texto
  * español con el marco en inglés. Este script es el que vuelve honesto ese prefijo.

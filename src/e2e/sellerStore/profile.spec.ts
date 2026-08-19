@@ -16,7 +16,7 @@ import { testSlug, testStore } from "../testUtils/testSlug";
 import ProfilePage from "./ProfilePage";
 import SellerAccountPage from "./SellerAccountPage";
 
-// Slice 4 de docs/features/vendedores-y-tiendas.md.
+// Slice 4 de docs/features/commerce/001-2026-07-31-vendedores-y-tiendas.md.
 // El `username` se reclama sobre una cuenta REAL (la suite no crea cuentas), así que lleva el
 // prefijo `e2e-` y el barrido lo devuelve a NULL sin borrar a nadie.
 // `testSlug` ya lleva su propio contador, así que dos llamadas nunca coinciden.

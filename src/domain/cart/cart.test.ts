@@ -18,7 +18,7 @@ const hazloSano: CartSeller = {
 
 /* La segunda tienda NO existe en la base. Es la que sostiene el modelo: un carrito se parte en un
    pedido por vendedor, y eso tiene que estar probado antes de que llegue el segundo vendedor, no
-   después. Ver "El carrito es de varios vendedores" en docs/features/pedidos.md. */
+   después. Ver "El carrito es de varios vendedores" en docs/features/commerce/003-2026-08-09-pedidos.md. */
 const panaderiaLaLuz: CartSeller = {
   id: "8f2c1d4e-0000-4000-8000-000000000002",
   name: "Panadería La Luz",

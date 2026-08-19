@@ -11,7 +11,7 @@ import { testSlug } from "../testUtils/testSlug";
 import ModerationPanelPage from "./ModerationPanelPage";
 
 /**
- * Slice 1 de `docs/features/filtro-al-publicar.md`: el interruptor.
+ * Slice 1 de `docs/features/platform/005-2026-08-16-filtro-al-publicar.md`: el interruptor.
  *
  * Sin IA todavía. Lo que se prueba es que un admin pueda bajar algo desde la web y que eso
  * desaparezca de TODAS las lecturas —que son nueve— y no solo del feed.

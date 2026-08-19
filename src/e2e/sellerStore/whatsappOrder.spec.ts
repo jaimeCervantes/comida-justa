@@ -3,7 +3,7 @@ import { deleteOnePostBySlug } from "../testUtils/deleteOnePost";
 import { seedPost } from "../testUtils/seedPost";
 import { testSlug } from "../testUtils/testSlug";
 
-// Slice 2 de docs/features/vendedores-y-tiendas.md.
+// Slice 2 de docs/features/commerce/001-2026-07-31-vendedores-y-tiendas.md.
 // Los dos primeros escenarios corren contra datos REALES del catálogo: "Jugo Verde" existe con
 // su WhatsApp desde la migración, y no hace falta sembrar nada para probar que el botón sale.
 const JUGO_VERDE = {

@@ -7,7 +7,7 @@ import { seedStore } from "../testUtils/seedStore";
 import { testSlug, testStore } from "../testUtils/testSlug";
 
 /**
- * Slice 3 de `docs/features/productores-locales.md`.
+ * Slice 3 de `docs/features/commerce/002-2026-08-02-productores-locales.md`.
  *
  * La ubicación del visitante se pone por cookie y no apretando el botón: el permiso del navegador
  * lo concede el sistema operativo, no la página, y lo que este escenario prueba es que **con** una

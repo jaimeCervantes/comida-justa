@@ -24,7 +24,7 @@ This repository is a Next.js full-stack application. Keep instructions here focu
 
 Deliver features end-to-end without stopping for per-step validation. This is the default, and it **overrides** the per-step gates in `nextjs-bdd-feature`: workflow steps 6–7, the "Artifact checkpoint gate (mandatory)" section, and the ask-to-continue in "Blocker handling".
 
-- Before the first slice, write a **slice roadmap** to `docs/features/<feature>.md`: the ordered slices, each slice's scope, and its acceptance criteria. This is the single review checkpoint that replaces per-step gates.
+- Before the first slice, write a **slice roadmap** under `docs/features/<semantic-area>/<NNN>-<YYYY-MM-DD>-<feature>.md`: the ordered slices, each slice's scope, and its acceptance criteria. This is the single review checkpoint that replaces per-step gates.
 - Write **all planned scenarios as Gherkin up front** for the roadmap review, but:
   - Tag each scenario by slice (`@slice-1`, `@slice-2`, …) and mark not-yet-implemented ones `@future` so they do NOT run in CI or block.
   - Only the **current** slice's scenarios are detailed and wired to executable tests; future slices stay as skeletons (title + coarse Given/When/Then). Do not add fine detail you will likely rewrite once the current slice teaches you something.
@@ -35,12 +35,18 @@ Deliver features end-to-end without stopping for per-step validation. This is th
 - **After checkpoint 2 is approved, do NOT ask for validation or authorization for anything else.** Writing/editing any files (new modules, refactors, migrations-as-code), running tests/lint/typecheck, generating fixtures — just do it and run to completion. When the slice is green, **report** the outcome (with numbers) — that is a report, not a gate; do not wait for approval.
 - Between checkpoints, implement in a single run: tests first, then inner-to-outer layers, running `pnpm run test:run`, `pnpm run typecheck`, and `pnpm run lint` yourself.
 - Run the Playwright e2e (`pnpm run test:e2e:run`) too when the app stack is available (dev server + a reachable DB with pending migrations applied). **Run it without asking, including against the shared DB**: the suite seeds its own data and cleans it up in `afterEach`. If it cannot run in the current environment, say so explicitly and leave it as a pending validation; never imply e2e passed when it was not executed.
-- After each slice, append an entry to `docs/features/<feature>-bitacora.md` (append-only). Narrate the WHY, do not duplicate the diff (git log already has the what). Each entry: objective, decisions + rationale, files touched (grouped), key commands, validation results (with numbers), deviations from roadmap, follow-ups. **Every entry MUST end with two sections:** a **Recap** (one-paragraph current state) and **Próximos pasos (opciones)** — the concrete choices for what to do next, plus any actions pending on the user. This is mandatory for every slice, not optional.
+- After each slice, append an entry to the matching bitacora at `docs/features/<semantic-area>/<NNN>-<YYYY-MM-DD>-<feature>-bitacora.md` (append-only). Narrate the WHY, do not duplicate the diff (git log already has the what). Each entry: objective, decisions + rationale, files touched (grouped), key commands, validation results (with numbers), deviations from roadmap, follow-ups. **Every entry MUST end with two sections:** a **Recap** (one-paragraph current state) and **Próximos pasos (opciones)** — the concrete choices for what to do next, plus any actions pending on the user. This is mandatory for every slice, not optional.
 - **Interrupt mid-run ONLY for something very grave** — otherwise keep going and decide with best judgment, and run every command yourself until the slice is finished.
   - **Grave (stop and ask):** something **irreversible** — destroying or overwriting data that isn't yours (dropping/altering populated columns, `DELETE`/`UPDATE` over real user records, restoring a dump), a schema migration on the shared DB (`alembic upgrade`), `git push --force`, rotating/exposing secrets, publishing to an external service, or a discovery that invalidates the agreed model/scope.
   - **NOT grave (just do it and report):** running any test suite (`test:run`, `test:e2e:run`) even against the shared DB, running seed/fixture scripts that are scoped and reversible, creating and deleting your own test/dummy records, and every routine blocker, tooling hiccup, unclear-but-decidable scope, or "which option" choice — pick the sensible default and note it in the report.
   - When a run wrote to a shared resource, say so plainly in the report (what was written, how to undo it). The report replaces the question; do not ask permission first.
 - If the user says "modo paso a paso" / "pregúntame en cada paso", revert to the skill's per-step gate for that task.
+
+## Documentation organization
+
+- New documentation belongs in a semantic subfolder under `docs/` (`features/<area>/`, `architecture/`, `operations/`, `design_system/`, `troubleshooting/`, etc.) instead of growing a large flat directory.
+- Name new docs as `<NNN>-<YYYY-MM-DD>-<slug>.md`; use the current local date and the next three-digit sequence number in that semantic folder. Related files share the same prefix, for example `<NNN>-<YYYY-MM-DD>-<feature>.md` and `<NNN>-<YYYY-MM-DD>-<feature>-bitacora.md`.
+- Keep appending to existing legacy docs when continuing the same work. Do not rename or move old docs as part of unrelated feature work; do a dedicated documentation migration if the reorganization itself is the task.
 
 ## Tooling baseline (pnpm)
 
@@ -79,7 +85,7 @@ Deliver features end-to-end without stopping for per-step validation. This is th
 
 The routed locales are **`es` (default) and `en`**, via `next-intl` with `localePrefix: "as-needed"`:
 Spanish keeps its bare paths (`/productos`) and only English is prefixed (`/en/productos`). The
-Spanish URLs are already indexed — do **not** move them to `/es/…`. See `docs/features/i18n.md`.
+Spanish URLs are already indexed — do **not** move them to `/es/…`. See `docs/features/content/002-2026-08-01-i18n.md`.
 
 - **No user-visible string is ever hardcoded in a component.** Every label, helper, error, button
   and metadata value comes from `useTranslations`/`getTranslations`. A literal in JSX is a bug, not
@@ -99,7 +105,7 @@ Spanish URLs are already indexed — do **not** move them to `/es/…`. See `doc
   The only exception is `src/app/not-found.tsx`, which lives outside `[locale]`.
 - Every page calls `setRequestLocale(...)`; skipping it forces the route into request-time
   rendering. (Today every route is dynamic anyway because `Header` reads the session — see the
-  finding in `docs/features/i18n.md`. That does not make the call optional.)
+  finding in `docs/features/content/002-2026-08-01-i18n.md`. That does not make the call optional.)
 - Never compose a message key at runtime (`t(\`badge.${x}\`)`) unless `x` is a closed union. A key
   you cannot find with grep is a key that gets lost.
 - Component tests that render anything using the navigation wrappers or translations must render

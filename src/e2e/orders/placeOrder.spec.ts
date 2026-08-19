@@ -13,7 +13,7 @@ import { findSuiteUserId } from "../testUtils/suiteAccount";
 import { testSlug } from "../testUtils/testSlug";
 
 /**
- * Slice 2 de `docs/features/pedidos.md`.
+ * Slice 2 de `docs/features/commerce/003-2026-08-09-pedidos.md`.
  *
  * **La tienda es de la propia cuenta de la suite**, y no "hazlo-sano". El panel del vendedor solo se
  * ve si la sesión es dueña de la tienda, y `sellers.user_id` de Hazlo Sano apunta a una cuenta real

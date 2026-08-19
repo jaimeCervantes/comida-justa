@@ -12,7 +12,7 @@ import {
 import { testSlug } from "../testUtils/testSlug";
 
 /**
- * Slice 5 de `docs/features/pedidos.md`: el carrito de **varias** tiendas, por fin en el navegador.
+ * Slice 5 de `docs/features/commerce/003-2026-08-09-pedidos.md`: el carrito de **varias** tiendas, por fin en el navegador.
  *
  * Los cuatro slices anteriores lo construyeron sin poder verlo funcionar: la base tiene un solo
  * vendedor de verdad, así que `groupBySeller` siempre devolvía un grupo. Aquí se siembran dos tiendas

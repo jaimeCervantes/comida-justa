@@ -62,7 +62,7 @@ export default async function RootLayout({
 
   /* El segmento acepta cualquier cosa, así que un idioma que no existe llega hasta aquí. Se
      responde 404 en vez de servir español en una dirección inventada: dos URL con el mismo
-     contenido es justo lo que `docs/features/seo.md` evita. */
+     contenido es justo lo que `docs/features/content/003-2026-08-01-seo.md` evita. */
   if (!hasLocale(routing.locales, locale)) {
     notFound();
   }

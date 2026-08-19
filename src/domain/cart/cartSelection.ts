@@ -3,7 +3,7 @@
  *
  * Ni el título ni el precio viajan aquí. Un precio guardado en el navegador es el precio del día que
  * se guardó, y el carrito tiene que enseñar el de hoy: releerlo de la base es lo que hace que una
- * subida de precio o un producto agotado se vean **antes** de pedir. Ver `docs/features/pedidos.md`.
+ * subida de precio o un producto agotado se vean **antes** de pedir. Ver `docs/features/commerce/003-2026-08-09-pedidos.md`.
  */
 export interface CartSelection {
   postId: string;

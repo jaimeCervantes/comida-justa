@@ -7,7 +7,7 @@ import { coordinatesAtKm, seedStore } from "../testUtils/seedStore";
 import { testSlug, testStore } from "../testUtils/testSlug";
 
 /**
- * Slice 4 de `docs/features/ubicacion-fresca.md`.
+ * Slice 4 de `docs/features/wellbeing/001-2026-08-05-ubicacion-fresca.md`.
  *
  * "En otro estado del país, y donde quiera, debe poder encontrar cosas sanas". El directorio de
  * productores medía su radio de 50 km desde un ancla fija en Veracruz, así que era una lista útil

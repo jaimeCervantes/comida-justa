@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { meta } from "../testUtils/metaTags";
 
-// Slice 5 de docs/features/seo.md. Corre contra la taxonomía real: `alimentacion` y `panaderia`
+// Slice 5 de docs/features/content/003-2026-08-01-seo.md. Corre contra la taxonomía real: `alimentacion` y `panaderia`
 // tienen publicaciones; `abarrotes` está activa y vacía.
 const CON_CONTENIDO = ["alimentacion", "panaderia"];
 const VACIAS = ["abarrotes"];

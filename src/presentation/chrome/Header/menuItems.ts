@@ -62,7 +62,7 @@ export { PILLARS_OVERVIEW_HREF } from "~/i18n/routes";
  * significaba seis 404 en **todas** las páginas del sitio: quien llega se topa con una puerta
  * cerrada y quien rastrea gasta ahí su presupuesto y pierde confianza en el resto.
  *
- * No se borran: la lista es el plan, y `docs/features/secciones-comunidad.md` dice qué es cada una
+ * No se borran: la lista es el plan, y `docs/features/community/001-2026-08-02-secciones-comunidad.md` dice qué es cada una
  * y en qué orden se entregan. **Para publicar una, se pone su `published` en `true`** — y entonces
  * hay que acordarse de meterla al sitemap (`STATIC_SITEMAP_PATHS`), que es justo lo que recuerda
  * el escenario de `src/e2e/seo/seo.spec.ts` que afirma que estas rutas responden 404.

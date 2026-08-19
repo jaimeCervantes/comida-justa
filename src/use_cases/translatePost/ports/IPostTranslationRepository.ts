@@ -17,7 +17,7 @@ export default interface IPostTranslationRepository {
   /**
    * Un slug libre a partir del propuesto.
    *
-   * `post_translations` **no tiene índice único sobre `slug`** (ver `docs/features/i18n.md`), así
+   * `post_translations` **no tiene índice único sobre `slug`** (ver `docs/features/content/002-2026-08-01-i18n.md`), así
    * que la unicidad se comprueba aquí. Sin esto, un producto traducido podría chocar con el slug de
    * otro y la ruta `/[slug]` serviría cualquiera de los dos.
    */

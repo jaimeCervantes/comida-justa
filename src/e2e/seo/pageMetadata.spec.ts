@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { canonicalUrl, meta } from "../testUtils/metaTags";
 
-// Slice 2 de docs/features/seo.md.
+// Slice 2 de docs/features/content/003-2026-08-01-seo.md.
 // "Jugo Verde" existe en el catálogo con su imagen; no hace falta sembrar nada.
 const JUGO_VERDE = { slug: "jugo-verde", title: "Jugo Verde" };
 

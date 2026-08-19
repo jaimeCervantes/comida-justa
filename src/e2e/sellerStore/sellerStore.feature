@@ -235,7 +235,7 @@ Feature: Vendedores y tiendas
     Given que mi tienda está en "/tienda/e2e-panaderia-la-luz" y ya repartí ese enlace
     When cambio su nombre a "Panadería de Tezonapa"
     Then la tienda muestra el nombre nuevo en la misma dirección de siempre
-    # Renombrar la dirección se evaluó y se descartó: ver docs/features/vendedores-y-tiendas.md
+    # Renombrar la dirección se evaluó y se descartó: ver docs/features/commerce/001-2026-07-31-vendedores-y-tiendas.md
 
   # Era el último hueco de cercanía del sitio: el directorio, las tarjetas del catálogo y la ficha de
   # una publicación ya decían a qué distancia queda cada vendedor. La página de la tienda —a la que

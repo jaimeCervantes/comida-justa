@@ -7,7 +7,7 @@ import { coordinatesAtKm, seedStore } from "../testUtils/seedStore";
 import { testSlug, testStore } from "../testUtils/testSlug";
 
 /**
- * Slice 6 de `docs/features/productores-locales.md`.
+ * Slice 6 de `docs/features/commerce/002-2026-08-02-productores-locales.md`.
  *
  * Dos afirmaciones: que los listados con intención local ponen distancias, y que **cuando no las
  * hay se dice por qué**. La segunda importa tanto como la primera — un listado sin distancias

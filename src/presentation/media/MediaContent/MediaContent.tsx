@@ -60,7 +60,7 @@ export default function MediaContent({
 
   // Sin URL no hay nada que pintar y `next/image` lanzaría con `src=""`. Antes se dejaba pasar
   // el `undefined` a `DefaultContent`, que leía `media.url` y tumbaba el listado entero con un
-  // 500 (ver `docs/pendientes.md`).
+  // 500 (ver `docs/planning/001-2026-07-30-pendientes.md`).
   if (!media?.url) {
     return (
       <div

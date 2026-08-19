@@ -4,7 +4,7 @@ import { seedPost } from "../testUtils/seedPost";
 import { testSlug } from "../testUtils/testSlug";
 
 /**
- * Slice 1 de `docs/features/busqueda-relevante.md`.
+ * Slice 1 de `docs/features/search/001-2026-08-05-busqueda-relevante.md`.
  *
  * La suite no tenía ni un spec de comportamiento sobre `/buscar` —los de `seo/` tocan la ruta pero
  * solo miran metadatos—, y por eso nadie había notado que la consulta no llevaba `ORDER BY`.

@@ -4,7 +4,7 @@ import { deleteOnePostBySlug } from "../testUtils/deleteOnePost";
 import { seedPost } from "../testUtils/seedPost";
 import { testSlug } from "../testUtils/testSlug";
 
-// Slice 1 de docs/features/seo.md.
+// Slice 1 de docs/features/content/003-2026-08-01-seo.md.
 const seeded = {
   title: `E2E Publicación para el sitemap ${Date.now()}`,
   slug: testSlug("publicacion-para-el-sitemap"),

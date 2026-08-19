@@ -6,7 +6,7 @@ import { coordinatesAtKm, seedStore } from "../testUtils/seedStore";
 import { testSlug, testStore } from "../testUtils/testSlug";
 
 /**
- * Slice 1 de `docs/features/pilares-locales.md` — `pilaresLocales.feature`.
+ * Slice 1 de `docs/features/wellbeing/009-2026-08-12-pilares-locales.md` — `pilaresLocales.feature`.
  *
  * Las cuatro páginas de pilar ya hablaban de lo local, pero ese texto no enlazaba con nadie mientras
  * la base tenía tiendas ubicadas y publicaciones categorizadas por pilar. Esto verifica el tramo que

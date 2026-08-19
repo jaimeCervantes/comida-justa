@@ -7,7 +7,7 @@ import { coordinatesAtKm, seedStore } from "../testUtils/seedStore";
 import { testSlug, testStore } from "../testUtils/testSlug";
 
 /**
- * Slice 3 de `docs/features/ubicacion-fresca.md`.
+ * Slice 3 de `docs/features/wellbeing/001-2026-08-05-ubicacion-fresca.md`.
  *
  * Hasta ahora, en cuanto el sitio sabía dónde estabas la sección se quedaba muda: el aviso
  * desaparecía y **no quedaba nada en su lugar**. La cookie duraba un año, así que una ubicación

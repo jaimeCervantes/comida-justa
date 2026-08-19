@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-// Slice 6 de docs/features/seo.md. "Jugo Verde" existe, es de la sub-categoría `jugos`, la vende
+// Slice 6 de docs/features/content/003-2026-08-01-seo.md. "Jugo Verde" existe, es de la sub-categoría `jugos`, la vende
 // la tienda `hazlo-sano` y su autor tiene perfil reclamado. No se siembra nada.
 const JUGO_VERDE = "jugo-verde";
 

@@ -13,7 +13,7 @@ import { testSlug, testStore } from "../testUtils/testSlug";
 import SellerAccountPage from "./SellerAccountPage";
 import StorePage from "./StorePage";
 
-// Slice 5 de docs/features/vendedores-y-tiendas.md.
+// Slice 5 de docs/features/commerce/001-2026-07-31-vendedores-y-tiendas.md.
 const producto = () => ({
   title: `E2E Jugo Verde ${Date.now()}`,
   slug: testSlug("jugo-verde-del-vendedor"),

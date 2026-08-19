@@ -206,7 +206,7 @@ describe("SearchBar", () => {
   });
 
   /**
-   * Slice 2 de `docs/features/busqueda-entre-idiomas.md`.
+   * Slice 2 de `docs/features/search/002-2026-08-07-busqueda-entre-idiomas.md`.
    *
    * La petición no llevaba idioma, así que `/api/search` caía a `"es"` y el desplegable buscaba en
    * español aunque el sitio estuviera en inglés: escribir "bread" en `/en` no devolvía ninguno de

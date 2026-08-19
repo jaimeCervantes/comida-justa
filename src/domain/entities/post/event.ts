@@ -2,7 +2,7 @@
  * Cuándo ocurre una publicación, y en qué momento de su vida está.
  *
  * Espeja `posts.starts_at` / `posts.ends_at` (migración `0042_2026_08_16`). Ver
- * `docs/features/cuatro-pilares-vivos.md`.
+ * `docs/features/wellbeing/013-2026-08-16-cuatro-pilares-vivos.md`.
  */
 
 import { EVENT_KIND } from "./kind";

@@ -30,7 +30,7 @@ export type UpdateSellerProfileResult =
  *
  * **La dirección (`slug`) no se toca.** El nombre visible cambia cuanto haga falta, pero la URL se
  * quedó fija a propósito: ya se repartió por WhatsApp y moverla dejaría muertos esos enlaces.
- * Renombrarla se evaluó y se descartó (ver `docs/features/vendedores-y-tiendas.md`).
+ * Renombrarla se evaluó y se descartó (ver `docs/features/commerce/001-2026-07-31-vendedores-y-tiendas.md`).
  *
  * **La tienda sale de la sesión, no del formulario:** así nadie puede editar la ficha de otro
  * mandando un id ajeno.

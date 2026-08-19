@@ -10,7 +10,7 @@ import {
 import { testSlug } from "../testUtils/testSlug";
 
 /**
- * Slice 2 de `docs/features/productores-locales.md`.
+ * Slice 2 de `docs/features/commerce/002-2026-08-02-productores-locales.md`.
  *
  * El slice 1 dejó un camino sin retorno: quien declaraba mal su procedencia no podía corregirla
  * desde ninguna pantalla, ni siquiera siendo admin. Esto lo cierra.

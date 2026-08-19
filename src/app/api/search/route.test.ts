@@ -35,7 +35,7 @@ function lastDto(): ISearchPostDTO {
 }
 
 /**
- * Slice 2 de `docs/features/busqueda-entre-idiomas.md`.
+ * Slice 2 de `docs/features/search/002-2026-08-07-busqueda-entre-idiomas.md`.
  *
  * El desplegable de `SearchBar` es el único cliente de esta ruta, y hasta ahora no le mandaba el
  * idioma: `searchParams.get("locale") || "es"` hacía que buscara en español aunque el sitio

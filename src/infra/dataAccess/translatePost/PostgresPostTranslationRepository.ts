@@ -47,7 +47,7 @@ export default class PostgresPostTranslationRepository
   }
 
   /**
-   * `post_translations` no tiene índice único sobre `slug` —ver la nota en `docs/features/i18n.md`—
+   * `post_translations` no tiene índice único sobre `slug` —ver la nota en `docs/features/content/002-2026-08-01-i18n.md`—
    * así que la colisión se resuelve contando, igual que hace `PostgresPostRepository` al publicar.
    */
   async createUniqueSlug(slug: string): Promise<string> {

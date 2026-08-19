@@ -11,7 +11,7 @@ import {
 } from "../testUtils/simulateLogin";
 import { testSlug, testStore } from "../testUtils/testSlug";
 
-/** Slice 7 de `docs/features/productores-locales.md`. */
+/** Slice 7 de `docs/features/commerce/002-2026-08-02-productores-locales.md`. */
 test.describe("Cuando un vendedor mira su propio catálogo", () => {
   let dbSession: DbSession | undefined;
   // `satisfies` en vez de `as const` suelto: comprueba el objeto entero contra el sembrador y a la

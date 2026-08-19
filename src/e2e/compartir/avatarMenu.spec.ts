@@ -11,7 +11,7 @@ import {
 } from "../testUtils/simulateLogin";
 import { testSlug, testStore } from "../testUtils/testSlug";
 
-// Slice 2 de docs/features/compartir-y-cuenta.md.
+// Slice 2 de docs/features/content/004-2026-08-08-compartir-y-cuenta.md.
 // La tienda y la dirección se siembran con prefijo `e2e-`: la única persona de la base que hoy
 // tiene las dos ("Jaime Cervantes", `hazlo-sano` y `jaime-cervantes`) es real y no se toca.
 

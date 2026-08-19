@@ -10,7 +10,7 @@
  * quiere tener la lógica de un calendario: es la parte que más se puede equivocar y la única que se
  * puede probar entera.
  *
- * Ver `docs/features/cuatro-pilares-vivos.md`.
+ * Ver `docs/features/wellbeing/013-2026-08-16-cuatro-pilares-vivos.md`.
  */
 
 /** Un tramo de tiempo, medio abierto: `[startsAt, endsAt)`. El final no pertenece al tramo. */

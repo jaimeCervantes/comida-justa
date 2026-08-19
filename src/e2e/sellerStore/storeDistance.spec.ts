@@ -10,7 +10,7 @@ import { testStore } from "../testUtils/testSlug";
 import StorePage from "./StorePage";
 
 /*
- * Slice 7 de `docs/features/vendedores-y-tiendas.md`, `Scenario Outline` "A qué distancia queda la
+ * Slice 7 de `docs/features/commerce/001-2026-07-31-vendedores-y-tiendas.md`, `Scenario Outline` "A qué distancia queda la
  * tienda, y cuándo no se puede saber".
  *
  * Las tres filas de `Examples` son los tres casos de aquí. La cifra concreta —que 1483 m se dicen

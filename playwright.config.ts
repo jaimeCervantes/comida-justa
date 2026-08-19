@@ -35,7 +35,7 @@ export default defineConfig({
   /**
    * La base la comparten tres repositorios, así que la limpieza no puede depender de que el final
    * de un test se ejecute: `globalSetup` barre lo que dejó una corrida caída, y `globalTeardown`
-   * barre y **falla si algo quedó**. Ver `docs/features/datos-de-prueba-e2e.md`.
+   * barre y **falla si algo quedó**. Ver `docs/features/platform/002-2026-07-30-datos-de-prueba-e2e.md`.
    */
   globalSetup: "./src/e2e/globalSetup.ts",
   globalTeardown: "./src/e2e/globalTeardown.ts",

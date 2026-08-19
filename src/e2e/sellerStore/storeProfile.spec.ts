@@ -9,7 +9,7 @@ import { testStore } from "../testUtils/testSlug";
 import SellerAccountPage from "./SellerAccountPage";
 import StorePage from "./StorePage";
 
-// Slice 6 de docs/features/vendedores-y-tiendas.md.
+// Slice 6 de docs/features/commerce/001-2026-07-31-vendedores-y-tiendas.md.
 // El teléfono de "Hazlo Sano" es el único ocupado en la base real.
 const HAZLO_SANO_PHONE = "2781126948";
 

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { buildSearchEvent, normalizeTerm } from "./searchEvent";
 
-/** Slice 4 de `docs/features/busqueda-semantica.md`. */
+/** Slice 4 de `docs/features/search/003-2026-08-07-busqueda-semantica.md`. */
 describe("normalizeTerm", () => {
   /* Sin normalizar, el informe de términos más buscados sería una lista de variantes de escritura
      del mismo término en vez de una lista de lo que la gente busca. */

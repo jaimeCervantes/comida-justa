@@ -121,7 +121,7 @@ describe("SearchPostsUseCase", () => {
  * Ya no lo acompaña un `fallbackLocale`. Existía para ensanchar el filtro `t.locale = pedido`, que
  * dejaba invisible a la publicación sin traducir; al abrir la consulta a **toda** traducción no hay
  * filtro que ensanchar, y a qué idioma caer al pintar lo decide `resolvePostTranslation`. Ver
- * `docs/features/busqueda-entre-idiomas.md`.
+ * `docs/features/search/002-2026-08-07-busqueda-entre-idiomas.md`.
  */
 describe("SearchPostsUseCase y el idioma de quien busca", () => {
   it("le pasa al repositorio en qué idioma se está leyendo", async () => {
@@ -151,7 +151,7 @@ describe("SearchPostsUseCase y el idioma de quien busca", () => {
 });
 
 /**
- * Slice 3 de `docs/features/busqueda-semantica.md`: el rescate semántico.
+ * Slice 3 de `docs/features/search/003-2026-08-07-busqueda-semantica.md`: el rescate semántico.
  *
  * La decisión de coste del slice está aquí: una llamada al proveedor de embeddings **por búsqueda**
  * sería inasumible —la caja tiene 500 ms de rebote—, así que solo se paga cuando el texto completo

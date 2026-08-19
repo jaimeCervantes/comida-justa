@@ -11,7 +11,7 @@ import { SUITE_ACCOUNT_EMAIL } from "../testUtils/suiteAccount";
 import { testSlug } from "../testUtils/testSlug";
 
 /**
- * Slice 3 de `docs/features/filtro-al-publicar.md`: la denuncia de la comunidad.
+ * Slice 3 de `docs/features/platform/005-2026-08-16-filtro-al-publicar.md`: la denuncia de la comunidad.
  *
  * Lo que atrapa lo que el clasificador dejó pasar. La regla que decide el slice, y la que estos
  * escenarios protegen, es que **denunciar avisa pero no oculta**: si una denuncia bajara la

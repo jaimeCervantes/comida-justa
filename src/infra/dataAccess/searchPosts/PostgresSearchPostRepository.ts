@@ -281,7 +281,7 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
    *
    * Y ya no es `ILIKE '%término%'`, que emparejaba subcadenas: «pan» encontraba «panela» y
    * «Pancakes», mientras que «panes» y «pán» no encontraban nada. Ver
-   * `docs/features/busqueda-semantica.md`.
+   * `docs/features/search/003-2026-08-07-busqueda-semantica.md`.
    *
    * **La búsqueda no tiene idioma; el orden sí.** Se mira **toda** traducción, no solo la del
    * idioma pedido y su respaldo: navegando en español los dos eran `es`, el filtro se cerraba sobre
@@ -289,7 +289,7 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
    * del catálogo se llamen «Sourdough Bread» en inglés. Lo que conserva idioma es el desempate:
    * `own_relevance` —la relevancia de tu propia fila— manda sobre `relevance`, que es la mejor de
    * cualquier idioma. Así «pan» en español devuelve exactamente lo que devolvía, y «bread» en
-   * español encuentra los panes detrás. Ver `docs/features/busqueda-entre-idiomas.md`.
+   * español encuentra los panes detrás. Ver `docs/features/search/002-2026-08-07-busqueda-entre-idiomas.md`.
    *
    * `JOIN LATERAL` en vez de `EXISTS` más dos subconsultas correlacionadas: agrega, así que una
    * publicación no puede salir dos veces por tener dos traducciones que coinciden, y devuelve las

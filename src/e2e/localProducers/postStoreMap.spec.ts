@@ -13,7 +13,7 @@ async function topOf(page: import("@playwright/test").Page, selector: string) {
 }
 
 /**
- * Slice 10 de `docs/features/productores-locales.md`.
+ * Slice 10 de `docs/features/commerce/002-2026-08-02-productores-locales.md`.
  *
  * El mapa del detalle contesta una pregunta que no necesita al visitante: dónde está la tienda de
  * lo que estoy viendo. Por eso aparece con ubicación compartida y sin ella.

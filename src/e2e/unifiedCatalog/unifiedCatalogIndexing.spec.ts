@@ -19,7 +19,7 @@ import {
 import { testPost } from "../testUtils/testSlug";
 import UnifiedCatalogPage from "./UnifiedCatalogPage";
 
-// Slice 4 de docs/features/catalogo-unificado.md — embedding al publicar desde el sitio.
+// Slice 4 de docs/features/catalog/002-2026-07-25-catalogo-unificado.md — embedding al publicar desde el sitio.
 // Escenarios en src/e2e/unifiedCatalog/unifiedCatalog.feature.
 const adminEmail = (process.env.HAZLO_SANO_ADMIN_EMAILS ?? "")
   .split(",")

@@ -14,7 +14,7 @@ import {
 
 /**
  * Espejo del esquema que administra Alembic en el backend Python
- * (`0026_2026-07-28_centralize_catalog_taxonomy.py`, ver `docs/database.md`).
+ * (`0026_2026-07-28_centralize_catalog_taxonomy.py`, ver `docs/data/001-2026-06-19-database.md`).
  * Nunca correr `drizzle-kit generate/migrate` contra esta BD: se edita a mano después de que la
  * migración de Alembic quedó aplicada.
  *

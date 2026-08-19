@@ -9,7 +9,7 @@ import { findSuiteUserId } from "../testUtils/suiteAccount";
 import { testSlug } from "../testUtils/testSlug";
 import { withoutNativeShare } from "./SharePanel";
 
-// Slice 4 de docs/features/compartir-y-cuenta.md.
+// Slice 4 de docs/features/content/004-2026-08-08-compartir-y-cuenta.md.
 // Aquí comparte **el comprador**, no la vendedora, así que ningún escenario inicia sesión: si algo
 // de esto exigiera cuenta, la mitad de las veces que alguien quiere repartir un enlace no podría.
 

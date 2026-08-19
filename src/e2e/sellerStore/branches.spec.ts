@@ -13,7 +13,7 @@ import { testStore } from "../testUtils/testSlug";
 import BranchesPage from "./BranchesPage";
 import SellerAccountPage from "./SellerAccountPage";
 
-// Slice 3 de docs/features/vendedores-y-tiendas.md.
+// Slice 3 de docs/features/commerce/001-2026-07-31-vendedores-y-tiendas.md.
 // Las coordenadas son las de la sucursal real: Tezonapa, Veracruz.
 const TEZONAPA = { latitude: 18.6005415, longitude: -96.6872066 };
 

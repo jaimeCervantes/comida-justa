@@ -1,0 +1,892 @@
+# Bitácora — Vendedores y tiendas
+
+Registro append-only. Narra el **por qué**; el qué está en `git log`.
+
+---
+
+## Slice 1 — Conviértete en vendedor y tu tienda queda en línea (2026-07-31)
+
+### Objetivo
+
+Que cualquier usuario registrado pueda declararse vendedor desde su cuenta y quedar con una página
+pública donde se lista lo que publica. Es el cuello de botella para vender: sin vendedor no hay
+tienda, y sin tienda no hay a dónde mandar al comprador.
+
+### Decisiones y por qué
+
+**La raíz no se tocó; las tiendas viven en `/tienda/<handle>`.** La idea inicial era
+`hazlosano.com/<nombre_de_tienda>`, pero la raíz ya es de las publicaciones
+(`src/app/[locale]/[slug]/page.tsx` con `localePrefix: "as-needed"`): `hazlosano.com/jugo-verde` es
+hoy un producto. Compartir la raíz obligaba a un namespace único entre tiendas, usuarios y los slugs
+de las 24 publicaciones existentes — y a arreglar antes que **los slugs de publicación ni siquiera
+se deduplican entre sí** (`createOnePostUseCase.defineSlug` solo llama a `createUniqueSlug` cuando
+el slug llega escrito, y `/publicar` lo manda vacío). Con prefijo, cada namespace es independiente y
+la unicidad la garantiza un índice único por tabla. Se consultó y se eligió esta opción.
+
+**No se creó ninguna tabla.** `sellers` ya existía con `name`, `phone`, `logo_url`, `description`,
+`url`, `has_membership`, `has_paid_ads` y `user_id`; le faltaba **solo** un nombre para la URL. La
+migración `0027` agrega `sellers.slug` y `users.username`, ambas nullable y con índice único.
+
+**`users.username` se agregó sin usarse todavía.** Se ocupa hasta el slice 4 (`/u/<username>`), pero
+una migración sobre la base compartida es la operación cara y arriesgada de esta feature: dos
+migraciones son dos veces el riesgo para una columna nullable. Va documentado en la propia migración.
+
+**El único dato que se escribió fue `slug = 'hazlo-sano'`** en la fila que ya existía. Con eso,
+`/tienda/hazlo-sano` lista los 13 productos que ya traían `seller_id` sin migrar nada.
+
+**`sellers.user_id` de Hazlo Sano se dejó en `NULL` a propósito.** Vincular esa tienda a una cuenta
+decide quién la administra, y los 13 productos los publicó `jaime.cervantes.ve@gmail.com`, que no
+está en `HAZLO_SANO_ADMIN_EMAILS`. La página pública no lo necesita (se resuelve por `slug`), así que
+se dejó como decisión tuya en vez de tomarla por ti.
+
+**Lo esperado se devuelve, lo inesperado se propaga.** El caso de uso convierte en `errorMessage` los
+seis motivos por los que un alta legítima no procede, y deja subir cualquier otra excepción. Dos de
+esos motivos existen para **proteger índices únicos que ya estaban en la base** (`sellers.slug` y
+`sellers.phone`): sin la comprobación previa, el vendedor vería un 500 con un mensaje de Postgres.
+
+**El teléfono se normaliza a 10 dígitos antes de consultar.** Sin eso, `+52 278 112 6948` y
+`2781126948` serían dos tiendas distintas con el mismo número y el mensaje "ya está registrado" no
+aparecería nunca. Los 10 dígitos son el formato con que la fila existente guarda su teléfono.
+
+**`posts.seller_id` se sella al publicar**, no se deduce después por `user_id`: deducirlo costaría
+una consulta en cada lectura y se rompería el día que una tienda tenga más de un dueño.
+
+**`sellers.category` lo escribe el repositorio, no el formulario.** Es `NOT NULL` y pertenece a la
+taxonomía del chatbot (`'Food'`), ajena a la tabla `categories` del sitio. Es una exigencia del
+esquema heredado, no una decisión que valga la pena hacerle tomar al vendedor.
+
+**De paso se arregló el defecto de media** que estaba en `docs/planning/001-2026-07-30-pendientes.md`: `MediaContent` recibía
+`undefined` y `DefaultContent` leía `media.url`, tumbando el listado con un 500. Entraba en el slice
+porque el catálogo de la tienda pinta las mismas tarjetas. Ahora degrada a un marcador.
+
+**El barrido e2e pasó a preguntar `hasTestData()`** en vez de comparar campo por campo: al agregar
+`sellers` al conteo, `globalTeardown` habría seguido mirando solo dos de las tres columnas.
+
+### Archivos tocados
+
+- **Backend Python (`bot-whatsapp/backend`):** `alembic/versions/0027_2026-07-31_add_seller_slug_and_user_username.py`; espejo en `app/infrastructure/db/models/{seller,user}.py`.
+- **Dominio:** `src/domain/shared/slugify.ts` (extraído de `PostEntity`, que ahora delega); `src/domain/entities/seller/{handle,phone,types,errors}.ts` + sus pruebas.
+- **Caso de uso:** `src/use_cases/becomeSeller/` (`becomeSellerUseCase.ts`, `ports/ISellerRepository.ts`, prueba).
+- **Infra:** `src/infra/dataAccess/db/schema/sellers.ts` (espejo Drizzle); `src/infra/dataAccess/sellers/` (repositorio + factory); `getPostsBySeller` en `PostgresPostQueryRepository`; `sellerId` en el DTO de creación y en el `INSERT`.
+- **App:** `src/app/[locale]/cuenta/` (página, acción, `storePath`, `ui/BecomeSellerForm`, `ui/StoreCard`); `src/app/[locale]/tienda/[slug]/` (página, paginada, `data.ts`, `metadata.ts`, `ui/StoreHeader`, `ui/StoreCatalog`); `publicar/actions.ts` sella la tienda; `Header` enlaza a `/cuenta`.
+- **UI compartida:** `MediaContent` degrada sin media (+ prueba).
+- **e2e:** `src/e2e/sellerStore/` (feature, spec, dos page objects); `testUtils/{testSlug,testData,deleteTestSeller}.ts`; `globalSetup`/`globalTeardown` usan `hasTestData`; `PublishProductPage.origin` pasó a opcional (un vendedor cualquiera no ve ese selector).
+
+### Comandos
+
+```sh
+# backend (base compartida)
+PYTHONIOENCODING=utf-8 ./.venv/Scripts/python.exe -m alembic upgrade head
+
+# web
+pnpm run typecheck && pnpm run lint && pnpm run test:run
+pnpm exec playwright test src/e2e/sellerStore --reporter=list
+pnpm run test:e2e:run
+```
+
+### Validación
+
+| Comando | Resultado |
+|---|---|
+| `pnpm run typecheck` | limpio |
+| `pnpm run lint` | limpio (tras `pnpm run format`, 8 archivos) |
+| `pnpm run test:run` | **337 pruebas en 38 archivos**, todas verdes (+44 nuevas) |
+| `pnpm run test:e2e:run` | **35 escenarios pasados, 3 saltados, 0 fallidos** (antes: 27 + 3) |
+| `alembic current` | `0027_2026_07_31` |
+
+Estado de la base al cerrar: 1 vendedor (`hazlo-sano`), 24 publicaciones (13 con tienda), **0
+residuos `e2e-`**. El `globalTeardown` habría fallado la suite si hubiera quedado algo.
+
+### Lo que se escribió en la base compartida y cómo deshacerlo
+
+1. **Migración `0027`** (dos columnas nullable + dos índices únicos). Se deshace con
+   `alembic downgrade 0026_2026_07_28`.
+2. **`UPDATE sellers SET slug = 'hazlo-sano'`** sobre la única fila existente. El `downgrade` se
+   lleva la columna entera.
+3. Durante la suite e2e se crearon y borraron tiendas y publicaciones con prefijo `e2e-`. No quedó
+   ninguna (verificado por consulta).
+
+### Desviaciones del roadmap
+
+- El `Scenario Outline` de rechazos se partió en dos: las dos filas de **unicidad** (que protegen
+  índices de la base) se prueban por Playwright; las dos de **forma** (`required`, `pattern`) por
+  Vitest sobre el caso de uso, porque el navegador ni siquiera deja enviar el formulario y por
+  Playwright nunca llegarían al servidor. La regla se prueba igual: un request armado a mano sí llega.
+- Se agregó la ruta paginada `/tienda/[slug]/page/[page]`, que no estaba escrita en el slice. Era
+  obligatoria: con `NEXT_PUBLIC_PAGINATION_PAGE_SIZE=8`, los 13 productos de Hazlo Sano ya paginan y
+  la página 2 habría sido un 404.
+
+### Pendientes que deja
+
+- Decidir a qué cuenta se vincula la tienda "Hazlo Sano" (`sellers.user_id`), y si esa cuenta debe
+  ser la de un admin.
+- El logo y la web de la tienda no se piden en el alta (las columnas existen y se leen). Falta
+  editar la ficha de la tienda; entra natural con el slice 5.
+- `users.username` está creado y sin uso hasta el slice 4.
+
+### Recap
+
+El slice 1 está entregado y verde: cualquier usuario registrado abre su tienda desde `/cuenta` con
+nombre y teléfono, obtiene `hazlosano.com/tienda/<su-nombre>` y todo lo que publique desde entonces
+queda en ese catálogo; `/tienda/hazlo-sano` ya funciona con los 13 productos que había, sin migrar
+datos. La base compartida quedó en `0027`, con dos columnas nuevas nullable y sin residuos de
+prueba. Vender todavía significa "aquí está el teléfono": el botón de WhatsApp es el slice 2.
+
+### Próximos pasos (opciones)
+
+1. **Slice 2 — Pedir por WhatsApp.** Lo más barato que convierte una visita en venta: un botón con
+   el mensaje ya escrito (producto, precio, enlace) en el detalle y en la tienda. `legacyWhatsapp`
+   ya normaliza el número; es casi todo UI.
+2. **Slice 3 — Sucursales con ubicación.** Lo que hace que **te encuentren**: sin
+   `branches.location` el bot no puede recomendar por cercanía aunque el cliente esté a dos calles.
+   Es el slice más grande de los tres (extraer coordenadas del link de Maps + resolver el redirect
+   de `maps.app.goo.gl`).
+3. **Slice 5 adelantado — marcar agotado.** `posts.is_available` existe y no tiene UI: hoy nadie
+   puede dejar de ofrecer lo que se le acabó y el bot lo sigue recomendando. Es pequeño y quita una
+   molestia real en cuanto haya vendedores de verdad.
+
+**Acciones pendientes de tu parte:**
+
+- Decidir la cuenta dueña de la tienda "Hazlo Sano" (ver arriba).
+- Commitear: el trabajo está **sin commitear** en dos repositorios (`comida-justa` y
+  `bot-whatsapp/backend`, este último con la migración que ya se aplicó a la base).
+- Revisar el plan de Vercel antes de promocionar tiendas de terceros: el Hobby es para uso no
+  comercial y el sitio va a vender.
+
+---
+
+## Slice 2 — Pedir por WhatsApp (2026-07-31)
+
+### Objetivo
+
+Que la página deje de ser un escaparate y sea un camino de venta: un botón que abre WhatsApp con el
+mensaje ya escrito. Hasta ahora el detalle solo ofrecía un `tel:`, que en un teléfono con WhatsApp
+es el camino más largo hacia la misma conversación.
+
+### Decisiones y por qué
+
+**El respaldo al teléfono de la tienda se cayó, y por dato, no por pereza.** El roadmap decía
+`contact_whatsapp` → teléfono de la tienda. Consultando la base antes de escribir el código: **las
+24 publicaciones tienen `contact_phone`** y 13 tienen `contact_whatsapp`. Ese tercer nivel nunca se
+ejecutaría con los datos que existen, y habría costado un JOIN a `sellers` en el detalle para una
+rama muerta. Quedó `contact_whatsapp` → `contact_phone`, que cubre el 100% del catálogo actual.
+
+**"Sin número no hay botón" vive en un solo lugar.** `whatsappLink` devuelve `null` y
+`WhatsappButton` no pinta nada cuando lo recibe. Así la regla no se repite en cada pantalla, que es
+justo donde se olvidaría.
+
+**La normalización se compartió en vez de duplicarse.** `legacyWhatsapp` ya sabía poner la lada
+mexicana; ahora delega en `toWhatsappNumber` (`src/domain/shared/whatsappLink.ts`), el mismo camino
+que usa el botón. La base guarda las dos formas —`contact_phone` a 10 dígitos y `contact_whatsapp`
+ya con el `52` desde la migración del catálogo—, y unificarlas en un solo lugar evita que se
+separen. Mismo criterio que `slugify` en el slice 1.
+
+**El mensaje lleva el enlace, no solo el título.** Del otro lado hay una persona atendiendo varias
+conversaciones a la vez: "Pan de masa madre" no le dice cuál de sus tres panes le están pidiendo.
+
+**Pedido y contacto son dos intenciones distintas.** En el detalle se pide un producto concreto
+(`buildWhatsappOrderLink`); en la tienda todavía se está preguntando
+(`buildWhatsappStoreLink`), y nombrar un producto que el comprador no eligió sería ruido. Por eso
+son dos funciones y dos textos, no un parámetro opcional.
+
+**El botón solo sale en `kind = producto`.** Un anuncio no tiene nada que encargar.
+
+### Archivos tocados
+
+- **Dominio:** `src/domain/shared/whatsappLink.ts` (+ prueba); `src/domain/entities/post/whatsappOrder.ts` (+ prueba); `src/domain/entities/seller/whatsappContact.ts`; `legacyCatalog.ts` delega la normalización.
+- **UI:** `src/infra/UI/components/WhatsappButton/` (+ prueba).
+- **App:** `PostDetail` arma el pedido y recibe el `slug` de la ruta; `StoreHeader` arma el contacto de la tienda.
+- **e2e:** `src/e2e/sellerStore/whatsappOrder.spec.ts`; escenarios del slice 2 detallados en `sellerStore.feature`.
+
+### Comandos
+
+```sh
+pnpm run typecheck && pnpm run lint && pnpm run test:run
+pnpm exec playwright test src/e2e/sellerStore --reporter=list
+pnpm run test:e2e:run
+```
+
+### Validación
+
+| Comando | Resultado |
+|---|---|
+| `pnpm run typecheck` | limpio |
+| `pnpm run lint` | limpio |
+| `pnpm run test:run` | **356 pruebas en 41 archivos**, todas verdes (+19) |
+| `playwright test src/e2e/sellerStore` | **11 escenarios verdes** (8 del slice 1 + 3 del slice 2) |
+| `pnpm run test:e2e:run` | **38 escenarios pasados, 3 saltados, 0 fallidos** |
+
+Dos de los tres escenarios nuevos corren **contra datos reales** (`Jugo Verde` a $40 con su WhatsApp,
+y la tienda `hazlo-sano`): no siembran nada, así que tampoco tienen nada que limpiar. El tercero
+siembra un anuncio con prefijo `e2e-` y lo borra en su `afterEach`.
+
+### Desviaciones del roadmap
+
+- El respaldo al teléfono de la tienda no se implementó (ver arriba). El criterio 2 se reescribió en
+  el roadmap para decir lo que el código hace y por qué.
+
+### Pendientes que deja
+
+- La tarjeta del listado no lleva botón de WhatsApp; hoy hay que entrar al detalle. Se dejó fuera
+  para no meter ruido en cada rejilla del sitio (feed, `/productos`, tienda), pero para la tienda
+  podría valer la pena y es barato.
+- El mensaje va siempre en español, como el resto del contenido.
+
+### Recap
+
+Vender ya es un botón: en el detalle de un producto, "Pedir por WhatsApp" abre la conversación con
+el título, el precio y el enlace ya escritos; en la tienda, "Escribir por WhatsApp" hace lo mismo sin
+elegir producto. El número sale del WhatsApp de la publicación o, si falta, de su teléfono, y cuando
+no hay ninguno simplemente no se pinta el botón. Con el slice 1, el camino completo existe: el
+vendedor se da de alta, publica, y su cliente le escribe desde la página. Falta que lo **encuentren**
+por cercanía, que es el slice 3.
+
+### Próximos pasos (opciones)
+
+1. **Slice 3 — Sucursales con ubicación.** El siguiente cuello de botella real: sin
+   `branches.location` el bot solo recomienda en el fallback sin geo. Requiere extraer coordenadas
+   del link de Google Maps (resolviendo el redirect de `maps.app.goo.gl`) y "usar mi ubicación
+   actual" como alternativa.
+2. **Botón de WhatsApp en las tarjetas de la tienda.** Pequeño; acorta el camino a la venta en el
+   listado que sí es comercial, sin tocar el feed general.
+3. **Slice 5 adelantado — marcar agotado.** `posts.is_available` sigue sin UI: se puede pedir por
+   WhatsApp algo que ya se acabó, y el bot lo sigue recomendando. Ahora que hay botón de pedido,
+   esto pesa más que antes.
+
+**Acciones pendientes de tu parte:**
+
+- **Vincular la tienda "Hazlo Sano" a la cuenta de `jaime.cervantes.ve@gmail.com`**: el `UPDATE` lo
+  bloqueó el clasificador de permisos por ser escritura sobre la base compartida. Es una sola
+  sentencia: `UPDATE sellers SET user_id = (SELECT id FROM users WHERE email =
+  'jaime.cervantes.ve@gmail.com') WHERE slug = 'hazlo-sano';`
+- Revisar el plan de Vercel antes de promocionar tiendas de terceros.
+
+---
+
+## Slice 3 — Sucursales con ubicación (2026-08-01)
+
+### Objetivo
+
+Que al vendedor **lo encuentren**. La función `search_posts_semantic` ya calcula el radio con
+`ST_DWithin` sobre `branches.location`, pero no tenía sobre qué calcularlo: existía una sola
+sucursal en toda la base, cargada a mano para el restaurante. Sin sucursal, un vendedor solo aparece
+en las búsquedas sin ubicación, aunque el cliente esté a dos calles.
+
+### Decisiones y por qué
+
+**Otra vez sin migración.** `branches` ya existía con nombre, dirección, `map_url` y el
+`geography(POINT,4326)`. El slice es todo aplicación: no se tocó el esquema compartido.
+
+**Las coordenadas se leen del enlace, y el pin gana sobre el encuadre.** Un enlace largo de Google
+Maps trae dos pares: `@lat,lng` (el centro del mapa que el usuario tenía en pantalla) y `!3d…!4d…`
+(el punto del lugar). Se prefiere el segundo: cuando alguien busca su negocio y arrastra un poco el
+mapa antes de copiar, los dos difieren, y el que sirve para que lo encuentren es el pin.
+
+**Los enlaces cortos se siguen, porque son los que la gente pega.** La única sucursal que existía
+guarda `https://maps.app.goo.gl/8M3zwu2aE6o8itKZ6`, que es lo que reparte el botón "Compartir". Un
+enlace corto no contiene coordenadas, así que hay que seguir su redirect. Se leen los `Location` a
+mano (`redirect: "manual"`) en vez de dejar que `fetch` los siga: basta la cabecera y no se descarga
+el HTML de Google Maps.
+
+**El resolutor es un puerto, no una llamada suelta.** Salir a la red desde el caso de uso lo haría
+imposible de probar sin internet. Con `IMapUrlResolver`, las nueve pruebas del caso de uso corren
+con un doble, y el adaptador real tiene las suyas con `fetch` doblado.
+
+**El resolutor nunca lanza.** Si Google no contesta devuelve el enlace tal cual, y el caso de uso
+cae en su mensaje de siempre —"copia la dirección de la barra o usa tu ubicación"—, que es algo que
+el vendedor puede hacer. Un error de red no lo es.
+
+**El GPS del navegador gana sobre el enlace.** Quien tocó "usar mi ubicación actual" está parado en
+su local; eso es más preciso que el encuadre de un mapa copiado. Las coordenadas viajan en campos
+ocultos porque el permiso solo puede pedirse desde el cliente: el servidor recibe números, no un
+permiso.
+
+**`0,0` se trata como "no se pudo leer".** Es el Golfo de Guinea; en la práctica, ninguna sucursal
+está ahí y sí es el resultado típico de un parseo fallido.
+
+**El `sellerId` no viaja en el formulario.** Se resuelve en el servidor desde la sesión: si fuera un
+campo oculto, cualquiera podría colgarle una sucursal a la tienda de otro.
+
+**`branches` se consulta con SQL crudo, sin espejo Drizzle.** No hay tipo Drizzle para `geography`,
+y escribir el punto exige `ST_SetSRID(ST_MakePoint(...))` igual. Un espejo con la tabla declarada
+pero sin su única columna interesante sería una trampa; se documentó la decisión en el repositorio.
+(Ojo al orden: PostGIS arma el punto **(longitud, latitud)**, al revés de como se dictan.)
+
+**El radio se probó contra la función SQL de verdad y con datos reales.** El filtro geográfico no
+existe en TypeScript: vive en `search_posts_semantic`. El escenario le pregunta qué recomendaría a
+un cliente a 1 km de Tezonapa (encuentra los productos de Hazlo Sano) y a uno en Xalapa, a 150 km
+(no encuentra ninguno). No siembra nada, así que tampoco limpia nada.
+
+### Archivos tocados
+
+- **Dominio:** `src/domain/entities/seller/coordinates.ts` (+ prueba); `Branch`/`BranchDraft` en `types.ts`; tres errores nuevos en `errors.ts`.
+- **Caso de uso:** `src/use_cases/addBranch/` (`addBranchUseCase.ts`, `ports/IBranchRepository.ts`, `ports/IMapUrlResolver.ts`, prueba).
+- **Infra:** `src/infra/dataAccess/branches/` (repositorio PostGIS + factory); `src/infra/services/GoogleMapsUrlResolver.ts` (+ prueba).
+- **UI:** `src/infra/UI/components/BranchList/`, compartido entre `/cuenta` y la tienda.
+- **App:** acción `addBranch` y `ui/AddBranchForm.tsx` en `/cuenta`; la tienda carga sucursales y catálogo en paralelo y las muestra bajo "Dónde encontrarnos".
+- **e2e:** `branches.spec.ts`, `BranchesPage.ts`, `testUtils/readBranches.ts`; el barrido y `deleteTestSellerByHandle` ahora borran sucursales antes que la tienda.
+
+### Comandos
+
+```sh
+pnpm run typecheck && pnpm run lint && pnpm run test:run
+pnpm exec playwright test src/e2e/sellerStore/branches.spec.ts --reporter=list
+pnpm run test:e2e:run
+```
+
+### Validación
+
+| Comando | Resultado |
+|---|---|
+| `pnpm run typecheck` | limpio |
+| `pnpm run lint` | limpio |
+| `pnpm run test:run` | **391 pruebas en 44 archivos**, todas verdes (+35) |
+| `playwright test src/e2e/sellerStore/branches.spec.ts` | **4 escenarios verdes**, incluido el del radio |
+| `pnpm run test:e2e:run` | **42 escenarios pasados, 3 saltados, 0 fallidos** |
+
+Estado de la base al cerrar: 1 tienda, 1 sucursal (la real de Tezonapa), **0 residuos `e2e-`**.
+
+### Desviaciones del roadmap
+
+Ninguna en alcance. Una corrección en la prueba: el escenario de dos sucursales encadenaba los dos
+envíos sin esperar al primero, y como el botón queda deshabilitado mientras la acción está en vuelo,
+el segundo se perdía. Se serializó esperando a que la primera aparezca listada.
+
+### Pendientes que deja
+
+- No se pueden **editar ni borrar** sucursales; solo agregar.
+- El mapa no se dibuja: se enlaza a Google Maps. Un mapa embebido pedía librería y API key con costo.
+- Nadie valida que la dirección escrita corresponda a las coordenadas: son dos campos
+  independientes.
+
+### Recap
+
+El circuito para vender está completo de punta a punta: un usuario registrado abre su tienda, la
+pone en el mapa, publica lo que vende y su cliente le escribe por WhatsApp desde la página — y ahora
+el chatbot puede recomendarlo por cercanía, comprobado contra la misma función SQL que consume el
+bot. Los tres slices salieron sin ninguna migración más allá de la `0027` del slice 1.
+
+### Próximos pasos (opciones)
+
+1. **Slice 4 — Perfil público `/u/<username>`.** La columna `users.username` lleva creada desde el
+   slice 1 sin usarse. Es la pieza que falta del roadmap original.
+2. **Slice 5 — Editar y marcar agotado.** Ahora pesa más que antes: con botón de pedido y con el
+   bot recomendando por cercanía, se puede pedir por WhatsApp algo que ya se acabó. `is_available`
+   existe y sigue sin UI.
+3. **Editar y borrar sucursales**, que este slice dejó fuera.
+
+**Acciones pendientes de tu parte:**
+
+- Vincular la tienda "Hazlo Sano" a la cuenta de `jaime.cervantes.ve@gmail.com` (el `UPDATE` sigue
+  bloqueado por el clasificador de permisos; la sentencia está en la entrada del slice 2).
+- Revisar el plan de Vercel antes de promocionar tiendas de terceros.
+
+---
+
+## Slice 4 — Perfil público `/u/<username>` (2026-08-01)
+
+### Objetivo
+
+Que una persona tenga una página propia con todo lo que publica —anuncios incluidos—, distinta de
+su tienda. Un perfil es quién eres; una tienda es lo que vendes. La columna `users.username` llevaba
+creada desde el slice 1 esperando este momento, así que el slice salió **sin migración**.
+
+### Decisiones y por qué
+
+**Sin bio, y a propósito.** El roadmap la mencionaba, pero `users` no tiene esa columna y agregarla
+costaba otra migración sobre la base compartida para algo que ningún criterio de aceptación pide.
+Con nombre, foto y publicaciones los cuatro criterios se cumplen. Queda anotado como pendiente.
+
+**La dirección se reclama una sola vez.** Cambiarla rompería los enlaces que la persona ya repartió,
+y sostener el anterior con una redirección es un slice aparte. El caso de uso lo dice con un error
+propio (`UsernameAlreadySetError`) en vez de sobrescribir en silencio.
+
+**La regla del handle se compartió en vez de copiarse.** `generateSellerHandle` y `generateUsername`
+son la misma decisión tomada dos veces —qué caracteres sobreviven, qué tan corto es demasiado, qué
+palabras no se ceden—, así que el núcleo bajó a `src/domain/shared/publicHandle.ts` y cada uno pasa
+su lista de reservadas. Sin eso, un día `/tienda/mi-negocio` y `/u/mi-negocio` habrían aceptado cosas
+distintas sin que nadie lo decidiera. Es el mismo criterio de `slugify` y `whatsappLink`.
+
+**Los namespaces siguen separados.** `/u/` y `/tienda/` son independientes: una persona y una tienda
+pueden llamarse igual sin taparse, y ninguna de las dos choca con los slugs de publicación en la raíz.
+
+**El perfil lista TODO, no solo el catálogo.** Es lo que lo distingue de la tienda: se consulta por
+`p.user_id` y no por `p.seller_id`, así que los anuncios —que no son catálogo— también salen.
+
+**El enlace va en los dos sentidos, pero tolera que falte.** Un vendedor puede existir sin cuenta
+(alta manual de proveedor local) y una cuenta puede no haber reclamado dirección; en ambos casos
+simplemente no se pinta el enlace, sin condicionales repartidos por la UI.
+
+**El barrido de pruebas no borra usuarios.** El `username` se reclama sobre cuentas **reales** —la
+suite no crea cuentas—, así que el sweep hace `UPDATE users SET username = NULL WHERE username LIKE
+'e2e-%'` y la cuenta queda como estaba. Borrar la fila habría sido destruir datos ajenos.
+
+**Las páginas dejaron de ser angostas.** Por indicación tuya: el layout raíz ya envuelve todo en
+`container-width` (`max-w-7xl`), así que `/cuenta` tenía un `max-w-2xl mx-auto` que estrechaba de
+más. Ahora reparte en dos columnas desde `lg` y el perfil usa la misma rejilla del sitio
+(`auto-fill, minmax(300px, 1fr)`).
+
+### Archivos tocados
+
+- **Dominio:** `src/domain/shared/publicHandle.ts` (extraído; `seller/handle.ts` ahora delega); `src/domain/entities/user/{username,types,errors}.ts` + prueba.
+- **Caso de uso:** `src/use_cases/claimUsername/` (caso de uso, puerto, prueba).
+- **Infra:** `PostgresUserProfileRepository` + factory; `users.username` en el espejo Drizzle; `getPostsByUser` en el repositorio de consulta.
+- **App:** `/u/[username]/` (página, paginada, `data.ts`, `metadata.ts`, `ui/ProfileHeader`, `ui/ProfilePublications`); `cuenta/profilePath.ts`, acción `claimUsername` y `ui/UsernameSection`; `/cuenta` reorganizada a dos columnas; `StoreHeader` enlaza al perfil del dueño.
+- **e2e:** `profile.spec.ts`, `ProfilePage.ts`, `testUtils/claimTestUsername.ts`; el barrido libera los `username` de prueba.
+
+### Validación
+
+| Comando | Resultado |
+|---|---|
+| `pnpm run typecheck` | limpio |
+| `pnpm run lint` | limpio |
+| `pnpm run test:run` | **416 pruebas en 46 archivos**, todas verdes (+25) |
+| `playwright test src/e2e/sellerStore/profile.spec.ts` | **4 escenarios verdes** |
+
+### Desviaciones del roadmap
+
+- Sin bio (ver arriba): habría costado una migración que ningún criterio pedía.
+- Se agregó un cuarto criterio, el 404 de un perfil inexistente, que el roadmap no listaba y la
+  tienda sí tenía.
+
+### Pendientes que deja
+
+- No se puede **cambiar** el username una vez reclamado.
+- No hay bio ni enlaces personales en el perfil.
+- El perfil no distingue visualmente anuncios de productos; se ven con la misma tarjeta.
+
+### Recap
+
+Una persona ya tiene dos caras públicas y separadas: `/u/<username>` con todo lo que publica y
+`/tienda/<handle>` con lo que vende, enlazadas entre sí. Con esto el roadmap original queda cubierto
+salvo el slice 5. La única migración de toda la feature sigue siendo la `0027` del slice 1, que ya
+había dejado creada la columna que este slice consumió.
+
+### Próximos pasos (opciones)
+
+1. **Slice 5 — El vendedor administra su catálogo.** Lo que falta: marcar agotado
+   (`posts.is_available` existe y sigue sin UI) y editar publicaciones propias con reindexado del
+   embedding. Pesa más que nunca: hay botón de pedido y el bot recomienda por cercanía, así que se
+   puede pedir por WhatsApp algo que ya se acabó.
+2. **Renombrar direcciones** (tienda y usuario) con redirección del anterior.
+3. **Editar y borrar sucursales**, pendiente desde el slice 3.
+
+**Acciones pendientes de tu parte:**
+
+- Revisar el plan de Vercel antes de promocionar tiendas de terceros: el Hobby es para uso no
+  comercial.
+
+---
+
+## Slice 5 — El vendedor administra su catálogo (2026-08-01)
+
+### Objetivo
+
+Cerrar el circuito por el lado del vendedor: poder decir "se me acabó" y poder corregir lo escrito.
+`posts.is_available` existía desde el catálogo unificado **sin ninguna forma de cambiarla**, así que
+nadie podía dejar de ofrecer lo agotado y el chatbot lo seguía recomendando. Con los slices
+anteriores eso pesaba más que nunca: hay botón de pedido y recomendación por cercanía, o sea tres
+caminos para que alguien pida algo que ya no hay.
+
+### Decisiones y por qué
+
+**El slug no se mueve al editar.** Aunque cambie el título. La dirección ya se compartió por
+WhatsApp —el mensaje del slice 2 la lleva dentro—, y moverla dejaría muertos los enlaces que el
+vendedor repartió. Es la misma razón por la que el username se reclama una sola vez.
+
+**El caso de uso devuelve `textChanged` en vez de reindexar.** El vector se deriva del texto, así
+que editar el título sin regenerarlo deja al chatbot recomendando algo que ya no dice eso. Pero
+generar el embedding es una llamada de red y guardar no puede depender de que Gemini conteste: la
+decisión se toma en el caso de uso y el efecto lo dispara la acción con `after()`, igual que al
+publicar. Si falla, la edición ya está guardada y queda pendiente para el backfill.
+
+**Y si el texto no cambió, no se llama al proveedor.** Ajustar solo el precio no debería costar una
+llamada ni arriesgar un vector nuevo peor que el anterior.
+
+**Lo agotado se oculta a los visitantes pero no a su dueño.** Ocultarlo a todos dejaba al vendedor
+sin forma de encontrarlo para volver a ofrecerlo. La consulta del catálogo recibe `includeSoldOut`
+y la página decide comparando la sesión contra `sellers.user_id`.
+
+**Un anuncio no se agota.** `isSellable` lo dice una vez en el dominio y lo respetan el badge, el
+botón de pedido, el toggle y el filtro del catálogo. El caso de uso ignora el cambio en vez de
+guardar un estado sin significado.
+
+**El botón de pedido se apaga cuando no hay existencias.** Mandar a alguien a WhatsApp por algo
+agotado empieza la conversación con una decepción; `canBeOrdered` une las dos reglas (es producto y
+sigue habiendo) en un solo lugar.
+
+**Ocultar los controles es cortesía, no seguridad.** La autorización vive en el caso de uso, que
+compara el dueño de la publicación contra la sesión: mandar el `postId` de otro en el formulario no
+sirve de nada. Y `/editar/<slug>` de una publicación ajena responde **404 y no 403**, el mismo
+criterio que ya usaba `/admin`.
+
+**Sin borrar publicaciones.** Estaba en el texto del slice pero en ningún criterio de aceptación.
+Es destructivo, pide su propia confirmación y su propia decisión sobre qué pasa con los comentarios
+y el histórico de recomendaciones. Marcar agotado cubre la necesidad real —dejar de ofrecerlo— y es
+reversible.
+
+**Tampoco se edita la media ni el tipo.** La primera exige rehacer la subida; el segundo cambiaría
+lo que la publicación *es* (un anuncio no tiene precio). Ninguno hacía falta para corregir lo escrito.
+
+### Archivos tocados
+
+- **Dominio:** `availability.ts` (+ prueba) y `errors.ts` en `entities/post/`; `isAvailable` en el tipo `Post`.
+- **Casos de uso:** `src/use_cases/managePost/` (`setPostAvailabilityUseCase`, `updateOnePostUseCase`, puerto, pruebas).
+- **Infra:** `src/infra/dataAccess/managePost/` (repositorio + factory); `is_available` en las dos lecturas y en el mapper de tarjetas; `getPostsBySeller` acepta `includeSoldOut`.
+- **UI:** `SoldOutBadge` (+ prueba), presente en tarjeta y detalle.
+- **App:** `[slug]/actions.ts` y `ui/OwnerControls`; `/editar/[slug]/` (página, acción, formulario); la tienda pasa el visitante a `getStoreByHandle`.
+- **e2e:** `managePost.spec.ts`; `seedPost` acepta `sellerHandle`; `StorePage.expectNotListed`.
+
+### Validación
+
+| Comando | Resultado |
+|---|---|
+| `pnpm run typecheck` | limpio |
+| `pnpm run lint` | limpio |
+| `pnpm run test:run` | **436 pruebas en 49 archivos**, todas verdes (+20) |
+| `playwright test src/e2e/sellerStore/managePost.spec.ts` | **3 escenarios verdes** |
+
+El escenario de edición comprueba el reindexado **de verdad**: con `GEMINI_API_KEY` configurada,
+espera a que el vector vuelva a aparecer con sus 768 dimensiones después de cambiar el texto.
+
+### Desviaciones del roadmap
+
+- **Borrar publicaciones quedó fuera** (ver arriba). Ningún criterio de aceptación lo pedía.
+- Se agregó un criterio que el roadmap no listaba: lo agotado desaparece para los visitantes pero
+  su dueño lo sigue viendo. Sin eso, marcar agotado era un viaje sin retorno.
+
+### Pendientes que deja
+
+- Borrar publicaciones propias.
+- Editar la media y la ficha de la tienda (logo, descripción, web).
+- El chatbot deja de recomendar lo agotado porque su función SQL ya filtra `is_available`; no se
+  comprobó de punta a punta con el bot corriendo, solo por la vía del sitio.
+
+### Recap
+
+La feature "Vendedores y tiendas" queda completa: abrir tienda, ponerse en el mapa, publicar,
+recibir pedidos por WhatsApp, tener perfil propio y —ahora— corregir lo publicado y dejar de
+ofrecer lo que se acabó. Cinco slices, **una sola migración** sobre la base compartida (la `0027`
+del slice 1, dos columnas nullable), y ningún dato ajeno destruido.
+
+### Próximos pasos (opciones)
+
+1. **Borrar publicaciones**, con su confirmación y una decisión sobre comentarios e histórico.
+2. **Editar la ficha de la tienda** (logo, descripción, web): las columnas existen y hoy solo se
+   llenan al darse de alta.
+3. **Renombrar direcciones** (tienda y usuario) sosteniendo la anterior con una redirección.
+4. **Comprobar el filtro de agotados desde el bot**, cerrando el criterio con su propia prueba en
+   el backend de Python.
+
+**Acciones pendientes de tu parte:**
+
+- Revisar el plan de Vercel antes de promocionar tiendas de terceros: el Hobby es para uso no
+  comercial.
+
+---
+
+## Slice 6 — Editar la ficha de la tienda (2026-08-01)
+
+### Objetivo
+
+Que la ficha deje de ser algo que se llena una vez y nunca más. `logo_url`, `url` y `description`
+existían en la base y se leían en la tienda, pero **no había forma de escribirlas después del
+alta**: quien cambiaba de teléfono, conseguía logo o quería corregir su descripción no podía hacer
+nada. Sin migración: las cinco columnas venían con la tabla del chatbot.
+
+### La decisión que cambió el alcance: renombrar direcciones se descartó
+
+Ibas a pedir también renombrar la dirección, y preguntaste si el 308 penalizaba en buscadores. La
+respuesta corta es que **no**: Google trata 301 y 308 igual, ambas consolidan las señales hacia la
+URL nueva. Lo que cuesta es renombrar en sí —re-rastreo, oscilación de posiciones mientras tanto,
+vistas previas cacheadas por WhatsApp o Facebook que tardan en refrescarse—, no el código de estado.
+
+Con eso a la vista elegiste **solo el nombre visible**. Es la opción con mejor relación
+valor/riesgo: cubre el caso real (escribirlo mal, corregir mayúsculas) con cero costo de SEO y cero
+migración, y a cambio ningún enlace repartido muere jamás. La alternativa completa
+(`handle_history` + 308 de un salto + no ceder nunca una dirección ajena) quedó escrita en el
+roadmap por si el día llega. Los escenarios `@slice-7` se borraron del `.feature` en vez de
+quedarse como `@future`: no son trabajo pendiente, son trabajo descartado.
+
+### Decisiones y por qué
+
+**El subidor de imagen se movió a `infra/UI`.** Vivía dentro de `/publicar` y ahora tiene dos
+consumidores; su hook `useStorageUpload` se movió a `infra/UI/hooks`. Un componente compartido que
+importa desde la carpeta de otra ruta es la clase de dependencia que nadie encuentra después.
+Además ganó un parámetro `directory`, que estaba fijo en `"posts"`: el logo va a `sellers`.
+
+**Un logo vacío significa "no subí uno nuevo", no "quítame el logo".** El caso de uso conserva el
+anterior. La alternativa —borrarlo por omisión— habría vaciado el logo de Hazlo Sano la primera vez
+que alguien guardara la ficha sin tocar la imagen.
+
+**El teléfono solo se consulta si cambió.** Sin esa comparación, guardar la ficha sin tocar el
+número se habría rechazado a sí mismo por "duplicado": el único dueño de ese teléfono es uno mismo.
+Es el criterio 3 y tiene su prueba, porque es exactamente el error que comete un `UNIQUE` mal usado.
+
+**La tienda sale de la sesión, nunca del formulario.** No hay `sellerId` que mandar, así que no hay
+forma de editar la ficha de otro; por eso este slice no necesita un error de propiedad.
+
+**El sitio web se muestra por fin.** `sellers.url` llevaba guardándose desde el chatbot sin
+pintarse en ninguna parte; ahora aparece en la cabecera de la tienda.
+
+**Un puerto nuevo en vez de ampliar el del alta.** `ISellerProfileRepository` es lo que necesita
+editar (buscar por usuario, por teléfono, actualizar); ampliar `ISellerRepository` habría obligado a
+los dobles de prueba de `becomeSeller` a implementar métodos que ese caso de uso no usa. El
+repositorio de Postgres implementa los dos.
+
+### Archivos tocados
+
+- **Dominio:** `NotASellerError` en `entities/seller/errors.ts`.
+- **Caso de uso:** `src/use_cases/updateSellerProfile/` (caso de uso, puerto, prueba).
+- **Infra:** `updateProfile` en `PostgresSellerRepository`, que ahora implementa los dos puertos.
+- **UI compartida:** `ImageVideoUploader` movido a `infra/UI/components/` con parámetro `directory`; `useStorageUpload` movido a `infra/UI/hooks/`.
+- **App:** acción `updateStoreProfile` y `ui/StoreProfileForm` en `/cuenta`, reorganizada a dos columnas equilibradas; `StoreHeader` pinta el sitio web.
+- **e2e:** `storeProfile.spec.ts`.
+
+### Validación
+
+| Comando | Resultado |
+|---|---|
+| `pnpm run typecheck` | limpio |
+| `pnpm run lint` | limpio |
+| `pnpm run test:run` | **446 pruebas en 50 archivos**, todas verdes (+10) |
+| `playwright test src/e2e/sellerStore/storeProfile.spec.ts` | **4 escenarios verdes** |
+
+### Desviaciones del roadmap
+
+- Ninguna en el slice 6. El slice 7 (renombrar) se descartó antes de empezarlo, con la razón escrita
+  arriba y en el roadmap.
+
+### Pendientes que deja
+
+- No se puede **quitar** el logo una vez subido, solo reemplazarlo.
+- La dirección de la tienda y el username siguen siendo inmutables (por decisión).
+- El logo no se recorta ni se valida su proporción: se sube tal cual.
+
+### Recap
+
+La ficha de la tienda ya es editable: nombre, teléfono, descripción, sitio web y logo, todo desde
+`/cuenta`, y la tienda lo refleja al instante. La dirección se queda fija a propósito —cambiar el
+nombre visible cubre el caso real sin mover ninguna URL—, así que ningún enlace repartido se rompe.
+Sigue sin haber más migración que la `0027`.
+
+### Próximos pasos (opciones)
+
+1. **Borrar publicaciones propias**, con su confirmación y una decisión sobre comentarios e
+   histórico de recomendaciones.
+2. **Quitar el logo** (hoy solo se reemplaza) y editar/borrar sucursales, pendiente desde el slice 3.
+3. **Un `sitemap.ts`**: el proyecto no tiene ninguno, así que tiendas y perfiles dependen de que
+   alguien los enlace para ser descubiertos. Es la pieza que más ayudaría al SEO ahora mismo —más
+   que cualquier cosa relacionada con renombrar.
+
+**Acciones pendientes de tu parte:**
+
+- Revisar el plan de Vercel antes de promocionar tiendas de terceros: el Hobby es para uso no
+  comercial.
+
+---
+
+## Slice 7 — La tienda dice a qué distancia está (2026-08-07)
+
+### Objetivo
+
+Cerrar el último hueco de cercanía del sitio. El directorio, las tarjetas del catálogo y la ficha de
+una publicación ya decían a qué distancia queda cada vendedor; `/tienda/<handle>` no. Y es donde más
+se nota, porque a esa página se llega normalmente **desde** el directorio: lees "a 2 km", entras, y
+el dato desaparece justo cuando vas a decidir.
+
+### Decisiones y porqué
+
+- **La distancia la calcula PostGIS, no JavaScript.** `Branch.coordinates` ya viaja a la página, así
+  que restar en memoria con `metersBetween` habría sido lo cómodo y no habría costado ninguna
+  consulta. Se descartó por la regla que fija `locationFreshness.ts:42`: esa función es la única
+  aritmética de distancia en JavaScript del proyecto y existe para una sola pregunta ("¿me moví lo
+  suficiente?"). `ST_Distance` sobre `geography` usa el elipsoide y el haversine una esfera; mezclar
+  las dos haría que `/directorio` y `/tienda/<handle>` discreparan sobre la misma tienda.
+- **`MIN` sobre las sucursales**, como en `PostgresStoreDirectory`: a quien mira le importa la que
+  tiene más cerca, no el promedio ni la primera por nombre.
+- **Una consulta propia en vez de ampliar `listBySeller`.** Entra en el `Promise.all` que la página
+  ya hacía, así que no añade una espera en serie, y deja intacto el contrato de `listBySeller`, que
+  usan otras pantallas.
+- **`null` cubre dos casos distintos con la misma respuesta**: sin ubicación del visitante y sin
+  sucursal situada. `MIN` de cero filas es `NULL`, así que el segundo cae solo en el mismo camino.
+  La pantalla hace lo mismo en ambos: no pintar nada. `StoreDistance` ya lo resolvía.
+- **Ningún componente nuevo.** `StoreDistance` existía y ya estaba probado; esto es cablearlo.
+
+### Archivos tocados
+
+- **Puerto y adaptador:** `use_cases/addBranch/ports/IBranchRepository.ts`,
+  `infra/dataAccess/branches/PostgresBranchRepository.ts` (`distanceToNearestBranch`).
+- **Ruta:** `app/[locale]/tienda/[slug]/data.ts` (`readVisitorLocation` + `distanceMeters`),
+  `ui/StoreHeader.tsx`, `page.tsx` y `page/[page]/page.tsx`.
+- **Pruebas:** `e2e/sellerStore/sellerStore.feature` (`Scenario Outline`, 3 filas),
+  `e2e/sellerStore/storeDistance.spec.ts`, `e2e/sellerStore/StorePage.ts`,
+  `use_cases/addBranch/addBranchUseCase.test.ts` (dos dobles al día con el puerto).
+
+### Validación
+
+| Comando | Resultado |
+| --- | --- |
+| `npx playwright test src/e2e/sellerStore/storeDistance.spec.ts` | **rojo** 1/3 sin implementación, **verde** 3/3 con ella |
+| `pnpm typecheck` | 0 |
+| `pnpm typecheck:tests` | 0 (destapó los dos dobles que faltaban) |
+| `pnpm lint` | limpio (queda un `info` preexistente en `IndexingStatusPanel`) |
+| `pnpm test:run --pool=threads` | 930/930 |
+
+### Desviaciones del proceso (a la vista)
+
+Se implementó **antes** de escribir el `.feature` y el spec, saltándose el alignment gate, la rama
+propia y el ciclo red→green que la skill marca como obligatorios. Se corrigió a media tarea: rama
+`feat/distancia-en-tienda`, gate planteado y aprobado, y la deuda del rojo se pagó guardando la
+implementación con `git stash` para ver fallar el spec y recuperarla después. Merece quedar escrito
+porque el rojo **sí encontró algo**: la primera vez falló por un 500, no por la aserción.
+
+### Hallazgo colateral: el calentamiento en paralelo corrompía Next
+
+`warmRoutes` pedía sus 7 rutas con `Promise.allSettled`. Next compila esas rutas a la vez y **cada
+compilación reescribe `.next/dev/prerender-manifest.json`**; sin reemplazo atómico, dos escrituras
+solapadas dejan el archivo con un JSON válido seguido de basura. A partir de ahí el servidor
+responde 500 a todo con un `SyntaxError` que no nombra ni el archivo ni la ruta.
+
+Se diagnostica fatal —parece un fallo de la aplicación, y se confundió dos veces con el error de
+`FIREBASE_SERVICE_ACCOUNT`— y explica por qué la suite solo pasaba arrancando de un `.next` recién
+borrado. Ahora calienta **en serie**: 37 s en frío y 15 s en caliente, una vez por corrida y fuera
+del presupuesto de cualquier escenario.
+
+### Recap
+
+`/tienda/<handle>` ya dice a qué distancia queda su sucursal más cercana, con la misma cifra que el
+directorio porque sale del mismo `ST_Distance` sobre `geography`. Calla cuando no puede saberlo, sea
+porque el visitante no compartió su ubicación o porque la tienda no tiene sucursal situada. No hubo
+migración: `branches.location` ya existía desde el slice 3. De paso se arregló una corrupción de
+`.next` que llevaba todo el día dando falsos negativos en la suite e2e.
+
+### Próximos pasos (opciones)
+
+1. **Añadir `/tienda/<handle>` a `warmRoutes`.** No está en la lista, así que corriendo ese spec en
+   solitario contra un `.next` frío la ruta compila dentro de la primera aserción, que solo espera
+   5 s. Se vio en esta misma sesión.
+2. **Distinguir `provider-failed` de un fallo de persistencia** en `translatePostUseCase`: hoy
+   cualquier excepción se etiqueta como "falló Gemini" y se registra como "queda pendiente", aunque
+   el post ya no exista y ningún backfill lo vaya a recoger.
+3. **Borrar publicaciones propias** y **quitar el logo**, que siguen abiertos desde los slices 5 y 6.
+
+**Acciones pendientes de tu parte:**
+
+- Correr la suite e2e completa: `warmRoutes` cambió y afecta a **todas** las corridas, no solo a las
+  de este slice. Aquí solo se pasó `storeDistance.spec.ts`.
+- Sigue pendiente lo del plan de Vercel antes de promocionar tiendas de terceros.
+
+## Slice 8 — Quién vende esto, con cara (2026-08-07)
+
+### Objetivo
+
+La publicación ya enlazaba a su tienda y a su persona, pero **como texto y al final**. Quien decide
+comprar mira arriba —foto, precio, insignias— y a esa altura la página no decía de quién era,
+teniendo la tienda un logo y la persona una foto o sus iniciales. Lo mismo en la tarjeta de un
+listado, que llegó a decir "a 2 km" sin decir de quién: la distancia sale de `p.seller_id`, pero el
+nombre de la tienda no se pedía en la consulta.
+
+### Decisiones y porqué
+
+- **Todo en un renglón: logo, avatar, categoría y distancia.** Se probó primero como una fila propia
+  bajo el título, con el nombre escrito al lado de cada imagen, y el bloque se comía dos líneas para
+  repetir lo que el logo ya decía. Manda el renglón único.
+- **El nombre no se ve, pero está.** Con el nombre fuera, el único hijo visible de cada enlace es una
+  imagen decorativa (`aria-hidden`, `alt=""`), y un enlace así se anuncia como "enlace" a secas. La
+  salida es `hideLabel` en `IdentityLink`: el texto sigue en el árbol dentro de un `sr-only`.
+  **Escondido no es lo mismo que ausente**, y un `title` no habría servido —no lo lee el teclado.
+- **La procedencia se calla cuando la duplica el logo**, y solo entonces. Con `origin` `hazlo_sano_*`
+  la insignia "🌿 Hazlo Sano" dice lo mismo que el logo a 30 px. `productor` y `reventa_cercana` se
+  quedan: que lo haga quien lo vende no se deduce de ninguna imagen. La regla vive en
+  `presentation/post/ProvenanceBadge/provenanceVisibility.ts` porque la hacen dos sitios —la ficha y
+  la tarjeta—, no uno.
+- **La tarjeta lleva la tienda, no a quien publica.** La persona ya firma en el pie de la tarjeta,
+  junto a la fecha; la tienda no aparecía en ningún sitio.
+- **`storeHref`/`profileHref` se mudan a `~/i18n/routes`.** Vivían en `app/[locale]/cuenta/`, que
+  bastaba mientras solo los usaran las rutas. La tarjeta los necesita desde `presentation/`, que no
+  puede importar de `app/`. Copiar el literal `"/tienda/[slug]"` al otro lado era garantizar que el
+  día que la ruta cambie uno de los dos se quede atrás; `cuenta/storePath.ts` y `profilePath.ts` los
+  reexportan para no tocar a quienes ya se los pedían.
+- **Los enlaces del final se quedan y también ganan imagen.** Se evaluó mudarlos —un destino, un
+  enlace— y se descartó: el `nav` del final es lo que recoge un rastreador al terminar la página. El
+  costo es que quien navega por enlaces oye el destino dos veces; se acota dándoles textos distintos
+  (arriba el nombre solo, abajo "Lo vende X").
+- **Sin migración.** `sellers.logo_url` y `users.image` existían desde el slice 6. Lo que faltaba era
+  pedirlos: en `getPostBySlug` el `seller` era `{ handle, name }`, y en el listado no había ni un
+  `JOIN sellers`.
+- **`sellers.slug` es nulo en los vendedores que creó el bot**, así que la tienda se deja en `null`
+  cuando falta: un logo que no lleva a ninguna parte engaña más de lo que informa.
+
+### Lo que dijeron los datos (23 publicaciones)
+
+13 son `hazlo_sano_*`, 10 no declaran origen, y **ninguna** es `productor` ni `reventa_cercana`. O
+sea que la regla condicional oculta la insignia en el 100 % de lo publicado hoy y se ve igual que si
+se hubiera borrado. Se hizo condicional igualmente porque cuesta lo mismo y el día que publique un
+productor de la comunidad —que es la razón de ser del directorio— la página tiene que distinguir.
+Y **5 de 23 no tienen ni tienda ni perfil reclamado**: ahí no se pinta identidad ninguna.
+
+### Archivos tocados
+
+- **Presentación nueva:** `presentation/identity/IdentityLink.tsx`, `StoreLogo.tsx`,
+  `StoreIdentity.ts`; `presentation/post/ProvenanceBadge/provenanceVisibility.ts`.
+- **Ficha:** `app/[locale]/[slug]/ui/PostIdentity.tsx` (nuevo), `PostDetail.tsx`, `PostLinks.tsx`.
+- **Tarjeta:** `presentation/post/CardForList/CardForList.tsx`, `presentation/user/Avatar/Avatar.tsx`
+  (tamaño `sm`), `infra/UI/mappers/posts/mapPostsToCards.ts`.
+- **Datos:** `infra/dataAccess/getOnePostWithPaginatedComments/PostgresGetOnePost.ts` (el logo),
+  `infra/dataAccess/posts/PostgresPostQueryRepository.ts` (`JOIN sellers` + 3 columnas en la
+  proyección compartida), `infra/dataAccess/posts/IPostQueryRepository.ts`.
+- **Rutas:** `i18n/routes.ts` (nuevo), `app/[locale]/cuenta/storePath.ts`, `profilePath.ts`.
+- **Pruebas:** `e2e/sellerStore/sellerStore.feature` (7 escenarios `@slice-8`),
+  `e2e/sellerStore/postIdentity.spec.ts`, `app/[locale]/[slug]/ui/PostIdentity.test.tsx`,
+  `presentation/post/ProvenanceBadge/provenanceVisibility.test.ts`,
+  `presentation/post/CardForList/CardForList.test.tsx`.
+
+### Validación
+
+| Comando | Resultado |
+| --- | --- |
+| `pnpm typecheck` | 0 |
+| `pnpm typecheck:tests` | 0 |
+| `pnpm lint` | limpio (sigue el `info` preexistente de `IndexingStatusPanel`) |
+| `pnpm test:run` | 948/948 |
+| Playwright | **no se corrió**: queda de tu parte, por decisión tuya en esta sesión |
+
+### Desviaciones del proceso (a la vista)
+
+- **El `.feature` se escribió antes que el código, pero se reescribió después.** La primera versión
+  hablaba de "la fila de identidad" y de "el logo de arriba"; al pasar todo a un solo renglón esos
+  escenarios quedaron describiendo un diseño que ya no existe. Se corrigieron, no se dejaron.
+- **No hubo ciclo rojo→verde en la parte de tarjetas**: se implementó y luego se probó. El rojo del
+  slice anterior encontró algo real, así que la deuda es de verdad, no formal.
+
+### Hallazgo colateral: un enlace mudo
+
+Al quitar el nombre del renglón los dos enlaces se quedaron sin nombre accesible: su contenido era
+solo una imagen `aria-hidden`. No lo detecta ningún typecheck ni ningún lint del proyecto, y en
+pantalla se ve perfecto. Ahora hay dos pruebas que lo afirman por el rol y el nombre
+(`getByRole("link", { name })`) en vez de por el `data-testid`, que habría pasado igual estando roto.
+
+### Recap
+
+Una publicación dice de quién es en el mismo renglón donde se decide comprarla, en la ficha y en la
+tarjeta, y sin repetir por escrito lo que el logo ya dice. La insignia de procedencia solo se calla
+cuando el logo la duplica. Los destinos tipados de tienda y perfil dejaron de vivir en `app/` para
+que `presentation/` pueda enlazar sin romper la dirección de las dependencias. Sin migración: las
+dos columnas existían y solo faltaba pedirlas.
+
+### Próximos pasos (opciones)
+
+1. **Emparejar la búsqueda con el catálogo.** `PostgresSearchPostRepository.hydrate` no proyecta
+   `kind`, `origin`, `category` ni ahora `seller`, así que sus tarjetas salen sin insignias y sin
+   logo mientras las de `/productos` los llevan. Es un hueco anterior a este slice, pero ahora se
+   nota más.
+2. **Los otros tres sitios que enlazan a una tienda o a una persona con puro texto**: `StoreHeader`
+   (→ su dueño), `ProfileHeader` (→ su tienda) y el directorio. `IdentityLink` se extrajo para los
+   cuatro; este slice solo estrenó dos.
+3. Siguen abiertos **borrar publicaciones propias** (slice 5) y **quitar el logo** (slice 6).
+
+**Acciones pendientes de tu parte:**
+
+- Correr la suite e2e completa, incluido `sellerStore/postIdentity.spec.ts`, que nunca se ha
+  ejecutado.

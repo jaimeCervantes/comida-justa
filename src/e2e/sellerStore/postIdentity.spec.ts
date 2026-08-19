@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 /*
- * Slice 8 de `docs/features/vendedores-y-tiendas.md`, escenarios "La publicación dice de quién es
+ * Slice 8 de `docs/features/commerce/001-2026-07-31-vendedores-y-tiendas.md`, escenarios "La publicación dice de quién es
  * antes de que haya que bajar" y "Las salidas del final también muestran de quién son".
  *
  * No siembra nada: "suero-natural" existe, la vende "Hazlo Sano" —que tiene logo— y la publicó

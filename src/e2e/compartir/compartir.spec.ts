@@ -11,7 +11,7 @@ import {
 import { testSlug, testStore } from "../testUtils/testSlug";
 import SharePanel, { withoutNativeShare } from "./SharePanel";
 
-// Slice 1 de docs/features/compartir-y-cuenta.md.
+// Slice 1 de docs/features/content/004-2026-08-08-compartir-y-cuenta.md.
 // La tienda y la dirección personal se siembran con prefijo `e2e-`: la tienda real de la base
 // ("Hazlo Sano", de `jaime-cervantes`) es de una persona, y la suite no escribe sobre ella.
 

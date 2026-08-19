@@ -6,7 +6,7 @@ import { coordinatesAtKm, seedStore } from "../testUtils/seedStore";
 import { testSlug, testStore } from "../testUtils/testSlug";
 
 /**
- * Slice 8 de `docs/features/productores-locales.md`.
+ * Slice 8 de `docs/features/commerce/002-2026-08-02-productores-locales.md`.
  *
  * Los dos directorios eran las páginas cuya razón de ser **es** la proximidad y las únicas que no
  * la usaban para nada más que filtrar: listaban por nombre alfabético, que no le sirve a nadie que

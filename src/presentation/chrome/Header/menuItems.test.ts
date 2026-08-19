@@ -22,7 +22,7 @@ describe("las secciones de Comunidad", () => {
   });
 
   it("conserva las seis en la lista: se ocultan, no se borran", () => {
-    // La lista es el plan (ver docs/features/secciones-comunidad.md); borrarla sería perderlo.
+    // La lista es el plan (ver docs/features/community/001-2026-08-02-secciones-comunidad.md); borrarla sería perderlo.
     expect(COMMUNITY_ITEMS).toHaveLength(6);
   });
 });

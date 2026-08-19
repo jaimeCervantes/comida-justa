@@ -10,7 +10,7 @@ import {
 import { testSlug } from "../testUtils/testSlug";
 
 /**
- * Slice 1 de `docs/features/cuatro-pilares-vivos.md`: `evento` con su fecha.
+ * Slice 1 de `docs/features/wellbeing/013-2026-08-16-cuatro-pilares-vivos.md`: `evento` con su fecha.
  *
  * Lo que se prueba es la afirmación central de la feature: que una publicación que **ocurre**
  * aparezca sola en la página de su pilar. Los tres pilares de abajo tienen HOY cero publicaciones,

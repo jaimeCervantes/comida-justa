@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 import { CANONICAL_URL } from "~/infra/constants";
 import { alternateUrl, canonicalUrl, meta } from "../testUtils/metaTags";
 
-// Slice 3 de docs/features/seo.md. Corre contra publicaciones que ya existen en el catálogo
+// Slice 3 de docs/features/content/003-2026-08-01-seo.md. Corre contra publicaciones que ya existen en el catálogo
 // —una con foto y otra en video—, así que no siembra nada y no tiene nada que limpiar.
 const CON_FOTO = "jugo-verde";
 const EN_VIDEO = "la-clave-para-dormir-profundo";

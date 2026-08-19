@@ -3,7 +3,7 @@ import { renderWithIntl as render } from "~/infra/test-utils/renderWithIntl";
 import MediaContent from "./MediaContent";
 
 describe("When a publication has no usable media", () => {
-  // El defecto que documenta `docs/pendientes.md`: el listado respondía 500 porque
+  // El defecto que documenta `docs/planning/001-2026-07-30-pendientes.md`: el listado respondía 500 porque
   // `DefaultContent` leía `media.url` sobre un `undefined`.
   it.each([
     ["undefined", undefined],

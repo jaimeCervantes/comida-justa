@@ -7,7 +7,7 @@ config({ path: resolve(process.cwd(), ".env.development") });
  * Una **segunda tienda** en la base compartida, para poder ver de verdad el carrito de varias
  * tiendas.
  *
- * Hasta el slice 5 de `docs/features/pedidos.md` la base tenía un solo vendedor —Hazlo Sano—, así
+ * Hasta el slice 5 de `docs/features/commerce/003-2026-08-09-pedidos.md` la base tenía un solo vendedor —Hazlo Sano—, así
  * que `groupBySeller` siempre devolvía un grupo y las dos piezas que solo importan con dos tiendas
  * (el total de la compra y el `checkout_id` compartido) nunca se ejercitaron fuera de Vitest. Una de
  * las dos estaba mal.

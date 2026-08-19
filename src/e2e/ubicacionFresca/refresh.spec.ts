@@ -7,7 +7,7 @@ import { coordinatesAtKm, seedStore } from "../testUtils/seedStore";
 import { testSlug, testStore } from "../testUtils/testSlug";
 
 /**
- * Slice 2 de `docs/features/ubicacion-fresca.md`.
+ * Slice 2 de `docs/features/wellbeing/001-2026-08-05-ubicacion-fresca.md`.
  *
  * La suite nunca había concedido el permiso del navegador: `distance.spec.ts` lo daba por
  * imposible ("lo concede el sistema operativo, no la página") y todos los escenarios inyectaban la

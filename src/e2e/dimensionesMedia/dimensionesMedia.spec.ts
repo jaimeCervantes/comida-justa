@@ -1,7 +1,7 @@
 import { expect, type Locator, type Page, test } from "@playwright/test";
 
 /**
- * Slice 1 de `docs/features/dimensiones-de-media.md`, **conectado tarde**.
+ * Slice 1 de `docs/features/platform/003-2026-08-08-dimensiones-de-media.md`, **conectado tarde**.
  *
  * Los dos escenarios de este archivo estaban escritos en el `.feature` desde aquella entrega y nunca
  * se llevaron a un spec: lo único que comprobaba `media-image-sized` eran tests de componente, donde

@@ -12,7 +12,7 @@ import { testPost, testStore } from "../testUtils/testSlug";
 import SellerAccountPage from "./SellerAccountPage";
 import StorePage from "./StorePage";
 
-// Slice 1 de docs/features/vendedores-y-tiendas.md.
+// Slice 1 de docs/features/commerce/001-2026-07-31-vendedores-y-tiendas.md.
 // La tienda que ya existe en la base compartida y contra la que se prueban las colisiones.
 const HAZLO_SANO = {
   handle: "hazlo-sano",
@@ -81,7 +81,7 @@ test.describe("Cuando una persona registrada abre su tienda", () => {
       file: "./src/e2e/dummies/post.jpg",
       kind: "producto",
       // La panadería hornea lo que vende: un producto exige declararlo desde el slice 1 de
-      // `docs/features/productores-locales.md`.
+      // `docs/features/commerce/002-2026-08-02-productores-locales.md`.
       origin: "productor",
     });
     await publishPage.submit();

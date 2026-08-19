@@ -5,7 +5,7 @@ import { seedStore } from "../testUtils/seedStore";
 import { testSlug, testStore } from "../testUtils/testSlug";
 
 /**
- * Slice 1 de `docs/features/productores-locales.md`.
+ * Slice 1 de `docs/features/commerce/002-2026-08-02-productores-locales.md`.
  *
  * Lo que se prueba aquí es la mitad del filtro que **no** vive en el post: la distancia. Que una
  * publicación con `origin = 'productor'` mete a su tienda al directorio ya lo cubre

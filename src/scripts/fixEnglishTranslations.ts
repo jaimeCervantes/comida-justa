@@ -8,7 +8,7 @@ config({ path: resolve(process.cwd(), ".env.development") });
  * Arregla a mano los defectos que dejó la traducción automática al inglés.
  *
  * Las 23 filas `en` las escribió Gemini y nadie las había leído una por una (ver
- * `docs/features/pendientes.md`). La lectura completa del 2026-08-08 encontró cuatro cosas, todas
+ * `docs/features/planning/001-2026-08-07-pendientes.md`). La lectura completa del 2026-08-08 encontró cuatro cosas, todas
  * en producto que **se vende**:
  *
  *  1. **Frases pegadas sin espacio.** El traductor unió oraciones: "don't stop.It's the natural".

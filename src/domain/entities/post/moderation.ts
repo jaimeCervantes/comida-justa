@@ -2,7 +2,7 @@
  * El estado de moderación de una publicación: quién la puede ver y por qué.
  *
  * Espeja la columna `posts.moderation_status` que crea la migración `0040_2026_08_16` del backend
- * Python. Ver `docs/features/filtro-al-publicar.md`.
+ * Python. Ver `docs/features/platform/005-2026-08-16-filtro-al-publicar.md`.
  */
 
 import { PRODUCT_KIND } from "./hazloSanoProduct";

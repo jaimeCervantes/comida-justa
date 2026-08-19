@@ -4,7 +4,7 @@ import { seedPost } from "../testUtils/seedPost";
 import { testSlug } from "../testUtils/testSlug";
 
 /**
- * Slices 1 y 2 de `docs/features/busqueda-semantica.md`.
+ * Slices 1 y 2 de `docs/features/search/003-2026-08-07-busqueda-semantica.md`.
  *
  * Los tres defectos que la búsqueda por `ILIKE '%término%'` tenía, medidos contra la base antes de
  * este cambio: `pán` devolvía 0 resultados, `panes` devolvía 0 —y `pan` devolvía 10—, y `pan` en

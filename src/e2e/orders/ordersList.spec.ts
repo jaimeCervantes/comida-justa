@@ -17,7 +17,7 @@ import { findSuiteUserId } from "../testUtils/suiteAccount";
 import { testSlug } from "../testUtils/testSlug";
 
 /**
- * Slice 6 de `docs/features/pedidos.md`: el pedido se reconoce sin abrirlo.
+ * Slice 6 de `docs/features/commerce/003-2026-08-09-pedidos.md`: el pedido se reconoce sin abrirlo.
  *
  * **La tienda es de la cuenta de la suite**, como en `placeOrder.spec.ts` y por el mismo motivo: el
  * panel del vendedor solo se pinta si la sesión es dueña de la tienda. La consecuencia útil aquí es

@@ -7,7 +7,7 @@ import { coordinatesAtKm, seedStore } from "../testUtils/seedStore";
 import { testSlug, testStore } from "../testUtils/testSlug";
 
 /**
- * Slice 4 de `docs/features/productores-locales.md`.
+ * Slice 4 de `docs/features/commerce/002-2026-08-02-productores-locales.md`.
  *
  * Tres publicaciones idénticas salvo por dónde está su tienda: cerca, lejos y sin tienda. El orden
  * en que salen es todo lo que hay que comprobar.
