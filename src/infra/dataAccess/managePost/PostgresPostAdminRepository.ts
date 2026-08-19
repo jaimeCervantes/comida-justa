@@ -63,6 +63,7 @@ interface EditableRow {
   locale: string;
   title: string;
   content: string;
+  contact_phone: string | null;
   price: string | null;
   kind: string | null;
   origin: string | null;
@@ -110,6 +111,7 @@ export class PostgresPostAdminRepository implements IPostAdminRepository {
       await tx.execute(sql`
         UPDATE posts
         SET price        = ${update.price},
+            contact_phone = ${update.contactPhone},
             origin       = ${update.origin},
             category     = ${update.category},
             sub_category = ${update.subCategory},
@@ -141,6 +143,7 @@ export class PostgresPostAdminRepository implements IPostAdminRepository {
         t.locale,
         t.title,
         t.content,
+        p.contact_phone,
         p.price::text,
         p.kind,
         p.origin,
@@ -170,6 +173,7 @@ export class PostgresPostAdminRepository implements IPostAdminRepository {
       locale: row.locale,
       title: row.title,
       content: row.content,
+      contactPhone: row.contact_phone,
       price: row.price === null ? null : Number(row.price),
       kind: row.kind ?? "anuncio",
       origin: row.origin,

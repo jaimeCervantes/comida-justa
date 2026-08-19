@@ -8,6 +8,7 @@ export interface EditablePost {
   locale: string;
   title: string;
   content: string;
+  contactPhone: string | null;
   price: number | null;
   kind: string;
   origin: string | null;
@@ -32,6 +33,7 @@ export interface PostContentUpdate {
   locale: string;
   title: string;
   content: string;
+  contactPhone: string;
   price: number | null;
   /** Ya resuelta contra el rol de quien edita: el gate de admin vive en la capa de aplicación. */
   origin: string | null;

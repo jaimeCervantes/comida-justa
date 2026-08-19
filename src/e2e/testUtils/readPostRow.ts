@@ -14,6 +14,7 @@ export type PostRowSnapshot = {
   starts_at: Date | null;
   ends_at: Date | null;
   duration_minutes: number | null;
+  contact_phone: string | null;
   moderation_status: string | null;
   moderation_reason: string | null;
 };
@@ -28,7 +29,7 @@ export async function readPostRowBySlug(
   const result = await db.execute(sql`
     SELECT p.id, p.kind, p.price::text, p.origin, p.is_available, p.category, p.sub_category, p.seller_id,
            p.external_url, p.starts_at, p.ends_at, p.duration_minutes,
-           p.moderation_status, p.moderation_reason
+           p.contact_phone, p.moderation_status, p.moderation_reason
     FROM posts p
     JOIN post_translations pt ON pt.post_id = p.id
     WHERE pt.slug = ${slug}

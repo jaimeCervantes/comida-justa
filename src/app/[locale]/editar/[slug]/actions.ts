@@ -31,6 +31,7 @@ export type EditPostState = {
     durationMinutes?: string | null;
     price?: string | null;
     origin?: string | null;
+    phone?: string | null;
   };
 };
 
@@ -91,6 +92,7 @@ export async function updatePost(
       : null;
 
   const title = String(formData.get("title") ?? "");
+  const phone = String(formData.get("phone") ?? "");
   const tPublish = await getTranslations("publish");
 
   /* La lista completa que la publicación va a tener, en el orden en que se ve en pantalla: el índice
@@ -142,6 +144,7 @@ export async function updatePost(
     price: !requiresPrice || price ? null : tPublish("errorPriceRequired"),
     origin:
       kind !== "producto" || origin ? null : tPublish("errorOriginRequired"),
+    phone: phone ? null : tPublish("errorPhoneRequired"),
   };
 
   if (Object.values(fieldErrors).some(Boolean)) {
@@ -153,6 +156,7 @@ export async function updatePost(
     slug: String(formData.get("slug") ?? ""),
     title,
     content: String(formData.get("content") ?? ""),
+    contactPhone: phone,
     price: kind === "anuncio" ? null : price,
     origin,
     category,

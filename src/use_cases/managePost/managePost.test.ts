@@ -26,6 +26,7 @@ const jugoVerde: EditablePost = {
   locale: "es",
   title: "Jugo Verde",
   content: "Nopal, apio, piña y perejil. Recién hecho.",
+  contactPhone: "2781092116",
   price: 40,
   kind: "producto",
   // `EditablePost` lo exige. Faltaba, y llegaba como `undefined` en vez de `null`.
@@ -155,6 +156,7 @@ describe("UpdateOnePostUseCase", () => {
     userId: OWNER,
     title: "Jugo Verde grande",
     content: "Nopal, apio, piña y perejil. Recién hecho, ahora de 500 ml.",
+    contactPhone: "2781126948",
     price: 45,
     origin: "productor",
     category: "alimentacion",
@@ -177,7 +179,38 @@ describe("UpdateOnePostUseCase", () => {
     });
     expect(repository.updates[0]).toMatchObject({
       title: "Jugo Verde grande",
+      contactPhone: "2781126948",
       price: 45,
+    });
+  });
+
+  it("guarda el telefono de contacto", async () => {
+    const result = await useCase.execute({
+      ...edit,
+      contactPhone: "+52 278 999 0011",
+    });
+
+    expect(result.errorMessage).toBeUndefined();
+    expect(repository.updates[0]).toMatchObject({
+      contactPhone: "+52 278 999 0011",
+    });
+  });
+
+  it("limpia el precio de un anuncio aunque venga forjado", async () => {
+    repository = new FakePostAdminRepository([anuncio]);
+    useCase = new UpdateOnePostUseCase(repository, new PostValidator());
+
+    const result = await useCase.execute({
+      ...edit,
+      slug: anuncio.slug,
+      price: 99,
+      origin: "productor",
+    });
+
+    expect(result.errorMessage).toBeUndefined();
+    expect(repository.updates[0]).toMatchObject({
+      price: null,
+      origin: null,
     });
   });
 

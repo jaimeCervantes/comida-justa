@@ -1,7 +1,7 @@
 "use client";
 import { useTranslations } from "next-intl";
 import { useActionState, useState } from "react";
-import { MdOutlinePriceChange, MdTitle } from "react-icons/md";
+import { MdOutlinePriceChange, MdPhone, MdTitle } from "react-icons/md";
 import { EVENT_KIND, SERVICE_KIND } from "~/domain/entities/post/kind";
 import type { CategoryOption } from "~/domain/entities/post/taxonomy";
 import { formatDateTimeLocalInTimeZone } from "~/domain/schedule/localDateTime";
@@ -24,6 +24,7 @@ export type EditablePostValues = {
   slug: string;
   title: string;
   content: string;
+  contactPhone: string | null;
   price: number | null;
   kind: string;
   origin: string | null;
@@ -246,6 +247,19 @@ export default function EditPostForm({
         />
 
         <PostMediaField initialItems={post.media} />
+
+        <TextField
+          required
+          name="phone"
+          type="tel"
+          label={tPublish("phone")}
+          defaultValue={post.contactPhone ?? ""}
+          pattern={"^\\+?(\\d{1,3})?[0-9]{10}$"}
+          placeholder={tPublish("phonePlaceholder")}
+          icon={<MdPhone />}
+          error={state.errors?.phone}
+          containerClassName="mb-6"
+        />
 
         <footer className="flex justify-center gap-5 mt-4">
           <Link href={{ pathname: "/[slug]", params: { slug: post.slug } }}>

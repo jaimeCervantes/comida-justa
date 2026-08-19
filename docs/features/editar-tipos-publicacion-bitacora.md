@@ -214,3 +214,91 @@ con el error de precio.
 - Opcion A: probar manualmente publicar un servicio dejando vacia la duracion.
 - Opcion B: correr el shard e2e de publicar/editar cuando cierres los slices.
 - Opcion C: revisar validacion server-side del telefono.
+
+## 2026-08-18 - Slice 6: telefono editable y servicio completo
+
+### Objective
+
+Cerrar la brecha de edicion completa: un servicio ya podia mostrar precio y duracion en las pruebas,
+pero la pantalla no editaba el telefono/WhatsApp capturado al publicar, que es el contacto real que
+ve quien quiere comprar, asistir o preguntar.
+
+### Decisions + rationale
+
+- `contact_phone` se lee en el repositorio de administracion y viaja hasta `EditPostForm`. La
+  pantalla de edicion ya no inventa el contacto ni obliga a republicar si el WhatsApp estaba mal.
+- La Server Action de edicion exige `phone` con el mismo mensaje de publicar. El patron de formato
+  sigue en el navegador, igual que antes; aqui se agrego presencia server-side para no guardar
+  publicaciones sin contacto por un request forjado.
+- `UpdateOnePostUseCase` ahora recibe `contactPhone` y lo manda al repositorio junto con los demas
+  campos editables. Tambien limpia `price` para anuncios usando el tipo guardado en base, no el
+  hidden del formulario.
+- El e2e focal de servicio queda preparado para verificar precio, duracion y telefono en la misma
+  corrida de escritorio. No se corrio la suite completa por la instruccion de cerrar todos los
+  slices y ejecutarla al final en shards.
+
+### Files touched
+
+- Edicion:
+  - `src/app/[locale]/editar/[slug]/page.tsx`
+  - `src/app/[locale]/editar/[slug]/actions.ts`
+  - `src/app/[locale]/editar/[slug]/ui/EditPostForm.tsx`
+  - `src/app/[locale]/editar/[slug]/ui/EditPostForm.test.tsx`
+- Caso de uso y persistencia:
+  - `src/use_cases/managePost/updateOnePostUseCase.ts`
+  - `src/use_cases/managePost/ports/IPostAdminRepository.ts`
+  - `src/infra/dataAccess/managePost/PostgresPostAdminRepository.ts`
+- Specs/helpers/textos:
+  - `docs/features/editar-tipos-publicacion.md`
+  - `src/e2e/editPublicationTypes/editPublicationTypes.feature`
+  - `src/e2e/editPublicationTypes/editPublicationTypes.spec.ts`
+  - `src/e2e/testUtils/readPostRow.ts`
+  - `src/i18n/messages/es.json`
+
+### Key commands
+
+- `pnpm exec vitest --run src/app/[locale]/editar/[slug]/ui/EditPostForm.test.tsx src/use_cases/managePost/managePost.test.ts`
+- `pnpm run typecheck`
+- `pnpm exec biome check --write src/use_cases/managePost/ports/IPostAdminRepository.ts src/use_cases/managePost/updateOnePostUseCase.ts src/use_cases/managePost/managePost.test.ts src/infra/dataAccess/managePost/PostgresPostAdminRepository.ts "src/app/[locale]/editar/[slug]/page.tsx" "src/app/[locale]/editar/[slug]/actions.ts" "src/app/[locale]/editar/[slug]/ui/EditPostForm.tsx" "src/app/[locale]/editar/[slug]/ui/EditPostForm.test.tsx" src/e2e/editPublicationTypes/editPublicationTypes.feature src/e2e/editPublicationTypes/editPublicationTypes.spec.ts src/e2e/testUtils/readPostRow.ts src/i18n/messages/es.json`
+- `pnpm run test:run`
+- `pnpm run lint`
+- `pnpm exec playwright test src/e2e/editPublicationTypes/editPublicationTypes.spec.ts --reporter=line`
+
+### Validation results
+
+- Vitest focal inicial rojo: 2 files, 27 tests, 4 failed; confirmo que faltaba telefono en form/use
+  case y que anuncio no limpiaba precio en el use case.
+- Vitest focal final: 2 files, 27 tests passed.
+- Typecheck: passed.
+- Biome focal: 11 files checked, no fixes applied.
+- Vitest completo: 190 files, 1972 tests passed.
+- Lint: 935 files checked, no fixes applied.
+- E2E focal de editar tipos: 3 tests passed. El primer intento dentro del sandbox hizo timeout por
+  `EACCES/ETIMEDOUT` contra la base; se repitio el mismo shard fuera del sandbox y paso.
+- E2E completo: no corrido por instruccion del usuario; queda para el cierre por shards.
+
+### Deviations from roadmap
+
+- Se ajusto el roadmap para no prometer reemplazo de GPX en el slice 1. La edicion de ruta de evento
+  sigue documentada como slice futuro.
+- Se corrigio el typo visible `Télefono` a `Teléfono` en español porque el nuevo campo reutiliza esa
+  etiqueta en edicion.
+
+### Follow-ups
+
+- Correr el shard e2e de `src/e2e/editPublicationTypes` al cierre de todos los slices.
+- Definir si se quiere normalizacion server-side del telefono a 10 digitos; hoy se conserva lo que
+  la persona escribe, igual que publicar.
+
+### Recap
+
+La edicion ya cubre los campos necesarios comunes y propios por tipo: todos editan telefono,
+servicio edita precio y duracion, evento edita fechas y precio opcional, producto edita precio y
+procedencia, y anuncio limpia precio. La unica excepcion deliberada sigue siendo editar la ruta GPX
+de un evento con ruta.
+
+### Proximos pasos (opciones)
+
+- Opcion A: probar manualmente editar un servicio y confirmar precio, duracion y WhatsApp.
+- Opcion B: avanzar luego con el slice de ruta GPX de eventos.
+- Opcion C: al cerrar todos los slices, correr e2e por shards empezando por `src/e2e/editPublicationTypes`.

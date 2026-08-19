@@ -115,9 +115,11 @@ test.describe("Editing publications with type-specific fields", () => {
     await expect(page.getByLabel(/tipo de publicaci/i)).toHaveValue("servicio");
     await expect(page.getByLabel(/^precio/i)).toHaveValue("350");
     await expect(page.getByLabel(/cu[aá]nto dura/i)).toHaveValue("45");
+    await expect(page.getByLabel(/tel[eé]fono/i)).toHaveValue("2781092116");
 
     await page.getByLabel(/^precio/i).fill("420");
     await page.getByLabel(/cu[aá]nto dura/i).fill("60");
+    await page.getByLabel(/tel[eé]fono/i).fill("2781126948");
     expect(
       await page
         .getByRole("form", { name: /edita tu publicación/i })
@@ -141,6 +143,7 @@ test.describe("Editing publications with type-specific fields", () => {
     expect(row?.kind).toBe("servicio");
     expect(Number(row?.price)).toBe(420);
     expect(row?.duration_minutes).toBe(60);
+    expect(row?.contact_phone).toBe("2781126948");
   });
 });
 

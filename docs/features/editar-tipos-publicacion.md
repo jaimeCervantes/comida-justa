@@ -16,7 +16,8 @@ Scope:
 - La accion de edicion persiste `startsAt`, `endsAt` y `durationMinutes` segun el tipo guardado.
 - La validacion del use case usa las mismas reglas de dominio que publicar para evento y servicio.
 - El precio se mantiene editable para producto, evento y servicio; anuncio puede seguir sin precio.
-- El recorrido GPX de evento puede reemplazarse cuando se sube uno nuevo y se conserva cuando no se toca.
+- El recorrido GPX de evento se conserva cuando no se toca; reemplazarlo o quitarlo queda fuera de
+  este slice.
 
 Acceptance criteria:
 - Un evento sembrado con fecha abre `/editar/<slug>` con inicio, fin y precio prellenados.
@@ -78,3 +79,20 @@ Acceptance criteria:
 - Al publicar o editar un servicio, precio y duracion aparecen como requeridos.
 - Al publicar o editar un anuncio, el campo precio no aparece.
 - Producto, evento y servicio no muestran campos que no aplican a su tipo.
+
+### Slice 6 - Edicion completa de los campos comunes de contacto
+
+Scope:
+- La edicion muestra el telefono/WhatsApp de contacto que se capturo al publicar.
+- Guardar cambios actualiza `posts.contact_phone` junto con texto, precio, categoria, fechas,
+  duracion y media.
+- El telefono se exige en la Server Action de edicion igual que al publicar.
+- La normalizacion por tipo se mantiene: servicios editan precio y duracion; anuncios limpian precio
+  aunque una peticion forjada lo mande.
+- La edicion de ruta GPX de evento sigue fuera de alcance por ahora.
+
+Acceptance criteria:
+- Un servicio abre `/editar/[slug]` con precio, duracion y telefono prellenados.
+- Guardar un servicio con otro precio, otra duracion y otro telefono persiste los tres campos.
+- Todos los tipos muestran el telefono como campo requerido.
+- Un anuncio no conserva precio si una peticion manipulada intenta enviarlo.

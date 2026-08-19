@@ -29,21 +29,30 @@ Feature: Editar cualquier tipo de publicacion
       | startsAt | 2027-09-05T07:15:00 |
       | endsAt   | 2027-09-05T09:00:00 |
 
-  @slice-1
-  Scenario: Un servicio carga y guarda precio y duracion
-    Given I own the service "E2E Sesion de respiracion editable" with price "350" and duration "45"
+  @slice-1 @slice-6
+  Scenario: Un servicio carga y guarda precio, duracion y telefono
+    Given I own the service "E2E Sesion de respiracion editable" with price "350", duration "45" and phone "2781092116"
     When I open "/editar/e2e-sesion-de-respiracion-editable"
     Then the form keeps the publication kind as "servicio"
     And the price field shows "350"
     And the duration field shows "45"
+    And the phone field shows "2781092116"
     When I change the price to "420"
     And I change the duration to "60"
+    And I change the phone to "2781126948"
     And I save the publication
     Then the post is still a "servicio"
     And its stored service fields are:
       | field           | value |
       | price           | 420   |
       | durationMinutes | 60    |
+      | contactPhone    | 2781126948 |
+
+  @slice-6 @component
+  Scenario: Todos los tipos editan el telefono de contacto
+    Given I own an existing publication of any kind
+    When I open its edit form
+    Then the phone field is visible, required and prefilled with the saved contact phone
 
   @slice-1 @component
   Scenario Outline: La edicion valida los campos propios del tipo guardado

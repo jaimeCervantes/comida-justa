@@ -9,6 +9,7 @@ const EVENT_POST = {
   slug: "rodada-cafetera",
   title: "Rodada cafetera",
   content: "Salida comunitaria",
+  contactPhone: "2781092116",
   price: null,
   kind: "evento",
   origin: null,
@@ -85,6 +86,13 @@ describe("EditPostForm — fechas de evento", () => {
 });
 
 describe("EditPostForm — campos por tipo", () => {
+  it("todos los tipos editan el telefono de contacto", () => {
+    renderForm(SERVICE_POST);
+
+    expect(screen.getByLabelText(/tel[eé]fono/i)).toHaveValue("2781092116");
+    expect(screen.getByLabelText(/tel[eé]fono/i)).toBeRequired();
+  });
+
   it("un anuncio no edita precio, procedencia, fecha ni duración", () => {
     renderForm(ANNOUNCEMENT_POST);
 
@@ -124,6 +132,8 @@ describe("EditPostForm — campos por tipo", () => {
 
     expect(screen.getByLabelText(/cuánto dura/i)).toBeRequired();
     expect(screen.getByLabelText(/^precio/i)).toBeRequired();
+    expect(screen.getByLabelText(/cuánto dura/i)).toHaveValue(45);
+    expect(screen.getByLabelText(/^precio/i)).toHaveValue(500);
     expect(screen.queryByLabelText(/cuándo empieza/i)).not.toBeInTheDocument();
     expect(
       screen.queryByRole("combobox", { name: /de dónde viene/i }),

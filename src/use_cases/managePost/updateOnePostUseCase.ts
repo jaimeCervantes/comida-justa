@@ -17,6 +17,7 @@ export interface UpdateOnePostInput {
   userId: string;
   title: string;
   content: string;
+  contactPhone: string;
   price: number | null;
   /**
    * Ya resuelta contra el rol de quien edita (`resolveOriginForUser`), igual que al publicar: si
@@ -95,11 +96,12 @@ export default class UpdateOnePostUseCase {
 
     const title = input.title?.trim() ?? "";
     const content = input.content?.trim() ?? "";
+    const contactPhone = input.contactPhone?.trim() ?? "";
     const startsAt = post.kind === EVENT_KIND ? (input.startsAt ?? null) : null;
     const endsAt = post.kind === EVENT_KIND ? (input.endsAt ?? null) : null;
     const durationMinutes =
       post.kind === SERVICE_KIND ? (input.durationMinutes ?? null) : null;
-    const price = input.price;
+    const price = post.kind === "anuncio" ? null : input.price;
     const origin = post.kind === "producto" ? input.origin : null;
 
     // Se valida con las mismas reglas que al publicar: un producto sigue necesitando precio y
@@ -114,7 +116,7 @@ export default class UpdateOnePostUseCase {
       startsAt,
       endsAt,
       durationMinutes,
-      contactInfo: { phone: "" },
+      contactInfo: { phone: contactPhone },
       /* Ya no va vacía: desde que la edición muestra los archivos, lo que llega aquí es la lista que
          la publicación va a tener, y el validador comprueba su forma y su tope igual que al
          publicar. Sigue sin exigir un mínimo, y ahí no ha cambiado nada: quien lo exige es la Server
@@ -129,6 +131,7 @@ export default class UpdateOnePostUseCase {
       locale: post.locale,
       title,
       content,
+      contactPhone,
       price,
       origin,
       category: input.category,
