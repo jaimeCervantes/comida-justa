@@ -6,6 +6,7 @@ export interface EventAttendancePost {
   id: string;
   kind: string | null;
   startsAt: Date | string | null;
+  authorId?: string | null;
 }
 
 export interface EventAttendanceRequest {
@@ -35,4 +36,22 @@ export function rejectEventAttendanceRequest({
   if (!canConfirmEventAttendance(post)) return "not-event";
 
   return null;
+}
+
+export interface EventAttendee {
+  id: string;
+  name: string | null;
+  email: string | null;
+  image: string | null;
+  confirmedAt: Date;
+}
+
+export function canViewEventAttendees({
+  viewerId,
+  authorId,
+}: {
+  viewerId: string | null;
+  authorId: string | null | undefined;
+}): boolean {
+  return Boolean(viewerId && authorId && viewerId === authorId);
 }

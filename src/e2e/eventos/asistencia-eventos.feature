@@ -68,9 +68,13 @@ Feature: Asistencia a eventos
     Then the attendee count says "Nadie ha confirmado asistencia"
     And the attendance action says "Voy a asistir"
 
-  @future @slice-3
+  @slice-3
   Scenario: El creador ve la lista de asistentes confirmados
     Given I created a published event
-    And two users confirmed attendance
+    And another user confirmed attendance
     When I open the event detail page
     Then I can see the attendee list
+    And each attendee is identified by name or email
+    When another signed-in user opens the event detail page
+    Then the attendee list is hidden
+    And the attendee count remains visible

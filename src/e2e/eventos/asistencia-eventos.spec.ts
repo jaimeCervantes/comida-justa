@@ -1,4 +1,6 @@
 import { expect, test } from "@playwright/test";
+import { sql } from "drizzle-orm";
+import { db } from "~/infra/dataAccess/db/connection";
 import { deleteOnePostBySlug } from "../testUtils/deleteOnePost";
 import { type SeedPostInput, seedPost } from "../testUtils/seedPost";
 import {
@@ -9,6 +11,11 @@ import {
 import { testSlug } from "../testUtils/testSlug";
 
 const stamp = Date.now();
+const ATTENDEE = {
+  id: `e2e-event-attendee-${stamp}`,
+  email: `pw.event.attendee.${stamp}@example.com`,
+  name: "Ana Evento",
+};
 
 function eventPost(overrides: Partial<SeedPostInput> = {}): SeedPostInput {
   return {
@@ -24,14 +31,41 @@ function eventPost(overrides: Partial<SeedPostInput> = {}): SeedPostInput {
 
 test.describe("When a visitor wants to attend an event", () => {
   const seededSlugs: string[] = [];
-  let dbSession: DbSession | undefined;
+  const dbSessions: DbSession[] = [];
+
+  async function login(
+    page: Parameters<typeof simulateLogin>[0],
+    browserName: Parameters<typeof simulateLogin>[1],
+    options: Parameters<typeof simulateLogin>[2] = {},
+  ): Promise<DbSession> {
+    const session = await simulateLogin(page, browserName, options);
+    dbSessions.push(session);
+
+    return session;
+  }
+
+  async function seedAttendeeAccount(): Promise<void> {
+    await db.execute(sql`
+      INSERT INTO users (id, name, email, external_id)
+      VALUES (${ATTENDEE.id}, ${ATTENDEE.name}, ${ATTENDEE.email}, ${ATTENDEE.id})
+      ON CONFLICT (id) DO NOTHING
+    `);
+  }
+
+  async function deleteAttendeeAccount(): Promise<void> {
+    await db.execute(sql`DELETE FROM sessions WHERE user_id = ${ATTENDEE.id}`);
+    await db.execute(sql`DELETE FROM users WHERE id = ${ATTENDEE.id}`);
+  }
 
   test.afterEach(async () => {
-    if (dbSession?.id) await deleteSession(dbSession.id);
-    dbSession = undefined;
+    for (const session of dbSessions) {
+      await deleteSession(session.id);
+    }
+    dbSessions.length = 0;
 
     for (const slug of seededSlugs) await deleteOnePostBySlug(slug);
     seededSlugs.length = 0;
+    await deleteAttendeeAccount();
   });
 
   test("Then an anonymous visitor is sent to sign in first", async ({
@@ -60,7 +94,7 @@ test.describe("When a visitor wants to attend an event", () => {
     page,
     browserName,
   }) => {
-    dbSession = await simulateLogin(page, browserName);
+    await login(page, browserName);
     const post = eventPost();
     seededSlugs.push(post.slug);
     await seedPost(post);
@@ -83,7 +117,7 @@ test.describe("When a visitor wants to attend an event", () => {
     page,
     browserName,
   }) => {
-    dbSession = await simulateLogin(page, browserName);
+    await login(page, browserName);
     const post = eventPost();
     seededSlugs.push(post.slug);
     await seedPost(post);
@@ -107,6 +141,38 @@ test.describe("When a visitor wants to attend an event", () => {
     await button.click();
     await expect(count).toHaveText("Nadie ha confirmado asistencia");
     await expect(button).toHaveText(/Voy a asistir/);
+  });
+
+  test("Then the creator sees who confirmed attendance", async ({
+    page,
+    browserName,
+  }) => {
+    await seedAttendeeAccount();
+    await login(page, browserName, { email: ATTENDEE.email });
+    const post = eventPost();
+    seededSlugs.push(post.slug);
+    await seedPost(post);
+
+    await page.goto(`/${post.slug}`);
+    await page.getByTestId("event-attendance-toggle").click();
+    await expect(page.getByTestId("event-attendance-count")).toHaveText(
+      "1 persona va a asistir",
+    );
+    await expect(page.getByTestId("event-attendees")).toHaveCount(0);
+
+    await login(page, browserName);
+    await page.goto(`/${post.slug}`);
+
+    await expect(page.getByTestId("event-attendees")).toBeVisible();
+    await expect(page.getByTestId("event-attendee")).toContainText(
+      ATTENDEE.name,
+    );
+    await expect(page.getByTestId("event-attendee")).toContainText(
+      ATTENDEE.email,
+    );
+    await expect(page.getByTestId("event-attendance-count")).toHaveText(
+      "1 persona va a asistir",
+    );
   });
 
   test("Then only events show the sign-in attend action before login", async ({

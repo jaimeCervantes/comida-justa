@@ -7,6 +7,7 @@ import { resolvePostTranslation } from "~/domain/entities/post/translations";
 import type { PostMediaFile } from "~/domain/entities/post/types";
 import { buildWhatsappEventAttendanceLink } from "~/domain/entities/post/whatsappEventAttendance";
 import { buildWhatsappOrderLink } from "~/domain/entities/post/whatsappOrder";
+import type { EventAttendee } from "~/domain/eventAttendance/eventAttendance";
 import { getPathname } from "~/i18n/navigation";
 import { type AppLocale, resolveLocale, routing } from "~/i18n/routing";
 import { PUBLIC_BASE_URL, SIGNIN_PATH, SITE_CURRENCY } from "~/infra/constants";
@@ -22,6 +23,7 @@ import CurrencyAmount from "~/presentation/money/CurrencyAmount";
 import { setAvailability } from "~/presentation/post/availabilityAction";
 import CategoryTag from "~/presentation/post/CategoryTag/CategoryTag";
 import EventAttendanceButton from "~/presentation/post/EventAttendance/EventAttendanceButton";
+import EventAttendeeList from "~/presentation/post/EventAttendance/EventAttendeeList";
 import EventAttendanceWhatsapp from "~/presentation/post/EventAttendanceWhatsapp/EventAttendanceWhatsapp";
 import EventDate from "~/presentation/post/EventDate/EventDate";
 import OpenStoreHint from "~/presentation/post/OpenStoreHint";
@@ -95,6 +97,7 @@ export default async function PostDetail({
   slug,
   distanceMeters = null,
   eventAttendance = null,
+  eventAttendees = null,
   bookingSlot = null,
 }: {
   post: Post;
@@ -108,6 +111,8 @@ export default async function PostDetail({
   distanceMeters?: number | null;
   /** Estado persistido de asistencia; solo se resuelve para eventos. */
   eventAttendance?: { attending: boolean; attendees: number } | null;
+  /** Lista privada para el creador del evento; `null` significa no autorizada o no aplica. */
+  eventAttendees?: EventAttendee[] | null;
   /** Idioma de la ruta; decide en qué idioma se lee la etiqueta de categoría. */
   locale?: AppLocale;
   /** El de la ruta: es lo que se manda en el mensaje de WhatsApp para identificar el producto. */
@@ -336,6 +341,8 @@ export default async function PostDetail({
           text={tShare("postText", { title: String(title ?? "") })}
         />
       </div>
+
+      <EventAttendeeList attendees={eventAttendees} />
 
       {bookingSlot}
 

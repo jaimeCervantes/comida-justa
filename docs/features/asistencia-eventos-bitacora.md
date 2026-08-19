@@ -282,3 +282,108 @@ borra la fila y baja el contador.
 
 Acción pendiente del usuario: ninguna para este slice; solo decidir si seguimos directo con la lista
 de asistentes o si primero revisas el layout en navegador.
+
+## 2026-08-18 - Slice 3: lista de asistentes para el creador
+
+### Objetivo
+
+Mostrar al creador del evento quién confirmó asistencia, sin hacer pública la lista para visitantes
+u otros usuarios. El resto del sitio mantiene visible solo el contador.
+
+### Decisiones y rationale
+
+- La autorización vive en dominio (`canViewEventAttendees`): la lista es privada para el autor del
+  post. Un admin no recibe acceso especial en este slice porque el roadmap hablaba del creador, no
+  de moderación.
+- La lectura usa un caso de uso separado (`ListEventAttendeesUseCase`) en vez de meter la lista en
+  el toggle. Confirmar asistencia y revisar asistentes son intenciones distintas.
+- La página ya tiene `viewerId` y el post cargado; aun así, el use case vuelve a leer el post para
+  validar que exista, sea evento y tenga horario. Es el mismo criterio que protege la Server Action.
+- La UI muestra nombre y correo cuando existen; si faltan ambos, usa un fallback traducido. El
+  contador sigue público y la lista se oculta devolviendo `null`, no una lista vacía falsa.
+- Se corrigió una aserción e2e previa en `eventos-publicos.spec.ts`: contaba todos los `event-date`
+  del grid y fallaba si la DB compartida tenía otro evento real. Ahora afirma los eventos sembrados,
+  la ausencia de producto/servicio y el orden relativo.
+
+### Archivos tocados
+
+- Dominio/use case:
+  - `src/domain/eventAttendance/eventAttendance.ts`
+  - `src/domain/eventAttendance/eventAttendance.test.ts`
+  - `src/use_cases/eventAttendance/ports/IEventAttendanceRepository.ts`
+  - `src/use_cases/eventAttendance/listEventAttendeesUseCase.ts`
+  - `src/use_cases/eventAttendance/listEventAttendeesUseCase.test.ts`
+  - `src/use_cases/eventAttendance/toggleEventAttendanceUseCase.test.ts`
+- Infra:
+  - `src/infra/dataAccess/eventAttendances/PostgresEventAttendanceRepository.ts`
+  - `src/infra/dataAccess/eventAttendances/readEventAttendees.ts`
+- Presentación/app:
+  - `src/presentation/post/EventAttendance/EventAttendeeList.tsx`
+  - `src/presentation/post/EventAttendance/EventAttendeeList.test.tsx`
+  - `src/app/[locale]/[slug]/page.tsx`
+  - `src/app/[locale]/[slug]/ui/PostDetail.tsx`
+- i18n/e2e:
+  - `src/i18n/messages/es.json`
+  - `src/i18n/messages/en.json`
+  - `src/e2e/eventos/asistencia-eventos.feature`
+  - `src/e2e/eventos/asistencia-eventos.spec.ts`
+  - `src/e2e/eventos/eventos-publicos.spec.ts`
+
+### Comandos clave
+
+- `pnpm exec biome check --write ...`
+- `pnpm exec vitest --run src/domain/eventAttendance/eventAttendance.test.ts src/use_cases/eventAttendance/toggleEventAttendanceUseCase.test.ts src/use_cases/eventAttendance/listEventAttendeesUseCase.test.ts src/presentation/post/EventAttendance/EventAttendanceButton.test.tsx src/presentation/post/EventAttendance/EventAttendeeList.test.tsx`
+- `pnpm run typecheck`
+- `pnpm run test:run`
+- `pnpm run lint`
+- `pnpm exec playwright test --shard=1/4 --reporter=dot`
+- `pnpm exec playwright test --shard=2/4 --reporter=dot`
+- `pnpm exec playwright test --shard=3/4 --reporter=dot`
+- `pnpm exec playwright test --shard=4/4 --reporter=dot`
+
+### Validación
+
+- Vitest focal del módulo: 5 files passed, 24 tests passed.
+- `pnpm run typecheck`: passed.
+- `pnpm run test:run`: 188 files passed, 1945 tests passed.
+- `pnpm run lint`: 931 files checked, passed.
+- Playwright completo en shards:
+  - Shard 1/4: primera corrida detectó la aserción frágil de eventos públicos; después del ajuste,
+    80 passed, 3 skipped.
+  - Shard 2/4: 83 passed.
+  - Shard 3/4: 83 passed.
+  - Shard 4/4: 82 passed.
+
+### Escrituras en recursos compartidos
+
+- Los e2e escribieron publicaciones `e2e-*`, sesiones, cuentas `pw.*@example.com` y asistencias
+  temporales en `event_attendances`. Los `afterEach` y el `globalTeardown` limpiaron esos datos.
+- No hubo migraciones nuevas en este slice; usa la tabla aplicada en slice 2.
+
+### Desviaciones del roadmap
+
+- Se mantiene la lista privada para el creador. No se abrió a visitantes ni a otros usuarios.
+- Se corrigió un test e2e existente que asumía que la DB compartida no tenía más eventos.
+
+### Follow-ups
+
+- Revisar visualmente si conviene reagrupar los dos CTAs del evento en una banda propia cuando haya
+  más acciones.
+- Si más adelante moderación necesita ver asistentes, debe ser otro criterio explícito, no herencia
+  accidental del permiso de creador.
+
+### Recap
+
+El flujo de eventos queda completo según el roadmap: la ficha muestra horario, permite avisar por
+WhatsApp, permite confirmar/cancelar asistencia con sesión, muestra contador persistente y enseña
+al creador la lista de asistentes identificados por nombre o correo. La lista no aparece a usuarios
+no autorizados.
+
+### Próximos pasos (opciones)
+
+- Opción A: revisar en navegador un evento real con una cuenta de creador.
+- Opción B: hacer PR/revisión de la rama completa.
+- Opción C: decidir si el siguiente bloque de producto será notificaciones automáticas al creador o
+  mejoras visuales del módulo de eventos.
+
+Acción pendiente del usuario: ninguna técnica; el bloque de los tres slices ya quedó validado.

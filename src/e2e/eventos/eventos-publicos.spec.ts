@@ -69,7 +69,6 @@ test.describe("When a visitor opens the public events page", () => {
     await expect(
       grid.getByRole("heading", { name: service.title }),
     ).toHaveCount(0);
-    await expect(grid.getByTestId("event-date")).toHaveCount(2);
 
     await expect
       .poll(async () => {

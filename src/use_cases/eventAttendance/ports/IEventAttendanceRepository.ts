@@ -1,4 +1,7 @@
-import type { EventAttendancePost } from "~/domain/eventAttendance/eventAttendance";
+import type {
+  EventAttendancePost,
+  EventAttendee,
+} from "~/domain/eventAttendance/eventAttendance";
 
 export default interface IEventAttendanceRepository {
   findPostById(postId: string): Promise<EventAttendancePost | null>;
@@ -6,4 +9,5 @@ export default interface IEventAttendanceRepository {
   cancel(userId: string, postId: string): Promise<void>;
   count(postId: string): Promise<number>;
   isAttending(userId: string | null, postId: string): Promise<boolean>;
+  listAttendees(postId: string): Promise<EventAttendee[]>;
 }

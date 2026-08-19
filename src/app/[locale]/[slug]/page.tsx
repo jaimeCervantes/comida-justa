@@ -20,6 +20,7 @@ import { auth } from "~/infra/auth";
 import { isAdmin } from "~/infra/auth/isAdmin";
 import { readViewerId } from "~/infra/auth/readViewerId";
 import { readEventAttendanceState } from "~/infra/dataAccess/eventAttendances/readEventAttendanceState";
+import { readEventAttendees } from "~/infra/dataAccess/eventAttendances/readEventAttendees";
 import { createRouteRepository } from "~/infra/dataAccess/routes/factory";
 import { createBookAppointmentUseCase } from "~/infra/dataAccess/schedule/factory";
 import { storeOfPost } from "~/infra/dataAccess/sellers/PostgresPostStore";
@@ -247,6 +248,13 @@ export default async function Slug({
     post.kind === EVENT_KIND
       ? await readEventAttendanceState(String(post.id ?? ""), viewerId)
       : null;
+  const eventAttendees =
+    post.kind === EVENT_KIND
+      ? await readEventAttendees({
+          postId: String(post.id ?? ""),
+          viewerId,
+        })
+      : null;
 
   return (
     <section className="sm:flex sm:gap-4 flex-wrap">
@@ -296,6 +304,7 @@ export default async function Slug({
         slug={slug}
         distanceMeters={store?.meters ?? null}
         eventAttendance={eventAttendance}
+        eventAttendees={eventAttendees}
         bookingSlot={
           offeredSlots.length > 0 ? (
             <SlotPicker

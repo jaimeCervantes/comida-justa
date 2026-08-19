@@ -40,6 +40,10 @@ class FakeEventAttendances implements IEventAttendanceRepository {
   async isAttending(userId: string | null, postId: string): Promise<boolean> {
     return userId !== null && this.rows.has(`${postId}|${userId}`);
   }
+
+  async listAttendees(): Promise<[]> {
+    return [];
+  }
 }
 
 describe("ToggleEventAttendanceUseCase", () => {

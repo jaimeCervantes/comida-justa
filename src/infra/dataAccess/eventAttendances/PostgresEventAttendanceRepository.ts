@@ -1,5 +1,6 @@
 import { and, count, eq } from "drizzle-orm";
 import { db } from "~/infra/dataAccess/db/connection";
+import { users } from "~/infra/dataAccess/db/schema/auth";
 import { eventAttendances, posts } from "~/infra/dataAccess/db/schema/posts";
 import type IEventAttendanceRepository from "~/use_cases/eventAttendance/ports/IEventAttendanceRepository";
 
@@ -8,7 +9,12 @@ export class PostgresEventAttendanceRepository
 {
   async findPostById(postId: string) {
     const [row] = await db
-      .select({ id: posts.id, kind: posts.kind, startsAt: posts.startsAt })
+      .select({
+        id: posts.id,
+        kind: posts.kind,
+        startsAt: posts.startsAt,
+        authorId: posts.userId,
+      })
       .from(posts)
       .where(eq(posts.id, postId))
       .limit(1);
@@ -62,6 +68,21 @@ export class PostgresEventAttendanceRepository
       .limit(1);
 
     return rows.length > 0;
+  }
+
+  async listAttendees(postId: string) {
+    return db
+      .select({
+        id: eventAttendances.userId,
+        name: users.name,
+        email: users.email,
+        image: users.image,
+        confirmedAt: eventAttendances.createdAt,
+      })
+      .from(eventAttendances)
+      .innerJoin(users, eq(users.id, eventAttendances.userId))
+      .where(eq(eventAttendances.postId, postId))
+      .orderBy(eventAttendances.createdAt);
   }
 }
 
