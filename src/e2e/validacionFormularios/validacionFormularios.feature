@@ -156,26 +156,33 @@ Feature: El formulario dice por qué, en el idioma de la página
     And el banner de arriba no absorbe esos errores de campo
 
   # ---------------------------------------------------------------------------
-  # Slice 3 — El resto de los formularios y el pulido de las primitivas
+  # Slice 3 — El resto de los formularios y el pulido de las primitivas  (actual)
+  #
+  # Nada nuevo en el mecanismo: es el mismo `ValidatedForm` del slice 1 llegando a
+  # las pantallas que se quedaron fuera, más los dos defectos que la revisión de las
+  # primitivas dejó anotados —el contador que no leía `defaultValue` y el que se iba
+  # justo cuando hacía falta—. Los escenarios son `@component` porque lo que prueban
+  # es el reparto del hueco y la cuenta de caracteres, no un recorrido de navegador.
   # ---------------------------------------------------------------------------
 
-  @slice-3 @future
+  @slice-3 @component
   Scenario: El contador cuenta lo que ya hay escrito
-    Given la edición de "Dona Chocolate Keto", con 1205 caracteres de descripción
+    Given un TextArea de descripción con 1205 caracteres ya escritos
     When se abre el formulario
-    Then el contador dice 1205 de 2500, y no 0
+    Then el contador dice "1205/2500", y no "0/2500"
 
-  @slice-3 @future
+  @slice-3 @component
   Scenario: El contador no se va cuando más hace falta
-    Given una descripción con error
+    Given una descripción con error y texto ya escrito
     When se muestra su mensaje
-    Then el contador sigue visible
+    Then el contador sigue visible junto al error
 
-  @slice-3 @future
+  @slice-3 @component
   Scenario Outline: Los demás formularios heredan la misma validación
     Given el formulario "<formulario>"
     When se envía con un campo obligatorio vacío
-    Then el mensaje sale del catálogo y no del navegador
+    Then bajo el campo se lee "Falta llenar este campo."
+    And la acción del formulario no se ejecuta
 
     Examples:
       | formulario        |
@@ -184,3 +191,17 @@ Feature: El formulario dice por qué, en el idioma de la página
       | StoreProfileForm  |
       | UsernameSection   |
       | NewCategoryForm   |
+
+  # El `*` de la etiqueta va `aria-hidden`: quien usa lector de pantalla ya oye
+  # «obligatorio» del atributo `required`, y oírlo dos veces no informa más. La
+  # leyenda es para quien lo ve, y por eso la pone el formulario y no cada campo.
+  @slice-3 @component
+  Scenario Outline: El asterisco dice qué significa, en el idioma de la ruta
+    Given un formulario con campos obligatorios en "<ruta>"
+    When se abre
+    Then arriba se lee "<leyenda>"
+
+    Examples:
+      | ruta | leyenda                                        |
+      | es   | Los campos marcados con * son obligatorios.    |
+      | en   | Fields marked with * are required.             |

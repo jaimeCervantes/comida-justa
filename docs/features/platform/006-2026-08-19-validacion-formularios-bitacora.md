@@ -290,3 +290,150 @@ verdes.
 
 **Pendiente del usuario:** elegir si seguimos con slice 3 o si primero se paga la deuda de
 `typecheck:tests`.
+
+## 2026-08-19 — Slice 3: el resto de los formularios y el pulido de las primitivas
+
+### Objetivo
+
+Cerrar el último slice del roadmap: llevar `ValidatedForm` a las cinco pantallas que se quedaron
+fuera —cuenta (cuatro formularios) y el alta de categoría del admin—, y pagar los dos defectos de
+las primitivas que la revisión inicial dejó anotados: el contador de `TextArea` que arrancaba en `0`
+ignorando el valor inicial, y ese mismo contador desapareciendo justo cuando hay error.
+
+### Decisiones y racional
+
+**1. El contador se siembra con `defaultValue`, y si el campo es controlado se deriva de `value`.**
+La versión que había en el árbol de trabajo sincronizaba `value` con un `useEffect`. Se cambió por
+un valor derivado en el render (`value === undefined ? typedLength : textValueLength(value)`): un
+efecto pinta primero un fotograma con la cifra vieja y la corrige en un segundo pase, que es
+exactamente el parpadeo que el slice 1 ya había evitado en el reinicio del error del servidor. Sin
+efecto no hay fotograma intermedio, y hay una dependencia menos que Biome pueda marcar.
+
+**2. El contador convive con el error en vez de cederle el sitio.** Antes eran las dos ramas de un
+ternario: o el mensaje, o la cuenta. Es la elección equivocada — cuando el texto está mal es cuando
+más importa saber cuánto cabe todavía. Ahora el contador siempre está, y se tiñe de
+`text-feedback-error` para no fingir que todo va bien.
+
+**3. En el hueco del helper manda el error, no la pista.** Al hacer que el helper también pintara el
+`hint`, la primera versión escribía `message ?? hint ?? genericErrorLabel`: con `error={true}`
+—el booleano que `TextArea` admite por compatibilidad— y un `hint` puesto, la pista salía en el
+hueco y con tono de error, diciendo lo que se sugería antes de escribir en lugar de lo que hay que
+arreglar. Se separó en `helperText = hasError ? (message ?? genericErrorLabel) : hint`, que es la
+precedencia que ya tenía `TextField`.
+
+**4. La leyenda del `*` la pone el formulario, no el campo.** Es una frase por formulario y no por
+campo, y leer el catálogo es justo lo que `design_system/` no puede hacer: por las dos razones vive
+en `ValidatedForm`. Lleva `showRequiredLegend` para apagarla donde el asterisco no distinga nada
+—un formulario con todo obligatorio, o con nada—.
+
+**5. El asterisco pasa a `aria-hidden`.** Quien usa lector de pantalla ya oye «obligatorio» del
+atributo `required` del control; el `*` sería la misma información dicha dos veces. Queda como señal
+visual, y lo que significa lo explica la leyenda.
+
+**6. La frase del teléfono se saca a `presentation/forms/`.** El mismo
+`pattern="^\+?(\d{1,3})?[0-9]{10}$"` está en cuatro campos: publicar, editar, el alta de tienda y su
+ficha. La frase que lo explica sólo la tenían los dos primeros, dentro de
+`usePostValidationMessages`, que es de publicaciones y no de tiendas. `usePhoneValidationMessages`
+la deja donde la alcanzan los cuatro, y el hook de publicaciones la **compone** en lugar de
+repetirla — la regla de `AGENTS.md` sobre el segundo casi-duplicado aplica igual a una frase que a
+un componente.
+
+**7. `NewCategoryForm` traía nueve cadenas en español clavadas en el JSX.** Encabezado, etiquetas,
+marcadores, el aviso de creación y los dos textos del botón. `check:i18n` no las veía, pero la regla
+de `AGENTS.md` no distingue pantallas: pasan al namespace `admin` con su par en inglés. Fue trabajo
+no planeado que salió al tocar el formulario; se hizo porque dejarlo habría sido pasar por encima de
+una violación conocida.
+
+### Archivos tocados
+
+**Primitivas**
+- `src/presentation/design_system/forms/TextArea.tsx` + `TextArea.test.tsx` (2 pruebas nuevas)
+- `src/presentation/design_system/forms/FieldLabel.tsx`
+
+**Presentación**
+- `src/presentation/forms/ValidatedForm.tsx` + `ValidatedForm.test.tsx` (nuevo, 2 pruebas)
+- `src/presentation/forms/usePhoneValidationMessages.ts` (nuevo)
+- `src/presentation/post/usePostValidationMessages.ts` — compone el anterior
+
+**Pantallas**
+- `src/app/[locale]/cuenta/ui/{AddBranchForm,BecomeSellerForm,StoreProfileForm,UsernameSection}.tsx`
+- `src/app/[locale]/cuenta/ui/accountForms.validation.test.tsx` (nuevo, 4 pruebas)
+- `src/app/[locale]/admin/catalogo/ui/NewCategoryForm.tsx`
+- `src/app/[locale]/admin/catalogo/ui/NewCategoryForm.validation.test.tsx` (nuevo, 1 prueba)
+- `src/app/[locale]/publicar/PublishForm.tsx`, `src/app/[locale]/editar/[slug]/ui/EditPostForm.tsx`
+  — `inputMode="numeric"` en precio y duración, `autoComplete="tel"` en el teléfono
+
+**Catálogo y especificación**
+- `src/i18n/messages/{es,en}.json` — `validation.requiredLegend` y diez claves en `admin`
+- `src/e2e/validacionFormularios/validacionFormularios.feature` — los tres escenarios del slice 3
+  pasan de `@future` a `@component`, y se suma el de la leyenda
+
+### Comandos y resultados
+
+| Comando | Resultado |
+| --- | --- |
+| `pnpm run test:run` | **2031 pasan / 2031**, 198 archivos (9 pruebas nuevas en 4 archivos). |
+| `pnpm run typecheck` | limpio. Antes de añadir las claves daba 12 errores, los 12 por claves de catálogo que aún no existían — es exactamente la señal que da la augmentación de `next-intl.d.ts`. |
+| `pnpm run lint` | limpio, 952 archivos. |
+| `pnpm run check:i18n` | limpio. |
+| `pnpm run build` | compila. |
+| `pnpm run test:e2e:run` | **no ejecutada.** Es la corrida completa por shards que queda pendiente al cerrarse el último slice; los comandos están abajo. |
+
+### Desviaciones del roadmap
+
+1. **La internacionalización de `NewCategoryForm` no estaba en el alcance.** El roadmap sólo decía
+   «`admin/catalogo` pasa a `ValidatedForm`». Al abrirlo aparecieron nueve literales en español, y
+   se corrigieron ahí mismo (decisión 7).
+2. **Se dedujo la frase del teléfono** (decisión 6). El roadmap no lo pedía; salió de que la ficha
+   de tienda necesitaba la misma frase y copiarla habría sido el segundo casi-duplicado.
+3. **Los tres escenarios del slice 3 quedaron `@component` y no Playwright.** Lo que prueban —la
+   cuenta de caracteres, el reparto del hueco y que la acción no se ejecuta— es de composición, no
+   de recorrido. Se añadió un cuarto escenario, el de la leyenda en `es` y `en`, que el `.feature`
+   no tenía.
+
+### Follow-ups
+
+- **La corrida completa de Playwright por shards.** Es lo único que queda del roadmap entero.
+- Quedan formularios con campos que siguen con `<form>` pelado y fuera del alcance de este roadmap:
+  `ReportPostForm`, `TimeOffList` (alta de ausencia), `ModerationQueue` (motivo del rechazo),
+  `CartLineRow` (cantidad) y `AddCommentForm`. Ninguno rechaza en silencio hoy, pero heredarían la
+  leyenda y el foco con sólo cambiar la etiqueta.
+- `typecheck:tests` sigue con sus seis errores previos, de otro trabajo. Ese comando no sirve como
+  señal mientras estén.
+- El contador de `TextArea` sigue apareciendo aunque no se declare `maxLength` (por omisión, 250).
+  No es de este slice, pero es la siguiente pregunta que ese componente va a hacer.
+
+### Recap
+
+Con el slice 3 se cierra el roadmap. Las cinco pantallas que faltaban —las cuatro de cuenta y el
+alta de categoría del admin— ya no traen su propio `<form>`: heredan de `ValidatedForm` el
+`noValidate`, la frase del catálogo bajo el campo, el salto de foco al primero inválido y la leyenda
+que por fin explica qué quiere decir el asterisco rojo. Las dos primitivas quedaron pulidas: el
+contador de `TextArea` cuenta lo que ya venía escrito en vez de decir `0`, y se queda en pantalla
+cuando hay error en vez de irse justo cuando hace falta. De paso, el formato del teléfono se dice
+en un solo sitio para los cuatro campos que lo comparten, y `NewCategoryForm` dejó de tener nueve
+cadenas en español clavadas en el JSX. Vitest (2031/2031), typecheck, lint, `check:i18n` y `build`
+en verde.
+
+### Próximos pasos (opciones)
+
+1. **Correr la Playwright completa por shards** — es lo que cierra el trabajo. Va por lotes de
+   directorios, matando al dueño del puerto 3000 entre uno y otro; la suite entera de una sentada se
+   cae por RAM (`code=3221225794`). Y conviene repetir un lote que falle antes de diagnosticar: en
+   frío es flaky. Comandos sugeridos:
+
+   ```
+   E2E_PORT=3106 pnpm run test:e2e:run -- src/e2e/validacionFormularios --shard=1/1
+   E2E_PORT=3106 pnpm run test:e2e:run -- src/e2e/createPost src/e2e/publishProduct src/e2e/editPublicationTypes
+   E2E_PORT=3106 pnpm run test:e2e:run -- src/e2e/multimedia src/e2e/eventos src/e2e/unifiedCatalog
+   E2E_PORT=3106 pnpm run test:e2e:run -- src/e2e/sellerStore src/e2e/managePost src/e2e/localProducers
+   ```
+
+2. **Cerrar la deuda de `typecheck:tests`** — los seis errores previos, para que ese comando vuelva
+   a servir de señal.
+3. **Extender `ValidatedForm` a los formularios de fuera del roadmap** — reporte, ausencias,
+   moderación, carrito y comentarios (ver follow-ups).
+
+**Pendiente del usuario:** correr la Playwright completa por shards. No se lanzó desde aquí; queda
+declarada como pendiente con sus comandos, y ningún resultado de este slice depende de ella salvo la
+confirmación de que las cinco pantallas migradas no rompieron un recorrido existente.
