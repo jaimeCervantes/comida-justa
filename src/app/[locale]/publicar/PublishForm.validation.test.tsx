@@ -9,10 +9,10 @@ const noop = vi.fn();
 
 afterEach(cleanup);
 
-function renderForm(locale: AppLocale = "es") {
+function renderForm(locale: AppLocale = "es", action = noop) {
   return renderWithIntl(
     <PublishForm
-      action={noop}
+      action={action}
       categoryOptions={[]}
       subCategoryOptionsByCategory={{}}
     />,
@@ -169,6 +169,37 @@ describe("PublishForm — enviar con errores", () => {
     expect(screen.getByText("El teléfono es obligatorio.")).toBeInTheDocument();
     expect(
       screen.getByText("El contenido es obligatorio."),
+    ).toBeInTheDocument();
+  });
+
+  it("pinta el error de media junto al selector cuando el servidor rechaza el envío", async () => {
+    const action = vi.fn(async () => ({
+      errors: {
+        media: "Sube al menos una imagen o un video.",
+      },
+      success: false,
+      id: null,
+      slug: null,
+    }));
+    renderForm("es", action);
+
+    await userEvent.type(
+      screen.getByRole("textbox", { name: /título de la publicación/i }),
+      "Reto caminata 5 minutos",
+    );
+    await userEvent.type(
+      screen.getByRole("textbox", { name: /teléfono/i }),
+      "2781092116",
+    );
+    await userEvent.type(
+      screen.getByRole("textbox", { name: /descripción del producto/i }),
+      "Empieza con cinco minutos al día, sin equipo y cerca de casa.",
+    );
+    await userEvent.click(screen.getByRole("button", { name: /^publicar$/i }));
+
+    expect(action).toHaveBeenCalled();
+    expect(
+      await screen.findByText("Sube al menos una imagen o un video."),
     ).toBeInTheDocument();
   });
 });

@@ -1,4 +1,5 @@
 import { screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { renderWithIntl } from "~/infra/test-utils/renderWithIntl";
 import EditPostForm from "./EditPostForm";
@@ -61,10 +62,10 @@ const ANNOUNCEMENT_POST = {
   endsAt: null,
 };
 
-function renderForm(post: typeof EVENT_POST): void {
+function renderForm(post: typeof EVENT_POST, action = noop): void {
   renderWithIntl(
     <EditPostForm
-      action={noop}
+      action={action}
       post={post}
       categoryOptions={[]}
       subCategoryOptionsByCategory={{}}
@@ -82,6 +83,46 @@ describe("EditPostForm — fechas de evento", () => {
     expect(screen.getByLabelText(/cuándo termina/i)).toHaveValue(
       "2027-08-23T09:00",
     );
+  });
+});
+
+describe("EditPostForm — errores del servidor", () => {
+  it("anuncia el error general como alert y conserva la etiqueta visible", async () => {
+    const action = vi.fn(async () => ({
+      errorMessage: "No se pudo guardar la publicación.",
+    }));
+    renderForm(EVENT_POST, action);
+
+    await userEvent.click(
+      screen.getByRole("button", { name: /guardar cambios/i }),
+    );
+
+    const alert = await screen.findByRole("alert");
+
+    expect(alert).toHaveTextContent("Error");
+    expect(alert).toHaveTextContent("No se pudo guardar la publicación.");
+  });
+
+  it("pinta title y content bajo sus campos en vez de absorberlos en el banner", async () => {
+    const action = vi.fn(async () => ({
+      errors: {
+        title: "El título es obligatorio.",
+        content: "El contenido es obligatorio.",
+      },
+    }));
+    renderForm(EVENT_POST, action);
+
+    await userEvent.click(
+      screen.getByRole("button", { name: /guardar cambios/i }),
+    );
+
+    expect(
+      await screen.findByText("El título es obligatorio."),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("El contenido es obligatorio."),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 });
 

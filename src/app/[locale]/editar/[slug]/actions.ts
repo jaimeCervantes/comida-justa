@@ -26,6 +26,9 @@ export type EditPostState = {
   errorMessage?: string;
   errors?: {
     errorMessage?: string;
+    title?: string | null;
+    content?: string | null;
+    media?: string | null;
     startsAt?: string | null;
     endsAt?: string | null;
     durationMinutes?: string | null;
@@ -109,7 +112,9 @@ export async function updatePost(
      pintar, y el fallo no se vería al guardar sino al abrir la ficha. */
   if (media.length === 0) {
     return {
-      errorMessage: tPublish("errorMediaRequired"),
+      errors: {
+        media: tPublish("errorMediaRequired"),
+      },
     };
   }
 
@@ -129,6 +134,7 @@ export async function updatePost(
   const durationMinutes = readPositiveInt(formData.get("durationMinutes"));
   const requiresPrice = kind === "producto" || kind === SERVICE_KIND;
   const fieldErrors = {
+    title: title ? null : tPublish("errorTitleRequired"),
     startsAt:
       kind !== EVENT_KIND || startsAt
         ? null
@@ -145,6 +151,7 @@ export async function updatePost(
     origin:
       kind !== "producto" || origin ? null : tPublish("errorOriginRequired"),
     phone: phone ? null : tPublish("errorPhoneRequired"),
+    content: formData.get("content") ? null : tPublish("errorContentRequired"),
   };
 
   if (Object.values(fieldErrors).some(Boolean)) {

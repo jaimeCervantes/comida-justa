@@ -2,7 +2,9 @@
 
 import { useTranslations } from "next-intl";
 import { useCallback, useState } from "react";
+import { MdError } from "react-icons/md";
 import { MAX_POST_MEDIA_FILES } from "~/domain/entities/post/mediaPayload";
+import { FieldHelper } from "~/presentation/design_system/forms/FieldHelper";
 import ImageVideoUploader, {
   type UploadedMediaResult,
 } from "~/presentation/media/ImageVideoUploader/ImageVideoUploader";
@@ -53,6 +55,7 @@ export default function PostMediaField({
   name = "media",
   initialItems = [],
   onLoadingChange,
+  error,
   className,
 }: {
   /** El campo oculto que lee la Server Action. */
@@ -61,6 +64,8 @@ export default function PostMediaField({
   initialItems?: readonly PostMediaFieldItem[];
   /** Para que el formulario pueda decir «subiendo…» en su botón de envío. */
   onLoadingChange?: (isLoading: boolean | null) => void;
+  /** Lo que contestó la Server Action para la lista de archivos. */
+  error?: string | null;
   className?: string;
 }) {
   const t = useTranslations("publish");
@@ -129,8 +134,17 @@ export default function PostMediaField({
         onRemove={remove}
         onMove={move}
         max={MAX_POST_MEDIA_FILES}
-        className="mb-6"
+        className={error ? undefined : "mb-6"}
       />
+
+      <FieldHelper tone="error" className="mb-6">
+        {error ? (
+          <>
+            <MdError aria-hidden="true" className="size-4" />
+            {error}
+          </>
+        ) : null}
+      </FieldHelper>
 
       {/* El array entero, en orden: su índice acaba en `post_media.sort_order`.
           Sin `required`: el navegador no valida un input oculto, así que ese atributo prometía una

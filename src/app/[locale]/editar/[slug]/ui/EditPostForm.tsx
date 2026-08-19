@@ -9,6 +9,7 @@ import { Link } from "~/i18n/navigation";
 import { POST_CONTENT_MAX_LENGTH } from "~/infra/constants";
 import { originOptionsFor } from "~/infra/UI/labels/postOriginLabels";
 import { Button } from "~/presentation/design_system/buttons/Button";
+import { Alert } from "~/presentation/design_system/feedback/Alert";
 import { Select } from "~/presentation/design_system/forms/Select";
 import { TextArea } from "~/presentation/design_system/forms/TextArea";
 import { TextField } from "~/presentation/design_system/forms/TextField";
@@ -62,6 +63,7 @@ export default function EditPostForm({
   subCategoryOptionsByCategory: Record<string, readonly CategoryOption[]>;
 }) {
   const t = useTranslations("edit");
+  const tCommon = useTranslations("common");
   const tPublish = useTranslations("publish");
   const tVocabulary = useTranslations("vocabulary");
   const [state, updateAction, isPending] = useActionState<
@@ -88,12 +90,14 @@ export default function EditPostForm({
       <h1 className="text-xl mb-4">{t("heading")}</h1>
 
       {errorMessage ? (
-        <p
+        <Alert
+          tone="error"
+          label={tCommon("alertError")}
           data-testid="edit-post-error"
-          className="pt-1 mb-4 text-red-700 dark:text-red-400"
+          className="mb-4"
         >
           {errorMessage}
-        </p>
+        </Alert>
       ) : null}
 
       <ValidatedForm
@@ -112,6 +116,7 @@ export default function EditPostForm({
           label={tPublish("title")}
           defaultValue={post.title}
           icon={<MdTitle />}
+          error={state.errors?.title}
           validationMessages={fieldMessages.title}
           containerClassName="mb-6"
         />
@@ -258,13 +263,14 @@ export default function EditPostForm({
           required
           label={t("content")}
           rows={8}
+          error={state.errors?.content}
           validationMessages={fieldMessages.content}
           defaultValue={post.content}
           maxLength={Number(POST_CONTENT_MAX_LENGTH)}
           className="mb-6"
         />
 
-        <PostMediaField initialItems={post.media} />
+        <PostMediaField error={state.errors?.media} initialItems={post.media} />
 
         <TextField
           required

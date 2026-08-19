@@ -203,3 +203,90 @@ repararon sin tocar una línea de producción.
 
 **Pendiente del usuario:** decir cuál de las tres opciones sigue. La Playwright de este slice y su
 regresión ya se corrieron por lotes; la suite completa no, por decisión suya.
+
+## 2026-08-19 — Slice 2: los campos que no decían nada
+
+### Objetivo
+
+Cerrar los rechazos silenciosos que quedaron fuera del primer slice: cuando publicar o editar falla
+por falta de archivos, el mensaje debe verse junto a la bandeja de media; cuando editar falla por un
+error general, debe anunciarse como alerta; y cuando editar falla por titulo o contenido vacios, la
+respuesta debe caer bajo el campo que la persona tiene que corregir.
+
+### Decisiones y racional
+
+- `PostMediaField` recibe `error` como prop y lo pinta con `FieldHelper tone="error"`, el mismo hueco
+  visual que usan las primitivas de formulario. No se invento un banner separado porque el problema
+  pertenece al control de archivos, no a toda la pagina.
+- `PublishForm` cablea `state.errors.media` hacia `PostMediaField`. La Server Action ya producia ese
+  mensaje; lo que faltaba era la salida visual.
+- `EditPostForm` usa `Alert tone="error"` para `errorMessage`. Asi queda el `role="alert"` y se
+  alinea con publicar.
+- `updatePost` responde con `errors.title`, `errors.content` y `errors.media` cuando el fallo es de
+  campo. Esto evita esconder validaciones accionables en un mensaje general.
+- El escenario e2e del media se activo en el `.feature`; los casos de editar quedaron marcados como
+  `@component` porque Vitest prueba la respuesta de la Server Action y el render del formulario sin
+  depender de una publicacion real editable en navegador.
+
+### Archivos tocados
+
+**Publicar y media**
+- `src/app/[locale]/publicar/PublishForm.tsx`
+- `src/app/[locale]/publicar/PublishForm.validation.test.tsx`
+- `src/presentation/media/PostMediaField/PostMediaField.tsx`
+- `src/presentation/media/PostMediaField/PostMediaField.test.tsx`
+- `src/infra/types/Actions.d.ts`
+
+**Editar**
+- `src/app/[locale]/editar/[slug]/actions.ts`
+- `src/app/[locale]/editar/[slug]/actions.test.ts`
+- `src/app/[locale]/editar/[slug]/ui/EditPostForm.tsx`
+- `src/app/[locale]/editar/[slug]/ui/EditPostForm.test.tsx`
+
+**Especificacion**
+- `src/e2e/validacionFormularios/validacionFormularios.feature`
+- `src/e2e/validacionFormularios/validacionFormularios.spec.ts`
+
+### Comandos y resultados
+
+| Comando | Resultado |
+| --- | --- |
+| `pnpm exec vitest --run src/presentation/media/PostMediaField/PostMediaField.test.tsx src/app/[locale]/publicar/PublishForm.validation.test.tsx src/app/[locale]/editar/[slug]/ui/EditPostForm.test.tsx src/app/[locale]/editar/[slug]/actions.test.ts` | **43 pasan / 43**, 4 archivos. |
+| `pnpm run lint` | limpio, 948 archivos. |
+| `pnpm run typecheck` | limpio. |
+| `pnpm run test:run` | **2022 pasan / 2022**, 195 archivos. |
+| `pnpm run check:i18n` | limpio: no queda texto en español escrito a mano en componentes. |
+| `E2E_PORT=3106 pnpm run test:e2e:run -- src/e2e/validacionFormularios/validacionFormularios.spec.ts --shard=1/1` | **8 pasan / 8** en Chromium, shard 1/1. Primer intento dentro del sandbox expiro por `EACCES`/`ETIMEDOUT` contra la DB; el reintento fuera del sandbox paso. |
+
+### Desviaciones del roadmap
+
+Ninguna. El alcance quedo dentro del slice 2.
+
+### Follow-ups
+
+- El contador de `TextArea` sigue arrancando en `0` con `defaultValue` y sigue desapareciendo cuando
+  hay error. Es slice 3.
+- Todavia falta llevar `ValidatedForm` y los helpers a cuenta, tienda y admin. Es slice 3.
+- `typecheck:tests` sigue siendo deuda separada; no se toco en este slice.
+- La suite completa de Playwright sigue pendiente hasta terminar todos los slices, y debe correrse
+  por shards/lotes, no como una sola corrida larga.
+
+### Recap
+
+El slice 2 deja visibles los errores que antes se perdian: publicar sin archivos ahora muestra
+`Sube al menos una imagen o un video.` junto a la bandeja, editar anuncia su fallo general con
+`Alert`, y la Server Action de editar devuelve titulo, contenido y media como errores de campo. La
+validacion rapida, Vitest completo, typecheck, lint, i18n y el spec e2e focalizado en shard quedaron
+verdes.
+
+### Próximos pasos (opciones)
+
+1. **Slice 3 — pulido de primitivas y otros formularios.** Arreglar contador de `TextArea`,
+   `autoComplete`/`inputMode`, leyenda de requerido, y migrar cuenta / tienda / admin a
+   `ValidatedForm`.
+2. **Cerrar `typecheck:tests`.** Recuperar esa senal antes de seguir ampliando formularios.
+3. **E2E por shards de regresion al final.** Cuando se cierren todos los slices, correr Playwright
+   completo dividido en shards/lotes y registrar resultados.
+
+**Pendiente del usuario:** elegir si seguimos con slice 3 o si primero se paga la deuda de
+`typecheck:tests`.

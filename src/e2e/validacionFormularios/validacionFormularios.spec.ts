@@ -85,6 +85,35 @@ test.describe("Al publicar, el formulario dice por qué", () => {
 
     await expect(page.getByText(/10 dígitos/)).toHaveCount(0);
   });
+
+  test("Publicar sin archivos deja de rechazar en silencio", async ({
+    page,
+  }) => {
+    await page.goto("/publicar");
+
+    const form = page.getByRole("form");
+    await form
+      .getByRole("textbox", { name: /título de la publicación/i })
+      .fill("Reto caminata 5 minutos");
+    await form
+      .getByRole("combobox", { name: /tipo de publicación/i })
+      .selectOption("producto");
+    await form
+      .getByRole("combobox", { name: /de dónde viene/i })
+      .selectOption("reventa_cercana");
+    await form.getByRole("spinbutton", { name: /precio/i }).fill("25");
+    await form.getByRole("textbox", { name: /teléfono/i }).fill("2781092116");
+    await form
+      .getByRole("textbox", { name: /descripción/i })
+      .fill("Empieza con cinco minutos al día, sin equipo y cerca de casa.");
+
+    await form.getByRole("button", { name: /^publicar$/i }).click();
+
+    await expect(
+      page.getByText("Sube al menos una imagen o un video."),
+    ).toBeVisible();
+    await expect(page).toHaveURL(/\/publicar$/);
+  });
 });
 
 /**

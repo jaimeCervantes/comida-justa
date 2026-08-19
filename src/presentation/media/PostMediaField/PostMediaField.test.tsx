@@ -114,6 +114,16 @@ describe("PostMediaField — la lista de archivos", () => {
     expect(hiddenMediaValue()).toEqual([]);
   });
 
+  it("pinta el error del servidor junto a la bandeja de archivos", () => {
+    renderWithIntl(
+      <PostMediaField error="Sube al menos una imagen o un video." />,
+    );
+
+    expect(
+      screen.getByText("Sube al menos una imagen o un video."),
+    ).toBeInTheDocument();
+  });
+
   it("guarda los tres archivos elegidos de una vez, en su orden", async () => {
     renderWithIntl(<PostMediaField />);
 

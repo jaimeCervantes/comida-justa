@@ -134,23 +134,26 @@ Feature: El formulario dice por qué, en el idioma de la página
   # Slice 2 — Los campos que hoy no dicen nada
   # ---------------------------------------------------------------------------
 
-  @slice-2 @future
+  @slice-2
   Scenario: Publicar sin archivos deja de rechazar en silencio
-    Given el formulario de publicar lleno pero sin ninguna imagen ni video
+    Given el formulario de publicar lleno como producto, pero sin ninguna imagen ni video
     When se pulsa "Publicar"
     Then junto a la bandeja de archivos se lee "Sube al menos una imagen o un video."
 
-  @slice-2 @future
+  @slice-2 @component
   Scenario: El error de editar se anuncia, no sólo se pinta de rojo
-    Given una edición que la Server Action rechaza
-    When un lector de pantalla llega al aviso
-    Then lo anuncia con role="alert" y con su etiqueta de texto
+    Given la edición de una publicación con un error general del servidor
+    When el formulario vuelve a pintarse
+    Then el aviso tiene role="alert"
+    And el aviso conserva la etiqueta visible "Error"
 
-  @slice-2 @future
+  @slice-2 @component
   Scenario: Editar también contesta por título y descripción
-    Given una edición enviada con el título vacío
+    Given una edición enviada con el título y la descripción vacíos
     When la Server Action la rechaza
-    Then el mensaje aparece bajo el título y no en el banner de arriba
+    Then "El título es obligatorio." aparece bajo el título
+    And "El contenido es obligatorio." aparece bajo la descripción
+    And el banner de arriba no absorbe esos errores de campo
 
   # ---------------------------------------------------------------------------
   # Slice 3 — El resto de los formularios y el pulido de las primitivas

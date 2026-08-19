@@ -255,7 +255,10 @@ export default function PublishForm({
           />
         ) : null}
 
-        <PostMediaField onLoadingChange={setIsLoadingMedia} />
+        <PostMediaField
+          error={state?.errors?.media}
+          onLoadingChange={setIsLoadingMedia}
+        />
 
         <TextField
           required
