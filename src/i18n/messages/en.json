@@ -1602,6 +1602,7 @@
     "patternMismatch": "The format is not valid.",
     "rangeOverflow": "Enter a smaller number.",
     "rangeUnderflow": "Enter a larger number.",
+    "requiredLegend": "Fields marked with * are required.",
     "stepMismatch": "That value is not allowed.",
     "tooLong": "The text is too long.",
     "tooShort": "The text is too short.",

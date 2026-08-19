@@ -23,7 +23,14 @@ export function FieldLabel({
       {...props}
     >
       {children}
-      {required ? <span className="text-feedback-error ml-1">*</span> : null}
+      {/* `aria-hidden` porque quien usa lector de pantalla ya oye «obligatorio» del atributo
+          `required` del control: el asterisco sería la misma información dicha dos veces. Lo que
+          significa lo explica la leyenda de `ValidatedForm`, para quien lo ve. */}
+      {required ? (
+        <span aria-hidden="true" className="text-feedback-error ml-1">
+          *
+        </span>
+      ) : null}
       {suffix ? (
         <span className="font-normal text-text-support ml-1">
           {" · "}
