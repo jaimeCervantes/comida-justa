@@ -13,10 +13,12 @@ import { Alert } from "~/presentation/design_system/feedback/Alert";
 import { Select } from "~/presentation/design_system/forms/Select";
 import { TextArea } from "~/presentation/design_system/forms/TextArea";
 import { TextField } from "~/presentation/design_system/forms/TextField";
+import { ValidatedForm } from "~/presentation/forms/ValidatedForm";
 import PostMediaField from "~/presentation/media/PostMediaField/PostMediaField";
 import EventTimeZoneField, {
   useBrowserTimeZone,
 } from "~/presentation/post/EventTimeZone/EventTimeZoneField";
+import { usePostValidationMessages } from "~/presentation/post/usePostValidationMessages";
 import RouteFileField from "./ui/RouteFileField";
 
 export default function PublishForm({
@@ -55,6 +57,12 @@ export default function PublishForm({
   const [category, setCategory] = useState<string>("");
   const [isLoadingMedia, setIsLoadingMedia] = useState<boolean | null>(null);
   const timeZone = useBrowserTimeZone();
+  const fieldMessages = usePostValidationMessages();
+  /* Cambia sólo cuando la acción contesta con algún error de campo: es lo que hace saltar el
+     foco al primero. Sin esto el mensaje se pinta y la persona se queda donde estaba. */
+  const serverRejection = Object.values(state?.errors ?? {}).some(Boolean)
+    ? state
+    : null;
   const isProduct = kind === "producto";
   const isEvent = kind === EVENT_KIND;
   const isService = kind === SERVICE_KIND;
@@ -74,7 +82,11 @@ export default function PublishForm({
         </Alert>
       ) : null}
 
-      <form action={createPostAction} className="" aria-label={t("formLabel")}>
+      <ValidatedForm
+        action={createPostAction}
+        serverErrorSignal={serverRejection}
+        aria-label={t("formLabel")}
+      >
         <TextField
           autoFocus
           required
@@ -83,6 +95,7 @@ export default function PublishForm({
           label={t("title")}
           icon={<MdTitle />}
           error={state?.errors?.title}
+          validationMessages={fieldMessages.title}
           containerClassName="mb-6"
         />
 
@@ -151,6 +164,7 @@ export default function PublishForm({
               onChange={(event) => setOrigin(event.target.value)}
               required
               error={state?.errors?.origin}
+              validationMessages={fieldMessages.origin}
             >
               <option value="">{t("originPlaceholder")}</option>
               {originOptionsFor(isAdmin).map((option) => (
@@ -189,6 +203,7 @@ export default function PublishForm({
               type="datetime-local"
               label={t("startsAt")}
               error={state?.errors?.startsAt}
+              validationMessages={fieldMessages.startsAt}
             />
             <TextField
               name="endsAt"
@@ -220,6 +235,7 @@ export default function PublishForm({
             step="5"
             label={t("durationMinutes")}
             error={state?.errors?.durationMinutes}
+            validationMessages={fieldMessages.durationMinutes}
             containerClassName="mb-6"
           />
         ) : null}
@@ -234,6 +250,7 @@ export default function PublishForm({
             label={isEvent ? t("priceOptional") : t("price")}
             icon={<MdOutlinePriceChange />}
             error={state?.errors?.price}
+            validationMessages={fieldMessages.price}
             containerClassName="mb-6"
           />
         ) : null}
@@ -249,6 +266,7 @@ export default function PublishForm({
           placeholder={t("phonePlaceholder")}
           icon={<MdPhone />}
           error={state.errors?.phone}
+          validationMessages={fieldMessages.phone}
           containerClassName="mb-6"
         ></TextField>
 
@@ -259,6 +277,7 @@ export default function PublishForm({
           rows={8}
           maxLength={Number(POST_CONTENT_MAX_LENGTH)}
           error={state?.errors?.content as string}
+          validationMessages={fieldMessages.content}
           className="mb-6"
         />
         <footer className="flex justify-center gap-5 mt-4">
@@ -277,7 +296,7 @@ export default function PublishForm({
               : t("submit")}
           </Button>
         </footer>
-      </form>
+      </ValidatedForm>
     </section>
   );
 }

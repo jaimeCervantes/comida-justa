@@ -1,11 +1,13 @@
 "use client";
 
-import type { ComponentPropsWithRef } from "react";
+import type { ChangeEvent, ComponentPropsWithRef, FocusEvent } from "react";
 import { forwardRef, useId, useState } from "react";
 import { MdError } from "react-icons/md";
 import { cn } from "../styling/merge-class-names";
 import { FieldHelper } from "./FieldHelper";
 import { FieldLabel } from "./FieldLabel";
+import { useFieldValidity } from "./useFieldValidity";
+import type { ValidationMessages } from "./validity";
 
 export type TextAreaProps = Omit<ComponentPropsWithRef<"textarea">, "id"> & {
   id?: string;
@@ -22,6 +24,8 @@ export type TextAreaProps = Omit<ComponentPropsWithRef<"textarea">, "id"> & {
    * Sin él no se pinta frase: mejor el icono solo que una en el idioma equivocado.
    */
   genericErrorLabel?: string;
+  /** Qué decir por cada regla que el navegador rechaza, ya traducido. Ver `TextField`. */
+  validationMessages?: ValidationMessages;
   hint?: string;
   containerClassName?: string;
 };
@@ -33,6 +37,7 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
       label,
       error,
       genericErrorLabel,
+      validationMessages,
       hint,
       disabled,
       required,
@@ -40,6 +45,7 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
       containerClassName,
       maxLength = 250,
       rows = 4,
+      onBlur,
       onChange,
       ...props
     },
@@ -47,17 +53,33 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
   ) {
     const generatedId = useId();
     const id = providedId ?? generatedId;
-    const hasError = Boolean(error);
-    const describedBy = (error ?? hint) ? `${id}-helper` : undefined;
 
     const [textLength, setTextLength] = useState(0);
 
-    const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-      setTextLength(e.target.value.length);
-      if (onChange) {
-        onChange(e);
-      }
+    const handleChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
+      setTextLength(event.target.value.length);
+      onChange?.(event);
     };
+
+    /* `error` admite un booleano por compatibilidad: ahí no hay frase que enseñar, sólo el estado.
+       Se separan para que el hook reciba lo que sabe manejar —una frase o nada— y el caso viejo
+       siga pintando su icono. */
+    const serverMessage = typeof error === "string" ? error : null;
+    const legacyInvalid = error === true;
+
+    const validity = useFieldValidity<HTMLTextAreaElement>({
+      serverError: serverMessage,
+      messages: validationMessages,
+      forwardedRef: ref,
+      onBlur: onBlur as
+        | ((event: FocusEvent<HTMLTextAreaElement>) => void)
+        | undefined,
+      onChange: handleChange,
+    });
+
+    const message = validity.error;
+    const hasError = Boolean(message) || legacyInvalid;
+    const describedBy = (message ?? hint) ? `${id}-helper` : undefined;
 
     return (
       <div className={cn("flex flex-col mt-6", containerClassName)}>
@@ -68,13 +90,14 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
         )}
 
         <textarea
-          ref={ref}
+          ref={validity.ref}
           id={id}
           rows={rows}
           disabled={disabled}
           required={required}
           maxLength={maxLength}
-          onChange={handleChange}
+          onBlur={validity.onBlur}
+          onChange={validity.onChange}
           aria-describedby={describedBy}
           aria-invalid={hasError ? true : undefined}
           className={cn(
@@ -91,7 +114,7 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
         {hasError ? (
           <FieldHelper id={describedBy} tone="error">
             <MdError aria-hidden="true" className="size-4" />
-            {typeof error === "string" ? error : genericErrorLabel}
+            {message ?? genericErrorLabel}
           </FieldHelper>
         ) : (
           <span className="block text-right mt-1 text-sm text-text-support">

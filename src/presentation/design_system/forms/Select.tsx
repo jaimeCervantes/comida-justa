@@ -1,6 +1,11 @@
 "use client";
 
-import type { ComponentPropsWithRef, ReactNode } from "react";
+import type {
+  ChangeEvent,
+  ComponentPropsWithRef,
+  FocusEvent,
+  ReactNode,
+} from "react";
 import { forwardRef, useId } from "react";
 import { MdError } from "react-icons/md";
 import { ChevronDown } from "../icons/ChevronDown";
@@ -8,6 +13,8 @@ import { cn } from "../styling/merge-class-names";
 import { FieldHelper } from "./FieldHelper";
 import { FieldLabel } from "./FieldLabel";
 import { InputShell } from "./InputShell";
+import { useFieldValidity } from "./useFieldValidity";
+import type { ValidationMessages } from "./validity";
 
 export type SelectProps = Omit<ComponentPropsWithRef<"select">, "id"> & {
   id?: string;
@@ -15,6 +22,8 @@ export type SelectProps = Omit<ComponentPropsWithRef<"select">, "id"> & {
   labelSuffix?: ReactNode;
   error?: string | null;
   hint?: string;
+  /** Qué decir por cada regla que el navegador rechaza, ya traducido. Ver `TextField`. */
+  validationMessages?: ValidationMessages;
   isInvalid?: boolean;
   containerClassName?: string;
   shellClassName?: string;
@@ -49,12 +58,15 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
       labelSuffix,
       error,
       hint,
+      validationMessages,
       disabled,
       required,
       className,
       containerClassName,
       shellClassName,
       isInvalid,
+      onBlur,
+      onChange,
       children,
       ...props
     },
@@ -62,8 +74,21 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
   ) {
     const generatedId = useId();
     const id = providedId ?? generatedId;
-    const hasError = Boolean(error || isInvalid);
-    const describedBy = (error ?? hint) ? `${id}-helper` : undefined;
+    const validity = useFieldValidity<HTMLSelectElement>({
+      serverError: error,
+      messages: validationMessages,
+      forwardedRef: ref,
+      onBlur: onBlur as
+        | ((event: FocusEvent<HTMLSelectElement>) => void)
+        | undefined,
+      onChange: onChange as
+        | ((event: ChangeEvent<HTMLSelectElement>) => void)
+        | undefined,
+    });
+
+    const message = validity.error;
+    const hasError = Boolean(message || isInvalid);
+    const describedBy = (message ?? hint) ? `${id}-helper` : undefined;
     const state = disabled ? "disabled" : hasError ? "error" : "idle";
 
     return (
@@ -77,10 +102,12 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
         <InputShell state={state} className={shellClassName}>
           <span className="relative flex min-w-0 flex-1 items-center">
             <select
-              ref={ref}
+              ref={validity.ref}
               id={id}
               disabled={disabled}
               required={required}
+              onBlur={validity.onBlur}
+              onChange={validity.onChange}
               aria-describedby={describedBy}
               aria-invalid={hasError ? true : undefined}
               className={cn(
@@ -95,10 +122,10 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
           </span>
         </InputShell>
 
-        {(error ?? hint) ? (
+        {(message ?? hint) ? (
           <FieldHelper id={describedBy} tone={hasError ? "error" : "neutral"}>
             {hasError && <MdError aria-hidden="true" className="size-4" />}
-            {error ?? hint}
+            {message ?? hint}
           </FieldHelper>
         ) : null}
       </div>

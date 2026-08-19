@@ -1419,10 +1419,13 @@
     "endsAt": "Cuándo termina (opcional):",
     "errorContentRequired": "El contenido es obligatorio.",
     "errorDurationRequired": "Un servicio necesita decir cuánto dura, en minutos.",
+    "errorDurationMin": "La duración mínima es de 5 minutos.",
+    "errorDurationStep": "Escribe la duración en múltiplos de 5 minutos.",
     "errorEndsBeforeStarts": "Un evento no puede terminar antes de empezar.",
     "errorMediaRequired": "Sube al menos una imagen o un video.",
     "errorOriginRequired": "Un producto necesita que digas de dónde viene.",
     "errorPhoneRequired": "El teléfono es obligatorio.",
+    "errorPhoneFormat": "Escribe 10 dígitos, o +52 y 10 dígitos. Ej: 2781092116",
     "errorPriceRequired": "El precio debe ser mayor a cero.",
     "errorRouteEmpty": "El archivo está vacío.",
     "errorRouteNotGpx": "Ese archivo no es un GPX. Expórtalo de tu reloj o de Strava.",
@@ -1593,6 +1596,17 @@
     },
     "subtitle": "Hazlo Sano – Chatbot de Bienestar",
     "title": "Condiciones de Servicio | Hazlo Sano"
+  },
+  "validation": {
+    "badInput": "Escribe un número.",
+    "patternMismatch": "El formato no es válido.",
+    "rangeOverflow": "Escribe un número más pequeño.",
+    "rangeUnderflow": "Escribe un número más grande.",
+    "stepMismatch": "Ese valor no está permitido.",
+    "tooLong": "El texto es demasiado largo.",
+    "tooShort": "El texto es demasiado corto.",
+    "typeMismatch": "El formato no es válido.",
+    "valueMissing": "Falta llenar este campo."
   },
   "vocabulary": {
     "availability": {

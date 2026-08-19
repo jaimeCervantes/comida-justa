@@ -12,12 +12,14 @@ import { Button } from "~/presentation/design_system/buttons/Button";
 import { Select } from "~/presentation/design_system/forms/Select";
 import { TextArea } from "~/presentation/design_system/forms/TextArea";
 import { TextField } from "~/presentation/design_system/forms/TextField";
+import { ValidatedForm } from "~/presentation/forms/ValidatedForm";
 import PostMediaField, {
   type PostMediaFieldItem,
 } from "~/presentation/media/PostMediaField/PostMediaField";
 import EventTimeZoneField, {
   useBrowserTimeZone,
 } from "~/presentation/post/EventTimeZone/EventTimeZoneField";
+import { usePostValidationMessages } from "~/presentation/post/usePostValidationMessages";
 import type { EditPostState } from "../actions";
 
 export type EditablePostValues = {
@@ -68,12 +70,18 @@ export default function EditPostForm({
   >(action, {});
   const [category, setCategory] = useState<string>(post.category ?? "");
   const timeZone = useBrowserTimeZone();
+  const fieldMessages = usePostValidationMessages();
 
   const isProduct = post.kind === "producto";
   const isEvent = post.kind === EVENT_KIND;
   const isService = post.kind === SERVICE_KIND;
   const showsPrice = isProduct || isEvent || isService;
   const errorMessage = state.errors?.errorMessage ?? state.errorMessage;
+  /* Igual que al publicar: sólo cambia cuando la acción rechaza algún campo, y es lo que hace
+     saltar el foco hasta él en vez de dejar el mensaje arriba y a la persona abajo. */
+  const serverRejection = Object.values(state.errors ?? {}).some(Boolean)
+    ? state
+    : null;
 
   return (
     <section>
@@ -88,7 +96,11 @@ export default function EditPostForm({
         </p>
       ) : null}
 
-      <form action={updateAction} aria-label={t("heading")}>
+      <ValidatedForm
+        action={updateAction}
+        serverErrorSignal={serverRejection}
+        aria-label={t("heading")}
+      >
         <input type="hidden" name="slug" value={post.slug} />
         <input type="hidden" name="kind" value={post.kind} />
 
@@ -100,6 +112,7 @@ export default function EditPostForm({
           label={tPublish("title")}
           defaultValue={post.title}
           icon={<MdTitle />}
+          validationMessages={fieldMessages.title}
           containerClassName="mb-6"
         />
 
@@ -166,6 +179,7 @@ export default function EditPostForm({
               defaultValue={post.origin ?? ""}
               required
               error={state.errors?.origin}
+              validationMessages={fieldMessages.origin}
               containerClassName="mb-6"
             >
               <option value="">{tPublish("originPlaceholder")}</option>
@@ -188,6 +202,7 @@ export default function EditPostForm({
               type="datetime-local"
               label={tPublish("startsAt")}
               error={state.errors?.startsAt}
+              validationMessages={fieldMessages.startsAt}
               defaultValue={formatDateTimeLocalInTimeZone(
                 post.startsAt,
                 timeZone,
@@ -217,6 +232,7 @@ export default function EditPostForm({
             label={tPublish("durationMinutes")}
             defaultValue={post.durationMinutes ?? ""}
             error={state.errors?.durationMinutes}
+            validationMessages={fieldMessages.durationMinutes}
             containerClassName="mb-6"
           />
         ) : null}
@@ -232,6 +248,7 @@ export default function EditPostForm({
             min={isProduct || isService ? "1" : "0"}
             step="1"
             error={state.errors?.price}
+            validationMessages={fieldMessages.price}
             containerClassName="mb-6"
           />
         ) : null}
@@ -241,6 +258,7 @@ export default function EditPostForm({
           required
           label={t("content")}
           rows={8}
+          validationMessages={fieldMessages.content}
           defaultValue={post.content}
           maxLength={Number(POST_CONTENT_MAX_LENGTH)}
           className="mb-6"
@@ -258,6 +276,7 @@ export default function EditPostForm({
           placeholder={tPublish("phonePlaceholder")}
           icon={<MdPhone />}
           error={state.errors?.phone}
+          validationMessages={fieldMessages.phone}
           containerClassName="mb-6"
         />
 
@@ -275,7 +294,7 @@ export default function EditPostForm({
             {t("submit")}
           </Button>
         </footer>
-      </form>
+      </ValidatedForm>
     </section>
   );
 }

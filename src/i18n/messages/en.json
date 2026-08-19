@@ -1419,10 +1419,13 @@
     "endsAt": "Ends (optional):",
     "errorContentRequired": "The content is required.",
     "errorDurationRequired": "A service needs to say how long it takes, in minutes.",
+    "errorDurationMin": "The minimum duration is 5 minutes.",
+    "errorDurationStep": "Enter the duration in multiples of 5 minutes.",
     "errorEndsBeforeStarts": "An event cannot end before it starts.",
     "errorMediaRequired": "Upload at least one picture or video.",
     "errorOriginRequired": "A product needs to say where it comes from.",
     "errorPhoneRequired": "The phone number is required.",
+    "errorPhoneFormat": "Enter 10 digits, or +52 and 10 digits. e.g. 2781092116",
     "errorPriceRequired": "The price must be greater than zero.",
     "errorRouteEmpty": "The file is empty.",
     "errorRouteNotGpx": "That file is not a GPX. Export it from your watch or from Strava.",
@@ -1593,6 +1596,17 @@
     },
     "subtitle": "Hazlo Sano – Wellness Chatbot",
     "title": "Terms of Service | Hazlo Sano"
+  },
+  "validation": {
+    "badInput": "Enter a number.",
+    "patternMismatch": "The format is not valid.",
+    "rangeOverflow": "Enter a smaller number.",
+    "rangeUnderflow": "Enter a larger number.",
+    "stepMismatch": "That value is not allowed.",
+    "tooLong": "The text is too long.",
+    "tooShort": "The text is too short.",
+    "typeMismatch": "The format is not valid.",
+    "valueMissing": "This field is required."
   },
   "vocabulary": {
     "availability": {
