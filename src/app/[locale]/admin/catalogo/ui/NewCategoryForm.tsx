@@ -6,6 +6,7 @@ import type { CategoryOption } from "~/domain/entities/post/taxonomy";
 import { Button } from "~/presentation/design_system/buttons/Button";
 import { Select } from "~/presentation/design_system/forms/Select";
 import { TextField } from "~/presentation/design_system/forms/TextField";
+import { ValidatedForm } from "~/presentation/forms/ValidatedForm";
 import { type CatalogActionState, createCategory } from "../actions";
 
 interface NewCategoryFormProps {
@@ -28,7 +29,7 @@ export default function NewCategoryForm({ roots }: NewCategoryFormProps) {
 
   return (
     <section>
-      <h2 className="text-lg font-semibold mb-3">Agregar categoría</h2>
+      <h2 className="text-lg font-semibold mb-3">{t("addCategoryHeading")}</h2>
 
       {state.created ? (
         <p
@@ -36,7 +37,7 @@ export default function NewCategoryForm({ roots }: NewCategoryFormProps) {
           role="status"
           className="mb-3 text-pw-green"
         >
-          Se agregó «{state.created}». Ya se puede elegir al publicar.
+          {t("categoryCreated", { key: state.created })}
         </p>
       ) : null}
 
@@ -49,16 +50,20 @@ export default function NewCategoryForm({ roots }: NewCategoryFormProps) {
         </p>
       ) : null}
 
-      <form action={action} className="max-w-md">
+      <ValidatedForm
+        action={action}
+        aria-label={t("addCategoryHeading")}
+        className="max-w-md"
+      >
         <Select
           id="parentKey"
           name="parentKey"
-          label="Cuelga de:"
+          label={t("parentCategory")}
           defaultValue={roots[0]?.value ?? ""}
           error={state.errors.parentKey}
           containerClassName="mb-4"
         >
-          <option value="">— Nueva categoría raíz —</option>
+          <option value="">{t("newRootCategory")}</option>
           {roots.map((root) => (
             <option key={root.value} value={root.value}>
               {root.label}
@@ -70,8 +75,8 @@ export default function NewCategoryForm({ roots }: NewCategoryFormProps) {
           required
           name="key"
           type="text"
-          label="Clave (así se guarda):"
-          placeholder="conservas"
+          label={t("categoryKey")}
+          placeholder={t("categoryKeyPlaceholder")}
           error={state.errors.key}
           containerClassName="mb-4"
         />
@@ -80,8 +85,8 @@ export default function NewCategoryForm({ roots }: NewCategoryFormProps) {
           required
           name="labelEs"
           type="text"
-          label="Etiqueta en español:"
-          placeholder="Conservas"
+          label={t("spanishLabel")}
+          placeholder={t("spanishLabelPlaceholder")}
           error={state.errors.labelEs}
           containerClassName="mb-4"
         />
@@ -101,9 +106,9 @@ export default function NewCategoryForm({ roots }: NewCategoryFormProps) {
           isLoading={isPending}
           disabled={isPending}
         >
-          {isPending ? "Guardando..." : "Agregar"}
+          {isPending ? t("categorySubmitting") : t("categorySubmit")}
         </Button>
-      </form>
+      </ValidatedForm>
     </section>
   );
 }

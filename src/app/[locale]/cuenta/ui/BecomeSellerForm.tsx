@@ -9,6 +9,8 @@ import { PUBLIC_BASE_URL } from "~/infra/constants";
 import { Button } from "~/presentation/design_system/buttons/Button";
 import { TextArea } from "~/presentation/design_system/forms/TextArea";
 import { TextField } from "~/presentation/design_system/forms/TextField";
+import { usePhoneValidationMessages } from "~/presentation/forms/usePhoneValidationMessages";
+import { ValidatedForm } from "~/presentation/forms/ValidatedForm";
 import type { BecomeSellerState } from "../actions";
 import { storeHref, storePath } from "../storePath";
 import AccountCard from "./AccountCard";
@@ -26,6 +28,7 @@ export default function BecomeSellerForm({
 }) {
   const t = useTranslations("account");
   const locale = resolveLocale(useLocale());
+  const phoneMessages = usePhoneValidationMessages();
   const [state, becomeSellerAction, isPending] = useActionState<
     BecomeSellerState,
     FormData
@@ -51,12 +54,16 @@ export default function BecomeSellerForm({
         </p>
       ) : null}
 
-      <form action={becomeSellerAction} aria-label={t("becomeSellerFormLabel")}>
+      <ValidatedForm
+        action={becomeSellerAction}
+        aria-label={t("becomeSellerFormLabel")}
+      >
         <TextField
           required
           autoFocus
           name="name"
           type="text"
+          autoComplete="organization"
           label={t("storeName")}
           placeholder={t("storeNamePlaceholder")}
           icon={<MdStorefront />}
@@ -80,8 +87,10 @@ export default function BecomeSellerForm({
           required
           name="phone"
           type="tel"
+          autoComplete="tel"
           label={t("storePhone")}
           pattern={"^\\+?(\\d{1,3})?[0-9]{10}$"}
+          validationMessages={phoneMessages}
           placeholder={t("storePhonePlaceholder")}
           icon={<MdPhone />}
           containerClassName="mb-6"
@@ -109,7 +118,7 @@ export default function BecomeSellerForm({
             {t("becomeSellerSubmit")}
           </Button>
         </footer>
-      </form>
+      </ValidatedForm>
     </AccountCard>
   );
 }

@@ -4,6 +4,7 @@ import { useActionState, useState } from "react";
 import { MdMyLocation, MdPlace, MdStorefront } from "react-icons/md";
 import { Button } from "~/presentation/design_system/buttons/Button";
 import { TextField } from "~/presentation/design_system/forms/TextField";
+import { ValidatedForm } from "~/presentation/forms/ValidatedForm";
 import type { AddBranchState } from "../actions";
 import AccountCard from "./AccountCard";
 
@@ -55,11 +56,15 @@ export default function AddBranchForm({
         </p>
       ) : null}
 
-      <form action={addBranchAction} aria-label={t("addBranchFormLabel")}>
+      <ValidatedForm
+        action={addBranchAction}
+        aria-label={t("addBranchFormLabel")}
+      >
         <TextField
           required
           name="name"
           type="text"
+          autoComplete="organization"
           label={t("branchName")}
           placeholder={t("branchNamePlaceholder")}
           icon={<MdStorefront />}
@@ -70,6 +75,7 @@ export default function AddBranchForm({
           required
           name="address"
           type="text"
+          autoComplete="street-address"
           label={t("branchAddress")}
           placeholder={t("branchAddressPlaceholder")}
           icon={<MdPlace />}
@@ -79,6 +85,7 @@ export default function AddBranchForm({
         <TextField
           name="mapUrl"
           type="url"
+          autoComplete="url"
           label={t("branchMapsLink")}
           placeholder="https://maps.app.goo.gl/…"
           hint={t("branchMapsHint")}
@@ -128,7 +135,7 @@ export default function AddBranchForm({
             {t("saveBranch")}
           </Button>
         </footer>
-      </form>
+      </ValidatedForm>
     </AccountCard>
   );
 }

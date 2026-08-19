@@ -7,6 +7,7 @@ import { resolveLocale } from "~/i18n/routing";
 import { PUBLIC_BASE_URL } from "~/infra/constants";
 import { Button } from "~/presentation/design_system/buttons/Button";
 import { TextField } from "~/presentation/design_system/forms/TextField";
+import { ValidatedForm } from "~/presentation/forms/ValidatedForm";
 import type { ClaimUsernameState } from "../actions";
 import { profileHref, profilePath } from "../profilePath";
 import AccountCard from "./AccountCard";
@@ -69,11 +70,12 @@ export default function UsernameSection({
         </p>
       ) : null}
 
-      <form action={claimAction} aria-label={t("usernameFormLabel")}>
+      <ValidatedForm action={claimAction} aria-label={t("usernameFormLabel")}>
         <TextField
           required
           name="username"
           type="text"
+          autoComplete="username"
           label={t("username")}
           placeholder={t("usernamePlaceholder")}
           icon={<MdAlternateEmail />}
@@ -101,7 +103,7 @@ export default function UsernameSection({
         >
           {t("usernameSubmit")}
         </Button>
-      </form>
+      </ValidatedForm>
     </AccountCard>
   );
 }

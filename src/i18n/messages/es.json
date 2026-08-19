@@ -157,12 +157,18 @@
     "weekday6": "Sábado"
   },
   "admin": {
+    "addCategoryHeading": "Agregar categoría",
     "catalogHeading": "Catálogo de categorías",
     "catalogIntro": "Lo que se ve aquí es lo que ofrece <b>/publicar</b> y lo que filtran el buscador y el chatbot. Agregar una categoría ya no necesita migración; desactivar una la saca del selector <b>sin tocar</b> las publicaciones que ya la usan.",
     "catalogMetaDescription": "Administración interna de la taxonomía de categorías.",
     "catalogMetaTitle": "Catálogo de categorías - {brand}",
     "catalogNoPermission": "No tienes permiso para editar el catálogo.",
     "catalogSaveClash": "No se pudo guardar. ¿Alguien creó esa clave mientras tanto?",
+    "categoryCreated": "Se agregó «{key}». Ya se puede elegir al publicar.",
+    "categoryKey": "Clave (así se guarda):",
+    "categoryKeyPlaceholder": "conservas",
+    "categorySubmit": "Agregar",
+    "categorySubmitting": "Guardando...",
     "englishLabel": "Etiqueta en inglés (opcional):",
     "indexingAllDone": "Las {total} traducciones de producto están indexadas.",
     "indexingHeading": "Indexación para el chatbot",
@@ -184,11 +190,15 @@
     "moderationStatusInReview": "En revisión",
     "moderationStatusPublished": "Publicada",
     "moderationStatusRejected": "Retirada",
+    "newRootCategory": "— Nueva categoría raíz —",
     "originReportHeading": "Productos por procedencia",
     "originReportIntro": "Publicaciones con tipo <b>producto</b>, agrupadas por su procedencia. Los anuncios no se cuentan aquí.",
+    "parentCategory": "Cuelga de:",
     "productsMetaDescription": "Reporte interno de productos publicados, agrupados por procedencia.",
     "productsMetaTitle": "Productos por procedencia - {brand}",
-    "share": "Participación"
+    "share": "Participación",
+    "spanishLabel": "Etiqueta en español:",
+    "spanishLabelPlaceholder": "Conservas"
   },
   "atomicChallenges": {
     "alreadyToday": "La repetición de hoy ya cuenta",

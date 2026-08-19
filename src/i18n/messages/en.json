@@ -157,12 +157,18 @@
     "weekday6": "Saturday"
   },
   "admin": {
+    "addCategoryHeading": "Add category",
     "catalogHeading": "Category catalogue",
     "catalogIntro": "What you see here is what <b>/publicar</b> offers and what the search and the chatbot filter by. Adding a category no longer needs a migration; deactivating one takes it out of the selector <b>without touching</b> the publications that already use it.",
     "catalogMetaDescription": "Internal administration of the category taxonomy.",
     "catalogMetaTitle": "Category catalogue - {brand}",
     "catalogNoPermission": "You do not have permission to edit the catalogue.",
     "catalogSaveClash": "Could not save. Did someone create that key in the meantime?",
+    "categoryCreated": "«{key}» was added. It can now be chosen when publishing.",
+    "categoryKey": "Key (how it is stored):",
+    "categoryKeyPlaceholder": "conservas",
+    "categorySubmit": "Add",
+    "categorySubmitting": "Saving...",
     "englishLabel": "English label (optional):",
     "indexingAllDone": "All {total} product translations are indexed.",
     "indexingHeading": "Chatbot indexing",
@@ -184,11 +190,15 @@
     "moderationStatusInReview": "Under review",
     "moderationStatusPublished": "Published",
     "moderationStatusRejected": "Taken down",
+    "newRootCategory": "— New root category —",
     "originReportHeading": "Products by provenance",
     "originReportIntro": "Publications of type <b>product</b>, grouped by provenance. Announcements are not counted here.",
+    "parentCategory": "Parent category:",
     "productsMetaDescription": "Internal report of published products, grouped by provenance.",
     "productsMetaTitle": "Products by provenance - {brand}",
-    "share": "Share"
+    "share": "Share",
+    "spanishLabel": "Spanish label:",
+    "spanishLabelPlaceholder": "Conservas"
   },
   "atomicChallenges": {
     "alreadyToday": "Today's repetition already counts",

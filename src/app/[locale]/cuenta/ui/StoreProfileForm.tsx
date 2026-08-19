@@ -8,6 +8,8 @@ import { PUBLIC_BASE_URL } from "~/infra/constants";
 import { Button } from "~/presentation/design_system/buttons/Button";
 import { TextArea } from "~/presentation/design_system/forms/TextArea";
 import { TextField } from "~/presentation/design_system/forms/TextField";
+import { usePhoneValidationMessages } from "~/presentation/forms/usePhoneValidationMessages";
+import { ValidatedForm } from "~/presentation/forms/ValidatedForm";
 import ImageVideoUploader, {
   type UploadedMediaResult,
 } from "~/presentation/media/ImageVideoUploader/ImageVideoUploader";
@@ -27,6 +29,7 @@ export default function StoreProfileForm({
 }) {
   const t = useTranslations("account");
   const locale = resolveLocale(useLocale());
+  const phoneMessages = usePhoneValidationMessages();
   const [state, updateAction, isPending] = useActionState<
     StoreProfileState,
     FormData
@@ -62,11 +65,15 @@ export default function StoreProfileForm({
         </p>
       ) : null}
 
-      <form action={updateAction} aria-label={t("storeProfileFormLabel")}>
+      <ValidatedForm
+        action={updateAction}
+        aria-label={t("storeProfileFormLabel")}
+      >
         <TextField
           required
           name="name"
           type="text"
+          autoComplete="organization"
           label={t("storeName")}
           defaultValue={seller.name}
           icon={<MdStorefront />}
@@ -77,8 +84,10 @@ export default function StoreProfileForm({
           required
           name="phone"
           type="tel"
+          autoComplete="tel"
           label={t("storePhone")}
           pattern={"^\\+?(\\d{1,3})?[0-9]{10}$"}
+          validationMessages={phoneMessages}
           defaultValue={seller.phone}
           icon={<MdPhone />}
           containerClassName="mb-6"
@@ -87,6 +96,7 @@ export default function StoreProfileForm({
         <TextField
           name="url"
           type="url"
+          autoComplete="url"
           label={t("storeWebsite")}
           placeholder={t("storeWebsitePlaceholder")}
           defaultValue={seller.url ?? ""}
@@ -123,7 +133,7 @@ export default function StoreProfileForm({
         >
           {t("storeProfileSubmit")}
         </Button>
-      </form>
+      </ValidatedForm>
     </AccountCard>
   );
 }
