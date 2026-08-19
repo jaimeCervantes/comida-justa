@@ -4,6 +4,7 @@ import { useActionState, useState } from "react";
 import { MdOutlinePriceChange, MdTitle } from "react-icons/md";
 import { EVENT_KIND, SERVICE_KIND } from "~/domain/entities/post/kind";
 import type { CategoryOption } from "~/domain/entities/post/taxonomy";
+import { formatCommunityDateTimeLocal } from "~/domain/schedule/localDateTime";
 import { Link } from "~/i18n/navigation";
 import { POST_CONTENT_MAX_LENGTH } from "~/infra/constants";
 import { originOptionsFor } from "~/infra/UI/labels/postOriginLabels";
@@ -31,20 +32,6 @@ export type EditablePostValues = {
   /** Los archivos que ya tiene, en su orden. El primero es la portada. */
   media: PostMediaFieldItem[];
 };
-
-function toDateTimeLocalValue(value: Date | string | null): string {
-  if (!value) return "";
-
-  const date = value instanceof Date ? value : new Date(value);
-
-  if (Number.isNaN(date.getTime())) return "";
-
-  const pad = (part: number): string => String(part).padStart(2, "0");
-
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
-    date.getDate(),
-  )}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
-}
 
 /**
  * Edita el texto, el precio, la categoría, la procedencia y los archivos de una publicación.
@@ -190,13 +177,13 @@ export default function EditPostForm({
               name="startsAt"
               type="datetime-local"
               label={tPublish("startsAt")}
-              defaultValue={toDateTimeLocalValue(post.startsAt)}
+              defaultValue={formatCommunityDateTimeLocal(post.startsAt)}
             />
             <TextField
               name="endsAt"
               type="datetime-local"
               label={tPublish("endsAt")}
-              defaultValue={toDateTimeLocalValue(post.endsAt)}
+              defaultValue={formatCommunityDateTimeLocal(post.endsAt)}
             />
           </div>
         ) : null}

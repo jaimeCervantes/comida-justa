@@ -16,6 +16,7 @@ import type { User } from "~/domain/entities/post/types";
 import RouteFileError, {
   type RouteFileProblem,
 } from "~/domain/errors/RouteFileError";
+import { parseCommunityDateTimeLocal } from "~/domain/schedule/localDateTime";
 import PostValidator from "~/domain/schemas/PostValidator";
 import getErrorMessage from "~/domain/shared/getErrorMessage";
 import { redirectKeepingLocale } from "~/i18n/redirectKeepingLocale";
@@ -77,15 +78,6 @@ function readPositiveInt(value: FormDataEntryValue | null): number | null {
   const parsed = Number(value);
 
   return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
-}
-
-/** Lo que llega de un `datetime-local`: texto local sin zona, o vacío. Ilegible cuenta como vacío. */
-function readDate(value: FormDataEntryValue | null): Date | null {
-  if (!value) return null;
-
-  const date = new Date(String(value));
-
-  return Number.isNaN(date.getTime()) ? null : date;
 }
 
 /** El idioma en el que se escribe hoy toda publicación; la traducción vive bajo esa clave. */
@@ -236,8 +228,13 @@ export async function createPost(
   /* Las fechas solo se leen en un evento. En lo demás viajan como `null` a propósito: afirmar que
      un producto no ocurre a una hora es distinto de dejarlo sin decidir. */
   const startsAt =
-    kind === "evento" ? readDate(formData.get("startsAt")) : null;
-  const endsAt = kind === "evento" ? readDate(formData.get("endsAt")) : null;
+    kind === "evento"
+      ? parseCommunityDateTimeLocal(formData.get("startsAt"))
+      : null;
+  const endsAt =
+    kind === "evento"
+      ? parseCommunityDateTimeLocal(formData.get("endsAt"))
+      : null;
 
   /* La duración solo se lee en un servicio. En lo demás viaja como `null`: un producto no dura, y
      un evento ya dice cuánto con sus dos fechas. */

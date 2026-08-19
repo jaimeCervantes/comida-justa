@@ -57,6 +57,24 @@ Checkpoint de revision escrito el 2026-08-18.
 4. Los filtros por pilar siguen funcionando sobre productos y servicios.
 5. Los textos y metadatos ya no prometen solo productos.
 
+## Slice 3 - Fechas de evento respetan la hora local comunitaria *(entregado 2026-08-18)*
+
+### Alcance
+
+- Interpretar `datetime-local` de publicar y editar como hora local de la comunidad, no como zona
+  del servidor.
+- Guardar en PostgreSQL el instante UTC equivalente.
+- Mostrar en el formulario de edicion la hora comunitaria original del evento.
+- Mantener el modelo actual de `starts_at` y `ends_at`; no hay migracion ni cambio de columnas.
+
+### Criterios de aceptacion
+
+1. Publicar un evento con inicio `2027-08-23T07:30` guarda `2027-08-23T13:30:00.000Z`.
+2. Editar un evento con inicio `2027-08-23T07:30` guarda el mismo instante UTC equivalente.
+3. Reabrir la edicion de un evento guardado a `2027-08-23T13:30:00.000Z` muestra
+   `2027-08-23T07:30`.
+4. Fechas invalidas del formulario siguen contando como ausentes y disparan la validacion existente.
+
 ## Fuera de alcance
 
 - Inscripcion o cupo para eventos.

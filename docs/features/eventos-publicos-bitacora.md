@@ -184,3 +184,80 @@ producto, agenda para servicio. Los textos publicos ahora dicen "Productos y ser
   levantado.
 - Opcion B: hacer un refactor de nombres internos de productos a catalogo comercial.
 - Opcion C: correr la suite e2e completa cuando el usuario lo pida.
+
+---
+
+## 2026-08-18 - Slice 3: Fechas locales al publicar y editar eventos
+
+### Objective
+
+Corregir que las fechas de inicio y fin de un evento se guardaran o se mostraran corridas por
+depender de `new Date(datetime-local)`. Ese valor del navegador no trae zona horaria; para la
+comunidad debe leerse como hora local de Veracruz/Cordoba/Orizaba y persistirse como el instante UTC
+equivalente.
+
+### Decisions + rationale
+
+- La conversion quedo en `domain/schedule/localDateTime`, junto a la constante de zona comunitaria.
+  Es logica pura, reutilizable y probada sin depender del timezone de la maquina.
+- Se usa UTC-6 fijo por la misma razon documentada en `timezone.ts`: la comunidad esta en Veracruz y
+  Mexico elimino horario de verano fuera de la frontera norte.
+- Publicar y editar llaman el mismo parser. La edicion tambien usa el formateador inverso para que
+  el input vuelva a mostrar la hora local que la persona espera ver.
+- El e2e de tipos de publicacion dejo de convertir con la zona local del runner y ahora compara con
+  la misma hora comunitaria, evitando falsos verdes o falsos rojos segun donde corra Playwright.
+
+### Files touched
+
+- Dominio:
+  - `src/domain/schedule/localDateTime.ts`
+  - `src/domain/schedule/localDateTime.test.ts`
+- Publicar y editar:
+  - `src/app/[locale]/publicar/actions.ts`
+  - `src/app/[locale]/editar/[slug]/actions.ts`
+  - `src/app/[locale]/editar/[slug]/ui/EditPostForm.tsx`
+  - `src/app/[locale]/editar/[slug]/ui/EditPostForm.test.tsx`
+- E2E y docs:
+  - `src/e2e/editPublicationTypes/editPublicationTypes.spec.ts`
+  - `docs/features/eventos-publicos.md`
+  - `docs/features/eventos-publicos-bitacora.md`
+
+### Key commands
+
+- `pnpm exec vitest --run src/domain/schedule/localDateTime.test.ts src/app/[locale]/editar/[slug]/ui/EditPostForm.test.tsx`
+- `pnpm exec biome check src/domain/schedule/localDateTime.ts src/domain/schedule/localDateTime.test.ts src/app/[locale]/publicar/actions.ts src/app/[locale]/editar/[slug]/actions.ts src/app/[locale]/editar/[slug]/ui/EditPostForm.tsx src/app/[locale]/editar/[slug]/ui/EditPostForm.test.tsx src/e2e/editPublicationTypes/editPublicationTypes.spec.ts`
+- `pnpm run test:run`
+- `pnpm run typecheck`
+- `pnpm run lint`
+
+### Validation results
+
+- Vitest focal: 2 files, 9 tests passed.
+- Vitest completo: 190 files, 1954 tests passed.
+- Typecheck: passed.
+- Lint: 934 files checked.
+- E2E completo: no corrido por instruccion previa del usuario; queda para el cierre de todos los
+  slices o en shards cuando se pida.
+
+### Deviations from roadmap
+
+- Este fue un slice correctivo detectado despues de la entrega de eventos publicos y asistencia. No
+  agrego migraciones ni cambia el contrato de base de datos.
+
+### Follow-ups
+
+- Si despues se soportan comunidades fuera de Veracruz/Cordoba/Orizaba, mover el offset comunitario
+  a configuracion por vendedor o por publicacion.
+- Correr el shard e2e de edicion de tipos cuando se habilite la validacion e2e por shards.
+
+### Recap
+
+Publicar y editar eventos ya leen `datetime-local` como hora local comunitaria y guardan el instante
+UTC correcto. Reabrir un evento para editarlo vuelve a mostrar la hora que la persona habia elegido,
+sin corrimientos por zona del servidor, navegador o runner de pruebas.
+
+### Próximos pasos (opciones)
+
+- Opcion A: correr el shard e2e de `editPublicationTypes` cuando quieras validar en navegador.
+- Opcion B: seguir con el siguiente slice funcional de eventos.
+- Opcion C: revisar manualmente publicar/editar un evento en local y confirmar la hora en la ficha.

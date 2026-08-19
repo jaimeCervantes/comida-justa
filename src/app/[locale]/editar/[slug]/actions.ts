@@ -5,6 +5,7 @@ import { parsePostMediaPayload } from "~/domain/entities/post/mediaPayload";
 import { resolveOriginForUser } from "~/domain/entities/post/origin";
 import { resolveKeyStrict } from "~/domain/entities/post/taxonomy";
 import type { User } from "~/domain/entities/post/types";
+import { parseCommunityDateTimeLocal } from "~/domain/schedule/localDateTime";
 import PostValidator from "~/domain/schemas/PostValidator";
 import { redirectKeepingLocale } from "~/i18n/redirectKeepingLocale";
 import { auth } from "~/infra/auth";
@@ -24,14 +25,6 @@ function readPositiveInt(value: FormDataEntryValue | null): number | null {
   const parsed = Number(value);
 
   return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
-}
-
-function readDate(value: FormDataEntryValue | null): Date | null {
-  if (!value) return null;
-
-  const date = new Date(String(value));
-
-  return Number.isNaN(date.getTime()) ? null : date;
 }
 
 /**
@@ -112,8 +105,8 @@ export async function updatePost(
     origin,
     category,
     subCategory,
-    startsAt: readDate(formData.get("startsAt")),
-    endsAt: readDate(formData.get("endsAt")),
+    startsAt: parseCommunityDateTimeLocal(formData.get("startsAt")),
+    endsAt: parseCommunityDateTimeLocal(formData.get("endsAt")),
     durationMinutes: readPositiveInt(formData.get("durationMinutes")),
     media,
   });

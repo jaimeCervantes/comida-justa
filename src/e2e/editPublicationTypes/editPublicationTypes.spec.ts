@@ -1,4 +1,5 @@
 import { expect, type Page, test } from "@playwright/test";
+import { formatCommunityDateTimeLocal } from "~/domain/schedule/localDateTime";
 import { deleteOnePostBySlug } from "../testUtils/deleteOnePost";
 import { readPostRowBySlug } from "../testUtils/readPostRow";
 import { seedPost } from "../testUtils/seedPost";
@@ -8,15 +9,6 @@ import {
   simulateLogin,
 } from "../testUtils/simulateLogin";
 import { testSlug } from "../testUtils/testSlug";
-
-function localDateTimeInputValue(value: Date | string): string {
-  const date = value instanceof Date ? value : new Date(value);
-  const pad = (value: number): string => String(value).padStart(2, "0");
-
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
-    date.getDate(),
-  )}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
-}
 
 async function save(page: Page): Promise<void> {
   await page.getByRole("button", { name: /guardar cambios/i }).click();
@@ -69,8 +61,8 @@ test.describe("Editing publications with type-specific fields", () => {
       kind: "evento",
       origin: null,
       price: null,
-      startsAt: new Date("2027-09-04T18:30:00"),
-      endsAt: new Date("2027-09-04T20:00:00"),
+      startsAt: new Date("2027-09-05T00:30:00Z"),
+      endsAt: new Date("2027-09-05T02:00:00Z"),
     });
 
     await page.goto(`/editar/${slug}`);
@@ -91,10 +83,10 @@ test.describe("Editing publications with type-specific fields", () => {
     const row = await readPostRowBySlug(slug);
 
     expect(row?.kind).toBe("evento");
-    expect(localDateTimeInputValue(row?.starts_at as Date | string)).toBe(
+    expect(formatCommunityDateTimeLocal(row?.starts_at as Date | string)).toBe(
       "2027-09-05T07:15",
     );
-    expect(localDateTimeInputValue(row?.ends_at as Date | string)).toBe(
+    expect(formatCommunityDateTimeLocal(row?.ends_at as Date | string)).toBe(
       "2027-09-05T09:00",
     );
   });
