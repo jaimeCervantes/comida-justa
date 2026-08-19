@@ -2,11 +2,14 @@ import { getTranslations } from "next-intl/server";
 import type { ReactNode } from "react";
 import { MdPhone } from "react-icons/md";
 import { canBeOrdered, isSellable } from "~/domain/entities/post/availability";
+import { EVENT_KIND } from "~/domain/entities/post/kind";
 import { resolvePostTranslation } from "~/domain/entities/post/translations";
 import type { PostMediaFile } from "~/domain/entities/post/types";
+import { buildWhatsappEventAttendanceLink } from "~/domain/entities/post/whatsappEventAttendance";
 import { buildWhatsappOrderLink } from "~/domain/entities/post/whatsappOrder";
-import { routing } from "~/i18n/routing";
-import { PUBLIC_BASE_URL, SITE_CURRENCY } from "~/infra/constants";
+import { getPathname } from "~/i18n/navigation";
+import { type AppLocale, resolveLocale, routing } from "~/i18n/routing";
+import { PUBLIC_BASE_URL, SIGNIN_PATH, SITE_CURRENCY } from "~/infra/constants";
 import type { Post, PostUser } from "~/infra/types/Posts";
 import AddToCartButton from "~/presentation/cart/AddToCartButton/AddToCartButton";
 import { cn } from "~/presentation/design_system/styling/merge-class-names";
@@ -18,6 +21,7 @@ import MediaGallery from "~/presentation/media/MediaGallery/MediaGallery";
 import CurrencyAmount from "~/presentation/money/CurrencyAmount";
 import { setAvailability } from "~/presentation/post/availabilityAction";
 import CategoryTag from "~/presentation/post/CategoryTag/CategoryTag";
+import EventAttendanceWhatsapp from "~/presentation/post/EventAttendanceWhatsapp/EventAttendanceWhatsapp";
 import EventDate from "~/presentation/post/EventDate/EventDate";
 import OpenStoreHint from "~/presentation/post/OpenStoreHint";
 import ProvenanceBadge, {
@@ -30,6 +34,49 @@ import { postCategoryLabel } from "../categoryLabel";
 import OwnerControls from "./OwnerControls";
 import PostIdentity from "./PostIdentity";
 import PostLinks from "./PostLinks";
+
+const COMMUNITY_TIME_ZONE = "America/Mexico_City";
+
+function toValidDate(value: Date | string | null | undefined): Date | null {
+  if (!value) return null;
+
+  const date = value instanceof Date ? value : new Date(value);
+
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function formatEventAttendanceWhen({
+  startsAt,
+  endsAt,
+  locale,
+}: {
+  startsAt: Date | string | null | undefined;
+  endsAt: Date | string | null | undefined;
+  locale: AppLocale;
+}): string | null {
+  const starts = toValidDate(startsAt);
+  if (!starts) return null;
+
+  const dateTime = new Intl.DateTimeFormat(locale, {
+    timeZone: COMMUNITY_TIME_ZONE,
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+  const time = new Intl.DateTimeFormat(locale, {
+    timeZone: COMMUNITY_TIME_ZONE,
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+  const ends = toValidDate(endsAt);
+
+  return ends
+    ? `${dateTime.format(starts)} - ${time.format(ends)}`
+    : dateTime.format(starts);
+}
 
 /**
  * Presenta una publicación ya cargada. La búsqueda (y el 404 si no existe) vive en la página,
@@ -58,7 +105,7 @@ export default async function PostDetail({
    */
   distanceMeters?: number | null;
   /** Idioma de la ruta; decide en qué idioma se lee la etiqueta de categoría. */
-  locale?: string;
+  locale?: AppLocale;
   /** El de la ruta: es lo que se manda en el mensaje de WhatsApp para identificar el producto. */
   slug?: string;
   /** Acción principal de agenda para servicios. La página calcula los huecos; el detalle la ubica. */
@@ -66,9 +113,10 @@ export default async function PostDetail({
 }) {
   const t = await getTranslations("post");
   const tShare = await getTranslations("share");
+  const currentLocale = resolveLocale(locale);
   const translation = resolvePostTranslation(
     postDetails.translations,
-    locale ?? routing.defaultLocale,
+    currentLocale,
     routing.defaultLocale,
   );
   /* Lo que no depende del idioma se toma tal cual. Antes esto se copiaba campo a campo a un objeto
@@ -125,6 +173,12 @@ export default async function PostDetail({
   /* La dirección pública de la ficha. La usan el pedido por WhatsApp y el botón de compartir: si
      se calcularan por separado, un cambio de ruta dejaría a uno de los dos apuntando al vacío. */
   const postUrl = `${PUBLIC_BASE_URL}/${slug ?? ""}`;
+  const postPath = slug
+    ? getPathname({
+        locale: currentLocale,
+        href: { pathname: "/[slug]", params: { slug } },
+      })
+    : "/";
 
   // Solo se ofrece pedir lo que se vende y sigue habiendo: mandar a WhatsApp por algo agotado
   // empieza la conversación con una decepción.
@@ -137,6 +191,27 @@ export default async function PostDetail({
         phone: contactInfo?.phone,
       })
     : null;
+  const attendanceWhen = formatEventAttendanceWhen({
+    startsAt,
+    endsAt,
+    locale: currentLocale,
+  });
+  const offersEventAttendance = kind === EVENT_KIND && Boolean(attendanceWhen);
+  const attendanceLink =
+    offersEventAttendance && attendanceWhen
+      ? buildWhatsappEventAttendanceLink({
+          title: String(title ?? ""),
+          when: attendanceWhen,
+          url: postUrl,
+          whatsapp: contactInfo?.whatsapp,
+          phone: contactInfo?.phone,
+          labels: {
+            intro: t("eventAttendIntro"),
+            when: t("eventAttendWhen"),
+          },
+        })
+      : null;
+  const attendanceSignInHref = `${SIGNIN_PATH}?callbackUrl=${encodeURIComponent(postPath)}`;
 
   const isOwner = Boolean(user?.id) && user?.id === postDetails.user?.id;
 
@@ -231,6 +306,14 @@ export default async function PostDetail({
         <WhatsappButton href={orderLink} testId="whatsapp-order">
           {t("orderOnWhatsapp")}
         </WhatsappButton>
+
+        <EventAttendanceWhatsapp
+          href={attendanceLink}
+          isOffered={offersEventAttendance}
+          canNotify={Boolean(user?.id)}
+          signInHref={attendanceSignInHref}
+          labels={{ cta: t("eventAttendOnWhatsapp") }}
+        />
 
         <ShareMenu
           testId="share-post"
