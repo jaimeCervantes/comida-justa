@@ -48,7 +48,11 @@ test.describe("Al publicar, el formulario dice por qué", () => {
         serverCalls.push(request.url());
     });
 
-    await page.getByRole("button", { name: /^publicar$/i }).click();
+    // Dentro del formulario: la cabecera tiene su propio botón "Publicar", que es un enlace.
+    await page
+      .getByRole("form")
+      .getByRole("button", { name: /^publicar$/i })
+      .click();
 
     await expect(page.getByText("El título es obligatorio.")).toBeVisible();
     await expect(page.getByText("El teléfono es obligatorio.")).toBeVisible();

@@ -41,18 +41,21 @@ export default class PublishProductPage {
     await this.page
       .getByRole("textbox", { name: /t[ií]tulo de la publicación/i })
       .fill(values.title);
+    /* El tipo va primero: es lo que decide qué campos existen. El formulario abre en `anuncio`,
+       y un anuncio no pinta ni precio ni procedencia —son campos de lo que se vende—, así que
+       llenarlos antes de elegirlo es esperar a un campo que todavía no está en la página. */
+    await this.page
+      .getByRole("combobox", { name: /tipo de publicación/i })
+      .selectOption(values.kind);
     await this.page
       .getByRole("spinbutton", { name: /precio/i })
       .fill(values.price);
     await this.page
-      .getByRole("textbox", { name: /t[eé]lefono/i })
+      .getByRole("textbox", { name: /tel[eé]fono/i })
       .fill(values.phone);
     await this.page
       .getByRole("textbox", { name: /descripci[oó]n/i })
       .fill(values.description);
-    await this.page
-      .getByRole("combobox", { name: /tipo de publicación/i })
-      .selectOption(values.kind);
     if (values.origin) {
       await this.page
         // Por `#origin` y no por su etiqueta: la etiqueta es una pregunta al vendedor y se

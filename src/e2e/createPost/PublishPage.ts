@@ -9,6 +9,16 @@ type PublishValues = {
   file: string | string[];
   phone: string;
   description: string;
+  /**
+   * Qué se publica. `producto` por omisión porque es lo que implica pasar `price`.
+   *
+   * El formulario abre en `anuncio`, y un anuncio **no pinta precio ni procedencia**: son campos
+   * de lo que se vende (`507241d`). Sin elegir el tipo, `fillFields` se quedaba esperando un
+   * `spinbutton` que nunca existió y el escenario moría por tiempo agotado.
+   */
+  kind?: string;
+  /** De dónde viene. Obligatoria en un producto, así que sin ella no se puede enviar. */
+  origin?: string;
 };
 
 export default class PublishPage {
@@ -16,6 +26,8 @@ export default class PublishPage {
   readonly form: Locator;
   readonly submitButton: Locator;
   readonly title: Locator;
+  readonly kind: Locator;
+  readonly origin: Locator;
   readonly price: Locator;
   readonly description: Locator;
   readonly file: Locator;
@@ -36,13 +48,17 @@ export default class PublishPage {
     this.title = this.page.getByRole("textbox", {
       name: /t[ií]tulo de la publicación/i,
     });
+    this.kind = this.page.getByRole("combobox", {
+      name: /tipo de publicaci[oó]n/i,
+    });
+    this.origin = this.page.getByRole("combobox", { name: /de dónde viene/i });
     this.price = this.page.getByRole("spinbutton", { name: /precio/i });
     this.description = this.page.getByRole("textbox", {
       name: /descripci[oó]n/i,
     });
     // input con label que contiene el texto "image"
     this.file = this.page.locator('form input[type="file"]');
-    this.phone = this.page.getByRole("textbox", { name: /t[eé]lefono/i });
+    this.phone = this.page.getByRole("textbox", { name: /tel[eé]fono/i });
     this.score = this.page.getByRole("article").getByText(/saludable/i);
     this.uploaded = this.page.getByText(/subido/i);
   }
@@ -59,6 +75,11 @@ export default class PublishPage {
   async fillFields(values: PublishValues) {
     this.values = values;
     await this.title.fill(values.title);
+    /* El tipo va antes que nada: es lo que decide qué campos existen. Precio y procedencia sólo
+       se pintan en lo que se vende, así que llenarlos antes de elegirlo es esperar a un campo
+       que aún no está en la página. */
+    await this.kind.selectOption(values.kind ?? "producto");
+    await this.origin.selectOption(values.origin ?? "reventa_cercana");
     await this.price.fill(values.price);
     await this.phone.fill(values.phone);
     await this.description.fill(values.description);

@@ -151,7 +151,10 @@ test.describe("Given someone publishing a product with several files", () => {
       title,
       description:
         "Empieza con solo 5 minutos al dia. Progresion guiada. Incluye checklist descargable.",
-      price: "0",
+      /* No puede ser 0: un producto lleva `min="1"` y la Server Action lo rechaza con
+         «El precio debe ser mayor a cero». Lo que este escenario prueba es que una imagen y un
+         video conviven, así que el precio es incidental y basta con que sea válido. */
+      price: "25",
       phone: "2781092116",
       file: [DUMMIES.first, DUMMIES.video],
     });
