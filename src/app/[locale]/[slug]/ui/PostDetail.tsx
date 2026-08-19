@@ -21,6 +21,7 @@ import MediaGallery from "~/presentation/media/MediaGallery/MediaGallery";
 import CurrencyAmount from "~/presentation/money/CurrencyAmount";
 import { setAvailability } from "~/presentation/post/availabilityAction";
 import CategoryTag from "~/presentation/post/CategoryTag/CategoryTag";
+import EventAttendanceButton from "~/presentation/post/EventAttendance/EventAttendanceButton";
 import EventAttendanceWhatsapp from "~/presentation/post/EventAttendanceWhatsapp/EventAttendanceWhatsapp";
 import EventDate from "~/presentation/post/EventDate/EventDate";
 import OpenStoreHint from "~/presentation/post/OpenStoreHint";
@@ -93,6 +94,7 @@ export default async function PostDetail({
   locale,
   slug,
   distanceMeters = null,
+  eventAttendance = null,
   bookingSlot = null,
 }: {
   post: Post;
@@ -104,6 +106,8 @@ export default async function PostDetail({
    * no consulta nada.
    */
   distanceMeters?: number | null;
+  /** Estado persistido de asistencia; solo se resuelve para eventos. */
+  eventAttendance?: { attending: boolean; attendees: number } | null;
   /** Idioma de la ruta; decide en qué idioma se lee la etiqueta de categoría. */
   locale?: AppLocale;
   /** El de la ruta: es lo que se manda en el mensaje de WhatsApp para identificar el producto. */
@@ -313,6 +317,16 @@ export default async function PostDetail({
           canNotify={Boolean(user?.id)}
           signInHref={attendanceSignInHref}
           labels={{ cta: t("eventAttendOnWhatsapp") }}
+        />
+
+        <EventAttendanceButton
+          postId={String(id ?? "")}
+          isOffered={offersEventAttendance}
+          attending={eventAttendance?.attending ?? false}
+          attendees={eventAttendance?.attendees ?? 0}
+          canAttend={Boolean(user?.id)}
+          signInHref={attendanceSignInHref}
+          path={postPath}
         />
 
         <ShareMenu

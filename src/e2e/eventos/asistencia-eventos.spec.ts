@@ -79,6 +79,36 @@ test.describe("When a visitor wants to attend an event", () => {
     expect(message).toContain(post.slug);
   });
 
+  test("Then a signed-in visitor confirms and cancels attendance", async ({
+    page,
+    browserName,
+  }) => {
+    dbSession = await simulateLogin(page, browserName);
+    const post = eventPost();
+    seededSlugs.push(post.slug);
+    await seedPost(post);
+
+    await page.goto(`/${post.slug}`);
+
+    const button = page.getByTestId("event-attendance-toggle");
+    const count = page.getByTestId("event-attendance-count");
+
+    await expect(button).toHaveText(/Voy a asistir/);
+    await expect(count).toHaveText("Nadie ha confirmado asistencia");
+
+    await button.click();
+    await expect(count).toHaveText("1 persona va a asistir");
+    await expect(button).toHaveText(/Ya no voy/);
+
+    await page.reload();
+    await expect(count).toHaveText("1 persona va a asistir");
+    await expect(button).toHaveText(/Ya no voy/);
+
+    await button.click();
+    await expect(count).toHaveText("Nadie ha confirmado asistencia");
+    await expect(button).toHaveText(/Voy a asistir/);
+  });
+
   test("Then only events show the sign-in attend action before login", async ({
     page,
   }) => {

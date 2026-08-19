@@ -170,3 +170,115 @@ publicacion tiene el telefono que se capturo al publicar.
 
 Accion pendiente del usuario: recargar la ficha del evento; si sigue sin aparecer, compartir el slug
 exacto para revisar si su `kind` o `starts_at` no corresponden a evento.
+
+## 2026-08-18 - Slice 2: confirmar y cancelar asistencia
+
+### Objetivo
+
+Guardar la intención "Voy a asistir" dentro de la plataforma: una persona con sesión puede confirmar
+o cancelar asistencia desde la ficha del evento, y el contador queda persistido al recargar.
+
+### Decisiones y rationale
+
+- La tabla nueva es `event_attendances`, administrada por Alembic en el backend Python porque ese
+  repo sigue siendo el dueño del schema compartido. En Next solo se agregó el espejo Drizzle.
+- La clave de negocio es `UNIQUE(post_id, user_id)`: el contador solo significa algo si una persona
+  no puede aparecer dos veces en el mismo evento.
+- La acción lee `auth()` en el servidor. El formulario manda `postId` y `path`, no manda `userId` ni
+  el estado actual; así no se puede confirmar a nombre de otra persona ni pisar dos pestañas con
+  estados distintos.
+- El botón público sigue visible sin sesión, pero lleva a login. El contador también se ve sin
+  sesión porque es información pública del evento.
+- El caso de uso valida que la publicación exista, sea `evento` y tenga horario usable. La UI ya lo
+  filtra, pero la Server Action se puede invocar sin pasar por la pantalla.
+
+### Archivos tocados
+
+- Backend Python:
+  - `alembic/versions/0046_2026-08-18_add_event_attendances.py`
+- Schema/infra Next:
+  - `src/infra/dataAccess/db/schema/posts.ts`
+  - `src/infra/dataAccess/eventAttendances/PostgresEventAttendanceRepository.ts`
+  - `src/infra/dataAccess/eventAttendances/readEventAttendanceState.ts`
+- Dominio/use case:
+  - `src/domain/eventAttendance/eventAttendance.ts`
+  - `src/domain/eventAttendance/eventAttendance.test.ts`
+  - `src/use_cases/eventAttendance/ports/IEventAttendanceRepository.ts`
+  - `src/use_cases/eventAttendance/toggleEventAttendanceUseCase.ts`
+  - `src/use_cases/eventAttendance/toggleEventAttendanceUseCase.test.ts`
+- Presentación/app:
+  - `src/presentation/post/EventAttendance/EventAttendanceButton.tsx`
+  - `src/presentation/post/EventAttendance/EventAttendanceButton.test.tsx`
+  - `src/presentation/post/EventAttendance/eventAttendanceAction.ts`
+  - `src/app/[locale]/[slug]/page.tsx`
+  - `src/app/[locale]/[slug]/ui/PostDetail.tsx`
+- i18n/e2e:
+  - `src/i18n/messages/es.json`
+  - `src/i18n/messages/en.json`
+  - `src/e2e/eventos/asistencia-eventos.feature`
+  - `src/e2e/eventos/asistencia-eventos.spec.ts`
+  - `src/e2e/testUtils/testData.ts`
+
+### Comandos clave
+
+- Backend:
+  - `uv run alembic upgrade head`
+  - `uv run alembic current`
+  - `uv run ruff check alembic/versions/0046_2026-08-18_add_event_attendances.py`
+  - `uv run ruff format --check alembic/versions/0046_2026-08-18_add_event_attendances.py`
+- Frontend:
+  - `pnpm exec biome check --write ...`
+  - `pnpm exec vitest --run src/domain/eventAttendance/eventAttendance.test.ts src/use_cases/eventAttendance/toggleEventAttendanceUseCase.test.ts src/presentation/post/EventAttendance/EventAttendanceButton.test.tsx`
+  - `pnpm run typecheck`
+  - `pnpm run test:run`
+  - `pnpm run lint`
+  - `pnpm exec playwright test src/e2e/eventos/asistencia-eventos.spec.ts --reporter=dot`
+
+### Validación
+
+- Alembic: `0046_2026_08_18 (head)`.
+- Ruff backend focal: passed; format check: passed.
+- Vitest focal del slice: 3 files passed, 16 tests passed.
+- `pnpm run typecheck`: passed.
+- `pnpm run test:run`: 186 files passed, 1937 tests passed.
+- `pnpm run lint`: 926 files checked, passed.
+- Playwright focal de eventos: 4 tests passed. La primera corrida dentro del sandbox se cortó por
+  `ETIMEDOUT/EACCES` contra la DB; repetida con permisos elevados pasó.
+
+### Escrituras en recursos compartidos
+
+- Se aplicó la migración Alembic `0046_2026_08_18`, creando `event_attendances` con FK a `posts` y
+  `users`, `UNIQUE(post_id, user_id)` e índice por `post_id`.
+- Deshacerlo, si hiciera falta antes de que alguien use la tabla, es `uv run alembic downgrade -1`
+  desde el backend Python; eso elimina la tabla y sus asistencias.
+- El e2e focal escribió publicaciones `e2e-*`, una sesión de prueba y filas temporales en
+  `event_attendances`; el `afterEach` y el barrido global las limpiaron. Además se actualizó
+  `testData.ts` para borrar asistencias de la cuenta suite si una corrida cae a mitad.
+
+### Desviaciones del roadmap
+
+- Ninguna funcional. El slice cubre confirmar, cancelar, contador y persistencia al recargar.
+- No se corrió e2e completa por la restricción acordada: se reserva para el final de todos los
+  slices y en shards.
+
+### Follow-ups
+
+- Slice 3: mostrar al creador la lista de personas que confirmaron asistencia.
+- Al cierre de todos los slices: correr Playwright completo en shards.
+
+### Recap
+
+La ficha de evento ahora tiene dos acciones complementarias: avisar por WhatsApp al creador y
+confirmar asistencia dentro de la plataforma. La confirmación requiere sesión, se guarda en
+`event_attendances`, no duplica por persona, actualiza el contador y sobrevive a reload; cancelar
+borra la fila y baja el contador.
+
+### Próximos pasos (opciones)
+
+- Opción A: avanzar al slice 3 para enseñar la lista de asistentes al creador.
+- Opción B: revisar visualmente la convivencia de los dos CTAs ("Avisar por WhatsApp" y "Voy a
+  asistir") antes de abrir la lista.
+- Opción C: hacer commit del slice 2 ahora y seguir con slice 3 después.
+
+Acción pendiente del usuario: ninguna para este slice; solo decidir si seguimos directo con la lista
+de asistentes o si primero revisas el layout en navegador.

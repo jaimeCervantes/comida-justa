@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Suspense } from "react";
-import { SERVICE_KIND } from "~/domain/entities/post/kind";
+import { EVENT_KIND, SERVICE_KIND } from "~/domain/entities/post/kind";
 import {
   canBeReportedBy,
   canBeViewedBy,
@@ -19,6 +19,7 @@ import { resolveLocale, routing } from "~/i18n/routing";
 import { auth } from "~/infra/auth";
 import { isAdmin } from "~/infra/auth/isAdmin";
 import { readViewerId } from "~/infra/auth/readViewerId";
+import { readEventAttendanceState } from "~/infra/dataAccess/eventAttendances/readEventAttendanceState";
 import { createRouteRepository } from "~/infra/dataAccess/routes/factory";
 import { createBookAppointmentUseCase } from "~/infra/dataAccess/schedule/factory";
 import { storeOfPost } from "~/infra/dataAccess/sellers/PostgresPostStore";
@@ -242,6 +243,10 @@ export default async function Slug({
   /* Los huecos de un servicio, si su tienda declaró horario. Se calculan en el servidor: el cliente
      no sabe el horario del proveedor ni sus ausencias, y no debería. */
   const offeredSlots = await resolveSlots(post);
+  const eventAttendance =
+    post.kind === EVENT_KIND
+      ? await readEventAttendanceState(String(post.id ?? ""), viewerId)
+      : null;
 
   return (
     <section className="sm:flex sm:gap-4 flex-wrap">
@@ -290,6 +295,7 @@ export default async function Slug({
         locale={locale}
         slug={slug}
         distanceMeters={store?.meters ?? null}
+        eventAttendance={eventAttendance}
         bookingSlot={
           offeredSlots.length > 0 ? (
             <SlotPicker

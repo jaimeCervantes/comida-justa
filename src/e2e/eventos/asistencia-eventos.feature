@@ -51,14 +51,22 @@ Feature: Asistencia a eventos
       | Masaje relajante 30 minutos   | servicio | 2781092116 | hidden     |
       | Rodada sin telefono           | evento   |            | visible    |
 
-  @future @slice-2
+  @slice-2
   Scenario: Un usuario confirma y cancela que va a asistir
     Given I am signed in
-    And a published event exists
+    And a published event "Meditacion guiada en el parque" exists at "2027-08-23 07:30" with contact phone "2781092116"
+    When I open the event detail page for "Meditacion guiada en el parque"
+    Then I see a visible "Voy a asistir" action
+    And the attendee count says "Nadie ha confirmado asistencia"
     When I mark that I will attend
-    Then my attendance is counted
+    Then the attendee count says "1 persona va a asistir"
+    And the attendance action says "Ya no voy"
+    When I reload the event detail page
+    Then the attendee count says "1 persona va a asistir"
+    And the attendance action says "Ya no voy"
     When I cancel my attendance
-    Then my attendance is no longer counted
+    Then the attendee count says "Nadie ha confirmado asistencia"
+    And the attendance action says "Voy a asistir"
 
   @future @slice-3
   Scenario: El creador ve la lista de asistentes confirmados

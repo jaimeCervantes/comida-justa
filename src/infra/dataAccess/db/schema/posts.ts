@@ -11,6 +11,7 @@ import {
   uuid,
   vector,
 } from "drizzle-orm/pg-core";
+import { users } from "./auth";
 
 /**
  * Espejo del esquema que administra Alembic en el backend Python (ver `docs/database.md`).
@@ -149,6 +150,33 @@ export const postReports = pgTable(
   (table) => [
     index("ix_post_reports_post_id").on(table.postId),
     unique("post_reports_one_per_person").on(table.postId, table.userId),
+  ],
+);
+
+/**
+ * Asistencias confirmadas a eventos. Espejo de la migración `0046_2026_08_18`.
+ *
+ * **Una fila por persona y publicación**: el contador solo significa algo si una persona no puede
+ * aparecer dos veces en el mismo evento. La sesión da el `user_id`; el formulario solo manda la
+ * intención de cambiar el estado.
+ */
+export const eventAttendances = pgTable(
+  "event_attendances",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    postId: text("post_id")
+      .notNull()
+      .references(() => posts.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    index("ix_event_attendances_post_id").on(table.postId),
+    unique("event_attendances_one_per_person").on(table.postId, table.userId),
   ],
 );
 
