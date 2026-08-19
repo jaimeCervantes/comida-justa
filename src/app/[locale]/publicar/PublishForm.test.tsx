@@ -158,3 +158,18 @@ describe("PublishForm — el campo de archivos", () => {
     expect(document.querySelector('form input[name="media"]')).not.toBeNull();
   });
 });
+
+describe("PublishForm — zona horaria del evento", () => {
+  it("manda la zona del navegador junto a las fechas locales", async () => {
+    renderForm();
+
+    await userEvent.selectOptions(
+      screen.getByRole("combobox", { name: /tipo de publicación/i }),
+      "evento",
+    );
+
+    expect(
+      document.querySelector('form input[name="timeZone"]'),
+    ).not.toBeNull();
+  });
+});

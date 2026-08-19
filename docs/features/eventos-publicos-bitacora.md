@@ -187,36 +187,44 @@ producto, agenda para servicio. Los textos publicos ahora dicen "Productos y ser
 
 ---
 
-## 2026-08-18 - Slice 3: Fechas locales al publicar y editar eventos
+## 2026-08-18 - Slice 3: Fechas por zona del publicador al publicar y editar eventos
 
 ### Objective
 
 Corregir que las fechas de inicio y fin de un evento se guardaran o se mostraran corridas por
-depender de `new Date(datetime-local)`. Ese valor del navegador no trae zona horaria; para la
-comunidad debe leerse como hora local de Veracruz/Cordoba/Orizaba y persistirse como el instante UTC
-equivalente.
+depender de `new Date(datetime-local)`. Ese valor del navegador no trae zona horaria; el formulario
+ahora manda la zona IANA del navegador y la Server Action la usa para convertir a UTC antes de
+persistir.
 
 ### Decisions + rationale
 
-- La conversion quedo en `domain/schedule/localDateTime`, junto a la constante de zona comunitaria.
-  Es logica pura, reutilizable y probada sin depender del timezone de la maquina.
-- Se usa UTC-6 fijo por la misma razon documentada en `timezone.ts`: la comunidad esta en Veracruz y
-  Mexico elimino horario de verano fuera de la frontera norte.
-- Publicar y editar llaman el mismo parser. La edicion tambien usa el formateador inverso para que
-  el input vuelva a mostrar la hora local que la persona espera ver.
+- La conversion quedo en `domain/schedule/localDateTime`. Es logica pura, reutilizable y probada sin
+  depender del timezone de la maquina.
+- `PublishForm` y `EditPostForm` mandan un `timeZone` oculto tomado de
+  `Intl.DateTimeFormat().resolvedOptions().timeZone`. Si no existe o es invalido, se cae a
+  `America/Mexico_City`.
+- Publicar y editar llaman el mismo parser por zona IANA. La edicion tambien usa el formateador
+  inverso para que el input vuelva a mostrar la hora local que corresponde al navegador.
+- La base sigue guardando UTC. El cambio no guarda la zona como columna; solo evita que el servidor
+  interprete el texto local como UTC o como su propia zona.
 - El e2e de tipos de publicacion dejo de convertir con la zona local del runner y ahora compara con
-  la misma hora comunitaria, evitando falsos verdes o falsos rojos segun donde corra Playwright.
+  la misma regla de formato, evitando falsos verdes o falsos rojos segun donde corra Playwright.
 
 ### Files touched
 
 - Dominio:
   - `src/domain/schedule/localDateTime.ts`
   - `src/domain/schedule/localDateTime.test.ts`
+  - `src/domain/schedule/timezone.ts`
 - Publicar y editar:
   - `src/app/[locale]/publicar/actions.ts`
+  - `src/app/[locale]/publicar/PublishForm.tsx`
+  - `src/app/[locale]/publicar/PublishForm.test.tsx`
   - `src/app/[locale]/editar/[slug]/actions.ts`
   - `src/app/[locale]/editar/[slug]/ui/EditPostForm.tsx`
   - `src/app/[locale]/editar/[slug]/ui/EditPostForm.test.tsx`
+- Presentacion compartida:
+  - `src/presentation/post/EventTimeZone/EventTimeZoneField.tsx`
 - E2E y docs:
   - `src/e2e/editPublicationTypes/editPublicationTypes.spec.ts`
   - `docs/features/eventos-publicos.md`
@@ -224,37 +232,39 @@ equivalente.
 
 ### Key commands
 
-- `pnpm exec vitest --run src/domain/schedule/localDateTime.test.ts src/app/[locale]/editar/[slug]/ui/EditPostForm.test.tsx`
-- `pnpm exec biome check src/domain/schedule/localDateTime.ts src/domain/schedule/localDateTime.test.ts src/app/[locale]/publicar/actions.ts src/app/[locale]/editar/[slug]/actions.ts src/app/[locale]/editar/[slug]/ui/EditPostForm.tsx src/app/[locale]/editar/[slug]/ui/EditPostForm.test.tsx src/e2e/editPublicationTypes/editPublicationTypes.spec.ts`
+- `pnpm exec vitest --run src/domain/schedule/localDateTime.test.ts src/app/[locale]/publicar/PublishForm.test.tsx src/app/[locale]/editar/[slug]/ui/EditPostForm.test.tsx`
+- `pnpm exec biome check src/domain/schedule/timezone.ts src/domain/schedule/localDateTime.ts src/domain/schedule/localDateTime.test.ts src/presentation/post/EventTimeZone/EventTimeZoneField.tsx src/app/[locale]/publicar/PublishForm.tsx src/app/[locale]/publicar/PublishForm.test.tsx src/app/[locale]/publicar/actions.ts src/app/[locale]/editar/[slug]/actions.ts src/app/[locale]/editar/[slug]/ui/EditPostForm.tsx src/app/[locale]/editar/[slug]/ui/EditPostForm.test.tsx`
 - `pnpm run test:run`
 - `pnpm run typecheck`
 - `pnpm run lint`
 
 ### Validation results
 
-- Vitest focal: 2 files, 9 tests passed.
-- Vitest completo: 190 files, 1954 tests passed.
+- Vitest focal: 3 files, 24 tests passed.
+- Vitest completo: 190 files, 1961 tests passed.
 - Typecheck: passed.
-- Lint: 934 files checked.
+- Lint: 935 files checked.
 - E2E completo: no corrido por instruccion previa del usuario; queda para el cierre de todos los
   slices o en shards cuando se pida.
 
 ### Deviations from roadmap
 
-- Este fue un slice correctivo detectado despues de la entrega de eventos publicos y asistencia. No
-  agrego migraciones ni cambia el contrato de base de datos.
+- Este fue un slice correctivo detectado despues de la entrega de eventos publicos y asistencia.
+- La primera version asumio zona comunitaria fija. Se corrigio en el mismo slice a zona del
+  publicador porque el `datetime-local` expresa la hora elegida por la persona en su navegador.
+- No agrego migraciones ni cambia el contrato de base de datos.
 
 ### Follow-ups
 
-- Si despues se soportan comunidades fuera de Veracruz/Cordoba/Orizaba, mover el offset comunitario
-  a configuracion por vendedor o por publicacion.
+- Si despues se necesita mostrar siempre la hora original del publicador a cualquier visitante,
+  persistir `event_time_zone` en `posts`. Hoy solo se usa para convertir al guardar/editar.
 - Correr el shard e2e de edicion de tipos cuando se habilite la validacion e2e por shards.
 
 ### Recap
 
-Publicar y editar eventos ya leen `datetime-local` como hora local comunitaria y guardan el instante
-UTC correcto. Reabrir un evento para editarlo vuelve a mostrar la hora que la persona habia elegido,
-sin corrimientos por zona del servidor, navegador o runner de pruebas.
+Publicar y editar eventos ya leen `datetime-local` con la zona del navegador y guardan el instante
+UTC correcto. Un evento publicado desde `America/Mexico_City` para viernes 22 a las 05:59 queda como
+viernes 22 a las 11:59Z en la base, no como jueves 21 a las 23:59 al mostrarse en Mexico.
 
 ### Próximos pasos (opciones)
 

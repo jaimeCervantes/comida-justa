@@ -5,7 +5,7 @@ import { parsePostMediaPayload } from "~/domain/entities/post/mediaPayload";
 import { resolveOriginForUser } from "~/domain/entities/post/origin";
 import { resolveKeyStrict } from "~/domain/entities/post/taxonomy";
 import type { User } from "~/domain/entities/post/types";
-import { parseCommunityDateTimeLocal } from "~/domain/schedule/localDateTime";
+import { parseDateTimeLocalInTimeZone } from "~/domain/schedule/localDateTime";
 import PostValidator from "~/domain/schemas/PostValidator";
 import { redirectKeepingLocale } from "~/i18n/redirectKeepingLocale";
 import { auth } from "~/infra/auth";
@@ -95,6 +95,7 @@ export async function updatePost(
     createPostAdminRepository(),
     new PostValidator(),
   );
+  const timeZone = formData.get("timeZone");
 
   const result = await useCase.execute({
     userId,
@@ -105,8 +106,8 @@ export async function updatePost(
     origin,
     category,
     subCategory,
-    startsAt: parseCommunityDateTimeLocal(formData.get("startsAt")),
-    endsAt: parseCommunityDateTimeLocal(formData.get("endsAt")),
+    startsAt: parseDateTimeLocalInTimeZone(formData.get("startsAt"), timeZone),
+    endsAt: parseDateTimeLocalInTimeZone(formData.get("endsAt"), timeZone),
     durationMinutes: readPositiveInt(formData.get("durationMinutes")),
     media,
   });

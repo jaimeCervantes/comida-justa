@@ -19,3 +19,6 @@
  * parámetro en vez de leer esta constante por su cuenta.
  */
 export const COMMUNITY_UTC_OFFSET_MINUTES = -360;
+
+/** Zona comunitaria por defecto cuando el navegador no puede informar la suya. */
+export const COMMUNITY_TIME_ZONE = "America/Mexico_City";

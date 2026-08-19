@@ -4,7 +4,7 @@ import { useActionState, useState } from "react";
 import { MdOutlinePriceChange, MdTitle } from "react-icons/md";
 import { EVENT_KIND, SERVICE_KIND } from "~/domain/entities/post/kind";
 import type { CategoryOption } from "~/domain/entities/post/taxonomy";
-import { formatCommunityDateTimeLocal } from "~/domain/schedule/localDateTime";
+import { formatDateTimeLocalInTimeZone } from "~/domain/schedule/localDateTime";
 import { Link } from "~/i18n/navigation";
 import { POST_CONTENT_MAX_LENGTH } from "~/infra/constants";
 import { originOptionsFor } from "~/infra/UI/labels/postOriginLabels";
@@ -15,6 +15,9 @@ import { TextField } from "~/presentation/design_system/forms/TextField";
 import PostMediaField, {
   type PostMediaFieldItem,
 } from "~/presentation/media/PostMediaField/PostMediaField";
+import EventTimeZoneField, {
+  useBrowserTimeZone,
+} from "~/presentation/post/EventTimeZone/EventTimeZoneField";
 import type { EditPostState } from "../actions";
 
 export type EditablePostValues = {
@@ -63,6 +66,7 @@ export default function EditPostForm({
     FormData
   >(action, {});
   const [category, setCategory] = useState<string>(post.category ?? "");
+  const timeZone = useBrowserTimeZone();
 
   const isProduct = post.kind === "producto";
   const isEvent = post.kind === EVENT_KIND;
@@ -172,18 +176,27 @@ export default function EditPostForm({
 
         {isEvent ? (
           <div className="mb-6 grid gap-4 sm:grid-cols-2">
+            <EventTimeZoneField timeZone={timeZone} />
             <TextField
+              key={`startsAt-${timeZone}`}
               required
               name="startsAt"
               type="datetime-local"
               label={tPublish("startsAt")}
-              defaultValue={formatCommunityDateTimeLocal(post.startsAt)}
+              defaultValue={formatDateTimeLocalInTimeZone(
+                post.startsAt,
+                timeZone,
+              )}
             />
             <TextField
+              key={`endsAt-${timeZone}`}
               name="endsAt"
               type="datetime-local"
               label={tPublish("endsAt")}
-              defaultValue={formatCommunityDateTimeLocal(post.endsAt)}
+              defaultValue={formatDateTimeLocalInTimeZone(
+                post.endsAt,
+                timeZone,
+              )}
             />
           </div>
         ) : null}

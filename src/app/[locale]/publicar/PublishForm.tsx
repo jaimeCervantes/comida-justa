@@ -13,6 +13,9 @@ import { Select } from "~/presentation/design_system/forms/Select";
 import { TextArea } from "~/presentation/design_system/forms/TextArea";
 import { TextField } from "~/presentation/design_system/forms/TextField";
 import PostMediaField from "~/presentation/media/PostMediaField/PostMediaField";
+import EventTimeZoneField, {
+  useBrowserTimeZone,
+} from "~/presentation/post/EventTimeZone/EventTimeZoneField";
 import RouteFileField from "./ui/RouteFileField";
 
 export default function PublishForm({
@@ -50,6 +53,7 @@ export default function PublishForm({
   const [origin, setOrigin] = useState<string>("");
   const [category, setCategory] = useState<string>("");
   const [isLoadingMedia, setIsLoadingMedia] = useState<boolean | null>(null);
+  const timeZone = useBrowserTimeZone();
 
   return (
     <section className="p-4">
@@ -171,6 +175,7 @@ export default function PublishForm({
             caduca en su hora de inicio (ver `domain/entities/post/event.ts`). */}
         {kind === "evento" ? (
           <div className="mb-6 grid gap-4 sm:grid-cols-2">
+            <EventTimeZoneField timeZone={timeZone} />
             <TextField
               required
               name="startsAt"

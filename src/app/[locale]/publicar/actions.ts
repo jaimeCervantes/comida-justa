@@ -16,7 +16,7 @@ import type { User } from "~/domain/entities/post/types";
 import RouteFileError, {
   type RouteFileProblem,
 } from "~/domain/errors/RouteFileError";
-import { parseCommunityDateTimeLocal } from "~/domain/schedule/localDateTime";
+import { parseDateTimeLocalInTimeZone } from "~/domain/schedule/localDateTime";
 import PostValidator from "~/domain/schemas/PostValidator";
 import getErrorMessage from "~/domain/shared/getErrorMessage";
 import { redirectKeepingLocale } from "~/i18n/redirectKeepingLocale";
@@ -227,13 +227,14 @@ export async function createPost(
 
   /* Las fechas solo se leen en un evento. En lo demás viajan como `null` a propósito: afirmar que
      un producto no ocurre a una hora es distinto de dejarlo sin decidir. */
+  const timeZone = formData.get("timeZone");
   const startsAt =
     kind === "evento"
-      ? parseCommunityDateTimeLocal(formData.get("startsAt"))
+      ? parseDateTimeLocalInTimeZone(formData.get("startsAt"), timeZone)
       : null;
   const endsAt =
     kind === "evento"
-      ? parseCommunityDateTimeLocal(formData.get("endsAt"))
+      ? parseDateTimeLocalInTimeZone(formData.get("endsAt"), timeZone)
       : null;
 
   /* La duración solo se lee en un servicio. En lo demás viaja como `null`: un producto no dura, y

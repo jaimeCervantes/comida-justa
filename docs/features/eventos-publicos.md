@@ -57,23 +57,26 @@ Checkpoint de revision escrito el 2026-08-18.
 4. Los filtros por pilar siguen funcionando sobre productos y servicios.
 5. Los textos y metadatos ya no prometen solo productos.
 
-## Slice 3 - Fechas de evento respetan la hora local comunitaria *(entregado 2026-08-18)*
+## Slice 3 - Fechas de evento respetan la zona del publicador *(entregado 2026-08-18)*
 
 ### Alcance
 
-- Interpretar `datetime-local` de publicar y editar como hora local de la comunidad, no como zona
+- Interpretar `datetime-local` de publicar y editar con la zona IANA del navegador, no como zona
   del servidor.
 - Guardar en PostgreSQL el instante UTC equivalente.
-- Mostrar en el formulario de edicion la hora comunitaria original del evento.
+- Mostrar en el formulario de edicion la hora correspondiente a la zona del navegador.
 - Mantener el modelo actual de `starts_at` y `ends_at`; no hay migracion ni cambio de columnas.
+- Usar `America/Mexico_City` solo como fallback cuando el navegador no informa una zona valida.
 
 ### Criterios de aceptacion
 
-1. Publicar un evento con inicio `2027-08-23T07:30` guarda `2027-08-23T13:30:00.000Z`.
-2. Editar un evento con inicio `2027-08-23T07:30` guarda el mismo instante UTC equivalente.
-3. Reabrir la edicion de un evento guardado a `2027-08-23T13:30:00.000Z` muestra
-   `2027-08-23T07:30`.
-4. Fechas invalidas del formulario siguen contando como ausentes y disparan la validacion existente.
+1. Publicar un evento con inicio `2026-05-22T05:59` desde `America/Mexico_City` guarda
+   `2026-05-22T11:59:00.000Z`.
+2. Publicar el mismo valor desde `UTC` guarda `2026-05-22T05:59:00.000Z`.
+3. Editar un evento con inicio `2027-08-23T07:30` guarda el instante UTC equivalente a la zona del
+   navegador.
+4. Reabrir la edicion de un evento muestra su hora local en la zona del navegador.
+5. Fechas invalidas del formulario siguen contando como ausentes y disparan la validacion existente.
 
 ## Fuera de alcance
 
