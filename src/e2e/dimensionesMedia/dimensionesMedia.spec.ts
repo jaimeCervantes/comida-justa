@@ -13,127 +13,156 @@ import { expect, type Locator, type Page, test } from "@playwright/test";
  * Se usan publicaciones **reales**, no sembradas: ya tienen dimensiones en `post_media` y sus
  * imágenes cargan de verdad, así que se puede medir el hueco pintado y no solo leer atributos.
  * `seedPost` no escribe dimensiones, así que sembrar habría probado el caso contrario.
+ *
+ * **Ningún escenario nombra una publicación ni una página**, y esto costó dos intentos:
+ *
+ * 1. Fijar el producto y su página. Se sembró una segunda tienda, el producto se corrió de sitio y
+ *    el escenario se puso rojo por dónde quedó, no por lo que prueba.
+ * 2. Recorrer el catálogo hasta encontrar ese producto. Es la misma trampa con más pasos: el
+ *    recorrido preguntaba con `count()`, que **no espera a nada**, así que una página aún a medio
+ *    pintar contestaba cero y el producto se quedaba atrás para siempre —«no se encontró en las
+ *    primeras 6 páginas» cuando estaba en la segunda—. Y el tope de páginas es una fecha de
+ *    caducidad: el catálogo crece y el tamaño de página cambia con el entorno (9 en local, 4 en CI,
+ *    que corre sin ningún `.env`).
+ *
+ * Así que se mira **la primera página, la que siempre existe**, y se afirma de las fotos que salgan
+ * en ella lo que la funcionalidad promete de cualquiera: que el hueco pintado tiene la forma del
+ * archivo. Publicar más no mueve nada de sitio porque ya no hay ningún sitio fijado.
  */
-const VERTICAL = {
-  slug: "jugo-verde",
-  title: "Jugo Verde",
-  width: 1200,
-  height: 1600,
-};
+const CATALOGO = "/productos";
+
 /** Las dos formas que conviven en el catálogo real: 5 verticales y 4 apaisadas por página. */
 const RATIO_MINIMO_ENTRE_FORMAS = 1.4;
 
 /**
- * Cuántas páginas del catálogo se recorren como mucho.
+ * Cuánto puede alejarse el hueco pintado de la proporción que declara el archivo.
  *
- * **Ningún escenario puede fijar en qué página cae un producto.** El tamaño de página cambia con el
- * entorno —9 en local, 4 en CI, que corre sin ningún `.env`— y el catálogo crece: "Jugo Verde"
- * estaba en la primera página hasta que se sembró una segunda tienda con dos productos, y a partir
- * de ahí el escenario se ponía rojo por dónde quedó el producto, no por lo que prueba. Se recorre
- * hasta encontrarlo, y el tope solo existe para que un fallo no se convierta en un bucle.
+ * No es cero por el redondeo a píxeles: una columna de 300 px pintando un 1200x1600 da 400 px de
+ * alto, pero el ancho real lleva decimales. Un 2% distingue de sobra «guarda la proporción» de lo
+ * que hacía el fallo original, que metía cualquier foto en un cuadrado —un 36% de recorte—.
  */
-const MAX_PAGINAS_DEL_CATALOGO = 6;
+const TOLERANCIA_DE_PROPORCION = 0.02;
 
-function urlDePagina(numero: number): string {
-  return numero === 1 ? "/productos" : `/productos/page/${numero}`;
+/** Una foto del listado que sí declara sus dimensiones, con lo que hace falta para juzgarla. */
+type FotoDelListado = {
+  imagen: Locator;
+  /** A dónde lleva su tarjeta. Es como se abre la ficha de **esa misma** foto, sin nombrarla. */
+  ficha: string;
+  /** Lo que dice el archivo, en los atributos `width`/`height`. */
+  declarada: { ancho: number; alto: number };
+  /** Lo que ocupa de verdad en la pantalla. */
+  pintada: { ancho: number; alto: number };
+};
+
+/**
+ * Abre el catálogo y espera a que sus fotos estén pintadas.
+ *
+ * La espera es `toBeVisible` y no `count() > 0` a propósito: las aserciones de Playwright
+ * reintentan y `count()` es una foto fija del momento en que se llama. Toda la fragilidad de la
+ * versión anterior salía de preguntar sin esperar.
+ *
+ * Se espera una imagen **con** dimensiones, que es justo lo que estos escenarios miden. Si ningún
+ * camino de lectura las entregara —la regresión que se persigue—, aquí no habría ninguna y el
+ * fallo diría exactamente eso.
+ */
+async function abrirCatalogo(page: Page): Promise<void> {
+  await page.goto(CATALOGO);
+
+  await expect(page.getByTestId("media-image-sized").first()).toBeVisible();
+}
+
+/** Las fotos con dimensiones de la primera página, medidas. */
+async function fotosDelListado(page: Page): Promise<FotoDelListado[]> {
+  const fotos: FotoDelListado[] = [];
+
+  for (const imagen of await page.getByTestId("media-image-sized").all()) {
+    const caja = await imagen.boundingBox();
+
+    if (!caja) continue;
+
+    fotos.push({
+      imagen,
+      // El enlace que envuelve la foto en la tarjeta: el mismo que sigue quien pincha.
+      ficha:
+        (await imagen.locator("xpath=ancestor::a[1]").getAttribute("href")) ??
+        "",
+      declarada: {
+        ancho: Number(await imagen.getAttribute("width")),
+        alto: Number(await imagen.getAttribute("height")),
+      },
+      pintada: { ancho: caja.width, alto: caja.height },
+    });
+  }
+
+  return fotos;
 }
 
 /**
- * Abre esa página del catálogo y espera a que sus tarjetas estén pintadas. `false` si no existe.
+ * La primera foto vertical del catálogo, sea cual sea.
  *
- * La espera no es de adorno: `count()` **no espera a nada**, así que sin ella se cuenta sobre una
- * página a medio pintar y la tarjeta buscada "no está" aunque llegue medio segundo después. El
- * escenario original no lo necesitaba porque `expect(...).toHaveAttribute` sí espera.
+ * Si un día la primera página no trae ninguna, el fallo lo dice con esas palabras: es una
+ * condición de los datos, no una regresión de la funcionalidad, y conviene no confundirlas.
  */
-async function abrirPaginaDelCatalogo(
-  page: Page,
-  numero: number,
-): Promise<boolean> {
-  const response = await page.goto(urlDePagina(numero));
+async function primeraFotoVertical(page: Page): Promise<FotoDelListado> {
+  await abrirCatalogo(page);
 
-  // Pasada la última página, la ruta responde 404: ahí se acaba el catálogo.
-  if (response?.status() === 404) return false;
-
-  await page.getByTestId("media-image-sized").first().waitFor();
-
-  return true;
-}
-
-/** La imagen dentro de la tarjeta de esa publicación, en un listado. */
-function cardImage(page: Page, title: string): Locator {
-  return page
-    .locator("article")
-    .filter({ hasText: title })
-    .getByTestId("media-image-sized");
-}
-
-/** Abre el catálogo por donde esté esa publicación y devuelve su imagen. */
-async function abrirCatalogoCon(page: Page, title: string): Promise<Locator> {
-  for (let numero = 1; numero <= MAX_PAGINAS_DEL_CATALOGO; numero++) {
-    if (!(await abrirPaginaDelCatalogo(page, numero))) break;
-
-    const image = cardImage(page, title);
-
-    if ((await image.count()) > 0) return image;
-  }
-
-  throw new Error(
-    `No se encontró "${title}" en las primeras ${MAX_PAGINAS_DEL_CATALOGO} ` +
-      "páginas de /productos. ¿Sigue publicado y disponible?",
+  const fotos = await fotosDelListado(page);
+  const vertical = fotos.find(
+    (foto) => foto.declarada.alto > foto.declarada.ancho,
   );
-}
 
-/**
- * El alto pintado de cada imagen con dimensiones conocidas del listado.
- *
- * Se recorre el catálogo entero en vez de fijar dos productos concretos: lo que se afirma no es qué
- * productos hay, sino que **conviven formas distintas**.
- */
-async function alturasDelListado(page: Page): Promise<number[]> {
-  const alturas: number[] = [];
-
-  for (let numero = 1; numero <= MAX_PAGINAS_DEL_CATALOGO; numero++) {
-    if (!(await abrirPaginaDelCatalogo(page, numero))) break;
-
-    for (const imagen of await page.getByTestId("media-image-sized").all()) {
-      const box = await imagen.boundingBox();
-
-      if (box?.height) alturas.push(box.height);
-    }
+  if (!vertical) {
+    throw new Error(
+      `Ninguna de las ${fotos.length} fotos con dimensiones de ${CATALOGO} es vertical. ` +
+        "El escenario necesita una para medirla; esto es un dato del catálogo, no un fallo del sitio.",
+    );
   }
 
-  return alturas;
+  return vertical;
+}
+
+/** Cuánto se aleja el hueco pintado de la forma del archivo, en tanto por uno. */
+function desvioDeProporcion(foto: FotoDelListado): number {
+  const declarada = foto.declarada.alto / foto.declarada.ancho;
+  const pintada = foto.pintada.alto / foto.pintada.ancho;
+
+  return Math.abs(pintada / declarada - 1);
 }
 
 test.describe("Cuando una foto vertical sale en un listado", () => {
   test("Entonces se enseña entera, con la proporción del archivo", async ({
     page,
   }) => {
-    const image = await abrirCatalogoCon(page, VERTICAL.title);
+    const foto = await primeraFotoVertical(page);
 
-    /* El testid es el que distingue los dos tratos: `sized` significa que se declararon las
-       dimensiones reales, y `unsized` que se cayó al cuadrado de 1000x1000 con `object-cover`. */
-    await expect(image).toHaveAttribute("width", String(VERTICAL.width));
-    await expect(image).toHaveAttribute("height", String(VERTICAL.height));
-
-    // Y el hueco pintado guarda esa proporción: más alto que ancho, no un cuadrado recortado.
-    const box = await image.boundingBox();
-
-    expect(box).not.toBeNull();
-    expect(box?.height ?? 0).toBeGreaterThan(box?.width ?? 0);
+    /* El hueco pintado guarda la proporción del archivo: más alto que ancho, no un cuadrado
+       recortado. El testid ya distingue los dos tratos —`sized` significa que se declararon las
+       dimensiones reales, y `unsized` que se cayó al cuadrado de 1000x1000 con `object-cover`—,
+       pero declararlas no basta: lo que se afirma aquí es lo que se ve. */
+    expect(foto.pintada.alto).toBeGreaterThan(foto.pintada.ancho);
+    expect(desvioDeProporcion(foto)).toBeLessThan(TOLERANCIA_DE_PROPORCION);
   });
 
   test("Entonces la misma foto también se enseña entera en su ficha", async ({
     page,
   }) => {
-    await page.goto(`/${VERTICAL.slug}`);
+    // «La misma» de verdad: se entra por el enlace de su tarjeta, no por un slug escrito aquí.
+    const foto = await primeraFotoVertical(page);
 
-    const image = page
+    await page.goto(foto.ficha);
+
+    const enLaFicha = page
       .getByTestId("post-detail")
       .getByTestId("media-image-sized");
 
-    await expect(image).toHaveAttribute("width", String(VERTICAL.width));
-    await expect(image).toHaveAttribute("height", String(VERTICAL.height));
+    await expect(enLaFicha).toHaveAttribute(
+      "width",
+      String(foto.declarada.ancho),
+    );
+    await expect(enLaFicha).toHaveAttribute(
+      "height",
+      String(foto.declarada.alto),
+    );
   });
 });
 
@@ -141,7 +170,11 @@ test.describe("Cuando en un listado conviven formas distintas", () => {
   test("Entonces no todas las tarjetas miden lo mismo de alto", async ({
     page,
   }) => {
-    const alturas = await alturasDelListado(page);
+    await abrirCatalogo(page);
+
+    const alturas = (await fotosDelListado(page)).map(
+      (foto) => foto.pintada.alto,
+    );
 
     // Si esto falla, o no llegan las dimensiones o el catálogo perdió una de las dos formas.
     expect(alturas.length).toBeGreaterThan(1);
