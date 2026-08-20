@@ -34,7 +34,7 @@ export default function MindGroundingAndBreath(): React.ReactNode {
       <p className="mb-6">{t("groundingIntro")}</p>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <div className={`rounded-2xl border p-6 ${color.bg} ${color.border}`}>
+        <div className={`rounded-card border p-6 ${color.bg} ${color.border}`}>
           <Heading level={3} size="xs">
             {t("groundingOutdoorTitle")}
           </Heading>
@@ -43,7 +43,7 @@ export default function MindGroundingAndBreath(): React.ReactNode {
           </p>
         </div>
 
-        <div className={`rounded-2xl border p-6 ${color.bg} ${color.border}`}>
+        <div className={`rounded-card border p-6 ${color.bg} ${color.border}`}>
           <Heading level={3} size="xs">
             {t("groundingBreathTitle")}
           </Heading>
@@ -59,7 +59,7 @@ export default function MindGroundingAndBreath(): React.ReactNode {
       </div>
 
       <p
-        className={`mt-3 rounded-2xl border border-dashed p-5 text-base leading-relaxed ${color.border}`}
+        className={`mt-3 rounded-card border border-dashed p-5 text-base leading-relaxed ${color.border}`}
       >
         {t("groundingBreathNote")}
       </p>

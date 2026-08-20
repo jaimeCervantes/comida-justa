@@ -48,10 +48,7 @@ export default function AddBranchForm({
   return (
     <AccountCard title={t("addBranchTitle")} intro={t("addBranchIntro")}>
       {state.errorMessage ? (
-        <p
-          data-testid="add-branch-error"
-          className="mb-4 text-red-700 dark:text-red-400"
-        >
+        <p data-testid="add-branch-error" className="mb-4 text-brand-clay-700">
           {state.errorMessage}
         </p>
       ) : null}

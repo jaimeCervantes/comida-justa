@@ -5,7 +5,7 @@ import { Text } from "~/presentation/design_system/typography/Text";
  * La cabecera de una página legal: título, subtítulo y fecha de última actualización.
  *
  * Estaba escrita dos veces, carácter por carácter, en `/condiciones-de-servicio` y
- * `/politica-de-privacidad`, con la escala tipográfica y la pareja `text-zinc-* dark:text-zinc-*`
+ * `/politica-de-privacidad`, con la escala tipográfica y la pareja `text-text-support-* dark:text-text-support-*`
  * copiadas a mano en cada una.
  */
 export default function LegalPageHeader({

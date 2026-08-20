@@ -17,7 +17,7 @@ import { getHabitPublicTheme } from "./habitPublicThemes";
  */
 const SCALES = {
   full: {
-    article: "rounded-3xl p-6 sm:p-8",
+    article: "rounded-panel p-6 sm:p-8",
     symbol: "-right-8 -top-10 text-[9rem]",
     header: "items-start gap-4",
     avatarRing: "p-1 ring-4",
@@ -32,7 +32,7 @@ const SCALES = {
     count: "text-sm",
   },
   compact: {
-    article: "rounded-2xl p-4",
+    article: "rounded-card p-4",
     symbol: "-right-5 -top-6 text-[5rem]",
     header: "flex-col items-start gap-2",
     avatarRing: "p-0.5 ring-2",
@@ -173,7 +173,7 @@ export default async function PublicHabitCelebrationCard({
                 />
                 <button
                   type="submit"
-                  className={`focus-ring rounded-full border bg-surface-base font-bold ${scale.button} ${theme.border} ${theme.ink}`}
+                  className={`focus-ring rounded-full border bg-surface-elevation-1 font-bold ${scale.button} ${theme.border} ${theme.ink}`}
                 >
                   {celebration.viewerReacted
                     ? habitT("experienceCommon.reactionWithdraw")

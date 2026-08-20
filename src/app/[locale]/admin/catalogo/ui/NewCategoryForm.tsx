@@ -42,10 +42,7 @@ export default function NewCategoryForm({ roots }: NewCategoryFormProps) {
       ) : null}
 
       {state.errors.form ? (
-        <p
-          data-testid="catalogo-error"
-          className="mb-3 text-red-700 dark:text-red-400"
-        >
+        <p data-testid="catalogo-error" className="mb-3 text-brand-clay-700">
           {state.errors.form}
         </p>
       ) : null}

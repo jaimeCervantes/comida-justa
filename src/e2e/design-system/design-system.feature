@@ -565,20 +565,49 @@ Feature: Un design system que habla como la marca
     And nada se mueve más de 4px, que es la regla del sistema
 
   # ---------------------------------------------------------------------------
-  # Slice 13 — Publicar, detalle y tienda  (futuro)
-  # También repintado. El asistente de tres pasos que propone la sección 5.3 del
-  # documento es UX nueva y queda FUERA: se acordó no cambiar comportamiento.
+  # Slice 13 — Las pantallas que quedaban, y las clases que no existían  (actual)
+  #
+  # El asistente de tres pasos que propone la sección 5.3 del documento es UX nueva y quedó FUERA
+  # por acuerdo: esto es repintado.
   # ---------------------------------------------------------------------------
 
-  @slice-13 @future
-  Scenario: El formulario de publicar se repinta sin partirse en pasos
+  # El hallazgo del slice, y la razón por la que verificar en el CSS compilado no es opcional.
+  @slice-13 @component
+  Scenario Outline: Una clase que no existe no falla: desaparece
+    Given "<clase>", escrita en "<cuantos>" sitios
+    When Tailwind compila, y no encuentra ningún token con ese nombre
+    Then no emite ninguna regla
+    And el elemento se queda sin "<efecto>" sin que nada avise
+
+    Examples: el token existía con otro nombre — `surface-background`, no `surface-base`
+      | clase           | cuantos | efecto     |
+      | bg-surface-base | 9       | fondo      |
+      | ring-focus      | 1       | anillo     |
+
+  @slice-13 @component
+  Scenario: Las superficies se quedan solo con la escala que tiene nombre
+    Given las variantes md, lg, xl y 2xl que Surface heredaba de Tailwind
+    When las doce superficies que aún las pedían migran a chip, control, card y panel
+    Then esas cuatro variantes se retiran
+    And una variante que ya no usa nadie deja de ser una decisión que se pueda tomar por error
+
+  @slice-13 @component
+  Scenario: El relleno negro deja de ser negro en oscuro
+    Given un botón "black" sobre el papel oscuro
+    When se mide su silueta
+    Then #1b1e18 sobre #101410 contrasta 1.10 y el botón pierde su forma
+    And sube un escalón hasta despegarse, con su etiqueta blanca a 13.19 identificándolo
+
+  @slice-13
+  Scenario: Publicar, detalle y tienda se repintan sin partirse en pasos
     Given el formulario de /publicar tal como está hoy, en una sola página
     When adopta los campos, botones y avisos de v2
     Then sigue siendo una sola página con los mismos campos y las mismas validaciones
     And los specs de publishProduct, filtroAlPublicar y validacionFormularios siguen verdes
 
-  @slice-13 @future
-  Scenario: La ficha y la tienda estrenan la jerarquía de v2
-    Given la ficha de una publicación y la portada de una tienda
-    When adoptan la escala tipográfica y los radios nuevos
-    Then el título pesa más que sus secciones, como fijó el slice 7
+  @slice-13 @component
+  Scenario: Las páginas de contenido dejan de tener paleta propia
+    Given nosotros y las dos legales, pintadas con azules, ámbares y zincs de Tailwind
+    When adoptan las rampas del sistema
+    Then el azul de la misión pasa al pilar Mente y Espíritu, el ámbar a la miel y el naranja al barro
+    And no queda una sola paleta cruda en producción

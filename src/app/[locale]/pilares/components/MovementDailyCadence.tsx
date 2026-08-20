@@ -52,7 +52,7 @@ export default function MovementDailyCadence(): React.ReactNode {
         {tiers.map((tier) => (
           <li
             key={tier.frequency}
-            className={`rounded-2xl border p-5 ${color.bg} ${color.border}`}
+            className={`rounded-card border p-5 ${color.bg} ${color.border}`}
           >
             <span
               className={`block text-sm font-black uppercase tracking-[0.15em] ${color.text}`}
@@ -68,7 +68,7 @@ export default function MovementDailyCadence(): React.ReactNode {
       </ol>
 
       <p
-        className={`mt-3 rounded-2xl border border-dashed p-5 text-base leading-relaxed ${color.border}`}
+        className={`mt-3 rounded-card border border-dashed p-5 text-base leading-relaxed ${color.border}`}
       >
         {t("cadenceMoreNote")}
       </p>

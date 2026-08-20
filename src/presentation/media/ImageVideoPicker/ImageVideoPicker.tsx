@@ -6,7 +6,7 @@ import styles from "./ImageVideoPicker.module.css";
 import type { ImageVideoPickerProps } from "./types";
 
 export const errorClassName =
-  "pt-1 flex items-center gap-1 text-red-700 dark:text-red-400";
+  "pt-1 flex items-center gap-1 text-brand-clay-700";
 
 export default function ImagePicker({
   label,

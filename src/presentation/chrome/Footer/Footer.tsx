@@ -115,7 +115,7 @@ export default function Footer() {
                 href="https://t.me/HazloSanoBot"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-blue-500 transition-colors flex items-center gap-2"
+                className="hover:text-highlight transition-colors flex items-center gap-2"
               >
                 {t("telegram")}
               </a>
@@ -145,7 +145,7 @@ export default function Footer() {
                 href="https://fb.com/hazlo.sano.comunidad"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-blue-600 transition-colors flex items-center gap-2"
+                className="hover:text-highlight transition-colors flex items-center gap-2"
               >
                 {t("facebook")}
               </a>

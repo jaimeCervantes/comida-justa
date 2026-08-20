@@ -57,7 +57,7 @@ export default function NutritionPlateTriad(): React.ReactNode {
         {slices.map((slice) => (
           <li
             key={slice.title}
-            className={`grow ${slice.width} rounded-2xl border p-5 ${color.bg} ${color.border}`}
+            className={`grow ${slice.width} rounded-card border p-5 ${color.bg} ${color.border}`}
           >
             <span className={`block text-3xl font-black ${color.text}`}>
               {slice.share}
@@ -71,7 +71,7 @@ export default function NutritionPlateTriad(): React.ReactNode {
       </ul>
 
       <div
-        className={`mt-2 rounded-2xl border border-dashed p-5 ${color.border}`}
+        className={`mt-2 rounded-card border border-dashed p-5 ${color.border}`}
       >
         <span className={`block text-2xl font-black ${color.text}`}>
           {t("triadFatShare")}

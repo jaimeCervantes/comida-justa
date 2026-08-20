@@ -60,7 +60,7 @@ export default async function TermsOfServicePage({
         lastUpdate={t("lastUpdate", { date: lastUpdateDate })}
       />
 
-      <div className="prose prose-sm sm:prose-base md:prose-lg prose-zinc dark:prose-invert max-w-none text-zinc-700 dark:text-zinc-300 space-y-8 sm:space-y-10">
+      <div className="prose prose-sm sm:prose-base md:prose-lg prose-zinc dark:prose-invert max-w-none text-text-support space-y-8 sm:space-y-10">
         <p className="text-base sm:text-lg leading-relaxed font-medium">
           {t("intro")}
         </p>
@@ -76,9 +76,7 @@ export default async function TermsOfServicePage({
             <li>{t("section1.items.2")}</li>
             <li>{t("section1.items.3")}</li>
           </ul>
-          <p className="text-zinc-800 dark:text-zinc-200 font-medium">
-            {t("section1.outro")}
-          </p>
+          <p className="text-text-base font-medium">{t("section1.outro")}</p>
         </section>
 
         <section>
@@ -90,8 +88,8 @@ export default async function TermsOfServicePage({
             <li>{t("section2.items.1")}</li>
             <li>{t("section2.items.2")}</li>
           </ul>
-          <div className="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 p-4 rounded-r-lg">
-            <p className="text-red-800 dark:text-red-300 text-sm font-medium m-0">
+          <div className="bg-feedback-error-soft border-l-4 border-feedback-error-ink/30 p-4 rounded-r-lg">
+            <p className="text-brand-clay-700 text-sm font-medium m-0">
               {t("section2.warning")}
             </p>
           </div>
@@ -119,8 +117,8 @@ export default async function TermsOfServicePage({
             <li>{t("section4.items.1")}</li>
             <li>{t("section4.items.2")}</li>
           </ul>
-          <div className="bg-amber-50 dark:bg-amber-900/20 border-l-4 border-amber-500 p-4 rounded-r-lg">
-            <p className="text-amber-800 dark:text-amber-300 text-sm font-medium m-0">
+          <div className="bg-feedback-warning-soft border-l-4 border-feedback-warning-ink/30 p-4 rounded-r-lg">
+            <p className="text-feedback-warning-ink text-sm font-medium m-0">
               {t("section4.outro")}
             </p>
           </div>
@@ -158,7 +156,7 @@ export default async function TermsOfServicePage({
             /* Sin el prefijo de idioma escrito a mano: lo pone `Link` de `~/i18n/navigation`,
                que además elige la dirección que toca en cada idioma. */
             href="/politica-de-privacidad"
-            className="text-blue-600 dark:text-blue-400 font-medium hover:underline inline-flex items-center gap-1"
+            className="text-highlight font-medium hover:underline inline-flex items-center gap-1"
           >
             {t("section8.linkText")}
             <svg
@@ -198,16 +196,16 @@ export default async function TermsOfServicePage({
             {t("section11.title")}
           </LegalSectionHeading>
           <p className="mb-4">{t("section11.intro")}</p>
-          <div className="bg-zinc-100 dark:bg-zinc-800/30 rounded-xl p-8 border border-zinc-100 dark:border-zinc-800">
+          <div className="bg-surface-elevation-2 rounded-control p-8 border border-separator">
             <div>
-              <strong className="block text-zinc-900 dark:text-zinc-100">
+              <strong className="block text-text-base">
                 {t("section11.companyName")}
               </strong>
             </div>
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-6 mt-4">
               <a
                 href="mailto:contacto@hazlosano.com"
-                className="flex items-center gap-2 text-blue-600 dark:text-blue-400 hover:underline"
+                className="flex items-center gap-2 text-highlight hover:underline"
               >
                 <svg
                   aria-hidden="true"
@@ -223,7 +221,7 @@ export default async function TermsOfServicePage({
               </a>
               <a
                 href="mailto:hazlo.sano.comunidad@gmail.com"
-                className="flex items-center gap-2 text-blue-600 dark:text-blue-400 hover:underline"
+                className="flex items-center gap-2 text-highlight hover:underline"
               >
                 <svg
                   aria-hidden="true"
@@ -238,14 +236,14 @@ export default async function TermsOfServicePage({
                 <span className="truncate">hazlo.sano.comunidad@gmail.com</span>
               </a>
             </div>
-            <div className="flex items-center gap-2 text-zinc-600 dark:text-zinc-400 mt-4">
+            <div className="flex items-center gap-2 text-text-support mt-4">
               <svg
                 aria-hidden="true"
                 focusable="false"
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 20 20"
                 fill="currentColor"
-                className="w-5 h-5 shrink-0 text-zinc-400"
+                className="w-5 h-5 shrink-0 text-text-muted"
               >
                 <path
                   fillRule="evenodd"

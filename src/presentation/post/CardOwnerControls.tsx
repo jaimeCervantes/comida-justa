@@ -92,7 +92,7 @@ export default function CardOwnerControls({
       {state.errorMessage ? (
         <span
           data-testid="card-availability-error"
-          className="text-sm text-red-700 dark:text-red-400"
+          className="text-sm text-brand-clay-700"
         >
           {state.errorMessage}
         </span>

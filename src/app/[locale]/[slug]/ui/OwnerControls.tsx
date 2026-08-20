@@ -70,10 +70,7 @@ export default function OwnerControls({
       ) : null}
 
       {state.errorMessage ? (
-        <p
-          data-testid="availability-error"
-          className="text-red-700 dark:text-red-400"
-        >
+        <p data-testid="availability-error" className="text-brand-clay-700">
           {state.errorMessage}
         </p>
       ) : null}

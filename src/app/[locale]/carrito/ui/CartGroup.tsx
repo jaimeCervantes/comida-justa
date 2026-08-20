@@ -27,7 +27,7 @@ export default async function CartGroup({ group }: { group: CartSellerGroup }) {
   return (
     <Surface
       as="section"
-      radius="2xl"
+      radius="card"
       background="raised"
       border="subtle"
       elevation="sm"

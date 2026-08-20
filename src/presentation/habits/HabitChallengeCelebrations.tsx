@@ -150,7 +150,7 @@ function CelebrationShell({
   return (
     <section
       aria-live="polite"
-      className={`relative overflow-hidden rounded-3xl border p-7 text-center shadow-lg sm:p-10 ${
+      className={`relative overflow-hidden rounded-panel border p-7 text-center shadow-lg sm:p-10 ${
         strong ? theme.finalCelebration : theme.celebration
       }`}
     >
@@ -225,7 +225,7 @@ export function HabitChallengeReward({
 }): React.ReactNode {
   return (
     <span
-      className={`rounded-full border bg-surface-base px-4 py-2 text-sm font-bold shadow-sm ${theme.border} ${theme.ink}`}
+      className={`rounded-full border bg-surface-elevation-1 px-4 py-2 text-sm font-bold shadow-sm ${theme.border} ${theme.ink}`}
     >
       {label}
     </span>

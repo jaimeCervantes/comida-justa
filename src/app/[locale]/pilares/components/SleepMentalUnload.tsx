@@ -20,14 +20,14 @@ export default function SleepMentalUnload(): React.ReactNode {
       <p className="mb-6">{t("unloadIntro")}</p>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <div className={`rounded-2xl border p-6 ${color.bg} ${color.border}`}>
+        <div className={`rounded-card border p-6 ${color.bg} ${color.border}`}>
           <Heading level={3} size="xs">
             {t("unloadHowTitle")}
           </Heading>
           <p className="mt-3 text-base leading-relaxed">{t("unloadHowBody")}</p>
         </div>
 
-        <div className={`rounded-2xl border p-6 ${color.bg} ${color.border}`}>
+        <div className={`rounded-card border p-6 ${color.bg} ${color.border}`}>
           <Heading level={3} size="xs">
             {t("unloadCalmTitle")}
           </Heading>

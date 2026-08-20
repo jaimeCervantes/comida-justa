@@ -58,7 +58,7 @@ export default function StoresMapCanvas({
      * El envoltorio existe porque `MapContainer` no acepta `as`: `Surface` pone el radio y recorta,
      * y el mapa se queda con lo suyo —el tamaño y el aislamiento—.
      */
-    <Surface radius="lg" className="overflow-hidden">
+    <Surface radius="chip" className="overflow-hidden">
       <MapContainer
         {...(view.kind === "bounds"
           ? {

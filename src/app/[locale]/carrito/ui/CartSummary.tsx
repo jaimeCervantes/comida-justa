@@ -25,7 +25,7 @@ export default async function CartSummary({
   return (
     <Surface
       as="section"
-      radius="2xl"
+      radius="card"
       background="raised"
       border="subtle"
       elevation="sm"

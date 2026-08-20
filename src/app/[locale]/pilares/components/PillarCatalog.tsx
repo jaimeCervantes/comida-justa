@@ -52,7 +52,7 @@ export default function PillarCatalog({
         {categories.map((category) => (
           <li
             key={category.title}
-            className={`rounded-2xl border p-6 ${color.bg} ${color.border}`}
+            className={`rounded-card border p-6 ${color.bg} ${color.border}`}
           >
             <Heading level={3} size="sm">
               {category.title}

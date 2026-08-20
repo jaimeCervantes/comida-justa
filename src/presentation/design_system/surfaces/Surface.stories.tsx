@@ -5,10 +5,13 @@ const meta = {
   component: Surface,
   tags: ["autodocs"],
   argTypes: {
-    radius: { control: "inline-radio", options: ["md", "lg", "xl", "2xl"] },
+    radius: {
+      control: "inline-radio",
+      options: ["chip", "chip", "control", "card"],
+    },
     elevation: {
       control: "inline-radio",
-      options: ["none", "xs", "sm", "md", "lg"],
+      options: ["none", "xs", "sm", "chip", "chip"],
     },
     border: { control: "inline-radio", options: ["none", "subtle"] },
     background: {
@@ -37,7 +40,7 @@ type Story = StoryObj<typeof meta>;
 export const Tarjeta: Story = {
   args: {
     as: "article",
-    radius: "2xl",
+    radius: "card",
     background: "raised",
     border: "subtle",
     elevation: "md",
@@ -51,7 +54,7 @@ export const Escala: Story = {
   args: { children: "" },
   render: () => (
     <div className="flex flex-wrap gap-4">
-      {(["md", "lg", "xl", "2xl"] as const).map((radius) => (
+      {(["chip", "control", "card", "panel"] as const).map((radius) => (
         <Surface
           key={radius}
           radius={radius}
@@ -74,7 +77,7 @@ export const Elevaciones: Story = {
       {(["none", "xs", "sm", "md", "lg"] as const).map((elevation) => (
         <Surface
           key={elevation}
-          radius="xl"
+          radius="control"
           background="raised"
           border="subtle"
           elevation={elevation}
@@ -91,11 +94,16 @@ export const Elevaciones: Story = {
 export const Fondos: Story = {
   args: { children: "" },
   render: () => (
-    <Surface background="base" radius="2xl" className="p-6">
+    <Surface background="base" radius="card" className="p-6">
       <p className="mb-4 text-sm text-text-support">background: base</p>
-      <Surface background="raised" border="subtle" radius="xl" className="p-6">
+      <Surface
+        background="raised"
+        border="subtle"
+        radius="control"
+        className="p-6"
+      >
         <p className="mb-4 text-sm text-text-support">background: raised</p>
-        <Surface background="sunken" radius="lg" className="p-4">
+        <Surface background="sunken" radius="chip" className="p-4">
           <p className="text-sm text-text-support">background: sunken</p>
         </Surface>
       </Surface>

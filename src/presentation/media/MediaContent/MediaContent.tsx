@@ -168,7 +168,7 @@ function DefaultContent({ media, className }: MediaContentProps) {
         href={media.url}
         target="_blank"
         rel="noopener noreferrer"
-        className="text-blue-600 hover:underline"
+        className="text-highlight hover:underline"
       >
         {media.alt || "Descargar archivo"}
       </a>

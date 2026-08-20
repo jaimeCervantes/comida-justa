@@ -33,7 +33,7 @@ export default function NutritionCleanCooking(): React.ReactNode {
         {oils.map((oil) => (
           <li
             key={oil.name}
-            className={`rounded-2xl border p-5 ${color.bg} ${color.border}`}
+            className={`rounded-card border p-5 ${color.bg} ${color.border}`}
           >
             <p className={`font-bold ${color.text}`}>{oil.name}</p>
             <p className="mt-2 text-base leading-relaxed">{oil.use}</p>
@@ -42,7 +42,7 @@ export default function NutritionCleanCooking(): React.ReactNode {
       </ul>
 
       <div
-        className={`mt-3 rounded-2xl border border-dashed p-5 ${color.border}`}
+        className={`mt-3 rounded-card border border-dashed p-5 ${color.border}`}
       >
         <Heading level={3} size="xs">
           {t("cookingZeroHeading")}

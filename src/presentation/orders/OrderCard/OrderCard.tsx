@@ -39,7 +39,7 @@ export default function OrderCard({
   return (
     <Surface
       as="li"
-      radius="lg"
+      radius="chip"
       background="raised"
       border="subtle"
       className="p-4"

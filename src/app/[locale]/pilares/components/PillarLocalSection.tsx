@@ -76,7 +76,7 @@ export default function PillarLocalSection({
 
       {isEmpty ? (
         <Surface
-          radius="2xl"
+          radius="card"
           elevation="xs"
           className={`border p-6 ${color.bg} ${color.border}`}
         >

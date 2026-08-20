@@ -39,7 +39,7 @@ export default async function CommunityHabitGarden({
     <section
       data-testid="community-habit-garden"
       data-variant={variant}
-      className={`@container rounded-3xl border border-separator bg-surface-elevation-1 ${
+      className={`@container rounded-panel border border-separator bg-surface-elevation-1 ${
         compact ? "p-4" : "mt-6 p-4"
       }`}
     >
@@ -69,7 +69,7 @@ export default async function CommunityHabitGarden({
           <div
             key={plot.key}
             data-pillar={plot.key}
-            className="rounded-2xl bg-surface-base"
+            className="rounded-card bg-surface-elevation-1"
           >
             <span
               aria-hidden="true"
@@ -85,7 +85,7 @@ export default async function CommunityHabitGarden({
       {compact ? null : (
         <p className="mt-5 text-sm text-body">{t("privacy")}</p>
       )}
-      {/* <p className="mt-2 rounded-xl bg-surface-elevation-2 p-3 text-sm text-body">
+      {/* <p className="mt-2 rounded-control bg-surface-elevation-2 p-3 text-sm text-body">
         {t("groupsUnavailable")}
       </p> */}
     </section>

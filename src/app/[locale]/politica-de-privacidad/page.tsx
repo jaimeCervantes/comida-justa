@@ -58,7 +58,7 @@ export default async function PrivacyPolicyPage({
         lastUpdate={t("lastUpdate", { date: lastUpdateDate })}
       />
 
-      <div className="prose prose-sm sm:prose-base md:prose-lg prose-zinc dark:prose-invert max-w-none text-zinc-700 dark:text-zinc-300 space-y-8 sm:space-y-10">
+      <div className="prose prose-sm sm:prose-base md:prose-lg prose-zinc dark:prose-invert max-w-none text-text-support space-y-8 sm:space-y-10">
         <p className="text-base sm:text-lg leading-relaxed font-medium">
           {t("intro")}
         </p>
@@ -74,8 +74,8 @@ export default async function PrivacyPolicyPage({
             <li>{t("section1.items.2")}</li>
             <li>{t("section1.items.3")}</li>
           </ul>
-          <div className="bg-amber-50 dark:bg-amber-900/20 border-l-4 border-amber-500 p-4 rounded-r-lg">
-            <p className="text-amber-800 dark:text-amber-300 text-sm font-medium m-0">
+          <div className="bg-feedback-warning-soft border-l-4 border-feedback-warning-ink/30 p-4 rounded-r-lg">
+            <p className="text-feedback-warning-ink text-sm font-medium m-0">
               {t("section1.warning")}
             </p>
           </div>
@@ -104,8 +104,8 @@ export default async function PrivacyPolicyPage({
             <li>{t("section3.items.1")}</li>
             <li>{t("section3.items.2")}</li>
           </ul>
-          <div className="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 p-4 rounded-r-lg">
-            <p className="text-red-800 dark:text-red-300 text-sm font-medium m-0">
+          <div className="bg-feedback-error-soft border-l-4 border-feedback-error-ink/30 p-4 rounded-r-lg">
+            <p className="text-brand-clay-700 text-sm font-medium m-0">
               {t("section3.warning")}
             </p>
           </div>
@@ -115,7 +115,7 @@ export default async function PrivacyPolicyPage({
           <LegalSectionHeading number={4}>
             {t("section4.title")}
           </LegalSectionHeading>
-          <p className="font-semibold text-zinc-800 dark:text-zinc-200 mb-3">
+          <p className="font-semibold text-text-base mb-3">
             {t("section4.boldText")}
           </p>
           <p className="mb-3">{t("section4.intro")}</p>
@@ -151,17 +151,17 @@ export default async function PrivacyPolicyPage({
             <li>{t("section7.items.1")}</li>
             <li>{t("section7.items.2")}</li>
           </ul>
-          <div className="bg-zinc-50 dark:bg-zinc-800/50 rounded-lg p-5">
+          <div className="bg-surface-elevation-2 rounded-lg p-5">
             <p className="mb-2">
               {t("section7.actionIntro")}
-              <strong className="bg-zinc-200 dark:bg-zinc-700 px-2 py-0.5 rounded-sm text-zinc-900 dark:text-zinc-100 font-mono">
+              <strong className="bg-surface-elevation-2 px-2 py-0.5 rounded-sm text-text-base font-mono">
                 {t("section7.actionWord")}
               </strong>
               {t("section7.actionOutro")}
             </p>
             <a
               href="mailto:contacto@hazlosano.com"
-              className="text-blue-600 dark:text-blue-400 font-medium hover:underline"
+              className="text-highlight font-medium hover:underline"
             >
               contacto@hazlosano.com
             </a>
@@ -187,16 +187,16 @@ export default async function PrivacyPolicyPage({
             {t("section10.title")}
           </LegalSectionHeading>
           <p className="mb-4">{t("section10.intro")}</p>
-          <div className="bg-zinc-100 dark:bg-zinc-800/30 rounded-xl p-8 border border-zinc-100 dark:border-zinc-800">
+          <div className="bg-surface-elevation-2 rounded-control p-8 border border-separator">
             <div>
-              <strong className="block text-zinc-900 dark:text-zinc-100">
+              <strong className="block text-text-base">
                 {t("section10.companyName")}
               </strong>
             </div>
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-6 mt-4">
               <a
                 href="mailto:contacto@hazlosano.com"
-                className="flex items-center gap-2 text-blue-600 dark:text-blue-400 hover:underline"
+                className="flex items-center gap-2 text-highlight hover:underline"
               >
                 <svg
                   aria-hidden="true"
@@ -212,7 +212,7 @@ export default async function PrivacyPolicyPage({
               </a>
               <a
                 href="mailto:hazlo.sano.comunidad@gmail.com"
-                className="flex items-center gap-2 text-blue-600 dark:text-blue-400 hover:underline"
+                className="flex items-center gap-2 text-highlight hover:underline"
               >
                 <svg
                   aria-hidden="true"
@@ -227,14 +227,14 @@ export default async function PrivacyPolicyPage({
                 <span className="truncate">hazlo.sano.comunidad@gmail.com</span>
               </a>
             </div>
-            <div className="flex items-center gap-2 text-zinc-600 dark:text-zinc-400 mt-4">
+            <div className="flex items-center gap-2 text-text-support mt-4">
               <svg
                 aria-hidden="true"
                 focusable="false"
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 20 20"
                 fill="currentColor"
-                className="w-5 h-5 shrink-0 text-zinc-400"
+                className="w-5 h-5 shrink-0 text-text-muted"
               >
                 <path
                   fillRule="evenodd"

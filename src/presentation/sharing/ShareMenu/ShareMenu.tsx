@@ -193,9 +193,7 @@ export default function ShareMenu({
           role="status"
           data-testid="share-feedback"
           className={`flex items-center gap-1 text-sm ${
-            feedback === "copied"
-              ? "text-pw-green"
-              : "text-red-700 dark:text-red-400"
+            feedback === "copied" ? "text-pw-green" : "text-brand-clay-700"
           }`}
         >
           {feedback === "copied" ? <MdCheck aria-hidden size="16" /> : null}

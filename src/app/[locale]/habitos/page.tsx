@@ -59,7 +59,7 @@ export default async function AtomicChallengesPage({
             <Link
               key={challengeKey}
               href={pillarHref(slug)}
-              className="focus-ring rounded-3xl border border-separator bg-surface-elevation-1 p-6 transition hover:-translate-y-1 hover:shadow-lg"
+              className="focus-ring rounded-panel border border-separator bg-surface-elevation-1 p-6 transition hover:-translate-y-1 hover:shadow-lg"
             >
               <span className="text-xs font-bold uppercase tracking-[0.16em] text-pw-green">
                 {copy.pillar}
@@ -73,7 +73,7 @@ export default async function AtomicChallengesPage({
         })}
       </div>
 
-      <section className="mt-8 rounded-3xl border border-feedback-warning/40 bg-feedback-warning/10 p-6">
+      <section className="mt-8 rounded-panel border border-feedback-warning/40 bg-feedback-warning/10 p-6">
         <h2 className="text-xl font-black text-text-strong">
           {t("reminderTitle")}
         </h2>
@@ -89,7 +89,7 @@ export default async function AtomicChallengesPage({
 
       <section
         data-testid="habit-league"
-        className="mt-8 rounded-3xl border border-separator bg-surface-elevation-1 p-6 sm:p-8"
+        className="mt-8 rounded-panel border border-separator bg-surface-elevation-1 p-6 sm:p-8"
       >
         <h2 className="text-2xl font-black text-text-strong">
           {t("league.title")}
@@ -109,7 +109,7 @@ export default async function AtomicChallengesPage({
             {league.ranking.map((entry) => (
               <li
                 key={entry.alias}
-                className="flex justify-between rounded-xl border p-3"
+                className="flex justify-between rounded-control border p-3"
               >
                 <span>
                   {t("league.rank", { rank: entry.rank, alias: entry.alias })}

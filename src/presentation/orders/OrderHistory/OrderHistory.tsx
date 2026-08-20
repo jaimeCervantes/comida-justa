@@ -37,7 +37,7 @@ export default function OrderHistory({
   return (
     <Surface
       as="section"
-      radius="2xl"
+      radius="card"
       background="raised"
       border="subtle"
       className="mt-6 p-4"

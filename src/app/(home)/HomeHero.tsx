@@ -22,7 +22,7 @@ export default function HomeHero({
   const t = useTranslations("home");
 
   return (
-    <header className="relative isolate overflow-hidden rounded-[2rem] bg-[linear-gradient(135deg,#7a1c05_0%,var(--color-pw-orange)_55%,var(--color-pw-lightorange)_135%)] px-6 py-8 text-white shadow-xl sm:px-10 sm:py-10">
+    <header className="relative isolate overflow-hidden rounded-panel bg-[linear-gradient(135deg,#7a1c05_0%,var(--color-pw-orange)_55%,var(--color-pw-lightorange)_135%)] px-6 py-8 text-white shadow-xl sm:px-10 sm:py-10">
       <div
         aria-hidden="true"
         className="absolute inset-0 -z-10 opacity-15 [background-image:radial-gradient(circle_at_20%_20%,white_0_3px,transparent_4px),radial-gradient(circle_at_75%_70%,white_0_6px,transparent_7px)] [background-size:68px_68px,124px_124px]"
@@ -36,13 +36,13 @@ export default function HomeHero({
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] lg:items-center lg:gap-10">
         <div>
-          <p className="text-xs font-bold uppercase tracking-[0.22em] text-amber-100">
+          <p className="text-xs font-bold uppercase tracking-[0.22em] text-pw-white">
             {t("heroEyebrow")}
           </p>
           <h1 className="mt-2 text-3xl font-black leading-tight tracking-tight sm:text-4xl">
             {t("heroTitle")}
           </h1>
-          <p className="mt-3 max-w-2xl leading-relaxed text-amber-50 sm:text-lg">
+          <p className="mt-3 max-w-2xl leading-relaxed text-pw-white sm:text-lg">
             {t("heroIntro")}
           </p>
           {/* Los emojis son de la marca y van fuera del texto traducible: así no hay que repetirlos
@@ -58,7 +58,7 @@ export default function HomeHero({
         {/* Tarjeta clara a propósito: el aviso de ubicación y su chip se pintan con los grises del
             sitio, que sobre el verde de la marca no se leerían. El `pb-0` deja que el margen inferior
             que ya trae el aviso haga de relleno, en vez de sumar dos. */}
-        <div className="rounded-2xl bg-surface-elevation-1 p-4 pb-0 text-text-base shadow-lg">
+        <div className="rounded-card bg-surface-elevation-1 p-4 pb-0 text-text-base shadow-lg">
           <p className="text-xs font-bold uppercase tracking-[0.16em] text-pw-green">
             {t("heroLocationTitle")}
           </p>

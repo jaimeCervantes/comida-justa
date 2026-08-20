@@ -48,7 +48,7 @@ export default function BecomeSellerForm({
       {state.errorMessage ? (
         <p
           data-testid="become-seller-error"
-          className="mb-4 text-red-700 dark:text-red-400"
+          className="mb-4 text-brand-clay-700"
         >
           {state.errorMessage}
         </p>

@@ -78,10 +78,8 @@ export default function MenteEspirituPage({ locale }: { locale: AppLocale }) {
       <section>
         <PillarSectionHeading>{t("mismatchHeading")}</PillarSectionHeading>
         <p className="mb-4">{t("mismatchIntro")}</p>
-        <p className="font-semibold text-slate-900 dark:text-slate-50 mb-2">
-          {t("modernOffers")}
-        </p>
-        <ul className="list-disc pl-6 space-y-2 text-slate-700 dark:text-slate-300 text-lg mb-8">
+        <p className="font-semibold text-text-base mb-2">{t("modernOffers")}</p>
+        <ul className="list-disc pl-6 space-y-2 text-text-support text-lg mb-8">
           <li>{t("offer1")}</li>
           <li>{t("offer2")}</li>
           <li>{t("offer3")}</li>

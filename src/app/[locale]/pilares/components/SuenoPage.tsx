@@ -81,7 +81,7 @@ export default function SuenoPage({ locale }: { locale: AppLocale }) {
       <section>
         <PillarSectionHeading>{t("processesHeading")}</PillarSectionHeading>
         <p className="mb-4">{t("processesIntro")}</p>
-        <ul className="list-disc pl-6 space-y-3 text-slate-700 dark:text-slate-300 text-lg mb-8">
+        <ul className="list-disc pl-6 space-y-3 text-text-support text-lg mb-8">
           <li>
             <strong>{t("brainLabel")}</strong> {t("brainText")}
           </li>

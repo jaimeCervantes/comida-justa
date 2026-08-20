@@ -27,35 +27,25 @@ describe("Surface", () => {
     render(<Surface data-testid="surface">x</Surface>);
 
     const surface = screen.getByTestId("surface");
-    expect(surface).toHaveClass("rounded-lg");
+    expect(surface).toHaveClass("rounded-card");
     expect(surface.className).not.toMatch(/shadow|border|bg-/);
   });
 
   /**
-   * Slice 11. `card` y `panel` son la escala de v2, que el slice 10 expuso con nombre propio; el
-   * resto son la escala de Tailwind y siguen aquí porque hay superficies que aún las piden.
+   * La escala con nombre, y solo ella.
    *
    * El nombre dice **qué** se redondea y no cuánto mide: una tarjeta que pide `card` sigue siendo
    * correcta el día que la tarjeta cambie de radio, y ese día se toca `layout.css` una vez.
+   *
+   * Los tamaños de Tailwind (`md`, `lg`, `xl`, `2xl`) vivieron aquí durante los slices 10 y 11
+   * mientras las pantallas los pedían. El slice 13 migró las doce superficies que quedaban y se
+   * retiraron: una variante que ya no usa nadie es una decisión que alguien va a tomar por error.
    */
   it.each([
+    ["chip", "rounded-chip"],
+    ["control", "rounded-control"],
     ["card", "rounded-card"],
     ["panel", "rounded-panel"],
-  ] as const)("el radio con nombre %s aplica %s", (radius, expected) => {
-    render(
-      <Surface radius={radius} data-testid="surface">
-        x
-      </Surface>,
-    );
-
-    expect(screen.getByTestId("surface")).toHaveClass(expected);
-  });
-
-  it.each([
-    ["md", "rounded-md"],
-    ["lg", "rounded-lg"],
-    ["xl", "rounded-xl"],
-    ["2xl", "rounded-2xl"],
   ] as const)("el radio %s aplica %s", (radius, expected) => {
     render(
       <Surface radius={radius} data-testid="surface">
@@ -70,7 +60,7 @@ describe("Surface", () => {
     render(
       <Surface
         as="article"
-        radius="2xl"
+        radius="card"
         background="raised"
         border="subtle"
         elevation="md"
@@ -84,7 +74,7 @@ describe("Surface", () => {
     expect(surface).toHaveClass("bg-surface-elevation-1");
     expect(surface).toHaveClass("border-separator");
     expect(surface).toHaveClass("shadow-md");
-    expect(surface).toHaveClass("rounded-2xl");
+    expect(surface).toHaveClass("rounded-card");
   });
 
   /**
@@ -122,13 +112,13 @@ describe("Surface", () => {
 
   it("acepta clases extra sin perder las suyas", () => {
     render(
-      <Surface radius="2xl" className="p-4" data-testid="surface">
+      <Surface radius="card" className="p-4" data-testid="surface">
         x
       </Surface>,
     );
 
     const surface = screen.getByTestId("surface");
     expect(surface).toHaveClass("p-4");
-    expect(surface).toHaveClass("rounded-2xl");
+    expect(surface).toHaveClass("rounded-card");
   });
 });

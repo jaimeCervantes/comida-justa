@@ -47,7 +47,7 @@ export default function MindSilenceWindows(): React.ReactNode {
         {windows.map((window) => (
           <li
             key={window.moment}
-            className={`rounded-2xl border p-5 ${color.bg} ${color.border}`}
+            className={`rounded-card border p-5 ${color.bg} ${color.border}`}
           >
             <span
               className={`block text-sm font-black uppercase tracking-[0.15em] ${color.text}`}

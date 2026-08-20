@@ -80,7 +80,7 @@ export default function AlimentacionPage({ locale }: { locale: AppLocale }) {
 
       <section>
         <PillarSectionHeading>{t("includesHeading")}</PillarSectionHeading>
-        <ul className="list-disc pl-6 space-y-3 text-slate-700 dark:text-slate-300 text-lg">
+        <ul className="list-disc pl-6 space-y-3 text-text-support text-lg">
           <li>{t("includes1")}</li>
           <li>{t("includes2")}</li>
           <li>{t("includes3")}</li>

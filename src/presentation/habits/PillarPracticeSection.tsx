@@ -60,7 +60,7 @@ export default function PillarPracticeSection({
       id="practica"
       data-pillar={challenge}
       aria-labelledby={titleId}
-      className={`relative isolate overflow-hidden rounded-[2rem] border bg-surface-base shadow-xl ${theme.border}`}
+      className={`relative isolate overflow-hidden rounded-panel border bg-surface-elevation-1 shadow-xl ${theme.border}`}
     >
       <PillarHero
         level={2}
@@ -97,7 +97,7 @@ export default function PillarPracticeSection({
 
         {copy.note && (
           <aside
-            className={`mt-5 rounded-3xl border border-dashed p-6 ${theme.border} ${theme.soft}`}
+            className={`mt-5 rounded-panel border border-dashed p-6 ${theme.border} ${theme.soft}`}
           >
             <h3 className="text-xl font-black text-text-strong">
               {copy.note.title}
@@ -109,7 +109,7 @@ export default function PillarPracticeSection({
         {panel}
 
         <section
-          className={`mt-16 rounded-3xl p-6 sm:p-10 ${theme.ritualSurface}`}
+          className={`mt-16 rounded-panel p-6 sm:p-10 ${theme.ritualSurface}`}
         >
           <p
             className={`text-xs font-bold uppercase tracking-[0.2em] ${theme.ink}`}
@@ -124,7 +124,7 @@ export default function PillarPracticeSection({
             {copy.ritual.steps.map((step, index) => (
               <li
                 key={step}
-                className={`flex gap-4 rounded-2xl border bg-surface-base p-5 ${theme.stepBorder}`}
+                className={`flex gap-4 rounded-card border bg-surface-elevation-1 p-5 ${theme.stepBorder}`}
               >
                 <span
                   className={`grid size-8 shrink-0 place-items-center rounded-full font-bold text-white ${theme.solid}`}
@@ -153,7 +153,7 @@ function PracticeAnchorCard({
 }): React.ReactNode {
   return (
     <article
-      className={`relative overflow-hidden rounded-3xl border p-6 sm:p-8 ${theme.border} ${theme.soft}`}
+      className={`relative overflow-hidden rounded-panel border p-6 sm:p-8 ${theme.border} ${theme.soft}`}
     >
       <span
         aria-hidden="true"

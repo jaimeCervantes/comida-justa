@@ -27,7 +27,7 @@ export default function StoreSummaryCard({
   return (
     <Surface
       as="article"
-      radius="2xl"
+      radius="card"
       border="subtle"
       elevation="xs"
       className="flex gap-4 p-4"

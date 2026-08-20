@@ -7,7 +7,7 @@ import { cn } from "../styling/merge-class-names";
  *
  * Existe porque `layout.css` define `--radius-*` y `--shadow-*` desde el slice 2 y no los consumía
  * nadie: el radio se decidía archivo por archivo, con 71 `rounded-*` repartidos en 31 archivos.
- * Una tarjeta con `rounded-2xl` junto a otra con `rounded-lg` no es una decisión, es un descuido
+ * Una tarjeta con `rounded-card` junto a otra con `rounded-lg` no es una decisión, es un descuido
  * que nadie puede ver hasta que están una al lado de la otra.
  *
  * Los colores salen de los tokens semánticos (`surface-elevation-1`, `separator`), así que **no
@@ -16,23 +16,23 @@ import { cn } from "../styling/merge-class-names";
 const surfaceVariants = cva("", {
   variants: {
     /**
-     * `card` y `panel` son la escala de v2, que el slice 10 expuso con nombre propio. El nombre
-     * dice **qué** se redondea y no cuánto mide: una tarjeta que pide `card` sigue siendo correcta
-     * el día que la tarjeta cambie de radio, y ese día se toca `layout.css` una vez.
+     * La escala con nombre, y solo ella.
      *
-     * Los tamaños de Tailwind siguen aquí porque hay superficies que aún los piden, y migrarlas es
-     * trabajo de las pantallas (slices 12 y 13), no de este componente. El día que ninguna los use,
-     * se van.
+     * El nombre dice **qué** se redondea y no cuánto mide: una tarjeta que pide `card` sigue siendo
+     * correcta el día que la tarjeta cambie de radio, y ese día se toca `layout.css` una vez.
+     *
+     * Los tamaños de Tailwind (`md`, `lg`, `xl`, `2xl`) vivieron aquí durante los slices 10 y 11
+     * porque las pantallas todavía los pedían. El slice 13 migró las doce superficies que
+     * quedaban, así que se van — como este comentario decía que pasaría. Una variante que ya no usa
+     * nadie es una decisión que alguien va a tomar por error.
      */
     radius: {
       /** Para superficies que redondean solo algunos lados (una caja con barra lateral). */
       none: "",
+      chip: "rounded-chip",
+      control: "rounded-control",
       card: "rounded-card",
       panel: "rounded-panel",
-      md: "rounded-md",
-      lg: "rounded-lg",
-      xl: "rounded-xl",
-      "2xl": "rounded-2xl",
     },
     elevation: {
       none: "",
@@ -69,7 +69,8 @@ const surfaceVariants = cva("", {
     },
   },
   defaultVariants: {
-    radius: "lg",
+    /* `card` es lo que es una superficie por omisión: si hace falta otra cosa, se pide. */
+    radius: "card",
     elevation: "none",
     border: "none",
     background: "none",

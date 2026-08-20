@@ -26,7 +26,7 @@ export default function PilaresOverviewPage({
 
   return (
     <article>
-      <section className="relative isolate overflow-hidden rounded-4xl border border-pillar-sleep-ink/20 bg-surface-base shadow-xl mb-10">
+      <section className="relative isolate overflow-hidden rounded-panel border border-pillar-sleep-ink/20 bg-surface-elevation-1 shadow-xl mb-10">
         <PillarHero
           level={2}
           eyebrow={t("heroEyebrow")}
@@ -50,7 +50,7 @@ export default function PilaresOverviewPage({
                   pathname: "/pilares/[[...slug]]",
                   params: { slug: [pillar.slug] },
                 }}
-                className={`focus-ring group block rounded-2xl border-2 ${c.border} ${c.bg} p-6 sm:p-8 transition-all duration-300 hover:shadow-lg ${c.hover}`}
+                className={`focus-ring group block rounded-card border-2 ${c.border} ${c.bg} p-6 sm:p-8 transition-all duration-300 hover:shadow-lg ${c.hover}`}
               >
                 <div className="flex items-center gap-3 mb-4">
                   <span
@@ -65,11 +65,11 @@ export default function PilaresOverviewPage({
                   </h2>
                 </div>
 
-                <p className="text-base text-slate-600 dark:text-slate-400 mb-3">
+                <p className="text-base text-text-support mb-3">
                   {tPages(`${pillar.key}.subtitle`)}
                 </p>
 
-                <p className="text-slate-700 dark:text-slate-300 text-base leading-relaxed mb-4">
+                <p className="text-text-support text-base leading-relaxed mb-4">
                   {tPillars(`${pillar.key}.cardDescription`)}
                 </p>
 
@@ -101,11 +101,11 @@ export default function PilaresOverviewPage({
       </section>
 
       <section className="mt-16 text-center">
-        <div className="bg-slate-100 dark:bg-slate-800/50 rounded-2xl p-8 max-w-3xl mx-auto">
-          <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-50 mb-3">
+        <div className="bg-surface-elevation-2 rounded-card p-8 max-w-3xl mx-auto">
+          <h2 className="text-2xl font-bold text-text-base mb-3">
             {t("whyHeading")}
           </h2>
-          <p className="text-lg text-slate-700 dark:text-slate-300 leading-relaxed">
+          <p className="text-lg text-text-support leading-relaxed">
             {t("whyBody")}
           </p>
         </div>

@@ -40,7 +40,7 @@ export default function AccountCard({
       background="raised"
       border="subtle"
       elevation="sm"
-      radius="xl"
+      radius="card"
       /* El mismo relleno y la misma separación que cualquier otra tarjeta del sitio: iba con `p-6`
          y márgenes propios en cada hijo (`mt-2`, `mt-4`) mientras la de una publicación usaba
          `p-5`. Ver `cardSpacing.ts`. */

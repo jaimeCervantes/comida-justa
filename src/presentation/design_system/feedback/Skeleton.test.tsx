@@ -35,9 +35,9 @@ describe("Skeleton", () => {
   });
 
   it.each([
-    ["md", "rounded-md"],
-    ["lg", "rounded-lg"],
-    ["xl", "rounded-xl"],
+    ["chip", "rounded-chip"],
+    ["control", "rounded-control"],
+    ["card", "rounded-card"],
     ["pill", "rounded-full"],
   ] as const)("el radio %s aplica %s", (radius, expected) => {
     const { container } = render(<Skeleton radius={radius} />);

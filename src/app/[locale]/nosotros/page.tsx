@@ -17,9 +17,9 @@ export async function generateMetadata({
 }
 
 const CARD =
-  "bg-white dark:bg-[#1a1a1a] p-6 rounded-2xl border border-separator shadow-xs";
+  "bg-surface-elevation-1 p-6 rounded-card border border-separator shadow-xs";
 const SOCIAL_LINK =
-  "bg-white dark:bg-[#1a1a1a] px-3 py-1.5 rounded-full shadow-xs hover:shadow-md border border-orange-100 dark:border-orange-900/50 transition-all flex items-center gap-1.5";
+  "bg-surface-elevation-1 px-3 py-1.5 rounded-full shadow-xs hover:shadow-md border border-brand-clay-700/20 transition-all flex items-center gap-1.5";
 
 /**
  * El ancho lo pone el layout (`container-width`). Repetirlo aquí y sumarle `max-w-4xl` encajonaba
@@ -51,7 +51,7 @@ export default async function NosotrosPage({
       </header>
 
       {/* 1. Ecosistema Hazlo Sano / Chatbot */}
-      <section className="bg-blue-50 dark:bg-blue-900/30 border border-blue-100 dark:border-blue-800 rounded-3xl p-8 sm:p-10 shadow-xs relative overflow-hidden">
+      <section className="bg-pillar-mind-spirit-soft border border-pillar-mind-spirit-ink/20 rounded-panel p-8 sm:p-10 shadow-xs relative overflow-hidden">
         <div className="relative z-10 flex flex-col sm:flex-row items-center sm:items-start sm:justify-between gap-8">
           <div className="space-y-6 flex-1">
             <div className="space-y-4">
@@ -64,17 +64,17 @@ export default async function NosotrosPage({
                   className="hover:scale-105 transition-transform shrink-0"
                   priority
                 />
-                <h2 className="text-3xl sm:text-4xl font-bold text-blue-900 dark:text-blue-100">
+                <h2 className="text-3xl sm:text-4xl font-bold text-pillar-mind-spirit-ink">
                   {t("ecosystemHeading", { brand })}
                 </h2>
               </div>
-              <p className="text-blue-800 dark:text-blue-200 text-lg leading-relaxed">
+              <p className="text-pillar-mind-spirit-ink text-lg leading-relaxed">
                 {t.rich("ecosystemIntro", { b: bold, brand })}
               </p>
-              <p className="text-blue-800 dark:text-blue-200 text-lg leading-relaxed font-medium">
+              <p className="text-pillar-mind-spirit-ink text-lg leading-relaxed font-medium">
                 {t("ecosystemPillars")}
               </p>
-              <ul className="space-y-2 text-blue-900 dark:text-blue-100 font-medium text-lg">
+              <ul className="space-y-2 text-pillar-mind-spirit-ink font-medium text-lg">
                 {PILLAR_SHORT_KEYS.map((key) => (
                   <li key={key} className="flex items-center gap-3">
                     <span className="text-xl">✅</span> {tPillars(key)}
@@ -83,11 +83,11 @@ export default async function NosotrosPage({
               </ul>
             </div>
 
-            <div className="pt-6 border-t border-blue-200 dark:border-blue-800/50">
-              <h3 className="text-2xl font-bold text-blue-900 dark:text-blue-100 flex items-center gap-3 mb-3">
+            <div className="pt-6 border-t border-pillar-mind-spirit-ink/20">
+              <h3 className="text-2xl font-bold text-pillar-mind-spirit-ink flex items-center gap-3 mb-3">
                 {t("assistantHeading")}
               </h3>
-              <p className="text-blue-800 dark:text-blue-200 text-lg leading-relaxed">
+              <p className="text-pillar-mind-spirit-ink text-lg leading-relaxed">
                 {t.rich("assistantBody", { b: bold })}
               </p>
             </div>
@@ -98,7 +98,7 @@ export default async function NosotrosPage({
               href="https://t.me/HazloSanoBot"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-8 rounded-full shadow-md transition-all hover:scale-105 active:scale-95"
+              className="inline-flex items-center justify-center bg-button-primary-bg hover:bg-button-primary-hover text-button-primary-text font-medium py-3 px-8 rounded-full shadow-md transition-all hover:scale-105 active:scale-95"
             >
               {t("assistantCta")}
             </a>
@@ -141,11 +141,11 @@ export default async function NosotrosPage({
             />
           </ul>
 
-          <div className="bg-amber-50 dark:bg-amber-900/10 p-6 rounded-2xl border border-amber-100 dark:border-amber-900/50">
-            <h4 className="text-lg font-bold mb-4 text-amber-900 dark:text-amber-400 flex items-center gap-2">
+          <div className="bg-brand-honey-soft p-6 rounded-card border border-brand-honey-ink/20">
+            <h4 className="text-lg font-bold mb-4 text-brand-honey-ink flex items-center gap-2">
               {t("peanutPairHeading")}
             </h4>
-            <ul className="grid grid-cols-2 gap-y-2 gap-x-4 text-amber-800 dark:text-amber-200/80 font-medium">
+            <ul className="grid grid-cols-2 gap-y-2 gap-x-4 text-brand-honey-ink font-medium">
               <li className="flex items-center gap-2">{t("peanutPair1")}</li>
               <li className="flex items-center gap-2">{t("peanutPair2")}</li>
               <li className="flex items-center gap-2">{t("peanutPair3")}</li>
@@ -154,17 +154,17 @@ export default async function NosotrosPage({
               <li className="flex items-center gap-2">{t("peanutPair6")}</li>
               <li className="flex items-center gap-2">{t("peanutPair7")}</li>
             </ul>
-            <p className="mt-4 text-sm text-amber-900/80 dark:text-amber-300">
+            <p className="mt-4 text-sm text-brand-honey-ink">
               {t.rich("peanutPairNote", { b: bold })}
             </p>
           </div>
         </div>
 
-        <div className="bg-amber-100/50 dark:bg-amber-950/30 p-6 rounded-2xl">
-          <h4 className="text-xl font-bold mb-4 text-amber-800 dark:text-amber-500 flex items-center gap-2">
+        <div className="bg-brand-honey-soft p-6 rounded-card">
+          <h4 className="text-xl font-bold mb-4 text-brand-honey-ink flex items-center gap-2">
             {t("peanutTipsHeading")}
           </h4>
-          <ul className="space-y-3 text-amber-900 dark:text-amber-100/90 list-disc pl-5">
+          <ul className="space-y-3 text-brand-honey-ink list-disc pl-5">
             <TipItem label={t("peanutTip1Label")} text={t("peanutTip1Text")} />
             <TipItem label={t("peanutTip2Label")} text={t("peanutTip2Text")} />
             <TipItem label={t("peanutTip3Label")} text={t("peanutTip3Text")} />
@@ -186,14 +186,14 @@ export default async function NosotrosPage({
             {t.rich("breadIntro", { b: bold })}
           </p>
 
-          <div className="bg-orange-50/80 dark:bg-orange-950/30 p-5 rounded-2xl text-orange-900 dark:text-orange-200 border border-orange-200/60 dark:border-orange-900/40 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="bg-brand-clay-soft p-5 rounded-card text-brand-clay-700 border border-brand-clay-700/20 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <p>{t.rich("breadPartner", { b: bold, brand })}</p>
             <div className="flex shrink-0 items-center justify-start gap-4 font-medium text-sm">
               <a
                 href="https://www.instagram.com/mmnaturalmente/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`${SOCIAL_LINK} hover:text-orange-600 dark:hover:text-orange-400`}
+                className={`${SOCIAL_LINK} hover:text-brand-clay-700`}
               >
                 {t("breadInstagram")}
               </a>
@@ -201,7 +201,7 @@ export default async function NosotrosPage({
                 href="https://www.facebook.com/profile.php?id=61575188279449"
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`${SOCIAL_LINK} hover:text-blue-600 dark:hover:text-blue-400`}
+                className={`${SOCIAL_LINK} hover:text-pillar-mind-spirit-ink`}
               >
                 {t("breadFacebook")}
               </a>
@@ -211,11 +211,11 @@ export default async function NosotrosPage({
 
         <div className="grid sm:grid-cols-2 gap-6">
           <div className="space-y-6">
-            <div className="bg-orange-50 dark:bg-orange-950/30 p-6 rounded-2xl border border-orange-100 dark:border-orange-900/50">
-              <h4 className="text-lg font-bold mb-4 text-orange-900 dark:text-orange-400 flex items-center gap-2">
+            <div className="bg-brand-clay-soft p-6 rounded-card border border-brand-clay-700/20">
+              <h4 className="text-lg font-bold mb-4 text-brand-clay-700 flex items-center gap-2">
                 {t("breadLoafHeading")}
               </h4>
-              <ul className="space-y-4 text-orange-900 dark:text-orange-100/80">
+              <ul className="space-y-4 text-brand-clay-700">
                 <LoafItem
                   label={t("breadDigestionLabel")}
                   text={t("breadDigestionText")}
@@ -250,17 +250,17 @@ export default async function NosotrosPage({
                 <span className="font-semibold text-(--highlight)">$136</span>
               </li>
             </ul>
-            <div className="mt-auto bg-surface-elevation-2 p-4 rounded-xl text-center text-sm font-medium text-text-support">
+            <div className="mt-auto bg-surface-elevation-2 p-4 rounded-control text-center text-sm font-medium text-text-support">
               {t("breadAvailability")}
             </div>
           </div>
         </div>
 
-        <div className="bg-orange-100/60 dark:bg-orange-900/20 p-6 rounded-2xl">
-          <h4 className="text-xl font-bold mb-4 text-orange-900 dark:text-orange-500 flex items-center gap-2">
+        <div className="bg-brand-clay-soft p-6 rounded-card">
+          <h4 className="text-xl font-bold mb-4 text-brand-clay-700 flex items-center gap-2">
             {t("breadTipsHeading")}
           </h4>
-          <ul className="space-y-3 text-orange-900 dark:text-orange-100/90 list-disc pl-5">
+          <ul className="space-y-3 text-brand-clay-700 list-disc pl-5">
             <TipItem label={t("breadTip1Label")} text={t("breadTip1Text")} />
             <TipItem label={t("breadTip2Label")} text={t("breadTip2Text")} />
             <TipItem label={t("breadTip3Label")} text={t("breadTip3Text")} />
@@ -269,7 +269,7 @@ export default async function NosotrosPage({
       </section>
 
       {/* Redes y Contacto */}
-      <section className="bg-surface-elevation-2 p-8 sm:p-12 rounded-3xl text-center space-y-6">
+      <section className="bg-surface-elevation-2 p-8 sm:p-12 rounded-panel text-center space-y-6">
         <h3 className="text-2xl font-bold text-text-base">
           {t("orderHeading")}
         </h3>
@@ -296,7 +296,7 @@ export default async function NosotrosPage({
             href="https://fb.com/hazlo.sano.comunidad"
             target="_blank"
             rel="noopener noreferrer"
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full font-medium transition-all flex items-center gap-2"
+            className="bg-button-primary-bg hover:bg-button-primary-hover text-button-primary-text px-6 py-3 rounded-full font-medium transition-all flex items-center gap-2"
           >
             {t("orderFacebook")}
           </a>
@@ -358,7 +358,7 @@ function TipItem({ label, text }: { label: string; text: string }) {
 function LoafItem({ label, text }: { label: string; text: string }) {
   return (
     <li className="flex flex-col">
-      <strong className="text-orange-950 dark:text-orange-300">{label}</strong>
+      <strong className="text-brand-clay-700">{label}</strong>
       <span className="text-sm">{text}</span>
     </li>
   );

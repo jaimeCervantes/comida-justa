@@ -35,7 +35,7 @@ export default function SleepSanctuary(): React.ReactNode {
         {conditions.map((condition) => (
           <li
             key={condition.title}
-            className={`rounded-2xl border p-5 ${color.bg} ${color.border}`}
+            className={`rounded-card border p-5 ${color.bg} ${color.border}`}
           >
             <Heading level={3} size="xs">
               {condition.title}

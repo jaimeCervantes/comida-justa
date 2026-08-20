@@ -43,7 +43,7 @@ export default function PillarArticle({
         intro={subtitle}
         identity={identity}
         theme={getPillarTheme(challenge)}
-        className="mb-10 rounded-[2rem] shadow-xl"
+        className="mb-10 rounded-panel shadow-xl"
       />
 
       <div className="space-y-8 text-lg leading-relaxed">{children}</div>
@@ -91,7 +91,7 @@ export function PillarPanel({
 
   return (
     <Surface
-      radius="2xl"
+      radius="card"
       elevation="xs"
       className={`p-6 sm:p-8 my-8 border ${color.bg} ${color.border}`}
     >

@@ -181,7 +181,7 @@ export default function PostMediaTray({
               type="button"
               onClick={() => onRemove(index)}
               aria-label={t("mediaRemove", { position: index + 1 })}
-              className="absolute -right-2 -top-2 rounded-full bg-brand-black p-1 text-pw-white hover:bg-red-700 focus-visible:outline-2 focus-visible:outline-offset-2"
+              className="absolute -right-2 -top-2 rounded-full bg-brand-black p-1 text-pw-white hover:bg-brand-clay-700 focus-visible:outline-2 focus-visible:outline-offset-2"
             >
               <MdClose aria-hidden />
             </button>

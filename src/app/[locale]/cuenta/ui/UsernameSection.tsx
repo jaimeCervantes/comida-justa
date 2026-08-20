@@ -62,10 +62,7 @@ export default function UsernameSection({
   return (
     <AccountCard title={t("usernameTitle")} intro={t("usernameIntro")}>
       {state.errorMessage ? (
-        <p
-          data-testid="username-error"
-          className="mb-4 text-red-700 dark:text-red-400"
-        >
+        <p data-testid="username-error" className="mb-4 text-brand-clay-700">
           {state.errorMessage}
         </p>
       ) : null}

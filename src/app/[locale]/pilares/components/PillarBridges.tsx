@@ -60,7 +60,7 @@ export default function PillarBridges({
           return (
             <li
               key={bridge.to}
-              className={`rounded-2xl border p-6 ${color.bg} ${color.border}`}
+              className={`rounded-card border p-6 ${color.bg} ${color.border}`}
             >
               <Heading level={3} size="xs">
                 {bridge.title}

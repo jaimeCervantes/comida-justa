@@ -16,7 +16,7 @@ export default function PostDetailSkeleton({
   return (
     <Surface
       aria-busy="true"
-      radius="xl"
+      radius="card"
       background="sunken"
       elevation="xs"
       className={`p-2 ${className}`}

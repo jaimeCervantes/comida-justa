@@ -48,7 +48,7 @@ export default function AddCommentForm({
       <textarea
         value={newComment}
         onChange={(e) => setNewComment(e.target.value)}
-        className="w-full p-2 border rounded-sm dark:text-black"
+        className="w-full rounded-control border border-border-field bg-surface-elevation-1 p-2 text-text-base"
         rows={4}
         placeholder={t("placeholder")}
         aria-label={t("inputLabel")}
@@ -56,12 +56,14 @@ export default function AddCommentForm({
       <button
         type="submit"
         onClick={handleAddComment}
-        className="mt-2 bg-blue-500 text-white px-4 py-2 rounded-sm"
+        className="focus-ring mt-2 min-h-12 rounded-control bg-button-primary-bg px-4 py-2 font-semibold text-button-primary-text hover:bg-button-primary-hover transition-colors"
         disabled={loading}
       >
         {loading ? t("submitting") : t("submit")}
       </button>
-      {errorMessage && <p className="text-red-500 mt-2">{errorMessage}</p>}
+      {errorMessage && (
+        <p className="text-brand-clay-700 mt-2">{errorMessage}</p>
+      )}
     </form>
   );
 }

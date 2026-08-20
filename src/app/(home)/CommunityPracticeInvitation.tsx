@@ -23,7 +23,7 @@ export default function CommunityPracticeInvitation(): React.ReactNode {
   return (
     <section
       data-testid="community-practice-invitation"
-      className="@container overflow-hidden rounded-2xl border border-pw-green/30 bg-pw-green/5 p-4"
+      className="@container overflow-hidden rounded-card border border-pw-green/30 bg-pw-green/5 p-4"
     >
       {/* Las dos columnas las decide el ancho de la propia banda, no el de la ventana: en móvil el
           enlace cae debajo del texto y ocupa toda la línea, que es donde se pulsa con el pulgar. */}

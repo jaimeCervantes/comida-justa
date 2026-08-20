@@ -1222,3 +1222,119 @@ contenido con sus paletas propias.
 3. **`--brand-black` en oscuro**, que arrastra desde el slice 10: los `text-pw-black` siguen
    invisibles sobre fondo oscuro.
 4. **Storybook**, que no se ha mirado desde que los tokens cambiaron de valor.
+
+---
+
+## Slice 13 — Las pantallas que quedaban, y las clases que no existían
+
+**Fecha:** 2026-08-20 · **Rama:** `feat/design-system-v2`
+
+### Objetivo
+
+Cerrar v2: publicar, detalle, tienda y las páginas de contenido que el slice 12 dejó fuera. El
+asistente de tres pasos de la sección 5.3 del documento sigue fuera por acuerdo — es UX nueva.
+
+### Decisiones y por qué
+
+**1. Dos clases que llevaban tiempo sin existir.** Verificando las utilidades en el CSS ya compilado
+—la costumbre que empezó en el slice 11— salieron dos que no producen nada:
+
+| Clase escrita | Sitios | Token real | Qué se perdía |
+| --- | --- | --- | --- |
+| `bg-surface-base` | 9 | `surface-background` | esas tarjetas no tenían fondo |
+| `ring-focus` | 1 | `--focus-ring` | ese campo no tenía anillo |
+
+Esto es lo que hace que la verificación en el CSS compilado no sea opcional. Tailwind v4 emite solo
+lo que encuentra usado, así que **una clase mal escrita no falla: desaparece**. Y ninguna prueba lo
+veía, porque las pruebas comprueban que la clase esté en el `className` —y estaba— no que produzca
+una regla. Nueve tarjetas llevaban quién sabe cuánto sin fondo, heredando lo que hubiera detrás.
+
+**2. Las variantes de radio heredadas de Tailwind se retiran de `Surface` y `Skeleton`.** El
+comentario del slice 11 decía «el día que ninguna los use, se van». Ese día es hoy: las doce
+superficies que aún pedían `radius="2xl"|"xl"|"lg"` migraron a la escala con nombre. Dejarlas
+habría sido peor que quitarlas — una variante que ya no usa nadie es una decisión que alguien va a
+tomar por error, y precisamente la que reintroduce el radio suelto que el slice 5 vino a quitar. El
+radio por omisión de `Surface` pasa a `card`, que es lo que una superficie es cuando no dice otra
+cosa.
+
+**3. El relleno negro deja de ser negro en oscuro.** `--brand-black` (`#1b1e18`) contrasta **1.10**
+contra el papel oscuro: la silueta del botón desaparece y solo se ve su etiqueta flotando. Un negro
+puro sobre fondo negro no puede tener silueta fuerte —ni con este valor ni con ninguno—, así que
+sube un escalón hasta despegarse (1.41) y la identificación del control recae en su etiqueta blanca,
+que ahí sí contrasta 13.19. **La prueba de paridad del tema oscuro cazó el cambio a medias**: entró
+en el bloque de la media query y no en el del atributo, porque la indentación difiere entre los dos.
+Es exactamente para lo que existe.
+
+**4. Las páginas de contenido dejan de tener paleta propia.** `nosotros` y las dos legales pintaban
+con azules, ámbares, naranjas y zincs de Tailwind — la definición de «el CSS que había» que v2 vino
+a quitar. No se inventó una paleta nueva: se mapearon a las rampas que el sistema ya tiene y ya mide.
+El bloque azul de la misión pasa al pilar Mente y Espíritu, los ámbar a la miel, los naranja al
+barro. La página deja de ser una isla visual y pasa a ser parte del sistema.
+
+**5. Un fallo de contraste más, en el hero del home.** Su texto crema (`text-amber-100`,
+`text-amber-50`) sobre el centro del degradado naranja da **4.15** — por debajo de AA. Blanco da
+4.59. Se cambió a blanco; no hay tinte crema que cumpla ahí sin aclarar el degradado.
+
+### Archivos tocados
+
+**Clases muertas** — los 9 archivos con `bg-surface-base` (pilares, hábitos) y el `ring-focus` de
+`HabitChallengePanel`.
+
+**Escala de radio** — `design_system/surfaces/Surface.tsx` y `feedback/Skeleton.tsx` (variantes
+retiradas, radio por omisión a `card`), sus pruebas y stories, y las doce superficies que migraron.
+
+**Tokens** — `colors.css`: `--brand-black` en los dos bloques oscuros.
+
+**Páginas de contenido** — `nosotros`, `politica-de-privacidad`, `condiciones-de-servicio`, los
+cuatro `pilares`, `auth/signin`.
+
+**Contraste** — `(home)/HomeHero.tsx`, y el patrón `text-red-700 dark:text-red-400` de todo el árbol
+a `--brand-clay-700`, que cumple en las seis superficies (4.73 a 6.99).
+
+### Comandos
+
+```bash
+pnpm run test:run                       # 2141/2141 en 201 archivos
+pnpm run typecheck                      # limpio
+pnpm run lint                           # limpio
+pnpm run check:i18n / check:directives  # limpios
+pnpm run build                          # OK en 22.1s
+```
+
+### Validación
+
+- **Cero paletas crudas de Tailwind en producción**: ni `gray`, ni `zinc`, ni `slate`, ni `blue`,
+  `amber`, `orange`, `red`, `violet`, `mauve`, `purple` ni `indigo`. Comprobado con `grep`.
+- **Las dos clases muertas ya no aparecen**, y las nuevas sí emiten regla en el CSS compilado.
+- `--brand-black` sale con su valor claro y **dos** overrides oscuros, que es lo que exige la
+  paridad.
+- **Pendiente: la suite e2e completa.** No se ejecutó; la corre el usuario.
+
+### Desviaciones del roadmap
+
+El slice se planeó como repintado de tres pantallas y acabó cerrando la deuda de paletas de todo el
+árbol, más dos clases que no existían. La causa fue el método, no el plan: verificar en el CSS
+compilado en vez de en el fuente es lo que enseña la diferencia entre una clase escrita y una clase
+que pinta.
+
+### Recap
+
+v2 está aplicado de punta a punta. El sistema no tiene ninguna semilla de marca haciendo de tinta,
+ninguna paleta cruda de Tailwind en producción, ninguna variante `dark:` escrita a mano fuera de las
+páginas que usan `prose`, y ninguna clase que se refiera a un token inexistente. La escala de radio
+tiene cuatro nombres y son los únicos que `Surface` y `Skeleton` aceptan, así que el problema que el
+slice 5 documentó —71 `rounded-*` sueltos decidiendo cada uno por su cuenta— ya no puede volver por
+la puerta del design system. Lo que queda de `rounded-lg` en el árbol son 41 usos en elementos que
+no cuelgan de `Surface`, y son el trabajo de quien toque esas pantallas.
+
+### Próximos pasos (opciones)
+
+1. **Correr la e2e completa y mirar el sitio a ojo en los dos temas.** Es lo único pendiente de los
+   cuatro slices y sigue en tus manos. Nada de lo entregado se ha visto en un navegador.
+2. **Los 41 `rounded-lg` sueltos** que no pasan por `Surface`: son botones, campos y cajas pequeñas.
+   `chip` (8px) es el mismo valor, así que la migración es literalmente un cambio de nombre.
+3. **Storybook**, que no se ha abierto desde que los tokens cambiaron de valor en el slice 10. Es la
+   forma más rápida de cazar un par que las pruebas no cubran por no ser un par declarado.
+4. **La UX que quedó fuera por acuerdo** (sección 05–06 del documento): ⌘K, barra fija de
+   pilar+distancia, bottom nav móvil, «avísame cuando haya», cola offline, deshacer con 8s. Está
+   registrada en el roadmap como fuera de alcance, no descartada.

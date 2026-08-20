@@ -327,9 +327,26 @@ y cero `dark:` escritas a mano en el chrome. Un `text-gray-600 dark:text-gray-40
 sobre papel cálido *y* una pareja que hay que acordarse de mantener; `text-text-support` es las dos
 cosas resueltas.
 
-### Slice 13 — Publicar, detalle y tienda
+### Slice 13 — Las pantallas que quedaban, y las clases que no existían ✅
 
-Igual: repintado. El asistente de tres pasos de la sección 5.3 queda fuera por acuerdo.
+Repintado de publicar, detalle, tienda y las páginas de contenido. El asistente de tres pasos de la
+sección 5.3 queda fuera por acuerdo.
+
+**El hallazgo.** Verificando las utilidades en el CSS compilado —la costumbre que empezó en el slice
+11— aparecieron dos clases que **no existen**:
+
+| Clase escrita | Sitios | Token real | Efecto |
+| --- | --- | --- | --- |
+| `bg-surface-base` | 9 | `surface-background` | esas tarjetas no tenían fondo |
+| `ring-focus` | 1 | `--focus-ring` | ese campo no tenía anillo |
+
+Tailwind v4 solo emite lo que encuentra usado, así que una clase mal escrita **no falla**: no
+existe, y el elemento se queda sin ese estilo en silencio. Ninguna prueba lo veía porque las pruebas
+comprueban que la clase esté en el `className`, no que produzca CSS.
+
+Además: las cuatro variantes de radio que `Surface` heredaba de Tailwind se retiran —las doce
+superficies que aún las pedían migraron a `chip`/`control`/`card`/`panel`—, y `--brand-black` deja
+de ser negro en oscuro, donde contrastaba 1.10 contra el papel y perdía su silueta.
 
 ## Fuera de alcance (registrado, no descartado)
 

@@ -87,7 +87,7 @@ export default function HabitChallengePanel({
   return (
     <div className="mt-8 space-y-6">
       <section
-        className={`rounded-3xl border bg-surface-elevation-1 p-5 shadow-sm sm:p-7 ${theme.border}`}
+        className={`rounded-panel border bg-surface-elevation-1 p-5 shadow-sm sm:p-7 ${theme.border}`}
       >
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
@@ -113,10 +113,10 @@ export default function HabitChallengePanel({
               <li
                 key={date}
                 data-testid="challenge-day"
-                className={`rounded-2xl border p-3 text-center ${
+                className={`rounded-card border p-3 text-center ${
                   completed
                     ? `${theme.solidBorder} ${theme.soft}`
-                    : "border-separator bg-surface-base"
+                    : "border-separator bg-surface-elevation-1"
                 }`}
               >
                 <span className="block text-xs font-bold uppercase text-body">
@@ -178,7 +178,7 @@ export default function HabitChallengePanel({
               {copy.cycleDate}
               <select
                 name="cycleDate"
-                className="mt-2 block w-full rounded-xl border border-separator bg-surface-base p-3"
+                className="mt-2 block w-full rounded-control border border-separator bg-surface-elevation-1 p-3"
                 defaultValue={availableDates.at(-1)}
               >
                 {availableDates.map((date) => (
@@ -274,7 +274,7 @@ function HabitCheckbox({
 }): React.ReactNode {
   return (
     <label
-      className={`flex cursor-pointer items-start gap-3 rounded-2xl border border-separator bg-surface-base p-4 text-left transition focus-within:ring-2 focus-within:ring-focus ${theme.checkboxHover}`}
+      className={`flex cursor-pointer items-start gap-3 rounded-card border border-separator bg-surface-elevation-1 p-4 text-left transition focus-within:ring-2 focus-within:ring-(--focus-ring) ${theme.checkboxHover}`}
     >
       <input
         type="checkbox"

@@ -50,13 +50,15 @@ export default function CommentList({
       </Heading>
       <AddCommentForm postId={postId} user={user} />
 
-      {commentError && <p className="text-red-500 mt-2">{commentError}</p>}
+      {commentError && (
+        <p className="text-brand-clay-700 mt-2">{commentError}</p>
+      )}
 
       {comments?.length > 0 ? (
         <ul aria-label={t("listLabel")}>
           {comments.map((comment) => (
             <li key={comment.id}>
-              <article className="comment p-4 border-b border-b-slate-700">
+              <article className="comment p-4 border-b border-b-separator">
                 <header className="flex gap-4 mb-3">
                   <Avatar user={comment?.user} />
                   <p className="flex flex-col text-sm" rel="author">
@@ -85,7 +87,7 @@ export default function CommentList({
       <button
         type="button"
         onClick={onLoadMoreComments}
-        className="mt-4 bg-blue-500 text-white px-4 py-2 rounded-sm"
+        className="focus-ring mt-4 min-h-12 rounded-control bg-button-primary-bg px-4 py-2 font-semibold text-button-primary-text hover:bg-button-primary-hover transition-colors"
         disabled={loading}
       >
         {loading ? t("loadingMore") : t("loadMore")}

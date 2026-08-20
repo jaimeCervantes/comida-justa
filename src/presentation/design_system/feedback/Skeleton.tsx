@@ -20,15 +20,14 @@ const skeletonVariants = cva(
          exacta de lo que va a llegar, así que su radio se pide igual que el de la superficie. */
       radius: {
         none: "",
+        chip: "rounded-chip",
+        control: "rounded-control",
         card: "rounded-card",
         panel: "rounded-panel",
-        md: "rounded-md",
-        lg: "rounded-lg",
-        xl: "rounded-xl",
         pill: "rounded-full",
       },
     },
-    defaultVariants: { radius: "md" },
+    defaultVariants: { radius: "chip" },
   },
 );
 

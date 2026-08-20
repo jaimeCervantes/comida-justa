@@ -219,6 +219,16 @@
 
     --brand-gray: #2a3126;
 
+    /**
+     * El relleno «negro» deja de ser negro en oscuro.
+     *
+     * `#1b1e18` sobre el papel oscuro contrasta 1.10: la silueta del botón desaparece y solo se ve
+     * su etiqueta flotando. Un negro puro sobre fondo negro no puede tener silueta fuerte —ni con
+     * este valor ni con ninguno—, así que sube un escalón hasta despegarse (1.41) y la
+     * identificación del control sigue recayendo en su etiqueta blanca, que ahí sí contrasta 13.19.
+     */
+    --brand-black: #2c3227;
+
     /* --- Semantic: text --- */
     --text-base: #eceadf;
     --text-inverse: #1b1e18;
@@ -288,6 +298,9 @@
   --brand-honey-soft: #3a2f08;
 
   --brand-gray: #2a3126;
+
+  /* El relleno «negro» deja de ser negro en oscuro: ver la nota del bloque de arriba. */
+  --brand-black: #2c3227;
 
   /* --- Semantic: text --- */
   --text-base: #eceadf;
