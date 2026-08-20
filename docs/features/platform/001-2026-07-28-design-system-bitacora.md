@@ -968,3 +968,130 @@ el trabajo del slice 11, componente por componente.
 4. **La deuda que este slice dejó a la vista y no tocó.** `--brand-black` no se redefine en oscuro
    (hoy tampoco lo hacía), así que los 3 `text-pw-black` quedan invisibles sobre fondo oscuro. Es
    preexistente y de componente, no de token: le toca al slice 11.
+
+---
+
+## Slice 11 — Los primitivos hablan v2
+
+**Fecha:** 2026-08-19 · **Rama:** `feat/design-system-v2`
+
+### Objetivo
+
+Que los primitivos consuman los tokens del slice 10. El slice anterior arregló la capa de abajo,
+pero un token no llega a la pantalla hasta que un componente lo pide: mientras `Button` pusiera
+`bg-pw-green text-white` a mano, seguía eligiendo su propio color por debajo del sistema.
+
+### Decisiones y por qué
+
+**1. El color se pide como par, no como relleno.** El roadmap decía «repuntar el relleno al token», y
+resultó insuficiente. En oscuro el relleno primario se aclara a `#6ba34a` y lo que va encima es tinta
+oscura (`#0d1109`), no blanco: un `bg-button-primary-bg text-white` habría estado mal en la mitad de
+los casos, y precisamente en el tema donde nadie mira. Los botones piden ahora **la pareja** —relleno
+y su texto—, que es la unidad que `brandPalette.contrast.test.ts` mide en los dos temas. El tema
+mueve las dos variables a la vez y el componente no se entera.
+
+**2. El número del pilar necesitaba un consumidor de verdad.** Un `counter` en `Badge` que nadie
+usara habría repetido exactamente el error que este repo ya tiene documentado en `typography.css`:
+tokens definidos en el slice 2 que ningún componente consumía, y que por tanto no arreglaban nada.
+
+El consumidor natural es el filtro de pilares, y ahí apareció un desajuste: **es un enlace, no un
+chip**. Tiene estados activo/inactivo, borde propio y navega. Envolverlo en un `Badge` habría sido
+meter una insignia dentro de un enlace solo para robarle el círculo. Así que el círculo se extrajo
+como `BadgeCounter`, que ambos comparten: la forma se decide una vez, que es justo lo que este
+primitivo vino a garantizar cuando en el slice 3 había tres insignias copiadas a mano.
+
+**3. El número va `aria-hidden`, y esa es la decisión de fondo del slice.** Es una redundancia
+**visual** para una limitación **visual**: existe porque Movimiento (`#3c7b0f`) y Mente (`#0369a1`)
+contrastan 1.14 entre sí como tinta, y quien no distingue el tono no los separa *mirando*. Quien usa
+un lector de pantalla no tiene ese problema — ya recibe «Movimiento», que es inequívoco—, así que
+anunciar «3 Movimiento» alarga el nombre accesible de cada filtro sin añadir información.
+
+La confirmación de que la decisión era correcta llegó sola: **los tres tests del filtro pasaron sin
+tocarse**. Con el número anunciado, `getByRole("link", { name: "Movimiento" })` habría dejado de
+encontrarlo — en Testing Library el nombre es exacto—, y habría habido que editar esas pruebas y
+mirar de reojo el e2e. Que un cambio correcto no rompa ningún contrato existente es señal; que
+obligue a reescribir aserciones de accesibilidad suele ser lo contrario.
+
+**4. El número deja de estar implícito en el orden de un array.** `PUBLICATION_PILLARS` codificaba
+1-2-3-4 en su orden, que es la peor forma de guardar un dato: cualquiera que reordene la lista por
+gusto renumera los cuatro pilares sin enterarse. Ahora es un campo del dominio, como ya estaba
+rotulado en `colors.css` desde el slice 3.
+
+**5. Los tres tonos base del `Badge` eran anteriores a los tokens.** Salió al leerlo para añadir el
+contador. `neutral` pintaba con `gray-200`/`gray-700` crudos de Tailwind —un gris azulado que sobre
+el papel cálido del slice 10 se ve como una mancha fría en mitad de la tarjeta— y `brand`/`accent`
+usaban una opacidad sobre el color de marca (`/15`, `/10`). Una opacidad es una forma de no decidir:
+el fondo real depende de lo que haya debajo y la tinta no está elegida para él, así que su contraste
+no se puede medir, solo suponer. Pasan al par `soft`/`ink` como los cuatro pilares, y **pierden sus
+variantes `dark:`** — la variable ya cambia con el tema, que es la regla que sigue `Surface`.
+
+Lo mismo le pasaba a `Alert`, con el mismo arreglo.
+
+### Archivos tocados
+
+**Primitivos** — `buttons/Button.tsx` (pares semánticos, `min-h-*` declarado, `rounded-control`,
+`font-semibold`), `badges/Badge.tsx` (tonos base al par, `emphasis: solid`, `counter`, y
+`BadgeCounter` extraído), `surfaces/Surface.tsx` y `feedback/Skeleton.tsx` (`radius: card | panel`),
+`forms/InputShell.tsx` (`rounded-control`, `border-border-field`), `feedback/Alert.tsx` (pares
+`soft`/`ink`, `rounded-control`).
+
+**Dominio** — `entities/post/publicationPillars.ts`: el número del pilar, explícito.
+
+**Consumidor** — `presentation/post/PublicationPillarFilter.tsx`.
+
+**Pruebas** — `forms/InputShell.test.tsx` (nuevo; el componente no tenía prueba propia y cargaba dos
+decisiones suyas), y casos nuevos en `Button`, `Badge`, `Surface`, `Alert`,
+`PublicationPillarFilter` y `brandPalette.contrast`.
+
+### Comandos
+
+```bash
+pnpm vitest run src/presentation/design_system/   # 264/264
+pnpm run test:run                                 # 2143/2143 en 201 archivos
+pnpm run typecheck                                # limpio
+pnpm run lint                                     # limpio
+pnpm run check:i18n / check:directives            # limpios
+pnpm run build                                    # OK en 21.0s
+```
+
+### Validación
+
+- **Las 14 utilidades nuevas se comprobaron en el CSS ya compilado**, no solo en el fuente. Tailwind
+  v4 solo emite lo que encuentra usado, así que una clase mal escrita no falla: simplemente no
+  existe, y el componente se queda sin ese estilo en silencio. Están las 14.
+- **Los tests del filtro de pilares pasan sin editarse** (ver decisión 3).
+- **Un fallo de `EditPostForm.test.tsx` resultó ser inestabilidad, no regresión.** Falló una vez en
+  la suite completa (2137/2138) por un aviso de envío de formulario de React, pasó aislado, y las
+  dos corridas completas siguientes dieron 2138 y 2143 sin tocar nada. No comparte nada con este
+  slice — no mira clases ni colores.
+- **Pendiente: la suite e2e completa.** No se ejecutó; la corre el usuario.
+
+### Desviaciones del roadmap
+
+Las tres de la sección «Lo que el slice enseñó» del roadmap: el par en vez del relleno, la
+extracción de `BadgeCounter` con el número en el dominio, y los tonos base del `Badge`. Ninguna
+amplía el alcance a pantallas: todo sigue dentro de `design_system/`, salvo el único consumidor que
+hacía falta para que el contador no naciera muerto.
+
+### Recap
+
+Los primitivos ya hablan v2 y ninguna API cambió de nombre. Los botones piden su color como pareja
+—que es lo que hace que el tema oscuro funcione sin que ellos lo sepan—, el `Badge` perdió sus
+últimos grises azulados y sus variantes `dark:` a mano, `InputShell` estrenó el borde que sí
+delimita, y `Alert` dejó de pintar con opacidades para tomar pares medidos. El aviso que
+`pillarPalette.contrast.test.ts` dejó escrito en el slice 3 —que dos pilares no se distinguen solo
+por luminosidad— por fin está atendido en la interfaz, y de la forma que no cuesta nada a quien usa
+un lector de pantalla. La escala de radio del slice 10 ya tiene consumidores: `rounded-control` en
+botones y campos, `card`/`panel` disponibles para cuando las pantallas los pidan.
+
+### Próximos pasos (opciones)
+
+1. **Correr la e2e completa** y mirar el sitio a ojo en los dos temas. Sigue pendiente de los dos
+   slices, y está en tus manos.
+2. **Slice 12 — header y feed.** Es lo que todo el mundo ve, y donde `rounded-card` empieza a
+   sustituir a los 39 `rounded-2xl` y 44 `rounded-lg` sueltos.
+3. **Los `dark:` que quedan.** El `Badge` se limpió; el árbol todavía tiene variantes `dark:`
+   escritas a mano en otros sitios. Cada una es un color que no pasó por un token y que nadie mide.
+   Un `grep -rn "dark:" src --include=*.tsx` da el inventario.
+4. **`--brand-black` en oscuro**, que el slice 10 dejó anotado y este no tocó: los 3 `text-pw-black`
+   siguen invisibles sobre fondo oscuro. Es de componente, y ya toca.

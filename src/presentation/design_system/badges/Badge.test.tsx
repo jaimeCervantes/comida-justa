@@ -85,6 +85,67 @@ describe("Badge", () => {
     expect(screen.getByTestId("badge")).toHaveClass("font-semibold");
   });
 
+  /**
+   * Slice 11. `pillarPalette.contrast.test.ts` dejó escrito desde el slice 3 que Movimiento
+   * (#3c7b0f) y Mente (#0369a1) contrastan 1.14 entre sí como tinta: quien no distingue el tono no
+   * los separa. La prueba documentaba el límite; esto lo atiende en la interfaz.
+   *
+   * El número entra como `counter` y no como parte del `children` para que la forma del círculo la
+   * decida el primitivo una sola vez, en vez de copiarse en cada llamada — que es exactamente el
+   * problema que este componente vino a resolver con las tres insignias del slice 3.
+   */
+  describe("el número del pilar", () => {
+    it.each([
+      ["Sueño", 1],
+      ["Alimentación", 2],
+      ["Movimiento", 3],
+      ["Mente", 4],
+    ] as const)("viaja dentro de la insignia de %s", (label, counter) => {
+      render(
+        <Badge tone="nutrition" counter={counter} data-testid="badge">
+          {label}
+        </Badge>,
+      );
+
+      const badge = screen.getByTestId("badge");
+      expect(badge).toHaveTextContent(String(counter));
+      expect(badge).toHaveTextContent(label);
+    });
+
+    it("se pinta como un círculo sólido, aparte de la etiqueta", () => {
+      render(
+        <Badge tone="movement" counter={3} data-testid="badge">
+          Movimiento
+        </Badge>,
+      );
+
+      const counter = screen.getByText("3");
+      expect(counter).toHaveClass("rounded-full");
+      expect(counter.textContent).toBe("3");
+    });
+
+    /* Un círculo vacío delante de "Agotado" sería ruido: la insignia sin pilar no cambia. */
+    it("no deja un círculo vacío cuando la insignia no es de un pilar", () => {
+      render(<Badge data-testid="badge">Agotado</Badge>);
+
+      const badge = screen.getByTestId("badge");
+      expect(badge.querySelector("span")).toBeNull();
+      expect(badge).toHaveTextContent("Agotado");
+    });
+  });
+
+  it("el énfasis sólido rellena en vez de teñir", () => {
+    render(
+      <Badge tone="brand" emphasis="solid" data-testid="badge">
+        Nuevo
+      </Badge>,
+    );
+
+    const badge = screen.getByTestId("badge");
+    expect(badge).toHaveClass("bg-button-primary-bg");
+    expect(badge).toHaveClass("text-button-primary-text");
+  });
+
   it("acepta clases extra sin perder las suyas", () => {
     render(
       <Badge className="mt-2" data-testid="badge">

@@ -83,6 +83,8 @@ const TEXT_PAIRS: readonly Pair[] = [
   ["--feedback-warning-ink", "--feedback-warning-soft", "aviso de advertencia"],
   ["--feedback-error-ink", "--feedback-error-soft", "aviso de error"],
   ["--brand-green-900", "--brand-green-soft", "tinta sobre el chip verde"],
+  ["--brand-clay-700", "--brand-clay-soft", "tinta sobre el chip de barro"],
+  ["--text-support", "--surface-elevation-2", "tinta sobre el chip neutro"],
 ];
 
 /** Cada tinta contra cada superficie donde puede caer. Una tinta legible «casi siempre» no sirve. */

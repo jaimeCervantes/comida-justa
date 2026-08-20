@@ -18,18 +18,27 @@ import { cn } from "../styling/merge-class-names";
  */
 export const inputShellClassName = cva(
   [
-    "flex h-12 w-full items-center gap-2 rounded-md px-3",
+    "flex h-12 w-full items-center gap-2 rounded-control px-3",
     "border bg-surface-elevation-1 text-body text-text-base",
     "transition-colors duration-fast ease-standard",
     "[&_svg]:size-5 [&_svg]:shrink-0",
   ],
   {
     variants: {
+      /**
+       * El contorno usa `--border-field`, no `--border`.
+       *
+       * Son dos trabajos distintos, y el slice 10 los separó justo por esto: `--border` es
+       * decorativo —separa, y da 1.27 sobre el papel— mientras que el contorno de un campo es lo
+       * único que dice dónde empieza el control, así que cae bajo «Non-text Contrast» (WCAG
+       * 1.4.11) y necesita 3:1. Hasta ahora este campo pedía el decorativo, y era el único sitio
+       * del sistema donde esa diferencia se notaba de verdad.
+       */
       state: {
-        idle: "border-border [&>svg:first-child]:text-text-support focus-within:border-pw-green focus-within:shadow-[inset_0_0_0_1px_var(--color-pw-green)]",
+        idle: "border-border-field [&>svg:first-child]:text-text-support focus-within:border-pw-green focus-within:shadow-[inset_0_0_0_1px_var(--color-pw-green)]",
         error: "border-feedback-error [&>svg:first-child]:text-feedback-error",
         disabled:
-          "border-border opacity-50 bg-surface-elevation-2 [&>svg:first-child]:text-text-support cursor-not-allowed",
+          "border-border-field opacity-50 bg-surface-elevation-2 [&>svg:first-child]:text-text-support cursor-not-allowed",
       },
     },
     defaultVariants: { state: "idle" },

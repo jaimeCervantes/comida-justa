@@ -284,12 +284,28 @@ siguen cumpliendo AA— pero el repo se queda con la medida, no con la anotació
   Tailwind no quedó sobrescrita.
 - Ningún archivo bajo `src/app/` ni `src/presentation/` fuera de `tokens/` cambia en este slice.
 
-### Slice 11 — Los primitivos hablan v2
+### Slice 11 — Los primitivos hablan v2 ✅
 
 Ninguna API cambia de nombre; cambian los valores de las variantes de `cva`. `Button` repunta su
 relleno al token y sube `md`/`lg` al mínimo táctil de 44px; `Badge` gana el número del pilar dentro
-de la insignia y una variante sólida; `Surface` estrena `radius: card | panel`; `InputShell` pasa a
-50px con radio de control y foco en el borde; `Alert` y `Skeleton` adoptan los tonos cálidos.
+de la insignia y una variante sólida; `Surface` estrena `radius: card | panel`; `InputShell` pasa al
+radio de control y al borde de campo; `Alert` y `Skeleton` adoptan los tonos cálidos.
+
+**Lo que el slice enseñó y no estaba en el plan.** Tres cosas, todas por el mismo motivo: un token
+sin consumidor no arregla nada, y al buscarle consumidor aparece la deuda real.
+
+1. **El color se pide como par, no como relleno.** El plan decía «repuntar el relleno al token».
+   No basta: en oscuro el relleno se aclara y lo que va encima es tinta oscura, no blanco. Un
+   `bg-button-primary-bg text-white` habría estado mal en la mitad de los casos. Los botones piden
+   ahora el par entero, que es lo que `brandPalette.contrast.test.ts` mide.
+2. **El número del pilar necesitaba un consumidor de verdad.** Un `counter` en `Badge` que nadie
+   usara habría repetido el error que este repo ya documentó con los tokens del slice 2. El
+   consumidor natural —el filtro de pilares— es un enlace, no un chip, así que el círculo se extrajo
+   como `BadgeCounter` y el número dejó de estar implícito en el orden de `PUBLICATION_PILLARS`.
+3. **Los tres tonos base del `Badge` eran anteriores a los tokens.** `neutral` pintaba con
+   `gray-200`/`gray-700` crudos —un gris azulado sobre el papel cálido— y `brand`/`accent` usaban
+   una opacidad sobre el color de marca, que hace el contraste imposible de medir. Pasan al par
+   `soft`/`ink` como los pilares, y pierden sus variantes `dark:`.
 
 ### Slice 12 — Header y feed
 

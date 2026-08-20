@@ -15,15 +15,24 @@ import { cn } from "../styling/merge-class-names";
  * distingue rojo de verde no puede leer un aviso cuyo único dato es el color del borde. Esa
  * etiqueta la pone quien llama, ya traducida: el design system no lee el catálogo de mensajes.
  */
-const alertVariants = cva("flex gap-3 rounded-lg border p-4", {
+/**
+ * Cada tono toma su **par** `soft`/`ink`, medido en el slice 10 (11.86, 11.35 y 12.35).
+ *
+ * Antes se pintaba con una opacidad sobre el color de marca —`bg-feedback-error/10` con
+ * `text-text-base`—, que es una forma de no decidir: el fondo real dependía de sobre qué se pintara
+ * el aviso, y la tinta era la del cuerpo, elegida para el papel y no para ese fondo. Con el par, un
+ * aviso se ve igual esté donde esté, y su contraste está verificado en vez de supuesto.
+ */
+const alertVariants = cva("flex gap-3 rounded-control border p-4", {
   variants: {
     tone: {
       info: "border-separator bg-surface-elevation-2 text-text-base",
       success:
-        "border-feedback-success/40 bg-feedback-success/10 text-text-base",
+        "border-feedback-success-ink/25 bg-feedback-success-soft text-feedback-success-ink",
       warning:
-        "border-feedback-warning/50 bg-feedback-warning/10 text-text-base",
-      error: "border-feedback-error/40 bg-feedback-error/10 text-text-base",
+        "border-feedback-warning-ink/25 bg-feedback-warning-soft text-feedback-warning-ink",
+      error:
+        "border-feedback-error-ink/25 bg-feedback-error-soft text-feedback-error-ink",
     },
   },
   defaultVariants: { tone: "info" },

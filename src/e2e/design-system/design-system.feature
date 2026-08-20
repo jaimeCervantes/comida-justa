@@ -411,35 +411,107 @@ Feature: Un design system que habla como la marca
       | Plus Jakarta Sans | --font-ui     | etiquetas, botones, cuerpo, datos       |
 
   # ---------------------------------------------------------------------------
-  # Slice 11 — Los primitivos hablan v2  (futuro)
-  # Ninguna API cambia de nombre: cambian los valores de las variantes de `cva`.
+  # Slice 11 — Los primitivos hablan v2  (actual)
+  #
+  # Ninguna API cambia de nombre: cambian los valores de las variantes de `cva`, y donde hace falta
+  # se añade una variante nueva. Cubierto por Vitest, junto a cada componente:
+  #   buttons/Button.test.tsx · badges/Badge.test.tsx · surfaces/Surface.test.tsx
+  #   forms/InputShell.test.tsx (nuevo) · feedback/Alert.test.tsx · feedback/Skeleton.test.tsx
   # ---------------------------------------------------------------------------
 
-  @slice-11 @component @future
-  Scenario: El botón primario rellena con el verde que aguanta blanco
-    Given un Button de color green
-    When se pinta en claro y en oscuro
-    Then su relleno sale del token de relleno, no de la semilla del logo
-    And su altura md llega al mínimo táctil de 44px
-
-  @slice-11 @component @future
-  Scenario: La insignia de un pilar lleva su número dentro
-    Given una insignia del pilar Alimentación
+  # El slice 10 arregló el token; hasta que el botón deje de pedir el color a mano, el arreglo no
+  # llega a la pantalla. Esto es esa segunda mitad.
+  @slice-11 @component
+  Scenario Outline: Cada botón pide su color al par semántico, no a un hex de marca
+    Given un Button de color "<color>"
     When se pinta
-    Then el número 2 viaja dentro de la insignia, junto a la etiqueta
-    And el color deja de ser el único dato que identifica al pilar
+    Then su relleno es "<fondo>" y su texto "<texto>"
+    And el par lo mide `brandPalette.contrast.test.ts` en los dos temas
 
-  @slice-11 @component @future
-  Scenario: Surface estrena los radios con nombre
-    Given una tarjeta y un panel
-    When cuelgan de Surface
-    Then la tarjeta pide radius card y el panel radius panel
+    Examples: el tema oscuro mueve el par entero sin que el botón se entere
+      | color   | fondo                  | texto                    | uso              |
+      | green   | button-primary-bg      | button-primary-text      | acción principal |
+      | orange  | button-buy-bg          | button-buy-text          | comprar          |
+      | default | button-secondary-bg    | button-secondary-text    | secundaria       |
 
-  @slice-11 @component @future
+  @slice-11 @component
+  Scenario Outline: Ningún botón se queda por debajo del objetivo táctil
+    Given un Button de tamaño "<size>"
+    When alguien lo pulsa con el pulgar en un teléfono
+    Then su altura mínima es "<altura>"
+
+    Examples: md y lg cumplen los 44px que pide un objetivo táctil
+      | size | altura | clase     |
+      | xs   | 32px   | min-h-8   |
+      | sm   | 40px   | min-h-10  |
+      | md   | 48px   | min-h-12  |
+      | lg   | 56px   | min-h-14  |
+
+  @slice-11 @component
+  Scenario: El botón redondea con el radio que tiene nombre
+    Given la escala nombrada que estrenó el slice 10
+    When el botón pide su forma
+    Then usa rounded-control, y deja de decidir un rounded-lg por su cuenta
+
+  # El aviso de `pillarPalette.contrast.test.ts`, por fin atendido en la interfaz: Movimiento y
+  # Mente contrastan 1.14 entre sí como tinta, así que el color no puede ir solo.
+  @slice-11 @component
+  Scenario Outline: La insignia de un pilar puede llevar su número dentro
+    Given la insignia del pilar "<pilar>" con el número "<numero>"
+    When se pinta
+    Then el número viaja dentro de la insignia, junto a la etiqueta
+    And quien no distingue el tono sigue sabiendo de qué pilar se trata
+
+    Examples:
+      | pilar          | numero |
+      | Sueño          | 1      |
+      | Alimentación   | 2      |
+      | Movimiento     | 3      |
+      | Mente          | 4      |
+
+  @slice-11 @component
+  Scenario: Una insignia sin número se pinta igual que siempre
+    Given una insignia de disponibilidad, que no pertenece a ningún pilar
+    When se pinta sin número
+    Then no aparece ningún círculo vacío delante de la etiqueta
+
+  @slice-11 @component
+  Scenario Outline: Surface estrena los radios con nombre
+    Given una superficie de tipo "<tipo>"
+    When pide su radio a Surface
+    Then usa "<clase>"
+
+    Examples:
+      | tipo    | clase          |
+      | card    | rounded-card   |
+      | panel   | rounded-panel  |
+
+  @slice-11 @component
+  Scenario: Un campo delimita su contorno con contraste suficiente
+    Given un InputShell en reposo
+    When alguien busca dónde empieza el campo
+    Then su borde usa el token de borde de campo, que cumple 3:1 con la superficie
+    And no el borde decorativo, que existe para separar y no para delimitar
+
+  @slice-11 @component
   Scenario: Un campo enfocado no dibuja dos verdes concéntricos
-    Given un InputShell en reposo, foco, error y deshabilitado
-    When recibe el foco
-    Then su borde se pone verde y no aparece un anillo por fuera
+    Given un InputShell que recibe el foco
+    When se pinta el estado de foco
+    Then su borde se pone verde y la sombra que lo engorda va hacia dentro
+    And no aparece el anillo de foco del sitio, que dejaría dos verdes a 2px
+
+  @slice-11 @component
+  Scenario Outline: Un aviso toma su fondo y su tinta del par medido
+    Given un Alert de tono "<tono>"
+    When se pinta
+    Then su fondo es "<soft>" y su tinta "<ink>"
+    And su role sigue siendo el que fijó el slice 7
+
+    Examples: los pares entraron en el slice 10 y aquí se consumen
+      | tono    | soft                  | ink                  |
+      | success | feedback-success-soft | feedback-success-ink |
+      | warning | feedback-warning-soft | feedback-warning-ink |
+      | error   | feedback-error-soft   | feedback-error-ink   |
 
   # ---------------------------------------------------------------------------
   # Slice 12 — Header y feed, que es lo que todo el mundo ve  (futuro)

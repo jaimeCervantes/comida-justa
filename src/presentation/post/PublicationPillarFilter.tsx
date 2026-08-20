@@ -5,6 +5,7 @@ import {
   type PublicationPillar,
 } from "~/domain/entities/post/publicationPillars";
 import { type AppHref, type AppPathname, Link } from "~/i18n/navigation";
+import { BadgeCounter } from "~/presentation/design_system/badges/Badge";
 
 type QueryValue = string | number | null | undefined;
 
@@ -118,7 +119,7 @@ export default function PublicationPillarFilter({
       >
         {t("all")}
       </Link>
-      {PUBLICATION_PILLARS.map(({ key }) => {
+      {PUBLICATION_PILLARS.map(({ key, number }) => {
         const active = currentPillar === key;
         const color = PILLAR_CLASSES[key];
 
@@ -133,8 +134,12 @@ export default function PublicationPillarFilter({
               pillar: key,
             })}
             aria-current={active ? "page" : undefined}
-            className={`${BASE_LINK} ${active ? color.active : color.inactive}`}
+            className={`${BASE_LINK} gap-2 pl-2 ${active ? color.active : color.inactive}`}
           >
+            {/* El número acompaña siempre al color. Movimiento y Mente contrastan 1.14 entre sí
+                como tinta —lo dejó medido `pillarPalette.contrast.test.ts`—, así que quien no
+                distingue el tono necesita este dato para saber qué filtro está pulsando. */}
+            <BadgeCounter tone={key}>{number}</BadgeCounter>
             {t(key)}
           </Link>
         );

@@ -31,6 +31,26 @@ describe("Surface", () => {
     expect(surface.className).not.toMatch(/shadow|border|bg-/);
   });
 
+  /**
+   * Slice 11. `card` y `panel` son la escala de v2, que el slice 10 expuso con nombre propio; el
+   * resto son la escala de Tailwind y siguen aquí porque hay superficies que aún las piden.
+   *
+   * El nombre dice **qué** se redondea y no cuánto mide: una tarjeta que pide `card` sigue siendo
+   * correcta el día que la tarjeta cambie de radio, y ese día se toca `layout.css` una vez.
+   */
+  it.each([
+    ["card", "rounded-card"],
+    ["panel", "rounded-panel"],
+  ] as const)("el radio con nombre %s aplica %s", (radius, expected) => {
+    render(
+      <Surface radius={radius} data-testid="surface">
+        x
+      </Surface>,
+    );
+
+    expect(screen.getByTestId("surface")).toHaveClass(expected);
+  });
+
   it.each([
     ["md", "rounded-md"],
     ["lg", "rounded-lg"],

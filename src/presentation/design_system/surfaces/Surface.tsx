@@ -15,9 +15,20 @@ import { cn } from "../styling/merge-class-names";
  */
 const surfaceVariants = cva("", {
   variants: {
+    /**
+     * `card` y `panel` son la escala de v2, que el slice 10 expuso con nombre propio. El nombre
+     * dice **qué** se redondea y no cuánto mide: una tarjeta que pide `card` sigue siendo correcta
+     * el día que la tarjeta cambie de radio, y ese día se toca `layout.css` una vez.
+     *
+     * Los tamaños de Tailwind siguen aquí porque hay superficies que aún los piden, y migrarlas es
+     * trabajo de las pantallas (slices 12 y 13), no de este componente. El día que ninguna los use,
+     * se van.
+     */
     radius: {
       /** Para superficies que redondean solo algunos lados (una caja con barra lateral). */
       none: "",
+      card: "rounded-card",
+      panel: "rounded-panel",
       md: "rounded-md",
       lg: "rounded-lg",
       xl: "rounded-xl",

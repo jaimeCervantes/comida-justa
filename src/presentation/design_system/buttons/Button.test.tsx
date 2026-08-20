@@ -95,6 +95,60 @@ describe("Button component", () => {
     expect(button.querySelector(".absolute")).toBeNull();
   });
 
+  /**
+   * Slice 11. El slice 10 arregló el token —`--brand-green` dejó de ser la semilla del logo y pasó
+   * al relleno que sí aguanta blanco—, pero mientras el botón pidiera `bg-pw-green` a mano seguía
+   * decidiendo su propio color. Ahora pide el **par** (relleno + su texto), que es lo que
+   * `brandPalette.contrast.test.ts` mide en los dos temas: el tema oscuro mueve el par entero sin
+   * que este componente se entere.
+   */
+  describe("pide su color al par semántico", () => {
+    it.each([
+      ["green", "bg-button-primary-bg", "text-button-primary-text"],
+      ["orange", "bg-button-buy-bg", "text-button-buy-text"],
+      ["default", "bg-button-secondary-bg", "text-button-secondary-text"],
+    ] as const)("el color %s", (color, fill, ink) => {
+      const { getByRole } = render(<Button color={color}>Publicar</Button>);
+      const button = getByRole("button");
+
+      expect(button).toHaveClass(fill);
+      expect(button).toHaveClass(ink);
+    });
+
+    it("ya no nombra el verde de marca a pelo", () => {
+      const { getByRole } = render(<Button color="green">Publicar</Button>);
+
+      expect(getByRole("button").className).not.toMatch(/bg-pw-green/);
+    });
+  });
+
+  /**
+   * 44px es el objetivo táctil mínimo con el que un pulgar acierta. `md` y `lg` lo cumplen; `xs` y
+   * `sm` existen para barras densas de escritorio y declaran su altura igual, para que nadie los
+   * use en un teléfono creyendo que miden lo mismo.
+   */
+  it.each([
+    ["xs", "min-h-8"],
+    ["sm", "min-h-10"],
+    ["md", "min-h-12"],
+    ["lg", "min-h-14"],
+  ] as const)(
+    "el tamaño %s declara su altura mínima (%s)",
+    (size, minHeight) => {
+      const { getByRole } = render(<Button size={size}>Publicar</Button>);
+
+      expect(getByRole("button")).toHaveClass(minHeight);
+    },
+  );
+
+  it("redondea con el radio que tiene nombre, no con uno elegido a mano", () => {
+    const { getByRole } = render(<Button>Publicar</Button>);
+    const button = getByRole("button");
+
+    expect(button).toHaveClass("rounded-control");
+    expect(button.className).not.toMatch(/rounded-lg/);
+  });
+
   it("Then when props exist the button should be shown with this props", async () => {
     const onClick = vi.fn();
     const user = userEvent.setup();

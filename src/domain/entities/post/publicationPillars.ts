@@ -17,13 +17,26 @@ export type PillarCategoryKey =
 export interface PublicationPillarOption {
   key: PublicationPillar;
   categoryKey: PillarCategoryKey;
+  /**
+   * El número del pilar, del 1 al 4.
+   *
+   * No es el índice del array disfrazado: es parte de cómo la marca los nombra —«1 · Sueño»,
+   * «2 · Alimentación»— y así están rotulados en `tokens/colors.css` desde el slice 3. Estaba
+   * implícito en el orden de esta lista, que es la peor forma de guardar un dato: cualquiera que
+   * reordene por gusto renumera los cuatro pilares sin enterarse.
+   *
+   * Se hace explícito porque la interfaz lo necesita. `pillarPalette.contrast.test.ts` dejó escrito
+   * que Movimiento y Mente contrastan 1.14 entre sí como tinta: el color no puede ir solo, y el
+   * número es lo que lo acompaña.
+   */
+  number: 1 | 2 | 3 | 4;
 }
 
 export const PUBLICATION_PILLARS: readonly PublicationPillarOption[] = [
-  { key: "sleep", categoryKey: "sueno_y_descanso" },
-  { key: "nutrition", categoryKey: "alimentacion" },
-  { key: "movement", categoryKey: "movimiento_y_ejercicio" },
-  { key: "mindSpirit", categoryKey: "mente_y_espiritu" },
+  { key: "sleep", categoryKey: "sueno_y_descanso", number: 1 },
+  { key: "nutrition", categoryKey: "alimentacion", number: 2 },
+  { key: "movement", categoryKey: "movimiento_y_ejercicio", number: 3 },
+  { key: "mindSpirit", categoryKey: "mente_y_espiritu", number: 4 },
 ];
 
 const CATEGORY_KEY_BY_PILLAR: Record<PublicationPillar, PillarCategoryKey> = {

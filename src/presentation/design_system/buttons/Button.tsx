@@ -12,22 +12,46 @@ const buttonVariants = cva(
   // y el botón crece de alto, rompiendo la altura fija del header.
   // `focus-ring` es el anillo del sistema (`tokens/focus.css`). El botón no tenía **ninguno**: al
   // navegar con teclado no había forma de saber dónde estabas.
-  "focus-ring relative rounded-lg inline-flex items-center justify-center whitespace-nowrap transition-colors disabled:opacity-50 disabled:pointer-events-none",
+  // `rounded-control` es la escala con nombre del slice 10: el botón deja de elegir un número.
+  "focus-ring relative rounded-control inline-flex items-center justify-center whitespace-nowrap font-semibold transition-colors duration-fast disabled:opacity-50 disabled:pointer-events-none",
   {
     variants: {
+      /**
+       * Cada color pide su **par** —relleno y el texto que le toca—, no un hex de marca.
+       *
+       * El slice 10 arregló el token: `--brand-green` dejó de ser la semilla del logo (3.92 con
+       * blanco) y pasó al relleno que sí cumple. Pero mientras aquí pusiera `bg-pw-green
+       * text-white`, este componente seguía eligiendo el texto por su cuenta, y en oscuro eso se
+       * rompe: ahí el relleno se aclara a `#6ba34a` y lo que va encima es tinta oscura, no blanco.
+       *
+       * Pidiendo el par, el tema mueve las dos variables a la vez y el botón no se entera.
+       * `brandPalette.contrast.test.ts` mide justamente esas parejas en los dos temas.
+       */
       color: {
-        green: "bg-pw-green text-white hover:bg-pw-green/80",
-        orange: "bg-pw-orange text-white hover:bg-pw-orange/80",
-        black: "bg-pw-black text-white hover:bg-pw-black/80",
-        white: "bg-pw-white text-black hover:bg-pw-white/80",
-        default: "bg-pw-gray text-white hover:bg-pw-gray/80",
+        green:
+          "bg-button-primary-bg text-button-primary-text hover:bg-button-primary-hover",
+        orange:
+          "bg-button-buy-bg text-button-buy-text hover:bg-button-buy-hover",
+        black: "bg-pw-black text-pw-white hover:bg-pw-black/90",
+        white:
+          "bg-surface-elevation-1 text-text-base hover:bg-surface-elevation-2",
+        default:
+          "bg-button-secondary-bg text-button-secondary-text hover:bg-button-secondary-hover",
       },
+      /**
+       * La altura mínima va declarada y no se deja al relleno.
+       *
+       * 44px es el objetivo táctil con el que un pulgar acierta, y `md` —el tamaño por omisión— lo
+       * cumple con margen. `xs` y `sm` existen para barras densas de escritorio; declaran su altura
+       * igual, para que se vea de un vistazo que no llegan y nadie los ponga en un teléfono
+       * creyendo que sí.
+       */
       size: {
-        xs: "px-2 py-2 text-xs",
-        sm: "px-2 py-2 text-sm",
-        md: "px-5 py-3 text-base",
-        lg: "px-6 py-4 text-base",
-        xl: "px-7 py-5 text-base",
+        xs: "min-h-8 px-3 py-1.5 text-xs",
+        sm: "min-h-10 px-4 py-2 text-sm",
+        md: "min-h-12 px-5 py-3 text-base",
+        lg: "min-h-14 px-6 py-4 text-base",
+        xl: "min-h-16 px-7 py-5 text-base",
       },
     },
     defaultVariants: {
