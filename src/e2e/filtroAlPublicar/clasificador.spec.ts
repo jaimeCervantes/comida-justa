@@ -71,7 +71,10 @@ test.describe("When a publication goes through the classifier", () => {
       title,
       description:
         "Motor en buen estado, cuatro llantas nuevas, papeles en regla. Facilidades de pago y se acepta cambio.",
-      price: "45000",
+      /* Se publica como `anuncio` —el tipo por omisión del formulario— y por eso NO se pasa precio:
+         un anuncio no se vende, así que su campo de precio no está en la página. Es justo lo que
+         afirma este escenario más abajo: a un anuncio no se le toca `is_available`. */
+      kind: "anuncio",
       phone: "2781092116",
       file: MEDIA,
     });

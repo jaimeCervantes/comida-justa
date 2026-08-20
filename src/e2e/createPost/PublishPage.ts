@@ -4,7 +4,11 @@ import { stubStorageUpload } from "../testUtils/stubStorageUpload";
 
 type PublishValues = {
   title: string;
-  price: string;
+  /**
+   * Cuánto cuesta. Opcional porque no todos los tipos lo piden: un `anuncio` no se vende y su campo
+   * de precio ni siquiera está en la página.
+   */
+  price?: string;
   /** One path, or several: a publication now carries up to ten files. */
   file: string | string[];
   phone: string;
@@ -20,6 +24,10 @@ type PublishValues = {
   /** De dónde viene. Obligatoria en un producto, así que sin ella no se puede enviar. */
   origin?: string;
 };
+
+/** Los tipos que pintan precio, y los que además pintan procedencia. Es la regla de `PublishForm`. */
+const KINDS_WITH_PRICE = ["producto", "evento", "servicio"];
+const KINDS_WITH_ORIGIN = ["producto"];
 
 export default class PublishPage {
   readonly page: Page;
@@ -78,9 +86,18 @@ export default class PublishPage {
     /* El tipo va antes que nada: es lo que decide qué campos existen. Precio y procedencia sólo
        se pintan en lo que se vende, así que llenarlos antes de elegirlo es esperar a un campo
        que aún no está en la página. */
-    await this.kind.selectOption(values.kind ?? "producto");
-    await this.origin.selectOption(values.origin ?? "reventa_cercana");
-    await this.price.fill(values.price);
+    const kind = values.kind ?? "producto";
+    await this.kind.selectOption(kind);
+
+    /* Se decide por el tipo y no preguntando si el control está visible: si un día `producto` deja
+       de pintar el precio, esto tiene que fallar y no seguir de largo — que es exactamente lo que
+       hizo pasar desapercibida la rotura de `507241d`. */
+    if (KINDS_WITH_ORIGIN.includes(kind))
+      await this.origin.selectOption(values.origin ?? "reventa_cercana");
+
+    if (KINDS_WITH_PRICE.includes(kind) && values.price !== undefined)
+      await this.price.fill(values.price);
+
     await this.phone.fill(values.phone);
     await this.description.fill(values.description);
     // Set the file last: it fires a native `change` event that only starts the upload
@@ -120,7 +137,8 @@ export default class PublishPage {
   async verifyForm() {
     await expect(this.form).toBeVisible();
     await expect(this.title).toHaveValue(this.values.title as string);
-    await expect(this.price).toHaveValue(this.values.price as string);
+    if (this.values.price !== undefined)
+      await expect(this.price).toHaveValue(this.values.price);
     await expect(this.phone).toHaveValue(this.values.phone as string);
     await expect(this.description).toHaveValue(
       this.values.description as string,
