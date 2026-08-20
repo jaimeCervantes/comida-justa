@@ -206,10 +206,14 @@ test.describe("Given the owner of a publication with several files", () => {
     /* Saving is refused where the person can still read why. A publication with no media does not
        fail here: it fails later, when someone opens its detail page and the render breaks — which is
        the same reason `globalSetup` documents that a media-less publication would stop the app from
-       coming up. */
-    await expect(page.getByTestId("edit-post-error")).toContainText(
-      /al menos una imagen/i,
-    );
+       coming up.
+
+       The message sits under the tray, not in the banner at the top: since the media error became a
+       field error, it lands in the same slot the browser would use for the field it belongs to. The
+       banner (`edit-post-error`) is now only for what no single field owns. */
+    await expect(
+      page.getByText("Sube al menos una imagen o un video."),
+    ).toBeVisible();
 
     expect(await storedFileNames(slug)).toEqual(["seed.jpg"]);
   });
