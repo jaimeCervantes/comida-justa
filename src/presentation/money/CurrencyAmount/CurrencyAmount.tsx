@@ -24,7 +24,20 @@ export default function AmountCurrency({
   className?: string;
 }) {
   const locale = resolveLocale(useLocale());
-  const clsName = `font-bold text-highlight ${className ?? ""}`.trim();
+
+  /**
+   * El precio va en la serif, y en tinta.
+   *
+   * Es el uso más repetido de la voz de portada en todo el sistema de diseño —51 apariciones de
+   * Newsreader, y la mayoría son cifras— porque un precio es un dato que se lee, no una acción que
+   * se pulsa. En serif se distingue del resto de la tarjeta sin necesitar color.
+   *
+   * Por eso deja de ir en verde de acento: el verde es de lo que lleva a algún sitio (enlaces,
+   * botones), y un precio no lleva a ningún sitio. Cuando todo lo importante es verde, el verde
+   * deja de señalar nada.
+   */
+  const clsName =
+    `font-display text-heading-sm text-text-base ${className ?? ""}`.trim();
 
   if (Boolean(value) === false) {
     return null;

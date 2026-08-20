@@ -1338,3 +1338,62 @@ no cuelgan de `Surface`, y son el trabajo de quien toque esas pantallas.
 4. **La UX que quedó fuera por acuerdo** (sección 05–06 del documento): ⌘K, barra fija de
    pilar+distancia, bottom nav móvil, «avísame cuando haya», cola offline, deshacer con 8s. Está
    registrada en el roadmap como fuera de alcance, no descartada.
+
+---
+
+## Corrección post-v2 — la serif se descargaba y no se pintaba
+
+**Fecha:** 2026-08-20 · **Rama:** `feat/design-system-v2`
+
+### El fallo
+
+Auditando lo entregado contra el documento de diseño, `--font-display` tenía **cero consumidores**.
+El slice 10 cargó Newsreader con `next/font`, declaró el token y lo expuso a Tailwind; los slices
+11, 12 y 13 pasaron sin que ningún componente lo pidiera. La fuente se descargaba en cada visita y
+no se pintaba en un solo píxel — coste sin beneficio.
+
+Es el mismo anti-patrón que este repo ya tenía documentado en la cabecera de `typography.css` —los
+tokens del slice 2 que nadie consumía— y que yo mismo cité como lección en las bitácoras de los
+slices 11 y 12. Volvió a pasar porque **nada lo vigilaba**: no hay forma de que un test de
+componente note que una familia tipográfica no se usa en ningún sitio.
+
+### El arreglo
+
+El documento es preciso sobre dónde habla cada voz, y no es «serif para los títulos»:
+
+| Escalón | Voz | Peso | Tamaño |
+| --- | --- | --- | --- |
+| `display` | Newsreader | 400 | 56px (era inexistente) |
+| `heading-lg` | Newsreader | 400 | 40px (era 30, y `font-extrabold`) |
+| `heading-md` | Plus Jakarta | 700 | 26px (era 24) |
+| `heading-sm` y abajo | Plus Jakarta | 700/600 | sin cambios |
+
+`heading-lg` pierde su `font-extrabold`: en una serif de óptico variable el peso extra no da
+autoridad, da ruido. Y el precio pasa a la serif en tinta —es el uso más repetido de la voz de
+portada en todo el documento—, dejando de ir en verde de acento: el verde es de lo que lleva a algún
+sitio, y un precio no lleva a ningún sitio. Cuando todo lo importante es verde, el verde deja de
+señalar nada.
+
+### La prueba
+
+`radiusScale.test.ts` gana dos casos que leen el árbol de `.tsx` y comprueban que la serif tenga al
+menos un consumidor y que la voz de interfaz la aplique el `body`. **Verificado que falla con el
+código anterior**: con `Heading` y `CurrencyAmount` restaurados vía `git stash`, el caso de la serif
+cae. Una prueba que no se ha visto fallar no prueba nada.
+
+### Validación
+
+`test:run` 2143/2143 · `typecheck`, `lint`, `check:i18n` limpios · `build` OK. `font-display` sale
+emitido en el CSS compilado y tiene 4 consumidores.
+
+### Recap
+
+Las dos voces del sistema ya se oyen: la serif en portada, títulos de sección y precios; la sans en
+todo lo que la interfaz opera. La escala tipográfica llega hasta los 56px que el documento pide, así
+que un titular de portada deja de escribir su propio `text-4xl` a mano.
+
+### Próximos pasos (opciones)
+
+Sin cambios respecto al slice 13: la e2e y la revisión visual siguen pendientes y en manos del
+usuario. Lo que este repaso confirmó que **falta por acuerdo, no por olvido**, está listado en el
+roadmap bajo «Fuera de alcance».

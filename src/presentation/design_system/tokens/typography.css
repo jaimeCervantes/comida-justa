@@ -10,8 +10,17 @@
   --fs-body-md: 1rem; /* 16px */
   --fs-body-lg: 1.125rem; /* 18px */
   --fs-heading-sm: 1.25rem; /* 20px */
-  --fs-heading-md: 1.5rem; /* 24px */
-  --fs-heading-lg: 1.875rem; /* 30px */
+  --fs-heading-md: 1.625rem; /* 26px */
+  --fs-heading-lg: 2.5rem; /* 40px */
+
+  /**
+   * El tamaño de portada, que no existía.
+   *
+   * La escala se quedaba en 30px, así que un titular de portada tenía que escribir su propio
+   * `text-4xl` a mano — y lo hacía: el hero del home iba con `text-3xl sm:text-4xl`. Es el mismo
+   * problema del radio antes del slice 10, en la otra escala.
+   */
+  --fs-display: 3.5rem; /* 56px */
 
   /* font weights */
   --font-weight-regular: 400;
@@ -66,6 +75,7 @@
   --text-heading-sm: var(--fs-heading-sm);
   --text-heading-md: var(--fs-heading-md);
   --text-heading-lg: var(--fs-heading-lg);
+  --text-display: var(--fs-display);
 
   --leading-tight: var(--lh-tight);
   --leading-normal: var(--lh-normal);

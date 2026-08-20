@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { globSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { readCssVariables } from "./contrast";
@@ -79,5 +79,36 @@ describe("La elevación de v2", () => {
   it("mueve la duración base a 260ms y estrena una curva natural", () => {
     expect(ROOT["--duration-base"]).toBe("260ms");
     expect(ROOT["--ease-natural"]).toBe("cubic-bezier(0.22, 0.61, 0.36, 1)");
+  });
+});
+
+/**
+ * La prueba que faltaba, y que habría ahorrado este fallo.
+ *
+ * El slice 10 cargó Newsreader con `next/font`, declaró `--font-display` y expuso `font-display` a
+ * Tailwind. Los slices 11, 12 y 13 pasaron sin que **ningún componente la pidiera**: la fuente se
+ * descargaba en cada visita y no se pintaba en un solo píxel. Es el mismo anti-patrón que este
+ * repo ya tenía documentado en la cabecera de `typography.css` —los tokens del slice 2 que nadie
+ * consumía— y aun así volvió a pasar, porque nada lo vigilaba.
+ *
+ * Una fuente que se descarga y no se usa es peor que no tenerla: cuesta bytes y no da nada.
+ */
+describe("Las dos voces tipográficas", () => {
+  const TSX = globSync("src/**/*.tsx", {
+    ignore: ["**/*.test.tsx", "**/*.stories.tsx"],
+  })
+    .map((file) => readFileSync(file, "utf8"))
+    .join("\n");
+
+  it("la serif tiene consumidores: si no, se descarga para nada", () => {
+    expect(TSX).toMatch(/\bfont-display\b/);
+  });
+
+  it("la voz de interfaz la aplica el body, no cada componente", () => {
+    const GLOBALS = readFileSync(
+      join(__dirname, "../../../app/styles/globals.css"),
+      "utf8",
+    );
+    expect(GLOBALS).toContain("font-family: var(--font-ui)");
   });
 });

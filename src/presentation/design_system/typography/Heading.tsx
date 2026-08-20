@@ -15,9 +15,26 @@ import { cn } from "../styling/merge-class-names";
  */
 const headingVariants = cva("text-balance", {
   variants: {
+    /**
+     * Dónde habla cada voz, y por qué no en todas partes.
+     *
+     * `display` y `lg` van en Newsreader a peso 400: son lo que la marca **afirma** —la portada, el
+     * nombre de un pilar—, y una serif editorial a peso normal se lee como una afirmación, no como
+     * un grito. De ahí que `lg` pierda su `font-extrabold`: en una serif de óptico variable el peso
+     * extra no da autoridad, da ruido.
+     *
+     * `md` para abajo se queda en Plus Jakarta con peso 700, porque son lo que la interfaz
+     * **opera**: títulos de sección, de tarjeta, de bloque. Mezclar las dos voces en el mismo
+     * tamaño es lo que hace que un sistema tipográfico se vea indeciso.
+     *
+     * Esto es lo que faltaba: hasta ahora `--font-display` existía, Newsreader se descargaba en
+     * cada visita y no se pintaba en ningún píxel.
+     */
     size: {
-      lg: "text-heading-lg leading-tight font-extrabold tracking-tight",
-      md: "text-heading-md leading-tight font-bold",
+      display:
+        "font-display text-display leading-none font-normal tracking-tight",
+      lg: "font-display text-heading-lg leading-tight font-normal tracking-tight",
+      md: "text-heading-md leading-tight font-bold tracking-tight",
       sm: "text-heading-sm leading-tight font-bold",
       xs: "text-body-lg leading-tight font-semibold",
     },
