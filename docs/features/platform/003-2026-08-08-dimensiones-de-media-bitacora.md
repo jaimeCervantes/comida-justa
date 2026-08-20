@@ -187,3 +187,79 @@ el navegador no decodifique— sigue el camino de siempre sin romper nada. 1036 
 4. **Medir también los vídeos**, si algún día dejan de pintarse a 16:9 fijo.
 
 **Pendiente del usuario:** correr la e2e y decidir el reparto de commits.
+
+## Arreglo — El spec del listado deja de perseguir un producto (2026-08-19)
+
+### Objetivo
+
+Los dos escenarios del listado llevaban tres corridas en rojo por **dónde caía «Jugo Verde»** en
+`/productos`, no por lo que prueban. Quitarles la dependencia de la posición para siempre.
+
+### Cómo se rompió, en orden
+
+1. **Se fijó el producto y su página.** Sembrar la tienda de prueba (`seed:demo-seller`) lo empujó a
+   la segunda y el escenario se puso rojo.
+2. **Se recorrió el catálogo hasta encontrarlo**, con un tope de 6 páginas. Dos fallos más:
+   - La espera de cada página era `media-image-sized`, y **la última página del catálogo no tiene
+     ninguna**: ahí cuelga sola la tienda de prueba, cuya media se guarda sin `width`/`height`
+     (`seedDemoSeller` no las escribe) y se pinta `media-image-unsized`. La espera no vencía nunca:
+     90 s de plazo agotados en la página que ni siquiera aporta una altura.
+   - La pregunta «¿está en esta página?» era `count()`, que **no espera a nada**. Una página aún a
+     medio pintar contesta cero y el recorrido pasa de largo; el producto se queda atrás para
+     siempre y el fallo dice «no se encontró en las primeras 6 páginas» cuando estaba en la segunda.
+
+Lo que se comprobó antes de tocar el spec: en la base, «Jugo Verde» sigue `published`, es `producto`,
+tiene 1200x1600 en `post_media` y ocupa la **posición 10 de 19** → página 2 con `PAGE_SIZE=9`. Y
+contra ese mismo servidor, un Chromium suelto **sí** encuentra su tarjeta en la página 2
+(`articles con "Jugo Verde"=1`, `imagen en su tarjeta=1`). O sea: el dato estaba bien y el recorrido
+era lo que fallaba.
+
+### Decisiones y por qué
+
+- **Ningún escenario nombra ya una publicación ni una página.** Se mira **la primera página**, que
+  siempre existe, y se afirma de las fotos que salgan en ella lo que la funcionalidad promete de
+  cualquiera. Publicar más no mueve nada de sitio porque ya no hay ningún sitio fijado — que era la
+  objeción de fondo: el catálogo crece y el tamaño de página cambia con el entorno (9 en local, 4 en
+  CI, que corre sin ningún `.env`).
+- **Se mide la proporción, no una foto concreta.** El escenario toma la primera vertical del
+  listado, sea cual sea, y afirma dos cosas: que su hueco pintado es más alto que ancho y que
+  **guarda la proporción del archivo** con un 2% de tolerancia. Es más fuerte que comparar dos
+  atributos: es lo que se ve, y el fallo original —cualquier foto metida en un cuadrado con
+  `object-cover`, un 36% de recorte— desviaría muchísimo más de ese 2%.
+- **«La misma foto» ahora lo es de verdad.** El escenario de la ficha entra por el enlace de la
+  tarjeta que acaba de medir, en vez de por un slug escrito en el spec.
+- **Fuera `count()`.** La única espera del archivo es `expect(...).toBeVisible()`, que reintenta.
+  Toda la fragilidad salía de preguntar sin esperar.
+- **Se cae la máquina de recorrer páginas**: `urlDePagina`, `abrirPaginaDelCatalogo`,
+  `abrirCatalogoCon` y el tope de 6 páginas. Un tope así es una fecha de caducidad escrita a mano.
+
+### Archivos tocados
+
+- `src/e2e/dimensionesMedia/dimensionesMedia.spec.ts` — reescrito; los tres escenarios y sus nombres
+  siguen siendo los del `.feature`.
+
+### Validación
+
+| Comando | Resultado |
+| --- | --- |
+| `pnpm run lint` (sobre el archivo) | limpio |
+| `pnpm run typecheck:tests` | 6 errores, **todos preexistentes** y ajenos a este archivo (`EditPostForm.test.tsx`, `PostsWithLoadMore.test.tsx`, `managePost.test.ts`) |
+| Los tres escenarios contra un `next dev` en el 3000 | **verdes**: vertical 1086x1448 pintada 392.66x523.53 (**desvío 0.00%**), su ficha declara lo mismo, y 8 alturas entre 294 y 524 px (**1.78x**, por encima del 1.4 que se afirma) |
+| `pnpm run test:e2e:run` | **NO EJECUTADA** — la corre el usuario |
+
+### Recap
+
+Los tres escenarios se validaron con un Chromium suelto contra el servidor de desarrollo, no con el
+runner de la e2e. El puerto 3000 quedó libre. Lo que cambió es de dónde saca el spec su sujeto: ya
+no persigue un producto por el catálogo, mide el que tiene delante.
+
+### Próximos pasos (opciones)
+
+1. **Correr `pnpm run test:e2e:run src/e2e/dimensionesMedia`** con el dev server parado, para verlo
+   pasar dentro de la suite (con `globalSetup`, el calentado de rutas y el barrido de datos).
+2. **Repasar los otros specs que recorren listados** por si alguno pregunta con `count()` sin haber
+   esperado antes: es el mismo fallo latente.
+3. **Escribir dimensiones en `seedPost` y en `seedDemoSeller`**, para que lo sembrado deje de ser el
+   único caso `unsized` del catálogo.
+
+**Pendiente del usuario:** correr la e2e.
