@@ -78,7 +78,7 @@ export default function MediaPreviewDialog({
         ref={closeRef}
         onClick={onClose}
         aria-label={closeLabel}
-        className="absolute right-4 top-4 rounded-full bg-white/90 p-2 text-gray-900 hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-2"
+        className="absolute right-4 top-4 rounded-full bg-surface-elevation-1/90 p-2 text-text-base hover:bg-surface-elevation-1 focus-visible:outline-2 focus-visible:outline-offset-2"
       >
         <MdClose aria-hidden size={24} />
       </button>

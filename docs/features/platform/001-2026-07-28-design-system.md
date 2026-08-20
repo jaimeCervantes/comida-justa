@@ -307,9 +307,25 @@ sin consumidor no arregla nada, y al buscarle consumidor aparece la deuda real.
    una opacidad sobre el color de marca, que hace el contraste imposible de medir. Pasan al par
    `soft`/`ink` como los pilares, y pierden sus variantes `dark:`.
 
-### Slice 12 — Header y feed
+### Slice 12 — Header, feed y el último verde que hacía de tinta ✅
 
-Lo que todo el mundo ve. Repintado con los primitivos del slice 11, sin mover un enlace de sitio.
+Se planeó como repintado y destapó la última deuda de contraste del sistema. El slice 10 arregló
+`--brand-green`; la marca tiene **dos** semillas, y la segunda arrastraba el mismo error:
+
+| Uso | Par | Medido | AA |
+| --- | --- | --- | --- |
+| 26 usos de `text-pw-lightgreen` (enlaces, precios, hovers) | `#5dbf17` sobre el papel | **2.35** | ✕ |
+| «Cargar más» del home | blanco sobre `#5dbf17` | **2.35** | ✕ |
+| Página actual de la paginación | blanco sobre `#5dbf17` | **2.35** | ✕ |
+
+`CurrencyAmount` era el peor: **todos los precios del sitio** a 2.35:1. El token correcto ya existía
+—`--highlight`, que resuelve a `#3f6f2a` en claro y al vivo en oscuro— y solo le faltaba una utilidad
+para poder usarse. Los dos controles pasan al par primario.
+
+Además, el barrido de neutrales: **cero grises crudos de Tailwind en producción** (eran 69 archivos)
+y cero `dark:` escritas a mano en el chrome. Un `text-gray-600 dark:text-gray-400` es un gris azulado
+sobre papel cálido *y* una pareja que hay que acordarse de mantener; `text-text-support` es las dos
+cosas resueltas.
 
 ### Slice 13 — Publicar, detalle y tienda
 

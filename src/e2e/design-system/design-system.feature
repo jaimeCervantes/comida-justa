@@ -514,23 +514,55 @@ Feature: Un design system que habla como la marca
       | error   | feedback-error-soft   | feedback-error-ink   |
 
   # ---------------------------------------------------------------------------
-  # Slice 12 — Header y feed, que es lo que todo el mundo ve  (futuro)
-  # Repintado con el sistema nuevo. La estructura y los textos no cambian: los
-  # specs e2e que hoy recorren el header y el home siguen valiendo sin tocarse.
+  # Slice 12 — Header, feed y el último verde que hacía de tinta  (actual)
+  #
+  # El repintado se planeó como cosmético y destapó la última deuda de contraste del sistema: la
+  # segunda semilla de marca, `--brand-lightgreen`, hacía de tinta en 26 sitios a 2.35:1 — el mismo
+  # error que el slice 10 encontró en `--brand-green`, en el otro verde.
   # ---------------------------------------------------------------------------
 
-  @slice-12 @future
+  @slice-12 @component
+  Scenario: El verde vivo tampoco es una tinta
+    Given que #5dbf17 es la segunda semilla de la marca
+    When se mide como texto sobre el papel
+    Then da 2.35, la mitad del mínimo AA de 4.5
+    And los 26 sitios que lo usaban como tinta pasan a --highlight
+    And --highlight ya resolvía al relleno en claro y al vivo en oscuro: solo le faltaba utilidad
+
+  @slice-12 @component
+  Scenario Outline: Ningún control se rellena con una semilla de marca
+    Given "<control>", que rellenaba con "<antes>" y texto blanco
+    When se mide ese par
+    Then da 2.35 y pasa al par primario, que da 5.97
+
+    Examples: los dos controles más pulsados del sitio
+      | control              | antes            |
+      | cargar más del home  | bg-pw-lightgreen |
+      | página actual        | bg-pw-lightgreen |
+
+  # Un `bg-pw-green/15` no es un color: es una promesa que depende de lo que haya debajo, y su
+  # contraste no se puede medir, solo suponer.
+  @slice-12 @component
+  Scenario: Las insignias de estado dejan de teñir por opacidad
+    Given los siete estados de un pedido pintados con opacidades sobre el color de marca
+    When adoptan el par soft/ink
+    Then cada estado está medido entre 4.56 y 7.55
+    And PREPARING deja de distinguirse de CONFIRMED solo por la opacidad
+
+  @slice-12
   Scenario: El header se repinta sin mover nada de sitio
-    Given el header actual con su logo, su búsqueda y su menú
+    Given el header con su logo, su búsqueda y su menú
     When adopta los tokens y los primitivos de v2
     Then ningún enlace, etiqueta ni destino cambia
+    And no queda una sola variante "dark:" escrita a mano en el chrome
     And los specs de menu e i18n siguen verdes sin editarse
 
-  @slice-12 @future
-  Scenario: La tarjeta del feed dice quién vende y a cuánta distancia
-    Given una publicación en el feed
-    When se pinta con la tarjeta de v2
-    Then el productor y la distancia están donde estaban, con la tipografía y el radio nuevos
+  @slice-12 @component
+  Scenario: La tarjeta del feed sugiere que se puede pulsar, en vez de anunciarlo
+    Given una tarjeta que al pasar el cursor dibujaba un anillo naranja de 2px
+    When adopta el realce de v2
+    Then sube de elevación y se desplaza 2px, sin pasar a marco de color
+    And nada se mueve más de 4px, que es la regla del sistema
 
   # ---------------------------------------------------------------------------
   # Slice 13 — Publicar, detalle y tienda  (futuro)

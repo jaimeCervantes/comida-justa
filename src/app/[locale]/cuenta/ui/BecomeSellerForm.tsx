@@ -72,7 +72,7 @@ export default function BecomeSellerForm({
           containerClassName="mb-2"
         />
 
-        <p className="mb-6 text-sm text-gray-600 dark:text-gray-400">
+        <p className="mb-6 text-sm text-text-support">
           {t.rich("storePreview", {
             address: `${PUBLIC_BASE_URL}${storePath(handlePreview || "…", locale)}`,
             url: (chunks) => (

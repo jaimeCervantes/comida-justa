@@ -110,7 +110,14 @@ describe("Surface", () => {
         x
       </Surface>,
     );
-    expect(screen.getByTestId("surface")).toHaveClass("hover:-translate-y-1");
+
+    /* v2 baja el realce de tono: subía a `shadow-xl` y saltaba 4px porque con la sombra negra
+       anterior era la única forma de que se notara. Con las sombras verdes y más abiertas del
+       slice 10, `md` ya se ve. La regla del sistema es que nada se mueve más de 4px. */
+    const surface = screen.getByTestId("surface");
+    expect(surface).toHaveClass("hover:-translate-y-0.5");
+    expect(surface).toHaveClass("hover:shadow-md");
+    expect(surface.className).not.toContain("hover:shadow-xl");
   });
 
   it("acepta clases extra sin perder las suyas", () => {

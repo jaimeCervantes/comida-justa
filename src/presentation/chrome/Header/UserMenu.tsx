@@ -80,12 +80,12 @@ export default function UserMenu({
                 {avatar}
                 <span className="flex min-w-0 flex-col">
                   {userName ? (
-                    <span className="truncate text-sm font-medium text-gray-900 dark:text-gray-100">
+                    <span className="truncate text-sm font-medium text-text-base">
                       {userName}
                     </span>
                   ) : null}
                   {username ? (
-                    <span className="truncate text-xs text-gray-500 dark:text-gray-400">
+                    <span className="truncate text-xs text-text-support">
                       {`@${username}`}
                     </span>
                   ) : null}

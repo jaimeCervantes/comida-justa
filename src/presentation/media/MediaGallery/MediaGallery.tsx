@@ -142,7 +142,7 @@ export default function MediaGallery({
         <p
           aria-live="polite"
           data-testid="media-gallery-counter"
-          className="ml-auto text-sm text-gray-600 dark:text-gray-400"
+          className="ml-auto text-sm text-text-support"
         >
           {t("galleryCounter", { position: active + 1, count: items.length })}
         </p>

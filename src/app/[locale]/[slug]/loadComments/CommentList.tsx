@@ -63,7 +63,7 @@ export default function CommentList({
                     {comment.user.name}
                     <time
                       dateTime={new Date(comment.createdAt).toISOString()}
-                      className="text-sm text-gray-500"
+                      className="text-sm text-text-support"
                     >
                       {isClient
                         ? new Date(comment.createdAt).toLocaleString()

@@ -32,7 +32,7 @@ export default function FormattedDateComponent({
   return (
     <time
       dateTime={isoDateString}
-      className="relative inline-block first-letter:uppercase text-sm text-gray-500 dark:text-pw-white"
+      className="relative inline-block first-letter:uppercase text-sm text-text-support"
     >
       {format.dateTime(dateObject, {
         weekday: "long",

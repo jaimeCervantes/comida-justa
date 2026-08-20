@@ -63,7 +63,7 @@ export default function StoreSummaryCard({
 
         <Link
           href={href}
-          className="mt-2 inline-block text-label font-medium text-pw-lightgreen hover:underline"
+          className="mt-2 inline-block text-label font-medium text-highlight hover:underline"
         >
           {visitLabel}
         </Link>

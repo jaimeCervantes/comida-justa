@@ -53,7 +53,7 @@ export default async function ProductosPage({
       {nothingNearby ? (
         <p
           data-testid="nothing-nearby"
-          className="mb-2 text-sm text-gray-600 dark:text-gray-400"
+          className="mb-2 text-sm text-text-support"
         >
           {tDistance("nothingNearby")}
         </p>

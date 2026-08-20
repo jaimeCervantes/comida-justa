@@ -63,7 +63,7 @@ export default function SlotPicker({
 
   if (slots.length === 0) {
     return (
-      <p className="mt-6 text-sm text-gray-500" data-testid="book-no-slots">
+      <p className="mt-6 text-sm text-text-support" data-testid="book-no-slots">
         {t("bookNoSlots")}
       </p>
     );

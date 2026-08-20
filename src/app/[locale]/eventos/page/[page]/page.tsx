@@ -55,7 +55,7 @@ export default async function EventosPaginatedPage({ params }: Props) {
       />
 
       <div className="mt-4 text-center">
-        <Link href="/eventos" className="text-pw-lightgreen hover:underline">
+        <Link href="/eventos" className="text-highlight hover:underline">
           {t("backToList")}
         </Link>
       </div>

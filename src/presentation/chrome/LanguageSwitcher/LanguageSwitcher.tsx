@@ -102,7 +102,7 @@ export default function LanguageSwitcher() {
                 MENU_ITEM_CLASS,
                 "flex items-center",
                 locale.code === currentLocale &&
-                  "bg-gray-100 font-semibold text-gray-900 dark:bg-gray-800 dark:text-gray-100",
+                  "bg-surface-elevation-2 font-semibold text-text-base",
               )}
             >
               <span className="mr-2 text-lg">{locale.flag}</span>

@@ -43,12 +43,12 @@ export default function StoreCard({ seller }: { seller: Seller }) {
       <p className="mt-6">
         <Link
           href="/cuenta/agenda"
-          className="underline text-pw-green hover:text-pw-lightgreen"
+          className="underline text-pw-green hover:text-highlight"
           data-testid="schedule-link"
         >
           {t("scheduleLink")}
         </Link>
-        <span className="block text-sm text-gray-500 dark:text-gray-400">
+        <span className="block text-sm text-text-support">
           {t("scheduleLinkHint")}
         </span>
       </p>

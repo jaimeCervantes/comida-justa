@@ -43,7 +43,7 @@ export default async function CatalogoPage({
     <main>
       <h1 className="text-xl font-bold mb-2">{t("catalogHeading")}</h1>
 
-      <p className="mb-6 text-gray-600 dark:text-gray-400">
+      <p className="mb-6 text-text-support">
         {t.rich("catalogIntro", { b: (chunks) => <strong>{chunks}</strong> })}
       </p>
 

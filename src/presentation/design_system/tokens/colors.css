@@ -361,6 +361,17 @@
   --color-pw-black: var(--brand-black);
   --color-pw-white: var(--brand-white);
 
+  /**
+   * La tinta de acento: enlaces, precios, hover de un título.
+   *
+   * Se expone en el slice 12 porque hasta entonces esos 26 sitios pedían `text-pw-lightgreen`
+   * —`#5dbf17`, que da **2.35** sobre blanco—. El verde vivo es una semilla de marca y sirve de
+   * relleno, no de tinta; es el mismo error que `--brand-green` arrastraba desde el slice 3, en el
+   * otro verde. `--highlight` ya resolvía a `#3f6f2a` en claro y al vivo en oscuro: solo le faltaba
+   * una utilidad para poder usarse.
+   */
+  --color-highlight: var(--highlight);
+
   --color-text-base: var(--text-base);
   --color-text-inverse: var(--text-inverse);
   --color-text-support: var(--text-support);

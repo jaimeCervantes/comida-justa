@@ -50,7 +50,7 @@ export default async function ModerationControls({
         <button
           type="submit"
           data-testid="moderation-approve"
-          className="text-sm underline text-pw-green hover:text-pw-lightgreen"
+          className="text-sm underline text-pw-green hover:text-highlight"
         >
           {t("moderationApprove")}
         </button>
@@ -85,7 +85,7 @@ export default async function ModerationControls({
       <button
         type="submit"
         data-testid="moderation-reject"
-        className="text-sm underline text-pw-green hover:text-pw-lightgreen"
+        className="text-sm underline text-pw-green hover:text-highlight"
       >
         {t("moderationReject")}
       </button>

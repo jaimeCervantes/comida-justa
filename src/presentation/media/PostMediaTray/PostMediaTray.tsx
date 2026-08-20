@@ -181,7 +181,7 @@ export default function PostMediaTray({
               type="button"
               onClick={() => onRemove(index)}
               aria-label={t("mediaRemove", { position: index + 1 })}
-              className="absolute -right-2 -top-2 rounded-full bg-gray-900 p-1 text-white hover:bg-red-700 focus-visible:outline-2 focus-visible:outline-offset-2"
+              className="absolute -right-2 -top-2 rounded-full bg-brand-black p-1 text-pw-white hover:bg-red-700 focus-visible:outline-2 focus-visible:outline-offset-2"
             >
               <MdClose aria-hidden />
             </button>
@@ -227,7 +227,7 @@ export default function PostMediaTray({
       {onMove && items.length > 1 ? (
         <p
           data-testid="post-media-tray-hint"
-          className="mt-2 text-sm text-gray-600 dark:text-gray-400"
+          className="mt-2 text-sm text-text-support"
         >
           {t("mediaDragHint")}
         </p>
@@ -238,7 +238,7 @@ export default function PostMediaTray({
       <p
         aria-live="polite"
         data-testid="post-media-tray-counter"
-        className="mt-2 text-sm text-gray-600 dark:text-gray-400"
+        className="mt-2 text-sm text-text-support"
       >
         {t("mediaCounter", { count: items.length, max })}
         {items.length >= max ? ` ${t("mediaLimitReached")}` : ""}

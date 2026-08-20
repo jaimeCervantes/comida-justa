@@ -79,9 +79,7 @@ export default async function AgendaPage({
   return (
     <main>
       <h1 className="text-xl font-bold mb-2">{t("scheduleHeading")}</h1>
-      <p className="mb-6 text-gray-600 dark:text-gray-400">
-        {t("scheduleIntro")}
-      </p>
+      <p className="mb-6 text-text-support">{t("scheduleIntro")}</p>
 
       <ScheduleForm initial={hours} labels={labels} />
 

@@ -119,7 +119,7 @@ export default function AddBranchForm({
 
           <span
             data-testid="geolocation-status"
-            className="text-sm text-gray-600 dark:text-gray-400"
+            className="text-sm text-text-support"
           >
             {t(geolocationMessageKey(geolocation))}
           </span>

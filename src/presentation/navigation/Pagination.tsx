@@ -49,8 +49,14 @@ type PaginationProps = SegmentPaginationProps | QueryPaginationProps;
 const PAGE_LINK =
   "focus-ring rounded-full border border-separator bg-surface-elevation-1 px-4 py-2 text-text-base transition-colors hover:bg-surface-elevation-2";
 
+/**
+ * La página actual rellenaba con `bg-pw-lightgreen` y texto blanco: 2.35:1, la mitad del mínimo AA.
+ * El verde vivo es una semilla de marca —sirve de relleno decorativo, no de fondo con texto—, el
+ * mismo error que el slice 10 encontró en el otro verde. Pide ahora el par del botón primario, que
+ * está medido en los dos temas.
+ */
 const PAGE_LINK_CURRENT =
-  "focus-ring rounded-full border border-pw-lightgreen bg-pw-lightgreen px-4 py-2 font-semibold text-white";
+  "focus-ring rounded-full border border-button-primary-bg bg-button-primary-bg px-4 py-2 font-semibold text-button-primary-text";
 
 export default function Pagination({
   currentPage,

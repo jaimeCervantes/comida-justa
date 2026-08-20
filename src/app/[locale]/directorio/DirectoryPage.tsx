@@ -45,14 +45,14 @@ export default async function DirectorySection({
       {outsideRadius ? (
         <p
           data-testid="nothing-nearby"
-          className="mb-4 text-sm text-gray-600 dark:text-gray-400"
+          className="mb-4 text-sm text-text-support"
         >
           {tDistance("nothingNearby")}
         </p>
       ) : null}
 
       {stores.length === 0 ? (
-        <p className="mb-6 text-gray-500" data-testid="directory-empty">
+        <p className="mb-6 text-text-support" data-testid="directory-empty">
           {empty}
         </p>
       ) : (
@@ -76,7 +76,7 @@ export default async function DirectorySection({
       <p className="mt-8">
         <Link
           href="/cuenta"
-          className="font-medium text-pw-lightgreen hover:underline"
+          className="font-medium text-highlight hover:underline"
         >
           {t("cta")}
         </Link>

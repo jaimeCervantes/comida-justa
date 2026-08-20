@@ -138,7 +138,7 @@ export default function RouteFileField({
           </button>
         </p>
       ) : (
-        <span className="block mt-1 text-sm text-gray-500 dark:text-gray-400">
+        <span className="block mt-1 text-sm text-text-support">
           {t("routeHint")}
         </span>
       )}

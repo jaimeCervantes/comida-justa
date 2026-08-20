@@ -65,7 +65,7 @@ export default function CartLineRow({ line }: { line: CartLine }) {
         <Link
           href={href}
           data-testid="cart-line-link"
-          className={`font-medium hover:text-pw-lightgreen ${soldOut ? "line-through opacity-70" : ""}`}
+          className={`font-medium hover:text-highlight ${soldOut ? "line-through opacity-70" : ""}`}
         >
           {product.title}
         </Link>

@@ -1095,3 +1095,130 @@ botones y campos, `card`/`panel` disponibles para cuando las pantallas los pidan
    Un `grep -rn "dark:" src --include=*.tsx` da el inventario.
 4. **`--brand-black` en oscuro**, que el slice 10 dejó anotado y este no tocó: los 3 `text-pw-black`
    siguen invisibles sobre fondo oscuro. Es de componente, y ya toca.
+
+---
+
+## Slice 12 — Header, feed y el último verde que hacía de tinta
+
+**Fecha:** 2026-08-20 · **Rama:** `feat/design-system-v2`
+
+### Objetivo
+
+Repintar lo que todo el mundo ve —header y feed— con los primitivos del slice 11. Salió bastante
+más que un repintado.
+
+### Decisiones y por qué
+
+**1. La marca tiene dos semillas, y la segunda arrastraba el mismo error que la primera.** El slice
+10 encontró que `--brand-green` (`#538f39`) hacía de relleno y de tinta sin cumplir AA en ninguno de
+los dos papeles. Al abrir `Card.tsx` para cambiarle el radio apareció `group-hover:text-pw-lightgreen`,
+y tirando de ahí, lo mismo en otros 25 sitios:
+
+| Uso | Par | Medido |
+| --- | --- | --- |
+| 26 `text-pw-lightgreen` (enlaces, precios, hovers) | `#5dbf17` sobre el papel | **2.35** |
+| «Cargar más» del home | blanco sobre `#5dbf17` | **2.35** |
+| Página actual de la paginación | blanco sobre `#5dbf17` | **2.35** |
+
+`CurrencyAmount` era el peor de todos: **todos los precios del sitio**, en negrita, a 2.35:1 — menos
+de la mitad del mínimo. Y los otros dos son los controles más pulsados del home.
+
+Lo llamativo es que el arreglo ya estaba escrito. `--highlight` existe desde el slice 10 con la
+descripción exacta de este uso —«verde de acento para marcar: palomitas, cifras, hover de
+enlaces»— y resuelve a `#3f6f2a` en claro y al vivo en oscuro. Nunca se expuso a `@theme`, así que
+no había forma de pedirlo desde una clase y todo el mundo escribía `text-pw-lightgreen`. Un token
+sin utilidad es un token que no existe: **la misma lección del slice 11, dos capas más abajo.**
+
+**2. Cero grises crudos de Tailwind en producción.** Eran 69 archivos. `text-gray-600
+dark:text-gray-400` tiene dos problemas a la vez: el gris de Tailwind es azulado y sobre el papel
+cálido del slice 10 se ve frío, y una pareja `claro`/`dark:` hay que acordarse de mantenerla —se
+desincroniza sola—. `text-text-support` resuelve las dos cosas, y por eso el chrome se quedó sin una
+sola `dark:` escrita a mano.
+
+El barrido destapó un fallo que llevaba tiempo ahí: `SearchBar` pintaba sus esqueletos con
+`bg-gray-200 dark:bg-gray-200` — **el mismo valor en los dos temas**, así que en oscuro quedaban
+gris claro sobre fondo casi negro. Es el tipo de error que una pareja escrita a mano comete y un
+token no puede cometer.
+
+**3. La tarjeta sugiere que se puede pulsar, en vez de anunciarlo.** Al pasar el cursor dibujaba un
+anillo naranja de 2px y subía a `shadow-xl` desplazándose 4px. Con la sombra negra anterior ese
+grito era la única forma de que se notara; con las sombras verdes y más abiertas del slice 10, `md`
+ya se ve. Queda en 2px de desplazamiento, que respeta la regla del sistema —nada se mueve más de
+4px— y deja de convertir la tarjeta en un marco de color.
+
+**4. Las insignias de estado dejan de teñir por opacidad.** `OrderStatusBadge` pintaba los siete
+estados con `bg-pw-green/15`, `bg-pw-orange/15`, `bg-pw-lightgreen/20`. Una opacidad no es un color:
+el fondo real depende de lo que haya debajo y la tinta no se eligió para él, así que su contraste no
+se puede medir, solo suponer. Pasan al par `soft`/`ink` (4.56 a 7.55). De paso se arregla algo que
+no era de contraste: `PREPARING` y `CONFIRMED` eran el mismo verde y se distinguían **solo por la
+opacidad** —15% contra 20%—, que es como no distinguirse. `PREPARING` toma la miel.
+
+### Archivos tocados
+
+**Tinta de acento** — `tokens/colors.css` (`--color-highlight` expuesto) y los 22 archivos que
+pedían `text-pw-lightgreen`.
+
+**Controles con relleno de semilla** — `navigation/Pagination.tsx`, `(home)/PostsWithLoadMore.tsx`.
+
+**Chrome** — `chrome/Header/{Nav,ListItem,UserMenu,MobileNav,MobileAccountCard}.tsx`,
+`chrome/Footer/Footer.tsx`, `search/SearchBar.tsx`.
+
+**Feed** — `post/Card/Card.tsx`, `design_system/surfaces/Surface.tsx` (realce de v2).
+
+**Insignias y neutrales** — `orders/OrderStatusBadge`, `legal/LegalSectionHeading`, `media/*`, y el
+barrido de grises por `src/app/` y `src/presentation/`.
+
+### Comandos
+
+```bash
+pnpm run test:run                       # 2143/2143 en 201 archivos
+pnpm run typecheck                      # limpio
+pnpm run lint                           # limpio
+pnpm run check:i18n / check:directives  # limpios
+pnpm run build                          # OK en 24.7s
+```
+
+### Validación
+
+- **Cero grises crudos de Tailwind** en `.tsx` de producción, y cero `dark:` a mano en el chrome.
+  Comprobado con `grep`, no de memoria.
+- **Las 9 utilidades nuevas verificadas en el CSS compilado**, y `--highlight` resolviendo a
+  `var(--brand-green-700)` en claro y a `var(--brand-lightgreen)` en los dos bloques oscuros.
+- **Los tests del header y del menú pasan sin editarse**: el repintado no movió un enlace de sitio,
+  que era el criterio del slice.
+- Un único test hubo que actualizar, `Surface.test.tsx`, que fijaba `hover:-translate-y-1` — el
+  valor viejo. Se reescribió para asertar la intención (sube de elevación, salto menor a 4px) en vez
+  del número.
+- **Pendiente: la suite e2e completa.** No se ejecutó; la corre el usuario.
+
+### Desviaciones del roadmap
+
+El slice se planeó como repintado de header y feed, y creció a un barrido de contraste y neutrales
+por todo el árbol. La causa fue encadenada y vale la pena dejarla escrita: abrir `Card.tsx` para
+cambiarle el radio enseñó `text-pw-lightgreen` en el hover del título; buscar ese uso dio 26; buscar
+el mismo verde como relleno dio los dos controles más pulsados del home. No era razonable dejar los
+precios del sitio a 2.35:1 para el slice siguiente.
+
+Lo que **no** se tocó: las páginas de contenido (`nosotros`, legales, pilares) conservan sus
+acentos de color propios —azules, ámbar, zinc— con sus `dark:`. Son paletas de contenido, no de
+sistema, y les toca el slice 13.
+
+### Recap
+
+El sistema ya no tiene ninguna semilla de marca haciendo de tinta: las dos —`#538f39` y `#5dbf17`—
+están donde deben, identificando y rellenando, y las tintas salen de tokens medidos. Los precios del
+sitio pasaron de 2.35 a 5.58 sobre el papel, y los dos controles más pulsados del home de 2.35 a
+5.97. El chrome se quedó sin grises azulados y sin variantes `dark:` escritas a mano, así que el
+tema oscuro ya no depende de que alguien se acuerde de mantener la pareja. La tarjeta del feed dejó
+de gritar al pasar el cursor. Queda en pie exactamente lo que se acordó dejar: las pantallas de
+contenido con sus paletas propias.
+
+### Próximos pasos (opciones)
+
+1. **Correr la e2e completa** y mirar el sitio a ojo en los dos temas. Es lo único pendiente de los
+   tres slices, y sigue en tus manos.
+2. **Slice 13 — publicar, detalle y tienda**, más las páginas de contenido que este slice dejó
+   fuera: `nosotros` (29 `dark:`), las dos legales (26 entre las dos) y los pilares.
+3. **`--brand-black` en oscuro**, que arrastra desde el slice 10: los `text-pw-black` siguen
+   invisibles sobre fondo oscuro.
+4. **Storybook**, que no se ha mirado desde que los tokens cambiaron de valor.

@@ -47,10 +47,10 @@ export default function TimeOffList({
   return (
     <section className="mt-10" data-testid="time-off">
       <h2 className="text-lg font-bold mb-2">{labels.heading}</h2>
-      <p className="mb-4 text-gray-600 dark:text-gray-400">{labels.intro}</p>
+      <p className="mb-4 text-text-support">{labels.intro}</p>
 
       {periods.length === 0 ? (
-        <p className="text-gray-500 mb-4" data-testid="time-off-empty">
+        <p className="text-text-support mb-4" data-testid="time-off-empty">
           {labels.empty}
         </p>
       ) : (
@@ -59,13 +59,15 @@ export default function TimeOffList({
             <li
               key={period.id}
               data-testid={`time-off-${period.id}`}
-              className="flex flex-wrap items-center gap-3 py-2 border-b border-gray-100 dark:border-gray-800"
+              className="flex flex-wrap items-center gap-3 py-2 border-b border-separator"
             >
               <span>
                 {when(period.startsAt)} — {when(period.endsAt)}
               </span>
               {period.reason ? (
-                <span className="text-sm text-gray-500">{period.reason}</span>
+                <span className="text-sm text-text-support">
+                  {period.reason}
+                </span>
               ) : null}
 
               {/* Acción simple, sin estado: quitar una ausencia no tiene nada que contestar. */}

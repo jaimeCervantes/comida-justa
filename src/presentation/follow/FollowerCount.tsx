@@ -18,10 +18,7 @@ export default function FollowerCount({ total }: { total: number }) {
   if (!showsFollowerCount(total)) return null;
 
   return (
-    <span
-      data-testid="follower-count"
-      className="text-sm text-gray-600 dark:text-gray-400"
-    >
+    <span data-testid="follower-count" className="text-sm text-text-support">
       {t("count", { total })}
     </span>
   );

@@ -77,7 +77,7 @@ export default async function CategoryPaginatedPage({
       <div className="text-center mt-4">
         <Link
           href={{ pathname: "/categoria/[key]", params: { key } }}
-          className="text-pw-lightgreen hover:underline"
+          className="text-highlight hover:underline"
         >
           {t("backToCategory", { category: data.label })}
         </Link>

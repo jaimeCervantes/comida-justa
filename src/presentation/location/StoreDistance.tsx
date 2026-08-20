@@ -23,7 +23,7 @@ export default function StoreDistance({
   return (
     <span
       data-testid="store-distance"
-      className={`inline-flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400 ${className}`}
+      className={`inline-flex items-center gap-1 text-sm text-text-support ${className}`}
     >
       <MdPlace aria-hidden />
       {described.unit === "meters"

@@ -9,7 +9,7 @@ import { PILLAR_SHORT_KEYS } from "../Header/menuItems";
  * El encabezado de una columna del pie.
  *
  * Estaba escrito tres veces con la misma cadena
- * (`font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider text-xs`). Vive aquí
+ * (`font-semibold text-text-base uppercase tracking-wider text-xs`). Vive aquí
  * dentro y no en el design system porque es el estilo de **este** pie, no un primitivo del sitio:
  * promoverlo sin un segundo uso real sería inventar una abstracción.
  */
@@ -28,7 +28,7 @@ export default function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-white dark:bg-[#0a0a0a] border-t border-separator pt-16 pb-8 mt-16">
+    <footer className="bg-surface-elevation-1 border-t border-separator pt-16 pb-8 mt-16">
       <div className="container-width grid grid-cols-1 md:grid-cols-4 gap-12 lg:gap-8 mb-12">
         {/* Brand & Pillars */}
         <div className="md:col-span-2 space-y-6">
@@ -135,7 +135,7 @@ export default function Footer() {
                 href="https://www.tiktok.com/@hazlosano"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-gray-900 dark:hover:text-white transition-colors flex items-center gap-2"
+                className="hover:text-highlight transition-colors flex items-center gap-2"
               >
                 {t("tiktok")}
               </a>

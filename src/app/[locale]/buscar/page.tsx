@@ -44,7 +44,7 @@ export default async function SearchPage({
     <>
       <h1 className="text-2xl font-bold my-4">{t("resultsHeading")}</h1>
       {q && (
-        <div className="mb-4 text-gray-600">
+        <div className="mb-4 text-text-support">
           {t("showingResultsFor")}{" "}
           <span className="font-semibold text-pw-green">
             {/* `q` sale de `searchParams`, que Next ya entrega decodificado: volver a decodificar

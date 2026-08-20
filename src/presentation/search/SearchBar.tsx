@@ -163,14 +163,14 @@ const SearchBar: React.FC<SearchBarProps> = ({
         placeholder={placeholder ?? t("placeholder")}
         type="search"
         autoComplete="off"
-        icon={<MdSearch className="text-xl text-gray-400" />}
+        icon={<MdSearch className="text-xl text-text-muted" />}
         shellClassName="rounded-full h-10"
         className=""
         name="search"
       />
       {showDropdown && (
         <div
-          className="absolute left-0 right-0 mt-1 bg-white dark:bg-pw-gray border border-gray-200 dark:border-pw-gray rounded-sm shadow-lg z-50"
+          className="absolute left-0 right-0 mt-1 bg-surface-elevation-1 border border-separator rounded-control shadow-lg z-50"
           data-testid="search-dropdown"
         >
           {loading ? (
@@ -179,18 +179,20 @@ const SearchBar: React.FC<SearchBarProps> = ({
                 {[1, 2, 3].map((i) => (
                   <li
                     key={i}
-                    className="px-1 py-3 border-b last:border-b-0 border-gray-100 dark:border-gray-700"
+                    className="px-1 py-3 border-b last:border-b-0 border-separator"
                   >
                     <div>
-                      <div className="h-3 bg-gray-200 dark:bg-gray-200 rounded-sm w-3/4 mb-2" />
-                      <div className="h-2 bg-gray-200 dark:bg-gray-200 rounded-sm w-1/2" />
+                      <div className="h-3 bg-surface-elevation-2 rounded-sm w-3/4 mb-2" />
+                      <div className="h-2 bg-surface-elevation-2 rounded-sm w-1/2" />
                     </div>
                   </li>
                 ))}
               </ul>
             </div>
           ) : results.length === 0 ? (
-            <div className="p-2 text-center text-gray-500">{t("empty")}</div>
+            <div className="p-2 text-center text-text-support">
+              {t("empty")}
+            </div>
           ) : (
             <ul>
               {results.map((result) => {
@@ -202,7 +204,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
                 return (
                   <li
                     key={result.id}
-                    className={`p-3 border-b last:border-b-0 border-gray-100 dark:border-gray-700 cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-gray-800 focus:bg-gray-100 dark:focus:bg-gray-700 outline-hidden`}
+                    className={`p-3 border-b last:border-b-0 border-separator cursor-pointer transition-colors hover:bg-surface-elevation-2 focus:bg-surface-elevation-2 outline-hidden`}
                     onMouseDown={() =>
                       router.push({
                         pathname: "/[slug]",
@@ -210,7 +212,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
                       })
                     }
                   >
-                    <div className="font-bold text-gray-800 dark:text-gray-200 text-sm">
+                    <div className="font-bold text-text-base text-sm">
                       {translation?.title}
                     </div>
                   </li>
@@ -220,7 +222,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
           )}
           <button
             type="button"
-            className="w-full text-left p-3 border-t border-gray-100 dark:border-pw-gray text-pw-green hover:bg-gray-50 dark:hover:bg-pw-gray font-semibold"
+            className="w-full text-left p-3 border-t border-separator text-highlight hover:bg-surface-elevation-2 font-semibold"
             onMouseDown={handleSeeAll}
           >
             {t("seeAll")}

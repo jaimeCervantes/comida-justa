@@ -60,7 +60,7 @@ export default function ProfileHeader({
           {displayName}
         </h1>
 
-        <p className="text-sm text-gray-600 dark:text-gray-400">
+        <p className="text-sm text-text-support">
           {t("publicationCount", { total })}
         </p>
 

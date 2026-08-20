@@ -171,19 +171,21 @@ export default function PostsWithLoadMore({
 
       <div ref={loaderRef} className="flex justify-center mt-8 py-4">
         {loading ? (
-          <p className="text-gray-500">{t("loadingMore")}</p>
+          <p className="text-text-support">{t("loadingMore")}</p>
         ) : hasMore ? (
+          /* Rellenaba con `bg-pw-lightgreen` y texto blanco: 2.35:1, la mitad del mínimo AA, en el
+             control más pulsado del home. El par primario está medido en los dos temas. */
           <button
             type="button"
             onClick={loadMorePosts}
-            className="bg-pw-lightgreen text-white px-5 py-2 rounded-full hover:bg-pw-green transition-colors"
+            className="focus-ring bg-button-primary-bg text-button-primary-text hover:bg-button-primary-hover min-h-12 px-5 py-2 rounded-full font-semibold transition-colors"
           >
             {t("loadMore")}
           </button>
         ) : (
           // "No hay más" solo tiene sentido para quien llegó hasta aquí cargando algo.
           posts.length > initialPosts.length && (
-            <p className="text-gray-500">{t("noMore")}</p>
+            <p className="text-text-support">{t("noMore")}</p>
           )
         )}
       </div>

@@ -22,11 +22,9 @@ export default function OpenStoreHint({
   return (
     <aside
       data-testid="open-store-hint"
-      className={`rounded-lg border border-gray-200 dark:border-gray-700 p-4 ${className}`}
+      className={`rounded-lg border border-separator p-4 ${className}`}
     >
-      <p className="text-sm text-gray-700 dark:text-gray-300">
-        {t("openStoreAfterPublish")}
-      </p>
+      <p className="text-sm text-text-base">{t("openStoreAfterPublish")}</p>
 
       <Link
         href="/cuenta"

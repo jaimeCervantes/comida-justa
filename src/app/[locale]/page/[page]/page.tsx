@@ -152,7 +152,7 @@ export default async function PaginatedPage({ params, searchParams }: Props) {
       {/* Enlace para volver a la página principal si no estamos en ella */}
       {page > 0 && (
         <div className="text-center mt-4">
-          <Link href="/" className="text-pw-lightgreen hover:underline">
+          <Link href="/" className="text-highlight hover:underline">
             {t("backToHome")}
           </Link>
         </div>

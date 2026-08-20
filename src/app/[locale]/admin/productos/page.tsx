@@ -47,7 +47,7 @@ export default async function ProductosPorProcedenciaPage({
     <main>
       <h1 className="text-xl font-bold mb-2">{t("originReportHeading")}</h1>
 
-      <p className="mb-6 text-gray-600 dark:text-gray-400">
+      <p className="mb-6 text-text-support">
         {t.rich("originReportIntro", {
           b: (chunks) => <strong>{chunks}</strong>,
         })}
@@ -55,7 +55,7 @@ export default async function ProductosPorProcedenciaPage({
 
       <OriginReportTable {...buildOriginReport(originCounts)} />
 
-      <hr className="my-8 border-gray-200 dark:border-gray-800" />
+      <hr className="my-8 border-separator" />
 
       <IndexingStatusPanel {...buildIndexingReport(indexingCounts)} />
     </main>

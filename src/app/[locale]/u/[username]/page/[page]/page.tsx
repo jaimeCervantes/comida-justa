@@ -91,7 +91,7 @@ export default async function ProfilePaginatedPage({
       <div className="text-center mt-4">
         <Link
           href={profileHref(username)}
-          className="text-pw-lightgreen hover:underline"
+          className="text-highlight hover:underline"
         >
           {t("backToProfile")}
         </Link>

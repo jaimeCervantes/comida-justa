@@ -114,7 +114,9 @@ export default function ImagePicker({
           </video>
         )}
 
-        {fileName && <span className="text-sm text-gray-600">{fileName}</span>}
+        {fileName && (
+          <span className="text-sm text-text-support">{fileName}</span>
+        )}
       </footer>
     </section>
   );

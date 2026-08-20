@@ -84,7 +84,7 @@ export default function UsernameSection({
           containerClassName="mb-2"
         />
 
-        <p className="mb-6 text-sm text-gray-600 dark:text-gray-400">
+        <p className="mb-6 text-sm text-text-support">
           {t.rich("profilePreview", {
             address: `${PUBLIC_BASE_URL}${profilePath(preview || "…", locale)}`,
             url: (chunks) => (

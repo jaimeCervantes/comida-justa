@@ -65,7 +65,7 @@ export default function MediaContent({
     return (
       <div
         data-testid="media-placeholder"
-        className={`sj-media-wrapper flex items-center justify-center bg-gray-100 dark:bg-gray-800 text-gray-500 ${className || ""}`}
+        className={`sj-media-wrapper flex items-center justify-center bg-surface-elevation-2 text-text-support ${className || ""}`}
       >
         {t("noImage")}
       </div>

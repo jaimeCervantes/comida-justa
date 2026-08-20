@@ -18,7 +18,7 @@ function ToggleButton({ node }: { node: CategoryNode }) {
       <button
         type="submit"
         data-testid={`toggle-${node.key}`}
-        className="text-sm underline text-pw-green hover:text-pw-lightgreen"
+        className="text-sm underline text-pw-green hover:text-highlight"
       >
         {node.isActive ? "Desactivar" : "Activar"}
       </button>
@@ -30,22 +30,22 @@ function Row({ node, nested }: { node: CategoryNode; nested?: boolean }) {
   return (
     <li
       data-testid={`category-${node.key}`}
-      className={`flex flex-wrap items-center gap-3 py-2 border-b border-gray-100 dark:border-gray-800 ${
+      className={`flex flex-wrap items-center gap-3 py-2 border-b border-separator ${
         nested ? "pl-6" : "font-semibold"
       }`}
     >
       <span className="min-w-[10rem]">{node.labels.es ?? node.key}</span>
-      <span className="text-sm text-gray-500 dark:text-gray-400 min-w-[8rem]">
+      <span className="text-sm text-text-support min-w-[8rem]">
         {node.labels.en ?? "—"}
       </span>
-      <code className="text-xs text-gray-400">{node.key}</code>
+      <code className="text-xs text-text-muted">{node.key}</code>
 
       <span
         data-testid={`state-${node.key}`}
         className={`text-xs px-2 py-0.5 rounded-full ${
           node.isActive
             ? "bg-pw-green/10 text-pw-green"
-            : "bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-300"
+            : "bg-surface-elevation-2 text-text-support"
         }`}
       >
         {node.isActive ? "activa" : "inactiva"}

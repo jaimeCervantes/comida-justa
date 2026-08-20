@@ -17,7 +17,7 @@ export function MediaSkeleton({ className }: { className?: string }) {
       aria-hidden
       data-testid="media-skeleton"
       className={cn(
-        "absolute inset-0 animate-pulse bg-gray-200 dark:bg-gray-700",
+        "absolute inset-0 animate-pulse bg-surface-elevation-2",
         className,
       )}
     />

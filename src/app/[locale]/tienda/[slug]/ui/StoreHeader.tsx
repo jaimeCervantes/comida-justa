@@ -99,7 +99,7 @@ export default function StoreHeader({
                 target="_blank"
                 rel="noopener noreferrer"
                 data-testid="store-url"
-                className="flex items-center text-pw-lightgreen hover:underline"
+                className="flex items-center text-highlight hover:underline"
               >
                 <MdLink className="mr-2" size="24" aria-hidden />
                 {seller.url.replace(/^https?:\/\//, "")}
@@ -148,7 +148,7 @@ export default function StoreHeader({
             <Link
               href={profileHref(ownerUsername)}
               data-testid="store-owner-link"
-              className="text-sm text-pw-lightgreen hover:underline"
+              className="text-sm text-highlight hover:underline"
             >
               {t("viewSellerProfile")}
             </Link>

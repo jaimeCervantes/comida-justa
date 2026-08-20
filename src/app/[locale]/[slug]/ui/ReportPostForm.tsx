@@ -33,10 +33,7 @@ export default function ReportPostForm({ postId, labels }: Props) {
 
   if (state.done) {
     return (
-      <p
-        data-testid="report-done"
-        className="text-sm text-gray-500 dark:text-gray-400 mt-6"
-      >
+      <p data-testid="report-done" className="text-sm text-text-support mt-6">
         {labels.done}
       </p>
     );
@@ -49,9 +46,7 @@ export default function ReportPostForm({ postId, labels }: Props) {
       className="mt-6 flex flex-wrap items-center gap-2"
     >
       <input type="hidden" name="postId" value={postId} />
-      <span className="text-sm text-gray-500 dark:text-gray-400">
-        {labels.heading}
-      </span>
+      <span className="text-sm text-text-support">{labels.heading}</span>
       <select
         name="reason"
         required
@@ -73,7 +68,7 @@ export default function ReportPostForm({ postId, labels }: Props) {
         type="submit"
         disabled={pending}
         data-testid="report-submit"
-        className="text-sm underline text-pw-green hover:text-pw-lightgreen disabled:opacity-50"
+        className="text-sm underline text-pw-green hover:text-highlight disabled:opacity-50"
       >
         {labels.cta}
       </button>

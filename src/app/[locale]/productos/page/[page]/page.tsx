@@ -68,7 +68,7 @@ export default async function ProductosPaginatedPage({
       {nothingNearby ? (
         <p
           data-testid="nothing-nearby"
-          className="mb-2 text-sm text-gray-600 dark:text-gray-400"
+          className="mb-2 text-sm text-text-support"
         >
           {tDistance("nothingNearby")}
         </p>
@@ -87,7 +87,7 @@ export default async function ProductosPaginatedPage({
       />
 
       <div className="text-center mt-4">
-        <Link href="/productos" className="text-pw-lightgreen hover:underline">
+        <Link href="/productos" className="text-highlight hover:underline">
           {t("backToList")}
         </Link>
       </div>

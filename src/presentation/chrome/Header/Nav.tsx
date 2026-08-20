@@ -13,21 +13,31 @@ import {
   VISIBLE_COMMUNITY_ITEMS,
 } from "./menuItems";
 
+/*
+ * Slice 12. Toda esta barra pintaba con `gray-*` de Tailwind y una variante `dark:` escrita a mano
+ * al lado de cada una. Dos problemas: el gris de Tailwind es azulado y sobre el papel cálido del
+ * slice 10 se ve frío justo en lo primero que mira cualquiera, y una pareja
+ * `claro`/`dark:` que hay que acordarse de mantener se desincroniza sola. Los tokens semánticos ya
+ * cambian de valor con el tema, así que **no hay una sola `dark:` aquí**.
+ *
+ * Los radios pasan de `[4px]`/`[6px]` —números escritos a mano, que es lo que el slice 5 dejó
+ * anotado como problema— a la escala con nombre del slice 10.
+ */
 const SECTION_LINK_CLASS =
-  "text-gray-700 dark:text-gray-200 hover:text-pw-green focus:text-pw-green flex select-none items-center rounded-l-[4px] py-2 pl-3 text-[15px] font-medium leading-none outline-hidden transition-colors";
+  "text-text-base hover:text-highlight focus:text-highlight flex select-none items-center rounded-l-chip py-2 pl-3 text-[15px] font-medium leading-none outline-hidden transition-colors";
 
 const SECTION_TRIGGER_CLASS =
-  "text-gray-700 dark:text-gray-200 hover:text-pw-green focus:text-pw-green group flex select-none items-center rounded-r-[4px] py-2 pl-1 pr-3 outline-hidden transition-colors";
+  "text-text-base hover:text-highlight focus:text-highlight group flex select-none items-center rounded-r-chip py-2 pl-1 pr-3 outline-hidden transition-colors";
 
 const LINK_CLASS =
-  "text-gray-700 dark:text-gray-200 hover:text-pw-green focus:text-pw-green block select-none rounded-[4px] px-3 py-2 text-[15px] font-medium leading-none outline-hidden transition-colors";
+  "text-text-base hover:text-highlight focus:text-highlight block select-none rounded-chip px-3 py-2 text-[15px] font-medium leading-none outline-hidden transition-colors";
 
 const CARET_CLASS =
-  "text-pw-green relative top-px transition-transform duration-[250] ease-in group-data-[state=open]:-rotate-180";
+  "text-highlight relative top-px transition-transform duration-[250] ease-in group-data-[state=open]:-rotate-180";
 
 /** Enlace de una categoría dentro del desplegable: solo la etiqueta, sin descripción. */
 const CATEGORY_LINK_CLASS =
-  "text-gray-700 dark:text-gray-200 hover:bg-mauve3 hover:text-pw-green block select-none rounded-[6px] px-3 py-2 text-[15px] leading-none no-underline outline-hidden transition-colors";
+  "text-text-base hover:bg-surface-elevation-2 hover:text-highlight block select-none rounded-chip px-3 py-2 text-[15px] leading-none no-underline outline-hidden transition-colors";
 
 function SectionControl({
   href,
@@ -56,7 +66,7 @@ function SectionControl({
         >
           <span
             data-testid="submenu-indicator"
-            className="absolute inset-0 bg-white dark:bg-gray-900 [clip-path:polygon(50%_0,100%_100%,0_100%)]"
+            className="absolute inset-0 bg-surface-elevation-1 [clip-path:polygon(50%_0,100%_100%,0_100%)]"
           />
         </span>
       </NavigationMenu.Trigger>
@@ -90,7 +100,7 @@ export default function Nav({
       className="relative z-20 flex justify-center"
       data-testid="desktop-menu"
     >
-      <NavigationMenu.List className="center m-0 flex list-none rounded-full bg-white/50 dark:bg-black/50 px-2 py-1 shadow-xs backdrop-blur-xs">
+      <NavigationMenu.List className="center m-0 flex list-none rounded-full bg-surface-elevation-1/60 px-2 py-1 shadow-xs backdrop-blur-xs">
         <NavigationMenu.Item>
           <SectionControl
             href={COMMUNITY_OVERVIEW_HREF}
@@ -116,8 +126,8 @@ export default function Nav({
 
               {categories.length > 0 ? (
                 <>
-                  <hr className="my-3 border-gray-200 dark:border-gray-800" />
-                  <p className="px-3 pb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                  <hr className="my-3 border-separator" />
+                  <p className="px-3 pb-2 text-xs font-semibold uppercase tracking-wide text-text-muted">
                     {t("byCategory")}
                   </p>
                   <ul className="m-0 grid list-none gap-x-[10px] grid-cols-2 md:grid-cols-3">
@@ -144,8 +154,8 @@ export default function Nav({
                   seguido de nada es peor que no tenerlo. */}
               {VISIBLE_COMMUNITY_ITEMS.length > 0 ? (
                 <>
-                  <hr className="my-3 border-gray-200 dark:border-gray-800" />
-                  <p className="px-3 pb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                  <hr className="my-3 border-separator" />
+                  <p className="px-3 pb-2 text-xs font-semibold uppercase tracking-wide text-text-muted">
                     {t("communitySections")}
                   </p>
                   <ul className="m-0 grid list-none gap-x-[10px] grid-cols-1 md:grid-cols-2">
@@ -197,7 +207,10 @@ export default function Nav({
       <div className="absolute top-full left-0 pt-1">
         <NavigationMenu.Viewport
           data-testid="desktop-submenu"
-          className="data-[state=open]:animate-scaleIn data-[state=closed]:animate-scaleOut relative h-(--radix-navigation-menu-viewport-height) w-(--radix-navigation-menu-viewport-width) origin-[top_center] overflow-hidden rounded-[10px] bg-white dark:bg-gray-900 shadow-[0_10px_38px_-10px_hsla(206,22%,7%,.35),0_10px_20px_-15px_hsla(206,22%,7%,.2)] transition-[width,height] duration-300 border border-gray-200 dark:border-gray-800"
+          /* La sombra era un `hsla(206, 22%, 7%, …)` incrustado: azul, de la plantilla de Radix, y
+             el único sitio del sitio que no pasaba por la escala de elevación. `shadow-lg` es la
+             misma altura con el verde del papel. */
+          className="data-[state=open]:animate-scaleIn data-[state=closed]:animate-scaleOut relative h-(--radix-navigation-menu-viewport-height) w-(--radix-navigation-menu-viewport-width) origin-[top_center] overflow-hidden rounded-panel bg-surface-elevation-1 shadow-lg transition-[width,height] duration-300 border border-separator"
         />
       </div>
     </NavigationMenu.Root>

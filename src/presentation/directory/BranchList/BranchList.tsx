@@ -15,10 +15,7 @@ export default function BranchList({
 }) {
   if (branches.length === 0) {
     return (
-      <p
-        data-testid="branches-empty"
-        className="text-sm text-gray-600 dark:text-gray-400"
-      >
+      <p data-testid="branches-empty" className="text-sm text-text-support">
         {emptyMessage}
       </p>
     );
@@ -37,7 +34,7 @@ export default function BranchList({
                 href={branch.mapUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-sm text-pw-lightgreen hover:underline"
+                className="text-sm text-highlight hover:underline"
               >
                 Ver en el mapa
               </a>

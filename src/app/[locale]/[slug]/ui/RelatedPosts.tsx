@@ -37,7 +37,7 @@ export default async function RelatedPosts({
       </Heading>
 
       {posts.length === 0 ? (
-        <p className="text-gray-500">{t("relatedEmpty")}</p>
+        <p className="text-text-support">{t("relatedEmpty")}</p>
       ) : (
         <ul className={`${CARD_MASONRY_NARROW} list-none p-0`}>
           {posts.map((post) => (

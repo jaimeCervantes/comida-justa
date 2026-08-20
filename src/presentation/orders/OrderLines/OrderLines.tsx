@@ -64,7 +64,7 @@ function LineIdentity({ line }: { line: OrderLine }) {
     <Link
       href={{ pathname: "/[slug]", params: { slug: line.slug } }}
       data-testid="order-line-link"
-      className="flex min-w-0 grow items-center gap-3 hover:text-pw-lightgreen"
+      className="flex min-w-0 grow items-center gap-3 hover:text-highlight"
     >
       {thumb}
       <span className="min-w-0 truncate">{label}</span>

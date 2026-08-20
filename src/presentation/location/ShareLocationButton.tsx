@@ -25,7 +25,7 @@ export default function ShareLocationButton({
     return (
       <span
         data-testid="location-denied"
-        className={`text-sm text-gray-600 dark:text-gray-400 ${className}`}
+        className={`text-sm text-text-support ${className}`}
       >
         {t("denied")}
       </span>

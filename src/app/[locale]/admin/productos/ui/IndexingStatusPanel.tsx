@@ -28,15 +28,11 @@ export default function IndexingStatusPanel({
         {t("indexingHeading")}
       </h2>
 
-      <p className="mb-4 text-gray-600 dark:text-gray-400">
-        {t("indexingIntro")}
-      </p>
+      <p className="mb-4 text-text-support">{t("indexingIntro")}</p>
 
       <dl className="flex flex-wrap gap-6 mb-4">
         <div>
-          <dt className="text-sm text-gray-600 dark:text-gray-400">
-            Indexadas
-          </dt>
+          <dt className="text-sm text-text-support">Indexadas</dt>
           <dd
             data-testid="indexing-count-indexed"
             className="text-2xl font-semibold tabular-nums"
@@ -45,9 +41,7 @@ export default function IndexingStatusPanel({
           </dd>
         </div>
         <div>
-          <dt className="text-sm text-gray-600 dark:text-gray-400">
-            Pendientes de indexar
-          </dt>
+          <dt className="text-sm text-text-support">Pendientes de indexar</dt>
           <dd
             data-testid="indexing-count-pending"
             className="text-2xl font-semibold tabular-nums"
@@ -56,9 +50,7 @@ export default function IndexingStatusPanel({
           </dd>
         </div>
         <div>
-          <dt className="text-sm text-gray-600 dark:text-gray-400">
-            Cobertura
-          </dt>
+          <dt className="text-sm text-text-support">Cobertura</dt>
           <dd
             data-testid="indexing-coverage"
             className="text-2xl font-semibold tabular-nums"
@@ -68,10 +60,7 @@ export default function IndexingStatusPanel({
         </div>
       </dl>
 
-      <p
-        data-testid="indexing-hint"
-        className="text-sm text-gray-600 dark:text-gray-400"
-      >
+      <p data-testid="indexing-hint" className="text-sm text-text-support">
         {allIndexed ? (
           t("indexingAllDone", { total })
         ) : (

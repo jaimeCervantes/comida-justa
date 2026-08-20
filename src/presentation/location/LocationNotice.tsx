@@ -38,16 +38,16 @@ export default function LocationNotice({
   return (
     <aside
       data-testid="location-notice"
-      className={`mb-4 rounded-lg border border-gray-200 dark:border-gray-700 p-4 ${className}`}
+      className={`mb-4 rounded-lg border border-separator p-4 ${className}`}
     >
-      <p className="text-sm text-gray-700 dark:text-gray-300">
+      <p className="text-sm text-text-base">
         {denied ? t("deniedNotice") : t("noticeIdle")}
       </p>
 
       {denied ? (
         <p
           data-testid="location-incentive"
-          className="mt-1 text-sm text-gray-700 dark:text-gray-300"
+          className="mt-1 text-sm text-text-base"
         >
           {t("incentive")}
         </p>
@@ -70,7 +70,7 @@ export default function LocationNotice({
       {showSellerCta ? (
         <p
           data-testid="seller-location-cta"
-          className="mt-3 text-sm text-gray-600 dark:text-gray-400"
+          className="mt-3 text-sm text-text-support"
         >
           {t("sellerCta")}{" "}
           <Link

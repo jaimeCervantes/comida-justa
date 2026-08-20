@@ -25,15 +25,16 @@ export default function Card({
   return (
     <Surface
       as={Container}
-      radius="2xl"
+      radius="card"
       background="raised"
       border="subtle"
-      elevation="md"
+      elevation="sm"
       interactive
-      className={cn(
-        "overflow-hidden group hover:ring-2 hover:ring-pw-orange",
-        className,
-      )}
+      /* El hover dibujaba un anillo naranja de 2px alrededor de la tarjeta. Con el papel cálido de
+         v2 eso es un grito: la tarjeta pasaba de reposo a marco de color sin escala intermedia.
+         Ahora sube de elevación —`sm` a `md`, que es lo que hace `interactive`— y el título toma la
+         tinta de acento. Sugiere que se puede pulsar, en vez de anunciarlo. */
+      className={cn("overflow-hidden group", className)}
       style={style ?? {}}
     >
       {media}
@@ -42,7 +43,7 @@ export default function Card({
           precio ni categoría— deja de ocupar sitio, cosa que un `mb-*` en el hermano de arriba no
           hacía: ahí estaba el hueco que quedaba bajo el título. */}
       <section className={cn(CARD_PADDING, CARD_STACK, "grow")}>
-        <h3 className="text-body-lg font-bold leading-tight group-hover:text-pw-lightgreen transition-colors">
+        <h3 className="text-body-lg font-bold leading-tight group-hover:text-highlight transition-colors">
           <AnchorElement {...anchorProps}>{title}</AnchorElement>
         </h3>
         {children}

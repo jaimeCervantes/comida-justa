@@ -61,7 +61,7 @@ export default function ScheduleForm({
   return (
     <form action={action} data-testid="schedule-form">
       {rows.length === 0 ? (
-        <p className="text-gray-500 mb-4" data-testid="schedule-empty">
+        <p className="text-text-support mb-4" data-testid="schedule-empty">
           {labels.empty}
         </p>
       ) : null}

@@ -17,7 +17,7 @@ export async function generateMetadata({
 }
 
 const CARD =
-  "bg-white dark:bg-[#1a1a1a] p-6 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-xs";
+  "bg-white dark:bg-[#1a1a1a] p-6 rounded-2xl border border-separator shadow-xs";
 const SOCIAL_LINK =
   "bg-white dark:bg-[#1a1a1a] px-3 py-1.5 rounded-full shadow-xs hover:shadow-md border border-orange-100 dark:border-orange-900/50 transition-all flex items-center gap-1.5";
 
@@ -45,7 +45,7 @@ export default async function NosotrosPage({
         <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-balance">
           {t("metaTitle", { brand })}
         </h1>
-        <p className="text-lg sm:text-xl text-gray-600 dark:text-gray-400 text-balance max-w-2xl mx-auto">
+        <p className="text-lg sm:text-xl text-text-support text-balance max-w-2xl mx-auto">
           {t("metaSubtitle")}
         </p>
       </header>
@@ -112,10 +112,10 @@ export default async function NosotrosPage({
           <h2 className="text-3xl font-bold flex items-center gap-3">
             {t("peanutHeading")}
           </h2>
-          <h3 className="text-xl font-medium text-gray-700 dark:text-gray-300">
+          <h3 className="text-xl font-medium text-text-base">
             {t("peanutQuestion")}
           </h3>
-          <p className="text-lg leading-relaxed text-gray-600 dark:text-gray-400">
+          <p className="text-lg leading-relaxed text-text-support">
             {t("peanutIntro")}
             <br />
             {t.rich("peanutIntro2", { b: bold, i: italic, brand })}
@@ -179,10 +179,10 @@ export default async function NosotrosPage({
           <h2 className="text-3xl font-bold flex items-center gap-3">
             {t("breadHeading")}
           </h2>
-          <h3 className="text-xl font-medium text-gray-700 dark:text-gray-300">
+          <h3 className="text-xl font-medium text-text-base">
             {t("breadQuestion", { brand })}
           </h3>
-          <p className="text-lg leading-relaxed text-gray-600 dark:text-gray-400">
+          <p className="text-lg leading-relaxed text-text-support">
             {t.rich("breadIntro", { b: bold })}
           </p>
 
@@ -233,15 +233,15 @@ export default async function NosotrosPage({
           </div>
 
           <div className={`${CARD} flex flex-col justify-center`}>
-            <h4 className="text-lg font-bold mb-4 text-gray-900 dark:text-white">
+            <h4 className="text-lg font-bold mb-4 text-text-base">
               {t("breadVarietiesHeading")}
             </h4>
             <ul className="space-y-3 text-lg mb-6">
-              <li className="flex justify-between border-b border-gray-100 dark:border-gray-800 pb-2">
+              <li className="flex justify-between border-b border-separator pb-2">
                 <span>{t("breadNatural")}</span>
                 <span className="font-semibold text-(--highlight)">$96</span>
               </li>
-              <li className="flex justify-between border-b border-gray-100 dark:border-gray-800 pb-2">
+              <li className="flex justify-between border-b border-separator pb-2">
                 <span className="leading-tight">{t("breadSeeds")}</span>
                 <span className="font-semibold text-(--highlight)">$125</span>
               </li>
@@ -250,7 +250,7 @@ export default async function NosotrosPage({
                 <span className="font-semibold text-(--highlight)">$136</span>
               </li>
             </ul>
-            <div className="mt-auto bg-gray-50 dark:bg-gray-900 p-4 rounded-xl text-center text-sm font-medium text-gray-600 dark:text-gray-400">
+            <div className="mt-auto bg-surface-elevation-2 p-4 rounded-xl text-center text-sm font-medium text-text-support">
               {t("breadAvailability")}
             </div>
           </div>
@@ -269,13 +269,11 @@ export default async function NosotrosPage({
       </section>
 
       {/* Redes y Contacto */}
-      <section className="bg-gray-100 dark:bg-[#141414] p-8 sm:p-12 rounded-3xl text-center space-y-6">
-        <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
+      <section className="bg-surface-elevation-2 p-8 sm:p-12 rounded-3xl text-center space-y-6">
+        <h3 className="text-2xl font-bold text-text-base">
           {t("orderHeading")}
         </h3>
-        <p className="text-gray-600 dark:text-gray-400 text-lg">
-          {t("orderBody")}
-        </p>
+        <p className="text-text-support text-lg">{t("orderBody")}</p>
 
         <div className="flex flex-wrap justify-center gap-4 py-4">
           <a
@@ -290,7 +288,7 @@ export default async function NosotrosPage({
             href="https://www.tiktok.com/@hazlosano"
             target="_blank"
             rel="noopener noreferrer"
-            className="bg-black dark:bg-zinc-800 hover:bg-gray-800 dark:hover:bg-zinc-700 text-white px-6 py-3 rounded-full font-medium transition-all flex items-center gap-2"
+            className="bg-brand-black hover:bg-button-secondary-bg text-pw-white px-6 py-3 rounded-full font-medium transition-all flex items-center gap-2"
           >
             {t("orderTiktok")}
           </a>
@@ -304,8 +302,8 @@ export default async function NosotrosPage({
           </a>
         </div>
 
-        <div className="border-t border-gray-200 dark:border-gray-800 pt-6 flex flex-wrap justify-center gap-x-8 gap-y-2 text-sm font-medium">
-          <span className="block w-full sm:w-auto text-gray-500">
+        <div className="border-t border-separator pt-6 flex flex-wrap justify-center gap-x-8 gap-y-2 text-sm font-medium">
+          <span className="block w-full sm:w-auto text-text-support">
             {t("orderPhone")}
           </span>
           <a
@@ -340,10 +338,8 @@ function FeatureItem({
     <li className="flex items-start gap-3 text-lg">
       <span className="mt-1">{icon}</span>
       <div>
-        <strong className="block text-gray-900 dark:text-white">{label}</strong>
-        <span className="text-gray-600 dark:text-gray-400 text-base">
-          {text}
-        </span>
+        <strong className="block text-text-base">{label}</strong>
+        <span className="text-text-support text-base">{text}</span>
       </div>
     </li>
   );

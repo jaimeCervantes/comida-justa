@@ -27,7 +27,7 @@ export default function LegalSectionHeading({
     >
       <span
         aria-hidden="true"
-        className="bg-pw-lightgreen/15 text-pw-green rounded-full w-7 sm:w-8 h-7 sm:h-8 flex items-center justify-center text-sm font-semibold shrink-0"
+        className="bg-brand-green-soft text-brand-green-900 rounded-full w-7 sm:w-8 h-7 sm:h-8 flex items-center justify-center text-sm font-semibold shrink-0"
       >
         {number}
       </span>

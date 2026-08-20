@@ -70,7 +70,7 @@ export default async function CheckoutOrders({
               ) : (
                 <Link
                   href={{ pathname: "/pedido/[id]", params: { id: order.id } }}
-                  className="font-medium hover:text-pw-lightgreen"
+                  className="font-medium hover:text-highlight"
                   data-testid="checkout-order-link"
                 >
                   {order.sellerName}

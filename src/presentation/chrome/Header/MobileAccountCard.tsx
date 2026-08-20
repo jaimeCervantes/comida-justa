@@ -5,7 +5,7 @@ import { profileHref, storeHref } from "~/i18n/routes";
 import Avatar from "~/presentation/user/Avatar/Avatar";
 
 const SHORTCUT_CLASS =
-  "flex-1 rounded-lg border border-gray-200 dark:border-gray-800 px-3 py-2 text-center text-sm font-medium text-gray-700 dark:text-gray-200";
+  "flex-1 rounded-control border border-separator px-3 py-2 text-center text-sm font-medium text-text-base";
 
 /**
  * La cabecera de identidad del menú móvil: quién eres y a qué páginas tuyas se llega.
@@ -36,15 +36,13 @@ export default function MobileAccountCard({
       <Link
         href="/cuenta"
         onClick={onNavigate}
-        className="flex items-center gap-3 px-2 py-2 bg-gray-50 dark:bg-gray-800/50 rounded-lg"
+        className="flex items-center gap-3 px-2 py-2 bg-surface-elevation-2 rounded-lg"
       >
         <Avatar user={user} />
         <span className="flex min-w-0 flex-col">
-          <span className="font-medium text-gray-900 dark:text-gray-100">
-            {user?.name}
-          </span>
+          <span className="font-medium text-text-base">{user?.name}</span>
           {/* La dirección personal desplaza al texto genérico: dice más y ocupa lo mismo. */}
-          <span className="max-w-[200px] truncate text-xs text-gray-500">
+          <span className="max-w-[200px] truncate text-xs text-text-support">
             {username ? `@${username}` : t("myAccountAndStore")}
           </span>
         </span>

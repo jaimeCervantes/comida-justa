@@ -73,9 +73,7 @@ export default async function ModeracionPage({
     <main>
       <h1 className="text-xl font-bold mb-2">{t("moderationHeading")}</h1>
 
-      <p className="mb-6 text-gray-600 dark:text-gray-400">
-        {t("moderationIntro")}
-      </p>
+      <p className="mb-6 text-text-support">{t("moderationIntro")}</p>
 
       <ModerationQueue posts={posts} labels={labels} />
     </main>

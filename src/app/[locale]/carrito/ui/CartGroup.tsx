@@ -42,7 +42,7 @@ export default async function CartGroup({ group }: { group: CartSellerGroup }) {
               pathname: "/tienda/[slug]",
               params: { slug: group.seller.handle },
             }}
-            className="hover:text-pw-lightgreen"
+            className="hover:text-highlight"
           >
             {group.seller.name}
           </Link>

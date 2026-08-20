@@ -49,9 +49,7 @@ export default function AccountCard({
     >
       <h2 className="text-lg font-bold">{title}</h2>
 
-      {intro ? (
-        <p className="text-sm text-gray-600 dark:text-gray-400">{intro}</p>
-      ) : null}
+      {intro ? <p className="text-sm text-text-support">{intro}</p> : null}
 
       <div>{children}</div>
     </Surface>

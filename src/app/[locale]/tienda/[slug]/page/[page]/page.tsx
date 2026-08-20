@@ -89,10 +89,7 @@ export default async function StorePaginatedPage({
       />
 
       <div className="text-center mt-4">
-        <Link
-          href={storeHref(slug)}
-          className="text-pw-lightgreen hover:underline"
-        >
+        <Link href={storeHref(slug)} className="text-highlight hover:underline">
           {t("backToStore")}
         </Link>
       </div>

@@ -45,7 +45,7 @@ export default function LocationChip({
   return (
     <aside
       data-testid="location-chip"
-      className={`mb-4 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-gray-600 dark:text-gray-400 ${className}`}
+      className={`mb-4 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-text-support ${className}`}
     >
       <MdMyLocation aria-hidden className="shrink-0" />
 

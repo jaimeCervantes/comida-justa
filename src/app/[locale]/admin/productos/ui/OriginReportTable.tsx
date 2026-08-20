@@ -25,7 +25,7 @@ export default function OriginReportTable({ rows, total }: OriginReport) {
           Productos publicados agrupados por procedencia
         </caption>
         <thead>
-          <tr className="border-b border-gray-200 dark:border-gray-800">
+          <tr className="border-b border-separator">
             <th scope="col" className="py-2 pr-4 font-semibold">
               Procedencia
             </th>
@@ -39,10 +39,7 @@ export default function OriginReportTable({ rows, total }: OriginReport) {
         </thead>
         <tbody>
           {rows.map((row) => (
-            <tr
-              key={rowKey(row.origin)}
-              className="border-b border-gray-100 dark:border-gray-900"
-            >
+            <tr key={rowKey(row.origin)} className="border-b border-separator">
               <th scope="row" className="py-2 pr-4 font-normal">
                 {t(originLabelKey(row.origin))}
               </th>
@@ -52,7 +49,7 @@ export default function OriginReportTable({ rows, total }: OriginReport) {
               >
                 {row.count}
               </td>
-              <td className="py-2 text-right tabular-nums text-gray-600 dark:text-gray-400">
+              <td className="py-2 text-right tabular-nums text-text-support">
                 {percentFormatter.format(row.share)}
               </td>
             </tr>

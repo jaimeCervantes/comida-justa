@@ -183,7 +183,7 @@ export default function PublishForm({
             {!hasStore && origin === "productor" ? (
               <p
                 data-testid="producer-needs-store"
-                className="mt-2 text-sm text-gray-600 dark:text-gray-400"
+                className="mt-2 text-sm text-text-support"
               >
                 {t("producerNeedsStore")}
               </p>

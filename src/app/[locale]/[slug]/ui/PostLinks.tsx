@@ -8,7 +8,7 @@ import Avatar from "~/presentation/user/Avatar";
 import { profileHref } from "../../cuenta/profilePath";
 import { storeHref } from "../../cuenta/storePath";
 
-const LINK_CLASS = "text-pw-lightgreen hover:underline";
+const LINK_CLASS = "text-highlight hover:underline";
 
 /**
  * Las tres salidas de una publicación: su categoría, su tienda y quien la publicó.

@@ -66,9 +66,9 @@ const COMMUNITY_PANEL = "community";
 const CATEGORIES_PANEL = "categories";
 const PILLARS_PANEL = "pillars";
 
-const ROW_CLASS = "border-b border-gray-100 dark:border-gray-800 last:border-0";
+const ROW_CLASS = "border-b border-separator last:border-0";
 const ROW_CONTENT_CLASS =
-  "w-full flex items-center justify-between py-4 text-lg font-medium text-gray-900 dark:text-gray-100";
+  "w-full flex items-center justify-between py-4 text-lg font-medium text-text-base";
 
 /** Una fila que baja un nivel. El chevron apunta a la derecha porque de ahí viene lo que abre. */
 function PanelRow({ label, onOpen }: { label: string; onOpen: () => void }) {
@@ -76,7 +76,7 @@ function PanelRow({ label, onOpen }: { label: string; onOpen: () => void }) {
     <li className={ROW_CLASS}>
       <button type="button" onClick={onOpen} className={ROW_CONTENT_CLASS}>
         {label}
-        <ChevronRightIcon className="w-6 h-6 text-gray-500" aria-hidden />
+        <ChevronRightIcon className="w-6 h-6 text-text-support" aria-hidden />
       </button>
     </li>
   );
@@ -118,7 +118,7 @@ function SectionRow({
       <Link
         href={href}
         onClick={onNavigate}
-        className="flex flex-1 items-center py-4 text-lg font-medium text-gray-900 dark:text-gray-100"
+        className="flex flex-1 items-center py-4 text-lg font-medium text-text-base"
       >
         {label}
       </Link>
@@ -126,7 +126,7 @@ function SectionRow({
         type="button"
         onClick={onOpen}
         aria-label={openLabel}
-        className="flex items-center px-3 text-gray-500 hover:text-pw-green transition-colors"
+        className="flex items-center px-3 text-text-support hover:text-highlight transition-colors"
       >
         <ChevronRightIcon className="w-6 h-6" aria-hidden />
       </button>
@@ -291,7 +291,7 @@ export default function MobileNav({
   const menuContent = (
     <div
       data-testid="mobile-menu"
-      className={`fixed inset-0 z-9999 bg-white/95 dark:bg-black/95 backdrop-blur-xl transition-all duration-300 flex flex-col ${
+      className={`fixed inset-0 z-9999 bg-surface-background/95 backdrop-blur-xl transition-all duration-300 flex flex-col ${
         isOpen
           ? "opacity-100 pointer-events-auto"
           : "opacity-0 pointer-events-none"
@@ -318,7 +318,7 @@ export default function MobileNav({
           <button
             type="button"
             onClick={closeMenu}
-            className="p-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
+            className="p-2 text-text-base hover:bg-surface-elevation-2 rounded-full transition-colors"
             aria-label={t("closeMenu")}
           >
             <Cross1Icon className="w-8 h-8" />
@@ -341,12 +341,12 @@ export default function MobileNav({
                 <button
                   type="button"
                   onClick={() => setPath(path.slice(0, -1))}
-                  className="flex items-center gap-1 py-3 text-base font-medium text-gray-500 hover:text-pw-green transition-colors"
+                  className="flex items-center gap-1 py-3 text-base font-medium text-text-support hover:text-highlight transition-colors"
                 >
                   <ChevronLeftIcon className="w-5 h-5" aria-hidden />
                   {t("back")}
                 </button>
-                <p className="pb-2 text-lg font-bold text-gray-900 dark:text-gray-100">
+                <p className="pb-2 text-lg font-bold text-text-base">
                   {openPanel.label}
                 </p>
                 <MenuLevel
@@ -364,7 +364,7 @@ export default function MobileNav({
             )}
           </nav>
 
-          <div className="flex flex-col gap-3 px-2 pb-6 border-t border-gray-100 dark:border-gray-800 pt-6 mt-4">
+          <div className="flex flex-col gap-3 px-2 pb-6 border-t border-separator pt-6 mt-4">
             {/* Las mismas dos entradas de administración que ofrece el menú del avatar en
                 escritorio: quien cambie de tamaño de pantalla encuentra lo mismo. */}
             {isAdmin ? (
@@ -372,14 +372,14 @@ export default function MobileNav({
                 <Link
                   href="/admin/catalogo"
                   onClick={closeMenu}
-                  className="text-base text-gray-600 dark:text-gray-400 hover:text-pw-green transition-colors"
+                  className="text-base text-text-support hover:text-highlight transition-colors"
                 >
                   {t("catalog")}
                 </Link>
                 <Link
                   href="/admin/productos"
                   onClick={closeMenu}
-                  className="text-base text-gray-600 dark:text-gray-400 hover:text-pw-green transition-colors"
+                  className="text-base text-text-support hover:text-highlight transition-colors"
                 >
                   {t("report")}
                 </Link>
@@ -388,7 +388,7 @@ export default function MobileNav({
             {children}
           </div>
 
-          <div className="py-6 border-t border-gray-100 dark:border-gray-800 text-center text-sm text-gray-500">
+          <div className="py-6 border-t border-separator text-center text-sm text-text-support">
             {PUBLIC_BRAND_NAME} &copy; {new Date().getFullYear()}
           </div>
         </div>
@@ -401,7 +401,7 @@ export default function MobileNav({
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className="p-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
+        className="p-2 text-text-base hover:bg-surface-elevation-2 rounded-full transition-colors"
         aria-label={t("openMenu")}
       >
         <HamburgerMenuIcon className="w-6 h-6" />

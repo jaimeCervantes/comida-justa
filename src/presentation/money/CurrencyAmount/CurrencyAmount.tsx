@@ -24,7 +24,7 @@ export default function AmountCurrency({
   className?: string;
 }) {
   const locale = resolveLocale(useLocale());
-  const clsName = `font-bold text-pw-lightgreen ${className ?? ""}`.trim();
+  const clsName = `font-bold text-highlight ${className ?? ""}`.trim();
 
   if (Boolean(value) === false) {
     return null;

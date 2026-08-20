@@ -54,9 +54,17 @@ const surfaceVariants = cva("", {
       /** Un escalón más: lo que se apoya sobre una tarjeta. */
       sunken: "bg-surface-elevation-2",
     },
-    /** Realce al pasar el cursor. Solo para superficies que llevan a algún sitio. */
+    /**
+     * Realce al pasar el cursor. Solo para superficies que llevan a algún sitio.
+     *
+     * v2 lo baja de tono. Subía a `shadow-xl` y se desplazaba 4px, que con la sombra negra anterior
+     * era la única forma de que se notara; con las sombras verdes y más abiertas del slice 10,
+     * `md` ya se ve, y el salto se queda en 2px. La regla del sistema es que nada se mueve más de
+     * 4px y que la página crece en vez de rebotar: un realce que levanta la tarjeta media pantalla
+     * llama más la atención que el contenido.
+     */
     interactive: {
-      true: "transition-all duration-300 hover:shadow-xl hover:-translate-y-1",
+      true: "transition-all duration-(--duration-base) ease-(--ease-natural) hover:shadow-md hover:-translate-y-0.5",
       false: "",
     },
   },

@@ -44,17 +44,17 @@ function Row({ post, labels }: { post: ModeratedPost; labels: QueueLabels }) {
   return (
     <li
       data-testid={`moderation-row-${post.id}`}
-      className="flex flex-wrap items-center gap-3 py-3 border-b border-gray-100 dark:border-gray-800"
+      className="flex flex-wrap items-center gap-3 py-3 border-b border-separator"
     >
       <span className="min-w-[14rem] font-semibold">{post.title}</span>
 
-      <span className="text-sm text-gray-500 dark:text-gray-400 min-w-[8rem]">
+      <span className="text-sm text-text-support min-w-[8rem]">
         {post.authorName ?? "—"}
       </span>
 
       <span
         data-testid={`moderation-status-${post.id}`}
-        className="text-xs px-2 py-0.5 rounded-full bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-300"
+        className="text-xs px-2 py-0.5 rounded-full bg-surface-elevation-2 text-text-support"
       >
         {/* Una publicada que llegó aquí por una denuncia SIGUE publicada: denunciar avisa, no
             oculta. Decir "en revisión" sobre algo que cualquiera puede ver sería mentir en la
@@ -75,12 +75,12 @@ function Row({ post, labels }: { post: ModeratedPost; labels: QueueLabels }) {
 
       <span
         data-testid={`moderation-reason-label-${post.id}`}
-        className="text-sm text-gray-500 dark:text-gray-400 min-w-[12rem]"
+        className="text-sm text-text-support min-w-[12rem]"
       >
         {post.reason ? labels.reasons[post.reason] : "—"}
       </span>
 
-      <span className="text-xs text-gray-400">
+      <span className="text-xs text-text-muted">
         {formatDate(post.reviewedAt ?? post.createdAt)}
       </span>
 
@@ -91,7 +91,7 @@ function Row({ post, labels }: { post: ModeratedPost; labels: QueueLabels }) {
           <button
             type="submit"
             data-testid={`moderation-approve-${post.id}`}
-            className="text-sm underline text-pw-green hover:text-pw-lightgreen"
+            className="text-sm underline text-pw-green hover:text-highlight"
           >
             {labels.approve}
           </button>
@@ -121,7 +121,7 @@ function Row({ post, labels }: { post: ModeratedPost; labels: QueueLabels }) {
           <button
             type="submit"
             data-testid={`moderation-reject-${post.id}`}
-            className="text-sm underline text-pw-green hover:text-pw-lightgreen"
+            className="text-sm underline text-pw-green hover:text-highlight"
           >
             {labels.reject}
           </button>
@@ -134,7 +134,7 @@ function Row({ post, labels }: { post: ModeratedPost; labels: QueueLabels }) {
 export default function ModerationQueue({ posts, labels }: Props) {
   if (posts.length === 0) {
     return (
-      <p data-testid="moderation-empty" className="text-gray-500">
+      <p data-testid="moderation-empty" className="text-text-support">
         {labels.empty}
       </p>
     );
