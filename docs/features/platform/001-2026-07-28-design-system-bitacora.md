@@ -819,3 +819,152 @@ en dos lenguajes que no pueden leerse entre sí.
 4. **El anti-patrón general.** Este fallo es una instancia de uno más amplio: cualquier componente
    que dependa de medir para maquetar miente en el primer pintado. Vale la pena buscar otros
    (`ResizeObserver`, `clientWidth`, `window.matchMedia` en render) antes de que los reporte alguien.
+
+---
+
+## Slice 10 — La piel de v2: neutrales cálidos y un verde que aguanta blanco
+
+**Fecha:** 2026-08-19 · **Rama:** `feat/design-system-v2`
+
+### Objetivo
+
+Adoptar la capa de tokens de «Hazlo Sano — Sistema de diseño v2» sin tocar un solo componente. Como
+todo el árbol ya consume los tokens semánticos desde los slices 1–7, mover la capa de abajo cambia
+la piel del sitio entero de golpe: es el slice con más superficie visible y el de menor riesgo, y
+por eso va primero.
+
+### Decisiones y por qué
+
+**1. La semilla del logo deja de rellenar, pero no se va.** El hallazgo que ordenó el slice: el
+slice 3 midió la rampa de los pilares y la dejó blindada, pero nunca midió la de la marca.
+`--brand-green` (`#538f39`, el corazón del logo) rellenaba 28 botones con texto blanco encima a
+**3.92** y hacía de tinta en otros 57 sitios a **3.67** — los 85 por debajo del mínimo AA de 4.5.
+
+La rampa separa los dos trabajos, igual que se hizo con los pilares: `600` identifica (es el logo,
+se conserva con nombre propio), `700` rellena y entinta, `800` es el hover, `900` la tinta sobre el
+chip tenue. `--brand-green` conserva su nombre y pasa a apuntar al `700`. **Ese alias es lo que
+arregla los 85 usos sin editar un componente** — y es también el motivo de que el slice pudiera ser
+solo de tokens.
+
+**2. El radio entra con nombres propios; la sombra pisa a Tailwind a propósito.** Las dos mitades de
+`layout.css` se comportan al revés, y el porqué quedó escrito en su cabecera. Tailwind v4 publica su
+escala como custom properties y sus utilidades son referencias a ellas, así que este archivo —que se
+importa después— gana la cascada sobre cualquier nombre que repita.
+
+- **Radio:** subir `--radius-lg` a los 18px de v2 habría cambiado los 44 `rounded-lg` del sitio sin
+  que nadie tocara esos archivos. Por eso v2 entra como `chip`/`control`/`card`/`panel`, que no
+  existen en Tailwind: nada cambia hasta que un componente lo pida. Es la salida al problema que el
+  slice 5 dejó escrito y no podía resolver.
+- **Sombra:** aquí pisar es el objetivo. «Las sombras dejan de ser negras» tiene que alcanzar a los
+  29 `shadow-*` que ya existen sin editar 29 archivos.
+
+**3. Cinco sombras, no tres.** Salió al revisar el CSS ya compilado, no al escribirlo: con solo
+`sm|md|lg` declaradas, `shadow-xs` (6 usos) y `shadow-xl` (6 usos) conservaban la de Tailwind, que
+es negra. Una sombra negra al lado de una verde se ve, y era exactamente el defecto que v2 viene a
+quitar. Se declararon las cinco y el test las cubre.
+
+**4. Dos tokens del documento de diseño entraron corregidos.** La fuente manda en la intención; la
+medición manda en el valor.
+
+| Token | Propuesto | Medida | Da | Mínimo | Entró como | Cumple |
+| --- | --- | --- | --- | --- | --- | --- |
+| `--text-muted` | `#8a9480` | texto 11px sobre `#faf7f1` | 2.96 | 4.5 | `#656e5c` | 4.53 |
+| `--border-field` | `#c9c0ac` | borde de campo sobre `#ffffff` | 1.81 | 3.0 | `#8b8874` | 3.04 |
+
+Ambos se derivaron bajando luminosidad sobre la propuesta, conservando matiz y saturación —el mismo
+método del slice 3—, y se eligió el valor que cumple contra la **superficie más exigente** de las
+tres, no contra la más cómoda. El borde de un campo cae bajo WCAG 1.4.11 porque es lo único que
+delimita el control; `--border` y `--separator` son decorativos y se quedan donde estaban.
+
+Tres cifras de las anotaciones del documento tampoco resistieron la medición (5.89→**5.97**,
+8.4→**6.32**, 6.1→**5.50**). Ninguna cambia una decisión: las tres siguen cumpliendo AA. El repo se
+queda con la medida.
+
+**5. `--highlight` tenía el mismo fallo, en otro verde.** Era `#2abf40`: 2.51 sobre el papel. En
+claro pasa a apuntar al relleno de marca; en oscuro sí puede permitirse el verde vivo.
+
+**6. Los pares de botón se declaran como pares.** `--button-*-bg` junto a su `-text` y su `-hover`,
+apuntando a `--brand-*`. Así el tema oscuro mueve **una** variable y arrastra al par, y la prueba
+puede medir la pareja en vez de hexes sueltos: quien cambie un relleno sin tocar su texto rompe algo
+que falla en CI.
+
+### Archivos tocados
+
+**Tokens** — `colors.css` (rampa de marca, neutrales cálidos en los tres bloques, pares de botón,
+tonos de aviso, `--text-muted`, `--border-field`), `layout.css` (escala nombrada en `@theme`, cinco
+sombras verdes, `--duration-base` 300→260ms, `--ease-natural`), `typography.css` (`--font-display`,
+`--font-ui`).
+
+**Pruebas nuevas** — `brandPalette.contrast.test.ts` (59 casos: pares semánticos, cada tinta contra
+cada superficie, en los dos temas), `radiusScale.test.ts` (18 casos).
+
+**Aplicación** — `src/app/[locale]/layout.tsx` (Newsreader + Plus Jakarta Sans por `next/font`,
+Inter se retira), `src/app/styles/globals.css` (`font-family: var(--font-ui)` en `body`,
+`::selection` al par del botón).
+
+**Documentación** — roadmap v2 y escenarios `@slice-10` … `@slice-13`.
+
+### Comandos
+
+```bash
+pnpm vitest run src/presentation/design_system/tokens/   # 105/105
+pnpm run test:run                                        # 2106/2106 en 200 archivos
+pnpm run typecheck                                       # limpio
+pnpm run lint                                            # limpio
+pnpm run check:i18n                                      # limpio
+pnpm run check:directives                                # limpio
+pnpm run build                                           # OK en 19.8s, 41/41 estáticas
+```
+
+### Validación
+
+- **En rojo primero:** con los tokens viejos, las dos pruebas nuevas daban **40 fallos**. Al adoptar
+  la paleta pasaron a 105/105.
+- **`darkThemeParity` y `pillarPalette` siguen verdes sin editarse**, que era el criterio de
+  aceptación del slice: las dos copias del bloque oscuro siguen idénticas, y la rampa de los pilares
+  no se tocó.
+- **Verificado en el CSS ya compilado**, no solo en el fuente: las cinco sombras salen en
+  `#1f2818…` y son la última declaración (ganan la cascada); `--radius-sm|md|lg` siguen en
+  `.25/.375/.5rem` (la escala de Tailwind, intacta); las cuatro nuevas y las dos familias están
+  presentes.
+- `typecheck:tests` falla con 2 errores en `EditPostForm.test.tsx` y `managePost.test.ts`. **Es
+  preexistente en `dev`**: se comprobó con `git stash` y los mismos errores salen sin ninguno de
+  estos cambios. No se tocó nada de eso aquí.
+- **Pendiente: la suite e2e completa.** No se ejecutó — el usuario la corre él, y lo reiteró
+  explícitamente durante este slice. No se afirma nada sobre ella.
+
+### Desviaciones del roadmap
+
+Dos, ambas hacia arriba y ninguna de alcance:
+
+1. **Cinco sombras en vez de tres** (ver decisión 3). El roadmap decía «sombras con verde» sin
+   contar cuántas; al compilar se vio que tres dejaban las dos puntas en negro.
+2. **`--highlight` entró en el slice** (ver decisión 5). No estaba nombrado en el roadmap; es el
+   mismo fallo de contraste que motivó el slice, y dejarlo fuera habría sido raro.
+
+### Recap
+
+La capa de tokens ya es la de v2 y el sitio entero cambió de piel sin que se editara un solo
+componente: neutrales con la temperatura del papel en claro y en oscuro, sombras que llevan el verde
+de la marca en vez de negro, dos voces tipográficas servidas desde nuestro dominio, y una escala de
+radio con nombres propios esperando a que los componentes la pidan. El agujero que arrastraba desde
+el slice 3 —la rampa de la marca nunca se midió— está tapado y con prueba: 85 usos que estaban por
+debajo de AA lo cumplen ahora, y un `brandPalette.contrast.test.ts` de 59 casos impide que vuelvan a
+caer. Los 71 `rounded-*` sueltos siguen exactamente donde estaban, que es lo correcto: moverlos es
+el trabajo del slice 11, componente por componente.
+
+### Próximos pasos (opciones)
+
+1. **Correr la e2e completa** y revisar el sitio a ojo en claro y oscuro. Es lo único pendiente de
+   este slice, y está en tus manos: `pnpm run test:e2e:run` por lotes de 25–40 specs, matando al
+   dueño del puerto 3000 entre uno y otro.
+2. **Slice 11 — los primitivos.** `Button` repunta su relleno al token y sube `md`/`lg` a 44px de
+   objetivo táctil; `Badge` mete el número del pilar dentro de la insignia; `Surface` estrena
+   `radius: card | panel`; `InputShell`, `Alert` y `Skeleton` adoptan los tonos cálidos. Es donde la
+   escala de radio nueva empieza a tener consumidores.
+3. **Storybook en los dos temas.** Los tokens cambiaron de valor y el catálogo visual no se ha
+   mirado desde entonces: `pnpm run storybook` con `data-theme="dark"` forzado es la forma más
+   rápida de cazar un par que la prueba no cubra por no ser un par declarado.
+4. **La deuda que este slice dejó a la vista y no tocó.** `--brand-black` no se redefine en oscuro
+   (hoy tampoco lo hacía), así que los 3 `text-pw-black` quedan invisibles sobre fondo oscuro. Es
+   preexistente y de componente, no de token: le toca al slice 11.

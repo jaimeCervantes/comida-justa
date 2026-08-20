@@ -232,13 +232,17 @@
   body {
     background-color: var(--surface-background);
     color: var(--text-base);
-    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    /**
+     * La voz de la interfaz es la base; la serif se pide donde toca (`font-display`), no al revés.
+     * Antes lo ponía `inter.className` desde el layout, que es lo que impedía tener dos familias.
+     */
+    font-family: var(--font-ui);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
   ::selection {
     background-color: var(--brand-green);
-    color: white;
+    color: var(--button-primary-text);
   }
 }

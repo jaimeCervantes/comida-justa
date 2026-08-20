@@ -270,3 +270,211 @@ Feature: Un design system que habla como la marca
     When se pintan sus huecos
     Then cada hueco es aria-hidden y el contenedor lleva aria-busy
     And la animación de brillo solo ocurre bajo motion-safe
+
+  # ===========================================================================
+  # v2 — «Del CSS que había a una marca que crece»
+  #
+  # Los slices 1–9 construyeron los cimientos: tokens, `cva`, la rampa de tres papeles por pilar,
+  # el anillo de foco único, la mampostería estable. Nada de eso se tira. Lo que v2 cambia es lo
+  # que hacía ver el sitio genérico: neutrales `slate` azulados que apagan el logo, tipografía de
+  # sistema sin voz, y una escala de radio que existe en `layout.css` sin que nadie pueda usarla.
+  #
+  # Y una deuda que los slices anteriores no vieron: `--brand-green` (#538f39, el corazón del
+  # logo) rellena hoy 28 botones con texto blanco encima a 3.92 — por debajo de AA. El slice 3
+  # midió la rampa de los pilares y no la de la marca.
+  #
+  # Fuente: «Hazlo Sano — Sistema de diseño v2», secciones 01–07.
+  # ===========================================================================
+
+  # ---------------------------------------------------------------------------
+  # Slice 10 — La piel: neutrales cálidos y un verde que aguanta blanco  (actual)
+  #
+  # Cubierto por Vitest, como los slices 3 a 7: son invariantes del token, y se miden leyendo el
+  # CSS que se publica. Specs en:
+  #   src/presentation/design_system/tokens/brandPalette.contrast.test.ts   (nuevo)
+  #   src/presentation/design_system/tokens/darkThemeParity.test.ts         (ya existe, no se toca)
+  #   src/presentation/design_system/tokens/radiusScale.test.ts             (nuevo)
+  # ---------------------------------------------------------------------------
+
+  @slice-10 @component
+  Scenario Outline: Los neutrales dejan de ser slate y toman la temperatura del papel
+    Given el token "<token>" con el valor "<antes>"
+    When se adopta la paleta cálida de v2
+    Then su valor es "<despues>"
+
+    Examples: claro — el gris azulado sale, el papel entra
+      | token                 | antes   | despues | nota                                  |
+      | --surface-background  | #fafafa | #faf7f1 | papel, no blanco lavado               |
+      | --surface-elevation-1 | #ffffff | #ffffff | la tarjeta sigue siendo blanca        |
+      | --surface-elevation-2 | #f1f5f9 | #f1ece1 | el escalón hundido se calienta        |
+      | --separator           | #e2e8f0 | #ede8dc | separa sin dibujar una línea fría     |
+      | --border              | #cbd5e1 | #e3ddce | borde decorativo de tarjeta           |
+      | --text-base           | #1a1a1a | #1b1e18 | tinta con el mismo matiz que el papel |
+      | --text-support        | #64748b | #5c6857 | deja de ser slate-500                 |
+
+    Examples: oscuro — un negro puro apaga la marca
+      | token                 | antes   | despues | nota                              |
+      | --surface-background  | #0d0d0d | #101410 | el oscuro también lleva verde     |
+      | --surface-elevation-1 | #334155 | #1a1f18 | hoy es slate-700, que no es fondo |
+      | --surface-elevation-2 | #1e293b | #232920 | un escalón, no otro color         |
+      | --separator           | #334155 | #333b2e |                                   |
+      | --border              | #475569 | #46503d |                                   |
+      | --text-base           | #ededed | #eceadf | blanco roto, cálido               |
+      | --text-support        | #94a3b8 | #a2ad98 |                                   |
+
+  # El hallazgo que justifica el slice. El logo tiene dos tonos y uno de ellos se usó como relleno
+  # sin medirlo nunca: `bg-pw-green text-white` aparece 28 veces y `text-pw-green` otras 57.
+  @slice-10 @component
+  Scenario: El verde que identifica no es el verde que rellena
+    Given que #538f39 es el corazón del logo y hoy rellena los botones
+    When se mide texto blanco sobre ese verde
+    Then el resultado es 3.92, por debajo del mínimo AA de 4.5
+    And el relleno baja dos pasos de luminosidad sin cambiar de matiz, hasta #3f6f2a
+    And #538f39 se conserva con nombre propio como la semilla de la marca
+
+  @slice-10 @component
+  Scenario Outline: Ningún relleno de marca se publica sin medir su texto encima
+    Given el par "<primer_plano>" sobre "<fondo>"
+    When se mide su contraste según WCAG 2.1
+    Then el resultado es de al menos 4.5
+
+    Examples: claro — el relleno y su hover
+      | primer_plano | fondo   | medido | papel                        |
+      | #ffffff      | #3f6f2a | 5.97   | botón primario               |
+      | #ffffff      | #355d23 | 7.66   | botón primario, hover        |
+      | #ffffff      | #c52e0b | 5.57   | botón de compra              |
+      | #ffffff      | #7a5a03 | 6.38   | icono de aviso sobre miel    |
+      | #3f6f2a      | #faf7f1 | 5.58   | enlace y cifra sobre la página |
+      | #2f5320      | #e8f0df | 7.55   | tinta sobre el chip verde    |
+      | #1b1e18      | #faf7f1 | 15.77  | cuerpo sobre la página       |
+      | #5c6857      | #faf7f1 | 5.50   | texto de apoyo               |
+
+    Examples: oscuro — el relleno se aclara y la tinta se invierte
+      | primer_plano | fondo   | medido | papel                     |
+      | #0d1109      | #6ba34a | 6.32   | botón primario en oscuro  |
+      | #180600      | #f4522e | 5.72   | botón de compra en oscuro |
+      | #eceadf      | #101410 | 15.41  | cuerpo sobre la página    |
+      | #a2ad98      | #101410 | 7.94   | texto de apoyo            |
+
+    Examples: los tonos de aviso, que hoy no existen como token
+      | primer_plano | fondo   | medido | papel   |
+      | #24301c      | #e8f0df | 11.86  | éxito   |
+      | #3f3208      | #fdf3d6 | 11.35  | aviso   |
+      | #4a1405      | #fde3dd | 12.35  | error   |
+
+  # Dos tokens del documento de diseño no pasan la medición, y se corrigen antes de entrar. Se deja
+  # constancia aquí porque la corrección se aparta de la fuente a propósito: la fuente manda en la
+  # intención —neutral cálido, borde discreto— y la medición manda en el valor.
+  @slice-10 @component
+  Scenario Outline: Lo que el documento de diseño propone y no cumple, entra corregido
+    Given el token "<token>" propuesto como "<propuesto>"
+    When se mide "<medida>"
+    Then el propuesto da "<da>", por debajo de "<minimo>"
+    And entra al repo como "<corregido>", que da "<cumple>"
+
+    Examples:
+      | token                | propuesto | medida                                  | da   | minimo | corregido | cumple |
+      | --text-muted         | #8a9480   | texto de 11px sobre #faf7f1 (AA 4.5)    | 2.96 | 4.5    | #6b7562   | 4.52   |
+      | --border-field       | #c9c0ac   | límite de un campo sobre #ffffff (AA 3) | 1.81 | 3.0    | #8f8c78   | 3.39   |
+
+  @slice-10 @component
+  Scenario Outline: La escala de radio se expone con nombre propio y no pisa la de Tailwind
+    Given "<utilidad>" con el valor "<valor>"
+    When un componente necesita ese radio
+    Then lo pide por su nombre y no por un número
+    And "<tailwind>" sigue valiendo lo que valía, porque la escala nueva no la sobrescribe
+
+    Examples: los 71 rounded-* sueltos por fin tienen a dónde ir
+      | utilidad       | valor | uso              | tailwind   |
+      | rounded-chip   | 8px   | chip, input chico | rounded-sm |
+      | rounded-control| 12px  | botón, campo      | rounded-md |
+      | rounded-card   | 18px  | tarjeta           | rounded-lg |
+      | rounded-panel  | 26px  | panel, diálogo    | rounded-xl |
+
+  @slice-10 @component
+  Scenario: Las sombras dejan de ser negras
+    Given una sombra de rgb(0 0 0 / 0.1) sobre un fondo cálido
+    When se apila sobre el papel, que ya no es gris
+    Then se ve sucia, porque un negro puro sobre un cálido tira a gris
+    And la elevación pasa a rgba(31,40,24,…), que lleva el mismo verde que el papel
+
+  @slice-10 @component
+  Scenario Outline: El sitio estrena dos voces, y las carga sin pedirle nada a la red del visitante
+    Given la familia "<familia>" servida por next/font
+    When el navegador pinta la primera pantalla
+    Then el texto se ve con "<familia>" desde el primer píxel, sin salto de fuente
+    And el token "<token>" es lo que consultan los componentes, no el nombre de la familia
+
+    Examples: Inter se retira; entran una serif con voz y una sans humanista
+      | familia           | token         | para                                    |
+      | Newsreader        | --font-display| titulares, nombres de pilar, precios    |
+      | Plus Jakarta Sans | --font-ui     | etiquetas, botones, cuerpo, datos       |
+
+  # ---------------------------------------------------------------------------
+  # Slice 11 — Los primitivos hablan v2  (futuro)
+  # Ninguna API cambia de nombre: cambian los valores de las variantes de `cva`.
+  # ---------------------------------------------------------------------------
+
+  @slice-11 @component @future
+  Scenario: El botón primario rellena con el verde que aguanta blanco
+    Given un Button de color green
+    When se pinta en claro y en oscuro
+    Then su relleno sale del token de relleno, no de la semilla del logo
+    And su altura md llega al mínimo táctil de 44px
+
+  @slice-11 @component @future
+  Scenario: La insignia de un pilar lleva su número dentro
+    Given una insignia del pilar Alimentación
+    When se pinta
+    Then el número 2 viaja dentro de la insignia, junto a la etiqueta
+    And el color deja de ser el único dato que identifica al pilar
+
+  @slice-11 @component @future
+  Scenario: Surface estrena los radios con nombre
+    Given una tarjeta y un panel
+    When cuelgan de Surface
+    Then la tarjeta pide radius card y el panel radius panel
+
+  @slice-11 @component @future
+  Scenario: Un campo enfocado no dibuja dos verdes concéntricos
+    Given un InputShell en reposo, foco, error y deshabilitado
+    When recibe el foco
+    Then su borde se pone verde y no aparece un anillo por fuera
+
+  # ---------------------------------------------------------------------------
+  # Slice 12 — Header y feed, que es lo que todo el mundo ve  (futuro)
+  # Repintado con el sistema nuevo. La estructura y los textos no cambian: los
+  # specs e2e que hoy recorren el header y el home siguen valiendo sin tocarse.
+  # ---------------------------------------------------------------------------
+
+  @slice-12 @future
+  Scenario: El header se repinta sin mover nada de sitio
+    Given el header actual con su logo, su búsqueda y su menú
+    When adopta los tokens y los primitivos de v2
+    Then ningún enlace, etiqueta ni destino cambia
+    And los specs de menu e i18n siguen verdes sin editarse
+
+  @slice-12 @future
+  Scenario: La tarjeta del feed dice quién vende y a cuánta distancia
+    Given una publicación en el feed
+    When se pinta con la tarjeta de v2
+    Then el productor y la distancia están donde estaban, con la tipografía y el radio nuevos
+
+  # ---------------------------------------------------------------------------
+  # Slice 13 — Publicar, detalle y tienda  (futuro)
+  # También repintado. El asistente de tres pasos que propone la sección 5.3 del
+  # documento es UX nueva y queda FUERA: se acordó no cambiar comportamiento.
+  # ---------------------------------------------------------------------------
+
+  @slice-13 @future
+  Scenario: El formulario de publicar se repinta sin partirse en pasos
+    Given el formulario de /publicar tal como está hoy, en una sola página
+    When adopta los campos, botones y avisos de v2
+    Then sigue siendo una sola página con los mismos campos y las mismas validaciones
+    And los specs de publishProduct, filtroAlPublicar y validacionFormularios siguen verdes
+
+  @slice-13 @future
+  Scenario: La ficha y la tienda estrenan la jerarquía de v2
+    Given la ficha de una publicación y la portada de una tienda
+    When adoptan la escala tipográfica y los radios nuevos
+    Then el título pesa más que sus secciones, como fijó el slice 7

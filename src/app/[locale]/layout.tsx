@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Newsreader, Plus_Jakarta_Sans } from "next/font/google";
 import { notFound } from "next/navigation";
 import Footer from "~/presentation/chrome/Footer/Footer";
 import Header from "~/presentation/chrome/Header/Header";
@@ -13,7 +13,33 @@ import { readVisitorFix } from "~/infra/location/visitorLocation";
 import SiteCelebrationMessage from "~/presentation/chrome/SiteMessage/SiteCelebrationMessage";
 import LocationRefresher from "~/presentation/location/LocationRefresher";
 
-const inter = Inter({ subsets: ["latin"] });
+/**
+ * Las dos voces del sistema, servidas desde nuestro dominio.
+ *
+ * `next/font` descarga los archivos en build y los sirve como propios: el visitante no le pide
+ * nada a un servidor de fuentes ajeno, no hay una petición extra que bloquee el pintado, y no hay
+ * salto de fuente cuando llega la real.
+ *
+ * Se exponen como `variable` y no con `className` porque son **dos**: el layout no puede aplicar
+ * las dos familias a la vez, así que planta las dos custom properties en `<html>` y deja que
+ * `typography.css` decida cuál usa cada cosa. Los nombres coinciden con los que ese archivo espera.
+ *
+ * `display: "swap"` enseña la cadena de reserva mientras la fuente viaja: en una conexión lenta,
+ * texto legible enseguida vale más que la tipografía correcta tres segundos después.
+ */
+const newsreader = Newsreader({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-newsreader",
+  /* Óptico y peso variables: una sola descarga cubre de 300 a 800 y los titulares grandes. */
+  axes: ["opsz"],
+});
+
+const plusJakarta = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-plus-jakarta",
+});
 
 /**
  * Sin esto, `[locale]` se resuelve en cada petición y ninguna ruta se prerenderiza. Declarar los
@@ -71,8 +97,12 @@ export default async function RootLayout({
   const gaId = process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID;
 
   return (
-    <html lang={locale} data-scroll-behavior="smooth">
-      <body className={inter.className}>
+    <html
+      lang={locale}
+      data-scroll-behavior="smooth"
+      className={`${newsreader.variable} ${plusJakarta.variable}`}
+    >
+      <body>
         {/* Sin el provider, un Client Component que use `useTranslations` revienta. Va aquí una
             sola vez para que el slice 1 pueda extraer texto en cualquier hoja del árbol. */}
         <NextIntlClientProvider>

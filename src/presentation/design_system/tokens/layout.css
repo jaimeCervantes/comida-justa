@@ -2,36 +2,95 @@
    Hazlo Sano — Spacing, radius, shadow
    ============================================================
 
-   **Estos tokens NO se exponen a Tailwind, y es deliberado.**
+   **Lo primero que hay que saber: este archivo pisa variables de Tailwind, y no por accidente.**
 
-   Sus valores de radio son idénticos a los de la escala por defecto de Tailwind v4
-   (`sm` 0.25rem, `md` 0.375rem, `lg` 0.5rem), así que declararlos en `@theme` no añadiría ninguna
-   utilidad nueva: escribir `rounded-lg` ya usa exactamente este valor. Y `--radius-pill` es lo
-   mismo que `rounded-full`.
+   Tailwind v4 publica su escala como custom properties en `:root`, y sus utilidades no son más que
+   referencias a ellas: `rounded-lg` es `border-radius: var(--radius-lg)`, `shadow-md` es
+   `box-shadow: var(--shadow-md)`. Este archivo se importa **después** de `@import "tailwindcss"`,
+   así que cada `--radius-*` y `--shadow-*` que declara aquí gana la cascada y redefine esa utilidad
+   en todo el sitio. Da igual que sea en `:root` o en `@theme`: lo que decide es el nombre.
 
-   Por eso "nadie los consume": no hay nada que consumir. Quedan como la referencia escrita de la
-   escala —para cambiarla habría que exponerlos aquí **y** aceptar que cada `rounded-sm` del sitio
-   cambia con ellos—, no como una capa que los componentes deban usar.
+   De ahí las dos mitades de este archivo, que se comportan al revés a propósito:
 
-   Quien quiera un radio distinto del de Tailwind: añádalo aquí con un nombre propio y expóngalo,
-   como se hizo con `--text-*` en `typography.css`.
+   1. **El radio no cambia nada.** `--radius-sm|md|lg` valen exactamente lo que valen en Tailwind
+      (0.25 / 0.375 / 0.5rem), así que pisarlas es inocuo: son un espejo escrito, para poder leer la
+      escala sin ir a la documentación. Subir aquí `--radius-lg` a los 18px de v2 habría cambiado de
+      golpe los 44 `rounded-lg` del sitio, más 9 `rounded-sm` y 8 `rounded-md`, sin que nadie tocara
+      esos archivos. Por eso v2 entra con **nombres propios** —`chip`, `control`, `card`, `panel`—,
+      que no existen en Tailwind y no pisan nada: nada cambia hasta que un componente pide
+      `rounded-card`. Es la respuesta al problema que dejó escrito el slice 5, y que este archivo no
+      podía resolver mientras la única forma de exponer un radio fuera pisar el de Tailwind.
+
+   2. **La sombra sí cambia todo, y es el objetivo.** Aquí se pisa a Tailwind queriendo: v2 dice que
+      las sombras dejan de ser negras, y eso tiene que alcanzar a los 29 `shadow-*` que ya existen
+      sin editar 29 archivos. Por eso se declaran las **cinco** —incluidas `xs` y `xl`, que la
+      versión anterior no cubría—: con solo tres, una tarjeta con `shadow-xl` habría quedado con
+      sombra negra al lado de una con `shadow-lg` verde, y esa mezcla se ve.
+
+   `radiusScale.test.ts` cuida las dos mitades: que las cuatro nuevas existan con su valor, que
+   ninguna de las de Tailwind haya entrado en `@theme`, y que las cinco sombras lleven el verde.
    ============================================================ */
 
 :root {
-  /* radius */
+  /* radius — el espejo de Tailwind. Ver el punto 1 de la cabecera antes de tocarlo. */
   --radius-sm: 0.25rem; /* 4px */
   --radius-md: 0.375rem; /* 6px */
   --radius-lg: 0.5rem; /* 8px */
   --radius-pill: 9999px;
 
-  /* elevation shadows */
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --shadow-lg:
-    0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  /**
+   * elevation shadows
+   *
+   * Dejan de ser negras. Un `rgb(0 0 0 / .1)` sobre un fondo cálido no se ve neutro: tira a gris y
+   * ensucia el papel, que es justo lo que hacía ver «genérico» al sitio incluso después de cambiar
+   * los neutrales. Estas llevan el mismo verde que el papel (`rgba(31, 40, 24, …)`), y se abren más
+   * y más suaves: una sombra de v2 sugiere altura, no dibuja un borde.
+   *
+   * Son cinco y no tres porque el árbol usa las cinco: 6 `shadow-xs`, 4 `sm`, 6 `md`, 7 `lg` y 6
+   * `xl`. Cubrir solo el tramo de en medio dejaba las dos puntas en negro —y una sombra negra al
+   * lado de una verde no pasa desapercibida, que es exactamente el defecto que v2 viene a quitar.
+   */
+  --shadow-xs: 0 1px 1px 0 rgba(31, 40, 24, 0.04);
+  --shadow-sm: 0 1px 2px 0 rgba(31, 40, 24, 0.06);
+  --shadow-md: 0 6px 18px -8px rgba(31, 40, 24, 0.18);
+  --shadow-lg: 0 18px 40px -18px rgba(31, 40, 24, 0.28);
+  --shadow-xl: 0 28px 60px -22px rgba(31, 40, 24, 0.34);
 
   /* motion */
   --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
-  --duration-fast: 150ms;
-  --duration-base: 300ms;
+
+  /**
+   * La curva de v2: arranca rápido y frena largo, que es como se mueve algo que tiene peso.
+   * Nada se desplaza más de 4px con ella. La página no rebota: crece.
+   */
+  --ease-natural: cubic-bezier(0.22, 0.61, 0.36, 1);
+
+  --duration-fast: 150ms; /* color, borde, opacidad */
+  --duration-base: 260ms; /* elevación, entrada */
 }
+
+/**
+ * La escala de v2, expuesta con nombre propio. El nombre dice **qué se redondea**, no cuánto mide:
+ * un componente que pide `rounded-card` sigue siendo correcto el día que la tarjeta cambie de
+ * radio, y ese día se cambia aquí una vez.
+ */
+@theme {
+  --radius-chip: 0.5rem; /* 8px — chip, input chico */
+  --radius-control: 0.75rem; /* 12px — botón, campo */
+  --radius-card: 1.125rem; /* 18px — tarjeta */
+  --radius-panel: 1.625rem; /* 26px — panel, diálogo */
+
+  --shadow-rest: var(--shadow-sm);
+  --shadow-hover: var(--shadow-md);
+  --shadow-float: var(--shadow-lg);
+}
+
+/**
+ * Los tokens de movimiento se quedan fuera de `@theme`, como estaban.
+ *
+ * No es olvido: `@theme` emite sus variables en `:root`, así que exponer `--ease-natural` con el
+ * mismo nombre que ya tiene arriba lo dejaría definido como `var(--ease-natural)` — una referencia
+ * a sí mismo, y la curva entera se pierde. Quien los necesite los pide como valor arbitrario
+ * (`duration-(--duration-base)`, `ease-(--ease-natural)`), que es lo que Tailwind v4 ofrece
+ * precisamente para esto.
+ */

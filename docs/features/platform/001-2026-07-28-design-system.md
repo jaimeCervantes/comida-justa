@@ -197,6 +197,117 @@ ocurría.
 
 ---
 
+# v2 — «Del CSS que había a una marca que crece»
+
+**Fuente:** `Hazlo Sano — Sistema de diseño v2` (canvas de Claude Design), secciones 01–07.
+**Acordado el 2026-08-19:** fundación + pantallas clave. **La UX nueva de la sección 05 queda
+fuera** — ⌘K, barra fija de pilar+distancia, bottom nav de 5 pestañas, cola offline y el asistente
+de tres pasos de `/publicar`. Esto es repintado: ningún recorrido cambia, ningún spec e2e vigente
+se edita.
+
+## Por qué hay un v2
+
+Los slices 1–9 dejaron los cimientos correctos y nada de eso se tira: tokens semánticos, `cva`, la
+rampa de tres papeles por pilar, el anillo de foco único, la mampostería estable. Lo que no
+resolvieron es que **el sitio no se ve de nadie**:
+
+- Los neutrales son `slate`. Un gris azulado junto a un verde y un naranja cálidos los apaga: la
+  marca compite con el fondo en vez de apoyarse en él.
+- La tipografía es Inter para todo. Correcta y sin voz — la misma que la mitad de la web.
+- `layout.css` define `--radius-*` y **deliberadamente no los expone**, porque coinciden con la
+  escala de Tailwind y exponerlos no añadía nada. El resultado previsto por ese mismo comentario:
+  71 `rounded-*` sueltos decidiendo cada uno por su cuenta (`rounded-full` ×56, `lg` ×44, `2xl` ×39,
+  `3xl` ×12, `xl` ×10, `sm` ×9, `md` ×8, y un `4xl` solitario).
+
+Y una deuda que los slices anteriores no vieron. El slice 3 midió la rampa de los **pilares** y la
+dejó blindada con un test; nunca midió la de la **marca**:
+
+| Uso | Par | Medido | AA |
+| --- | --- | --- | --- |
+| 28 botones `bg-pw-green text-white` | `#ffffff` sobre `#538f39` | **3.92** | ✕ |
+| 57 usos de `text-pw-green` | `#538f39` sobre el fondo | **3.67** | ✕ |
+
+`#538f39` es el corazón del logo. Identifica bien y rellena mal. v2 lo conserva como semilla y baja
+dos pasos de luminosidad —sin mover matiz— para el relleno: `#3f6f2a`, que da **5.97** con blanco.
+
+## Lo que el documento propone y no cumple
+
+Dos tokens de la fuente no pasan la medición. Entran corregidos, y queda escrito porque es un
+apartarse deliberado de la fuente: **la fuente manda en la intención, la medición manda en el valor.**
+
+| Token | Propuesto | Medida | Da | Mínimo | Entra como | Cumple |
+| --- | --- | --- | --- | --- | --- | --- |
+| `--text-muted` | `#8a9480` | texto de 11px sobre `#faf7f1` | 2.96 | 4.5 | `#6b7562` | 4.52 |
+| `--border-field` | `#c9c0ac` | límite de campo sobre `#ffffff` | 1.81 | 3.0 (WCAG 1.4.11) | `#8f8c78` | 3.39 |
+
+El primero es el `mono` en versalitas que el documento usa para casi todas sus etiquetas pequeñas.
+El segundo es el borde de los campos: un límite de control **sí** cae bajo «Non-text Contrast», a
+diferencia de un separador decorativo, que puede quedarse en `#e3ddce`.
+
+Tres cifras de las anotaciones tampoco cuadran al medirlas. No cambian ninguna decisión —las tres
+siguen cumpliendo AA— pero el repo se queda con la medida, no con la anotación:
+
+| Anotación dice | Medido | Par |
+| --- | --- | --- |
+| 5.89 | **5.97** | `#ffffff` sobre `#3f6f2a` |
+| 8.4 | **6.32** | `#0d1109` sobre `#6ba34a` (oscuro) |
+| 6.1 | **5.50** | `#5c6857` sobre `#faf7f1` (la fuente lo midió sobre blanco) |
+
+## Roadmap v2
+
+### Slice 10 — La piel: neutrales cálidos y un verde que aguanta blanco
+
+**Alcance.** Solo la capa de tokens y la carga de fuentes. Ningún componente se edita: como todo el
+árbol ya consume los tokens semánticos, el sitio entero cambia de piel con este slice.
+
+- `colors.css` — neutrales cálidos en los tres bloques (claro, `prefers-color-scheme`, `data-theme`);
+  la marca gana `--brand-green-600` (semilla `#538f39`), `--brand-green-700` (`#3f6f2a`, relleno),
+  `--brand-green-800` (`#355d23`, hover) y `--brand-green-900` (`#2f5320`, tinta sobre chip verde);
+  `--brand-green` pasa a apuntar al relleno, que es lo que arregla los 85 usos de golpe. Entran los
+  tonos de aviso (`success`/`warning`/`error` con su par fondo+tinta) y `--text-muted`,
+  `--border-field`.
+- `layout.css` — la escala de radio se expone **con nombre propio**: `rounded-chip` (8px),
+  `rounded-control` (12px), `rounded-card` (18px), `rounded-panel` (26px). No sobrescribe
+  `rounded-sm/md/lg`: nada cambia hasta que un componente lo pida. Sombras con verde
+  (`rgba(31,40,24,…)`), `--duration-base` 300→260ms y `--ease-natural`.
+- `typography.css` — `--font-display` y `--font-ui` como tokens.
+- `layout.tsx` — Newsreader + Plus Jakarta Sans vía `next/font`; Inter se retira.
+
+**Criterios de aceptación.**
+- `brandPalette.contrast.test.ts` (nuevo) lee `colors.css` y mide **todo relleno de marca contra su
+  texto**, en claro y en oscuro. Falla si alguien reintroduce un par por debajo de 4.5.
+- `darkThemeParity.test.ts` sigue verde **sin editarse**: las dos copias del bloque oscuro siguen
+  siendo idénticas declaración por declaración.
+- `pillarPalette.contrast.test.ts` sigue verde sin editarse — la rampa de los pilares no se toca, y
+  su prueba de «la tinta destaca sobre el fondo de la página» ahora mide contra el papel nuevo.
+- `radiusScale.test.ts` (nuevo) verifica que las cuatro utilidades existen y que la escala de
+  Tailwind no quedó sobrescrita.
+- Ningún archivo bajo `src/app/` ni `src/presentation/` fuera de `tokens/` cambia en este slice.
+
+### Slice 11 — Los primitivos hablan v2
+
+Ninguna API cambia de nombre; cambian los valores de las variantes de `cva`. `Button` repunta su
+relleno al token y sube `md`/`lg` al mínimo táctil de 44px; `Badge` gana el número del pilar dentro
+de la insignia y una variante sólida; `Surface` estrena `radius: card | panel`; `InputShell` pasa a
+50px con radio de control y foco en el borde; `Alert` y `Skeleton` adoptan los tonos cálidos.
+
+### Slice 12 — Header y feed
+
+Lo que todo el mundo ve. Repintado con los primitivos del slice 11, sin mover un enlace de sitio.
+
+### Slice 13 — Publicar, detalle y tienda
+
+Igual: repintado. El asistente de tres pasos de la sección 5.3 queda fuera por acuerdo.
+
+## Fuera de alcance (registrado, no descartado)
+
+De la sección 05–06 del documento, para un roadmap posterior si se decide: atajo ⌘K, barra fija de
+pilar+distancia, bottom nav móvil, «Avísame cuando haya» en agotados, cola offline optimista,
+deshacer con 8s en vez de diálogo de confirmación, y las pantallas 5.6–5.9 (pilar, búsqueda,
+comunidad, acceso).
+
+---
+
 ## Verificación
 
 ```bash

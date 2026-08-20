@@ -1,7 +1,7 @@
 /* ============================================================
    Hazlo Sano — Color tokens
    Light theme is the default (:root). Dark theme applies under
-   @media (prefers-color-scheme: dark).
+   the system preference and under [data-theme="dark"].
    ============================================================ */
 
 :root {
@@ -17,50 +17,126 @@
   --scheme: light;
   color-scheme: var(--scheme);
 
-  /* --- Base brand palette (theme-independent) --- */
-  --brand-green: #538f39;
+  /* ==========================================================
+     La marca: una semilla no es una tinta
+     ==========================================================
+     El logo tiene dos tonos, `#538f39` (el corazón) y `#f0380e` (el círculo). Los dos identifican
+     bien y ninguno rellena: con texto blanco encima dan 3.92 y 3.98, por debajo del mínimo AA de
+     4.5. Durante nueve slices `--brand-green` fue las dos cosas a la vez, y así rellenaba 28
+     botones y hacía de tinta en otros 57 sitios, todos por debajo de AA.
+
+     La rampa separa los dos trabajos. Cada paso baja luminosidad conservando matiz y saturación,
+     igual que se derivó la rampa de los pilares en el slice 3:
+
+       600 → semilla. Es el logo. Identifica; no lleva texto encima.
+       700 → relleno y tinta. Lo que consume la interfaz.
+       800 → hover del relleno.
+       900 → tinta sobre el chip tenue del mismo color.
+       soft → el chip tenue.
+
+     `--brand-green` y `--brand-orange` conservan su nombre —los consumen `@theme`, `focus.css` y
+     medio árbol— y pasan a apuntar al paso que sí cumple. Ese alias es lo que arregla los 85 usos
+     sin editar un solo componente.
+
+     Verificado en `brandPalette.contrast.test.ts`, que mide pares semánticos leyendo este archivo. */
+
+  --brand-green-600: #538f39;
+  --brand-green-700: #3f6f2a;
+  --brand-green-800: #355d23;
+  --brand-green-900: #2f5320;
+  --brand-green-soft: #e8f0df;
+  --brand-green: var(--brand-green-700);
+
+  --brand-clay-500: #f0380e;
+  --brand-clay-600: #dd340d;
+  --brand-clay-700: #c52e0b;
+  --brand-clay-soft: #fde3dd;
+  --brand-orange: var(--brand-clay-600);
+
+  --brand-honey-500: #f2b705;
+  --brand-honey-soft: #fdf3d6;
+  --brand-honey-ink: #7a5a03;
+  --brand-lightorange: var(--brand-honey-500);
+
   --brand-lightgreen: #5dbf17;
-  --brand-lightorange: #f2b705;
-  --brand-orange: #f0380e;
-  --brand-gray: #334155;
-  --brand-black: #000000;
+  --brand-gray: #3d4636;
+  --brand-black: #1b1e18;
   --brand-white: #ffffff;
 
-  /* --- Semantic: text --- */
-  --text-base: #1a1a1a;
+  /* --- Semantic: text ---
+     Los neutrales llevan el matiz del papel en vez del azul de `slate`: junto a un verde y un
+     naranja cálidos, un gris azulado los apaga. */
+  --text-base: #1b1e18;
   --text-inverse: #ffffff;
-  --text-support: #64748b;
+  --text-support: #5c6857;
+
+  /**
+   * La etiqueta pequeña —metadatos, versalitas, «a 3.2 km · hace 2 h»—.
+   *
+   * El documento de diseño v2 la proponía en `#8a9480`, que sobre el papel da 2.96: por debajo de
+   * AA y también por debajo de 3. Es texto, y texto pequeño; entra corregida al valor más oscuro
+   * que sigue leyéndose como apagado, y que cumple contra la superficie más exigente de las tres
+   * (`--surface-elevation-2`, 4.53).
+   */
+  --text-muted: #656e5c;
 
   /* --- Semantic: surfaces --- */
-  --surface-background: #fafafa;
+  --surface-background: #faf7f1;
   --surface-elevation-1: #ffffff;
-  --surface-elevation-2: #f1f5f9;
+  --surface-elevation-2: #f1ece1;
 
-  /* --- Structure --- */
-  --separator: #e2e8f0;
-  --border: #cbd5e1;
+  /* --- Structure ---
+     `--separator` y `--border` son decorativos: separan, no delimitan un control, así que no les
+     aplica el mínimo de 3:1 de «Non-text Contrast». */
+  --separator: #ede8dc;
+  --border: #e3ddce;
 
-  /* --- Buttons --- */
+  /**
+   * El límite de un campo **sí** lo delimita: es lo único que dice dónde empieza el control, y
+   * WCAG 1.4.11 le pide 3:1. La propuesta del documento (`#c9c0ac`) da 1.81 sobre blanco; esta
+   * cumple sobre las tres superficies claras (3.34 / 3.58 / 3.04).
+   */
+  --border-field: #8b8874;
+
+  /* --- Buttons ---
+     Declarados como pares (relleno + su texto + su hover) para que la prueba pueda medir la
+     pareja. Apuntan a `--brand-*`, así que el tema oscuro mueve una variable y arrastra al par. */
   --button-primary-bg: var(--brand-green);
   --button-primary-text: var(--brand-white);
-  --button-primary-hover: #43742e;
+  --button-primary-hover: var(--brand-green-800);
 
   --button-secondary-bg: var(--brand-gray);
   --button-secondary-text: var(--brand-white);
-  --button-secondary-hover: #1e293b;
+  --button-secondary-hover: #2c3227;
 
-  /* --- Feedback --- */
+  --button-buy-bg: var(--brand-orange);
+  --button-buy-text: var(--brand-white);
+  --button-buy-hover: var(--brand-clay-700);
+
+  /* --- Feedback ---
+     Los tres sueltos son los de siempre y se conservan por compatibilidad: los consume `Alert` a
+     través de `@theme`. Los pares `soft`/`ink` son nuevos y son los que se pueden medir. */
   --feedback-success: var(--brand-lightgreen);
   --feedback-warning: var(--brand-lightorange);
   --feedback-error: var(--brand-orange);
 
-  /*
+  --feedback-success-soft: #e8f0df;
+  --feedback-success-ink: #24301c;
+  --feedback-warning-soft: var(--brand-honey-soft);
+  --feedback-warning-ink: #3f3208;
+  --feedback-error-soft: var(--brand-clay-soft);
+  --feedback-error-ink: #4a1405;
+
+  /**
    * Verde de acento para marcar (palomitas, cifras, hover de enlaces). Vivía en `globals.css`
    * antes de que los tokens se mudaran aquí y se quedó fuera de la mudanza, así que sus usos
    * apuntaban a una variable inexistente: `text-(--highlight)` heredaba el gris del contenedor
    * y `from-(--highlight)` volvía transparente el arranque del degradado.
+   *
+   * Era `#2abf40`, que sobre el papel da 2.51 — el mismo error que la semilla del logo, en otro
+   * verde. En claro apunta al relleno de marca; en oscuro sí puede permitirse el verde vivo.
    */
-  --highlight: #2abf40;
+  --highlight: var(--brand-green-700);
 
   /* ==========================================================
      Los cuatro pilares
@@ -78,6 +154,9 @@
        soft  → tinte de fondo del chip tenue y de las superficies del pilar.
        ink   → tinta: texto, iconos y bordes sobre `soft`.
 
+     Es la misma lógica que v2 aplicó a la marca, un slice más tarde: separar identificar de
+     rellenar. Los pilares llegaron primero.
+
      Los contrastes están verificados en `pillarPalette.contrast.test.ts`, que lee **este archivo**:
      si alguien retoca un hex y rompe AA, falla la prueba y no el usuario.
 
@@ -90,7 +169,7 @@
   --pillar-sleep-soft: #f5f3ff;
   --pillar-sleep-ink: #7c3aed;
 
-  /* 2 · Alimentación — del naranja del logo (--brand-orange) */
+  /* 2 · Alimentación — del naranja del logo (--brand-clay-500) */
   --pillar-nutrition-solid: #dd340d;
   --pillar-nutrition-soft: #fde3dd;
   --pillar-nutrition-ink: #c52e0b;
@@ -123,23 +202,57 @@
     /* Lo nativo del navegador, en oscuro también: ver `--scheme` arriba. */
     --scheme: dark;
 
+    /* --- La marca en oscuro ---
+       Sobre un fondo casi negro el relleno claro se apaga, así que la rampa se invierte: el verde
+       sube hasta poder llevar tinta oscura encima (6.32) y sirve además como tinta sobre el papel
+       (6.16). Mover `--brand-green` mueve con él al botón primario y al acento, que lo referencian. */
+    --brand-green: #6ba34a;
+    --brand-green-800: #7cb85a;
+    --brand-green-900: #dcefcb;
+    --brand-green-soft: #1b2d0f;
+
+    --brand-orange: #f4522e;
+    --brand-clay-700: #f77a5c;
+    --brand-clay-soft: #36150d;
+
+    --brand-honey-soft: #3a2f08;
+
+    --brand-gray: #2a3126;
+
     /* --- Semantic: text --- */
-    --text-base: #ededed;
-    --text-inverse: #1a1a1a;
-    --text-support: #94a3b8;
+    --text-base: #eceadf;
+    --text-inverse: #1b1e18;
+    --text-support: #a2ad98;
+    --text-muted: #8a9480;
 
     /* --- Semantic: surfaces --- */
-    --surface-background: #0d0d0d;
-    --surface-elevation-1: #334155;
-    --surface-elevation-2: #1e293b;
+    --surface-background: #101410;
+    --surface-elevation-1: #1a1f18;
+    --surface-elevation-2: #232920;
 
     /* --- Structure --- */
-    --separator: #334155;
-    --border: #475569;
+    --separator: #333b2e;
+    --border: #46503d;
+    --border-field: #667559;
+
+    /* --- Buttons ---
+       El relleno se aclara, así que el texto se oscurece: es el mismo par al revés. */
+    --button-primary-text: #0d1109;
+    --button-secondary-text: #eceadf;
+    --button-secondary-hover: #3a4234;
+    --button-buy-text: #180600;
+
+    /* --- Feedback --- */
+    --feedback-success-soft: #1b2d0f;
+    --feedback-success-ink: #dcefcb;
+    --feedback-warning-ink: #f6e0a8;
+    --feedback-error-ink: #f9cfc4;
+
+    --highlight: var(--brand-lightgreen);
 
     /* --- Los cuatro pilares ---
-       La rampa se invierte: `ink` recupera los tonos vivos que son legibles sobre `#0d0d0d`, y
-       `soft` se oscurece para conservar una superficie diferenciada.
+       La rampa se invierte: `ink` recupera los tonos vivos que son legibles sobre el papel oscuro,
+       y `soft` se oscurece para conservar una superficie diferenciada.
 
        `solid` no cambia entre temas: lleva texto blanco encima en ambos y ya cumple AA. */
     --pillar-sleep-soft: #2e1065;
@@ -162,19 +275,49 @@
   /* Lo nativo del navegador, en oscuro también: ver `--scheme` arriba. */
   --scheme: dark;
 
+  /* --- La marca en oscuro --- */
+  --brand-green: #6ba34a;
+  --brand-green-800: #7cb85a;
+  --brand-green-900: #dcefcb;
+  --brand-green-soft: #1b2d0f;
+
+  --brand-orange: #f4522e;
+  --brand-clay-700: #f77a5c;
+  --brand-clay-soft: #36150d;
+
+  --brand-honey-soft: #3a2f08;
+
+  --brand-gray: #2a3126;
+
   /* --- Semantic: text --- */
-  --text-base: #ededed;
-  --text-inverse: #1a1a1a;
-  --text-support: #94a3b8;
+  --text-base: #eceadf;
+  --text-inverse: #1b1e18;
+  --text-support: #a2ad98;
+  --text-muted: #8a9480;
 
   /* --- Semantic: surfaces --- */
-  --surface-background: #0d0d0d;
-  --surface-elevation-1: #334155;
-  --surface-elevation-2: #1e293b;
+  --surface-background: #101410;
+  --surface-elevation-1: #1a1f18;
+  --surface-elevation-2: #232920;
 
   /* --- Structure --- */
-  --separator: #334155;
-  --border: #475569;
+  --separator: #333b2e;
+  --border: #46503d;
+  --border-field: #667559;
+
+  /* --- Buttons --- */
+  --button-primary-text: #0d1109;
+  --button-secondary-text: #eceadf;
+  --button-secondary-hover: #3a4234;
+  --button-buy-text: #180600;
+
+  /* --- Feedback --- */
+  --feedback-success-soft: #1b2d0f;
+  --feedback-success-ink: #dcefcb;
+  --feedback-warning-ink: #f6e0a8;
+  --feedback-error-ink: #f9cfc4;
+
+  --highlight: var(--brand-lightgreen);
 
   /* --- Los cuatro pilares --- */
   --pillar-sleep-soft: #2e1065;
@@ -193,9 +336,19 @@
 /* Expose to Tailwind v4 as utility classes */
 @theme {
   --color-brand-green: var(--brand-green);
+  --color-brand-green-600: var(--brand-green-600);
+  --color-brand-green-700: var(--brand-green-700);
+  --color-brand-green-800: var(--brand-green-800);
+  --color-brand-green-900: var(--brand-green-900);
+  --color-brand-green-soft: var(--brand-green-soft);
   --color-brand-lightgreen: var(--brand-lightgreen);
   --color-brand-lightorange: var(--brand-lightorange);
   --color-brand-orange: var(--brand-orange);
+  --color-brand-clay-600: var(--brand-clay-600);
+  --color-brand-clay-700: var(--brand-clay-700);
+  --color-brand-clay-soft: var(--brand-clay-soft);
+  --color-brand-honey-soft: var(--brand-honey-soft);
+  --color-brand-honey-ink: var(--brand-honey-ink);
   --color-brand-gray: var(--brand-gray);
   --color-brand-black: var(--brand-black);
   --color-brand-white: var(--brand-white);
@@ -211,17 +364,35 @@
   --color-text-base: var(--text-base);
   --color-text-inverse: var(--text-inverse);
   --color-text-support: var(--text-support);
+  --color-text-muted: var(--text-muted);
 
   --color-surface-background: var(--surface-background);
   --color-surface-elevation-1: var(--surface-elevation-1);
   --color-surface-elevation-2: var(--surface-elevation-2);
 
   --color-border: var(--border);
+  --color-border-field: var(--border-field);
   --color-separator: var(--separator);
+
+  --color-button-primary-bg: var(--button-primary-bg);
+  --color-button-primary-text: var(--button-primary-text);
+  --color-button-primary-hover: var(--button-primary-hover);
+  --color-button-secondary-bg: var(--button-secondary-bg);
+  --color-button-secondary-text: var(--button-secondary-text);
+  --color-button-secondary-hover: var(--button-secondary-hover);
+  --color-button-buy-bg: var(--button-buy-bg);
+  --color-button-buy-text: var(--button-buy-text);
+  --color-button-buy-hover: var(--button-buy-hover);
 
   --color-feedback-success: var(--feedback-success);
   --color-feedback-warning: var(--feedback-warning);
   --color-feedback-error: var(--feedback-error);
+  --color-feedback-success-soft: var(--feedback-success-soft);
+  --color-feedback-success-ink: var(--feedback-success-ink);
+  --color-feedback-warning-soft: var(--feedback-warning-soft);
+  --color-feedback-warning-ink: var(--feedback-warning-ink);
+  --color-feedback-error-soft: var(--feedback-error-soft);
+  --color-feedback-error-ink: var(--feedback-error-ink);
 
   --color-pillar-sleep-solid: var(--pillar-sleep-solid);
   --color-pillar-sleep-soft: var(--pillar-sleep-soft);

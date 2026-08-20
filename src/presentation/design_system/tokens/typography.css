@@ -37,6 +37,27 @@
  * utilidades nuevas sin tocar las suyas: `text-xs` y compañía siguen existiendo.
  */
 @theme {
+  /**
+   * Dos voces, y cada una tiene un trabajo.
+   *
+   * Hasta v2 todo era Inter: correcta, legible y la misma que la mitad de la web. Un sitio sobre
+   * comida de manos que conoces no puede sonar como un panel de administración.
+   *
+   * `display` es Newsreader, una serif editorial de óptico variable: titulares, nombres de pilar,
+   * precios. Es lo que la marca **afirma**. `ui` es Plus Jakarta Sans, humanista y de formas
+   * abiertas: etiquetas, botones, cuerpo, datos. Es lo que la interfaz **opera**.
+   *
+   * `--font-newsreader` y `--font-plus-jakarta` las inyecta `next/font` desde el layout, así que
+   * el navegador no le pide nada a un servidor de fuentes ajeno y no hay salto de fuente en el
+   * primer pintado. La cadena de reserva se queda aquí, y no en el layout, para que un componente
+   * renderizado fuera del árbol de Next —una story, un test— siga teniendo con qué pintar.
+   *
+   * Van declaradas **solo aquí** y no también en `:root`: `@theme` ya emite sus variables en
+   * `:root`, y repetir el nombre arriba las dejaría definidas como `var()` de sí mismas.
+   */
+  --font-display: var(--font-newsreader), Georgia, "Times New Roman", serif;
+  --font-ui: var(--font-plus-jakarta), system-ui, -apple-system, sans-serif;
+
   --text-tiny: var(--fs-tiny);
   --text-caption: var(--fs-caption);
   --text-label: var(--fs-label);
