@@ -29,14 +29,11 @@ import { useShareLocation } from "./useShareLocation";
  *
  * La detección automática (`LocationRefresher`) cubre a quien ya concedió el permiso. Esto cubre a
  * todos los demás, que son justo los que no tenían salida.
+ *
+ * Su único montaje es `NearbyBar`, que le pone el fondo y la separación: por eso no trae margen ni
+ * `className` propios. Antes lo montaban seis páginas y cada una ajustaba su hueco.
  */
-export default function LocationChip({
-  fix,
-  className = "",
-}: {
-  fix: VisitorFix;
-  className?: string;
-}) {
+export default function LocationChip({ fix }: { fix: VisitorFix }) {
   const t = useTranslations("distance");
   const locale = useLocale();
   const { isBusy, share } = useShareLocation();
@@ -45,7 +42,7 @@ export default function LocationChip({
   return (
     <aside
       data-testid="location-chip"
-      className={`mb-4 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-text-support ${className}`}
+      className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-text-support"
     >
       <MdMyLocation aria-hidden className="shrink-0" />
 

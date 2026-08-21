@@ -21,8 +21,6 @@ export type CategoryPageData = {
   total: number;
   /** Dónde está quien mira; `null` cuando no lo sabemos y hay que explicarlo. */
   visitor: Coordinates | null;
-  /** Si conviene invitar a abrir tienda en el aviso de ubicación. */
-  showSellerCta: boolean;
 };
 
 /**
@@ -47,7 +45,7 @@ export async function getPostsByCategory(
   if (!isActiveKey(taxonomy, key)) return null;
 
   const pageNum = Math.max(PAGINATION_INIT_PAGE, page);
-  const { visitor, showSellerCta } = await readViewerLocationContext();
+  const { visitor } = await readViewerLocationContext();
   const result = await createPostQueryRepository().getPostsByCategory(
     subtreeKeys(taxonomy, key),
     pageNum,
@@ -64,6 +62,5 @@ export async function getPostsByCategory(
     totalPages: result.totalPages,
     total: result.total,
     visitor,
-    showSellerCta,
   };
 }

@@ -1,9 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import type { DirectoryKind } from "~/domain/entities/seller/directory";
 import { Link } from "~/i18n/navigation";
-import { readViewerLocationContext } from "~/infra/location/viewerLocationContext";
 import StoreSummaryCard from "~/presentation/directory/StoreSummaryCard";
-import LocationBanner from "~/presentation/location/LocationBanner";
 import { storeHref } from "../cuenta/storePath";
 import { listDirectory } from "./data";
 
@@ -22,7 +20,6 @@ export default async function DirectorySection({
   const t = await getTranslations("directory");
   const tDistance = await getTranslations("distance");
   const { stores, outsideRadius } = await listDirectory(kind);
-  const { showSellerCta } = await readViewerLocationContext();
 
   const heading =
     kind === "producers" ? t("producersHeading") : t("businessesHeading");
@@ -35,10 +32,6 @@ export default async function DirectorySection({
     <main>
       <h1 className="text-2xl font-bold mb-3">{heading}</h1>
       <p className="mb-6 max-w-3xl">{intro}</p>
-
-      {/* Un directorio sin distancias parece roto si no se dice que la parte que falta es la tuya;
-          y con ellas, hay que poder corregir desde dónde se están midiendo. */}
-      <LocationBanner showSellerCta={showSellerCta} />
 
       {/* Lo que sale queda fuera de tu radio sostenible. Decirlo es la diferencia entre "no hay
           nadie cerca de ti" y una lista que finge que sí lo están. */}

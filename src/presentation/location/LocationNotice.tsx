@@ -22,14 +22,17 @@ import { useShareLocation } from "./useShareLocation";
  * 3. **Que vender aquí exige tienda con ubicación.** Es la otra mitad de la cercanía: sin
  *    vendedores situados no hay distancias que mostrarle a nadie, por muy bien localizado que esté
  *    quien busca. Se le calla a quien ya tiene tienda, que no necesita el consejo.
+ *
+ * Se dibujaba como una caja con borde y relleno propios porque lo montaban seis páginas sueltas.
+ * Ahora su único montaje es `NearbyBar`, que ya pone la superficie: aquí queda **una fila que se
+ * parte cuando no cabe**, para no plantar un recuadro en el chrome de todas las rutas. Lo que dice
+ * y a quién se lo dice no cambia.
  */
 export default function LocationNotice({
   showSellerCta = true,
-  className = "",
 }: {
   /** `false` para quien ya abrió su tienda: ese ya no necesita que se lo cuenten. */
   showSellerCta?: boolean;
-  className?: string;
 }) {
   const t = useTranslations("distance");
   const { state, isBusy, share } = useShareLocation();
@@ -38,20 +41,13 @@ export default function LocationNotice({
   return (
     <aside
       data-testid="location-notice"
-      className={`mb-4 rounded-lg border border-separator p-4 ${className}`}
+      className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-text-support"
     >
-      <p className="text-sm text-text-base">
-        {denied ? t("deniedNotice") : t("noticeIdle")}
-      </p>
+      <p>{denied ? t("deniedNotice") : t("noticeIdle")}</p>
 
-      {denied ? (
-        <p
-          data-testid="location-incentive"
-          className="mt-1 text-sm text-text-base"
-        >
-          {t("incentive")}
-        </p>
-      ) : null}
+      {/* Solo aparece a quien ya dijo que no: es una razón para cambiar de opinión, no un regaño
+          que se le repita a quien todavía no ha contestado. */}
+      {denied ? <p data-testid="location-incentive">{t("incentive")}</p> : null}
 
       <Button
         type="button"
@@ -59,23 +55,21 @@ export default function LocationNotice({
         isLoading={isBusy}
         loadingLabel={t("locating")}
         startIcon={<MdMyLocation aria-hidden />}
-        size="sm"
+        size="xs"
         color="green"
-        className="mt-3"
         data-testid="share-location"
       >
         {denied ? t("shareAgain") : t("share")}
       </Button>
 
       {showSellerCta ? (
-        <p
-          data-testid="seller-location-cta"
-          className="mt-3 text-sm text-text-support"
-        >
+        <p data-testid="seller-location-cta">
           {t("sellerCta")}{" "}
+          {/* `text-highlight` y no `text-pw-green`: es el token que el slice 12 dejó para las
+              tintas y los enlaces, y resuelve al vivo en oscuro. */}
           <Link
             href="/cuenta"
-            className="font-semibold text-pw-green underline"
+            className="font-semibold text-highlight underline"
           >
             {t("sellerCtaLink")}
           </Link>

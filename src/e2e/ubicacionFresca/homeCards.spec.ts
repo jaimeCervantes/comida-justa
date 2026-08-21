@@ -65,12 +65,16 @@ test.describe("Cuando alguien mira publicaciones con el permiso de ubicación da
     ).toContainText(/m|km/, { timeout: 20_000 });
   });
 
+  /*
+   * Iba a "/productos" porque el home no tenía chip: `HomeHero` lo llevaba y dejó de montarse en
+   * 8b4d9bf. El escenario siempre dijo "desde el home"; ahora la ruta coincide con lo que afirma.
+   */
   test("Y al corregirla desde el chip, esa misma tarjeta se corrige con ella", async ({
     page,
     context,
   }) => {
     await context.setGeolocation(ENCIMA_DE_LA_TIENDA);
-    await page.goto("/productos");
+    await page.goto("/");
     await expect(
       tarjetaDelPan(page).getByTestId("store-distance"),
     ).toContainText(/m|km/, { timeout: 20_000 });

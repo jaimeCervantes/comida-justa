@@ -116,20 +116,18 @@ Feature: La ubicación se vuelve a detectar, porque la gente se mueve
   # Slice 3 — siempre se puede corregir a mano
   # ---------------------------------------------------------------------------
 
+  # Esta tabla listaba "/" y "/categoria/jugos" y el spec solo recorría tres rutas, así que cuando
+  # el commit 8b4d9bf dejó de montar `HomeHero` —quien llevaba el control en el home— no falló
+  # nada. La afirmación por ruta se retiró de aquí: desde el slice 1 de
+  # `docs/features/platform/007-2026-08-21-chrome-v2.md` el control vive en el chrome y quien lo
+  # prueba es `src/e2e/chrome/nearbyBar.spec.ts`, sobre ocho rutas y exigiendo que aparezca una
+  # sola vez. Mantener dos listas de rutas es lo que dejó pasar la regresión.
   @slice-3
-  Scenario Outline: Donde antes había silencio ahora hay un control
+  Scenario: Donde antes había silencio ahora hay un control
     Given tengo una ubicación guardada a 2 km del ancla
-    When abro "<ruta>"
+    When abro cualquier ruta del sitio
     Then veo el chip de ubicación
     And el chip ofrece actualizarla
-
-    Examples:
-      | ruta                  |
-      | /                     |
-      | /productos            |
-      | /categoria/jugos      |
-      | /negocios-locales     |
-      | /productores-locales  |
 
   @slice-3
   Scenario: El chip dice desde cuándo es el dato
@@ -213,6 +211,8 @@ Feature: La ubicación se vuelve a detectar, porque la gente se mueve
     Then la tarjeta de su pan muestra su distancia
     And nunca recargué la página
 
+  # Se probaba contra "/productos" porque el home no tenía chip que apretar. Con el control en el
+  # chrome, la prueba por fin ocurre donde el escenario dice que ocurre.
   @slice-5
   Scenario: Corrijo mi ubicación desde el home y las tarjetas la obedecen
     Given estoy en el home viendo el pan de "Panadería La Luz" a unos metros

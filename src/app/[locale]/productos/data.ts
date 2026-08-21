@@ -29,8 +29,6 @@ export type ProductsPageData = {
   nothingNearby: boolean;
   /** Dónde está quien mira, o `null`: decide si hay mapa que pintar y si hace falta el aviso. */
   visitor: Coordinates | null;
-  /** Si conviene invitar a abrir tienda en el aviso de ubicación. */
-  showSellerCta: boolean;
   /** Las tiendas que se pueden situar en ese mapa, de la más cercana a la más lejana. */
   storesToMap: MappedStore[];
 };
@@ -53,7 +51,7 @@ export async function getProducts(
 ): Promise<ProductsPageData> {
   const pageNum = Math.max(PAGINATION_INIT_PAGE, page);
   const postRepo = createPostQueryRepository();
-  const { visitor: near, showSellerCta } = await readViewerLocationContext();
+  const { visitor: near } = await readViewerLocationContext();
 
   const result = await postRepo.getProducts(
     pageNum,
@@ -70,7 +68,6 @@ export async function getProducts(
     total: result.total,
     nothingNearby: Boolean(near) && isNothingNearby(result.posts),
     visitor: near,
-    showSellerCta,
     // Sin ubicación de quien mira no hay mapa: un mapa donde no te ves no ayuda a decidir.
     storesToMap: near ? await listStoresToMap(near, MAP_STORES_LIMIT) : [],
   };

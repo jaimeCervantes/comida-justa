@@ -4,7 +4,6 @@ import { parsePublicationPillar } from "~/domain/entities/post/publicationPillar
 import { resolveLocale } from "~/i18n/routing";
 import { readViewerId } from "~/infra/auth/readViewerId";
 import { PAGINATION_INIT_PAGE } from "~/infra/constants";
-import LocationBanner from "~/presentation/location/LocationBanner";
 import StoresMap from "~/presentation/location/StoresMap";
 import { getProducts } from "./data";
 import { buildProductsMetadata } from "./metadata";
@@ -35,14 +34,8 @@ export default async function ProductosPage({
   const viewerId = await readViewerId();
   const t = await getTranslations("products");
   const tDistance = await getTranslations("distance");
-  const {
-    products,
-    totalPages,
-    nothingNearby,
-    visitor,
-    storesToMap,
-    showSellerCta,
-  } = await getProducts(PAGINATION_INIT_PAGE, locale, currentPillar);
+  const { products, totalPages, nothingNearby, visitor, storesToMap } =
+    await getProducts(PAGINATION_INIT_PAGE, locale, currentPillar);
 
   return (
     <main>
@@ -59,11 +52,9 @@ export default async function ProductosPage({
         </p>
       ) : null}
 
-      {/* El banner va siempre: con ubicación es el chip que dice desde dónde se mide y deja
-          corregirlo, y sin ella el aviso de por qué no hay distancias. El mapa es lo que sobra
-          cuando no sabemos dónde estás —un mapa donde no te ves no ayuda a decidir—. */}
-      <LocationBanner showSellerCta={showSellerCta} />
-
+      {/* El aviso de ubicación ya no se monta aquí: vive en `NearbyBar`, en el chrome. El mapa sí
+          se queda —sobra cuando no sabemos dónde estás, porque un mapa donde no te ves no ayuda a
+          decidir—. */}
       {visitor ? <StoresMap visitor={visitor} stores={storesToMap} /> : null}
 
       <ProductsList

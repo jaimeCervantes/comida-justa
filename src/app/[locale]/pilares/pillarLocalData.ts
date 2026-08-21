@@ -32,8 +32,6 @@ export type PillarLocalData = {
   categoryLabel: string;
   posts: Post[];
   stores: readonly StoreSummary[];
-  /** Si conviene invitar a abrir tienda en el aviso de ubicación. */
-  showSellerCta: boolean;
 };
 
 /**
@@ -59,7 +57,7 @@ export const readPillarLocal = cache(async function readPillarLocal(
   const { categoryKey } = HABIT_CHALLENGE_EXPERIENCES[challenge];
   const taxonomy = await getCategoryTaxonomy();
   const keys = subtreeKeys(taxonomy, categoryKey);
-  const { visitor, showSellerCta } = await readViewerLocationContext();
+  const { visitor } = await readViewerLocationContext();
 
   const [postsResult, stores] = await Promise.all([
     createPostQueryRepository().getPostsByCategory(
@@ -76,6 +74,5 @@ export const readPillarLocal = cache(async function readPillarLocal(
     categoryLabel: labelFor(taxonomy, categoryKey, locale) ?? categoryKey,
     posts: await mapPostsToCardsForLocale(postsResult.posts, locale),
     stores,
-    showSellerCta,
   };
 });

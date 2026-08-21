@@ -5,7 +5,6 @@ import { parsePublicationPillar } from "~/domain/entities/post/publicationPillar
 import { Link } from "~/i18n/navigation";
 import { resolveLocale } from "~/i18n/routing";
 import { readViewerId } from "~/infra/auth/readViewerId";
-import LocationBanner from "~/presentation/location/LocationBanner";
 import StoresMap from "~/presentation/location/StoresMap";
 import { getProducts } from "../../data";
 import { buildProductsMetadata } from "../../metadata";
@@ -46,14 +45,8 @@ export default async function ProductosPaginatedPage({
     notFound();
   }
 
-  const {
-    products,
-    totalPages,
-    nothingNearby,
-    visitor,
-    storesToMap,
-    showSellerCta,
-  } = await getProducts(page, locale, currentPillar);
+  const { products, totalPages, nothingNearby, visitor, storesToMap } =
+    await getProducts(page, locale, currentPillar);
 
   if (products.length === 0 && page > 1) {
     notFound();
@@ -74,8 +67,7 @@ export default async function ProductosPaginatedPage({
         </p>
       ) : null}
 
-      <LocationBanner showSellerCta={showSellerCta} />
-
+      {/* El aviso de ubicación vive ahora en `NearbyBar`, en el chrome. */}
       {visitor ? <StoresMap visitor={visitor} stores={storesToMap} /> : null}
 
       <ProductsList

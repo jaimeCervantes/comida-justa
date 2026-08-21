@@ -17,24 +17,16 @@ const CON_SUCURSAL = testStore("Panadería La Luz");
 const SIN_SUCURSAL = testStore("Panadería Sin Domicilio");
 const VISITOR = coordinatesAtKm(1.65);
 
-const SECCIONES = ["/productos", "/negocios-locales", "/productores-locales"];
-
-test.describe("Cuando alguien no ha compartido su ubicación", () => {
-  for (const seccion of SECCIONES) {
-    test(`Entonces "${seccion}" explica por qué no hay cercanía y ofrece compartirla`, async ({
-      page,
-    }) => {
-      await page.goto(seccion);
-
-      const aviso = page.getByTestId("location-notice");
-
-      await expect(aviso).toBeVisible();
-      await expect(aviso.getByTestId("share-location")).toBeVisible();
-      // Quien no vende todavía necesita saber que vender aquí exige tienda con ubicación.
-      await expect(aviso.getByTestId("seller-location-cta")).toBeVisible();
-    });
-  }
-});
+/*
+ * Aquí había un recorrido por "/productos", "/negocios-locales" y "/productores-locales" afirmando
+ * que cada una explicaba la falta de cercanía. Desde el slice 1 de
+ * `docs/features/platform/007-2026-08-21-chrome-v2.md` el aviso lo pone el chrome, así que esa
+ * afirmación —y la del "¿Vendes algo?"— vive en `src/e2e/chrome/nearbyBar.spec.ts`. Repetir una
+ * lista de rutas en dos specs es lo que dejó pasar la regresión del home.
+ *
+ * Lo que queda es lo que solo esta sección prueba: de dónde sale una distancia y cuándo no hay
+ * ninguna que dar.
+ */
 
 test.describe("Cuando el home ya sabe dónde está quien mira", () => {
   const slugs = {

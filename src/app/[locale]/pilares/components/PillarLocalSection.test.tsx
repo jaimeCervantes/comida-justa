@@ -53,7 +53,6 @@ function renderSection(
       copy={COPY}
       posts={[JUGO_VERDE]}
       stores={[HAZLO_SANO]}
-      locationBanner={null}
       {...overrides}
     />,
   );

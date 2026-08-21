@@ -608,6 +608,7 @@
     "visit": "Visit the store"
   },
   "distance": {
+    "barLabel": "near you",
     "chipAge": "· updated {ago}",
     "chipLabel": "Distances from your location",
     "denied": "Without your location we cannot tell you how close it is; the newest still comes first.",
@@ -1488,7 +1489,7 @@
   "search": {
     "empty": "No results",
     "noResults": "No results were found for your search.",
-    "placeholder": "Search...",
+    "placeholder": "Natural whey, keto donut, a hike…",
     "resultsHeading": "Search results",
     "seeAll": "See all results",
     "showingResultsFor": "Showing results for:"

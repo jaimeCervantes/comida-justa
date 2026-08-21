@@ -45,7 +45,6 @@ export default function PillarLocalSection({
   copy,
   posts,
   stores,
-  locationBanner,
   viewerId,
 }: {
   pillar: PillarKey;
@@ -53,8 +52,6 @@ export default function PillarLocalSection({
   copy: PillarLocalCopy;
   posts: Post[];
   stores: readonly StoreSummary[];
-  /** El aviso de ubicación, que lee la sesión y por eso lo arma quien llama. */
-  locationBanner: ReactNode;
   viewerId?: string | null;
 }): ReactNode {
   const color = pillarColorClasses[pillar];
@@ -71,8 +68,6 @@ export default function PillarLocalSection({
     >
       <PillarSectionHeading>{copy.heading}</PillarSectionHeading>
       <p className="mb-6">{copy.intro}</p>
-
-      {locationBanner}
 
       {isEmpty ? (
         <Surface

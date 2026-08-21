@@ -608,6 +608,7 @@
     "visit": "Ver la tienda"
   },
   "distance": {
+    "barLabel": "cerca de ti",
     "chipAge": "· actualizada {ago}",
     "chipLabel": "Distancias desde tu ubicación",
     "denied": "Sin tu ubicación no podemos decirte qué tan cerca está; lo más reciente sigue primero.",
@@ -1488,7 +1489,7 @@
   "search": {
     "empty": "Sin resultados",
     "noResults": "No se encontraron resultados para tu búsqueda.",
-    "placeholder": "Buscar...",
+    "placeholder": "Suero natural, dona keto, una caminata…",
     "resultsHeading": "Resultados de búsqueda",
     "seeAll": "Ver todos los resultados",
     "showingResultsFor": "Mostrando resultados para:"
