@@ -131,21 +131,102 @@ Feature: El chrome lleva la ubicación y la búsqueda dice qué buscar
       | en     | Search   |
 
   # ---------------------------------------------------------------------------
-  # Slice 2 — El menú principal se ve como los cuatro pilares  (@future)
+  # Slice 2 — El menú principal se ve como los cuatro pilares  (actual)
+  #
+  # La barra pinta hoy tres enlaces de texto con radio de 8px sobre un fondo translúcido: nada dice
+  # en qué sección estás, y «4 Pilares» —el eje narrativo del sitio— se lee igual que «Nosotros».
+  # El 5.1 los convierte en píldoras, marca la activa con el par verde ya medido
+  # (`#2f5320` sobre `#e8f0df`, 7.55) y le da a «4 Pilares» los cuatro colores de la rampa.
+  #
+  # Qué ruta pertenece a qué sección se decide en `menuItems.ts` y lo prueba Vitest: es aritmética
+  # sobre la plantilla interna que devuelve `usePathname`, sin navegador.
   # ---------------------------------------------------------------------------
 
-  @slice-2 @future
-  Scenario: «4 Pilares» lleva sus cuatro colores dentro de la píldora
-    Given la barra de navegación con «Comunidad», «4 Pilares» y «Nosotros»
-    When adopta la píldora del 5.1
-    Then «4 Pilares» enseña los cuatro puntos de color de la rampa
-    And el color nunca va solo, como fijó el slice 3 del design system
+  # `usePathname` de `~/i18n/navigation` devuelve la **plantilla interna** —`/categoria/[key]`, no
+  # `/category/jugos`—, así que la regla es la misma en los dos idiomas sin escribirla dos veces.
+  @slice-2 @component
+  Scenario Outline: La sección activa sale de la ruta, no de una lista escrita a mano
+    Given que estoy en la ruta interna "<ruta>"
+    When el menú decide qué píldora marcar
+    Then la sección activa es "<seccion>"
 
-  @slice-2 @future
-  Scenario: La sección en la que estoy se distingue de las demás
-    Given estoy en una página de pilar
-    When miro la barra de navegación
-    Then la píldora de su sección se ve activa
+    Examples: Comunidad es la puerta a todo lo que publica la gente, incluido el inicio
+      | ruta                             | seccion   | por qué                          |
+      | /                                | community | «Publicaciones», su primera entrada |
+      | /productos                       | community | entrada del desplegable          |
+      | /productos/page/[page]           | community | la misma sección, paginada       |
+      | /eventos                         | community | entrada del desplegable          |
+      | /categoria/[key]                 | community | «Por categoría»                  |
+      | /categoria/[key]/page/[page]     | community | la misma sección, paginada       |
+      | /page/[page]                     | community | el inicio, paginado              |
+      | /productores-locales/[[...slug]] | community | sección publicada                |
+      | /negocios-locales/[[...slug]]    | community | sección publicada                |
+
+    Examples: las otras dos secciones
+      | ruta                  | seccion  | por qué                    |
+      | /pilares/[[...slug]]  | pillars  | la portada y los cuatro    |
+      | /nosotros             | about    | enlace suelto de la barra  |
+
+    Examples: ninguna — la píldora dice «estás en esta sección del menú», no «esto se le parece»
+      | ruta            | seccion | por qué                                    |
+      | /buscar         | ninguna | la búsqueda no es una sección del menú     |
+      | /carrito        | ninguna | ni el carrito                              |
+      | /publicar       | ninguna | ni publicar                                |
+      | /[slug]         | ninguna | una publicación no está en el menú         |
+      | /tienda/[slug]  | ninguna | una tienda tampoco                         |
+
+  # Una sección que el menú esconde por no estar publicada no puede marcarse: sería decir «estás
+  # aquí» señalando una puerta que no existe. `VISIBLE_COMMUNITY_ITEMS` ya filtra las seis.
+  @slice-2 @component
+  Scenario: Una sección sin publicar no marca nada
+    Given que "/salud-infantil/[[...slug]]" es un stub que responde 404
+    And que por eso el menú no la enlaza
+    When alguien llega a esa ruta
+    Then ninguna píldora se marca como activa
+
+  @slice-2 @component
+  Scenario Outline: Solo una píldora puede estar activa a la vez
+    Given la ruta interna "<ruta>"
+    When se resuelve la sección activa
+    Then exactamente "<cuantas>" secciones quedan marcadas
+
+    Examples:
+      | ruta                 | cuantas |
+      | /                    | 1       |
+      | /pilares/[[...slug]] | 1       |
+      | /buscar              | 0       |
+
+  # Los cuatro puntos son la firma del grupo, no la identidad de cada pilar: por eso pueden ir
+  # juntos y por eso van `aria-hidden`. La regla del slice 3 del design system —el color nunca es
+  # el único portador del significado de un pilar— se cumple porque quien nombra aquí es la
+  # etiqueta «4 Pilares», y los puntos no dicen nada que ella no diga.
+  @slice-2 @component
+  Scenario: «4 Pilares» lleva los cuatro colores de la rampa, y no dependen de que se distingan
+    Given la píldora de «4 Pilares»
+    When se pinta
+    Then enseña cuatro puntos, uno por cada `--pillar-*-solid`
+    And los puntos son decorativos para un lector de pantalla
+    And la etiqueta sigue diciendo de qué sección se trata sin mirar ningún color
+
+  @slice-2 @component
+  Scenario: La píldora activa usa el par verde que ya estaba medido
+    Given que el par `#2f5320` sobre `#e8f0df` da 7.55 y lo verifica `brandPalette.contrast.test.ts`
+    When una sección se marca como activa
+    Then toma ese par por su nombre de token, no por un hex
+    And no necesita una variante "dark:" escrita a mano
+
+  @slice-2
+  Scenario: Quien navega con lector de pantalla también sabe en qué sección está
+    Given que estoy en "/pilares/alimentacion"
+    When recorro la barra de navegación
+    Then el enlace de «4 Pilares» se anuncia como la página actual
+    And ningún otro enlace de la barra lo hace
+
+  @slice-2
+  Scenario: El menú del teléfono marca la misma sección que el de escritorio
+    Given que estoy en "/productos"
+    When abro el menú del teléfono
+    Then «Comunidad» aparece marcada como la sección actual
 
   # ---------------------------------------------------------------------------
   # Slice 3 — Una sola fila de acciones  (@future)

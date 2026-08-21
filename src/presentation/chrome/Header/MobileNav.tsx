@@ -13,7 +13,9 @@ import type { CategoryBranch } from "~/domain/entities/post/taxonomy";
 import { type AppHref, Link, usePathname } from "~/i18n/navigation";
 import { PUBLIC_BRAND_NAME } from "~/infra/constants";
 import {
+  activeMenuSection,
   COMMUNITY_OVERVIEW_HREF,
+  type MenuSection,
   PILLAR_ITEMS,
   PILLARS_OVERVIEW_HREF,
   VISIBLE_COMMUNITY_ITEMS,
@@ -61,14 +63,22 @@ function useCloseMenuOnNavigation(
   }
 }
 
-/* Identificadores de nivel, no textos: qué panel está abierto no puede depender del idioma. */
-const COMMUNITY_PANEL = "community";
+/* Identificadores de nivel, no textos: qué panel está abierto no puede depender del idioma.
+   Los tres que son sección del menú se tipan como `MenuSection`, y no por casualidad: es lo que
+   permite marcar la fila activa comparando el id contra `activeMenuSection`, y lo que hace que
+   renombrar una sección rompa el compilador en vez de apagar la marca en silencio. */
+const COMMUNITY_PANEL: MenuSection = "community";
 const CATEGORIES_PANEL = "categories";
-const PILLARS_PANEL = "pillars";
+const PILLARS_PANEL: MenuSection = "pillars";
+const ABOUT_LINK: MenuSection = "about";
 
 const ROW_CLASS = "border-b border-separator last:border-0";
 const ROW_CONTENT_CLASS =
   "w-full flex items-center justify-between py-4 text-lg font-medium text-text-base";
+
+/* El mismo par verde medido que marca la píldora del escritorio (7.55). Aquí no hay píldora que
+   teñir —son filas de ancho completo—, así que la marca es la tinta y el peso. */
+const ACTIVE_ROW_CLASS = "font-semibold text-brand-green-900";
 
 /** Una fila que baja un nivel. El chevron apunta a la derecha porque de ahí viene lo que abre. */
 function PanelRow({ label, onOpen }: { label: string; onOpen: () => void }) {
@@ -86,14 +96,21 @@ function LinkRow({
   href,
   label,
   onNavigate,
+  active = false,
 }: {
   href: AppHref;
   label: string;
   onNavigate?: () => void;
+  active?: boolean;
 }) {
   return (
     <li className={ROW_CLASS}>
-      <Link href={href} onClick={onNavigate} className={ROW_CONTENT_CLASS}>
+      <Link
+        href={href}
+        onClick={onNavigate}
+        aria-current={active ? "page" : undefined}
+        className={`${ROW_CONTENT_CLASS} ${active ? ACTIVE_ROW_CLASS : ""}`}
+      >
         {label}
       </Link>
     </li>
@@ -106,19 +123,24 @@ function SectionRow({
   openLabel,
   onNavigate,
   onOpen,
+  active = false,
 }: {
   href: AppHref;
   label: string;
   openLabel: string;
   onNavigate: () => void;
   onOpen: () => void;
+  active?: boolean;
 }) {
   return (
     <li className={`${ROW_CLASS} flex items-stretch`}>
       <Link
         href={href}
         onClick={onNavigate}
-        className="flex flex-1 items-center py-4 text-lg font-medium text-text-base"
+        aria-current={active ? "page" : undefined}
+        className={`flex flex-1 items-center py-4 text-lg font-medium text-text-base ${
+          active ? ACTIVE_ROW_CLASS : ""
+        }`}
       >
         {label}
       </Link>
@@ -148,10 +170,13 @@ function MenuLevel({
   entries,
   onOpenPanel,
   onNavigate,
+  activeSection = null,
 }: {
   entries: readonly MenuEntry[];
   onOpenPanel: (id: string) => void;
   onNavigate: () => void;
+  /** La sección del menú a la que pertenece la ruta actual, si es alguna. */
+  activeSection?: MenuSection | null;
 }) {
   return (
     <ul className="space-y-2">
@@ -170,6 +195,7 @@ function MenuLevel({
             openLabel={entry.openLabel}
             onNavigate={onNavigate}
             onOpen={() => onOpenPanel(entry.id)}
+            active={entry.id === activeSection}
           />
         ) : (
           <LinkRow
@@ -177,6 +203,7 @@ function MenuLevel({
             href={entry.href}
             label={entry.label}
             onNavigate={onNavigate}
+            active={entry.id === activeSection}
           />
         ),
       )}
@@ -203,6 +230,9 @@ export default function MobileNav({
 
   const isClientMounted = useClientSideMounted();
   useCloseMenuOnNavigation(isOpen, setIsOpen, () => setPath([]));
+  /* La misma regla que marca la píldora del escritorio, sobre la misma plantilla interna: los dos
+     menús no pueden decir que estás en secciones distintas. */
+  const activeSection = activeMenuSection(usePathname());
 
   useEffect(() => {
     if (isOpen) {
@@ -280,7 +310,7 @@ export default function MobileNav({
         }),
       ),
     },
-    { kind: "link", id: "about", label: t("about"), href: "/nosotros" },
+    { kind: "link", id: ABOUT_LINK, label: t("about"), href: "/nosotros" },
   ];
 
   const openPanel = panelAt(rootEntries, path);
@@ -356,10 +386,13 @@ export default function MobileNav({
                 />
               </div>
             ) : (
+              /* Solo el nivel raíz marca sección: dentro de un panel las filas son categorías o
+                 pilares sueltos, no las tres secciones de la barra. */
               <MenuLevel
                 entries={currentEntries}
                 onOpenPanel={(id) => setPath([...path, id])}
                 onNavigate={closeMenu}
+                activeSection={activeSection}
               />
             )}
           </nav>

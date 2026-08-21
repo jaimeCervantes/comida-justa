@@ -180,3 +180,118 @@ Vitest, typecheck, lint, check:i18n y build en verde; la e2e queda pendiente par
    Es también lo que devuelve alto al header en el teléfono.
 4. **Saltar al home (5.2)**: la portada con su titular en serif, los dos CTA y la cabecera «Recién
    publicado» del canvas. Era la petición original antes de la redirección al header.
+
+---
+
+## Slice 2 — El menú principal se ve como los cuatro pilares (2026-08-21)
+
+### Objetivo
+
+Que la barra diga en qué sección estás, y que «4 Pilares» —el eje narrativo del sitio— deje de
+leerse igual que «Nosotros».
+
+### Decisiones y por qué
+
+1. **La sección activa se decide contra la plantilla interna, no contra la URL.** `usePathname` de
+   `~/i18n/navigation` traduce la dirección visible de vuelta a su clave: `/categoria/[key]` tanto
+   para `/categoria/jugos` como para `/en/category/jugos`. Se comprobó leyendo la implementación
+   (`createNavigation.js` → `getRoute`), no suponiéndolo. Así la regla se escribe **una vez** y vale
+   en los dos idiomas. Escribirla contra la URL habría exigido dos listas — y este roadmap existe
+   porque dos listas de rutas desincronizadas dejaron al home sin su control de ubicación.
+
+2. **`activeMenuSection()` vive en `menuItems.ts`, que ya era la fuente única del menú.** La
+   consumen `Nav` (escritorio) y `MobileNav` (teléfono): los dos menús no pueden decir que estás en
+   secciones distintas. Es una función pura, así que la prueba es Vitest y no navegador.
+
+3. **`null` es una respuesta, no un olvido.** El carrito, la búsqueda, publicar, una ficha de
+   publicación y una tienda no son secciones del menú. La píldora dice «estás en esta sección del
+   menú», no «esto se le parece».
+
+4. **Una sección sin publicar no puede marcarse.** Las cuatro de `COMMUNITY_ITEMS` que siguen siendo
+   stubs responden 404; marcarlas sería señalar una puerta cerrada. Por eso la lista sale de
+   `VISIBLE_COMMUNITY_ITEMS`, y hay una prueba por cada mitad: ninguna oculta se marca, todas las
+   visibles se marcan.
+
+5. **Los ids de los paneles raíz de `MobileNav` se tipan como `MenuSection`.** Coincidían por
+   casualidad; ahora renombrar una sección rompe el compilador en vez de apagar la marca en
+   silencio.
+
+6. **Los cuatro puntos van `aria-hidden`.** `pillarPalette.contrast.test.ts` dejó medido que
+   Movimiento y Mente contrastan 1.14 entre sí, de donde salió la regla: el color nunca puede ser el
+   único portador del significado de un pilar. Aquí se cumple porque **ningún punto identifica a un
+   pilar concreto** — quien nombra es la etiqueta «4 Pilares». Son la firma del grupo. Quien no
+   distingue los tonos, o no los ve, no se pierde nada.
+
+7. **El par de la píldora activa ya estaba medido.** `bg-brand-green-soft` + `text-brand-green-900`
+   es el mismo par de la variante `brand` de `Badge`, 7.55 en claro, y los dos tokens cambian con el
+   tema: ni una `dark:` escrita a mano.
+
+### El fallo que solo se vio mirando
+
+La primera versión rompió lo que el propio docstring de `Nav.tsx` documentaba: **«4 Pilares» se
+partió en dos renglones**. Los cuatro puntos le quitan ancho a la etiqueta y la píldora no daba de
+sí. No lo detectó ningún test —el DOM era correcto y `aria-current` también—, solo la captura.
+Arreglado con `whitespace-nowrap` en `PILL_BASE`, con el motivo escrito al lado para que no se
+retire por parecer decoración.
+
+### Archivos tocados
+
+- `src/presentation/chrome/Header/menuItems.ts` — `MenuSection`, `SECTION_PATHNAMES`,
+  `activeMenuSection()`; `PILLARS_OVERVIEW_HREF` pasa de reexport puro a import + reexport para
+  poder leer su `pathname`
+- `menuItems.test.ts` — 18 casos nuevos (11 rutas con sección, 5 sin, y las dos mitades de publicadas/ocultas)
+- `Nav.tsx` — píldoras, `aria-current`, `PillarDots`, caret en `text-current`, `whitespace-nowrap`
+- `MobileNav.tsx` — la misma marca en las tres filas raíz; ids tipados
+- `src/e2e/chrome/mainMenu.spec.ts` (nuevo) · `chrome.feature` — slice 2 detallado, sin `@future`
+
+### Validación
+
+| Comando | Resultado |
+| --- | --- |
+| `pnpm run test:run` | **200 archivos, 2161 pruebas en verde** (147s) |
+| `pnpm run typecheck` · `lint` | limpios (954 archivos) |
+| `pnpm run build` | compila |
+
+**Clases en el CSS compilado** —las nueve—: `bg-brand-green-soft`, `text-brand-green-900`, los
+cuatro `bg-pillar-*-solid`, `rounded-l-full`, `rounded-r-full`, `size-1.5`, `gap-[3px]`,
+`whitespace-nowrap`.
+
+**Comprobado contra el servidor de producción**, leyendo el `aria-current` real de la barra:
+
+| Ruta | `a[aria-current="page"]` |
+| --- | --- |
+| `/` | `["Comunidad"]` |
+| `/pilares/alimentacion` | `["4 Pilares"]` |
+| `/carrito` | `[]` |
+
+*(Nota de tooling: construir con `next start` encima corrompe `.next` y produce hidratación rota —
+`aria-current` vacío en las tres rutas y un `module-not-found` de las fuentes en el build siguiente.
+Se arregla con `rm -rf .next`. No era el código.)*
+
+### Pendiente declarado
+
+La e2e la corre el usuario:
+
+```bash
+pnpm run test:e2e:run src/e2e/chrome    # nearbyBar + mainMenu
+pnpm run test:e2e:run src/e2e/menu      # los desplegables, que no se tocaron
+```
+
+### Recap
+
+La barra principal son ahora píldoras y marca la sección activa con el par verde ya medido; «4
+Pilares» lleva los cuatro colores de la rampa como firma decorativa, sin romper la regla de que el
+color no puede ser el único portador. Qué ruta pertenece a qué sección lo decide una función pura en
+`menuItems.ts` que consumen los dos menús, comparando la plantilla interna que devuelve
+`usePathname`, así que la regla no se escribe dos veces ni se desincroniza entre idiomas. Vitest,
+typecheck, lint y build en verde, y el comportamiento verificado contra el servidor real; la e2e
+queda para el usuario.
+
+### Próximos pasos (opciones)
+
+1. **Correr la e2e** de `src/e2e/chrome` y `src/e2e/menu`. *(Pendiente en el usuario.)*
+2. **Slice 3 — una sola fila de acciones**: hoy compiten Publicar, carrito, avatar/acceso e idioma;
+   es lo que devuelve alto al header en el teléfono.
+3. **Slice 4 — el pilar y la distancia como filtros en la barra**, que es la barra completa del 5.1.
+4. **Saltar al home (5.2)**: titular en serif, los dos CTA y la cabecera «Recién publicado». Era la
+   petición original antes de la redirección al header.

@@ -1,4 +1,5 @@
 import type { AppHref } from "~/i18n/navigation";
+import { PILLARS_OVERVIEW_HREF } from "~/i18n/routes";
 
 /**
  * Las entradas del menú, compartidas por el menú de escritorio (`Nav`) y el de móvil (`MobileNav`).
@@ -53,7 +54,7 @@ export const COMMUNITY_OVERVIEW_HREF = "/" as const satisfies AppHref;
 /* La portada de los pilares se define en `~/i18n/routes`: el inicio también enlaza ahí y el literal
    de la ruta tiene que estar escrito en un solo sitio. Se reexporta para que el menú la siga
    importando de aquí, junto al resto de sus destinos. */
-export { PILLARS_OVERVIEW_HREF } from "~/i18n/routes";
+export { PILLARS_OVERVIEW_HREF };
 
 /**
  * Las seis secciones de «Comunidad», **con el interruptor de si ya existen**.
@@ -129,3 +130,54 @@ export const PILLAR_SHORT_KEYS = [
   "movement.short",
   "mindSpirit.short",
 ] as const;
+
+/** Las tres secciones de la barra. El identificador no se traduce: se compara. */
+export type MenuSection = "community" | "pillars" | "about";
+
+/**
+ * Qué rutas pertenecen a cada sección del menú.
+ *
+ * **Se compara contra la plantilla interna, no contra la URL.** `usePathname` de
+ * `~/i18n/navigation` traduce la dirección visible de vuelta a su clave —`/categoria/[key]` tanto
+ * para `/categoria/jugos` como para `/en/category/jugos`—, así que la regla se escribe una vez y
+ * vale en los dos idiomas. Escribirla contra la URL habría exigido dos listas, y este repo ya sabe
+ * a dónde lleva eso: dos listas de rutas —la del `.feature` y la del spec— son lo que dejó al home
+ * sin su control de ubicación sin que nada fallara.
+ *
+ * **Solo entran destinos que el menú ofrece de verdad.** Marcar «estás aquí» en una sección que el
+ * menú esconde —las cuatro de `COMMUNITY_ITEMS` que siguen siendo stubs— sería señalar una puerta
+ * cerrada. Por eso las de comunidad salen de `VISIBLE_COMMUNITY_ITEMS` y no de la lista completa.
+ *
+ * Las variantes paginadas se listan a mano junto a la suya: `/productos/page/2` es la misma sección
+ * que `/productos`, y perder la marca al pasar de página sería un parpadeo sin motivo.
+ */
+const SECTION_PATHNAMES: Record<MenuSection, readonly string[]> = {
+  community: [
+    "/",
+    "/page/[page]",
+    "/productos",
+    "/productos/page/[page]",
+    "/eventos",
+    "/eventos/page/[page]",
+    "/categoria/[key]",
+    "/categoria/[key]/page/[page]",
+    ...VISIBLE_COMMUNITY_ITEMS.map((item) => item.href.pathname),
+  ],
+  pillars: [PILLARS_OVERVIEW_HREF.pathname],
+  about: ["/nosotros"],
+};
+
+/**
+ * En qué sección del menú está quien mira, o `null` si en ninguna.
+ *
+ * `null` es una respuesta legítima y frecuente: el carrito, la búsqueda, publicar, una ficha de
+ * publicación y una tienda no son secciones del menú. La píldora dice «estás en esta sección», no
+ * «esto se parece a esta sección».
+ */
+export function activeMenuSection(pathname: string): MenuSection | null {
+  for (const [section, pathnames] of Object.entries(SECTION_PATHNAMES)) {
+    if (pathnames.includes(pathname)) return section as MenuSection;
+  }
+
+  return null;
+}
