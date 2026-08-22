@@ -54,7 +54,7 @@ export default function SignInPage() {
                       alt="Hazlo Sano"
                       className="h-7 w-7"
                     />
-                    <span className="text-sm font-medium text-pw-gray dark:text-pw-white">
+                    <span className="text-label font-medium text-text-support">
                       {t("signInWith")}{" "}
                       {provider.id === "microsoft-entra-id"
                         ? "Microsoft"

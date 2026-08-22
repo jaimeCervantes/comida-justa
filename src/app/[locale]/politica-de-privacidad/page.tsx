@@ -58,7 +58,14 @@ export default async function PrivacyPolicyPage({
         lastUpdate={t("lastUpdate", { date: lastUpdateDate })}
       />
 
-      <div className="prose prose-sm sm:prose-base md:prose-lg prose-zinc dark:prose-invert max-w-none text-text-support space-y-8 sm:space-y-10">
+      {/* Llevaba `prose prose-sm sm:prose-base md:prose-lg prose-zinc dark:prose-invert`, y
+          **ninguna de esas seis clases existía**: `@tailwindcss/typography` no está instalado, así
+          que el plugin nunca emitió una sola regla `.prose`. El cuerpo de esta página se estaba
+          pintando solo con `text-text-support` y los estilos propios de cada párrafo. Es el mismo
+          hallazgo del slice 13 del design system: en Tailwind v4 una clase que no existe no falla,
+          desaparece. Ahora el tamaño y el interlineado salen de la escala.
+          De paso se va `prose-zinc`, que era la última paleta fría del sitio. */}
+      <div className="text-body leading-relaxed text-text-support space-y-8 sm:space-y-10">
         <p className="text-base sm:text-lg leading-relaxed font-medium">
           {t("intro")}
         </p>

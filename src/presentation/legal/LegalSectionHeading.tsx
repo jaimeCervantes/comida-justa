@@ -23,7 +23,8 @@ export default function LegalSectionHeading({
   return (
     <Heading
       level={2}
-      className="text-xl sm:text-2xl flex items-center gap-3 mb-4 sm:mb-5"
+      /* El tamaño lo pone el nivel, no un `text-xl sm:text-2xl` que lo pisaba. */
+      className="flex items-center gap-3 mb-4 sm:mb-5"
     >
       <span
         aria-hidden="true"
