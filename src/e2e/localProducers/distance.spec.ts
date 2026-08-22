@@ -40,8 +40,8 @@ test.describe("Cuando alguien mira un producto de una tienda con ubicación", ()
     await page.goto(`/${slug}`);
 
     await expect(page.getByTestId("store-distance")).toHaveCount(0);
-    // Y se le ofrece darla, que es la única forma de que aparezca.
-    await expect(page.getByTestId("share-location")).toBeVisible();
+    // Y se le ofrece darla ahí mismo, en el hueco donde iría la distancia.
+    await expect(page.getByTestId("share-location-inline")).toBeVisible();
   });
 
   test("Y con su ubicación compartida ve a qué distancia está", async ({
@@ -60,6 +60,6 @@ test.describe("Cuando alguien mira un producto de una tienda con ubicación", ()
 
     await expect(page.getByTestId("store-distance")).toHaveText(/a 2 km/);
     // Ya no hace falta pedirle nada.
-    await expect(page.getByTestId("share-location")).toHaveCount(0);
+    await expect(page.getByTestId("share-location-inline")).toHaveCount(0);
   });
 });

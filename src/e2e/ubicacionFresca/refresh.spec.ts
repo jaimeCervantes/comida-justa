@@ -59,7 +59,7 @@ test.describe("Cuando alguien ya le concedió el permiso de ubicación al sitio"
     await expect(page.getByTestId("store-distance")).toContainText(/m|km/, {
       timeout: 20_000,
     });
-    await expect(page.getByTestId("share-location")).toHaveCount(0);
+    await expect(page.getByTestId("share-location-inline")).toHaveCount(0);
   });
 
   test("Y al moverme a otro sitio, la distancia se corrige sola", async ({
@@ -138,7 +138,7 @@ test.describe("Cuando alguien NO le ha concedido el permiso al sitio", () => {
   }) => {
     await page.goto(`/${slug}`);
 
-    await expect(page.getByTestId("share-location")).toBeVisible();
+    await expect(page.getByTestId("share-location-inline")).toBeVisible();
     await expect(page.getByTestId("store-distance")).toHaveCount(0);
   });
 });
