@@ -5,6 +5,7 @@ import {
   CARD_STACK,
 } from "~/presentation/design_system/surfaces/cardSpacing";
 import { Surface } from "~/presentation/design_system/surfaces/Surface";
+import { Heading } from "~/presentation/design_system/typography/Heading";
 
 /**
  * Un bloque de «Mi cuenta».
@@ -47,7 +48,9 @@ export default function AccountCard({
       className={cn(CARD_PADDING, CARD_STACK, className)}
       data-testid={testId}
     >
-      <h2 className="text-lg font-bold">{title}</h2>
+      <Heading level={2} size="xs">
+        {title}
+      </Heading>
 
       {intro ? <p className="text-sm text-text-support">{intro}</p> : null}
 

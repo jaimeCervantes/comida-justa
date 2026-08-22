@@ -10,6 +10,7 @@ import {
 import type { HabitChallengeExperienceKey } from "~/domain/habits/habitChallengeExperiences";
 import { Button } from "~/presentation/design_system/buttons/Button";
 import { Alert } from "~/presentation/design_system/feedback/Alert";
+import { Heading } from "~/presentation/design_system/typography/Heading";
 import type { HabitChallengeProgress } from "~/use_cases/habits/habitChallengeUseCase";
 import {
   HabitChallengeCelebrations,
@@ -96,12 +97,12 @@ export default function HabitChallengePanel({
             >
               {copy.weekEyebrow}
             </p>
-            <h2 className="mt-1 text-2xl font-black text-text-strong">
+            <Heading level={2} tone="inherit" className="mt-1 text-text-strong">
               {copy.progressCounter(
                 progress.completedCycles,
                 progress.totalDays,
               )}
-            </h2>
+            </Heading>
           </div>
           <HabitChallengeReward label={copy.xp(progress.xp)} theme={theme} />
         </div>
@@ -214,9 +215,14 @@ export default function HabitChallengePanel({
 
         {progress.completedCycles > 0 && (
           <div className="mt-6 border-t border-separator pt-5">
-            <h3 className="font-bold text-text-strong">
+            <Heading
+              level={3}
+              size="xs"
+              tone="inherit"
+              className="text-text-strong"
+            >
               {copy.gardenSharingTitle}
-            </h3>
+            </Heading>
             <p className="mt-1 max-w-2xl text-sm text-body">
               {copy.gardenSharingBody}
             </p>

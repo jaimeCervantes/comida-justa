@@ -1,5 +1,6 @@
 import type { HabitChallengeExperienceKey } from "~/domain/habits/habitChallengeExperiences";
 import { Button } from "~/presentation/design_system/buttons/Button";
+import { Heading } from "~/presentation/design_system/typography/Heading";
 import type { HabitChallengeProgress } from "~/use_cases/habits/habitChallengeUseCase";
 import type { HabitChallengeThemeConfig } from "./pillarThemes";
 import type { HabitChallengeCopy } from "./useHabitChallengeCopy";
@@ -163,9 +164,14 @@ function CelebrationShell({
         >
           {eyebrow}
         </p>
-        <h2 className="mt-2 text-3xl font-black text-text-strong sm:text-4xl">
+        <Heading
+          level={2}
+          size="lg"
+          tone="inherit"
+          className="mt-2 text-text-strong"
+        >
           {title}
-        </h2>
+        </Heading>
         {children}
       </div>
     </section>

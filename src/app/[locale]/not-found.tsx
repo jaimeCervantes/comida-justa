@@ -14,15 +14,15 @@ export default async function NotFound() {
     <section className="flex flex-col justify-center gap-4 items-center">
       <Heading level={1}>{t("heading")}</Heading>
 
-      <h2 className="text-xl md:text-2xl font-bold hidden md:block">
+      <Heading level={2} className="hidden md:block">
         {t("subtitle")}
-      </h2>
+      </Heading>
 
-      <h3 className="text-lg md:text-xl font-bold">{t("rest")}</h3>
+      <Heading level={3}>{t("rest")}</Heading>
 
       <Image src="/404/404.webp" alt={t("imageAlt")} width={462} height={283} />
 
-      <h4 className="md:tex-3xl font-bold">{t("invite")}</h4>
+      <Heading level={4}>{t("invite")}</Heading>
 
       <p>
         <Link href="/">

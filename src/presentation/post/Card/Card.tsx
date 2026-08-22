@@ -4,6 +4,7 @@ import {
   CARD_STACK,
 } from "~/presentation/design_system/surfaces/cardSpacing";
 import { Surface } from "~/presentation/design_system/surfaces/Surface";
+import { Heading } from "~/presentation/design_system/typography/Heading";
 import Avatar from "~/presentation/user/Avatar";
 import FormattedDate from "./FormattedDate";
 import type { CardProps } from "./types";
@@ -43,9 +44,13 @@ export default function Card({
           precio ni categoría— deja de ocupar sitio, cosa que un `mb-*` en el hermano de arriba no
           hacía: ahí estaba el hueco que quedaba bajo el título. */}
       <section className={cn(CARD_PADDING, CARD_STACK, "grow")}>
-        <h3 className="text-body-lg font-bold leading-tight group-hover:text-highlight transition-colors">
+        <Heading
+          level={3}
+          size="xs"
+          className="group-hover:text-highlight transition-colors"
+        >
           <AnchorElement {...anchorProps}>{title}</AnchorElement>
-        </h3>
+        </Heading>
         {children}
         {/* `mt-auto` empuja la firma al fondo, que es lo que alinea los pies de una fila de
             tarjetas de altura distinta. El `pt-4` se queda: el borde necesita aire propio, más

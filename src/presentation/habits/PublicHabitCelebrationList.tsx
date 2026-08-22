@@ -1,3 +1,4 @@
+import { Heading } from "~/presentation/design_system/typography/Heading";
 import type { PublicHabitCelebration } from "~/use_cases/habits/ports/HabitChallengeRepository";
 import type { CommunitySectionVariant } from "./communitySectionVariant";
 import PublicHabitCelebrationCard from "./PublicHabitCelebrationCard";
@@ -26,14 +27,15 @@ export default function PublicHabitCelebrationList({
       aria-labelledby="community-celebrations-title"
       className="@container"
     >
-      <h2
+      <Heading
+        level={2}
+        size={compact ? "xs" : "md"}
+        tone="inherit"
         id="community-celebrations-title"
-        className={`font-black text-text-strong ${
-          compact ? "text-lg" : "text-2xl sm:text-3xl"
-        }`}
+        className="text-text-strong"
       >
         {title}
-      </h2>
+      </Heading>
       {/* Cuántas tarjetas por fila lo decide el ancho de la sección, no el de la ventana: la misma
           lista ocupa la página entera en pilares y media columna en el home. `compact` reparte en
           dos en cuanto hay 384 px —es su motivo de existir, dos tarjetas cuadradas en una fila—;

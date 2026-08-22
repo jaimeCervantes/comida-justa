@@ -3,6 +3,7 @@
 import { useFormatter, useTranslations } from "next-intl";
 import { useActionState } from "react";
 import { Link } from "~/i18n/navigation";
+import { Heading } from "~/presentation/design_system/typography/Heading";
 import { bookSlot } from "../bookActions";
 
 export type OfferedSlot = {
@@ -71,7 +72,9 @@ export default function SlotPicker({
 
   return (
     <form action={action} className="mt-6" data-testid="slot-picker">
-      <h2 className="text-lg font-bold mb-2">{t("bookHeading")}</h2>
+      <Heading level={2} size="xs" className="mb-2">
+        {t("bookHeading")}
+      </Heading>
 
       <input type="hidden" name="postId" value={postId} />
       <input type="hidden" name="sellerId" value={sellerId} />

@@ -288,3 +288,91 @@ grande y habla con la voz de la marca.
    cerrar la adopción de la escala.
 2. **Las pantallas 5.6–5.9** (pilar, búsqueda, comunidad, acceso), que v2 dejó registradas.
 3. **Slice 4 del chrome** — el filtro de pilares subido a la barra, junto a la ubicación.
+
+---
+
+## Slice 4 — El resto de la escala: h2, h3 y h4 (2026-08-21)
+
+### Objetivo
+
+Cerrar la adopción de la escala tipográfica. El slice 3 dejó los títulos de página; quedaban 33
+encabezados de sección decidiendo su tamaño uno por uno.
+
+### Lo que había
+
+45 `h2`/`h3`/`h4` crudos fuera de admin, con toda la gama: `text-body-lg font-bold`, `text-lg
+font-bold`, `text-base font-bold`, `text-xl font-black`, `text-2xl font-black`, `text-3xl
+font-extrabold`, `text-3xl sm:text-4xl font-bold`, y un `md:tex-3xl` **que no existe** —le falta una
+letra—, así que ese encabezado nunca tuvo el tamaño que su autor creyó darle. Es el mismo hallazgo
+del slice 13 del design system: en Tailwind v4 una clase mal escrita no falla, desaparece.
+
+### El hueco del primitivo, y por qué había que taparlo
+
+Tres encabezados no se podían convertir: el del pie, el del jardín de la comunidad y el de la lista
+de celebraciones son **rótulos en versalitas** —estructuralmente encabezados, visualmente etiquetas
+de 12px—. El tamaño más pequeño de `Heading` es `xs` (18px), así que adoptarlo los habría agrandado
+y roto el diseño. Se quedaban fuera, y una escala a medio adoptar es la peor mitad: existe, y aun
+así cada sitio vuelve a decidir.
+
+El patrón ya estaba repetido a mano en **cinco** sitios —el pie, el jardín, la barra «cerca de ti»,
+la portada del home y el hero de cada pilar—, cada uno con su tamaño y su `tracking`. Así que
+`Heading` estrena `size="eyebrow"` (`text-caption uppercase tracking-[0.14em] font-semibold`), sin
+color: un rótulo es verde en el jardín y apagado en el pie, y esa diferencia es de la sección, no
+del tamaño.
+
+### El que el grep no vio
+
+`PillarHero` no usa `<h2>` sino una etiqueta dinámica (`const Title = level === 1 ? "h1" : "h2"`),
+así que se había escapado del barrido — y llevaba `text-3xl sm:text-5xl font-black` escrito a mano.
+El docstring de `Heading` dice, literalmente, que `display` y `lg` van en Newsreader porque son «la
+portada, **el nombre de un pilar**». El nombre de un pilar era justo lo que seguía en sans a peso
+900. Ahora pide `size="display"` y el nivel lo sigue decidiendo quien llama.
+
+### Decisiones y por qué
+
+1. **`font-black` y `font-extrabold` desaparecen.** Los pesos los decide la escala; nueve
+   encabezados de hábitos los traían a mano.
+2. **`text-text-strong`, los tonos de pilar y los de marca se conservan** con `tone="inherit"`: son
+   tokens de tinta, no de tamaño, y `Heading` ya tiene la puerta para eso.
+3. **Los márgenes y el `flex items-center gap-*` viajan en `className`.** Cambia la voz, no la maqueta.
+4. **El admin sigue fuera**, por lo mismo que el slice 3: no está en el alcance del rediseño.
+
+### Archivos tocados
+
+21 archivos: `carrito`, `pedido` (×2), `cuenta` (×2), `tienda`, `[slug]/SlotPicker`, `habitos`,
+`nosotros` (10 encabezados), `not-found` (los dos, dentro y fuera de `[locale]`),
+`PilaresOverviewPage`, `OrderHistory`, `Card`, `EventAttendeeList`, `StoresMap`, `RouteMap`,
+`Footer`, `CommunityHabitGarden`, `HabitChallengeCelebrations`, `HabitChallengePanel`,
+`PillarPracticeSection`, `PublicHabitCelebrationList`, `PillarHero`; más `Heading.tsx` y su prueba.
+
+### Validación
+
+| Comando | Resultado |
+| --- | --- |
+| `pnpm exec vitest --run` | 203 archivos, **2193 pruebas** en verde |
+| `pnpm run typecheck` · `lint` · `check:i18n` | limpios (962 archivos) |
+| `pnpm run build` | compila; `/`, `/nosotros`, `/pilares`, `/habitos`, `/carrito`, `/productos` a 200 |
+| `pnpm exec playwright test design-system pilares about notFound` | **21/21 en verde** |
+
+`grep '<h2\|<h3\|<h4'` fuera de admin y de pruebas devuelve **cero**.
+
+Medido en el navegador, la cascada quedó coherente:
+
+| Ruta | Encabezados |
+| --- | --- |
+| `/nosotros` | 56 Newsreader → 40 Newsreader → 26 sans → 20 sans → 18 sans |
+| `/pilares/sueno` | 56 Newsreader (el nombre del pilar) → 26 → 20 |
+| `/pilares` | 56 Newsreader → 20 ×4 (las cuatro tarjetas) |
+
+### Recap
+
+La escala está adoptada de punta a punta: no queda un solo encabezado crudo en las páginas públicas.
+El primitivo ganó el tamaño que le faltaba —el rótulo en versalitas, que estaba escrito a mano en
+cinco sitios— y `PillarHero`, que se había escapado del barrido por usar una etiqueta dinámica, por
+fin nombra los pilares con la serif que el propio design system les había reservado.
+
+### Próximos pasos (opciones)
+
+1. **Las pantallas 5.6–5.9** (pilar, búsqueda, comunidad, acceso), que v2 dejó registradas.
+2. **Slice 4 del chrome** — el filtro de pilares subido a la barra, junto a la ubicación.
+3. **El admin**, si se decide meterlo en el alcance del rediseño.

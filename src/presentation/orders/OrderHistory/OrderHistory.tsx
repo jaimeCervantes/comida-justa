@@ -7,6 +7,7 @@ import {
   type OrderStatusChange,
 } from "~/domain/order/order";
 import { Surface } from "~/presentation/design_system/surfaces/Surface";
+import { Heading } from "~/presentation/design_system/typography/Heading";
 
 /**
  * Por dónde pasó el pedido, con la hora de cada paso y lo que tardó en dar el siguiente.
@@ -43,7 +44,9 @@ export default function OrderHistory({
       className="mt-6 p-4"
       data-testid="order-history"
     >
-      <h2 className="mb-3 text-body-lg font-bold">{t("historyHeading")}</h2>
+      <Heading level={2} size="xs" className="mb-3">
+        {t("historyHeading")}
+      </Heading>
 
       <ol className="flex flex-col gap-3">
         {/* Siempre hay al menos este: todo pedido nace Pendiente, y eso lo dice `createdAt`. */}

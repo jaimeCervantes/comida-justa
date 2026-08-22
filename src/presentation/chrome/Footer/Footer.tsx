@@ -3,6 +3,7 @@ import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 import { Link } from "~/i18n/navigation";
 import { PUBLIC_BRAND_NAME } from "~/infra/constants";
+import { Heading } from "~/presentation/design_system/typography/Heading";
 import { PILLAR_SHORT_KEYS } from "../Header/menuItems";
 
 /**
@@ -15,9 +16,9 @@ import { PILLAR_SHORT_KEYS } from "../Header/menuItems";
  */
 function ColumnHeading({ children }: { children: ReactNode }) {
   return (
-    <h4 className="font-semibold uppercase tracking-wider text-caption">
+    <Heading level={4} size="eyebrow" tone="inherit">
       {children}
-    </h4>
+    </Heading>
   );
 }
 

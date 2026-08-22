@@ -3,6 +3,7 @@ import type { CartSellerGroup } from "~/domain/cart/cart";
 import { Link } from "~/i18n/navigation";
 import { SITE_CURRENCY } from "~/infra/constants";
 import { Surface } from "~/presentation/design_system/surfaces/Surface";
+import { Heading } from "~/presentation/design_system/typography/Heading";
 import CurrencyAmount from "~/presentation/money/CurrencyAmount";
 import CartLineRow from "./CartLineRow";
 import ConfirmOrderButton from "./ConfirmOrderButton";
@@ -35,7 +36,7 @@ export default async function CartGroup({ group }: { group: CartSellerGroup }) {
       data-testid="cart-group"
       data-seller={group.seller.handle ?? group.seller.id}
     >
-      <h2 className="text-body-lg font-bold">
+      <Heading level={2} size="xs">
         {group.seller.handle ? (
           <Link
             href={{
@@ -49,7 +50,7 @@ export default async function CartGroup({ group }: { group: CartSellerGroup }) {
         ) : (
           group.seller.name
         )}
-      </h2>
+      </Heading>
 
       <ul className="mt-2">
         {group.lines.map((line) => (

@@ -2,6 +2,7 @@ import { headers } from "next/headers";
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "~/presentation/design_system/buttons/Button";
+import { Heading } from "~/presentation/design_system/typography/Heading";
 
 export default async function NotFound() {
   const headersList = await headers();
@@ -11,18 +12,18 @@ export default async function NotFound() {
     <html lang="es">
       <body>
         <section className="flex flex-col justify-center gap-4 items-center min-h-screen">
-          <h1 className="text-2xl md:text-3xl font-bold">
+          <Heading level={1} size="md">
             ¡Recurso no encontrado!
-          </h1>
+          </Heading>
 
-          <h2 className="text-xl md:text-2xl font-bold hidden md:block">
+          <Heading level={2} className="hidden md:block">
             Probablemente se fue a hacer una serie extra de burpees... ¡y se
             agotó!
-          </h2>
+          </Heading>
 
-          <h3 className="text-lg md:text-xl font-bold">
+          <Heading level={3}>
             A veces, incluso un recurso necesita un descanso.
-          </h3>
+          </Heading>
 
           <Image
             src="/404/404.webp"
@@ -31,10 +32,10 @@ export default async function NotFound() {
             height={283}
           />
 
-          <h4 className="md:tex-3xl font-bold">
+          <Heading level={4}>
             Mientras se recupera, tú puedes continuar cuidando tu salud, tu
             tiempo. Encuentra lo que necesitas aquí:
-          </h4>
+          </Heading>
 
           <p>
             <Link href="/">

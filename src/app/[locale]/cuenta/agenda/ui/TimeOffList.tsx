@@ -3,6 +3,7 @@
 import { useFormatter } from "next-intl";
 import { useActionState } from "react";
 import type { TimeOff } from "~/infra/dataAccess/schedule/PostgresScheduleRepository";
+import { Heading } from "~/presentation/design_system/typography/Heading";
 import { addTimeOff, removeTimeOff } from "../actions";
 
 export type TimeOffLabels = {
@@ -46,7 +47,9 @@ export default function TimeOffList({
 
   return (
     <section className="mt-10" data-testid="time-off">
-      <h2 className="text-lg font-bold mb-2">{labels.heading}</h2>
+      <Heading level={2} size="xs" className="mb-2">
+        {labels.heading}
+      </Heading>
       <p className="mb-4 text-text-support">{labels.intro}</p>
 
       {periods.length === 0 ? (

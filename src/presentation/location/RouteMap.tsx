@@ -2,6 +2,7 @@
 import dynamic from "next/dynamic";
 import { useFormatter, useTranslations } from "next-intl";
 import type { RoutePoint } from "~/domain/entities/post/gpx";
+import { Heading } from "~/presentation/design_system/typography/Heading";
 
 /**
  * `next/dynamic` con `ssr: false` por el mismo motivo que en `StoresMap`: Leaflet toca `window` al
@@ -48,12 +49,12 @@ export default function RouteMap({
 
   return (
     <section className={className} data-testid="route-map">
-      <h2 className="text-lg font-bold mb-2">
+      <Heading level={2} size="xs" className="mb-2">
         {t("routeHeading")}{" "}
         <span className="font-normal text-body" data-testid="route-length">
           {distance}
         </span>
-      </h2>
+      </Heading>
       <RouteMapCanvas
         points={points}
         startLabel={t("routeStart")}

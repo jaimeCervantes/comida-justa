@@ -37,6 +37,20 @@ const headingVariants = cva("text-balance", {
       md: "text-heading-md leading-tight font-bold tracking-tight",
       sm: "text-heading-sm leading-tight font-bold",
       xs: "text-body-lg leading-tight font-semibold",
+      /**
+       * El rótulo en versalitas: un encabezado que **estructura** una sección y visualmente es una
+       * etiqueta, no un título.
+       *
+       * Existe porque el patrón ya estaba repetido a mano en cinco sitios —el pie, el jardín de la
+       * comunidad, la barra «cerca de ti», la portada del home, el hero de cada pilar— cada uno con
+       * su propio tamaño y su propio `tracking`. Sin él, adoptar la escala en esos encabezados
+       * significaba agrandarlos a 18px y romper el diseño, así que se quedaban fuera: una escala a
+       * medio adoptar, que es la peor mitad.
+       *
+       * El color no viene incluido: lo pone `tone`, o quien llama. Un rótulo es verde en el jardín
+       * y apagado en el pie, y esa diferencia es de la sección, no del tamaño.
+       */
+      eyebrow: "text-caption uppercase tracking-[0.14em] font-semibold",
     },
     tone: {
       base: "text-text-base",

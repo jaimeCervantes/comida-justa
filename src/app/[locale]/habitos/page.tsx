@@ -65,9 +65,13 @@ export default async function AtomicChallengesPage({
               <span className="text-xs font-bold uppercase tracking-[0.16em] text-pw-green">
                 {copy.pillar}
               </span>
-              <h2 className="mt-2 text-2xl font-black text-text-strong">
+              <Heading
+                level={2}
+                tone="inherit"
+                className="mt-2 text-text-strong"
+              >
                 {copy.title}
-              </h2>
+              </Heading>
               <p className="mt-2 text-body">{copy.minimum}</p>
             </Link>
           );
@@ -75,9 +79,14 @@ export default async function AtomicChallengesPage({
       </div>
 
       <section className="mt-8 rounded-panel border border-feedback-warning/40 bg-feedback-warning/10 p-6">
-        <h2 className="text-xl font-black text-text-strong">
+        <Heading
+          level={2}
+          size="sm"
+          tone="inherit"
+          className="text-text-strong"
+        >
           {t("reminderTitle")}
-        </h2>
+        </Heading>
         <p className="mt-2 text-body">{t("reminderUnavailable")}</p>
         <button
           type="button"
@@ -92,9 +101,9 @@ export default async function AtomicChallengesPage({
         data-testid="habit-league"
         className="mt-8 rounded-panel border border-separator bg-surface-elevation-1 p-6 sm:p-8"
       >
-        <h2 className="text-2xl font-black text-text-strong">
+        <Heading level={2} tone="inherit" className="text-text-strong">
           {t("league.title")}
-        </h2>
+        </Heading>
         <p className="mt-2 text-body">
           {t("league.threshold", {
             active: league.activeOptIns,

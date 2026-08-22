@@ -6,6 +6,7 @@ import type { AppLocale } from "~/i18n/routing";
 import { SITE_CURRENCY } from "~/infra/constants";
 import { absoluteOrderUrl } from "~/infra/UI/mappers/absoluteOrderUrl";
 import { Surface } from "~/presentation/design_system/surfaces/Surface";
+import { Heading } from "~/presentation/design_system/typography/Heading";
 import CurrencyAmount from "~/presentation/money/CurrencyAmount";
 import NotifySellerButton from "~/presentation/orders/NotifySellerButton/NotifySellerButton";
 import OrderStatusBadge from "~/presentation/orders/OrderStatusBadge/OrderStatusBadge";
@@ -51,9 +52,9 @@ export default async function CheckoutOrders({
       className="mt-6 p-4"
       data-testid="checkout-orders"
     >
-      <h2 className="text-body-lg font-bold">
+      <Heading level={2} size="xs">
         {t("checkoutHeading", { count: orders.length })}
-      </h2>
+      </Heading>
       <p className="mt-1 text-label text-text-support">{t("checkoutNote")}</p>
 
       <ul className="mt-3">

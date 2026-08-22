@@ -127,7 +127,9 @@ export default async function PedidoPage({
         className="p-4"
         data-testid="order-detail"
       >
-        <h2 className="mb-3 text-body-lg font-bold">{order.sellerName}</h2>
+        <Heading level={2} size="xs" className="mb-3">
+          {order.sellerName}
+        </Heading>
 
         {/* Sólo al vendedor: a quien compró, decirle que lo pidió él no le informa de nada. */}
         {isSeller ? (

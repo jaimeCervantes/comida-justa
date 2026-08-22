@@ -3,6 +3,7 @@ import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
 import type { Coordinates } from "~/domain/entities/seller/coordinates";
 import type { MappedStore } from "~/domain/entities/seller/map";
+import { Heading } from "~/presentation/design_system/typography/Heading";
 
 /**
  * `next/dynamic` con `ssr: false` **no** es aquí una decisión de organización.
@@ -40,7 +41,9 @@ export default function StoresMap({
 
   return (
     <section className={className} data-testid="stores-map">
-      <h2 className="text-lg font-bold mb-2">{t(headingKey)}</h2>
+      <Heading level={2} size="xs" className="mb-2">
+        {t(headingKey)}
+      </Heading>
       {/* El testid va aquí y no en el `MapContainer`: react-leaflet solo reenvía `className`,
           `id` y `style` al div del mapa, y se come cualquier otro atributo. */}
       <StoresMapCanvas visitor={visitor} stores={stores} />

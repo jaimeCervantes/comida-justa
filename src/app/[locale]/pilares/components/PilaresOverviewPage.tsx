@@ -2,6 +2,7 @@ import { useTranslations } from "next-intl";
 import type { CommunityGarden } from "~/domain/habits/habitCommunity";
 import { Link } from "~/i18n/navigation";
 import { PUBLIC_BRAND_NAME } from "~/infra/constants";
+import { Heading } from "~/presentation/design_system/typography/Heading";
 import CommunityHabitGarden from "~/presentation/habits/CommunityHabitGarden";
 import PillarHero from "~/presentation/habits/PillarHero";
 import PublicHabitCelebrationList from "~/presentation/habits/PublicHabitCelebrationList";
@@ -58,11 +59,14 @@ export default function PilaresOverviewPage({
                   >
                     {pillar.number}
                   </span>
-                  <h2
-                    className={`text-xl sm:text-2xl font-bold ${c.text} group-hover:underline group-hover:underline-offset-4`}
+                  <Heading
+                    level={2}
+                    size="sm"
+                    tone="inherit"
+                    className={`${c.text} group-hover:underline group-hover:underline-offset-4`}
                   >
                     {tPillars(`${pillar.key}.title`)}
-                  </h2>
+                  </Heading>
                 </div>
 
                 <p className="text-base text-text-support mb-3">
@@ -102,9 +106,9 @@ export default function PilaresOverviewPage({
 
       <section className="mt-16 text-center">
         <div className="bg-surface-elevation-2 rounded-card p-8 max-w-3xl mx-auto">
-          <h2 className="text-2xl font-bold text-text-base mb-3">
+          <Heading level={2} className="mb-3">
             {t("whyHeading")}
-          </h2>
+          </Heading>
           <p className="text-lg text-text-support leading-relaxed">
             {t("whyBody")}
           </p>

@@ -9,6 +9,7 @@ import { readViewerId } from "~/infra/auth/readViewerId";
 import { CANONICAL_URL, PAGINATION_INIT_PAGE } from "~/infra/constants";
 import { readFollowState } from "~/infra/dataAccess/follows/readFollowState";
 import { createSellerRepository } from "~/infra/dataAccess/sellers/factory";
+import { Heading } from "~/presentation/design_system/typography/Heading";
 import BranchList from "~/presentation/directory/BranchList/BranchList";
 import JsonLd from "~/presentation/seo/JsonLd";
 import { storePath } from "../../cuenta/storePath";
@@ -84,7 +85,9 @@ export default async function StorePage({ params, searchParams }: Props) {
 
       {store.branches.length > 0 ? (
         <section className="mb-6">
-          <h2 className="text-lg font-bold mb-2">{t("branchesHeading")}</h2>
+          <Heading level={2} size="xs" className="mb-2">
+            {t("branchesHeading")}
+          </Heading>
           <BranchList
             branches={store.branches}
             emptyMessage={t("noBranches")}

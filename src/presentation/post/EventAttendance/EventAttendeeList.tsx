@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import type { EventAttendee } from "~/domain/eventAttendance/eventAttendance";
+import { Heading } from "~/presentation/design_system/typography/Heading";
 
 function attendeeLabel(attendee: EventAttendee, fallback: string): string {
   return attendee.name || attendee.email || fallback;
@@ -20,7 +21,9 @@ export default function EventAttendeeList({
       className="mt-4 border border-pw-gray/20 rounded-lg p-3"
       data-testid="event-attendees"
     >
-      <h2 className="text-base font-bold">{t("eventAttendeesHeading")}</h2>
+      <Heading level={2} size="xs">
+        {t("eventAttendeesHeading")}
+      </Heading>
 
       {attendees.length === 0 ? (
         <p className="mt-2 text-label text-pw-gray">

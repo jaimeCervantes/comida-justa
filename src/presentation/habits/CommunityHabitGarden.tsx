@@ -1,5 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import type { CommunityGarden } from "~/domain/habits/habitCommunity";
+import { Heading } from "~/presentation/design_system/typography/Heading";
 import type { CommunitySectionVariant } from "./communitySectionVariant";
 
 /**
@@ -46,17 +47,22 @@ export default async function CommunityHabitGarden({
       {/* Sin título grande, el eyebrow es quien nombra la sección: si fuera un `<p>` el jardín se
           quedaría sin encabezado accesible dentro de la fila. */}
       {compact ? (
-        <h2 className="text-xs font-bold uppercase tracking-[0.18em] text-pw-green">
+        <Heading
+          level={2}
+          size="eyebrow"
+          tone="inherit"
+          className="text-pw-green"
+        >
           {t("eyebrow")}
-        </h2>
+        </Heading>
       ) : (
         <>
           <p className="text-xs font-bold uppercase tracking-[0.18em] text-pw-green">
             {t("eyebrow")}
           </p>
-          <h2 className="mt-1 text-2xl font-black text-text-strong">
+          <Heading level={2} tone="inherit" className="mt-1 text-text-strong">
             {t("title")}
-          </h2>
+          </Heading>
           <p className="mt-2 max-w-3xl text-body">
             {t("body", { total: garden.total })}
           </p>

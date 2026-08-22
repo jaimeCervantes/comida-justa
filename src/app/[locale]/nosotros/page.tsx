@@ -65,9 +65,14 @@ export default async function NosotrosPage({
                   className="hover:scale-105 transition-transform shrink-0"
                   priority
                 />
-                <h2 className="text-3xl sm:text-4xl font-bold text-pillar-mind-spirit-ink">
+                <Heading
+                  level={2}
+                  size="lg"
+                  tone="inherit"
+                  className="text-pillar-mind-spirit-ink"
+                >
                   {t("ecosystemHeading", { brand })}
-                </h2>
+                </Heading>
               </div>
               <p className="text-pillar-mind-spirit-ink text-lg leading-relaxed">
                 {t.rich("ecosystemIntro", { b: bold, brand })}
@@ -85,9 +90,14 @@ export default async function NosotrosPage({
             </div>
 
             <div className="pt-6 border-t border-pillar-mind-spirit-ink/20">
-              <h3 className="text-2xl font-bold text-pillar-mind-spirit-ink flex items-center gap-3 mb-3">
+              <Heading
+                level={3}
+                size="md"
+                tone="inherit"
+                className="text-pillar-mind-spirit-ink flex items-center gap-3 mb-3"
+              >
                 {t("assistantHeading")}
-              </h3>
+              </Heading>
               <p className="text-pillar-mind-spirit-ink text-lg leading-relaxed">
                 {t.rich("assistantBody", { b: bold })}
               </p>
@@ -110,12 +120,12 @@ export default async function NosotrosPage({
       {/* 2. Crema de Cacahuate */}
       <section className="space-y-8">
         <div className="space-y-4">
-          <h2 className="text-3xl font-bold flex items-center gap-3">
+          <Heading level={2} className="flex items-center gap-3">
             {t("peanutHeading")}
-          </h2>
-          <h3 className="text-xl font-medium text-text-base">
+          </Heading>
+          <Heading level={3} className="font-medium">
             {t("peanutQuestion")}
-          </h3>
+          </Heading>
           <p className="text-lg leading-relaxed text-text-support">
             {t("peanutIntro")}
             <br />
@@ -143,9 +153,13 @@ export default async function NosotrosPage({
           </ul>
 
           <div className="bg-brand-honey-soft p-6 rounded-card border border-brand-honey-ink/20">
-            <h4 className="text-lg font-bold mb-4 text-brand-honey-ink flex items-center gap-2">
+            <Heading
+              level={4}
+              tone="inherit"
+              className="mb-4 text-brand-honey-ink flex items-center gap-2"
+            >
               {t("peanutPairHeading")}
-            </h4>
+            </Heading>
             <ul className="grid grid-cols-2 gap-y-2 gap-x-4 text-brand-honey-ink font-medium">
               <li className="flex items-center gap-2">{t("peanutPair1")}</li>
               <li className="flex items-center gap-2">{t("peanutPair2")}</li>
@@ -162,9 +176,14 @@ export default async function NosotrosPage({
         </div>
 
         <div className="bg-brand-honey-soft p-6 rounded-card">
-          <h4 className="text-xl font-bold mb-4 text-brand-honey-ink flex items-center gap-2">
+          <Heading
+            level={4}
+            size="sm"
+            tone="inherit"
+            className="mb-4 text-brand-honey-ink flex items-center gap-2"
+          >
             {t("peanutTipsHeading")}
-          </h4>
+          </Heading>
           <ul className="space-y-3 text-brand-honey-ink list-disc pl-5">
             <TipItem label={t("peanutTip1Label")} text={t("peanutTip1Text")} />
             <TipItem label={t("peanutTip2Label")} text={t("peanutTip2Text")} />
@@ -177,12 +196,12 @@ export default async function NosotrosPage({
       {/* 3. Pan de Masa Madre */}
       <section className="space-y-8" id="pan-de-masa-madre-mmnaturalmente">
         <div className="space-y-4">
-          <h2 className="text-3xl font-bold flex items-center gap-3">
+          <Heading level={2} className="flex items-center gap-3">
             {t("breadHeading")}
-          </h2>
-          <h3 className="text-xl font-medium text-text-base">
+          </Heading>
+          <Heading level={3} className="font-medium">
             {t("breadQuestion", { brand })}
-          </h3>
+          </Heading>
           <p className="text-lg leading-relaxed text-text-support">
             {t.rich("breadIntro", { b: bold })}
           </p>
@@ -213,9 +232,13 @@ export default async function NosotrosPage({
         <div className="grid sm:grid-cols-2 gap-6">
           <div className="space-y-6">
             <div className="bg-brand-clay-soft p-6 rounded-card border border-brand-clay-700/20">
-              <h4 className="text-lg font-bold mb-4 text-brand-clay-700 flex items-center gap-2">
+              <Heading
+                level={4}
+                tone="inherit"
+                className="mb-4 text-brand-clay-700 flex items-center gap-2"
+              >
                 {t("breadLoafHeading")}
-              </h4>
+              </Heading>
               <ul className="space-y-4 text-brand-clay-700">
                 <LoafItem
                   label={t("breadDigestionLabel")}
@@ -234,9 +257,9 @@ export default async function NosotrosPage({
           </div>
 
           <div className={`${CARD} flex flex-col justify-center`}>
-            <h4 className="text-lg font-bold mb-4 text-text-base">
+            <Heading level={4} className="mb-4">
               {t("breadVarietiesHeading")}
-            </h4>
+            </Heading>
             <ul className="space-y-3 text-lg mb-6">
               <li className="flex justify-between border-b border-separator pb-2">
                 <span>{t("breadNatural")}</span>
@@ -258,9 +281,14 @@ export default async function NosotrosPage({
         </div>
 
         <div className="bg-brand-clay-soft p-6 rounded-card">
-          <h4 className="text-xl font-bold mb-4 text-brand-clay-700 flex items-center gap-2">
+          <Heading
+            level={4}
+            size="sm"
+            tone="inherit"
+            className="mb-4 text-brand-clay-700 flex items-center gap-2"
+          >
             {t("breadTipsHeading")}
-          </h4>
+          </Heading>
           <ul className="space-y-3 text-brand-clay-700 list-disc pl-5">
             <TipItem label={t("breadTip1Label")} text={t("breadTip1Text")} />
             <TipItem label={t("breadTip2Label")} text={t("breadTip2Text")} />
@@ -271,9 +299,9 @@ export default async function NosotrosPage({
 
       {/* Redes y Contacto */}
       <section className="bg-surface-elevation-2 p-8 sm:p-12 rounded-panel text-center space-y-6">
-        <h3 className="text-2xl font-bold text-text-base">
+        <Heading level={3} size="md">
           {t("orderHeading")}
-        </h3>
+        </Heading>
         <p className="text-text-support text-lg">{t("orderBody")}</p>
 
         <div className="flex flex-wrap justify-center gap-4 py-4">

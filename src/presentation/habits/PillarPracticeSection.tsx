@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import type { HabitChallengeExperienceKey } from "~/domain/habits/habitChallengeExperiences";
+import { Heading } from "~/presentation/design_system/typography/Heading";
 import PillarHero from "./PillarHero";
 import type { PillarTheme } from "./pillarThemes";
 
@@ -99,9 +100,9 @@ export default function PillarPracticeSection({
           <aside
             className={`mt-5 rounded-panel border border-dashed p-6 ${theme.border} ${theme.soft}`}
           >
-            <h3 className="text-xl font-black text-text-strong">
+            <Heading level={3} tone="inherit" className="text-text-strong">
               {copy.note.title}
-            </h3>
+            </Heading>
             <p className="mt-2 text-body">{copy.note.body}</p>
           </aside>
         )}
@@ -116,9 +117,9 @@ export default function PillarPracticeSection({
           >
             {copy.ritual.eyebrow}
           </p>
-          <h2 className="mt-2 text-3xl font-extrabold text-text-strong">
+          <Heading level={2} tone="inherit" className="mt-2 text-text-strong">
             {copy.ritual.title}
-          </h2>
+          </Heading>
           <p className="mt-3 max-w-3xl text-body">{copy.ritual.body}</p>
           <ol className="mt-8 grid gap-4 sm:grid-cols-2">
             {copy.ritual.steps.map((step, index) => (
@@ -164,9 +165,14 @@ function PracticeAnchorCard({
       <span className="text-4xl" aria-hidden="true">
         {anchor.symbol}
       </span>
-      <h3 className="mt-4 text-2xl font-extrabold text-text-strong">
+      <Heading
+        level={3}
+        size="md"
+        tone="inherit"
+        className="mt-4 text-text-strong"
+      >
         {anchor.title}
-      </h3>
+      </Heading>
       <p className="mt-2 text-body">{anchor.body}</p>
     </article>
   );
