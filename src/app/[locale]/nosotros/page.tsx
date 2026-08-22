@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { Link } from "~/i18n/navigation";
 import { resolveLocale } from "~/i18n/routing";
 import { PUBLIC_BRAND_NAME } from "~/infra/constants";
 import { PILLAR_SHORT_KEYS } from "~/presentation/chrome/Header/menuItems";
+import { buttonVariants } from "~/presentation/design_system/buttons/buttonVariants";
 import { Heading } from "~/presentation/design_system/typography/Heading";
 import { buildAboutMetadata } from "./metadata";
 
@@ -49,6 +51,27 @@ export default async function NosotrosPage({
         <p className="text-lg sm:text-xl text-text-support text-balance max-w-2xl mx-auto">
           {t("metaSubtitle")}
         </p>
+
+        {/* **Las dos únicas puertas hacia dentro del sitio.**
+            Esta página tenía ocho enlaces y los ocho salían fuera —WhatsApp, TikTok, Facebook,
+            Instagram, Telegram y dos dominios—: contaba quiénes somos y despedía a quien se
+            interesaba. Cero `<Link>` internos, así que quien terminaba de leer no tenía a dónde ir
+            dentro. El bloque de contacto del final se queda como está: ese es para pedir por
+            WhatsApp o pasar por la sucursal, que es otra intención. */}
+        <div className="flex flex-wrap justify-center gap-3 pt-2">
+          <Link
+            href="/productos"
+            className={buttonVariants({ color: "green", size: "md" })}
+          >
+            {t("browseCta")}
+          </Link>
+          <Link
+            href="/publicar"
+            className={buttonVariants({ color: "default", size: "md" })}
+          >
+            {t("publishCta")}
+          </Link>
+        </div>
       </header>
 
       {/* 1. Ecosistema Hazlo Sano / Chatbot */}
