@@ -19,7 +19,8 @@ export interface MediaItem {
 interface MediaContentProps {
   media: MediaItem;
   className?: string;
-  priority?: boolean;
+  preload?: boolean;
+  fetchPriority?: "high" | "low" | "auto";
   sizes?: string;
 }
 
@@ -37,7 +38,8 @@ const DEFAULT_SIZES = "(max-width: 768px) 100vw, 768px";
 export default function MediaContent({
   media,
   className,
-  priority = false,
+  preload = false,
+  fetchPriority,
   sizes = DEFAULT_SIZES,
 }: {
   /** Puede faltar: una publicación sembrada o migrada sin media es un caso real. */
@@ -46,8 +48,21 @@ export default function MediaContent({
   /**
    * Solo para la que se ve sin desplazarse. Adelanta la descarga y desactiva la carga diferida, así
    * que ponerla en una lista es pedirlo todo a la vez y volver a la avalancha que había antes.
+   *
+   * Se llamaba `priority`, que es el nombre que **Next 16 deprecó** a favor de `preload`. No era un
+   * cambio de nombre a secas: `priority` hacía dos cosas que ahora se piden por separado —adelantar
+   * la descarga (`preload`) y ponerla por delante de las demás (`fetchPriority`)—, y Next dejó de
+   * derivar la segunda. Por eso ninguna imagen del sitio emitía `fetchpriority`.
    */
-  priority?: boolean;
+  preload?: boolean;
+  /**
+   * Cuál va **antes que las demás**, no solo pronto.
+   *
+   * Es distinto de `preload` y por eso se pide aparte: marcar `high` todo lo que se ve sin
+   * desplazarse no prioriza nada — si todo es urgente, nada lo es. Va en la que el navegador va a
+   * medir como «contenido más grande», y en ninguna otra.
+   */
+  fetchPriority?: "high" | "low" | "auto";
   sizes?: string;
 }) {
   const t = useTranslations("post");
@@ -79,7 +94,8 @@ export default function MediaContent({
       <ContentRenderer
         media={media}
         className={className}
-        priority={priority}
+        preload={preload}
+        fetchPriority={fetchPriority}
         sizes={sizes}
       />
     </div>
@@ -116,7 +132,8 @@ const UNKNOWN_SIZE = { width: 1000, height: 1000 } as const;
 function ImageContent({
   media,
   className,
-  priority,
+  preload,
+  fetchPriority,
   sizes,
 }: MediaContentProps) {
   const known = hasKnownAspect(media);
@@ -138,7 +155,8 @@ function ImageContent({
        * ancho de banda, y la que la persona estaba mirando llegaba la última. Ahora solo se adelanta
        * la que se ve sin desplazarse, y quien lo sabe es quien la coloca.
        */
-      priority={priority}
+      preload={preload}
+      fetchPriority={fetchPriority}
       sizes={sizes}
       data-testid={known ? "media-image-sized" : "media-image-unsized"}
       frameClassName="w-full"

@@ -239,7 +239,7 @@ export default async function PostDetail({
       {/* `priority` porque es la imagen por la que se entra a esta página: está arriba del todo y es
           la que el navegador mide como "contenido más grande". Es el único sitio de la aplicación
           que la lleva; en los listados sería pedirlo todo a la vez. */}
-      <MediaGallery items={media} className="mb-4" priority />
+      <MediaGallery items={media} className="mb-4" preload />
 
       {/* Todo lo que se mira para decidir, en un solo bloque bajo la imagen: de quién es, qué es, a
           qué distancia queda, cuánto cuesta y a qué número se llama.

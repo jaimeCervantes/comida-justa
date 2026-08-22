@@ -24,7 +24,7 @@ const THUMBNAIL_SIZE = 64;
 export default function MediaGallery({
   items,
   className,
-  priority = false,
+  preload = false,
 }: {
   items: readonly MediaItem[];
   className?: string;
@@ -35,7 +35,7 @@ export default function MediaGallery({
    * el navegador como "contenido más grande"—, así que ahí sí conviene adelantarla. Las miniaturas
    * no la llevan: son de 64 px y están al lado, no delante.
    */
-  priority?: boolean;
+  preload?: boolean;
 }) {
   const t = useTranslations("post");
   const [active, setActive] = useState(0);
@@ -67,7 +67,8 @@ export default function MediaGallery({
       <MediaContent
         media={items[0]}
         className={className}
-        priority={priority}
+        preload={preload}
+        fetchPriority={preload ? "high" : undefined}
       />
     );
   }
@@ -92,10 +93,14 @@ export default function MediaGallery({
       }}
     >
       <div className="relative">
+        {/* La que se está viendo va por delante de todo: es la que el navegador mide como
+            «contenido más grande» de esta ficha. Las miniaturas de abajo no llevan ninguna de las
+            dos cosas — si todo es urgente, nada lo es. */}
         <MediaContent
           media={items[active]}
           className="h-auto"
-          priority={priority}
+          preload={preload}
+          fetchPriority={preload ? "high" : undefined}
         />
 
         <GalleryArrow

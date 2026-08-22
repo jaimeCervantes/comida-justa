@@ -97,7 +97,11 @@ export default function HomeHero({
         </div>
       </div>
 
-      {/* `priority`: es la imagen que se ve sin desplazarse, y la única de la página que lo lleva.
+      {/* `preload` la adelanta; `fetchPriority="high"` la pone **por delante de las demás**. Son
+          dos cosas distintas, y Next 16 dejó de derivar la segunda cuando deprecó `priority`. Esta
+          es la que el navegador mide como «contenido más grande» del home, y la única de la página
+          que lleva las dos.
+
           `sizes` describe el hueco real —una columna de la rejilla, no el ancho de la ventana— para
           que el navegador no se traiga la variante de 3840px y la encoja. */}
       {cover ? (
@@ -113,7 +117,8 @@ export default function HomeHero({
               la imagen, no quedarse en un contenedor de fuera. */}
           <MediaContent
             media={cover}
-            priority
+            preload
+            fetchPriority="high"
             sizes="(max-width: 1024px) 100vw, 480px"
             /* `transition-[opacity,transform]` y no `transition-transform`: `ImageWithSkeleton`
               pone `transition-opacity` para apagar su esqueleto, y `cn` desempata entre las dos

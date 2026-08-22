@@ -63,7 +63,9 @@ export default async function NosotrosPage({
                   width={100}
                   height={100}
                   className="hover:scale-105 transition-transform shrink-0"
-                  priority
+                  /* Sin `fetchPriority`: es el logo junto a un titular, no lo que se mide como
+                     contenido más grande de la página. */
+                  preload
                 />
                 <Heading
                   level={2}

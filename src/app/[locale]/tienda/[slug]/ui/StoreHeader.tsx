@@ -55,13 +55,17 @@ export default function StoreHeader({
         {seller.name}
       </h1>
       <div className="flex-col flex lg:flex-row items-center gap-4">
+        {/* 400px arriba del todo: **esta** es la que el navegador mide como contenido más grande
+            de la tienda, así que lleva las dos cosas —`preload` la adelanta, `fetchPriority` la
+            pone por delante—. */}
         {seller.logoUrl ? (
           <Image
             src={seller.logoUrl}
             alt={`Logo de ${seller.name}`}
             width={400}
             height={400}
-            priority
+            preload
+            fetchPriority="high"
             className="rounded-full object-cover"
           />
         ) : null}

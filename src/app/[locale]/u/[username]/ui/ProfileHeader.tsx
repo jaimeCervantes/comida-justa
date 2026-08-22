@@ -50,7 +50,8 @@ export default function ProfileHeader({
           alt={`Foto de ${profile.name ?? profile.username}`}
           width={96}
           height={96}
-          priority
+          /* Un avatar de 96px no es el contenido más grande de nada: se adelanta, no se prioriza. */
+          preload
           className="h-24 w-24 shrink-0 rounded-full object-cover"
         />
       ) : null}

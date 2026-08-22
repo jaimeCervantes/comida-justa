@@ -88,12 +88,19 @@ export default async function Header() {
             href="/"
             className="shrink-0 transition-transform hover:scale-105"
           >
+            {/* `preload` y **no** `fetchPriority="high"`. Son dos cosas distintas: la primera
+                adelanta la descarga, la segunda la pone por delante de las demás. Este logo mide
+                40px y está en todas las páginas — marcarlo urgente le quitaría el turno a la
+                imagen que la persona vino a ver. Si todo es urgente, nada lo es.
+
+                Se llamaba `priority`, que Next 16 deprecó a favor de `preload` justo porque hacía
+                las dos cosas a la vez y dejó de derivar la segunda. */}
             <Image
               src="/logo.webp"
               width={40}
               height={40}
               alt={tCommon("logoAlt", { brand: PUBLIC_BRAND_NAME })}
-              priority
+              preload
             />
           </Link>
           <div className="hidden lg:block">
