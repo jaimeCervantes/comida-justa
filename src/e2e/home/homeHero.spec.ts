@@ -45,6 +45,30 @@ test.describe("La portada del home", () => {
     expect(estilo.fontFamily).toMatch(/newsreader/i);
   });
 
+  /*
+   * El canvas pone ahí una «foto de portada, mercado local, 4:3» que no existe como archivo. En vez
+   * de un marcador de posición, la portada enseña lo último que publicó la comunidad: una foto real
+   * que cambia sola. El enlace va por slug y no por el `to` del mapper, que llega absoluto y haría
+   * recargar la página entera.
+   */
+  test("Y enseña lo último publicado, con su foto y su enlace interno", async ({
+    page,
+  }) => {
+    await page.goto("/");
+
+    const cover = page.getByTestId("home-cover");
+
+    await expect(cover).toBeVisible();
+    await expect(cover).toHaveAttribute("href", /^\/[^/]/);
+    await expect(cover.locator("img").first()).toBeVisible();
+
+    // Y lleva de verdad ahí: se compara la dirección, no el texto del rótulo.
+    const href = await cover.getAttribute("href");
+    await cover.click();
+    await page.waitForURL(`**${href}`);
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  });
+
   for (const [cta, destino] of [
     [es.home.browseCta, "/productos"],
     [es.home.publishCta, "/publicar"],

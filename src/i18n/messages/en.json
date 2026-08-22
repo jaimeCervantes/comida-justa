@@ -699,6 +699,7 @@
   },
   "home": {
     "browseCta": "See what there is today",
+    "coverLabel": "The latest thing published",
     "description": "❤️💚 Just Health: When you take care of your health, you're also protecting the most valuable thing you have: your time. Your ultimate non-renewable resource.",
     "heroEyebrow": "Tezonapa, Veracruz · {count, plural, =0 {nothing published yet} =1 {# publication} other {# publications}}",
     "heroTitle": "Caring for your health is caring for <em>your time</em>",

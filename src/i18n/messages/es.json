@@ -699,6 +699,7 @@
   },
   "home": {
     "browseCta": "Ver lo que hay hoy",
+    "coverLabel": "Lo último que se publicó",
     "description": "❤️💚 Hazlo sano: Cuando cuidas tu salud, también estás cuidando lo más valioso que tienes: tu tiempo. Tu recurso máximo no renovable.",
     "heroEyebrow": "Tezonapa, Veracruz · {count, plural, =0 {sin publicaciones todavía} =1 {# publicación} other {# publicaciones}}",
     "heroTitle": "Cuidar tu salud es cuidar <em>tu tiempo</em>",

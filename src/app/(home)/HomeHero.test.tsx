@@ -9,6 +9,22 @@ import HomeHero from "./HomeHero";
  * Se renderiza con los catálogos **reales** (`renderWithIntl`), así que borrar una clave o romper
  * el plural del rótulo rompe la prueba en vez de llegar a producción.
  */
+/** La forma mínima de una tarjeta: lo que la portada necesita de la más reciente. */
+const YOGA = {
+  id: "1",
+  title: "Sesión de yoga para dolor de espalda, principiantes",
+  to: "/sesion-de-yoga-para-dolor-de-espalda-principiantes",
+  media: [
+    {
+      type: "image",
+      url: "https://example.test/yoga.webp",
+      alt: "Sesión de yoga",
+      width: 1200,
+      height: 900,
+    },
+  ],
+};
+
 describe("HomeHero", () => {
   it("presenta el sitio con la voz de la marca y un solo h1", () => {
     renderWithIntl(<HomeHero publicationCount={31} />);
@@ -62,6 +78,44 @@ describe("HomeHero", () => {
     const enfasis = container.querySelector("h1 em");
 
     expect(enfasis).toHaveTextContent("tu tiempo");
+  });
+
+  /*
+   * El canvas pone una «foto de portada, mercado local, 4:3» que no existe como archivo. En vez de
+   * un marcador de posición, la portada enseña lo último que publicó la comunidad: es real, cambia
+   * sola, y demuestra la promesa del titular en vez de ilustrarla.
+   */
+  it("enseña lo último publicado, y lleva a ello", () => {
+    renderWithIntl(<HomeHero publicationCount={31} latest={YOGA} />);
+
+    const cover = screen.getByTestId("home-cover");
+
+    expect(cover).toHaveAttribute("href", YOGA.to);
+    expect(cover).toHaveTextContent(/sesión de yoga/i);
+    expect(cover).toHaveTextContent(/lo último que se publicó/i);
+  });
+
+  it("y la foto se anuncia con lo que es, no con un texto de relleno", () => {
+    renderWithIntl(<HomeHero publicationCount={31} latest={YOGA} />);
+
+    expect(screen.getByAltText("Sesión de yoga")).toBeInTheDocument();
+  });
+
+  /* Un sitio recién abierto no tiene nada que enseñar, y ahí la portada es una sola columna. */
+  it.each<[string, unknown]>([
+    ["sin publicaciones", undefined],
+    [
+      "con una publicación sin media",
+      { id: "2", title: "Anuncio", to: "/a", media: [] },
+    ],
+  ])("no inventa una portada %s", (_caso, latest) => {
+    renderWithIntl(
+      <HomeHero publicationCount={0} latest={latest as typeof YOGA} />,
+    );
+
+    expect(screen.queryByTestId("home-cover")).not.toBeInTheDocument();
+    // Pero el titular y las acciones siguen ahí: la portada no depende de la foto.
+    expect(screen.getByRole("heading", { level: 1 })).toBeInTheDocument();
   });
 
   it("en inglés destaca la parte que le toca al inglés", () => {

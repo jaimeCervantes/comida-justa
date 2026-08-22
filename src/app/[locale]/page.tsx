@@ -135,7 +135,9 @@ export default async function Inicio({
 
       {/* La cifra sale del `total` que ya trajo la consulta del feed: la portada dice cuántas
           publicaciones tiene delante quien mira, sin pagar una lectura extra. */}
-      <HomeHero publicationCount={total} />
+      {/* `posts[0]` es la más reciente: el home es cronológico por contrato, así que la primera
+          del feed es siempre lo último que subió alguien. */}
+      <HomeHero publicationCount={total} latest={posts[0]} />
 
       {/* Lo que el feed es. Sin este encabezado, las tarjetas empiezan sin que nada las presente y
           el filtro de pilares parece la cabecera de la página. */}

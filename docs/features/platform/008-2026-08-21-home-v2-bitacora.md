@@ -376,3 +376,85 @@ fin nombra los pilares con la serif que el propio design system les había reser
 1. **Las pantallas 5.6–5.9** (pilar, búsqueda, comunidad, acceso), que v2 dejó registradas.
 2. **Slice 4 del chrome** — el filtro de pilares subido a la barra, junto a la ubicación.
 3. **El admin**, si se decide meterlo en el alcance del rediseño.
+
+---
+
+## Slice 4 — La portada enseña lo último publicado (2026-08-22)
+
+### Objetivo
+
+Llenar el hueco que el canvas reservaba para una «foto de portada, mercado local, 4:3» que no existe
+como archivo.
+
+### La decisión
+
+En vez de un marcador de posición —o de esperar a que alguien haga la foto—, la portada enseña **la
+publicación más reciente**: su imagen, su título y un enlace a ella. Es una foto real, cambia sola
+conforme la comunidad publica, y **demuestra** la promesa del titular en lugar de ilustrarla. Hoy es
+«Sesión de yoga para dolor de espalda, principiantes».
+
+`posts[0]` es siempre la última porque el home es cronológico por contrato, así que no hace falta
+ninguna consulta nueva: la portada usa lo que la página ya había traído para el feed.
+
+Se repite justo debajo, en la primera tarjeta. Esa repetición es el punto, no un descuido: lo primero
+que se ve al entrar es lo último que alguien subió.
+
+### Tres cosas que solo se vieron mirando
+
+1. **El enlace se iba del sitio.** `to` llega **absoluto** desde el mapper (`createAbsoluteUrl`),
+   que es lo que hace falta para compartir; como destino interno hacía recargar la página entera, y
+   en local apuntaba a producción. Se usa el slug, igual que `CardForList` para su enlace de edición.
+
+2. **La foto no salía.** El marco estaba vacío: había un `<div>` dentro de un `<span>` —anidación
+   inválida— y el navegador saca el `div` fuera del contenedor. `MediaContent` envuelve en `div` y
+   `ImageWithSkeleton` en un `span` más, así que posicionar desde fuera no llega: el alto tiene que
+   viajar **hasta la imagen**. Es lo que el propio docstring de `MediaContent` ya decía —«quien lo
+   pinta lo acompaña de un alto fijo que recorta con `object-cover`»— y es como lo hace `CardForList`.
+
+3. **`transition-transform` borraba el esqueleto.** `ImageWithSkeleton` pone `transition-opacity`
+   para apagar su animación de carga, y `cn` desempata entre las dos porque son la misma familia: la
+   imagen aparecía de golpe. Ahora es `transition-[opacity,transform]`, que cubre las dos.
+
+### Hallazgo fuera de alcance: `priority` no hace nada
+
+Comprobando que la portada se adelantara, apareció que **ninguna imagen del sitio emite
+`fetchpriority="high"`** — ni la de la portada, ni la galería de una ficha, ni el logo del header,
+que pasa `priority` **directo a `next/image`** sin intermediarios. Medido sobre el HTML del servidor
+de producción: 13 imágenes en `/suero-natural`, cero con `fetchpriority`.
+
+No lo introduce este slice y no se arregla aquí: es rendimiento, afecta a las seis llamadas que ya
+pasaban `priority`, y huele a cambio de contrato de `next/image` en Next 16. Queda anotado como
+slice propio.
+
+### Archivos tocados
+
+- `src/app/(home)/HomeHero.tsx` · `HomeHero.test.tsx` (13 pruebas)
+- `src/app/[locale]/page.tsx` — pasa `posts[0]`
+- `src/i18n/messages/{es,en}.json` — `home.coverLabel`
+- `src/e2e/home/homeHero.spec.ts` — la portada lleva de verdad a esa publicación
+
+### Validación
+
+| Comando | Resultado |
+| --- | --- |
+| `pnpm exec vitest --run "src/app/(home)"` | 3 archivos, **25 pruebas** en verde |
+| `pnpm run typecheck` · `lint` · `check:i18n` | limpios (966 archivos) |
+| `pnpm run build` | compila |
+| `pnpm exec playwright test src/e2e/home` | **8/8 en verde** |
+
+Medido en el navegador: la imagen ocupa 501×288 en escritorio y 356×256 en teléfono, y el enlace es
+`/sesion-de-yoga-para-dolor-de-espalda-principiantes` — relativo, no absoluto.
+
+### Recap
+
+El hueco de la portada lo llena ahora lo último que publicó la comunidad, sin inventar un archivo
+que no existe y sin pagar una consulta nueva. Tres fallos aparecieron solo al mirar la pantalla —un
+enlace que se salía del sitio, una anidación inválida que dejaba el marco vacío y una clase que
+borraba la animación del esqueleto— y ninguno lo habría visto un test de componente.
+
+### Próximos pasos (opciones)
+
+1. **El bottom nav de cinco pestañas** (5.1, móvil).
+2. **El atajo ⌘K** del buscador.
+3. **La búsqueda facetada** del 5.7.
+4. **`priority` no emite `fetchpriority`**: seis llamadas afectadas, ninguna imagen priorizada.
