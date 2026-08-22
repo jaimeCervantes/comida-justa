@@ -10,6 +10,7 @@ import { setRequestLocale } from "next-intl/server";
 import { routing } from "~/i18n/routing";
 import { CANONICAL_URL, PUBLIC_BRAND_NAME } from "~/infra/constants";
 import { readVisitorFix } from "~/infra/location/visitorLocation";
+import BottomNav from "~/presentation/chrome/BottomNav/BottomNav";
 import NearbyBar from "~/presentation/chrome/NearbyBar/NearbyBar";
 import SiteCelebrationMessage from "~/presentation/chrome/SiteMessage/SiteCelebrationMessage";
 import LocationRefresher from "~/presentation/location/LocationRefresher";
@@ -119,10 +120,17 @@ export default async function RootLayout({
                 entrada se había quedado sin él. */}
             <NearbyBar />
             <SiteCelebrationMessage />
-            <main className="flex-1 pt-4 pb-12">
+            {/* `pb-28` en el teléfono: la barra inferior es `fixed`, así que sin hueco propio
+                taparía el final de cada página. Desde `lg` desaparece y el relleno vuelve al de
+                siempre. */}
+            <main className="flex-1 pt-4 pb-28 lg:pb-12">
               <div className="container-width">{children}</div>
             </main>
             <Footer />
+
+            {/* Las cinco cosas que se hacen aquí, al alcance del pulgar. Solo por debajo de `lg`,
+                que es donde la barra de escritorio se esconde: nunca se ven las dos. */}
+            <BottomNav />
           </div>
         </NextIntlClientProvider>
       </body>

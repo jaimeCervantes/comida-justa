@@ -106,15 +106,21 @@ export default async function Header() {
         </div>
 
         <div className="flex gap-4 items-center">
-          <LinkButton
-            href="/publicar"
-            color="green"
-            startIcon={<LuSalad title={t("publish")} />}
-            aria-label={t("publish")}
-            showLoader
-          >
-            <span className="hidden sm:block">{t("publish")}</span>
-          </LinkButton>
+          {/* Desde `lg`, que es donde la barra inferior desaparece. En el teléfono «Publicar» vive
+              en el círculo levantado del `BottomNav`, al alcance del pulgar: tenerlo en las dos
+              partes duplicaba la única acción primaria del sitio y le quitaba sitio al buscador,
+              que es lo que el 5.1 quería recuperar. */}
+          <div className="hidden lg:block">
+            <LinkButton
+              href="/publicar"
+              color="green"
+              startIcon={<LuSalad title={t("publish")} />}
+              aria-label={t("publish")}
+              showLoader
+            >
+              <span className="hidden sm:block">{t("publish")}</span>
+            </LinkButton>
+          </div>
 
           {/* Antes de la sesión: el carrito no la pide, y quien está comprando no debería tener que
               buscarlo dentro del menú del avatar. */}

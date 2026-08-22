@@ -733,6 +733,11 @@
   "nav": {
     "about": "Nosotros",
     "back": "Volver",
+    "bottomAccount": "Yo",
+    "bottomHome": "Inicio",
+    "bottomNavLabel": "Accesos rápidos",
+    "bottomOrders": "Pedidos",
+    "bottomSearch": "Buscar",
     "brandProducts": "Productos y servicios",
     "brandProductsDescription": "Lo que la comunidad vende, entrega o atiende",
     "byCategory": "Por categoría",
