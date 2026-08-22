@@ -641,6 +641,7 @@
     "llmsDescription": "Comida real y productos de la comunidad de Tezonapa, Veracruz, con los 4 pilares de la salud como guía: sueño, alimentación, movimiento y mente.",
     "llmsProfiles": "Perfiles de la comunidad",
     "llmsStores": "Tiendas",
+    "latestHeading": "Recién publicado",
     "loadingMore": "Cargando más...",
     "loadMore": "Cargar más",
     "nextPage": "Siguiente",
@@ -693,12 +694,14 @@
     "title": "El jardín de los cuatro pilares"
   },
   "home": {
+    "browseCta": "Ver lo que hay hoy",
     "description": "❤️💚 Hazlo sano: Cuando cuidas tu salud, también estás cuidando lo más valioso que tienes: tu tiempo. Tu recurso máximo no renovable.",
-    "heroEyebrow": "Salud que se practica en comunidad",
-    "heroTitle": "Cuidar tu salud es cuidar tu tiempo",
+    "heroEyebrow": "Tezonapa, Veracruz · {count, plural, =0 {sin publicaciones todavía} =1 {# publicación} other {# publicaciones}}",
+    "heroTitle": "Cuidar tu salud es cuidar <em>tu tiempo</em>",
     "heroIntro": "Tu recurso máximo no renovable: no se compra y no se recupera. Con diez minutos al día ganas salud, belleza y longevidad — y de paso fortaleces a tu comunidad.",
     "heroIdentity": "Vivir bien no es un lujo. Es un acto de amor propio que se contagia.",
     "heroLocationTitle": "Tu ubicación",
+    "publishCta": "Publicar lo mío",
     "title": "❤️💚 Hazlo sano: Cuando cuidas tu salud, también estás cuidando lo más valioso que tienes: tu tiempo. Tu recurso máximo no renovable."
   },
   "moderation": {

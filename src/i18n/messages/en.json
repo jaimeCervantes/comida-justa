@@ -641,6 +641,7 @@
     "llmsDescription": "Real food and products from the community of Tezonapa, Veracruz, guided by the 4 pillars of health: sleep, food, movement and mind.",
     "llmsProfiles": "Community profiles",
     "llmsStores": "Stores",
+    "latestHeading": "Just published",
     "loadingMore": "Loading more…",
     "loadMore": "Load more",
     "nextPage": "Next",
@@ -693,12 +694,14 @@
     "title": "The four-pillar garden"
   },
   "home": {
+    "browseCta": "See what there is today",
     "description": "❤️💚 Just Health: When you take care of your health, you're also protecting the most valuable thing you have: your time. Your ultimate non-renewable resource.",
-    "heroEyebrow": "Health practiced together",
-    "heroTitle": "Caring for your health is caring for your time",
+    "heroEyebrow": "Tezonapa, Veracruz · {count, plural, =0 {nothing published yet} =1 {# publication} other {# publications}}",
+    "heroTitle": "Caring for your health is caring for <em>your time</em>",
     "heroIntro": "Your one non-renewable resource: you can't buy it and you can't get it back. Ten minutes a day earn you health, beauty and longevity — and they strengthen your community along the way.",
     "heroIdentity": "Living well isn't a luxury. It's an act of self-love, and it spreads.",
     "heroLocationTitle": "Your location",
+    "publishCta": "Publish mine",
     "title": "❤️💚 Just Health: When you take care of your health, you're also protecting the most valuable thing you have: your time. Your ultimate non-renewable resource."
   },
   "moderation": {

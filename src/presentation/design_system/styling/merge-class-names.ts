@@ -9,7 +9,10 @@ import { extendTailwindMerge } from "tailwind-merge";
  * choca con `text-text-base` y descarta uno de los dos. El síntoma es un componente que se queda
  * literalmente sin clase de tamaño, y no lo ve nadie hasta que la página está en pantalla.
  *
- * Deben coincidir con los tokens `--text-*` declarados en `tokens/typography.css`.
+ * Deben coincidir con los tokens `--text-*` declarados en `tokens/typography.css`, y ahora hay una
+ * prueba que lo verifica: `fontSizeMerge.test.ts`. Faltaba `display` desde que el slice 10 lo
+ * añadió, y el síntoma fue exactamente el que este comentario anunciaba — el titular de la portada
+ * salía a tamaño de cuerpo, con `text-display` descartado del `class` y sin que nada fallara.
  */
 const FONT_SIZES = [
   "tiny",
@@ -20,6 +23,7 @@ const FONT_SIZES = [
   "heading-sm",
   "heading-md",
   "heading-lg",
+  "display",
 ] as const;
 
 /**
@@ -30,6 +34,8 @@ const TEXT_COLORS = [
   "text-base",
   "text-inverse",
   "text-support",
+  "text-muted",
+  "highlight",
   "pillar-sleep-ink",
   "pillar-nutrition-ink",
   "pillar-movement-ink",

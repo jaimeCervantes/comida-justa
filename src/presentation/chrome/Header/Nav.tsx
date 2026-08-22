@@ -107,8 +107,9 @@ function SectionControl({
        como una sola píldora, y el `hover` de cualquiera de los dos tiñe el conjunto porque en CSS
        el hover de un hijo también es hover del padre. */
     <div
-      className={`relative flex items-center justify-center rounded-full transition-colors ${active ? PILL_ACTIVE : "hover:bg-surface-elevation-2"
-        }`}
+      className={`relative flex items-center justify-center rounded-full transition-colors ${
+        active ? PILL_ACTIVE : "hover:bg-surface-elevation-2"
+      }`}
     >
       <NavigationMenu.Link asChild>
         <Link
@@ -273,8 +274,9 @@ export default function Nav({
             <Link
               href="/nosotros"
               aria-current={active === "about" ? "page" : undefined}
-              className={`${LINK_CLASS} ${active === "about" ? PILL_ACTIVE : PILL_IDLE
-                }`}
+              className={`${LINK_CLASS} ${
+                active === "about" ? PILL_ACTIVE : PILL_IDLE
+              }`}
             >
               {t("about")}
             </Link>

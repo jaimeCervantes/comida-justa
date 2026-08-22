@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { hasLocale } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import HomeHero from "~/app/(home)/HomeHero";
 import { homeFeedKey } from "~/app/(home)/homeFeedKey";
 import PostsWithLoadMore from "~/app/(home)/PostsWithLoadMore";
 import {
@@ -26,6 +27,7 @@ import { categoryKeysForActivePublicationPillar } from "~/infra/dataAccess/posts
 import { readViewerLocationContext } from "~/infra/location/viewerLocationContext";
 import { mapPostsToCardsForLocale } from "~/infra/UI/mappers/posts/mapPostsToCardsForLocale";
 import { localizedAlternates } from "~/infra/UI/metadata/alternates";
+import { Heading } from "~/presentation/design_system/typography/Heading";
 import JsonLd from "~/presentation/seo/JsonLd";
 
 export async function generateMetadata({
@@ -105,7 +107,10 @@ export default async function Inicio({
   const currentPillar = parsePublicationPillar(pillar);
   setRequestLocale(locale);
   const viewerId = await readViewerId();
-  const t = await getTranslations({ locale, namespace: "home" });
+  const [t, tFeed] = await Promise.all([
+    getTranslations({ locale, namespace: "home" }),
+    getTranslations({ locale, namespace: "feed" }),
+  ]);
   const { visitor } = await readViewerLocationContext();
   const { posts, total, totalPages } = await getPosts(
     locale,
@@ -114,7 +119,7 @@ export default async function Inicio({
   );
 
   return (
-    <main className="space-y-8">
+    <main className="space-y-6">
       {/* Quién publica el sitio. Va en el home y no en el layout: repetir la organización en cada
           página no la hace más creíble, y aquí es donde un rastreador entra primero. */}
       <JsonLd
@@ -127,6 +132,16 @@ export default async function Inicio({
           inLanguage: locale,
         })}
       />
+
+      {/* La cifra sale del `total` que ya trajo la consulta del feed: la portada dice cuántas
+          publicaciones tiene delante quien mira, sin pagar una lectura extra. */}
+      <HomeHero publicationCount={total} />
+
+      {/* Lo que el feed es. Sin este encabezado, las tarjetas empiezan sin que nada las presente y
+          el filtro de pilares parece la cabecera de la página. */}
+      <Heading level={2} size="sm">
+        {tFeed("latestHeading")}
+      </Heading>
 
       {/* La `key` cubre lo que invalida el estado acumulado del feed: desde dónde se miden las
           distancias y qué pilar se pidió. El feed guarda páginas en cliente; sin remount, cambiar
