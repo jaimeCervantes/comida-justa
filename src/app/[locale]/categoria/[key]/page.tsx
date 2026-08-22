@@ -6,6 +6,7 @@ import { buildBreadcrumbJsonLd } from "~/domain/seo/jsonLd/breadcrumbs";
 import { resolveLocale } from "~/i18n/routing";
 import { readViewerId } from "~/infra/auth/readViewerId";
 import { PAGINATION_INIT_PAGE } from "~/infra/constants";
+import { Heading } from "~/presentation/design_system/typography/Heading";
 import Breadcrumbs from "~/presentation/navigation/Breadcrumbs";
 import JsonLd from "~/presentation/seo/JsonLd";
 import { categoryBreadcrumbs } from "../../breadcrumbs";
@@ -74,9 +75,9 @@ export default async function CategoryPage({ params, searchParams }: Props) {
         className="mb-3"
       />
 
-      <h1 className="text-xl font-bold mb-2">
+      <Heading level={1} className="mb-2">
         {t("heading", { category: data.label })}
-      </h1>
+      </Heading>
 
       <p className="mb-2">{t("count", { total: data.total })}</p>
 

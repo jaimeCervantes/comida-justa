@@ -5,6 +5,7 @@ import { parsePublicationPillar } from "~/domain/entities/post/publicationPillar
 import { Link } from "~/i18n/navigation";
 import { resolveLocale } from "~/i18n/routing";
 import { readViewerId } from "~/infra/auth/readViewerId";
+import { Heading } from "~/presentation/design_system/typography/Heading";
 import { getPostsByCategory } from "../../data";
 import { buildCategoryMetadata } from "../../metadata";
 import CategoryPosts from "../../ui/CategoryPosts";
@@ -57,9 +58,9 @@ export default async function CategoryPaginatedPage({
 
   return (
     <main>
-      <h1 className="text-xl font-bold mb-2">
+      <Heading level={1} className="mb-2">
         {t("heading", { category: data.label })}
-      </h1>
+      </Heading>
 
       <CategoryPosts
         viewerId={viewerId}

@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import type { DirectoryKind } from "~/domain/entities/seller/directory";
 import { Link } from "~/i18n/navigation";
+import { Heading } from "~/presentation/design_system/typography/Heading";
 import StoreSummaryCard from "~/presentation/directory/StoreSummaryCard";
 import { storeHref } from "../cuenta/storePath";
 import { listDirectory } from "./data";
@@ -30,7 +31,9 @@ export default async function DirectorySection({
 
   return (
     <main>
-      <h1 className="text-2xl font-bold mb-3">{heading}</h1>
+      <Heading level={1} className="mb-3">
+        {heading}
+      </Heading>
       <p className="mb-6 max-w-3xl">{intro}</p>
 
       {/* Lo que sale queda fuera de tu radio sostenible. Decirlo es la diferencia entre "no hay

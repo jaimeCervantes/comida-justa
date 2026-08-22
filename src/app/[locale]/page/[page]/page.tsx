@@ -22,6 +22,7 @@ import type { Post } from "~/infra/types/Posts";
 import { mapPostsToCardsForLocale } from "~/infra/UI/mappers/posts/mapPostsToCardsForLocale";
 import { localizedAlternates } from "~/infra/UI/metadata/alternates";
 import { CARD_MASONRY } from "~/presentation/design_system/surfaces/cardList";
+import { Heading } from "~/presentation/design_system/typography/Heading";
 import Pagination from "~/presentation/navigation/Pagination";
 import CardForList from "~/presentation/post/CardForList/CardForList";
 import PublicationPillarFilter from "~/presentation/post/PublicationPillarFilter";
@@ -113,9 +114,9 @@ export default async function PaginatedPage({ params, searchParams }: Props) {
 
   return (
     <main>
-      <h1 className="text-xl font-bold">
+      <Heading level={1}>
         {t("pageHeading", { brand: PUBLIC_BRAND_NAME })}
-      </h1>
+      </Heading>
 
       <PublicationPillarFilter currentPillar={currentPillar} pathname="/" />
 

@@ -4,6 +4,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { resolveLocale } from "~/i18n/routing";
 import { PUBLIC_BRAND_NAME } from "~/infra/constants";
 import { PILLAR_SHORT_KEYS } from "~/presentation/chrome/Header/menuItems";
+import { Heading } from "~/presentation/design_system/typography/Heading";
 import { buildAboutMetadata } from "./metadata";
 
 export async function generateMetadata({
@@ -42,9 +43,9 @@ export default async function NosotrosPage({
   return (
     <main className="py-12 space-y-16">
       <header className="text-center space-y-6">
-        <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-balance">
+        <Heading level={1} size="display">
           {t("metaTitle", { brand })}
-        </h1>
+        </Heading>
         <p className="text-lg sm:text-xl text-text-support text-balance max-w-2xl mx-auto">
           {t("metaSubtitle")}
         </p>

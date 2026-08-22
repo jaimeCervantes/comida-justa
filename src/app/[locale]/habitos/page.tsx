@@ -10,6 +10,7 @@ import { resolveLocale } from "~/i18n/routing";
 import { readViewerId } from "~/infra/auth/readViewerId";
 import { createHabitLeagueRepository } from "~/infra/dataAccess/habits/PostgresHabitLeagueRepository";
 import { localizedAlternates } from "~/infra/UI/metadata/alternates";
+import { Heading } from "~/presentation/design_system/typography/Heading";
 import HabitLeagueUseCase from "~/use_cases/habits/habitLeagueUseCase";
 import { setHabitLeagueOptIn } from "./leagueActions";
 
@@ -46,9 +47,9 @@ export default async function AtomicChallengesPage({
         <p className="text-sm font-bold uppercase tracking-[0.18em] text-pw-green">
           {t("eyebrow")}
         </p>
-        <h1 className="mt-2 text-4xl font-black text-text-strong">
+        <Heading level={1} size="display" className="mt-2">
           {t("indexTitle")}
-        </h1>
+        </Heading>
         <p className="mt-4 max-w-3xl text-lg text-body">{t("indexIntro")}</p>
       </header>
 

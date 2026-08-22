@@ -202,3 +202,89 @@ en el `class`.
 1. **Slice 3 del chrome — una sola fila de acciones** en el header, lo último del 5.1.
 2. **Las pantallas 5.6–5.9** (pilar, búsqueda, comunidad, acceso), que v2 dejó registradas.
 3. **Material de portada**: la foto 4:3, cuando exista el archivo.
+
+---
+
+## Slice 3 — Todas las secciones toman la escala tipográfica (2026-08-21)
+
+### Objetivo
+
+Que el resto del sitio hable con la misma voz que estrenó la portada, en vez de que cada página
+decida su propio tamaño de título.
+
+### Lo que había
+
+**18 títulos de página con 6 tratamientos distintos**: `text-xl font-bold`, `text-2xl font-bold`,
+`text-xl` a secas (sin peso), `text-4xl font-black`, `text-4xl sm:text-5xl font-extrabold` y
+`text-2xl md:text-3xl font-bold`. En total, 51 encabezados crudos en el árbol frente a 28 archivos
+que sí consumían `Heading`: la escala estaba a medio adoptar, que es la peor mitad — existe, y aun
+así cada página vuelve a decidir.
+
+### Decisiones y por qué
+
+1. **Todos los títulos públicos pasan a `Heading level={1}`.** El primitivo ya separa nivel de
+   tamaño y deduce el tamaño del nivel: `lg` es Newsreader a 40px y peso 400, que es lo que su
+   propio docstring reservaba para «lo que la marca afirma».
+
+2. **`/nosotros` y `/habitos` piden `size="display"`.** Son las dos portadas de contenido del sitio
+   y ya iban a `text-4xl`/`text-5xl` a mano; ahora piden el tamaño por su nombre.
+
+3. **Los márgenes se conservan.** `mb-2`, `my-4`, `mb-6`, `mb-3`, `mb-4` viajan en `className`: lo
+   que cambia es la voz, no la maqueta.
+
+4. **El admin se queda fuera.** El canvas no tiene pantalla de administración, y sus tres páginas
+   son tablas densas donde un título de 40px en serif se come una pantalla útil. No es una excepción
+   por gusto: es que no están en el alcance del rediseño.
+
+### El spec que llevaba en rojo desde el slice 6
+
+`headingHierarchy.spec.ts` afirmaba «ninguna sección pesa más que el título de la página»
+comparando los dos `font-weight` en crudo. **Fallaba con el árbol limpio**, antes de tocar nada
+—comprobado con `git stash`—: desde el slice 6 el título va en Newsreader a 400 (una serif editorial
+a peso normal se lee como una afirmación, y por eso `lg` perdió su `font-extrabold`) y las secciones
+siguen en Plus Jakarta a 700. Un 400 de serif display no es «más ligero» que un 700 de sans: son dos
+voces, y el número no las compara.
+
+El spec contradecía la decisión que el propio design system había tomado, así que cambió de
+instrumento sin cambiar de intención: ahora afirma que el título **es más grande y habla con la voz
+de la marca**, mientras la sección habla con la de la interfaz. Es la regla del slice 6 hecha
+verificable.
+
+### Archivos tocados
+
+16 páginas y componentes de `src/app/[locale]/` —`buscar`, `categoria` (×2), `cuenta` (×2),
+`cuenta/agenda` (×2), `directorio`, `editar`, `eventos` (×2), `habitos`, `nosotros`, `not-found`,
+`page/[page]`, `productos` (×2), `publicar`— más `src/e2e/design-system/headingHierarchy.spec.ts`.
+
+### Validación
+
+| Comando | Resultado |
+| --- | --- |
+| `pnpm exec vitest --run` | 203 archivos, **2191 pruebas** en verde |
+| `pnpm run typecheck` · `lint` | limpios (962 archivos) |
+| `pnpm run build` | compila; `/`, `/productos`, `/buscar`, `/eventos`, `/nosotros` responden 200 |
+| `pnpm exec playwright test src/e2e/design-system` | **6/6 en verde** |
+
+Medido en el navegador: `/productos` y `/buscar` dan `40px`, `Newsreader`, peso `400`. Y
+`grep '<h1' src/app/[locale]` fuera de admin devuelve **cero**.
+
+### Nota de entorno
+
+`notFound.spec.ts` cayó con «Connection terminated due to connection timeout» contra la base
+compartida, en la misma ventana en que fallaron dos builds por no poder bajar las fuentes de Google.
+Es la red, no el código.
+
+### Recap
+
+El sitio entero habla ya con una sola voz tipográfica: dieciocho títulos que decidían su tamaño uno
+por uno pasan a pedirlo por su nombre, y no queda un solo `<h1>` crudo en las páginas públicas. De
+paso salió a la luz un spec que llevaba rojo desde el slice 6 porque comparaba pesos entre dos
+tipografías distintas; ahora verifica la regla que el design system sí tomó — el título es más
+grande y habla con la voz de la marca.
+
+### Próximos pasos (opciones)
+
+1. **Los 33 encabezados crudos que quedan** (`h2`/`h3`/`h4` dentro de páginas y componentes), para
+   cerrar la adopción de la escala.
+2. **Las pantallas 5.6–5.9** (pilar, búsqueda, comunidad, acceso), que v2 dejó registradas.
+3. **Slice 4 del chrome** — el filtro de pilares subido a la barra, junto a la ubicación.

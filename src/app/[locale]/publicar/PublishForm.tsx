@@ -13,6 +13,7 @@ import { Alert } from "~/presentation/design_system/feedback/Alert";
 import { Select } from "~/presentation/design_system/forms/Select";
 import { TextArea } from "~/presentation/design_system/forms/TextArea";
 import { TextField } from "~/presentation/design_system/forms/TextField";
+import { Heading } from "~/presentation/design_system/typography/Heading";
 import { ValidatedForm } from "~/presentation/forms/ValidatedForm";
 import PostMediaField from "~/presentation/media/PostMediaField/PostMediaField";
 import EventTimeZoneField, {
@@ -71,7 +72,9 @@ export default function PublishForm({
 
   return (
     <section className="p-4">
-      <h1 className="text-xl mb-4">{t("heading")}</h1>
+      <Heading level={1} className="mb-4">
+        {t("heading")}
+      </Heading>
 
       {/* Era un `<h2>` en rojo: sin `role`, un lector de pantalla no anunciaba nada, y quien no
           distingue el rojo no tenía forma de saber que aquello era un error. `Alert` pone el

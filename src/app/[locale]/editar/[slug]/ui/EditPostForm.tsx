@@ -13,6 +13,7 @@ import { Alert } from "~/presentation/design_system/feedback/Alert";
 import { Select } from "~/presentation/design_system/forms/Select";
 import { TextArea } from "~/presentation/design_system/forms/TextArea";
 import { TextField } from "~/presentation/design_system/forms/TextField";
+import { Heading } from "~/presentation/design_system/typography/Heading";
 import { ValidatedForm } from "~/presentation/forms/ValidatedForm";
 import PostMediaField, {
   type PostMediaFieldItem,
@@ -87,7 +88,9 @@ export default function EditPostForm({
 
   return (
     <section>
-      <h1 className="text-xl mb-4">{t("heading")}</h1>
+      <Heading level={1} className="mb-4">
+        {t("heading")}
+      </Heading>
 
       {errorMessage ? (
         <Alert

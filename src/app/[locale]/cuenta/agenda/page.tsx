@@ -7,6 +7,7 @@ import { auth } from "~/infra/auth";
 import { SIGNIN_PATH } from "~/infra/constants";
 import { createScheduleRepository } from "~/infra/dataAccess/schedule/factory";
 import { createSellerRepository } from "~/infra/dataAccess/sellers/factory";
+import { Heading } from "~/presentation/design_system/typography/Heading";
 import ScheduleForm, { type ScheduleLabels } from "./ui/ScheduleForm";
 import TimeOffList from "./ui/TimeOffList";
 
@@ -43,7 +44,9 @@ export default async function AgendaPage({
   if (!seller) {
     return (
       <main>
-        <h1 className="text-xl font-bold mb-2">{t("scheduleHeading")}</h1>
+        <Heading level={1} className="mb-2">
+          {t("scheduleHeading")}
+        </Heading>
         <p data-testid="schedule-needs-store">{t("scheduleNeedsStore")}</p>
       </main>
     );
@@ -78,7 +81,9 @@ export default async function AgendaPage({
 
   return (
     <main>
-      <h1 className="text-xl font-bold mb-2">{t("scheduleHeading")}</h1>
+      <Heading level={1} className="mb-2">
+        {t("scheduleHeading")}
+      </Heading>
       <p className="mb-6 text-text-support">{t("scheduleIntro")}</p>
 
       <ScheduleForm initial={hours} labels={labels} />

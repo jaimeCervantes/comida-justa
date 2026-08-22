@@ -10,6 +10,7 @@ import {
   findProfileOfUser,
   findSellerOfUser,
 } from "~/infra/dataAccess/identity/sessionIdentity";
+import { Heading } from "~/presentation/design_system/typography/Heading";
 import BranchList from "~/presentation/directory/BranchList/BranchList";
 import {
   addBranch,
@@ -86,7 +87,9 @@ export default async function CuentaPage({
   if (!seller) {
     return (
       <main>
-        <h1 className="text-xl font-bold mb-6">{t("heading")}</h1>
+        <Heading level={1} className="mb-6">
+          {t("heading")}
+        </Heading>
 
         <div className={COLUMNS}>
           <BecomeSellerForm action={becomeSeller} defaultName={user.name} />
@@ -100,7 +103,9 @@ export default async function CuentaPage({
 
   return (
     <main>
-      <h1 className="text-xl font-bold mb-6">{t("heading")}</h1>
+      <Heading level={1} className="mb-6">
+        {t("heading")}
+      </Heading>
 
       <div className={COLUMNS}>
         {/* Lo que se reparte. */}

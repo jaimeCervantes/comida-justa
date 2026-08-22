@@ -5,6 +5,7 @@ import { parsePublicationPillar } from "~/domain/entities/post/publicationPillar
 import { Link } from "~/i18n/navigation";
 import { resolveLocale } from "~/i18n/routing";
 import { readViewerId } from "~/infra/auth/readViewerId";
+import { Heading } from "~/presentation/design_system/typography/Heading";
 import StoresMap from "~/presentation/location/StoresMap";
 import { getProducts } from "../../data";
 import { buildProductsMetadata } from "../../metadata";
@@ -54,7 +55,9 @@ export default async function ProductosPaginatedPage({
 
   return (
     <main>
-      <h1 className="text-xl font-bold mb-2">{t("title")}</h1>
+      <Heading level={1} className="mb-2">
+        {t("title")}
+      </Heading>
 
       <p className="mb-2">{t("description")}</p>
 

@@ -3,6 +3,7 @@ import Image from "next/image";
 import { getTranslations } from "next-intl/server";
 import { Link } from "~/i18n/navigation";
 import { Button } from "~/presentation/design_system/buttons/Button";
+import { Heading } from "~/presentation/design_system/typography/Heading";
 
 export default async function NotFound() {
   const t = await getTranslations("notFound");
@@ -11,7 +12,7 @@ export default async function NotFound() {
 
   return (
     <section className="flex flex-col justify-center gap-4 items-center">
-      <h1 className="text-2xl md:text-3xl font-bold">{t("heading")}</h1>
+      <Heading level={1}>{t("heading")}</Heading>
 
       <h2 className="text-xl md:text-2xl font-bold hidden md:block">
         {t("subtitle")}

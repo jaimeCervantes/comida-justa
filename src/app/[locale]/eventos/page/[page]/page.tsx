@@ -4,6 +4,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "~/i18n/navigation";
 import { resolveLocale } from "~/i18n/routing";
 import { readViewerId } from "~/infra/auth/readViewerId";
+import { Heading } from "~/presentation/design_system/typography/Heading";
 import { getEvents } from "../../data";
 import { buildEventsMetadata } from "../../metadata";
 import EventsList from "../../ui/EventsList";
@@ -44,7 +45,9 @@ export default async function EventosPaginatedPage({ params }: Props) {
 
   return (
     <main>
-      <h1 className="mb-2 text-xl font-bold">{t("title")}</h1>
+      <Heading level={1} className="mb-2">
+        {t("title")}
+      </Heading>
       <p className="mb-2">{t("description")}</p>
 
       <EventsList

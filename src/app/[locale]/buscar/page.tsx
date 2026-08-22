@@ -7,6 +7,7 @@ import { resolveLocale } from "~/i18n/routing";
 import { readViewerId } from "~/infra/auth/readViewerId";
 import { mapPostsToCardsForLocale } from "~/infra/UI/mappers/posts/mapPostsToCardsForLocale";
 import { CARD_MASONRY } from "~/presentation/design_system/surfaces/cardList";
+import { Heading } from "~/presentation/design_system/typography/Heading";
 import Pagination from "~/presentation/navigation/Pagination";
 import CardForList from "~/presentation/post/CardForList/CardForList";
 import PublicationPillarFilter from "~/presentation/post/PublicationPillarFilter";
@@ -42,7 +43,9 @@ export default async function SearchPage({
 
   return (
     <>
-      <h1 className="text-2xl font-bold my-4">{t("resultsHeading")}</h1>
+      <Heading level={1} className="my-4">
+        {t("resultsHeading")}
+      </Heading>
       {q && (
         <div className="mb-4 text-text-support">
           {t("showingResultsFor")}{" "}
