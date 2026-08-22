@@ -18,4 +18,12 @@ export interface ISearchPostDTO {
   near?: Coordinates | null;
   /** Claves de taxonomía permitidas por el filtro de pilar. */
   categoryKeys?: readonly string[];
+  /**
+   * Deja fuera lo agotado.
+   *
+   * Es la única faceta de disponibilidad que el catálogo puede sostener: `is_available` existe en
+   * la base. El «envase retornable» que dibuja el 5.7 no tiene columna, y fingirlo sería inventar
+   * un modelo de datos desde la interfaz.
+   */
+  onlyAvailable?: boolean;
 }

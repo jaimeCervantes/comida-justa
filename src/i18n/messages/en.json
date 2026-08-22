@@ -1504,12 +1504,21 @@
     "unspecifiedOption": "— Unspecified —"
   },
   "search": {
+    "clearFilters": "Clear all",
     "empty": "No results",
+    "facetAvailability": "Availability",
+    "facetOnlyAvailable": "In stock only",
+    "facetPillar": "Pillar",
+    "facetsLabel": "Search filters",
+    "filterAvailable": "In stock only",
+    "filterQuery": "“{term}”",
     "noResults": "No results were found for your search.",
     "noResultsBody": "Try a shorter word, or look at the full catalogue: there are 31 listings and what you want may be called something else.",
     "noResultsCta": "See the whole catalogue",
     "placeholder": "Natural whey, keto donut, a hike…",
     "resultsHeading": "Search results",
+    "resultsSummary": "{count, plural, =0 {No results} =1 {# result} other {# results}}",
+    "semanticNote": "No exact matches, so this is the closest thing to what you asked for.",
     "seeAll": "See all results",
     "showingResultsFor": "Showing results for:"
   },

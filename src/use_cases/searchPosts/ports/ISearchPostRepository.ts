@@ -18,6 +18,8 @@ export interface ISearchPostRepository {
     locale?: string,
     near?: Coordinates | null,
     categoryKeys?: readonly string[],
+    /** `true` deja fuera lo agotado. `undefined` no filtra: es el estado por omisión. */
+    onlyAvailable?: boolean,
   ): Promise<{ results: ISearchPostResultDTO[]; total: number }>;
 
   /**
@@ -31,6 +33,23 @@ export interface ISearchPostRepository {
    * la búsqueda devolvería cualquier cosa disfrazada de resultado. Es el mismo error que
    * `getRelatedPosts` ya evitaba.
    */
+  /**
+   * Cuántos resultados de esta búsqueda caen en cada pilar, **sin aplicar el filtro de pilar**.
+   *
+   * Es lo que convierte el filtro en una faceta: un chip que dice «Alimentación 14» promete algo
+   * comprobable, y uno que dice «Mente y Espíritu 0» ahorra el clic que no lleva a ninguna parte.
+   * Se cuenta sobre el mismo texto que filtra la búsqueda textual — y solo tiene sentido cuando fue
+   * esa la que respondió: si contestó el rescate semántico es porque el texto no encontró nada, y
+   * entonces estos números serían todos cero al lado de resultados que sí existen.
+   *
+   * La clave es la **categoría raíz** de la publicación, que es el pilar: `alimentacion`,
+   * `sueno_y_descanso`, `movimiento_y_ejercicio`, `mente_y_espiritu`.
+   */
+  countByCategory(
+    query: string,
+    onlyAvailable?: boolean,
+  ): Promise<Readonly<Record<string, number>>>;
+
   searchByVector(
     embedding: readonly number[],
     page: number,
@@ -38,5 +57,6 @@ export interface ISearchPostRepository {
     maxDistance: number,
     near?: Coordinates | null,
     categoryKeys?: readonly string[],
+    onlyAvailable?: boolean,
   ): Promise<{ results: ISearchPostResultDTO[]; total: number }>;
 }

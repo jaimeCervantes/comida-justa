@@ -15,13 +15,20 @@ describe("SearchPostsUseCase", () => {
       search: vi.fn(),
       // El puerto tiene dos métodos desde el rescate semántico; faltaba este.
       searchByVector: vi.fn(),
+      // Y un tercero desde las facetas: cuántos resultados caen en cada pilar.
+      countByCategory: vi.fn().mockResolvedValue({}),
     };
     useCase = new SearchPostsUseCase(mockRepository);
   });
 
   it("should return empty results if query is empty", async () => {
     const result = await useCase.execute({ query: "", page: 1, pageSize: 10 });
-    expect(result).toEqual({ results: [], total: 0 });
+    expect(result).toEqual({
+      results: [],
+      total: 0,
+      strategy: "none",
+      counts: null,
+    });
     expect(mockRepository.search).not.toHaveBeenCalled();
   });
 
@@ -53,8 +60,14 @@ describe("SearchPostsUseCase", () => {
       undefined,
       null,
       undefined,
+      undefined,
     );
-    expect(result).toEqual({ results: mockResults, total: 1 });
+    expect(result).toEqual({
+      results: mockResults,
+      total: 1,
+      strategy: "text",
+      counts: {},
+    });
   });
 
   /*
@@ -75,6 +88,7 @@ describe("SearchPostsUseCase", () => {
       undefined,
       near,
       undefined,
+      undefined,
     );
   });
 
@@ -89,6 +103,7 @@ describe("SearchPostsUseCase", () => {
       6,
       undefined,
       null,
+      undefined,
       undefined,
     );
   });
@@ -110,6 +125,7 @@ describe("SearchPostsUseCase", () => {
       undefined,
       null,
       ["sueno_y_descanso", "rituales_de_sueno"],
+      undefined,
     );
   });
 });
@@ -127,6 +143,7 @@ describe("SearchPostsUseCase y el idioma de quien busca", () => {
   it("le pasa al repositorio en qué idioma se está leyendo", async () => {
     const repository: Mocked<ISearchPostRepository> = {
       search: vi.fn().mockResolvedValue({ results: [], total: 0 }),
+      countByCategory: vi.fn().mockResolvedValue({}),
       // Este escenario no llega al rescate semántico, pero el puerto lo exige: sin él, el doble no
       // es un repositorio de búsqueda y `tsc` deja de poder comprobar la llamada de abajo.
       searchByVector: vi.fn(),
@@ -145,6 +162,7 @@ describe("SearchPostsUseCase y el idioma de quien busca", () => {
       6,
       "en",
       null,
+      undefined,
       undefined,
     );
   });
@@ -168,6 +186,7 @@ describe("SearchPostsUseCase y el rescate semántico", () => {
     return {
       search: vi.fn().mockResolvedValue(textual),
       searchByVector: vi.fn().mockResolvedValue(vectorial),
+      countByCategory: vi.fn().mockResolvedValue({}),
     };
   }
 
@@ -248,7 +267,12 @@ describe("SearchPostsUseCase y el rescate semántico", () => {
       pageSize: 6,
     });
 
-    expect(result).toEqual({ results: [], total: 0 });
+    expect(result).toEqual({
+      results: [],
+      total: 0,
+      strategy: "none",
+      counts: null,
+    });
     expect(repository.searchByVector).not.toHaveBeenCalled();
   });
 
@@ -261,7 +285,12 @@ describe("SearchPostsUseCase y el rescate semántico", () => {
       pageSize: 6,
     });
 
-    expect(result).toEqual({ results: [], total: 0 });
+    expect(result).toEqual({
+      results: [],
+      total: 0,
+      strategy: "none",
+      counts: null,
+    });
     expect(repository.searchByVector).not.toHaveBeenCalled();
   });
 });
@@ -275,6 +304,7 @@ describe("SearchPostsUseCase y la medición", () => {
     return {
       search: vi.fn().mockResolvedValue(textual),
       searchByVector: vi.fn().mockResolvedValue(vectorial),
+      countByCategory: vi.fn().mockResolvedValue({}),
     };
   }
 
@@ -332,5 +362,122 @@ describe("SearchPostsUseCase y la medición", () => {
     ).execute({ query: "pan", page: 1, pageSize: 6 });
 
     expect(result.total).toBe(1);
+  });
+});
+
+/**
+ * Las facetas del 5.7: un chip que dice «Alimentación 14» promete algo comprobable, y uno que dice
+ * «0» ahorra el clic que no lleva a ninguna parte.
+ */
+describe("SearchPostsUseCase y las facetas", () => {
+  const unResultado = {
+    results: [{ id: "1" }] as unknown as ISearchPostResultDTO[],
+    total: 1,
+  };
+  const sinResultados = { results: [], total: 0 };
+
+  function makeRepo(
+    textual = unResultado,
+    counts: Record<string, number> | Error = {
+      alimentacion: 14,
+      sueno_y_descanso: 3,
+    },
+  ): Mocked<ISearchPostRepository> {
+    return {
+      search: vi.fn().mockResolvedValue(textual),
+      searchByVector: vi.fn().mockResolvedValue(sinResultados),
+      countByCategory:
+        counts instanceof Error
+          ? vi.fn().mockRejectedValue(counts)
+          : vi.fn().mockResolvedValue(counts),
+    };
+  }
+
+  it("cuenta por pilar cuando respondió la búsqueda textual", async () => {
+    const repository = makeRepo();
+
+    const result = await new SearchPostsUseCase(repository).execute({
+      query: "miel",
+      page: 1,
+      pageSize: 6,
+    });
+
+    expect(result.strategy).toBe("text");
+    expect(result.counts).toEqual({ alimentacion: 14, sueno_y_descanso: 3 });
+  });
+
+  /*
+   * La cuenta se hace **sin** el filtro de pilar: con él puesto, los otros tres saldrían en cero y
+   * la faceta no serviría para volver.
+   */
+  it("y cuenta sin aplicar el filtro de pilar", async () => {
+    const repository = makeRepo();
+
+    await new SearchPostsUseCase(repository).execute({
+      query: "miel",
+      page: 1,
+      pageSize: 6,
+      categoryKeys: ["sueno_y_descanso"],
+    });
+
+    expect(repository.countByCategory).toHaveBeenCalledWith("miel", undefined);
+  });
+
+  /*
+   * El rescate semántico solo entra si el texto no encontró nada, así que las cuentas del texto
+   * serían todas cero al lado de resultados que sí existen: mentirían.
+   */
+  it("se calla cuando respondió el rescate semántico", async () => {
+    const repository = makeRepo(sinResultados);
+    repository.searchByVector.mockResolvedValue(unResultado);
+
+    const embedder = {
+      generateEmbedding: vi.fn().mockResolvedValue([0.1, 0.2]),
+    };
+
+    const result = await new SearchPostsUseCase(repository, embedder).execute({
+      query: "algo para dormir",
+      page: 1,
+      pageSize: 6,
+    });
+
+    expect(result.strategy).toBe("semantic");
+    expect(result.counts).toBeNull();
+  });
+
+  /* Una faceta sin números sigue siendo un filtro que funciona: contar nunca tumba la búsqueda. */
+  it("si contar falla, los resultados llegan igual", async () => {
+    const repository = makeRepo(unResultado, new Error("se cayó la base"));
+
+    const result = await new SearchPostsUseCase(repository).execute({
+      query: "miel",
+      page: 1,
+      pageSize: 6,
+    });
+
+    expect(result.total).toBe(1);
+    expect(result.counts).toBeNull();
+  });
+
+  it("y el filtro de existencias viaja a las dos consultas", async () => {
+    const repository = makeRepo();
+
+    await new SearchPostsUseCase(repository).execute({
+      query: "miel",
+      page: 1,
+      pageSize: 6,
+      onlyAvailable: true,
+    });
+
+    expect(repository.search).toHaveBeenCalledWith(
+      "miel",
+      1,
+      6,
+      undefined,
+      null,
+      undefined,
+      true,
+    );
+    expect(repository.countByCategory).toHaveBeenCalledWith("miel", true);
   });
 });

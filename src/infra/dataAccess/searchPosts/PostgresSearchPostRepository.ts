@@ -203,6 +203,17 @@ function toMatches(rows: RankedRow[]): {
   };
 }
 
+/**
+ * Deja fuera lo agotado, si se pidió.
+ *
+ * `is_available` es la única faceta de disponibilidad que la base sostiene. Por omisión **no
+ * filtra**: quien busca «miel» por su nombre quiere ver la miel agotada también, aunque sea para
+ * enterarse de que existe y volver luego.
+ */
+function availableWhere(onlyAvailable: boolean | undefined) {
+  return onlyAvailable ? sql`p.is_available IS TRUE` : sql`TRUE`;
+}
+
 function categoryWhere(categoryKeys: readonly string[] | undefined) {
   if (categoryKeys === undefined) return sql`TRUE`;
   if (categoryKeys.length === 0) return sql`FALSE`;
@@ -224,6 +235,7 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
     locale: string = "es",
     near: Coordinates | null = null,
     categoryKeys?: readonly string[],
+    onlyAvailable?: boolean,
   ): Promise<{ results: ISearchPostResultDTO[]; total: number }> {
     const trimmed = query?.trim() ?? "";
     const { matches, total } = trimmed
@@ -234,8 +246,15 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
           locale,
           near,
           categoryKeys,
+          onlyAvailable,
         )
-      : await this.newestFirst(page, pageSize, near, categoryKeys);
+      : await this.newestFirst(
+          page,
+          pageSize,
+          near,
+          categoryKeys,
+          onlyAvailable,
+        );
 
     if (matches.length === 0) return { results: [], total };
 
@@ -249,6 +268,7 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
     maxDistance: number,
     near: Coordinates | null = null,
     categoryKeys?: readonly string[],
+    onlyAvailable?: boolean,
   ): Promise<{ results: ISearchPostResultDTO[]; total: number }> {
     const { matches, total } = await this.semanticMatches(
       embedding,
@@ -257,6 +277,7 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
       maxDistance,
       near,
       categoryKeys,
+      onlyAvailable,
     );
 
     if (matches.length === 0) return { results: [], total };
@@ -309,6 +330,7 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
     locale: string,
     near: Coordinates | null,
     categoryKeys: readonly string[] | undefined,
+    onlyAvailable: boolean | undefined,
   ): Promise<{ matches: RankedMatch[]; total: number }> {
     const offset = Math.max(0, (page - 1) * pageSize);
 
@@ -342,7 +364,7 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
         FROM post_translations t
         WHERE t.post_id = p.id AND ${matchesQuery(query)}
       ) r ON r.relevance IS NOT NULL
-      WHERE ${PUBLISHED_POSTS} AND ${categoryWhere(categoryKeys)}
+      WHERE ${PUBLISHED_POSTS} AND ${categoryWhere(categoryKeys)} AND ${availableWhere(onlyAvailable)}
       ORDER BY
         r.own_relevance DESC NULLS LAST,
         r.relevance DESC,
@@ -382,6 +404,7 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
     maxDistance: number,
     near: Coordinates | null,
     categoryKeys: readonly string[] | undefined,
+    onlyAvailable: boolean | undefined,
   ): Promise<{ matches: RankedMatch[]; total: number }> {
     const offset = Math.max(0, (page - 1) * pageSize);
     const vector = `[${embedding.join(",")}]`;
@@ -404,11 +427,60 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
       WHERE ${PUBLISHED_POSTS}
         AND v.dist <= ${maxDistance}
         AND ${categoryWhere(categoryKeys)}
+        AND ${availableWhere(onlyAvailable)}
       ORDER BY v.dist ASC, p.id
       LIMIT ${pageSize} OFFSET ${offset}
     `);
 
     return toMatches(raw.rows as unknown as RankedRow[]);
+  }
+
+  /**
+   * Cuántos resultados caen en cada pilar, **sin el filtro de pilar aplicado**.
+   *
+   * Es el mismo `WHERE` de `rankedMatches` menos la categoría: la faceta tiene que contar lo que
+   * habría **si soltaras** ese filtro, no lo que queda con él puesto. Sin eso, elegir «Sueño»
+   * dejaría los otros tres en cero y la faceta no serviría para volver.
+   *
+   * Una sola pasada agrupada, no cuatro consultas: `GROUP BY p.category` sobre la misma unión que
+   * ya sabe filtrar. Y sin `ORDER BY` ni `LIMIT`, que aquí no pintan nada.
+   *
+   * **Solo vale cuando respondió la búsqueda textual.** El rescate semántico solo entra si el texto
+   * no encontró nada, así que en ese caso estos números serían todos cero al lado de resultados que
+   * sí existen; quien llama es responsable de no enseñarlos entonces (`SearchPostsUseCase`).
+   */
+  async countByCategory(
+    query: string,
+    onlyAvailable?: boolean,
+  ): Promise<Readonly<Record<string, number>>> {
+    const trimmed = query?.trim() ?? "";
+    if (!trimmed) return {};
+
+    const raw = await db.execute(sql`
+      SELECT p.category AS category, COUNT(*)::int AS total
+      FROM posts p
+      JOIN LATERAL (
+        SELECT 1
+        FROM post_translations t
+        WHERE t.post_id = p.id AND ${matchesQuery(trimmed)}
+        LIMIT 1
+      ) r ON TRUE
+      WHERE ${PUBLISHED_POSTS} AND ${availableWhere(onlyAvailable)}
+      GROUP BY p.category
+    `);
+
+    const rows = raw.rows as unknown as Array<{
+      category: string | null;
+      total: number;
+    }>;
+
+    return Object.fromEntries(
+      rows
+        .filter((row): row is { category: string; total: number } =>
+          Boolean(row.category),
+        )
+        .map((row) => [row.category, Number(row.total)]),
+    );
   }
 
   /** Sin término no hay relevancia que medir: lo más cercano y, si no, lo más reciente. */
@@ -417,6 +489,7 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
     pageSize: number,
     near: Coordinates | null,
     categoryKeys: readonly string[] | undefined,
+    onlyAvailable: boolean | undefined,
   ): Promise<{ matches: RankedMatch[]; total: number }> {
     const offset = Math.max(0, (page - 1) * pageSize);
 
@@ -426,7 +499,7 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
         ${distanceColumn(near)} AS distance_meters,
         COUNT(*) OVER()::int AS total_count
       FROM posts p
-      WHERE ${PUBLISHED_POSTS} AND ${categoryWhere(categoryKeys)}
+      WHERE ${PUBLISHED_POSTS} AND ${categoryWhere(categoryKeys)} AND ${availableWhere(onlyAvailable)}
       ORDER BY
         distance_meters ASC NULLS LAST,
         p.created_at DESC,

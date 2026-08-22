@@ -7,8 +7,10 @@ import {
 } from "~/infra/dataAccess/searchPosts/factory";
 import { readVisitorLocation } from "~/infra/location/visitorLocation";
 import { createEmbeddingService } from "~/infra/services/factory";
-import type { ISearchPostResultDTO } from "~/use_cases/searchPosts/dtos/ISearchPostResultDTO";
-import { SearchPostsUseCase } from "~/use_cases/searchPosts/SearchPostsUseCase";
+import {
+  type SearchPostsResult,
+  SearchPostsUseCase,
+} from "~/use_cases/searchPosts/SearchPostsUseCase";
 
 /** Las dos rutas de búsqueda enseñan lo mismo con distinta plantilla; el tamaño de página también. */
 export const SEARCH_PAGE_SIZE = 6;
@@ -29,8 +31,11 @@ export const searchPosts = cache(async function searchPosts(
   page: number,
   locale: string,
   currentPillar: PublicationPillar | null,
-): Promise<{ results: ISearchPostResultDTO[]; total: number }> {
-  if (!query) return { results: [], total: 0 };
+  onlyAvailable = false,
+): Promise<SearchPostsResult> {
+  if (!query) {
+    return { results: [], total: 0, strategy: "none", counts: null };
+  }
 
   const useCase = new SearchPostsUseCase(
     createSearchPostRepository(),
@@ -45,5 +50,6 @@ export const searchPosts = cache(async function searchPosts(
     locale,
     near: await readVisitorLocation(),
     categoryKeys: await categoryKeysForActivePublicationPillar(currentPillar),
+    onlyAvailable,
   });
 });

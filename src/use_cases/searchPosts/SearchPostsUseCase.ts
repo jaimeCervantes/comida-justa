@@ -6,6 +6,22 @@ import type IEmbeddingService from "~/use_cases/common/ports/IEmbeddingService";
 import type { ISearchPostDTO } from "./dtos/ISearchPostDTO";
 import type { ISearchPostResultDTO } from "./dtos/ISearchPostResultDTO";
 import type { ISearchPostRepository } from "./ports/ISearchPostRepository";
+
+/**
+ * Lo que la búsqueda devuelve, con lo que hace falta para pintar sus facetas.
+ *
+ * `strategy` sale a la superficie porque cambia lo que se puede afirmar: con `"semantic"` los
+ * resultados se parecen al **sentido** de lo escrito, no a sus palabras, y los contadores del texto
+ * no los describen.
+ */
+export interface SearchPostsResult {
+  results: ISearchPostResultDTO[];
+  total: number;
+  strategy: SearchStrategy;
+  /** Resultados por categoría raíz, o `null` cuando no se pueden afirmar. */
+  counts: Readonly<Record<string, number>> | null;
+}
+
 import type ISearchReporter from "./ports/ISearchReporter";
 
 /**
@@ -37,31 +53,64 @@ export class SearchPostsUseCase {
     private readonly reporter?: ISearchReporter,
   ) {}
 
-  async execute(
-    dto: ISearchPostDTO,
-  ): Promise<{ results: ISearchPostResultDTO[]; total: number }> {
+  /**
+   * Los resultados, y **cuántos habría en cada pilar si soltaras ese filtro**.
+   *
+   * `countByCategory` es lo que convierte el filtro de pilar en una faceta: un chip que dice
+   * «Alimentación 14» promete algo comprobable, y uno que dice «0» ahorra el clic que no lleva a
+   * ninguna parte. Se cuenta **sin** el filtro de pilar a propósito — con él puesto, los otros tres
+   * saldrían en cero y la faceta no serviría para volver.
+   *
+   * **Solo se cuenta cuando respondió la búsqueda textual.** El rescate semántico solo entra si el
+   * texto no encontró nada, así que ahí estos números serían todos cero al lado de resultados que
+   * sí existen: mentirían. `counts` vuelve `null` y quien pinta no enseña ninguno.
+   *
+   * La cuenta va en paralelo con la búsqueda, no después: son dos consultas independientes sobre el
+   * mismo texto, y encadenarlas sumaría su latencia por nada.
+   */
+  async execute(dto: ISearchPostDTO): Promise<SearchPostsResult> {
     if (!dto.query) {
-      return { results: [], total: 0 };
+      return { results: [], total: 0, strategy: "none", counts: null };
     }
 
-    const textual = await this.postRepository.search(
-      dto.query,
-      dto.page,
-      dto.pageSize,
-      dto.locale,
-      dto.near ?? null,
-      dto.categoryKeys,
-    );
+    const [textual, counts] = await Promise.all([
+      this.postRepository.search(
+        dto.query,
+        dto.page,
+        dto.pageSize,
+        dto.locale,
+        dto.near ?? null,
+        dto.categoryKeys,
+        dto.onlyAvailable,
+      ),
+      this.countByCategory(dto),
+    ]);
 
     if (textual.total > 0) {
       this.report(dto, "text", textual.total);
-      return textual;
+      return { ...textual, strategy: "text", counts };
     }
 
     const rescued = await this.rescueSemantically(dto);
-    this.report(dto, rescued.total > 0 ? "semantic" : "none", rescued.total);
+    const strategy: SearchStrategy = rescued.total > 0 ? "semantic" : "none";
+    this.report(dto, strategy, rescued.total);
 
-    return rescued;
+    /* Con el rescate semántico las cuentas del texto no describen estos resultados. Se callan. */
+    return { ...rescued, strategy, counts: null };
+  }
+
+  /** Nunca interrumpe: una faceta sin números sigue siendo un filtro que funciona. */
+  private async countByCategory(
+    dto: ISearchPostDTO,
+  ): Promise<Readonly<Record<string, number>> | null> {
+    try {
+      return await this.postRepository.countByCategory(
+        dto.query,
+        dto.onlyAvailable,
+      );
+    } catch {
+      return null;
+    }
   }
 
   /**

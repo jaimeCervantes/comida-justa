@@ -1504,12 +1504,21 @@
     "unspecifiedOption": "— Sin especificar —"
   },
   "search": {
+    "clearFilters": "Limpiar todo",
     "empty": "Sin resultados",
+    "facetAvailability": "Disponibilidad",
+    "facetOnlyAvailable": "Solo con existencia",
+    "facetPillar": "Pilar",
+    "facetsLabel": "Filtros de la búsqueda",
+    "filterAvailable": "Solo con existencia",
+    "filterQuery": "«{term}»",
     "noResults": "No se encontraron resultados para tu búsqueda.",
     "noResultsBody": "Prueba con una palabra más corta o mira el catálogo completo: son 31 publicaciones y puede que lo que buscas se llame de otra forma.",
     "noResultsCta": "Ver todo el catálogo",
     "placeholder": "Suero natural, dona keto, una caminata…",
     "resultsHeading": "Resultados de búsqueda",
+    "resultsSummary": "{count, plural, =0 {Sin resultados} =1 {# resultado} other {# resultados}}",
+    "semanticNote": "No hubo coincidencias exactas, así que esto es lo más parecido a lo que pediste.",
     "seeAll": "Ver todos los resultados",
     "showingResultsFor": "Mostrando resultados para:"
   },

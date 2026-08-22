@@ -13,9 +13,10 @@ import { CARD_MASONRY } from "~/presentation/design_system/surfaces/cardList";
 import { Heading } from "~/presentation/design_system/typography/Heading";
 import Pagination from "~/presentation/navigation/Pagination";
 import CardForList from "~/presentation/post/CardForList/CardForList";
-import PublicationPillarFilter from "~/presentation/post/PublicationPillarFilter";
 import { publicationPillarEmptyMessage } from "~/presentation/post/publicationPillarEmptyMessage";
 import { SEARCH_PAGE_SIZE, searchPosts } from "./data";
+import SearchFacets, { ONLY_AVAILABLE_PARAM } from "./ui/SearchFacets";
+import SearchSummary from "./ui/SearchSummary";
 
 /**
  * Esta ruta se sirve como `/buscar` en español y `/search` en inglés; lo decide `pathnames` en
@@ -28,10 +29,18 @@ export default async function SearchPage({
   searchParams,
   params,
 }: {
-  searchParams: Promise<{ q?: string; page?: string; pillar?: string }>;
+  searchParams: Promise<{
+    q?: string;
+    page?: string;
+    pillar?: string;
+    disponibles?: string;
+  }>;
   params: Promise<{ locale: string }>;
 }) {
-  const { q = "", page = "1", pillar } = await searchParams;
+  const { q = "", page = "1", pillar, disponibles } = await searchParams;
+  /* La faceta vive en la dirección, así que se comparte, se guarda y vuelve con el botón de atrás.
+     Cualquier valor la enciende: es un interruptor, no un dato. */
+  const onlyAvailable = Boolean(disponibles);
   const { locale: rawLocale } = await params;
   const locale = resolveLocale(rawLocale);
   const currentPillar = parsePublicationPillar(pillar);
@@ -40,7 +49,13 @@ export default async function SearchPage({
   const t = await getTranslations("search");
   const pillarT = await getTranslations("publicationPillars");
   const pageInt = parseInt(page || "1", 10);
-  const data = await searchPosts(q, pageInt, locale, currentPillar);
+  const data = await searchPosts(
+    q,
+    pageInt,
+    locale,
+    currentPillar,
+    onlyAvailable,
+  );
   const cards = await mapPostsToCardsForLocale(data.results, locale);
   const totalPages = Math.ceil(data.total / SEARCH_PAGE_SIZE);
 
@@ -60,46 +75,71 @@ export default async function SearchPage({
           </span>
         </div>
       )}
-      <PublicationPillarFilter
-        currentPillar={currentPillar}
-        pathname="/buscar"
-        query={{ q }}
-      />
-      {q && cards.length === 0 && (
-        <EmptyState
-          testId="search-empty"
-          title={publicationPillarEmptyMessage({
-            currentPillar,
-            fallback: t("noResults"),
-            t: pillarT,
-          })}
-          action={
-            <Link
-              href="/productos"
-              /* `default` y no `white`: la tarjeta del vacío ya es blanca, y el relleno blanco
+
+      {/* Cuántos son, y con qué filtros puestos. El 5.7 lo pone antes que nada: es lo que dice si
+          hace falta afinar o soltar. */}
+      {q ? (
+        <SearchSummary
+          query={q}
+          total={data.total}
+          currentPillar={currentPillar}
+          onlyAvailable={onlyAvailable}
+          isSemantic={data.strategy === "semantic"}
+        />
+      ) : null}
+
+      <div className="mt-4 grid gap-6 lg:grid-cols-[minmax(0,240px)_minmax(0,1fr)] lg:items-start">
+        {/* Las facetas solo tienen sentido con algo que filtrar. */}
+        {q ? (
+          <SearchFacets
+            query={q}
+            currentPillar={currentPillar}
+            onlyAvailable={onlyAvailable}
+            counts={data.counts}
+          />
+        ) : null}
+
+        <div>
+          {q && cards.length === 0 && (
+            <EmptyState
+              testId="search-empty"
+              title={publicationPillarEmptyMessage({
+                currentPillar,
+                fallback: t("noResults"),
+                t: pillarT,
+              })}
+              action={
+                <Link
+                  href="/productos"
+                  /* `default` y no `white`: la tarjeta del vacío ya es blanca, y el relleno blanco
                  dejaba el botón sin silueta. */
-              className={buttonVariants({ color: "default", size: "sm" })}
+                  className={buttonVariants({ color: "default", size: "sm" })}
+                >
+                  {t("noResultsCta")}
+                </Link>
+              }
             >
-              {t("noResultsCta")}
-            </Link>
-          }
-        >
-          {t("noResultsBody")}
-        </EmptyState>
-      )}
-      <section className={`${CARD_MASONRY} pt-6`}>
-        {cards.map((card) => (
-          <CardForList key={card.id} {...card} viewerId={viewerId} />
-        ))}
-      </section>
+              {t("noResultsBody")}
+            </EmptyState>
+          )}
+          <section className={`${CARD_MASONRY} pt-6`}>
+            {cards.map((card) => (
+              <CardForList key={card.id} {...card} viewerId={viewerId} />
+            ))}
+          </section>
+        </div>
+      </div>
       <Pagination
         currentPage={pageInt}
         totalPages={totalPages}
         pathname="/buscar"
         pageQueryParam="page"
+        /* La faceta de existencias viaja con la paginación: sin ella, pasar de página soltaba el
+           filtro y la página 2 enseñaba resultados que la 1 había escondido. */
         query={{
           q,
           [PUBLICATION_PILLAR_QUERY_PARAM]: currentPillar ?? undefined,
+          [ONLY_AVAILABLE_PARAM]: onlyAvailable ? "1" : undefined,
         }}
       />
     </>
