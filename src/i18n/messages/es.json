@@ -564,6 +564,8 @@
     "backToCategory": "Volver a {category}",
     "count": "{total, plural, =0 {Sin publicaciones} one {# publicación} other {# publicaciones}}",
     "empty": "Todavía no hay nada publicado en {category}.",
+    "emptyBody": "Las categorías se llenan solas conforme la comunidad publica. Mientras tanto, el catálogo completo sí tiene cosas.",
+    "emptyCta": "Ver todo el catálogo",
     "heading": "{category}",
     "metaDescription": "Explora {category} en {brand}: lo que publica la comunidad y lo que vendemos, en un solo lugar.",
     "metaTitle": "{category} - {brand}",
@@ -637,6 +639,8 @@
   "feed": {
     "backToHome": "Volver a la página principal",
     "empty": "No hay comidas publicadas aún.",
+    "emptyBody": "Esto se llena con lo que publica la comunidad: comida real, talleres, caminatas. Publicar lo tuyo toma un par de minutos.",
+    "emptyCta": "Publicar lo mío",
     "emptyPage": "No hay comidas publicadas en esta página.",
     "llmsDescription": "Comida real y productos de la comunidad de Tezonapa, Veracruz, con los 4 pilares de la salud como guía: sueño, alimentación, movimiento y mente.",
     "llmsProfiles": "Perfiles de la comunidad",
@@ -1408,6 +1412,8 @@
     "backToList": "Volver a productos y servicios",
     "description": "Todo lo que la comunidad vende, entrega o atiende: productos al carrito y servicios para agendar.",
     "empty": "Aún no hay productos ni servicios publicados.",
+    "emptyBody": "El catálogo lo hace quien vende: si cocinas, cultivas, entrenas o acompañas, tu publicación abre la sección.",
+    "emptyCta": "Publicar lo mío",
     "pagedTitle": "{title} - Página {page}",
     "title": "Productos y servicios"
   },
@@ -1415,6 +1421,8 @@
     "backToList": "Volver a los eventos",
     "description": "Talleres, rodadas, meditaciones y encuentros de la comunidad, ordenados por fecha.",
     "empty": "Aún no hay eventos publicados.",
+    "emptyBody": "Una caminata, un taller, una cena: un evento es cualquier cosa a la que se pueda llegar. Publica el tuyo y aparece aquí.",
+    "emptyCta": "Publicar un evento",
     "pagedTitle": "{title} - Página {page}",
     "title": "Eventos"
   },
@@ -1492,6 +1500,8 @@
   "search": {
     "empty": "Sin resultados",
     "noResults": "No se encontraron resultados para tu búsqueda.",
+    "noResultsBody": "Prueba con una palabra más corta o mira el catálogo completo: son 31 publicaciones y puede que lo que buscas se llame de otra forma.",
+    "noResultsCta": "Ver todo el catálogo",
     "placeholder": "Suero natural, dona keto, una caminata…",
     "resultsHeading": "Resultados de búsqueda",
     "seeAll": "Ver todos los resultados",

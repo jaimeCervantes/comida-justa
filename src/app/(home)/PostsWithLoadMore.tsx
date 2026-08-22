@@ -9,6 +9,8 @@ import {
 import { Link } from "~/i18n/navigation";
 import { PAGINATION_INIT_PAGE, PAGINATION_PAGE_SIZE } from "~/infra/constants";
 import type { Post } from "~/infra/types/Posts";
+import { buttonVariants } from "~/presentation/design_system/buttons/buttonVariants";
+import { EmptyState } from "~/presentation/design_system/feedback/EmptyState";
 import MasonryColumns from "~/presentation/design_system/surfaces/MasonryColumns";
 import CardForList from "~/presentation/post/CardForList/CardForList";
 import PublicationPillarFilter from "~/presentation/post/PublicationPillarFilter";
@@ -149,13 +151,25 @@ export default function PostsWithLoadMore({
     <>
       <PublicationPillarFilter currentPillar={currentPillar} pathname="/" />
       {posts.length === 0 ? (
-        <p className="pt-3" data-testid="feed-empty">
-          {publicationPillarEmptyMessage({
+        <EmptyState
+          testId="feed-empty"
+          className="mt-3"
+          title={publicationPillarEmptyMessage({
             currentPillar,
             fallback: t("empty"),
             t: pillarT,
           })}
-        </p>
+          action={
+            <Link
+              href="/publicar"
+              className={buttonVariants({ color: "green", size: "sm" })}
+            >
+              {t("emptyCta")}
+            </Link>
+          }
+        >
+          {t("emptyBody")}
+        </EmptyState>
       ) : (
         <MasonryColumns className="pt-3" testId="feed-masonry">
           {posts.map((post: Post) => (

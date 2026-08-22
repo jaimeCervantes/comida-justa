@@ -564,6 +564,8 @@
     "backToCategory": "Back to {category}",
     "count": "{total, plural, =0 {No publications} one {# publication} other {# publications}}",
     "empty": "Nothing has been published under {category} yet.",
+    "emptyBody": "Categories fill up on their own as the community publishes. In the meantime, the full catalogue does have things.",
+    "emptyCta": "See the whole catalogue",
     "heading": "{category}",
     "metaDescription": "Browse {category} at {brand}: what the community publishes and what we sell, all in one place.",
     "metaTitle": "{category} - {brand}",
@@ -637,6 +639,8 @@
   "feed": {
     "backToHome": "Back to the main page",
     "empty": "No food has been published yet.",
+    "emptyBody": "This fills up with what the community publishes: real food, workshops, walks. Publishing yours takes a couple of minutes.",
+    "emptyCta": "Publish mine",
     "emptyPage": "No food has been published on this page.",
     "llmsDescription": "Real food and products from the community of Tezonapa, Veracruz, guided by the 4 pillars of health: sleep, food, movement and mind.",
     "llmsProfiles": "Community profiles",
@@ -1408,6 +1412,8 @@
     "backToList": "Back to products and services",
     "description": "Everything the community sells, delivers or provides: products go to the cart and services can be booked.",
     "empty": "No products or services have been published yet.",
+    "emptyBody": "The catalogue is made by whoever sells: if you cook, grow, coach or accompany, your listing opens the section.",
+    "emptyCta": "Publish mine",
     "pagedTitle": "{title} - Page {page}",
     "title": "Products and services"
   },
@@ -1415,6 +1421,8 @@
     "backToList": "Back to events",
     "description": "Community workshops, rides, meditations and gatherings, ordered by date.",
     "empty": "No events have been published yet.",
+    "emptyBody": "A walk, a workshop, a dinner: an event is anything you can show up to. Publish yours and it appears here.",
+    "emptyCta": "Publish an event",
     "pagedTitle": "{title} - Page {page}",
     "title": "Events"
   },
@@ -1492,6 +1500,8 @@
   "search": {
     "empty": "No results",
     "noResults": "No results were found for your search.",
+    "noResultsBody": "Try a shorter word, or look at the full catalogue: there are 31 listings and what you want may be called something else.",
+    "noResultsCta": "See the whole catalogue",
     "placeholder": "Natural whey, keto donut, a hike…",
     "resultsHeading": "Search results",
     "seeAll": "See all results",

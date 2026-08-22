@@ -3,9 +3,12 @@ import {
   PUBLICATION_PILLAR_QUERY_PARAM,
   parsePublicationPillar,
 } from "~/domain/entities/post/publicationPillars";
+import { Link } from "~/i18n/navigation";
 import { resolveLocale } from "~/i18n/routing";
 import { readViewerId } from "~/infra/auth/readViewerId";
 import { mapPostsToCardsForLocale } from "~/infra/UI/mappers/posts/mapPostsToCardsForLocale";
+import { buttonVariants } from "~/presentation/design_system/buttons/buttonVariants";
+import { EmptyState } from "~/presentation/design_system/feedback/EmptyState";
 import { CARD_MASONRY } from "~/presentation/design_system/surfaces/cardList";
 import { Heading } from "~/presentation/design_system/typography/Heading";
 import Pagination from "~/presentation/navigation/Pagination";
@@ -63,13 +66,26 @@ export default async function SearchPage({
         query={{ q }}
       />
       {q && cards.length === 0 && (
-        <div>
-          {publicationPillarEmptyMessage({
+        <EmptyState
+          testId="search-empty"
+          title={publicationPillarEmptyMessage({
             currentPillar,
             fallback: t("noResults"),
             t: pillarT,
           })}
-        </div>
+          action={
+            <Link
+              href="/productos"
+              /* `default` y no `white`: la tarjeta del vacío ya es blanca, y el relleno blanco
+                 dejaba el botón sin silueta. */
+              className={buttonVariants({ color: "default", size: "sm" })}
+            >
+              {t("noResultsCta")}
+            </Link>
+          }
+        >
+          {t("noResultsBody")}
+        </EmptyState>
       )}
       <section className={`${CARD_MASONRY} pt-6`}>
         {cards.map((card) => (

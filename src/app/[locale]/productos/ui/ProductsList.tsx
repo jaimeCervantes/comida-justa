@@ -3,7 +3,10 @@ import {
   PUBLICATION_PILLAR_QUERY_PARAM,
   type PublicationPillar,
 } from "~/domain/entities/post/publicationPillars";
+import { Link } from "~/i18n/navigation";
 import type { Post } from "~/infra/types/Posts";
+import { buttonVariants } from "~/presentation/design_system/buttons/buttonVariants";
+import { EmptyState } from "~/presentation/design_system/feedback/EmptyState";
 import { CARD_MASONRY } from "~/presentation/design_system/surfaces/cardList";
 import Pagination from "~/presentation/navigation/Pagination";
 import CardForList from "~/presentation/post/CardForList/CardForList";
@@ -36,13 +39,25 @@ export default function ProductsList({
           currentPillar={currentPillar}
           pathname="/productos"
         />
-        <p data-testid="products-empty" className="pt-4">
-          {publicationPillarEmptyMessage({
+        <EmptyState
+          testId="products-empty"
+          className="mt-4"
+          title={publicationPillarEmptyMessage({
             currentPillar,
             fallback: t("empty"),
             t: pillarT,
           })}
-        </p>
+          action={
+            <Link
+              href="/publicar"
+              className={buttonVariants({ color: "green", size: "sm" })}
+            >
+              {t("emptyCta")}
+            </Link>
+          }
+        >
+          {t("emptyBody")}
+        </EmptyState>
       </>
     );
   }

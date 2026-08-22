@@ -3,7 +3,10 @@ import {
   PUBLICATION_PILLAR_QUERY_PARAM,
   type PublicationPillar,
 } from "~/domain/entities/post/publicationPillars";
+import { Link } from "~/i18n/navigation";
 import type { Post } from "~/infra/types/Posts";
+import { buttonVariants } from "~/presentation/design_system/buttons/buttonVariants";
+import { EmptyState } from "~/presentation/design_system/feedback/EmptyState";
 import { CARD_MASONRY } from "~/presentation/design_system/surfaces/cardList";
 import Pagination from "~/presentation/navigation/Pagination";
 import CardForList from "~/presentation/post/CardForList/CardForList";
@@ -39,13 +42,27 @@ export default function CategoryPosts({
           pathname="/categoria/[key]"
           params={{ key: categoryKey }}
         />
-        <p data-testid="category-empty" className="pt-4">
-          {publicationPillarEmptyMessage({
+        <EmptyState
+          testId="category-empty"
+          className="mt-4"
+          title={publicationPillarEmptyMessage({
             currentPillar,
             fallback: t("empty", { category: label }),
             t: pillarT,
           })}
-        </p>
+          action={
+            <Link
+              href="/productos"
+              /* `default` y no `white`: la tarjeta del vacío ya es blanca, y el relleno blanco
+                 dejaba el botón sin silueta. */
+              className={buttonVariants({ color: "default", size: "sm" })}
+            >
+              {t("emptyCta")}
+            </Link>
+          }
+        >
+          {t("emptyBody")}
+        </EmptyState>
       </>
     );
   }
