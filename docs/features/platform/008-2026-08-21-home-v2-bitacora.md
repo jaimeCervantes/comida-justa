@@ -458,3 +458,88 @@ borraba la animación del esqueleto— y ninguno lo habría visto un test de com
 2. **El atajo ⌘K** del buscador.
 3. **La búsqueda facetada** del 5.7.
 4. **`priority` no emite `fetchpriority`**: seis llamadas afectadas, ninguna imagen priorizada.
+
+---
+
+## Slice 5 — La portada es de escritorio (2026-08-22)
+
+### Qué pidió el usuario, y por qué
+
+Lo dijo en una frase: la portada **le quita protagonismo a lo que la gente vino a buscar, productos
+y servicios sanos**. Es una decisión de producto y es correcta — en un sitio donde se compra, la
+mercancía tiene que empezar arriba.
+
+Su primera versión fue comentar `<HomeHero>` y el encabezado en `page.tsx`. Su segunda —la que se
+implementó— fue mejor: **enseñarla solo en escritorio**.
+
+### Por qué la segunda gana
+
+El problema no era la portada, era **el pliegue de un teléfono**. Ahí, entre la barra de ubicación,
+el mensaje de la comunidad y una portada a pantalla completa, la primera tarjeta caía fuera de la
+primera pantalla: el sitio se presentaba en vez de enseñar. En escritorio hay ancho de sobra y la
+portada se lee sin desplazar nada importante.
+
+Medido después del cambio, con la primera tarjeta:
+
+| | Portada | 1ª tarjeta |
+| --- | --- | --- |
+| Escritorio (1280×820) | visible | y = 811 |
+| Teléfono (390×820) | oculta | **y = 515** — dentro de la primera pantalla |
+
+### El coste que un `hidden lg:block` no arregla solo
+
+**Esconder con CSS no evita descargar.** El HTML que sale del servidor es el mismo para todos los
+tamaños, así que el `<link rel="preload" as="image">` de la portada se disparaba **también en un
+teléfono** y le traía entera —y priorizada, quitándole el turno a lo que sí necesita— una foto que
+nunca iba a ver. Medido: 2 enlaces de precarga en el HTML del home, uno de ellos para la portada.
+
+Por eso la portada pierde su `preload` y su `fetchPriority` del slice 1 de
+`012-2026-08-22-prioridad-de-imagenes-bitacora.md`. Sin ellos queda `loading="lazy"`, y **una imagen
+diferida dentro de un `display: none` no tiene caja, así que el navegador ni la pide**.
+
+Comprobado contando peticiones de esa foto por viewport:
+
+| Viewport | Peticiones | Cuáles |
+| --- | --- | --- |
+| Escritorio | **2** | la portada (`w=640`) y la tarjeta del feed (`w=828`) — las dos en pantalla |
+| Teléfono | **1** | solo la tarjeta |
+
+En escritorio la portada pierde su adelanto: es una imagen en una conexión ancha, y el que se
+ahorra la descarga entera es el dispositivo estrecho. El reparto correcto.
+
+### Lo que NO se hizo, y por qué se preguntó
+
+Antes de esta idea se llegó a borrar el componente y sus mensajes. Se restauró al preguntar el
+usuario si podía reutilizarse en otra sección. Al buscarle sitio apareció un dato que se queda
+anotado: **`/nosotros` no tiene ni un solo enlace** —`grep '<Link|href='` devuelve cero—. Es una
+página que vende el sitio entero y no ofrece ninguna puerta de entrada, el mismo callejón que el
+slice 1 de `010` arregló en los estados vacíos. Los dos CTA de la portada lo cerrarían.
+
+No entra aquí porque la solución de escritorio hizo innecesario mover la portada. Queda como slice
+propio.
+
+### Archivos tocados
+
+- `src/app/[locale]/page.tsx` — la portada y su encabezado en un `hidden lg:block`
+- `src/app/(home)/HomeHero.tsx` — sin `preload` ni `fetchPriority`, con el motivo escrito
+- `src/e2e/home/homeHero.spec.ts` — dos escenarios de teléfono: no se ve, y no se descarga
+
+### Validación
+
+| Comando | Resultado |
+| --- | --- |
+| `pnpm run typecheck` · `lint` | limpios (978 archivos) |
+| `pnpm run build` | compila |
+| `pnpm exec playwright test src/e2e/home` | **10/10 en verde** |
+
+### Recap
+
+La portada se queda donde aporta —escritorio— y desaparece donde estorbaba. Y desaparece de verdad:
+no solo deja de verse, deja de descargarse, que es la mitad que un `hidden` no da gratis y que solo
+se ve contando peticiones.
+
+### Próximos pasos (opciones)
+
+1. **`/nosotros` sin una sola salida**: los dos CTA de la portada la cerrarían.
+2. **La cola offline** del 06, la última pieza del canvas sin construir.
+3. **«Avísame cuando haya»** para lo agotado, pareja natural de la faceta de disponibilidad.

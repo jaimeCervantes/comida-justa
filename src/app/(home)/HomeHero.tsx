@@ -97,10 +97,16 @@ export default function HomeHero({
         </div>
       </div>
 
-      {/* `preload` la adelanta; `fetchPriority="high"` la pone **por delante de las demás**. Son
-          dos cosas distintas, y Next 16 dejó de derivar la segunda cuando deprecó `priority`. Esta
-          es la que el navegador mide como «contenido más grande» del home, y la única de la página
-          que lleva las dos.
+      {/* **Ni `preload` ni `fetchPriority`, y es por el teléfono.**
+          La portada se esconde por debajo de `lg` con CSS, pero el HTML que sale del servidor es el
+          mismo para todos los tamaños: un `<link rel="preload" as="image">` se dispara igual en un
+          móvil y le descarga entera una foto que nunca va a ver — y priorizada, quitándole el turno
+          a lo que sí necesita. Medido: 2 enlaces de precarga en el HTML del home.
+
+          Sin ellos queda `loading="lazy"`, y una imagen diferida dentro de un contenedor
+          `display: none` no tiene caja, así que el navegador ni la pide. En escritorio pierde su
+          adelanto; es una imagen en una conexión ancha, y el que paga la diferencia es el
+          dispositivo estrecho.
 
           `sizes` describe el hueco real —una columna de la rejilla, no el ancho de la ventana— para
           que el navegador no se traiga la variante de 3840px y la encoja. */}
@@ -117,8 +123,6 @@ export default function HomeHero({
               la imagen, no quedarse en un contenedor de fuera. */}
           <MediaContent
             media={cover}
-            preload
-            fetchPriority="high"
             sizes="(max-width: 1024px) 100vw, 480px"
             /* `transition-[opacity,transform]` y no `transition-transform`: `ImageWithSkeleton`
               pone `transition-opacity` para apagar su esqueleto, y `cn` desempata entre las dos

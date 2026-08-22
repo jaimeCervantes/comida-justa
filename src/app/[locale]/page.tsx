@@ -133,17 +133,22 @@ export default async function Inicio({
         })}
       />
 
-      {/* La cifra sale del `total` que ya trajo la consulta del feed: la portada dice cuántas
-          publicaciones tiene delante quien mira, sin pagar una lectura extra. */}
-      {/* `posts[0]` es la más reciente: el home es cronológico por contrato, así que la primera
-          del feed es siempre lo último que subió alguien. */}
-      <HomeHero publicationCount={total} latest={posts[0]} />
+      {/* **La portada y su encabezado son de escritorio.**
+          En un teléfono, quien llega viene a ver productos y servicios sanos, y entre la barra de
+          ubicación, el mensaje de la comunidad y una portada a pantalla completa la primera tarjeta
+          caía por debajo del pliegue: el sitio se presentaba en vez de enseñar. En escritorio hay
+          ancho de sobra y la portada se lee sin desplazar nada importante.
 
-      {/* Lo que el feed es. Sin este encabezado, las tarjetas empiezan sin que nada las presente y
-          el filtro de pilares parece la cabecera de la página. */}
-      <Heading level={2} size="sm">
-        {tFeed("latestHeading")}
-      </Heading>
+          La cifra sale del `total` que ya trajo la consulta del feed, y `posts[0]` es la más
+          reciente porque el home es cronológico por contrato: ninguna de las dos cuesta una lectura
+          extra. */}
+      <div className="hidden lg:block lg:space-y-6">
+        <HomeHero publicationCount={total} latest={posts[0]} />
+
+        <Heading level={2} size="sm">
+          {tFeed("latestHeading")}
+        </Heading>
+      </div>
 
       {/* La `key` cubre lo que invalida el estado acumulado del feed: desde dónde se miden las
           distancias y qué pilar se pidió. El feed guarda páginas en cliente; sin remount, cambiar

@@ -12,6 +12,10 @@ import es from "~/i18n/messages/es.json";
  * por un color de texto— y el titular salía a 16px en una serif, sin que `tsc`, el build ni ninguna
  * prueba de componente lo vieran.
  */
+/*
+ * El proyecto corre en `Desktop Chrome` (1280px), que es donde la portada existe. En un teléfono se
+ * esconde a propósito y eso tiene su propio bloque abajo.
+ */
 test.describe("La portada del home", () => {
   test("Se presenta antes de enseñar el catálogo", async ({ page }) => {
     await page.goto("/");
@@ -81,4 +85,52 @@ test.describe("La portada del home", () => {
       ).toHaveAttribute("href", destino);
     });
   }
+});
+
+/**
+ * **La portada es de escritorio.**
+ *
+ * En un teléfono, entre la barra de ubicación, el mensaje de la comunidad y una portada a pantalla
+ * completa, la primera tarjeta caía por debajo del pliegue: el sitio se presentaba en vez de
+ * enseñar lo que la gente vino a ver. Así que ahí no se pinta.
+ */
+test.describe("En un teléfono", () => {
+  test.use({ viewport: { width: 390, height: 820 } });
+
+  test("La portada no se ve, y los productos empiezan arriba", async ({
+    page,
+  }) => {
+    await page.goto("/");
+
+    await expect(page.getByTestId("home-cover")).toBeHidden();
+
+    /* Lo que importa no es que la portada falte, sino que la mercancía entre en la primera
+       pantalla. 820 es el alto del viewport de esta prueba. */
+    const primeraTarjeta = await page.locator("article").first().boundingBox();
+    expect(primeraTarjeta?.y ?? Number.POSITIVE_INFINITY).toBeLessThan(820);
+  });
+
+  /*
+   * Esconder con CSS no evita descargar: el HTML que sale del servidor es el mismo para todos los
+   * tamaños. Sin `loading="lazy"` —o con un `preload`— el teléfono se traía entera una foto que
+   * nunca iba a ver. Lo que lo impide es que una imagen diferida dentro de un `display: none` no
+   * tiene caja, así que el navegador ni la pide.
+   */
+  test("Y no se descarga la foto de una portada que no se ve", async ({
+    page,
+  }) => {
+    const anchos: string[] = [];
+    page.on("request", (request) => {
+      if (request.url().includes("yoga-espalda")) {
+        anchos.push(request.url().match(/[&?]w=(\d+)/)?.[1] ?? "?");
+      }
+    });
+
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(2500);
+
+    /* Una sola: la de la tarjeta del feed, que sí se ve. En escritorio son dos —la portada y la
+       tarjeta— porque ahí las dos están en pantalla. */
+    expect(anchos.length).toBeLessThanOrEqual(1);
+  });
 });
