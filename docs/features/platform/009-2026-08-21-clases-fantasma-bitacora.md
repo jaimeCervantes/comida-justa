@@ -96,3 +96,72 @@ cualquiera de las dos cosas vuelva sin que nadie se entere.
 2. **Las pantallas 5.6–5.9** del canvas (pilar, búsqueda, comunidad, acceso). Ojo: la 5.7 propone
    facetas con contadores, que es **UX nueva** y no repintado — v2 la dejó fuera con razón.
 3. **El admin**, si se decide meterlo en el alcance del rediseño.
+
+---
+
+## Slice 2 — El radio se pide por su papel, no por su número (2026-08-21)
+
+### Objetivo
+
+Cerrar la otra mitad del slice 10 del design system: la escala con nombre existía y 41 sitios
+seguían pidiendo el radio por número.
+
+### Por qué no era un renombrado
+
+La escala nueva **no sobrescribe** la de Tailwind, y eso fue deliberado —así nada cambió de forma el
+día que se añadió—. Pero significa que `rounded-lg` son 8px y `rounded-card` son 18px: cosas
+distintas. Mientras las dos convivieran, «el radio de una tarjeta» seguía siendo una decisión que
+cada archivo tomaba por su cuenta, que es exactamente lo que `Surface` documenta como descuido:
+*«una tarjeta con `rounded-card` junto a otra con `rounded-lg` no es una decisión, es un descuido»*.
+
+Por eso el slice 1 lo dejó fuera: hacía falta clasificar los 41 por su papel, no sustituir a ciegas.
+
+### La clasificación
+
+| Papel | Destino | Cuántos | Efecto |
+| --- | --- | --- | --- |
+| Botones, pestañas, campos y grupos de control | `rounded-control` (12px) | 16 | 8px → 12px: **el mismo radio que `Button`**, que ya lo pedía por nombre |
+| Cajas con borde y relleno | `rounded-card` (18px) | 5 | 8px → 18px, la forma de tarjeta del sistema |
+| Todo lo demás —anillos de foco en enlaces, miniaturas, esqueletos, muestras | `rounded-chip` (8px) | 16 | 8px → 8px: **idéntico en píxeles**, solo cambia el nombre |
+
+Un caso pedía criterio propio: el fragmento de código en línea de `/politica-de-privacidad` cayó en
+`card` con la sustitución por archivo, y 18px sobre dos palabras dentro de un párrafo lo convierten
+en una cápsula. Es un chip.
+
+### El guardián
+
+`radiusScale.test.ts` gana una comprobación que recorre el árbol y falla si un componente de
+producción vuelve a pedir el radio por número. Distingue `rounded-full`, `rounded-none` y
+`rounded-l-full`, que son formas y no la escala — el filtro de pilares y las píldoras del menú los
+usan legítimamente.
+
+### Archivos tocados
+
+28 archivos entre `src/app/` y `src/presentation/`, más `radiusScale.test.ts`. Los tres
+`rounded-lg` que quedan en el árbol son **comentarios** que cuentan la historia (`Select`,
+`Surface`, `StoresMapCanvas`).
+
+### Validación
+
+| Comando | Resultado |
+| --- | --- |
+| `pnpm exec vitest --run` | 204 archivos, **2209 pruebas** en verde |
+| `pnpm run typecheck` · `lint` | limpios (963 archivos) |
+| `pnpm run build` | compila; las cuatro utilidades emiten regla en el CSS publicado |
+| `pnpm exec playwright test orders eventos multimedia` | **57/57 en verde** (12.8 min) |
+
+Revisado en pantalla: en la ficha de una publicación, «Añadir al carrito», «Pedir por WhatsApp» y
+«Compartir» comparten ahora el radio de `Button`, y las tarjetas conservan el suyo.
+
+### Recap
+
+Los cuatro papeles cubren los cuatro radios que el sitio necesita, así que en producción ya no hace
+falta ningún número — y hay una prueba que lo mantiene así. Dos tercios de la conversión no movieron
+un píxel: eran el mismo radio pidiéndose por un nombre que no decía para qué servía.
+
+### Próximos pasos (opciones)
+
+1. **Las pantallas 5.6–5.9** del canvas. Ojo: la 5.7 propone facetas con contadores, que es UX nueva
+   y no repintado; v2 la dejó fuera con razón.
+2. **El admin**, si se decide meterlo en el alcance del rediseño.
+3. **Material de portada**: la foto 4:3 del 5.2, cuando exista el archivo.

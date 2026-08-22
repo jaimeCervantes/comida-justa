@@ -40,8 +40,8 @@ export default function Thumbnail({
          navegador pide esa variante y no una de 1920 para enseñarla a 112. */
       sizes={`${size}px`}
       data-testid={testId}
-      frameClassName="shrink-0 rounded-lg"
-      className={cn("rounded-lg object-cover", className)}
+      frameClassName="shrink-0 rounded-chip"
+      className={cn("rounded-chip object-cover", className)}
       style={{ width: size, height: size }}
     />
   );

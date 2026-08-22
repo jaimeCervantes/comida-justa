@@ -80,7 +80,7 @@ export default function BuyerOrders({
             <Link
               href={{ pathname: "/pedido/[id]", params: { id: order.id } }}
               data-testid="buyer-order-link"
-              className="focus-ring rounded-lg px-2 py-1 font-medium text-pw-green hover:underline"
+              className="focus-ring rounded-control px-2 py-1 font-medium text-pw-green hover:underline"
             >
               {t("viewOrder")}
             </Link>

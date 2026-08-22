@@ -96,7 +96,7 @@ function PaletteTable() {
         return (
           <div
             key={pillar.key}
-            className="flex flex-col gap-2 rounded-lg border border-separator p-4"
+            className="flex flex-col gap-2 rounded-chip border border-separator p-4"
           >
             <div className="flex items-baseline gap-2">
               <span
@@ -113,7 +113,7 @@ function PaletteTable() {
               {(["solid", "soft", "ink"] as const).map((role) => (
                 <div key={role} className="flex items-center gap-2">
                   <span
-                    className="inline-block h-8 w-8 rounded-md border border-separator"
+                    className="inline-block h-8 w-8 rounded-chip border border-separator"
                     style={{ backgroundColor: ramp[role] }}
                   />
                   <span className="text-xs">

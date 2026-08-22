@@ -23,7 +23,7 @@ export default async function CartLink() {
       href="/carrito"
       data-testid="cart-link"
       aria-label={t("itemCount", { count })}
-      className="focus-ring relative inline-flex items-center rounded-lg p-2 text-text-base transition-colors hover:text-pw-green"
+      className="focus-ring relative inline-flex items-center rounded-control p-2 text-text-base transition-colors hover:text-pw-green"
     >
       <MdShoppingCart size="24" aria-hidden />
       {count > 0 ? (

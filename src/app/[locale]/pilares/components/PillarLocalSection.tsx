@@ -80,7 +80,7 @@ export default function PillarLocalSection({
           </p>
           <Link
             href="/publicar"
-            className={`focus-ring mt-4 inline-flex rounded-lg font-semibold underline ${color.link}`}
+            className={`focus-ring mt-4 inline-flex rounded-chip font-semibold underline ${color.link}`}
           >
             {copy.publishLabel}
           </Link>
@@ -126,7 +126,7 @@ export default function PillarLocalSection({
           <p className="mt-6">
             <Link
               href={categoryHref(categoryKey)}
-              className={`focus-ring inline-flex rounded-lg font-semibold underline ${color.link}`}
+              className={`focus-ring inline-flex rounded-chip font-semibold underline ${color.link}`}
             >
               {copy.seeAllLabel}
             </Link>

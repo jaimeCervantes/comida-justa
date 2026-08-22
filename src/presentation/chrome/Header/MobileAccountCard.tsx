@@ -36,7 +36,7 @@ export default function MobileAccountCard({
       <Link
         href="/cuenta"
         onClick={onNavigate}
-        className="flex items-center gap-3 px-2 py-2 bg-surface-elevation-2 rounded-lg"
+        className="flex items-center gap-3 px-2 py-2 bg-surface-elevation-2 rounded-card"
       >
         <Avatar user={user} />
         <span className="flex min-w-0 flex-col">

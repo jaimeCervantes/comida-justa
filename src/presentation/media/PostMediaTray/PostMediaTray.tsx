@@ -165,7 +165,7 @@ export default function PostMediaTray({
               }}
               onClick={() => setPreviewIndex(index)}
               aria-label={t("mediaPreview", { position: index + 1 })}
-              className="block rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2"
+              className="block rounded-chip focus-visible:outline-2 focus-visible:outline-offset-2"
             >
               <MediaThumbnail item={item} />
             </button>
@@ -303,8 +303,8 @@ function MediaThumbnail({ item }: { item: PostMediaTrayItem }) {
         muted
         preload="metadata"
         aria-hidden
-        frameClassName="shrink-0 rounded-lg"
-        className={cn("rounded-lg object-cover")}
+        frameClassName="shrink-0 rounded-chip"
+        className={cn("rounded-chip object-cover")}
         style={{ width: THUMBNAIL_SIZE, height: THUMBNAIL_SIZE }}
       />
     );

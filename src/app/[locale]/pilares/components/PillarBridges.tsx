@@ -68,7 +68,7 @@ export default function PillarBridges({
               <p className="mt-2 text-base leading-relaxed">{bridge.body}</p>
               <Link
                 href={pillarHref(PILLAR_SLUGS[bridge.to])}
-                className={`focus-ring mt-4 inline-flex rounded-lg font-semibold underline ${color.link}`}
+                className={`focus-ring mt-4 inline-flex rounded-chip font-semibold underline ${color.link}`}
               >
                 {linkLabel}
               </Link>

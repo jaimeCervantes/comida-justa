@@ -18,7 +18,7 @@ export default function EventAttendeeList({
 
   return (
     <section
-      className="mt-4 border border-pw-gray/20 rounded-lg p-3"
+      className="mt-4 border border-pw-gray/20 rounded-card p-3"
       data-testid="event-attendees"
     >
       <Heading level={2} size="xs">

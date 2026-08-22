@@ -112,3 +112,54 @@ describe("Las dos voces tipográficas", () => {
     expect(GLOBALS).toContain("font-family: var(--font-ui)");
   });
 });
+
+/**
+ * La otra mitad del slice 10: la escala con nombre existía y 41 sitios seguían pidiendo el radio
+ * por número.
+ *
+ * **La escala nueva no sobrescribe la de Tailwind, y eso es a propósito** —así nada cambió de forma
+ * el día que se añadió—, pero significa que `rounded-lg` (8px) y `rounded-card` (18px) son cosas
+ * distintas. Mientras las dos convivieran, «el radio de una tarjeta» seguía siendo una decisión que
+ * cada archivo tomaba por su cuenta, que es justo lo que `Surface` documenta como descuido: «una
+ * tarjeta con `rounded-card` junto a otra con `rounded-lg` no es una decisión, es un descuido».
+ *
+ * Los cuatro nombres cubren los cuatro papeles, así que en producción no hace falta ningún número.
+ */
+describe("El radio se pide por su papel, no por su número", () => {
+  const NUMBERED = /(?<![\w-])rounded-(sm|md|lg|xl|2xl|3xl|4xl)(?![\w-])/;
+
+  function classNamesIn(source: string): string[] {
+    return [...source.matchAll(/className=\{?["'`]([^"'`]*)["'`]/g)].map(
+      ([, classes]) => classes,
+    );
+  }
+
+  it("ningún componente de producción usa la escala numerada", () => {
+    const offenders = globSync("src/{app,presentation}/**/*.tsx", {
+      ignore: ["**/*.test.tsx", "**/*.stories.tsx"],
+    }).filter((file) =>
+      classNamesIn(readFileSync(file, "utf8")).some((classes) =>
+        NUMBERED.test(classes),
+      ),
+    );
+
+    expect(
+      offenders,
+      `${offenders.join(", ")} pide el radio por número. Los papeles son ` +
+        "rounded-chip (8), rounded-control (12), rounded-card (18) y rounded-panel (26).",
+    ).toEqual([]);
+  });
+
+  /* `rounded-full` y `rounded-none` no son la escala: son formas, y siguen permitidas. */
+  it.each([
+    ["rounded-lg", true],
+    ["rounded-2xl", true],
+    ["rounded-full", false],
+    ["rounded-none", false],
+    ["rounded-chip", false],
+    ["rounded-card", false],
+    ["rounded-l-full", false],
+  ])("reconoce %s como escala numerada: %s", (candidate, isNumbered) => {
+    expect(NUMBERED.test(candidate)).toBe(isNumbered);
+  });
+});

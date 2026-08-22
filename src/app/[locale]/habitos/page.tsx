@@ -91,7 +91,7 @@ export default async function AtomicChallengesPage({
         <button
           type="button"
           disabled
-          className="mt-4 rounded-lg border px-4 py-2 font-bold opacity-60"
+          className="mt-4 rounded-control border px-4 py-2 font-bold opacity-60"
         >
           {t("reminderDisabled")}
         </button>
@@ -144,7 +144,7 @@ export default async function AtomicChallengesPage({
             />
             <button
               type="submit"
-              className="focus-ring rounded-lg border px-4 py-2 font-bold"
+              className="focus-ring rounded-control border px-4 py-2 font-bold"
             >
               {league.viewerOptedIn ? t("league.leave") : t("league.join")}
             </button>

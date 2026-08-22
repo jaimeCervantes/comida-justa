@@ -154,7 +154,7 @@ export default async function PublicHabitCelebrationCard({
           {variant === "full" && <p className={scale.body}>{copy.body}</p>}
           <Link
             href={copy.href}
-            className={`focus-ring inline-flex rounded-lg font-semibold underline underline-offset-4 ${scale.link} ${theme.ink}`}
+            className={`focus-ring inline-flex rounded-chip font-semibold underline underline-offset-4 ${scale.link} ${theme.ink}`}
           >
             {copy.link} →
           </Link>

@@ -59,7 +59,7 @@ export default function FollowButton({
         <a
           href={`${SIGNIN_PATH}?callbackUrl=${encodeURIComponent(path)}`}
           data-testid="follow-signin"
-          className="focus-ring inline-flex items-center gap-2 whitespace-nowrap rounded-lg bg-pw-green px-2 py-2 text-sm text-white transition-colors hover:bg-pw-green/80"
+          className="focus-ring inline-flex items-center gap-2 whitespace-nowrap rounded-control bg-pw-green px-2 py-2 text-sm text-white transition-colors hover:bg-pw-green/80"
         >
           <MdPersonAdd aria-hidden size="18" />
           {t("follow")}

@@ -182,8 +182,8 @@ const SearchBar: React.FC<SearchBarProps> = ({
                     className="px-1 py-3 border-b last:border-b-0 border-separator"
                   >
                     <div>
-                      <div className="h-3 bg-surface-elevation-2 rounded-sm w-3/4 mb-2" />
-                      <div className="h-2 bg-surface-elevation-2 rounded-sm w-1/2" />
+                      <div className="h-3 bg-surface-elevation-2 rounded-chip w-3/4 mb-2" />
+                      <div className="h-2 bg-surface-elevation-2 rounded-chip w-1/2" />
                     </div>
                   </li>
                 ))}

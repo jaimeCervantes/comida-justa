@@ -73,7 +73,7 @@ export default async function SiteCelebrationMessage(): Promise<React.ReactNode>
           {copy.body}{" "}
           <Link
             href={copy.href}
-            className={`focus-ring rounded-sm font-semibold underline underline-offset-4 ${theme.ink}`}
+            className={`focus-ring rounded-chip font-semibold underline underline-offset-4 ${theme.ink}`}
           >
             {copy.link}
           </Link>

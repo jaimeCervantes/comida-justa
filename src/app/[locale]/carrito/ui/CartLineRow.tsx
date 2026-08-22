@@ -148,7 +148,7 @@ function QuantityStepper({
   return (
     <form
       action={action}
-      className="flex items-center overflow-hidden rounded-lg border border-separator"
+      className="flex items-center overflow-hidden rounded-control border border-separator"
     >
       <input type="hidden" name="postId" value={postId} />
 

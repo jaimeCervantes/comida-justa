@@ -95,7 +95,7 @@ export default function OrdersSearchField({
            de que hay algo en camino sin que le muevan el foco. */
         aria-busy={isPending}
         data-testid="orders-search"
-        className="min-w-40 grow rounded-lg border border-separator bg-transparent px-3 py-1"
+        className="min-w-40 grow rounded-control border border-separator bg-transparent px-3 py-1"
       />
     </form>
   );

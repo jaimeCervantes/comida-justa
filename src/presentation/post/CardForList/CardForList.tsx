@@ -202,7 +202,7 @@ export default function CardForList(
           href={detailHref}
           data-testid="card-book-service"
           className={cn(
-            "focus-ring mt-2 inline-flex w-fit items-center justify-center rounded-lg",
+            "focus-ring mt-2 inline-flex w-fit items-center justify-center rounded-control",
             "bg-pw-green px-2 py-2 text-xs text-white transition-colors hover:bg-pw-green/80",
           )}
         >

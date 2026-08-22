@@ -303,7 +303,7 @@ function SignInLink({
     <div className="mt-8 text-center">
       <a
         href={href}
-        className="focus-ring inline-flex rounded-lg bg-pw-green px-6 py-4 font-semibold text-white hover:bg-pw-green/80"
+        className="focus-ring inline-flex rounded-control bg-pw-green px-6 py-4 font-semibold text-white hover:bg-pw-green/80"
       >
         {label}
       </a>

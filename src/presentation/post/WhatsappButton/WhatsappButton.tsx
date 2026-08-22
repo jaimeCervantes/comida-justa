@@ -27,7 +27,7 @@ export default function WhatsappButton({
       target="_blank"
       rel="noopener noreferrer"
       data-testid={testId}
-      className={`inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg bg-pw-green px-2 py-2 text-label text-white transition-colors hover:bg-pw-green/80 ${className || ""}`}
+      className={`inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-control bg-pw-green px-2 py-2 text-label text-white transition-colors hover:bg-pw-green/80 ${className || ""}`}
     >
       <FaWhatsapp size="20" aria-hidden />
       {children}

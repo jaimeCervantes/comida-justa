@@ -95,8 +95,8 @@ function Tab({
       aria-current={active ? "page" : undefined}
       className={
         active
-          ? "focus-ring rounded-lg border-b-2 border-pw-green px-3 py-2 font-medium text-text-base"
-          : "focus-ring rounded-lg px-3 py-2 text-text-support hover:text-text-base"
+          ? "focus-ring rounded-control border-b-2 border-pw-green px-3 py-2 font-medium text-text-base"
+          : "focus-ring rounded-control px-3 py-2 text-text-support hover:text-text-base"
       }
     >
       {label}

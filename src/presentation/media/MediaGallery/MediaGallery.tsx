@@ -126,7 +126,7 @@ export default function MediaGallery({
               count: items.length,
             })}
             className={cn(
-              "overflow-hidden rounded-lg border-2 focus-visible:outline-2 focus-visible:outline-offset-2",
+              "overflow-hidden rounded-chip border-2 focus-visible:outline-2 focus-visible:outline-offset-2",
               index === active
                 ? "border-pw-green"
                 : "border-transparent opacity-70 hover:opacity-100",

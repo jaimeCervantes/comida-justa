@@ -56,7 +56,7 @@ export default function RouteMapCanvas({
       bounds={latLngBounds(positions)}
       boundsOptions={{ padding: [24, 24] }}
       scrollWheelZoom={false}
-      className="h-72 w-full rounded-lg"
+      className="h-72 w-full rounded-chip"
       data-testid="route-map-canvas"
     >
       <TileLayer

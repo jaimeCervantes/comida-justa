@@ -158,10 +158,12 @@ export default async function PrivacyPolicyPage({
             <li>{t("section7.items.1")}</li>
             <li>{t("section7.items.2")}</li>
           </ul>
-          <div className="bg-surface-elevation-2 rounded-lg p-5">
+          <div className="bg-surface-elevation-2 rounded-card p-5">
             <p className="mb-2">
               {t("section7.actionIntro")}
-              <strong className="bg-surface-elevation-2 px-2 py-0.5 rounded-sm text-text-base font-mono">
+              {/* Un fragmento de código en línea es un chip, no una tarjeta: 18px sobre dos
+                  palabras dentro de un párrafo lo convierten en una cápsula. */}
+              <strong className="bg-surface-elevation-2 px-2 py-0.5 rounded-chip text-text-base font-mono">
                 {t("section7.actionWord")}
               </strong>
               {t("section7.actionOutro")}

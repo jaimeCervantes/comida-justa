@@ -54,7 +54,7 @@ export default function EventAttendanceButton({
         <a
           href={signInHref}
           data-testid="event-attendance-confirm-signin"
-          className="focus-ring inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg bg-pw-green px-2 py-2 text-label text-white transition-colors hover:bg-pw-green/80"
+          className="focus-ring inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-control bg-pw-green px-2 py-2 text-label text-white transition-colors hover:bg-pw-green/80"
         >
           <MdEventAvailable size="20" aria-hidden />
           {t("eventAttendConfirm")}
