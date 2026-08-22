@@ -295,3 +295,76 @@ queda para el usuario.
 3. **Slice 4 — el pilar y la distancia como filtros en la barra**, que es la barra completa del 5.1.
 4. **Saltar al home (5.2)**: titular en serif, los dos CTA y la cabecera «Recién publicado». Era la
    petición original antes de la redirección al header.
+
+---
+
+## Slice 3 — Una sola fila de acciones (2026-08-21)
+
+### Objetivo
+
+Que el header tenga una acción primaria y no tres cosas peleándose por serlo.
+
+### Lo que había
+
+La anotación del 5.1 —«antes competían tres botones verdes y uno negro»— era literal: «Publicar» y
+«Iniciar sesión» rellenaban los dos en verde de marca, y el idioma era un rectángulo negro en la
+esquina. Tres rellenos saturados en 300 px, y ninguno diciendo «esto primero».
+
+### Decisiones y por qué
+
+1. **«Publicar» se queda solo en verde.** Es la acción que el sitio quiere que ocurra. `SignIn`
+   acepta `color` por props —lo pone antes del spread—, así que basta con pedirle `white` desde el
+   header; en el menú del teléfono, donde no compite con nada, sigue como estaba.
+
+2. **Acceder es la puerta, no la invitación.** Quien viene a entrar busca «Iniciar sesión» y lo
+   encuentra igual; quien viene a mirar no necesita que se lo griten.
+
+3. **El idioma en blanco con borde**, como el 5.1. `color="white"` no trae borde —es un relleno de
+   superficie—, así que el contorno se añade con `border-separator`: es lo que lo mantiene
+   identificable como control sin rellenarlo.
+
+4. **El carrito se queda.** El canvas no lo dibuja porque su maqueta no vende; este sitio sí, y
+   meterlo en el menú del avatar le quitaría la salida a quien está comprando.
+
+### El spec que hubo que corregir, y por qué no fue aflojarlo
+
+`sectionAlignment.spec.ts` afirmaba que entre la etiqueta de una sección y su flecha no hay más de
+8 px — o sea, que **nada se despega del control**. Con los cuatro puntos del slice 2 entre medias,
+la medida daba 45 px y la prueba fallaba.
+
+No se subió el número: se corrigió **qué se mide**. La última pieza antes de la flecha ya no es
+siempre la etiqueta, así que ahora se mide desde donde termine la última pieza, y se añade una
+comprobación de que los puntos tampoco se despegan de su etiqueta. La afirmación es la misma —y
+ahora cubre una pieza más.
+
+### Archivos tocados
+
+- `src/presentation/chrome/Header/Header.tsx` — `SignIn` pasa a `color="white"`
+- `src/presentation/chrome/LanguageSwitcher/LanguageSwitcher.tsx` — `black` → `white` + borde
+- `src/e2e/menu/sectionAlignment.spec.ts` — mide desde la última pieza del control
+
+### Validación
+
+| Comando | Resultado |
+| --- | --- |
+| `pnpm run typecheck` · `lint` | limpios (962 archivos) |
+| `pnpm run build` | compila |
+| `pnpm exec playwright test src/e2e/menu src/e2e/chrome` | 37 verdes + el fallo de alineación, ya corregido |
+| `pnpm exec playwright test …/sectionAlignment.spec.ts` | **2/2 en verde** |
+
+Comprobado en pantalla a 1280 px: un solo relleno verde en la fila, el carrito como icono,
+«Iniciar sesión» en blanco y «MX» con borde.
+
+### Recap
+
+El header cierra el 5.1: la barra de ubicación (slice 1), las píldoras con sección activa y los
+cuatro puntos (slice 2) y ahora una sola fila de acciones con un único verde. El spec de alineación
+pasó a medir la cohesión del control completo en vez de solo su etiqueta, así que sigue afirmando lo
+mismo y cubre una pieza más.
+
+### Próximos pasos (opciones)
+
+1. **Correr la e2e de `src/e2e/menu` y `src/e2e/chrome` enteras** para confirmar los 38 en verde de
+   una sola pasada. *(La última corrida dio 37 verdes y el fallo que este slice arregló.)*
+2. **Las pantallas 5.6–5.9** (pilar, búsqueda, comunidad, acceso), que v2 dejó registradas.
+3. **Slice 4 del chrome** — el filtro de pilares subido a la barra, junto a la ubicación.

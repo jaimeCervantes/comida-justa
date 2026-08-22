@@ -141,7 +141,10 @@ export default async function Header() {
               }
             />
           ) : (
-            <SignIn aria-label={t("signIn")}>
+            /* Secundaria, no verde. La anotación del 5.1 lo dice: «antes competían tres botones
+               verdes y uno negro; ahora hay una acción primaria, un avatar y el idioma». La acción
+               primaria del sitio es publicar; acceder es la puerta, no la invitación. */
+            <SignIn color="white" aria-label={t("signIn")}>
               <span className="hidden sm:block">{t("signIn")}</span>
             </SignIn>
           )}

@@ -69,12 +69,15 @@ export default function LanguageSwitcher() {
       <DropdownMenu.Trigger asChild>
         {/* `aria-expanded` y `aria-haspopup` los pone Radix en el disparador: eran dos atributos
             que había que acordarse de sincronizar con el `useState` a mano. */}
+        {/* Blanco con borde, como el 5.1. Era `color="black"`: un rectángulo negro en la esquina
+            del header pesa más que la acción principal, y el idioma es lo último que alguien
+            cambia. El borde es lo que lo mantiene identificable como control sin rellenarlo. */}
         <Button
-          color="black"
+          color="white"
           size="xs"
           aria-label={t("changeLanguage")}
           /* `group` para que la flecha pueda mirar el `data-state` que Radix escribe aquí. */
-          className="group"
+          className="group border border-separator"
         >
           <span className="text-sm">{current.flag}</span>
           {/* Era un `▼` de texto: su tamaño y su grosor los decidía la fuente que resolviera el

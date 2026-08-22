@@ -30,15 +30,33 @@ test.describe("La sección abierta del menú principal", () => {
 
       const label = await visibleBox(control.getByTestId("section-label"));
       const greenCaret = await visibleBox(openButton.locator("svg"));
+
+      /*
+       * Lo que la prueba vigila es que **nada se despegue del control**: etiqueta, adorno y flecha
+       * tienen que leerse como una sola píldora. Desde el slice 2 del chrome v2, «4 Pilares» lleva
+       * los cuatro puntos de la rampa entre su etiqueta y su flecha, así que la última pieza antes
+       * de la flecha ya no es siempre la etiqueta. Se mide desde donde termine la última pieza, que
+       * es lo que la afirmación quería decir desde el principio.
+       */
+      const dots = control.getByTestId("nav-pillar-dots");
+      const lastPiece =
+        (await dots.count()) > 0 ? await visibleBox(dots) : label;
       const whiteIndicator = await visibleBox(
         control.getByTestId("submenu-indicator"),
       );
       const submenu = await visibleBox(menu.getByTestId("desktop-submenu"));
       const controlBox = await visibleBox(control);
 
-      const titleToCaret = greenCaret.x - (label.x + label.width);
+      const titleToCaret = greenCaret.x - (lastPiece.x + lastPiece.width);
       expect(titleToCaret).toBeGreaterThanOrEqual(0);
       expect(titleToCaret).toBeLessThanOrEqual(8);
+
+      /* Y los puntos, cuando los hay, tampoco se despegan de su etiqueta. */
+      if (lastPiece !== label) {
+        const labelToDots = lastPiece.x - (label.x + label.width);
+        expect(labelToDots).toBeGreaterThanOrEqual(0);
+        expect(labelToDots).toBeLessThanOrEqual(12);
+      }
 
       const controlCenter = controlBox.x + controlBox.width / 2;
       const indicatorCenter = whiteIndicator.x + whiteIndicator.width / 2;
