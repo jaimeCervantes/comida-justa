@@ -19,6 +19,7 @@ import Card from "~/presentation/post/Card";
 import CardOwnerControls from "~/presentation/post/CardOwnerControls";
 import CategoryTag from "~/presentation/post/CategoryTag/CategoryTag";
 import EventDate from "~/presentation/post/EventDate/EventDate";
+import PillarBadge from "~/presentation/post/PillarBadge/PillarBadge";
 import ProvenanceBadge, {
   showsProvenanceBadge,
 } from "~/presentation/post/ProvenanceBadge";
@@ -80,6 +81,7 @@ export default function CardForList(
     endsAt,
     distanceMeters,
     isAvailable,
+    category,
     categoryLabel,
     seller,
     viewerId,
@@ -123,6 +125,14 @@ export default function CardForList(
           <MediaContent
             media={media[0]}
             className={hasKnownAspect(media[0] ?? {}) ? "" : "h-64"}
+          />
+
+          {/* El pilar, encima de la foto: en el feed lo primero que se mira es la imagen, y ahí
+              es donde se lee de un vistazo. Se calla en lo que no tiene pilar —los anuncios van
+              sin categoría—, así que no deja un hueco. */}
+          <PillarBadge
+            category={typeof category === "string" ? category : null}
+            className="absolute left-2 top-2"
           />
 
           {/* Cuántos hay, sin tener que abrir la ficha. La portada sigue siendo `media[0]` —el de
@@ -181,11 +191,10 @@ export default function CardForList(
             el `gap` de la fila. `CurrencyAmount` se calla solo cuando no hay precio, así que un
             anuncio no deja hueco. La moneda sale de la constante del sitio y no de un "MXN"
             escrito aquí, que es lo que hacía esta tarjeta mientras la ficha ya usaba la constante. */}
-        <CurrencyAmount
-          value={price}
-          currency={SITE_CURRENCY}
-          className="text-xl text-pw-green"
-        />
+        {/* Sin `className`: llevaba `text-xl text-pw-green`, que pisaba lo que el primitivo ya
+            decide —serif, tamaño de sección y tinta—. El verde además señalaba como si el precio
+            llevara a algún sitio, y no lleva. Ver el docstring de `CurrencyAmount`. */}
+        <CurrencyAmount value={price} currency={SITE_CURRENCY} />
       </span>
 
       {kind === SERVICE_KIND && canBeOrdered({ kind, isAvailable }) ? (

@@ -64,6 +64,40 @@ export function categoryKeyForPublicationPillar(
   return CATEGORY_KEY_BY_PILLAR[pillar];
 }
 
+const PILLAR_BY_CATEGORY_KEY: Record<PillarCategoryKey, PublicationPillar> =
+  Object.fromEntries(
+    PUBLICATION_PILLARS.map(({ key, categoryKey }) => [categoryKey, key]),
+  ) as Record<PillarCategoryKey, PublicationPillar>;
+
+const PILLAR_NUMBER: Record<PublicationPillar, 1 | 2 | 3 | 4> =
+  Object.fromEntries(
+    PUBLICATION_PILLARS.map(({ key, number }) => [key, number]),
+  ) as Record<PublicationPillar, 1 | 2 | 3 | 4>;
+
+/**
+ * A qué pilar pertenece una publicación, a partir de su categoría raíz.
+ *
+ * Es la vuelta de `categoryKeyForPublicationPillar`, y la necesita la tarjeta: el 5.2 pone la
+ * insignia del pilar **encima de la foto**, y hasta ahora la tarjeta solo sabía su categoría.
+ * Devuelve `null` para una categoría que no cuelga de ninguno de los cuatro —o para una
+ * publicación sin categoría, que en la base son los anuncios—, y ahí no se pinta insignia en vez
+ * de inventar un pilar.
+ */
+export function publicationPillarForCategory(
+  category: string | null | undefined,
+): PublicationPillar | null {
+  if (!category) return null;
+
+  return PILLAR_BY_CATEGORY_KEY[category as PillarCategoryKey] ?? null;
+}
+
+/** El número con el que la marca nombra al pilar. El color nunca puede ir solo. */
+export function publicationPillarNumber(
+  pillar: PublicationPillar,
+): 1 | 2 | 3 | 4 {
+  return PILLAR_NUMBER[pillar];
+}
+
 export function categoryKeysForPublicationPillar(
   taxonomy: CategoryTaxonomy,
   pillar: PublicationPillar | null,

@@ -114,3 +114,91 @@ descartaba por no estar en su lista; los dos arreglados y los dos con prueba que
 2. **Slice 3 del chrome — una sola fila de acciones** en el header, que sigue pendiente.
 3. **Las pantallas 5.6–5.9** (pilar, búsqueda, comunidad, acceso), que v2 dejó registradas.
 4. **Material de portada**: la foto 4:3, cuando exista el archivo.
+
+---
+
+## Slice 2 — La tarjeta del feed, como el 5.2 (2026-08-21)
+
+### Objetivo
+
+Que la cuadrícula se lea de un vistazo: el pilar donde primero se mira —la foto— y el precio con la
+voz que le corresponde.
+
+### El hallazgo: el precio estaba pisado
+
+`CurrencyAmount` ya decidía su apariencia, y su docstring la razona: **serif, tamaño de sección y
+tinta**, «porque un precio es un dato que se lee, no una acción que se pulsa» y «cuando todo lo
+importante es verde, el verde deja de señalar nada».
+
+`CardForList` le pasaba `className="text-xl text-pw-green"`, que contradecía las dos cosas. Y peor:
+`CurrencyAmount` **concatenaba** las clases en vez de usar `cn()`, así que el `class` salía con dos
+tamaños de fuente y ganaba el que decidiera el orden del CSS, no el de quien llama. Ahora usa `cn()`
+—un override es deliberado y determinista— y la tarjeta deja de pasarle nada.
+
+### Decisiones y por qué
+
+1. **El pilar sale de la categoría raíz, en el dominio.** `publicationPillarForCategory()` es la
+   vuelta de `categoryKeyForPublicationPillar`, y se deriva de `PUBLICATION_PILLARS` en vez de
+   escribir un segundo mapa a mano: añadir un pilar a la lista lo hace conocido en las dos
+   direcciones a la vez.
+
+2. **`null` es la respuesta correcta y frecuente.** Los diez anuncios de la base van sin categoría, y
+   `jugos` es una sub-categoría, no una raíz. Ahí la insignia se calla en lugar de inventar un pilar.
+
+3. **El número acompaña siempre al color.** Es la regla que dejó medida
+   `pillarPalette.contrast.test.ts` (Movimiento y Mente contrastan 1.14 entre sí como tinta). El
+   círculo lo pone `BadgeCounter`, la misma pieza del filtro de pilares, así que los dos se ven
+   iguales.
+
+4. **La insignia lleva sombra propia.** Sobre una foto, el par `soft`/`ink` del pilar no tiene su
+   fondo garantizado: la imagen puede ser de cualquier color. El fondo de la insignia es lo que le
+   devuelve el contraste que su par ya tenía medido.
+
+### Archivos tocados
+
+**Nuevos**
+- `src/presentation/post/PillarBadge/PillarBadge.tsx`
+- `src/domain/entities/post/publicationPillars.pillarForCategory.test.ts`
+- `src/e2e/home/feedCard.spec.ts`
+
+**Modificados**
+- `src/domain/entities/post/publicationPillars.ts` — `publicationPillarForCategory`,
+  `publicationPillarNumber`
+- `src/presentation/post/CardForList/CardForList.tsx` — la insignia sobre la foto; el precio deja de
+  pisar al primitivo
+- `src/presentation/money/CurrencyAmount/CurrencyAmount.tsx` — `cn()` en vez de concatenar
+
+### Validación
+
+| Comando | Resultado |
+| --- | --- |
+| `pnpm exec vitest --run` | 203 archivos, **2191 pruebas** en verde (266s) |
+| `pnpm run typecheck` · `lint` · `check:i18n` | limpios (962 archivos) |
+| `pnpm run build` | compila |
+| `pnpm exec playwright test src/e2e/home` | **7/7 en verde** (4.8 min) |
+
+El e2e mide la **familia y el color computados** del precio en el navegador (`newsreader`,
+`rgb(27, 30, 24)`), no el `className`: era justo ahí donde el override se colaba.
+
+En el HTML del servidor de producción, el home sale con **8 insignias de pilar**, una por
+publicación con categoría.
+
+### Nota de entorno
+
+Dos builds fallaron con «Failed to fetch Newsreader from Google Fonts». Es la red, no el código:
+`rm -rf .next` tira la caché de `next/font` y sin salida a internet el build no puede rehacerla. Al
+recuperarse la conexión compiló sin tocar nada.
+
+### Recap
+
+La tarjeta del feed ya se lee como el 5.2: el pilar va encima de la foto con su número —y se calla
+en lo que no tiene pilar—, y el precio recuperó la serif y la tinta que su propio primitivo llevaba
+documentando desde el slice 12, y que la tarjeta llevaba pisando con un `text-xl text-pw-green`. De
+paso, `CurrencyAmount` dejó de concatenar clases, así que ya no puede haber dos tamaños peleándose
+en el `class`.
+
+### Próximos pasos (opciones)
+
+1. **Slice 3 del chrome — una sola fila de acciones** en el header, lo último del 5.1.
+2. **Las pantallas 5.6–5.9** (pilar, búsqueda, comunidad, acceso), que v2 dejó registradas.
+3. **Material de portada**: la foto 4:3, cuando exista el archivo.

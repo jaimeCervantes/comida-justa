@@ -1,6 +1,7 @@
 import { useLocale } from "next-intl";
 import { FORMATTING_LOCALE } from "~/i18n/formattingLocale";
 import { resolveLocale } from "~/i18n/routing";
+import { cn } from "~/presentation/design_system/styling/merge-class-names";
 
 /**
  * Un importe con su moneda.
@@ -36,8 +37,9 @@ export default function AmountCurrency({
    * botones), y un precio no lleva a ningún sitio. Cuando todo lo importante es verde, el verde
    * deja de señalar nada.
    */
-  const clsName =
-    `font-display text-heading-sm text-text-base ${className ?? ""}`.trim();
+  /* Con `cn` y no concatenando: encadenar dejaba dos tamaños de fuente en el `class` y el que
+     ganaba lo decidía el orden del CSS, no el de quien llama. Así un override es deliberado. */
+  const clsName = cn("font-display text-heading-sm text-text-base", className);
 
   if (Boolean(value) === false) {
     return null;
