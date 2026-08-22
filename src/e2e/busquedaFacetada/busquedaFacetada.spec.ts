@@ -13,13 +13,37 @@ test.describe("Las facetas de la búsqueda", () => {
   test("Cuentan por pilar, y el cero también se dice", async ({ page }) => {
     await page.goto("/buscar?q=caminata");
 
-    const facetas = page.getByTestId("search-facets");
-    await expect(facetas).toBeVisible();
+    await expect(page.getByTestId("search-facets")).toBeVisible();
 
-    /* Un pilar sin resultados enseña su 0: ahorra el clic que no lleva a ninguna parte, y esa es
-       la mitad del valor de una faceta. */
-    await expect(page.getByTestId("facet-count-movement")).not.toHaveText("0");
-    await expect(page.getByTestId("facet-count-sleep")).toHaveText("0");
+    /*
+     * Los cuatro pilares enseñan un número, incluso el que no tiene nada: un «0» ahorra el clic
+     * que no lleva a ninguna parte, y esa es la mitad del valor de una faceta.
+     *
+     * Se afirma que **están** y que son números, no cuáles: cuáles depende de lo que la comunidad
+     * haya publicado hoy, y una prueba que fije «Sueño = 0» se cae el día que alguien publique una
+     * caminata nocturna. Lo que no puede cambiar es que ninguno se calle.
+     */
+    for (const pilar of ["sleep", "nutrition", "movement", "mindSpirit"]) {
+      await expect(page.getByTestId(`facet-count-${pilar}`)).toHaveText(
+        /^\d+$/,
+      );
+    }
+  });
+
+  /*
+   * La invariante que sí se puede clavar: con **un solo** pilar filtrado, lo que dice el resumen y
+   * lo que cuenta esa faceta son el mismo número. No depende de los datos — si dejan de coincidir,
+   * es que una de las dos consultas se desvió de la otra.
+   */
+  test("Y lo que cuenta la faceta es lo que acaba enseñando", async ({
+    page,
+  }) => {
+    await page.goto("/buscar?q=caminata&pillar=movement");
+
+    const cuenta = await page.getByTestId("facet-count-movement").textContent();
+    const resumen = await page.getByTestId("search-summary").textContent();
+
+    expect(resumen).toContain(cuenta?.trim() ?? "");
   });
 
   /*

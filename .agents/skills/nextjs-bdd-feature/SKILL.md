@@ -175,6 +175,31 @@ Do not skip this framing stage for end-to-end scenarios. If context is incomplet
 - Keep test data minimal and focused on the scenario under implementation.
 - Do not overbuild multiple scenarios before the first one is green.
 
+### Write specs that survive a redesign (mandatory)
+
+**A spec you have to edit every time the design moves is a badly written spec.** It is asserting
+**how** the screen is built instead of **what it promises**. Editing it back to green is not
+maintenance, it is the test costing more than it protects.
+
+Six patterns that always rot, and what to write instead:
+
+| Rots | Why | Write instead |
+| --- | --- | --- |
+| `toBe("rgb(27, 30, 24)")` | Freezes a token's current value | Read the token in the browser and assert the **relation**: "the price is body ink, not the accent" |
+| `toHaveText("0")` on a count | Depends on what the community published today | Assert the shape (`/^\d+$/`), or an invariant between two numbers on the same screen |
+| `page.getByRole("link", { name })` unscoped | The footer and bottom nav repeat labels, and `getByRole` matches by substring | Scope to a region: `page.getByTestId("region").getByRole(...)`. A `data-testid` on the container is cheaper than an `exact: true` somebody forgets |
+| Pixel gap between two named pieces | Adding a third piece between them breaks it, though nothing detached | Measure from the **last** piece, whatever it is |
+| `toEqual({ ...exact shape })` | Any added field breaks it with nothing wrong | Assert the fields the scenario is about |
+| A route list copied into the spec | Drifts from the `.feature` and from the app | One list, derived; or assert the rule ("it is on every route, exactly once") |
+
+**Editing a spec is right when the behaviour actually changed** (a section became desktop-only) or
+**when the spec found a real defect** (two controls sharing one `data-testid`). That is not
+brittleness — that is the test doing its job. Say which of the two it was in the report.
+
+Clean code applies to the suite itself: repeated setup becomes a builder, repeated navigation
+becomes a page object, and a spec file keeps one responsibility — exactly the rules the production
+code follows.
+
 When closing the task, always surface the exact validation commands you ran, or the exact manual commands the user should run if validation was skipped or blocked.
 
 ## Implementation rules

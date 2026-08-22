@@ -31,13 +31,24 @@ test.describe("La tarjeta del feed", () => {
     const estilo = await precio.evaluate((node) => {
       const computed = getComputedStyle(node);
 
-      return { fontFamily: computed.fontFamily, color: computed.color };
+      return {
+        fontFamily: computed.fontFamily,
+        color: computed.color,
+        /* La tinta del cuerpo y el acento del sitio, resueltos por el navegador. Se comparan
+           contra estos y no contra un hex escrito aquí: el día que un token cambie de valor esta
+           prueba no tiene por qué enterarse — lo que afirma es la **relación**, no el color. */
+        tinta: getComputedStyle(document.body).color,
+        acento: getComputedStyle(document.documentElement)
+          .getPropertyValue("--highlight")
+          .trim(),
+      };
     });
 
     expect(estilo.fontFamily).toMatch(/newsreader/i);
     /* Tinta, no acento: el verde señala lo que lleva a algún sitio, y un precio no lleva a
-       ninguno. `--text-base` en claro es #1b1e18. */
-    expect(estilo.color).toBe("rgb(27, 30, 24)");
+       ninguno. */
+    expect(estilo.color).toBe(estilo.tinta);
+    expect(estilo.color).not.toBe(estilo.acento);
   });
 
   /* Los anuncios de la base van sin categoría: ahí no hay pilar que pintar, y no se inventa. */

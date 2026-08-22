@@ -58,7 +58,10 @@ export default async function NosotrosPage({
             interesaba. Cero `<Link>` internos, así que quien terminaba de leer no tenía a dónde ir
             dentro. El bloque de contacto del final se queda como está: ese es para pedir por
             WhatsApp o pasar por la sucursal, que es otra intención. */}
-        <div className="flex flex-wrap justify-center gap-3 pt-2">
+        <div
+          data-testid="about-ways-in"
+          className="flex flex-wrap justify-center gap-3 pt-2"
+        >
           <Link
             href="/productos"
             className={buttonVariants({ color: "green", size: "md" })}

@@ -145,10 +145,15 @@ Spanish URLs are already indexed — do **not** move them to `/es/…`. See `doc
 
 ## Non-Negotiable Engineering Rules
 
-1. SOLID principles, Clean Architecture and Clean Code have highest priority.
-2. No hardcoded period dates in business code (if applicable to business rules).
-3. Period range contract is always `[start_date, end_date)`.
-4. Keep business logic in domain/use case, side effects in infra.
+1. SOLID principles, Clean Architecture and Clean Code have highest priority — **in tests too, e2e
+   included**. A test suite is production code: same naming, same small responsibility-focused
+   modules, same extraction of repeated setup into builders and helpers.
+2. **Tests assert the promise, not the implementation.** A spec you have to edit every time the
+   design moves is a badly written spec, not a design problem. See "Testing rules" in
+   `.agents/skills/nextjs-bdd-feature/SKILL.md` for the concrete patterns to avoid.
+3. No hardcoded period dates in business code (if applicable to business rules).
+4. Period range contract is always `[start_date, end_date)`.
+5. Keep business logic in domain/use case, side effects in infra.
 
 ## PR/Change Checklist
 

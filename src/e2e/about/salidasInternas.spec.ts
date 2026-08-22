@@ -10,21 +10,31 @@ import es from "~/i18n/messages/es.json";
  * vacíos: decir qué falta sin decir qué hacer ahora.
  */
 test.describe("La página de nosotros", () => {
+  /*
+   * Con ámbito, siempre. El pie y la barra inferior repiten rótulos —«Publicar», «WhatsApp
+   * Directo»— y `getByRole` empareja por subcadena: un locator suelto acaba resolviendo dos
+   * elementos el día que alguien añade un enlace en cualquier otra parte de la página.
+   */
   test("Ofrece dos puertas hacia dentro del sitio", async ({ page }) => {
     await page.goto("/nosotros");
 
+    const puertas = page.getByTestId("about-ways-in");
+
     await expect(
-      page.getByRole("link", { name: es.about.browseCta }),
+      puertas.getByRole("link", { name: es.about.browseCta }),
     ).toHaveAttribute("href", "/productos");
     await expect(
-      page.getByRole("link", { name: es.about.publishCta }),
+      puertas.getByRole("link", { name: es.about.publishCta }),
     ).toHaveAttribute("href", "/publicar");
   });
 
   test("Y llevan de verdad al catálogo", async ({ page }) => {
     await page.goto("/nosotros");
 
-    await page.getByRole("link", { name: es.about.browseCta }).click();
+    await page
+      .getByTestId("about-ways-in")
+      .getByRole("link", { name: es.about.browseCta })
+      .click();
     await page.waitForURL("**/productos");
 
     await expect(
