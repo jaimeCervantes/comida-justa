@@ -12,6 +12,10 @@ import type { Post } from "~/domain/entities/post/types";
 import { useRouter } from "~/i18n/navigation";
 import { routing } from "~/i18n/routing";
 import { TextField } from "~/presentation/design_system/forms/TextField";
+import {
+  useSearchShortcut,
+  useShortcutHint,
+} from "~/presentation/search/useSearchShortcut";
 
 interface SearchResult extends Post {
   id: string;
@@ -61,6 +65,10 @@ const SearchBar: React.FC<SearchBarProps> = ({
   const [dismissedFor, setDismissedFor] = useState<string | null>(null);
   const router = useRouter();
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useSearchShortcut(inputRef);
+  const shortcutHint = useShortcutHint();
 
   // Todo lo que sigue se deriva de `query` y `outcome`: nada de esto necesita estado propio, y
   // calcularlo en un efecto provocaba renders en cascada.
@@ -158,12 +166,27 @@ const SearchBar: React.FC<SearchBarProps> = ({
   return (
     <div className="w-64" ref={wrapperRef}>
       <TextField
+        ref={inputRef}
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder={placeholder ?? t("placeholder")}
         type="search"
         autoComplete="off"
         icon={<MdSearch className="text-xl text-text-muted" />}
+        /* La tecla, como en el 5.1. `aria-hidden` porque es una pista para quien tiene teclado —el
+           atajo funciona igual sin leerla— y anunciarla en cada campo alargaría su nombre accesible
+           sin decir nada nuevo. Se esconde en pantallas estrechas: ahí no hay teclado que pulsar. */
+        iconEnd={
+          shortcutHint ? (
+            <kbd
+              aria-hidden
+              data-testid="search-shortcut"
+              className="hidden rounded-chip border border-separator px-1.5 py-0.5 font-mono text-tiny text-text-muted md:inline-block"
+            >
+              {shortcutHint}
+            </kbd>
+          ) : null
+        }
         shellClassName="rounded-full h-10"
         className=""
         name="search"

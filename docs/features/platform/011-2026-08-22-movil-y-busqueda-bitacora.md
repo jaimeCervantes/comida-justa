@@ -70,3 +70,59 @@ ficha, y **oculta en escritorio** mientras la barra de navegación sí se ve.
 El teléfono tiene ya sus cinco accesos permanentes, con «Publicar» como el círculo levantado que el
 5.1 pedía — y una sola vez, porque el header se lo cede por debajo de `lg`. La regla de qué ruta
 marca qué pestaña vive en datos, se prueba sin navegador y se escribe una vez para los dos idiomas.
+
+---
+
+## Slice 2 — El atajo ⌘K (2026-08-22)
+
+### Objetivo
+
+Poner el buscador a un gesto de distancia desde cualquier página, que es la otra mitad de la
+anotación del 5.1: el campo ya nombra ejemplos del catálogo, y ahora se llega a él sin apuntar con
+el ratón.
+
+### Tres decisiones que no son cosméticas
+
+1. **`preventDefault` es obligatorio.** Ctrl+K ya está cogido en Firefox —enfoca su propia barra de
+   búsqueda— y en algunos gestores de contraseñas. Sin él, el atajo del sitio pierde contra el del
+   navegador justo donde más falta hace tenerlo.
+
+2. **Solo actúa sobre el campo que se ve.** El header pinta **dos** buscadores —uno de escritorio y
+   otro de teléfono— y esconde el que no toca, así que sin comprobarlo el atajo enfocaría un
+   `display: none`, que es enfocar nada. `offsetParent === null` es la pregunta barata que lo
+   contesta.
+
+3. **La tecla se resuelve después de montar, no durante el render.** El servidor no sabe qué teclado
+   hay al otro lado: pintar «⌘K» y corregirlo en el cliente sería una discrepancia de hidratación y,
+   en un Windows, un parpadeo enseñando la tecla equivocada. Hasta saberlo no se pinta nada — es una
+   ayuda, no información.
+
+Y una de accesibilidad: la pista va `aria-hidden`. El atajo funciona igual sin oírla, y anunciarla
+alargaría el nombre accesible del campo en cada página sin decir nada nuevo.
+
+**Al enfocar se selecciona lo que hubiera.** Quien pulsa el atajo viene a buscar otra cosa, no a
+añadirle letras a la búsqueda anterior.
+
+### Archivos tocados
+
+- `src/presentation/search/useSearchShortcut.ts` · `useSearchShortcut.test.tsx` (nuevos)
+- `src/presentation/search/SearchBar.tsx` — la pista en `iconEnd` y el `ref` del campo
+- `src/e2e/chrome/searchShortcut.spec.ts` (nuevo)
+
+### Validación
+
+| Comando | Resultado |
+| --- | --- |
+| `pnpm exec vitest --run src/presentation/search` | 2 archivos, **22 pruebas** en verde |
+| `pnpm run typecheck` · `lint` | limpios (973 archivos) |
+| `pnpm run build` | compila |
+| `pnpm exec playwright test src/e2e/chrome` | **27/27 en verde** |
+
+Comprobado en el navegador: la pista dice `Ctrl K` en esta máquina, y tras pulsarla el elemento
+activo es `input[name="search"]`.
+
+### Recap
+
+El buscador se abre desde cualquier página con ⌘K o Ctrl+K, con la tecla correcta según el teclado
+—resuelta tras montar para no mentir en la hidratación— y sin pelearse con el campo escondido del
+otro tamaño de pantalla.
