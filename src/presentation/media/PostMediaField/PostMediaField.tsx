@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { MdError } from "react-icons/md";
 import { MAX_POST_MEDIA_FILES } from "~/domain/entities/post/mediaPayload";
 import { FieldHelper } from "~/presentation/design_system/forms/FieldHelper";
@@ -55,6 +55,7 @@ export default function PostMediaField({
   name = "media",
   initialItems = [],
   onLoadingChange,
+  onItemsChange,
   error,
   className,
 }: {
@@ -64,6 +65,18 @@ export default function PostMediaField({
   initialItems?: readonly PostMediaFieldItem[];
   /** Para que el formulario pueda decir «subiendo…» en su botón de envío. */
   onLoadingChange?: (isLoading: boolean | null) => void;
+  /**
+   * La lista, cada vez que cambia, para quien necesite **enseñarla** fuera de este campo.
+   *
+   * La pide la vista previa del 5.3: pinta la portada de la publicación, y la portada es
+   * `items[0]` —el mismo índice 0 que acaba en `post_media.sort_order` y que leen la tarjeta del
+   * listado y el bot—. Sin esto habría que espiar el `<input hidden>`, que es de React y por tanto
+   * no emite `input` al cambiar: el resto del formulario se lee así, y esta era la única pieza a la
+   * que ese camino no llegaba.
+   *
+   * Es opcional y la lista sigue viviendo aquí: quien escucha mira, no manda.
+   */
+  onItemsChange?: (items: readonly PostMediaFieldItem[]) => void;
   /** Lo que contestó la Server Action para la lista de archivos. */
   error?: string | null;
   className?: string;
@@ -109,6 +122,13 @@ export default function PostMediaField({
   const move = useCallback((from: number, to: number) => {
     setItems((current) => moveItem(current, from, to));
   }, []);
+
+  /* En efecto y no dentro de cada `setItems`: los cambios entran por tres sitios —subir, quitar y
+     reordenar— y avisar desde los tres es la forma de que el cuarto se olvide. Aquí se avisa de
+     cualquiera, y además del primer valor, que es el que trae la edición. */
+  useEffect(() => {
+    onItemsChange?.(items);
+  }, [items, onItemsChange]);
 
   const remaining = MAX_POST_MEDIA_FILES - items.length;
 
