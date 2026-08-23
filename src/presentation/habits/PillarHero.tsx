@@ -11,6 +11,15 @@ type PillarHeroProps = {
   eyebrow?: string;
   id?: string;
   className?: string;
+  /**
+   * La acción con la que se sale del héroe, y la letra pequeña que la acompaña.
+   *
+   * Entra armada desde fuera en vez de recibir texto y destino: cada portada decide si su acción es
+   * un enlace interno, un ancla de la propia página o nada. Lo que este componente aporta es el
+   * sitio y el aire, que es lo que faltaba — el héroe explicaba y no ofrecía nada que hacer.
+   */
+  action?: ReactNode;
+  actionNote?: string;
 };
 
 export default function PillarHero({
@@ -22,6 +31,8 @@ export default function PillarHero({
   eyebrow,
   id,
   className = "",
+  action,
+  actionNote,
 }: PillarHeroProps): React.ReactNode {
   return (
     <header
@@ -62,6 +73,17 @@ export default function PillarHero({
         >
           “{identity}”
         </blockquote>
+      )}
+      {action && (
+        <div
+          data-testid="pillar-hero-action"
+          className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-3"
+        >
+          {action}
+          {actionNote && (
+            <p className={`text-sm ${theme.heroBody}`}>{actionNote}</p>
+          )}
+        </div>
       )}
     </header>
   );

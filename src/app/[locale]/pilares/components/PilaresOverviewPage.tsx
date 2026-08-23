@@ -5,9 +5,11 @@ import { PILLARS_OVERVIEW_HREF } from "~/i18n/routes";
 import { resolveLocale } from "~/i18n/routing";
 import { signInPathFor } from "~/infra/auth/signInPath";
 import { PUBLIC_BRAND_NAME } from "~/infra/constants";
+import { buttonVariants } from "~/presentation/design_system/buttons/buttonVariants";
 import { Heading } from "~/presentation/design_system/typography/Heading";
 import CommunityHabitGarden from "~/presentation/habits/CommunityHabitGarden";
 import PillarHero from "~/presentation/habits/PillarHero";
+import PracticeInvitation from "~/presentation/habits/PracticeInvitation";
 import PublicHabitCelebrationList from "~/presentation/habits/PublicHabitCelebrationList";
 import { getPillarTheme } from "~/presentation/habits/pillarThemes";
 import type { PublicHabitCelebration } from "~/use_cases/habits/ports/HabitChallengeRepository";
@@ -17,6 +19,15 @@ import {
   PILLARS,
   pillarColorClasses,
 } from "./pilaresData";
+
+/**
+ * El ancla de las cuatro tarjetas.
+ *
+ * El héroe y el cierre apuntan aquí: en esta portada «elegir mi práctica» no lleva a otra página,
+ * lleva a la lista que ya está debajo. `scroll-mt` deja aire para el header fijo, que si no tapa la
+ * primera tarjeta justo al llegar.
+ */
+const PRACTICES_ANCHOR = "practicas";
 
 export default function PilaresOverviewPage({
   celebrations,
@@ -31,6 +42,7 @@ export default function PilaresOverviewPage({
   const tPillars = useTranslations("pillars");
   const tPages = useTranslations("pillarPages");
   const habitT = useTranslations("atomicChallenges");
+  const tInvitation = useTranslations("habitCommunity.invitation");
   /* Quien todavía no puede celebrar vuelve **a esta misma página** tras entrar, no a la portada:
      estaba leyendo la lista, y devolverlo al inicio le hace buscar otra vez la tarjeta. */
   const signInHref = signInPathFor(
@@ -52,9 +64,30 @@ export default function PilaresOverviewPage({
           identity={t("heroIdentity")}
           theme={getPillarTheme("nutrition")}
           className="rounded-t-4xl"
+          /*
+            La acción que faltaba. El héroe explicaba cuatro conceptos y dejaba al visitante sin
+            nada que hacer, y esta portada **es** el hub de práctica: elegir se hace aquí abajo, así
+            que la invitación es un ancla a las tarjetas y no un salto a otra página.
+
+            La etiqueta sale de `habitCommunity.invitation.cta`, la misma que usa el cierre. El
+            canvas escribe «Elegir mi práctica» en los dos sitios, y dos claves con el mismo texto
+            se separan en cuanto alguien retoca una.
+          */
+          action={
+            <a
+              href={`#${PRACTICES_ANCHOR}`}
+              className={buttonVariants({ color: "white", size: "lg" })}
+            >
+              {tInvitation("cta")}
+            </a>
+          }
+          actionNote={t("heroNote")}
         />
 
-        <div className="grid gap-6 sm:grid-cols-2 px-6 py-8 sm:px-10 sm:py-10">
+        <div
+          id={PRACTICES_ANCHOR}
+          className="grid gap-6 sm:grid-cols-2 px-6 py-8 sm:px-10 sm:py-10 scroll-mt-24"
+        >
           {PILLARS.map((pillar) => {
             const c = pillarColorClasses[pillar.key];
             return (
@@ -139,12 +172,19 @@ export default function PilaresOverviewPage({
         </div>
       </section>
 
+      {/* El cierre del 5.10: la portada termina invitando a practicar, no explicando. Va antes del
+          «por qué son cuatro» porque quien ya se convenció no debería tener que leerlo entero para
+          encontrar dónde empezar. */}
+      <PracticeInvitation ctaHref={`#${PRACTICES_ANCHOR}`} />
+
+      {/* Sin `max-w-3xl mx-auto`: el layout ya da el ancho de página, y volver a estrecharlo aquí
+          dejaba un bloque flaco en medio de una portada que va a todo lo ancho. */}
       <section className="mt-16 text-center">
-        <div className="bg-surface-elevation-2 rounded-card p-8 max-w-3xl mx-auto">
+        <div className="bg-surface-elevation-2 rounded-card p-8">
           <Heading level={2} className="mb-3">
             {t("whyHeading")}
           </Heading>
-          <p className="text-lg text-text-support leading-relaxed">
+          <p className="mx-auto max-w-3xl text-lg text-text-support leading-relaxed">
             {t("whyBody")}
           </p>
         </div>
