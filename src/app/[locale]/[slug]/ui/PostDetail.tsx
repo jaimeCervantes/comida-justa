@@ -10,7 +10,8 @@ import { buildWhatsappOrderLink } from "~/domain/entities/post/whatsappOrder";
 import type { EventAttendee } from "~/domain/eventAttendance/eventAttendance";
 import { getPathname } from "~/i18n/navigation";
 import { type AppLocale, resolveLocale, routing } from "~/i18n/routing";
-import { PUBLIC_BASE_URL, SIGNIN_PATH, SITE_CURRENCY } from "~/infra/constants";
+import { signInPathFor } from "~/infra/auth/signInPath";
+import { PUBLIC_BASE_URL, SITE_CURRENCY } from "~/infra/constants";
 import type { Post, PostUser } from "~/infra/types/Posts";
 import AddToCartButton from "~/presentation/cart/AddToCartButton/AddToCartButton";
 import { cn } from "~/presentation/design_system/styling/merge-class-names";
@@ -220,7 +221,14 @@ export default async function PostDetail({
           },
         })
       : null;
-  const attendanceSignInHref = `${SIGNIN_PATH}?callbackUrl=${encodeURIComponent(postPath)}`;
+  /* La puerta de entrar, con la vuelta a esta misma ficha escrita dentro. Las dos rutas llevan el
+     prefijo del idioma activo, y aquí no es un detalle: los dos idiomas tienen slug propio, así
+     que `/walk-to-la-luisa` sin `/en` delante no lleva a la versión en español — no lleva a
+     ninguna parte. */
+  const attendanceSignInHref = signInPathFor(
+    currentLocale,
+    slug ? { pathname: "/[slug]", params: { slug } } : "/",
+  );
 
   const isOwner = Boolean(user?.id) && user?.id === postDetails.user?.id;
 

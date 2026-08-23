@@ -5,6 +5,7 @@ import type { Seller } from "~/domain/entities/seller/types";
 import { buildWhatsappStoreLink } from "~/domain/entities/seller/whatsappContact";
 import { Link } from "~/i18n/navigation";
 import { resolveLocale } from "~/i18n/routing";
+import { signInPathFor } from "~/infra/auth/signInPath";
 import { PUBLIC_BASE_URL } from "~/infra/constants";
 import type { FollowSnapshot } from "~/infra/dataAccess/follows/readFollowState";
 import FollowButton from "~/presentation/follow/FollowButton/FollowButton";
@@ -13,7 +14,7 @@ import StoreDistance from "~/presentation/location/StoreDistance";
 import WhatsappButton from "~/presentation/post/WhatsappButton/WhatsappButton";
 import ShareMenu from "~/presentation/sharing/ShareMenu/ShareMenu";
 import { profileHref } from "../../../cuenta/profilePath";
-import { storePath } from "../../../cuenta/storePath";
+import { storeHref, storePath } from "../../../cuenta/storePath";
 
 export default function StoreHeader({
   seller,
@@ -123,6 +124,7 @@ export default function StoreHeader({
               followers={follow.followers}
               isFollowing={follow.isFollowing}
               path={path}
+              signInHref={signInPathFor(locale, storeHref(seller.handle ?? ""))}
             />
           )}
 

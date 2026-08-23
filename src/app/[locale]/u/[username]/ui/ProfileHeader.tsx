@@ -5,12 +5,13 @@ import type { Seller } from "~/domain/entities/seller/types";
 import type { UserProfile } from "~/domain/entities/user/types";
 import { Link } from "~/i18n/navigation";
 import { resolveLocale } from "~/i18n/routing";
+import { signInPathFor } from "~/infra/auth/signInPath";
 import { PUBLIC_BASE_URL } from "~/infra/constants";
 import type { FollowSnapshot } from "~/infra/dataAccess/follows/readFollowState";
 import FollowButton from "~/presentation/follow/FollowButton/FollowButton";
 import FollowerCount from "~/presentation/follow/FollowerCount";
 import ShareMenu from "~/presentation/sharing/ShareMenu/ShareMenu";
-import { profilePath } from "../../../cuenta/profilePath";
+import { profileHref, profilePath } from "../../../cuenta/profilePath";
 import { storeHref } from "../../../cuenta/storePath";
 
 export default function ProfileHeader({
@@ -79,6 +80,7 @@ export default function ProfileHeader({
             followers={follow.followers}
             isFollowing={follow.isFollowing}
             path={path}
+            signInHref={signInPathFor(locale, profileHref(username ?? ""))}
           />
         )}
 

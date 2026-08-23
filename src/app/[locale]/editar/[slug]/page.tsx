@@ -1,13 +1,12 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getLocale, getTranslations, setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { optionsFor } from "~/domain/entities/post/taxonomy";
 import type { User } from "~/domain/entities/post/types";
-import { redirectKeepingLocale } from "~/i18n/redirectKeepingLocale";
 import { resolveLocale } from "~/i18n/routing";
 import { auth } from "~/infra/auth";
 import { isAdmin } from "~/infra/auth/isAdmin";
-import { SIGNIN_PATH } from "~/infra/constants";
+import { redirectToSignIn } from "~/infra/auth/redirectToSignIn";
 import { getCategoryTaxonomy } from "~/infra/dataAccess/categories/cachedCategoryTaxonomy";
 import { createPostAdminRepository } from "~/infra/dataAccess/managePost/factory";
 import { updatePost } from "./actions";
@@ -29,13 +28,13 @@ export default async function EditarPage({
   params: Promise<{ locale: string; slug: string }>;
 }) {
   const session = await auth();
-
-  if (!session) {
-    redirectKeepingLocale(SIGNIN_PATH, await getLocale());
-  }
-
   const { locale: rawLocale, slug } = await params;
   const locale = resolveLocale(rawLocale);
+
+  if (!session) {
+    redirectToSignIn(locale, { pathname: "/editar/[slug]", params: { slug } });
+  }
+
   setRequestLocale(locale);
   const userId = (session.user as User | undefined)?.id;
   const post = await createPostAdminRepository().findBySlug(slug);

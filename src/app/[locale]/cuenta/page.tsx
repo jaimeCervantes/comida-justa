@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
-import { getLocale, getTranslations, setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import type { User } from "~/domain/entities/post/types";
-import { redirectKeepingLocale } from "~/i18n/redirectKeepingLocale";
 import { resolveLocale } from "~/i18n/routing";
 import { auth } from "~/infra/auth";
-import { SIGNIN_PATH } from "~/infra/constants";
+import { redirectToSignIn } from "~/infra/auth/redirectToSignIn";
 import { createBranchRepository } from "~/infra/dataAccess/branches/factory";
 import {
   findProfileOfUser,
@@ -52,21 +51,22 @@ export default async function CuentaPage({
 }: {
   params: Promise<{ locale: string }>;
 }) {
-  const { locale } = await params;
-  setRequestLocale(resolveLocale(locale));
+  const { locale: rawLocale } = await params;
+  const locale = resolveLocale(rawLocale);
+  setRequestLocale(locale);
   const t = await getTranslations("account");
   const tBranches = await getTranslations("branches");
 
   const session = await auth();
 
   if (!session) {
-    redirectKeepingLocale(SIGNIN_PATH, await getLocale());
+    redirectToSignIn(locale, "/cuenta");
   }
 
   const user = session.user as User | undefined;
 
   if (!user?.id) {
-    redirectKeepingLocale(SIGNIN_PATH, await getLocale());
+    redirectToSignIn(locale, "/cuenta");
   }
 
   /* Los mismos lectores que usa el encabezado. Van cacheados por render, así que las dos filas se

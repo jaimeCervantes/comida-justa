@@ -1,6 +1,9 @@
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import type { CommunityGarden } from "~/domain/habits/habitCommunity";
 import { Link } from "~/i18n/navigation";
+import { PILLARS_OVERVIEW_HREF } from "~/i18n/routes";
+import { resolveLocale } from "~/i18n/routing";
+import { signInPathFor } from "~/infra/auth/signInPath";
 import { PUBLIC_BRAND_NAME } from "~/infra/constants";
 import { Heading } from "~/presentation/design_system/typography/Heading";
 import CommunityHabitGarden from "~/presentation/habits/CommunityHabitGarden";
@@ -28,6 +31,12 @@ export default function PilaresOverviewPage({
   const tPillars = useTranslations("pillars");
   const tPages = useTranslations("pillarPages");
   const habitT = useTranslations("atomicChallenges");
+  /* Quien todavía no puede celebrar vuelve **a esta misma página** tras entrar, no a la portada:
+     estaba leyendo la lista, y devolverlo al inicio le hace buscar otra vez la tarjeta. */
+  const signInHref = signInPathFor(
+    resolveLocale(useLocale()),
+    PILLARS_OVERVIEW_HREF,
+  );
 
   return (
     <article>
@@ -125,6 +134,7 @@ export default function PilaresOverviewPage({
             celebrations={celebrations}
             viewerSignedIn={viewerSignedIn}
             reactionAction={setHabitCelebrationReaction}
+            signInHref={signInHref}
           />
         </div>
       </section>

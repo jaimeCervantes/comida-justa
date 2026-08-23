@@ -21,6 +21,9 @@ vi.mock("./PublicHabitCelebrationCard", () => ({
   ),
 }));
 
+/* La puerta la arma la página que enseña la lista —es quien sabe el idioma—; aquí solo viaja. */
+const PUERTA = "/auth/signin?callbackUrl=%2Fpilares";
+
 describe("PublicHabitCelebrationList", () => {
   it("renders every celebration in query order as a card within one section", () => {
     render(
@@ -31,6 +34,7 @@ describe("PublicHabitCelebrationList", () => {
           celebration("sleep-previous", "sleep-evening-to-morning-v1"),
         ]}
         viewerSignedIn
+        signInHref={PUERTA}
       />,
     );
 
@@ -50,6 +54,7 @@ describe("PublicHabitCelebrationList", () => {
           celebration("nutrition-latest", "nutrition-one-plant-v1"),
         ]}
         viewerSignedIn
+        signInHref={PUERTA}
         variant="compact"
       />,
     );
@@ -66,6 +71,7 @@ describe("PublicHabitCelebrationList", () => {
         title="Celebraciones de la comunidad"
         celebrations={[]}
         viewerSignedIn={false}
+        signInHref={PUERTA}
       />,
     );
 

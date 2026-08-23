@@ -8,6 +8,8 @@ export type PublicHabitCelebrationListProps = {
   celebrations: PublicHabitCelebration[];
   viewerSignedIn: boolean;
   reactionAction?: (formData: FormData) => Promise<void>;
+  /** La puerta de entrar para quien todavía no puede celebrar; vuelve a esta misma página. */
+  signInHref: string;
   variant?: CommunitySectionVariant;
 };
 
@@ -16,6 +18,7 @@ export default function PublicHabitCelebrationList({
   celebrations,
   viewerSignedIn,
   reactionAction,
+  signInHref,
   variant = "full",
 }: PublicHabitCelebrationListProps): React.ReactNode {
   if (celebrations.length === 0) return null;
@@ -52,6 +55,7 @@ export default function PublicHabitCelebrationList({
             headingLevel={3}
             viewerSignedIn={viewerSignedIn}
             reactionAction={reactionAction}
+            signInHref={signInHref}
             variant={variant}
           />
         ))}

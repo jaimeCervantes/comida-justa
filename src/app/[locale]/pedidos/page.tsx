@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
-import { getLocale, getTranslations, setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import type { User } from "~/domain/entities/post/types";
 import { resolveScope } from "~/domain/order/order";
-import { redirectKeepingLocale } from "~/i18n/redirectKeepingLocale";
 import { resolveLocale, routing } from "~/i18n/routing";
 import { auth } from "~/infra/auth";
-import { SIGNIN_PATH } from "~/infra/constants";
+import { redirectToSignIn } from "~/infra/auth/redirectToSignIn";
 import { findSellerOfUser } from "~/infra/dataAccess/identity/sessionIdentity";
 import { createOrderRepository } from "~/infra/dataAccess/orders/factory";
 import { Heading } from "~/presentation/design_system/typography/Heading";
@@ -62,7 +61,7 @@ export default async function PedidosPage({
   const userId = (session?.user as User | undefined)?.id;
 
   if (!userId) {
-    redirectKeepingLocale(SIGNIN_PATH, await getLocale());
+    redirectToSignIn(locale, "/pedidos");
   }
 
   const seller = await findSellerOfUser(userId);

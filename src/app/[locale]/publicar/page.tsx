@@ -1,12 +1,11 @@
 import type { Metadata } from "next";
-import { getLocale, setRequestLocale } from "next-intl/server";
+import { setRequestLocale } from "next-intl/server";
 import { optionsFor } from "~/domain/entities/post/taxonomy";
 import type { User } from "~/domain/entities/post/types";
-import { redirectKeepingLocale } from "~/i18n/redirectKeepingLocale";
 import { resolveLocale } from "~/i18n/routing";
 import { auth } from "~/infra/auth";
 import { isAdmin } from "~/infra/auth/isAdmin";
-import { SIGNIN_PATH } from "~/infra/constants";
+import { redirectToSignIn } from "~/infra/auth/redirectToSignIn";
 import { getCategoryTaxonomy } from "~/infra/dataAccess/categories/cachedCategoryTaxonomy";
 import { createSellerRepository } from "~/infra/dataAccess/sellers/factory";
 import { NOINDEX_METADATA } from "~/infra/UI/metadata/noindex";
@@ -22,13 +21,13 @@ export default async function PublicarPage({
   params: Promise<{ locale: string }>;
 }) {
   const session = await auth();
-
-  if (!session) {
-    redirectKeepingLocale(SIGNIN_PATH, await getLocale());
-  }
-
   const { locale: rawLocale } = await params;
   const locale = resolveLocale(rawLocale);
+
+  if (!session) {
+    redirectToSignIn(locale, "/publicar");
+  }
+
   setRequestLocale(locale);
   const taxonomy = await getCategoryTaxonomy();
 

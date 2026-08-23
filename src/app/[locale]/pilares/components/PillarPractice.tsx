@@ -2,11 +2,10 @@ import {
   HABIT_CHALLENGE_EXPERIENCES,
   type HabitChallengeExperienceKey,
 } from "~/domain/habits/habitChallengeExperiences";
-import { getPathname } from "~/i18n/navigation";
 import { pillarHref } from "~/i18n/routes";
 import type { AppLocale } from "~/i18n/routing";
 import { readViewerId } from "~/infra/auth/readViewerId";
-import { SIGNIN_PATH } from "~/infra/constants";
+import { signInPathFor } from "~/infra/auth/signInPath";
 import { createHabitChallengeRepository } from "~/infra/dataAccess/habits/PostgresHabitChallengeRepository";
 import HabitChallengePanel from "~/presentation/habits/HabitChallengePanel";
 import PillarPracticeSection from "~/presentation/habits/PillarPracticeSection";
@@ -37,8 +36,7 @@ export default async function PillarPractice({
         createHabitChallengeRepository(experience.challengeKey),
       ).getProgress(userId)
     : null;
-  const returnPath = getPathname({ locale, href: pillarHref(experience.slug) });
-  const signInPath = getPathname({ locale, href: SIGNIN_PATH });
+  const signInHref = signInPathFor(locale, pillarHref(experience.slug));
 
   return (
     <PillarPracticeSection
@@ -52,7 +50,7 @@ export default async function PillarPractice({
           challenge={challenge}
           initialProgress={progress}
           signedIn={userId !== null}
-          signInHref={`${signInPath}?callbackUrl=${encodeURIComponent(returnPath)}`}
+          signInHref={signInHref}
         />
       }
     />

@@ -10,6 +10,7 @@ import {
   users,
   verificationTokens,
 } from "~/infra/dataAccess/db/schema/auth";
+import { safeReturnUrl } from "./returnPath";
 
 export const config = {
   theme: {
@@ -23,13 +24,21 @@ export const config = {
   }),
   providers: [createGoogleProvider, createMicrosoftEntraIDProvider],
   callbacks: {
-    signIn(params) {
-      console.log("callback signin", params);
-      return true;
-    },
+    /**
+     * A dónde se sale después de entrar.
+     *
+     * **`@auth/core` llama a esto con el `callbackUrl` que llega por query o por cookie, y guarda
+     * lo que se devuelva en la cookie `callback-url`.** Devolver `baseUrl` siempre —como hacía
+     * antes— reescribía cualquier destino como la portada antes incluso de salir hacia el
+     * proveedor, así que ningún `?callbackUrl=` del sitio llegaba a ninguna parte.
+     *
+     * `safeReturnUrl` conserva el destino cuando es de este sitio y no es la propia pantalla de
+     * acceso; cuando no, se cae a la portada. Lo segundo no es cosmética: sin ello, el destino que
+     * next-auth pone por omisión (la dirección actual, o sea la pantalla de acceso) devolvería a
+     * la puerta a quien ya entró.
+     */
     redirect({ url, baseUrl }) {
-      console.log("callback redirect", { url, baseUrl });
-      return baseUrl;
+      return safeReturnUrl(url, baseUrl) ?? baseUrl;
     },
   },
   session: {

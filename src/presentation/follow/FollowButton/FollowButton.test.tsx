@@ -10,6 +10,9 @@ import { renderWithIntl } from "~/infra/test-utils/renderWithIntl";
 import FollowButton from "./FollowButton";
 
 const TIENDA = "05bea858-88d0-4ff3-a531-3d82a7ad6fcc";
+/* La puerta la arma quien renderiza —es quien sabe el idioma—; aquí solo se comprueba que el
+   botón lleve a la que le dieron. Cómo se construye se prueba en `signInPath.test.ts`. */
+const PUERTA = "/auth/signin?callbackUrl=%2Ftienda%2Fhazlo-sano";
 
 function render({ followers = 0, isFollowing = false, canFollow = true } = {}) {
   return renderWithIntl(
@@ -19,6 +22,7 @@ function render({ followers = 0, isFollowing = false, canFollow = true } = {}) {
       isFollowing={isFollowing}
       canFollow={canFollow}
       path="/tienda/hazlo-sano"
+      signInHref={PUERTA}
     />,
   );
 }
@@ -73,10 +77,7 @@ describe("El botón de seguir", () => {
 
     const enlace = screen.getByTestId("follow-signin");
 
-    expect(enlace).toHaveAttribute(
-      "href",
-      "/auth/signin?callbackUrl=%2Ftienda%2Fhazlo-sano",
-    );
+    expect(enlace).toHaveAttribute("href", PUERTA);
     expect(screen.queryByTestId("follow-button")).not.toBeInTheDocument();
     // El contador se sigue viendo: es información pública, no depende de quién mire.
     expect(screen.getByTestId("follower-count")).toHaveTextContent(

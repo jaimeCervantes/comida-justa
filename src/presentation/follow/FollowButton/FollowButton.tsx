@@ -3,7 +3,6 @@
 import { useTranslations } from "next-intl";
 import { useActionState } from "react";
 import { MdPersonAdd, MdPersonRemove } from "react-icons/md";
-import { SIGNIN_PATH } from "~/infra/constants";
 import { Button } from "~/presentation/design_system/buttons/Button";
 import FollowerCount from "../FollowerCount";
 import { type FollowState, toggleFollow } from "../followAction";
@@ -26,6 +25,7 @@ export default function FollowButton({
   isFollowing,
   canFollow,
   path,
+  signInHref,
 }: {
   /** Uno de los dos, nunca los dos: un seguimiento apunta a una sola cosa. */
   sellerId?: string | null;
@@ -36,6 +36,12 @@ export default function FollowButton({
   canFollow: boolean;
   /** La ruta a refrescar, para que el contador que ve el resto también quede al día. */
   path: string;
+  /**
+   * La puerta de entrar con la vuelta a esta página escrita dentro. La arma quien renderiza, que
+   * es quien sabe el idioma: `path` sirve para revalidar, no para navegar, y confundir los dos
+   * dejaba a quien lee en inglés en la pantalla de acceso en español.
+   */
+  signInHref: string;
 }) {
   const t = useTranslations("follow");
   const [state, action, isPending] = useActionState<FollowState, FormData>(
@@ -57,7 +63,7 @@ export default function FollowButton({
     return (
       <span className="inline-flex items-center gap-3">
         <a
-          href={`${SIGNIN_PATH}?callbackUrl=${encodeURIComponent(path)}`}
+          href={signInHref}
           data-testid="follow-signin"
           className="focus-ring inline-flex items-center gap-2 whitespace-nowrap rounded-control bg-pw-green px-2 py-2 text-sm text-white transition-colors hover:bg-pw-green/80"
         >

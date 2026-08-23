@@ -1,89 +1,38 @@
-"use client";
+import { setRequestLocale } from "next-intl/server";
+import { getPathname } from "~/i18n/navigation";
+import { resolveLocale } from "~/i18n/routing";
+import { safeReturnPath } from "~/infra/auth/returnPath";
+import SignInOptions from "./ui/SignInOptions";
 
-import Image from "next/image";
-import { getProviders, signIn } from "next-auth/react";
-import { useTranslations } from "next-intl";
-import { useEffect, useState } from "react";
+/**
+ * La pantalla de acceso, que ahora **lee a dónde había que volver**.
+ *
+ * Era un Client Component entero, y por eso el `?callbackUrl=` que traía en la dirección no lo
+ * miraba nadie. Se parte en dos: aquí el destino se lee y se valida en el servidor, y el cliente
+ * solo se ocupa de los botones. De paso la sección puede llamar a `setRequestLocale`.
+ *
+ * Sin destino válido se vuelve a la portada **del idioma activo**, no a `/`: para quien navega en
+ * inglés, `/` es cambiar de idioma sin avisar.
+ */
+export default async function SignInPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ locale: string }>;
+  searchParams: Promise<{ callbackUrl?: string | string[] }>;
+}) {
+  const { locale: rawLocale } = await params;
+  const locale = resolveLocale(rawLocale);
+  setRequestLocale(locale);
 
-type Providers = Awaited<ReturnType<typeof getProviders>>;
-
-export default function SignInPage() {
-  const t = useTranslations("auth");
-  const [providers, setProviders] = useState<Providers>(null);
-
-  useEffect(() => {
-    getProviders().then((p) => setProviders(p));
-  }, []);
+  const { callbackUrl } = await searchParams;
+  const requested = Array.isArray(callbackUrl) ? callbackUrl[0] : callbackUrl;
 
   return (
-    <div className="w-full max-w-lg flex items-center justify-center align-items-center mx-auto">
-      <div className="mx-auto bg-surface-elevation-1/70 backdrop-blur-md rounded-card shadow-xl ring-1 ring-separator overflow-hidden">
-        <div className="p-8 md:p-10 flex flex-col items-center text-center">
-          <div className="h-40 bg-white flex items-center justify-center mb-4">
-            <Image
-              loading="eager"
-              src="/logo.webp"
-              alt="Logo"
-              className="h-40"
-              width={100}
-              height={100}
-              style={{ width: "auto", height: "auto" }}
-            />
-          </div>
-
-          <p className="text-sm md:text-base text-text-support max-w-prose">
-            {t("intro")}
-          </p>
-
-          <div className="w-full mt-6 space-y-3">
-            {providers &&
-              Object.values(providers).map((provider) => (
-                <button
-                  key={provider.id}
-                  type="button"
-                  onClick={() => signIn(provider.id)}
-                  aria-label={`Sign in with ${provider.name}`}
-                  className="focus-ring w-full flex items-center justify-between gap-3 py-3 px-4 bg-surface-elevation-1 border border-separator rounded-control hover:shadow-md transition-shadow"
-                >
-                  <div className="flex items-center gap-3">
-                    <Image
-                      loading="eager"
-                      width={28}
-                      height={28}
-                      src={`https://authjs.dev/img/providers/${provider.id}.svg`}
-                      alt="Hazlo Sano"
-                      className="h-7 w-7"
-                    />
-                    <span className="text-label font-medium text-text-support">
-                      {t("signInWith")}{" "}
-                      {provider.id === "microsoft-entra-id"
-                        ? "Microsoft"
-                        : provider.name}
-                    </span>
-                  </div>
-                  <svg
-                    aria-hidden="true"
-                    focusable="false"
-                    className="h-5 w-5 text-pw-green"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M9 5l7 7-7 7"
-                    />
-                  </svg>
-                </button>
-              ))}
-          </div>
-
-          <div className="mt-6 text-xs text-text-muted">{t("terms")}</div>
-        </div>
-      </div>
-    </div>
+    <SignInOptions
+      callbackUrl={
+        safeReturnPath(requested) ?? getPathname({ locale, href: "/" })
+      }
+    />
   );
 }

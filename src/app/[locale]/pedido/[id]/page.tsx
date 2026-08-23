@@ -2,18 +2,16 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import {
   getFormatter,
-  getLocale,
   getTranslations,
   setRequestLocale,
 } from "next-intl/server";
 import type { User } from "~/domain/entities/post/types";
 import { canNotifySeller } from "~/domain/order/order";
 import { Link } from "~/i18n/navigation";
-import { redirectKeepingLocale } from "~/i18n/redirectKeepingLocale";
 import { resolveLocale, routing } from "~/i18n/routing";
 import { auth } from "~/infra/auth";
+import { redirectToSignIn } from "~/infra/auth/redirectToSignIn";
 import { readCartSelection } from "~/infra/cart/readCart";
-import { SIGNIN_PATH } from "~/infra/constants";
 import { findSellerOfUser } from "~/infra/dataAccess/identity/sessionIdentity";
 import { createOrderRepository } from "~/infra/dataAccess/orders/factory";
 import { absoluteOrderUrl } from "~/infra/UI/mappers/absoluteOrderUrl";
@@ -63,7 +61,7 @@ export default async function PedidoPage({
   const userId = (session?.user as User | undefined)?.id;
 
   if (!userId) {
-    redirectKeepingLocale(SIGNIN_PATH, await getLocale());
+    redirectToSignIn(locale, { pathname: "/pedido/[id]", params: { id } });
   }
 
   const repository = createOrderRepository();

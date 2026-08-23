@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import type { User } from "~/domain/entities/post/types";
-import { redirectKeepingLocale } from "~/i18n/redirectKeepingLocale";
 import { resolveLocale } from "~/i18n/routing";
 import { auth } from "~/infra/auth";
-import { SIGNIN_PATH } from "~/infra/constants";
+import { redirectToSignIn } from "~/infra/auth/redirectToSignIn";
 import { createScheduleRepository } from "~/infra/dataAccess/schedule/factory";
 import { createSellerRepository } from "~/infra/dataAccess/sellers/factory";
 import { Heading } from "~/presentation/design_system/typography/Heading";
@@ -36,7 +35,7 @@ export default async function AgendaPage({
   const session = await auth();
   const userId = (session?.user as User | undefined)?.id;
 
-  if (!userId) redirectKeepingLocale(SIGNIN_PATH, resolveLocale(locale));
+  if (!userId) redirectToSignIn(resolveLocale(locale), "/cuenta/agenda");
 
   const seller = await createSellerRepository().findByUserId(userId);
 

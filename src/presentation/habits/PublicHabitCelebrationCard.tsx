@@ -55,11 +55,14 @@ export default async function PublicHabitCelebrationCard({
   headingLevel = 2,
   viewerSignedIn = false,
   reactionAction,
+  signInHref,
   variant = "full",
 }: {
   celebration: PublicHabitCelebration;
   headingLevel?: 2 | 3;
   viewerSignedIn?: boolean;
+  /** La puerta de entrar, con la vuelta a la página que enseña la lista escrita dentro. */
+  signInHref: string;
   reactionAction?: (formData: FormData) => Promise<void>;
   variant?: CommunitySectionVariant;
 }): Promise<React.ReactNode> {
@@ -181,12 +184,14 @@ export default async function PublicHabitCelebrationCard({
                 </button>
               </form>
             ) : (
-              <Link
-                href={{ pathname: "/auth/signin", query: { callbackUrl: "/" } }}
+              /* La vuelta es a esta misma lista, no a la portada: quien celebra a alguien está
+                 leyendo la lista, y devolverlo al inicio le hace buscar otra vez la tarjeta. */
+              <a
+                href={signInHref}
                 className={`focus-ring rounded-full font-semibold underline ${theme.ink}`}
               >
                 {habitT("experienceCommon.reactionSignIn")}
-              </Link>
+              </a>
             )}
             <span className={`text-body ${scale.count}`}>
               {habitT("experienceCommon.reactionCount", {
