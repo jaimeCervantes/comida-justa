@@ -12,7 +12,7 @@ import { TextField } from "~/presentation/design_system/forms/TextField";
 import { usePhoneValidationMessages } from "~/presentation/forms/usePhoneValidationMessages";
 import { ValidatedForm } from "~/presentation/forms/ValidatedForm";
 import type { BecomeSellerState } from "../actions";
-import { storeHref, storePath } from "../storePath";
+import { storePath } from "../storePath";
 import AccountCard from "./AccountCard";
 
 export default function BecomeSellerForm({
@@ -35,13 +35,19 @@ export default function BecomeSellerForm({
   >(action, {});
   const [name, setName] = useState<string>(defaultName ?? "");
 
-  // La dirección se calcula con la MISMA función del dominio que usa el servidor, así que lo
-  // que se ve aquí es lo que va a quedar guardado, no una aproximación.
+  /*
+   * La dirección se calcula con la MISMA función del dominio que usa el servidor, así que lo que se
+   * ve aquí es lo que va a quedar guardado, no una aproximación. Es la segunda anotación del 5.15.
+   *
+   * **Lo que pasa después no lo pinta este componente.** Al abrir la tienda, la Server Action
+   * revalida `/cuenta`, y la página vuelve con `StoreCard` en el sitio de este formulario. Vivía
+   * aquí un `StoreReadyMessage` que enseñaba la dirección de la tienda recién creada a partir del
+   * `handle` devuelto — y **nunca llegaba a pintarse**: comprobado en el navegador, tras un alta
+   * correcta hay `store-card` y no aquella tarjeta. Se retiró. Lo que promete el 5.15 para ese
+   * momento —camino corto, pestaña nueva y botón de repartir— lo da `StoreCard` con
+   * `PublicAddressRow`, que es donde de verdad aterriza quien acaba de abrir su tienda.
+   */
   const handlePreview = generateSellerHandle(name);
-
-  if (state.handle) {
-    return <StoreReadyMessage handle={state.handle} />;
-  }
 
   return (
     <AccountCard title={t("becomeSellerTitle")} intro={t("becomeSellerIntro")}>
@@ -119,26 +125,6 @@ export default function BecomeSellerForm({
           </Button>
         </footer>
       </ValidatedForm>
-    </AccountCard>
-  );
-}
-
-function StoreReadyMessage({ handle }: { handle: string }) {
-  const t = useTranslations("account");
-  const locale = resolveLocale(useLocale());
-
-  return (
-    <AccountCard
-      title={t("becomeSellerOnline")}
-      intro={t("becomeSellerShare")}
-      testId="store-ready"
-    >
-      <Link
-        href={storeHref(handle)}
-        className="font-bold text-pw-orange break-all"
-      >
-        {`${PUBLIC_BASE_URL}${storePath(handle, locale)}`}
-      </Link>
     </AccountCard>
   );
 }

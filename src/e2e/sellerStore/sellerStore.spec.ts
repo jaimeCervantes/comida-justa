@@ -102,6 +102,10 @@ test.describe("Cuando una persona registrada abre su tienda", () => {
     await account.fillAndSubmit({ name: store.name, phone: store.phone });
     await account.expectStoreLink(store.handle);
 
+    /* Y puede repartirla ahí mismo: es la tercera anotación del 5.15 —se lee corto, se comparte
+       completo—, y no estaba afirmada en ninguna parte. */
+    await account.expectAddressReadableAndShareable(store.handle);
+
     await account.goto();
 
     await account.expectStoreCard(store.name);
