@@ -1,45 +1,38 @@
-import { headers } from "next/headers";
-import Image from "next/image";
 import Link from "next/link";
 import { Button } from "~/presentation/design_system/buttons/Button";
 import { Heading } from "~/presentation/design_system/typography/Heading";
 
-export default async function NotFound() {
-  const headersList = await headers();
-  const _mappedHeaders = Array.from(headersList);
-
+/**
+ * El 404 de la raíz: el que sale cuando la dirección ni siquiera llegó a tener idioma.
+ *
+ * **Está en español a mano, y no es un descuido.** Vive fuera de `[locale]`, así que no hay
+ * `NextIntlClientProvider` ni `getTranslations` que valgan —es la misma razón por la que `Badge`
+ * recibe su texto ya traducido—. Y es español porque a esta altura no hay ruta de la que deducir el
+ * idioma: la comunidad es de Xalapa y el sitio por omisión habla español.
+ *
+ * Dice lo mismo que su gemelo de `[locale]`, con menos: sin sugerencias, porque los destinos que
+ * ofrecería son rutas traducidas y aquí el idioma todavía no está decidido. Pinta su propio
+ * `<html>` porque no hay layout encima.
+ */
+export default function NotFound() {
   return (
     <html lang="es">
       <body>
-        <section className="flex flex-col justify-center gap-4 items-center min-h-screen">
-          <Heading level={1} size="md">
-            ¡Recurso no encontrado!
-          </Heading>
+        <section className="mx-auto flex min-h-screen max-w-2xl flex-col items-start justify-center gap-4 p-6">
+          <span className="text-caption font-semibold uppercase tracking-[0.14em] text-text-muted">
+            404
+          </span>
 
-          <Heading level={2} className="hidden md:block">
-            Probablemente se fue a hacer una serie extra de burpees... ¡y se
-            agotó!
-          </Heading>
+          <Heading level={1}>Esta página se cosechó ya</Heading>
 
-          <Heading level={3}>
-            A veces, incluso un recurso necesita un descanso.
-          </Heading>
+          <p className="text-body text-text-support">
+            La publicación que buscabas se venció o la borró quien la subió.
+            Pasa, y no es tu culpa.
+          </p>
 
-          <Image
-            src="/404/404.webp"
-            alt="A veces, incluso un recurso necesita un descanso"
-            width={462}
-            height={283}
-          />
-
-          <Heading level={4}>
-            Mientras se recupera, tú puedes continuar cuidando tu salud, tu
-            tiempo. Encuentra lo que necesitas aquí:
-          </Heading>
-
-          <p>
+          <p className="mt-2">
             <Link href="/">
-              <Button color="green">Ir al inicio</Button>
+              <Button color="green">Ver lo que hay hoy</Button>
             </Link>
           </p>
         </section>

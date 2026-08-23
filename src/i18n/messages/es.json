@@ -796,12 +796,15 @@
     "signOutShort": "Salir"
   },
   "notFound": {
-    "goHome": "Ir al inicio",
-    "heading": "¡Recurso no encontrado!",
-    "imageAlt": "A veces, incluso un recurso necesita un descanso",
-    "invite": "Mientras se recupera, tú puedes continuar cuidando tu salud, tu tiempo. Encuentra lo que necesitas aquí:",
-    "rest": "A veces, incluso un recurso necesita un descanso.",
-    "subtitle": "Probablemente se fue a hacer una serie extra de burpees... ¡y se agotó!"
+    "cause": "La publicación que buscabas se venció o la borró quien la subió. Pasa, y no es tu culpa.",
+    "code": "404",
+    "goHome": "Ver lo que hay hoy",
+    "goSearch": "Buscar otra cosa",
+    "heading": "Esta página se cosechó ya",
+    "suggestEvents": "Eventos",
+    "suggestPillars": "Los 4 pilares",
+    "suggestProducers": "Productores locales",
+    "suggestionsLabel": "Quizá te sirva"
   },
   "orders": {
     "action": {

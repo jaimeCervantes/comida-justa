@@ -796,12 +796,15 @@
     "signOutShort": "Sign out"
   },
   "notFound": {
-    "goHome": "Go to the home page",
-    "heading": "Resource not found!",
-    "imageAlt": "Sometimes even a resource needs a rest",
-    "invite": "While it recovers, you can keep looking after your health — your time. Find what you need here:",
-    "rest": "Sometimes even a resource needs a rest.",
-    "subtitle": "It probably went off to do an extra set of burpees… and ran out of steam!"
+    "cause": "The publication you were looking for expired, or whoever posted it took it down. It happens, and it is not your fault.",
+    "code": "404",
+    "goHome": "See what there is today",
+    "goSearch": "Search for something else",
+    "heading": "This page was already harvested",
+    "suggestEvents": "Events",
+    "suggestPillars": "The 4 pillars",
+    "suggestProducers": "Local producers",
+    "suggestionsLabel": "This might help"
   },
   "orders": {
     "action": {
