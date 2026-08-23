@@ -18,10 +18,23 @@ import { cn } from "~/presentation/design_system/styling/merge-class-names";
 export default function AmountCurrency({
   value,
   currency = "MXN",
+  showZero = false,
   className,
 }: {
   value: number;
   currency?: string;
+  /**
+   * Pintar el cero en vez de callarse.
+   *
+   * Por omisión un importe vacío **no se pinta**: un anuncio no tiene precio, y «$0.00» debajo de
+   * su título diría que es gratis. Pero hay un sitio donde el cero es el dato: el renglón agotado
+   * del carrito, que el 5.14 pide dejar «en cero» y no en blanco — un hueco vacío se lee como
+   * «falta un dato», y un `$0` dice que se contó y no sumó.
+   *
+   * Va como opción y no como cambio de la regla porque los dos casos son ciertos, y quien llama es
+   * quien sabe cuál es el suyo.
+   */
+  showZero?: boolean;
   className?: string;
 }) {
   const locale = resolveLocale(useLocale());
@@ -41,7 +54,7 @@ export default function AmountCurrency({
      ganaba lo decidía el orden del CSS, no el de quien llama. Así un override es deliberado. */
   const clsName = cn("font-display text-heading-sm text-text-base", className);
 
-  if (Boolean(value) === false) {
+  if (Boolean(value) === false && !showZero) {
     return null;
   }
 

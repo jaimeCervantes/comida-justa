@@ -36,21 +36,38 @@ export default async function CartGroup({ group }: { group: CartSellerGroup }) {
       data-testid="cart-group"
       data-seller={group.seller.handle ?? group.seller.id}
     >
-      <Heading level={2} size="xs">
-        {group.seller.handle ? (
-          <Link
-            href={{
-              pathname: "/tienda/[slug]",
-              params: { slug: group.seller.handle },
-            }}
-            className="hover:text-highlight"
-          >
-            {group.seller.name}
-          </Link>
-        ) : (
-          group.seller.name
-        )}
-      </Heading>
+      {/*
+        El nombre y **la cifra cobrable**, en el mismo renglón.
+
+        Es la primera anotación del 5.14: «el subtotal por tienda es la cifra cobrable». Estaba solo
+        al pie del grupo, después de los renglones, así que con tres productos había que bajar para
+        saber cuánto se le debía a esta tienda — y en un carrito de dos tiendas eso es justo lo que
+        se está comparando. Al pie sigue, junto a su botón, porque ahí es donde se confirma.
+      */}
+      <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+        <Heading level={2} size="xs">
+          {group.seller.handle ? (
+            <Link
+              href={{
+                pathname: "/tienda/[slug]",
+                params: { slug: group.seller.handle },
+              }}
+              className="hover:text-highlight"
+            >
+              {group.seller.name}
+            </Link>
+          ) : (
+            group.seller.name
+          )}
+        </Heading>
+
+        <span
+          data-testid="cart-group-subtotal"
+          className="text-body-lg font-semibold"
+        >
+          <CurrencyAmount value={group.subtotal} currency={SITE_CURRENCY} />
+        </span>
+      </div>
 
       <ul className="mt-2">
         {group.lines.map((line) => (

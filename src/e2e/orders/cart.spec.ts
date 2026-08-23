@@ -212,6 +212,25 @@ test.describe("Cuando un producto del carrito se agota", () => {
     // Y ya no suma: quedan solo los 35 del suero.
     expect(await cartTotal(page)).toContain("35");
 
+    /* Y su importe se queda **en cero**, no en blanco: el 5.14 lo pide así, y con razón — un hueco
+       vacío se lee como «falta un dato», mientras que el cero dice que se contó y no sumó. */
+    await expect(
+      page.getByTestId("cart-line").filter({
+        has: page.getByTestId("cart-line-sold-out"),
+      }),
+    ).toContainText("0");
+
+    /* La primera anotación del 5.14: «el subtotal por tienda es la cifra cobrable». Estaba solo al
+       pie del grupo, después de los renglones; ahora está también junto al nombre, que es donde se
+       escanea al comparar dos tiendas. Se afirma la **invariante** —las dos cifras son la misma— y
+       no un número: cuál sea depende de lo que haya en el carrito, y aquí ya hay algo. */
+    const grupo = page.getByTestId("cart-group").first();
+
+    await expect(grupo.getByTestId("cart-group-subtotal")).toBeVisible();
+    expect(
+      (await grupo.getByTestId("cart-group-subtotal").innerText()).trim(),
+    ).toBe((await grupo.getByTestId("cart-group-total").innerText()).trim());
+
     /* Que lo agotado tampoco entre en el pedido lo prueban el caso de uso (`placeOrderUseCase`, que
        lo deja fuera de los renglones) y el mensaje del aviso. Aquí se comprueba lo que es del
        carrito: que se ve, que no se cobra y que no desaparece a escondidas. */

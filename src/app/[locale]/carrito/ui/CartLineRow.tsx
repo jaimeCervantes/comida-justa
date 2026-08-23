@@ -90,10 +90,18 @@ export default function CartLineRow({ line }: { line: CartLine }) {
 
           {/* `ml-auto` empuja el importe al extremo cuando caben en una línea, y lo deja en su sitio
               cuando la fila se parte. */}
+          {/*
+            Lo agotado se queda **en cero**, no en blanco.
+            Es la tercera anotación del 5.14. Un hueco vacío se lee como «falta un dato»; un `$0`
+            dice que el renglón se contó y no sumó, que es exactamente lo que pasa. El aviso de
+            arriba explica por qué, y así los dos cuentan la misma historia.
+          */}
           <span className="ml-auto">
-            {soldOut ? null : (
-              <CurrencyAmount value={amount} currency={SITE_CURRENCY} />
-            )}
+            <CurrencyAmount
+              value={soldOut ? 0 : amount}
+              currency={SITE_CURRENCY}
+              showZero={soldOut}
+            />
           </span>
 
           <form action={removeAction}>

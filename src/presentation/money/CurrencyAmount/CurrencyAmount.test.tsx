@@ -42,3 +42,40 @@ describe("CurrencyAmount", () => {
     expect(container).toBeEmptyDOMElement();
   });
 });
+
+/**
+ * El cero, que por omisión se calla y a veces es el dato.
+ *
+ * La regla de callarse existe para el anuncio sin precio: «$0.00» bajo su título diría que es
+ * gratis. Pero el renglón agotado del carrito necesita justo lo contrario —el 5.14 lo pide «en
+ * cero» y no en blanco—, así que quien llama elige.
+ */
+describe("El importe en cero", () => {
+  const renderAmount = (node: React.ReactNode) =>
+    render(
+      <NextIntlClientProvider locale="es" messages={{}} timeZone="UTC">
+        {node}
+      </NextIntlClientProvider>,
+    );
+
+  it("no se pinta por omisión", () => {
+    const { container } = renderAmount(<CurrencyAmount value={0} />);
+
+    expect(container).toBeEmptyDOMElement();
+  });
+
+  it("se pinta cuando quien llama lo pide", () => {
+    renderAmount(<CurrencyAmount value={0} showZero />);
+
+    expect(screen.getByText(/0/)).toBeInTheDocument();
+  });
+
+  it("sigue sin inventar nada cuando no hay número", () => {
+    const { container } = renderAmount(
+      <CurrencyAmount value={undefined as unknown as number} showZero />,
+    );
+
+    /* `showZero` habla del cero, no de «pinta lo que sea». */
+    expect(container.textContent).not.toMatch(/[1-9]/);
+  });
+});
