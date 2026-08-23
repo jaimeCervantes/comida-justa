@@ -148,3 +148,55 @@ mismo margen que perdona la semana entera. Nada de esto tocó el esquema de la b
    Alembic en el backend Python**, a acordar aparte.
 
 **Pendiente del usuario:** correr la e2e con los dos comandos de arriba.
+
+## Apéndice — el timeout de `PublishForm.validation` (2026-08-23)
+
+La entrada anterior dejó la suite en 218 de 219 archivos, con
+`PublishForm.validation.test.tsx > pinta el error de media junto al selector` cayéndose por
+*timeout*. Ya está arreglado; queda aquí porque la causa no era la lentitud de la máquina.
+
+### Qué medía
+
+| Prueba | Duración |
+| --- | --- |
+| Las otras catorce del archivo | ~350 ms |
+| «pinta el error de media…» | **1797 ms** |
+
+Era la única que tecleaba: 94 caracteres entre título, teléfono y descripción. `userEvent.type` pulsa
+letra por letra, y **cada letra vuelve a renderizar el asistente entero** — el contador del título
+lee `draft.title.length`, así que el estado sube en cada pulsación. Noventa y cuatro renderizados del
+formulario completo. Bajo la carga de la suite entera eso se pasaba del límite de 5 s por prueba.
+
+### Qué se hizo
+
+Rellenar el formulario en esta prueba es **preparación**, no la conducta que se afirma: lo que se
+comprueba es que el error de media que contesta el servidor se pinte junto al selector. Así que el
+relleno pasó a ser una intención por campo (`fillField`, un `fireEvent.change`) en vez de noventa y
+cuatro pulsaciones. El clic de «Publicar» sigue siendo `userEvent`, porque ahí la interacción sí es
+lo que se prueba.
+
+El ayudante vive en `publishFormHarness.ts` con la advertencia de cuándo **no** usarlo: donde lo que
+se afirma es la escritura misma —que salga el mensaje al salir del campo, que el contador avance— hay
+que teclear de verdad. Las otras catorce pruebas del archivo siguen con `userEvent`, y con razón.
+
+Subirle el `testTimeout` habría dejado una prueba cinco veces más lenta que sus vecinas esperando a
+volver a romperse.
+
+### Validación
+
+| Comando | Resultado |
+| --- | --- |
+| `pnpm exec vitest --run PublishForm.validation.test.tsx` | 15 en verde; la prueba bajó de 1797 ms a por debajo del umbral que el reporter imprime |
+| `pnpm run test:run` | **219 de 219 archivos, 2370 de 2370 pruebas en verde**. La suite completa bajó de 277 s a 140 s |
+| `pnpm exec biome check` | limpio, 1013 archivos |
+
+### Recap
+
+La suite unitaria está entera en verde por primera vez en esta rama. El único fallo que quedaba no
+era de los hábitos ni de la máquina: era una prueba que simulaba mecanografía donde solo necesitaba
+un formulario relleno.
+
+### Próximos pasos (opciones)
+
+Los mismos de la entrada anterior — slice 3 (una sola semana), el editor enriquecido, slice 4
+(semanas encadenadas). Sigue pendiente que el usuario corra la e2e.

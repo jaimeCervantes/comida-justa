@@ -1,4 +1,4 @@
-import { screen } from "@testing-library/react";
+import { fireEvent, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { publishKindTestId } from "./publishKinds";
 import { stepForField } from "./publishSteps";
@@ -39,4 +39,20 @@ export async function openStepOf(fieldName: string): Promise<void> {
 export async function chooseKind(kind: string): Promise<void> {
   await openStepOf("kind");
   await userEvent.click(screen.getByTestId(publishKindTestId(kind)));
+}
+
+/**
+ * Dejar un campo con su valor, de una vez.
+ *
+ * `userEvent.type` teclea letra por letra, y cada letra vuelve a renderizar el asistente entero: el
+ * contador del título lee `draft.title.length`, así que el estado sube en cada pulsación. Rellenar
+ * tres campos costaba 94 renderizados y 1.8 s — cinco veces lo que cualquier otra prueba del
+ * archivo—, y bajo la carga de la suite completa eso se pasaba del límite de 5 s.
+ *
+ * Se usa para **preparar** el formulario, no para probar cómo escribe alguien. Cuando lo que se
+ * afirma es la escritura misma —que salga el mensaje al salir del campo, que el contador avance—
+ * hay que teclear de verdad con `userEvent`, porque ahí la pulsación es la conducta bajo prueba.
+ */
+export function fillField(field: HTMLElement, value: string): void {
+  fireEvent.change(field, { target: { value } });
 }

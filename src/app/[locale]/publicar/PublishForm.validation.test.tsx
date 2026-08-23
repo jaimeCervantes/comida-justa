@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import type { AppLocale } from "~/i18n/routing";
 import { renderWithIntl } from "~/infra/test-utils/renderWithIntl";
 import PublishForm from "./PublishForm";
-import { chooseKind, openStepOf } from "./publishFormHarness";
+import { chooseKind, fillField, openStepOf } from "./publishFormHarness";
 
 const noop = vi.fn();
 
@@ -191,7 +191,7 @@ describe("PublishForm — enviar con errores", () => {
     }));
     renderForm("es", action);
 
-    await userEvent.type(
+    fillField(
       screen.getByRole("textbox", { name: /título de la publicación/i }),
       "Reto caminata 5 minutos",
     );
@@ -199,11 +199,8 @@ describe("PublishForm — enviar con errores", () => {
     /* El teléfono y la descripción viven en el último paso del asistente; el título, en el
        primero. Rellenar los tres es cruzarlo entero, que es lo que hace quien publica. */
     await openStepOf("phone");
-    await userEvent.type(
-      screen.getByRole("textbox", { name: /teléfono/i }),
-      "2781092116",
-    );
-    await userEvent.type(
+    fillField(screen.getByRole("textbox", { name: /teléfono/i }), "2781092116");
+    fillField(
       screen.getByRole("textbox", { name: /descripción del producto/i }),
       "Empieza con cinco minutos al día, sin equipo y cerca de casa.",
     );
