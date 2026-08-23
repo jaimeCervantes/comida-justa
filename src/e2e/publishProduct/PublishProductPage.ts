@@ -1,4 +1,5 @@
 import { expect, type Locator, type Page } from "@playwright/test";
+import { openPublishStep } from "../testUtils/openPublishStep";
 import { stubStorageUpload } from "../testUtils/stubStorageUpload";
 
 type PublishProductValues = {
@@ -47,15 +48,10 @@ export default class PublishProductPage {
     await this.page
       .getByRole("combobox", { name: /tipo de publicación/i })
       .selectOption(values.kind);
+    await openPublishStep(this.page, "price");
     await this.page
       .getByRole("spinbutton", { name: /precio/i })
       .fill(values.price);
-    await this.page
-      .getByRole("textbox", { name: /tel[eé]fono/i })
-      .fill(values.phone);
-    await this.page
-      .getByRole("textbox", { name: /descripci[oó]n/i })
-      .fill(values.description);
     if (values.origin) {
       await this.page
         // Por `#origin` y no por su etiqueta: la etiqueta es una pregunta al vendedor y se
@@ -63,6 +59,14 @@ export default class PublishProductPage {
         .locator("#origin")
         .selectOption(values.origin);
     }
+
+    await openPublishStep(this.page, "phone");
+    await this.page
+      .getByRole("textbox", { name: /tel[eé]fono/i })
+      .fill(values.phone);
+    await this.page
+      .getByRole("textbox", { name: /descripci[oó]n/i })
+      .fill(values.description);
     // Set the file last: it fires a native `change` event that only starts the
     // upload once React has hydrated and attached its onChange handler. Doing it
     // after the controlled fields above guarantees hydration has happened, so the
@@ -73,6 +77,8 @@ export default class PublishProductPage {
   }
 
   async submit() {
+    // Publicar vive en el último paso del asistente.
+    await openPublishStep(this.page, "phone");
     await expect(this.page.getByText(/subido/i)).toBeVisible({
       timeout: 45_000,
     });

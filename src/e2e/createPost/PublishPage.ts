@@ -1,5 +1,6 @@
 import { expect, type Locator, type Page } from "@playwright/test";
 import { MediaTray } from "../testUtils/mediaTray";
+import { openPublishStep } from "../testUtils/openPublishStep";
 import { stubStorageUpload } from "../testUtils/stubStorageUpload";
 
 type PublishValues = {
@@ -92,12 +93,15 @@ export default class PublishPage {
     /* Se decide por el tipo y no preguntando si el control está visible: si un día `producto` deja
        de pintar el precio, esto tiene que fallar y no seguir de largo — que es exactamente lo que
        hizo pasar desapercibida la rotura de `507241d`. */
+    await openPublishStep(this.page, "origin");
+
     if (KINDS_WITH_ORIGIN.includes(kind))
       await this.origin.selectOption(values.origin ?? "reventa_cercana");
 
     if (KINDS_WITH_PRICE.includes(kind) && values.price !== undefined)
       await this.price.fill(values.price);
 
+    await openPublishStep(this.page, "phone");
     await this.phone.fill(values.phone);
     await this.description.fill(values.description);
     // Set the file last: it fires a native `change` event that only starts the upload
@@ -134,11 +138,19 @@ export default class PublishPage {
     await this.tray.remove(position).click();
   }
 
+  /* Cada campo se comprueba en su paso: el asistente esconde los otros dos. */
   async verifyForm() {
     await expect(this.form).toBeVisible();
+
+    await openPublishStep(this.page, "title");
     await expect(this.title).toHaveValue(this.values.title as string);
-    if (this.values.price !== undefined)
+
+    if (this.values.price !== undefined) {
+      await openPublishStep(this.page, "price");
       await expect(this.price).toHaveValue(this.values.price);
+    }
+
+    await openPublishStep(this.page, "phone");
     await expect(this.phone).toHaveValue(this.values.phone as string);
     await expect(this.description).toHaveValue(
       this.values.description as string,
@@ -146,6 +158,8 @@ export default class PublishPage {
   }
 
   async send() {
+    // Publicar vive en el último paso del asistente.
+    await openPublishStep(this.page, "phone");
     await expect(this.uploaded).toBeVisible({ timeout: 45_000 });
     await expect(this.submitButton).toBeEnabled();
     await this.submitButton.click();

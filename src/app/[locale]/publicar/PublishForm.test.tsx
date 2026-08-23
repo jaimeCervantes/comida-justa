@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { renderWithIntl } from "~/infra/test-utils/renderWithIntl";
 import PublishForm from "./PublishForm";
+import { openStepOf } from "./publishFormHarness";
 
 const noop = vi.fn();
 
@@ -49,6 +50,7 @@ describe("PublishForm — el aviso de abrir tienda", () => {
   it("aparece al declararse productor sin tener tienda", async () => {
     renderForm({ hasStore: false });
     await selectProduct();
+    await openStepOf("origin");
 
     await userEvent.selectOptions(
       screen.getByRole("combobox", { name: /de dónde viene/i }),
@@ -63,6 +65,7 @@ describe("PublishForm — el aviso de abrir tienda", () => {
   it("no aparece al declarar una reventa", async () => {
     renderForm({ hasStore: false });
     await selectProduct();
+    await openStepOf("origin");
 
     await userEvent.selectOptions(
       screen.getByRole("combobox", { name: /de dónde viene/i }),
@@ -77,6 +80,7 @@ describe("PublishForm — el aviso de abrir tienda", () => {
   it("no aparece a quien ya tiene tienda", async () => {
     renderForm({ hasStore: true });
     await selectProduct();
+    await openStepOf("origin");
 
     await userEvent.selectOptions(
       screen.getByRole("combobox", { name: /de dónde viene/i }),
@@ -194,6 +198,7 @@ describe("PublishForm — campos por tipo", () => {
     renderForm();
 
     await selectProduct();
+    await openStepOf("origin");
 
     expect(screen.getByLabelText(/^precio/i)).toBeRequired();
     expect(

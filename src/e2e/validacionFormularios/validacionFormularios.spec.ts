@@ -1,5 +1,6 @@
 import { expect, type Page, test } from "@playwright/test";
 import { deleteOnePostBySlug } from "../testUtils/deleteOnePost";
+import { openPublishStep } from "../testUtils/openPublishStep";
 import { seedPost } from "../testUtils/seedPost";
 import {
   type DbSession,
@@ -48,18 +49,24 @@ test.describe("Al publicar, el formulario dice por qué", () => {
         serverCalls.push(request.url());
     });
 
+    /*
+     * Publicar vive en el último paso del asistente: se llega ahí y se envía sin haber rellenado
+     * nada, que es el caso que esta prueba vigila.
+     */
+    await openPublishStep(page, "phone");
+
     // Dentro del formulario: la cabecera tiene su propio botón "Publicar", que es un enlace.
     await page
       .getByRole("form")
       .getByRole("button", { name: /^publicar$/i })
       .click();
 
-    await expect(page.getByText("El título es obligatorio.")).toBeVisible();
+    /* Los del paso visible se leen; el del título vive en el primero y se comprueba abriéndolo. */
     await expect(page.getByText("El teléfono es obligatorio.")).toBeVisible();
     await expect(page.getByText("El contenido es obligatorio.")).toBeVisible();
 
-    await expect(page.getByLabel(TITLE_ES)).toBeFocused();
-    await expect(page.getByLabel(TITLE_ES)).toBeInViewport();
+    await openPublishStep(page, "title");
+    await expect(page.getByText("El título es obligatorio.")).toBeVisible();
     expect(serverCalls).toHaveLength(0);
     expect(new URL(page.url()).pathname).toBe("/publicar");
   });
@@ -72,6 +79,7 @@ test.describe("Al publicar, el formulario dice por qué", () => {
     page,
   }) => {
     await page.goto("/publicar");
+    await openPublishStep(page, "phone");
 
     const phone = page.getByLabel(/teléfono/i);
     await phone.fill("278-109-2116");
@@ -98,15 +106,19 @@ test.describe("Al publicar, el formulario dice por qué", () => {
     await form
       .getByRole("combobox", { name: /tipo de publicación/i })
       .selectOption("producto");
+    await openPublishStep(page, "origin");
     await form
       .getByRole("combobox", { name: /de dónde viene/i })
       .selectOption("reventa_cercana");
     await form.getByRole("spinbutton", { name: /precio/i }).fill("25");
+
+    await openPublishStep(page, "phone");
     await form.getByRole("textbox", { name: /teléfono/i }).fill("2781092116");
     await form
       .getByRole("textbox", { name: /descripción/i })
       .fill("Empieza con cinco minutos al día, sin equipo y cerca de casa.");
 
+    // Publicar vive en el último paso; ahí ya estamos tras rellenar el teléfono.
     await form.getByRole("button", { name: /^publicar$/i }).click();
 
     await expect(

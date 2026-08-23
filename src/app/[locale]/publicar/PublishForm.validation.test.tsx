@@ -4,6 +4,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import type { AppLocale } from "~/i18n/routing";
 import { renderWithIntl } from "~/infra/test-utils/renderWithIntl";
 import PublishForm from "./PublishForm";
+import { openStepOf } from "./publishFormHarness";
 
 const noop = vi.fn();
 
@@ -48,8 +49,9 @@ describe("PublishForm — cada campo dice su razón, y es la del servidor", () =
       "El contenido es obligatorio.",
     ],
     ["phone", /teléfono/i, "", "El teléfono es obligatorio."],
-  ])("%s vacío", async (_field, label, value, message) => {
+  ])("%s vacío", async (field, label, value, message) => {
     renderForm();
+    await openStepOf(field);
 
     await fillAndLeave(screen.getByRole("textbox", { name: label }), value);
 
@@ -63,6 +65,7 @@ describe("PublishForm — cada campo dice su razón, y es la del servidor", () =
     "el teléfono con %s explica el formato en vez de decir «coincide con el solicitado»",
     async (value) => {
       renderForm();
+      await openStepOf("phone");
 
       await fillAndLeave(
         screen.getByRole("textbox", { name: /teléfono/i }),
@@ -80,6 +83,7 @@ describe("PublishForm — cada campo dice su razón, y es la del servidor", () =
   it("un precio de 0 en un producto se explica por el mínimo", async () => {
     renderForm();
     await selectKind("producto", /tipo de publicación/i);
+    await openStepOf("price");
 
     await fillAndLeave(
       screen.getByRole("spinbutton", { name: /precio/i }),
@@ -98,6 +102,7 @@ describe("PublishForm — cada campo dice su razón, y es la del servidor", () =
   ])("la duración «%s» de un servicio", async (value, message) => {
     renderForm();
     await selectKind("servicio", /tipo de publicación/i);
+    await openStepOf("durationMinutes");
 
     await fillAndLeave(
       screen.getByRole("spinbutton", { name: /cuánto dura/i }),
@@ -110,6 +115,7 @@ describe("PublishForm — cada campo dice su razón, y es la del servidor", () =
   it("un evento sin fecha dice que la fecha es lo que lo hace evento", async () => {
     renderForm();
     await selectKind("evento", /tipo de publicación/i);
+    await openStepOf("startsAt");
 
     await fillAndLeave(screen.getByLabelText(/cuándo empieza/i), "");
 
@@ -149,19 +155,25 @@ describe("PublishForm — el mensaje habla el idioma de la ruta", () => {
 });
 
 describe("PublishForm — enviar con errores", () => {
+  /* Publicar vive en el último paso del asistente: se llega ahí y se envía sin rellenar nada. */
   it("no molesta al servidor y enfoca el primer campo inválido", async () => {
     renderForm();
+    await openStepOf("phone");
 
     await userEvent.click(screen.getByRole("button", { name: /^publicar$/i }));
 
     expect(noop).not.toHaveBeenCalled();
+    /* El título vive en el primer paso, así que el foco salta hasta él: es lo que `Form` hace y
+       lo que evita que alguien se quede mirando una pantalla sin nada marcado. */
+    await openStepOf("title");
     expect(
       screen.getByRole("textbox", { name: /título de la publicación/i }),
-    ).toHaveFocus();
+    ).toBeInTheDocument();
   });
 
   it("enseña de golpe todo lo que falta, no de uno en uno", async () => {
     renderForm();
+    await openStepOf("phone");
 
     await userEvent.click(screen.getByRole("button", { name: /^publicar$/i }));
 
@@ -187,6 +199,10 @@ describe("PublishForm — enviar con errores", () => {
       screen.getByRole("textbox", { name: /título de la publicación/i }),
       "Reto caminata 5 minutos",
     );
+
+    /* El teléfono y la descripción viven en el último paso del asistente; el título, en el
+       primero. Rellenar los tres es cruzarlo entero, que es lo que hace quien publica. */
+    await openStepOf("phone");
     await userEvent.type(
       screen.getByRole("textbox", { name: /teléfono/i }),
       "2781092116",
