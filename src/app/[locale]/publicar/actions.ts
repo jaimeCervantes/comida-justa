@@ -23,7 +23,10 @@ import { redirectKeepingLocale } from "~/i18n/redirectKeepingLocale";
 import { routing } from "~/i18n/routing";
 import { auth } from "~/infra/auth";
 import { isAdmin } from "~/infra/auth/isAdmin";
-import { SIGNIN_PATH } from "~/infra/constants";
+import {
+  redirectToSignInFrom,
+  refererPath,
+} from "~/infra/auth/redirectToSignIn";
 import { getCategoryTaxonomy } from "~/infra/dataAccess/categories/cachedCategoryTaxonomy";
 import { createPostRepository } from "~/infra/dataAccess/createOnePost/factory";
 import { createIndexPostEmbeddingUseCase } from "~/infra/dataAccess/indexPostEmbedding/factory";
@@ -216,7 +219,7 @@ export async function createPost(
   const session = await auth();
 
   if (!session) {
-    redirectKeepingLocale(SIGNIN_PATH, await getLocale());
+    redirectToSignInFrom(await getLocale(), await refererPath());
   }
 
   const title = formData.get("title") as string;

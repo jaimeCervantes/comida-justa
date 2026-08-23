@@ -2,10 +2,13 @@
 import { getLocale } from "next-intl/server";
 import type { User } from "~/domain/entities/post/types";
 import type { Coordinates } from "~/domain/entities/seller/coordinates";
-import { redirectKeepingLocale } from "~/i18n/redirectKeepingLocale";
 import { revalidateLocalizedPath } from "~/i18n/revalidateLocalizedPath";
 import { auth } from "~/infra/auth";
-import { SIGNIN_PATH } from "~/infra/constants";
+import {
+  redirectToSignInFrom,
+  refererPath,
+} from "~/infra/auth/redirectToSignIn";
+
 import { createBranchRepository } from "~/infra/dataAccess/branches/factory";
 import {
   createOrphanPostRepository,
@@ -53,7 +56,7 @@ export async function updateStoreProfile(
   const userId = (session?.user as User | undefined)?.id;
 
   if (!userId) {
-    redirectKeepingLocale(SIGNIN_PATH, await getLocale());
+    redirectToSignInFrom(await getLocale(), await refererPath());
   }
 
   const useCase = new UpdateSellerProfileUseCase(createSellerRepository());
@@ -87,7 +90,7 @@ export async function claimUsername(
   const userId = (session?.user as User | undefined)?.id;
 
   if (!userId) {
-    redirectKeepingLocale(SIGNIN_PATH, await getLocale());
+    redirectToSignInFrom(await getLocale(), await refererPath());
   }
 
   const useCase = new ClaimUsernameUseCase(createUserProfileRepository());
@@ -120,7 +123,7 @@ export async function addBranch(
   const userId = (session?.user as User | undefined)?.id;
 
   if (!userId) {
-    redirectKeepingLocale(SIGNIN_PATH, await getLocale());
+    redirectToSignInFrom(await getLocale(), await refererPath());
   }
 
   const seller = await createSellerRepository().findByUserId(userId);
@@ -178,13 +181,13 @@ export async function becomeSeller(
   const session = await auth();
 
   if (!session) {
-    redirectKeepingLocale(SIGNIN_PATH, await getLocale());
+    redirectToSignInFrom(await getLocale(), await refererPath());
   }
 
   const userId = (session.user as User | undefined)?.id;
 
   if (!userId) {
-    redirectKeepingLocale(SIGNIN_PATH, await getLocale());
+    redirectToSignInFrom(await getLocale(), await refererPath());
   }
 
   const useCase = new BecomeSellerUseCase(

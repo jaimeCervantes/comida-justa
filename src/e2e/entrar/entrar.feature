@@ -90,8 +90,26 @@ Feature: Volver a donde estaba tras iniciar sesión
     When elijo un proveedor
     Then se le pide a next-auth que termine en "/caminata-a-la-luisa"
 
-  @slice-2 @future
-  Scenario: La sesión caduca con el formulario abierto
-    Given que estoy publicando y mi sesión caduca
-    When envío el formulario
-    Then se me lleva a entrar y vuelvo al formulario, no a la portada
+  # La sesión dura 30 días de inactividad y se renueva sola con el uso (`maxAge` y `updateAge` por
+  # omisión de `@auth/core`, que la configuración no toca). Para que a alguien le caduque **con el
+  # formulario abierto** hacen falta las dos cosas a la vez: dejar la pestaña abierta y no volver
+  # en un mes. Por eso el slice 2 devuelve a la página y no rescata lo escrito: guardar un
+  # borrador vale la pena por los motivos frecuentes —cerrar la pestaña, el botón de atrás—, y esa
+  # es otra función con su propia decisión.
+
+  @slice-2 @component
+  Scenario Outline: Una acción sin sesión devuelve a la página del formulario
+    # Vitest sobre `redirectToSignIn`: una acción no sabe en qué página vive —`setAvailability` se
+    # dispara desde la ficha y desde cualquier tarjeta de listado, `advanceOrder` desde la lista y
+    # desde el detalle—, así que el origen se lee del `Referer` en vez de nombrarlo acción por
+    # acción, que es donde se colaría el destino equivocado.
+    Given un formulario enviado desde "<origen>"
+    When la acción no encuentra sesión
+    Then se manda a entrar <resultado>
+
+    Examples:
+      | origen                                   | resultado                              |
+      | https://hazlosano.com/cuenta             | con la vuelta a /cuenta                |
+      | https://hazlosano.com/en/store/hazlo-sano?page=2 | con la vuelta completa, query incluida |
+      | https://otro-sitio.com/cuenta            | sin vuelta: no es de este sitio        |
+      | (sin Referer)                            | sin vuelta: se queda en la portada     |

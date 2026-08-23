@@ -138,3 +138,82 @@ el usuario.
    formulario abierto», y ahí la pregunta de verdad es si se recupera lo escrito o solo la página.
 3. **Comprobar el viaje completo a mano una vez** con una cuenta real de Google: es el único tramo
    que ninguna prueba puede conducir.
+
+## Slice 2 — las acciones que expulsan a media faena (2026-08-23)
+
+### Objetivo
+
+Que un server action que se encuentra sin sesión devuelva a la página del formulario y no a la
+portada. La mitad barata de lo planeado: se recupera la página, no lo escrito.
+
+### Decisiones y por qué
+
+**Primero se midió cada cuánto pasa, y por eso la mitad cara se descartó.** La configuración no
+toca `session.maxAge`, así que corren los valores por omisión de `@auth/core` (`lib/init.js:38,76`):
+**30 días de inactividad**, y `updateAge: 24 h` empuja otros 30 en cuanto alguien vuelve. En la base
+hay 89 filas en `sessions`, 18 vivas repartidas entre 12 personas, y las más recientes expiran a 29
+días y 23 horas. Para que a alguien le caduque con el formulario abierto hacen falta las dos cosas
+a la vez: dejar la pestaña abierta y no volver en un mes. Guardar el borrador se paga por los
+motivos frecuentes —cerrar la pestaña, el botón de atrás, un envío fallido—, no por este; queda
+como función aparte, con su propia alineación (dónde vive el borrador, cuándo se descarta, qué pasa
+con las fotos ya subidas). Hoy no hay una sola escritura a `localStorage` en `src/`.
+
+**El origen se lee del `Referer` y no se nombra acción por acción.** Tres de las diez llamadas no
+tienen una página que nombrar: `setAvailability` se dispara desde la ficha **y** desde cualquier
+tarjeta de listado —lo dice su propio comentario—, `advanceOrder` desde la lista y desde el detalle,
+y `updatePost` no ha leído todavía su `slug` cuando comprueba la sesión. Nombrar la página en las
+otras siete y tirar de `Referer` en tres habría dejado dos reglas para una sola pregunta, y la
+diferencia se notaría justo donde más duele: quien marca agotado desde un listado volvería a la
+ficha, que no es donde estaba. Una sola regla: **se vuelve a la página que envió el formulario**.
+
+**`redirectToSignInFrom` va síncrona y `never`, con el origen ya resuelto.** La versión `async` que
+leyera el `Referer` por dentro obligaba a cada acción a repetir `return` y `!` sobre el `userId`
+recién comprobado: TypeScript no estrecha tipos después de un `await` aunque su tipo sea
+`Promise<never>` — el mismo motivo que ya documentaba `redirectKeepingLocale`. Con la firma
+síncrona, `pnpm typecheck` pasa sin tocar una sola de las diez comprobaciones que había debajo.
+
+### Archivos tocados
+
+- `src/infra/auth/redirectToSignIn.ts` — `redirectToSignInFrom` y `refererPath` exportados;
+  `redirectToSignInFromReferer` pasa a componerlos
+- `src/infra/auth/redirectToSignIn.test.ts` (nuevo, 8 pruebas)
+- Diez llamadas en cinco acciones: `cuenta/actions.ts` (5), `editar/[slug]/actions.ts`,
+  `publicar/actions.ts`, `orders/orderActions.ts` (2), `post/availabilityAction.ts`
+- `src/e2e/entrar/entrar.feature` — el escenario del slice 2 deja de ser `@future` y pasa a
+  `@component`, con el dato de los 30 días escrito al lado
+
+### Comandos y resultados
+
+```
+pnpm vitest run src/infra/auth   # 34 en verde (8 nuevas de redirectToSignIn)
+pnpm run test:run                # 2340 pruebas, 2339 en verde
+pnpm typecheck                   # limpio, sin `!` añadidos en ninguna acción
+pnpm run lint                    # limpio
+```
+
+El único rojo es `PublishForm.validation.test.tsx`, que agota los 5 s en la suite completa y pasa
+sola en 9,3 s (`pnpm vitest run "src/app/[locale]/publicar"`, 90/90). Falla igual antes de este
+slice y no toca nada de sesión: es la lentitud del entorno bajo carga, no una regresión.
+
+### Desviaciones de la hoja de ruta
+
+Ninguna en alcance. La hoja de ruta dejaba abierta la pregunta «volver al formulario con lo escrito
+o solo a la página»; se contestó con el dato de los 30 días y se entregó la segunda.
+
+### Recap
+
+Las diez salidas a la pantalla de acceso —seis páginas privadas del slice 1 y diez llamadas de
+acción en este— dicen ya a dónde volver, y ninguna pierde el idioma. Lo que no se recupera es lo
+escrito en el formulario, y es una decisión medida: la sesión dura 30 días y se renueva sola, así
+que el caso es de manual. La e2e sigue pendiente de correr.
+
+### Próximos pasos (opciones)
+
+1. **Correr la e2e** (`pnpm exec playwright test src/e2e/entrar`, o la suite completa). *Acción
+   pendiente del usuario.*
+2. **Comprobar el viaje completo a mano** con una cuenta real de Google: es el único tramo que
+   ninguna prueba puede conducir.
+3. **Borrador que sobrevive** en `/publicar` (500 líneas de formulario por pasos), si antes se mide
+   cuánta gente lo abandona a medias. Función aparte, no apéndice de esta.
+4. **Limpiar las sesiones caducadas**: 71 de las 89 filas de `sessions` ya expiraron y nadie las
+   borra. No molesta a nadie hoy; conviene saberlo antes de que la tabla crezca.

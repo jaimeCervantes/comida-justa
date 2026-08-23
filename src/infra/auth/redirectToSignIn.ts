@@ -33,11 +33,41 @@ export function redirectToSignIn(
  */
 export async function redirectToSignInFromReferer(): Promise<never> {
   const locale = resolveLocale(await getLocale());
+
+  return redirectToSignInFrom(locale, await refererPath());
+}
+
+/**
+ * La misma vuelta, para los server actions que se encuentran sin sesión a medio formulario.
+ *
+ * Va **síncrona y `never` a propósito**, con el origen ya resuelto por quien llama, y no en una
+ * versión `async` que lea el `Referer` por dentro: TypeScript no estrecha tipos después de un
+ * `await` aunque su tipo sea `Promise<never>` —el mismo motivo que documenta
+ * `redirectKeepingLocale`—, así que un `await redirectToSignInFrom(...)` obligaría a cada acción a
+ * repetir `return` y `!` sobre el `userId` que acaba de comprobar.
+ */
+export function redirectToSignInFrom(
+  locale: AppLocale,
+  currentPath: string | null,
+): never {
+  return toSignIn(locale, currentPath);
+}
+
+/**
+ * La página desde la que se envió el formulario.
+ *
+ * Un server action no sabe en qué página vive —`setAvailability` se dispara desde la ficha y desde
+ * cualquier tarjeta de listado, y `advanceOrder` desde la lista y desde el detalle—, así que el
+ * origen se lee del `Referer`, que en una petición del mismo sitio llega completo: con su prefijo
+ * de idioma y su query. Sin `Referer` se devuelve `null` y la vuelta se queda en la portada, que es
+ * lo que pasaba siempre antes de esto.
+ */
+export async function refererPath(): Promise<string | null> {
   const requestHeaders = await headers();
 
-  return toSignIn(
-    locale,
-    refererPath(requestHeaders.get("referer"), requestHeaders.get("host")),
+  return pathOfReferer(
+    requestHeaders.get("referer"),
+    requestHeaders.get("host"),
   );
 }
 
@@ -53,7 +83,7 @@ function toSignIn(locale: AppLocale, candidate: string | null): never {
 }
 
 /** La ruta del `Referer`, y solo si viene de este mismo sitio. */
-function refererPath(
+function pathOfReferer(
   referer: string | null,
   host: string | null,
 ): string | null {

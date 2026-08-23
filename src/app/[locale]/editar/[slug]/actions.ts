@@ -15,7 +15,10 @@ import PostValidator from "~/domain/schemas/PostValidator";
 import { redirectKeepingLocale } from "~/i18n/redirectKeepingLocale";
 import { auth } from "~/infra/auth";
 import { isAdmin } from "~/infra/auth/isAdmin";
-import { SIGNIN_PATH } from "~/infra/constants";
+import {
+  redirectToSignInFrom,
+  refererPath,
+} from "~/infra/auth/redirectToSignIn";
 import { getCategoryTaxonomy } from "~/infra/dataAccess/categories/cachedCategoryTaxonomy";
 import { createIndexPostEmbeddingUseCase } from "~/infra/dataAccess/indexPostEmbedding/factory";
 import { createPostAdminRepository } from "~/infra/dataAccess/managePost/factory";
@@ -67,7 +70,7 @@ export async function updatePost(
   const userId = (session?.user as User | undefined)?.id;
 
   if (!userId) {
-    redirectKeepingLocale(SIGNIN_PATH, await getLocale());
+    redirectToSignInFrom(await getLocale(), await refererPath());
   }
 
   // Misma defensa que al publicar: un no-admin que fuerza un `hazlo_sano_*` se queda sin

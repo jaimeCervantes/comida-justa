@@ -7,13 +7,17 @@ import type { OrderStatus } from "~/domain/order/order";
 import { redirectKeepingLocale } from "~/i18n/redirectKeepingLocale";
 import { resolveLocale, routing } from "~/i18n/routing";
 import { auth } from "~/infra/auth";
+import {
+  redirectToSignInFrom,
+  refererPath,
+} from "~/infra/auth/redirectToSignIn";
+
 import { readCartSelection, writeCartSelection } from "~/infra/cart/readCart";
 import {
   clearCheckoutId,
   readCheckoutId,
   writeCheckoutId,
 } from "~/infra/cart/readCheckout";
-import { SIGNIN_PATH } from "~/infra/constants";
 import { createCartProductRepository } from "~/infra/dataAccess/cart/factory";
 import { findSellerOfUser } from "~/infra/dataAccess/identity/sessionIdentity";
 import { createOrderRepository } from "~/infra/dataAccess/orders/factory";
@@ -47,7 +51,7 @@ export async function placeOrder(
   const buyerId = (session?.user as User | undefined)?.id;
 
   if (!buyerId) {
-    redirectKeepingLocale(SIGNIN_PATH, locale);
+    redirectToSignInFrom(locale, await refererPath());
   }
 
   const sellerId = String(formData.get("sellerId") ?? "");
@@ -117,7 +121,7 @@ export async function advanceOrder(
   const userId = (session?.user as User | undefined)?.id;
 
   if (!userId) {
-    redirectKeepingLocale(SIGNIN_PATH, locale);
+    redirectToSignInFrom(locale, await refererPath());
   }
 
   const seller = await findSellerOfUser(userId);
