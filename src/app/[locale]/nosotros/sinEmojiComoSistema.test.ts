@@ -18,8 +18,13 @@ import es from "~/i18n/messages/es.json";
  * Esta prueba mira los **textos**, que es por donde volverían: en el componente se verían al
  * revisar, pero en un JSON de mensajes pasan desapercibidos — de hecho llevaban 25 claves.
  */
+/*
+ * El selector variante (`U+FE0F`) va como alternativa y no dentro de la clase: es un carácter
+ * **combinante** —junto al anterior forma uno nuevo—, y en un rango haría emparejar cosas que no
+ * son emoji. Lo señaló la regla `noMisleadingCharacterClass`.
+ */
 const EMOJI =
-  /[\u{1F000}-\u{1FAFF}\u{2190}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE0F}]/u;
+  /[\u{1F000}-\u{1FAFF}\u{2190}-\u{27BF}\u{2B00}-\u{2BFF}]|\u{FE0F}/u;
 
 describe("Los textos de /nosotros", () => {
   it.each([
