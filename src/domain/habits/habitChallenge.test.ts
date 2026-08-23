@@ -1,14 +1,32 @@
 import { describe, expect, it } from "vitest";
 import {
   buildPeriodHabitProgress,
-  createLocalChallengePeriod,
   evaluateCycleDate,
   evaluateHabitCheckIn,
   firstCycleProgress,
+  type HabitChallengePeriod,
+  isPeriodClosed,
   isPublicCelebration,
+  listPeriodDates,
+  openCommunityWeek,
+  periodTarget,
   recognizeCycleCompletion,
+  resolveOpenPeriod,
   SLEEP_CHALLENGE_KEY,
 } from "./habitChallenge";
+
+const inMexico = (
+  startDate: string,
+  endDate: string,
+): HabitChallengePeriod => ({
+  startDate,
+  endDate,
+  timezone: "America/Mexico_City",
+});
+
+/** Mediodía en México, para que la fecha local nunca dependa del huso del CI. */
+const noonInMexico = (localDate: string): Date =>
+  new Date(`${localDate}T18:00:00Z`);
 
 describe("the rules every habit ritual shares", () => {
   it("uses a versioned key so changing the ritual does not rewrite old progress", () => {
@@ -53,18 +71,101 @@ describe("the rules every habit ritual shares", () => {
     expect(isPublicCelebration(status)).toBe(expected);
   });
 
-  it("creates seven local calendar days under the [start, end) contract", () => {
+  it("opens the window on the day someone joins and closes it on the community Monday", () => {
     expect(
-      createLocalChallengePeriod(
+      openCommunityWeek(
         new Date("2026-08-11T04:30:00Z"),
         "America/Mexico_City",
       ),
+    ).toEqual(inMexico("2026-08-10", "2026-08-17"));
+  });
+
+  it.each([
+    ["2026-08-17", "2026-08-24", "el lunes recién empezado abre siete días"],
+    ["2026-08-20", "2026-08-24", "el jueves solo alcanza a los que quedan"],
+    ["2026-08-23", "2026-08-24", "el domingo es el último día, no el cierre"],
+    ["2026-08-24", "2026-08-31", "el lunes siguiente vuelve a abrir siete"],
+  ])(
+    "closes the window joined on %s at the Monday %s: %s",
+    (joinedOn, endDate) => {
+      expect(
+        openCommunityWeek(noonInMexico(joinedOn), "America/Mexico_City"),
+      ).toEqual(inMexico(joinedOn, endDate));
+    },
+  );
+
+  it("gives someone whose Monday arrived before Mexico's a full week of their own", () => {
+    expect(
+      openCommunityWeek(new Date("2026-08-24T02:00:00Z"), "Asia/Tokyo"),
     ).toEqual({
-      startDate: "2026-08-10",
-      endDate: "2026-08-17",
-      timezone: "America/Mexico_City",
+      startDate: "2026-08-24",
+      endDate: "2026-08-31",
+      timezone: "Asia/Tokyo",
     });
   });
+
+  it.each([
+    ["2026-08-20", false, "a media semana la ventana sigue abierta"],
+    ["2026-08-23", false, "el domingo todavía cuenta"],
+    ["2026-08-24", true, "el fin es exclusivo: el lunes ya cerró"],
+  ])("reads the window [17, 24) on %s as closed=%s", (today, expected) => {
+    expect(
+      isPeriodClosed(inMexico("2026-08-17", "2026-08-24"), noonInMexico(today)),
+    ).toBe(expected);
+  });
+
+  it.each([
+    {
+      stored: null,
+      today: "2026-08-23",
+      expected: inMexico("2026-08-23", "2026-08-24"),
+      reason: "primera vez: entro a lo que queda de la semana en curso",
+    },
+    {
+      stored: inMexico("2026-08-11", "2026-08-18"),
+      today: "2026-08-23",
+      expected: inMexico("2026-08-23", "2026-08-24"),
+      reason: "la semana guardada ya cerró",
+    },
+    {
+      stored: inMexico("2026-08-17", "2026-08-24"),
+      today: "2026-08-20",
+      expected: inMexico("2026-08-17", "2026-08-24"),
+      reason: "a media semana no se reinicia: no es el botón de borrar",
+    },
+    {
+      stored: inMexico("2026-08-17", "2026-08-24"),
+      today: "2026-08-24",
+      expected: inMexico("2026-08-24", "2026-08-31"),
+      reason: "el lunes siguiente sí abre una nueva",
+    },
+  ])(
+    "resolves the window to practise with: $reason",
+    ({ stored, today, expected }) => {
+      expect(
+        resolveOpenPeriod({
+          stored,
+          now: noonInMexico(today),
+          timezone: "America/Mexico_City",
+        }),
+      ).toEqual(expected);
+    },
+  );
+
+  it.each([
+    ["2026-08-17", "2026-08-24", 7, 5, "la semana entera perdona dos días"],
+    ["2026-08-19", "2026-08-24", 5, 4, "cinco días conservan un margen"],
+    ["2026-08-20", "2026-08-24", 4, 3, "cuatro días no piden perfección"],
+    ["2026-08-22", "2026-08-24", 2, 1, "dos días piden uno"],
+    ["2026-08-23", "2026-08-24", 1, 1, "un día pide uno, nunca cero"],
+  ])(
+    "asks for %s→%s (%i days) a target of %i: %s",
+    (startDate, endDate, days, target) => {
+      const period = inMexico(startDate, endDate);
+      expect(listPeriodDates(period)).toHaveLength(days);
+      expect(periodTarget(period)).toBe(target);
+    },
+  );
 
   it.each([
     ["2026-08-05", "outside-period"],
@@ -127,12 +228,73 @@ describe("the rules every habit ritual shares", () => {
         "2026-08-10",
         "2026-08-11",
       ],
+      repetitions: 5,
       period: {
         startDate: "2026-08-06",
         endDate: "2026-08-13",
         timezone: "America/Mexico_City",
       },
       succeeded: true,
+    });
+  });
+
+  it.each([
+    {
+      period: inMexico("2026-08-10", "2026-08-17"),
+      completedCycles: 2,
+      completedDates: ["2026-08-11", "2026-08-12"],
+      reason: "solo el 11 y el 12 caen en esa semana",
+    },
+    {
+      period: inMexico("2026-08-17", "2026-08-24"),
+      completedCycles: 2,
+      completedDates: ["2026-08-18", "2026-08-20"],
+      reason: "solo el 18 y el 20 caen en la vigente",
+    },
+  ])(
+    "counts the target within the window and the points across the history: $reason",
+    ({ period, completedCycles, completedDates }) => {
+      const progress = buildPeriodHabitProgress({
+        completedDates: [
+          "2026-08-11",
+          "2026-08-12",
+          "2026-08-18",
+          "2026-08-20",
+        ],
+        period,
+      });
+
+      expect(progress).toMatchObject({
+        completedCycles,
+        completedDates,
+        succeeded: false,
+        xp: 40,
+        level: "root",
+        badge: "first-step",
+      });
+    },
+  );
+
+  it("does not let a finished week make the next one succeed on arrival", () => {
+    const lastWeek = [
+      "2026-08-17",
+      "2026-08-18",
+      "2026-08-19",
+      "2026-08-20",
+      "2026-08-21",
+    ];
+
+    expect(
+      buildPeriodHabitProgress({
+        completedDates: lastWeek,
+        period: inMexico("2026-08-24", "2026-08-31"),
+      }),
+    ).toMatchObject({
+      completedCycles: 0,
+      targetCycles: 5,
+      succeeded: false,
+      xp: 50,
+      level: "harvest",
     });
   });
 });

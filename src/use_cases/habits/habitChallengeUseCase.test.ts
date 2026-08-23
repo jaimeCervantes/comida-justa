@@ -13,19 +13,24 @@ class FakeHabitChallengeRepository implements HabitChallengeRepository {
   private progress: StoredHabitChallengeProgress | null = null;
   completeWrites = 0;
 
+  /**
+   * Guarda la ventana que le dan, exista o no la fila. Ignoraba la segunda llamada, que era
+   * justamente el `coalesce` del repositorio real: un doble que congela la ventana no puede
+   * descubrir que la ventana no se renovaba.
+   */
   async start(userId: string, schedule: HabitChallengeSchedule): Promise<void> {
-    if (this.progress) return;
     this.progress = {
       userId,
       challengeKey: "sleep-evening-to-morning-v1",
       startedAt: new Date("2026-08-06T12:00:00Z"),
-      ...schedule,
       firstCycleCompletedAt: null,
       finalCompletedAt: null,
       completedDates: [],
       celebrationStatus: "absent",
       finalCelebrationStatus: "absent",
       gardenSharingEnabled: false,
+      ...this.progress,
+      ...schedule,
     };
   }
 
@@ -96,7 +101,121 @@ class FakeHabitChallengeRepository implements HabitChallengeRepository {
 
 const clock = { now: (): Date => new Date("2026-08-10T14:00:00Z") };
 
+/** Un reloj que se puede mover entre una semana y la siguiente. */
+class MovableClock {
+  constructor(private instant: Date) {}
+  now = (): Date => this.instant;
+  moveTo(instant: string): void {
+    this.instant = new Date(instant);
+  }
+}
+
 describe("HabitChallengeUseCase", () => {
+  describe("the week that comes back", () => {
+    it("opens the current week when the stored one already closed", async () => {
+      const repository = new FakeHabitChallengeRepository();
+      const movable = new MovableClock(new Date("2026-08-11T18:00:00Z"));
+      const useCase = new HabitChallengeUseCase(repository, movable);
+      await useCase.start(USER_ID, "America/Mexico_City");
+      await useCase.completeCheckIn(USER_ID, {
+        cueCompleted: true,
+        minimumCompleted: true,
+        cycleDate: "2026-08-11",
+      });
+
+      movable.moveTo("2026-08-23T18:00:00Z");
+      expect(await useCase.getProgress(USER_ID)).toMatchObject({
+        periodClosed: true,
+      });
+
+      expect(await useCase.start(USER_ID, "America/Mexico_City")).toMatchObject(
+        {
+          period: {
+            startDate: "2026-08-23",
+            endDate: "2026-08-24",
+            timezone: "America/Mexico_City",
+          },
+          periodClosed: false,
+          completedCycles: 0,
+          targetCycles: 1,
+          totalDays: 1,
+          succeeded: false,
+        },
+      );
+    });
+
+    it("keeps the points and the level earned in the weeks before", async () => {
+      const repository = new FakeHabitChallengeRepository();
+      const movable = new MovableClock(new Date("2026-08-17T18:00:00Z"));
+      const useCase = new HabitChallengeUseCase(repository, movable);
+      await useCase.start(USER_ID, "America/Mexico_City");
+      movable.moveTo("2026-08-19T18:00:00Z");
+      for (const cycleDate of ["2026-08-17", "2026-08-18", "2026-08-19"]) {
+        await useCase.completeCheckIn(USER_ID, {
+          cueCompleted: true,
+          minimumCompleted: true,
+          cycleDate,
+        });
+      }
+
+      movable.moveTo("2026-08-24T18:00:00Z");
+      await useCase.start(USER_ID, "America/Mexico_City");
+
+      expect(await useCase.getProgress(USER_ID)).toMatchObject({
+        completedCycles: 0,
+        completedDates: [],
+        xp: 30,
+        level: "root",
+        badge: "first-step",
+      });
+    });
+
+    it("refuses a date from the week that closed", async () => {
+      const repository = new FakeHabitChallengeRepository();
+      const movable = new MovableClock(new Date("2026-08-17T18:00:00Z"));
+      const useCase = new HabitChallengeUseCase(repository, movable);
+      await useCase.start(USER_ID, "America/Mexico_City");
+
+      movable.moveTo("2026-08-24T18:00:00Z");
+      await useCase.start(USER_ID, "America/Mexico_City");
+
+      expect(
+        await useCase.completeCheckIn(USER_ID, {
+          cueCompleted: true,
+          minimumCompleted: true,
+          cycleDate: "2026-08-19",
+        }),
+      ).toEqual({ ok: false, reason: "outside-period" });
+    });
+
+    it("does not reopen a week still running, so a bad day cannot be erased", async () => {
+      const repository = new FakeHabitChallengeRepository();
+      const movable = new MovableClock(new Date("2026-08-17T18:00:00Z"));
+      const useCase = new HabitChallengeUseCase(repository, movable);
+      await useCase.start(USER_ID, "America/Mexico_City");
+      await useCase.completeCheckIn(USER_ID, {
+        cueCompleted: true,
+        minimumCompleted: true,
+        cycleDate: "2026-08-17",
+      });
+
+      movable.moveTo("2026-08-20T18:00:00Z");
+
+      expect(await useCase.start(USER_ID, "America/Mexico_City")).toMatchObject(
+        {
+          period: {
+            startDate: "2026-08-17",
+            endDate: "2026-08-24",
+            timezone: "America/Mexico_City",
+          },
+          completedCycles: 1,
+          targetCycles: 5,
+          totalDays: 7,
+        },
+      );
+    });
+  });
+
   it("starts once and exposes a private seed", async () => {
     const repository = new FakeHabitChallengeRepository();
     const useCase = new HabitChallengeUseCase(repository, clock);
@@ -186,19 +305,21 @@ describe("HabitChallengeUseCase", () => {
 
   it("recognizes a comeback and completes the challenge at five distinct dates", async () => {
     const repository = new FakeHabitChallengeRepository();
-    let now = new Date("2026-08-06T14:00:00Z");
+    // Un lunes: la ventana cierra en el lunes de la comunidad, así que solo quien se suma en lunes
+    // tiene los siete días por delante que esta meta de cinco supone.
+    let now = new Date("2026-08-10T14:00:00Z");
     const useCase = new HabitChallengeUseCase(repository, {
       now: (): Date => now,
     });
     await useCase.start(USER_ID, "America/Mexico_City");
-    now = new Date("2026-08-10T14:00:00Z");
+    now = new Date("2026-08-14T14:00:00Z");
 
     for (const cycleDate of [
-      "2026-08-06",
-      "2026-08-07",
-      "2026-08-09",
-      "2026-08-08",
       "2026-08-10",
+      "2026-08-11",
+      "2026-08-13",
+      "2026-08-12",
+      "2026-08-14",
     ]) {
       const result = await useCase.completeCheckIn(USER_ID, {
         cueCompleted: true,

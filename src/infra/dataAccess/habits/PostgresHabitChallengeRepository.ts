@@ -42,6 +42,13 @@ export default class PostgresHabitChallengeRepository
     private readonly challengeKey: CuratedChallengeKey = SLEEP_CHALLENGE_KEY,
   ) {}
 
+  /**
+   * Guarda la ventana con la que se practica, tal como la resolvió el caso de uso.
+   *
+   * Escribía `coalesce(lo_guardado, lo_nuevo)`, así que la primera ventana era la única que llegaría
+   * a existir y la práctica moría a los siete días. Quién puede mover una ventana y cuándo es una
+   * regla de negocio: vive en `resolveOpenPeriod`, y aquí solo se escribe lo que esa regla decidió.
+   */
   async start(userId: string, schedule: HabitChallengeSchedule): Promise<void> {
     await db
       .insert(habitChallengeProgress)
@@ -58,9 +65,9 @@ export default class PostgresHabitChallengeRepository
           habitChallengeProgress.challengeKey,
         ],
         set: {
-          timezone: sql`coalesce(${habitChallengeProgress.timezone}, ${schedule.timezone})`,
-          periodStartDate: sql`coalesce(${habitChallengeProgress.periodStartDate}, ${schedule.startDate})`,
-          periodEndDate: sql`coalesce(${habitChallengeProgress.periodEndDate}, ${schedule.endDate})`,
+          timezone: schedule.timezone,
+          periodStartDate: schedule.startDate,
+          periodEndDate: schedule.endDate,
         },
       });
   }

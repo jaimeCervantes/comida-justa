@@ -1,7 +1,6 @@
 import {
   buildPeriodHabitProgress,
   type CelebrationStatus,
-  createLocalChallengePeriod,
   evaluateCycleDate,
   evaluateHabitCheckIn,
   firstCycleProgress,
@@ -9,10 +8,12 @@ import {
   HABIT_CHALLENGE_TARGET,
   type HabitChallengePeriod,
   type HabitCheckInAnchors,
+  isPeriodClosed,
   isValidTimeZone,
   type LocalDate,
   type PeriodHabitProgress,
   recognizeCycleCompletion,
+  resolveOpenPeriod,
 } from "~/domain/habits/habitChallenge";
 import type {
   HabitCelebrationMilestone,
@@ -30,6 +31,13 @@ import type {
  */
 export type HabitChallengeProgress = Omit<PeriodHabitProgress, "period"> & {
   period: HabitChallengePeriod | null;
+  /**
+   * La ventana guardada ya cerró y hay que sumarse a la semana en curso para volver a registrar.
+   *
+   * Lo decide el servidor y no el panel: el panel solo conoce la hora del navegador, y la ventana
+   * cierra en la zona de quien practica, no en la de quien mira.
+   */
+  periodClosed: boolean;
   celebrationStatus: CelebrationStatus;
   finalCelebrationStatus: CelebrationStatus;
   gardenSharingEnabled: boolean;
@@ -76,14 +84,27 @@ export default class HabitChallengeUseCase {
     private readonly clock: Clock = systemClock,
   ) {}
 
+  /**
+   * Sumarse a la semana en curso: abre una ventana nueva si la anterior cerró y respeta la que sigue
+   * abierta.
+   *
+   * La decisión vive aquí y no en el `INSERT ... ON CONFLICT` del repositorio, donde estuvo escrita
+   * como un `coalesce` que hacía imposible mover la ventana: la primera que se guardaba era la única
+   * que existiría. Una regla de negocio en SQL es una regla que nadie encuentra cuando deja de valer.
+   */
   async start(
     userId: string,
     timezone: string,
   ): Promise<HabitChallengeProgress> {
     const safeTimezone = isValidTimeZone(timezone) ? timezone : "UTC";
+    const stored = await this.repository.findProgress(userId);
     await this.repository.start(
       userId,
-      createLocalChallengePeriod(this.clock.now(), safeTimezone),
+      resolveOpenPeriod({
+        stored: stored ? this.periodFrom(stored) : null,
+        now: this.clock.now(),
+        timezone: safeTimezone,
+      }),
     );
     return this.requiredProgress(userId);
   }
@@ -177,7 +198,9 @@ export default class HabitChallengeUseCase {
         targetCycles: HABIT_CHALLENGE_TARGET,
         totalDays: HABIT_CHALLENGE_DAYS,
         completedDates: stored.completedDates,
+        repetitions: stored.completedDates.length,
         period: null,
+        periodClosed: false,
         succeeded: false,
         celebrationStatus: stored.celebrationStatus,
         finalCelebrationStatus: stored.finalCelebrationStatus,
@@ -190,6 +213,7 @@ export default class HabitChallengeUseCase {
         completedDates: stored.completedDates,
         period,
       }),
+      periodClosed: isPeriodClosed(period, this.clock.now()),
       celebrationStatus: stored.celebrationStatus,
       finalCelebrationStatus: stored.finalCelebrationStatus,
       gardenSharingEnabled: stored.gardenSharingEnabled,
