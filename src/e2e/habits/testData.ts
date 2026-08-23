@@ -62,6 +62,60 @@ export async function backdateHabitChallengeForSevenDayTest(
   );
 }
 
+/**
+ * Cierra la ventana de un ritual dejándola dos semanas atrás.
+ *
+ * Es el estado en el que estaban las nueve inscripciones reales el 23 de agosto de 2026: una semana
+ * guardada que ya venció y ninguna forma de registrar nada. No se puede llegar a él esperando, así
+ * que se escribe.
+ */
+export async function closeHabitChallengeWindow(
+  challengeKey: string = SLEEP_CHALLENGE_KEY,
+): Promise<{ startDate: string; endDate: string }> {
+  const userId = await findSuiteUserId();
+  const timezone = "America/Mexico_City";
+  const startDate = addLocalDays(localDateAt(new Date(), timezone), -14);
+  const endDate = addLocalDays(startDate, 7);
+  const updated = await db
+    .update(habitChallengeProgress)
+    .set({ timezone, periodStartDate: startDate, periodEndDate: endDate })
+    .where(
+      and(
+        eq(habitChallengeProgress.userId, userId),
+        eq(habitChallengeProgress.challengeKey, challengeKey),
+      ),
+    )
+    .returning({ userId: habitChallengeProgress.userId });
+  if (updated.length !== 1) {
+    throw new Error(
+      `The E2E ritual ${challengeKey} was not started before closing its window.`,
+    );
+  }
+  return { startDate, endDate };
+}
+
+export async function readHabitChallengeWindow(
+  challengeKey: string = SLEEP_CHALLENGE_KEY,
+): Promise<{ startDate: string | null; endDate: string | null }> {
+  const userId = await findSuiteUserId();
+  const [row] = await db
+    .select({
+      startDate: habitChallengeProgress.periodStartDate,
+      endDate: habitChallengeProgress.periodEndDate,
+    })
+    .from(habitChallengeProgress)
+    .where(
+      and(
+        eq(habitChallengeProgress.userId, userId),
+        eq(habitChallengeProgress.challengeKey, challengeKey),
+      ),
+    )
+    .limit(1);
+  if (!row)
+    throw new Error(`The E2E ritual ${challengeKey} was never started.`);
+  return row;
+}
+
 export async function countSleepRepetitions(): Promise<number> {
   const userId = await findSuiteUserId();
   const rows = await db

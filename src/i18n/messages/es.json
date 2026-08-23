@@ -213,7 +213,7 @@
       "communityAnonymous": "Una persona de la comunidad",
       "communityCelebrationsTitle": "Celebraciones de la comunidad",
       "dateUnavailable": "Esa fecha no está disponible",
-      "dateUnavailableBody": "Elige una fecha que ya haya llegado dentro de tu ventana local de siete días.",
+      "dateUnavailableBody": "Elige una fecha que ya haya llegado dentro de la semana en curso.",
       "dayCompleted": "Completo",
       "dayLabel": "Día {day}",
       "dayPending": "Disponible",
@@ -237,7 +237,10 @@
       "siteMessageClose": "Cerrar este mensaje",
       "siteMessageLabel": "Nuevo logro comunitario",
       "withdraw": "Dejar de compartir",
-      "xp": "{xp} puntos"
+      "xp": "{xp} puntos",
+      "weekClosed": "Tu semana anterior ya cerró",
+      "weekClosedBody": "Las semanas de la comunidad cierran el domingo y abren el lunes. Lo que practicaste antes sigue contando en tus puntos y en el jardín; súmate a la semana en curso para volver a registrar.",
+      "weekTarget": "Meta de esta semana: {target} de {total, plural, one {# día} other {# días}}"
     },
     "indexIntro": "Elige una práctica para esta semana. Puedes cambiarla sin perder tu progreso.",
     "indexTitle": "Una práctica para cada pilar",
@@ -306,7 +309,7 @@
       "siteMessageFinalBody": "{name} cultivó cinco cenas reales esta semana.",
       "start": "Empezar Cena real, local y al atardecer",
       "title": "Cena real, local y al atardecer",
-      "weekEyebrow": "Tu ventana local de siete días",
+      "weekEyebrow": "La semana de la comunidad",
       "progressCounter": "{completed} de {total} cenas"
     },
     "mind": {
@@ -366,7 +369,7 @@
       "siteMessageFinalBody": "{name} sostuvo cinco días de presencia esta semana.",
       "start": "Empezar Presencia, paz y conexión local",
       "title": "Presencia, paz y conexión local",
-      "weekEyebrow": "Tu ventana local de siete días",
+      "weekEyebrow": "La semana de la comunidad",
       "progressCounter": "{completed} de {total} días"
     },
     "minimumTitle": "El mínimo que cuenta",
@@ -427,7 +430,7 @@
       "siteMessageFinalBody": "{name} movió cinco días esta semana.",
       "start": "Empezar Movimiento vivo, local y funcional",
       "title": "Movimiento vivo, local y funcional",
-      "weekEyebrow": "Tu ventana local de siete días",
+      "weekEyebrow": "La semana de la comunidad",
       "progressCounter": "{completed} de {total} días"
     },
     "nutrition": {
@@ -471,7 +474,7 @@
     "cycleRecorded": "Ciclo registrado",
     "cycleRecordedBody": "Sumaste 10 puntos por esta fecha. Tu siguiente ciclo seguirá disponible.",
     "dateUnavailable": "Esa fecha no está disponible",
-    "dateUnavailableBody": "Elige una mañana que ya haya llegado dentro de tu ventana de siete días.",
+    "dateUnavailableBody": "Elige una mañana que ya haya llegado dentro de la semana en curso.",
     "dayCompleted": "Completo",
     "dayLabel": "Día {day}",
     "dayPending": "Disponible",
@@ -528,7 +531,10 @@
     "siteMessageLabel": "Nuevo logro comunitario",
     "start": "Empezar Del atardecer al amanecer",
     "title": "Del atardecer al amanecer",
-    "weekEyebrow": "Tu ventana local de siete días",
+    "weekClosed": "Tu semana anterior ya cerró",
+    "weekClosedBody": "Las semanas de la comunidad cierran el domingo y abren el lunes. Lo que practicaste antes sigue contando en tus puntos y en el jardín; súmate a la semana en curso para volver a registrar.",
+    "weekEyebrow": "La semana de la comunidad",
+    "weekTarget": "Meta de esta semana: {target} de {total, plural, one {# día} other {# días}}",
     "withdraw": "Dejar de compartir",
     "xp": "{xp} puntos"
   },

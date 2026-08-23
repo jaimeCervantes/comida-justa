@@ -58,7 +58,10 @@ export type HabitChallengeCopy = {
   shareNote: string;
   signInStart: string;
   start: string;
+  weekClosed: string;
+  weekClosedBody: string;
   weekEyebrow: string;
+  weekTarget: (target: number, total: number) => string;
   withdraw: string;
   xp: (xp: number) => string;
 };
@@ -175,7 +178,11 @@ function sleepCopy(t: SleepTranslator): HabitChallengeCopy {
     shareNote: t("shareNote"),
     signInStart: t("signInStart"),
     start: t("start"),
+    weekClosed: t("weekClosed"),
+    weekClosedBody: t("weekClosedBody"),
     weekEyebrow: t("weekEyebrow"),
+    weekTarget: (target: number, total: number): string =>
+      t("weekTarget", { target, total }),
     withdraw: t("withdraw"),
     xp: (xp: number): string => t("xp", { xp }),
   };
@@ -203,6 +210,10 @@ function commonCopy(t: CommonTranslator) {
     shared: t("shared"),
     shareNote: t("shareNote"),
     signInStart: t("signInStart"),
+    weekClosed: t("weekClosed"),
+    weekClosedBody: t("weekClosedBody"),
+    weekTarget: (target: number, total: number): string =>
+      t("weekTarget", { target, total }),
     withdraw: t("withdraw"),
     xp: (xp: number): string => t("xp", { xp }),
   };

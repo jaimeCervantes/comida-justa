@@ -60,23 +60,43 @@ export default function HabitChallengePanel({
     return <SignInLink href={signInHref} label={copy.signInStart} />;
   }
 
-  if (!progress?.period) {
+  /**
+   * Sin ventana abierta no hay calendario que pintar, solo una invitación.
+   *
+   * `periodClosed` lo decide el servidor. El panel solo conoce la hora del navegador, y hubo un mes
+   * entero en que esta condición era únicamente `!progress?.period`: la ventana vencida seguía
+   * siendo una ventana, así que se pintaban para siempre los siete días de la semana en que la
+   * persona empezó, con sus fechas de hace dos semanas y un formulario que solo aceptaba días que
+   * ya habían pasado.
+   */
+  if (!progress?.period || progress.periodClosed) {
     return (
-      <form action={action} className="mt-8 flex justify-center">
-        <input type="hidden" name="intent" value="start" />
-        <input type="hidden" name="challenge" value={challenge} />
-        <input type="hidden" name="timezone" value={timezone} />
-        <Button
-          type="submit"
-          color={theme.buttonColor}
-          className={theme.buttonClass}
-          size="lg"
-          isLoading={isPending}
-          loadingLabel={copy.loading}
-        >
-          {progress ? copy.continueWeek : copy.start}
-        </Button>
-      </form>
+      <div className="mt-8">
+        {progress?.periodClosed && (
+          <Alert
+            tone="info"
+            label={copy.weekClosed}
+            className="mx-auto mb-6 max-w-2xl"
+          >
+            {copy.weekClosedBody}
+          </Alert>
+        )}
+        <form action={action} className="flex justify-center">
+          <input type="hidden" name="intent" value="start" />
+          <input type="hidden" name="challenge" value={challenge} />
+          <input type="hidden" name="timezone" value={timezone} />
+          <Button
+            type="submit"
+            color={theme.buttonColor}
+            className={theme.buttonClass}
+            size="lg"
+            isLoading={isPending}
+            loadingLabel={copy.loading}
+          >
+            {progress ? copy.continueWeek : copy.start}
+          </Button>
+        </form>
+      </div>
     );
   }
 
@@ -103,6 +123,9 @@ export default function HabitChallengePanel({
                 progress.totalDays,
               )}
             </Heading>
+            <p className="mt-1 text-sm text-body">
+              {copy.weekTarget(progress.targetCycles, progress.totalDays)}
+            </p>
           </div>
           <HabitChallengeReward label={copy.xp(progress.xp)} theme={theme} />
         </div>

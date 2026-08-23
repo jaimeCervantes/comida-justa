@@ -23,8 +23,112 @@ describe("HabitChallengePanel", () => {
       endDate: "2026-08-13",
       timezone: "America/Mexico_City",
     },
+    periodClosed: false,
+    repetitions: 0,
     succeeded: false,
   };
+
+  describe("when the community week already closed", () => {
+    const closed: HabitChallengeProgress = {
+      ...progress,
+      level: "sprout",
+      xp: 20,
+      badge: "first-step",
+      completedCycles: 0,
+      completedDates: [],
+      periodClosed: true,
+    };
+
+    it("invites the person into the current week instead of painting the old one", () => {
+      renderWithIntl(
+        <HabitChallengePanel
+          action={action}
+          challenge="nutrition"
+          initialProgress={closed}
+          signedIn
+          signInHref="/auth/signin"
+        />,
+      );
+
+      expect(
+        screen.getByRole("button", {
+          name: "Continuar mi semana de cenas reales",
+        }),
+      ).toBeInTheDocument();
+      expect(screen.queryAllByTestId("challenge-day")).toHaveLength(0);
+      expect(screen.queryAllByRole("checkbox")).toHaveLength(0);
+    });
+
+    it("says the earlier points survive so returning does not read as a loss", () => {
+      renderWithIntl(
+        <HabitChallengePanel
+          action={action}
+          challenge="nutrition"
+          initialProgress={closed}
+          signedIn
+          signInHref="/auth/signin"
+        />,
+      );
+
+      expect(
+        screen.getByText("Tu semana anterior ya cerró"),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(/sigue contando en tus puntos/i),
+      ).toBeInTheDocument();
+    });
+  });
+
+  it.each([
+    [7, 5, "Meta de esta semana: 5 de 7 días"],
+    [4, 3, "Meta de esta semana: 3 de 4 días"],
+    [1, 1, "Meta de esta semana: 1 de 1 día"],
+  ])(
+    "states a goal of %i days that fits the %i-day window",
+    (totalDays, targetCycles, label) => {
+      renderWithIntl(
+        <HabitChallengePanel
+          action={action}
+          challenge="nutrition"
+          initialProgress={{ ...progress, totalDays, targetCycles }}
+          signedIn
+          signInHref="/auth/signin"
+        />,
+      );
+
+      expect(screen.getByText(label)).toBeInTheDocument();
+    },
+  );
+
+  it("does not congratulate a partial week for five repetitions it never did", () => {
+    renderWithIntl(
+      <HabitChallengePanel
+        action={action}
+        challenge="nutrition"
+        initialProgress={{
+          ...progress,
+          level: "root",
+          xp: 30,
+          badge: "first-step",
+          totalDays: 4,
+          targetCycles: 3,
+          completedCycles: 3,
+          completedDates: ["2026-08-20", "2026-08-21", "2026-08-22"],
+          repetitions: 3,
+          succeeded: true,
+        }}
+        signedIn
+        signInHref="/auth/signin"
+      />,
+    );
+
+    expect(
+      screen.queryByRole("heading", { name: "Cultivaste cinco cenas reales" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByText("Meta de esta semana: 3 de 4 días"),
+    ).toBeInTheDocument();
+  });
 
   it("shows saved progress even when the old onboarding flag is inactive", () => {
     const historicalProgress = {
@@ -34,6 +138,7 @@ describe("HabitChallengePanel", () => {
       xp: 10,
       completedCycles: 1,
       completedDates: ["2026-08-06"],
+      repetitions: 1,
     };
     renderWithIntl(
       <HabitChallengePanel
@@ -94,6 +199,7 @@ describe("HabitChallengePanel", () => {
             "2026-08-09",
             "2026-08-10",
           ],
+          repetitions: 5,
           succeeded: true,
         }}
         signedIn
@@ -210,6 +316,7 @@ describe("HabitChallengePanel", () => {
             badge: "first-step",
             completedCycles: 1,
             completedDates: ["2026-08-10"],
+            repetitions: 1,
           }}
           signedIn
           signInHref="/auth/signin"
@@ -239,6 +346,7 @@ describe("HabitChallengePanel", () => {
             celebrationStatus: "active",
             completedCycles: 1,
             completedDates: ["2026-08-10"],
+            repetitions: 1,
           }}
           signedIn
           signInHref="/auth/signin"
@@ -262,6 +370,7 @@ describe("HabitChallengePanel", () => {
             badge: "first-step",
             completedCycles: 2,
             completedDates: ["2026-08-06", "2026-08-07"],
+            repetitions: 2,
           }}
           signedIn
           signInHref="/auth/signin"
@@ -293,6 +402,8 @@ describe("HabitChallengePanel", () => {
               "2026-08-09",
               "2026-08-10",
             ],
+            repetitions: 5,
+
             succeeded: true,
           }}
           signedIn

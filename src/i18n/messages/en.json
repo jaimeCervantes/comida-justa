@@ -213,7 +213,7 @@
       "communityAnonymous": "Someone in the community",
       "communityCelebrationsTitle": "Community celebrations",
       "dateUnavailable": "That date is not available",
-      "dateUnavailableBody": "Choose a date that has arrived within your local seven-day window.",
+      "dateUnavailableBody": "Choose a date that has arrived within the current week.",
       "dayCompleted": "Complete",
       "dayLabel": "Day {day}",
       "dayPending": "Available",
@@ -237,7 +237,10 @@
       "siteMessageClose": "Close this message",
       "siteMessageLabel": "New community achievement",
       "withdraw": "Stop sharing",
-      "xp": "{xp} points"
+      "xp": "{xp} points",
+      "weekClosed": "Your previous week has closed",
+      "weekClosedBody": "Community weeks close on Sunday and open on Monday. What you practised before still counts towards your points and the garden; join the current week to record again.",
+      "weekTarget": "This week's goal: {target} of {total, plural, one {# day} other {# days}}"
     },
     "indexIntro": "Choose one practice for this week. You can switch without losing your progress.",
     "indexTitle": "One practice for every pillar",
@@ -306,7 +309,7 @@
       "siteMessageFinalBody": "{name} cultivated five real dinners this week.",
       "start": "Start A real, local dinner at sunset",
       "title": "A real, local dinner at sunset",
-      "weekEyebrow": "Your local seven-day window",
+      "weekEyebrow": "The community week",
       "progressCounter": "{completed} of {total} dinners"
     },
     "mind": {
@@ -366,7 +369,7 @@
       "siteMessageFinalBody": "{name} held five days of presence this week.",
       "start": "Start Presence, peace and local connection",
       "title": "Presence, peace and local connection",
-      "weekEyebrow": "Your local seven-day window",
+      "weekEyebrow": "The community week",
       "progressCounter": "{completed} of {total} days"
     },
     "minimumTitle": "The minimum that counts",
@@ -427,7 +430,7 @@
       "siteMessageFinalBody": "{name} moved five days this week.",
       "start": "Start Living, local, functional movement",
       "title": "Living, local, functional movement",
-      "weekEyebrow": "Your local seven-day window",
+      "weekEyebrow": "The community week",
       "progressCounter": "{completed} of {total} days"
     },
     "nutrition": {
@@ -471,7 +474,7 @@
     "cycleRecorded": "Cycle recorded",
     "cycleRecordedBody": "You earned 10 points for this date. Your next cycle remains available.",
     "dateUnavailable": "That date is not available",
-    "dateUnavailableBody": "Choose a morning that has arrived within your seven-day window.",
+    "dateUnavailableBody": "Choose a morning that has arrived within the current week.",
     "dayCompleted": "Complete",
     "dayLabel": "Day {day}",
     "dayPending": "Available",
@@ -528,7 +531,10 @@
     "siteMessageLabel": "New community achievement",
     "start": "Start From dusk to dawn",
     "title": "From dusk to dawn",
-    "weekEyebrow": "Your local seven-day window",
+    "weekClosed": "Your previous week has closed",
+    "weekClosedBody": "Community weeks close on Sunday and open on Monday. What you practised before still counts towards your points and the garden; join the current week to record again.",
+    "weekEyebrow": "The community week",
+    "weekTarget": "This week's goal: {target} of {total, plural, one {# day} other {# days}}",
     "withdraw": "Stop sharing",
     "xp": "{xp} points"
   },

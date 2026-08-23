@@ -1,3 +1,4 @@
+import { HABIT_CHALLENGE_TARGET } from "~/domain/habits/habitChallenge";
 import type { HabitChallengeExperienceKey } from "~/domain/habits/habitChallengeExperiences";
 import { Button } from "~/presentation/design_system/buttons/Button";
 import { Heading } from "~/presentation/design_system/typography/Heading";
@@ -16,6 +17,15 @@ export type HabitChallengeCelebrationsProps = {
   challenge: HabitChallengeExperienceKey;
 };
 
+/**
+ * Los dos hitos se miden en la historia, no en la semana.
+ *
+ * Miraban `succeeded` y `completedCycles`, que desde que la semana se renueva son de la semana en
+ * curso: la primera repetición de cada lunes habría vuelto a felicitar por una semilla que despertó
+ * hace meses, y el hito final habría dicho «cinco» a quien se sumó un jueves y cumplió una meta de
+ * tres. Cinco es el número que dice la redacción y el que exige `canPublishHabitCelebration`, así
+ * que es el número que hay que contar.
+ */
 export function HabitChallengeCelebrations({
   progress,
   action,
@@ -24,7 +34,7 @@ export function HabitChallengeCelebrations({
   theme,
   challenge,
 }: HabitChallengeCelebrationsProps): React.ReactNode {
-  if (progress.succeeded) {
+  if (progress.repetitions >= HABIT_CHALLENGE_TARGET) {
     return (
       <FinalCelebration
         progress={progress}
@@ -36,7 +46,7 @@ export function HabitChallengeCelebrations({
       />
     );
   }
-  if (progress.completedCycles !== 1) return null;
+  if (progress.repetitions !== 1) return null;
   return (
     <FirstCelebration
       progress={progress}
