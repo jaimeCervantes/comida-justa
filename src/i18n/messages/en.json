@@ -1526,6 +1526,8 @@
     "submit": "Publish",
     "submitting": "Publishing…",
     "title": "Publication title:",
+    "titleCounter": "{count}/{max}",
+    "titleHint": "Say what it is and how much. Go easy on the capitals.",
     "unspecifiedOption": "— Unspecified —"
   },
   "search": {

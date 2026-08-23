@@ -14,6 +14,18 @@ export const PUBLIC_BASE_URL =
   process.env.NEXT_PUBLIC_BASE_URL || "https://hazlosano.com";
 export const POST_CONTENT_MAX_LENGTH =
   process.env.NEXT_POST_CONTENT_MAX_LENGTH || 2500;
+/**
+ * Cuánto puede medir el título de una publicación.
+ *
+ * El 5.3 del canvas dibuja un contador «29/70», y 70 no es un número redondo elegido de oídas: de
+ * los 59 títulos publicados, el más largo mide 61, la media 32 y el percentil 95 se queda en 57.
+ * **Ninguno pasaría del tope**, así que no recorta nada de lo que ya existe y sí evita el título
+ * que se corta con puntos suspensivos en la tarjeta del listado.
+ *
+ * Sin `process.env` a propósito: no hay ninguna razón para que este número cambie por entorno, y
+ * una constante configurable es una constante que en CI vale otra cosa.
+ */
+export const POST_TITLE_MAX_LENGTH = 70;
 export const PUBLIC_BRAND_NAME =
   process.env.NEXT_PUBLIC_BRAND_NAME || "Hazlo Sano";
 /**

@@ -11,7 +11,11 @@ import { MdOutlinePriceChange, MdPhone, MdTitle } from "react-icons/md";
 import { EVENT_KIND, SERVICE_KIND } from "~/domain/entities/post/kind";
 import type { CategoryOption } from "~/domain/entities/post/taxonomy";
 import { Link } from "~/i18n/navigation";
-import { POST_CONTENT_MAX_LENGTH } from "~/infra/constants";
+import {
+  POST_CONTENT_MAX_LENGTH,
+  POST_TITLE_MAX_LENGTH,
+  SITE_CURRENCY,
+} from "~/infra/constants";
 import type { ActionState } from "~/infra/types/Actions";
 import { originOptionsFor } from "~/infra/UI/labels/postOriginLabels";
 import { Button } from "~/presentation/design_system/buttons/Button";
@@ -192,6 +196,12 @@ export default function PublishForm({
                 name="title"
                 type="text"
                 label={t("title")}
+                labelSuffix={t("titleCounter", {
+                  count: draft.title.length,
+                  max: POST_TITLE_MAX_LENGTH,
+                })}
+                hint={t("titleHint")}
+                maxLength={POST_TITLE_MAX_LENGTH}
                 icon={<MdTitle />}
                 error={state?.errors?.title}
                 validationMessages={fieldMessages.title}
@@ -354,6 +364,11 @@ export default function PublishForm({
                   step="1"
                   label={isEvent ? t("priceOptional") : t("price")}
                   icon={<MdOutlinePriceChange />}
+                  trailingAdornment={
+                    <span className="text-label text-text-support">
+                      {SITE_CURRENCY}
+                    </span>
+                  }
                   error={state?.errors?.price}
                   validationMessages={fieldMessages.price}
                   containerClassName="mb-6"

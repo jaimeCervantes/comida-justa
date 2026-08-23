@@ -1526,6 +1526,8 @@
     "submit": "Publicar",
     "submitting": "Publicando...",
     "title": "Título de la publicación:",
+    "titleCounter": "{count}/{max}",
+    "titleHint": "Di qué es y en qué cantidad. Sin mayúsculas de más.",
     "unspecifiedOption": "— Sin especificar —"
   },
   "search": {

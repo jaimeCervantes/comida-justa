@@ -6,7 +6,11 @@ import { EVENT_KIND, SERVICE_KIND } from "~/domain/entities/post/kind";
 import type { CategoryOption } from "~/domain/entities/post/taxonomy";
 import { formatDateTimeLocalInTimeZone } from "~/domain/schedule/localDateTime";
 import { Link } from "~/i18n/navigation";
-import { POST_CONTENT_MAX_LENGTH } from "~/infra/constants";
+import {
+  POST_CONTENT_MAX_LENGTH,
+  POST_TITLE_MAX_LENGTH,
+  SITE_CURRENCY,
+} from "~/infra/constants";
 import { originOptionsFor } from "~/infra/UI/labels/postOriginLabels";
 import { Button } from "~/presentation/design_system/buttons/Button";
 import { Alert } from "~/presentation/design_system/feedback/Alert";
@@ -118,6 +122,9 @@ export default function EditPostForm({
           type="text"
           label={tPublish("title")}
           defaultValue={post.title}
+          /* El mismo tope que al publicar. Un límite que solo existe en una de las dos pantallas
+             no es un límite: se esquiva editando. */
+          maxLength={POST_TITLE_MAX_LENGTH}
           icon={<MdTitle />}
           error={state.errors?.title}
           validationMessages={fieldMessages.title}
@@ -255,6 +262,12 @@ export default function EditPostForm({
             label={isEvent ? tPublish("priceOptional") : tPublish("price")}
             defaultValue={post.price ?? ""}
             icon={<MdOutlinePriceChange />}
+            /* La moneda, escrita, igual que al publicar: un número suelto no dice en qué está. */
+            trailingAdornment={
+              <span className="text-label text-text-support">
+                {SITE_CURRENCY}
+              </span>
+            }
             min={isProduct || isService ? "1" : "0"}
             step="1"
             error={state.errors?.price}
