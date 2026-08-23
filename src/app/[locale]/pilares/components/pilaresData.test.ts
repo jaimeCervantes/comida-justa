@@ -2,7 +2,12 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { stripComments } from "~/scripts/stripComments";
-import { PILLARS, pillarColorClasses } from "./pilaresData";
+import {
+  CHALLENGE_KEY_BY_PILLAR,
+  PILLAR_KEY_BY_CHALLENGE,
+  PILLARS,
+  pillarColorClasses,
+} from "./pilaresData";
 
 /**
  * Cubre el escenario "Los pilares estrenan su paleta" (`@slice-4`) de
@@ -92,5 +97,32 @@ describe("Las páginas de pilares", () => {
     expect(source).not.toMatch(/\bda dark:/);
     expect(source).not.toMatch(/\/da\b/);
     expect(source).not.toMatch(/-\d{2,3}xt-/);
+  });
+});
+
+describe("La equivalencia entre pilar y reto", () => {
+  /**
+   * Se deriva de `PILLAR_KEY_BY_CHALLENGE` en vez de escribirse otra vez. Esta prueba es lo que
+   * convierte esa derivación en garantía: los cuatro tienen que poder ir y volver sin perderse, y
+   * el día que entre un quinto pilar sin reto —o al revés— se pone roja aquí.
+   */
+  it("va y vuelve por los cuatro sin perder ninguno", () => {
+    for (const pillar of PILLARS) {
+      const challenge = CHALLENGE_KEY_BY_PILLAR[pillar.key];
+
+      expect(challenge, `el pilar «${pillar.key}» no tiene reto`).toBeDefined();
+      expect(PILLAR_KEY_BY_CHALLENGE[challenge]).toBe(pillar.key);
+    }
+  });
+
+  it("cubre todos los retos, sin sobras", () => {
+    expect(Object.keys(CHALLENGE_KEY_BY_PILLAR).sort()).toEqual(
+      Object.values(PILLAR_KEY_BY_CHALLENGE).sort(),
+    );
+  });
+
+  /** El cuarto es el que difiere: el reto se llama `mind` y el pilar `mindSpirit`. */
+  it("resuelve el par que no se llama igual", () => {
+    expect(CHALLENGE_KEY_BY_PILLAR.mindSpirit).toBe("mind");
   });
 });

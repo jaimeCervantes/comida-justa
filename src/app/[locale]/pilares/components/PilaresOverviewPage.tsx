@@ -9,7 +9,11 @@ import PublicHabitCelebrationList from "~/presentation/habits/PublicHabitCelebra
 import { getPillarTheme } from "~/presentation/habits/pillarThemes";
 import type { PublicHabitCelebration } from "~/use_cases/habits/ports/HabitChallengeRepository";
 import { setHabitCelebrationReaction } from "../../habitCommunityActions";
-import { PILLARS, pillarColorClasses } from "./pilaresData";
+import {
+  CHALLENGE_KEY_BY_PILLAR,
+  PILLARS,
+  pillarColorClasses,
+} from "./pilaresData";
 
 export default function PilaresOverviewPage({
   celebrations,
@@ -75,6 +79,27 @@ export default function PilaresOverviewPage({
 
                 <p className="text-text-support text-base leading-relaxed mb-4">
                   {tPillars(`${pillar.key}.cardDescription`)}
+                </p>
+
+                {/*
+                  **La práctica, dentro de la tarjeta.** Es la primera anotación del 5.10: el hub
+                  explicaba cuatro conceptos y dejaba al visitante sin nada que hacer, así que
+                  «Leer más» no prometía nada concreto. Con el nombre del ritual delante —«Del
+                  atardecer al amanecer»— el enlace ya tiene destino.
+
+                  El nombre vive bajo la clave del **reto**, no la del pilar, y la equivalencia se
+                  deriva de `PILLAR_KEY_BY_CHALLENGE` en vez de emparejarse aquí a mano.
+                */}
+                <p className="mb-4 flex flex-col gap-0.5">
+                  <span className="text-caption font-semibold uppercase tracking-[0.14em] text-text-muted">
+                    {t("practiceLabel")}
+                  </span>
+                  <span
+                    data-testid={`pillar-practice-${pillar.key}`}
+                    className={`text-label font-semibold ${c.text}`}
+                  >
+                    {habitT(`${CHALLENGE_KEY_BY_PILLAR[pillar.key]}.title`)}
+                  </span>
                 </p>
 
                 <span

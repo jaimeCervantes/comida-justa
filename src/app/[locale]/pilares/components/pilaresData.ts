@@ -109,3 +109,21 @@ export const pillarColorClasses: Record<PillarKey, PillarColorClasses> = {
     link: "text-pillar-mind-spirit-ink underline transition-opacity hover:opacity-75",
   },
 };
+
+/**
+ * El camino de vuelta: de un pilar a su reto.
+ *
+ * **Se deriva, no se escribe.** `PILLAR_KEY_BY_CHALLENGE` ya es la única fuente de la equivalencia
+ * —y existe justamente para que nadie vuelva a emparejarlas a mano—; una segunda tabla escrita en
+ * el otro sentido sería la copia que aquella vino a evitar, y se desincronizaría el día que entre un
+ * quinto pilar. Lo comprueba `pilaresData.test.ts` recorriendo los cuatro de ida y vuelta.
+ *
+ * Lo necesita la portada de `/pilares`: el 5.10 pide que cada tarjeta enseñe **su práctica**, y el
+ * nombre de la práctica vive bajo la clave del reto (`atomicChallenges.<reto>.title`).
+ */
+export const CHALLENGE_KEY_BY_PILLAR = Object.fromEntries(
+  Object.entries(PILLAR_KEY_BY_CHALLENGE).map(([challenge, pillar]) => [
+    pillar,
+    challenge,
+  ]),
+) as Record<PillarKey, HabitChallengeExperienceKey>;
