@@ -137,14 +137,6 @@ export const VISIBLE_COMMUNITY_ITEMS = COMMUNITY_ITEMS.filter(
   (item) => item.published,
 );
 
-/** Los 4 pilares en su forma corta, como los lista el pie. */
-export const PILLAR_SHORT_KEYS = [
-  "sleep.short",
-  "nutrition.short",
-  "movement.short",
-  "mindSpirit.short",
-] as const;
-
 /** Las tres secciones de la barra. El identificador no se traduce: se compara. */
 export type MenuSection = "community" | "pillars" | "about";
 

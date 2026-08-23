@@ -1,10 +1,13 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { MdCheck } from "react-icons/md";
+import { publicationPillarNumber } from "~/domain/entities/post/publicationPillars";
 import { Link } from "~/i18n/navigation";
 import { resolveLocale } from "~/i18n/routing";
 import { PUBLIC_BRAND_NAME } from "~/infra/constants";
-import { PILLAR_SHORT_KEYS } from "~/presentation/chrome/Header/menuItems";
+import { PILLAR_ITEMS } from "~/presentation/chrome/Header/menuItems";
+import { Badge } from "~/presentation/design_system/badges/Badge";
 import { buttonVariants } from "~/presentation/design_system/buttons/buttonVariants";
 import { Heading } from "~/presentation/design_system/typography/Heading";
 import { buildAboutMetadata } from "./metadata";
@@ -43,7 +46,10 @@ export default async function NosotrosPage({
   const italic = (chunks: React.ReactNode) => <em>{chunks}</em>;
 
   return (
-    <main className="py-12 space-y-16">
+    /* `article` y no `main`: el layout ya pone el `<main>` de la página, y anidar dos deja el
+       documento con dos regiones principales — HTML inválido, y un lector de pantalla que ofrece
+       «saltar al contenido» dos veces. Lo destapó el escenario que lee el texto de la página. */
+    <article className="py-12 space-y-16">
       <header className="text-center space-y-6">
         <Heading level={1} size="display">
           {t("metaTitle", { brand })}
@@ -108,10 +114,23 @@ export default async function NosotrosPage({
               <p className="text-pillar-mind-spirit-ink text-lg leading-relaxed font-medium">
                 {t("ecosystemPillars")}
               </p>
-              <ul className="space-y-2 text-pillar-mind-spirit-ink font-medium text-lg">
-                {PILLAR_SHORT_KEYS.map((key) => (
-                  <li key={key} className="flex items-center gap-3">
-                    <span className="text-xl">✅</span> {tPillars(key)}
+              {/*
+                **Insignias con su número, no palomitas.** Es la primera anotación del 5.11: la ✅
+                era el único indicador de lista en toda la página, y una palomita dice «hecho»
+                donde aquí solo se está enumerando. El número es además lo que distingue Movimiento
+                de Mente para quien no separa sus verdes — la misma razón por la que existe en la
+                tarjeta del listado y en el pie.
+              */}
+              <ul className="flex flex-wrap gap-2">
+                {PILLAR_ITEMS.map((item) => (
+                  <li key={item.pillar}>
+                    <Badge
+                      tone={item.pillar}
+                      counter={publicationPillarNumber(item.pillar)}
+                      data-testid={`about-pillar-${item.pillar}`}
+                    >
+                      {tPillars(`${item.pillar}.short`)}
+                    </Badge>
                   </li>
                 ))}
               </ul>
@@ -164,17 +183,14 @@ export default async function NosotrosPage({
         <div className="grid sm:grid-cols-2 gap-6">
           <ul className={`space-y-4 ${CARD}`}>
             <FeatureItem
-              icon="✅"
               label={t("peanutNaturalLabel")}
               text={t("peanutNaturalText")}
             />
             <FeatureItem
-              icon="💪"
               label={t("peanutEnergyLabel")}
               text={t("peanutEnergyText")}
             />
             <FeatureItem
-              icon="🌿"
               label={t("peanutNoExtrasLabel")}
               text={t("peanutNoExtrasText")}
             />
@@ -377,23 +393,26 @@ export default async function NosotrosPage({
           </a>
         </div>
       </section>
-    </main>
+    </article>
   );
 }
 
 /** Una virtud del producto: icono, título y una línea que lo explica. */
-function FeatureItem({
-  icon,
-  label,
-  text,
-}: {
-  icon: string;
-  label: string;
-  text: string;
-}) {
+/**
+ * Una cualidad del producto, con la viñeta de la casa.
+ *
+ * Llevaba un emoji distinto por renglón —✅, 💪, 🌿— pasado como prop. El 5.11 los saca: tres
+ * dibujos distintos para tres cosas del mismo rango hacen leer la lista como si fueran categorías
+ * diferentes, y además cada plataforma los pinta a su manera. Una sola viñeta, en la tinta de la
+ * marca, dice «esto es una lista» sin decir nada más.
+ */
+function FeatureItem({ label, text }: { label: string; text: string }) {
   return (
     <li className="flex items-start gap-3 text-lg">
-      <span className="mt-1">{icon}</span>
+      <MdCheck
+        aria-hidden="true"
+        className="mt-1 size-5 shrink-0 text-highlight"
+      />
       <div>
         <strong className="block text-text-base">{label}</strong>
         <span className="text-text-support text-base">{text}</span>

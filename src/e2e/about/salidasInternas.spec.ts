@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { PUBLICATION_PILLARS } from "~/domain/entities/post/publicationPillars";
 import es from "~/i18n/messages/es.json";
 
 /**
@@ -54,5 +55,42 @@ test.describe("La página de nosotros", () => {
     await expect(
       page.getByRole("link", { name: es.about.orderWhatsapp, exact: true }),
     ).toBeVisible();
+  });
+});
+
+/**
+ * «Fuera los emoji como sistema», primera anotación del 5.11.
+ *
+ * En la página los emoji hacían de sistema: la ✅ era el único indicador de lista, y el bloque del
+ * cacahuate tenía tres distintos para tres cosas del mismo rango. Ahora los pilares llevan su
+ * insignia con número —lo único que de verdad los distingue para quien no separa sus verdes— y las
+ * viñetas, la marca de la casa.
+ */
+test.describe("Cuando alguien lee /nosotros", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto("/nosotros");
+  });
+
+  test("Entonces los cuatro pilares se enumeran con su número", async ({
+    page,
+  }) => {
+    for (const pilar of PUBLICATION_PILLARS) {
+      const insignia = page.getByTestId(`about-pillar-${pilar.key}`);
+
+      await expect(insignia).toBeVisible();
+      await expect(insignia).toContainText(String(pilar.number));
+    }
+  });
+
+  /* Se mira lo que se **pinta**, no el fuente: es la única forma de cazar un emoji que vuelva desde
+     el catálogo de mensajes, que es por donde se colaron las 25 anteriores. */
+  test("Entonces no queda ningún emoji en pantalla", async ({ page }) => {
+    const texto = await page.getByRole("main").innerText();
+
+    expect(
+      texto.match(
+        /[\u{1F000}-\u{1FAFF}\u{2190}-\u{27BF}\u{2B00}-\u{2BFF}]/gu,
+      ) ?? [],
+    ).toEqual([]);
   });
 });
