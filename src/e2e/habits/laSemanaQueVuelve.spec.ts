@@ -68,9 +68,16 @@ test.describe("La semana que vuelve", () => {
     expect(goal.target).toBeLessThanOrEqual(days);
   });
 
-  test("rejoining resets the goal without spending the points already earned", async ({
-    page,
-  }) => {
+  /**
+   * Aquí no se afirma que la meta vuelva a cero.
+   *
+   * La ventana nueva se abre **hoy**, así que si uno se reincorpora el mismo día en que practicó
+   * —lo que pasa siempre en esta prueba— la repetición cae dentro de ella y el contador dice «1 de
+   * 1» con toda la razón. Que la meta solo cuente la ventana vigente se afirma en
+   * `habitChallengeUseCase.test.ts`, que sí puede mover el reloj a la semana siguiente. Escribirlo
+   * aquí sería una prueba que pasa los lunes.
+   */
+  test("rejoining keeps the points already earned", async ({ page }) => {
     await joinThePractice(page);
     await recordOneRepetition(page);
     await expect(page.getByText("10 puntos").first()).toBeVisible();
@@ -81,7 +88,6 @@ test.describe("La semana que vuelve", () => {
 
     await expect(page.getByTestId("challenge-day").first()).toBeVisible();
     await expect(page.getByText("10 puntos").first()).toBeVisible();
-    await expect(page.getByText(/^0 de \d+ ciclos$/)).toBeVisible();
   });
 });
 

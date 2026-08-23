@@ -256,3 +256,64 @@ confirmar la e2e sobre un `.next` limpio.
 
 Los mismos: slice 3 (una sola semana), el editor enriquecido, slice 4 (semanas encadenadas). Pendiente
 del usuario: `rm -rf .next` y repetir la e2e de `pilares` y la de `habits`.
+
+## Apéndice 4 — la e2e, corrida (2026-08-23)
+
+`src/e2e/habits` **25/25** · `src/e2e/pilares` **13/13**.
+
+### Los pilares nunca estuvieron rotos
+
+13/13 en verde sin tocar una línea de esas rutas ni de sus specs. Los 404 de la corrida anterior eran
+ambientales, como apuntaban las cuatro comprobaciones del apéndice 3. Queda escrito por si vuelve:
+**un 404 en toda la carpeta de pilares no es una regresión de aserción**, es `.next` en mal estado;
+bórralo y repite antes de buscar culpables en el diff.
+
+### Lo que sí encontró la e2e de hábitos: seis specs que solo pasaban en lunes
+
+Cinco de `atomicSleepChallenge.spec.ts` afirmaban el largo de la ventana **justo al sumarse**, antes
+de forzarla:
+
+```
+await expect(page.getByText("0 de 7 ciclos")).toBeVisible();
+```
+
+Mientras la ventana nacía el día que empezabas y duraba siete, ese `7` era cierto cualquier día. Desde
+que cierra en el lunes de la comunidad, solo es cierto **en lunes** — y hoy es domingo, así que la
+ventana es de un día y el contador dice «0 de 1». Lo mismo en «two pillars keep independent
+progress», que nunca fuerza la ventana y afirmaba «1 de 7» dos veces.
+
+Pasan a afirmar la forma: `/^0 de \d+ ciclos$/`. El contador **empieza en cero** es la promesa;
+cuántos días trae la semana depende de cuándo te sumaste. Es exactamente el patrón que la tabla de
+`nextjs-bdd-feature` marca como podrido —congelar un contador que depende del día— y editarlas es
+correcto porque **la conducta cambió de verdad**, no porque estorbaran.
+
+Las seis afirmaciones que van **después** del `backdate` conservan su `7` literal: ahí la ventana sí
+mide siete días y afirmarlo vale.
+
+### Y una mía, mal escrita
+
+`rejoining resets the goal without spending the points already earned` afirmaba que la meta vuelve a
+cero. La ventana nueva se abre **hoy**, así que reincorporarse el mismo día en que se practicó deja la
+repetición dentro de ella: el contador dice «1 de 1» con toda la razón. La prueba daba por hecho que
+la ventana nueva sería otra semana, y la e2e no puede mover el reloj.
+
+Se quedó afirmando lo que sí es estable —los puntos sobreviven, la práctica vuelve a ser usable— y
+se renombró a `rejoining keeps the points already earned`. Que la meta solo cuente la ventana vigente
+lo afirma `habitChallengeUseCase.test.ts`, que sí puede mover el reloj a la semana siguiente. La
+prueba tenía razón en el fondo y estaba escrita en la capa equivocada.
+
+### Recap
+
+Los dos slices están validados de punta a punta: 25/25 en hábitos, 13/13 en pilares, 2370/2370 en
+unitarias. La e2e hizo su trabajo — encontró seis specs que el cambio de modelo volvió dependientes
+del día de la semana, y una mía que afirmaba en Playwright algo que solo se puede afirmar con el
+reloj en la mano.
+
+### Próximos pasos (opciones)
+
+1. **Slice 3 · Una sola semana**: anclar `createUtcLeagueWeek` en `America/Mexico_City`, que el jardín
+   hable de la semana en curso y arreglar la redacción que da por hecha una semana de siete días.
+2. **El editor enriquecido de las publicaciones.**
+3. **Slice 4 · Semanas encadenadas** (pide migración de Alembic).
+
+Sin pendientes del usuario: la e2e de este trabajo ya está corrida y en verde.

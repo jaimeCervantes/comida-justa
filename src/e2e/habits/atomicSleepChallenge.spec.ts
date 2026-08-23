@@ -203,7 +203,7 @@ test.describe("Del atardecer al amanecer", () => {
     await page
       .getByRole("button", { name: "Empezar Del atardecer al amanecer" })
       .click();
-    await expect(page.getByText("0 de 7 ciclos")).toBeVisible();
+    await expect(page.getByText(/^0 de \d+ ciclos$/)).toBeVisible();
     const cycleDates = await backdateHabitChallengeForSevenDayTest();
     await page.reload();
 
@@ -284,14 +284,14 @@ test.describe("Del atardecer al amanecer", () => {
     await page
       .getByRole("button", { name: "Completar mi primer ciclo" })
       .click();
-    await expect(page.getByText("1 de 7 ciclos")).toBeVisible();
+    await expect(page.getByText(/^1 de \d+ ciclos$/)).toBeVisible();
 
     await page.goto("/pilares/alimentacion");
     await expect(page).toHaveURL(/\/pilares\/alimentacion$/);
     await page
       .getByRole("button", { name: "Empezar Cena real, local y al atardecer" })
       .click();
-    await expect(page.getByText("0 de 7 cenas")).toBeVisible();
+    await expect(page.getByText(/^0 de \d+ cenas$/)).toBeVisible();
     await page.getByRole("checkbox", { name: "Cené al atardecer" }).check();
     await page
       .getByRole("checkbox", { name: "Serví la triada con una planta más" })
@@ -299,11 +299,11 @@ test.describe("Del atardecer al amanecer", () => {
     await page
       .getByRole("button", { name: "Cultivar mi primera cena" })
       .click();
-    await expect(page.getByText("1 de 7 cenas")).toBeVisible();
+    await expect(page.getByText(/^1 de \d+ cenas$/)).toBeVisible();
 
     expect(await countStartedHabitRituals()).toBe(2);
     await page.goto("/pilares/sueno");
-    await expect(page.getByText("1 de 7 ciclos")).toBeVisible();
+    await expect(page.getByText(/^1 de \d+ ciclos$/)).toBeVisible();
     await expect(page.getByText("10 puntos").first()).toBeVisible();
     await expect(
       page.getByRole("button", {
@@ -371,7 +371,7 @@ test.describe("Del atardecer al amanecer", () => {
     await page
       .getByRole("button", { name: "Empezar Cena real, local y al atardecer" })
       .click();
-    await expect(page.getByText("0 de 7 cenas")).toBeVisible();
+    await expect(page.getByText(/^0 de \d+ cenas$/)).toBeVisible();
     const cycleDates = await backdateHabitChallengeForSevenDayTest(
       "nutrition-one-plant-v1",
     );
@@ -477,7 +477,7 @@ test.describe("Del atardecer al amanecer", () => {
         name: "Empezar Movimiento vivo, local y funcional",
       })
       .click();
-    await expect(page.getByText("0 de 7 días")).toBeVisible();
+    await expect(page.getByText(/^0 de \d+ días$/)).toBeVisible();
     const cycleDates = await backdateHabitChallengeForSevenDayTest(
       "movement-two-minutes-v1",
     );
@@ -569,7 +569,7 @@ test.describe("Del atardecer al amanecer", () => {
     await page
       .getByRole("button", { name: "Empezar Presencia, paz y conexión local" })
       .click();
-    await expect(page.getByText("0 de 7 días")).toBeVisible();
+    await expect(page.getByText(/^0 de \d+ días$/)).toBeVisible();
     const cycleDates = await backdateHabitChallengeForSevenDayTest(
       "mind-one-connection-v1",
     );
