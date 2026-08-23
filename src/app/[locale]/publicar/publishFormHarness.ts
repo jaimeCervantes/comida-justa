@@ -1,5 +1,6 @@
 import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { publishKindTestId } from "./publishKinds";
 import { stepForField } from "./publishSteps";
 
 /**
@@ -22,4 +23,20 @@ export async function openStepOf(fieldName: string): Promise<void> {
   }
 
   await userEvent.click(screen.getByTestId(`publish-step-${step}`));
+}
+
+/**
+ * Elegir el tipo de publicación.
+ *
+ * Desde el 5.3 el tipo son **píldoras** y no un desplegable, así que `selectOptions` ya no vale.
+ * Existe aquí, y no repetido en cada archivo de pruebas, porque la última vez que cambió esta forma
+ * hubo que editar cinco sitios: dos ayudantes de Vitest, tres page objects de la e2e y un spec.
+ *
+ * Se pulsa la **etiqueta** y no el radio: el radio va con `sr-only` —sigue en el árbol y sigue
+ * recibiendo el foco, pero no ocupa sitio—, y pulsar la etiqueta es exactamente lo que hace quien
+ * usa la página.
+ */
+export async function chooseKind(kind: string): Promise<void> {
+  await openStepOf("kind");
+  await userEvent.click(screen.getByTestId(publishKindTestId(kind)));
 }

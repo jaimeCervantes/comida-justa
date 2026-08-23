@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { choosePublishKind } from "../testUtils/choosePublishKind";
 import { deleteOnePostBySlug } from "../testUtils/deleteOnePost";
 import { seedPost } from "../testUtils/seedPost";
 import {
@@ -82,7 +83,7 @@ test.describe("When an admin manages the category catalog", () => {
 
     // Lo que importa: aparece en el formulario de publicar sin desplegar nada.
     await page.goto("/publicar");
-    await page.selectOption("#kind", "producto");
+    await choosePublishKind(page, "producto");
     await page.selectOption("#category", PARENT);
 
     await expect(
@@ -124,7 +125,7 @@ test.describe("When an admin manages the category catalog", () => {
 
     // Sale del selector...
     await page.goto("/publicar");
-    await page.selectOption("#kind", "producto");
+    await choosePublishKind(page, "producto");
     await page.selectOption("#category", PARENT);
     await expect(
       page.locator("#subCategory option", { hasText: "Temporada E2E" }),

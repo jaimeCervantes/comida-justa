@@ -1,4 +1,5 @@
 import { expect, type Locator, type Page } from "@playwright/test";
+import { choosePublishKind } from "../testUtils/choosePublishKind";
 import { openPublishStep } from "../testUtils/openPublishStep";
 import { stubStorageUpload } from "../testUtils/stubStorageUpload";
 
@@ -45,9 +46,7 @@ export default class PublishProductPage {
     /* El tipo va primero: es lo que decide qué campos existen. El formulario abre en `anuncio`,
        y un anuncio no pinta ni precio ni procedencia —son campos de lo que se vende—, así que
        llenarlos antes de elegirlo es esperar a un campo que todavía no está en la página. */
-    await this.page
-      .getByRole("combobox", { name: /tipo de publicación/i })
-      .selectOption(values.kind);
+    await choosePublishKind(this.page, values.kind);
     await openPublishStep(this.page, "price");
     await this.page
       .getByRole("spinbutton", { name: /precio/i })

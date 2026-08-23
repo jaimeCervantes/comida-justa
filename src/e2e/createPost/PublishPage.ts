@@ -1,4 +1,5 @@
 import { expect, type Locator, type Page } from "@playwright/test";
+import { choosePublishKind } from "../testUtils/choosePublishKind";
 import { MediaTray } from "../testUtils/mediaTray";
 import { openPublishStep } from "../testUtils/openPublishStep";
 import { stubStorageUpload } from "../testUtils/stubStorageUpload";
@@ -35,7 +36,6 @@ export default class PublishPage {
   readonly form: Locator;
   readonly submitButton: Locator;
   readonly title: Locator;
-  readonly kind: Locator;
   readonly origin: Locator;
   readonly price: Locator;
   readonly description: Locator;
@@ -57,9 +57,8 @@ export default class PublishPage {
     this.title = this.page.getByRole("textbox", {
       name: /t[ií]tulo de la publicación/i,
     });
-    this.kind = this.page.getByRole("combobox", {
-      name: /tipo de publicaci[oó]n/i,
-    });
+    /* El tipo ya no es un `combobox`: desde el 5.3 son píldoras. Quien lo elige es
+       `choosePublishKind`, que sabe el `data-testid` y no depende del idioma del rótulo. */
     this.origin = this.page.getByRole("combobox", { name: /de dónde viene/i });
     this.price = this.page.getByRole("spinbutton", { name: /precio/i });
     this.description = this.page.getByRole("textbox", {
@@ -88,7 +87,7 @@ export default class PublishPage {
        se pintan en lo que se vende, así que llenarlos antes de elegirlo es esperar a un campo
        que aún no está en la página. */
     const kind = values.kind ?? "producto";
-    await this.kind.selectOption(kind);
+    await choosePublishKind(this.page, kind);
 
     /* Se decide por el tipo y no preguntando si el control está visible: si un día `producto` deja
        de pintar el precio, esto tiene que fallar y no seguir de largo — que es exactamente lo que

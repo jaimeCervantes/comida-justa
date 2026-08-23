@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { choosePublishKind } from "../testUtils/choosePublishKind";
 import { deleteOnePostBySlug } from "../testUtils/deleteOnePost";
 import { readPostRowBySlug } from "../testUtils/readPostRow";
 import { seedPost } from "../testUtils/seedPost";
@@ -90,14 +91,12 @@ test.describe("When a product is published with a category", () => {
 
     // El formulario abre en «anuncio», y ya pregunta la categoría.
     await publishPage.expectCategoryOffered();
-    await expect(publishPage.origin()).toHaveCount(0);
+    await publishPage.expectOriginOffered(false);
 
-    await page
-      .getByRole("combobox", { name: /tipo de publicación/i })
-      .selectOption("producto");
+    await choosePublishKind(page, "producto");
 
     await publishPage.expectCategoryOffered();
-    await expect(publishPage.origin()).toBeVisible();
+    await publishPage.expectOriginOffered(true);
   });
 });
 

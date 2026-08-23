@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import type { AppLocale } from "~/i18n/routing";
 import { renderWithIntl } from "~/infra/test-utils/renderWithIntl";
 import PublishForm from "./PublishForm";
-import { openStepOf } from "./publishFormHarness";
+import { chooseKind, openStepOf } from "./publishFormHarness";
 
 const noop = vi.fn();
 
@@ -19,10 +19,6 @@ function renderForm(locale: AppLocale = "es", action = noop) {
     />,
     { locale },
   );
-}
-
-async function selectKind(kind: string, name: RegExp): Promise<void> {
-  await userEvent.selectOptions(screen.getByRole("combobox", { name }), kind);
 }
 
 /** Escribe (si hay qué) y sale del campo: es el `blur` lo que lo marca como tocado. */
@@ -82,7 +78,7 @@ describe("PublishForm — cada campo dice su razón, y es la del servidor", () =
 
   it("un precio de 0 en un producto se explica por el mínimo", async () => {
     renderForm();
-    await selectKind("producto", /tipo de publicación/i);
+    await chooseKind("producto");
     await openStepOf("price");
 
     await fillAndLeave(
@@ -101,7 +97,7 @@ describe("PublishForm — cada campo dice su razón, y es la del servidor", () =
     ["7", "Escribe la duración en múltiplos de 5 minutos."],
   ])("la duración «%s» de un servicio", async (value, message) => {
     renderForm();
-    await selectKind("servicio", /tipo de publicación/i);
+    await chooseKind("servicio");
     await openStepOf("durationMinutes");
 
     await fillAndLeave(
@@ -114,7 +110,7 @@ describe("PublishForm — cada campo dice su razón, y es la del servidor", () =
 
   it("un evento sin fecha dice que la fecha es lo que lo hace evento", async () => {
     renderForm();
-    await selectKind("evento", /tipo de publicación/i);
+    await chooseKind("evento");
     await openStepOf("startsAt");
 
     await fillAndLeave(screen.getByLabelText(/cuándo empieza/i), "");

@@ -6,7 +6,7 @@ import { describe, expect, it, vi } from "vitest";
 import { POST_TITLE_MAX_LENGTH, SITE_CURRENCY } from "~/infra/constants";
 import { renderWithIntl } from "~/infra/test-utils/renderWithIntl";
 import PublishForm from "./PublishForm";
-import { openStepOf } from "./publishFormHarness";
+import { chooseKind, openStepOf } from "./publishFormHarness";
 
 const noop = vi.fn();
 
@@ -74,10 +74,7 @@ describe("PublishForm — el contador del título", () => {
 describe("PublishForm — la moneda del precio", () => {
   it("dice en qué moneda está el número", async () => {
     renderForm();
-    await userEvent.selectOptions(
-      screen.getByRole("combobox", { name: /tipo de publicación/i }),
-      "producto",
-    );
+    await chooseKind("producto");
     await openStepOf("price");
 
     expect(screen.getByText(SITE_CURRENCY)).toBeInTheDocument();

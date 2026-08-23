@@ -1,4 +1,5 @@
 import { expect, type Page, test } from "@playwright/test";
+import { choosePublishKind } from "../testUtils/choosePublishKind";
 import { deleteOnePostBySlug } from "../testUtils/deleteOnePost";
 import { openPublishStep } from "../testUtils/openPublishStep";
 import { seedPost } from "../testUtils/seedPost";
@@ -103,9 +104,7 @@ test.describe("Al publicar, el formulario dice por qué", () => {
     await form
       .getByRole("textbox", { name: /título de la publicación/i })
       .fill("Reto caminata 5 minutos");
-    await form
-      .getByRole("combobox", { name: /tipo de publicación/i })
-      .selectOption("producto");
+    await choosePublishKind(page, "producto");
     await openPublishStep(page, "origin");
     await form
       .getByRole("combobox", { name: /de dónde viene/i })

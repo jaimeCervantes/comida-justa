@@ -1,5 +1,7 @@
 import { expect, test } from "@playwright/test";
+import { choosePublishKind } from "../testUtils/choosePublishKind";
 import { deleteOnePostBySlug } from "../testUtils/deleteOnePost";
+import { openPublishStep } from "../testUtils/openPublishStep";
 import { readPostRowBySlug } from "../testUtils/readPostRow";
 import { seedPost } from "../testUtils/seedPost";
 import {
@@ -90,8 +92,12 @@ test.describe("When the publisher chooses the event kind", () => {
     dbSession = await simulateLogin(page, browserName);
 
     await page.goto("/publicar");
-    await page.getByLabel(/tipo de publicaci/i).selectOption("evento");
+    await choosePublishKind(page, "evento");
 
+    /* Las fechas viven en el segundo paso del asistente, así que hay que llegar a ellas: «se
+       pregunta» es «está y se puede rellenar». «No se pregunta» sigue siendo «no está en la
+       página», y eso no depende de ningún paso. */
+    await openPublishStep(page, "startsAt");
     await expect(page.getByLabel(/cuándo empieza/i)).toBeVisible();
     await expect(page.getByLabel(/cuándo termina/i)).toBeVisible();
     await expect(page.getByLabel(/de dónde viene/i)).toHaveCount(0);
@@ -105,8 +111,9 @@ test.describe("When the publisher chooses the event kind", () => {
     dbSession = await simulateLogin(page, browserName);
 
     await page.goto("/publicar");
-    await page.getByLabel(/tipo de publicaci/i).selectOption("producto");
+    await choosePublishKind(page, "producto");
 
+    await openPublishStep(page, "origin");
     await expect(page.getByLabel(/de dónde viene/i)).toBeVisible();
     await expect(page.getByLabel(/cuándo empieza/i)).toHaveCount(0);
   });

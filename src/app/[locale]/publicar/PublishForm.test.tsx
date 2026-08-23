@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { renderWithIntl } from "~/infra/test-utils/renderWithIntl";
 import PublishForm from "./PublishForm";
-import { openStepOf } from "./publishFormHarness";
+import { chooseKind, openStepOf } from "./publishFormHarness";
 
 const noop = vi.fn();
 
@@ -34,12 +34,9 @@ async function selectProduct(): Promise<void> {
   await selectKind("producto");
 }
 
-async function selectKind(kind: string): Promise<void> {
-  await userEvent.selectOptions(
-    screen.getByRole("combobox", { name: /tipo de publicación/i }),
-    kind,
-  );
-}
+/* Delega en el ayudante: quién sabe cómo se elige el tipo es un solo archivo, y cuando dejó de ser
+   un desplegable esta prueba no se enteró. */
+const selectKind = chooseKind;
 
 /**
  * El aviso existe para un caso y no para tres: declararse productor sin tienda es lo único que no
@@ -171,10 +168,7 @@ describe("PublishForm — zona horaria del evento", () => {
   it("manda la zona del navegador junto a las fechas locales", async () => {
     renderForm();
 
-    await userEvent.selectOptions(
-      screen.getByRole("combobox", { name: /tipo de publicación/i }),
-      "evento",
-    );
+    await chooseKind("evento");
 
     expect(
       document.querySelector('form input[name="timeZone"]'),
