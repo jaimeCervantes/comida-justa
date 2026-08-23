@@ -23,8 +23,7 @@ function ColumnHeading({ children }: { children: ReactNode }) {
   );
 }
 
-const LINK_CLASS =
-  "text-on-inverted-support transition-colors hover:text-link-on-inverted";
+const LINK_CLASS = "text-text-support transition-colors hover:text-highlight";
 
 /**
  * Un enlace externo del pie. Los cuatro se escribían con la misma tríada de atributos.
@@ -45,10 +44,15 @@ function ExternalLink({ href, children }: { href: string; children: string }) {
 /**
  * El pie del sitio.
  *
- * **Es oscuro a propósito**, y es lo que pide el 5.16: cierra la página y libera el papel claro
- * para el contenido. No sigue al tema —sería un pie que deja de cerrar nada en claro—, así que sus
- * colores salen de `--surface-inverted` y sus tres tintas, que se declaran una vez fuera de los
- * bloques de tema y se miden en `invertedSurface.contrast.test.ts`.
+ * **Sigue al tema**: claro con el tema claro, oscuro con el oscuro. El 5.16 lo dibuja siempre
+ * oscuro —«cierra la página y libera el papel claro para el contenido»— y así se entregó primero,
+ * con una superficie que no participaba del tema. Se revirtió por decisión del usuario: una banda
+ * negra en mitad de una página clara no cierra, corta, y en el tema oscuro se fundía con el resto.
+ *
+ * Lo que sí hay que conservar del 5.16 es el **cierre**, y eso lo dan dos cosas que no dependen del
+ * color: un escalón de superficie (`surface-elevation-1` sobre el fondo de la página) y un filo
+ * arriba (`border-t border-border`, el borde fuerte y no el separador tenue). En los dos temas se
+ * lee como «aquí se acaba el contenido», que era lo que el oscuro venía a conseguir.
  *
  * **Los pilares dejaron de ser una lista de palomitas.** Eran cuatro `✓` con el nombre al lado, sin
  * enlace: decoración en el sitio donde alguien busca a dónde ir. Ahora llevan a su pilar y traen
@@ -71,7 +75,7 @@ export default function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="mt-16 bg-surface-inverted pt-16 pb-8 text-on-inverted">
+    <footer className="mt-16 border-t border-border bg-surface-elevation-1 pt-16 pb-8 text-text-base">
       <div className="container-width mb-12 grid grid-cols-1 gap-12 md:grid-cols-4 lg:gap-8">
         <div className="space-y-6 md:col-span-1">
           <Link
@@ -84,11 +88,13 @@ export default function Footer() {
               width={40}
               height={40}
             />
-            {/* Sobre el fondo oscuro, el verde de marca no se lee: aquí va el que sí, medido. */}
-            <span className="text-link-on-inverted">{PUBLIC_BRAND_NAME}</span>
+            {/* El logotipo va en verde sólido, no en degradado: recortar el degradado contra el
+                texto deja las primeras letras casi ilegibles. `--highlight` ya resuelve al verde
+                que aguanta como tinta en cada tema. */}
+            <span className="text-highlight">{PUBLIC_BRAND_NAME}</span>
           </Link>
 
-          <p className="max-w-sm text-label leading-relaxed text-on-inverted-support">
+          <p className="max-w-sm text-label leading-relaxed text-text-support">
             {t("tagline")}
           </p>
 
@@ -189,7 +195,7 @@ export default function Footer() {
         </nav>
       </div>
 
-      <div className="container-width flex flex-col items-center justify-between gap-4 border-t border-separator-on-inverted pt-8 text-caption text-on-inverted-support md:flex-row">
+      <div className="container-width flex flex-col items-center justify-between gap-4 border-t border-separator pt-8 text-caption text-text-support md:flex-row">
         <p>{t("rights", { year: currentYear, brand: PUBLIC_BRAND_NAME })}</p>
         <p>{t("motto")}</p>
         {/* Bajado del header: cambiar de idioma se hace una vez, no en cada visita. */}

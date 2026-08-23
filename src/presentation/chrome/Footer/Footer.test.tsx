@@ -39,13 +39,23 @@ describe("When the footer is rendered", () => {
     expect(wordmark).not.toHaveClass("bg-clip-text");
   });
 
-  /** El 5.16: el pie es oscuro **en los dos temas**, y por eso no usa una superficie temática. */
-  it("Then it sits on the inverted surface, which does not follow the theme", () => {
+  /**
+   * El pie **sigue al tema**, y se separa del contenido por forma, no por color.
+   *
+   * Se entregó primero siempre oscuro, como lo dibuja el 5.16, y se revirtió: una banda negra en
+   * mitad de una página clara no cierra, corta. Lo que hace el cierre son un escalón de superficie
+   * y un filo arriba, y eso funciona igual en los dos temas — que es justo lo que esta prueba
+   * vigila, porque es lo que se perdería si alguien vuelve a fijar un color.
+   */
+  it("Then it closes the page with its own surface and an edge, in either theme", () => {
     const { container } = render(<Footer />);
     const footer = container.querySelector("footer");
 
-    expect(footer).toHaveClass("bg-surface-inverted");
-    expect(footer?.className).not.toMatch(/dark:/);
+    expect(footer).toHaveClass("bg-surface-elevation-1");
+    expect(footer).toHaveClass("border-t");
+
+    /* Ni un color fijado a mano ni una variante `dark:`: las dos formas de dejar de seguir al tema. */
+    expect(footer?.className).not.toMatch(/dark:|inverted|#[0-9a-f]{3}/i);
   });
 });
 

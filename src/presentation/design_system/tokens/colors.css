@@ -88,25 +88,6 @@
   /* --- Structure ---
      `--separator` y `--border` son decorativos: separan, no delimitan un control, así que no les
      aplica el mínimo de 3:1 de «Non-text Contrast». */
-  /**
-   * La banda oscura: el pie, y lo que venga después.
-   *
-   * **No participa del tema, y por eso vive solo aquí.** El 5.16 pide un pie oscuro «a propósito»:
-   * cierra la página y libera el papel claro para el contenido. Un pie que se aclara con el tema
-   * claro deja de cerrar nada, así que estas cuatro variables valen lo mismo en claro y en oscuro y
-   * no se redeclaran en ninguno de los dos bloques oscuros. `darkThemeParity.test.ts` sigue
-   * cuadrando: compara esos dos bloques entre sí, y aquí no entra ninguna.
-   *
-   * Los valores son los del tema oscuro, que ya estaban medidos, más el verde que el canvas sube
-   * para poder ser tinta sobre negro. **El canvas dice que ese par da 8.4:1 y da 6.16** —medido en
-   * `invertedSurface.contrast.test.ts`—; sobra para AA, pero el número de la maqueta no era.
-   */
-  --surface-inverted: #101410;
-  --text-on-inverted: #eceadf;
-  --text-on-inverted-support: #a2ad98;
-  --link-on-inverted: #6ba34a;
-  --separator-on-inverted: #333b2e;
-
   --separator: #ede8dc;
   --border: #e3ddce;
 
@@ -408,16 +389,6 @@
   --color-text-inverse: var(--text-inverse);
   --color-text-support: var(--text-support);
   --color-text-muted: var(--text-muted);
-
-  --color-surface-inverted: var(--surface-inverted);
-  /* El alias decide el nombre de la utilidad: `--color-X` genera `text-X`/`bg-X`. Llamarlos
-     `--color-text-on-inverted` habría dado `text-text-on-inverted`, y la clase que sí se escribe
-     —`text-on-inverted`— no existiría. En Tailwind v4 eso no falla: desaparece, y el texto se
-     queda del color que herede. Lo cazó `e2e/chrome/pie.spec.ts` midiendo 1.10 de contraste. */
-  --color-on-inverted: var(--text-on-inverted);
-  --color-on-inverted-support: var(--text-on-inverted-support);
-  --color-link-on-inverted: var(--link-on-inverted);
-  --color-separator-on-inverted: var(--separator-on-inverted);
 
   --color-surface-background: var(--surface-background);
   --color-surface-elevation-1: var(--surface-elevation-1);
