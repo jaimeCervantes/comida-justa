@@ -17,6 +17,7 @@ import CartLink from "~/presentation/cart/CartLink/CartLink";
 import LinkButton from "~/presentation/navigation/LinkButton/LinkButton";
 import HeaderSearchBar from "~/presentation/search/HeaderSearchBar";
 import Avatar from "~/presentation/user/Avatar/Avatar";
+import LanguageSwitcher from "../LanguageSwitcher/LanguageSwitcher";
 import MobileAccountCard from "./MobileAccountCard";
 import MobileNav from "./MobileNav";
 import Nav from "./Nav";
@@ -160,6 +161,13 @@ export default async function Header() {
               <span className="hidden sm:block">{t("signIn")}</span>
             </SignIn>
           )}
+
+          {/* El idioma vive aquí. El 5.16 lo bajaba al pie —«el header ya cargaba con búsqueda,
+              publicar y cuenta»— y así se entregó un momento, pero el usuario lo quiere donde
+              estaba: en un sitio de dos idiomas, cambiar de idioma es de las primeras cosas que
+              alguien busca, y buscarla al final de la página es encontrarla tarde. Vive en un solo
+              lugar, no en los dos. */}
+          <LanguageSwitcher />
         </div>
       </div>
       {/* Mobile Search Bar - Visible only on small/medium screens below navigation depending on layout space */}

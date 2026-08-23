@@ -98,17 +98,3 @@ describe("Los pilares del pie", () => {
     expect(pintados).toHaveLength(PUBLICATION_PILLARS.length);
   });
 });
-
-describe("El idioma", () => {
-  /**
-   * Baja del header por instrucción del 5.16: la barra de arriba ya cargaba con búsqueda, publicar
-   * y cuenta, y cambiar de idioma se hace una vez, no en cada visita.
-   */
-  it("se cambia desde el pie", () => {
-    const view = render(<Footer />);
-
-    expect(
-      view.getByRole("button", { name: /idioma|language/i }),
-    ).toBeInTheDocument();
-  });
-});

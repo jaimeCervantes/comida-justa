@@ -7,7 +7,6 @@ import { PUBLIC_BRAND_NAME } from "~/infra/constants";
 import { BadgeCounter } from "~/presentation/design_system/badges/Badge";
 import { Heading } from "~/presentation/design_system/typography/Heading";
 import { PILLAR_ITEMS, VISIBLE_COMMUNITY_ITEMS } from "../Header/menuItems";
-import LanguageSwitcher from "../LanguageSwitcher/LanguageSwitcher";
 
 /**
  * El encabezado de una columna del pie.
@@ -59,11 +58,14 @@ function ExternalLink({ href, children }: { href: string; children: string }) {
  * **su número**, como en el resto de la aplicación —y el número sale de `publicationPillarNumber`,
  * no del orden de la lista—.
  *
- * **El idioma se muda aquí desde el header.** Es la otra instrucción del 5.16: la barra de arriba
- * ya cargaba con búsqueda, publicar y cuenta, y cambiar de idioma es algo que se hace una vez y no
- * en cada visita. El conmutador de **tema** que dibuja el canvas todavía no existe en la
- * aplicación —haría falta el interruptor, dónde recordarlo y un script que evite el parpadeo al
- * cargar—, así que es su propio slice y no un añadido de éste.
+ * **El idioma no está aquí, y es a propósito.** El 5.16 lo baja del header —«ya cargaba con
+ * búsqueda, publicar y cuenta»— y así se entregó un momento; se devolvió arriba por decisión del
+ * usuario: en un sitio de dos idiomas, cambiar de idioma es de las primeras cosas que alguien
+ * busca, y el final de la página es encontrarlo tarde. Está en un solo sitio, no en los dos.
+ *
+ * El conmutador de **tema** que dibuja el canvas tampoco existe todavía en la aplicación —haría
+ * falta el interruptor, dónde recordarlo y un script que evite el parpadeo al cargar—, así que es
+ * su propio slice.
  */
 export default function Footer() {
   const t = useTranslations("footer");
@@ -198,8 +200,6 @@ export default function Footer() {
       <div className="container-width flex flex-col items-center justify-between gap-4 border-t border-separator pt-8 text-caption text-text-support md:flex-row">
         <p>{t("rights", { year: currentYear, brand: PUBLIC_BRAND_NAME })}</p>
         <p>{t("motto")}</p>
-        {/* Bajado del header: cambiar de idioma se hace una vez, no en cada visita. */}
-        <LanguageSwitcher />
       </div>
     </footer>
   );

@@ -25,7 +25,7 @@ export async function generateMetadata({
 const CARD =
   "bg-surface-elevation-1 p-6 rounded-card border border-separator shadow-xs";
 const SOCIAL_LINK =
-  "bg-surface-elevation-1 px-3 py-1.5 rounded-full shadow-xs hover:shadow-md border border-brand-clay-700/20 transition-all flex items-center gap-1.5";
+  "bg-surface-elevation-1 px-3 py-1.5 rounded-full shadow-xs hover:shadow-md border border-separator transition-all flex items-center gap-1.5";
 
 /**
  * El ancho lo pone el layout (`container-width`). Repetirlo aquí y sumarle `max-w-4xl` encajonaba
@@ -196,15 +196,23 @@ export default async function NosotrosPage({
             />
           </ul>
 
-          <div className="bg-brand-honey-soft p-6 rounded-card border border-brand-honey-ink/20">
+          {/*
+            **Un acento por bloque**, que es la segunda anotación del 5.11.
+
+            Esta caja es un apunte al margen —con qué acompañar la crema—, no la identidad del
+            producto: llevaba la miel y se la quedaba el pan, que es de quien es esa corteza. Aquí
+            basta el escalón de superficie; lo que identifica al cacahuate son su foto y sus tres
+            cualidades.
+          */}
+          <div className="bg-surface-elevation-2 p-6 rounded-card border border-separator">
             <Heading
               level={4}
               tone="inherit"
-              className="mb-4 text-brand-honey-ink flex items-center gap-2"
+              className="mb-4 text-text-base flex items-center gap-2"
             >
               {t("peanutPairHeading")}
             </Heading>
-            <ul className="grid grid-cols-2 gap-y-2 gap-x-4 text-brand-honey-ink font-medium">
+            <ul className="grid grid-cols-2 gap-y-2 gap-x-4 text-text-support font-medium">
               <li className="flex items-center gap-2">{t("peanutPair1")}</li>
               <li className="flex items-center gap-2">{t("peanutPair2")}</li>
               <li className="flex items-center gap-2">{t("peanutPair3")}</li>
@@ -213,22 +221,22 @@ export default async function NosotrosPage({
               <li className="flex items-center gap-2">{t("peanutPair6")}</li>
               <li className="flex items-center gap-2">{t("peanutPair7")}</li>
             </ul>
-            <p className="mt-4 text-sm text-brand-honey-ink">
+            <p className="mt-4 text-sm text-text-support">
               {t.rich("peanutPairNote", { b: bold })}
             </p>
           </div>
         </div>
 
-        <div className="bg-brand-honey-soft p-6 rounded-card">
+        <div className="bg-surface-elevation-2 p-6 rounded-card">
           <Heading
             level={4}
             size="sm"
             tone="inherit"
-            className="mb-4 text-brand-honey-ink flex items-center gap-2"
+            className="mb-4 text-text-support flex items-center gap-2"
           >
             {t("peanutTipsHeading")}
           </Heading>
-          <ul className="space-y-3 text-brand-honey-ink list-disc pl-5">
+          <ul className="space-y-3 text-text-support list-disc pl-5">
             <TipItem label={t("peanutTip1Label")} text={t("peanutTip1Text")} />
             <TipItem label={t("peanutTip2Label")} text={t("peanutTip2Text")} />
             <TipItem label={t("peanutTip3Label")} text={t("peanutTip3Text")} />
@@ -238,6 +246,19 @@ export default async function NosotrosPage({
       </section>
 
       {/* 3. Pan de Masa Madre */}
+      {/*
+        **El pan lleva la miel, y es su único acento.**
+
+        Iba en barro (`--brand-clay-700`, `#c52e0b`), que se lee como rojo y es la semilla del
+        naranja del logo — por eso el pilar de Alimentación resuelve al mismo tono y tampoco servía
+        de recambio. La miel (`#7a5a03` sobre `#fdf3d6`) es la corteza y el trigo, que es lo que
+        este bloque enseña.
+
+        Para que sea de **un solo bloque**, el del cacahuate se apaga a superficie neutra: es la
+        segunda anotación del 5.11 —«un acento por bloque»— y antes ni siquiera se cumplía dentro
+        del propio cacahuate, que tenía la caja de «va bien con» en miel y la de «cómo guardarla» en
+        barro. Lo que identifica a la crema son su foto y sus tres cualidades, no un fondo de color.
+      */}
       <section className="space-y-8" id="pan-de-masa-madre-mmnaturalmente">
         <div className="space-y-4">
           <Heading level={2} className="flex items-center gap-3">
@@ -250,14 +271,14 @@ export default async function NosotrosPage({
             {t.rich("breadIntro", { b: bold })}
           </p>
 
-          <div className="bg-brand-clay-soft p-5 rounded-card text-brand-clay-700 border border-brand-clay-700/20 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="bg-brand-honey-soft p-5 rounded-card text-brand-honey-ink border border-brand-honey-ink/20 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <p>{t.rich("breadPartner", { b: bold, brand })}</p>
             <div className="flex shrink-0 items-center justify-start gap-4 font-medium text-sm">
               <a
                 href="https://www.instagram.com/mmnaturalmente/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`${SOCIAL_LINK} hover:text-brand-clay-700`}
+                className={`${SOCIAL_LINK} hover:text-brand-honey-ink`}
               >
                 {t("breadInstagram")}
               </a>
@@ -275,15 +296,15 @@ export default async function NosotrosPage({
 
         <div className="grid sm:grid-cols-2 gap-6">
           <div className="space-y-6">
-            <div className="bg-brand-clay-soft p-6 rounded-card border border-brand-clay-700/20">
+            <div className="bg-brand-honey-soft p-6 rounded-card border border-brand-honey-ink/20">
               <Heading
                 level={4}
                 tone="inherit"
-                className="mb-4 text-brand-clay-700 flex items-center gap-2"
+                className="mb-4 text-brand-honey-ink flex items-center gap-2"
               >
                 {t("breadLoafHeading")}
               </Heading>
-              <ul className="space-y-4 text-brand-clay-700">
+              <ul className="space-y-4 text-brand-honey-ink">
                 <LoafItem
                   label={t("breadDigestionLabel")}
                   text={t("breadDigestionText")}
@@ -324,16 +345,16 @@ export default async function NosotrosPage({
           </div>
         </div>
 
-        <div className="bg-brand-clay-soft p-6 rounded-card">
+        <div className="bg-brand-honey-soft p-6 rounded-card">
           <Heading
             level={4}
             size="sm"
             tone="inherit"
-            className="mb-4 text-brand-clay-700 flex items-center gap-2"
+            className="mb-4 text-brand-honey-ink flex items-center gap-2"
           >
             {t("breadTipsHeading")}
           </Heading>
-          <ul className="space-y-3 text-brand-clay-700 list-disc pl-5">
+          <ul className="space-y-3 text-brand-honey-ink list-disc pl-5">
             <TipItem label={t("breadTip1Label")} text={t("breadTip1Text")} />
             <TipItem label={t("breadTip2Label")} text={t("breadTip2Text")} />
             <TipItem label={t("breadTip3Label")} text={t("breadTip3Text")} />
@@ -434,7 +455,7 @@ function TipItem({ label, text }: { label: string; text: string }) {
 function LoafItem({ label, text }: { label: string; text: string }) {
   return (
     <li className="flex flex-col">
-      <strong className="text-brand-clay-700">{label}</strong>
+      <strong className="text-brand-honey-ink">{label}</strong>
       <span className="text-sm">{text}</span>
     </li>
   );

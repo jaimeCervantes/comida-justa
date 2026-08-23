@@ -93,11 +93,11 @@ export default function LanguageSwitcher() {
             desaparecer. */}
         <DropdownMenu.Content
           align="end"
-          /* Hacia arriba: desde el 5.16 este conmutador vive en el pie, y un desplegable que se
-             abre hacia abajo desde el final de la página nace fuera de la pantalla. Se descubrió
-             porque el escenario que cambia a inglés se quedó colgado en el clic. */
-          side="top"
-          /* Se voltea solo si arriba tampoco cabe: `side` es la preferencia, no una imposición. */
+          /* Se voltea solo si abajo no cabe. Hubo un momento en que este conmutador vivió en el
+             pie y necesitó `side="top"`: desde el final de la página, un desplegable hacia abajo
+             nace fuera de la pantalla y el clic se queda colgado. Volvió arriba, así que la
+             preferencia vuelve a ser la de por omisión — pero `avoidCollisions` se queda, que es lo
+             que lo salva en cualquiera de los dos sitios. */
           avoidCollisions
           sideOffset={8}
           className={MENU_CONTENT_CLASS}

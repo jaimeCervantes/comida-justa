@@ -23,19 +23,17 @@ export default class HeaderMenusPage {
   }
 
   /**
-   * Abre el conmutador de idioma, que **vive en el pie** desde el 5.16.
+   * Abre el conmutador de idioma, **acotado al header**.
    *
-   * Bajó del header por instrucción del canvas: la barra de arriba ya cargaba con búsqueda,
-   * publicar y cuenta. Hay que desplazarse hasta él antes de pulsarlo, porque el pie está al final
-   * de la página y Playwright no pulsa lo que no está a la vista.
+   * Con ámbito y no suelto: el 5.16 lo bajó al pie durante un slice y volvió arriba, y mientras
+   * estuvo en los dos sitios un locator sin acotar habría resuelto a dos botones. El ámbito lo deja
+   * dicho, y cuesta menos que descubrirlo por una violación de modo estricto.
    */
   async openLanguageMenu(): Promise<void> {
-    const boton = this.page
-      .locator("footer")
-      .getByRole("button", { name: es.nav.changeLanguage });
-
-    await boton.scrollIntoViewIfNeeded();
-    await boton.click();
+    await this.page
+      .locator("header")
+      .getByRole("button", { name: es.nav.changeLanguage })
+      .click();
 
     await expect(this.languageMenu()).toBeVisible();
   }
