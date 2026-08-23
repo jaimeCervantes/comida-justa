@@ -220,6 +220,18 @@ export default class HabitChallengeUseCase {
     };
   }
 
+  /**
+   * La ventana guardada, con el huso saneado al entrar.
+   *
+   * `Intl.DateTimeFormat` **lanza** con un huso que no reconoce, y desde que la ventana puede estar
+   * cerrada ese huso se lee en **cada render** de la página del pilar: antes solo se tocaba al
+   * registrar una repetición. Un valor raro en la columna dejó de ser un check-in fallido para
+   * pasar a ser un pilar que no abre.
+   *
+   * Se cae a UTC, que es la misma red que `start()` tiende sobre el huso que manda el navegador.
+   * Nadie escribe esa columna sin pasar por ahí hoy —los nueve valores en producción son
+   * `America/Mexico_City`—, pero la columna es de texto y la base la comparte otro backend.
+   */
   private periodFrom(
     stored: StoredHabitChallengeProgress,
   ): HabitChallengePeriod | null {
@@ -227,7 +239,7 @@ export default class HabitChallengeUseCase {
     return {
       startDate: stored.startDate,
       endDate: stored.endDate,
-      timezone: stored.timezone,
+      timezone: isValidTimeZone(stored.timezone) ? stored.timezone : "UTC",
     };
   }
 }

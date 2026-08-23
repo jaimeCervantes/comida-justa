@@ -200,3 +200,59 @@ un formulario relleno.
 
 Los mismos de la entrada anterior — slice 3 (una sola semana), el editor enriquecido, slice 4
 (semanas encadenadas). Sigue pendiente que el usuario corra la e2e.
+
+## Apéndice 2 — el huso guardado se lee ahora en cada render (2026-08-23)
+
+Salió investigando por qué la e2e de `pilares` falló entera (resultó ser ambiental, ver abajo), y es
+una fragilidad real que introdujo el slice 1.
+
+`Intl.DateTimeFormat` **lanza** con un huso que no reconoce. Antes, el huso guardado solo se tocaba
+al registrar una repetición (`evaluateCycleDate`), así que un valor raro en la columna era un
+check-in fallido. Desde que `toProgress` calcula `periodClosed`, se lee en **cada render de la página
+del pilar**: el mismo valor raro pasó a ser un pilar que no abre.
+
+Los nueve valores en producción son `America/Mexico_City` y hoy nadie escribe esa columna sin pasar
+por `isValidTimeZone` en `start()`. Pero es una columna de texto en una base que comparte otro
+backend, así que el saneado se hace **al entrar**, en `periodFrom`, con la misma caída a UTC que ya
+usaba `start()` para el huso que manda el navegador.
+
+| Comando | Resultado |
+| --- | --- |
+| `pnpm exec vitest --run src/domain/habits src/use_cases/habits` | **82 en verde** (1 nueva) |
+| `pnpm run typecheck` | limpio |
+
+## Apéndice 3 — los 13 fallos de la e2e de `pilares` no eran del cambio (2026-08-23)
+
+La corrida de `src/e2e/pilares` dio **13 de 13 en rojo**, con `pillar-local`, `pillar-practice-sleep`,
+`community-habit-garden` y `#practica` «element(s) not found».
+
+El `error-context.md` que guarda Playwright lo aclaró: la página servida era el **404 localizado**
+(«Esta página se cosechó ya»), con cabecera, pie y hasta el aviso de la celebración pintados. La
+aplicación y la base estaban vivas; lo que no resolvió fue la ruta.
+
+Cuatro comprobaciones descartan la regresión:
+
+1. Los tres commits **no tocan ningún archivo** bajo `src/app/[locale]/pilares/` ni `src/e2e/pilares/`.
+2. Con un `next dev` sobre este mismo commit, `/pilares`, `/pilares/sueno`, `/pilares/alimentacion` y
+   `/en/pillars/mente-espiritu` devuelven **200**, y los cuatro `pillar-practice-*`,
+   `community-habit-garden`, `pillar-local`, `pillar-local-stores`, `pillar-local-posts` e
+   `id="practica"` están todos en el HTML.
+3. Un 404 significa que la ruta no resolvió. Ninguna regresión de aserción produce eso.
+4. `warmRoutes.ts` documenta que este repo ya se rompió así antes — compilaciones solapadas dejando
+   `.next/dev/prerender-manifest.json` a medias— y las cuatro rutas de pilares están en su lista de
+   calentamiento precisamente por haber fallado en frío.
+
+Queda como **pendiente de confirmar** con una corrida limpia: borrar `.next` y repetir
+`pnpm exec playwright test src/e2e/pilares`. Si vuelve a dar 404 sobre `.next` recién borrado, eso sí
+es información nueva y hay que mirarlo.
+
+### Recap
+
+El cambio no rompió los pilares: sus rutas responden 200 con todo lo que la e2e busca. De la
+investigación salió un saneado que faltaba —el huso guardado, ahora leído en cada render— y queda por
+confirmar la e2e sobre un `.next` limpio.
+
+### Próximos pasos (opciones)
+
+Los mismos: slice 3 (una sola semana), el editor enriquecido, slice 4 (semanas encadenadas). Pendiente
+del usuario: `rm -rf .next` y repetir la e2e de `pilares` y la de `habits`.

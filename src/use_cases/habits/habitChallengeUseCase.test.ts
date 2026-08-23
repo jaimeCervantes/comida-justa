@@ -97,6 +97,11 @@ class FakeHabitChallengeRepository implements HabitChallengeRepository {
     if (this.progress?.userId !== userId) return;
     this.progress = { ...this.progress, gardenSharingEnabled: enabled };
   }
+
+  /** La columna es de texto y la base la comparte otro backend: puede llegar cualquier cosa. */
+  corruptTimezone(timezone: string): void {
+    if (this.progress) this.progress = { ...this.progress, timezone };
+  }
 }
 
 const clock = { now: (): Date => new Date("2026-08-10T14:00:00Z") };
@@ -186,6 +191,20 @@ describe("HabitChallengeUseCase", () => {
           cycleDate: "2026-08-19",
         }),
       ).toEqual({ ok: false, reason: "outside-period" });
+    });
+
+    it("reads a progress whose stored timezone is unusable instead of failing the page", async () => {
+      const repository = new FakeHabitChallengeRepository();
+      const movable = new MovableClock(new Date("2026-08-17T18:00:00Z"));
+      const useCase = new HabitChallengeUseCase(repository, movable);
+      await useCase.start(USER_ID, "America/Mexico_City");
+      repository.corruptTimezone("Marte/Olympus_Mons");
+
+      movable.moveTo("2026-08-24T18:00:00Z");
+
+      await expect(useCase.getProgress(USER_ID)).resolves.toMatchObject({
+        periodClosed: true,
+      });
     });
 
     it("does not reopen a week still running, so a bad day cannot be erased", async () => {
