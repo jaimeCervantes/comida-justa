@@ -240,7 +240,8 @@
       "xp": "{xp} points",
       "weekClosed": "Your previous week has closed",
       "weekClosedBody": "Community weeks close on Sunday and open on Monday. What you practised before still counts towards your points and the garden; join the current week to record again.",
-      "weekTarget": "This week's goal: {target} of {total, plural, one {# day} other {# days}}"
+      "weekTarget": "This week's goal: {target} of {total, plural, one {# day} other {# days}}",
+      "sustainedWeeks": "{weeks, plural, one {# sustained week} other {# sustained weeks}}"
     },
     "indexIntro": "Choose one practice for this week. You can switch without losing your progress.",
     "indexTitle": "One practice for every pillar",
@@ -530,6 +531,7 @@
     "siteMessageFinalBody": "{name} protected their rest five times in their weekly challenge.",
     "siteMessageLabel": "New community achievement",
     "start": "Start From dusk to dawn",
+    "sustainedWeeks": "{weeks, plural, one {# sustained week} other {# sustained weeks}}",
     "title": "From dusk to dawn",
     "weekClosed": "Your previous week has closed",
     "weekClosedBody": "Community weeks close on Sunday and open on Monday. What you practised before still counts towards your points and the garden; join the current week to record again.",

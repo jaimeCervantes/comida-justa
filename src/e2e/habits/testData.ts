@@ -1,6 +1,7 @@
 import { and, eq } from "drizzle-orm";
 import {
   addLocalDays,
+  currentCommunityWeek,
   localDateAt,
   SLEEP_CHALLENGE_KEY,
 } from "~/domain/habits/habitChallenge";
@@ -92,6 +93,38 @@ export async function closeHabitChallengeWindow(
     );
   }
   return { startDate, endDate };
+}
+
+/**
+ * Siembra una repetición en la **semana anterior** de la comunidad y devuelve su fecha.
+ *
+ * Se escribe en la base y no por la pantalla porque **por la pantalla es imposible**, a propósito: la
+ * semana anterior siempre está cerrada, y desde el slice 1 una ventana cerrada no acepta fechas. Es
+ * la única forma de montar a alguien que practicó dos semanas distintas.
+ *
+ * Retrasar la ventana unos días tampoco sirve: si hoy es domingo, cuatro días atrás sigue siendo la
+ * misma semana. El lunes anterior sale de `currentCommunityWeek`, así que cae en otra semana
+ * cualquier día que se corra la prueba.
+ */
+export async function seedRepetitionInPreviousWeek(
+  challengeKey: string = SLEEP_CHALLENGE_KEY,
+): Promise<string> {
+  const userId = await findSuiteUserId();
+  const cycleDate = addLocalDays(
+    currentCommunityWeek(new Date()).startDate,
+    -7,
+  );
+  const inserted = await db
+    .insert(habitRepetitions)
+    .values({ userId, challengeKey, cycleDate })
+    .onConflictDoNothing()
+    .returning({ id: habitRepetitions.id });
+  if (inserted.length !== 1) {
+    throw new Error(
+      `The E2E ritual ${challengeKey} was not started before seeding last week.`,
+    );
+  }
+  return cycleDate;
 }
 
 export async function readHabitChallengeWindow(

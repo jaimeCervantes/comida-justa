@@ -240,7 +240,8 @@
       "xp": "{xp} puntos",
       "weekClosed": "Tu semana anterior ya cerró",
       "weekClosedBody": "Las semanas de la comunidad cierran el domingo y abren el lunes. Lo que practicaste antes sigue contando en tus puntos y en el jardín; súmate a la semana en curso para volver a registrar.",
-      "weekTarget": "Meta de esta semana: {target} de {total, plural, one {# día} other {# días}}"
+      "weekTarget": "Meta de esta semana: {target} de {total, plural, one {# día} other {# días}}",
+      "sustainedWeeks": "{weeks, plural, one {# semana sostenida} other {# semanas sostenidas}}"
     },
     "indexIntro": "Elige una práctica para esta semana. Puedes cambiarla sin perder tu progreso.",
     "indexTitle": "Una práctica para cada pilar",
@@ -530,6 +531,7 @@
     "siteMessageFinalBody": "{name} protegió su descanso cinco veces en su reto semanal.",
     "siteMessageLabel": "Nuevo logro comunitario",
     "start": "Empezar Del atardecer al amanecer",
+    "sustainedWeeks": "{weeks, plural, one {# semana sostenida} other {# semanas sostenidas}}",
     "title": "Del atardecer al amanecer",
     "weekClosed": "Tu semana anterior ya cerró",
     "weekClosedBody": "Las semanas de la comunidad cierran el domingo y abren el lunes. Lo que practicaste antes sigue contando en tus puntos y en el jardín; súmate a la semana en curso para volver a registrar.",

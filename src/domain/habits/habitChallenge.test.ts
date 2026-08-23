@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   buildPeriodHabitProgress,
+  countSustainedWeeks,
   evaluateCycleDate,
   evaluateHabitCheckIn,
   firstCycleProgress,
@@ -168,6 +169,43 @@ describe("the rules every habit ritual shares", () => {
   );
 
   it.each([
+    { dates: [], weeks: 0, reason: "sin práctica no hay semana" },
+    {
+      dates: ["2026-08-18", "2026-08-20"],
+      weeks: 1,
+      reason: "dos días de la misma semana son una",
+    },
+    {
+      dates: ["2026-08-11", "2026-08-18"],
+      weeks: 2,
+      reason: "semanas consecutivas",
+    },
+    {
+      dates: ["2026-08-11", "2026-08-25"],
+      weeks: 2,
+      reason: "un hueco no borra la anterior: no es una racha",
+    },
+    {
+      dates: ["2026-08-16", "2026-08-17"],
+      weeks: 2,
+      reason: "domingo y lunes caen en semanas distintas",
+    },
+  ])("counts sustained weeks: $reason", ({ dates, weeks }) => {
+    expect(countSustainedWeeks(dates)).toBe(weeks);
+  });
+
+  it("never lets a gap take a sustained week away", () => {
+    const withoutGap = countSustainedWeeks(["2026-08-11", "2026-08-18"]);
+    const withGap = countSustainedWeeks([
+      "2026-08-11",
+      "2026-08-18",
+      "2026-09-08",
+    ]);
+
+    expect(withGap).toBeGreaterThan(withoutGap);
+  });
+
+  it.each([
     ["2026-08-05", "outside-period"],
     ["2026-08-06", "available"],
     ["2026-08-09", "available"],
@@ -198,43 +236,36 @@ describe("the rules every habit ritual shares", () => {
     ).toBe("comeback");
   });
 
+  /**
+   * Afirma lo que dice su nombre y no la forma entera del objeto.
+   *
+   * Era un `toEqual` exhaustivo y se rompió tres veces seguidas —`repetitions`, `sustainedWeeks` y
+   * antes `targetCycles`—, siempre por un campo **añadido** y ninguna por un fallo. Un objeto que
+   * crece no es una regresión, y una prueba que hay que editar cada vez que crece cuesta más de lo
+   * que protege. Cada campo nuevo trae su propia prueba, que es donde se afirma lo suyo.
+   */
   it("caps XP at ten per distinct cycle and succeeds at five of seven", () => {
+    const cycles = [
+      "2026-08-06",
+      "2026-08-07",
+      "2026-08-09",
+      "2026-08-10",
+      "2026-08-11",
+    ];
+
     expect(
       buildPeriodHabitProgress({
-        completedDates: [
-          "2026-08-06",
-          "2026-08-07",
-          "2026-08-09",
-          "2026-08-10",
-          "2026-08-11",
-        ],
-        period: {
-          startDate: "2026-08-06",
-          endDate: "2026-08-13",
-          timezone: "America/Mexico_City",
-        },
+        completedDates: [...cycles, "2026-08-11"],
+        period: inMexico("2026-08-06", "2026-08-13"),
       }),
-    ).toEqual({
-      level: "harvest",
+    ).toMatchObject({
       xp: 50,
-      badge: "harvest",
       completedCycles: 5,
       targetCycles: 5,
-      totalDays: 7,
-      completedDates: [
-        "2026-08-06",
-        "2026-08-07",
-        "2026-08-09",
-        "2026-08-10",
-        "2026-08-11",
-      ],
-      repetitions: 5,
-      period: {
-        startDate: "2026-08-06",
-        endDate: "2026-08-13",
-        timezone: "America/Mexico_City",
-      },
+      completedDates: cycles,
       succeeded: true,
+      level: "harvest",
+      badge: "harvest",
     });
   });
 

@@ -8,6 +8,7 @@ import {
   closeHabitChallengeWindow,
   deleteHabitChallengeTestData,
   readHabitChallengeWindow,
+  seedRepetitionInPreviousWeek,
 } from "./testData";
 
 const SLEEP_PILLAR = "/pilares/sueno";
@@ -89,6 +90,32 @@ test.describe("La semana que vuelve", () => {
 
     await expect(page.getByTestId("challenge-day").first()).toBeVisible();
     await expect(page.getByText("10 puntos").first()).toBeVisible();
+  });
+
+  /**
+   * Practicar en dos semanas distintas se reconoce, y el reconocimiento no se puede perder.
+   *
+   * Con una sola semana no se anuncia nada: «1 semana sostenida» no dice todavía nada. La segunda
+   * se siembra en la base porque **por la pantalla es imposible** —la semana anterior está cerrada y
+   * desde el slice 1 una ventana cerrada no acepta fechas—, que es justo la situación de quien
+   * practicó, faltó y volvió: el momento en el que una racha se habría roto y esto no.
+   */
+  test("two different weeks of practice add up and are named", async ({
+    page,
+  }) => {
+    await joinThePractice(page);
+    await recordOneRepetition(page);
+    /* Esperar a que la repetición esté antes de seguir: `toHaveCount(0)` se cumple al instante en
+       una página que todavía no se ha actualizado, y el `goto` de después abortaba la acción a
+       medio camino. */
+    await expect(page.getByText("10 puntos").first()).toBeVisible();
+    await expect(page.getByText(/semanas sostenidas/i)).toHaveCount(0);
+
+    await seedRepetitionInPreviousWeek();
+    await page.goto(SLEEP_PILLAR);
+
+    await expect(page.getByText("2 semanas sostenidas")).toBeVisible();
+    await expect(page.locator("body")).not.toContainText(/racha/i);
   });
 
   /**

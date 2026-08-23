@@ -58,6 +58,7 @@ export type HabitChallengeCopy = {
   shareNote: string;
   signInStart: string;
   start: string;
+  sustainedWeeks: (weeks: number) => string;
   weekClosed: string;
   weekClosedBody: string;
   weekEyebrow: string;
@@ -178,6 +179,7 @@ function sleepCopy(t: SleepTranslator): HabitChallengeCopy {
     shareNote: t("shareNote"),
     signInStart: t("signInStart"),
     start: t("start"),
+    sustainedWeeks: (weeks: number): string => t("sustainedWeeks", { weeks }),
     weekClosed: t("weekClosed"),
     weekClosedBody: t("weekClosedBody"),
     weekEyebrow: t("weekEyebrow"),
@@ -210,6 +212,7 @@ function commonCopy(t: CommonTranslator) {
     shared: t("shared"),
     shareNote: t("shareNote"),
     signInStart: t("signInStart"),
+    sustainedWeeks: (weeks: number): string => t("sustainedWeeks", { weeks }),
     weekClosed: t("weekClosed"),
     weekClosedBody: t("weekClosedBody"),
     weekTarget: (target: number, total: number): string =>

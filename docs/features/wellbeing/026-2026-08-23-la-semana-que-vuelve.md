@@ -92,10 +92,28 @@ jardín. Registrar una fecha de la semana pasada deja de ser posible.
 **Aceptación:** una sola definición de semana en el dominio, y el jardín dice cuántas personas están
 practicando *esta* semana.
 
-### Slice 4 — La racha sobrevive a la semana (`@future`)
+### Slice 4 — Las semanas se suman (reescrito el 2026-08-23, sin migración)
 
-Semanas encadenadas: «tres semanas seguidas». Pide guardar el historial por semana, y eso sí es una
-tabla nueva → **migración de Alembic en el backend Python**. No se empieza sin acordarlo aparte.
+Se planteó como **una racha**: «tres semanas seguidas». Dos cosas lo tumbaron al mirarlo de cerca.
+
+**Pedía tabla nueva.** Para saber si cumpliste la meta de una semana pasada hace falta saber cuál era
+esa meta, y con la meta proporcional del slice 2 depende del día en que te sumaste. Esa ventana se
+sobrescribe al reincorporarse, y aproximarla con la primera repetición de la semana marcaría como
+«se sumó el jueves» a quien se sumó el lunes y tardó en arrancar, bajándole la meta a posteriori.
+
+**Y una racha contradice el resto del producto.** Este producto tiene un reconocimiento entero
+dedicado a regresar (`comeback`), celebra «sin borrar los días imperfectos», se niega a afirmar que
+formaste un hábito y no enseña una clasificación vacía. Una racha es aversión a la pérdida: vuelve a
+cero justo a quien faltó una semana y regresó — la única persona a la que el resto del producto se
+esfuerza en no castigar.
+
+Lo que se hizo en su lugar: **contar en cuántas semanas distintas hubo práctica**. Acumulado, nunca
+baja, no castiga a nadie, y sale entero de `habit_repetitions.cycle_date`, que ya está guardado.
+**Sin migración.** Se anuncia a partir de la segunda semana, porque «1 semana sostenida» todavía no
+dice nada y su estreno reconoce justo lo que cuesta: haber vuelto.
+
+La racha estricta sigue siendo posible si algún día se quiere, y entonces sí sería una tabla nueva y
+una conversación con el backend de Python.
 
 ## Archivos que toca el slice 1
 

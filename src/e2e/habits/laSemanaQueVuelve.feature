@@ -178,11 +178,39 @@ Feature: La semana que vuelve - la practica deja de morir a los siete dias
     Then invita a ser quien la empiece
     And no inventa participantes
 
-  # Slice 4 -- pide guardar historial por semana, o sea tabla nueva y migracion de Alembic en el
-  # backend Python. No se empieza sin acordarlo aparte.
+  # Slice 4 -- semanas sostenidas, NO una racha.
+  #
+  # Se planteo como "tres semanas seguidas", y eso pedia tabla nueva: la meta de una semana pasada
+  # depende del dia en que uno se sumo a ella, y esa ventana se sobrescribe. Pero ademas una racha
+  # se rompe, y romperla castiga justo a quien falto una semana y regreso -- lo contrario de todo lo
+  # demas del producto, que tiene un reconocimiento entero dedicado a regresar.
+  #
+  # Contar en cuantas semanas distintas hubo practica no se rompe nunca, no castiga a nadie, y sale
+  # entero de las fechas que ya estan guardadas. Sin migracion.
 
-  @slice-4 @future
-  Scenario: Las semanas sostenidas se encadenan
-    Given que complete la meta tres semanas seguidas
+  @slice-4
+  Scenario: Las semanas en que practique se acumulan y no se pierden
+    Given que practique la semana pasada y esta
     When veo mi practica
-    Then reconoce las tres semanas, no solo la ultima
+    Then reconoce las dos semanas, no solo la de ahora
+
+  @slice-4 @component
+  Scenario Outline: Cuenta semanas distintas, no repeticiones ni semanas seguidas
+    Given repeticiones en <fechas>
+    When se cuentan mis semanas sostenidas
+    Then son <semanas>
+
+    Examples: la misma semana no cuenta dos veces y un hueco no borra lo anterior
+      | fechas                                           | semanas | razon                                    |
+      | ninguna                                          | 0       | sin practica no hay semana               |
+      | "2026-08-18" y "2026-08-20"                      | 1       | dos dias de la misma semana son una      |
+      | "2026-08-11" y "2026-08-18"                      | 2       | semanas consecutivas                     |
+      | "2026-08-11" y "2026-08-25"                      | 2       | **un hueco no borra la anterior**        |
+      | "2026-08-16" y "2026-08-17"                      | 2       | domingo y lunes son semanas distintas    |
+
+  @slice-4 @component
+  Scenario: Una sola semana todavia no dice nada, y no se anuncia
+    Given que solo practique esta semana
+    When veo mi practica
+    Then no se me anuncia el numero de semanas
+    But mis puntos y mi nivel siguen a la vista

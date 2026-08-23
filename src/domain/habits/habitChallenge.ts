@@ -76,6 +76,8 @@ export type PeriodHabitProgress = {
    * despertó hace meses.
    */
   repetitions: number;
+  /** En cuántas semanas distintas hubo práctica. Nunca baja: no es una racha. */
+  sustainedWeeks: number;
   period: HabitChallengePeriod;
   succeeded: boolean;
 };
@@ -188,6 +190,22 @@ export function currentCommunityWeek(now: Date): CommunityWeek {
   return { startDate, endDate: addLocalDays(startDate, HABIT_CHALLENGE_DAYS) };
 }
 
+/**
+ * En cuántas semanas distintas hubo práctica. **No es una racha.**
+ *
+ * Una racha se rompe, y romperla castiga justo a quien faltó una semana y regresó — lo contrario de
+ * todo lo demás de esta práctica, que tiene un reconocimiento entero (`comeback`) dedicado a volver
+ * y una celebración final que se niega a afirmar que formaste un hábito. Aquí un hueco no borra
+ * nada: las semanas se suman y no bajan nunca.
+ *
+ * Se deriva de las fechas, que ya están todas guardadas. La racha estricta —«tres seguidas
+ * cumpliendo la meta»— sí habría necesitado una tabla nueva: la meta de una semana pasada depende
+ * del día en que alguien se sumó a ella, y esa ventana se sobrescribe al reincorporarse.
+ */
+export function countSustainedWeeks(completedDates: LocalDate[]): number {
+  return new Set(completedDates.map(communityWeekStart)).size;
+}
+
 /** El lunes de la semana a la que pertenece una fecha; si la fecha es lunes, ella misma. */
 function communityWeekStart(localDate: LocalDate): LocalDate {
   const weekday = new Date(`${localDate}T12:00:00Z`).getUTCDay();
@@ -276,6 +294,7 @@ export function buildPeriodHabitProgress({
     totalDays: listPeriodDates(period).length,
     completedDates: periodDates,
     repetitions,
+    sustainedWeeks: countSustainedWeeks(everyDate),
     period,
     succeeded: completedCycles >= targetCycles,
   };

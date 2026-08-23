@@ -175,6 +175,34 @@ describe("HabitChallengeUseCase", () => {
       });
     });
 
+    it("adds the week to the sustained count instead of restarting it", async () => {
+      const repository = new FakeHabitChallengeRepository();
+      const movable = new MovableClock(new Date("2026-08-17T18:00:00Z"));
+      const useCase = new HabitChallengeUseCase(repository, movable);
+      await useCase.start(USER_ID, "America/Mexico_City");
+      await useCase.completeCheckIn(USER_ID, {
+        cueCompleted: true,
+        minimumCompleted: true,
+        cycleDate: "2026-08-17",
+      });
+      expect(await useCase.getProgress(USER_ID)).toMatchObject({
+        sustainedWeeks: 1,
+      });
+
+      movable.moveTo("2026-08-24T18:00:00Z");
+      await useCase.start(USER_ID, "America/Mexico_City");
+      await useCase.completeCheckIn(USER_ID, {
+        cueCompleted: true,
+        minimumCompleted: true,
+        cycleDate: "2026-08-24",
+      });
+
+      expect(await useCase.getProgress(USER_ID)).toMatchObject({
+        completedCycles: 1,
+        sustainedWeeks: 2,
+      });
+    });
+
     it("refuses a date from the week that closed", async () => {
       const repository = new FakeHabitChallengeRepository();
       const movable = new MovableClock(new Date("2026-08-17T18:00:00Z"));

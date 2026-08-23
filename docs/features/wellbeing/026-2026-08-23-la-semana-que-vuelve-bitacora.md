@@ -415,3 +415,93 @@ semana de siete días que ya no siempre es cierta.
    migración de Alembic en el backend Python, a acordar aparte.
 3. **La liga, de verdad**: hoy sigue condicionada a diez participantes y solo enseña el umbral. Con
    la semana ya unificada, encenderla es un slice en sí.
+
+## Slice 4 — Las semanas se suman, y no se pueden perder (2026-08-23)
+
+### El slice cambió de forma antes de escribirse
+
+Estaba planteado como una racha —«tres semanas seguidas»— y con una migración de Alembic por delante.
+Al explicárselo al usuario aparecieron dos cosas, y las dos lo tumbaron.
+
+**La migración existía por la meta, no por las fechas.** Las fechas están todas en
+`habit_repetitions`. Lo que no está es **cuál era la meta de una semana pasada**: con la meta
+proporcional del slice 2 depende del día en que uno se sumó, y esa ventana se sobrescribe al
+reincorporarse. Aproximarla con la primera repetición de la semana marcaría como «se sumó el jueves»
+a quien se sumó el lunes y tardó en arrancar, bajándole la meta a posteriori.
+
+**Y una racha contradice todo lo demás.** Este producto tiene un reconocimiento entero dedicado a
+regresar, celebra «sin borrar los días imperfectos», se niega a afirmar que formaste un hábito y no
+enseña una clasificación vacía. Una racha es aversión a la pérdida: vuelve a cero justo a quien faltó
+una semana y regresó — la única persona a la que el resto del producto se esfuerza en no castigar.
+
+El usuario eligió la versión sin tabla. **Se cuentan las semanas distintas en que hubo práctica**:
+acumulado, nunca baja, derivado de lo que ya está guardado.
+
+### Decisiones
+
+**Se anuncia a partir de la segunda.** «1 semana sostenida» no dice nada todavía, y su estreno en la
+segunda reconoce justo lo que cuesta: haber vuelto. Como nunca baja, una vez que aparece se queda —
+nadie lo ve retroceder.
+
+**Vive junto a los puntos, no en lugar de ellos.** Los puntos cuentan repeticiones y esto cuenta
+semanas: son dos escalas de la misma historia, igual que el jardín tiene canteros y pulso.
+
+### Lo que la prueba enseñó, dos veces
+
+**Retrasar la ventana no cruza una semana.** El primer intento usaba
+`backdateHabitChallengeForSevenDayTest`, que retrasa cuatro días. Un domingo, cuatro días atrás sigue
+siendo la misma semana comunitaria, así que salían 1 y no 2.
+
+**Y la semana anterior no se puede rellenar por pantalla — a propósito.** El segundo intento abría la
+ventana sobre la semana pasada para registrar ahí. Pero la semana anterior siempre está cerrada, y
+desde el slice 1 una ventana cerrada no acepta fechas: la interfaz ofrecía «continuar», no un
+formulario. Es la funcionalidad haciendo su trabajo. La repetición de la semana pasada se **siembra**
+en la base, que es la única forma de montar a alguien que practicó, faltó y volvió.
+
+**Una carrera propia.** El tercer intento seguía fallando: `toHaveCount(0)` se cumple al instante en
+una página que aún no se ha actualizado, así que el `goto` siguiente abortaba la acción del servidor
+a medio camino y la repetición nunca se escribía. Hay que esperar a que esté antes de seguir.
+
+### Y una prueba que llevaba tres roturas
+
+El `toEqual` exhaustivo de `buildPeriodHabitProgress` se rompió por tercera vez —`targetCycles`,
+`repetitions` y ahora `sustainedWeeks`—, **siempre por un campo añadido y ninguna por un fallo**. Es
+el patrón que la tabla de `nextjs-bdd-feature` marca como podrido. Pasa a afirmar lo que dice su
+nombre; cada campo nuevo ya trae su propia prueba.
+
+### Archivos tocados
+
+| Zona | Archivos |
+| --- | --- |
+| Dominio | `habitChallenge.ts` (+`countSustainedWeeks`, `sustainedWeeks`), `habitChallenge.test.ts` |
+| Caso de uso | `habitChallengeUseCase.ts`, `habitChallengeUseCase.test.ts` |
+| Presentación | `HabitChallengePanel.tsx`, `useHabitChallengeCopy.ts`, `HabitChallengePanel.test.tsx` |
+| Catálogo | `es.json`, `en.json`: `sustainedWeeks` con plural |
+| Especificación | `laSemanaQueVuelve.feature` y su spec, `testData.ts` (+`seedRepetitionInPreviousWeek`) |
+
+Ni una línea de infraestructura: el dato sale de `completedDates`, que el repositorio ya devolvía.
+
+### Validación
+
+| Comando | Resultado |
+| --- | --- |
+| `pnpm run test:run` | **2387 de 2387 en verde**, 219 archivos |
+| `pnpm exec playwright test src/e2e/habits src/e2e/pilares` | **41/41** |
+| `pnpm run typecheck` · `lint` · `check:i18n` | limpios |
+
+### Recap
+
+Practicar en semanas distintas ya deja huella, y esa huella no se puede perder: no hay racha que
+romper. El slice que iba a necesitar una tabla nueva acabó sin tocar la base, porque la pregunta
+correcta —«¿en cuántas semanas practicaste?»— sí se puede responder con lo que ya estaba guardado.
+Con esto la feature 026 queda cerrada: la semana vuelve, cabe para quien llega tarde, es la misma
+para todos, se ve en el jardín y se acumula.
+
+### Próximos pasos (opciones)
+
+1. **El editor enriquecido de las publicaciones** — `docs/features/content/027-2026-08-23-editor-enriquecido.md`.
+   **Es lo que el usuario pidió recordar**, y es lo único de esta lista que arregla algo roto hoy.
+2. **La liga, de verdad**: sigue condicionada a diez participantes y solo enseña el umbral. Ahora que
+   la semana está unificada, encenderla es un slice en sí.
+3. **La racha estricta**, si alguna vez se quiere: tabla nueva y migración de Alembic, a acordar con
+   el backend de Python.

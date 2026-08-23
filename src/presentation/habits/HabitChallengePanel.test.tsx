@@ -25,8 +25,51 @@ describe("HabitChallengePanel", () => {
     },
     periodClosed: false,
     repetitions: 0,
+    sustainedWeeks: 0,
     succeeded: false,
   };
+
+  describe("the weeks that add up", () => {
+    it("announces them once there is more than one, and never as a streak", () => {
+      renderWithIntl(
+        <HabitChallengePanel
+          action={action}
+          challenge="nutrition"
+          initialProgress={{
+            ...progress,
+            xp: 40,
+            repetitions: 4,
+            sustainedWeeks: 3,
+          }}
+          signedIn
+          signInHref="/auth/signin"
+        />,
+      );
+
+      expect(screen.getByText("3 semanas sostenidas")).toBeInTheDocument();
+      expect(document.body).not.toHaveTextContent(/racha|seguidas/i);
+    });
+
+    it("says nothing while a single week cannot tell anything yet", () => {
+      renderWithIntl(
+        <HabitChallengePanel
+          action={action}
+          challenge="nutrition"
+          initialProgress={{
+            ...progress,
+            xp: 10,
+            repetitions: 1,
+            sustainedWeeks: 1,
+          }}
+          signedIn
+          signInHref="/auth/signin"
+        />,
+      );
+
+      expect(screen.queryByText(/semana sostenida/i)).not.toBeInTheDocument();
+      expect(screen.getAllByText("10 puntos").length).toBeGreaterThan(0);
+    });
+  });
 
   describe("when the community week already closed", () => {
     const closed: HabitChallengeProgress = {

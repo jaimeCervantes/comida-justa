@@ -1,6 +1,7 @@
 import {
   buildPeriodHabitProgress,
   type CelebrationStatus,
+  countSustainedWeeks,
   evaluateCycleDate,
   evaluateHabitCheckIn,
   firstCycleProgress,
@@ -199,6 +200,7 @@ export default class HabitChallengeUseCase {
         totalDays: HABIT_CHALLENGE_DAYS,
         completedDates: stored.completedDates,
         repetitions: stored.completedDates.length,
+        sustainedWeeks: countSustainedWeeks(stored.completedDates),
         period: null,
         periodClosed: false,
         succeeded: false,

@@ -127,7 +127,18 @@ export default function HabitChallengePanel({
               {copy.weekTarget(progress.targetCycles, progress.totalDays)}
             </p>
           </div>
-          <HabitChallengeReward label={copy.xp(progress.xp)} theme={theme} />
+          {/* Aparece a partir de la segunda semana y ya no se va: «1 semana sostenida» no dice nada
+              todavía, y su estreno reconoce justo lo que cuesta —haber vuelto—. Nunca baja, así que
+              nadie la ve retroceder. */}
+          <div className="flex flex-wrap items-center gap-2">
+            {progress.sustainedWeeks > 1 && (
+              <HabitChallengeReward
+                label={copy.sustainedWeeks(progress.sustainedWeeks)}
+                theme={theme}
+              />
+            )}
+            <HabitChallengeReward label={copy.xp(progress.xp)} theme={theme} />
+          </div>
         </div>
 
         <ol className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7">
