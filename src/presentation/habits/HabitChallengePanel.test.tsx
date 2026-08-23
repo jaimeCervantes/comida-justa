@@ -417,9 +417,7 @@ describe("HabitChallengePanel", () => {
         }),
       ).toBeInTheDocument();
       expect(screen.getByText("Cosecha de descanso")).toBeInTheDocument();
-      expect(
-        screen.getByText(/siete días no bastan para afirmar/i),
-      ).toBeInTheDocument();
+      expect(screen.getByTestId("habit-no-claim")).toBeInTheDocument();
     });
   });
 

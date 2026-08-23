@@ -1,10 +1,13 @@
-import { and, desc, eq, inArray, isNull, sql } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, isNull, lt, sql } from "drizzle-orm";
 import {
   CURATED_CHALLENGE_KEYS,
   type CuratedChallengeKey,
   isCuratedChallengeKey,
 } from "~/domain/habits/curatedChallenges";
-import { SLEEP_CHALLENGE_KEY } from "~/domain/habits/habitChallenge";
+import {
+  type CommunityWeek,
+  SLEEP_CHALLENGE_KEY,
+} from "~/domain/habits/habitChallenge";
 import {
   buildCommunityGarden,
   type CelebrationReactionIntent,
@@ -307,26 +310,45 @@ export default class PostgresHabitChallengeRepository
       );
   }
 
-  async readCommunityGarden(): Promise<CommunityGarden> {
-    const rows = await db
-      .select({
-        challengeKey: habitRepetitions.challengeKey,
-        repetitions: sql<number>`count(*)::int`,
-      })
-      .from(habitRepetitions)
-      .innerJoin(
-        habitChallengeProgress,
-        and(
-          eq(habitChallengeProgress.userId, habitRepetitions.userId),
-          eq(
-            habitChallengeProgress.challengeKey,
-            habitRepetitions.challengeKey,
+  /**
+   * Los canteros cuentan toda la historia; el pulso, solo la semana que se le pase.
+   *
+   * Son dos consultas y no una con `FILTER` porque agrupan por cosas distintas: los canteros por
+   * reto y el pulso por persona. `count(DISTINCT user_id)` sobre el mismo `GROUP BY challenge_key`
+   * contaría a quien practica dos pilares dos veces.
+   */
+  async readCommunityGarden(week: CommunityWeek): Promise<CommunityGarden> {
+    const sharedByThisUser = and(
+      eq(habitChallengeProgress.userId, habitRepetitions.userId),
+      eq(habitChallengeProgress.challengeKey, habitRepetitions.challengeKey),
+    );
+
+    const [rows, [pulse]] = await Promise.all([
+      db
+        .select({
+          challengeKey: habitRepetitions.challengeKey,
+          repetitions: sql<number>`count(*)::int`,
+        })
+        .from(habitRepetitions)
+        .innerJoin(habitChallengeProgress, sharedByThisUser)
+        .where(eq(habitChallengeProgress.gardenSharingEnabled, true))
+        .groupBy(habitRepetitions.challengeKey),
+      db
+        .select({
+          practitioners: sql<number>`count(DISTINCT ${habitRepetitions.userId})::int`,
+        })
+        .from(habitRepetitions)
+        .innerJoin(habitChallengeProgress, sharedByThisUser)
+        .where(
+          and(
+            eq(habitChallengeProgress.gardenSharingEnabled, true),
+            gte(habitRepetitions.cycleDate, week.startDate),
+            lt(habitRepetitions.cycleDate, week.endDate),
           ),
         ),
-      )
-      .where(eq(habitChallengeProgress.gardenSharingEnabled, true))
-      .groupBy(habitRepetitions.challengeKey);
-    return buildCommunityGarden(rows);
+    ]);
+
+    return buildCommunityGarden(rows, pulse?.practitioners ?? 0);
   }
 
   async setCelebrationReaction(

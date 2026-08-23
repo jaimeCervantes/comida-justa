@@ -88,8 +88,21 @@ export default async function CommunityHabitGarden({
           </div>
         ))}
       </div>
+      {/* El pulso de la semana, junto a lo acumulado y no en su lugar: los canteros dicen lo que hay
+          y esto dice si la comunidad sigue viva. Cuando no hay nadie lo dice e invita, que es lo
+          mismo que hace la sección local de un pilar vacío: no se finge una lista. */}
+      <p
+        data-testid="community-habit-garden-week"
+        data-practitioners={garden.weeklyPractitioners}
+        className="mt-5 text-sm font-semibold text-text-strong"
+      >
+        {garden.weeklyPractitioners === 0
+          ? t("thisWeekEmpty")
+          : t("thisWeek", { count: garden.weeklyPractitioners })}
+      </p>
+
       {compact ? null : (
-        <p className="mt-5 text-sm text-body">{t("privacy")}</p>
+        <p className="mt-2 text-sm text-body">{t("privacy")}</p>
       )}
       {/* <p className="mt-2 rounded-control bg-surface-elevation-2 p-3 text-sm text-body">
         {t("groupsUnavailable")}

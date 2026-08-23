@@ -25,6 +25,7 @@ const GARDEN: CommunityGarden = {
   movement: 5,
   mind: 3,
   total: 28,
+  weeklyPractitioners: 4,
 };
 
 describe("CommunityHabitGarden", () => {
@@ -62,6 +63,36 @@ describe("CommunityHabitGarden", () => {
     ).toBeInTheDocument();
   });
 
+  /**
+   * Los canteros cuentan la historia y el pulso cuenta la semana: son dos lecturas, no una que
+   * sustituye a la otra. Que 28 y 4 convivan en la misma pantalla es justamente lo que se afirma.
+   */
+  it("dice cuánta gente practica esta semana sin borrar lo ya cultivado", async () => {
+    await renderGarden();
+
+    expect(
+      screen.getByText("4 personas están practicando esta semana."),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/28 repeticiones compartidas alimentan este jardín/),
+    ).toBeInTheDocument();
+  });
+
+  it("habla en singular de una sola persona", async () => {
+    await renderGarden(undefined, 1);
+
+    expect(
+      screen.getByText("1 persona está practicando esta semana."),
+    ).toBeInTheDocument();
+  });
+
+  it("invita a empezar la semana en vez de fingir participantes", async () => {
+    await renderGarden(undefined, 0);
+
+    expect(screen.getByText(/Puedes ser quien la empiece/)).toBeInTheDocument();
+    expect(screen.queryByText(/están practicando/)).not.toBeInTheDocument();
+  });
+
   it.each(["full", "compact"] as const)(
     "muestra las repeticiones de los cuatro pilares en la variante %s",
     async (variant) => {
@@ -82,6 +113,18 @@ describe("CommunityHabitGarden", () => {
  * Al Server Component se le llama como función y se pinta el árbol que devuelve; el `<div>` es lo
  * que convierte ese `ReactNode` en algo renderizable sin castear el tipo de retorno.
  */
-async function renderGarden(variant?: CommunitySectionVariant): Promise<void> {
-  render(<div>{await CommunityHabitGarden({ garden: GARDEN, variant })}</div>);
+async function renderGarden(
+  variant?: CommunitySectionVariant,
+  weeklyPractitioners = GARDEN.weeklyPractitioners,
+): Promise<void> {
+  render(
+    <div>
+      {
+        await CommunityHabitGarden({
+          garden: { ...GARDEN, weeklyPractitioners },
+          variant,
+        })
+      }
+    </div>,
+  );
 }

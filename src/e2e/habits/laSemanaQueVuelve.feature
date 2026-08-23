@@ -126,20 +126,57 @@ Feature: La semana que vuelve - la practica deja de morir a los siete dias
     When veo mis celebraciones
     Then no se me felicita por cinco repeticiones que no hice
 
-  # Slice 3 -- hoy hay dos ideas de semana que no se hablan: la de la practica y la de la liga, que
-  # ancla el lunes en UTC y por eso salta a las 18:00 del domingo en Mexico.
+  # Slice 3 -- habia dos ideas de semana que no se hablaban: la de la practica, que cierra el lunes en
+  # America/Mexico_City, y la de la liga, que anclaba el lunes en UTC y por eso cerraba a las 18:00
+  # del domingo en Mexico. Ahora la semana de la comunidad se define una vez y las dos la usan.
 
-  @slice-3 @future
-  Scenario: El jardin habla de esta semana, no de la historia acumulada
-    Given repeticiones aportadas en varias semanas
+  @slice-3 @component
+  Scenario Outline: La semana de la comunidad va de lunes a lunes en la zona del proyecto
+    Given el instante "<instante>"
+    When se pregunta por la semana de la comunidad
+    Then va de "<inicio>" a "<fin>"
+
+    Examples: el domingo por la tarde en Mexico todavia es la semana que termina
+      | instante                 | inicio     | fin        | razon                                       |
+      | 2026-08-20T18:00:00Z     | 2026-08-17 | 2026-08-24 | un jueves cualquiera                        |
+      | 2026-08-24T00:30:00Z     | 2026-08-17 | 2026-08-24 | en UTC ya es lunes, en Mexico sigue el domingo|
+      | 2026-08-24T06:30:00Z     | 2026-08-24 | 2026-08-31 | pasada la medianoche mexicana si abre la nueva|
+
+  @slice-3 @component
+  Scenario: La practica y la liga preguntan por la misma semana
+    Given la ventana que abre una practica nueva un lunes
+    When se compara con la semana de la liga
+    Then las dos cierran el mismo dia
+
+  # La liga filtraba por `completed_at` --cuando se escribio la fila-- y puntuaba por `cycle_date`
+  # --que dia se practico--. Quien registra el domingo su martes contaba con la fecha de un dia y en
+  # la semana de otro.
+
+  @slice-3 @component
+  Scenario Outline: La liga cuenta el dia que se practico, no el dia que se registro
+    Given una repeticion del dia "<practicado>" registrada el "<registrado>"
+    And la semana ["2026-08-17", "2026-08-24")
+    When se arma la participacion semanal
+    Then la repeticion "<cuenta>"
+
+    Examples:
+      | practicado | registrado | cuenta     | razon                                        |
+      | 2026-08-18 | 2026-08-23 | cuenta     | se practico dentro de la semana              |
+      | 2026-08-16 | 2026-08-17 | no cuenta  | se practico la semana pasada aunque se registrara esta |
+
+  @slice-3
+  Scenario: El jardin dice cuanta gente esta practicando esta semana
+    Given repeticiones aportadas al jardin en semanas distintas
     When abro el jardin comunitario
-    Then dice cuantas personas estan practicando esta semana
+    Then los canteros siguen contando todo lo cultivado
+    And ademas dice cuantas personas practicaron esta semana
 
-  @slice-3 @future
-  Scenario: La liga y la practica comparten una sola semana
-    Given la semana de la practica y la de la liga
-    When se comparan sus limites
-    Then son la misma, anclada en la zona de la comunidad
+  @slice-3
+  Scenario: Una semana sin nadie lo dice, en vez de fingir un numero
+    Given que nadie ha practicado todavia esta semana
+    When abro el jardin comunitario
+    Then invita a ser quien la empiece
+    And no inventa participantes
 
   # Slice 4 -- pide guardar historial por semana, o sea tabla nueva y migracion de Alembic en el
   # backend Python. No se empieza sin acordarlo aparte.

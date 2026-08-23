@@ -230,9 +230,9 @@ test.describe("Del atardecer al amanecer", () => {
     await expect(page.getByText("5 de 7 ciclos")).toBeVisible();
     await expect(page.getByText("50 puntos").first()).toBeVisible();
     await expect(page.getByText("Cosecha de descanso")).toBeVisible();
-    await expect(
-      page.getByText(/Siete días no bastan para afirmar/),
-    ).toBeVisible();
+    /* La advertencia de que esto todavía no es un hábito está; su redacción se afina y una prueba
+       que la transcribe se cae en cada retoque. */
+    await expect(page.getByTestId("habit-no-claim")).toBeVisible();
     expect(await countSleepRepetitions()).toBe(5);
 
     await shareWithCommunity(page);

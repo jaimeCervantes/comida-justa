@@ -1,6 +1,7 @@
 import type { CuratedChallengeKey } from "~/domain/habits/curatedChallenges";
 import type {
   CelebrationStatus,
+  CommunityWeek,
   HabitChallengePeriod,
   LocalDate,
 } from "~/domain/habits/habitChallenge";
@@ -75,7 +76,8 @@ export interface HabitCelebrationQuery {
 
 export interface HabitCommunityRepository {
   setGardenSharing(userId: string, enabled: boolean): Promise<void>;
-  readCommunityGarden(): Promise<CommunityGarden>;
+  /** La semana entra como dato: el jardín no tiene reloj propio. */
+  readCommunityGarden(week: CommunityWeek): Promise<CommunityGarden>;
   setCelebrationReaction(
     userId: string,
     celebrationId: string,

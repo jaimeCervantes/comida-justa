@@ -1,6 +1,6 @@
+import { currentCommunityWeek } from "~/domain/habits/habitChallenge";
 import {
   buildWeeklyLeagueRanking,
-  createUtcLeagueWeek,
   evaluateLeagueEligibility,
   type LeagueRankingEntry,
   MINIMUM_WEEKLY_LEAGUE_PARTICIPANTS,
@@ -23,9 +23,9 @@ export default class HabitLeagueUseCase {
     viewerId: string | null,
     now: Date = new Date(),
   ): Promise<HabitLeagueState> {
-    const week = createUtcLeagueWeek(now);
+    const week = currentCommunityWeek(now);
     const [participants, viewer] = await Promise.all([
-      this.repository.readWeeklyParticipants(week.start, week.end),
+      this.repository.readWeeklyParticipants(week.startDate, week.endDate),
       viewerId
         ? this.repository.readViewer(viewerId)
         : Promise.resolve({ alias: null, optedIn: false }),

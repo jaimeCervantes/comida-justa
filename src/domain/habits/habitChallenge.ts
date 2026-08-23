@@ -171,10 +171,32 @@ export function periodTarget(period: HabitChallengePeriod): number {
   );
 }
 
+/**
+ * La semana que comparte la comunidad: de lunes a lunes, en la zona del proyecto.
+ *
+ * Es **la única definición de semana** que hay. Antes convivía con `createUtcLeagueWeek`, que anclaba
+ * el lunes en UTC: para alguien en México esa semana cerraba a las 18:00 del domingo, con la tarde
+ * todavía por delante, así que la práctica y la liga discrepaban seis horas cada semana.
+ */
+export type CommunityWeek = {
+  startDate: LocalDate;
+  endDate: LocalDate;
+};
+
+export function currentCommunityWeek(now: Date): CommunityWeek {
+  const startDate = communityWeekStart(localDateAt(now, COMMUNITY_TIMEZONE));
+  return { startDate, endDate: addLocalDays(startDate, HABIT_CHALLENGE_DAYS) };
+}
+
+/** El lunes de la semana a la que pertenece una fecha; si la fecha es lunes, ella misma. */
+function communityWeekStart(localDate: LocalDate): LocalDate {
+  const weekday = new Date(`${localDate}T12:00:00Z`).getUTCDay();
+  return addLocalDays(localDate, -((weekday + 6) % 7));
+}
+
 /** El lunes que sigue a una fecha; si la fecha es lunes, el de la semana siguiente. */
 function nextCommunityWeekStart(localDate: LocalDate): LocalDate {
-  const weekday = new Date(`${localDate}T12:00:00Z`).getUTCDay();
-  return addLocalDays(localDate, HABIT_CHALLENGE_DAYS - ((weekday + 6) % 7));
+  return addLocalDays(communityWeekStart(localDate), HABIT_CHALLENGE_DAYS);
 }
 
 function latestLocalDate(left: LocalDate, right: LocalDate): LocalDate {

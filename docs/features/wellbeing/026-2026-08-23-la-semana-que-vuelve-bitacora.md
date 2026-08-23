@@ -317,3 +317,101 @@ reloj en la mano.
 3. **Slice 4 · Semanas encadenadas** (pide migración de Alembic).
 
 Sin pendientes del usuario: la e2e de este trabajo ya está corrida y en verde.
+
+## Slice 3 — Una sola semana, y se nota (2026-08-23)
+
+### Objetivo
+
+Que deje de haber dos ideas de semana, y que la semana compartida se vea.
+
+### Había dos semanas, y discrepaban seis horas
+
+`createUtcLeagueWeek` anclaba el lunes en **UTC**. Para alguien en México eso cierra la semana a las
+**18:00 del domingo**, con la tarde todavía por delante: quien practicaba el domingo por la noche
+contaba para la práctica pero no para la liga. Ahora la semana la define `currentCommunityWeek` en
+`habitChallenge.ts`, en `America/Mexico_City`, y la usan las dos. `habitLeague.ts` conserva solo lo
+que sí es suyo —cuánta gente hace falta y cómo se ordena— con la nota de por qué ya no calcula
+semanas.
+
+Lo comprueba una prueba que se cae si alguien vuelve a separarlas: la semana de la liga y la ventana
+que abre una práctica nueva un lunes **cierran el mismo día**.
+
+### Y un tercer desajuste que salió al leer la consulta
+
+La liga **filtraba por `completed_at`** —el instante en que se escribió la fila— mientras
+**puntuaba por `cycle_date`** —el día que se practicó—. Son dos cosas distintas en cuanto alguien
+recupera un día:
+
+| Caso | Antes | Ahora |
+| --- | --- | --- |
+| Registro el domingo mi martes | Fuera de la semana del martes | Cuenta en la semana del martes |
+| Registro el lunes mi domingo | Entra en la semana nueva, con una fecha de la anterior | Cuenta en la semana del domingo |
+
+La columna que decide de qué semana es una repetición tiene que ser la misma que la clasifica. El
+puerto pasó a hablar de `LocalDate` en vez de `Date`: la conversión en el adaptador era justo donde
+se colaba el desfase.
+
+### El jardín gana un pulso, no pierde su historia
+
+Los canteros siguen contando **todo lo cultivado** y ahora, al lado, se dice cuánta gente practicó
+**esta semana**. Son dos lecturas a propósito: un número que solo crece deja de decir si la comunidad
+sigue viva, y uno que se reinicia cada lunes borra lo cultivado.
+
+Cuando no hay nadie, lo dice e invita a ser quien empiece — no enseña un cero suelto. Es la misma
+regla que ya sigue la sección local de un pilar vacío: no se finge una lista.
+
+Son **dos consultas y no una con `FILTER`** porque agrupan por cosas distintas: los canteros por
+reto, el pulso por persona. `count(DISTINCT user_id)` sobre el `GROUP BY challenge_key` contaría dos
+veces a quien practica dos pilares.
+
+### La redacción que daba por hecha una semana de siete días
+
+`finalBody` decía «cinco ciclos **dentro de siete días**» y `noHabitClaim` abría con «**Siete días**
+no bastan». Desde el slice 2 la celebración final se gana con cinco repeticiones de la historia, que
+no tienen por qué caber en siete días: quien se suma un jueves cumple una meta de tres esa semana y
+llega a cinco en la siguiente. El «cinco» sigue siendo cierto; el «siete» no. Reescritas las ocho
+cadenas (cuatro pilares × dos idiomas).
+
+Las dos pruebas que **transcribían** esa frase pasan a afirmar que la advertencia está,
+`data-testid="habit-no-claim"`. Una prueba que copia la redacción se cae en cada retoque — y esta
+acaba de retocarse justo por eso.
+
+### Archivos tocados
+
+| Zona | Archivos |
+| --- | --- |
+| Dominio | `habitChallenge.ts` (+`currentCommunityWeek`, `CommunityWeek`), `habitLeague.ts` (−`createUtcLeagueWeek`), `habitCommunity.ts` (+`weeklyPractitioners`), sus tres pruebas |
+| Caso de uso | `habitLeagueUseCase.ts`, puertos `HabitLeagueRepository` y `HabitChallengeRepository` |
+| Infraestructura | `PostgresHabitLeagueRepository.ts` (filtra por `cycle_date`), `PostgresHabitChallengeRepository.ts` (pulso), `infra/habits/readCommunityGarden.ts` |
+| Presentación | `CommunityHabitGarden.tsx`, `HabitChallengeCelebrations.tsx`, sus pruebas |
+| Catálogo | `es.json`, `en.json`: `thisWeek`, `thisWeekEmpty`; ocho cadenas de `finalBody`/`noHabitClaim` |
+| Especificación | `laSemanaQueVuelve.feature` y su spec, `atomicSleepChallenge.feature` y su spec |
+
+### Validación
+
+| Comando | Resultado |
+| --- | --- |
+| `pnpm run test:run` | **2378 de 2378 en verde**, 219 archivos |
+| `pnpm exec playwright test src/e2e/habits` | **25/25** antes de añadir el pulso; **5/5** en `laSemanaQueVuelve` con las dos nuevas |
+| `pnpm exec playwright test src/e2e/pilares` | **13/13** |
+| `pnpm run typecheck` · `lint` · `check:i18n` | limpios |
+
+Sin migración: el pulso sale de `habit_repetitions.cycle_date`, que ya existía.
+
+### Recap
+
+Ya no hay dos semanas. La de la comunidad se define una vez, en la zona del proyecto, y la usan la
+práctica y la liga; de paso la liga dejó de mezclar el día que se practicó con el día que se
+registró. El jardín dice ahora las dos cosas que importan —lo cultivado y quién está practicando
+esta semana— y cuando no hay nadie lo dice en vez de fingirlo. La redacción dejó de prometer una
+semana de siete días que ya no siempre es cierta.
+
+### Próximos pasos (opciones)
+
+1. **El editor enriquecido de las publicaciones** — documentado en
+   `docs/features/content/027-2026-08-23-editor-enriquecido.md`, con los datos reales de la base, los
+   ~48 consumidores de `content` y cuatro slices propuestos. **Es lo que el usuario pidió recordar.**
+2. **Slice 4 · Semanas encadenadas** («tres semanas seguidas»): pide tabla nueva y por tanto
+   migración de Alembic en el backend Python, a acordar aparte.
+3. **La liga, de verdad**: hoy sigue condicionada a diez participantes y solo enseña el umbral. Con
+   la semana ya unificada, encenderla es un slice en sí.

@@ -117,7 +117,11 @@ function FinalCelebration({
       <p className="mx-auto mt-3 max-w-2xl text-lg text-body">
         {copy.finalBody}
       </p>
+      {/* La honestidad de no afirmar un hábito es una promesa del producto, así que se puede señalar
+          sin transcribirla: una prueba que copia esta frase se cae en cada retoque de redacción, y
+          esta redacción acaba de cambiar por dejar de dar por hecha una semana de siete días. */}
       <p
+        data-testid="habit-no-claim"
         className={`mx-auto mt-3 max-w-2xl text-sm font-semibold ${theme.ink}`}
       >
         {copy.noHabitClaim}

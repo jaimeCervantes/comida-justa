@@ -11,6 +11,7 @@ import {
 } from "./testData";
 
 const SLEEP_PILLAR = "/pilares/sueno";
+const PILLARS_OVERVIEW = "/pilares";
 const JOIN = "Empezar Del atardecer al amanecer";
 const REJOIN = "Continuar con mi semana de descanso";
 
@@ -89,7 +90,57 @@ test.describe("La semana que vuelve", () => {
     await expect(page.getByTestId("challenge-day").first()).toBeVisible();
     await expect(page.getByText("10 puntos").first()).toBeVisible();
   });
+
+  /**
+   * El pulso se afirma como **diferencia**, no como número.
+   *
+   * Cuánta gente practica esta semana lo decide la comunidad, así que un `toContainText("4")` diría
+   * una cosa hoy y otra mañana. Lo que sí es una promesa es que aportar suma uno: se lee el pulso
+   * antes, aporta la cuenta de pruebas, y se lee después.
+   */
+  test("the weekly pulse counts one more when someone shares their practice", async ({
+    page,
+  }) => {
+    await page.goto(PILLARS_OVERVIEW);
+    const before = await readWeeklyPulse(page);
+
+    await joinThePractice(page);
+    await recordOneRepetition(page);
+    await page
+      .getByRole("button", { name: "Aportar mis repeticiones al jardín" })
+      .click();
+
+    await page.goto(PILLARS_OVERVIEW);
+    expect(await readWeeklyPulse(page)).toBe(before + 1);
+  });
+
+  test("a week with nobody says so instead of faking participants", async ({
+    page,
+  }) => {
+    await page.goto(PILLARS_OVERVIEW);
+    const pulse = page.getByTestId("community-habit-garden-week");
+
+    await expect(pulse).toBeVisible();
+    /* El texto sigue al número, sea cual sea: con gente los nombra, y sin gente invita en vez de
+       enseñar un cero suelto. Es la misma regla que la sección local de un pilar vacío. */
+    const practitioners = await readWeeklyPulse(page);
+    await expect(pulse).toContainText(
+      practitioners === 0 ? /nadie/i : new RegExp(String(practitioners)),
+    );
+  });
 });
+
+/** El pulso publica su número en un atributo para poder compararlo sin leer la redacción. */
+async function readWeeklyPulse(page: Page): Promise<number> {
+  const value = await page
+    .getByTestId("community-habit-garden-week")
+    .getAttribute("data-practitioners");
+  const practitioners = Number(value);
+  if (!Number.isInteger(practitioners)) {
+    throw new Error(`The weekly pulse was not a number: ${value}`);
+  }
+  return practitioners;
+}
 
 async function joinThePractice(page: Page): Promise<void> {
   await page.goto(SLEEP_PILLAR);

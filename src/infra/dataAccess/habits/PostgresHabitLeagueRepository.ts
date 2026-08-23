@@ -7,9 +7,18 @@ import type { HabitLeagueRepository } from "~/use_cases/habits/ports/HabitLeague
 export default class PostgresHabitLeagueRepository
   implements HabitLeagueRepository
 {
+  /**
+   * Filtra por `cycle_date`, el día que se practicó.
+   *
+   * Filtraba por `completed_at` —el instante en que se escribió la fila— mientras puntuaba por
+   * `cycle_date`. Son dos cosas distintas en cuanto alguien recupera un día: quien registra el
+   * domingo su martes quedaba fuera de la semana del martes, y quien registra el lunes su domingo
+   * entraba en la semana nueva arrastrando una fecha de la anterior. La columna que decide de qué
+   * semana es una repetición tiene que ser la misma que la clasifica.
+   */
   async readWeeklyParticipants(
-    start: Date,
-    end: Date,
+    start: string,
+    end: string,
   ): Promise<Array<{ alias: string; activeDates: string[] }>> {
     const result = await db.execute(sql`
       SELECT u.username AS alias,
@@ -19,8 +28,8 @@ export default class PostgresHabitLeagueRepository
       JOIN habit_repetitions r ON r.user_id = o.user_id
       WHERE o.withdrawn_at IS NULL
         AND u.username IS NOT NULL
-        AND r.completed_at >= ${start}
-        AND r.completed_at < ${end}
+        AND r.cycle_date >= ${start}::date
+        AND r.cycle_date < ${end}::date
       GROUP BY u.id, u.username
     `);
     return result.rows.map((row) => ({

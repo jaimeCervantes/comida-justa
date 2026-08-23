@@ -14,13 +14,36 @@ describe("habit community", () => {
         { challengeKey: "movement-two-minutes-v1", repetitions: 2 },
         { challengeKey: "mind-one-connection-v1", repetitions: 1 },
       ]),
-    ).toEqual({ sleep: 4, nutrition: 3, movement: 2, mind: 1, total: 10 });
+    ).toEqual({
+      sleep: 4,
+      nutrition: 3,
+      movement: 2,
+      mind: 1,
+      total: 10,
+      weeklyPractitioners: 0,
+    });
+  });
+
+  it("counts this week's practitioners beside what the plots already grew", () => {
+    expect(
+      buildCommunityGarden(
+        [{ challengeKey: "sleep-evening-to-morning-v1", repetitions: 12 }],
+        3,
+      ),
+    ).toMatchObject({ sleep: 12, total: 12, weeklyPractitioners: 3 });
   });
 
   it("ignores unknown challenge definitions instead of assigning a false color", () => {
     expect(
       buildCommunityGarden([{ challengeKey: "unknown-v1", repetitions: 99 }]),
-    ).toEqual({ sleep: 0, nutrition: 0, movement: 0, mind: 0, total: 0 });
+    ).toEqual({
+      sleep: 0,
+      nutrition: 0,
+      movement: 0,
+      mind: 0,
+      total: 0,
+      weeklyPractitioners: 0,
+    });
   });
 
   it.each([

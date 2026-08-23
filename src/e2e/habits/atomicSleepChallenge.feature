@@ -100,7 +100,7 @@ Feature: Retos atomicos - del pilar a una practica con identidad propia
     When registro cinco fechas locales distintas, incluida una fecha posterior a una omision
     Then veo "5 de 7 ciclos" y 50 puntos sin que un reintento sume otra vez
     And recibo la celebracion final "Protegiste tu descanso cinco veces"
-    And la pagina aclara que siete dias no bastan para afirmar que forme un habito
+    And la pagina aclara que esto todavia no basta para afirmar que forme un habito
     When acepto compartir el hito final y despues lo retiro
     Then la insignia "Cosecha de descanso" y mis 50 puntos permanecen privados
 

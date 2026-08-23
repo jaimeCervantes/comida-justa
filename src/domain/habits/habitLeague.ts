@@ -19,15 +19,16 @@ export function evaluateLeagueEligibility(
     : "conditioned";
 }
 
-export function createUtcLeagueWeek(now: Date): { start: Date; end: Date } {
-  const start = new Date(now);
-  start.setUTCHours(0, 0, 0, 0);
-  const daysSinceMonday = (start.getUTCDay() + 6) % 7;
-  start.setUTCDate(start.getUTCDate() - daysSinceMonday);
-  const end = new Date(start);
-  end.setUTCDate(end.getUTCDate() + 7);
-  return { start, end };
-}
+/*
+ * La semana de la liga **ya no se calcula aquí**. Vivía en `createUtcLeagueWeek`, que anclaba el
+ * lunes en UTC: para alguien en México esa semana cerraba a las 18:00 del domingo, seis horas antes
+ * que la de la práctica. Dos semanas distintas en el mismo producto significan que el jardín y la
+ * clasificación pueden contar días distintos como «esta semana».
+ *
+ * Ahora la define `currentCommunityWeek` en `habitChallenge.ts`, y la liga la usa igual que la
+ * práctica. Lo que queda aquí son las reglas que sí son de la liga: cuánta gente hace falta y cómo
+ * se ordena.
+ */
 
 export function buildWeeklyLeagueRanking(
   participants: LeagueParticipantActivity[],
