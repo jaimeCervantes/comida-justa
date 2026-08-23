@@ -1,3 +1,4 @@
+import type { PublicationPillar } from "~/domain/entities/post/publicationPillars";
 import type { AppHref } from "~/i18n/navigation";
 import { PILLARS_OVERVIEW_HREF } from "~/i18n/routes";
 
@@ -18,6 +19,7 @@ export const PILLAR_ITEMS = [
     href: { pathname: "/pilares/[[...slug]]", params: { slug: ["sueno"] } },
     titleKey: "sleep.title",
     descriptionKey: "sleep.description",
+    pillar: "sleep",
   },
   {
     href: {
@@ -26,6 +28,7 @@ export const PILLAR_ITEMS = [
     },
     titleKey: "nutrition.title",
     descriptionKey: "nutrition.description",
+    pillar: "nutrition",
   },
   {
     href: {
@@ -34,6 +37,7 @@ export const PILLAR_ITEMS = [
     },
     titleKey: "movement.title",
     descriptionKey: "movement.description",
+    pillar: "movement",
   },
   {
     href: {
@@ -42,11 +46,21 @@ export const PILLAR_ITEMS = [
     },
     titleKey: "mindSpirit.title",
     descriptionKey: "mindSpirit.description",
+    pillar: "mindSpirit",
   },
 ] as const satisfies ReadonlyArray<{
   href: AppHref;
   titleKey: string;
   descriptionKey: string;
+  /**
+   * Con qué pilar del dominio se corresponde, para poder pintar **su número**.
+   *
+   * El número no se saca del orden de esta lista: `publicationPillars.ts` lo dice explícitamente
+   * —«no es el índice del array disfrazado»— porque quien reordene esto por gusto renumeraría los
+   * cuatro pilares sin enterarse. Con la clave, `publicationPillarNumber` lo resuelve y esta lista
+   * se puede reordenar sin consecuencias.
+   */
+  pillar: PublicationPillar;
 }>;
 
 export const COMMUNITY_OVERVIEW_HREF = "/" as const satisfies AppHref;

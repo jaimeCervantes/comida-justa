@@ -17,7 +17,6 @@ import CartLink from "~/presentation/cart/CartLink/CartLink";
 import LinkButton from "~/presentation/navigation/LinkButton/LinkButton";
 import HeaderSearchBar from "~/presentation/search/HeaderSearchBar";
 import Avatar from "~/presentation/user/Avatar/Avatar";
-import LanguageSwitcher from "../LanguageSwitcher/LanguageSwitcher";
 import MobileAccountCard from "./MobileAccountCard";
 import MobileNav from "./MobileNav";
 import Nav from "./Nav";
@@ -161,7 +160,6 @@ export default async function Header() {
               <span className="hidden sm:block">{t("signIn")}</span>
             </SignIn>
           )}
-          <LanguageSwitcher />
         </div>
       </div>
       {/* Mobile Search Bar - Visible only on small/medium screens below navigation depending on layout space */}

@@ -22,10 +22,20 @@ export default class HeaderMenusPage {
     return this.page.getByTestId("user-menu");
   }
 
+  /**
+   * Abre el conmutador de idioma, que **vive en el pie** desde el 5.16.
+   *
+   * Bajó del header por instrucción del canvas: la barra de arriba ya cargaba con búsqueda,
+   * publicar y cuenta. Hay que desplazarse hasta él antes de pulsarlo, porque el pie está al final
+   * de la página y Playwright no pulsa lo que no está a la vista.
+   */
   async openLanguageMenu(): Promise<void> {
-    await this.page
-      .getByRole("button", { name: es.nav.changeLanguage })
-      .click();
+    const boton = this.page
+      .locator("footer")
+      .getByRole("button", { name: es.nav.changeLanguage });
+
+    await boton.scrollIntoViewIfNeeded();
+    await boton.click();
 
     await expect(this.languageMenu()).toBeVisible();
   }
