@@ -26,8 +26,9 @@ test.describe("Cuando alguien abre una publicación de Hazlo Sano", () => {
 
     const tienda = identidad.getByTestId("post-identity-store");
     await expect(tienda).toHaveAttribute("href", /\/tienda\/hazlo-sano$/);
-    // El nombre no se lee en pantalla, pero el enlace tiene que llamarse de algo: su único hijo
-    // visible es una imagen decorativa, y sin esto se anunciaría como "enlace" a secas.
+    // Desde el 5.4 el nombre **se lee**: era un logo de 28px sin texto, y quien decide comprar lo
+    // hace a esta altura. Sigue siendo también el nombre accesible del enlace.
+    await expect(tienda).toHaveText(/Hazlo Sano/);
     await expect(tienda).toHaveAccessibleName("Hazlo Sano");
     // El logo, por su envoltorio y no por el `<img>`: así la prueba no depende de que la imagen
     // haya terminado de cargar para afirmar que el hueco está y trae algo.
@@ -41,6 +42,30 @@ test.describe("Cuando alguien abre una publicación de Hazlo Sano", () => {
     await expect(autor.getByTestId("post-identity-author-media")).toHaveCount(
       1,
     );
+  });
+
+  /**
+   * La distancia se mudó a la tarjeta de quién publica (5.4): al lado de quién la recorre es una
+   * frase —«Hazlo Sano, a 3 km»— y en la fila de datos era un elemento más de una lista.
+   *
+   * Se afirma **dónde vive**, no la cifra: quién la ve depende de si las dos partes compartieron
+   * ubicación, y eso ya lo cubren los escenarios de `localProducers`.
+   */
+  test("Y lo que diga de la distancia vive en esa misma tarjeta", async ({
+    page,
+  }) => {
+    const identidad = page.getByTestId("post-identity");
+    const fuera = page
+      .getByTestId("post-detail")
+      .getByTestId("post-meta")
+      .getByTestId("store-distance");
+
+    await expect(fuera).toHaveCount(0);
+    await expect(
+      identidad
+        .getByTestId("store-distance")
+        .or(identidad.getByTestId("share-location-inline")),
+    ).toHaveCount(1);
   });
 
   test("Y ya no ve la insignia que decía lo mismo que el logo", async ({

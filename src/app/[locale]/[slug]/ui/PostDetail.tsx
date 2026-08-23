@@ -35,8 +35,8 @@ import WhatsappButton from "~/presentation/post/WhatsappButton/WhatsappButton";
 import ShareMenu from "~/presentation/sharing/ShareMenu/ShareMenu";
 import { postCategoryLabel } from "../categoryLabel";
 import OwnerControls from "./OwnerControls";
-import PostIdentity from "./PostIdentity";
 import PostLinks from "./PostLinks";
+import PostSeller from "./PostSeller";
 
 const COMMUNITY_TIME_ZONE = "America/Mexico_City";
 
@@ -257,11 +257,36 @@ export default async function PostDetail({
           anuncio (sin precio, sin categoría, sin origen y, al no ser vendible, sin distancia). En
           la de fuera es solo herencia del estándar: mientras haya teléfono —hoy lo traen las 24
           publicaciones— siempre tendrá un hijo, así que ahí no llega a dispararse. */}
-      <section className={cn(CARD_ROW, "mb-4")}>
-        <p className={cn(CARD_ROW, "text-label")} data-testid="post-identity">
-          <PostIdentity seller={seller} author={postDetails.user} />
+      {/* De quién es, con nombre y distancia, antes que ningún otro dato: es la lección del 5.4
+          del canvas —«la persona es parte del producto»— y hasta ahora eso vivía al final. */}
+      <PostSeller
+        seller={seller}
+        author={postDetails.user}
+        className="mb-4"
+        /* Solo cuando las dos partes dieron ubicación: si falta una, no se pinta la cifra y quien
+           mira puede compartir la suya desde aquí mismo —pero solo si esto se va a recoger a algún
+           sitio; pedírsela a quien lee un anuncio es preguntar por preguntar. */
+        location={
+          distanceMeters === null ? (
+            isSellable({ kind }) ? (
+              <ShareLocationButton size="xs" />
+            ) : null
+          ) : (
+            <StoreDistance meters={distanceMeters} />
+          )
+        }
+      />
 
-          {/* Se calla cuando el logo de al lado ya lo dijo: ver `provenanceVisibility.ts`. */}
+      {/* Qué es y cuánto cuesta. La firma se la lleva la tarjeta de arriba; aquí queda lo que
+          clasifica —categoría, procedencia, agotado, cuándo— y el precio.
+
+          Sale de `CARD_ROW`, el mismo que la tarjeta del listado: la ficha y la tarjeta enseñan los
+          mismos datos y no hay motivo para que se separen distinto. Su `empty:hidden` sirve de
+          verdad en la fila de dentro, que es la que se vacía en un anuncio —sin precio, sin
+          categoría y sin origen—. */}
+      <section className={cn(CARD_ROW, "mb-4")}>
+        <p className={cn(CARD_ROW, "text-label")} data-testid="post-meta">
+          {/* Se calla cuando el logo de la tarjeta ya lo dijo: ver `provenanceVisibility.ts`. */}
           {showsProvenanceBadge(origin, Boolean(seller)) ? (
             <ProvenanceBadge origin={origin} />
           ) : null}
@@ -270,22 +295,13 @@ export default async function PostDetail({
           {/* Aquí aterriza quien recibe el enlace por WhatsApp: es donde más importa que diga
               cuándo, y si todavía se puede ir. */}
           <EventDate kind={kind} startsAt={startsAt} endsAt={endsAt} />
-          {/* Solo cuando las dos partes dieron ubicación: si falta una, no se pinta nada y quien
-            mira puede compartir la suya desde aquí mismo. */}
-          {distanceMeters === null ? (
-            isSellable({ kind }) ? (
-              <ShareLocationButton size="xs" />
-            ) : null
-          ) : (
-            <StoreDistance meters={distanceMeters} />
-          )}
         </p>
         {/* Sin envoltura propia: `CurrencyAmount` ya es un `span` y se calla solo cuando no hay
             precio —un anuncio no lo tiene—. Dentro de un `<p>` dejaba un párrafo vacío que en esta
             fila con `gap-x-3` se veía como un hueco sin motivo. */}
         <CurrencyAmount value={price} currency={SITE_CURRENCY} />
 
-        {/* Hoy las 24 publicaciones traen teléfono, pero nada en el esquema lo garantiza: sin la
+        {/* Hoy las 31 publicaciones traen teléfono, pero nada en el esquema lo garantiza: sin la
             guarda, una sin él pintaba el icono junto a un enlace `tel:undefined` y vacío. */}
         {contactInfo?.phone ? (
           <p className="flex items-center">
