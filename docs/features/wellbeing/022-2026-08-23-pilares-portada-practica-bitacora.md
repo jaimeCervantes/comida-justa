@@ -159,3 +159,91 @@ el dominio ya había desmentido se reescribió en vez de copiarse.
    pendiente que arregla algo roto hoy.
 3. **Otras secciones del canvas sin hacer**: `5.12 · /productores-locales`, `5.13 · /habitos`,
    `5.16 · pie y 404`.
+
+## Slice 3 — La portada cabe en un teléfono (2026-08-23)
+
+### Se midió antes de decidir
+
+El usuario preguntó si la composición móvil del 5.10 vale el trabajo. En vez de opinar, se midió
+`/pilares` en un iPhone 13 (390×664):
+
+| | Antes |
+| --- | --- |
+| Página entera | 9712px = **14.6 pantallas** |
+| Ver la práctica del primer pilar | pantalla 3.5 |
+| **Ver las cuatro para poder elegir** | **pantalla 6.1** |
+| Llegar al «Tu turno» | pantalla 12.4 |
+
+Seis pantallas de scroll para ver las cuatro opciones, en una página cuyo único trabajo es que
+elijas una. La respuesta era sí.
+
+### Pero el trabajo no estaba donde el canvas lo pone
+
+El desglose enseñó que la mayor parte **no necesitaba nada responsive**:
+
+- **El héroe cargaba más palabras de las que el canvas pidió.** El 5.10 escribe 155 caracteres de
+  intro y **ninguna cita**. Lo implementado eran 175 de intro más un blockquote de 140px que decía
+  lo mismo con otras palabras. Adoptar la copia del propio canvas acorta el héroe en **todas** las
+  pantallas, sin duplicar contenido.
+- **Cada tarjeta medía ~420px** en el teléfono, casi todo subtítulo y descripción.
+
+### Y una parte del canvas que no se hizo, con motivo
+
+El canvas móvil sube **el jardín por encima de los cuatro pilares**. Eso pone «359 repeticiones
+compartidas» delante de alguien que todavía no sabe qué es una repetición: **prueba social antes que
+comprensión**. En escritorio va debajo de las tarjetas y ahí sí funciona, porque para entonces ya
+sabes qué se cuenta. Se dejó donde estaba. Si el objetivo es que la gente elija, arriba van las
+opciones y no el marcador.
+
+Acordado con el usuario: las dos piezas baratas sí, el reordenamiento no.
+
+### Qué se hizo
+
+1. **La copia del héroe, la del canvas.** Intro más corta y más concreta —nombra los cuatro y dice
+   qué se hace con ellos— y fuera la cita de identidad. `pillarsOverview.heroIdentity` se **borra**
+   del catálogo: dejarla sin usar habría creado exactamente la copia muerta que el slice anterior
+   vino a rescatar.
+2. **El porqué se guarda para las pantallas que tienen sitio.** Subtítulo y descripción de cada
+   tarjeta van con `hidden sm:block`. Siguen en el HTML —verificado en la respuesta del servidor, los
+   leen los buscadores— y el artículo completo está a un toque, que es lo que promete el «Leer más».
+
+Sobre accesibilidad: `display:none` sí saca esos párrafos del árbol de accesibilidad en móvil, así
+que quien navega con lector de pantalla en un teléfono oye «Sueño · práctica · Del atardecer al
+amanecer · Leer más». Sigue siendo una elección informada y el detalle completo está detrás del
+enlace; en escritorio no cambia nada.
+
+### El resultado, medido
+
+| | Antes | Ahora |
+| --- | --- | --- |
+| Página entera | 9712px (14.6 pantallas) | **8056px (12.1)** |
+| Primera práctica | pantalla 3.5 | **pantalla 2.7** |
+| **Las cuatro prácticas** | **pantalla 6.1** | **pantalla 3.6** |
+| Recorrido para verlas todas | 1681px | **609px** |
+
+609px de recorrido en una ventana de 664: **las cuatro opciones caben casi de una vez**. La
+estimación previa decía «pantalla ~3.4» y salió 3.6.
+
+### Validación
+
+| Comando | Resultado |
+| --- | --- |
+| `pnpm exec playwright test src/e2e/pilares` | **15/15** |
+| `pnpm exec vitest --run src/presentation/habits src/app/[locale]/pilares` | **212 en verde** |
+| `pnpm run typecheck` · `lint` · `check:i18n` | limpios |
+| Medición real en `next dev` con viewport de iPhone 13 | la tabla de arriba |
+
+### Recap
+
+`/pilares` pasó de 14.6 a 12.1 pantallas en un teléfono, y lo que importa —ver las cuatro prácticas
+para elegir una— de la pantalla 6.1 a la 3.6. Se consiguió adoptando la copia que el canvas ya
+proponía y guardando el porqué para donde hay sitio, sin tocar el orden de la página y sin quitar
+una palabra del HTML.
+
+### Próximos pasos (opciones)
+
+1. **El editor enriquecido** (`docs/features/content/027`) — sigue siendo lo pedido y lo único
+   pendiente que arregla algo roto hoy.
+2. **Otras secciones del canvas**: `5.12 · /productores-locales`, `5.13 · /habitos`, `5.16 · pie y 404`.
+3. Si algún día hay analítica de móvil, volver a mirar si el jardín arriba tenía razón. Hoy se
+   decidió por criterio, no por datos.

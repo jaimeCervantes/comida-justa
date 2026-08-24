@@ -61,7 +61,12 @@ export default function PilaresOverviewPage({
             brand: (chunks) => <span>{chunks}</span>,
           })}
           intro={t("intro")}
-          identity={t("heroIdentity")}
+          /*
+            **Sin cita de identidad.** El 5.10 no la dibuja, y la que había repetía el intro con
+            otras palabras: 140px de alto en un teléfono para no decir nada nuevo. En un móvil
+            costaba parte de las seis pantallas que hacían falta para ver las cuatro opciones de una
+            página cuyo único trabajo es que elijas una.
+          */
           theme={getPillarTheme("nutrition")}
           className="rounded-t-4xl"
           /*
@@ -86,7 +91,7 @@ export default function PilaresOverviewPage({
 
         <div
           id={PRACTICES_ANCHOR}
-          className="grid gap-6 sm:grid-cols-2 px-6 py-8 sm:px-10 sm:py-10 scroll-mt-24"
+          className="grid gap-3 sm:gap-6 sm:grid-cols-2 px-6 py-6 sm:px-10 sm:py-10 scroll-mt-24"
         >
           {PILLARS.map((pillar) => {
             const c = pillarColorClasses[pillar.key];
@@ -97,7 +102,7 @@ export default function PilaresOverviewPage({
                   pathname: "/pilares/[[...slug]]",
                   params: { slug: [pillar.slug] },
                 }}
-                className={`focus-ring group block rounded-card border-2 ${c.border} ${c.bg} p-6 sm:p-8 transition-all duration-300 hover:shadow-lg ${c.hover}`}
+                className={`focus-ring group block rounded-card border-2 ${c.border} ${c.bg} p-5 sm:p-8 transition-all duration-300 hover:shadow-lg ${c.hover}`}
               >
                 <div className="flex items-center gap-3 mb-4">
                   <span
@@ -115,11 +120,18 @@ export default function PilaresOverviewPage({
                   </Heading>
                 </div>
 
-                <p className="text-base text-text-support mb-3">
+                {/*
+                  **El porqué se guarda para las pantallas que tienen sitio.** Cada tarjeta medía
+                  ~420px en un teléfono y las cuatro no aparecían hasta la sexta pantalla; sin estos
+                  dos párrafos bajan a ~130px y caben casi todas de una vez. El texto sigue en el
+                  HTML —lo leen los buscadores— y el artículo completo está a un toque, que es
+                  justo lo que promete el «Leer más» de abajo.
+                */}
+                <p className="hidden sm:block text-base text-text-support mb-3">
                   {tPages(`${pillar.key}.subtitle`)}
                 </p>
 
-                <p className="text-text-support text-base leading-relaxed mb-4">
+                <p className="hidden sm:block text-text-support text-base leading-relaxed mb-4">
                   {tPillars(`${pillar.key}.cardDescription`)}
                 </p>
 
