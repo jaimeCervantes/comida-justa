@@ -247,3 +247,105 @@ una palabra del HTML.
 2. **Otras secciones del canvas**: `5.12 · /productores-locales`, `5.13 · /habitos`, `5.16 · pie y 404`.
 3. Si algún día hay analítica de móvil, volver a mirar si el jardín arriba tenía razón. Hoy se
    decidió por criterio, no por datos.
+
+## Slice 4 — La primera pantalla de un pilar ofrece algo que hacer (2026-08-24)
+
+Cierra el **5.6 · página de pilar** del canvas, que es lo que quedaba de las cuatro páginas.
+
+### Lo que el 5.6 pedía, y lo que ya estaba
+
+Al comparar apareció que las cuatro páginas están **más construidas** que el dibujo. De las siete
+cosas que propone el 5.6:
+
+| El canvas propone | Estado |
+| --- | --- |
+| Chips de categoría y productos del pilar | **ya estaba** (`PillarLocal`) |
+| Panel de seguimiento con «Marcar hoy» | **ya estaba, y más rico** (`HabitChallengePanel`) |
+| Héroe con el número y «pilar uno de cuatro» | este slice |
+| Héroe con dos acciones | este slice |
+| «tu racha · 9 días seguidos» | **descartado** en el slice 4 de `026` |
+| «sostenla catorce días» | **superado**: la ventana es la semana de la comunidad |
+| «Apagar pantallas 30 min antes» | **superado**: la práctica es «Del atardecer al amanecer» |
+| Testimonio firmado de la comunidad | **contra la regla**: la celebración es del hito, no del texto libre |
+
+Cuatro de las siete las desmiente el propio producto, tres de ellas por decisiones tomadas el día
+anterior. El canvas es de agosto y el dominio se le adelantó.
+
+### Lo que se hizo
+
+**Las dos acciones.** «Empezar la práctica» → `#practica`, «Ver lo que hay cerca» → `#cerca`. La
+práctica y la sección local ya vivían en la página, pero detrás del artículo entero: quien llegaba
+convencido tenía que recorrérselo para encontrar dónde empezar. El hueco del héroe ya existía —
+`action` se le añadió a `PillarHero` el día anterior para `/pilares`— así que entra en los cuatro
+pilares de una vez, porque `PillarArticle` es el armazón compartido.
+
+**«Empezar la práctica» y no «Adoptar un hábito»**, que es lo que rotula el canvas. Este producto se
+niega en su propia redacción a afirmar que alguien formó un hábito —`noHabitClaim` lo dice después de
+cinco repeticiones—, así que prometerlo en el botón de entrada sería contradecirse en la primera
+pantalla. Además «práctica» es la palabra que usa el resto del sitio.
+
+**El número en el héroe.** Placa y «pilar uno de cuatro». No es decoración: Movimiento y Mente
+contrastan 1.14 entre sí como tinta, así que el color por sí solo no distingue un pilar de otro — el
+mismo motivo por el que la insignia de la tarjeta del feed ya lo lleva. El número **se deriva** de
+`PILLAR_KEY_BY_CHALLENGE` y `PILLARS`, sin un cuarto emparejamiento a mano.
+
+**Y el «1. » sale del título.** Con la placa puesta, el número salía tres veces en la misma pantalla:
+la placa, «pilar uno de cuatro» y el «1.» de «1. Sueño y descanso profundo». El canvas titula «Sueño»
+a secas justamente por eso.
+
+### Tres cosas que el trabajo destapó
+
+**Importar una constante arrastraba `next-auth`.** `PillarArticle` importó `PillarLocalSection` solo
+para leer el id del ancla, y con él vino su árbol entero —tarjetas, directorio, navegación— hasta el
+entorno de pruebas: las **seis** suites de páginas de pilar dejaron de cargar con un
+`ERR_MODULE_NOT_FOUND` que no mencionaba ni el pilar ni el héroe. Las dos anclas viven ahora en
+`pillarPageAnchors.ts`, un módulo **sin una sola importación**. Una constante no tiene capa.
+
+**Dos colores en el mismo `class`.** La segunda acción llevaba `text-pillar-*-ink` y `text-white` a la
+vez, y ahí gana el que decida el orden del CSS, no el que se escribió — el mismo enredo que ya se
+llevó por delante el precio de la tarjeta del feed. Se queda solo el blanco.
+
+**Dos specs que transcribían la redacción.** `PillarPages.test.tsx` escribía a mano título, entradilla
+e identidad de los cuatro pilares, y `atomicSleepChallenge.spec.ts` el título de Sueño con su «1. ».
+Quitar el prefijo tumbó las cinco de golpe **sin que nada estuviera mal**. Las dos pasan a leer del
+mismo catálogo que pinta la página; la del pilar, además, usa el `h1` que ya afirmaba ser único en vez
+de nombrarlo.
+
+### Archivos tocados
+
+| Zona | Archivos |
+| --- | --- |
+| Presentación | `pillarPageAnchors.ts` (**nuevo**), `PillarHero.tsx` (+`number`), `PillarPracticeSection.tsx` |
+| Ruta | `PillarArticle.tsx`, `PillarLocalSection.tsx` |
+| Catálogo | `es.json`, `en.json`: `heroEyebrow`, `heroPracticeCta`, `heroLocalCta`; fuera el «N. » de los cuatro títulos |
+| Especificación | `heroeDelPilar.feature` y su spec (**nuevos**), `PillarPages.test.tsx`, `atomicSleepChallenge.spec.ts` |
+
+### Validación
+
+| Comando | Resultado |
+| --- | --- |
+| `pnpm run test:run` | **219 de 219 archivos en verde** |
+| `pnpm exec playwright test src/e2e/pilares` | **24/24** (8 nuevas) |
+| `pnpm exec playwright test src/e2e/habits` | **28/28** |
+| `pnpm run typecheck` · `typecheck:tests` (zona) · `lint` · `check:i18n` | limpios |
+
+Nota de la corrida: lanzar `pilares` y `habits` **juntas** se degradó a 30 minutos con un resumen
+inservible; por separado, 2.4 y 11.1 minutos. Había otro proyecto tocando la misma base a la vez. Es
+otra confirmación de que esta suite se corre por lotes.
+
+### Recap
+
+Las cuatro páginas de pilar dejan de abrir con puro texto: su primera pantalla dice qué número de
+pilar es y ofrece dos salidas —empezar la práctica, o ver lo que hay cerca— a secciones que ya
+existían pero estaban enterradas. De las siete propuestas del 5.6, dos se hicieron, dos ya estaban y
+cuatro las desmiente el propio producto, lo cual queda escrito para que nadie las reintroduzca
+copiando del canvas.
+
+### Próximos pasos (opciones)
+
+1. **El editor enriquecido** (`docs/features/content/027`) — lo pedido, y lo único pendiente que
+   arregla algo roto hoy.
+2. **Las secciones del canvas sin tocar**: `5.12 · /productores-locales`, `5.13 · /habitos`,
+   `5.16 · pie y 404`.
+3. **La composición móvil del 5.6**, hermana de la que se hizo en `/pilares`: el canvas compacta
+   también la página de pilar en el teléfono.

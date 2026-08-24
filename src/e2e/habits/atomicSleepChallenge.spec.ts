@@ -4,6 +4,7 @@ import {
   deleteSession,
   simulateLogin,
 } from "~/e2e/testUtils/simulateLogin";
+import es from "~/i18n/messages/es.json";
 import {
   backdateHabitChallengeForSevenDayTest,
   clearHabitMilestoneMarker,
@@ -664,18 +665,15 @@ test.describe("Del atardecer al amanecer", () => {
   }) => {
     await page.goto("/pilares/sueno");
 
-    await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
-    const pageTitle = page.getByRole("heading", {
-      level: 1,
-      name: "1. Sueño y descanso profundo",
-    });
+    /* El título no se transcribe: la página tiene **un solo** `h1` —eso es lo que se afirma justo
+       arriba— así que se usa ese. La entradilla y la identidad salen del mismo catálogo que pinta
+       la página, como en `invitacionAPracticar.spec.ts`: escribirlas a mano hacía que cualquier
+       retoque de redacción tumbara esta prueba sin que nada estuviera roto. */
+    const pageTitle = page.getByRole("heading", { level: 1 });
+    await expect(pageTitle).toHaveCount(1);
     const pageHero = pageTitle.locator("xpath=ancestor::header");
-    await expect(pageHero).toContainText(
-      "Volver a dormir al ritmo de la luz, no al de las pantallas.",
-    );
-    await expect(pageHero).toContainText(
-      "Soy una persona que respeta los ritmos naturales de su cuerpo y se regala un descanso profundo y reparador cada noche",
-    );
+    await expect(pageHero).toContainText(es.pillarPages.sleep.subtitle);
+    await expect(pageHero).toContainText(es.atomicSleepChallenge.identity);
     const practice = page.getByRole("heading", {
       level: 2,
       name: "Del atardecer al amanecer",

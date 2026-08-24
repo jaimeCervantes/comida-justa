@@ -917,7 +917,7 @@
   },
   "pillarPages": {
     "mindSpirit": {
-      "heading": "4. Mind, Spirit and the Community Next Door",
+      "heading": "Mind, Spirit and the Community Next Door",
       "subtitle": "Getting back silence, presence and the people who live nearby.",
       "breakHeading": "The Digital Revolution and Urbanisation (20th–21st century): Goodbye to the Tribe",
       "breakIntro": "Before this, human beings never lived alone. «Loneliness» was a biological death sentence. Spirit and mind were fed by ritual, by the silence of nature and by the support of the group.",
@@ -1006,7 +1006,7 @@
       "bridgeLink": "Go to the pillar"
     },
     "movement": {
-      "heading": "3. Natural, Local, Community Movement",
+      "heading": "Natural, Local, Community Movement",
       "subtitle": "Getting the body back onto the street, the trail and the neighbourhood pitch.",
       "breakHeading": "The Industrial Revolution (18th–19th century): Goodbye to Movement",
       "breakIntro": "Before this, most of humanity worked the land, hunted or did manual work. Movement was not «exercise», it was survival.",
@@ -1089,7 +1089,7 @@
       "bridgeLink": "Go to the pillar"
     },
     "nutrition": {
-      "heading": "2. Natural, Nourishing, Local Food",
+      "heading": "Natural, Nourishing, Local Food",
       "subtitle": "Reconnecting with the source, the season and the people who grow it.",
       "breakHeading": "The Green Revolution, Ultra-Processed Food and the Global Chain (post-WWII)",
       "breakIntro": "This is where eating broke. In the 1950s the priority was feeding a population that was exploding, and quantity won over quality: produce plenty of cheap calories and move them far.",
@@ -1179,7 +1179,7 @@
       "bridgeLink": "Go to the pillar"
     },
     "sleep": {
-      "heading": "1. Sleep and Deep Rest",
+      "heading": "Sleep and Deep Rest",
       "subtitle": "Sleeping to the rhythm of light again, not of screens.",
       "lightHeading": "The Invention of Electric Light (1879): The End of Natural Sleep",
       "lightIntro": "This is perhaps the harshest turning point for our brain. Before Thomas Edison and artificial light, our circadian rhythm — the internal clock — was perfectly in step with the sun.",
@@ -1261,7 +1261,10 @@
       "bridgeMindTitle": "From Mind and Spirit: the last hour screen-free",
       "bridgeMindBody": "The mental unload and the digital close calm the nervous system, so you get to bed without your head still running.",
       "bridgeLink": "Go to the pillar"
-    }
+    },
+    "heroEyebrow": "pillar {number, select, 1 {one} 2 {two} 3 {three} 4 {four} other {#}} of four",
+    "heroPracticeCta": "Start the practice",
+    "heroLocalCta": "See what is nearby"
   },
   "pillars": {
     "mindSpirit": {

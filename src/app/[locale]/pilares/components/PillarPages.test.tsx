@@ -1,6 +1,7 @@
 import { screen, within } from "@testing-library/react";
 import type { ComponentType } from "react";
 import { describe, expect, it, vi } from "vitest";
+import es from "~/i18n/messages/es.json";
 import type { AppLocale } from "~/i18n/routing";
 import { renderWithIntl } from "~/infra/test-utils/renderWithIntl";
 import AlimentacionPage from "./AlimentacionPage";
@@ -20,41 +21,54 @@ vi.mock("./PillarLocal", () => ({
 
 type PillarPage = ComponentType<{ locale: AppLocale }>;
 
-describe.each([
-  {
-    Page: SuenoPage as PillarPage,
-    heading: "1. Sueño y descanso profundo",
-    intro: "Volver a dormir al ritmo de la luz, no al de las pantallas.",
-    identity:
-      "Soy una persona que respeta los ritmos naturales de su cuerpo y se regala un descanso profundo y reparador cada noche",
-    theme: "linear-gradient(145deg,#17112f",
-  },
-  {
-    Page: AlimentacionPage as PillarPage,
-    heading: "2. Alimentación natural, nutritiva y local",
-    intro: "Reconectando con el origen, la temporada y quien la cultiva.",
-    identity:
-      "Soy una persona que hace fácil elegir comida real, fresca y de origen local",
-    theme: "color-pillar-nutrition-solid",
-  },
-  {
-    Page: MovimientoPage as PillarPage,
-    heading: "3. Movimiento natural, local y comunitario",
-    intro:
-      "Recuperar el cuerpo en la calle, el sendero y la cancha del barrio.",
-    identity:
-      "Soy una persona que se mueve de forma natural y reconecta con su entorno y comunidad todos los días",
-    theme: "color-pillar-movement-solid",
-  },
-  {
-    Page: MenteEspirituPage as PillarPage,
-    heading: "4. Mente, espíritu y comunidad cercana",
-    intro: "Recuperar el silencio, la presencia y la gente que vive cerca.",
-    identity:
-      "Soy una persona que cultiva la paz interior, la presencia y lazos sólidos con su comunidad todos los días",
-    theme: "bg-pillar-mind-spirit-solid",
-  },
-])("$heading", ({ Page, heading, intro, identity, theme }) => {
+/**
+ * Las cuatro claves de pilar dentro de `pillarPages`, que además del objeto de cada pilar guarda
+ * cadenas sueltas del héroe. Sin acotarla, `es.pillarPages[key]` sale como unión con `string` y no
+ * tiene ni `heading` ni `subtitle`.
+ */
+type PillarCatalogKey = "sleep" | "nutrition" | "movement" | "mindSpirit";
+
+/**
+ * La tabla **no transcribe la redacción**: la lee del mismo catálogo que pinta la página.
+ *
+ * Escribía a mano título, entradilla e identidad de los cuatro, y eso la rompía en cada retoque de
+ * texto: quitar el «1. » del título tumbó las cuatro de golpe sin que nada estuviera mal. Lo que
+ * esta prueba afirma es la **estructura** —que los tres van dentro del mismo héroe, y que el héroe
+ * lleva el color de su pilar—, no las palabras.
+ */
+describe.each(
+  [
+    {
+      Page: SuenoPage as PillarPage,
+      key: "sleep" as PillarCatalogKey,
+      challenge: es.atomicSleepChallenge,
+      theme: "linear-gradient(145deg,#17112f",
+    },
+    {
+      Page: AlimentacionPage as PillarPage,
+      key: "nutrition" as PillarCatalogKey,
+      challenge: es.atomicChallenges.nutritionExperience,
+      theme: "color-pillar-nutrition-solid",
+    },
+    {
+      Page: MovimientoPage as PillarPage,
+      key: "movement" as PillarCatalogKey,
+      challenge: es.atomicChallenges.movementExperience,
+      theme: "color-pillar-movement-solid",
+    },
+    {
+      Page: MenteEspirituPage as PillarPage,
+      key: "mindSpirit" as PillarCatalogKey,
+      challenge: es.atomicChallenges.mindExperience,
+      theme: "bg-pillar-mind-spirit-solid",
+    },
+  ].map((fila) => ({
+    ...fila,
+    heading: es.pillarPages[fila.key].heading,
+    intro: es.pillarPages[fila.key].subtitle,
+    identity: fila.challenge.identity,
+  })),
+)("$heading", ({ Page, heading, intro, identity, theme }) => {
   it("groups its title, introduction and identity in the themed hero", () => {
     const { container } = renderWithIntl(<Page locale="es" />);
     const title = screen.getByRole("heading", { level: 1, name: heading });

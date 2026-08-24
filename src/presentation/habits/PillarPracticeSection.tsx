@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import type { HabitChallengeExperienceKey } from "~/domain/habits/habitChallengeExperiences";
 import { Heading } from "~/presentation/design_system/typography/Heading";
 import PillarHero from "./PillarHero";
+import { PILLAR_PRACTICE_ANCHOR } from "./pillarPageAnchors";
 import type { PillarTheme } from "./pillarThemes";
 
 /**
@@ -58,7 +59,7 @@ export default function PillarPracticeSection({
 
   return (
     <section
-      id="practica"
+      id={PILLAR_PRACTICE_ANCHOR}
       data-pillar={challenge}
       aria-labelledby={titleId}
       className={`relative isolate overflow-hidden rounded-panel border bg-surface-elevation-1 shadow-xl ${theme.border}`}

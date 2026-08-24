@@ -917,7 +917,7 @@
   },
   "pillarPages": {
     "mindSpirit": {
-      "heading": "4. Mente, espíritu y comunidad cercana",
+      "heading": "Mente, espíritu y comunidad cercana",
       "subtitle": "Recuperar el silencio, la presencia y la gente que vive cerca.",
       "breakHeading": "La Revolución Digital y la Urbanización (Siglo XX - XXI): El Adiós a la Tribu",
       "breakIntro": "Antes de esto, el ser humano nunca vivía solo. La «soledad» era una sentencia de muerte biológica. El espíritu y la mente se nutrían del ritual, el silencio de la naturaleza y el apoyo del grupo.",
@@ -1006,7 +1006,7 @@
       "bridgeLink": "Ir al pilar"
     },
     "movement": {
-      "heading": "3. Movimiento natural, local y comunitario",
+      "heading": "Movimiento natural, local y comunitario",
       "subtitle": "Recuperar el cuerpo en la calle, el sendero y la cancha del barrio.",
       "breakHeading": "La Revolución Industrial (Siglo XVIII - XIX): El Adiós al Movimiento",
       "breakIntro": "Antes de esto, la mayoría de la humanidad trabajaba en el campo, cazaba o hacía trabajo manual. El movimiento no era «ejercicio», era supervivencia.",
@@ -1089,7 +1089,7 @@
       "bridgeLink": "Ir al pilar"
     },
     "nutrition": {
-      "heading": "2. Alimentación natural, nutritiva y local",
+      "heading": "Alimentación natural, nutritiva y local",
       "subtitle": "Reconectando con el origen, la temporada y quien la cultiva.",
       "breakHeading": "La Revolución Verde, los ultraprocesados y la cadena global (posguerra)",
       "breakIntro": "Aquí es donde la alimentación se rompió. En los años 50, la prioridad era alimentar a una población mundial en explosión, y se optó por la cantidad sobre la calidad: producir muchas calorías baratas y moverlas lejos.",
@@ -1179,7 +1179,7 @@
       "bridgeLink": "Ir al pilar"
     },
     "sleep": {
-      "heading": "1. Sueño y descanso profundo",
+      "heading": "Sueño y descanso profundo",
       "subtitle": "Volver a dormir al ritmo de la luz, no al de las pantallas.",
       "lightHeading": "La Invención de la Luz Eléctrica (1879): El Fin del Sueño Natural",
       "lightIntro": "Este es quizás el punto de quiebre más agresivo para nuestro cerebro. Antes de Thomas Edison, la luz artificial, nuestro ritmo circadiano (el reloj interno) estaba perfectamente sincronizado con el sol.",
@@ -1261,7 +1261,10 @@
       "bridgeMindTitle": "Desde Mente y Espíritu: la última hora sin pantalla",
       "bridgeMindBody": "La descarga mental y el cierre digital calman el sistema nervioso, para que llegues a la cama sin la cabeza corriendo.",
       "bridgeLink": "Ir al pilar"
-    }
+    },
+    "heroEyebrow": "pilar {number, select, 1 {uno} 2 {dos} 3 {tres} 4 {cuatro} other {#}} de cuatro",
+    "heroPracticeCta": "Empezar la práctica",
+    "heroLocalCta": "Ver lo que hay cerca"
   },
   "pillars": {
     "mindSpirit": {

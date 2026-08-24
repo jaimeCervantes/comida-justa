@@ -7,6 +7,7 @@ import { CARD_MASONRY } from "~/presentation/design_system/surfaces/cardList";
 import { Surface } from "~/presentation/design_system/surfaces/Surface";
 import { Heading } from "~/presentation/design_system/typography/Heading";
 import StoreSummaryCard from "~/presentation/directory/StoreSummaryCard";
+import { PILLAR_LOCAL_ANCHOR } from "~/presentation/habits/pillarPageAnchors";
 import CardForList from "~/presentation/post/CardForList/CardForList";
 import { PillarSectionHeading } from "./PillarArticle";
 import { type PillarKey, pillarColorClasses } from "./pilaresData";
@@ -62,9 +63,11 @@ export default function PillarLocalSection({
        cuando el pilar está vacío, que es hoy el caso de tres de los cuatro, y el mapeo pilar →
        categoría tiene que poder verificarse justo ahí — es donde una errata pasa desapercibida. */
     <section
+      id={PILLAR_LOCAL_ANCHOR}
       data-testid="pillar-local"
       data-pillar={pillar}
       data-category={categoryKey}
+      className="scroll-mt-24"
     >
       <PillarSectionHeading>{copy.heading}</PillarSectionHeading>
       <p className="mb-6">{copy.intro}</p>

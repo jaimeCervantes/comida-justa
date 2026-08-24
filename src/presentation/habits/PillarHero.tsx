@@ -20,6 +20,14 @@ type PillarHeroProps = {
    */
   action?: ReactNode;
   actionNote?: string;
+  /**
+   * El número del pilar, en su placa.
+   *
+   * «El número acompaña siempre al violeta», dice el 5.6, y no es decoración: Movimiento y Mente
+   * contrastan 1.14 entre sí como tinta, así que el color por sí solo no distingue un pilar de
+   * otro. El mismo motivo por el que la insignia de la tarjeta del feed ya lo lleva.
+   */
+  number?: number;
 };
 
 export default function PillarHero({
@@ -33,6 +41,7 @@ export default function PillarHero({
   className = "",
   action,
   actionNote,
+  number,
 }: PillarHeroProps): React.ReactNode {
   return (
     <header
@@ -42,12 +51,24 @@ export default function PillarHero({
       <div
         className={`absolute -right-12 -top-20 -z-10 size-72 ${theme.orbit}`}
       />
-      {eyebrow && (
-        <p
-          className={`text-sm font-bold uppercase tracking-[0.22em] ${theme.heroEyebrow}`}
-        >
-          {eyebrow}
-        </p>
+      {(eyebrow || number !== undefined) && (
+        <div className="flex items-center gap-3">
+          {number !== undefined && (
+            <span
+              data-testid="pillar-hero-number"
+              className="grid size-9 shrink-0 place-items-center rounded-full bg-white/20 text-base font-bold text-white"
+            >
+              {number}
+            </span>
+          )}
+          {eyebrow && (
+            <p
+              className={`text-sm font-bold uppercase tracking-[0.22em] ${theme.heroEyebrow}`}
+            >
+              {eyebrow}
+            </p>
+          )}
+        </div>
       )}
       {/* El nombre de un pilar va en la serif de la marca: es lo que dice el docstring de
           `Heading` —«`display` y `lg` van en Newsreader… la portada, el nombre de un pilar»— y
