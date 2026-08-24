@@ -67,6 +67,14 @@ const RUTAS = [
   "/auth/signin",
   "/api/auth/providers",
 
+  /* El «cargar más» del inicio, que es la **segunda** unidad de compilación de la portada: la página
+     la calienta `/`, pero `PostsWithLoadMore` pide `/api/posts/page/N/pageSize/M` desde el navegador
+     y ese controlador no lo compila nadie más. Entró por el mismo camino que `/api/auth/providers`:
+     una corrida en shards dejó el registro lleno de «GET /api/posts failed with status 404» y con
+     ella los fallos de ese lote, todos verdes al repetir. Los números no importan —lo que se compila
+     es el segmento, no la consulta—. */
+  "/api/posts/page/2/pageSize/9",
+
   /* La edición. La pisan siete escenarios —los tres de `managePost` y los cuatro de `editarMedia`—
      y acaba de encarecerse: desde que se puede cambiar la media, arrastra el selector de archivos,
      la bandeja con sus miniaturas y la medición de imágenes, que antes solo compilaba `/publicar`.
