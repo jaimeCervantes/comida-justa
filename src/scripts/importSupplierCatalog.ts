@@ -171,13 +171,13 @@ function ownerEmail(options: Options): string | undefined {
 }
 
 /**
- * El contenido que va a `post_translations.content`.
+ * El texto que manda el catálogo, sin nada nuestro encima.
  *
- * Kian no publica descripción en ninguna de sus fichas, así que sin respaldo entrarían con el texto
- * vacío. Se cae al título —que en su catálogo trae marca y gramaje— en vez de inventar una
- * descripción: es poco, pero es cierto.
+ * El respaldo al título sigue aquí como guardarraíl, aunque hoy no lo use nadie: el extractor le
+ * compone una descripción a lo que llega sin ella —ver `describe.ts` en `post-automation-for-website`—
+ * y desde entonces los 401 traen texto. El día que un proveedor nuevo llegue vacío, esto lo sostiene.
  */
-function contentFor(product: CatalogProduct): string {
+function catalogText(product: CatalogProduct): string {
   const description = product.description.trim();
   const body =
     description.length >= MIN_CONTENT ? description : product.title.trim();
@@ -189,9 +189,31 @@ function contentFor(product: CatalogProduct): string {
     : body;
 }
 
+/**
+ * El contenido que va a `post_translations.content`: lo del proveedor, y al final quién lo surte.
+ *
+ * La línea del proveedor existe **porque nada más la lleva**. `posts` no tiene columna de proveedor,
+ * `seller_id` apunta a una sola tienda para todo el catálogo, y la búsqueda arma su `tsvector` solo
+ * con `title` (peso A) y `content` (peso B): sin esto, buscar «amorasana» o «kian» no encuentra sus
+ * productos salvo donde el proveedor se nombra a sí mismo en el título, que hoy son 85 de 401. Va
+ * también al embedding, que se compone del mismo `content`.
+ *
+ * Va **al final** y no arriba: quien abre la ficha quiere leer qué es el producto, no de quién es.
+ *
+ * Se separa de `catalogText` a propósito. `rejectionReason` mide si el proveedor mandó texto
+ * suficiente, y esta línea la escribimos nosotros: contarla ahí dejaría pasar una ficha vacía por el
+ * solo hecho de tener proveedor, que es justo lo que ese guardarraíl existe para atrapar.
+ */
+function contentFor(product: CatalogProduct): string {
+  const supplier = product.supplierName?.trim();
+  const text = catalogText(product);
+
+  return supplier ? [text, `Lo surte ${supplier}.`].join("\n\n") : text;
+}
+
 function rejectionReason(product: CatalogProduct): string | null {
   if (product.title.trim().length < MIN_TITLE) return "título demasiado corto";
-  if (contentFor(product).length < MIN_CONTENT) return "sin texto suficiente";
+  if (catalogText(product).length < MIN_CONTENT) return "sin texto suficiente";
   if (!(product.price > 0)) return "sin precio";
   return null;
 }
