@@ -217,6 +217,18 @@ function isProcessed(url: string): boolean {
 }
 
 /**
+ * ¿Esta imagen la subió este script? Se reconoce por el proveedor con el que empieza su nombre.
+ *
+ * Es la firma que deja `storedName`, y la usa `--prune` para no borrar publicaciones ajenas: la
+ * columna `origin` no alcanza, porque la siembra a mano escribe la misma marca. Se compara contra
+ * los proveedores del catálogo en curso, que son los únicos prefijos que este script pudo escribir.
+ */
+function storedByImporter(url: string, suppliers: string[]): boolean {
+  const file = decodeURIComponent(url).split("/").pop()?.split("?")[0] ?? "";
+  return suppliers.some((supplier) => file.startsWith(`${supplier}-`));
+}
+
+/**
  * La ruta dentro del bucket, sacada de la URL de descarga de Firebase.
  *
  * Las URL tienen la forma `.../o/{ruta%2Fcodificada}?alt=media&token=…`, así que la ruta es el
@@ -396,6 +408,25 @@ async function main(): Promise<void> {
   );
   const { users } = await import("~/infra/dataAccess/db/schema/auth");
 
+  /**
+   * La cuenta con la que publica este script: el primer correo de `HAZLO_SANO_ADMIN_EMAILS`.
+   *
+   * La necesitan dos modos, y por razones distintas: el alta, para colgarle las publicaciones, y
+   * `--prune`, para no borrar lo que publicó alguien más.
+   */
+  const resolveOwnerId = async (): Promise<string | undefined> => {
+    const email = adminEmail();
+    const rows = email
+      ? await db
+          .select({ id: users.id })
+          .from(users)
+          .where(eq(users.email, email))
+          .limit(1)
+      : await db.select({ id: users.id }).from(users).limit(1);
+
+    return rows[0]?.id;
+  };
+
   /*
    * Las categorías se validan siempre, incluso en dry-run: son FK con ON DELETE RESTRICT, así que
    * una clave inválida no se descubre al final sino en el INSERT de ese producto, a mitad de la
@@ -467,6 +498,18 @@ async function main(): Promise<void> {
    * Un post cuenta como huérfano solo si **ninguna** de sus traducciones coincide: la ficha en
    * inglés tiene su propio slug, que nunca está en el catálogo, y mirarla sola las condenaría a
    * todas.
+   *
+   * **`origin` no basta para saber qué publicó este script**, y averiguarlo costó un susto:
+   * `seedHazloSanoProducts.ts` marca con el mismo `hazlo_sano_reventa` los tres panes de masa madre
+   * que se sembraron a mano, que no salen de ningún catálogo y por tanto parecerían huérfanos
+   * siempre. La cuenta tampoco sirve: `HAZLO_SANO_ADMIN_EMAILS` trae dos correos y se toma el
+   * primero, así que las cargas de dos días distintos quedaron repartidas entre dos usuarios —422 y
+   * 130— y uno de ellos es además el dueño de los panes.
+   *
+   * Lo que sí distingue es **el nombre del archivo de sus imágenes**, `<proveedor>-<slug>-<n>…`, que
+   * es la misma marca con la que `--reprocess-images` reconoce su propio trabajo. Los panes traen
+   * `pan-de-masa-madre.jpg` y quedan fuera. Una publicación que no se pueda atribuir así **no se
+   * toca**: ante la duda, no se borra.
    */
   if (options.prune) {
     if (options.supplier || options.limit) {
@@ -480,31 +523,56 @@ async function main(): Promise<void> {
     }
 
     const live = new Set(products.map((product) => product.slug));
+    const suppliers = [...new Set(products.map((product) => product.supplier))];
 
     const published = await db
       .select({
         postId: posts.id,
         slug: postTranslations.slug,
         title: postTranslations.title,
+        mediaUrl: postMedia.url,
       })
       .from(posts)
       .innerJoin(postTranslations, eq(postTranslations.postId, posts.id))
+      .leftJoin(postMedia, eq(postMedia.postId, posts.id))
       .where(eq(posts.origin, ORIGIN));
 
-    const byPost = new Map<string, { slugs: string[]; title: string }>();
+    const byPost = new Map<
+      string,
+      { slugs: string[]; title: string; ours: boolean }
+    >();
+
     for (const row of published) {
-      const entry = byPost.get(row.postId) ?? { slugs: [], title: row.title };
-      entry.slugs.push(row.slug);
+      const entry = byPost.get(row.postId) ?? {
+        slugs: [],
+        title: row.title,
+        ours: false,
+      };
+
+      if (!entry.slugs.includes(row.slug)) entry.slugs.push(row.slug);
+      if (row.mediaUrl && storedByImporter(row.mediaUrl, suppliers)) {
+        entry.ours = true;
+      }
+
       byPost.set(row.postId, entry);
     }
 
-    const orphans = [...byPost].filter(([, entry]) =>
+    const mine = [...byPost].filter(([, entry]) => entry.ours);
+    const orphans = mine.filter(([, entry]) =>
       entry.slugs.every((slug) => !live.has(slug)),
     );
 
-    console.log(`Publicadas por el importador: ${byPost.size}`);
+    console.log(`Con el mismo origin:          ${byPost.size}`);
+    console.log(`Publicadas por el importador: ${mine.length}`);
     console.log(`En el catálogo actual:        ${live.size}`);
     console.log(`Huérfanas:                    ${orphans.length}\n`);
+
+    const foreign = byPost.size - mine.length;
+    if (foreign > 0) {
+      console.log(
+        `  (${foreign} llevan el mismo origin pero no las subió este importador; no se tocan)\n`,
+      );
+    }
 
     for (const [, entry] of orphans) {
       console.log(`  ${entry.slugs[0]?.padEnd(34)} ${entry.title}`);
@@ -892,17 +960,9 @@ async function main(): Promise<void> {
     return;
   }
 
-  const email = adminEmail();
-  const ownerRows = email
-    ? await db
-        .select({ id: users.id })
-        .from(users)
-        .where(eq(users.email, email))
-        .limit(1)
-    : await db.select({ id: users.id }).from(users).limit(1);
-
-  const ownerId = ownerRows[0]?.id;
+  const ownerId = await resolveOwnerId();
   if (!ownerId) {
+    const email = adminEmail();
     console.error(
       email
         ? `ERROR: no existe un usuario con el correo "${email}" (HAZLO_SANO_ADMIN_EMAILS).`
