@@ -13,7 +13,6 @@ import { buttonVariants } from "~/presentation/design_system/buttons/buttonVaria
 import { EmptyState } from "~/presentation/design_system/feedback/EmptyState";
 import MasonryColumns from "~/presentation/design_system/surfaces/MasonryColumns";
 import CardForList from "~/presentation/post/CardForList/CardForList";
-import PublicationPillarFilter from "~/presentation/post/PublicationPillarFilter";
 import { publicationPillarEmptyMessage } from "~/presentation/post/publicationPillarEmptyMessage";
 
 type PostsPageResponse = {
@@ -149,7 +148,6 @@ export default function PostsWithLoadMore({
 
   return (
     <>
-      <PublicationPillarFilter currentPillar={currentPillar} pathname="/" />
       {posts.length === 0 ? (
         <EmptyState
           testId="feed-empty"

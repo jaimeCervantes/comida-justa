@@ -6,6 +6,7 @@ import {
 } from "~/domain/entities/post/publicationPillars";
 import { type AppHref, type AppPathname, Link } from "~/i18n/navigation";
 import { BadgeCounter } from "~/presentation/design_system/badges/Badge";
+import { cn } from "~/presentation/design_system/styling/merge-class-names";
 
 type QueryValue = string | number | null | undefined;
 
@@ -14,6 +15,9 @@ interface PublicationPillarFilterProps {
   pathname: AppPathname;
   params?: Record<string, string>;
   query?: Record<string, QueryValue>;
+  /** Por omisión asume que va justo debajo de un título o buscador. `NearbyPillarFilter` lo
+   * sobrescribe: ahí ya vive dentro de una fila con su propio espaciado. */
+  className?: string;
 }
 
 const BASE_LINK =
@@ -95,13 +99,14 @@ export default function PublicationPillarFilter({
   pathname,
   params,
   query,
+  className,
 }: PublicationPillarFilterProps): React.ReactNode {
   const t = useTranslations("publicationPillars");
 
   return (
     <nav
       aria-label={t("filterLabel")}
-      className="flex flex-wrap items-center gap-2 pt-4"
+      className={cn("flex flex-wrap items-center gap-2 pt-4", className)}
       data-testid="publication-pillar-filter"
     >
       <Link

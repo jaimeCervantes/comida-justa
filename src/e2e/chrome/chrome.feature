@@ -240,12 +240,43 @@ Feature: El chrome lleva la ubicación y la búsqueda dice qué buscar
     And el teléfono recupera el alto que el header le estaba quitando
 
   # ---------------------------------------------------------------------------
-  # Slice 4 — El pilar y la distancia, filtros en la barra  (@future)
+  # Slice 4 — El pilar y la distancia, filtros en la barra  (actual)
+  #
+  # El roadmap original la dibujaba `sticky`; `NearbyBar` ya había evaluado y descartado eso mismo
+  # por el costo de pantalla en un teléfono, así que el filtro hereda su criterio: se une a la
+  # barra, no se vuelve fija. `NearbyPillarFilter` decide por ruta, con hooks de cliente —el layout
+  # no recibe `searchParams`—, así que el filtro no aparece en rutas sin feed que filtrar.
   # ---------------------------------------------------------------------------
 
+  @slice-4
+  Scenario Outline: El filtro de pilares deja de vivir dentro del feed
+    Given `PublicationPillarFilter` montado dentro de "<componente>"
+    When sube a `NearbyBar`, junto a la ubicación
+    Then aparece en "<ruta>" con el mismo comportamiento de siempre
+    And los specs de publicationPillarFilter siguen describiendo ese comportamiento
+
+    Examples:
+      | ruta        | componente        |
+      | /           | PostsWithLoadMore  |
+      | /productos  | ProductsList       |
+
+  @slice-4
+  Scenario: Una ruta sin feed no ofrece un filtro que no lleva a ninguna parte
+    Given que `/cuenta` no tiene ninguna lista de publicaciones que filtrar
+    When se pinta `NearbyBar` ahí
+    Then no aparece ningún filtro de pilares
+
+  # Categoría, directorio, perfil y tienda montan `PublicationPillarFilter` a mano desde antes de
+  # este slice y se quedan así: son cuatro rutas más, no una continuación automática de esta.
   @slice-4 @future
-  Scenario: El filtro de pilares deja de vivir dentro del feed
-    Given `PublicationPillarFilter` montado dentro de `PostsWithLoadMore`
-    When sube a la barra del chrome, junto a la ubicación
-    Then el filtro se aplica desde cualquier ruta que lo entienda
-    And los specs de publicationPillarFilter siguen describiendo el mismo comportamiento
+  Scenario Outline: Las rutas que faltan
+    Given "<ruta>" sigue montando `PublicationPillarFilter` dentro de su propia página
+    When se decida subirla a la barra también
+    Then `NearbyPillarFilter` solo necesita sumar esa ruta a su lista
+
+    Examples:
+      | ruta                 |
+      | /categoria/[key]     |
+      | /productores-locales |
+      | /u/[username]        |
+      | /tienda/[slug]       |

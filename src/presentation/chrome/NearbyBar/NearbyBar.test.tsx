@@ -20,9 +20,16 @@ vi.mock("next-intl/server", async () => {
   };
 });
 
-const { readViewerLocationContext } = vi.hoisted(() => ({
-  readViewerLocationContext: vi.fn(),
-}));
+const { readViewerLocationContext, usePathname, useSearchParams } = vi.hoisted(
+  () => ({
+    readViewerLocationContext: vi.fn(),
+    /* Por omisión, una ruta sin feed que filtrar: así las pruebas que solo hablan de ubicación
+       no tienen que pensar en el filtro de pilares. `NearbyPillarFilter.test.tsx` es quien prueba
+       cada ruta filtrable una por una. */
+    usePathname: vi.fn().mockReturnValue("/nosotros"),
+    useSearchParams: vi.fn().mockReturnValue(new URLSearchParams()),
+  }),
+);
 
 vi.mock("~/infra/location/viewerLocationContext", () => ({
   readViewerLocationContext,
@@ -30,6 +37,18 @@ vi.mock("~/infra/location/viewerLocationContext", () => ({
 
 /* Las dos caras son componentes de cliente y las dos llaman a la misma server action. */
 vi.mock("~/presentation/location/actions", () => ({ shareLocation: vi.fn() }));
+
+/* `NearbyPillarFilter` —dentro de la barra desde el slice 4 de chrome— lee la ruta y la búsqueda
+   con hooks de cliente, que jsdom no resuelve sin el enrutador de Next. */
+vi.mock("~/i18n/navigation", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("~/i18n/navigation")>()),
+  usePathname,
+}));
+
+vi.mock("next/navigation", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("next/navigation")>()),
+  useSearchParams,
+}));
 
 function contextWith(hoursAgo: number | null): ViewerLocationContext {
   if (hoursAgo === null) {
@@ -54,6 +73,10 @@ async function renderBar(context: ViewerLocationContext): Promise<void> {
 describe("NearbyBar", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    /* `clearAllMocks` borra el historial de llamadas, no el valor configurado — sin esto, una
+       prueba que cambie la ruta se filtraría a la siguiente. */
+    usePathname.mockReturnValue("/nosotros");
+    useSearchParams.mockReturnValue(new URLSearchParams());
   });
 
   /*
@@ -113,5 +136,33 @@ describe("NearbyBar", () => {
     await renderBar(contextWith(2));
 
     expect(screen.getByTestId("nearby-bar")).toHaveTextContent(/cerca de ti/i);
+  });
+});
+
+describe("El filtro de pilares dentro de la barra", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    useSearchParams.mockReturnValue(new URLSearchParams());
+  });
+
+  it.each(["/", "/productos"])(
+    "aparece en %s, que sí tiene un feed que filtrar",
+    async (ruta) => {
+      usePathname.mockReturnValue(ruta);
+      await renderBar(contextWith(2));
+
+      expect(
+        screen.getByTestId("publication-pillar-filter"),
+      ).toBeInTheDocument();
+    },
+  );
+
+  it("no aparece en una ruta sin feed, como /cuenta", async () => {
+    usePathname.mockReturnValue("/cuenta");
+    await renderBar(contextWith(2));
+
+    expect(
+      screen.queryByTestId("publication-pillar-filter"),
+    ).not.toBeInTheDocument();
   });
 });
