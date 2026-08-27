@@ -117,6 +117,60 @@ test.describe("Cuando una vendedora abre su cuenta", () => {
   });
 });
 
+test.describe("Cuando la navegación viaja a /pedidos y /cuenta/agenda", () => {
+  let dbSession: DbSession | undefined;
+  const store = testStore("Panadería del Amanecer");
+
+  test.beforeEach(async ({ page, browserName }) => {
+    dbSession = await simulateLogin(page, browserName);
+
+    const account = new SellerAccountPage(page);
+    await account.goto();
+    await account.fillAndSubmit({ name: store.name, phone: store.phone });
+    await account.expectStoreLink(store.handle);
+  });
+
+  test.afterEach(async () => {
+    await deleteTestSellerByHandle(store.handle);
+    if (dbSession?.id) {
+      await deleteSession(dbSession.id);
+    }
+  });
+
+  /* No es la misma pantalla con otro título: es la misma sección. Si `/pedidos` dejara de montar
+     `AccountNav`, quien llegó desde `/cuenta` perdería la navegación a mitad de camino. */
+  test("Entonces /pedidos monta la misma navegación, con «Mis pedidos» activo", async ({
+    page,
+  }) => {
+    await page.goto("/pedidos");
+    const nav = accountNav(page);
+
+    await expect(
+      nav.getByRole("link", { name: es.nav.myOrders }),
+    ).toHaveAttribute("aria-current", "page");
+    await expect(
+      nav.getByRole("link", { name: es.nav.myAccount, exact: true }),
+    ).not.toHaveAttribute("aria-current", "page");
+    await expect(
+      nav.getByRole("link", { name: es.nav.schedule }),
+    ).toBeVisible();
+  });
+
+  test("Entonces /cuenta/agenda monta la misma navegación, con «Mi agenda» activo", async ({
+    page,
+  }) => {
+    await page.goto("/cuenta/agenda");
+    const nav = accountNav(page);
+
+    await expect(
+      nav.getByRole("link", { name: es.nav.schedule }),
+    ).toHaveAttribute("aria-current", "page");
+    await expect(
+      nav.getByRole("link", { name: es.nav.myOrders }),
+    ).not.toHaveAttribute("aria-current", "page");
+  });
+});
+
 test.describe("Cuando quien vende también reclamó su dirección personal", () => {
   let dbSession: DbSession | undefined;
   const store = testStore("Panadería del Sol");

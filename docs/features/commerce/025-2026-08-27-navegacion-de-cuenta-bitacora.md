@@ -90,9 +90,78 @@ publicaciones, y el filtro de qué mostrar es el mismo que `UserMenu` ya había 
 
 1. **El editor enriquecido** (`docs/features/content/027`) — sigue siendo lo pedido y lo único
    pendiente que arregla algo roto hoy.
-2. **Llevar `AccountNav` a `/pedidos` y `/cuenta/agenda`**, para que la navegación persista dentro
-   de toda la sección de cuenta y no solo en `/cuenta`. Es cuando gana sentido una prop `active`.
-3. Las piezas que quedaron **fuera de alcance a propósito** en el roadmap original: barra fija de
+2. Las piezas que quedaron **fuera de alcance a propósito** en el roadmap original: barra fija de
    pilar+distancia, bottom nav de escritorio, cola offline, deshacer con 8s. Nadie las ha pedido
    todavía — y ⌘K ya estaba hecho desde antes de este slice, solo que enfoca el buscador en vez de
    abrir un panel de comandos.
+
+## Slice 2 — La navegación viaja a /pedidos y /cuenta/agenda (2026-08-27)
+
+### Objetivo
+
+Que la sección de cuenta se sienta como una sola sección: hasta este slice, `AccountNav` solo
+vivía en `/cuenta`, así que salir a "Mis pedidos" o "Mi agenda" perdía la navegación a mitad de
+camino — quien llegaba desde el menú se quedaba sin ella justo en la página siguiente.
+
+### `active` deja de ser una suposición
+
+El slice 1 dejó escrito que "Mi cuenta" era la única entrada activa **porque solo `/cuenta` la
+montaba**, y que el día que otra página la heredara era cuando ganaba sentido decirlo desde fuera.
+Ese día es este: `active` pasa de no existir a ser una unión obligatoria
+(`"account" | "orders" | "schedule"`), y cada una de las tres páginas dice de cuál es.
+"Publicaciones" se queda fuera de la unión a propósito — lleva a `/u/[username]`, que no monta
+este menú.
+
+### El layout se movió, no se copió
+
+`PAGE_LAYOUT` vivía como una constante privada en `cuenta/page.tsx`. Con tres consumidores, una
+constante idéntica en tres archivos es la misma clase de deuda que ya resolvió `Badge` en el
+slice 3 del design system: se movió a `AccountNav.tsx` como `ACCOUNT_PAGE_LAYOUT` — vive junto al
+componente que define para qué sirve el hueco de 240px, y las tres páginas la importan en vez de
+repetir la cadena de Tailwind.
+
+### `/pedidos` y `/cuenta/agenda` ya leían al vendedor; les faltaba el perfil
+
+Las dos páginas ya consultaban `findSellerOfUser`/`createSellerRepository().findByUserId` para su
+propia lógica (si hay vista de "lo que me pidieron", si hay tienda a la que colgar un horario).
+Lo único que faltaba era `findProfileOfUser`, en paralelo con la consulta que ya hacían — el mismo
+`Promise.all` que usa `/cuenta` desde el slice 1.
+
+### El caso sin tienda en `/cuenta/agenda` también lleva el menú
+
+Esa página ya tenía una rama corta —"necesitas tu tienda abierta"— para quien no vende. Antes de
+este slice era un `<main>` con un párrafo suelto; ahora también monta `AccountNav` con
+`hasStore={false}`, que oculta su propia entrada de "Mi agenda". Es la misma decisión que ya
+tomaba `/cuenta` sin tienda: la navegación no desaparece porque una sección no aplique, se ajusta.
+
+### Archivos tocados
+
+| Zona | Archivos |
+| --- | --- |
+| Presentación | `src/app/[locale]/cuenta/ui/AccountNav.tsx` (+test): `active` obligatoria, `ACCOUNT_PAGE_LAYOUT` exportada |
+| Rutas | `src/app/[locale]/cuenta/page.tsx` (pasa `active="account"`, importa el layout movido), `pedidos/page.tsx`, `cuenta/agenda/page.tsx` (montan `AccountNav` por primera vez) |
+| Especificación | `src/e2e/compartir/cuentaLayout.spec.ts` (+2 escenarios) |
+
+### Comandos y resultados
+
+```
+pnpm exec vitest --run "src/app/[locale]/cuenta" "src/app/[locale]/pedidos"   # 24 en verde
+pnpm run typecheck · typecheck:tests · lint · check:i18n   # limpios
+pnpm exec playwright test src/e2e/compartir/cuentaLayout.spec.ts   # 9/9 (2 nuevos)
+pnpm exec playwright test src/e2e/orders   # 32/32 — sin regresión por el nuevo layout
+```
+
+### Recap
+
+Las tres páginas privadas de la cuenta —`/cuenta`, `/pedidos`, `/cuenta/agenda`— comparten ahora la
+misma navegación lateral, cada una marcando su propia entrada como activa. El layout de 240px dejó
+de estar copiado y pasó a vivir con el componente que lo necesita, y las dos páginas nuevas
+reusaron datos que ya estaban pidiendo.
+
+### Próximos pasos (opciones)
+
+1. **El editor enriquecido** (`docs/features/content/027`) — sigue siendo lo pedido y lo único
+   pendiente que arregla algo roto hoy.
+2. Las piezas que quedaron **fuera de alcance a propósito** en el roadmap original: barra fija de
+   pilar+distancia, bottom nav de escritorio, cola offline, deshacer con 8s. Nadie las ha pedido
+   todavía.

@@ -6,10 +6,12 @@ import AccountNav from "./AccountNav";
 
 describe("AccountNav", () => {
   it("Mi cuenta, Mis pedidos y Mis hábitos se ofrecen siempre", () => {
-    renderWithIntl(<AccountNav username={null} hasStore={false} />);
+    renderWithIntl(
+      <AccountNav active="account" username={null} hasStore={false} />,
+    );
 
     expect(
-      screen.getByRole("link", { name: es.nav.myAccount, exact: true }),
+      screen.getByRole("link", { name: es.nav.myAccount }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole("link", { name: es.nav.myOrders }),
@@ -19,16 +21,30 @@ describe("AccountNav", () => {
     ).toBeInTheDocument();
   });
 
-  it("«Mi cuenta» es la única entrada activa: solo /cuenta monta este menú hoy", () => {
-    renderWithIntl(<AccountNav username={null} hasStore={false} />);
+  it.each<["account" | "orders" | "schedule", string]>([
+    ["account", es.nav.myAccount],
+    ["orders", es.nav.myOrders],
+    ["schedule", es.nav.schedule],
+  ])('con active="%s", esa es la única entrada marcada', (active, label) => {
+    renderWithIntl(
+      <AccountNav active={active} username={null} hasStore={true} />,
+    );
 
+    expect(screen.getByRole("link", { name: label })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
     expect(
-      screen.getByRole("link", { name: es.nav.myAccount, exact: true }),
-    ).toHaveAttribute("aria-current", "page");
+      screen
+        .getAllByRole("link")
+        .filter((el) => el.hasAttribute("aria-current")),
+    ).toHaveLength(1);
   });
 
   it("sin tienda, no ofrece agenda", () => {
-    renderWithIntl(<AccountNav username={null} hasStore={false} />);
+    renderWithIntl(
+      <AccountNav active="account" username={null} hasStore={false} />,
+    );
 
     expect(
       screen.queryByRole("link", { name: es.nav.schedule }),
@@ -36,7 +52,9 @@ describe("AccountNav", () => {
   });
 
   it("con tienda, ofrece agenda", () => {
-    renderWithIntl(<AccountNav username={null} hasStore={true} />);
+    renderWithIntl(
+      <AccountNav active="account" username={null} hasStore={true} />,
+    );
 
     expect(
       screen.getByRole("link", { name: es.nav.schedule }),
@@ -44,7 +62,9 @@ describe("AccountNav", () => {
   });
 
   it("sin dirección personal reclamada, no ofrece Mis publicaciones", () => {
-    renderWithIntl(<AccountNav username={null} hasStore={true} />);
+    renderWithIntl(
+      <AccountNav active="account" username={null} hasStore={true} />,
+    );
 
     expect(
       screen.queryByRole("link", { name: es.nav.myPublications }),
@@ -52,7 +72,9 @@ describe("AccountNav", () => {
   });
 
   it("con dirección personal, Mis publicaciones lleva al perfil público", () => {
-    renderWithIntl(<AccountNav username="jaime" hasStore={true} />);
+    renderWithIntl(
+      <AccountNav active="account" username="jaime" hasStore={true} />,
+    );
 
     expect(
       screen.getByRole("link", { name: es.nav.myPublications }),

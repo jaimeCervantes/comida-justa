@@ -11,6 +11,16 @@ const ITEM_IDLE =
 const ITEM_CLASS =
   "focus-ring block rounded-control px-3.5 py-2.5 text-sm transition-colors";
 
+/**
+ * `AccountNav` a la izquierda, el contenido de la página a la derecha — el `240px minmax(0, 1fr)`
+ * que pide el 5.15 del canvas. Vive aquí y no repetida en cada `page.tsx` porque las tres páginas
+ * que montan este menú tienen que verse como una sola sección, no tres decisiones de layout que
+ * podrían desalinearse. En el teléfono se apila: el menú cabe antes que el título sin empujar el
+ * contenido más de lo que ya empuja el encabezado del sitio.
+ */
+export const ACCOUNT_PAGE_LAYOUT =
+  "grid gap-8 lg:grid-cols-[240px_minmax(0,1fr)] lg:items-start";
+
 function NavItem({
   href,
   active,
@@ -47,14 +57,17 @@ function NavItem({
  * perfil que enseñar, y sin tienda abierta la agenda no sirve para nada: se ocultan en vez de
  * llevar a dar de alta lo que falta, que es lo que ya resolvió la nota de aquel componente.
  *
- * **Sin prop `active`.** Solo `/cuenta` la monta hoy, así que «Mi cuenta» es siempre la entrada
- * activa. El día que `/pedidos` o `/cuenta/agenda` la hereden, ahí es cuando gana sentido decir
- * cuál está activa desde fuera.
+ * **`active` es obligatoria, no una que se calcula sola.** `/cuenta`, `/pedidos` y
+ * `/cuenta/agenda` la montan; ninguna puede leer su propia ruta para adivinar cuál marcar —Radix
+ * no interviene aquí, es una prop de verdad— así que cada página dice de qué página es.
+ * «Publicaciones» no tiene entrada en esta unión: lleva a `/u/[username]`, que no monta este menú.
  */
 export default function AccountNav({
+  active,
   username,
   hasStore,
 }: {
+  active: "account" | "orders" | "schedule";
   username: string | null;
   hasStore: boolean;
 }) {
@@ -66,7 +79,7 @@ export default function AccountNav({
       data-testid="account-nav"
       className="flex flex-col gap-1"
     >
-      <NavItem href="/cuenta" active>
+      <NavItem href="/cuenta" active={active === "account"}>
         {t("myAccount")}
       </NavItem>
 
@@ -74,10 +87,14 @@ export default function AccountNav({
         <NavItem href={profileHref(username)}>{t("myPublications")}</NavItem>
       ) : null}
 
-      <NavItem href="/pedidos">{t("myOrders")}</NavItem>
+      <NavItem href="/pedidos" active={active === "orders"}>
+        {t("myOrders")}
+      </NavItem>
 
       {hasStore ? (
-        <NavItem href="/cuenta/agenda">{t("schedule")}</NavItem>
+        <NavItem href="/cuenta/agenda" active={active === "schedule"}>
+          {t("schedule")}
+        </NavItem>
       ) : null}
 
       <NavItem href="/habitos">{t("myHabits")}</NavItem>
