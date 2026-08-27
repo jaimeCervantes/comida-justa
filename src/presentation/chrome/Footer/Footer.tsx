@@ -4,9 +4,11 @@ import type { ReactNode } from "react";
 import { publicationPillarNumber } from "~/domain/entities/post/publicationPillars";
 import { Link } from "~/i18n/navigation";
 import { PUBLIC_BRAND_NAME } from "~/infra/constants";
+import type { ThemePreference } from "~/infra/theme/themeCookie";
 import { BadgeCounter } from "~/presentation/design_system/badges/Badge";
 import { Heading } from "~/presentation/design_system/typography/Heading";
 import { PILLAR_ITEMS, VISIBLE_COMMUNITY_ITEMS } from "../Header/menuItems";
+import ThemeToggle from "../ThemeToggle/ThemeToggle";
 
 /**
  * El encabezado de una columna del pie.
@@ -63,11 +65,12 @@ function ExternalLink({ href, children }: { href: string; children: string }) {
  * usuario: en un sitio de dos idiomas, cambiar de idioma es de las primeras cosas que alguien
  * busca, y el final de la página es encontrarlo tarde. Está en un solo sitio, no en los dos.
  *
- * El conmutador de **tema** que dibuja el canvas tampoco existe todavía en la aplicación —haría
- * falta el interruptor, dónde recordarlo y un script que evite el parpadeo al cargar—, así que es
- * su propio slice.
+ * **El conmutador de tema vive aquí**, y no en el header: a diferencia del idioma, no es de las
+ * primeras cosas que alguien busca —el sitio ya sigue al sistema operativo sin que nadie toque
+ * nada—, así que el pie es sitio de sobra. La preferencia la lee `RootLayout` de la cookie y
+ * llega ya resuelta: sin ella no hay parpadeo que corregir al cargar.
  */
-export default function Footer() {
+export default function Footer({ theme }: { theme: ThemePreference | null }) {
   const t = useTranslations("footer");
   /* Los pilares se nombran desde `pillars` y las secciones de comunidad desde `nav`: son los
      mismos catálogos que usa el menú de arriba, así que el pie no puede llamarles de otra forma. */
@@ -77,7 +80,7 @@ export default function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="mt-16 border-t border-border bg-surface-elevation-1 pt-16 pb-8 text-text-base">
+    <footer className="mt-16 border-t border-border bg-surface-elevation-1 pt-16 pb-28 text-text-base lg:pb-8">
       <div className="container-width mb-12 grid grid-cols-1 gap-12 md:grid-cols-4 lg:gap-8">
         <div className="space-y-6 md:col-span-1">
           <Link
@@ -200,6 +203,7 @@ export default function Footer() {
       <div className="container-width flex flex-col items-center justify-between gap-4 border-t border-separator pt-8 text-caption text-text-support md:flex-row">
         <p>{t("rights", { year: currentYear, brand: PUBLIC_BRAND_NAME })}</p>
         <p>{t("motto")}</p>
+        <ThemeToggle initial={theme} />
       </div>
     </footer>
   );

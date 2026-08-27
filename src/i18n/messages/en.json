@@ -690,6 +690,18 @@
     "rights": "© {year} {brand}. All rights reserved.",
     "tagline": "We are not just an app. We are a whole ecosystem of initiatives built to make living healthy the easiest option for everyone.",
     "telegram": "🤖 Assistant (Telegram)",
+    "theme": {
+      "label": {
+        "system": "Auto",
+        "light": "Light",
+        "dark": "Dark"
+      },
+      "switchTo": {
+        "system": "Follow system theme",
+        "light": "Switch to light theme",
+        "dark": "Switch to dark theme"
+      }
+    },
     "tiktok": "🎵 TikTok",
     "whatsapp": "📱 WhatsApp direct"
   },

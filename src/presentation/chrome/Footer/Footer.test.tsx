@@ -32,7 +32,7 @@ describe("When the footer is rendered", () => {
    * —contraste sobre la banda— lo mide `invertedSurface.contrast.test.ts`.
    */
   it("Then the brand name is painted with a solid color, not clipped from a gradient", () => {
-    const view = render(<Footer />);
+    const view = render(<Footer theme={null} />);
     const wordmark = view.getByText(PUBLIC_BRAND_NAME);
 
     expect(wordmark).not.toHaveClass("text-transparent");
@@ -48,7 +48,7 @@ describe("When the footer is rendered", () => {
    * vigila, porque es lo que se perdería si alguien vuelve a fijar un color.
    */
   it("Then it closes the page with its own surface and an edge, in either theme", () => {
-    const { container } = render(<Footer />);
+    const { container } = render(<Footer theme={null} />);
     const footer = container.querySelector("footer");
 
     expect(footer).toHaveClass("bg-surface-elevation-1");
@@ -65,7 +65,7 @@ describe("Los pilares del pie", () => {
    * dónde ir. Es lo que este slice arregla, y lo que esta prueba impide que vuelva.
    */
   it("llevan a alguna parte", () => {
-    const view = render(<Footer />);
+    const view = render(<Footer theme={null} />);
 
     for (const item of PILLAR_ITEMS) {
       expect(view.getByTestId(`footer-pillar-${item.pillar}`).tagName).toBe(
@@ -80,7 +80,7 @@ describe("Los pilares del pie", () => {
    * `publicationPillars.ts` dejó escrito que no debía pasar.
    */
   it("traen el número que les da el dominio, no su posición en la lista", () => {
-    const view = render(<Footer />);
+    const view = render(<Footer theme={null} />);
 
     for (const item of PILLAR_ITEMS) {
       expect(
@@ -90,7 +90,7 @@ describe("Los pilares del pie", () => {
   });
 
   it("están los cuatro, sin sobras", () => {
-    const view = render(<Footer />);
+    const view = render(<Footer theme={null} />);
     const pintados = PUBLICATION_PILLARS.filter((pillar) =>
       view.queryByTestId(`footer-pillar-${pillar.key}`),
     );

@@ -690,6 +690,18 @@
     "rights": "© {year} {brand}. Todos los derechos reservados.",
     "tagline": "No somos solo una aplicación, somos todo un ecosistema de iniciativas diseñadas para que vivir sano sea la opción más fácil para todos.",
     "telegram": "🤖 Asistente (Telegram)",
+    "theme": {
+      "label": {
+        "system": "Automático",
+        "light": "Claro",
+        "dark": "Oscuro"
+      },
+      "switchTo": {
+        "system": "Seguir el tema del sistema",
+        "light": "Cambiar a tema claro",
+        "dark": "Cambiar a tema oscuro"
+      }
+    },
     "tiktok": "🎵 TikTok",
     "whatsapp": "📱 WhatsApp Directo"
   },
