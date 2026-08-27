@@ -103,6 +103,7 @@ export default async function RootLayout({
       lang={locale}
       data-scroll-behavior="smooth"
       className={`${newsreader.variable} ${plusJakarta.variable}`}
+      suppressHydrationWarning
     >
       <body>
         {/* Sin el provider, un Client Component que use `useTranslations` revienta. Va aquí una
