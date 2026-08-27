@@ -64,7 +64,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
    */
   const [dismissedFor, setDismissedFor] = useState<string | null>(null);
   const router = useRouter();
-  const wrapperRef = useRef<HTMLDivElement>(null);
+  const wrapperRef = useRef<HTMLFormElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useSearchShortcut(inputRef);
@@ -163,14 +163,27 @@ const SearchBar: React.FC<SearchBarProps> = ({
     });
   };
 
+  /**
+   * Enter en un teclado físico y el botón «Buscar»/«Ir» del teclado del teléfono disparan el mismo
+   * evento `submit` de un `<input type="search">` dentro de un `<form>` — es la forma nativa de
+   * cazar los dos con un solo manejador, en vez de escuchar `keydown` y perderse el teclado móvil,
+   * que no siempre emite una tecla interceptable.
+   */
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!trimmed) return;
+    handleSeeAll();
+  };
+
   return (
-    <div className="w-64" ref={wrapperRef}>
+    <form className="w-64" ref={wrapperRef} onSubmit={handleSubmit}>
       <TextField
         ref={inputRef}
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder={placeholder ?? t("placeholder")}
         type="search"
+        enterKeyHint="search"
         autoComplete="off"
         icon={<MdSearch className="text-xl text-text-muted" />}
         /* La tecla, como en el 5.1. `aria-hidden` porque es una pista para quien tiene teclado —el
@@ -252,7 +265,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
           </button>
         </div>
       )}
-    </div>
+    </form>
   );
 };
 

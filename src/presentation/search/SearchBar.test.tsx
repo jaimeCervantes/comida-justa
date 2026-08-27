@@ -187,6 +187,29 @@ describe("SearchBar", () => {
     await waitFor(() => expect(dropdown()).not.toBeInTheDocument());
   });
 
+  /* Enter en un teclado físico dispara el mismo `submit` que el botón «Ir»/«Buscar» del teclado
+     de un teléfono — jsdom no distingue el origen del evento, así que esto también cubre ese
+     caso: los dos disparan `submit` sobre el mismo `<input type="search">` dentro del `<form>`. */
+  it("Enter navega a los resultados completos, igual que «Ver todos»", async () => {
+    vi.stubGlobal("fetch", givenResults(["Pan de masa madre"]));
+    render(<SearchBar />);
+
+    await user.type(screen.getByRole("searchbox"), "pan{Enter}");
+
+    expect(push).toHaveBeenCalledWith({
+      pathname: "/buscar",
+      query: { q: "pan" },
+    });
+  });
+
+  it("Enter con el campo vacío no navega a ninguna parte", async () => {
+    render(<SearchBar />);
+
+    await user.type(screen.getByRole("searchbox"), "{Enter}");
+
+    expect(push).not.toHaveBeenCalled();
+  });
+
   it("navigates to a result when it is picked", async () => {
     vi.stubGlobal("fetch", givenResults(["Pan de masa madre"]));
     render(<SearchBar />);
