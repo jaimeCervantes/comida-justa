@@ -510,8 +510,14 @@ async function mirrorImage(
     if (source.byteLength === 0) return null;
 
     const { data, width, height } = await toWebp(source);
+    /* `new Uint8Array(data)` y no `data` a secas: el `Buffer` de Node se tipa como
+       `Buffer<ArrayBufferLike>`, que admite un `SharedArrayBuffer`, y `BlobPart` exige uno
+       respaldado por un `ArrayBuffer` normal. La copia lo respalda con uno propio y deja de ser un
+       tipo que el compilador no puede garantizar. */
     const url = await storage.uploadFile(
-      new File([data], storedName(product, position), { type: "image/webp" }),
+      new File([new Uint8Array(data)], storedName(product, position), {
+        type: "image/webp",
+      }),
     );
 
     return { url, width, height };
