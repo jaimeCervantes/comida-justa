@@ -65,6 +65,18 @@ export interface IPostQueryRepository {
     filters?: PostListingFilters,
   ): Promise<PaginatedPostsResult>;
   /**
+   * Cuántas publicaciones tienen su tienda dentro de un radio de quien mira.
+   *
+   * Es un conteo aparte y no el `total` de un listado **a propósito**: el home lista lo último de
+   * la comunidad, sin filtrar por cercanía, y ese contrato no cambia. Lo que esta cifra contesta es
+   * otra pregunta —«cuánto de esto me queda cerca»—, así que se pregunta aparte en vez de torcer el
+   * listado para que su total sirva de dos cosas.
+   *
+   * Una publicación sin tienda, o con tienda sin sucursal, no tiene distancia: no cuenta. Es la
+   * misma regla que ya aplica `distanceColumn` al dejarlas en `NULL`.
+   */
+  countNearby(near: Coordinates, radiusMeters: number): Promise<number>;
+  /**
    * Todo lo comercial, sea de quien sea: productos que se entregan y servicios que se agendan.
    *
    * Es lo que lista `/productos`. La URL queda por compatibilidad, pero la página ya no es solo

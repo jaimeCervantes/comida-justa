@@ -10,6 +10,7 @@ import {
   parsePublicationPillar,
 } from "~/domain/entities/post/publicationPillars";
 import type { Coordinates } from "~/domain/entities/seller/coordinates";
+import { SUSTAINABLE_RADIUS_METERS } from "~/domain/entities/seller/proximity";
 import { buildSiteJsonLd } from "~/domain/seo/jsonLd/site";
 import { ensureAbsoluteUrl } from "~/domain/seo/url";
 import { resolveLocale, routing } from "~/i18n/routing";
@@ -118,6 +119,20 @@ export default async function Inicio({
     currentPillar,
   );
 
+  /*
+   * Cuánto de lo publicado le queda cerca a quien mira.
+   *
+   * Solo se pregunta cuando sabemos dónde está: sin ubicación no hay radio que medir, y preguntarlo
+   * contra el ancla devolvería «lo que hay cerca de Tezonapa», que es el total disfrazado de dato
+   * personal. `null` es la respuesta honesta y `HomeHero` la distingue.
+   */
+  const nearbyCount = visitor
+    ? await createPostQueryRepository().countNearby(
+        visitor,
+        SUSTAINABLE_RADIUS_METERS,
+      )
+    : null;
+
   return (
     <main className="space-y-6">
       {/* Quién publica el sitio. Va en el home y no en el layout: repetir la organización en cada
@@ -143,7 +158,11 @@ export default async function Inicio({
           reciente porque el home es cronológico por contrato: ninguna de las dos cuesta una lectura
           extra. */}
       <div className="hidden lg:block lg:space-y-6">
-        <HomeHero publicationCount={total} latest={posts[0]} />
+        <HomeHero
+          publicationCount={total}
+          nearbyCount={nearbyCount}
+          latest={posts[0]}
+        />
 
         <Heading level={2} size="sm">
           {tFeed("latestHeading")}

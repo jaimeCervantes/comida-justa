@@ -729,6 +729,7 @@
     "coverLabel": "Lo último que se publicó",
     "description": "❤️💚 Hazlo sano: Cuando cuidas tu salud, también estás cuidando lo más valioso que tienes: tu tiempo. Tu recurso máximo no renovable.",
     "heroEyebrow": "Tezonapa, Veracruz · {count, plural, =0 {sin publicaciones todavía} =1 {# publicación} other {# publicaciones}}",
+    "heroEyebrowNearby": "{count, plural, =1 {# publicación} other {# publicaciones}} a menos de {km} km de ti",
     "heroTitle": "Cuidar tu salud es cuidar <em>tu tiempo</em>",
     "heroIntro": "Tu recurso máximo no renovable: no se compra y no se recupera. Con diez minutos al día ganas salud, belleza y longevidad — y de paso fortaleces a tu comunidad.",
     "heroIdentity": "Vivir bien no es un lujo. Es un acto de amor propio que se contagia.",

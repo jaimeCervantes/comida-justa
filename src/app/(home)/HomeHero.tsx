@@ -1,4 +1,5 @@
 import { useTranslations } from "next-intl";
+import { SUSTAINABLE_RADIUS_KM } from "~/domain/entities/seller/proximity";
 import { Link } from "~/i18n/navigation";
 import type { Post } from "~/infra/types/Posts";
 import { buttonVariants } from "~/presentation/design_system/buttons/buttonVariants";
@@ -24,10 +25,22 @@ import MediaContent from "~/presentation/media/MediaContent/MediaContent";
  */
 export default function HomeHero({
   publicationCount,
+  nearbyCount,
   latest,
 }: {
   /** Las publicaciones que el feed de abajo va a listar. Sale del `total` que ya trae la página. */
   publicationCount: number;
+  /**
+   * Cuántas de esas quedan dentro del radio sostenible de quien mira, o `null` si no sabemos dónde
+   * está.
+   *
+   * **Decide qué rótulo se pinta.** Con ubicación y algo cerca, el rótulo habla de esa persona; sin
+   * ubicación —o sabiendo dónde está y sin nada cerca— cae al de la comunidad. Ese fallback no es
+   * pereza: hoy todo lo publicado está en Tezonapa, así que decirle «0 publicaciones cerca» a quien
+   * mira desde otro estado sería anunciarle que el sitio está vacío, cuando lo que hay se le está
+   * enseñando justo debajo. Se le dice de dónde es lo que ve, que es lo cierto.
+   */
+  nearbyCount: number | null;
   /**
    * La más reciente, para la portada.
    *
@@ -49,8 +62,16 @@ export default function HomeHero({
   return (
     <header className="grid items-center gap-8 border-b border-separator pb-8 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
       <div>
-        <p className="text-label font-medium uppercase tracking-[0.14em] text-highlight">
-          {t("heroEyebrow", { count: publicationCount })}
+        <p
+          data-testid="home-eyebrow"
+          className="text-label font-medium uppercase tracking-[0.14em] text-highlight"
+        >
+          {nearbyCount !== null && nearbyCount > 0
+            ? t("heroEyebrowNearby", {
+                count: nearbyCount,
+                km: SUSTAINABLE_RADIUS_KM,
+              })
+            : t("heroEyebrow", { count: publicationCount })}
         </p>
 
         {/* El énfasis viaja **dentro del mensaje**, no partiendo la cadena en el componente: así cada

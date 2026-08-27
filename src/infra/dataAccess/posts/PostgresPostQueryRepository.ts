@@ -368,6 +368,36 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
     return Number(row.count);
   }
 
+  async countNearby(near: Coordinates, radiusMeters: number): Promise<number> {
+    /*
+     * `EXISTS` y no un `JOIN`: una tienda con tres sucursales cerca cuenta **una** publicación, no
+     * tres. Con `JOIN` la cifra se multiplicaría por sucursal y el rótulo prometería un catálogo
+     * que no existe.
+     *
+     * `ST_DWithin` y no `ST_Distance(...) <= radio`: el primero usa el índice espacial de
+     * `branches.location`, el segundo obliga a medir contra todas las filas. Aquí la pregunta es
+     * «¿está dentro?», que es justo lo que `ST_DWithin` contesta.
+     */
+    const raw = await db.execute(sql`
+      SELECT COUNT(*)::int AS count
+      FROM posts p
+      WHERE ${PUBLISHED_POSTS}
+        AND EXISTS (
+          SELECT 1
+          FROM branches b
+          WHERE b.seller_id = p.seller_id
+            AND ST_DWithin(
+              b.location,
+              ST_SetSRID(ST_MakePoint(${near.longitude}, ${near.latitude}), 4326)::geography,
+              ${radiusMeters}
+            )
+        )
+    `);
+    const row = raw.rows[0] as { count: number };
+
+    return Number(row.count);
+  }
+
   async getProductCountsByOrigin(): Promise<OriginCount[]> {
     const raw = await db.execute(sql`
       SELECT p.origin, COUNT(*)::int AS count
