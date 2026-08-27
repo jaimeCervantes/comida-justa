@@ -218,6 +218,103 @@ function rejectionReason(product: CatalogProduct): string | null {
   return null;
 }
 
+/**
+ * Las etiquetas del proveedor que de verdad describen el producto.
+ *
+ * `post_translations.tags` está vacío en todo el catálogo porque **nadie lo escribe**: ni el INSERT
+ * de `PostgresPostRepository.save`, ni `saveTranslation` del backfill de traducción. El único que
+ * lo toca es el repositorio de embeddings, para leerlo — y `buildEmbeddingText` tiene una línea
+ * `Etiquetas:` que por eso nunca se llena.
+ *
+ * **No entra al `tsvector`**: la búsqueda del sitio se arma solo con `title` y `content`. Esto pesa
+ * en el embedding, o sea en el chatbot.
+ *
+ * Lo que llega del proveedor viene mezclado con su cocina interna, así que se filtra por regla y no
+ * por lista blanca, que serían 208 juicios a mano:
+ *
+ * - **Operativas**: `promo_hasta20`, `modo_uso`, `category_falcon`, `60_trabajador`. Llevan guion
+ *   bajo o prefijo de colección.
+ * - **Slugs de app**: `out-of-stock-police`, `corner-cart-goal-exclude`,
+ *   `meta-related-collection-related-products`. Palabras unidas por guion y sin espacios.
+ * - **El propio proveedor**: `sano mundo`, `wildfoods`, `tofu sano mundo`. Ya va en el `content`.
+ * - **Condiciones y promesas de salud**: `alzheimer`, `candidiasis`, `problemas de la tiroides`,
+ *   `pastillas para bajar de peso`. Son las etiquetas SEO de Sano Mundo, y meterlas al vector deja
+ *   al chatbot recuperando suplementos cuando alguien pregunta por una enfermedad. Es una decisión
+ *   de qué promete el sitio, y la respuesta fue que no.
+ *
+ * Se conserva **cómo las escribe el proveedor** —con sus tildes y su caja—; la forma normalizada se
+ * usa solo para decidir y para no repetir.
+ */
+const TAG_STOPWORDS = new Set([
+  "shoptok",
+  "dist",
+  "cfw",
+  "seg",
+  "hidden",
+  "otros",
+  "paquete",
+  "buen fin",
+  "natural",
+  "organic meal",
+  "proteinpro",
+  "testimonio destacado",
+  "suplementoswellness",
+]);
+
+const TAG_OPERATIONAL = /_|^meta-|^categroy|^category/;
+const TAG_APP_SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)+$/;
+const TAG_HEALTH =
+  /alzheimer|candid|tiroide|neurogenesis|cerebro|memori|concentracion|aprendizaje|irritabilidad|estres|arteria|articulacion|cicatrizacion|hueso|bajar de peso|antimicotico|antibacteriano|pastillas/;
+
+const MIN_TAG = 4;
+
+/** Sin tildes, sin comillas y en minúscula: la forma con la que se decide, no la que se guarda. */
+function tagKey(tag: string): string {
+  return tag
+    .replace(/["']/g, "")
+    .trim()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+}
+
+function tagsFor(product: CatalogProduct): string[] {
+  const supplier = tagKey(product.supplierName).replace(/\s+/g, "");
+  const kept: string[] = [];
+  const seen = new Set<string>();
+
+  for (const raw of product.tags ?? []) {
+    const tag = String(raw).replace(/["']/g, "").trim();
+    const key = tagKey(tag);
+
+    if (key.length < MIN_TAG || seen.has(key)) continue;
+    if (TAG_OPERATIONAL.test(key) || TAG_APP_SLUG.test(key)) continue;
+    if (TAG_STOPWORDS.has(key) || TAG_HEALTH.test(key)) continue;
+
+    /* En los dos sentidos: «tofu sano mundo» contiene al proveedor, y «wildfoods» está contenido
+       en él —The Wild Foods se etiqueta a sí mismo con el nombre a medias—. */
+    const squeezed = key.replace(/\s+/g, "");
+    const names = [supplier, product.supplier];
+    if (
+      names.some((name) => squeezed.includes(name) || name.includes(squeezed))
+    )
+      continue;
+
+    seen.add(key);
+    kept.push(tag);
+  }
+
+  return kept;
+}
+
+/** ¿Son las mismas etiquetas y en el mismo orden? Compara sin tocar la base si no hace falta. */
+function sameTags(current: unknown, wanted: readonly string[]): boolean {
+  if (!Array.isArray(current)) return wanted.length === 0;
+  if (current.length !== wanted.length) return false;
+
+  return current.every((tag, i) => tag === wanted[i]);
+}
+
 /** El lado mayor que se guarda. `next/image` reescala hacia abajo desde aquí sin que se note. */
 const MAX_EDGE = 1024;
 const WEBP_QUALITY = 82;
@@ -821,6 +918,7 @@ async function main(): Promise<void> {
         translationId: postTranslations.id,
         title: postTranslations.title,
         content: postTranslations.content,
+        tags: postTranslations.tags,
         price: posts.price,
         sellerId: posts.sellerId,
         userId: posts.userId,
@@ -844,6 +942,7 @@ async function main(): Promise<void> {
     const moves = new Map<string, number>();
     let retitled = 0;
     let retexted = 0;
+    let retagged = 0;
     let repriced = 0;
     let reassigned = 0;
     let reshelved = 0;
@@ -889,6 +988,30 @@ async function main(): Promise<void> {
           await db
             .update(postTranslations)
             .set({ title, content })
+            .where(eq(postTranslations.id, row.translationId));
+        }
+      }
+
+      /*
+       * Las etiquetas se ponen **aquí y no al dar de alta**, porque el INSERT vive en
+       * `PostgresPostRepository.save`, que comparte el formulario de publicar: meterlas ahí sería
+       * cambiar código de todo el sitio para una necesidad del catálogo. Así, un producto nuevo las
+       * recibe en el `--sync` siguiente, que de todos modos hay que correr.
+       *
+       * Solo tocan la fila en español. La traducción al inglés se guarda con su propio slug, así
+       * que este bucle ni la ve — y unas etiquetas en español en un registro inglés no ayudarían a
+       * su embedding.
+       */
+      const tags = tagsFor(product);
+
+      if (!sameTags(row.tags, tags)) {
+        retagged++;
+        changed = true;
+
+        if (!options.dryRun) {
+          await db
+            .update(postTranslations)
+            .set({ tags })
             .where(eq(postTranslations.id, row.translationId));
         }
       }
@@ -998,6 +1121,7 @@ async function main(): Promise<void> {
       `  títulos ${options.dryRun ? "a cambiar" : "cambiados"}:      ${retitled}`,
     );
     console.log(`  descripciones:                ${retexted}`);
+    console.log(`  etiquetas:                    ${retagged}`);
     console.log(
       `  precios ${options.dryRun ? "a corregir" : "corregidos"}:          ${repriced}`,
     );
