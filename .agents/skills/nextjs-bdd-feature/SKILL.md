@@ -14,7 +14,7 @@ Use this skill for behavior changes. Start from a small scenario, then tests, th
 >
 > **Once the `.feature` is validated, run the slice to completion without stopping.** Do not ask for
 > permission per command, per file, or per step: writ all tests needed starting witth e2e tests, then
-> implement the code, run `test:run`, `typecheck`, `lint` and the Playwright e2e (yes, even against the > > > > shared DB — the suite cleans up after itself), run seed or fixture scripts, fix what breaks, and only then > report — with numbers, and saying what you wrote to any shared resource and how to undo it. A report is not a gate.
+> implement the code, run `test:run`, `typecheck`, `lint` and only feature relatede Playwright e2e (yes, even against the > > > > shared DB — the suite cleans up after itself), run seed or fixture scripts, fix what breaks, and only then > report — with numbers, and saying what you wrote to any shared resource and how to undo it. A report is not a gate.
 >
 > The single exception is a **truly irreversible** action: destroying or overwriting data that isn't
 > yours, a schema migration on the shared DB, `git push --force`, exposing secrets, or a discovery that
@@ -183,14 +183,14 @@ maintenance, it is the test costing more than it protects.
 
 Six patterns that always rot, and what to write instead:
 
-| Rots | Why | Write instead |
-| --- | --- | --- |
-| `toBe("rgb(27, 30, 24)")` | Freezes a token's current value | Read the token in the browser and assert the **relation**: "the price is body ink, not the accent" |
-| `toHaveText("0")` on a count | Depends on what the community published today | Assert the shape (`/^\d+$/`), or an invariant between two numbers on the same screen |
+| Rots                                        | Why                                                                           | Write instead                                                                                                                                      |
+| ------------------------------------------- | ----------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `toBe("rgb(27, 30, 24)")`                   | Freezes a token's current value                                               | Read the token in the browser and assert the **relation**: "the price is body ink, not the accent"                                                 |
+| `toHaveText("0")` on a count                | Depends on what the community published today                                 | Assert the shape (`/^\d+$/`), or an invariant between two numbers on the same screen                                                               |
 | `page.getByRole("link", { name })` unscoped | The footer and bottom nav repeat labels, and `getByRole` matches by substring | Scope to a region: `page.getByTestId("region").getByRole(...)`. A `data-testid` on the container is cheaper than an `exact: true` somebody forgets |
-| Pixel gap between two named pieces | Adding a third piece between them breaks it, though nothing detached | Measure from the **last** piece, whatever it is |
-| `toEqual({ ...exact shape })` | Any added field breaks it with nothing wrong | Assert the fields the scenario is about |
-| A route list copied into the spec | Drifts from the `.feature` and from the app | One list, derived; or assert the rule ("it is on every route, exactly once") |
+| Pixel gap between two named pieces          | Adding a third piece between them breaks it, though nothing detached          | Measure from the **last** piece, whatever it is                                                                                                    |
+| `toEqual({ ...exact shape })`               | Any added field breaks it with nothing wrong                                  | Assert the fields the scenario is about                                                                                                            |
+| A route list copied into the spec           | Drifts from the `.feature` and from the app                                   | One list, derived; or assert the rule ("it is on every route, exactly once")                                                                       |
 
 **Editing a spec is right when the behaviour actually changed** (a section became desktop-only) or
 **when the spec found a real defect** (two controls sharing one `data-testid`). That is not
