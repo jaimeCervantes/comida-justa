@@ -18,6 +18,7 @@ config({
  *   pnpm run import:catalog -- --supplier=birdman --limit=5  una prueba pequeña
  *   pnpm run import:catalog                                  la carga completa
  *   pnpm run import:catalog -- --sync                        pone al día lo ya publicado
+ *   pnpm run import:catalog -- --owner=correo@ejemplo.com    con qué cuenta se publica
  *   pnpm run import:catalog -- --reprocess-images            rehace a WebP lo subido crudo
  *   pnpm run import:catalog -- --prune                       borra lo que el catálogo ya no trae
  *   pnpm run import:catalog -- --remove                      deshace lo importado
@@ -100,6 +101,7 @@ interface Options {
   supplier: string | null;
   limit: number | null;
   maxImages: number;
+  owner: string | null;
   file: string;
 }
 
@@ -126,6 +128,7 @@ function parseOptions(argv: string[]): Options {
       Number.isFinite(maxImagesRaw) && maxImagesRaw > 0
         ? maxImagesRaw
         : DEFAULT_MAX_IMAGES,
+    owner: value("owner") ?? null,
     file: file ? resolve(process.cwd(), file) : DEFAULT_CATALOG,
   };
 }
@@ -135,6 +138,36 @@ function adminEmail(): string | undefined {
     .split(",")
     .map((entry) => entry.trim())
     .filter(Boolean)[0];
+}
+
+/**
+ * El correo de la cuenta que publica el catálogo, y **se dice a propósito**.
+ *
+ * Antes salía del primero de `HAZLO_SANO_ADMIN_EMAILS`, que es una lista de quién manda, no de quién
+ * publica. Basta reordenarla para que el dueño cambie sin que nadie lo pida: así acabaron las cargas
+ * del 24 y del 26 de agosto repartidas entre dos usuarios, 422 y 130. Y esa lista no se puede
+ * reordenar a la ligera, porque las pruebas e2e entran con el primero de ella.
+ *
+ * Por eso ahora hay dónde decirlo: `--owner=` para una corrida, `CATALOG_OWNER_EMAIL` para siempre.
+ * El respaldo antiguo se conserva para no romper a quien no configure nada, pero avisa.
+ */
+function ownerEmail(options: Options): string | undefined {
+  if (options.owner) return options.owner;
+
+  const configured = process.env.CATALOG_OWNER_EMAIL?.trim();
+  if (configured) return configured;
+
+  const fallback = adminEmail();
+  if (fallback) {
+    console.warn(
+      `AVISO: nadie dijo con qué cuenta publicar; se usa el primer admin (${fallback}).`,
+    );
+    console.warn(
+      "       Fíjalo con CATALOG_OWNER_EMAIL o --owner= para que no dependa del orden de esa lista.\n",
+    );
+  }
+
+  return fallback;
 }
 
 /**
@@ -415,7 +448,7 @@ async function main(): Promise<void> {
    * `--prune`, para no borrar lo que publicó alguien más.
    */
   const resolveOwnerId = async (): Promise<string | undefined> => {
-    const email = adminEmail();
+    const email = ownerEmail(options);
     const rows = email
       ? await db
           .select({ id: users.id })
@@ -716,14 +749,26 @@ async function main(): Promise<void> {
    * Poner al día lo ya publicado, en vez de reimportarlo.
    *
    * Cuando el proveedor mueve un precio, o cambia el mapeo de categorías, el texto o el tope de
-   * imágenes, borrar y reimportar
-   * volvería a descargar y subir cientos de archivos idénticos para acabar en el mismo sitio —y de
-   * paso cambiaría los ids de las publicaciones. Esto corrige en el lugar y **solo sube lo que
-   * falta**.
+   * imágenes, borrar y reimportar volvería a descargar y subir cientos de archivos idénticos para
+   * acabar en el mismo sitio —y de paso cambiaría los ids de las publicaciones. Esto corrige en el
+   * lugar y **solo sube lo que falta**.
    *
    * El `slug` es la llave, igual que en el dedup del alta: el JSON del extractor manda.
+   *
+   * También repara **de quién es la publicación**, que no viene del catálogo sino de la
+   * configuración. Hasta ahora el dueño se decidía en el alta y ahí se quedaba, así que dos cargas
+   * hechas con distinta configuración dejaron el mismo catálogo repartido entre dos cuentas —422 y
+   * 130—, y la ficha enseña quién publica. Es lo único que se corrige sin que lo pida el JSON.
    */
   if (options.sync) {
+    const owner = await resolveOwnerId();
+    if (!owner) {
+      console.error(
+        `ERROR: no existe un usuario con el correo "${ownerEmail(options)}".`,
+      );
+      process.exit(1);
+    }
+
     const bySlug = new Map(products.map((product) => [product.slug, product]));
 
     const current = await db
@@ -734,6 +779,7 @@ async function main(): Promise<void> {
         title: postTranslations.title,
         content: postTranslations.content,
         price: posts.price,
+        userId: posts.userId,
         category: posts.category,
         subCategory: posts.subCategory,
       })
@@ -755,6 +801,7 @@ async function main(): Promise<void> {
     let retitled = 0;
     let retexted = 0;
     let repriced = 0;
+    let reassigned = 0;
     let addedImages = 0;
     let touched = 0;
 
@@ -825,6 +872,18 @@ async function main(): Promise<void> {
         }
       }
 
+      if (row.userId !== owner) {
+        reassigned++;
+        changed = true;
+
+        if (!options.dryRun) {
+          await db
+            .update(posts)
+            .set({ userId: owner })
+            .where(eq(posts.id, row.id));
+        }
+      }
+
       /*
        * Las imágenes solo se **añaden**. Las que ya están conservan su `sort_order`, y lo que falta
        * se cuelga detrás: la selección de `pickImages` empieza por las mismas de siempre, así que
@@ -882,6 +941,9 @@ async function main(): Promise<void> {
     console.log(`  descripciones:                ${retexted}`);
     console.log(
       `  precios ${options.dryRun ? "a corregir" : "corregidos"}:          ${repriced}`,
+    );
+    console.log(
+      `  dueño ${options.dryRun ? "a reasignar" : "reasignado"}:           ${reassigned}`,
     );
     console.log(
       `  imágenes ${options.dryRun ? "a añadir" : "añadidas"}:       ${addedImages}`,
@@ -962,10 +1024,10 @@ async function main(): Promise<void> {
 
   const ownerId = await resolveOwnerId();
   if (!ownerId) {
-    const email = adminEmail();
+    const email = ownerEmail(options);
     console.error(
       email
-        ? `ERROR: no existe un usuario con el correo "${email}" (HAZLO_SANO_ADMIN_EMAILS).`
+        ? `ERROR: no existe un usuario con el correo "${email}".`
         : "ERROR: la tabla users está vacía.",
     );
     process.exit(1);
