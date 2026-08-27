@@ -13,8 +13,12 @@ Use this skill for behavior changes. Start from a small scenario, then tests, th
 > only approval checkpoints to (1) the alignment gate and (2) the `.feature` + its scenarios.
 >
 > **Once the `.feature` is validated, run the slice to completion without stopping.** Do not ask for
-> permission per command, per file, or per step: writ all tests needed starting witth e2e tests, then
-> implement the code, run `test:run`, `typecheck`, `lint` and only feature relatede Playwright e2e (yes, even against the > > > > shared DB — the suite cleans up after itself), run seed or fixture scripts, fix what breaks, and only then > report — with numbers, and saying what you wrote to any shared resource and how to undo it. A report is not a gate.
+> permission per command, per file, or per step: write all tests needed starting with e2e tests, then
+> implement the code, run `test:run`, `typecheck`, `lint` and the Playwright e2e scoped to the feature
+> touched (yes, even against the shared DB — the suite cleans up after itself), run seed or fixture
+> scripts, fix what breaks, and only then report — with numbers, and saying what you wrote to any
+> shared resource and how to undo it. A report is not a gate. **Never run the complete e2e suite
+> (`pnpm run test:e2e:run` with no path) unless the user explicitly asks for it.**
 >
 > The single exception is a **truly irreversible** action: destroying or overwriting data that isn't
 > yours, a schema migration on the shared DB, `git push --force`, exposing secrets, or a discovery that
@@ -36,6 +40,8 @@ branch) directly.
   `git checkout -b`, so nothing is lost.
 - Commit per zone or per slice, not in one gigantic commit. Push and open the PR only when the user
   asks.
+- Every commit is the user's alone: never add a `Co-Authored-By` trailer, a session link, or any
+  other AI-attribution to the message (see `AGENTS.md` → "Commit authorship").
 
 0. Alignment gate (mandatory, no exceptions):
    1. Ask the user for:
