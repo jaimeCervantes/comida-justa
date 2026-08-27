@@ -729,7 +729,7 @@
     "coverLabel": "The latest thing published",
     "description": "❤️💚 Just Health: When you take care of your health, you're also protecting the most valuable thing you have: your time. Your ultimate non-renewable resource.",
     "heroEyebrow": "Tezonapa, Veracruz · {count, plural, =0 {nothing published yet} =1 {# publication} other {# publications}}",
-    "heroEyebrowNearby": "{count, plural, =1 {# publication} other {# publications}} within {km} km of you",
+    "heroEyebrowNearby": "{count, plural, =1 {# publication nearby} other {# publications nearby}} · closest {nearest}",
     "heroTitle": "Caring for your health is caring for <em>your time</em>",
     "heroIntro": "Your one non-renewable resource: you can't buy it and you can't get it back. Ten minutes a day earn you health, beauty and longevity — and they strengthen your community along the way.",
     "heroIdentity": "Living well isn't a luxury. It's an act of self-love, and it spreads.",

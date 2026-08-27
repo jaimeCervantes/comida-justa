@@ -27,7 +27,7 @@ const YOGA = {
 
 describe("HomeHero", () => {
   it("presenta el sitio con la voz de la marca y un solo h1", () => {
-    renderWithIntl(<HomeHero publicationCount={31} nearbyCount={null} />);
+    renderWithIntl(<HomeHero publicationCount={31} nearby={null} />);
 
     const titulo = screen.getByRole("heading", { level: 1 });
 
@@ -44,28 +44,34 @@ describe("HomeHero", () => {
     [1, /1 publicación/i],
     [0, /sin publicaciones todavía/i],
   ])("dice cuántas publicaciones hay: %i", (count, esperado) => {
-    renderWithIntl(<HomeHero publicationCount={count} nearbyCount={null} />);
+    renderWithIntl(<HomeHero publicationCount={count} nearby={null} />);
 
     expect(screen.getByText(esperado)).toBeInTheDocument();
   });
 
   it("nombra la comunidad que el sitio sirve de verdad", () => {
-    renderWithIntl(<HomeHero publicationCount={31} nearbyCount={null} />);
+    renderWithIntl(<HomeHero publicationCount={31} nearby={null} />);
 
     expect(screen.getByText(/Tezonapa, Veracruz/)).toBeInTheDocument();
   });
 
   /*
    * El rótulo decía «Tezonapa, Veracruz · 426 publicaciones» a todo el mundo: ni el lugar ni la
-   * cifra tenían que ver con quien miraba. Con ubicación compartida, ahora habla de esa persona.
+   * cifra tenían que ver con quien miraba. Con ubicación compartida, ahora habla de esa persona —
+   * y dice la distancia real a lo más cercano, no el límite del radio, que es un número del sistema
+   * y no un dato de quien mira.
    */
-  it.each<[number, RegExp]>([
-    [8, /8 publicaciones a menos de 50 km de ti/i],
-    [1, /1 publicación a menos de 50 km de ti/i],
+  it.each<[number, number, RegExp]>([
+    [8, 3200, /8 publicaciones cerca · la más cercana a 3\.2 km/i],
+    [1, 12000, /1 publicación cerca · la más cercana a 12 km/i],
+    /* Por debajo del kilómetro se habla en metros: «a 0.4 km» no es como nadie dice esa distancia. */
+    [3, 420, /3 publicaciones cerca · la más cercana a 420 m/i],
   ])(
-    "con ubicación, dice cuánto queda cerca de quien mira: %i",
-    (cerca, esperado) => {
-      renderWithIntl(<HomeHero publicationCount={426} nearbyCount={cerca} />);
+    "con ubicación, dice cuánto hay cerca y a qué distancia lo primero: %i",
+    (count, nearestMeters, esperado) => {
+      renderWithIntl(
+        <HomeHero publicationCount={426} nearby={{ count, nearestMeters }} />,
+      );
 
       expect(screen.getByTestId("home-eyebrow")).toHaveTextContent(esperado);
       /* Y deja de hablar de Tezonapa: quien comparte su ubicación no está mirando desde ahí. */
@@ -78,15 +84,22 @@ describe("HomeHero", () => {
    * «0 publicaciones cerca» le diría a quien mira desde otro estado que el sitio está vacío —
    * mientras el feed de abajo le enseña 426. Se le dice de dónde es lo que ve.
    */
-  it("sin nada cerca, vuelve al rótulo de la comunidad en vez de anunciar un cero", () => {
-    renderWithIntl(<HomeHero publicationCount={426} nearbyCount={0} />);
+  it.each<[string, { count: number; nearestMeters: number | null }]>([
+    ["sin nada dentro del radio", { count: 0, nearestMeters: null }],
+    /* Defensa contra un resumen incoherente: contar sin distancia no da un rótulo que pintar. */
+    ["con una cuenta sin distancia", { count: 5, nearestMeters: null }],
+  ])(
+    "%s, vuelve al rótulo de la comunidad en vez de anunciar un cero",
+    (_caso, nearby) => {
+      renderWithIntl(<HomeHero publicationCount={426} nearby={nearby} />);
 
-    const eyebrow = screen.getByTestId("home-eyebrow");
+      const eyebrow = screen.getByTestId("home-eyebrow");
 
-    expect(eyebrow).toHaveTextContent(/Tezonapa, Veracruz/);
-    expect(eyebrow).toHaveTextContent(/426 publicaciones/);
-    expect(eyebrow).not.toHaveTextContent(/0 publicaciones/);
-  });
+      expect(eyebrow).toHaveTextContent(/Tezonapa, Veracruz/);
+      expect(eyebrow).toHaveTextContent(/426 publicaciones/);
+      expect(eyebrow).not.toHaveTextContent(/0 publicaciones/);
+    },
+  );
 
   /*
    * Un CTA de portada tiene que ser un enlace: se abre en pestaña nueva, se copia y lo sigue un
@@ -96,7 +109,7 @@ describe("HomeHero", () => {
     ["Ver lo que hay hoy", "/productos"],
     ["Publicar lo mío", "/publicar"],
   ])("ofrece «%s» como enlace a %s", (label, href) => {
-    renderWithIntl(<HomeHero publicationCount={31} nearbyCount={null} />);
+    renderWithIntl(<HomeHero publicationCount={31} nearby={null} />);
 
     expect(screen.getByRole("link", { name: label })).toHaveAttribute(
       "href",
@@ -107,7 +120,7 @@ describe("HomeHero", () => {
   /* El énfasis viaja dentro del mensaje para que cada idioma decida qué palabra destaca. */
   it("destaca una parte del titular, y la elige el catálogo", () => {
     const { container } = renderWithIntl(
-      <HomeHero publicationCount={31} nearbyCount={null} />,
+      <HomeHero publicationCount={31} nearby={null} />,
     );
 
     const enfasis = container.querySelector("h1 em");
@@ -122,7 +135,7 @@ describe("HomeHero", () => {
    */
   it("enseña lo último publicado, y lleva a ello", () => {
     renderWithIntl(
-      <HomeHero publicationCount={31} nearbyCount={null} latest={YOGA} />,
+      <HomeHero publicationCount={31} nearby={null} latest={YOGA} />,
     );
 
     const cover = screen.getByTestId("home-cover");
@@ -134,7 +147,7 @@ describe("HomeHero", () => {
 
   it("y la foto se anuncia con lo que es, no con un texto de relleno", () => {
     renderWithIntl(
-      <HomeHero publicationCount={31} nearbyCount={null} latest={YOGA} />,
+      <HomeHero publicationCount={31} nearby={null} latest={YOGA} />,
     );
 
     expect(screen.getByAltText("Sesión de yoga")).toBeInTheDocument();
@@ -151,7 +164,7 @@ describe("HomeHero", () => {
     renderWithIntl(
       <HomeHero
         publicationCount={0}
-        nearbyCount={null}
+        nearby={null}
         latest={latest as typeof YOGA}
       />,
     );
@@ -163,7 +176,7 @@ describe("HomeHero", () => {
 
   it("en inglés destaca la parte que le toca al inglés", () => {
     const { container } = renderWithIntl(
-      <HomeHero publicationCount={31} nearbyCount={null} />,
+      <HomeHero publicationCount={31} nearby={null} />,
       {
         locale: "en",
       },

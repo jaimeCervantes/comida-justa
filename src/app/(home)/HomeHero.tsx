@@ -1,6 +1,7 @@
 import { useTranslations } from "next-intl";
-import { SUSTAINABLE_RADIUS_KM } from "~/domain/entities/seller/proximity";
+import { describeDistance } from "~/domain/entities/seller/distance";
 import { Link } from "~/i18n/navigation";
+import type { NearbySummary } from "~/infra/dataAccess/posts/IPostQueryRepository";
 import type { Post } from "~/infra/types/Posts";
 import { buttonVariants } from "~/presentation/design_system/buttons/buttonVariants";
 import { Heading } from "~/presentation/design_system/typography/Heading";
@@ -25,14 +26,13 @@ import MediaContent from "~/presentation/media/MediaContent/MediaContent";
  */
 export default function HomeHero({
   publicationCount,
-  nearbyCount,
+  nearby,
   latest,
 }: {
   /** Las publicaciones que el feed de abajo va a listar. Sale del `total` que ya trae la página. */
   publicationCount: number;
   /**
-   * Cuántas de esas quedan dentro del radio sostenible de quien mira, o `null` si no sabemos dónde
-   * está.
+   * Qué hay dentro del radio sostenible de quien mira, o `null` si no sabemos dónde está.
    *
    * **Decide qué rótulo se pinta.** Con ubicación y algo cerca, el rótulo habla de esa persona; sin
    * ubicación —o sabiendo dónde está y sin nada cerca— cae al de la comunidad. Ese fallback no es
@@ -40,7 +40,7 @@ export default function HomeHero({
    * mira desde otro estado sería anunciarle que el sitio está vacío, cuando lo que hay se le está
    * enseñando justo debajo. Se le dice de dónde es lo que ve, que es lo cierto.
    */
-  nearbyCount: number | null;
+  nearby: NearbySummary | null;
   /**
    * La más reciente, para la portada.
    *
@@ -53,6 +53,22 @@ export default function HomeHero({
   latest?: Post;
 }): React.ReactNode {
   const t = useTranslations("home");
+  /* Las mismas frases que ya usa cada tarjeta para su distancia: el rótulo dice «a 3.2 km» igual
+     que lo dice una tienda, en vez de estrenar una segunda forma de escribir lo mismo. */
+  const tDistance = useTranslations("distance");
+  /*
+   * El rótulo cercano solo se pinta con las dos cosas: algo dentro del radio **y** una distancia
+   * que enseñar. `describeDistance` decide metros o kilómetros y redondea —«1.4832 km» no ayuda a
+   * decidir a nadie, y fingir precisión sobre una coordenada de navegador es fingir dos veces—.
+   */
+  const nearest =
+    nearby && nearby.count > 0 && nearby.nearestMeters !== null
+      ? describeDistance(nearby.nearestMeters)
+      : null;
+  /* Se guarda la cuenta junto a la distancia, y no se vuelve a leer `nearby` abajo: TypeScript no
+     puede deducir que tener `nearest` implica que `nearby` no era nulo, y repetir la condición para
+     convencerlo dejaría dos sitios donde decidir lo mismo. */
+  const nearbyCount = nearest ? (nearby?.count ?? 0) : 0;
   const cover = latest?.media?.[0];
   /* `to` llega **absoluto** desde el mapper (`createAbsoluteUrl`), que es lo que hace falta para
      compartir. Como destino de un enlace interno haría recargar la página entera —y en local se
@@ -66,10 +82,13 @@ export default function HomeHero({
           data-testid="home-eyebrow"
           className="text-label font-medium uppercase tracking-[0.14em] text-highlight"
         >
-          {nearbyCount !== null && nearbyCount > 0
+          {nearest
             ? t("heroEyebrowNearby", {
                 count: nearbyCount,
-                km: SUSTAINABLE_RADIUS_KM,
+                nearest:
+                  nearest.unit === "meters"
+                    ? tDistance("meters", { value: nearest.value })
+                    : tDistance("kilometers", { value: nearest.value }),
               })
             : t("heroEyebrow", { count: publicationCount })}
         </p>

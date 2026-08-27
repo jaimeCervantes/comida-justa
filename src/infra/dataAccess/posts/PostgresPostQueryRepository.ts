@@ -13,6 +13,7 @@ import {
 } from "~/infra/dataAccess/db/publishedPosts";
 import type {
   IPostQueryRepository,
+  NearbySummary,
   PaginatedPostsResult,
   PostData,
 } from "./IPostQueryRepository";
@@ -368,34 +369,47 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
     return Number(row.count);
   }
 
-  async countNearby(near: Coordinates, radiusMeters: number): Promise<number> {
+  async summarizeNearby(
+    near: Coordinates,
+    radiusMeters: number,
+  ): Promise<NearbySummary> {
     /*
-     * `EXISTS` y no un `JOIN`: una tienda con tres sucursales cerca cuenta **una** publicación, no
-     * tres. Con `JOIN` la cifra se multiplicaría por sucursal y el rótulo prometería un catálogo
-     * que no existe.
+     * La subconsulta devuelve **una** distancia por publicación —la de su sucursal más cercana—,
+     * así que una tienda con tres sucursales cerca cuenta una publicación y no tres. Con un `JOIN`
+     * a `branches` la cifra se multiplicaría por sucursal y el rótulo prometería un catálogo que no
+     * existe.
      *
-     * `ST_DWithin` y no `ST_Distance(...) <= radio`: el primero usa el índice espacial de
-     * `branches.location`, el segundo obliga a medir contra todas las filas. Aquí la pregunta es
-     * «¿está dentro?», que es justo lo que `ST_DWithin` contesta.
+     * `ST_DWithin` filtra y `ST_Distance` mide, en ese orden y a propósito: el primero usa el
+     * índice espacial de `branches.location` para descartar lo lejano sin medirlo, y solo lo que
+     * sobrevive paga el cálculo exacto que necesita `MIN`.
      */
+    const point = sql`ST_SetSRID(ST_MakePoint(${near.longitude}, ${near.latitude}), 4326)::geography`;
+
     const raw = await db.execute(sql`
-      SELECT COUNT(*)::int AS count
-      FROM posts p
-      WHERE ${PUBLISHED_POSTS}
-        AND EXISTS (
-          SELECT 1
+      SELECT
+        COUNT(*)::int AS count,
+        MIN(s.nearest)::double precision AS nearest_meters
+      FROM (
+        SELECT (
+          SELECT MIN(ST_Distance(b.location, ${point}))
           FROM branches b
           WHERE b.seller_id = p.seller_id
-            AND ST_DWithin(
-              b.location,
-              ST_SetSRID(ST_MakePoint(${near.longitude}, ${near.latitude}), 4326)::geography,
-              ${radiusMeters}
-            )
-        )
+            AND ST_DWithin(b.location, ${point}, ${radiusMeters})
+        ) AS nearest
+        FROM posts p
+        WHERE ${PUBLISHED_POSTS}
+      ) s
+      WHERE s.nearest IS NOT NULL
     `);
-    const row = raw.rows[0] as { count: number };
+    const row = raw.rows[0] as { count: number; nearest_meters: number | null };
 
-    return Number(row.count);
+    return {
+      count: Number(row.count),
+      /* Sin nada dentro del radio, `MIN` de un conjunto vacío es `NULL`: no hay distancia que
+         contar, y `null` lo dice sin inventar un cero que se leería como «a 0 m». */
+      nearestMeters:
+        row.nearest_meters === null ? null : Number(row.nearest_meters),
+    };
   }
 
   async getProductCountsByOrigin(): Promise<OriginCount[]> {

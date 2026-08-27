@@ -120,14 +120,14 @@ export default async function Inicio({
   );
 
   /*
-   * Cuánto de lo publicado le queda cerca a quien mira.
+   * Cuánto de lo publicado le queda cerca a quien mira, y a qué distancia lo más cercano.
    *
    * Solo se pregunta cuando sabemos dónde está: sin ubicación no hay radio que medir, y preguntarlo
    * contra el ancla devolvería «lo que hay cerca de Tezonapa», que es el total disfrazado de dato
    * personal. `null` es la respuesta honesta y `HomeHero` la distingue.
    */
-  const nearbyCount = visitor
-    ? await createPostQueryRepository().countNearby(
+  const nearby = visitor
+    ? await createPostQueryRepository().summarizeNearby(
         visitor,
         SUSTAINABLE_RADIUS_METERS,
       )
@@ -158,11 +158,7 @@ export default async function Inicio({
           reciente porque el home es cronológico por contrato: ninguna de las dos cuesta una lectura
           extra. */}
       <div className="hidden lg:block lg:space-y-6">
-        <HomeHero
-          publicationCount={total}
-          nearbyCount={nearbyCount}
-          latest={posts[0]}
-        />
+        <HomeHero publicationCount={total} nearby={nearby} latest={posts[0]} />
 
         <Heading level={2} size="sm">
           {tFeed("latestHeading")}

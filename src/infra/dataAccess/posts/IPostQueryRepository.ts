@@ -56,6 +56,13 @@ export interface PostListingFilters {
   categoryKeys?: readonly string[];
 }
 
+/** Qué hay cerca de quien mira: cuánto, y a qué distancia lo primero. */
+export interface NearbySummary {
+  count: number;
+  /** La distancia a la publicación más cercana, o `null` cuando no hay ninguna dentro del radio. */
+  nearestMeters: number | null;
+}
+
 export interface IPostQueryRepository {
   getMultiplePosts(
     page: number,
@@ -65,17 +72,24 @@ export interface IPostQueryRepository {
     filters?: PostListingFilters,
   ): Promise<PaginatedPostsResult>;
   /**
-   * Cuántas publicaciones tienen su tienda dentro de un radio de quien mira.
+   * Cuántas publicaciones tienen su tienda dentro de un radio de quien mira, y a qué distancia
+   * queda la más cercana.
    *
-   * Es un conteo aparte y no el `total` de un listado **a propósito**: el home lista lo último de
-   * la comunidad, sin filtrar por cercanía, y ese contrato no cambia. Lo que esta cifra contesta es
-   * otra pregunta —«cuánto de esto me queda cerca»—, así que se pregunta aparte en vez de torcer el
-   * listado para que su total sirva de dos cosas.
+   * Es un resumen aparte y no el `total` de un listado **a propósito**: el home lista lo último de
+   * la comunidad, sin filtrar por cercanía, y ese contrato no cambia. Lo que esto contesta es otra
+   * pregunta —«cuánto de esto me queda cerca, y qué tan cerca»—, así que se pregunta aparte en vez
+   * de torcer el listado para que su total sirva de dos cosas.
+   *
+   * Las dos cifras salen de la **misma** consulta: pedirlas por separado abriría la puerta a que
+   * una diga «hay 8» y la otra mida contra una novena que entró entre las dos.
    *
    * Una publicación sin tienda, o con tienda sin sucursal, no tiene distancia: no cuenta. Es la
    * misma regla que ya aplica `distanceColumn` al dejarlas en `NULL`.
    */
-  countNearby(near: Coordinates, radiusMeters: number): Promise<number>;
+  summarizeNearby(
+    near: Coordinates,
+    radiusMeters: number,
+  ): Promise<NearbySummary>;
   /**
    * Todo lo comercial, sea de quien sea: productos que se entregan y servicios que se agendan.
    *
