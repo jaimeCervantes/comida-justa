@@ -89,8 +89,13 @@ export default function PillarHero({
         {intro}
       </p>
       {identity && (
+        /* Medido en un iPhone 13: sin este `hidden`, la cita de 5 líneas empuja «Empezar la
+           práctica» fuera de las dos primeras pantallas y «Ver lo que hay cerca» fuera de las
+           tres — el hero deja de ofrecer algo que hacer, que es justo lo que el slice 4 del 5.6
+           vino a arreglar. En escritorio hay sitio y se queda. Mismo criterio que la entradilla
+           de cada tarjeta en `/pilares`: el porqué se guarda para las pantallas que tienen sitio. */
         <blockquote
-          className={`mt-8 max-w-2xl border-l-4 pl-5 text-xl font-semibold italic text-white ${theme.quoteBorder}`}
+          className={`mt-8 hidden max-w-2xl border-l-4 pl-5 text-xl font-semibold italic text-white sm:block ${theme.quoteBorder}`}
         >
           “{identity}”
         </blockquote>

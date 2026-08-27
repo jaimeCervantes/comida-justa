@@ -2,6 +2,7 @@ import { getTranslations } from "next-intl/server";
 import { readViewerLocationContext } from "~/infra/location/viewerLocationContext";
 import LocationChip from "~/presentation/location/LocationChip";
 import LocationNotice from "~/presentation/location/LocationNotice";
+import NearbyPillarFilter from "~/presentation/location/NearbyPillarFilter";
 
 /**
  * La barra «cerca de ti»: desde dónde se miden las distancias, y cómo corregirlo.
@@ -21,6 +22,12 @@ import LocationNotice from "~/presentation/location/LocationNotice";
  *
  * Las dos caras son las que ya existían (`LocationChip` cuando sabemos dónde estás, `LocationNotice`
  * cuando no), con sus mismos `data-testid`: lo que cambió es dónde se montan, no qué dicen.
+ *
+ * **El filtro de pilares se une aquí, sin volverse fija.** El `@slice-4` de `chrome.feature` pedía
+ * subir `PublicationPillarFilter` a esta barra; el roadmap original la dibujaba `sticky`, y eso ya
+ * se evaluó arriba y se descartó por el mismo motivo — así que el filtro hereda el criterio de la
+ * barra que lo aloja, no al revés. `NearbyPillarFilter` decide solo, por ruta, si hay algo que
+ * mostrar: `NearbyBar` sigue sin saber en qué página está.
  */
 export default async function NearbyBar(): Promise<React.ReactElement> {
   const t = await getTranslations("distance");
@@ -45,6 +52,8 @@ export default async function NearbyBar(): Promise<React.ReactElement> {
         ) : (
           <LocationNotice showSellerCta={showSellerCta} />
         )}
+
+        <NearbyPillarFilter />
       </div>
     </div>
   );

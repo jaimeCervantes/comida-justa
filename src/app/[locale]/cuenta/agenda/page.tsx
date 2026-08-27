@@ -4,9 +4,11 @@ import type { User } from "~/domain/entities/post/types";
 import { resolveLocale } from "~/i18n/routing";
 import { auth } from "~/infra/auth";
 import { redirectToSignIn } from "~/infra/auth/redirectToSignIn";
+import { findProfileOfUser } from "~/infra/dataAccess/identity/sessionIdentity";
 import { createScheduleRepository } from "~/infra/dataAccess/schedule/factory";
 import { createSellerRepository } from "~/infra/dataAccess/sellers/factory";
 import { Heading } from "~/presentation/design_system/typography/Heading";
+import AccountNav, { ACCOUNT_PAGE_LAYOUT } from "../ui/AccountNav";
 import ScheduleForm, { type ScheduleLabels } from "./ui/ScheduleForm";
 import TimeOffList from "./ui/TimeOffList";
 
@@ -37,16 +39,27 @@ export default async function AgendaPage({
 
   if (!userId) redirectToSignIn(resolveLocale(locale), "/cuenta/agenda");
 
-  const seller = await createSellerRepository().findByUserId(userId);
+  const [seller, profile] = await Promise.all([
+    createSellerRepository().findByUserId(userId),
+    findProfileOfUser(userId),
+  ]);
 
   // Sin tienda no hay a qué colgar el horario: se dice, en vez de enseñar un formulario inútil.
   if (!seller) {
     return (
-      <main>
-        <Heading level={1} className="mb-2">
-          {t("scheduleHeading")}
-        </Heading>
-        <p data-testid="schedule-needs-store">{t("scheduleNeedsStore")}</p>
+      <main className={ACCOUNT_PAGE_LAYOUT}>
+        <AccountNav
+          active="schedule"
+          username={profile?.username ?? null}
+          hasStore={false}
+        />
+
+        <div>
+          <Heading level={1} className="mb-2">
+            {t("scheduleHeading")}
+          </Heading>
+          <p data-testid="schedule-needs-store">{t("scheduleNeedsStore")}</p>
+        </div>
       </main>
     );
   }
@@ -79,30 +92,39 @@ export default async function AgendaPage({
   };
 
   return (
-    <main>
-      <Heading level={1} className="mb-2">
-        {t("scheduleHeading")}
-      </Heading>
-      <p className="mb-6 text-text-support">{t("scheduleIntro")}</p>
-
-      <ScheduleForm initial={hours} labels={labels} />
-
-      {/* Debajo del horario y no en otra página: son las dos mitades de la misma respuesta —cuándo
-          atiendo y cuándo no— y separarlas obligaría a ir y volver para entender la agenda. */}
-      <TimeOffList
-        periods={timeOff}
-        labels={{
-          heading: t("timeOffHeading"),
-          intro: t("timeOffIntro"),
-          from: t("timeOffFrom"),
-          to: t("timeOffTo"),
-          reason: t("timeOffReason"),
-          add: t("timeOffAdd"),
-          remove: t("timeOffRemove"),
-          empty: t("timeOffEmpty"),
-          invalid: t("timeOffInvalid"),
-        }}
+    <main className={ACCOUNT_PAGE_LAYOUT}>
+      <AccountNav
+        active="schedule"
+        username={profile?.username ?? null}
+        hasStore={true}
       />
+
+      <div>
+        <Heading level={1} className="mb-2">
+          {t("scheduleHeading")}
+        </Heading>
+        <p className="mb-6 text-text-support">{t("scheduleIntro")}</p>
+
+        <ScheduleForm initial={hours} labels={labels} />
+
+        {/* Debajo del horario y no en otra página: son las dos mitades de la misma respuesta
+            —cuándo atiendo y cuándo no— y separarlas obligaría a ir y volver para entender la
+            agenda. */}
+        <TimeOffList
+          periods={timeOff}
+          labels={{
+            heading: t("timeOffHeading"),
+            intro: t("timeOffIntro"),
+            from: t("timeOffFrom"),
+            to: t("timeOffTo"),
+            reason: t("timeOffReason"),
+            add: t("timeOffAdd"),
+            remove: t("timeOffRemove"),
+            empty: t("timeOffEmpty"),
+            invalid: t("timeOffInvalid"),
+          }}
+        />
+      </div>
     </main>
   );
 }

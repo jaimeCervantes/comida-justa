@@ -10,6 +10,7 @@ import { setRequestLocale } from "next-intl/server";
 import { routing } from "~/i18n/routing";
 import { CANONICAL_URL, PUBLIC_BRAND_NAME } from "~/infra/constants";
 import { readVisitorFix } from "~/infra/location/visitorLocation";
+import { readThemePreference } from "~/infra/theme/readThemePreference";
 import BottomNav from "~/presentation/chrome/BottomNav/BottomNav";
 import NearbyBar from "~/presentation/chrome/NearbyBar/NearbyBar";
 import SiteCelebrationMessage from "~/presentation/chrome/SiteMessage/SiteCelebrationMessage";
@@ -97,12 +98,18 @@ export default async function RootLayout({
   setRequestLocale(locale);
 
   const gaId = process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID;
+  const themePreference = await readThemePreference();
 
   return (
     <html
       lang={locale}
       data-scroll-behavior="smooth"
+      // Sin preferencia guardada, ningún atributo: `colors.css` ya sigue al sistema por su cuenta.
+      // Puesto aquí y no por un script en el cliente, `<html>` nace en el tema correcto desde el
+      // primer byte — no hay "flash of wrong theme" que corregir después de pintar.
+      data-theme={themePreference ?? undefined}
       className={`${newsreader.variable} ${plusJakarta.variable}`}
+      suppressHydrationWarning
     >
       <body>
         {/* Sin el provider, un Client Component que use `useTranslations` revienta. Va aquí una
@@ -126,7 +133,7 @@ export default async function RootLayout({
             <main className="flex-1 pt-4 pb-28 lg:pb-12">
               <div className="container-width">{children}</div>
             </main>
-            <Footer />
+            <Footer theme={themePreference} />
 
             {/* Las cinco cosas que se hacen aquí, al alcance del pulgar. Solo por debajo de `lg`,
                 que es donde la barra de escritorio se esconde: nunca se ven las dos. */}

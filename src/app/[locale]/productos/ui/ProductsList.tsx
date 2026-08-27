@@ -10,7 +10,6 @@ import { EmptyState } from "~/presentation/design_system/feedback/EmptyState";
 import { CARD_MASONRY } from "~/presentation/design_system/surfaces/cardList";
 import Pagination from "~/presentation/navigation/Pagination";
 import CardForList from "~/presentation/post/CardForList/CardForList";
-import PublicationPillarFilter from "~/presentation/post/PublicationPillarFilter";
 import { publicationPillarEmptyMessage } from "~/presentation/post/publicationPillarEmptyMessage";
 
 export const PRODUCTS_BASE_PATH = "/productos/page";
@@ -34,40 +33,30 @@ export default function ProductsList({
 
   if (products.length === 0) {
     return (
-      <>
-        <PublicationPillarFilter
-          currentPillar={currentPillar}
-          pathname="/productos"
-        />
-        <EmptyState
-          testId="products-empty"
-          className="mt-4"
-          title={publicationPillarEmptyMessage({
-            currentPillar,
-            fallback: t("empty"),
-            t: pillarT,
-          })}
-          action={
-            <Link
-              href="/publicar"
-              className={buttonVariants({ color: "green", size: "sm" })}
-            >
-              {t("emptyCta")}
-            </Link>
-          }
-        >
-          {t("emptyBody")}
-        </EmptyState>
-      </>
+      <EmptyState
+        testId="products-empty"
+        className="mt-4"
+        title={publicationPillarEmptyMessage({
+          currentPillar,
+          fallback: t("empty"),
+          t: pillarT,
+        })}
+        action={
+          <Link
+            href="/publicar"
+            className={buttonVariants({ color: "green", size: "sm" })}
+          >
+            {t("emptyCta")}
+          </Link>
+        }
+      >
+        {t("emptyBody")}
+      </EmptyState>
     );
   }
 
   return (
     <>
-      <PublicationPillarFilter
-        currentPillar={currentPillar}
-        pathname="/productos"
-      />
       <section data-testid="products-grid" className={`${CARD_MASONRY} pt-6`}>
         {products.map((product: Post) => (
           <CardForList {...product} viewerId={viewerId} key={product.id} />

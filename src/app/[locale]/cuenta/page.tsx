@@ -18,6 +18,7 @@ import {
   updateStoreProfile,
 } from "./actions";
 import AccountCard from "./ui/AccountCard";
+import AccountNav, { ACCOUNT_PAGE_LAYOUT } from "./ui/AccountNav";
 import AddBranchForm from "./ui/AddBranchForm";
 import BecomeSellerForm from "./ui/BecomeSellerForm";
 import StoreCard from "./ui/StoreCard";
@@ -86,14 +87,22 @@ export default async function CuentaPage({
 
   if (!seller) {
     return (
-      <main>
-        <Heading level={1} className="mb-6">
-          {t("heading")}
-        </Heading>
+      <main className={ACCOUNT_PAGE_LAYOUT}>
+        <AccountNav
+          active="account"
+          username={profile?.username ?? null}
+          hasStore={false}
+        />
 
-        <div className={COLUMNS}>
-          <BecomeSellerForm action={becomeSeller} defaultName={user.name} />
-          {usernameSection}
+        <div>
+          <Heading level={1} className="mb-6">
+            {t("heading")}
+          </Heading>
+
+          <div className={COLUMNS}>
+            <BecomeSellerForm action={becomeSeller} defaultName={user.name} />
+            {usernameSection}
+          </div>
         </div>
       </main>
     );
@@ -102,28 +111,36 @@ export default async function CuentaPage({
   const branches = await createBranchRepository().listBySeller(seller.id);
 
   return (
-    <main>
-      <Heading level={1} className="mb-6">
-        {t("heading")}
-      </Heading>
+    <main className={ACCOUNT_PAGE_LAYOUT}>
+      <AccountNav
+        active="account"
+        username={profile?.username ?? null}
+        hasStore={true}
+      />
 
-      <div className={COLUMNS}>
-        {/* Lo que se reparte. */}
-        <div className="flex flex-col gap-6">
-          <StoreCard seller={seller} />
-          {usernameSection}
-          <AccountCard title={t("branchesHeading")}>
-            <BranchList
-              branches={branches}
-              emptyMessage={tBranches("emptyWithoutLocation")}
-            />
-          </AccountCard>
-        </div>
+      <div>
+        <Heading level={1} className="mb-6">
+          {t("heading")}
+        </Heading>
 
-        {/* Lo que se edita. */}
-        <div className="flex flex-col gap-6">
-          <StoreProfileForm action={updateStoreProfile} seller={seller} />
-          <AddBranchForm action={addBranch} />
+        <div className={COLUMNS}>
+          {/* Lo que se reparte. */}
+          <div className="flex flex-col gap-6">
+            <StoreCard seller={seller} />
+            {usernameSection}
+            <AccountCard title={t("branchesHeading")}>
+              <BranchList
+                branches={branches}
+                emptyMessage={tBranches("emptyWithoutLocation")}
+              />
+            </AccountCard>
+          </div>
+
+          {/* Lo que se edita. */}
+          <div className="flex flex-col gap-6">
+            <StoreProfileForm action={updateStoreProfile} seller={seller} />
+            <AddBranchForm action={addBranch} />
+          </div>
         </div>
       </div>
     </main>
