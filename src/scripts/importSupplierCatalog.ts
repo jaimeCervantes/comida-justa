@@ -19,6 +19,7 @@ config({
  *   pnpm run import:catalog                                  la carga completa
  *   pnpm run import:catalog -- --sync                        pone al día lo ya publicado
  *   pnpm run import:catalog -- --reprocess-images            rehace a WebP lo subido crudo
+ *   pnpm run import:catalog -- --prune                       borra lo que el catálogo ya no trae
  *   pnpm run import:catalog -- --remove                      deshace lo importado
  *
  * Es **idempotente**: cada producto se busca por su `slug` en `post_translations` antes de
@@ -87,9 +88,13 @@ const MIN_CONTENT = 15;
 const BROWSER_UA =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
 
+/** La marca de lo que publica este script. Es lo que permite borrar lo suyo sin tocar lo demás. */
+const ORIGIN = "hazlo_sano_reventa";
+
 interface Options {
   dryRun: boolean;
   remove: boolean;
+  prune: boolean;
   sync: boolean;
   reprocessImages: boolean;
   supplier: string | null;
@@ -111,6 +116,7 @@ function parseOptions(argv: string[]): Options {
   return {
     dryRun: argv.includes("--dry-run"),
     remove: argv.includes("--remove"),
+    prune: argv.includes("--prune"),
     // `--reclassify` se conserva como alias: era el nombre cuando solo corregía categorías.
     sync: argv.includes("--sync") || argv.includes("--reclassify"),
     reprocessImages: argv.includes("--reprocess-images"),
@@ -443,6 +449,81 @@ async function main(): Promise<void> {
     // `post_translations` y `post_media` caen por ON DELETE CASCADE.
     await db.delete(posts).where(inArray(posts.id, ids));
     console.log(`Borrados ${ids.length} posts.`);
+    return;
+  }
+
+  /*
+   * Borra lo que este script publicó y **el catálogo ya no genera**.
+   *
+   * Partir un producto en sus presentaciones deja huérfano al que estaba publicado: «Galleta Doble
+   * Chocolate — Paquete de 6 o 12 piezas» a $199 ya no lo produce nadie, pero sigue en la vitrina
+   * al lado de las dos fichas que lo sustituyen —que es justo el par confuso que se quería quitar—.
+   * Lo mismo pasa cuando un proveedor retira un producto de su tienda.
+   *
+   * `--remove` no los alcanza: borra por los slugs del catálogo, y el slug del huérfano es
+   * precisamente el que dejó de existir. Aquí la pregunta es la contraria —qué hay publicado que ya
+   * no esté— y por eso es otro modo.
+   *
+   * Un post cuenta como huérfano solo si **ninguna** de sus traducciones coincide: la ficha en
+   * inglés tiene su propio slug, que nunca está en el catálogo, y mirarla sola las condenaría a
+   * todas.
+   */
+  if (options.prune) {
+    if (options.supplier || options.limit) {
+      console.error(
+        "ERROR: --prune necesita el catálogo completo. Con --supplier o --limit, todo lo que",
+      );
+      console.error(
+        "quedó fuera del recorte parecería huérfano y se borraría el resto del catálogo.",
+      );
+      process.exit(1);
+    }
+
+    const live = new Set(products.map((product) => product.slug));
+
+    const published = await db
+      .select({
+        postId: posts.id,
+        slug: postTranslations.slug,
+        title: postTranslations.title,
+      })
+      .from(posts)
+      .innerJoin(postTranslations, eq(postTranslations.postId, posts.id))
+      .where(eq(posts.origin, ORIGIN));
+
+    const byPost = new Map<string, { slugs: string[]; title: string }>();
+    for (const row of published) {
+      const entry = byPost.get(row.postId) ?? { slugs: [], title: row.title };
+      entry.slugs.push(row.slug);
+      byPost.set(row.postId, entry);
+    }
+
+    const orphans = [...byPost].filter(([, entry]) =>
+      entry.slugs.every((slug) => !live.has(slug)),
+    );
+
+    console.log(`Publicadas por el importador: ${byPost.size}`);
+    console.log(`En el catálogo actual:        ${live.size}`);
+    console.log(`Huérfanas:                    ${orphans.length}\n`);
+
+    for (const [, entry] of orphans) {
+      console.log(`  ${entry.slugs[0]?.padEnd(34)} ${entry.title}`);
+    }
+
+    if (orphans.length === 0) return;
+
+    if (options.dryRun) {
+      console.log("\nDRY RUN — no se borró nada.");
+      return;
+    }
+
+    await db.delete(posts).where(
+      inArray(
+        posts.id,
+        orphans.map(([id]) => id),
+      ),
+    );
+    console.log(`\nBorradas ${orphans.length} publicaciones huérfanas.`);
     return;
   }
 
@@ -854,7 +935,7 @@ async function main(): Promise<void> {
       content: contentFor(product),
       price: product.price,
       kind: "producto",
-      origin: "hazlo_sano_reventa",
+      origin: ORIGIN,
       category: product.category,
       subCategory: product.subCategory,
       contactInfo: CONTACT,
