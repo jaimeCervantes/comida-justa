@@ -647,7 +647,8 @@ async function main(): Promise<void> {
   /*
    * Poner al día lo ya publicado, en vez de reimportarlo.
    *
-   * Cuando cambia el mapeo de categorías, el texto o el tope de imágenes, borrar y reimportar
+   * Cuando el proveedor mueve un precio, o cambia el mapeo de categorías, el texto o el tope de
+   * imágenes, borrar y reimportar
    * volvería a descargar y subir cientos de archivos idénticos para acabar en el mismo sitio —y de
    * paso cambiaría los ids de las publicaciones. Esto corrige en el lugar y **solo sube lo que
    * falta**.
@@ -664,6 +665,7 @@ async function main(): Promise<void> {
         translationId: postTranslations.id,
         title: postTranslations.title,
         content: postTranslations.content,
+        price: posts.price,
         category: posts.category,
         subCategory: posts.subCategory,
       })
@@ -684,6 +686,7 @@ async function main(): Promise<void> {
     const moves = new Map<string, number>();
     let retitled = 0;
     let retexted = 0;
+    let repriced = 0;
     let addedImages = 0;
     let touched = 0;
 
@@ -727,6 +730,30 @@ async function main(): Promise<void> {
             .update(postTranslations)
             .set({ title, content })
             .where(eq(postTranslations.id, row.translationId));
+        }
+      }
+
+      /*
+       * El precio también se corrige, y hasta hoy no se corregía: solo se escribía al dar de alta,
+       * así que una ficha publicada se quedaba con el precio del día que entró. Los proveedores los
+       * mueven —entre dos extracciones de dos días cambiaron 36 de Birdman— y una vitrina que
+       * promete una cifra que ya no es cierta es peor que no prometer nada.
+       *
+       * Se compara en centavos y no como texto: la columna es `numeric`, así que devuelve cadena y
+       * «26.8» y «26.80» son el mismo precio escrito de dos formas.
+       */
+      const cents = (amount: number): number => Math.round(amount * 100);
+      const published = row.price === null ? null : Number(row.price);
+
+      if (published === null || cents(published) !== cents(product.price)) {
+        repriced++;
+        changed = true;
+
+        if (!options.dryRun) {
+          await db
+            .update(posts)
+            .set({ price: product.price.toString() })
+            .where(eq(posts.id, row.id));
         }
       }
 
@@ -785,6 +812,9 @@ async function main(): Promise<void> {
       `  títulos ${options.dryRun ? "a cambiar" : "cambiados"}:      ${retitled}`,
     );
     console.log(`  descripciones:                ${retexted}`);
+    console.log(
+      `  precios ${options.dryRun ? "a corregir" : "corregidos"}:          ${repriced}`,
+    );
     console.log(
       `  imágenes ${options.dryRun ? "a añadir" : "añadidas"}:       ${addedImages}`,
     );
