@@ -31,7 +31,10 @@ describe("el pilar de una publicación", () => {
    * `null` no es un fallo: los diez anuncios de la base van sin categoría, y una categoría que no
    * cuelga de ninguno de los cuatro tampoco tiene pilar. La tarjeta se calla en vez de inventarlo.
    */
-  it.each([
+  /* El genérico va explícito porque los casos mezclan `null`, `undefined` y `string`: sin él,
+     TypeScript infiere una **unión** de tuplas (`[null, string] | [string, string] | …`) y ninguna
+     firma de callback es asignable a todas a la vez. Con una sola tupla, el caso vuelve a tipar. */
+  it.each<[string | null | undefined, string]>([
     [null, "un anuncio, que va sin categoría"],
     [undefined, "una tarjeta armada a mano"],
     ["", "cadena vacía"],

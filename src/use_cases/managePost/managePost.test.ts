@@ -33,6 +33,11 @@ const jugoVerde: EditablePost = {
   origin: null,
   category: "alimentacion",
   subCategory: "jugos",
+  /* Los tres son de una publicación con fecha —un evento o un servicio que se agenda—, y este es
+     un producto: van en `null`, que es lo que el tipo pide y lo que la base guarda. */
+  startsAt: null,
+  endsAt: null,
+  durationMinutes: null,
   isAvailable: true,
   media: archivos("jugo-verde.jpg"),
 };

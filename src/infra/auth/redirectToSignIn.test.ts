@@ -38,10 +38,13 @@ describe("refererPath", () => {
     expect(await refererPath()).toBe("/en/store/hazlo-sano?page=2");
   });
 
-  it.each([
+  /* El genérico explícito sustituye al `as const`: con él, cada fila era su propia tupla de
+     literales y `it.each` recibía una **unión** de tuplas a la que ninguna firma de callback es
+     asignable. Lo que estos casos afirman no depende de que el literal esté congelado. */
+  it.each<[string, string]>([
     ["https://otro-sitio.com/cuenta", "viene de otro sitio"],
     ["no-es-una-direccion", "no se puede leer"],
-  ] as const)("descarta el referer que %s", async (referer) => {
+  ])("descarta el referer que %s", async (referer) => {
     requestHeaders.set("referer", referer);
 
     expect(await refererPath()).toBeNull();
@@ -62,11 +65,13 @@ describe("redirectToSignInFrom", () => {
     );
   });
 
-  it.each([
+  /* `string | null` es justo lo que acepta `redirectToSignInFrom`, así que la tupla explícita
+     describe el contrato real en vez de una unión de literales congelados. */
+  it.each<[string | null, string]>([
     [null, "no hay origen que recordar"],
     ["/auth/signin?callbackUrl=%2Fcuenta", "el origen ya era la propia puerta"],
     ["https://otro-sitio.com/cuenta", "el origen no es de este sitio"],
-  ] as const)("manda a la puerta sin vuelta cuando %s", (origen) => {
+  ])("manda a la puerta sin vuelta cuando %s", (origen) => {
     redirectToSignInFrom("en", origen);
 
     expect(redirectKeepingLocale).toHaveBeenCalledWith(SIGNIN, "en");

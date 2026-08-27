@@ -2,11 +2,16 @@ import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { renderWithIntl } from "~/infra/test-utils/renderWithIntl";
-import EditPostForm from "./EditPostForm";
+import EditPostForm, { type EditablePostValues } from "./EditPostForm";
 
 const noop = vi.fn();
 
-const EVENT_POST = {
+/* Los cuatro fixtures se anotan con el tipo que recibe el formulario, y no se dejan inferir. Sin la
+   anotación, `typeof EVENT_POST` congelaba los valores de *este* evento —`price: null`,
+   `startsAt: string`— y los otros tres tipos de publicación no encajaban en esa forma: un producto
+   tiene precio y no tiene fecha. El contrato es `EditablePostValues`, no la primera fila de la
+   lista. */
+const EVENT_POST: EditablePostValues = {
   slug: "rodada-cafetera",
   title: "Rodada cafetera",
   content: "Salida comunitaria",
@@ -30,7 +35,7 @@ const EVENT_POST = {
   ],
 };
 
-const PRODUCT_POST = {
+const PRODUCT_POST: EditablePostValues = {
   ...EVENT_POST,
   slug: "jugo-verde",
   title: "Jugo verde",
@@ -41,7 +46,7 @@ const PRODUCT_POST = {
   endsAt: null,
 };
 
-const SERVICE_POST = {
+const SERVICE_POST: EditablePostValues = {
   ...EVENT_POST,
   slug: "consulta-nutricional",
   title: "Consulta nutricional",
@@ -52,7 +57,7 @@ const SERVICE_POST = {
   durationMinutes: 45,
 };
 
-const ANNOUNCEMENT_POST = {
+const ANNOUNCEMENT_POST: EditablePostValues = {
   ...EVENT_POST,
   slug: "aviso-comunidad",
   title: "Aviso comunidad",
@@ -62,7 +67,7 @@ const ANNOUNCEMENT_POST = {
   endsAt: null,
 };
 
-function renderForm(post: typeof EVENT_POST, action = noop): void {
+function renderForm(post: EditablePostValues, action = noop): void {
   renderWithIntl(
     <EditPostForm
       action={action}

@@ -254,7 +254,10 @@ describe("El feed del home", () => {
   });
 
   it("conserva el pilar activo al cargar mas", async () => {
-    const fetchMock = vi.fn(async () => ({
+    /* El parámetro se declara aunque el doble no lo use: sin él, `vi.fn` tipa las llamadas como
+       tupla vacía y `mock.calls[0][0]` —la dirección que este caso afirma— deja de existir para
+       TypeScript. Nombrarlo describe además qué se está inspeccionando. */
+    const fetchMock = vi.fn(async (_url: string) => ({
       ok: true,
       status: 200,
       headers: new Headers({ "content-type": "application/json" }),

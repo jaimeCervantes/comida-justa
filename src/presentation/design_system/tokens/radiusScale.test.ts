@@ -94,8 +94,11 @@ describe("La elevación de v2", () => {
  * Una fuente que se descarga y no se usa es peor que no tenerla: cuesta bytes y no da nada.
  */
 describe("Las dos voces tipográficas", () => {
+  /* `exclude` y no `ignore`: `ignore` es la opción del paquete npm `glob`, no la de `node:fs`, así
+     que Node la descartaba en silencio y este barrido leía también los tests y las stories —
+     justo lo que dice excluir—. Lo destapó tipar los tests con `@types/node` al día. */
   const TSX = globSync("src/**/*.tsx", {
-    ignore: ["**/*.test.tsx", "**/*.stories.tsx"],
+    exclude: ["**/*.test.tsx", "**/*.stories.tsx"],
   })
     .map((file) => readFileSync(file, "utf8"))
     .join("\n");
@@ -136,7 +139,7 @@ describe("El radio se pide por su papel, no por su número", () => {
 
   it("ningún componente de producción usa la escala numerada", () => {
     const offenders = globSync("src/{app,presentation}/**/*.tsx", {
-      ignore: ["**/*.test.tsx", "**/*.stories.tsx"],
+      exclude: ["**/*.test.tsx", "**/*.stories.tsx"],
     }).filter((file) =>
       classNamesIn(readFileSync(file, "utf8")).some((classes) =>
         NUMBERED.test(classes),
