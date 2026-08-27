@@ -349,3 +349,86 @@ copiando del canvas.
    `5.16 · pie y 404`.
 3. **La composición móvil del 5.6**, hermana de la que se hizo en `/pilares`: el canvas compacta
    también la página de pilar en el teléfono.
+
+## Slice 5 — La cita se comía las dos acciones en un teléfono (2026-08-26)
+
+Cierra el próximo paso 3 del slice 4: la composición móvil del 5.6.
+
+### Se midió antes de decidir, otra vez
+
+Mismo método que el slice 3: `/pilares/sueno` en un iPhone 13 (390×664), con capturas del héroe.
+El hallazgo no fue el mismo que en la portada — aquí no sobraba texto de intro, sobraba la cita.
+
+| | Antes |
+| --- | --- |
+| Alto del héroe | 675px — **más que el propio viewport (664px)** |
+| «Empezar la práctica» | al filo de la pantalla, tapado por la barra inferior fija |
+| «Ver lo que hay cerca» | fuera de las dos primeras pantallas, invisible sin desplazar |
+
+El slice 4 puso las dos acciones en la primera pantalla precisamente para que el pilar «ofreciera
+algo que hacer» de entrada. En el teléfono no las ofrecía: había que desplazarse para encontrar
+siquiera el primer botón.
+
+### La cita de identidad es la que sobra, no la entradilla
+
+El desglose señaló al `blockquote` de `identity` («"Soy una persona que respeta los ritmos
+naturales…"»): 5 líneas, 140px más 32px de margen. Ni el 5.6 del canvas la dibuja —su tarjeta y su
+mockup de teléfono van directo de la entradilla a los botones—, ni el dominio la necesita para
+prometer algo: `heading` y `subtitle` ya identifican el pilar en una frase corta.
+
+Mismo criterio que el slice 3 usó con el subtítulo y la descripción de cada tarjeta de `/pilares`:
+**el porqué se guarda para las pantallas que tienen sitio.** `hidden sm:block` dentro de
+`PillarHero`, sin tocar `identity` como prop ni el catálogo — sigue siendo la frase que usa
+`PillarArticle` para armar el héroe, y en escritorio no cambia nada.
+
+### El costo, dicho
+
+Igual que con las descripciones de tarjeta del slice 3: en un teléfono, `display:none` saca la cita
+del árbol de accesibilidad. Nadie la pierde del todo —sigue en el HTML y la lee un buscador—, pero
+quien navega con lector de pantalla en un móvil ya no la oye. Se acepta por la misma razón: la cita
+es refuerzo emocional, no información nueva, y las dos acciones que sí hacen falta ahora se ven sin
+desplazar.
+
+### El resultado, medido
+
+| | Antes | Ahora |
+| --- | --- | --- |
+| Alto del héroe | 675px | **503px** (−172px, exactamente la cita + su margen) |
+| «Empezar la práctica» | al filo, tapado por la barra inferior | **visible entero** |
+| «Ver lo que hay cerca» | fuera de las dos primeras pantallas | **visible entero, en la misma pantalla que el primero** |
+
+Las cuatro páginas de pilar comparten `PillarArticle` → `PillarHero`, así que el arreglo alcanza a
+las cuatro con un solo archivo tocado.
+
+### Archivos tocados
+
+| Zona | Archivos |
+| --- | --- |
+| Presentación | `src/presentation/habits/PillarHero.tsx` |
+
+### Validación
+
+| Comando | Resultado |
+| --- | --- |
+| `pnpm exec vitest --run "src/app/[locale]/pilares" src/presentation/habits` | **212 en verde** (sin tocar ningún test) |
+| `pnpm run typecheck` · `lint` · `check:i18n` | limpios |
+| `pnpm exec playwright test src/e2e/pilares` | **24/24** |
+| `pnpm exec playwright test src/e2e/habits` | **28/28** |
+| Medición y captura real en `next dev` con viewport de iPhone 13 | la tabla de arriba |
+
+### Recap
+
+El héroe de un pilar ya no era más alto que la pantalla que lo mostraba: en un teléfono, la cita de
+identidad empujaba las dos acciones del slice 4 fuera de vista, justo lo que ese slice vino a
+resolver. Ocultarla solo en móvil —quedándose donde sí cabe, en escritorio— devolvió «Empezar la
+práctica» y «Ver lo que hay cerca» a la primera pantalla, en las cuatro páginas de pilar a la vez.
+
+### Próximos pasos (opciones)
+
+1. **El editor enriquecido** (`docs/features/content/027`) — lo pedido, y lo único pendiente que
+   arregla algo roto hoy.
+2. **Las secciones del canvas sin tocar**: `5.12 · /productores-locales`, `5.13 · /habitos`,
+   `5.16 · pie y 404`.
+3. **El resto de la página en móvil**: solo se midió y tocó el héroe. El cuerpo del artículo
+   (`PillarPanel`, catálogos, puentes) no se midió en este slice; si al usarlo se ve largo o
+   incómodo, es la siguiente medición pendiente.
