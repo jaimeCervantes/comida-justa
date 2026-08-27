@@ -74,8 +74,38 @@ detrás del runtime, y esa distancia era la que tapaba el error.
 
 ### Próximos pasos (opciones)
 
-1. **Sumar `typecheck:tests` a `validate`**, para que la deuda no vuelva a acumularse en silencio.
-   Cuesta ~40s por commit; es la decisión de si eso vale la pena en el hook o solo en CI.
-2. **Cola offline optimista** — pendiente de la conversación de alcance que se pospuso.
-3. **Las 75 vulnerabilidades de dependencias** que GitHub reporta en cada push (2 críticas, 34
+1. **Cola offline optimista** — pendiente de la conversación de alcance que se pospuso.
+2. **Las 75 vulnerabilidades de dependencias** que GitHub reporta en cada push (2 críticas, 34
    altas). Nadie las ha mirado todavía.
+
+## Slice 2 — `typecheck:tests` entra a `validate` (2026-08-27)
+
+Dejar los tests fuera del comprobador es lo que permitió que la deuda del slice 1 creciera hasta 32
+errores sin que nadie se enterara. Arreglarlos sin cerrar esa puerta habría sido arreglar el
+síntoma: en unas semanas vuelven.
+
+`validate` —lo que corre el hook de pre-commit— pasa a incluirlo:
+
+```
+biome check . && pnpm run typecheck && pnpm run typecheck:tests && pnpm run test:run
+```
+
+**Cuesta 19s medidos**, no los ~40s que estimó el slice 1 sin medirlos. Sobre los ~140s que ya
+tardan las pruebas, es un 13% más por commit a cambio de que un cambio de firma deje de pasar
+inadvertido hasta que alguien lee el test.
+
+Sigue siendo un script aparte —`pnpm typecheck:tests`— para poder correr el ciclo rápido sin él
+cuando conviene; lo que cambia es que el commit ya no lo omite. La cabecera de
+`tsconfig.test.json`, que decía que vivía fuera del ciclo, queda corregida.
+
+### Validación
+
+```
+pnpm run validate   # biome + typecheck + typecheck:tests + 2422/2422, todo en verde
+```
+
+### Recap
+
+La comprobación que nadie corría ahora corre sola en cada commit. Los 16 errores del slice 1 no
+pueden volver por el mismo camino: llegar a 32 exigió meses de nadie mirando, y eso deja de ser
+posible.

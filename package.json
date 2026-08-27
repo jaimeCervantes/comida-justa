@@ -22,7 +22,7 @@
     "test:coverage": "vitest run --coverage",
     "test:ui": "vitest --ui",
     "prepare": "husky",
-    "validate": "biome check . && pnpm run typecheck && pnpm run test:run",
+    "validate": "biome check . && pnpm run typecheck && pnpm run typecheck:tests && pnpm run test:run",
     "backfill-embeddings": "tsx src/scripts/backfillEmbeddings.ts",
     "backfill-translations": "tsx src/scripts/backfillTranslations.ts",
     "db:generate": "drizzle-kit generate",

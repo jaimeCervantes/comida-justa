@@ -7,9 +7,15 @@
   // daba la respuesta correcta por la razón equivocada.
   //
   // Esta configuración es la misma, sin esas exclusiones: comprueba el repo entero **más** los
-  // tests. Va aparte y no en el `typecheck` de siempre para que el ciclo rápido siga siendo rápido.
+  // tests. Sigue siendo un script aparte del `typecheck` de siempre, para poder correr el ciclo
+  // rápido sin ella:
   //
   //     pnpm typecheck:tests
+  //
+  // Pero **entra en `validate`**, o sea en cada commit. Antes no lo hacía, y el resultado fue que
+  // nadie la corría: llegó a acumular 32 errores y todavía tenía 16 meses después, escondiendo
+  // entre ellos un `globSync({ ignore })` que Node descartaba en silencio (ver
+  // `docs/features/platform/025-2026-08-27-typecheck-de-los-tests-bitacora.md`). Cuesta ~19s.
   "extends": "./tsconfig.json",
   "compilerOptions": {
     // `extends` no fusiona `types`, lo sustituye, y `vitest/globals` no vive bajo `@types/` — sin
