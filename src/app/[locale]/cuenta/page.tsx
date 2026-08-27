@@ -18,6 +18,7 @@ import {
   updateStoreProfile,
 } from "./actions";
 import AccountCard from "./ui/AccountCard";
+import AccountNav from "./ui/AccountNav";
 import AddBranchForm from "./ui/AddBranchForm";
 import BecomeSellerForm from "./ui/BecomeSellerForm";
 import StoreCard from "./ui/StoreCard";
@@ -45,6 +46,12 @@ export async function generateMetadata(): Promise<Metadata> {
  * sucursales, y era lo último que veía quien entraba a repartir su enlace.
  */
 const COLUMNS = "grid gap-6 lg:grid-cols-2 items-start";
+
+/** `AccountNav` a la izquierda, el contenido de la página a la derecha — el mismo
+ * `240px minmax(0, 1fr)` que ya usa el 5.15 del canvas. En el teléfono se apila arriba: cinco
+ * enlaces caben en una pantalla sin empujar el contenido más de lo que ya empuja el encabezado. */
+const PAGE_LAYOUT =
+  "grid gap-8 lg:grid-cols-[240px_minmax(0,1fr)] lg:items-start";
 
 export default async function CuentaPage({
   params,
@@ -86,14 +93,18 @@ export default async function CuentaPage({
 
   if (!seller) {
     return (
-      <main>
-        <Heading level={1} className="mb-6">
-          {t("heading")}
-        </Heading>
+      <main className={PAGE_LAYOUT}>
+        <AccountNav username={profile?.username ?? null} hasStore={false} />
 
-        <div className={COLUMNS}>
-          <BecomeSellerForm action={becomeSeller} defaultName={user.name} />
-          {usernameSection}
+        <div>
+          <Heading level={1} className="mb-6">
+            {t("heading")}
+          </Heading>
+
+          <div className={COLUMNS}>
+            <BecomeSellerForm action={becomeSeller} defaultName={user.name} />
+            {usernameSection}
+          </div>
         </div>
       </main>
     );
@@ -102,28 +113,32 @@ export default async function CuentaPage({
   const branches = await createBranchRepository().listBySeller(seller.id);
 
   return (
-    <main>
-      <Heading level={1} className="mb-6">
-        {t("heading")}
-      </Heading>
+    <main className={PAGE_LAYOUT}>
+      <AccountNav username={profile?.username ?? null} hasStore={true} />
 
-      <div className={COLUMNS}>
-        {/* Lo que se reparte. */}
-        <div className="flex flex-col gap-6">
-          <StoreCard seller={seller} />
-          {usernameSection}
-          <AccountCard title={t("branchesHeading")}>
-            <BranchList
-              branches={branches}
-              emptyMessage={tBranches("emptyWithoutLocation")}
-            />
-          </AccountCard>
-        </div>
+      <div>
+        <Heading level={1} className="mb-6">
+          {t("heading")}
+        </Heading>
 
-        {/* Lo que se edita. */}
-        <div className="flex flex-col gap-6">
-          <StoreProfileForm action={updateStoreProfile} seller={seller} />
-          <AddBranchForm action={addBranch} />
+        <div className={COLUMNS}>
+          {/* Lo que se reparte. */}
+          <div className="flex flex-col gap-6">
+            <StoreCard seller={seller} />
+            {usernameSection}
+            <AccountCard title={t("branchesHeading")}>
+              <BranchList
+                branches={branches}
+                emptyMessage={tBranches("emptyWithoutLocation")}
+              />
+            </AccountCard>
+          </div>
+
+          {/* Lo que se edita. */}
+          <div className="flex flex-col gap-6">
+            <StoreProfileForm action={updateStoreProfile} seller={seller} />
+            <AddBranchForm action={addBranch} />
+          </div>
         </div>
       </div>
     </main>

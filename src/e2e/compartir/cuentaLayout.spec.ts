@@ -1,6 +1,10 @@
 import { expect, test } from "@playwright/test";
 import es from "~/i18n/messages/es.json";
 import SellerAccountPage from "../sellerStore/SellerAccountPage";
+import {
+  claimUsernameFor,
+  releaseUsername,
+} from "../testUtils/claimTestUsername";
 import { deleteTestSellerByHandle } from "../testUtils/deleteTestSeller";
 import {
   type DbSession,
@@ -8,6 +12,17 @@ import {
   simulateLogin,
 } from "../testUtils/simulateLogin";
 import { testStore } from "../testUtils/testSlug";
+
+/**
+ * La navegación interna del 5.15: siempre visible, cinco entradas y dos de ellas condicionadas.
+ *
+ * Por `data-testid` y no por rol+nombre: el menú principal del header también es un `<nav>` con
+ * `aria-label`, y es el primero en el DOM — `getByRole("navigation", { name: … })` encontraba ese,
+ * no este.
+ */
+function accountNav(page: import("@playwright/test").Page) {
+  return page.getByTestId("account-nav");
+}
 
 // Slice 3 de docs/features/content/004-2026-08-08-compartir-y-cuenta.md.
 
@@ -75,6 +90,68 @@ test.describe("Cuando una vendedora abre su cuenta", () => {
       headings.indexOf(es.account.addBranchTitle),
     );
   });
+
+  /* Quien vende sí necesita su agenda: es de lo poco que se revisa a diario. Sin dirección
+     personal reclamada en este `beforeEach`, "Mis publicaciones" no tiene a dónde llevar y no debe
+     ofrecerse — el mismo filtro que ya usa `UserMenu` para "Mi perfil". */
+  test("Entonces la navegación ofrece la agenda, y todavía no las publicaciones", async ({
+    page,
+  }) => {
+    const nav = accountNav(page);
+
+    await expect(
+      nav.getByRole("link", { name: es.nav.myAccount, exact: true }),
+    ).toHaveAttribute("aria-current", "page");
+    await expect(
+      nav.getByRole("link", { name: es.nav.myOrders }),
+    ).toBeVisible();
+    await expect(
+      nav.getByRole("link", { name: es.nav.schedule }),
+    ).toBeVisible();
+    await expect(
+      nav.getByRole("link", { name: es.nav.myHabits }),
+    ).toBeVisible();
+    await expect(
+      nav.getByRole("link", { name: es.nav.myPublications }),
+    ).toHaveCount(0);
+  });
+});
+
+test.describe("Cuando quien vende también reclamó su dirección personal", () => {
+  let dbSession: DbSession | undefined;
+  const store = testStore("Panadería del Sol");
+  const username = "e2e-cuenta-nav";
+
+  test.beforeEach(async ({ page, browserName }) => {
+    dbSession = await simulateLogin(page, browserName);
+
+    const account = new SellerAccountPage(page);
+    await account.goto();
+    await account.fillAndSubmit({ name: store.name, phone: store.phone });
+    await account.expectStoreLink(store.handle);
+
+    await claimUsernameFor(dbSession.userId, username);
+    await page.reload();
+  });
+
+  test.afterEach(async () => {
+    await releaseUsername(username);
+    await deleteTestSellerByHandle(store.handle);
+    if (dbSession?.id) {
+      await deleteSession(dbSession.id);
+    }
+  });
+
+  test("Entonces «Mis publicaciones» aparece, y lleva al perfil público", async ({
+    page,
+  }) => {
+    const enlace = accountNav(page).getByRole("link", {
+      name: es.nav.myPublications,
+    });
+
+    await expect(enlace).toBeVisible();
+    await expect(enlace).toHaveAttribute("href", new RegExp(`/u/${username}$`));
+  });
 });
 
 test.describe("Cuando alguien sin tienda abre su cuenta", () => {
@@ -108,5 +185,23 @@ test.describe("Cuando alguien sin tienda abre su cuenta", () => {
       page.getByRole("heading", { level: 2, name: es.account.usernameTitle }),
     ).toBeVisible();
     await expect(page.getByText(es.account.usernameIntro)).toBeVisible();
+  });
+
+  /* Sin tienda, la agenda no sirve para nada: se oculta en vez de llevar a dar de alta lo que
+     falta. Mis pedidos y Mis hábitos no dependen de vender, así que se ofrecen igual. */
+  test("Entonces la navegación no ofrece agenda, y sí pedidos y hábitos", async ({
+    page,
+  }) => {
+    const nav = accountNav(page);
+
+    await expect(
+      nav.getByRole("link", { name: es.nav.myOrders }),
+    ).toBeVisible();
+    await expect(
+      nav.getByRole("link", { name: es.nav.myHabits }),
+    ).toBeVisible();
+    await expect(nav.getByRole("link", { name: es.nav.schedule })).toHaveCount(
+      0,
+    );
   });
 });
