@@ -440,6 +440,7 @@ async function main(): Promise<void> {
     "~/infra/dataAccess/db/schema/categories"
   );
   const { users } = await import("~/infra/dataAccess/db/schema/auth");
+  const { sellers } = await import("~/infra/dataAccess/db/schema/sellers");
 
   /**
    * La cuenta con la que publica este script: el primer correo de `HAZLO_SANO_ADMIN_EMAILS`.
@@ -447,6 +448,24 @@ async function main(): Promise<void> {
    * La necesitan dos modos, y por razones distintas: el alta, para colgarle las publicaciones, y
    * `--prune`, para no borrar lo que publicó alguien más.
    */
+  /**
+   * La **tienda** con la que sale publicado el catálogo: la del dueño.
+   *
+   * `posts.seller_id` es lo que agrupa una ficha bajo su tienda —la portada, el carrito y
+   * `/tienda/<slug>` filtran por ahí—, y el importador no lo mandaba: las 106 altas del 26 de agosto
+   * entraron sin tienda mientras las anteriores sí la tenían. Sale del dueño y no de una
+   * configuración aparte porque la tienda es de quien publica, no del catálogo.
+   */
+  const resolveSellerId = async (ownerId: string): Promise<string | null> => {
+    const rows = await db
+      .select({ id: sellers.id })
+      .from(sellers)
+      .where(eq(sellers.userId, ownerId))
+      .limit(1);
+
+    return rows[0]?.id ?? null;
+  };
+
   const resolveOwnerId = async (): Promise<string | undefined> => {
     const email = ownerEmail(options);
     const rows = email
@@ -769,6 +788,8 @@ async function main(): Promise<void> {
       process.exit(1);
     }
 
+    const seller = await resolveSellerId(owner);
+
     const bySlug = new Map(products.map((product) => [product.slug, product]));
 
     const current = await db
@@ -779,6 +800,7 @@ async function main(): Promise<void> {
         title: postTranslations.title,
         content: postTranslations.content,
         price: posts.price,
+        sellerId: posts.sellerId,
         userId: posts.userId,
         category: posts.category,
         subCategory: posts.subCategory,
@@ -802,6 +824,7 @@ async function main(): Promise<void> {
     let retexted = 0;
     let repriced = 0;
     let reassigned = 0;
+    let reshelved = 0;
     let addedImages = 0;
     let touched = 0;
 
@@ -884,6 +907,20 @@ async function main(): Promise<void> {
         }
       }
 
+      /* La tienda va junto al dueño porque es suya: si la ficha cambió de cuenta —o entró sin
+         tienda, como las 106 del 26 de agosto—, quedaría colgando de la anterior. */
+      if (seller && row.sellerId !== seller) {
+        reshelved++;
+        changed = true;
+
+        if (!options.dryRun) {
+          await db
+            .update(posts)
+            .set({ sellerId: seller })
+            .where(eq(posts.id, row.id));
+        }
+      }
+
       /*
        * Las imágenes solo se **añaden**. Las que ya están conservan su `sort_order`, y lo que falta
        * se cuelga detrás: la selección de `pickImages` empieza por las mismas de siempre, así que
@@ -944,6 +981,9 @@ async function main(): Promise<void> {
     );
     console.log(
       `  dueño ${options.dryRun ? "a reasignar" : "reasignado"}:           ${reassigned}`,
+    );
+    console.log(
+      `  tienda ${options.dryRun ? "a asignar" : "asignada"}:             ${reshelved}`,
     );
     console.log(
       `  imágenes ${options.dryRun ? "a añadir" : "añadidas"}:       ${addedImages}`,
@@ -1045,6 +1085,15 @@ async function main(): Promise<void> {
   const repository = new PostgresPostRepository();
   const storage = new FirebaseMediaStorageService();
 
+  /* Sin tienda la ficha no aparece bajo `/tienda/<slug>` ni se agrupa en el carrito, así que se
+     resuelve una vez y se cuelga de cada alta. */
+  const sellerId = await resolveSellerId(ownerId);
+  if (!sellerId) {
+    console.warn(
+      "AVISO: la cuenta que publica no tiene tienda; las altas entrarán sin `seller_id`.\n",
+    );
+  }
+
   let inserted = 0;
   let withoutImage = 0;
 
@@ -1092,6 +1141,7 @@ async function main(): Promise<void> {
       subCategory: product.subCategory,
       contactInfo: CONTACT,
       media,
+      sellerId,
       user: { id: ownerId },
       createdAt: new Date(),
     });
