@@ -14,15 +14,27 @@ export default function CommentList({
   postId,
   user,
   initialComments,
+  initialTotal,
 }: {
   postId: string;
   user: PostUser | undefined;
   initialComments: Comment[];
+  /**
+   * Cuántos comentarios tiene la publicación en total, no cuántos vinieron en la primera página.
+   *
+   * Es lo que decide si «cargar más» se pinta. Antes el botón estaba siempre, incluso en una
+   * publicación sin un solo comentario: la única forma de enterarse de que no había nada más era
+   * pulsarlo y leer el aviso.
+   */
+  initialTotal: number;
 }) {
   const t = useTranslations("comments");
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [loadMoreMessage, setLoadMoreMessage] = useState<string | null>(null);
+  /* El total se refresca con cada página: entre que se pintó la ficha y se pulsa el botón, alguien
+     más puede haber comentado, y `getComments` ya devuelve la cuenta al día. */
+  const [total, setTotal] = useState(initialTotal);
   const isClient = useIsClient();
 
   const { comments, setComments, commentError } = useRealTimeComments(
@@ -38,7 +50,12 @@ export default function CommentList({
     noMoreMessage: t("noMore"),
     setComments,
     setCurrentPage,
+    setTotal,
   });
+
+  /* Quedan comentarios que no están en pantalla. Cubre las dos cosas que el usuario reportó: sin
+     ningún comentario (`total` es 0) y con todos ya cargados (`length` alcanzó al total). */
+  const hasMore = comments.length < total;
 
   return (
     <>
@@ -84,14 +101,17 @@ export default function CommentList({
         <p>{t("empty")}</p>
       )}
 
-      <button
-        type="button"
-        onClick={onLoadMoreComments}
-        className="focus-ring mt-4 min-h-12 rounded-control bg-button-primary-bg px-4 py-2 font-semibold text-button-primary-text hover:bg-button-primary-hover transition-colors"
-        disabled={loading}
-      >
-        {loading ? t("loadingMore") : t("loadMore")}
-      </button>
+      {hasMore && (
+        <button
+          type="button"
+          onClick={onLoadMoreComments}
+          data-testid="load-more-comments"
+          className="focus-ring mt-4 min-h-12 rounded-control bg-button-primary-bg px-4 py-2 font-semibold text-button-primary-text hover:bg-button-primary-hover transition-colors"
+          disabled={loading}
+        >
+          {loading ? t("loadingMore") : t("loadMore")}
+        </button>
+      )}
 
       {loadMoreMessage && <p className="mt-2">{loadMoreMessage}</p>}
     </>

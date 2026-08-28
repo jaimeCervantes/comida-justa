@@ -345,6 +345,7 @@ export default async function Slug({
             postId={post.id}
             user={session?.user as PostUser}
             initialComments={post.comments}
+            initialTotal={post.commentsTotal}
           />
         </Suspense>
 

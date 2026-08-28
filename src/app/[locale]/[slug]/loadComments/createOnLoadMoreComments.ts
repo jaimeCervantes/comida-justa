@@ -10,6 +10,7 @@ export function createOnLoadMoreComments({
   noMoreMessage,
   setComments,
   setCurrentPage,
+  setTotal,
 }: {
   postId: string;
   currentPage: number;
@@ -19,6 +20,8 @@ export function createOnLoadMoreComments({
   noMoreMessage: string;
   setComments: (comments: (comment: Comment[]) => Comment[]) => void;
   setCurrentPage: (page: number) => void;
+  /** La cuenta al día que devuelve la consulta: es lo que decide si el botón sigue teniendo sentido. */
+  setTotal: (total: number) => void;
 }) {
   return async () => {
     setLoading(true);
@@ -27,6 +30,9 @@ export function createOnLoadMoreComments({
     const result = await getMoreComments(postId, nextPage, COMMENTS_PAGE_SIZE);
 
     setLoading(false);
+    /* Se refresca siempre, incluso cuando no vino ninguno: si alguien borró comentarios entre los
+       dos renders, esta es la ocasión de enterarse y dejar de ofrecer el botón. */
+    setTotal(result.total);
 
     if (result.comments.length === 0) {
       setLoadMoreMessage(noMoreMessage);

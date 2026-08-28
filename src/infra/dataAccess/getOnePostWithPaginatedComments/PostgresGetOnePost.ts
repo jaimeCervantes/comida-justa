@@ -56,6 +56,7 @@ interface PostRow {
     user_email: string | null;
     user_image: string | null;
   }> | null;
+  comments_total: number;
 }
 
 export async function getPostBySlug(slug: string) {
@@ -153,7 +154,18 @@ export async function getPostBySlug(slug: string) {
           ) limited
         ),
         '[]'::jsonb
-      ) AS comments
+      ) AS comments,
+      /* Cuántos hay en total, no cuántos caben en esta página.
+         Es lo que deja saber **antes de pintar** si «cargar más» tiene a dónde ir: sin esta cifra,
+         el botón se ofrecía siempre y solo al pulsarlo se descubría que no había nada más — y en
+         una publicación sin un solo comentario también. getComments ya devolvía este mismo total
+         al paginar; lo que faltaba era tenerlo en el primer render.
+         (Sin acentos graves aquí dentro: esto vive en un template literal y lo cortarían.) */
+      (
+        SELECT COUNT(*)::int
+        FROM comments c
+        WHERE c.post_id = p.id
+      ) AS comments_total
     FROM posts p
     JOIN post_translations pt
       ON pt.post_id = p.id
@@ -240,5 +252,6 @@ export async function getPostBySlug(slug: string) {
       whatsapp: row.contact_whatsapp ?? undefined,
     },
     comments: commentsArr,
+    commentsTotal: Number(row.comments_total ?? 0),
   };
 }
