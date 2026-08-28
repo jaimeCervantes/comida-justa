@@ -55,6 +55,28 @@ test.describe("La barra inferior del teléfono", () => {
   });
 
   /*
+   * Lo que trajo el catálogo a la barra: medido en un teléfono, `/productos` tenía **un solo**
+   * enlace visible en el home —en el pie, a 6.670 px de scroll—, porque el CTA «Ver lo que hay hoy»
+   * que lleva ahí vive en la portada, que es `hidden lg:block`. Se llegaba por hamburguesa o
+   * bajando hasta el final.
+   */
+  test("Y el catálogo se alcanza con el pulgar, sin abrir menús ni bajar al pie", async ({
+    page,
+  }) => {
+    await page.goto("/");
+
+    const catalogo = page.getByTestId("bottom-nav-products");
+    await expect(catalogo).toBeVisible();
+
+    await catalogo.click();
+    await page.waitForURL("**/productos");
+
+    await expect(
+      page.getByRole("heading", { name: es.products.title, level: 1 }),
+    ).toBeVisible();
+  });
+
+  /*
    * «Publicar» es la acción primaria del sitio y ahora vive en el círculo levantado de la barra.
    * Tenerla también en el header la duplicaba y le quitaba sitio al buscador.
    */

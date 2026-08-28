@@ -16,8 +16,8 @@ describe("la pestaña activa de la barra inferior", () => {
     ["/page/[page]", "home"],
     ["/buscar", "search"],
     ["/publicar", "publish"],
-    ["/pedidos", "orders"],
-    ["/pedido/[id]", "orders"],
+    ["/productos", "products"],
+    ["/productos/page/[page]", "products"],
     ["/cuenta", "account"],
     ["/cuenta/agenda", "account"],
   ])("marca %s como %s", (pathname, esperada) => {
@@ -30,12 +30,26 @@ describe("la pestaña activa de la barra inferior", () => {
    */
   it.each([
     ["/[slug]", "una publicación, a la que se llega desde cualquier parte"],
-    ["/productos", "el catálogo vive en el menú, no en la barra"],
     ["/carrito", "el carrito está en el header"],
     ["/tienda/[slug]", "una tienda"],
     ["/nosotros", "una página de contenido"],
+    /* «Pedidos» dejó la barra: se llega por el menú del avatar y por la pestaña «Yo»
+       (`AccountNav`). Su plaza es ahora del catálogo — ver el porqué en `bottomNavTabs.ts`. */
+    ["/pedidos", "los pedidos viven en la cuenta, no en la barra"],
+    ["/pedido/[id]", "el detalle de un pedido, por lo mismo"],
   ])("no marca nada en %s: %s", (pathname) => {
     expect(activeBottomNavTab(pathname)).toBeNull();
+  });
+
+  /*
+   * La razón de ser de esta pestaña: en un teléfono el catálogo estaba a un solo enlace visible, en
+   * el pie, a 6.670 px de scroll. Si vuelve a salir de la barra, que sea una decisión y no un
+   * descuido.
+   */
+  it("el catálogo tiene su plaza en la barra del pulgar", () => {
+    const catalogo = BOTTOM_NAV_TABS.find((tab) => tab.id === "products");
+
+    expect(catalogo?.href).toBe("/productos");
   });
 
   it("son cinco, como en el 5.1, y no se repiten", () => {

@@ -5,12 +5,12 @@ import {
   MdAdd,
   MdHome,
   MdOutlineHome,
-  MdOutlineReceiptLong,
   MdOutlineSearch,
+  MdOutlineStorefront,
   MdPerson,
   MdPersonOutline,
-  MdReceiptLong,
   MdSearch,
+  MdStorefront,
 } from "react-icons/md";
 import { Link, usePathname } from "~/i18n/navigation";
 import { cn } from "~/presentation/design_system/styling/merge-class-names";
@@ -44,7 +44,7 @@ const ICONS: Record<
   home: { active: MdHome, idle: MdOutlineHome },
   search: { active: MdSearch, idle: MdOutlineSearch },
   publish: { active: MdAdd, idle: MdAdd },
-  orders: { active: MdReceiptLong, idle: MdOutlineReceiptLong },
+  products: { active: MdStorefront, idle: MdOutlineStorefront },
   account: { active: MdPerson, idle: MdPersonOutline },
 };
 

@@ -16,7 +16,7 @@ export type BottomNavTabId =
   | "home"
   | "search"
   | "publish"
-  | "orders"
+  | "products"
   | "account";
 
 export interface BottomNavTab {
@@ -27,7 +27,7 @@ export interface BottomNavTab {
     | "bottomHome"
     | "bottomSearch"
     | "publish"
-    | "bottomOrders"
+    | "bottomProducts"
     | "bottomAccount";
   /**
    * Las rutas internas que marcan esta pestaña.
@@ -58,11 +58,27 @@ export const BOTTOM_NAV_TABS: readonly BottomNavTab[] = [
     labelKey: "publish",
     pathnames: ["/publicar"],
   },
+  /*
+   * El catálogo, y no «Pedidos», y esa es la decisión de esta pestaña.
+   *
+   * Medido en un teléfono: en el home había **un solo** enlace visible a `/productos`, en el pie, a
+   * 6.670 px de scroll. El CTA «Ver lo que hay hoy» que lleva ahí existe en el DOM pero está
+   * oculto —la portada es `hidden lg:block`—, así que el catálogo se alcanzaba por hamburguesa →
+   * Comunidad → Productos, o bajando hasta el final.
+   *
+   * Mientras tanto, dos de las cinco pestañas —«Pedidos» y «Yo»— **son un muro de acceso** para
+   * quien no ha entrado: las dos redirigen a identificarse. En un sitio cuya puerta es mirar lo que
+   * hay, la barra del pulgar estaba dando dos de sus cinco plazas a algo que la mayoría no puede
+   * usar todavía, y ninguna a lo que vino a ver.
+   *
+   * «Pedidos» no se queda sin camino: lo llevan el menú del avatar y `AccountNav` —o sea, la
+   * pestaña «Yo» de aquí al lado—. `/productos` no tenía ninguno.
+   */
   {
-    id: "orders",
-    href: "/pedidos",
-    labelKey: "bottomOrders",
-    pathnames: ["/pedidos", "/pedido/[id]"],
+    id: "products",
+    href: "/productos",
+    labelKey: "bottomProducts",
+    pathnames: ["/productos", "/productos/page/[page]"],
   },
   {
     id: "account",
