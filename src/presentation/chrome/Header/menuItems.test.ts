@@ -42,18 +42,29 @@ describe("las secciones de Comunidad", () => {
 describe("la sección activa del menú", () => {
   it.each<[string, MenuSection, string]>([
     ["/", "community", "«Publicaciones», su primera entrada"],
-    ["/productos", "community", "entrada del desplegable"],
-    ["/productos/page/[page]", "community", "la misma sección, paginada"],
     ["/eventos", "community", "entrada del desplegable"],
     ["/categoria/[key]", "community", "«Por categoría»"],
     ["/categoria/[key]/page/[page]", "community", "la misma, paginada"],
     ["/page/[page]", "community", "el inicio, paginado"],
     ["/productores-locales/[[...slug]]", "community", "sección publicada"],
     ["/negocios-locales/[[...slug]]", "community", "sección publicada"],
+    /* «Nosotros» dejó su píldora al catálogo y bajó al desplegable de Comunidad, en los dos
+       menús: estar ahí es estar en esa sección. */
+    ["/nosotros", "community", "entrada del desplegable desde el chrome v3"],
+    ["/productos", "products", "el catálogo tiene píldora propia"],
+    ["/productos/page/[page]", "products", "la misma sección, paginada"],
     ["/pilares/[[...slug]]", "pillars", "la portada y los cuatro"],
-    ["/nosotros", "about", "enlace suelto de la barra"],
   ])("marca %s como %s (%s)", (pathname, esperada) => {
     expect(activeMenuSection(pathname)).toBe(esperada);
+  });
+
+  /*
+   * Dos píldoras diciendo «estás aquí» a la vez es imposible de leer, y `activeMenuSection`
+   * devuelve una sola: si el catálogo siguiera además en `community`, ganaría la primera del
+   * objeto —la equivocada— sin que nada fallara.
+   */
+  it("el catálogo lo reclama una sola sección", () => {
+    expect(activeMenuSection("/productos")).not.toBe("community");
   });
 
   /*

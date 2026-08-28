@@ -96,3 +96,89 @@ existía, y su forma actual responde a una decisión ya documentada.
    incomoda; la revisión la encontró bastante completa.
 3. **El CTA «Ver lo que hay hoy» sigue siendo de escritorio.** Ahora importa menos —la barra cubre
    el teléfono—, pero conviene saber que la portada entera está oculta por debajo de `lg`.
+
+## Slice 2 — El escritorio: un desbordamiento viejo, y la píldora del catálogo (2026-08-28)
+
+### La pregunta que lo destapó
+
+«¿"Catálogo" también podría estar en el menú superior de escritorio, o definitivamente no cabe?».
+Se probó en vez de contestar de memoria — y el docstring de `Nav.tsx` tenía razón, pero por poco, y
+midiendo apareció algo peor que ya estaba ahí.
+
+### El defecto que ya existía
+
+El header **desbordaba antes de tocar nada**, y no por poco:
+
+| Ancho | Desborde, sin ningún cambio |
+| --- | --- |
+| 1024 | **198 px** |
+| 1152 | **70 px** |
+| 1280 | cabe justo |
+
+La causa: la barra de navegación aparece en `lg` (1024 px), pero el header no cabía hasta 1280. En
+esos 256 px de ventana el sitio se veía roto en escritorio — a 1024 quedaban cortados «Iniciar
+sesión» y el selector de idioma.
+
+### El arreglo, propuesto por el usuario
+
+«¿Y si los botones de iniciar sesión y publicar los dejamos solo con el icono, sin texto, para que
+no ocupen espacio horizontal?». Los dos **ya** ocultaban su texto por debajo de `sm` y ya llevaban
+`aria-label`: el patrón existía, solo faltaba extenderlo al tramo que se rompía.
+
+`ACTION_LABEL` es `hidden sm:block lg:hidden xl:block` — solo icono hasta `sm`, con texto de `sm` a
+`lg`, solo icono de `lg` a `xl` (donde la barra compite por el ancho), y con texto desde `xl`. Más
+`mx-4` en vez de `mx-8` en el buscador dentro de ese tramo, que eran los últimos 20 px.
+
+Resultado medido: **cabe de 640 a 1920**, sin solapamientos —16 px de separación entre bloques en el
+tramo apretado, 32 px desde `xl`—.
+
+### Por qué siguen siendo tres píldoras
+
+Con el desbordamiento arreglado se probó una cuarta. No entra: a 1280 desborda 41 px, porque justo
+en `xl` vuelven a la vez el texto de los dos botones y el margen ancho del buscador. Tres es el
+número, así que la pregunta pasó a ser cuál cede, y la decisión fue del usuario: **«Catálogo» toma
+la plaza de «Nosotros»**, que baja al desplegable de «Comunidad».
+
+Queda dicha la tensión: «Comunidad» está descrita como «la puerta a todo lo que publica la gente», y
+«Nosotros» habla de la marca, no de lo que la comunidad comparte. Por eso va al final del
+desplegable y separado por una línea, en vez de mezclado con las publicaciones. Sigue además en el
+pie, bajo «Explora».
+
+### Los dos menús dicen lo mismo
+
+En el teléfono no había problema de espacio —ese menú es una lista vertical— pero «Nosotros» bajó
+también ahí. Que una sección esté en un nivel en escritorio y en otro en móvil obliga a aprendérsela
+dos veces.
+
+`MenuSection` pierde `about` y gana `products`: un identificador sin ninguna ruta que lo reclame
+sería una sección imposible de marcar. `/nosotros` pasa a marcar `community`, que es donde vive
+ahora, y `/productos` se marca a sí mismo. Hay una prueba nueva que impide que dos secciones
+reclamen la misma ruta: `activeMenuSection` devuelve una sola, así que ganaría la primera del objeto
+—la equivocada— sin que nada fallara.
+
+### Archivos tocados
+
+| Zona | Archivos |
+| --- | --- |
+| Chrome | `Header/Header.tsx` (`ACTION_LABEL`, margen del buscador), `Header/Nav.tsx`, `Header/MobileNav.tsx`, `Header/menuItems.ts` (+ test) |
+| Catálogo | `es.json`, `en.json`: `nav.aboutDescription` |
+
+### Comandos y resultados
+
+```
+pnpm run validate     # 2438/2438 en verde
+pnpm run check:i18n   # limpio
+```
+
+### Recap
+
+La barra de escritorio gana «Catálogo» sin que nada se salga por el borde, y de paso se cerró un
+desbordamiento que llevaba tiempo rompiendo el header entre 1024 y 1279 px. El texto de las dos
+acciones se esconde solo en el tramo donde estorba, y como ya tenían `aria-label`, quien usa lector
+de pantalla oye lo mismo en todos los anchos.
+
+### Próximos pasos (opciones)
+
+1. **Mejorar `/productos`**, el siguiente acordado: la búsqueda tiene resumen de resultados y
+   facetas con cuentas, y el catálogo no.
+2. **Mejorar `/buscar`**, el último de los tres.

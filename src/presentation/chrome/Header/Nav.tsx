@@ -241,6 +241,17 @@ export default function Nav({
                   </ul>
                 </>
               ) : null}
+
+              {/* «Nosotros» bajó aquí para que su plaza de arriba fuera del catálogo.
+                  Va al final y separado: no es algo que la comunidad publique —que es de lo que
+                  trata el resto de este menú—, es quién está detrás. Sigue además en el pie, bajo
+                  «Explora». */}
+              <hr className="my-3 border-separator" />
+              <ul className="m-0 grid list-none gap-x-[10px] grid-cols-1 md:grid-cols-2">
+                <ListItem href="/nosotros" title={t("about")}>
+                  {t("aboutDescription", { brand: PUBLIC_BRAND_NAME })}
+                </ListItem>
+              </ul>
             </div>
           </NavigationMenu.Content>
         </NavigationMenu.Item>
@@ -269,16 +280,21 @@ export default function Nav({
           </NavigationMenu.Content>
         </NavigationMenu.Item>
 
+        {/* El catálogo, de primer nivel, en la plaza que dejó «Nosotros».
+            Es un enlace simple y no un desplegable: la barra bajó de cinco elementos a tres porque
+            no cabían —ver arriba—, y lo que no cabía era «Productos» **con su propio menú**. Con
+            cuatro píldoras tampoco cabe: medido, desborda 41px a 1280, que es donde el header
+            recupera el texto de sus botones. Tres es el número, y esta es la terna. */}
         <NavigationMenu.Item>
           <NavigationMenu.Link asChild>
             <Link
-              href="/nosotros"
-              aria-current={active === "about" ? "page" : undefined}
+              href="/productos"
+              aria-current={active === "products" ? "page" : undefined}
               className={`${LINK_CLASS} ${
-                active === "about" ? PILL_ACTIVE : PILL_IDLE
+                active === "products" ? PILL_ACTIVE : PILL_IDLE
               }`}
             >
-              {t("about")}
+              {t("bottomProducts")}
             </Link>
           </NavigationMenu.Link>
         </NavigationMenu.Item>

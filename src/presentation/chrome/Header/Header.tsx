@@ -23,6 +23,24 @@ import MobileNav from "./MobileNav";
 import Nav from "./Nav";
 import UserMenu from "./UserMenu";
 
+/**
+ * Cuándo las dos acciones de la derecha —«Publicar» e «Iniciar sesión»— enseñan su texto.
+ *
+ * Los cuatro tramos, y por qué:
+ *
+ * - **Hasta `sm`**: solo icono. Es lo que ya hacía; en un teléfono no hay ancho que gastar.
+ * - **De `sm` a `lg`**: con texto. La barra de navegación todavía no está y sobra sitio.
+ * - **De `lg` a `xl`**: solo icono otra vez, y este es el tramo nuevo. La barra aparece en `lg`
+ *   (1024px) pero el header no cabía hasta 1280: medido, desbordaba 198px a 1024 y 70px a 1152, y
+ *   lo que se salía por el borde era «Iniciar sesión» y el selector de idioma. O sea que el sitio
+ *   se veía roto en 256px de ventana de escritorio.
+ * - **Desde `xl`**: con texto. Ahí ya caben las dos cosas.
+ *
+ * Las dos llevan `aria-label` desde antes, así que quedarse sin texto visible no las deja sin
+ * nombre: quien usa lector de pantalla oye lo mismo en los cuatro tramos.
+ */
+const ACTION_LABEL = "hidden sm:block lg:hidden xl:block";
+
 export default async function Header() {
   const t = await getTranslations("nav");
   const tCommon = await getTranslations("common");
@@ -108,7 +126,10 @@ export default async function Header() {
           </div>
         </div>
 
-        <div className="hidden md:flex flex-1 max-w-md mx-8">
+        {/* `mx-4` hasta `xl` y `mx-8` desde ahí: con la barra de navegación en pantalla, esos 64px
+            de margen eran los últimos 20 que se salían del borde a 1024. Desde `xl` sobra sitio y
+            el buscador recupera su aire. */}
+        <div className="hidden md:flex flex-1 max-w-md mx-4 xl:mx-8">
           <HeaderSearchBar />
         </div>
 
@@ -125,7 +146,7 @@ export default async function Header() {
               aria-label={t("publish")}
               showLoader
             >
-              <span className="hidden sm:block">{t("publish")}</span>
+              <span className={ACTION_LABEL}>{t("publish")}</span>
             </LinkButton>
           </div>
 
@@ -158,7 +179,7 @@ export default async function Header() {
                verdes y uno negro; ahora hay una acción primaria, un avatar y el idioma». La acción
                primaria del sitio es publicar; acceder es la puerta, no la invitación. */
             <SignIn color="white" aria-label={t("signIn")}>
-              <span className="hidden sm:block">{t("signIn")}</span>
+              <span className={ACTION_LABEL}>{t("signIn")}</span>
             </SignIn>
           )}
 

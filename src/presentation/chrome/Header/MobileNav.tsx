@@ -70,7 +70,6 @@ function useCloseMenuOnNavigation(
 const COMMUNITY_PANEL: MenuSection = "community";
 const CATEGORIES_PANEL = "categories";
 const PILLARS_PANEL: MenuSection = "pillars";
-const ABOUT_LINK: MenuSection = "about";
 
 const ROW_CLASS = "border-b border-separator last:border-0";
 const ROW_CONTENT_CLASS =
@@ -281,6 +280,11 @@ export default function MobileNav({
             href: item.href,
           }),
         ),
+        /* «Nosotros» baja aquí igual que en escritorio. En el teléfono no había problema de
+           espacio —este menú es una lista vertical—, pero los dos menús tienen que decir dónde
+           vive cada cosa de la misma forma: si en uno es de primer nivel y en el otro está dentro,
+           es una sección que hay que aprenderse dos veces. */
+        { kind: "link", id: "about", label: t("about"), href: "/nosotros" },
       ],
     },
     /* `byCategory` y no `catalog`: ese ya nombra el enlace de administración, y dos entradas del
@@ -310,7 +314,6 @@ export default function MobileNav({
         }),
       ),
     },
-    { kind: "link", id: ABOUT_LINK, label: t("about"), href: "/nosotros" },
   ];
 
   const openPanel = panelAt(rootEntries, path);

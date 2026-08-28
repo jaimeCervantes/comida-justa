@@ -760,6 +760,7 @@
   },
   "nav": {
     "about": "About us",
+    "aboutDescription": "Who is behind {brand}, and why",
     "back": "Back",
     "bottomAccount": "Me",
     "bottomHome": "Home",

@@ -137,8 +137,14 @@ export const VISIBLE_COMMUNITY_ITEMS = COMMUNITY_ITEMS.filter(
   (item) => item.published,
 );
 
-/** Las tres secciones de la barra. El identificador no se traduce: se compara. */
-export type MenuSection = "community" | "pillars" | "about";
+/**
+ * Las tres secciones de la barra. El identificador no se traduce: se compara.
+ *
+ * Ya no hay `about`: «Nosotros» dejó su píldora al catálogo y se mudó dentro del desplegable de
+ * «Comunidad», así que estar en `/nosotros` es estar en esa sección. Un identificador sin ninguna
+ * ruta que lo reclame sería una sección que no se puede marcar nunca.
+ */
+export type MenuSection = "community" | "products" | "pillars";
 
 /**
  * Qué rutas pertenecen a cada sección del menú.
@@ -161,16 +167,19 @@ const SECTION_PATHNAMES: Record<MenuSection, readonly string[]> = {
   community: [
     "/",
     "/page/[page]",
-    "/productos",
-    "/productos/page/[page]",
     "/eventos",
     "/eventos/page/[page]",
     "/categoria/[key]",
     "/categoria/[key]/page/[page]",
+    /* «Nosotros» vive dentro de este desplegable desde que el catálogo le tomó la píldora. */
+    "/nosotros",
     ...VISIBLE_COMMUNITY_ITEMS.map((item) => item.href.pathname),
   ],
+  /* El catálogo tiene píldora propia, así que se marca a sí mismo. Dejarlo también en `community`
+     haría que dos secciones reclamaran la misma ruta, y `activeMenuSection` devuelve una sola:
+     ganaría la primera de este objeto, o sea la equivocada. */
+  products: ["/productos", "/productos/page/[page]"],
   pillars: [PILLARS_OVERVIEW_HREF.pathname],
-  about: ["/nosotros"],
 };
 
 /**
