@@ -5,13 +5,16 @@ import es from "~/i18n/messages/es.json";
 import { renderWithIntl } from "~/infra/test-utils/renderWithIntl";
 import type { Comment } from "~/infra/types/Posts";
 
-const { getMoreComments } = vi.hoisted(() => ({ getMoreComments: vi.fn() }));
+const { getMoreComments, addCommentToPost } = vi.hoisted(() => ({
+  getMoreComments: vi.fn(),
+  addCommentToPost: vi.fn(),
+}));
 
-/* La acción es de servidor: en jsdom no hay servidor al que llamar, y lo que estos casos afirman
-   es qué se pinta según lo que conteste, no cómo viaja la respuesta. */
+/* Las acciones son de servidor: en jsdom no hay servidor al que llamar, y lo que estos casos
+   afirman es qué se pinta según lo que contesten, no cómo viaja la respuesta. */
 vi.mock("../data-access/actions", () => ({
   getMoreComments,
-  addCommentToPost: vi.fn(),
+  addCommentToPost,
 }));
 
 import CommentList from "./CommentList";
@@ -26,15 +29,32 @@ function comentario(id: string): Comment {
   } as unknown as Comment;
 }
 
-function render(comments: Comment[], total: number) {
+/** Quien escribe: sin sesión el formulario manda a identificarse en vez de publicar. */
+const VECINA = {
+  id: "u1",
+  name: "Vecina",
+  email: "v@e.test",
+} as unknown as Parameters<typeof CommentList>[0]["user"];
+
+function render(
+  comments: Comment[],
+  total: number,
+  user: Parameters<typeof CommentList>[0]["user"] = undefined,
+) {
   return renderWithIntl(
     <CommentList
       postId="post-1"
-      user={undefined}
+      user={user}
       initialComments={comments}
       initialTotal={total}
     />,
   );
+}
+
+async function escribirComentario(texto: string) {
+  const user = userEvent.setup();
+  await user.type(screen.getByLabelText(es.comments.inputLabel), texto);
+  await user.click(screen.getByRole("button", { name: es.comments.submit }));
 }
 
 const loadMore = () => screen.queryByTestId("load-more-comments");
@@ -90,5 +110,55 @@ describe("El botón de cargar más comentarios", () => {
 
     await waitFor(() => expect(loadMore()).not.toBeInTheDocument());
     expect(screen.getByText(es.comments.noMore)).toBeInTheDocument();
+  });
+});
+
+describe("Al publicar un comentario", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  /* Antes había que recargar para verlo: `AddCommentForm` avisaba con `onAdd`, pero `CommentList`
+     nunca le pasaba el callback. */
+  it("aparece en la lista sin recargar, y arriba, que es donde van los nuevos", async () => {
+    addCommentToPost.mockResolvedValue({
+      successMessage: "ok",
+      comment: { ...comentario("nuevo"), content: "Recién escrito" },
+    });
+    render([comentario("1")], 1, VECINA);
+
+    await escribirComentario("Recién escrito");
+
+    const items = await screen.findAllByRole("listitem");
+    expect(items[0]).toHaveTextContent("Recién escrito");
+  });
+
+  /* El total sube con él: sin eso, escribir un comentario haría que la lista alcanzara al total y
+     «cargar más» desaparecería aunque quedaran páginas por traer. */
+  it("el botón sigue ofreciéndose si aún quedaban páginas por traer", async () => {
+    addCommentToPost.mockResolvedValue({
+      successMessage: "ok",
+      comment: comentario("nuevo"),
+    });
+    render([comentario("1"), comentario("2")], 3, VECINA);
+
+    await escribirComentario("Uno más");
+
+    await waitFor(() =>
+      expect(screen.getAllByRole("listitem")).toHaveLength(3),
+    );
+    expect(loadMore()).toBeInTheDocument();
+  });
+
+  /* Se avisaba **antes** de mirar el resultado, así que un fallo de la base pintaba igual el
+     comentario en la lista — y al recargar desaparecía sin explicación. */
+  it("no se pinta nada si la base lo rechazó, y se dice por qué", async () => {
+    addCommentToPost.mockResolvedValue({ errorMessage: "No se pudo guardar" });
+    render([comentario("1")], 1, VECINA);
+
+    await escribirComentario("Este falla");
+
+    expect(await screen.findByText("No se pudo guardar")).toBeInTheDocument();
+    expect(screen.getAllByRole("listitem")).toHaveLength(1);
   });
 });

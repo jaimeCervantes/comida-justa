@@ -57,6 +57,21 @@ export default function CommentList({
      ningún comentario (`total` es 0) y con todos ya cargados (`length` alcanzó al total). */
   const hasMore = comments.length < total;
 
+  /**
+   * Lo que acaba de escribirse aparece sin recargar.
+   *
+   * Va **al principio** porque la lista está ordenada de más nuevo a más viejo (`created_at DESC`,
+   * tanto en la ficha como al paginar): añadirlo al final lo pondría donde van los más antiguos.
+   *
+   * El total sube en uno a la vez, y eso es lo que mantiene honesto al botón: sin ello, escribir
+   * un comentario haría que `length` alcanzara al total y «cargar más» desaparecería aunque
+   * quedaran páginas por traer.
+   */
+  const onCommentAdded = (comment: Comment) => {
+    setComments((prev) => [comment, ...prev]);
+    setTotal((prev) => prev + 1);
+  };
+
   return (
     <>
       {/* Mismo nivel y mismo tamaño que «Publicaciones Relacionadas»: son las dos secciones
@@ -65,7 +80,7 @@ export default function CommentList({
       <Heading level={2} className="mb-4">
         {t("heading")}
       </Heading>
-      <AddCommentForm postId={postId} user={user} />
+      <AddCommentForm postId={postId} user={user} onAdd={onCommentAdded} />
 
       {commentError && (
         <p className="text-brand-clay-700 mt-2">{commentError}</p>

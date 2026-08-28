@@ -88,3 +88,66 @@ que nadie lo leyera— ahora lo usa para mantenerlo al día.
 1. **Conectar `onAdd`** para que el comentario recién publicado aparezca sin recargar. El hueco ya
    está en `AddCommentForm`; falta que `CommentList` lo llene y suba el total en uno.
 2. **Cola offline optimista** — sigue pendiente de su conversación de alcance.
+
+## Slice 2 — El comentario recién escrito aparece solo (2026-08-27)
+
+Cierra el próximo paso 1 del slice anterior, que salió a la luz revisando el botón.
+
+### Lo que estaba a medias
+
+`AddCommentForm` ya llamaba a `onAdd?.()` tras publicar, pero **`CommentList` nunca le pasaba ese
+callback**. El hueco existía y no lo llenaba nadie: escribir un comentario lo guardaba en la base y
+no lo enseñaba hasta recargar la página.
+
+### Y un defecto de verdad en el camino
+
+El aviso se disparaba **antes** de mirar el resultado:
+
+```ts
+const result = await addCommentToPost(...);
+onAdd?.();               // ← aquí, sin saber todavía si se guardó
+if ("errorMessage" in result) { ... }
+```
+
+O sea que en cuanto alguien escuchara ese callback, un fallo de la base habría pintado el comentario
+en la lista igualmente — y al recargar desaparecería sin explicación. Se movió detrás de la
+comprobación. Estaba latente porque nadie escuchaba; conectarlo sin verlo lo habría estrenado.
+
+### Las decisiones
+
+- **`onAdd` recibe el comentario, no un aviso a secas.** La acción ya devuelve la fila completa —con
+  su id y su fecha—, así que quien escucha no tiene que volver a pedir la página para enseñar lo que
+  esta persona acaba de escribir.
+- **Entra por arriba.** La lista va de más nuevo a más viejo (`created_at DESC`, tanto en la ficha
+  como al paginar); añadirlo al final lo pondría donde van los más antiguos.
+- **El total sube en uno con él.** Sin eso, escribir un comentario haría que `length` alcanzara al
+  total y «cargar más» desaparecería aunque quedaran páginas por traer — el botón del slice 1 se
+  habría roto por el arreglo de este.
+
+### Archivos tocados
+
+| Zona | Archivos |
+| --- | --- |
+| Presentación | `addComments/AddCommentForm.tsx`, `loadComments/CommentList.tsx` (+3 casos en su test) |
+
+### Comandos y resultados
+
+```
+pnpm exec vitest --run "src/app/[locale]/[slug]/loadComments"   # 8 en verde (3 nuevas)
+pnpm run validate      # biome + typecheck + typecheck:tests + toda la suite
+pnpm run check:i18n    # limpio
+```
+
+Comprobado además en el navegador con una sesión real sobre `verduras-y-semillas-frescas` (46
+comentarios): de 10 en pantalla a 11 sin recargar, el nuevo arriba, y el botón sigue ofreciéndose
+porque aún quedaban páginas. El comentario y la sesión de prueba se borraron al terminar.
+
+### Recap
+
+Escribir un comentario ya lo enseña en el momento, en su sitio y sin recargar, y el botón de cargar
+más sigue contando bien. De paso se corrigió que el aviso saliera antes de saber si la base había
+aceptado: estaba latente porque nadie lo escuchaba, y conectarlo tal cual lo habría estrenado.
+
+### Próximos pasos (opciones)
+
+1. **Cola offline optimista** — sigue pendiente de su conversación de alcance.

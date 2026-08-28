@@ -2,7 +2,7 @@
 import { useTranslations } from "next-intl";
 
 import { useState } from "react";
-import type { PostUser } from "~/infra/types/Posts";
+import type { Comment, PostUser } from "~/infra/types/Posts";
 import { addCommentToPost } from "../data-access/actions"; // Función para agregar un comentario
 
 export default function AddCommentForm({
@@ -12,7 +12,14 @@ export default function AddCommentForm({
 }: {
   postId: string;
   user: PostUser | undefined;
-  onAdd?: () => void;
+  /**
+   * El comentario que acaba de guardarse, para que la lista lo pinte sin recargar.
+   *
+   * Recibe el comentario y no un aviso a secas: la acción ya devuelve la fila completa —con su id
+   * y su fecha—, así que quien escucha no tiene que volver a pedir la página para enseñar lo que
+   * esta persona acaba de escribir.
+   */
+  onAdd?: (comment: Comment) => void;
 }) {
   const t = useTranslations("comments");
   const [newComment, setNewComment] = useState("");
@@ -33,14 +40,18 @@ export default function AddCommentForm({
     if (!newComment.trim()) return;
     setLoading(true);
     const result = await addCommentToPost(postId, newComment, user as PostUser);
-    onAdd?.();
     setLoading(false);
 
     if ("errorMessage" in result) {
       setErrorMessage(result.errorMessage);
-    } else {
-      setNewComment("");
+      return;
     }
+
+    /* Después de comprobar que se guardó, y no antes: avisar primero pintaba en la lista un
+       comentario que la base pudo haber rechazado, y al recargar desaparecía sin explicación. */
+    setErrorMessage(null);
+    setNewComment("");
+    onAdd?.(result.comment);
   };
 
   return (
