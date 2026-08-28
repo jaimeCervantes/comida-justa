@@ -56,6 +56,29 @@ const pechuga = {
   sellerHandle: TIENDA.handle,
 };
 
+/**
+ * Una publicación cuyo único archivo es un vídeo, que es un caso real: 8 de las 24 lo son.
+ *
+ * Es lo que destapó el defecto. El renglón del pedido pedía «el primer archivo» sin mirar de qué
+ * tipo era y lo metía en un `<img>`, así que `next/image` intentaba redimensionar un `.mp4` y
+ * devolvía un 412: miniatura rota en la lista y en la ficha.
+ */
+const yoga = {
+  title: `E2E Clase de yoga ${Date.now()}`,
+  slug: testSlug("yoga-de-la-lista"),
+  kind: "producto" as const,
+  origin: null,
+  price: 80,
+  sellerHandle: TIENDA.handle,
+  media: [
+    {
+      url: "https://firebasestorage.googleapis.com/v0/b/test/o/yoga.mp4?alt=media",
+      type: "video",
+      alt: "Clase de yoga",
+    },
+  ],
+};
+
 let dbSession: DbSession | undefined;
 let suiteUserId: string;
 
@@ -110,6 +133,7 @@ test.beforeEach(async ({ page, browserName }) => {
   await attachStoreToSuite();
   await seedPost(suero);
   await seedPost(pechuga);
+  await seedPost(yoga);
   await claimUsernameFor(suiteUserId, USERNAME);
   dbSession = await simulateLogin(page, browserName);
 });
@@ -300,5 +324,73 @@ test.describe("Cuando busco en mis pedidos", () => {
     await expect(page).toHaveURL(/vista=placed/);
     await expect(page).toHaveURL(/q=suero/);
     await expect(page).not.toHaveURL(/pagina=/);
+  });
+});
+
+test.describe("Cuando miro mis pedidos desde el teléfono", () => {
+  /**
+   * El ancho de la pantalla es el presupuesto, y nada puede pasarse de él.
+   *
+   * Se afirma la regla —«no se desplaza en horizontal»— y no un número: medido antes del arreglo,
+   * sobraban 75 px porque las dos pestañas pedían 403 de los 358 que hay, y la columna de la
+   * cuadrícula, sin declarar, crecía con ellas y arrastraba también al menú y al título, que sí
+   * cabían. Un `expect` contra «449» habría que reescribirlo cada vez que cambie una etiqueta;
+   * éste sigue valiendo.
+   */
+  test("Entonces la pantalla no se desplaza hacia los lados", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+
+    await placeOrder(page, suero.slug);
+
+    await page.goto("/pedidos");
+    await expect(page.getByTestId("orders-tabs")).toBeVisible();
+
+    const { desborde, culpables } = await page.evaluate(() => {
+      const doc = document.documentElement;
+
+      return {
+        desborde: doc.scrollWidth - doc.clientWidth,
+        /* Quién se sale, no sólo cuánto: sin esto, un fallo dice «sobran 75 px» y hay que volver a
+           medir a mano para saber de dónde salen. */
+        culpables: Array.from(document.querySelectorAll<HTMLElement>("body *"))
+          .filter(
+            (el) => el.getBoundingClientRect().right > doc.clientWidth + 1,
+          )
+          .map((el) => el.dataset.testid || el.tagName)
+          .slice(0, 8),
+      };
+    });
+
+    expect(desborde, `se salen del ancho: ${culpables.join(", ")}`).toBe(0);
+  });
+});
+
+test.describe("Cuando pedí algo que se publicó en vídeo", () => {
+  /**
+   * Sin foto se lee igual de bien; con una rota, no.
+   *
+   * La miniatura sale de la publicación de hoy y sólo puede ser una imagen. Antes se cogía el
+   * primer archivo fuera cual fuera, y un `.mp4` dentro de un `<img>` es el icono de imagen rota.
+   */
+  test("Entonces el renglón se lee entero y no enseña una miniatura rota", async ({
+    page,
+  }) => {
+    await placeOrder(page, yoga.slug, 2);
+
+    await openPlaced(page);
+
+    const card = page.getByTestId("buyer-order").first();
+
+    // Lo que importa del renglón —cuántos, de qué y cuánto suma— está entero.
+    await expect(card.getByTestId("order-lines")).toContainText(
+      `2 × ${yoga.title}`,
+    );
+    await expect(card.getByTestId("order-total")).toContainText("160");
+    // Y el enlace al producto tampoco depende de que haya foto.
+    await expect(card.getByTestId("order-line-link").first()).toBeVisible();
+
+    await expect(card.getByTestId("order-line-image")).toHaveCount(0);
   });
 });

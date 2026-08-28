@@ -388,7 +388,7 @@ Feature: Carrito y pedidos
   Scenario: Distingo un pedido de otro sin abrir ninguno
     Given dos pedidos míos a la misma tienda, los dos Pendientes: uno de 6 "Suero natural" a 35 y
       otro de 1 "Pechuga de pollo asada en bistec" a 105
-    When abro "/pedidos" en "Tus pedidos"
+    When abro "/pedidos" en "Yo pedí"
     Then cada tarjeta enseña sus renglones con miniatura, cantidad e importe, y su total
     And la del suero dice que lleva 6 artículos y suma 210
     And "Ver el pedido" lleva a su página
@@ -406,7 +406,7 @@ Feature: Carrito y pedidos
   @slice-6
   Scenario: El vendedor ve a quién le está preparando el pedido
     Given un pedido que me hizo alguien con perfil público
-    When abro "/pedidos" en "Pedidos que te han hecho"
+    When abro "/pedidos" en "Me pidieron"
     Then la tarjeta dice "Lo pidió <nombre>", con su avatar
     And su nombre lleva a "/u/<username>"
 
@@ -462,7 +462,7 @@ Feature: Carrito y pedidos
   Scenario: Aviso a la tienda sin abrir el pedido
     Given mi pedido a "Hazlo Sano" de 1 "Pechuga de pollo a la naranja en bistec" a 105,
       2 "Pechuga de pollo asada en bistec" a 105 y 6 "Suero natural" a 35, Pendiente
-    When abro "/pedidos" en "Tus pedidos"
+    When abro "/pedidos" en "Yo pedí"
     Then su tarjeta ofrece avisar a la tienda por WhatsApp
     And el enlace va al 2781126948, que es el número de esa tienda y no el de otra
     And el mensaje lleva los tres renglones, el total 525 y la dirección de ese pedido
@@ -635,11 +635,32 @@ Feature: Carrito y pedidos
       | 2026-08-10 01:58 | 2026-08-10 02:14 | 16 min     | menos de una hora se dice en minutos     |
       | 2026-08-10 01:58 | 2026-08-13 01:58 | 3 días     | más de un día se dice en días            |
 
+  # La lista se mira desde el teléfono, y ahí no cabía. Las pestañas llevaban el encabezado que
+  # rotulaba cada lista cuando eran dos apiladas —"Pedidos que te han hecho" mide 250 px—, y la
+  # columna de la cuadrícula, sin declarar, crecía con ellas: se desplazaba la pantalla entera,
+  # también el menú y el título, que sí cabían.
+  @slice-9
+  Scenario: La lista cabe en un teléfono
+    Given mis pedidos, en una pantalla de 390 px
+    When abro "/pedidos"
+    Then no se desplaza hacia los lados
+    And las dos pestañas se leen enteras, con su nombre corto
+
+  # La miniatura sale de la publicación de hoy y sólo puede ser una imagen. Se cogía el primer
+  # archivo fuera cual fuera, y 8 de las 24 publicaciones son vídeo: un ".mp4" dentro de un "<img>"
+  # es el icono de imagen rota. Sin foto el renglón se lee igual de bien; con una rota, no.
+  @slice-9
+  Scenario: Un producto publicado en vídeo no enseña una miniatura rota
+    Given un pedido mío de una publicación cuyo único archivo es un vídeo
+    When abro "/pedidos"
+    Then el renglón dice cuántos, de qué y cuánto suma, y lleva a su publicación
+    But no enseña ninguna miniatura
+
   # El pago en línea es lo único sin fecha: sigue condicionado a que el volumen de pedidos lo
   # justifique. Va siempre al final, así que cada slice entregado lo empuja un número más abajo.
   # Desde el slice 8, la pregunta que lo condiciona —cuántos se caen entre PENDING y DELIVERED— por
   # fin se puede contestar.
-  @slice-9 @future
+  @slice-10 @future
   Scenario: Se paga en línea
     Given un pedido aceptado
     When pago

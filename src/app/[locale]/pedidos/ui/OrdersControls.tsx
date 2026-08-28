@@ -19,6 +19,12 @@ const SCOPES: readonly OrderScope[] = ["open", "closed", "all"];
  * arma la URL solo— pero ya no espera al Enter: `OrdersSearchField` es la única pieza de cliente de
  * esta barra, y está sola en su archivo precisamente para que el resto siga pintándose en el
  * servidor.
+ *
+ * **Las pestañas tienen etiqueta propia y corta**, no el encabezado de la sección que rotulaban
+ * cuando eran dos listas apiladas. «Pedidos que te han hecho» mide 250 px y no cabe en un teléfono:
+ * medido a 390 px, las dos pestañas pedían 403 px de los 358 disponibles y el sitio se desplazaba
+ * en horizontal. Es lo mismo que ya le pasó a «Productos y servicios» en la barra del pulgar, que
+ * se rotula «Catálogo»: un encabezado describe, una pestaña se elige de un vistazo.
  */
 export default async function OrdersControls({
   current,
@@ -38,13 +44,13 @@ export default async function OrdersControls({
           <Tab
             view="received"
             current={current}
-            label={t("sellerHeading")}
+            label={t("tab.received")}
             count={counts.received}
           />
           <Tab
             view="placed"
             current={current}
-            label={t("buyerHeading")}
+            label={t("tab.placed")}
             count={counts.placed}
           />
         </nav>

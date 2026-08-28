@@ -845,7 +845,6 @@
     "buyer": "Ordered by {name}",
     "buyerEmpty": "You have not placed any order yet.",
     "buyerEmptyCta": "Browse the catalog",
-    "buyerHeading": "Your orders",
     "buyerUnknown": "someone",
     "cartPending": "You still have something in your cart to confirm.",
     "cartPendingCta": "View your cart",
@@ -885,7 +884,6 @@
     "searchLabel": "Search your orders",
     "searchPlaceholder": "Search a product…",
     "sellerEmpty": "Nobody has ordered from you yet.",
-    "sellerHeading": "Orders you have received",
     "signInToOrder": "Sign in to place your order",
     "since": {
       "DRAFT": "Draft since {date}",
@@ -904,6 +902,10 @@
       "PAID": "Paid",
       "PENDING": "Pending",
       "PREPARING": "Being prepared"
+    },
+    "tab": {
+      "placed": "I ordered",
+      "received": "They ordered"
     },
     "title": "Order",
     "total": "Total",

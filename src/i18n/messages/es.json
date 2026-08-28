@@ -845,7 +845,6 @@
     "buyer": "Lo pidió {name}",
     "buyerEmpty": "Todavía no has hecho ningún pedido.",
     "buyerEmptyCta": "Ver el catálogo",
-    "buyerHeading": "Tus pedidos",
     "buyerUnknown": "alguien",
     "cartPending": "Todavía te queda algo en el carrito por confirmar.",
     "cartPendingCta": "Ver tu carrito",
@@ -885,7 +884,6 @@
     "searchLabel": "Buscar en tus pedidos",
     "searchPlaceholder": "Buscar producto…",
     "sellerEmpty": "Todavía no te han hecho ningún pedido.",
-    "sellerHeading": "Pedidos que te han hecho",
     "signInToOrder": "Inicia sesión para hacer tu pedido",
     "since": {
       "DRAFT": "En borrador desde el {date}",
@@ -904,6 +902,10 @@
       "PAID": "Pagado",
       "PENDING": "Pendiente",
       "PREPARING": "En preparación"
+    },
+    "tab": {
+      "placed": "Yo pedí",
+      "received": "Me pidieron"
     },
     "title": "Pedido",
     "total": "Total",

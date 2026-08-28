@@ -17,9 +17,15 @@ const ITEM_CLASS =
  * que montan este menú tienen que verse como una sola sección, no tres decisiones de layout que
  * podrían desalinearse. En el teléfono se apila: el menú cabe antes que el título sin empujar el
  * contenido más de lo que ya empuja el encabezado del sitio.
+ *
+ * **La columna del teléfono también se declara `minmax(0, 1fr)`**, y no se deja implícita. Una pista
+ * de cuadrícula sin declarar es `auto`, que tiene `min-width: auto`: crece hasta el contenido más
+ * ancho que le metan en vez de contenerlo. Medido en `/pedidos` a 390 px, unas pestañas que pedían
+ * 403 px estiraban la columna entera a 449 y el sitio se desplazaba en horizontal — el menú y el
+ * título incluidos, que sí cabían. Con el `minmax(0, …)` el que se pasa se lo come él solo.
  */
 export const ACCOUNT_PAGE_LAYOUT =
-  "grid gap-8 lg:grid-cols-[240px_minmax(0,1fr)] lg:items-start";
+  "grid grid-cols-[minmax(0,1fr)] gap-8 lg:grid-cols-[240px_minmax(0,1fr)] lg:items-start";
 
 function NavItem({
   href,

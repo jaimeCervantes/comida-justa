@@ -463,10 +463,15 @@ export class PostgresOrderRepository implements OrderRepository {
         ORDER BY (locale = ${locale}) DESC, (locale = ${fallbackLocale}) DESC
         LIMIT 1
       ) t ON TRUE
+      /* La primera IMAGEN, no el primer archivo. Sin el filtro de tipo, una publicacion cuyo
+         archivo es un video devolvia el .mp4 como si fuera una foto, y el renglon lo pintaba en un
+         <img>: la miniatura salia rota. Es la misma linea que ya escribe el carrito
+         (PostgresCartProductRepository), que pinta esa misma miniatura y nunca tuvo el defecto.
+         Sin imagen el renglon se queda solo con su texto, que es como se lee igual de bien. */
       LEFT JOIN LATERAL (
         SELECT url
         FROM post_media
-        WHERE post_id = i.post_id
+        WHERE post_id = i.post_id AND type = 'image'
         ORDER BY sort_order
         LIMIT 1
       ) m ON TRUE

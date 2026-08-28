@@ -57,6 +57,14 @@ export type SeedPostInput = {
    * varios sí, exige poder sembrar las dos formas.
    */
   mediaCount?: number;
+  /**
+   * Los archivos exactos, cuando el escenario necesita que **no** sean fotos.
+   *
+   * `mediaCount` siembra siempre imágenes, que es lo que quieren casi todos. Esto existe para lo
+   * contrario: comprobar qué pasa cuando la publicación es un video, que es un caso real —8 de las
+   * 24 publicaciones lo son— y el único que se pinta distinto en una lista.
+   */
+  media?: Array<{ url: string; type: string; alt: string }>;
 };
 
 /**
@@ -89,11 +97,12 @@ export async function seedPost(input: SeedPostInput): Promise<string> {
     subCategory: input.subCategory ?? null,
     contactInfo: { phone: input.contactPhone ?? "2781092116" },
     media:
-      (input.mediaCount ?? 1) <= 1
+      input.media ??
+      ((input.mediaCount ?? 1) <= 1
         ? [{ url: SEED_MEDIA_URL, type: "image", alt: input.title }]
         : Array.from({ length: input.mediaCount ?? 1 }, (_, index) =>
             seedMediaFile(index, input.title),
-          ),
+          )),
     user: { id: userId },
     createdAt: new Date(),
   });

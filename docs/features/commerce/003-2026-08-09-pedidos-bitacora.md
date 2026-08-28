@@ -1445,3 +1445,133 @@ componente.
 **Validación:** `typecheck`, `typecheck:tests` y `lint` limpios; `test:run` **162 archivos, 1649
 tests**; `playwright test src/e2e/orders` **32/32** — uno más, el del estado intermedio, que es el
 caso que se había quedado sin cubrir.
+
+## Slice 9 — La lista cabe en un teléfono, y el vídeo deja de romperse (2026-08-28)
+
+### De dónde salió
+
+Del usuario, mirando `/pedidos` desde el teléfono: *«en los tabs, en mobile, el ancho horizontal se
+va hacia la derecha, y entonces en mobile hay un scroll horizontal. Y cuando es video, se ve la
+imagen rota»*. Dos defectos distintos en la misma pantalla, los dos sólo visibles en el teléfono.
+
+### La medición
+
+En una pantalla de 390 px, antes de tocar nada:
+
+| | Medido |
+| --- | --- |
+| Ancho de la ventana | 390 px |
+| Ancho del documento | **465 px** |
+| Desborde | **75 px** |
+| Lo que pedían las dos pestañas | 403 px de los 358 disponibles |
+| Pestaña «Pedidos que te han hecho» | 250 px |
+| Pestaña «Tus pedidos» | 145 px |
+
+Y lo que la lista de culpables destapó: **no se salía sólo el `<nav>`**. También el `<h1>`, el menú
+de la cuenta y la fila de filtros, todos hasta el mismo borde de 459 px. Es decir, había dos causas
+encadenadas, y arreglar sólo la visible habría dejado la otra esperando.
+
+### La causa de fondo: una pista de cuadrícula sin declarar
+
+`ACCOUNT_PAGE_LAYOUT` declaraba sus columnas **sólo a partir de `lg`**
+(`lg:grid-cols-[240px_minmax(0,1fr)]`). En el teléfono la columna era implícita, o sea `auto`, y una
+pista `auto` tiene `min-width: auto`: **crece hasta el contenido más ancho que le metan en vez de
+contenerlo**. Por eso unas pestañas de 403 px estiraban la columna entera a 449 y arrastraban con
+ella al menú y al título, que cabían de sobra.
+
+Se declara también la del teléfono, `grid-cols-[minmax(0,1fr)]`. Con eso, el que se pasa se lo come
+él solo y no se lleva por delante a sus vecinos. Es la diferencia entre un desbordamiento acotado y
+uno que contagia.
+
+### La causa visible: un encabezado haciendo de pestaña
+
+Las dos pestañas llevaban `sellerHeading` y `buyerHeading`, que son los encabezados con los que se
+rotulaba cada lista **cuando eran dos listas apiladas**. Al convertirse en pestañas nadie les cambió
+el texto, y un encabezado describe mientras que una pestaña se elige de un vistazo: «Pedidos que te
+han hecho» son 250 px para decir lo que dicen 143.
+
+Es exactamente lo que ya le pasó a «Productos y servicios» en la barra del pulgar, que se rotula
+«Catálogo» por el mismo motivo y está escrito en la bitácora del catálogo.
+
+Entran `orders.tab.received` («Me pidieron») y `orders.tab.placed` («Yo pedí»), en construcción
+paralela para que el cambio de sujeto sea lo único que haya que leer. `sellerHeading` y
+`buyerHeading` se retiran de los dos catálogos: ya no las pinta nadie, y una clave traducida sin
+consumidor es la copia muerta que este repo ya limpió antes.
+
+### El vídeo: el primer archivo no es lo mismo que la primera imagen
+
+`linesOf` pedía «el primer `post_media` por `sort_order`» sin mirar el tipo. Ocho de las 24
+publicaciones son vídeo, así que en esos pedidos el renglón recibía un `.mp4` y lo metía en un
+`<img>` vía `next/image`, que respondía **412** — el icono de imagen rota, en la lista y también en
+la ficha del pedido, porque las dos leen de aquí.
+
+El arreglo es una condición, `AND type = 'image'`, y ya estaba escrita **a diez archivos de
+distancia**: `PostgresCartProductRepository` la lleva desde siempre y por eso el carrito nunca tuvo
+el defecto, pintando la misma miniatura con el mismo componente. El docstring de `OrderLines` incluso
+presume de compartirla con el carrito; lo que no se compartía era la consulta que la alimenta.
+
+Se eligió **no** poner nada en su lugar —ni un fotograma, ni un icono de reproducción—. Lo pidió así
+el usuario: *«cuando es video, simplemente dejar solo el texto y omitir la imagen»*. Y encaja con lo
+que `Thumbnail` ya tenía escrito: sin URL no pinta nada, «ni un hueco, ni un marco vacío», porque
+quien la usa la pone junto al texto, que se lee igual de bien solo.
+
+### Lo que hizo falta en el harness
+
+`seedPost` sólo sabía sembrar imágenes, así que el defecto **no se podía reproducir en una prueba**.
+Gana un `media` opcional para dar los archivos exactos. `mediaCount` se queda como estaba: es lo que
+quieren casi todos los escenarios, y este existe para lo contrario.
+
+### Las dos pruebas nuevas
+
+La del ancho afirma **la regla y no el número**: `scrollWidth - clientWidth === 0`. Un `expect`
+contra «449 px» habría que reescribirlo cada vez que cambie una etiqueta. Cuando falla, además,
+nombra a los culpables —recorre el DOM buscando lo que sobresale— para no obligar a volver a medir
+a mano.
+
+La del vídeo afirma las dos mitades: que el renglón sigue diciendo **cuántos, de qué, cuánto suma y
+a dónde lleva**, y que no hay ninguna miniatura. Sólo la segunda mitad dejaría pasar un arreglo que
+borrara el renglón entero.
+
+### Archivos tocados
+
+| Zona | Archivos |
+| --- | --- |
+| Datos | `orders/PostgresOrderRepository.ts` (`AND type = 'image'`) |
+| Pantalla | `pedidos/ui/OrdersControls.tsx`, `cuenta/ui/AccountNav.tsx` (`ACCOUNT_PAGE_LAYOUT`) |
+| Catálogo | `es.json`, `en.json`: entran `orders.tab.*`, salen `sellerHeading` y `buyerHeading` |
+| Especificación | `orders.feature` (+2 escenarios), `orders/ordersList.spec.ts` (+2), `testUtils/seedPost.ts` |
+
+### Comandos y resultados
+
+```
+pnpm run validate     # biome + typecheck + typecheck:tests + 2438/2438 en verde
+pnpm run check:i18n   # limpio
+pnpm exec playwright test src/e2e/orders/ordersList.spec.ts   # 9/9
+```
+
+Medido de nuevo a 390 px, después:
+
+| | Antes | Ahora |
+| --- | --- | --- |
+| Desborde horizontal | **75 px** | **0** |
+| Elementos que se salen | 12 | ninguno |
+| Ancho de las dos pestañas | 250 + 145 | 143 + 109 |
+| Miniaturas en un pedido de vídeo | 1, rota (412) | ninguna, y el texto entero |
+
+### Recap
+
+`/pedidos` deja de desplazarse en horizontal en el teléfono, y un producto publicado en vídeo deja
+de enseñar una imagen rota. Del desborde había dos causas y se cerraron las dos: la visible —un
+encabezado de 250 px haciendo de pestaña— y la de fondo, una pista de cuadrícula sin declarar que
+convertía el exceso de cualquier hijo en un desplazamiento de la página entera. Esa segunda es la
+que valía la pena arreglar: protege a `/cuenta` y `/cuenta/agenda`, que montan el mismo layout y
+todavía no habían tropezado.
+
+### Próximos pasos (opciones)
+
+1. **Mejorar `/productos`**, el siguiente acordado desde hace dos slices: la búsqueda tiene resumen
+   de resultados y facetas con cuentas (`SearchSummary`, `SearchFacets`), y el catálogo no.
+2. **Mejorar `/buscar`**, el último de los tres.
+3. **Barrer el resto de pantallas a 390 px con la misma medición.** La prueba nueva vale para
+   cualquiera: sólo hay que apuntarla a otra ruta. `/pedidos` estaba roto y nadie lo había medido,
+   así que no hay motivo para suponer que era la única.
