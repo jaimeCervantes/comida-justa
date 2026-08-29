@@ -5,13 +5,10 @@ import { resolveScope } from "~/domain/order/order";
 import { resolveLocale, routing } from "~/i18n/routing";
 import { auth } from "~/infra/auth";
 import { redirectToSignIn } from "~/infra/auth/redirectToSignIn";
-import {
-  findProfileOfUser,
-  findSellerOfUser,
-} from "~/infra/dataAccess/identity/sessionIdentity";
+import { findSellerOfUser } from "~/infra/dataAccess/identity/sessionIdentity";
 import { createOrderRepository } from "~/infra/dataAccess/orders/factory";
 import { Heading } from "~/presentation/design_system/typography/Heading";
-import AccountNav, { ACCOUNT_PAGE_LAYOUT } from "../cuenta/ui/AccountNav";
+import AccountSection from "../cuenta/ui/AccountSection";
 import BuyerOrders from "./ui/BuyerOrders";
 import OrdersControls from "./ui/OrdersControls";
 import OrdersPagination from "./ui/OrdersPagination";
@@ -68,13 +65,10 @@ export default async function PedidosPage({
     redirectToSignIn(locale, "/pedidos");
   }
 
-  /* Los mismos dos lectores que `/cuenta`, cacheados por render: `AccountNav` necesita el
-     usuario para decidir si ofrece "Mis publicaciones", esta página necesita el vendedor para
-     saber si hay una vista de "lo que me han pedido". */
-  const [seller, profile] = await Promise.all([
-    findSellerOfUser(userId),
-    findProfileOfUser(userId),
-  ]);
+  /* Solo el vendedor: es lo que decide si hay una vista de "lo que me han pedido". Lo que el menú
+     necesita —el usuario, para saber si ofrece "Mis publicaciones"— lo lee `AccountSection` por su
+     cuenta, y como los dos lectores van cacheados por render eso no cuesta una consulta más. */
+  const seller = await findSellerOfUser(userId);
   const current = readParams(await searchParams, Boolean(seller));
 
   const repository = createOrderRepository();
@@ -109,44 +103,33 @@ export default async function PedidosPage({
   ]);
 
   return (
-    <main className={ACCOUNT_PAGE_LAYOUT}>
-      <AccountNav
-        active="orders"
-        username={profile?.username ?? null}
-        hasStore={Boolean(seller)}
+    <AccountSection active="orders">
+      <Heading level={1} className="mb-6">
+        {t("heading")}
+      </Heading>
+
+      <OrdersControls
+        current={current}
+        counts={counts}
+        isSeller={Boolean(seller)}
       />
 
-      <div>
-        <Heading level={1} className="mb-6">
-          {t("heading")}
-        </Heading>
+      {list.view === "received" ? (
+        <section data-testid="orders-received">
+          <SellerOrders orders={list.orders} emptyKey={emptyKeyFor(current)} />
+        </section>
+      ) : (
+        <section data-testid="orders-placed">
+          <BuyerOrders orders={list.orders} emptyKey={emptyKeyFor(current)} />
+        </section>
+      )}
 
-        <OrdersControls
-          current={current}
-          counts={counts}
-          isSeller={Boolean(seller)}
-        />
-
-        {list.view === "received" ? (
-          <section data-testid="orders-received">
-            <SellerOrders
-              orders={list.orders}
-              emptyKey={emptyKeyFor(current)}
-            />
-          </section>
-        ) : (
-          <section data-testid="orders-placed">
-            <BuyerOrders orders={list.orders} emptyKey={emptyKeyFor(current)} />
-          </section>
-        )}
-
-        <OrdersPagination
-          current={current}
-          total={list.total}
-          pageSize={PAGE_SIZE}
-        />
-      </div>
-    </main>
+      <OrdersPagination
+        current={current}
+        total={list.total}
+        pageSize={PAGE_SIZE}
+      />
+    </AccountSection>
   );
 }
 

@@ -27,6 +27,15 @@ const ITEM_CLASS =
 export const ACCOUNT_PAGE_LAYOUT =
   "grid grid-cols-[minmax(0,1fr)] gap-8 lg:grid-cols-[240px_minmax(0,1fr)] lg:items-start";
 
+/**
+ * De qué página de la sección se trata.
+ *
+ * Es una unión y no un `string` para que añadir una entrada al menú obligue a decidir si se puede
+ * marcar: una página que se cuelga de la sección sin estar en esta lista quedaría con el menú
+ * puesto y ninguna entrada señalada, o sea diciendo «estás en la cuenta» sin decir dónde.
+ */
+export type AccountSectionKey = "account" | "orders" | "schedule" | "habits";
+
 function NavItem({
   href,
   active,
@@ -63,17 +72,22 @@ function NavItem({
  * perfil que enseñar, y sin tienda abierta la agenda no sirve para nada: se ocultan en vez de
  * llevar a dar de alta lo que falta, que es lo que ya resolvió la nota de aquel componente.
  *
- * **`active` es obligatoria, no una que se calcula sola.** `/cuenta`, `/pedidos` y
- * `/cuenta/agenda` la montan; ninguna puede leer su propia ruta para adivinar cuál marcar —Radix
- * no interviene aquí, es una prop de verdad— así que cada página dice de qué página es.
- * «Publicaciones» no tiene entrada en esta unión: lleva a `/u/[username]`, que no monta este menú.
+ * **`active` es obligatoria, no una que se calcula sola.** Ninguna página puede leer su propia ruta
+ * para adivinar cuál marcar —Radix no interviene aquí, es una prop de verdad— así que cada página
+ * dice de qué página es. Quien lo monta no es cada `page.tsx` sino `AccountSection`, que además
+ * decide **si** toca montarlo.
+ *
+ * «Publicaciones» sigue sin entrada en esta unión, y ahora por un motivo más fuerte que «no monta
+ * este menú»: `/u/[username]` es **la página pública que ve cualquiera**, así que a su dueño no se
+ * le puede enseñar con una columna de menú que sus visitantes no ven —vería su propio perfil
+ * distinto de como lo reparte—. Ahí el hilo de vuelta lo pone `AccountBackBar`.
  */
 export default function AccountNav({
   active,
   username,
   hasStore,
 }: {
-  active: "account" | "orders" | "schedule";
+  active: AccountSectionKey;
   username: string | null;
   hasStore: boolean;
 }) {
@@ -103,7 +117,9 @@ export default function AccountNav({
         </NavItem>
       ) : null}
 
-      <NavItem href="/habitos">{t("myHabits")}</NavItem>
+      <NavItem href="/habitos" active={active === "habits"}>
+        {t("myHabits")}
+      </NavItem>
     </nav>
   );
 }

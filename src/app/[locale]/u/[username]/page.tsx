@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { parsePublicationPillar } from "~/domain/entities/post/publicationPillars";
 import { buildProfileJsonLd } from "~/domain/seo/jsonLd/site";
 import { resolveLocale } from "~/i18n/routing";
@@ -10,6 +10,7 @@ import { readFollowState } from "~/infra/dataAccess/follows/readFollowState";
 import { createUserProfileRepository } from "~/infra/dataAccess/users/factory";
 import JsonLd from "~/presentation/seo/JsonLd";
 import { profilePath } from "../../cuenta/profilePath";
+import AccountBackBar from "../../cuenta/ui/AccountBackBar";
 import { getProfileByUsername } from "./data";
 import { buildProfileMetadata } from "./metadata";
 import ProfileHeader from "./ui/ProfileHeader";
@@ -49,6 +50,12 @@ export default async function ProfilePage({ params, searchParams }: Props) {
     notFound();
   }
 
+  /* La misma cuenta que ya decide si se ofrece editar cada publicación decide ahora si hay hilo de
+     vuelta a la cuenta: a quien mira el perfil de otra persona, «Mi cuenta» no le dice nada de esta
+     página. */
+  const isOwner = Boolean(viewerId) && data.profile.id === viewerId;
+  const tNav = await getTranslations("nav");
+
   return (
     <main>
       <JsonLd
@@ -58,6 +65,9 @@ export default async function ProfilePage({ params, searchParams }: Props) {
           imageUrl: data.profile.image,
         })}
       />
+
+      {isOwner ? <AccountBackBar current={tNav("myPublications")} /> : null}
+
       <ProfileHeader
         profile={data.profile}
         store={data.store}
@@ -69,7 +79,7 @@ export default async function ProfilePage({ params, searchParams }: Props) {
           )
         }
         canFollow={Boolean(viewerId)}
-        isOwner={Boolean(viewerId) && data.profile.id === viewerId}
+        isOwner={isOwner}
         path={profilePath(username, locale)}
       />
 

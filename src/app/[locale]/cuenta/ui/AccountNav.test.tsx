@@ -2,7 +2,7 @@ import { screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import es from "~/i18n/messages/es.json";
 import { renderWithIntl } from "~/infra/test-utils/renderWithIntl";
-import AccountNav from "./AccountNav";
+import AccountNav, { type AccountSectionKey } from "./AccountNav";
 
 describe("AccountNav", () => {
   it("Mi cuenta, Mis pedidos y Mis hábitos se ofrecen siempre", () => {
@@ -21,10 +21,13 @@ describe("AccountNav", () => {
     ).toBeInTheDocument();
   });
 
-  it.each<["account" | "orders" | "schedule", string]>([
+  it.each<[AccountSectionKey, string]>([
     ["account", es.nav.myAccount],
     ["orders", es.nav.myOrders],
     ["schedule", es.nav.schedule],
+    /* «Mis hábitos» era la única entrada que no podía marcarse: `/habitos` no montaba el menú, así
+       que se llegaba desde la cuenta y se salía de ella sin saberlo. */
+    ["habits", es.nav.myHabits],
   ])('con active="%s", esa es la única entrada marcada', (active, label) => {
     renderWithIntl(
       <AccountNav active={active} username={null} hasStore={true} />,

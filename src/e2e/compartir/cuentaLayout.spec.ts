@@ -3,6 +3,7 @@ import es from "~/i18n/messages/es.json";
 import SellerAccountPage from "../sellerStore/SellerAccountPage";
 import {
   claimUsernameFor,
+  findAnotherUserId,
   releaseUsername,
 } from "../testUtils/claimTestUsername";
 import { deleteTestSellerByHandle } from "../testUtils/deleteTestSeller";
@@ -205,6 +206,101 @@ test.describe("Cuando quien vende también reclamó su dirección personal", () 
 
     await expect(enlace).toBeVisible();
     await expect(enlace).toHaveAttribute("href", new RegExp(`/u/${username}$`));
+  });
+
+  /*
+   * Slice 5: era un callejón sin salida. Se llegaba al perfil desde el menú y ahí se acababa la
+   * sección — ni menú ni vuelta—. El hilo es una barra fina y **no** la columna del menú: ese
+   * perfil es la página que ve cualquiera, así que su dueño tiene que seguir viéndola como la
+   * reparte.
+   */
+  test("Y ese perfil devuelve a la cuenta, sin dejar de verse como lo ven los demás", async ({
+    page,
+  }) => {
+    await page.goto(`/u/${username}`);
+
+    const hilo = page.getByTestId("account-back-bar");
+
+    await expect(hilo).toBeVisible();
+    await expect(
+      hilo.getByRole("link", { name: es.nav.myAccount }),
+    ).toHaveAttribute("href", /\/cuenta$/);
+    await expect(hilo).toContainText(es.nav.myPublications);
+    // Lo que no cambia: el perfil no se mete en la columna de la cuenta.
+    await expect(page.getByTestId("account-nav")).toHaveCount(0);
+  });
+
+  test("Y el hilo sobrevive a la paginación del perfil", async ({ page }) => {
+    await page.goto(`/u/${username}/page/1`);
+
+    await expect(page.getByTestId("account-back-bar")).toBeVisible();
+  });
+
+  /* Slice 5: «Mis hábitos» era la otra salida sin retorno. */
+  test("Y /habitos monta la misma sección, con «Mis hábitos» activo", async ({
+    page,
+  }) => {
+    await page.goto("/habitos");
+    const nav = accountNav(page);
+
+    await expect(
+      nav.getByRole("link", { name: es.nav.myHabits }),
+    ).toHaveAttribute("aria-current", "page");
+    await expect(
+      nav.getByRole("link", { name: es.nav.myAccount, exact: true }),
+    ).toBeVisible();
+  });
+});
+
+/*
+ * `/habitos` se comparte, y quien llega por un enlace no tiene cuenta: cinco destinos que lo
+ * mandan a identificarse no son navegación. Sin sesión, la página se queda como estaba.
+ */
+test.describe("Cuando alguien sin sesión abre /habitos", () => {
+  test("Entonces la ve entera, y sin ninguna navegación de cuenta", async ({
+    page,
+  }) => {
+    await page.goto("/habitos");
+
+    await expect(
+      page.getByRole("heading", {
+        level: 1,
+        name: es.atomicChallenges.indexTitle,
+      }),
+    ).toBeVisible();
+    await expect(page.getByTestId("account-nav")).toHaveCount(0);
+    await expect(page.getByTestId("account-back-bar")).toHaveCount(0);
+  });
+});
+
+/*
+ * El hilo dice «Mi cuenta»: en el perfil de otra persona eso no describe nada de la página que se
+ * está mirando.
+ */
+test.describe("Cuando miro el perfil de otra persona", () => {
+  let dbSession: DbSession | undefined;
+  const ajeno = "e2e-perfil-ajeno";
+
+  test.beforeEach(async ({ page, browserName }) => {
+    dbSession = await simulateLogin(page, browserName);
+    /* Una cuenta real que no es la mía: la suite no crea usuarios, así que toma una que ya existe
+       y le presta una dirección personal con el prefijo que el barrido limpia. */
+    await claimUsernameFor(await findAnotherUserId(dbSession.userId), ajeno);
+  });
+
+  test.afterEach(async () => {
+    await releaseUsername(ajeno);
+    if (dbSession?.id) {
+      await deleteSession(dbSession.id);
+    }
+  });
+
+  test("Entonces no se me ofrece ningún hilo de vuelta a mi cuenta", async ({
+    page,
+  }) => {
+    await page.goto(`/u/${ajeno}`);
+
+    await expect(page.getByTestId("account-back-bar")).toHaveCount(0);
   });
 });
 

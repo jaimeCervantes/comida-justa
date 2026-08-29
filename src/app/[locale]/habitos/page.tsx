@@ -12,6 +12,7 @@ import { createHabitLeagueRepository } from "~/infra/dataAccess/habits/PostgresH
 import { localizedAlternates } from "~/infra/UI/metadata/alternates";
 import { Heading } from "~/presentation/design_system/typography/Heading";
 import HabitLeagueUseCase from "~/use_cases/habits/habitLeagueUseCase";
+import AccountSection from "../cuenta/ui/AccountSection";
 import { setHabitLeagueOptIn } from "./leagueActions";
 
 export async function generateMetadata({
@@ -41,8 +42,14 @@ export default async function AtomicChallengesPage({
     createHabitLeagueRepository(),
   ).getState(userId);
 
+  /*
+   * «Mis hábitos» es una entrada de `AccountNav`, y hasta aquí era un callejón sin salida: se
+   * llegaba desde la cuenta y no había forma de volver. Con la sección puesta, la página se lee
+   * como lo que el menú promete — una más de «lo mío»— sin dejar de ser pública: `AccountSection`
+   * no monta el menú para quien no ha entrado, que es quien llega por un enlace compartido.
+   */
   return (
-    <main className="mx-auto max-w-5xl pb-16">
+    <AccountSection active="habits">
       <header>
         <p className="text-sm font-bold uppercase tracking-[0.18em] text-pw-green">
           {t("eyebrow")}
@@ -152,7 +159,7 @@ export default async function AtomicChallengesPage({
         )}
         <p className="mt-4 text-xs text-body">{t("league.ethics")}</p>
       </section>
-    </main>
+    </AccountSection>
   );
 }
 

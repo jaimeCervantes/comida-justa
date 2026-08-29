@@ -8,6 +8,7 @@ import { readViewerId } from "~/infra/auth/readViewerId";
 import { readFollowState } from "~/infra/dataAccess/follows/readFollowState";
 import { createUserProfileRepository } from "~/infra/dataAccess/users/factory";
 import { profileHref, profilePath } from "../../../../cuenta/profilePath";
+import AccountBackBar from "../../../../cuenta/ui/AccountBackBar";
 import { getProfileByUsername } from "../../data";
 import { buildProfileMetadata } from "../../metadata";
 import ProfileHeader from "../../ui/ProfileHeader";
@@ -62,8 +63,15 @@ export default async function ProfilePaginatedPage({
     notFound();
   }
 
+  /* El hilo de vuelta también aquí: la paginación es la misma pantalla, y perderlo al pasar a la
+     página 2 sería devolver el callejón sin salida un desplazamiento más abajo. */
+  const isOwner = Boolean(viewerId) && data.profile.id === viewerId;
+  const tNav = await getTranslations("nav");
+
   return (
     <main>
+      {isOwner ? <AccountBackBar current={tNav("myPublications")} /> : null}
+
       <ProfileHeader
         profile={data.profile}
         store={data.store}
@@ -75,7 +83,7 @@ export default async function ProfilePaginatedPage({
           )
         }
         canFollow={Boolean(viewerId)}
-        isOwner={Boolean(viewerId) && data.profile.id === viewerId}
+        isOwner={isOwner}
         path={profilePath(username, locale)}
       />
 

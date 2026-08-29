@@ -191,3 +191,53 @@ Feature: Compartir la tienda y el perfil, y llegar a ellos desde el avatar
       | to                                    | compartida                            |
       | /miel-de-abeja                        | <base>/miel-de-abeja                  |
       | https://hazlosano.com/miel-de-abeja   | https://hazlosano.com/miel-de-abeja   |
+
+  # ---------------------------------------------------------------------------
+  # Slice 5 — La sección de la cuenta deja de tener callejones sin salida  (actual)
+  #
+  # `AccountNav` ofrece cinco destinos y dos te sacaban de la sección sin retorno: `/habitos` no
+  # tenía ningún enlace de vuelta, y `/u/[username]` tampoco. Se entraba a la cuenta y se salía de
+  # ella sin darse cuenta.
+  #
+  # Las dos rutas se arreglan distinto, y el motivo es que una es pública de otra manera:
+  # `/habitos` es una página del sitio, así que toma la sección entera cuando quien mira ha
+  # entrado. `/u/[username]` es **la página que ve cualquiera de ti**: darle a su dueño una columna
+  # de menú que sus visitantes no ven le enseñaría su perfil distinto de como lo reparte, así que
+  # ahí el hilo de vuelta es una barra fina y el perfil no se toca.
+  # ---------------------------------------------------------------------------
+
+  @slice-5
+  Scenario: Mis hábitos deja de ser un callejón sin salida
+    Given que he iniciado sesión
+    When abro "/habitos" desde el menú de mi cuenta
+    Then veo la misma navegación que en "/cuenta"
+    And "Mis hábitos" es la entrada marcada
+
+  # La página se comparte, y quien llega por un enlace no tiene cuenta: un menú de cinco destinos
+  # que lo mandan a identificarse no es navegación, es un muro.
+  @slice-5
+  Scenario: Pero a quien no ha entrado, /habitos le sigue siendo pública
+    Given que no he iniciado sesión
+    When abro "/habitos"
+    Then veo la página sin ninguna navegación de cuenta
+
+  @slice-5
+  Scenario: Mi perfil me devuelve a la cuenta sin dejar de ser lo que ven los demás
+    Given que he reservado mi dirección personal
+    When abro mi perfil desde "Mis publicaciones"
+    Then encuentro un hilo de vuelta a "Mi cuenta" que dice dónde estoy
+    And el perfil se ve como lo ve cualquiera: sin la columna del menú
+
+  @slice-5
+  Scenario: Y el hilo no aparece en el perfil de otra persona
+    Given el perfil público de alguien que no soy yo
+    When lo abro con mi sesión iniciada
+    Then no se me ofrece ningún hilo de vuelta a mi cuenta
+
+  # Perder el hilo al pasar a la página 2 sería devolver el callejón sin salida un desplazamiento
+  # más abajo.
+  @slice-5
+  Scenario: El hilo sobrevive a la paginación del perfil
+    Given que estoy en la segunda página de mis publicaciones
+    When miro el encabezado
+    Then el hilo de vuelta a "Mi cuenta" sigue ahí
