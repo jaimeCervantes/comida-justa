@@ -583,6 +583,9 @@
   },
   "comments": {
     "empty": "No comments yet.",
+    "errorEmpty": "Write something before sending.",
+    "errorSignIn": "Sign in to comment.",
+    "errorTooLong": "A comment cannot go over {max} characters.",
     "heading": "Comments",
     "inputLabel": "Write your comment",
     "listLabel": "comments",

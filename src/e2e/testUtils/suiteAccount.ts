@@ -44,3 +44,28 @@ export async function findSuiteUserId(): Promise<string> {
 
   return fallback[0].id;
 }
+
+/**
+ * El nombre con el que esa cuenta firma lo que escribe.
+ *
+ * Existe para un escenario concreto: comprobar que un comentario queda a nombre de quien tiene la
+ * sesión. Ese nombre **no puede escribirse a mano en el spec**. Ya se escribió una vez —`dummyDbUser`
+ * decía "Jaime Cervantes"— y cuando la suite pasó a entrar con la cuenta `pw.` la afirmación quedó
+ * comparando contra alguien que ya no era quien comentaba. Se lee de la misma fila que resuelve
+ * {@link findSuiteUserId}, que es lo que hace que la prueba siga significando lo mismo.
+ */
+export async function findSuiteUserName(): Promise<string> {
+  const id = await findSuiteUserId();
+  const rows = await db
+    .select({ name: users.name })
+    .from(users)
+    .where(eq(users.id, id))
+    .limit(1);
+
+  const name = rows[0]?.name;
+
+  // i18n-ignore: lo lee quien escribe la prueba, no quien visita el sitio.
+  if (!name) throw new Error("La cuenta de la suite no tiene nombre.");
+
+  return name;
+}

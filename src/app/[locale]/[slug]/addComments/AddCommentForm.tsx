@@ -39,7 +39,10 @@ export default function AddCommentForm({
     }
     if (!newComment.trim()) return;
     setLoading(true);
-    const result = await addCommentToPost(postId, newComment, user as PostUser);
+    /* Sin el usuario: quién firma lo decide la sesión, dentro de la acción. Mandarlo desde aquí es
+       lo que permitía firmar un comentario con el id de otra persona, y ese id lo publica la propia
+       página en cada comentario ya escrito. */
+    const result = await addCommentToPost(postId, newComment);
     setLoading(false);
 
     if ("errorMessage" in result) {

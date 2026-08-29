@@ -26,6 +26,20 @@ export const POST_CONTENT_MAX_LENGTH =
  * una constante configurable es una constante que en CI vale otra cosa.
  */
 export const POST_TITLE_MAX_LENGTH = 70;
+/**
+ * Cuánto puede medir un comentario.
+ *
+ * El número no es nuevo: `createDirectCommentTopost.feature` lo escribió el primer día —«a comment
+ * that exceeds 500 characters»— y nadie lo hizo cumplir. Un comentario es una reacción, no una
+ * publicación; para lo que no cabe en 500 caracteres está publicar.
+ *
+ * **Lo que lo vuelve necesario es dónde se comprueba.** `comments.content` es una columna `text`, y
+ * la acción que escribe ahí es un endpoint HTTP público: sin tope en el servidor, no hay tope.
+ *
+ * Sin `process.env`, por el mismo motivo que el título: no hay razón para que cambie por entorno, y
+ * una constante configurable es una constante que en CI vale otra cosa.
+ */
+export const COMMENT_MAX_LENGTH = 500;
 export const PUBLIC_BRAND_NAME =
   process.env.NEXT_PUBLIC_BRAND_NAME || "Hazlo Sano";
 /**
