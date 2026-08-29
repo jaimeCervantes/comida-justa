@@ -585,6 +585,7 @@
     "empty": "No hay comentarios aún.",
     "errorEmpty": "Escribe algo antes de enviar.",
     "errorSignIn": "Inicia sesión para comentar.",
+    "errorTooFast": "Vas muy rápido. Espera un momento antes de comentar otra vez.",
     "errorTooLong": "El comentario no puede pasar de {max} caracteres.",
     "heading": "Comentarios",
     "inputLabel": "Escribe tu comentario",

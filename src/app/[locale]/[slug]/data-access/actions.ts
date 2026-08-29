@@ -1,8 +1,13 @@
 "use server";
 
 import { getTranslations } from "next-intl/server";
+import { normalizeCommentText } from "~/domain/comments/commentText";
 import { auth } from "~/infra/auth";
-import { COMMENT_MAX_LENGTH, COMMENTS_PAGE_SIZE } from "~/infra/constants";
+import {
+  COMMENT_MAX_LENGTH,
+  COMMENT_RATE_LIMIT_PER_MINUTE,
+  COMMENTS_PAGE_SIZE,
+} from "~/infra/constants";
 import { PostgresCommentRepository } from "~/infra/dataAccess/comments/PostgresCommentRepository";
 import type { PostUser } from "~/infra/types/Posts";
 
@@ -33,14 +38,25 @@ export async function addCommentToPost(postId: string, commentContent: string) {
      usuario antes de que la cuenta termine de crearse, y sin id no hay a quién atribuirlo. */
   if (!user?.id) return { errorMessage: t("errorSignIn") };
 
-  /* Lo que se cuenta y lo que se guarda son el mismo texto. Si los espacios de los bordes contaran
-     para el tope pero no se guardaran, el error hablaría de un comentario que nadie escribió. */
-  const content = commentContent.trim();
+  /* Lo que se cuenta y lo que se guarda son el mismo texto. `normalizeCommentText` ya recorta, así
+     que quitar invisibles no puede dejar un comentario que pase el tope por caracteres que nadie
+     escribió — ni uno «no vacío» hecho sólo de ellos. */
+  const content = normalizeCommentText(commentContent);
 
   if (!content) return { errorMessage: t("errorEmpty") };
 
   if (content.length > COMMENT_MAX_LENGTH) {
     return { errorMessage: t("errorTooLong", { max: COMMENT_MAX_LENGTH }) };
+  }
+
+  /* El freno al abuso a escala, y el último de los cuatro: los tres de arriba dicen qué se acepta,
+     este dice cuánto. Va justo antes de escribir para que una tanda de peticiones simultáneas se
+     mida contra lo que de verdad hay en la tabla. */
+  const lastMinute = new Date(Date.now() - 60_000);
+  const recent = await commentRepo.countRecentByUser(user.id, lastMinute);
+
+  if (recent >= COMMENT_RATE_LIMIT_PER_MINUTE) {
+    return { errorMessage: t("errorTooFast") };
   }
 
   return await commentRepo.addComment(postId, content, user);

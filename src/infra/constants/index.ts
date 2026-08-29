@@ -40,6 +40,17 @@ export const POST_TITLE_MAX_LENGTH = 70;
  * una constante configurable es una constante que en CI vale otra cosa.
  */
 export const COMMENT_MAX_LENGTH = 500;
+/**
+ * Cuántos comentarios puede escribir una persona por minuto.
+ *
+ * Es el único freno del sitio a un abuso a escala: con una sesión válida y un bucle, la ficha de un
+ * competidor se llena de miles de comentarios en un minuto, y borrarlos después es trabajo manual
+ * sobre datos que ya vio todo el mundo. Cinco es generoso para quien escribe de verdad —son doce
+ * segundos por comentario, contando lo que se tarda en pensarlo— y ridículo para un script.
+ *
+ * **No sustituye a la moderación**, que juzga *qué* se dice; esto sólo acota *cuánto*.
+ */
+export const COMMENT_RATE_LIMIT_PER_MINUTE = 5;
 export const PUBLIC_BRAND_NAME =
   process.env.NEXT_PUBLIC_BRAND_NAME || "Hazlo Sano";
 /**

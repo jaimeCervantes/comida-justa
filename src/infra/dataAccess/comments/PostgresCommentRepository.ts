@@ -1,4 +1,4 @@
-import { desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, gte, sql } from "drizzle-orm";
 import { COMMENTS_PAGE_SIZE } from "~/infra/constants";
 import { db } from "~/infra/dataAccess/db/connection";
 import { users } from "~/infra/dataAccess/db/schema/auth";
@@ -37,6 +37,23 @@ export class PostgresCommentRepository {
     } catch {
       return { errorMessage: "Ocurrió un error al agregar el comentario" };
     }
+  }
+
+  /**
+   * Cuántos comentarios lleva escritos esa persona desde `since`.
+   *
+   * Es la mitad de datos del límite de frecuencia. **Se cuenta contra la base y no en memoria** a
+   * propósito: un contador en el proceso se vacía en cada despliegue y no existe para el segundo
+   * servidor, así que el tope valdría el doble con dos instancias y nada recién desplegado. La
+   * consulta va por `(user_id, created_at)`, que es lo que ya indexa la tabla para leer un hilo.
+   */
+  async countRecentByUser(userId: string, since: Date): Promise<number> {
+    const [row] = await db
+      .select({ total: sql<number>`count(*)` })
+      .from(comments)
+      .where(and(eq(comments.userId, userId), gte(comments.createdAt, since)));
+
+    return Number(row?.total ?? 0);
   }
 
   async getComments(

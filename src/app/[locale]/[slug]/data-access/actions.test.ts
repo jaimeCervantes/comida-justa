@@ -1,8 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { auth, addComment } = vi.hoisted(() => ({
+const { auth, addComment, countRecentByUser } = vi.hoisted(() => ({
   auth: vi.fn(),
   addComment: vi.fn(),
+  countRecentByUser: vi.fn(),
 }));
 
 /* `getTranslations` es de servidor y jsdom entra por la rama de cliente. Se sustituye por el
@@ -21,6 +22,7 @@ vi.mock("~/infra/auth", () => ({ auth }));
 vi.mock("~/infra/dataAccess/comments/PostgresCommentRepository", () => ({
   PostgresCommentRepository: vi.fn(() => ({
     addComment,
+    countRecentByUser,
     getComments: vi.fn(),
   })),
 }));
@@ -43,6 +45,7 @@ import { addCommentToPost } from "./actions";
 describe("addCommentToPost — quién firma", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    countRecentByUser.mockResolvedValue(0);
     addComment.mockResolvedValue({
       successMessage: "ok",
       comment: { id: "c1" },
@@ -110,6 +113,7 @@ describe("addCommentToPost — qué se acepta", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     auth.mockResolvedValue({ user: { id: "ana-id", name: "Ana" } });
+    countRecentByUser.mockResolvedValue(0);
     addComment.mockResolvedValue({
       successMessage: "ok",
       comment: { id: "c1" },
@@ -157,5 +161,103 @@ describe("addCommentToPost — qué se acepta", () => {
     await addCommentToPost("post-1", `  ${"a".repeat(500)}  `);
 
     expect(addComment).toHaveBeenCalled();
+  });
+
+  /*
+   * La normalización vive en el dominio y tiene sus propias pruebas
+   * (`src/domain/comments/commentText.test.ts`). Lo que se afirma aquí es distinto y es lo único que
+   * esas no pueden decir: que la acción **la aplica**, y que lo que llega a la base es el texto ya
+   * limpio. Una regla de dominio que nadie llama protege exactamente a nadie.
+   */
+  it("guarda el texto ya normalizado, no el que llegó", async () => {
+    await addCommentToPost("post-1", "Es \u202Eseguro\u200B");
+
+    expect(addComment).toHaveBeenCalledWith(
+      "post-1",
+      "Es seguro",
+      expect.anything(),
+    );
+  });
+
+  /* Un comentario hecho sólo de invisibles no es un comentario, y sin normalizar antes pasaba el
+     `trim` de sobra: no eran espacios. */
+  it("rechaza uno hecho sólo de caracteres invisibles", async () => {
+    const result = await addCommentToPost("post-1", "\u200B\u202E\u00AD");
+
+    expect(addComment).not.toHaveBeenCalled();
+    expect(result).toHaveProperty("errorMessage");
+  });
+
+  /* El tope se mide sobre lo que se va a guardar. Con 501 invisibles delante, el texto real cabe
+     de sobra y rechazarlo sería rechazar un comentario que nadie escribió largo. */
+  it("no cuenta para el tope lo que va a quitar", async () => {
+    await addCommentToPost("post-1", `${"\u200B".repeat(501)}Se ve buenísimo`);
+
+    expect(addComment).toHaveBeenCalledWith(
+      "post-1",
+      "Se ve buenísimo",
+      expect.anything(),
+    );
+  });
+});
+
+/**
+ * Cuánto, no qué.
+ *
+ * En todo el repositorio no había un solo límite de frecuencia. Con una sesión válida y un bucle, la
+ * ficha de cualquiera se llena de miles de comentarios en un minuto, y limpiarlo después es trabajo
+ * manual sobre datos que ya vio todo el mundo. Es el único de estos arreglos que ataja un abuso a
+ * escala; los otros tres dicen qué se acepta.
+ */
+describe("addCommentToPost — cuántos por minuto", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    auth.mockResolvedValue({ user: { id: "ana-id", name: "Ana" } });
+    addComment.mockResolvedValue({
+      successMessage: "ok",
+      comment: { id: "c1" },
+    });
+  });
+
+  it("deja pasar a quien va por debajo del tope", async () => {
+    countRecentByUser.mockResolvedValue(4);
+
+    await addCommentToPost("post-1", "Se ve buenísimo");
+
+    expect(addComment).toHaveBeenCalled();
+  });
+
+  it("frena al llegar al tope, sin escribir", async () => {
+    countRecentByUser.mockResolvedValue(5);
+
+    const result = await addCommentToPost("post-1", "Se ve buenísimo");
+
+    expect(addComment).not.toHaveBeenCalled();
+    expect(result).toHaveProperty("errorMessage");
+  });
+
+  /* Se cuenta por persona y sobre el último minuto: si la ventana no se moviera, el tope sería
+     total y no por minuto — alguien quedaría callado para siempre a los cinco comentarios. */
+  it("cuenta los de esa persona en el último minuto", async () => {
+    countRecentByUser.mockResolvedValue(0);
+    const antes = Date.now();
+
+    await addCommentToPost("post-1", "Se ve buenísimo");
+
+    const [userId, since] = countRecentByUser.mock.calls[0];
+
+    expect(userId).toBe("ana-id");
+    expect(since.getTime()).toBeGreaterThanOrEqual(antes - 60_000);
+    expect(since.getTime()).toBeLessThanOrEqual(Date.now() - 59_000);
+  });
+
+  /* Antes de contar nada: preguntarle a la base por alguien que no ha iniciado sesión es una
+     consulta que ningún visitante debería poder provocar. */
+  it("no consulta la frecuencia de quien no tiene sesión", async () => {
+    auth.mockResolvedValue(null);
+
+    await addCommentToPost("post-1", "Se ve buenísimo");
+
+    expect(countRecentByUser).not.toHaveBeenCalled();
   });
 });
