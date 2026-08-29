@@ -1,7 +1,6 @@
 "use server";
 import { after } from "next/server";
 import { getLocale, getTranslations } from "next-intl/server";
-import type { ParsedRoute } from "~/domain/entities/post/gpx";
 import {
   DEFAULT_POST_KIND,
   isValidKind,
@@ -10,12 +9,12 @@ import {
 import { parsePostMediaPayload } from "~/domain/entities/post/mediaPayload";
 import { resolveOriginForUser } from "~/domain/entities/post/origin";
 import PostEntity from "~/domain/entities/post/Post";
-import { parseRoutePayload } from "~/domain/entities/post/routeFile";
+import {
+  type RouteFieldChange,
+  readRouteField,
+} from "~/domain/entities/post/routeFile";
 import { resolveKeyStrict } from "~/domain/entities/post/taxonomy";
 import type { User } from "~/domain/entities/post/types";
-import RouteFileError, {
-  type RouteFileProblem,
-} from "~/domain/errors/RouteFileError";
 import { parseDateTimeLocalInTimeZone } from "~/domain/schedule/localDateTime";
 import PostValidator from "~/domain/schemas/PostValidator";
 import getErrorMessage from "~/domain/shared/getErrorMessage";
@@ -43,38 +42,6 @@ const useCase = new CreateOnePostUseCase(
   new PostEntity(),
   createPostRepository(),
 );
-
-/**
- * Comprueba el recorrido que llega del formulario.
- *
- * **Ya no llega el archivo, llegan sus puntos.** El `.gpx` viajaba aquí dentro y el cuerpo de una
- * Server Action admite 1 MB: en producción reventaba con un 413 y quien publicaba perdía todo lo
- * escrito. Como del archivo solo interesan los puntos —y `parseGpx` recorta a 2.000—, ahora lo
- * interpreta el navegador (`RouteFileField`) y lo que cruza la red es lo que se va a guardar.
- *
- * De ahí que esto valide en vez de interpretar: los puntos son datos del cliente, y de aquí van
- * derechos a `ST_GeogFromText`. Ver `domain/entities/post/routeFile.ts`.
- *
- * Devuelve el problema en vez de lanzarlo para que la acción pueda contestarle a la persona en su
- * idioma y **sin perder lo que ya escribió**.
- */
-function readRoute(entry: FormDataEntryValue | null): {
-  route: ParsedRoute | null;
-  problem?: RouteFileProblem;
-} {
-  const payload = typeof entry === "string" ? entry.trim() : "";
-
-  // Sin recorrido no hay nada que comprobar: una rodada sin GPX sigue siendo una rodada.
-  if (!payload) return { route: null };
-
-  try {
-    return { route: parseRoutePayload(payload) };
-  } catch (error) {
-    if (error instanceof RouteFileError)
-      return { route: null, problem: error.problem };
-    throw error;
-  }
-}
 
 /** Minutos enteros y positivos. Cualquier otra cosa cuenta como ausente y la contesta el error. */
 function readPositiveInt(value: FormDataEntryValue | null): number | null {
@@ -255,10 +222,13 @@ export async function createPost(
 
   /* El recorrido solo se lee en un evento, y es opcional: una rodada sin GPX sigue siendo una
      rodada. Lo que NO se hace es guardar la publicación y perder el archivo en silencio. */
-  const { route, problem: routeProblem } =
+  const routeChange: RouteFieldChange =
     kind === "evento"
-      ? readRoute(formData.get("route"))
-      : { route: null, problem: undefined };
+      ? readRouteField(formData.get("route") as string | null)
+      : { kind: "unchanged" };
+  const route = routeChange.kind === "replaced" ? routeChange.route : null;
+  const routeProblem =
+    routeChange.kind === "invalid" ? routeChange.problem : undefined;
 
   // Server-side defense: only an admin may assign a "hazlo_sano_*" origin.
   const admin = isAdmin(session?.user?.email);

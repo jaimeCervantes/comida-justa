@@ -6,6 +6,8 @@ import {
 import {
   MAX_ROUTE_FILE_BYTES,
   parseRoutePayload,
+  ROUTE_REMOVED,
+  readRouteField,
   serializeRoute,
 } from "~/domain/entities/post/routeFile";
 
@@ -178,5 +180,77 @@ describe("parseRoutePayload", () => {
 describe("MAX_ROUTE_FILE_BYTES", () => {
   it("deja sitio al GPX más grande que el dominio dice esperar", () => {
     expect(MAX_ROUTE_FILE_BYTES).toBeGreaterThanOrEqual(7 * 1024 * 1024);
+  });
+});
+
+/**
+ * Los tres significados del campo.
+ *
+ * Existían dos —hay recorrido o no lo hay— y bastaban mientras sólo se podía publicar. Al editar
+ * aparece el tercero y es el que más se usa: **no tocar nada**. Confundirlo con «quitar» le costaría
+ * el trazo a un evento cada vez que su dueño corrige una coma en el título.
+ */
+describe("readRouteField", () => {
+  it("un campo vacío no pide nada", () => {
+    expect(readRouteField("")).toEqual({ kind: "unchanged" });
+    expect(readRouteField(null)).toEqual({ kind: "unchanged" });
+    expect(readRouteField(undefined)).toEqual({ kind: "unchanged" });
+    // Espacios sueltos son lo mismo que vacío: nadie los escribió a propósito.
+    expect(readRouteField("   ")).toEqual({ kind: "unchanged" });
+  });
+
+  it("quitar hay que decirlo con su palabra", () => {
+    expect(readRouteField(ROUTE_REMOVED)).toEqual({ kind: "removed" });
+  });
+
+  /*
+   * `ROUTE_REMOVED` no es un JSON válido: si se intentara interpretar antes de compararlo, quien
+   * quiso quitar su recorrido recibiría «ese archivo no sirve» y la ruta seguiría ahí.
+   */
+  it("y se reconoce antes de intentar interpretarlo como un recorrido", () => {
+    const result = readRouteField(ROUTE_REMOVED);
+
+    expect(result.kind).not.toBe("invalid");
+  });
+
+  it("un recorrido válido llega como reemplazo, ya comprobado", () => {
+    const payload = JSON.stringify({
+      points: [
+        { latitude: 19.1, longitude: -99.1 },
+        { latitude: 19.2, longitude: -99.2 },
+      ],
+      meters: 1500,
+      originalPoints: 900,
+    });
+
+    const result = readRouteField(payload);
+
+    expect(result.kind).toBe("replaced");
+    if (result.kind === "replaced") {
+      expect(result.route.meters).toBe(1500);
+      expect(result.route.points).toHaveLength(2);
+    }
+  });
+
+  /* Un payload roto no revienta la edición: se convierte en un problema con nombre, que la acción
+     traduce al idioma de quien edita. */
+  it("lo que dice ser un recorrido y no lo es se cuenta, no se lanza", () => {
+    expect(readRouteField("{no soy json")).toEqual({
+      kind: "invalid",
+      problem: "invalid",
+    });
+  });
+
+  it("y un recorrido de un solo punto tiene su propio motivo", () => {
+    const payload = JSON.stringify({
+      points: [{ latitude: 19.1, longitude: -99.1 }],
+      meters: 10,
+      originalPoints: 1,
+    });
+
+    expect(readRouteField(payload)).toEqual({
+      kind: "invalid",
+      problem: "too-few-points",
+    });
   });
 });

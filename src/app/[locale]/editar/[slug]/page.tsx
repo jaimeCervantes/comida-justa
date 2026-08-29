@@ -9,6 +9,7 @@ import { isAdmin } from "~/infra/auth/isAdmin";
 import { redirectToSignIn } from "~/infra/auth/redirectToSignIn";
 import { getCategoryTaxonomy } from "~/infra/dataAccess/categories/cachedCategoryTaxonomy";
 import { createPostAdminRepository } from "~/infra/dataAccess/managePost/factory";
+import { createRouteRepository } from "~/infra/dataAccess/routes/factory";
 import { updatePost } from "./actions";
 import EditPostForm from "./ui/EditPostForm";
 
@@ -45,6 +46,12 @@ export default async function EditarPage({
     notFound();
   }
 
+  /* El recorrido guardado, sólo para enseñarlo: sin él, el campo del formulario diría «este evento
+     no tiene recorrido» sobre uno que sí lo tiene, y quien edite el título creería que lo perdió.
+     Se pide siempre y no sólo para eventos porque `kind` no puede cambiarse al editar: un anuncio
+     nunca tuvo ruta, así que la consulta devuelve `null` y no cuesta nada. */
+  const route = await createRouteRepository().findByPostId(post.id);
+
   const taxonomy = await getCategoryTaxonomy();
   const categoryOptions = optionsFor(taxonomy, null, locale);
   const subCategoryOptionsByCategory = Object.fromEntries(
@@ -71,6 +78,15 @@ export default async function EditarPage({
         endsAt: post.endsAt,
         durationMinutes: post.durationMinutes,
         media: post.media,
+        /* Sólo la forma, que es lo único que se sabe del recorrido meses después: el archivo `.gpx`
+           no se guarda en ningún sitio. Los puntos tampoco suben al formulario — pesan y no se
+           pintan; para verlos está la ficha. */
+        route: route
+          ? {
+              lengthMeters: route.lengthMeters,
+              sourcePoints: route.sourcePoints,
+            }
+          : null,
       }}
       isAdmin={isAdmin(session.user?.email)}
       categoryOptions={categoryOptions}

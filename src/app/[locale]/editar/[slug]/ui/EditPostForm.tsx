@@ -25,6 +25,9 @@ import PostMediaField, {
 import EventTimeZoneField, {
   useBrowserTimeZone,
 } from "~/presentation/post/EventTimeZone/EventTimeZoneField";
+import RouteFileField, {
+  type ExistingRoute,
+} from "~/presentation/post/RouteFileField/RouteFileField";
 import { usePostValidationMessages } from "~/presentation/post/usePostValidationMessages";
 import type { EditPostState } from "../actions";
 
@@ -43,6 +46,8 @@ export type EditablePostValues = {
   durationMinutes: number | null;
   /** Los archivos que ya tiene, en su orden. El primero es la portada. */
   media: PostMediaFieldItem[];
+  /** El recorrido guardado, si lo tiene. `null` en todo lo que no es un evento con GPX. */
+  route: ExistingRoute | null;
 };
 
 /**
@@ -233,6 +238,18 @@ export default function EditPostForm({
                 post.endsAt,
                 timeZone,
               )}
+            />
+
+            {/* El campo que faltaba. Hasta este slice `/editar` ni lo montaba, así que un evento
+                publicado no podía cambiar ni quitar su recorrido: la única salida era borrar la
+                publicación y rehacerla, perdiendo su dirección, sus comentarios y su antigüedad.
+
+                Es el mismo componente que pinta `/publicar` —por eso se promovió a `presentation`—
+                y lo único que cambia es que aquí sabe qué ruta hay ya guardada. */}
+            <RouteFileField
+              className="sm:col-span-2"
+              existingRoute={post.route}
+              error={state.errors?.route}
             />
           </div>
         ) : null}

@@ -28,10 +28,26 @@ import {
   type ParsedRoute,
   type RoutePoint,
 } from "~/domain/entities/post/gpx";
-import RouteFileError from "~/domain/errors/RouteFileError";
+import RouteFileError, {
+  type RouteFileProblem,
+} from "~/domain/errors/RouteFileError";
 
 /** Lo que acepta el selector de archivos. */
 export const ROUTE_FILE_EXTENSION = ".gpx";
+
+/**
+ * Lo que el formulario manda cuando alguien **quita** el recorrido que la publicación ya tenía.
+ *
+ * Al editar, el campo vacío es ambiguo: significa tanto «no subí ningún archivo» como «quiero
+ * quedarme sin recorrido», y esas dos cosas piden lo contrario del servidor —dejar la fila en paz o
+ * borrarla—. Vacío se queda con el significado inocente, que es el que ocurre casi siempre; quitar
+ * exige decirlo.
+ *
+ * Es una cadena y no un JSON válido a propósito: `parseRoutePayload` la rechazaría, así que quien
+ * la reciba tiene que comprobarla **antes** de intentar interpretarla, y no puede colarse por
+ * descuido como si fuera un recorrido.
+ */
+export const ROUTE_REMOVED = "removed";
 
 /**
  * Lo más grande que el navegador intenta leer.
@@ -161,4 +177,51 @@ export function parseRoutePayload(json: string): ParsedRoute {
   }
 
   return { points, meters, originalPoints };
+}
+
+/**
+ * Lo que el campo del recorrido está pidiendo que se haga con la fila de `post_routes`.
+ *
+ * Son tres cosas distintas y hasta ahora sólo existían dos, porque publicar no puede «conservar»
+ * nada: al editar, un campo vacío significa **dejarla como está**, y eso no se puede confundir con
+ * borrarla sin que un evento pierda su trazo cada vez que alguien corrige una falta en el título.
+ */
+export type RouteFieldChange =
+  /** No se tocó el campo. Al publicar es «no hay ruta»; al editar, «la de siempre». */
+  | { kind: "unchanged" }
+  /** Se pidió quitarla, con el gesto explícito que exige {@link ROUTE_REMOVED}. */
+  | { kind: "removed" }
+  /** Llegó un recorrido nuevo, ya validado. Al publicar se guarda; al editar, reemplaza. */
+  | { kind: "replaced"; route: ParsedRoute }
+  /** Llegó algo que dice ser un recorrido y no lo es. El motivo se le enseña a la persona. */
+  | { kind: "invalid"; problem: RouteFileProblem };
+
+/**
+ * Interpreta el campo oculto del recorrido, venga de publicar o de editar.
+ *
+ * **Vive en el dominio y no en cada acción** porque es el significado del dato, no el trámite de
+ * una pantalla: las dos rutas leen el mismo campo y tienen que entenderlo igual. Existía una copia
+ * privada en `publicar/actions.ts` que sólo distinguía dos casos; editar necesitaba tres, y la
+ * salida no era duplicarla con una rama más.
+ *
+ * `ROUTE_REMOVED` se comprueba **antes** de intentar interpretar nada: no es un JSON válido, así que
+ * pasarlo por `parseRoutePayload` lo convertiría en un error de archivo ilegible y quien quiso
+ * quitar su ruta recibiría «ese archivo no sirve».
+ */
+export function readRouteField(
+  entry: string | null | undefined,
+): RouteFieldChange {
+  const payload = typeof entry === "string" ? entry.trim() : "";
+
+  if (!payload) return { kind: "unchanged" };
+  if (payload === ROUTE_REMOVED) return { kind: "removed" };
+
+  try {
+    return { kind: "replaced", route: parseRoutePayload(payload) };
+  } catch (error) {
+    if (error instanceof RouteFileError)
+      return { kind: "invalid", problem: error.problem };
+
+    throw error;
+  }
 }

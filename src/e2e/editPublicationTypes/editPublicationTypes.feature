@@ -73,17 +73,51 @@ Feature: Editar cualquier tipo de publicacion
       | servicio |          |                  | 420   |                 | rejected | service without duration   |
       | servicio |          |                  |       | 60              | rejected | service without price      |
 
-  @slice-2 @future
+  # El campo del recorrido llega a /editar en el slice del 2026-08-29. Hasta entonces la pantalla ni
+  # lo montaba: un evento publicado no podia cambiar ni quitar su GPX, y la unica salida era borrar
+  # la publicacion y rehacerla — perdiendo su direccion, sus comentarios y su antiguedad.
+  #
+  # Los tres gestos son tres cosas distintas para `post_routes`, y la que mas importa es la aburrida:
+  # NO TOCARLA. Casi toda edicion es una falta de ortografia en el titulo, asi que si "no subi
+  # archivo" borrara la ruta, un evento perderia su trazo por corregir una coma.
+
+  @slice-2
   Scenario: Editar un evento conserva su ruta cuando no se toca
     Given I own an event with a GPX route
-    When I edit only its title and date
+    When I edit only its title from "/editar/<slug>"
     Then the stored route is still attached to the event
 
-  @slice-2 @future
+  @slice-2 @component
+  # Vitest y no navegador: reemplazar es la aritmetica de la accion —que llame a `save` con los
+  # puntos que llegaron— y subir un GPX de verdad por Playwright anadiria minutos sin anadir certeza.
+  # Lo que si va al navegador es conservar, que es el caso que se rompe en silencio.
   Scenario: Editar un evento reemplaza su ruta cuando subo otro GPX
     Given I own an event with a GPX route
     When I upload a different GPX from "/editar/<slug>"
     Then the stored route is replaced by the new path
+
+  @slice-2 @component
+  # Quitar exige un gesto propio porque el campo vacio ya significa "dejala como esta". Sin esa
+  # palabra aparte, las dos intenciones serian indistinguibles en el servidor.
+  Scenario: Editar un evento puede quedarse sin recorrido
+    Given I own an event with a GPX route
+    When I press "Quitar el recorrido" and save
+    Then the event has no route
+    And nothing was removed until saving, so undo puts it back
+
+  @slice-2 @component
+  Scenario Outline: Cada gesto del campo pide una cosa distinta
+    Given the route field of an event that already has a route
+    When <gesto>
+    Then the hidden field says "<dice>" and the action <hace>
+
+    Examples:
+      | gesto                                  | dice     | hace              | reason                                          |
+      | no se toca nada                        |          | no toca la fila   | el caso normal: se edito el titulo, no la ruta  |
+      | se sube otro GPX                       | el JSON  | la reemplaza      | un archivo nuevo es un reemplazo, no un borrado |
+      | se pulsa quitar                        | removed  | la borra          | la unica forma de quedarse sin recorrido        |
+      | se pulsa quitar y luego deshacer       |          | no toca la fila   | nada se guardo todavia, la vuelta es gratis     |
+      | se sube otro GPX y se quita el archivo |          | no toca la fila   | arrepentirse del reemplazo NO es quedarse sin   |
 
   @slice-3 @future
   Scenario Outline: Cada tipo se puede abrir y guardar sin cambiar de tipo

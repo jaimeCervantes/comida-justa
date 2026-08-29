@@ -6,6 +6,7 @@ import { parseGpx } from "~/domain/entities/post/gpx";
 import {
   MAX_ROUTE_FILE_BYTES,
   ROUTE_FILE_EXTENSION,
+  ROUTE_REMOVED,
   serializeRoute,
 } from "~/domain/entities/post/routeFile";
 import RouteFileError from "~/domain/errors/RouteFileError";
@@ -43,13 +44,33 @@ function readAsText(file: File): Promise<string> {
   });
 }
 
+/** El recorrido que la publicación ya tiene guardado. Sólo al editar. */
+export interface ExistingRoute {
+  /** Metros, tal y como salieron de `post_routes`. Se enseñan en kilómetros. */
+  lengthMeters: number;
+  /** Cuántos puntos traía el archivo original, que es lo que dice si el trazo es fino o burdo. */
+  sourcePoints: number;
+}
+
 export default function RouteFileField({
   name = "route",
+  existingRoute = null,
   error,
   className,
 }: {
-  /** El campo oculto que lee la Server Action. Lleva los puntos en JSON, o nada. */
+  /**
+   * El campo oculto que lee la Server Action. Lleva los puntos en JSON, la marca de
+   * {@link ROUTE_REMOVED}, o nada — y esas tres cosas piden tres cosas distintas.
+   */
   name?: string;
+  /**
+   * La que ya tiene la publicación. `null` al publicar, que es cuando no hay ninguna.
+   *
+   * **No trae el nombre del archivo, y no es un olvido**: el `.gpx` no se guarda en ningún sitio —se
+   * lee en el navegador, se extraen sus puntos y se tira—, así que meses después lo único que se
+   * sabe del recorrido es su forma. Se enseña lo que hay: cuánto mide y con cuántos puntos.
+   */
+  existingRoute?: ExistingRoute | null;
   /** Lo que contestó la acción sobre este archivo, ya traducido. */
   error?: string | null;
   className?: string;
@@ -63,6 +84,15 @@ export default function RouteFileField({
     points: number;
   } | null>(null);
   const [problem, setProblem] = useState<string | null>(null);
+
+  /**
+   * Si la ruta guardada sigue en pie.
+   *
+   * Empieza en `true` cuando hay una y sólo cae por un gesto explícito. Elegir un archivo nuevo no
+   * la «quita»: la reemplaza, que para el servidor es la misma operación de siempre —un `save`— y
+   * para quien mira es otra cosa distinta de quedarse sin recorrido.
+   */
+  const [keepsExisting, setKeepsExisting] = useState(existingRoute !== null);
 
   const read = useCallback(
     async (file: File | undefined) => {
@@ -88,6 +118,8 @@ export default function RouteFileField({
           kilometres: (route.meters / 1000).toFixed(1),
           points: route.originalPoints,
         });
+        // El archivo nuevo reemplaza a la guardada: dejan de enseñarse las dos a la vez.
+        setKeepsExisting(false);
       } catch (caught) {
         /* Un problema del archivo se cuenta; cualquier otra cosa es un fallo de verdad y no se
            disfraza de "tu archivo está mal". */
@@ -99,12 +131,35 @@ export default function RouteFileField({
     [t],
   );
 
+  /**
+   * Deshace la elección del archivo.
+   *
+   * Al publicar deja el campo vacío. **Al editar significa «me arrepentí del cambio»**, así que la
+   * ruta guardada vuelve a estar en pie: quien quita el archivo que acaba de elegir no está pidiendo
+   * quedarse sin recorrido, está cancelando el reemplazo.
+   */
   const clear = useCallback(() => {
     setPayload("");
     setSummary(null);
     setProblem(null);
+    setKeepsExisting(existingRoute !== null);
     // Sin esto, volver a elegir el mismo archivo no dispara ningún `change`.
     if (input.current) input.current.value = "";
+  }, [existingRoute]);
+
+  /** Quitar la que ya estaba. Es el único gesto que deja la publicación sin recorrido. */
+  const removeExisting = useCallback(() => {
+    setPayload(ROUTE_REMOVED);
+    setSummary(null);
+    setProblem(null);
+    setKeepsExisting(false);
+    if (input.current) input.current.value = "";
+  }, []);
+
+  /** Devolverla, mientras no se haya guardado. Quitar algo sin vuelta atrás es una trampa. */
+  const undoRemoval = useCallback(() => {
+    setPayload("");
+    setKeepsExisting(true);
   }, []);
 
   return (
@@ -121,6 +176,9 @@ export default function RouteFileField({
         />
       </label>
 
+      {/* Tres estados y sólo uno a la vez: el archivo recién elegido, la ruta que ya estaba, o el
+          aviso de que se va a quitar. La pista general sólo aparece cuando no hay ninguna, que es
+          cuando de verdad hace falta explicar para qué sirve el campo. */}
       {summary ? (
         <p className="mt-1 text-sm" data-testid="route-summary">
           {t("routeReady", {
@@ -135,6 +193,33 @@ export default function RouteFileField({
             className="underline"
           >
             {t("routeRemove")}
+          </button>
+        </p>
+      ) : keepsExisting && existingRoute ? (
+        <p className="mt-1 text-sm" data-testid="route-existing">
+          {t("routeExisting", {
+            kilometres: (existingRoute.lengthMeters / 1000).toFixed(1),
+            points: existingRoute.sourcePoints,
+          })}{" "}
+          <button
+            type="button"
+            onClick={removeExisting}
+            data-testid="route-remove-existing"
+            className="underline"
+          >
+            {t("routeRemoveExisting")}
+          </button>
+        </p>
+      ) : payload === ROUTE_REMOVED ? (
+        <p className="mt-1 text-sm" data-testid="route-removed">
+          {t("routeWillBeRemoved")}{" "}
+          <button
+            type="button"
+            onClick={undoRemoval}
+            data-testid="route-undo-removal"
+            className="underline"
+          >
+            {t("routeUndoRemoval")}
           </button>
         </p>
       ) : (

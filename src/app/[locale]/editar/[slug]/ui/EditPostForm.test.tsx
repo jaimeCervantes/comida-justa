@@ -24,6 +24,9 @@ const EVENT_POST: EditablePostValues = {
   startsAt: "2027-08-23T13:30:00.000Z",
   endsAt: "2027-08-23T15:00:00.000Z",
   durationMinutes: null,
+  /* El recorrido que el evento ya tiene. `null` porque el fixture base es un evento sin GPX, que es
+     lo normal: una charla o una comida no llevan ruta. El caso con ruta lo prueba `RouteFileField`. */
+  route: null,
   media: [
     {
       url: "https://example.com/rodada.jpg",

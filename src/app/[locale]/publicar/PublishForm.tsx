@@ -32,6 +32,7 @@ import PostMediaField, {
 import EventTimeZoneField, {
   useBrowserTimeZone,
 } from "~/presentation/post/EventTimeZone/EventTimeZoneField";
+import RouteFileField from "~/presentation/post/RouteFileField/RouteFileField";
 import { usePostValidationMessages } from "~/presentation/post/usePostValidationMessages";
 import { publishRequiresPrice, publishShowsPrice } from "./publishChecklist";
 import { PUBLISH_KIND_OPTIONS, publishKindTestId } from "./publishKinds";
@@ -44,7 +45,6 @@ import {
 import PublishChecklist from "./ui/PublishChecklist";
 import PublishPreview from "./ui/PublishPreview";
 import PublishStepper from "./ui/PublishStepper";
-import RouteFileField from "./ui/RouteFileField";
 import { usePublishDraft } from "./usePublishDraft";
 
 export default function PublishForm({

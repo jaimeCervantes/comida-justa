@@ -8,6 +8,10 @@ import {
 } from "~/domain/entities/post/kind";
 import { parsePostMediaPayload } from "~/domain/entities/post/mediaPayload";
 import { resolveOriginForUser } from "~/domain/entities/post/origin";
+import {
+  type RouteFieldChange,
+  readRouteField,
+} from "~/domain/entities/post/routeFile";
 import { resolveKeyStrict } from "~/domain/entities/post/taxonomy";
 import type { User } from "~/domain/entities/post/types";
 import { parseDateTimeLocalInTimeZone } from "~/domain/schedule/localDateTime";
@@ -23,6 +27,8 @@ import { getCategoryTaxonomy } from "~/infra/dataAccess/categories/cachedCategor
 import { createIndexPostEmbeddingUseCase } from "~/infra/dataAccess/indexPostEmbedding/factory";
 import { createPostAdminRepository } from "~/infra/dataAccess/managePost/factory";
 import { createReviewPostContentUseCase } from "~/infra/dataAccess/moderatePost/factory";
+import { createRouteRepository } from "~/infra/dataAccess/routes/factory";
+import { ROUTE_FILE_ERROR_KEYS } from "~/infra/UI/labels/routeFileErrorKeys";
 import UpdateOnePostUseCase from "~/use_cases/managePost/updateOnePostUseCase";
 
 export type EditPostState = {
@@ -38,6 +44,8 @@ export type EditPostState = {
     price?: string | null;
     origin?: string | null;
     phone?: string | null;
+    /** Lo que le pasa al `.gpx`: el mismo campo que ya existía al publicar. */
+    route?: string | null;
   };
 };
 
@@ -136,7 +144,21 @@ export async function updatePost(
   const endsAt = parseDateTimeLocalInTimeZone(formData.get("endsAt"), timeZone);
   const durationMinutes = readPositiveInt(formData.get("durationMinutes"));
   const requiresPrice = kind === "producto" || kind === SERVICE_KIND;
+
+  /* El recorrido, sólo en un evento. En cualquier otro tipo el campo ni se pinta, así que lo que
+     llegara ahí vendría de un formulario manipulado y se ignora en vez de guardarse. */
+  const routeChange: RouteFieldChange =
+    kind === EVENT_KIND
+      ? readRouteField(formData.get("route") as string | null)
+      : { kind: "unchanged" };
+
   const fieldErrors = {
+    /* El mismo error que al publicar, traducido de la misma lista. Se comprueba antes de tocar la
+       publicación: un GPX ilegible no puede costarle a nadie el resto de la edición. */
+    route:
+      routeChange.kind === "invalid"
+        ? tPublish(ROUTE_FILE_ERROR_KEYS[routeChange.problem])
+        : null,
     title: title ? null : tPublish("errorTitleRequired"),
     startsAt:
       kind !== EVENT_KIND || startsAt
@@ -180,6 +202,10 @@ export async function updatePost(
   if ("errorMessage" in result && result.errorMessage) {
     return { errorMessage: result.errorMessage };
   }
+
+  /* `"postId" in result` y no una comprobación de error: es lo que estrecha la unión, el mismo
+     patrón que usa el reindexado de abajo. */
+  if ("postId" in result) await applyRouteChange(result.postId, routeChange);
 
   /* Se revisa **siempre que cambie el texto**, no solo al publicar. Sin esto el filtro duraría dos
      clics: se publica algo sano y se edita a cualquier cosa. Y es además el camino de salida —una
@@ -247,4 +273,43 @@ function reviewAfterResponse(
       );
     }
   });
+}
+
+/**
+ * Lleva a `post_routes` lo que el campo pidió.
+ *
+ * **`unchanged` no toca nada, y ese es el caso normal.** Casi toda edición es una falta de ortografía
+ * en el título; si «no subí archivo» borrara la ruta, un evento perdería su trazo cada vez que su
+ * dueño corrige una coma. Por eso quitar exige un gesto propio y esto sólo escribe cuando se lo
+ * piden.
+ *
+ * No se aborta la edición si esto falla, por el mismo motivo que al publicar: la publicación ya se
+ * guardó y es válida sin recorrido. Devolver un error ahora diría que no se guardó nada, y sería
+ * mentira. Se registra y quien editó puede volver a intentarlo con el archivo.
+ */
+async function applyRouteChange(
+  postId: string,
+  change: RouteFieldChange,
+): Promise<void> {
+  if (change.kind === "unchanged" || change.kind === "invalid") return;
+
+  try {
+    if (change.kind === "removed") {
+      await createRouteRepository().remove(postId);
+      return;
+    }
+
+    await createRouteRepository().save({
+      postId,
+      points: change.route.points,
+      lengthMeters: change.route.meters,
+      sourcePoints: change.route.originalPoints,
+    });
+  } catch (error) {
+    console.error(
+      // i18n-ignore: registro del servidor; lo lee quien opera, no un visitante.
+      `[routes] post ${postId}: la edición se guardó pero su recorrido no (${change.kind}).`,
+      error,
+    );
+  }
 }
