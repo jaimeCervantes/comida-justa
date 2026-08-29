@@ -55,6 +55,10 @@ serviceAccountKey.json
 # Configuración local de Claude Code: es de cada máquina, no del proyecto.
 .claude/settings.json
 .claude/settings.local.json
+# Las skills viven en .agents/skills/, que es lo versionado y la única copia buena. Claude Code solo
+# las registra si están además en .claude/skills/, así que ahí se copian — y esa copia se queda en la
+# máquina: versionarla sería tener dos SKILL.md que se pueden separar sin que nadie se entere.
+.claude/skills/
 .vscode
 # Transcripciones de video: audio y texto de trabajo (ver src/scripts/transcribeVideos.ts)
 /transcripciones/
