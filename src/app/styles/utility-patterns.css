@@ -143,3 +143,44 @@ input[type="search"]::-webkit-search-results-decoration {
   -ms-overflow-style: none; /* IE and Edge */
   scrollbar-width: none; /* Firefox */
 }
+
+/**
+ * «Esta fila sigue»: un desvanecido y una flechita en el borde, **solo cuando queda algo que
+ * arrastrar**.
+ *
+ * Nace de esconder la barra de desplazamiento: sin ella no hay nada que delate que la fila continúa
+ * fuera de pantalla, y un filtro al que nadie sabe llegar es un filtro que no existe. Tenía que
+ * costar **cero alto** —el motivo entero de que la fila sea una sola— así que no es un elemento:
+ * son cuatro capas de fondo del propio contenedor.
+ *
+ * El truco es `background-attachment`, y es lo único no evidente de aquí:
+ *
+ * - Las dos **tapas** van `local`, así que viajan con el contenido. La izquierda se sienta encima
+ *   de la flecha izquierda mientras estás al principio, y se va cuando arrastras.
+ * - Las dos **flechas** van `scroll`, o sea clavadas al borde del contenedor.
+ *
+ * De ahí salen los cuatro estados sin una línea de JavaScript ni un `ResizeObserver`: al principio
+ * solo se ve la flecha derecha, al final solo la izquierda, en medio las dos, y cuando todo cabe
+ * las dos tapas se sientan encima de las dos flechas y no se ve ninguna. Un contenedor que no
+ * desborda no anuncia nada.
+ *
+ * Las tapas toman `--surface-elevation-1` —la superficie de la barra que las usa—, así que el
+ * desvanecido sigue al tema sin una variante escrita a mano. La flecha, en cambio, va dentro de un
+ * `data:` URI y ahí no entra una variable CSS: lleva el `#8a9480` que `--text-muted` vale en
+ * oscuro, que es el gris que se lee en las dos superficies (2.9 sobre el papel claro, 3.5 sobre el
+ * oscuro). Es una pista decorativa que repite lo que el desvanecido ya dice, no información: por
+ * eso se acepta el hex, y por eso no se duplica el bloque en `@media (prefers-color-scheme)`.
+ */
+.scroll-hint-x {
+  background:
+/* tapas — `local`: viajan con el contenido y apagan la flecha del lado que ya se acabó */
+    linear-gradient(to right, var(--surface-elevation-1) 55%, transparent) left
+    center / 2rem 100% no-repeat local,
+    linear-gradient(to left, var(--surface-elevation-1) 55%, transparent) right
+    center / 2rem 100% no-repeat local,
+    /* flechas — `scroll`: clavadas a los bordes del contenedor */
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%238a9480' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 3 5 8l5 5'/%3E%3C/svg%3E") left
+    0.125rem center / 0.75rem 0.75rem no-repeat scroll,
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%238a9480' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 3 5 5-5 5'/%3E%3C/svg%3E")
+    right 0.125rem center / 0.75rem 0.75rem no-repeat scroll;
+}

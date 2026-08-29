@@ -156,39 +156,51 @@ test.describe("Cuando no sabe dónde está", () => {
 });
 
 /**
- * Slice 5: la barra cabe en un renglón.
+ * Slice 5: la barra es una sola fila, en cualquier ancho.
  *
  * Los slices 1 y 4 le fueron dando piezas a la misma barra hasta que dejó de ser una fila. Como es
- * chrome, el alto que se comía se lo comía en **todas** las rutas.
+ * chrome, el alto que se comía se lo comía en **todas** las rutas. Lo que no cabe se arrastra: el
+ * `overflow-x` está en la barra entera, no encerrado en el filtro.
  */
-test.describe("En escritorio la barra es una sola fila", () => {
-  test("Con ubicación: el control y los filtros comparten renglón", async ({
+const ANCHOS = [
+  { caso: "un teléfono", width: 390, height: 780 },
+  { caso: "el tramo estrecho de escritorio", width: 1024, height: 800 },
+  { caso: "un escritorio holgado", width: 1440, height: 900 },
+];
+
+test.describe("La barra de cercanía es una sola fila", () => {
+  for (const { caso, width, height } of ANCHOS) {
+    test(`En ${caso}, la ubicación y los filtros comparten renglón`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width, height });
+      await page.goto("/");
+
+      const aviso = await centroVertical(page.getByTestId("location-notice"));
+      const filtros = await centroVertical(
+        page.getByTestId("publication-pillar-filter"),
+      );
+
+      expect(Math.abs(aviso - filtros)).toBeLessThanOrEqual(2);
+    });
+  }
+
+  /* La otra cara. El aviso es el que más texto tenía, pero el chip también comparte renglón. */
+  test("Y con una ubicación ya guardada, el chip hace lo mismo", async ({
     page,
     baseURL,
   }) => {
+    await page.setViewportSize({ width: 390, height: 780 });
     await page.context().addCookies([cookieCon(baseURL)]);
 
     await page.goto("/");
 
-    const ubicacion = await centroVertical(page.getByTestId("location-chip"));
+    const chip = await centroVertical(page.getByTestId("location-chip"));
     const filtros = await centroVertical(
       page.getByTestId("publication-pillar-filter"),
     );
 
-    expect(Math.abs(ubicacion - filtros)).toBeLessThanOrEqual(2);
-  });
-
-  test("Y sin ubicación también, que es la cara que más texto tenía", async ({
-    page,
-  }) => {
-    await page.goto("/");
-
-    const aviso = await centroVertical(page.getByTestId("location-notice"));
-    const filtros = await centroVertical(
-      page.getByTestId("publication-pillar-filter"),
-    );
-
-    expect(Math.abs(aviso - filtros)).toBeLessThanOrEqual(2);
+    expect(Math.abs(chip - filtros)).toBeLessThanOrEqual(2);
   });
 
   /* Lo que cedió el sitio: la prosa. Ninguna de las acciones se fue con ella. */
@@ -206,7 +218,7 @@ test.describe("En escritorio la barra es una sola fila", () => {
   });
 });
 
-test.describe("En el teléfono la barra deja de ser un párrafo", () => {
+test.describe("Y en el teléfono lo que no cabe se arrastra", () => {
   test.use({ viewport: { width: 390, height: 780 } });
 
   test("Los cinco filtros son un renglón que se desliza", async ({ page }) => {
@@ -234,17 +246,38 @@ test.describe("En el teléfono la barra deja de ser un párrafo", () => {
   });
 
   /*
-   * La medida en los términos del problema: la barra es chrome, así que lo que ocupe se lo quita al
-   * catálogo en la primera pantalla de todas las rutas. Se afirma contra el alto de la ventana y no
-   * contra un número de píxeles, que envejecería con el primer cambio de relleno.
+   * Un renglón, no dos. Se afirma contra el alto de un filtro y no contra un número de píxeles:
+   * si la barra crece de relleno pero sigue siendo una fila, este escenario tiene que seguir verde.
    */
-  test("Y no se come un quinto de la pantalla", async ({ page }) => {
+  test("Y la barra entera mide un renglón, no dos", async ({ page }) => {
     await page.goto("/");
 
-    const caja = await page.getByTestId("nearby-bar").boundingBox();
-    const ventana = page.viewportSize();
+    const barra = await page.getByTestId("nearby-bar").boundingBox();
+    const unFiltro = await page
+      .getByTestId("publication-pillar-filter")
+      .getByRole("link")
+      .first()
+      .boundingBox();
 
-    expect(caja?.height ?? 0).toBeLessThan((ventana?.height ?? 780) / 5);
+    expect(barra?.height ?? 0).toBeLessThan(2 * (unFiltro?.height ?? 0));
+  });
+
+  /*
+   * Esconder la barra de desplazamiento ahorra alto pero deja la fila sin decir que sigue, así que
+   * hay una pista en los bordes. La condición que se le puso —y lo único que una prueba puede
+   * comprobar, porque un desvanecido no se consulta en el DOM— es que **no cobre alto**: la barra
+   * mide lo mismo en el ancho donde la fila desborda que en el que le sobra sitio.
+   */
+  test("Y avisar de que sigue no le cuesta un solo píxel de alto", async ({
+    page,
+  }) => {
+    await page.goto("/");
+    const apretada = await page.getByTestId("nearby-bar").boundingBox();
+
+    await page.setViewportSize({ width: 1440, height: 900 });
+    const holgada = await page.getByTestId("nearby-bar").boundingBox();
+
+    expect(apretada?.height).toBe(holgada?.height);
   });
 });
 

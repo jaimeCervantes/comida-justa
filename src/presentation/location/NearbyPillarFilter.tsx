@@ -29,19 +29,19 @@ import PublicationPillarFilter from "~/presentation/post/PublicationPillarFilter
 const FILTERABLE_ROUTES = ["/", "/productos"] as const;
 
 /**
- * Una fila que se desliza, no cinco filtros que se parten.
+ * Cinco filtros que no se parten, porque la barra entera es un renglón que se desliza.
  *
  * Dentro de la barra los cinco son la pieza ancha (~620 px): partidos se llevaban dos y tres
- * renglones del chrome de **todas** las rutas, que es lo que el `@slice-5` vino a quitar. Aquí no
- * se parten —se arrastran—, y de `lg` hacia arriba caben en el mismo renglón que la ubicación. Las
- * otras cuatro rutas que montan `PublicationPillarFilter` van debajo de un título y con sitio de
- * sobra: por eso esto es una clase de **este** montaje y no un cambio del componente.
+ * renglones del chrome de **todas** las rutas, que es lo que el `@slice-5` vino a quitar. Las otras
+ * cuatro rutas que montan `PublicationPillarFilter` van debajo de un título y con sitio de sobra:
+ * por eso esto es una clase de **este** montaje y no un cambio del componente.
  *
- * `py-1` pisa el `pt-4` del componente y deja 4px arriba y abajo: `overflow-x` recorta también en
- * vertical, y sin ese margen el anillo de foco de un filtro se cortaría al tabular.
+ * **El `overflow-x` no está aquí, y es a propósito.** Vive en `NearbyBar`, sobre la fila completa,
+ * para que un solo gesto arrastre la barra entera —rótulo, ubicación y filtros— en vez de dejar el
+ * scroll encerrado en la mitad ancha. Aquí solo queda no partirse (`flex-nowrap`), no comprimirse
+ * (`shrink-0`) y ceder el relleno vertical (`py-0`) a quien ahora manda: la fila que lo contiene.
  */
-const IN_A_SINGLE_ROW =
-  "w-full min-w-0 shrink flex-nowrap overflow-x-auto no-scrollbar py-1 lg:w-auto";
+const IN_A_SINGLE_ROW = "shrink-0 flex-nowrap py-0";
 
 export default function NearbyPillarFilter(): React.ReactNode {
   const pathname = usePathname();

@@ -29,12 +29,25 @@ import NearbyPillarFilter from "~/presentation/location/NearbyPillarFilter";
  * barra que lo aloja, no al revés. `NearbyPillarFilter` decide solo, por ruta, si hay algo que
  * mostrar: `NearbyBar` sigue sin saber en qué página está.
  *
- * **Una fila, y en escritorio una sola.** Al juntarse las tres piezas la barra pasó a partirse en
- * dos y tres renglones, y en un teléfono se comía la primera pantalla de todas las rutas — que es
- * el precio de ser chrome. El `@slice-5` lo arregla por donde sobraba: las explicaciones de las dos
- * caras se mudaron a su nombre accesible, así que aquí solo quedan controles. De `lg` hacia arriba
- * la fila es `flex-nowrap` y todo comparte renglón; por debajo se parte, y el filtro —que es la
- * pieza ancha— se lleva su propio renglón deslizable en vez de tres.
+ * **Una fila, y una sola, en cualquier ancho.** Al juntarse las tres piezas la barra pasó a
+ * partirse en dos y tres renglones, y en un teléfono se comía la primera pantalla de todas las
+ * rutas — que es el precio de ser chrome. El `@slice-5` lo arregla por donde sobraba: las
+ * explicaciones de las dos caras se mudaron a su nombre accesible, así que aquí solo quedan
+ * controles.
+ *
+ * **El contenedor que se desliza es esta fila, no el filtro.** La primera versión partía la barra
+ * por debajo de `lg` y le daba al filtro su propio renglón deslizable: dos renglones en un
+ * teléfono, y un scroll que solo servía para la mitad de la barra. El usuario lo corrigió — «si
+ * todo está en el renglón, el scroll tiene más propósito y menos espacio vertical»— y tiene razón:
+ * un solo eje de desplazamiento para toda la barra es más simple de explicar y **un** renglón
+ * cuesta la mitad que dos. Por eso el `overflow-x` vive aquí y cada pieza es `shrink-0`: lo que no
+ * cabe se arrastra, nada se comprime ni se parte.
+ *
+ * **Y se avisa de que sigue.** Esconder la barra de desplazamiento ahorra alto pero deja la fila
+ * sin decir que continúa, y un filtro al que nadie sabe llegar es un filtro que no existe. Lo dice
+ * `scroll-hint-x` (`utility-patterns.css`): un desvanecido con una flechita en cada borde, hecho
+ * de capas de fondo, que aparece solo del lado que todavía tiene contenido y desaparece entero
+ * cuando la fila cabe. Cuesta cero alto, que era la condición.
  */
 export default async function NearbyBar(): Promise<React.ReactElement> {
   const t = await getTranslations("distance");
@@ -47,9 +60,12 @@ export default async function NearbyBar(): Promise<React.ReactElement> {
       data-testid="nearby-bar"
       className="border-b border-separator bg-surface-elevation-1"
     >
-      <div className="container-width flex flex-wrap items-center gap-x-4 gap-y-2 py-2 lg:flex-nowrap">
+      {/* `py-2` no es solo aire: `overflow-x` recorta también en vertical, y esos 8px son los que
+          dejan que el anillo de foco de un filtro se vea entero al tabular. */}
+      <div className="container-width no-scrollbar scroll-hint-x flex items-center gap-x-4 overflow-x-auto py-2">
         {/* El rótulo en versalitas del 5.1: dice de qué va la barra sin gastar un renglón. Se
-            esconde en pantallas estrechas, donde el propio control ya se explica solo. */}
+            esconde en pantallas estrechas, donde el sitio horizontal es el caro y el propio
+            control ya se explica solo. */}
         <span className="hidden shrink-0 text-label font-medium uppercase tracking-[0.14em] text-text-muted sm:inline">
           {t("barLabel")}
         </span>

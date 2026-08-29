@@ -24,8 +24,10 @@ import { useShareLocation } from "./useShareLocation";
  *    quien busca. Se le calla a quien ya tiene tienda, que no necesita el consejo.
  *
  * Se dibujaba como una caja con borde y relleno propios porque lo montaban seis páginas sueltas.
- * Ahora su único montaje es `NearbyBar`, que ya pone la superficie: aquí queda **una fila que se
- * parte cuando no cabe**, para no plantar un recuadro en el chrome de todas las rutas.
+ * Ahora su único montaje es `NearbyBar`, que ya pone la superficie y decide la forma: aquí queda
+ * **un bloque que no se parte ni se comprime** (`shrink-0`), porque la barra que lo aloja es un
+ * único renglón que se arrastra. Plantar un recuadro en el chrome de todas las rutas ya se había
+ * descartado; partirse, también.
  *
  * **Los tres párrafos se volvieron el nombre del bloque.** Eran dos o tres renglones en escritorio
  * y hasta cinco en un teléfono, en el chrome de todas las rutas — la mayor parte de lo que impedía
@@ -55,7 +57,7 @@ export default function LocationNotice({
       data-testid="location-notice"
       aria-label={label}
       title={label}
-      className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-1 text-sm text-text-support"
+      className="flex shrink-0 items-center gap-x-3 text-sm text-text-support"
     >
       <Button
         type="button"

@@ -297,17 +297,27 @@ Feature: El chrome lleva la ubicación y la búsqueda dice qué buscar
 
   # La afirmación es una relación, no un alto en píxeles: si un día la barra crece de altura pero
   # sigue en una fila, este escenario tiene que seguir verde.
+  #
+  # Y es un renglón en **cualquier** ancho, no solo en escritorio. La primera versión partía la
+  # barra en el teléfono y le daba al filtro su propio renglón deslizable; el usuario lo corrigió:
+  # «si todo está en el renglón, el scroll tiene más propósito y menos espacio vertical».
   @slice-5
-  Scenario Outline: En escritorio la barra entera es una sola fila
-    Given una ventana de escritorio y "<estado>"
+  Scenario Outline: La barra entera es una sola fila, en cualquier ancho
+    Given una ventana de "<ancho>" px
     When abro "/"
     Then el control de ubicación y el filtro de pilares comparten el centro vertical
-    And la barra no es más alta que su pieza más alta más su relleno
 
     Examples:
-      | estado                    |
-      | una ubicación guardada    |
-      | ninguna ubicación         |
+      | ancho | por qué esta                                   |
+      | 390   | un teléfono, donde el renglón de más costaba   |
+      | 1024  | el tramo estrecho donde el header ya apretaba  |
+      | 1440  | escritorio holgado                             |
+
+  @slice-5
+  Scenario: Y también cuando la ubicación ya se conoce, que es la otra cara
+    Given tengo una ubicación guardada a 2 km del ancla
+    When abro "/"
+    Then el chip y el filtro de pilares comparten el centro vertical
 
   # Antes eran dos o tres párrafos. Lo que queda es lo que se pulsa.
   @slice-5
@@ -339,8 +349,20 @@ Feature: El chrome lleva la ubicación y la búsqueda dice qué buscar
     Then los cinco filtros comparten el mismo centro vertical
     And puedo llegar a "Mente/Espíritu" deslizando la fila
 
+  # La medida que importa: un renglón, no dos. Se afirma contra el alto de un filtro y no contra un
+  # número de píxeles, que envejecería con el primer cambio de relleno.
   @slice-5
-  Scenario: Y la barra ocupa menos alto que antes de este slice
+  Scenario: Y la barra entera mide un renglón, no dos
     Given una ventana de 390 px y ninguna ubicación guardada
     When abro "/"
-    Then la barra mide a lo sumo dos renglones de filtro
+    Then la barra es más baja que dos filtros apilados
+
+  # Esconder la barra de desplazamiento ahorra alto pero deja la fila sin decir que sigue. La pista
+  # tiene que costar cero alto —esa es la razón de ser de la fila única— así que son capas de fondo
+  # del propio contenedor, no un elemento.
+  @slice-5
+  Scenario: La fila avisa de que sigue, sin gastar alto
+    Given una ventana de 390 px, donde la fila no cabe entera
+    When abro "/"
+    Then el borde enseña un desvanecido con una flecha hacia donde queda contenido
+    And la barra mide lo mismo que sin la pista
