@@ -26,10 +26,15 @@ describe("LocationChip", () => {
     vi.unstubAllGlobals();
   });
 
+  /*
+   * Desde el slice 5 de `chrome.feature` no está escrito en pantalla —la barra tenía que caber en
+   * un renglón— sino en el nombre accesible del bloque. Se sigue diciendo entero; lo que cambió es
+   * quién lo oye sin mirar.
+   */
   it("dice que las distancias salen de tu ubicación", () => {
     renderWithIntl(<LocationChip fix={fixFrom(2)} />);
 
-    expect(screen.getByTestId("location-chip")).toHaveTextContent(
+    expect(screen.getByTestId("location-chip")).toHaveAccessibleName(
       /distancias desde tu ubicación/i,
     );
   });
@@ -45,15 +50,31 @@ describe("LocationChip", () => {
   ])("dice desde cuándo es el dato, en %s", (_caso, horas, esperado) => {
     renderWithIntl(<LocationChip fix={fixFrom(horas)} />);
 
-    expect(screen.getByTestId("location-age")).toHaveTextContent(esperado);
+    expect(screen.getByTestId("location-chip")).toHaveAccessibleName(esperado);
   });
 
   it("calla la antigüedad cuando no la sabe, en vez de inventarla", () => {
     renderWithIntl(<LocationChip fix={fixFrom(null)} />);
 
-    expect(screen.queryByTestId("location-age")).not.toBeInTheDocument();
+    expect(screen.getByTestId("location-chip")).not.toHaveAccessibleName(
+      /actualizada/i,
+    );
     // Pero el control para corregirla sigue ahí, que es lo que no había antes.
     expect(screen.getByTestId("refresh-location")).toBeInTheDocument();
+  });
+
+  /*
+   * Lo que el slice 5 vino a comprar: la barra es chrome de todas las rutas, así que cada palabra
+   * dibujada se paga en todas. Aquí lo dibujado es el botón; el resto se anuncia.
+   */
+  it("no dibuja la explicación: lo escrito es lo que se pulsa", () => {
+    renderWithIntl(<LocationChip fix={fixFrom(2)} />);
+
+    const chip = screen.getByTestId("location-chip");
+
+    expect(chip).not.toHaveTextContent(/distancias desde tu ubicación/i);
+    expect(chip).not.toHaveTextContent(/hace 2 horas/i);
+    expect(chip).toHaveTextContent(/actualizar/i);
   });
 
   it("ofrece siempre corregirla: esa era la salida que no existía", async () => {

@@ -20,8 +20,11 @@ interface PublicationPillarFilterProps {
   className?: string;
 }
 
+/* `shrink-0` para el montaje de la barra del chrome, que los pone en una fila deslizable: sin él
+   los cinco se comprimirían hasta partir su etiqueta en vez de salirse y dejarse arrastrar. Donde
+   la fila se parte (las otras cuatro rutas) no cambia nada: ahí nunca les falta ancho. */
 const BASE_LINK =
-  "focus-ring inline-flex min-h-10 items-center rounded-full border px-4 py-2 text-sm font-semibold transition-colors";
+  "focus-ring inline-flex min-h-10 shrink-0 items-center rounded-full border px-4 py-2 text-sm font-semibold transition-colors";
 
 const ALL_ACTIVE = "border-pw-green bg-pw-green text-white";
 

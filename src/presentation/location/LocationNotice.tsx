@@ -25,8 +25,15 @@ import { useShareLocation } from "./useShareLocation";
  *
  * Se dibujaba como una caja con borde y relleno propios porque lo montaban seis páginas sueltas.
  * Ahora su único montaje es `NearbyBar`, que ya pone la superficie: aquí queda **una fila que se
- * parte cuando no cabe**, para no plantar un recuadro en el chrome de todas las rutas. Lo que dice
- * y a quién se lo dice no cambia.
+ * parte cuando no cabe**, para no plantar un recuadro en el chrome de todas las rutas.
+ *
+ * **Los tres párrafos se volvieron el nombre del bloque.** Eran dos o tres renglones en escritorio
+ * y hasta cinco en un teléfono, en el chrome de todas las rutas — la mayor parte de lo que impedía
+ * que la barra fuera una fila. Las tres frases (por qué no hay distancias, el incentivo a quien se
+ * negó) viven ahora en el `aria-label` y el `title` del bloque: un lector de pantalla las anuncia
+ * enteras al entrar en la región, y en pantalla no gastan un solo renglón. Lo que queda dibujado es
+ * lo que se pulsa — el botón y la invitación a abrir tienda—, que es justo lo que un párrafo
+ * escondía.
  */
 export default function LocationNotice({
   showSellerCta = true,
@@ -37,18 +44,19 @@ export default function LocationNotice({
   const t = useTranslations("distance");
   const { state, isBusy, share } = useShareLocation();
   const denied = state === "failed";
+  /* El incentivo solo entra para quien ya dijo que no: es una razón para cambiar de opinión, no un
+     regaño que se le repita a quien todavía no ha contestado. */
+  const label = denied
+    ? `${t("deniedNotice")} ${t("incentive")}`
+    : t("noticeIdle");
 
   return (
     <aside
       data-testid="location-notice"
-      className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-text-support"
+      aria-label={label}
+      title={label}
+      className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-1 text-sm text-text-support"
     >
-      <p>{denied ? t("deniedNotice") : t("noticeIdle")}</p>
-
-      {/* Solo aparece a quien ya dijo que no: es una razón para cambiar de opinión, no un regaño
-          que se le repita a quien todavía no ha contestado. */}
-      {denied ? <p data-testid="location-incentive">{t("incentive")}</p> : null}
-
       <Button
         type="button"
         onClick={share}
@@ -63,7 +71,7 @@ export default function LocationNotice({
       </Button>
 
       {showSellerCta ? (
-        <p data-testid="seller-location-cta">
+        <p data-testid="seller-location-cta" className="whitespace-nowrap">
           {t("sellerCta")}{" "}
           {/* `text-highlight` y no `text-pw-green`: es el token que el slice 12 dejó para las
               tintas y los enlaces, y resuelve al vivo en oscuro. */}

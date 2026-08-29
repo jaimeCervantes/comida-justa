@@ -280,3 +280,67 @@ Feature: El chrome lleva la ubicación y la búsqueda dice qué buscar
       | /productores-locales |
       | /u/[username]        |
       | /tienda/[slug]       |
+
+  # ---------------------------------------------------------------------------
+  # Slice 5 — La barra cabe en un renglón  (actual)
+  #
+  # Los slices 1 y 4 le fueron dando piezas a la misma barra hasta que dejó de ser una fila: el
+  # rótulo, una explicación de por qué hay o no hay distancias, la invitación a abrir tienda y cinco
+  # filtros. En escritorio partía en dos o tres renglones; en un teléfono se comía la primera
+  # pantalla de **todas** las rutas, porque es chrome.
+  #
+  # Lo que se retira es la prosa, no las acciones: siguen ahí el botón de ubicación, la invitación a
+  # abrir tienda y los cinco filtros. Las explicaciones pasan al **nombre accesible** de cada cara
+  # (`aria-label` + `title`), así que quien usa lector de pantalla o pasa el ratón las sigue oyendo
+  # y leyendo — no se borran, dejan de gastar renglones.
+  # ---------------------------------------------------------------------------
+
+  # La afirmación es una relación, no un alto en píxeles: si un día la barra crece de altura pero
+  # sigue en una fila, este escenario tiene que seguir verde.
+  @slice-5
+  Scenario Outline: En escritorio la barra entera es una sola fila
+    Given una ventana de escritorio y "<estado>"
+    When abro "/"
+    Then el control de ubicación y el filtro de pilares comparten el centro vertical
+    And la barra no es más alta que su pieza más alta más su relleno
+
+    Examples:
+      | estado                    |
+      | una ubicación guardada    |
+      | ninguna ubicación         |
+
+  # Antes eran dos o tres párrafos. Lo que queda es lo que se pulsa.
+  @slice-5
+  Scenario: La barra deja de explicar y se queda con lo que se pulsa
+    Given no tengo ninguna ubicación guardada
+    When abro "/"
+    Then no leo en la barra "No sabemos dónde estás, así que no podemos decirte qué tan cerca…"
+    And sigue estando el botón para compartir mi ubicación
+    And sigue estando la invitación a abrir tienda
+
+  # Lo que se retira de la vista no se pierde: es el nombre de la región para un lector de pantalla.
+  @slice-5
+  Scenario Outline: La explicación se muda al nombre accesible, no a la basura
+    Given "<estado>"
+    When se pinta "<cara>"
+    Then su nombre accesible dice "<dice>"
+
+    Examples:
+      | estado                             | cara            | dice                                  |
+      | una ubicación de hace 2 horas      | location-chip   | distancias desde tu ubicación, hace 2 horas |
+      | una cookie del formato anterior    | location-chip   | distancias desde tu ubicación, sin antigüedad |
+      | ninguna ubicación                  | location-notice | por qué no hay distancias             |
+
+  # El teléfono: los cinco filtros dejan de partirse en dos o tres renglones y se deslizan en uno.
+  @slice-5
+  Scenario: En el teléfono los filtros son un renglón que se desliza
+    Given una ventana de 390 px
+    When abro "/"
+    Then los cinco filtros comparten el mismo centro vertical
+    And puedo llegar a "Mente/Espíritu" deslizando la fila
+
+  @slice-5
+  Scenario: Y la barra ocupa menos alto que antes de este slice
+    Given una ventana de 390 px y ninguna ubicación guardada
+    When abro "/"
+    Then la barra mide a lo sumo dos renglones de filtro

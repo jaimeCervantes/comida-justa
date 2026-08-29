@@ -23,8 +23,25 @@ import PublicationPillarFilter from "~/presentation/post/PublicationPillarFilter
  * roadmap habla de "cualquier ruta que lo entienda" — hoy son dos; el resto de rutas que hoy montan
  * `PublicationPillarFilter` a mano (categoría, directorio, perfil, tienda) se quedan como estaban,
  * para un slice posterior.
+ *
+ * **La forma la decide quien lo aloja, y por eso viaja como `className`.** Ver `IN_A_SINGLE_ROW`.
  */
 const FILTERABLE_ROUTES = ["/", "/productos"] as const;
+
+/**
+ * Una fila que se desliza, no cinco filtros que se parten.
+ *
+ * Dentro de la barra los cinco son la pieza ancha (~620 px): partidos se llevaban dos y tres
+ * renglones del chrome de **todas** las rutas, que es lo que el `@slice-5` vino a quitar. Aquí no
+ * se parten —se arrastran—, y de `lg` hacia arriba caben en el mismo renglón que la ubicación. Las
+ * otras cuatro rutas que montan `PublicationPillarFilter` van debajo de un título y con sitio de
+ * sobra: por eso esto es una clase de **este** montaje y no un cambio del componente.
+ *
+ * `py-1` pisa el `pt-4` del componente y deja 4px arriba y abajo: `overflow-x` recorta también en
+ * vertical, y sin ese margen el anillo de foco de un filtro se cortaría al tabular.
+ */
+const IN_A_SINGLE_ROW =
+  "w-full min-w-0 shrink flex-nowrap overflow-x-auto no-scrollbar py-1 lg:w-auto";
 
 export default function NearbyPillarFilter(): React.ReactNode {
   const pathname = usePathname();
@@ -40,7 +57,7 @@ export default function NearbyPillarFilter(): React.ReactNode {
     <PublicationPillarFilter
       currentPillar={currentPillar}
       pathname={pathname}
-      className="pt-0"
+      className={IN_A_SINGLE_ROW}
     />
   );
 }

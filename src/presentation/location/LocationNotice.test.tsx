@@ -21,10 +21,14 @@ describe("LocationNotice", () => {
     vi.unstubAllGlobals();
   });
 
+  /*
+   * Desde el slice 5 de `chrome.feature` la explicación no está dibujada —la barra del chrome tenía
+   * que caber en un renglón— sino en el nombre accesible del bloque. Se sigue diciendo entera.
+   */
   it("explica que sin ubicación no hay cercanía, y ofrece darla", () => {
     renderWithIntl(<LocationNotice />);
 
-    expect(screen.getByTestId("location-notice")).toHaveTextContent(
+    expect(screen.getByTestId("location-notice")).toHaveAccessibleName(
       /no podemos decirte qué tan cerca/i,
     );
     expect(screen.getByTestId("share-location")).toBeInTheDocument();
@@ -37,11 +41,20 @@ describe("LocationNotice", () => {
 
     await userEvent.click(screen.getByTestId("share-location"));
 
-    expect(screen.getByTestId("location-incentive")).toHaveTextContent(
+    expect(screen.getByTestId("location-notice")).toHaveAccessibleName(
       /dos cuadras/i,
     );
     // Y el botón sigue ahí, ahora invitando a compartirla de nuevo.
     expect(screen.getByTestId("share-location")).toBeInTheDocument();
+  });
+
+  /* Y a quien no se ha negado no se le adelanta el argumento: todavía no ha contestado. */
+  it("no le suelta el incentivo a quien no ha dicho que no", () => {
+    renderWithIntl(<LocationNotice />);
+
+    expect(screen.getByTestId("location-notice")).not.toHaveAccessibleName(
+      /dos cuadras/i,
+    );
   });
 
   it("le dice a quien no vende que vender exige tienda con ubicación", () => {
@@ -49,8 +62,24 @@ describe("LocationNotice", () => {
 
     const cta = screen.getByTestId("seller-location-cta");
 
-    expect(cta).toHaveTextContent(/abrir tu tienda/i);
+    expect(cta).toHaveTextContent(/vendes/i);
+    expect(cta.querySelector("a")).toHaveTextContent(/abre tu tienda/i);
     expect(cta.querySelector("a")).toHaveAttribute("href", "/cuenta");
+  });
+
+  /*
+   * Lo que el slice 5 vino a comprar. Eran dos o tres párrafos en el chrome de **todas** las rutas;
+   * lo que queda dibujado es lo que se pulsa. La explicación no se perdió — la afirman las pruebas
+   * de arriba sobre el nombre accesible— pero ya no gasta renglones.
+   */
+  it("no dibuja la explicación: lo escrito es lo que se pulsa", () => {
+    renderWithIntl(<LocationNotice />);
+
+    const aviso = screen.getByTestId("location-notice");
+
+    expect(aviso).not.toHaveTextContent(/no podemos decirte qué tan cerca/i);
+    expect(aviso).toHaveTextContent(/ver a qué distancia está/i);
+    expect(aviso).toHaveTextContent(/abre tu tienda/i);
   });
 
   it("no se lo repite a quien ya tiene tienda", () => {

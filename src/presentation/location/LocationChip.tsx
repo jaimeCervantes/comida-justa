@@ -32,27 +32,34 @@ import { useShareLocation } from "./useShareLocation";
  *
  * Su único montaje es `NearbyBar`, que le pone el fondo y la separación: por eso no trae margen ni
  * `className` propios. Antes lo montaban seis páginas y cada una ajustaba su hueco.
+ *
+ * **Las dos cosas que dice no se leen: se anuncian.** Escritas como texto medían ~185 px la primera
+ * y ~170 px la segunda, y eran la mitad de lo que impedía que la barra del chrome cupiera en un
+ * renglón. Ahora son el **nombre accesible** del bloque —`aria-label`, más `title` para el ratón—,
+ * así que un lector de pantalla las sigue diciendo enteras y en pantalla no gastan nada. Lo único
+ * que queda dibujado es el alfiler y el botón: lo que se pulsa.
  */
 export default function LocationChip({ fix }: { fix: VisitorFix }) {
   const t = useTranslations("distance");
   const locale = useLocale();
   const { isBusy, share } = useShareLocation();
   const age = describeAge(fix.fixedAt, new Date());
+  /* Sin `fixedAt` —las cookies del formato anterior— no se inventa una antigüedad: el nombre dice
+     solo desde dónde se mide. */
+  const label = age
+    ? `${t("chipLabel")} ${t("chipAge", {
+        ago: relativeAge(locale, age.value, age.unit),
+      })}`
+    : t("chipLabel");
 
   return (
     <aside
       data-testid="location-chip"
-      className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-text-support"
+      aria-label={label}
+      title={label}
+      className="flex shrink-0 items-center gap-2 text-sm text-text-support"
     >
       <MdMyLocation aria-hidden className="shrink-0" />
-
-      <span>{t("chipLabel")}</span>
-
-      {age ? (
-        <span data-testid="location-age">
-          {t("chipAge", { ago: relativeAge(locale, age.value, age.unit) })}
-        </span>
-      ) : null}
 
       <Button
         type="button"

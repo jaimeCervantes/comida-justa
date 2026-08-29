@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import es from "~/i18n/messages/es.json";
 import { VISITOR_LOCATION_COOKIE } from "~/infra/location/locationCookie";
 
 /**
@@ -36,7 +37,11 @@ test.describe("Cuando la cookie viene del formato anterior", () => {
 
     await page.goto("/productos");
 
-    await expect(page.getByTestId("location-chip")).toBeVisible();
-    await expect(page.getByTestId("location-age")).toHaveCount(0);
+    const chip = page.getByTestId("location-chip");
+
+    await expect(chip).toBeVisible();
+    /* La antigüedad vive en el nombre accesible desde el slice 5 de `chrome.feature`; sin fecha en
+       la cookie, ese nombre dice desde dónde se mide y calla desde cuándo. */
+    await expect(chip).toHaveAccessibleName(es.distance.chipLabel);
   });
 });

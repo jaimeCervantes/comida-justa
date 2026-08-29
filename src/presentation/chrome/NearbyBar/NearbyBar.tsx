@@ -28,6 +28,13 @@ import NearbyPillarFilter from "~/presentation/location/NearbyPillarFilter";
  * se evaluó arriba y se descartó por el mismo motivo — así que el filtro hereda el criterio de la
  * barra que lo aloja, no al revés. `NearbyPillarFilter` decide solo, por ruta, si hay algo que
  * mostrar: `NearbyBar` sigue sin saber en qué página está.
+ *
+ * **Una fila, y en escritorio una sola.** Al juntarse las tres piezas la barra pasó a partirse en
+ * dos y tres renglones, y en un teléfono se comía la primera pantalla de todas las rutas — que es
+ * el precio de ser chrome. El `@slice-5` lo arregla por donde sobraba: las explicaciones de las dos
+ * caras se mudaron a su nombre accesible, así que aquí solo quedan controles. De `lg` hacia arriba
+ * la fila es `flex-nowrap` y todo comparte renglón; por debajo se parte, y el filtro —que es la
+ * pieza ancha— se lleva su propio renglón deslizable en vez de tres.
  */
 export default async function NearbyBar(): Promise<React.ReactElement> {
   const t = await getTranslations("distance");
@@ -40,7 +47,7 @@ export default async function NearbyBar(): Promise<React.ReactElement> {
       data-testid="nearby-bar"
       className="border-b border-separator bg-surface-elevation-1"
     >
-      <div className="container-width flex flex-wrap items-center gap-x-4 gap-y-1 py-2">
+      <div className="container-width flex flex-wrap items-center gap-x-4 gap-y-2 py-2 lg:flex-nowrap">
         {/* El rótulo en versalitas del 5.1: dice de qué va la barra sin gastar un renglón. Se
             esconde en pantallas estrechas, donde el propio control ya se explica solo. */}
         <span className="hidden shrink-0 text-label font-medium uppercase tracking-[0.14em] text-text-muted sm:inline">

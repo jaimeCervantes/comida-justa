@@ -88,7 +88,9 @@ describe("NearbyBar", () => {
 
     expect(screen.getByTestId("location-chip")).toBeInTheDocument();
     expect(screen.getByTestId("refresh-location")).toBeInTheDocument();
-    expect(screen.getByTestId("location-age")).toHaveTextContent(
+    /* Desde el slice 5 la antigüedad se anuncia en vez de dibujarse: la barra tenía que caber en
+       un renglón, y ese dato medía ~170 px en el chrome de todas las rutas. */
+    expect(screen.getByTestId("location-chip")).toHaveAccessibleName(
       /hace 2 horas/i,
     );
   });
@@ -96,7 +98,7 @@ describe("NearbyBar", () => {
   it("explica por qué no hay distancias cuando no lo sabe", async () => {
     await renderBar(contextWith(null));
 
-    expect(screen.getByTestId("location-notice")).toHaveTextContent(
+    expect(screen.getByTestId("location-notice")).toHaveAccessibleName(
       /no podemos decirte qué tan cerca/i,
     );
     expect(screen.getByTestId("share-location")).toBeInTheDocument();
@@ -121,7 +123,7 @@ describe("NearbyBar", () => {
     await renderBar(contextWith(null));
 
     expect(screen.getByTestId("seller-location-cta")).toHaveTextContent(
-      /abrir tu tienda/i,
+      /abre tu tienda/i,
     );
   });
 
