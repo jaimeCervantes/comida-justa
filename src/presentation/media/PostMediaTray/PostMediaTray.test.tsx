@@ -1,6 +1,6 @@
-import { fireEvent, screen, within } from "@testing-library/react";
+import { act, fireEvent, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { renderWithIntl } from "~/infra/test-utils/renderWithIntl";
 import PostMediaTray from "./PostMediaTray";
 
@@ -200,17 +200,50 @@ describe("PostMediaTray — la vista grande", () => {
 /*
  * El arrastre.
  *
- * Los tres eventos son los que dispara un navegador de verdad, en su orden. `dragover` esta aqui
- * porque sin su `preventDefault` el `drop` no llega nunca: es el requisito menos evidente del
- * arrastrar y soltar de HTML5, y una prueba que lo salte no comprobaria que la fila es un destino
- * valido.
+ * Se conduce con eventos de puntero porque es lo que la bandeja escucha desde que dejó el arrastrar
+ * y soltar de HTML5, que no existe al tacto. Los tres —`pointerdown`, `pointermove`, `pointerup`—
+ * son los que dispara un navegador de verdad, y los dos últimos van a `window`, que es donde el
+ * componente los oye: el dedo se sale de la miniatura en cuanto empieza a moverse.
+ *
+ * jsdom no mide nada: `getBoundingClientRect` devuelve ceros para todo, así que sin colocar las
+ * miniaturas a mano las tres ocuparían el mismo punto y «soltar sobre la segunda» no querría decir
+ * nada. `placeItems` les da una fila de 100 px por miniatura — el mismo papel que juega el
+ * navegador cuando esto corre de verdad.
+ *
+ * La prueba que sí usa un navegador es `src/e2e/multimedia/arrastreTactil.spec.ts`: esta afirma la
+ * aritmética del gesto, aquella que el gesto ocurre.
  */
 describe("PostMediaTray — arrastrar para ordenar", () => {
-  function drag(from: HTMLElement, to: HTMLElement): void {
-    fireEvent.dragStart(from);
-    fireEvent.dragOver(to);
-    fireEvent.drop(to);
+  const ITEM_SIZE = 100;
+
+  /** Una fila de miniaturas de 100 px, para que «dónde se soltó» tenga respuesta en jsdom. */
+  function placeItems(items: HTMLElement[]): void {
+    items.forEach((item, index) => {
+      item.getBoundingClientRect = () =>
+        ({
+          left: index * ITEM_SIZE,
+          right: index * ITEM_SIZE + ITEM_SIZE,
+          top: 0,
+          bottom: ITEM_SIZE,
+          x: index * ITEM_SIZE,
+          y: 0,
+          width: ITEM_SIZE,
+          height: ITEM_SIZE,
+          toJSON: () => "",
+        }) as DOMRect;
+
+      Object.defineProperty(item, "isConnected", {
+        value: true,
+        configurable: true,
+      });
+    });
   }
+
+  /** El centro de la miniatura número `index`, en coordenadas de la ventana. */
+  const centerOf = (index: number) => ({
+    clientX: index * ITEM_SIZE + ITEM_SIZE / 2,
+    clientY: ITEM_SIZE / 2,
+  });
 
   function renderTray(count: number, onMove = vi.fn()) {
     renderWithIntl(
@@ -221,13 +254,37 @@ describe("PostMediaTray — arrastrar para ordenar", () => {
       />,
     );
 
-    return { onMove, items: screen.getAllByTestId("post-media-tray-item") };
+    const items = screen.getAllByTestId("post-media-tray-item");
+
+    placeItems(items);
+
+    return { onMove, items };
+  }
+
+  /** Un arrastre de ratón: apretar, moverse más allá del umbral, soltar encima de otra. */
+  function dragWithMouse(items: HTMLElement[], from: number, to: number): void {
+    fireEvent.pointerDown(items[from], {
+      pointerId: 1,
+      pointerType: "mouse",
+      button: 0,
+      ...centerOf(from),
+    });
+    fireEvent.pointerMove(window, {
+      pointerId: 1,
+      pointerType: "mouse",
+      ...centerOf(to),
+    });
+    fireEvent.pointerUp(window, {
+      pointerId: 1,
+      pointerType: "mouse",
+      ...centerOf(to),
+    });
   }
 
   it("lleva el tercero a la portada de un solo gesto", () => {
     const { onMove, items } = renderTray(3);
 
-    drag(items[2], items[0]);
+    dragWithMouse(items, 2, 0);
 
     expect(onMove).toHaveBeenCalledWith(2, 0);
   });
@@ -235,7 +292,7 @@ describe("PostMediaTray — arrastrar para ordenar", () => {
   it("y de vuelta al final, que es el mismo camino al revés", () => {
     const { onMove, items } = renderTray(3);
 
-    drag(items[0], items[2]);
+    dragWithMouse(items, 0, 2);
 
     expect(onMove).toHaveBeenCalledWith(0, 2);
   });
@@ -243,17 +300,49 @@ describe("PostMediaTray — arrastrar para ordenar", () => {
   it("soltar un archivo sobre sí mismo no es un cambio", () => {
     const { onMove, items } = renderTray(3);
 
-    drag(items[1], items[1]);
+    dragWithMouse(items, 1, 1);
+
+    expect(onMove).not.toHaveBeenCalled();
+  });
+
+  /* Soltar fuera de la bandeja es arrepentirse, y arrepentirse no puede reordenar nada. */
+  it("soltar fuera de la bandeja no mueve nada", () => {
+    const { onMove, items } = renderTray(3);
+
+    fireEvent.pointerDown(items[2], {
+      pointerId: 1,
+      pointerType: "mouse",
+      button: 0,
+      ...centerOf(2),
+    });
+    fireEvent.pointerMove(window, {
+      pointerId: 1,
+      pointerType: "mouse",
+      clientX: 900,
+      clientY: 900,
+    });
+    fireEvent.pointerUp(window, {
+      pointerId: 1,
+      pointerType: "mouse",
+      clientX: 900,
+      clientY: 900,
+    });
 
     expect(onMove).not.toHaveBeenCalled();
   });
 
   it("sin quien escuche el movimiento, no hay nada que arrastrar", () => {
+    const onMove = vi.fn();
     renderWithIntl(<PostMediaTray items={images(3)} onRemove={vi.fn()} />);
 
-    expect(
-      screen.getAllByTestId("post-media-tray-item")[0],
-    ).not.toHaveAttribute("draggable");
+    const items = screen.getAllByTestId("post-media-tray-item");
+
+    placeItems(items);
+    dragWithMouse(items, 2, 0);
+
+    expect(onMove).not.toHaveBeenCalled();
+    // Y tampoco se pinta como agarrable, que sería prometer un gesto que no existe.
+    expect(items[0].className).not.toMatch(/cursor-grab/);
   });
 
   /* Las flechas no sobran ahora que se puede arrastrar: son el unico camino con teclado. */
@@ -283,5 +372,213 @@ describe("PostMediaTray — arrastrar para ordenar", () => {
     expect(
       screen.queryByTestId("post-media-tray-hint"),
     ).not.toBeInTheDocument();
+  });
+
+  /* La pista tiene que decir el gesto del teléfono, que es el que no se adivina: sin «mantén
+     pulsada», quien lo intente deslizará el dedo, verá bajar la página y concluirá que no se puede
+     — que es exactamente lo que pasaba cuando el arrastre era de HTML5. */
+  it("la pista nombra el gesto del teléfono, no solo el del ratón", () => {
+    renderTray(3);
+
+    expect(screen.getByTestId("post-media-tray-hint")).toHaveTextContent(
+      /mantén pulsada/i,
+    );
+  });
+});
+
+/*
+ * El dedo.
+ *
+ * Es la mitad que no existía: `draggable` + `dragstart` es una API de escritorio y ningún navegador
+ * móvil la emite para un dedo, así que la bandeja se ordenaba arrastrando sólo con ratón mientras
+ * la pista se lo prometía a todo el mundo.
+ *
+ * Las dos reglas de aquí son las que hacen que el gesto conviva con el formulario que lo rodea:
+ * sostener antes de arrastrar, y devolverle el gesto a la página si el dedo se mueve antes.
+ */
+describe("PostMediaTray — arrastrar con el dedo", () => {
+  const ITEM_SIZE = 100;
+
+  function renderTray(count: number) {
+    const onMove = vi.fn();
+
+    renderWithIntl(
+      <PostMediaTray
+        items={images(count)}
+        onRemove={vi.fn()}
+        onMove={onMove}
+      />,
+    );
+
+    const items = screen.getAllByTestId("post-media-tray-item");
+
+    items.forEach((item, index) => {
+      item.getBoundingClientRect = () =>
+        ({
+          left: index * ITEM_SIZE,
+          right: index * ITEM_SIZE + ITEM_SIZE,
+          top: 0,
+          bottom: ITEM_SIZE,
+          width: ITEM_SIZE,
+          height: ITEM_SIZE,
+          x: index * ITEM_SIZE,
+          y: 0,
+          toJSON: () => "",
+        }) as DOMRect;
+
+      Object.defineProperty(item, "isConnected", {
+        value: true,
+        configurable: true,
+      });
+    });
+
+    return { onMove, items };
+  }
+
+  const centerOf = (index: number) => ({
+    clientX: index * ITEM_SIZE + ITEM_SIZE / 2,
+    clientY: ITEM_SIZE / 2,
+  });
+
+  const touch = (index: number) => ({
+    pointerId: 7,
+    pointerType: "touch" as const,
+    button: 0,
+    ...centerOf(index),
+  });
+
+  beforeEach(() => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("sostener y arrastrar lleva el tercero a la portada", () => {
+    const { onMove, items } = renderTray(3);
+
+    fireEvent.pointerDown(items[2], touch(2));
+    act(() => {
+      vi.advanceTimersByTime(400);
+    });
+    fireEvent.pointerMove(window, {
+      pointerId: 7,
+      pointerType: "touch",
+      ...centerOf(0),
+    });
+    fireEvent.pointerUp(window, {
+      pointerId: 7,
+      pointerType: "touch",
+      ...centerOf(0),
+    });
+
+    expect(onMove).toHaveBeenCalledWith(2, 0);
+  });
+
+  /*
+   * La regla que hace que la bandeja no secuestre el formulario: quien desliza el dedo sobre una
+   * miniatura para bajar por la página está desplazando, no ordenando. Sin esta salida, cada
+   * intento de bajar levantaría una foto.
+   */
+  it("deslizar sin sostener le devuelve el gesto a la página", () => {
+    const { onMove, items } = renderTray(3);
+
+    fireEvent.pointerDown(items[2], touch(2));
+    // Se mueve antes de que venza el plazo: eso es desplazarse.
+    fireEvent.pointerMove(window, {
+      pointerId: 7,
+      pointerType: "touch",
+      ...centerOf(0),
+    });
+    act(() => {
+      vi.advanceTimersByTime(400);
+    });
+    fireEvent.pointerUp(window, {
+      pointerId: 7,
+      pointerType: "touch",
+      ...centerOf(0),
+    });
+
+    expect(onMove).not.toHaveBeenCalled();
+  });
+
+  /* Un toque corto sigue siendo un toque: abre la vista grande y no mueve nada. */
+  it("un toque sin sostener abre la vista grande, no reordena", async () => {
+    const { onMove, items } = renderTray(3);
+
+    fireEvent.pointerDown(items[1], touch(1));
+    fireEvent.pointerUp(window, {
+      pointerId: 7,
+      pointerType: "touch",
+      ...centerOf(1),
+    });
+    fireEvent.click(
+      screen.getByRole("button", { name: /ver el archivo 2 en grande/i }),
+    );
+
+    expect(onMove).not.toHaveBeenCalled();
+    expect(screen.getByRole("dialog")).toHaveAccessibleName(/archivo 2/i);
+  });
+
+  /*
+   * El clic que el navegador emite al final de un arrastre es indistinguible de un toque desde
+   * `onClick`. Sin descartarlo, soltar una miniatura encima de otra reordenaba **y** abría la vista
+   * grande encima, tapando el resultado que la persona acababa de conseguir.
+   */
+  it("soltar no abre además la vista grande", () => {
+    const { items } = renderTray(3);
+
+    fireEvent.pointerDown(items[2], touch(2));
+    act(() => {
+      vi.advanceTimersByTime(400);
+    });
+    fireEvent.pointerMove(window, {
+      pointerId: 7,
+      pointerType: "touch",
+      ...centerOf(0),
+    });
+    fireEvent.pointerUp(window, {
+      pointerId: 7,
+      pointerType: "touch",
+      ...centerOf(0),
+    });
+    fireEvent.click(
+      screen.getByRole("button", { name: /ver el archivo 3 en grande/i }),
+    );
+
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  /*
+   * Las flechas viven dentro de la misma fila que se arrastra. Sostener el dedo sobre una —que es
+   * lo que hace quien no está seguro de haberla tocado— tiene que seguir siendo tocar la flecha.
+   */
+  it("sostener el dedo sobre una flecha no levanta la miniatura", () => {
+    const { onMove } = renderTray(3);
+
+    const arrow = screen.getByRole("button", { name: /archivo 3 antes/i });
+
+    fireEvent.pointerDown(arrow, {
+      pointerId: 7,
+      pointerType: "touch",
+      button: 0,
+      ...centerOf(2),
+    });
+    act(() => {
+      vi.advanceTimersByTime(400);
+    });
+    fireEvent.pointerMove(window, {
+      pointerId: 7,
+      pointerType: "touch",
+      ...centerOf(0),
+    });
+    fireEvent.pointerUp(window, {
+      pointerId: 7,
+      pointerType: "touch",
+      ...centerOf(0),
+    });
+
+    expect(onMove).not.toHaveBeenCalled();
   });
 });

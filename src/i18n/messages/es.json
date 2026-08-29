@@ -1523,7 +1523,7 @@
     "media": "Sube tus mejores imágenes o videos",
     "mediaAddMore": "Agrega otra imagen u otro video",
     "mediaCounter": "{count} de {max}",
-    "mediaDragHint": "Arrastra las miniaturas para cambiar el orden, o usa las flechas.",
+    "mediaDragHint": "Mantén pulsada una miniatura y arrástrala para cambiar el orden, o usa las flechas.",
     "mediaLimitReached": "Llegaste al máximo.",
     "mediaMoveEarlier": "Mover el archivo {position} antes",
     "mediaMoveLater": "Mover el archivo {position} después",

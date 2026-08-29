@@ -11,6 +11,7 @@ import { cn } from "~/presentation/design_system/styling/merge-class-names";
 import MediaPreviewDialog from "~/presentation/media/MediaPreviewDialog/MediaPreviewDialog";
 import Thumbnail from "~/presentation/media/Thumbnail/Thumbnail";
 import VideoWithSkeleton from "~/presentation/media/VideoWithSkeleton/VideoWithSkeleton";
+import { usePointerReorder } from "./usePointerReorder";
 
 /** Un archivo ya subido, tal y como lo devuelve `useStorageUpload`. */
 export interface PostMediaTrayItem {
@@ -63,14 +64,14 @@ export default function PostMediaTray({
   const [previewIndex, setPreviewIndex] = useState<number | null>(null);
 
   /**
-   * De dónde salió el arrastre.
+   * El arrastre, con el dedo y con el ratón.
    *
-   * En una `ref` y no en el estado porque **no se pinta con ella**: cambia en cada `dragover` y un
-   * `setState` por evento repintaría la lista entera decenas de veces mientras se arrastra. Lo que sí
-   * se pinta —cuál se está arrastrando— va aparte y cambia una vez al empezar y otra al soltar.
+   * Vive en su propio módulo porque es un mecanismo entero —umbrales, temporizador, oyentes en
+   * `window`, el bloqueo del desplazamiento— y aquí sólo interesa dónde se engancha. Sin `onMove`
+   * no hace nada: la bandeja del logo de una tienda, con un archivo y sólo uno, no tiene qué
+   * ordenar.
    */
-  const dragFrom = useRef<number | null>(null);
-  const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
+  const reorder = usePointerReorder(onMove);
 
   /** Las miniaturas, para devolverles el foco al cerrar la vista grande. */
   const previewButtons = useRef<Array<HTMLButtonElement | null>>([]);
@@ -85,77 +86,32 @@ export default function PostMediaTray({
     if (opened !== null) previewButtons.current[opened]?.focus();
   }, [previewIndex]);
 
-  const handleDrop = useCallback(
-    (to: number) => (event: React.DragEvent<HTMLLIElement>) => {
-      event.preventDefault();
-
-      /* La `ref` es la fuente buena; `dataTransfer` es el respaldo para un arrastre que venga de
-         fuera de este componente y para los navegadores que limpian la ref antes del `drop`. */
-      const carried = Number(event.dataTransfer?.getData("text/plain"));
-      const from =
-        dragFrom.current ?? (Number.isInteger(carried) ? carried : null);
-
-      dragFrom.current = null;
-      setDraggingIndex(null);
-
-      // Soltar un archivo sobre sí mismo no es un cambio, y llamar a `onMove` lo haría parecer uno.
-      if (from === null || from === to) return;
-
-      onMove?.(from, to);
-    },
-    [onMove],
-  );
-
   if (items.length === 0) return null;
 
   const preview = previewIndex === null ? undefined : items[previewIndex];
 
   return (
     <section className={className} data-testid="post-media-tray">
-      <ol className="flex flex-wrap gap-3">
+      <ol ref={reorder.registerList} className="flex flex-wrap gap-3">
         {items.map((item, index) => (
           <li
             // La URL de Cloud Storage ya es única por archivo —lleva marca de tiempo y un
             // discriminante—, así que identifica la fila mejor que el índice, que se recicla al
             // quitar uno de en medio y haría que React reutilizara el nodo equivocado.
             key={item.url}
+            ref={reorder.registerItem(index)}
             data-testid="post-media-tray-item"
-            draggable={onMove ? true : undefined}
-            onDragStart={
-              onMove
-                ? (event) => {
-                    dragFrom.current = index;
-                    setDraggingIndex(index);
-                    event.dataTransfer?.setData("text/plain", String(index));
-                    if (event.dataTransfer)
-                      event.dataTransfer.effectAllowed = "move";
-                  }
-                : undefined
-            }
-            // Sin `preventDefault` el navegador no considera esta fila un destino válido y el
-            // `drop` no llega nunca: es el requisito menos evidente del arrastrar y soltar de HTML5.
-            onDragOver={
-              onMove
-                ? (event) => {
-                    event.preventDefault();
-                    if (event.dataTransfer)
-                      event.dataTransfer.dropEffect = "move";
-                  }
-                : undefined
-            }
-            onDrop={onMove ? handleDrop(index) : undefined}
-            onDragEnd={
-              onMove
-                ? () => {
-                    dragFrom.current = null;
-                    setDraggingIndex(null);
-                  }
-                : undefined
-            }
+            onPointerDown={reorder.startDrag(index)}
             className={cn(
               "relative",
-              onMove && "cursor-grab active:cursor-grabbing",
-              draggingIndex === index && "opacity-40",
+              onMove && "cursor-grab touch-manipulation select-none",
+              reorder.draggingIndex === index && "cursor-grabbing opacity-40",
+              /* Dónde va a caer. Sin esto, arrastrar a ciegas obliga a soltar para averiguar si se
+                 acertó, y a deshacerlo con las flechas cuando no. */
+              reorder.draggingIndex !== null &&
+                reorder.overIndex === index &&
+                reorder.draggingIndex !== index &&
+                "rounded-chip outline-2 outline-offset-2 outline-pw-green",
             )}
           >
             <button
@@ -163,7 +119,12 @@ export default function PostMediaTray({
               ref={(node) => {
                 previewButtons.current[index] = node;
               }}
-              onClick={() => setPreviewIndex(index)}
+              onClick={() => {
+                // El clic que cierra un arrastre no es un toque, aunque el navegador emita los dos.
+                if (reorder.shouldIgnoreClick()) return;
+
+                setPreviewIndex(index);
+              }}
               aria-label={t("mediaPreview", { position: index + 1 })}
               className="block rounded-chip focus-visible:outline-2 focus-visible:outline-offset-2"
             >
@@ -179,6 +140,7 @@ export default function PostMediaTray({
 
             <button
               type="button"
+              data-tray-control
               onClick={() => onRemove(index)}
               aria-label={t("mediaRemove", { position: index + 1 })}
               className="absolute -right-2 -top-2 rounded-full bg-brand-black p-1 text-pw-white hover:bg-brand-clay-700 focus-visible:outline-2 focus-visible:outline-offset-2"
@@ -191,8 +153,8 @@ export default function PostMediaTray({
                 archivo, y el foco del teclado tendría que pasar por él para nada.
 
                 **No sobran ahora que se puede arrastrar**: son el único camino con teclado y con
-                lector de pantalla, y cambiar una mejora de ratón por una regresión de accesibilidad
-                no es un cambio que valga la pena. */}
+                lector de pantalla, y cambiar una mejora de puntero por una regresión de
+                accesibilidad no es un cambio que valga la pena. */}
             {onMove ? (
               <span className="absolute inset-x-0 bottom-1 flex justify-between px-1">
                 {index > 0 ? (
@@ -222,8 +184,9 @@ export default function PostMediaTray({
         ))}
       </ol>
 
-      {/* Arrastrar no se ve: no hay nada en la pantalla que diga que se puede, y quien no lo intente
-          nunca lo descubrirá. Solo con más de uno, que es cuando hay algo que ordenar. */}
+      {/* Arrastrar no se ve, y sostener antes de arrastrar se ve menos: la pista es lo único que
+          hace descubrible el gesto del teléfono. Solo con más de uno, que es cuando hay algo que
+          ordenar. */}
       {onMove && items.length > 1 ? (
         <p
           data-testid="post-media-tray-hint"
@@ -281,6 +244,10 @@ function MoveButton({
   return (
     <button
       type="button"
+      /* Marca a los controles de la fila para que sostener el dedo sobre ellos no levante la
+         miniatura: dentro de un `<li>` que se arrastra, una flecha sin marcar es indistinguible
+         del sitio por donde se agarra. */
+      data-tray-control
       onClick={onClick}
       aria-label={label}
       className="rounded-full bg-black/70 p-0.5 text-white hover:bg-black focus-visible:outline-2 focus-visible:outline-offset-2"

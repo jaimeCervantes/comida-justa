@@ -315,3 +315,90 @@ Feature: Una publicacion lleva varias imagenes y videos
   Scenario: Las flechas siguen estando para quien no puede arrastrar
     Given una bandeja con "A, B, C"
     Then el archivo 2 sigue ofreciendo moverse antes y despues
+
+  # ---------------------------------------------------------------------------
+  # Slice 5 - Arrastrar tambien con el dedo  (actual)
+  #
+  # El slice 4 dio por buena una funcion que solo servia con raton. `draggable` + `dragstart` es una
+  # API de escritorio: ningun navegador movil la emite para un dedo. Se midio en Chromium de verdad
+  # —con raton reordena en publicar y en editar; con el dedo, por CDP y en un viewport de telefono,
+  # no ocurria nada— mientras la pista de la pantalla se lo prometia a todo el mundo.
+  #
+  # Y se midio tarde por como estaba probado: el `@component` del slice 4 disparaba `dragStart` a
+  # mano en jsdom, donde SIEMPRE funciona, y su propio comentario descartaba llevarlo al navegador.
+  # Una prueba que no puede fallar no es una prueba. Los eventos de puntero, ademas de servir para
+  # las dos entradas, los conduce Playwright — asi que este slice si deja una e2e.
+  # ---------------------------------------------------------------------------
+
+  @slice-5
+  # La unica del arrastre que va al navegador, y va con el DEDO: es la entrada que estaba rota y la
+  # que ninguna prueba de jsdom puede afirmar. Ademas comprueba `post_media`, porque lo que importa
+  # del orden es la fila que leen la tarjeta, el carrito y el bot.
+  Scenario: Desde el telefono, sostener una foto y arrastrarla hasta la portada la deja de portada
+    Given la duena de "Ensalada griega con queso feta" con 3 archivos abre su edicion en un telefono
+    When sostiene el archivo de la posicion 3 y lo arrastra hasta la primera
+    Then la bandeja queda "seed-2.jpg, seed-0.jpg, seed-1.jpg"
+    When guarda
+    Then la publicacion queda con:
+      | sort_order | archivo    |
+      | 0          | seed-2.jpg |
+      | 1          | seed-0.jpg |
+      | 2          | seed-1.jpg |
+
+  @slice-5 @component
+  Scenario Outline: Cada entrada empieza el arrastre cuando le toca
+    Given una bandeja con "A, B, C"
+    When se aprieta el archivo 3 con "<entrada>" y <gesto>
+    Then la bandeja queda "<resultado>"
+
+    Examples: raton — apretar y mover ya es arrastrar
+      | entrada | gesto                          | resultado | reason                                    |
+      | raton   | se mueve hasta el primero      | C, A, B   | no hay ambiguedad: no hay nada que desplazar |
+
+    Examples: dedo — primero hay que sostener
+      | entrada | gesto                                    | resultado | reason                                        |
+      | dedo    | se sostiene y luego se mueve al primero  | C, A, B   | el gesto de reordenar de cualquier telefono   |
+      | dedo    | se desliza sin sostener                  | A, B, C   | eso es bajar por el formulario, no ordenar    |
+
+  @slice-5 @component
+  Scenario Outline: Soltar donde no hay nada no reordena
+    Given una bandeja con "A, B, C"
+    When se arrastra el archivo de la posicion <desde> y se suelta <donde>
+    Then la bandeja queda "A, B, C"
+
+    Examples:
+      | desde | donde                | reason                                          |
+      | 2     | sobre si mismo       | soltar donde estaba no es un cambio             |
+      | 3     | fuera de la bandeja  | arrepentirse no puede reordenar nada            |
+
+  @slice-5 @component
+  Scenario: Un toque corto sigue abriendo la vista grande
+    Given una bandeja con 3 archivos en un telefono
+    When se toca la miniatura del archivo 2 sin sostenerla
+    Then se abre su vista grande
+    And no se ha movido ningun archivo de sitio
+
+  @slice-5 @component
+  # El navegador emite `click` al final de un arrastre igual que al final de un toque. Sin
+  # descartarlo, soltar una miniatura encima de otra reordenaba Y abria la vista grande encima,
+  # tapando el resultado que la persona acababa de conseguir.
+  Scenario: Soltar una miniatura no abre ademas su vista grande
+    Given una bandeja con "A, B, C"
+    When se arrastra el archivo 3 hasta el primero y se suelta
+    Then la bandeja queda "C, A, B"
+    And no se abre ninguna vista grande
+
+  @slice-5 @component
+  # Las flechas viven DENTRO de la fila que se arrastra. Sostener el dedo sobre una —lo que hace
+  # quien no esta seguro de haberla tocado— tiene que seguir siendo tocar la flecha.
+  Scenario: Sostener el dedo sobre una flecha no levanta la miniatura
+    Given una bandeja con "A, B, C" en un telefono
+    When se sostiene el dedo sobre la flecha "antes" del archivo 3 y se arrastra
+    Then no se levanta ninguna miniatura
+    And la bandeja queda "A, B, C"
+
+  @slice-5 @component
+  Scenario: La pista nombra el gesto que no se adivina
+    Given una bandeja con mas de un archivo
+    Then dice "Manten pulsada una miniatura y arrastrala para cambiar el orden, o usa las flechas."
+    And las flechas siguen siendo el camino con teclado y con lector de pantalla
