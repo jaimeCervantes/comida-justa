@@ -181,7 +181,8 @@ export default function Nav({
           />
           <NavigationMenu.Content className="absolute top-0 left-0 w-auto">
             <div className="p-[22px] w-[300px] md:w-[600px]">
-              {/* Lo que se vende va primero: es a lo que viene la mayoría. */}
+              {/* Las puertas principales van antes de las listas largas: primero lo que alguien
+                  busca por intención, luego categorías y secciones. */}
               <ul className="m-0 grid list-none gap-x-[10px] grid-cols-1 md:grid-cols-2">
                 <ListItem href="/" title={t("publications")}>
                   {t("publicationsDescription")}
@@ -191,6 +192,9 @@ export default function Nav({
                 </ListItem>
                 <ListItem href="/eventos" title={t("events")}>
                   {t("eventsDescription")}
+                </ListItem>
+                <ListItem href="/nosotros" title={t("about")}>
+                  {t("aboutDescription", { brand: PUBLIC_BRAND_NAME })}
                 </ListItem>
               </ul>
 
@@ -241,17 +245,6 @@ export default function Nav({
                   </ul>
                 </>
               ) : null}
-
-              {/* «Nosotros» bajó aquí para que su plaza de arriba fuera del catálogo.
-                  Va al final y separado: no es algo que la comunidad publique —que es de lo que
-                  trata el resto de este menú—, es quién está detrás. Sigue además en el pie, bajo
-                  «Explora». */}
-              <hr className="my-3 border-separator" />
-              <ul className="m-0 grid list-none gap-x-[10px] grid-cols-1 md:grid-cols-2">
-                <ListItem href="/nosotros" title={t("about")}>
-                  {t("aboutDescription", { brand: PUBLIC_BRAND_NAME })}
-                </ListItem>
-              </ul>
             </div>
           </NavigationMenu.Content>
         </NavigationMenu.Item>
@@ -304,8 +297,12 @@ export default function Nav({
           data-testid="desktop-submenu"
           /* La sombra era un `hsla(206, 22%, 7%, …)` incrustado: azul, de la plantilla de Radix, y
              el único sitio del sitio que no pasaba por la escala de elevación. `shadow-lg` es la
-             misma altura con el verde del papel. */
-          className="data-[state=open]:animate-scaleIn data-[state=closed]:animate-scaleOut relative h-(--radix-navigation-menu-viewport-height) w-(--radix-navigation-menu-viewport-width) origin-[top_center] overflow-hidden rounded-panel bg-surface-elevation-1 shadow-lg transition-[width,height] duration-300 border border-separator"
+             misma altura con el verde del papel.
+
+             Comunidad ya desborda pantallas bajas, y seguirá creciendo con categorías. El scroll
+             vive en el viewport completo para que «Nosotros», al final del panel, nunca quede
+             fuera de alcance. */
+          className="data-[state=open]:animate-scaleIn data-[state=closed]:animate-scaleOut submenu-scroll-y relative max-h-[calc(100vh-5.5rem)] h-(--radix-navigation-menu-viewport-height) w-(--radix-navigation-menu-viewport-width) origin-[top_center] overflow-x-hidden overflow-y-auto overscroll-contain rounded-panel bg-surface-elevation-1 shadow-lg transition-[width,height] duration-300 border border-separator"
         />
       </div>
     </NavigationMenu.Root>

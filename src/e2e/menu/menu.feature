@@ -20,10 +20,10 @@ Feature: El menú móvil llega hasta el final
     Then puede tocar «Negocios locales» y llega a esa sección
 
   @menu
-  Scenario: El menú entero se puede recorrer aunque no quepa
+  Scenario: Comunidad se puede recorrer hasta Nosotros aunque no quepa
     Given un visitante con la pantalla de un teléfono
-    When abre el menú
-    Then puede desplazarse hasta «Nosotros», la última entrada
+    When abre el menú y despliega «Comunidad»
+    Then puede desplazarse hasta «Nosotros», la última entrada de Comunidad
 
   @menu
   Scenario: Las categorías viven en su propio desplegable
