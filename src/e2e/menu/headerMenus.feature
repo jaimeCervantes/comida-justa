@@ -33,8 +33,8 @@ Feature: Los desplegables de la cabecera se cierran al tocar fuera
   @slice-1
   Scenario: El toque que cierra el menú hace además lo suyo
     Given un visitante en el inicio con el selector de idioma abierto
-    When toca el enlace de «Nosotros»
-    Then el selector se cierra y la página de «Nosotros» se abre
+    When toca el enlace de «Catálogo»
+    Then el selector se cierra y la página de «Catálogo» se abre
 
   @slice-1
   Scenario: Escape también los cierra

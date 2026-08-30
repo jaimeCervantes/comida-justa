@@ -43,10 +43,10 @@ test.describe("Cuando un visitante abre el selector de idioma", () => {
     await header.goto();
     await header.openLanguageMenu();
 
-    await header.clickLinkBehindTheMenu(es.nav.about);
+    await header.clickLinkBehindTheMenu(es.nav.bottomProducts);
 
     await expect(header.languageMenu()).toHaveCount(0);
-    await expect(page).toHaveURL(/\/nosotros\/?$/);
+    await expect(page).toHaveURL(/\/productos\/?$/);
   });
 
   test("Entonces Escape también lo cierra", async ({ page }) => {

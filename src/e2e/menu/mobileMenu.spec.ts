@@ -91,9 +91,17 @@ test.describe("Cuando alguien abre el menú desde su teléfono", () => {
   test("Entonces puede recorrer el menú hasta la última entrada", async ({
     page,
   }) => {
-    await mobileMenu(page)
-      .getByRole("link", { name: NOSOTROS, exact: true })
-      .click();
+    await mobileMenu(page).getByRole("button", { name: COMUNIDAD }).click();
+
+    const nosotros = mobileMenu(page).getByRole("link", {
+      name: NOSOTROS,
+      exact: true,
+    });
+
+    await expect(nosotros).toBeVisible();
+    await expectReachableByScrolling(page, nosotros);
+
+    await nosotros.click();
 
     await expect(page).toHaveURL(/\/nosotros$/);
   });
