@@ -2,22 +2,75 @@
 
 import { useTranslations } from "next-intl";
 import { useState } from "react";
+import type { ModerationReason } from "~/domain/entities/post/moderation";
 import type { Comment, PostUser } from "~/infra/types/Posts";
 import { useIsClient } from "~/infra/UI/hooks/useIsClient";
+import { Alert } from "~/presentation/design_system/feedback/Alert";
 import { Heading } from "~/presentation/design_system/typography/Heading";
 import Avatar from "~/presentation/user/Avatar/Avatar";
 import AddCommentForm from "../addComments/AddCommentForm";
 import { useRealTimeComments } from "../addComments/useRealTimeComments";
+import ReportCommentForm from "../ui/ReportCommentForm";
+import type { ReportLabels } from "../ui/ReportPostForm";
 import { createOnLoadMoreComments } from "./createOnLoadMoreComments";
+
+/** Las etiquetas del aviso que solo ve el autor de un comentario no publicado, ya traducidas. */
+export interface CommentModerationLabels {
+  inReviewLabel: string;
+  rejectedLabel: string;
+  inReviewBody: string;
+  rejectedBody: string;
+  reasons: Partial<Record<ModerationReason, string>>;
+}
+
+/**
+ * El aviso que solo ve el autor (y el admin) de un comentario que no está publicado. Mismo diseño
+ * que `ModerationNotice`, pero recibe sus textos ya traducidos por props: `CommentList` es un
+ * componente de cliente y no puede leer el catálogo de i18n del servidor.
+ */
+function CommentModerationNotice({
+  status,
+  reason,
+  labels,
+}: {
+  status: string;
+  reason: string | null | undefined;
+  labels: CommentModerationLabels;
+}) {
+  if (status === "published") return null;
+
+  const rejected = status === "rejected";
+  const reasonLabel = reason
+    ? labels.reasons[reason as ModerationReason]
+    : null;
+
+  return (
+    <Alert
+      tone={rejected ? "error" : "warning"}
+      label={rejected ? labels.rejectedLabel : labels.inReviewLabel}
+      className="mt-2"
+      data-testid="comment-moderation-notice"
+      data-status={status}
+    >
+      {rejected ? labels.rejectedBody : labels.inReviewBody}
+      {reasonLabel ? ` ${reasonLabel}` : null}
+    </Alert>
+  );
+}
 
 export default function CommentList({
   postId,
   user,
+  viewerIsAdmin = false,
   initialComments,
   initialTotal,
+  moderationLabels,
+  reportLabels,
 }: {
   postId: string;
   user: PostUser | undefined;
+  /** Para que el admin también vea el aviso de un comentario ajeno que está oculto. */
+  viewerIsAdmin?: boolean;
   initialComments: Comment[];
   /**
    * Cuántos comentarios tiene la publicación en total, no cuántos vinieron en la primera página.
@@ -27,6 +80,8 @@ export default function CommentList({
    * pulsarlo y leer el aviso.
    */
   initialTotal: number;
+  moderationLabels: CommentModerationLabels;
+  reportLabels: ReportLabels;
 }) {
   const t = useTranslations("comments");
   const [currentPage, setCurrentPage] = useState(1);
@@ -88,29 +143,56 @@ export default function CommentList({
 
       {comments?.length > 0 ? (
         <ul aria-label={t("listLabel")}>
-          {comments.map((comment) => (
-            <li key={comment.id}>
-              <article className="comment p-4 border-b border-b-separator">
-                <header className="flex gap-4 mb-3">
-                  <Avatar user={comment?.user} />
-                  <p className="flex flex-col text-sm" rel="author">
-                    {comment.user.name}
-                    <time
-                      dateTime={new Date(comment.createdAt).toISOString()}
-                      className="text-sm text-text-support"
-                    >
-                      {isClient
-                        ? new Date(comment.createdAt).toLocaleString()
-                        : ""}
-                    </time>
-                  </p>
-                </header>
-                <section className="whitespace-pre-wrap">
-                  {comment.content}
-                </section>
-              </article>
-            </li>
-          ))}
+          {comments.map((comment) => {
+            /* Un comentario ajeno sin publicar nunca llega hasta aquí —lo filtra la consulta—, así
+               que "no publicado" solo se pinta para quien escribió o para el admin. */
+            const status = comment.moderationStatus ?? "published";
+            const isOwn = Boolean(user?.id) && user?.id === comment.user.id;
+            const canSeeNotice = isOwn || viewerIsAdmin;
+            /* Denunciar exige sesión, no ser su autor, y que esté publicado: lo mismo que ya
+               comprueba `reportComment` del lado del servidor. */
+            const canReport =
+              Boolean(user?.id) && !isOwn && status === "published";
+
+            return (
+              <li key={comment.id}>
+                <article className="comment p-4 border-b border-b-separator">
+                  <header className="flex gap-4 mb-3">
+                    <Avatar user={comment?.user} />
+                    <p className="flex flex-col text-sm" rel="author">
+                      {comment.user.name}
+                      <time
+                        dateTime={new Date(comment.createdAt).toISOString()}
+                        className="text-sm text-text-support"
+                      >
+                        {isClient
+                          ? new Date(comment.createdAt).toLocaleString()
+                          : ""}
+                      </time>
+                    </p>
+                  </header>
+                  <section className="whitespace-pre-wrap">
+                    {comment.content}
+                  </section>
+
+                  {canSeeNotice ? (
+                    <CommentModerationNotice
+                      status={status}
+                      reason={comment.moderationReason}
+                      labels={moderationLabels}
+                    />
+                  ) : null}
+
+                  {canReport ? (
+                    <ReportCommentForm
+                      commentId={String(comment.id)}
+                      labels={reportLabels}
+                    />
+                  ) : null}
+                </article>
+              </li>
+            );
+          })}
         </ul>
       ) : (
         <p>{t("empty")}</p>

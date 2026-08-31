@@ -5,9 +5,10 @@ import es from "~/i18n/messages/es.json";
 import { renderWithIntl } from "~/infra/test-utils/renderWithIntl";
 import type { Comment } from "~/infra/types/Posts";
 
-const { getMoreComments, addCommentToPost } = vi.hoisted(() => ({
+const { getMoreComments, addCommentToPost, reportComment } = vi.hoisted(() => ({
   getMoreComments: vi.fn(),
   addCommentToPost: vi.fn(),
+  reportComment: vi.fn(async () => ({})),
 }));
 
 /* Las acciones son de servidor: en jsdom no hay servidor al que llamar, y lo que estos casos
@@ -16,6 +17,11 @@ vi.mock("../data-access/actions", () => ({
   getMoreComments,
   addCommentToPost,
 }));
+
+/* `ReportCommentForm`, montado dentro de la lista, importa esta acción — que a su vez importa
+   `~/infra/auth` (next-auth) — y next-auth no resuelve bajo jsdom. Se mockea por lo mismo que las
+   de arriba: aquí no se prueba el viaje de red, solo qué se pinta. */
+vi.mock("../commentReportActions", () => ({ reportComment }));
 
 import CommentList from "./CommentList";
 
@@ -36,6 +42,23 @@ const VECINA = {
   email: "v@e.test",
 } as unknown as Parameters<typeof CommentList>[0]["user"];
 
+const MODERATION_LABELS: Parameters<typeof CommentList>[0]["moderationLabels"] =
+  {
+    inReviewLabel: es.moderation.commentInReviewLabel,
+    rejectedLabel: es.moderation.commentRejectedLabel,
+    inReviewBody: es.moderation.commentInReviewBody,
+    rejectedBody: es.moderation.commentRejectedBody,
+    reasons: {},
+  };
+
+const REPORT_LABELS: Parameters<typeof CommentList>[0]["reportLabels"] = {
+  cta: es.moderation.reportCta,
+  heading: es.moderation.reportCommentHeading,
+  placeholder: es.moderation.reportPlaceholder,
+  done: es.moderation.reportDone,
+  reasons: [],
+};
+
 function render(
   comments: Comment[],
   total: number,
@@ -47,6 +70,8 @@ function render(
       user={user}
       initialComments={comments}
       initialTotal={total}
+      moderationLabels={MODERATION_LABELS}
+      reportLabels={REPORT_LABELS}
     />,
   );
 }

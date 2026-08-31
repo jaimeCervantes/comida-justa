@@ -34,7 +34,9 @@ import { postBreadcrumbs } from "../breadcrumbs";
 import { postCategoryLabel } from "./categoryLabel";
 import { getPostDetails, getRelatedPosts } from "./data";
 import { buildPostStructuredData } from "./jsonLd";
-import CommentList from "./loadComments/CommentList";
+import CommentList, {
+  type CommentModerationLabels,
+} from "./loadComments/CommentList";
 import { buildPostMetadata } from "./metadata";
 import ModerationControls from "./ui/ModerationControls";
 import ModerationNotice from "./ui/ModerationNotice";
@@ -57,6 +59,15 @@ const REPORT_REASON_KEYS = {
   spam: "reportSpam",
   offensive: "reportOffensive",
   restricted_product: "reportRestrictedProduct",
+} as const;
+
+/** La misma clave que usa `ModerationNotice`: el nombre del motivo que lee quien modera. */
+const REASON_KEYS = {
+  off_topic: "reasonOffTopic",
+  health_claim: "reasonHealthClaim",
+  spam: "reasonSpam",
+  offensive: "reasonOffensive",
+  restricted_product: "reasonRestrictedProduct",
 } as const;
 
 export async function generateMetadata({
@@ -140,22 +151,30 @@ export default async function Slug({
   const locale = resolveLocale(rawLocale);
   setRequestLocale(locale);
   const viewerId = await readViewerId();
+  const viewerIsAdmin = isAdmin(session?.user?.email);
   const tCommon = await getTranslations("common");
+
+  /* `undefined` cae al `ANONYMOUS_VIEWER` compartido de `getPostDetails`, para que el `cache()` de
+     ahí dedupe con la llamada de `generateMetadata` en la visita anónima —la mayoría del
+     tráfico—. Con sesión no hay forma de compartir esa identidad, así que paga una segunda
+     consulta: es el precio de que sus comentarios ocultos no viajen en la misma respuesta que ve
+     cualquiera. */
+  const viewer =
+    viewerId || viewerIsAdmin
+      ? { id: viewerId ?? undefined, isAdmin: viewerIsAdmin }
+      : undefined;
 
   // Se resuelve aquí, fuera de cualquier `<Suspense>`: si la publicación no existe, la respuesta
   // debe salir con status 404 y no con un 200 que solo "parece" un 404. Dentro de un boundary,
   // el shell ya se envió y el status queda congelado en 200.
-  const post = await getPostDetails(slug);
+  const post = await getPostDetails(slug, viewer);
 
   if (!post) {
     notFound();
   }
 
   /* Lo que un admin bajó no existe para el resto del mundo, pero sigue existiendo para su autor:
-     es la única forma que tiene de enterarse, porque el sitio no manda correos. Va aquí y no en la
-     consulta a propósito — el repositorio devuelve el estado y quien decide es esta página, que es
-     la que sabe quién está mirando. */
-  const viewerIsAdmin = isAdmin(session?.user?.email);
+     es la única forma que tiene de enterarse, porque el sitio no manda correos. */
   const moderation = {
     userId: String((post.user as PostUser | undefined)?.id ?? ""),
     moderationStatus: post.moderationStatus as string | undefined,
@@ -180,6 +199,28 @@ export default async function Slug({
       value: reason,
       label: tModeration(REPORT_REASON_KEYS[reason]),
     })),
+  };
+
+  /* Mismo botón que `reportLabels`, con la pregunta redactada para un comentario en vez de una
+     publicación ("lo" y no "la") y su propia clave de encabezado. */
+  const commentReportLabels: ReportLabels = {
+    ...reportLabels,
+    heading: tModeration("reportCommentHeading"),
+  };
+
+  /* El aviso que solo ve el autor (y el admin) de un comentario que no está publicado, calcado de
+     `ModerationNotice` pero en la concordancia de un comentario ("lo" y no "la"). */
+  const commentModerationLabels: CommentModerationLabels = {
+    inReviewLabel: tModeration("commentInReviewLabel"),
+    rejectedLabel: tModeration("commentRejectedLabel"),
+    inReviewBody: tModeration("commentInReviewBody"),
+    rejectedBody: tModeration("commentRejectedBody"),
+    reasons: Object.fromEntries(
+      MODERATION_REASONS.map((reason) => [
+        reason,
+        tModeration(REASON_KEYS[reason]),
+      ]),
+    ),
   };
 
   // Lo que declara el producto es la misma etiqueta que ve quien lo lee.
@@ -344,8 +385,11 @@ export default async function Slug({
           <CommentList
             postId={post.id}
             user={session?.user as PostUser}
+            viewerIsAdmin={viewerIsAdmin}
             initialComments={post.comments}
             initialTotal={post.commentsTotal}
+            moderationLabels={commentModerationLabels}
+            reportLabels={commentReportLabels}
           />
         </Suspense>
 
