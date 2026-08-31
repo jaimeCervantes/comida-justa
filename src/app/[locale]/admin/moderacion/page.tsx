@@ -6,7 +6,11 @@ import { resolveLocale } from "~/i18n/routing";
 import { auth } from "~/infra/auth";
 import { isAdmin } from "~/infra/auth/isAdmin";
 import { PUBLIC_BRAND_NAME } from "~/infra/constants";
+import { createModerateCommentUseCase } from "~/infra/dataAccess/moderateComment/factory";
 import { createModeratePostUseCase } from "~/infra/dataAccess/moderatePost/factory";
+import CommentModerationQueue, {
+  type CommentQueueLabels,
+} from "./ui/CommentModerationQueue";
 import ModerationQueue, { type QueueLabels } from "./ui/ModerationQueue";
 
 /** Las claves de motivo viven en el namespace `moderation`, junto al aviso que ve el autor. */
@@ -46,6 +50,7 @@ export default async function ModeracionPage({
   }
 
   const posts = await createModeratePostUseCase().pendingReview();
+  const comments = await createModerateCommentUseCase().pendingReview();
 
   const labels: QueueLabels = {
     empty: t("moderationEmpty"),
@@ -69,6 +74,25 @@ export default async function ModeracionPage({
     ),
   };
 
+  const commentLabels: CommentQueueLabels = {
+    empty: t("commentsModerationEmpty"),
+    columnComment: t("commentsModerationColumnComment"),
+    columnAuthor: t("commentsModerationColumnAuthor"),
+    columnPost: t("commentsModerationColumnPost"),
+    columnStatus: t("commentsModerationColumnStatus"),
+    columnReason: t("commentsModerationColumnReason"),
+    columnDate: t("commentsModerationColumnDate"),
+    approve: t("commentsModerationApprove"),
+    reject: t("commentsModerationReject"),
+    reasonPlaceholder: t("commentsModerationReasonPlaceholder"),
+    statusInReview: t("commentsModerationStatusInReview"),
+    statusRejected: t("commentsModerationStatusRejected"),
+    statusPublished: t("commentsModerationStatusPublished"),
+    viewPost: t("commentsViewPost"),
+    reportCount: (count: number) => tModeration("reportCount", { count }),
+    reasons: labels.reasons,
+  };
+
   return (
     <main>
       <h1 className="text-xl font-bold mb-2">{t("moderationHeading")}</h1>
@@ -76,6 +100,18 @@ export default async function ModeracionPage({
       <p className="mb-6 text-text-support">{t("moderationIntro")}</p>
 
       <ModerationQueue posts={posts} labels={labels} />
+
+      <h2 className="text-lg font-bold mt-10 mb-2">
+        {t("commentsModerationHeading")}
+      </h2>
+
+      <p className="mb-6 text-text-support">{t("commentsModerationIntro")}</p>
+
+      <CommentModerationQueue
+        comments={comments}
+        labels={commentLabels}
+        locale={locale}
+      />
     </main>
   );
 }
