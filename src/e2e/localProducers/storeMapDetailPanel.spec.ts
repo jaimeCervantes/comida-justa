@@ -1,4 +1,6 @@
 import { expect, type Locator, type Page, test } from "@playwright/test";
+import { sql } from "drizzle-orm";
+import { db } from "~/infra/dataAccess/db/connection";
 import { VISITOR_LOCATION_COOKIE } from "~/infra/location/locationCookie";
 import { deleteTestSellerByHandle } from "../testUtils/deleteTestSeller";
 import { seedPost } from "../testUtils/seedPost";
@@ -8,7 +10,14 @@ import { testSlug, testStore } from "../testUtils/testSlug";
 /** Escenario en `src/e2e/localProducers/storeMapDetailPanel.feature`. */
 const TIENDA = testStore("Tienda con ficha de mapa");
 const VISITOR = coordinatesAtKm(1.65);
-const slug = testSlug("pan-para-ficha-de-mapa");
+const LOGO_URL = "/logo.webp";
+const PUBLICACIONES = Array.from({ length: 5 }, (_, index) => ({
+  title: `E2E Publicacion ${index + 1} para ficha de mapa`,
+  slug: testSlug(`publicacion-${index + 1}-para-ficha-de-mapa`),
+  createdAt: new Date(Date.UTC(2026, 7, 20 + index, 12, 0, 0)),
+}));
+const PUBLICACIONES_RECIENTES = [...PUBLICACIONES].reverse().slice(0, 4);
+const PUBLICACION_ANTIGUA = PUBLICACIONES[0];
 
 async function openProductsWithVisitor(
   page: Page,
@@ -43,14 +52,22 @@ async function boxOf(locator: Locator): Promise<{
 test.describe("Cuando alguien selecciona una tienda en el mapa", () => {
   test.beforeAll(async () => {
     await seedStore(TIENDA, 2);
-    await seedPost({
-      title: `E2E Pan para ficha de mapa ${Date.now()}`,
-      slug,
-      kind: "producto",
-      origin: "productor",
-      price: 96,
-      sellerHandle: TIENDA.handle,
-    });
+    await db.execute(sql`
+      UPDATE sellers
+      SET logo_url = ${LOGO_URL}
+      WHERE slug = ${TIENDA.handle}
+    `);
+
+    for (const post of PUBLICACIONES) {
+      await seedPost({
+        ...post,
+        kind: "producto",
+        origin: "productor",
+        price: 96,
+        sellerHandle: TIENDA.handle,
+        media: [{ url: LOGO_URL, type: "image", alt: post.title }],
+      });
+    }
   });
 
   test.afterAll(async () => {
@@ -96,6 +113,45 @@ test.describe("Cuando alguien selecciona una tienda en el mapa", () => {
     await expect(panel).toHaveCount(0);
   });
 
+  test("Entonces muestra el logo y las ultimas cuatro publicaciones", async ({
+    page,
+    baseURL,
+  }) => {
+    await openProductsWithVisitor(page, baseURL);
+
+    const map = page.getByTestId("stores-map");
+    await expect(map).toBeVisible({ timeout: 15_000 });
+
+    await map
+      .locator(".leaflet-marker-icon:has(.map-marker--store)")
+      .first()
+      .click({ force: true });
+
+    const panel = page.getByTestId("store-map-detail-panel");
+    await expect(panel).toBeVisible();
+    await expect(panel.getByTestId("store-map-detail-logo")).toHaveAttribute(
+      "src",
+      /logo\.webp/u,
+    );
+    await expect(panel).not.toContainText(
+      "Abre la tienda completa para ver todo lo que publica",
+    );
+
+    const recentPosts = panel.getByTestId("store-map-recent-posts");
+    await expect(recentPosts.getByRole("link")).toHaveCount(4);
+
+    for (const post of PUBLICACIONES_RECIENTES) {
+      await expect(
+        recentPosts.getByRole("link", { name: post.title }),
+      ).toHaveAttribute("href", `/${post.slug}`);
+    }
+
+    await expect(panel).not.toContainText(PUBLICACION_ANTIGUA.title);
+    await expect(
+      panel.getByRole("link", { name: /ver la tienda/i }),
+    ).toHaveAttribute("href", `/tienda/${TIENDA.handle}`);
+  });
+
   test("Entonces en móvil la ficha se superpone sin empujar el catálogo", async ({
     page,
     baseURL,
@@ -122,8 +178,9 @@ test.describe("Cuando alguien selecciona una tienda en el mapa", () => {
     const gridTopAfter = (await boxOf(grid)).y;
 
     expect(gridTopAfter).toBe(gridTopBefore);
-    expect(panelBox.y).toBeGreaterThan(360);
+    expect(panelBox.y).toBeGreaterThan(0);
     expect(panelBox.y + panelBox.height).toBeLessThanOrEqual(844);
+    expect(844 - (panelBox.y + panelBox.height)).toBeLessThanOrEqual(16);
     await expect(
       panel.evaluate((node) => node.closest(".leaflet-container") === null),
     ).resolves.toBe(true);

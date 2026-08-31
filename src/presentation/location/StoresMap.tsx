@@ -65,7 +65,7 @@ export default function StoresMap({
 
         {selectedStore ? (
           <StoreMapDetailPanel
-            className="fixed inset-x-3 bottom-3 z-[60] max-h-[min(68vh,30rem)] overflow-y-auto lg:inset-x-auto lg:bottom-auto lg:right-8 lg:top-28 lg:w-[22rem] lg:max-h-[calc(100vh-8rem)] xl:right-[calc((100vw-80rem)/2+2rem)]"
+            className="fixed inset-x-3 bottom-3 z-[60] max-h-[min(78vh,34rem)] overflow-y-auto lg:inset-x-auto lg:bottom-auto lg:right-8 lg:top-28 lg:w-[24rem] lg:max-h-[calc(100vh-8rem)] xl:right-[calc((100vw-80rem)/2+2rem)]"
             store={selectedStore}
             onClose={() => setSelectedStoreHandle(null)}
           />
