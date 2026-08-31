@@ -639,12 +639,12 @@
     "noticeIdle": "We do not know where you are, so we cannot tell you how close anything is.",
     "openSelectedStore": "Visit the store",
     "refresh": "Update",
+    "recentStorePosts": "Latest posts",
     "selectedStoreEyebrow": "Selected store",
     "sellerCta": "Do you sell?",
     "sellerCtaLink": "Open your store",
     "share": "See how far it is",
     "shareAgain": "Share my location",
-    "storeDetailHint": "Open the full store to see everything it publishes.",
     "storeMapHeading": "Where this store is",
     "storeMarkerLabel": "Select {name}",
     "youAreHere": "You are here"

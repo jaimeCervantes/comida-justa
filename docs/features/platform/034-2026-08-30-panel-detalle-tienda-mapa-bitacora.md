@@ -134,3 +134,75 @@ El panel de tienda ya no desplaza el catalogo. En movil aparece como hoja inferi
 - Opcion A: revisar visualmente en un telefono real o emulador y ajustar altura/espaciado de la hoja.
 - Opcion B: enriquecer el panel con publicaciones recientes de la tienda.
 - Opcion C: trabajar accesibilidad avanzada y seleccion persistente.
+
+## 2026-08-30 - Slice 3: logo y publicaciones recientes en la ficha
+
+## Objetivo
+
+Hacer que la ficha del mapa diga mas sobre la tienda antes de abrir su pagina completa: mostrar el logo junto al nombre y ensenar las ultimas cuatro publicaciones para que la persona pueda decidir sin salir del catalogo.
+
+## Decisiones y racional
+
+- El logo y las publicaciones viajan en `MappedStore`. Asi el panel se abre inmediato al seleccionar un pin y no dispara una consulta tardia por cada click.
+- La consulta de tiendas sigue entregando una fila por tienda y conserva la sucursal mas cercana; se agrego un bloque lateral para las cuatro publicaciones mas recientes de esa misma tienda.
+- La seleccion de traduccion usa el locale solicitado y cae al locale por defecto. El mapa se comporta igual que las tarjetas: no inventa texto si una traduccion aun no existe.
+- El panel muestra una grilla compacta de dos columnas. En movil puede ocupar mas alto, pero sigue fijo sobre el contenido y anclado abajo; por eso la prueba mide el anclaje, no una coordenada rigida.
+- Se retiro el texto "Abre la tienda completa para ver todo lo que publica" porque ahora la ficha ya ensena una muestra concreta. El CTA a la tienda queda como accion explicita.
+
+## Archivos tocados
+
+Documentacion:
+- `docs/features/platform/034-2026-08-30-panel-detalle-tienda-mapa.md`
+- `docs/features/platform/034-2026-08-30-panel-detalle-tienda-mapa-bitacora.md`
+
+Especificacion y pruebas:
+- `src/e2e/localProducers/storeMapDetailPanel.feature`
+- `src/e2e/localProducers/storeMapDetailPanel.spec.ts`
+- `src/e2e/testUtils/seedPost.ts`
+
+Dominio y datos:
+- `src/domain/entities/seller/map.ts`
+- `src/infra/dataAccess/sellers/PostgresNearbyStores.ts`
+- `src/app/[locale]/productos/data.ts`
+
+Interfaz:
+- `src/presentation/location/StoreMapDetailPanel.tsx`
+- `src/presentation/location/StoresMap.tsx`
+- `src/i18n/messages/es.json`
+- `src/i18n/messages/en.json`
+
+## Comandos clave
+
+- `pnpm run typecheck`
+- `pnpm run test:run`
+- `pnpm run lint`
+- `pnpm exec playwright test src/e2e/localProducers/storeMapDetailPanel.spec.ts`
+
+## Validacion
+
+- Typecheck: paso sin errores.
+- Vitest: 229 archivos, 2505 tests pasaron.
+- Lint: paso sin errores en 1046 archivos.
+- Playwright focal `src/e2e/localProducers/storeMapDetailPanel.spec.ts`: 3/3 tests pasaron.
+
+Durante Playwright, la suite sembro una tienda de prueba, cinco publicaciones y un logo local, y las limpio con los helpers existentes. El primer intento de Playwright no encontro tests por usar backslashes en el path; se repitio con path POSIX. Un segundo intento encontro que la asercion movil media una coordenada fija que ya no aplica al panel enriquecido; se cambio a medir que la ficha queda anclada abajo sin mover la rejilla.
+
+## Desviaciones del roadmap
+
+Sin desviaciones de producto. Se agrego un parametro `createdAt` al helper e2e de publicaciones para probar el orden de "ultimas 4" sin depender del reloj ni del orden accidental de insercion.
+
+## Follow-ups
+
+- Revisar si el panel debe incluir precio o tipo de publicacion en una slice posterior.
+- Evaluar un gesto de arrastre/cierre de la hoja movil si el panel sigue creciendo.
+- Considerar `loading="eager"` para logos de tiendas cuando se confirme visualmente que suelen ser LCP en esta ficha.
+
+## Recap
+
+La ficha de tienda del mapa ahora se siente mas completa sin convertirse en la pagina de tienda: muestra identidad visual junto al nombre, distancia, una muestra de hasta cuatro publicaciones recientes y mantiene el enlace explicito a la pagina completa. La seleccion sigue fuera de Leaflet y superpuesta al contenido.
+
+## Proximos pasos (opciones)
+
+- Opcion A: revisar visualmente `/productos` en desktop y movil con datos reales para ajustar densidad de tarjetas.
+- Opcion B: agregar metadatos compactos a cada publicacion reciente, como precio o categoria, si ayudan a decidir.
+- Opcion C: implementar la slice 4 de accesibilidad fina y seleccion persistente.

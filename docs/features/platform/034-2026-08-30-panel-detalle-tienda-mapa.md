@@ -65,18 +65,30 @@ El click en un marcador de tienda abre una ficha como parte del sitio, no como p
 
 ## Slice 3 - Enriquecer la ficha con datos comerciales
 
-`@future`
+### Alcance
 
-### Alcance tentativo
-
-- Incluir resumen de publicaciones de esa tienda si la consulta del catalogo puede entregarlo sin romper paginacion.
-- Mostrar una vista breve de productos o servicios disponibles.
+- Mostrar el logo de la tienda junto al nombre.
+- Mantener un fallback visual limpio cuando la tienda no tenga logo.
+- Mostrar las ultimas 4 publicaciones de la tienda en una grilla compacta que quepa en una o dos filas.
+- Cada publicacion reciente debe mostrar al menos imagen o fallback visual, titulo y enlace al detalle.
+- Quitar el texto "Abre la tienda completa para ver todo lo que publica".
 - Mantener el panel como una superficie de exploracion, no como sustituto de la pagina completa de tienda.
 
-### Criterios de aceptacion tentativos
+### Fuera de alcance
 
-- El panel muestra informacion comercial util sin consultas duplicadas costosas.
-- La pagina de tienda sigue siendo el lugar para el catalogo completo.
+- Mostrar telefono, horarios, reseñas o sucursales.
+- Paginacion dentro del panel.
+- Consultas al seleccionar el marcador; los datos viajan listos con el mapa.
+- Cambiar la pagina publica de tienda.
+
+### Criterios de aceptacion
+
+- Al seleccionar una tienda con logo, la ficha muestra ese logo junto al nombre.
+- La ficha muestra como maximo 4 publicaciones recientes de esa tienda.
+- Las publicaciones recientes caben en una grilla compacta de una o dos filas.
+- El texto "Abre la tienda completa para ver todo lo que publica" ya no aparece.
+- La pagina completa de tienda sigue disponible como accion explicita.
+- El panel sigue superpuesto y fuera de Leaflet.
 
 ## Slice 4 - Seleccion persistente y accesibilidad fina
 

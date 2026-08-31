@@ -639,12 +639,12 @@
     "noticeIdle": "No sabemos dónde estás, así que no podemos decirte qué tan cerca te queda cada cosa.",
     "openSelectedStore": "Ver la tienda",
     "refresh": "Actualizar",
+    "recentStorePosts": "Últimas publicaciones",
     "selectedStoreEyebrow": "Tienda seleccionada",
     "sellerCta": "¿Vendes?",
     "sellerCtaLink": "Abre tu tienda",
     "share": "Ver a qué distancia está",
     "shareAgain": "Compartir mi ubicación",
-    "storeDetailHint": "Abre la tienda completa para ver todo lo que publica.",
     "storeMapHeading": "Dónde está esta tienda",
     "storeMarkerLabel": "Seleccionar {name}",
     "youAreHere": "Aquí estás tú"
