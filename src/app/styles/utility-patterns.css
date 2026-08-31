@@ -173,8 +173,13 @@ input[type="search"]::-webkit-search-results-decoration {
 .map-marker {
   display: block;
   height: 2.75rem;
+  pointer-events: none;
   position: relative;
   width: 2.375rem;
+}
+
+.map-marker * {
+  pointer-events: none;
 }
 
 .map-marker__pin {
