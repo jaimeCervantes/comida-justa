@@ -16,17 +16,42 @@ import { Surface } from "~/presentation/design_system/surfaces/Surface";
  * asset, así que no hay nada que se pueda romper al mover un archivo.
  */
 const storeIcon = divIcon({
-  html: '<span aria-hidden="true" style="font-size:1.5rem">🏪</span>',
+  html: `
+    <span class="map-marker map-marker--store" aria-hidden="true">
+      <span class="map-marker__pin">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M4 10h16" />
+          <path d="M5 10l1.3-5h11.4L19 10" />
+          <path d="M6 10v9h12v-9" />
+          <path d="M9 19v-5h6v5" />
+        </svg>
+      </span>
+      <span class="map-marker__shadow"></span>
+    </span>
+  `,
   className: "",
-  iconSize: [24, 24],
-  iconAnchor: [12, 12],
+  iconSize: [38, 44],
+  iconAnchor: [19, 40],
 });
 
 const visitorIcon = divIcon({
-  html: '<span aria-hidden="true" style="font-size:1.25rem">📍</span>',
+  html: `
+    <span class="map-marker map-marker--visitor" aria-hidden="true">
+      <span class="map-marker__pin">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <circle cx="12" cy="12" r="3" />
+          <path d="M12 3v3" />
+          <path d="M12 18v3" />
+          <path d="M3 12h3" />
+          <path d="M18 12h3" />
+        </svg>
+      </span>
+      <span class="map-marker__shadow"></span>
+    </span>
+  `,
   className: "",
-  iconSize: [20, 20],
-  iconAnchor: [10, 10],
+  iconSize: [38, 44],
+  iconAnchor: [19, 40],
 });
 
 /**
