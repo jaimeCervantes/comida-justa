@@ -70,3 +70,67 @@ La seleccion de tienda en el mapa de `/productos` ya no navega automaticamente n
 - Opcion A: revisar visualmente `/productos` en desktop y movil para ajustar densidad, ancho o tono del panel.
 - Opcion B: implementar la slice 2 para mostrar publicaciones recientes de la tienda dentro de la ficha.
 - Opcion C: mejorar accesibilidad avanzada de seleccion, foco y estado compartible del mapa.
+
+## 2026-08-30 - Slice 2: panel superpuesto sin desplazar contenido
+
+## Objetivo
+
+Corregir la experiencia movil del panel de tienda para que funcione como una hoja inferior superpuesta, parecida al patron de Google Maps: el contenido del catalogo queda atras y no se empuja hacia abajo cuando se selecciona una tienda.
+
+## Decisiones y racional
+
+- El panel deja de vivir en un grid que reservaba espacio. Ahora es `fixed`, por lo que no participa en el flujo del documento.
+- En movil se coloca como hoja inferior sobre el viewport. Se usa `z-[60]` para quedar por encima del contenido y de la barra inferior mientras esta abierto.
+- En desktop se mantiene como panel lateral, pero tambien flotante: se posiciona a la derecha sin reducir el ancho del mapa.
+- No se agrego backdrop. El objetivo era que el contenido siguiera visible atras, no convertir la ficha en un modal bloqueante.
+- Se mantiene el mismo contenido de la slice anterior: nombre, distancia, CTA a la tienda y cierre.
+
+## Archivos tocados
+
+Documentacion:
+- `docs/features/platform/034-2026-08-30-panel-detalle-tienda-mapa.md`
+- `docs/features/platform/034-2026-08-30-panel-detalle-tienda-mapa-bitacora.md`
+
+Especificacion y pruebas:
+- `src/e2e/localProducers/storeMapDetailPanel.feature`
+- `src/e2e/localProducers/storeMapDetailPanel.spec.ts`
+
+Interfaz:
+- `src/presentation/location/StoreMapDetailPanel.tsx`
+- `src/presentation/location/StoresMap.tsx`
+
+## Comandos clave
+
+- `pnpm exec playwright test src/e2e/localProducers/storeMapDetailPanel.spec.ts`
+- `pnpm run lint`
+- `pnpm run typecheck`
+- `pnpm run test:run`
+
+## Validacion
+
+- Prueba e2e nueva antes de implementar: fallo esperado. En movil la rejilla bajaba de `747.5` a `1011.5` al abrir el panel.
+- Playwright focal `src/e2e/localProducers/storeMapDetailPanel.spec.ts`: 2/2 tests pasaron.
+- Lint: paso sin errores.
+- Typecheck: paso sin errores.
+- Vitest: 229 archivos, 2505 tests pasaron.
+
+Durante Playwright, la suite sembro y limpio la tienda/publicacion `E2E` con los helpers existentes. El servidor registro respuestas 412 de imagenes remotas de prueba (`seed.jpg`) y advertencias conocidas de entorno; no bloquearon la validacion.
+
+## Desviaciones del roadmap
+
+Sin desviaciones de alcance. Se mantuvo la ficha fuera de Leaflet, sin cargar datos comerciales nuevos y sin persistir la seleccion en URL.
+
+## Follow-ups
+
+- Ajustar el alto o gestos de la hoja inferior si se agregan productos recientes dentro del panel.
+- Evaluar un estado visual de marcador seleccionado para mapas con muchas tiendas cercanas.
+
+## Recap
+
+El panel de tienda ya no desplaza el catalogo. En movil aparece como hoja inferior fija sobre el contenido, y en desktop como panel lateral flotante sin reducir el mapa. La interaccion conserva el cierre, la distancia y el enlace explicito a la tienda completa.
+
+## Proximos pasos (opciones)
+
+- Opcion A: revisar visualmente en un telefono real o emulador y ajustar altura/espaciado de la hoja.
+- Opcion B: enriquecer el panel con publicaciones recientes de la tienda.
+- Opcion C: trabajar accesibilidad avanzada y seleccion persistente.

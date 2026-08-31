@@ -55,7 +55,7 @@ export default function StoresMap({
       </Heading>
       {/* El testid va aquí y no en el `MapContainer`: react-leaflet solo reenvía `className`,
           `id` y `style` al div del mapa, y se come cualquier otro atributo. */}
-      <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,22rem)] lg:items-stretch">
+      <div className="relative">
         <StoresMapCanvas
           visitor={visitor}
           stores={stores}
@@ -65,6 +65,7 @@ export default function StoresMap({
 
         {selectedStore ? (
           <StoreMapDetailPanel
+            className="fixed inset-x-3 bottom-3 z-[60] max-h-[min(68vh,30rem)] overflow-y-auto lg:inset-x-auto lg:bottom-auto lg:right-8 lg:top-28 lg:w-[22rem] lg:max-h-[calc(100vh-8rem)] xl:right-[calc((100vw-80rem)/2+2rem)]"
             store={selectedStore}
             onClose={() => setSelectedStoreHandle(null)}
           />

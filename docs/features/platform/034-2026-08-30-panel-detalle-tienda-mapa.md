@@ -8,7 +8,32 @@
 
 ## Modelo acordado
 
-El click en un marcador de tienda abre una ficha como parte del sitio, no como popup interno del mapa y no como navegacion automatica. En desktop se muestra como panel lateral; en movil, como panel inferior. La navegacion a `/tienda/[handle]` queda como una accion explicita.
+El click en un marcador de tienda abre una ficha como parte del sitio, no como popup interno del mapa y no como navegacion automatica. En desktop se muestra como panel lateral flotante; en movil, como hoja inferior superpuesta. La navegacion a `/tienda/[handle]` queda como una accion explicita.
+
+## Slice 2 - Panel superpuesto, sin desplazar contenido
+
+### Alcance
+
+- Cambiar la ficha para que se superponga al contenido del sitio en vez de ocupar espacio en el flujo.
+- En movil, mostrarla como hoja inferior fija, con el catalogo visible detras.
+- En desktop, mostrarla como panel flotante lateral sobre el contenido, sin reducir ni empujar el mapa.
+- Mantener cierre, nombre, distancia y enlace explicito a la tienda.
+- Mantener el panel fuera del contenedor de Leaflet.
+
+### Fuera de alcance
+
+- Agregar datos comerciales nuevos.
+- Cambiar la consulta del mapa o el orden de tiendas.
+- Persistir la tienda seleccionada en la URL.
+- Convertir el panel en modal bloqueante de pantalla completa.
+
+### Criterios de aceptacion
+
+- Al seleccionar una tienda en movil, la ficha aparece fija en la parte inferior del viewport.
+- La ficha se superpone sobre el contenido y no cambia la posicion vertical de la rejilla de productos.
+- El contenido del catalogo sigue estando detras de la ficha.
+- En desktop, la ficha aparece como panel flotante lateral y el ancho del mapa no se reduce.
+- El panel sigue mostrando nombre, distancia, CTA a la tienda y cierre.
 
 ## Slice 1 - Ficha visible al seleccionar una tienda
 
@@ -38,7 +63,7 @@ El click en un marcador de tienda abre una ficha como parte del sitio, no como p
 - El panel tiene un enlace explicito a `/tienda/[handle]`.
 - El panel se puede cerrar.
 
-## Slice 2 - Enriquecer la ficha con datos comerciales
+## Slice 3 - Enriquecer la ficha con datos comerciales
 
 `@future`
 
@@ -53,7 +78,7 @@ El click en un marcador de tienda abre una ficha como parte del sitio, no como p
 - El panel muestra informacion comercial util sin consultas duplicadas costosas.
 - La pagina de tienda sigue siendo el lugar para el catalogo completo.
 
-## Slice 3 - Seleccion persistente y accesibilidad fina
+## Slice 4 - Seleccion persistente y accesibilidad fina
 
 `@future`
 
