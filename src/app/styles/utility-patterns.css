@@ -170,6 +170,62 @@ input[type="search"]::-webkit-search-results-decoration {
   background-clip: padding-box;
 }
 
+.map-marker {
+  display: block;
+  height: 2.75rem;
+  position: relative;
+  width: 2.375rem;
+}
+
+.map-marker__pin {
+  align-items: center;
+  background: var(--map-marker-bg);
+  border: 2px solid var(--surface-elevation-1);
+  border-radius: 50% 50% 50% 0;
+  box-shadow:
+    0 0.625rem 1.25rem rgb(33 30 21 / 0.24),
+    0 0 0 0.1875rem rgb(255 255 255 / 0.34);
+  color: white;
+  display: grid;
+  height: 2.25rem;
+  justify-items: center;
+  left: 50%;
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%) rotate(-45deg);
+  width: 2.25rem;
+}
+
+.map-marker__pin svg {
+  height: 1.125rem;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+  transform: rotate(45deg);
+  width: 1.125rem;
+}
+
+.map-marker__shadow {
+  background: rgb(33 30 21 / 0.28);
+  border-radius: 999px;
+  bottom: 0.0625rem;
+  filter: blur(0.0625rem);
+  height: 0.375rem;
+  left: 50%;
+  position: absolute;
+  transform: translateX(-50%);
+  width: 1.5rem;
+}
+
+.map-marker--store {
+  --map-marker-bg: #c026d3;
+}
+
+.map-marker--visitor {
+  --map-marker-bg: #2563eb;
+}
+
 /**
  * «Esta fila sigue»: un desvanecido y una flechita en el borde, **solo cuando queda algo que
  * arrastrar**.
