@@ -1,9 +1,11 @@
 "use client";
 import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
+import { useMemo, useState } from "react";
 import type { Coordinates } from "~/domain/entities/seller/coordinates";
 import type { MappedStore } from "~/domain/entities/seller/map";
 import { Heading } from "~/presentation/design_system/typography/Heading";
+import StoreMapDetailPanel from "./StoreMapDetailPanel";
 
 /**
  * `next/dynamic` con `ssr: false` **no** es aquí una decisión de organización.
@@ -36,6 +38,13 @@ export default function StoresMap({
   className?: string;
 }) {
   const t = useTranslations("distance");
+  const [selectedStoreHandle, setSelectedStoreHandle] = useState<string | null>(
+    null,
+  );
+  const selectedStore = useMemo(
+    () => stores.find((store) => store.handle === selectedStoreHandle) ?? null,
+    [stores, selectedStoreHandle],
+  );
 
   if (stores.length === 0) return null;
 
@@ -46,7 +55,21 @@ export default function StoresMap({
       </Heading>
       {/* El testid va aquí y no en el `MapContainer`: react-leaflet solo reenvía `className`,
           `id` y `style` al div del mapa, y se come cualquier otro atributo. */}
-      <StoresMapCanvas visitor={visitor} stores={stores} />
+      <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,22rem)] lg:items-stretch">
+        <StoresMapCanvas
+          visitor={visitor}
+          stores={stores}
+          selectedStoreHandle={selectedStoreHandle}
+          onStoreSelect={setSelectedStoreHandle}
+        />
+
+        {selectedStore ? (
+          <StoreMapDetailPanel
+            store={selectedStore}
+            onClose={() => setSelectedStoreHandle(null)}
+          />
+        ) : null}
+      </div>
     </section>
   );
 }

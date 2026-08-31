@@ -1,10 +1,14 @@
 "use client";
 import "leaflet/dist/leaflet.css";
-import { divIcon } from "leaflet";
+import {
+  divIcon,
+  type LeafletEvent,
+  type Marker as LeafletMarker,
+} from "leaflet";
 import { useTranslations } from "next-intl";
-import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
+import { useEffect } from "react";
+import { MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
 import type { Coordinates } from "~/domain/entities/seller/coordinates";
-import { describeDistance } from "~/domain/entities/seller/distance";
 import { type MappedStore, viewFor } from "~/domain/entities/seller/map";
 import { Surface } from "~/presentation/design_system/surfaces/Surface";
 
@@ -61,10 +65,14 @@ const visitorIcon = divIcon({
 export default function StoresMapCanvas({
   visitor,
   stores,
+  selectedStoreHandle,
+  onStoreSelect,
 }: {
   /** `null` cuando quien mira no compartió su ubicación: el mapa sigue valiendo, sin su pin. */
   visitor: Coordinates | null;
   stores: readonly MappedStore[];
+  selectedStoreHandle: string | null;
+  onStoreSelect: (handle: string) => void;
 }) {
   const t = useTranslations("distance");
   const view = viewFor(visitor, stores);
@@ -120,6 +128,7 @@ export default function StoresMapCanvas({
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
+        <InvalidateMapSizeOnSelection key={selectedStoreHandle ?? "none"} />
 
         {visitor ? (
           <Marker
@@ -130,35 +139,67 @@ export default function StoresMapCanvas({
           </Marker>
         ) : null}
 
-        {stores.map((store) => {
-          const described =
-            store.meters === null ? null : describeDistance(store.meters);
-
-          return (
-            <Marker
-              key={store.handle}
-              position={[
-                store.coordinates.latitude,
-                store.coordinates.longitude,
-              ]}
-              icon={storeIcon}
-            >
-              <Popup>
-                <a href={`/tienda/${store.handle}`} className="font-semibold">
-                  {store.name}
-                </a>
-                {described ? (
-                  <span className="block">
-                    {described.unit === "meters"
-                      ? t("meters", { value: described.value })
-                      : t("kilometers", { value: described.value })}
-                  </span>
-                ) : null}
-              </Popup>
-            </Marker>
-          );
-        })}
+        {stores.map((store) => (
+          <StoreMarker
+            key={store.handle}
+            markerLabel={t("storeMarkerLabel", { name: store.name })}
+            onStoreSelect={onStoreSelect}
+            selected={store.handle === selectedStoreHandle}
+            store={store}
+          />
+        ))}
       </MapContainer>
     </Surface>
   );
+}
+
+function StoreMarker({
+  markerLabel,
+  onStoreSelect,
+  selected,
+  store,
+}: {
+  markerLabel: string;
+  onStoreSelect: (handle: string) => void;
+  selected: boolean;
+  store: MappedStore;
+}) {
+  return (
+    <Marker
+      position={[store.coordinates.latitude, store.coordinates.longitude]}
+      icon={storeIcon}
+      title={markerLabel}
+      eventHandlers={{
+        add: (event) => bindStoreMarkerElement(event, store, onStoreSelect),
+        click: () => onStoreSelect(store.handle),
+      }}
+      zIndexOffset={selected ? 700 : 300}
+    />
+  );
+}
+
+function bindStoreMarkerElement(
+  event: LeafletEvent,
+  store: MappedStore,
+  onStoreSelect: (handle: string) => void,
+): void {
+  const marker = event.target as LeafletMarker;
+  const element = marker.getElement();
+
+  if (!element) return;
+
+  element.dataset.storeHandle = store.handle;
+  element.onclick = () => onStoreSelect(store.handle);
+}
+
+function InvalidateMapSizeOnSelection() {
+  const map = useMap();
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => map.invalidateSize(), 0);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [map]);
+
+  return null;
 }
