@@ -5,6 +5,7 @@ import {
   type MappedStore,
 } from "~/domain/entities/seller/map";
 import { isWithinSustainableRadius } from "~/domain/entities/seller/proximity";
+import { routing } from "~/i18n/routing";
 import { PAGINATION_INIT_PAGE, PAGINATION_PAGE_SIZE } from "~/infra/constants";
 import {
   createPostQueryRepository,
@@ -69,7 +70,12 @@ export async function getProducts(
     nothingNearby: Boolean(near) && isNothingNearby(result.posts),
     visitor: near,
     // Sin ubicación de quien mira no hay mapa: un mapa donde no te ves no ayuda a decidir.
-    storesToMap: near ? await listStoresToMap(near, MAP_STORES_LIMIT) : [],
+    storesToMap: near
+      ? await listStoresToMap(near, MAP_STORES_LIMIT, {
+          locale,
+          fallbackLocale: routing.defaultLocale,
+        })
+      : [],
   };
 }
 

@@ -1,9 +1,19 @@
 import type { Coordinates } from "./coordinates";
 
+/** Una publicacion reciente que ayuda a decidir si abrir la tienda completa. */
+export interface MappedStorePost {
+  title: string;
+  slug: string;
+  imageUrl: string | null;
+  imageAlt: string | null;
+}
+
 /** Una tienda que se puede pintar en el mapa: tiene dónde estar y a dónde enlazar. */
 export interface MappedStore {
   handle: string;
   name: string;
+  logoUrl?: string | null;
+  recentPosts?: readonly MappedStorePost[];
   coordinates: Coordinates;
   /** A cuántos metros está de quien mira, o `null` si quien mira no compartió su ubicación. */
   meters: number | null;

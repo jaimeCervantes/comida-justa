@@ -40,6 +40,8 @@ export type SeedPostInput = {
   subCategory?: string | null;
   /** Para sembrar dentro del catálogo de una tienda, como haría `/publicar` con su dueño. */
   sellerHandle?: string;
+  /** Fecha de publicación, cuando el escenario necesita ordenar resultados recientes. */
+  createdAt?: Date;
   /** Telefono de contacto. Cadena vacia cuando el escenario necesita una publicacion sin WhatsApp. */
   contactPhone?: string;
   /**
@@ -104,7 +106,7 @@ export async function seedPost(input: SeedPostInput): Promise<string> {
             seedMediaFile(index, input.title),
           )),
     user: { id: userId },
-    createdAt: new Date(),
+    createdAt: input.createdAt ?? new Date(),
   });
 }
 

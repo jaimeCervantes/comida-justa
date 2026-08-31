@@ -1,10 +1,14 @@
 "use client";
 import "leaflet/dist/leaflet.css";
-import { divIcon } from "leaflet";
+import {
+  divIcon,
+  type LeafletEvent,
+  type Marker as LeafletMarker,
+} from "leaflet";
 import { useTranslations } from "next-intl";
-import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
+import { useEffect } from "react";
+import { MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
 import type { Coordinates } from "~/domain/entities/seller/coordinates";
-import { describeDistance } from "~/domain/entities/seller/distance";
 import { type MappedStore, viewFor } from "~/domain/entities/seller/map";
 import { Surface } from "~/presentation/design_system/surfaces/Surface";
 
@@ -16,17 +20,42 @@ import { Surface } from "~/presentation/design_system/surfaces/Surface";
  * asset, así que no hay nada que se pueda romper al mover un archivo.
  */
 const storeIcon = divIcon({
-  html: '<span aria-hidden="true" style="font-size:1.5rem">🏪</span>',
+  html: `
+    <span class="map-marker map-marker--store" aria-hidden="true">
+      <span class="map-marker__pin">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M4 10h16" />
+          <path d="M5 10l1.3-5h11.4L19 10" />
+          <path d="M6 10v9h12v-9" />
+          <path d="M9 19v-5h6v5" />
+        </svg>
+      </span>
+      <span class="map-marker__shadow"></span>
+    </span>
+  `,
   className: "",
-  iconSize: [24, 24],
-  iconAnchor: [12, 12],
+  iconSize: [38, 44],
+  iconAnchor: [19, 40],
 });
 
 const visitorIcon = divIcon({
-  html: '<span aria-hidden="true" style="font-size:1.25rem">📍</span>',
+  html: `
+    <span class="map-marker map-marker--visitor" aria-hidden="true">
+      <span class="map-marker__pin">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <circle cx="12" cy="12" r="3" />
+          <path d="M12 3v3" />
+          <path d="M12 18v3" />
+          <path d="M3 12h3" />
+          <path d="M18 12h3" />
+        </svg>
+      </span>
+      <span class="map-marker__shadow"></span>
+    </span>
+  `,
   className: "",
-  iconSize: [20, 20],
-  iconAnchor: [10, 10],
+  iconSize: [38, 44],
+  iconAnchor: [19, 40],
 });
 
 /**
@@ -36,10 +65,14 @@ const visitorIcon = divIcon({
 export default function StoresMapCanvas({
   visitor,
   stores,
+  selectedStoreHandle,
+  onStoreSelect,
 }: {
   /** `null` cuando quien mira no compartió su ubicación: el mapa sigue valiendo, sin su pin. */
   visitor: Coordinates | null;
   stores: readonly MappedStore[];
+  selectedStoreHandle: string | null;
+  onStoreSelect: (handle: string) => void;
 }) {
   const t = useTranslations("distance");
   const view = viewFor(visitor, stores);
@@ -95,6 +128,7 @@ export default function StoresMapCanvas({
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
+        <InvalidateMapSizeOnSelection key={selectedStoreHandle ?? "none"} />
 
         {visitor ? (
           <Marker
@@ -105,35 +139,67 @@ export default function StoresMapCanvas({
           </Marker>
         ) : null}
 
-        {stores.map((store) => {
-          const described =
-            store.meters === null ? null : describeDistance(store.meters);
-
-          return (
-            <Marker
-              key={store.handle}
-              position={[
-                store.coordinates.latitude,
-                store.coordinates.longitude,
-              ]}
-              icon={storeIcon}
-            >
-              <Popup>
-                <a href={`/tienda/${store.handle}`} className="font-semibold">
-                  {store.name}
-                </a>
-                {described ? (
-                  <span className="block">
-                    {described.unit === "meters"
-                      ? t("meters", { value: described.value })
-                      : t("kilometers", { value: described.value })}
-                  </span>
-                ) : null}
-              </Popup>
-            </Marker>
-          );
-        })}
+        {stores.map((store) => (
+          <StoreMarker
+            key={store.handle}
+            markerLabel={t("storeMarkerLabel", { name: store.name })}
+            onStoreSelect={onStoreSelect}
+            selected={store.handle === selectedStoreHandle}
+            store={store}
+          />
+        ))}
       </MapContainer>
     </Surface>
   );
+}
+
+function StoreMarker({
+  markerLabel,
+  onStoreSelect,
+  selected,
+  store,
+}: {
+  markerLabel: string;
+  onStoreSelect: (handle: string) => void;
+  selected: boolean;
+  store: MappedStore;
+}) {
+  return (
+    <Marker
+      position={[store.coordinates.latitude, store.coordinates.longitude]}
+      icon={storeIcon}
+      title={markerLabel}
+      eventHandlers={{
+        add: (event) => bindStoreMarkerElement(event, store, onStoreSelect),
+        click: () => onStoreSelect(store.handle),
+      }}
+      zIndexOffset={selected ? 700 : 300}
+    />
+  );
+}
+
+function bindStoreMarkerElement(
+  event: LeafletEvent,
+  store: MappedStore,
+  onStoreSelect: (handle: string) => void,
+): void {
+  const marker = event.target as LeafletMarker;
+  const element = marker.getElement();
+
+  if (!element) return;
+
+  element.dataset.storeHandle = store.handle;
+  element.onclick = () => onStoreSelect(store.handle);
+}
+
+function InvalidateMapSizeOnSelection() {
+  const map = useMap();
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => map.invalidateSize(), 0);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [map]);
+
+  return null;
 }
