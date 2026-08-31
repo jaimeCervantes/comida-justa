@@ -12,9 +12,11 @@ import { Text } from "~/presentation/design_system/typography/Text";
 import StoreDistance from "./StoreDistance";
 
 export default function StoreMapDetailPanel({
+  className,
   store,
   onClose,
 }: {
+  className?: string;
   store: MappedStore;
   onClose: () => void;
 }) {
@@ -28,7 +30,7 @@ export default function StoreMapDetailPanel({
       border="subtle"
       elevation="sm"
       background="raised"
-      className="p-4 lg:p-5"
+      className={cn("p-4 lg:p-5", className)}
       data-testid="store-map-detail-panel"
     >
       <div className="flex items-start gap-3">
