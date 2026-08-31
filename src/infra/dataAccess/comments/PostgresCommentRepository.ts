@@ -1,9 +1,28 @@
-import { and, desc, eq, gte, sql } from "drizzle-orm";
+import { and, desc, eq, gte, or, sql } from "drizzle-orm";
 import { COMMENTS_PAGE_SIZE } from "~/infra/constants";
 import { db } from "~/infra/dataAccess/db/connection";
 import { users } from "~/infra/dataAccess/db/schema/auth";
 import { comments } from "~/infra/dataAccess/db/schema/comments";
 import type { Comment, PostUser } from "~/infra/types/Posts";
+
+/** Quién pide la lista, para decidir qué comentarios no publicados le tocan. */
+export type CommentViewer = { id?: string; isAdmin?: boolean };
+
+/**
+ * Lo que ve un comentario que no está publicado es su propio autor y el admin —el mismo aviso que
+ * ya existe para publicaciones, aplicado a comentarios—. `undefined` significa "sin filtro": lo ve
+ * todo, que es el caso del admin.
+ */
+function visibilityFilter(viewer: CommentViewer | undefined) {
+  if (viewer?.isAdmin) return undefined;
+  if (viewer?.id) {
+    return or(
+      eq(comments.moderationStatus, "published"),
+      eq(comments.userId, viewer.id),
+    );
+  }
+  return eq(comments.moderationStatus, "published");
+}
 
 export class PostgresCommentRepository {
   async addComment(
@@ -32,6 +51,9 @@ export class PostgresCommentRepository {
           content,
           createdAt: new Date().toISOString(),
           user,
+          /* Nace publicado, como una publicación: el clasificador lo revisa después, en segundo
+             plano. Es el mismo valor por omisión de la columna. */
+          moderationStatus: "published",
         },
       };
     } catch {
@@ -60,8 +82,13 @@ export class PostgresCommentRepository {
     postId: string,
     page: number = 1,
     pageSize: number = COMMENTS_PAGE_SIZE,
+    viewer?: CommentViewer,
   ): Promise<{ comments: Comment[]; total: number }> {
     const offset = (page - 1) * pageSize;
+    const visibility = visibilityFilter(viewer);
+    const where = visibility
+      ? and(eq(comments.postId, postId), visibility)
+      : eq(comments.postId, postId);
 
     const [rows, countResult] = await Promise.all([
       db
@@ -74,17 +101,16 @@ export class PostgresCommentRepository {
           userName: users.name,
           userEmail: users.email,
           userImage: users.image,
+          moderationStatus: comments.moderationStatus,
+          moderationReason: comments.moderationReason,
         })
         .from(comments)
         .leftJoin(users, eq(comments.userId, users.id))
-        .where(eq(comments.postId, postId))
+        .where(where)
         .orderBy(desc(comments.createdAt))
         .limit(pageSize)
         .offset(offset),
-      db
-        .select({ count: sql<number>`count(*)` })
-        .from(comments)
-        .where(eq(comments.postId, postId)),
+      db.select({ count: sql<number>`count(*)` }).from(comments).where(where),
     ]);
 
     const total = Number(countResult[0].count);
@@ -100,6 +126,8 @@ export class PostgresCommentRepository {
         email: row.userEmail ?? undefined,
         image: row.userImage ?? undefined,
       },
+      moderationStatus: row.moderationStatus,
+      moderationReason: row.moderationReason,
     }));
 
     return { comments: commentList, total };

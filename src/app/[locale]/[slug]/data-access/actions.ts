@@ -1,17 +1,42 @@
 "use server";
 
+import { after } from "next/server";
 import { getTranslations } from "next-intl/server";
 import { normalizeCommentText } from "~/domain/comments/commentText";
 import { auth } from "~/infra/auth";
+import { isAdmin } from "~/infra/auth/isAdmin";
 import {
   COMMENT_MAX_LENGTH,
   COMMENT_RATE_LIMIT_PER_MINUTE,
   COMMENTS_PAGE_SIZE,
 } from "~/infra/constants";
 import { PostgresCommentRepository } from "~/infra/dataAccess/comments/PostgresCommentRepository";
+import { createReviewCommentContentUseCase } from "~/infra/dataAccess/moderateComment/factory";
 import type { PostUser } from "~/infra/types/Posts";
 
 const commentRepo = new PostgresCommentRepository();
+
+/**
+ * Revisa el comentario **después** de responder a quien lo escribió, igual que
+ * `reviewAfterResponse` en `publicar/actions.ts`. El comentario ya nació publicado y visible; esto
+ * solo lo baja si el clasificador dice que no cumple.
+ */
+function reviewCommentAfterResponse(commentId: string, content: string): void {
+  after(async () => {
+    const outcome = await createReviewCommentContentUseCase().execute({
+      commentId,
+      content,
+    });
+
+    if (outcome.status === "in_review") {
+      console.warn(
+        // i18n-ignore: registro del servidor; lo lee quien opera, no un visitante.
+        `[moderation] comment ${commentId} quedó sin revisar y espera en /admin/moderacion.`,
+        outcome.error,
+      );
+    }
+  });
+}
 
 /**
  * Guarda un comentario **firmado por quien lo está escribiendo de verdad**.
@@ -59,7 +84,13 @@ export async function addCommentToPost(postId: string, commentContent: string) {
     return { errorMessage: t("errorTooFast") };
   }
 
-  return await commentRepo.addComment(postId, content, user);
+  const result = await commentRepo.addComment(postId, content, user);
+
+  if ("comment" in result) {
+    reviewCommentAfterResponse(result.comment.id as string, content);
+  }
+
+  return result;
 }
 
 export async function getMoreComments(
@@ -67,5 +98,11 @@ export async function getMoreComments(
   page: number = 1,
   pageSize: number = COMMENTS_PAGE_SIZE,
 ) {
-  return await commentRepo.getComments(postId, page, pageSize);
+  const session = await auth();
+  const viewer = {
+    id: (session?.user as PostUser | undefined)?.id,
+    isAdmin: isAdmin(session?.user?.email),
+  };
+
+  return await commentRepo.getComments(postId, page, pageSize, viewer);
 }

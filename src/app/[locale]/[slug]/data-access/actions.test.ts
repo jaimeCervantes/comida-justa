@@ -27,6 +27,11 @@ vi.mock("~/infra/dataAccess/comments/PostgresCommentRepository", () => ({
   })),
 }));
 
+/* `after` solo existe dentro de una petición real; fuera de una ruta de Next.js lanza. Mismo mock
+   que `editar/[slug]/actions.test.ts`: lo que se prueba aquí es qué se guardó y con qué firma, no
+   la revisión en segundo plano —que tiene sus propias pruebas en `reviewCommentContentUseCase`—. */
+vi.mock("next/server", () => ({ after: vi.fn() }));
+
 import { addCommentToPost } from "./actions";
 
 /**

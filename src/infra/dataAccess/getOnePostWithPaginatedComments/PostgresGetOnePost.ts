@@ -55,11 +55,25 @@ interface PostRow {
     user_name: string | null;
     user_email: string | null;
     user_image: string | null;
+    moderation_status: string | null;
+    moderation_reason: string | null;
   }> | null;
   comments_total: number;
 }
 
-export async function getPostBySlug(slug: string) {
+/** Quién pide la ficha, para decidir qué comentarios no publicados le tocan. */
+export interface PostViewer {
+  id?: string;
+  isAdmin?: boolean;
+}
+
+export async function getPostBySlug(slug: string, viewer: PostViewer = {}) {
+  /* El mismo aviso que ya tiene la publicación entera: lo que no está publicado solo lo ve su
+     autor y el admin. `sql.raw` con un booleano fijo y no con el id, que sí viaja parametrizado. */
+  const commentVisibility = viewer.isAdmin
+    ? sql`TRUE`
+    : sql`(c.moderation_status = 'published' OR c.user_id = ${viewer.id ?? ""})`;
+
   const raw = await db.execute(sql`
     SELECT
       p.id,
@@ -138,17 +152,19 @@ export async function getPostBySlug(slug: string) {
           SELECT jsonb_agg(data)
           FROM (
             SELECT jsonb_build_object(
-              'id',         c.id,
-              'content',    c.content,
-              'created_at', c.created_at,
-              'user_id',    cu.id,
-              'user_name',  cu.name,
-              'user_email', cu.email,
-              'user_image', cu.image
+              'id',                c.id,
+              'content',           c.content,
+              'created_at',        c.created_at,
+              'user_id',           cu.id,
+              'user_name',         cu.name,
+              'user_email',        cu.email,
+              'user_image',        cu.image,
+              'moderation_status', c.moderation_status,
+              'moderation_reason', c.moderation_reason
             ) AS data
             FROM comments c
             LEFT JOIN users cu ON cu.id = c.user_id
-            WHERE c.post_id = p.id
+            WHERE c.post_id = p.id AND ${commentVisibility}
             ORDER BY c.created_at DESC
             LIMIT ${COMMENTS_PAGE_SIZE}
           ) limited
@@ -160,11 +176,13 @@ export async function getPostBySlug(slug: string) {
          el botón se ofrecía siempre y solo al pulsarlo se descubría que no había nada más — y en
          una publicación sin un solo comentario también. getComments ya devolvía este mismo total
          al paginar; lo que faltaba era tenerlo en el primer render.
-         (Sin acentos graves aquí dentro: esto vive en un template literal y lo cortarían.) */
+         (Sin acentos graves aquí dentro: esto vive en un template literal y lo cortarían.)
+         Cuenta lo mismo que ve la lista: un comentario ajeno sin publicar no debe sumar al total
+         de quien está mirando, o «cargar más» prometería algo que nunca va a traer. */
       (
         SELECT COUNT(*)::int
         FROM comments c
-        WHERE c.post_id = p.id
+        WHERE c.post_id = p.id AND ${commentVisibility}
       ) AS comments_total
     FROM posts p
     JOIN post_translations pt
@@ -217,6 +235,8 @@ export async function getPostBySlug(slug: string) {
         email: c.user_email ?? undefined,
         image: c.user_image ?? undefined,
       },
+      moderationStatus: c.moderation_status ?? undefined,
+      moderationReason: c.moderation_reason,
     }),
   );
 

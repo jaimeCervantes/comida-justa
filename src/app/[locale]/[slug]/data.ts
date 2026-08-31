@@ -4,25 +4,38 @@ import { routing } from "~/i18n/routing";
 import { RELATED_POSTS_LIMIT } from "~/infra/constants";
 import { createPostQueryRepository } from "~/infra/dataAccess/getMultiplePosts";
 import { getOnePostWithPaginatedComments } from "~/infra/dataAccess/getOnePostWithPaginatedComments";
-import { getPostBySlug } from "~/infra/dataAccess/getOnePostWithPaginatedComments/PostgresGetOnePost";
+import {
+  getPostBySlug,
+  type PostViewer,
+} from "~/infra/dataAccess/getOnePostWithPaginatedComments/PostgresGetOnePost";
 import type { Post } from "~/infra/types/Posts";
 import { mapPostsToCardsForLocale } from "~/infra/UI/mappers/posts/mapPostsToCardsForLocale";
 
 const COMMENTS_PAGE_SIZE = 10;
 
 /**
+ * La misma referencia siempre, y no un `{}` nuevo por llamada: `cache()` memoiza por identidad de
+ * argumento, así que un objeto recién creado en cada invocación rompería el dedup de abajo incluso
+ * entre dos llamadas de una visita anónima.
+ */
+const ANONYMOUS_VIEWER: PostViewer = {};
+
+/**
  * Busca la publicación por slug. Devuelve `null` cuando no existe, para que la página pueda
  * responder 404 **antes** de renderizar: si la decisión ocurriera dentro de un `<Suspense>`,
  * la respuesta ya se habría enviado con status 200 y el 404 sería solo visual.
  *
- * Va memorizada por petición (`cache`) porque ahora la piden dos: `generateMetadata` y la página.
- * Sin esto, cada visita al detalle costaría el doble de consultas para leer lo mismo.
+ * Va memorizada por petición (`cache`) porque la piden dos: `generateMetadata` y la página. Esta
+ * no manda `viewer` —la metadata no lee comentarios—, así que sigue cayendo en `ANONYMOUS_VIEWER`
+ * y dedupa con cualquier visita sin sesión. Quien comenta con sesión paga una segunda consulta:
+ * es el precio de que sus comentarios ocultos no viajen en la misma respuesta que ve cualquiera.
  */
 export const getPostDetails = cache(async function getPostDetails(
   slug: string,
+  viewer: PostViewer = ANONYMOUS_VIEWER,
 ): Promise<Post | null> {
   // Primero PostgreSQL (la creación de posts ya es solo PG).
-  const pgResult = await getPostBySlug(slug);
+  const pgResult = await getPostBySlug(slug, viewer);
   if (!("errorMessage" in pgResult)) {
     return pgResult;
   }
