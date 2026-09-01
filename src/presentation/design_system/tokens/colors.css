@@ -84,6 +84,8 @@
   --surface-background: #faf7f1;
   --surface-elevation-1: #ffffff;
   --surface-elevation-2: #f1ece1;
+  --glass-background: rgb(255 255 255 / 0.7);
+  --glass-border: #e5e7eb;
 
   /* --- Structure ---
      `--separator` y `--border` son decorativos: separan, no delimitan un control, así que no les
@@ -239,6 +241,8 @@
     --surface-background: #101410;
     --surface-elevation-1: #1a1f18;
     --surface-elevation-2: #232920;
+    --glass-background: rgb(0 0 0 / 0.7);
+    --glass-border: #1f2937;
 
     /* --- Structure --- */
     --separator: #333b2e;
@@ -312,6 +316,8 @@
   --surface-background: #101410;
   --surface-elevation-1: #1a1f18;
   --surface-elevation-2: #232920;
+  --glass-background: rgb(0 0 0 / 0.7);
+  --glass-border: #1f2937;
 
   /* --- Structure --- */
   --separator: #333b2e;

@@ -217,7 +217,9 @@
 }
 
 @utility glass {
-  @apply bg-white/70 dark:bg-black/70 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800;
+  background-color: var(--glass-background);
+  border-bottom: 1px solid var(--glass-border);
+  @apply backdrop-blur-lg;
 }
 
 @utility container-width {
