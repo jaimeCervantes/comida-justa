@@ -11,6 +11,13 @@ const nextConfig = {
   },
   images: {
     /*
+     * Producción no puede depender del cupo de Image Optimization de Vercel: cuando se agota, el
+     * endpoint `/_next/image` responde 402 y las imágenes remotas desaparecen. Con esto
+     * `next/image` conserva el `src` original y el navegador carga directo desde Firebase/Google
+     * Storage. Se pierde la transformación/caché de Vercel, pero se recupera disponibilidad.
+     */
+    unoptimized: true,
+    /*
      * Treinta días de caché para la imagen ya optimizada.
      *
      * El valor por defecto es de minutos, y con él el servidor vuelve a descargar el original de
