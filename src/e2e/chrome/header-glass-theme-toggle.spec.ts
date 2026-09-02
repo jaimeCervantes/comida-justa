@@ -23,7 +23,7 @@ const background = (locator: Locator): Promise<string> =>
   locator.evaluate((node) => getComputedStyle(node).backgroundColor);
 
 const themeToggle = (page: import("@playwright/test").Page): Locator =>
-  page.getByTestId("theme-toggle");
+  page.getByRole("banner").getByTestId("theme-toggle");
 
 const chromeHeader = (page: import("@playwright/test").Page): Locator =>
   page.getByRole("banner");

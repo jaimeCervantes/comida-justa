@@ -71,4 +71,34 @@ describe("ThemeToggle", () => {
       screen.getByRole("button", { name: es.footer.theme.switchTo.system }),
     ).toBeInTheDocument();
   });
+
+  it("puede omitir el texto visible sin perder el nombre accesible", () => {
+    renderWithIntl(<ThemeToggle initial="dark" showLabel={false} />);
+
+    const button = screen.getByRole("button", {
+      name: es.footer.theme.switchTo.system,
+    });
+
+    expect(button).toHaveTextContent(/^\s*$/);
+    expect(
+      screen.queryByText(es.footer.theme.label.dark),
+    ).not.toBeInTheDocument();
+  });
+
+  it("sincroniza varias instancias montadas en la misma página", async () => {
+    const user = userEvent.setup();
+    renderWithIntl(
+      <>
+        <ThemeToggle initial={null} />
+        <ThemeToggle initial={null} />
+      </>,
+    );
+    const [first, second] = screen.getAllByRole("button");
+
+    await user.click(first);
+
+    expect(document.documentElement.dataset.theme).toBe("light");
+    expect(second).toHaveAccessibleName(es.footer.theme.switchTo.dark);
+    expect(screen.getAllByText(es.footer.theme.label.light)).toHaveLength(2);
+  });
 });

@@ -13,8 +13,8 @@ import es from "~/i18n/messages/es.json";
  * `pie.spec.ts` de al lado, y no una serie de escenarios de un roadmap.
  */
 
-const boton = (page: import("@playwright/test").Page) =>
-  page.getByTestId("theme-toggle");
+const botonDelPie = (page: import("@playwright/test").Page) =>
+  page.locator("footer").getByTestId("theme-toggle");
 
 test.describe("Sin preferencia guardada", () => {
   test.use({ colorScheme: "dark" });
@@ -41,7 +41,7 @@ test.describe("El ciclo del botón", () => {
   }) => {
     await page.goto("/");
     const html = page.locator("html");
-    const button = boton(page);
+    const button = botonDelPie(page);
 
     await expect(html).not.toHaveAttribute("data-theme");
     /* El nombre accesible describe a dónde lleva el próximo clic, no el estado actual — es lo
@@ -65,14 +65,14 @@ test.describe("El ciclo del botón", () => {
     page,
   }) => {
     await page.goto("/");
-    await boton(page).click(); // → light
-    await boton(page).click(); // → dark
+    await botonDelPie(page).click(); // → light
+    await botonDelPie(page).click(); // → dark
 
     await page.reload();
 
     /* Si el servidor no leyera la cookie, este `reload` volvería a "automático" — que es
        exactamente el defecto que un script de cliente-solo no habría cazado. */
     await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
-    await expect(boton(page)).toBeVisible();
+    await expect(botonDelPie(page)).toBeVisible();
   });
 });

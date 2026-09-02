@@ -120,7 +120,7 @@ export default async function RootLayout({
               página, para correr una vez por carga completa en lugar de por navegación. */}
           <LocationRefresher fix={await readVisitorFix()} />
           <div className="flex flex-col min-h-screen">
-            <Header />
+            <Header theme={themePreference} />
             {/* Desde dónde se miden las distancias, y cómo corregirlo. Va aquí y no dentro del
                 header —que es `sticky`— para no clavar una tercera fila en el teléfono; y va aquí y
                 no en cada página porque esa era justo la deuda: seis páginas lo montaban y la de

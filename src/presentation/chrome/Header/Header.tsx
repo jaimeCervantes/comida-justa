@@ -12,12 +12,14 @@ import { isAdmin } from "~/infra/auth/isAdmin";
 import { PUBLIC_BRAND_NAME } from "~/infra/constants";
 import { getCategoryTaxonomy } from "~/infra/dataAccess/categories/cachedCategoryTaxonomy";
 import { findPublicAddresses } from "~/infra/dataAccess/identity/sessionIdentity";
+import type { ThemePreference } from "~/infra/theme/themeCookie";
 import { SignIn, SignOut } from "~/presentation/auth/auth-buttons";
 import CartLink from "~/presentation/cart/CartLink/CartLink";
 import LinkButton from "~/presentation/navigation/LinkButton/LinkButton";
 import HeaderSearchBar from "~/presentation/search/HeaderSearchBar";
 import Avatar from "~/presentation/user/Avatar/Avatar";
 import LanguageSwitcher from "../LanguageSwitcher/LanguageSwitcher";
+import ThemeToggle from "../ThemeToggle/ThemeToggle";
 import MobileAccountCard from "./MobileAccountCard";
 import MobileNav from "./MobileNav";
 import Nav from "./Nav";
@@ -41,7 +43,11 @@ import UserMenu from "./UserMenu";
  */
 const ACTION_LABEL = "hidden sm:block lg:hidden xl:block";
 
-export default async function Header() {
+export default async function Header({
+  theme,
+}: {
+  theme: ThemePreference | null;
+}) {
   const t = await getTranslations("nav");
   const tCommon = await getTranslations("common");
   const session = await auth();
@@ -77,6 +83,10 @@ export default async function Header() {
                 username={username}
               />
             ) : null}
+
+            <div className="flex justify-start">
+              <ThemeToggle initial={theme} showLabel={false} />
+            </div>
 
             {/* Publicar y la sesión, en una fila de dos columnas: son las dos acciones del menú y
                 una debajo de la otra ocupaban el alto de tres filas del propio menú. */}
@@ -153,6 +163,10 @@ export default async function Header() {
           {/* Antes de la sesión: el carrito no la pide, y quien está comprando no debería tener que
               buscarlo dentro del menú del avatar. */}
           <CartLink />
+
+          <div className="hidden lg:block">
+            <ThemeToggle initial={theme} showLabel={false} />
+          </div>
 
           {session ? (
             /* Todo lo de la sesión cuelga del avatar: la cuenta, las herramientas de

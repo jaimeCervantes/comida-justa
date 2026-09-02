@@ -65,10 +65,10 @@ function ExternalLink({ href, children }: { href: string; children: string }) {
  * usuario: en un sitio de dos idiomas, cambiar de idioma es de las primeras cosas que alguien
  * busca, y el final de la página es encontrarlo tarde. Está en un solo sitio, no en los dos.
  *
- * **El conmutador de tema vive aquí**, y no en el header: a diferencia del idioma, no es de las
- * primeras cosas que alguien busca —el sitio ya sigue al sistema operativo sin que nadie toque
- * nada—, así que el pie es sitio de sobra. La preferencia la lee `RootLayout` de la cookie y
- * llega ya resuelta: sin ella no hay parpadeo que corregir al cargar.
+ * **El conmutador de tema también se conserva aquí.** Ahora hay una entrada más cercana en el
+ * header y en el menú móvil, pero el pie sigue cerrando con el mismo control para no quitar un
+ * acceso ya existente. La preferencia la lee `RootLayout` de la cookie y llega ya resuelta: sin
+ * ella no hay parpadeo que corregir al cargar.
  */
 export default function Footer({ theme }: { theme: ThemePreference | null }) {
   const t = useTranslations("footer");
