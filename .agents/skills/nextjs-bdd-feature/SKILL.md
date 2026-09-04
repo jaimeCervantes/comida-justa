@@ -20,6 +20,23 @@ Use this skill for behavior changes. Start from a small scenario, then tests, th
 > shared resource and how to undo it. A report is not a gate. **Never run the complete e2e suite
 > (`pnpm run test:e2e:run` with no path) unless the user explicitly asks for it.**
 >
+> **Playwright siempre en shards cuando pasen de ~20 escenarios.** Una corrida que se corta a la
+> mitad —por un tiempo de espera, por un `Ctrl+C`— deja sin ejecutar sus `afterEach`, y el residuo
+> en la base compartida hace fallar la corrida siguiente con errores que no tienen nada que ver
+> (404 en rutas que sí existen, tiendas duplicadas). Diagnosticarlo cuesta más que evitarlo. Parte
+> en tramos que terminen holgados:
+>
+> ```sh
+> pnpm exec playwright test <rutas> --shard=1/3 --reporter=line
+> pnpm exec playwright test <rutas> --shard=2/3 --reporter=line
+> pnpm exec playwright test <rutas> --shard=3/3 --reporter=line
+> ```
+>
+> Se lanzan **uno detrás de otro, nunca en paralelo**: cada tramo levanta su propio servidor en el
+> mismo puerto. Si una corrida se corta igualmente, antes de repetir hay que (1) matar el `next dev`
+> huérfano que se quedó escuchando y (2) dejar que el barrido de `globalTeardown` limpie; un fallo
+> tras una corrida cortada es residuo hasta que se demuestre lo contrario.
+>
 > The single exception is a **truly irreversible** action: destroying or overwriting data that isn't
 > yours, a schema migration on the shared DB, `git push --force`, exposing secrets, or a discovery that
 > invalidates the agreed model/scope. Everything else — routine blockers, tooling hiccups, "which
