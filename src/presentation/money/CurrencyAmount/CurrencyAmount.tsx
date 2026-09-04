@@ -21,7 +21,13 @@ export default function AmountCurrency({
   showZero = false,
   className,
 }: {
-  value: number;
+  /**
+   * Nulo cuando no hay precio, que es un caso real y no un descuido: un anuncio no lo tiene. El
+   * tipo lo dice desde que el panel de inventario lo llamó con un `number | null` — hasta entonces
+   * decía `number` mientras el cuerpo ya trataba la ausencia, y quien lo llamaba lo hacía desde un
+   * `Post` sin forma, así que el compilador no podía avisar de la diferencia.
+   */
+  value: number | null | undefined;
   currency?: string;
   /**
    * Pintar el cero en vez de callarse.

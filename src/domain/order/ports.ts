@@ -5,6 +5,7 @@ import type {
   OrderStatus,
   OrderStatusChange,
 } from "./order";
+import type { StockDemand, StockEffect } from "./orderStock";
 
 /**
  * Lo que de un renglón se **escribe**.
@@ -147,6 +148,20 @@ export interface OrderRepository {
   ): Promise<{ sellerId: string; status: OrderStatus } | null>;
 
   /**
+   * Qué pide el pedido de cada publicación y cuántas quedan hoy.
+   *
+   * Existe aparte de `findById` por lo mismo que `findHeader`: quien mueve un pedido no lo pinta, y
+   * traer slugs y miniaturas para decidir si alcanza el inventario eran tres `JOIN` a la basura.
+   *
+   * `stockQuantity` viene nulo tanto cuando la publicación no lleva inventario como cuando ya no
+   * existe. Las dos ausencias significan lo mismo aquí —no hay número que mover— y por eso no se
+   * distinguen.
+   */
+  stockDemandOf(
+    orderId: string,
+  ): Promise<Array<StockDemand & { stockQuantity: number | null }>>;
+
+  /**
    * Cambia el estado **solo si el pedido es de ese vendedor y sigue en el estado de partida**.
    *
    * Las dos condiciones viajan en el `WHERE` y no en un `if` previo. La autorización, porque
@@ -174,6 +189,14 @@ export interface OrderRepository {
     status: OrderStatus;
     /** Quién lo movió, para el histórico. Nulo cuando no hay una persona detrás. */
     changedBy?: string | null;
+    /**
+     * Qué hacerle al inventario, **decidido en el dominio** (`stockEffectOf`).
+     *
+     * Viaja hasta aquí en vez de calcularse abajo porque va en la MISMA transacción que el cambio
+     * de estado: un pedido que quedara aceptado sin descontar, o descontado sin quedar aceptado,
+     * son las dos formas de que el número deje de significar nada.
+     */
+    stockEffect: StockEffect;
   }): Promise<OrderStatus | null>;
 
   /**

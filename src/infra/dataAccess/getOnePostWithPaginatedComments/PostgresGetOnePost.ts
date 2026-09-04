@@ -26,6 +26,7 @@ interface PostRow {
   category: string | null;
   sub_category: string | null;
   is_available: boolean;
+  stock_quantity: number | null;
   starts_at: Date | null;
   ends_at: Date | null;
   duration_minutes: number | null;
@@ -96,6 +97,7 @@ export async function getPostBySlug(slug: string, viewer: PostViewer = {}) {
       p.category,
       p.sub_category,
       p.is_available,
+      p.stock_quantity,
       p.starts_at,
       p.ends_at,
       p.duration_minutes,
@@ -259,6 +261,7 @@ export async function getPostBySlug(slug: string, viewer: PostViewer = {}) {
     category: row.category ?? null,
     subCategory: row.sub_category ?? null,
     isAvailable: row.is_available,
+    stockQuantity: row.stock_quantity,
     startsAt: row.starts_at,
     endsAt: row.ends_at,
     durationMinutes: row.duration_minutes,

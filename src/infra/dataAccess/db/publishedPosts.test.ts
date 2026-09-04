@@ -52,6 +52,11 @@ const ALLOWED: ReadonlyArray<{ file: string; reason: string }> = [
       "Es el panel: existe justamente para leer lo que NO está publicado. Filtrar aquí lo dejaría siempre vacío.",
   },
   {
+    file: "orders/PostgresOrderRepository.ts",
+    reason:
+      "Mueve el inventario de un pedido ya hecho. Filtrar aquí sería lo contrario de lo correcto: lo que se pidió se descuenta aunque la publicación se bajara después, y saltárselo dejaría el número mintiendo. No lee para enseñar nada.",
+  },
+  {
     file: "posts/PostgresPostQueryRepository.ts",
     reason:
       "Filtra de verdad, pero en el embudo (getPaginatedPosts) y en los reportes de admin, que cuentan TODO a propósito. Cubierto por sus propias pruebas.",

@@ -13,6 +13,14 @@ export interface PostData {
    * Viaja con el listado desde el slice 8: la tarjeta enseña el logo junto a la categoría y la
    * distancia. Antes solo se sabía la distancia —que sale de `p.seller_id`— y no de quién era.
    */
+  /**
+   * La tienda que lo vende (`posts.seller_id`), o `null` si quien publicó no tiene.
+   *
+   * Va aparte de `seller`, que es lo que se **pinta** —nombre y logo—: esto es lo que se
+   * **compara**. Sin él, `canManagePost` en una tarjeta sólo podía preguntar por quién publicó, y
+   * el dueño de una tienda no veía nada sobre lo que escribió otra mano.
+   */
+  sellerId?: string | null;
   seller?: {
     handle: string;
     name: string;
@@ -25,6 +33,13 @@ export interface PostData {
   origin: string | null;
   /** Lo que el chatbot filtra y lo que el vendedor apaga al quedarse sin existencias. */
   isAvailable?: boolean;
+  /**
+   * Cuántas quedan, o `null` si no lleva inventario. **Nulo no es cero.**
+   *
+   * Viaja hasta la tarjeta porque ahí se edita: quien mira su catálogo arregla lo que ve sin abrir
+   * cada publicación. Ver `CardOwnerControls`.
+   */
+  stockQuantity?: number | null;
   contactInfo: {
     phone: string;
     email?: string;

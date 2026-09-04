@@ -9,6 +9,11 @@ vi.mock("~/presentation/post/availabilityAction", () => ({
   setAvailability: vi.fn(),
 }));
 
+// Lo mismo, por el mismo motivo: el campo de existencias de la tarjeta también es un Server Action.
+vi.mock("~/presentation/post/stockAction", () => ({
+  setStock: vi.fn(),
+}));
+
 import { renderWithIntl as render } from "~/infra/test-utils/renderWithIntl";
 import ProductsList from "./ProductsList";
 

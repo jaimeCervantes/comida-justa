@@ -55,6 +55,12 @@ export default async function StorePage({ params, searchParams }: Props) {
     notFound();
   }
 
+  /* La tienda de quien mira, sólo cuando es ésta. No cuesta una consulta: si su dueño es quien
+     mira, su `sellerId` es justamente el de esta tienda, y todo lo del catálogo cuelga de ella.
+     Es lo que abre la segunda vía de `canManagePost` en las tarjetas. */
+  const ownedSellerId =
+    viewerId && store.seller.userId === viewerId ? store.seller.id : null;
+
   return (
     <>
       {/* La canónica es la misma que declara la metadata: la tienda se identifica por una sola
@@ -97,6 +103,7 @@ export default async function StorePage({ params, searchParams }: Props) {
 
       <StoreCatalog
         viewerId={viewerId}
+        viewerSellerId={ownedSellerId}
         catalog={store.catalog}
         handle={slug}
         currentPage={PAGINATION_INIT_PAGE}

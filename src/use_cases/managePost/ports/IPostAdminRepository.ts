@@ -4,6 +4,13 @@ import type { PostMediaFile } from "~/domain/entities/post/types";
 export interface EditablePost {
   id: string;
   ownerId: string;
+  /**
+   * La tienda que lo vende (`posts.seller_id`), o `null` si quien publicó no tiene.
+   *
+   * Se lee para autorizar, no para pintar: es la segunda vía de `canManagePost`, la que deja que
+   * el dueño de una tienda administre lo que publicó otra mano.
+   */
+  sellerId: string | null;
   slug: string;
   locale: string;
   title: string;
@@ -18,6 +25,8 @@ export interface EditablePost {
   endsAt: Date | null;
   durationMinutes: number | null;
   isAvailable: boolean;
+  /** Cuántas quedan, o `null` si no lleva inventario. **Nulo no es cero.** */
+  stockQuantity: number | null;
   /**
    * Los archivos que ya tiene, en su `sort_order`.
    *
@@ -52,10 +61,24 @@ export interface PostContentUpdate {
   media: PostMediaFile[];
 }
 
+/**
+ * Las dos columnas se mueven juntas o no se mueven.
+ *
+ * `isAvailable` no es un dato que mande quien edita: lo deriva el caso de uso del número
+ * (`availabilityForStock`). Viaja en la misma escritura para que no exista un instante en el que un
+ * producto en cero siga anunciándose a quien filtra por `is_available` — o sea, al chatbot.
+ */
+export interface PostStockUpdate {
+  postId: string;
+  quantity: number;
+  isAvailable: boolean;
+}
+
 export default interface IPostAdminRepository {
   findBySlug(slug: string): Promise<EditablePost | null>;
   findById(postId: string): Promise<EditablePost | null>;
   setAvailability(postId: string, isAvailable: boolean): Promise<void>;
+  setStock(update: PostStockUpdate): Promise<void>;
   /** El slug NO se toca al editar: cambiarlo rompería los enlaces ya compartidos. */
   updateContent(update: PostContentUpdate): Promise<void>;
 }

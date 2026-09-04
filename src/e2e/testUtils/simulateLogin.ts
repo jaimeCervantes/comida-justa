@@ -2,8 +2,8 @@ import type { Page, PlaywrightWorkerOptions } from "@playwright/test";
 import { eq } from "drizzle-orm";
 import type { Cookie } from "~/e2e/types/cookies";
 import { db } from "~/infra/dataAccess/db/connection";
-import { sessions, users } from "~/infra/dataAccess/db/schema/auth";
-import { findSuiteUserId } from "./suiteAccount";
+import { sessions } from "~/infra/dataAccess/db/schema/auth";
+import { findSuiteUserId, findUserIdByEmail } from "./suiteAccount";
 
 export async function simulateLogin(
   page: Page,
@@ -90,19 +90,3 @@ export type DbSession = {
   sessionToken: string;
   expires: string;
 };
-
-async function findUserIdByEmail(email: string): Promise<string> {
-  const rows = await db
-    .select({ id: users.id })
-    .from(users)
-    .where(eq(users.email, email))
-    .limit(1);
-
-  if (rows.length === 0) {
-    throw new Error(
-      `simulateLogin: no user with email "${email}" exists in the users table.`,
-    );
-  }
-
-  return rows[0].id;
-}

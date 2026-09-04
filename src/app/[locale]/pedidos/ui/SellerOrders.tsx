@@ -10,6 +10,24 @@ import {
   type AdvanceOrderState,
   advanceOrder,
 } from "~/presentation/orders/orderActions";
+import type { AdvanceOrderError } from "~/use_cases/advanceOrder/advanceOrderUseCase";
+
+/**
+ * Qué se le dice al vendedor por cada motivo.
+ *
+ * «No se pudo» y «no te alcanza el inventario» son dos conversaciones distintas: la primera se
+ * resuelve recargando y la segunda reponiendo. Hasta este slice había un solo mensaje para todo,
+ * porque sólo había una forma de fallar.
+ *
+ * Los dos primeros comparten frase a propósito: no existe, no es tuyo o ya se movió son el mismo
+ * mensaje para quien mira —vuelve a cargar—, y distinguirlos le contaría a un extraño si el id que
+ * probó era bueno.
+ */
+const ERROR_KEYS = {
+  "not-found": "errorTransition",
+  "invalid-transition": "errorTransition",
+  "insufficient-stock": "errorInsufficientStock",
+} as const satisfies Record<AdvanceOrderError, string>;
 
 /**
  * Los pedidos que le han hecho al vendedor, con lo que puede hacer con cada uno.
@@ -95,7 +113,7 @@ function SellerOrderCard({ order }: { order: OrderWithBuyer }) {
           data-testid="seller-order-error"
           className="mt-2 text-label text-pw-orange"
         >
-          {t("errorTransition")}
+          {t(ERROR_KEYS[state.error])}
         </p>
       ) : null}
     </OrderCard>

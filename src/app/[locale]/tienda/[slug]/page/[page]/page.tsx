@@ -62,6 +62,12 @@ export default async function StorePaginatedPage({
     notFound();
   }
 
+  /* La tienda de quien mira, sólo cuando es ésta. No cuesta una consulta: si su dueño es quien
+     mira, su `sellerId` es justamente el de esta tienda, y todo lo del catálogo cuelga de ella.
+     Es lo que abre la segunda vía de `canManagePost` en las tarjetas. */
+  const ownedSellerId =
+    viewerId && store.seller.userId === viewerId ? store.seller.id : null;
+
   return (
     <main className="p-4">
       <StoreHeader
@@ -81,6 +87,7 @@ export default async function StorePaginatedPage({
 
       <StoreCatalog
         viewerId={viewerId}
+        viewerSellerId={ownedSellerId}
         catalog={store.catalog}
         handle={slug}
         currentPage={page}

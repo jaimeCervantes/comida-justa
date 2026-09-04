@@ -2,6 +2,7 @@ import { useTranslations } from "next-intl";
 import { canBeOrdered, isSellable } from "~/domain/entities/post/availability";
 import { SERVICE_KIND } from "~/domain/entities/post/kind";
 import { hasKnownAspect } from "~/domain/entities/post/mediaAspect";
+import { canManagePost } from "~/domain/entities/post/postPermissions";
 import { Link } from "~/i18n/navigation";
 import { storeHref } from "~/i18n/routes";
 import { PUBLIC_BASE_URL, SITE_CURRENCY } from "~/infra/constants";
@@ -58,10 +59,17 @@ function absoluteUrl(to: string): string {
  * `viewerId` decide si además se le ofrecen los controles de dueño. Es un **prop** y no una lectura
  * de sesión aquí adentro porque esta tarjeta también se pinta dentro de componentes de cliente —el
  * scroll infinito del home—, donde `auth()` no existe. Quien sabe quién mira es la página.
+ *
+ * `viewerSellerId` es la **segunda vía**: quien lleva la tienda administra su catálogo aunque cada
+ * ficha la escribiera otra mano. Hasta ahora la tarjeta sólo preguntaba por quién publicó, así que
+ * en `/tienda/<handle>` su dueño no veía nada sobre lo ajeno — el mismo hueco que el slice 1 cerró
+ * en la ficha y que aquí seguía abierto. Es opcional porque sólo la tienda tiene algo que ganar:
+ * en un perfil todo lo listado es de la misma cuenta.
  */
 export default function CardForList(
   props: Post & {
     viewerId?: string | null;
+    viewerSellerId?: string | null;
     seller?: StoreIdentity | null;
     onAvailabilityChange?: (postId: string, isAvailable: boolean) => void;
   },
@@ -85,11 +93,23 @@ export default function CardForList(
     categoryLabel,
     seller,
     viewerId,
+    viewerSellerId,
+    stockQuantity,
     onAvailabilityChange,
   } = props;
   const anchorProps = { href: to, title: title };
   const detailHref = slug ? `/${String(slug)}` : to;
-  const isOwner = Boolean(viewerId) && user?.id === viewerId;
+  /* La misma regla que autoriza la escritura (`canManagePost`), preguntada aquí para no enseñar un
+     control que el servidor iba a negar —ni esconder uno que sí habría aceptado—. */
+  const canManage =
+    Boolean(viewerId) &&
+    canManagePost(
+      {
+        ownerId: String(user?.id ?? ""),
+        sellerId: typeof props.sellerId === "string" ? props.sellerId : null,
+      },
+      { userId: String(viewerId), sellerId: viewerSellerId ?? null },
+    );
   /* Se lee del catálogo y no viaja como dato, a diferencia de `categoryLabel`: ese necesita la
      base y por eso se resuelve en el servidor; esto es solo una cadena del catálogo, que el
      proveedor de next-intl tiene disponible también en el árbol cliente. */
@@ -221,12 +241,16 @@ export default function CardForList(
         />
       )}
 
-      {isOwner ? (
+      {canManage ? (
         <CardOwnerControls
           postId={String(id ?? "")}
           slug={slug ? String(slug) : slugFromUrl(to)}
+          kind={kind}
           isAvailable={isAvailable !== false}
           isSellable={isSellable({ kind })}
+          stockQuantity={
+            typeof stockQuantity === "number" ? stockQuantity : null
+          }
           onAvailabilityChange={
             onAvailabilityChange
               ? (available) => onAvailabilityChange(String(id ?? ""), available)

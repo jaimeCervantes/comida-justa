@@ -7,6 +7,7 @@ import {
   type OrderStatusChange,
   statusesInScope,
 } from "~/domain/order/order";
+import type { StockDemand, StockEffect } from "~/domain/order/orderStock";
 import type {
   NewOrder,
   OrderPage,
@@ -22,6 +23,99 @@ import {
   customerOrderStatusChanges,
   customerOrders,
 } from "~/infra/dataAccess/db/schema/orders";
+
+/** La transacción que abre `db.transaction`, sin tener que nombrar los genéricos de Drizzle. */
+type Transaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
+
+/**
+ * Que las últimas unidades se las llevó otro entre la comprobación y la escritura.
+ *
+ * Es un error propio y no `tx.rollback()` porque hay que **distinguirlo**: Drizzle vuelve a lanzar
+ * lo que salga de la transacción, y quien llama tiene que ver esto como «se movió mientras tanto»
+ * —un `null`— y no como una caída.
+ */
+class StockUnavailableError extends Error {
+  constructor() {
+    super("El inventario cambió entre la comprobación y la escritura.");
+    this.name = "StockUnavailableError";
+  }
+}
+
+/**
+ * Lo que el pedido pide de cada publicación, **sumado por publicación**.
+ *
+ * Nada impide dos renglones del mismo producto —no hay `UNIQUE(order_id, post_id)`— y un
+ * `UPDATE ... FROM` con dos filas que casan aplica una sola, arbitrariamente. Agrupar es lo que
+ * hace que se descuente lo que de verdad se pidió.
+ */
+function demandOf(orderId: string) {
+  return sql`(
+    SELECT post_id, sum(quantity)::int AS q
+    FROM customer_order_items
+    WHERE order_id = ${orderId}::uuid AND post_id IS NOT NULL
+    GROUP BY post_id
+  ) d`;
+}
+
+/**
+ * Mueve el inventario de un pedido y dice si movió **todo** lo que tenía que mover.
+ *
+ * `is_available` se deriva en la misma sentencia, como en todas las escrituras de existencias desde
+ * el slice 1: el chatbot lee esa columna y no puede quedarse un instante diciendo que sí de algo
+ * que acaba de agotarse.
+ *
+ * Al reservar, el `>= d.q` va en el `WHERE` y no en un `if` previo. Ahí está la garantía de verdad:
+ * dos vendedores aceptando a la vez el último lote leen los dos «quedan 3», y sólo uno de los dos
+ * `UPDATE` encuentra fila. El de después no toca nada, cuenta menos filas de las que debía y se
+ * lleva la transacción entera por delante.
+ *
+ * Al devolver no hay guarda: sumar siempre cabe, y el resultado siempre es positivo.
+ */
+async function moveStock(
+  tx: Transaction,
+  orderId: string,
+  effect: "reserve" | "release",
+): Promise<boolean> {
+  const demand = demandOf(orderId);
+
+  /* Cuántas publicaciones del pedido llevan la cuenta. Las que no, no se tocan y no se esperan:
+     son las 418 de siempre. */
+  const expected = await tx.execute(sql`
+    SELECT count(*)::int AS total
+    FROM ${demand}
+    JOIN posts p ON p.id = d.post_id
+    WHERE p.stock_quantity IS NOT NULL
+  `);
+
+  const total = (expected.rows as Array<{ total: number }>)[0]?.total ?? 0;
+
+  if (total === 0) return true;
+
+  const moved = await tx.execute(
+    effect === "reserve"
+      ? sql`
+          UPDATE posts p
+          SET stock_quantity = p.stock_quantity - d.q,
+              is_available   = (p.stock_quantity - d.q) > 0
+          FROM ${demand}
+          WHERE p.id = d.post_id
+            AND p.stock_quantity IS NOT NULL
+            AND p.stock_quantity >= d.q
+          RETURNING p.id
+        `
+      : sql`
+          UPDATE posts p
+          SET stock_quantity = p.stock_quantity + d.q,
+              is_available   = true
+          FROM ${demand}
+          WHERE p.id = d.post_id
+            AND p.stock_quantity IS NOT NULL
+          RETURNING p.id
+        `,
+  );
+
+  return moved.rows.length === total;
+}
 
 interface OrderRow {
   id: string;
@@ -298,46 +392,106 @@ export class PostgresOrderRepository implements OrderRepository {
    * transacción podría faltar por un fallo a mitad. Y como el `UPDATE` sólo toca fila cuando el
    * cambio es real, el intento de la segunda pestaña no escribe historia de algo que no pasó.
    */
+  /**
+   * Qué pide el pedido de cada publicación y cuántas quedan hoy.
+   *
+   * **Agrupado por publicación.** Nada impide dos renglones del mismo producto en un pedido —no hay
+   * `UNIQUE(order_id, post_id)`— y sumarlos aquí es lo que hace que la comprobación mire la demanda
+   * real y no la de un renglón suelto. Es la misma agrupación que hace la escritura, a propósito:
+   * si contaran distinto, avisaría de una cosa y descontaría otra.
+   */
+  async stockDemandOf(
+    orderId: string,
+  ): Promise<Array<StockDemand & { stockQuantity: number | null }>> {
+    const raw = await db.execute(sql`
+      SELECT
+        i.post_id,
+        min(i.title) AS title,
+        sum(i.quantity)::int AS quantity,
+        min(p.stock_quantity) AS stock_quantity
+      FROM customer_order_items i
+      JOIN posts p ON p.id = i.post_id
+      WHERE i.order_id = ${orderId}::uuid AND i.post_id IS NOT NULL
+      GROUP BY i.post_id
+    `);
+
+    return (
+      raw.rows as unknown as Array<{
+        post_id: string;
+        title: string;
+        quantity: number;
+        stock_quantity: number | null;
+      }>
+    ).map((row) => ({
+      postId: row.post_id,
+      title: row.title,
+      quantity: row.quantity,
+      stockQuantity: row.stock_quantity,
+    }));
+  }
+
   async updateStatus({
     orderId,
     sellerId,
     fromStatus,
     status,
     changedBy,
+    stockEffect,
   }: {
     orderId: string;
     sellerId: string;
     fromStatus: OrderStatus;
     status: OrderStatus;
     changedBy?: string | null;
+    stockEffect: StockEffect;
   }): Promise<OrderStatus | null> {
-    return db.transaction(async (tx) => {
-      const [header] = await tx
-        .update(customerOrders)
-        .set({ status, updatedAt: new Date() })
-        .where(
-          and(
-            eq(customerOrders.id, orderId),
-            eq(customerOrders.sellerId, sellerId),
-            eq(customerOrders.status, fromStatus),
-          ),
-        )
-        .returning();
+    try {
+      return await db.transaction(async (tx) => {
+        const [header] = await tx
+          .update(customerOrders)
+          .set({ status, updatedAt: new Date() })
+          .where(
+            and(
+              eq(customerOrders.id, orderId),
+              eq(customerOrders.sellerId, sellerId),
+              eq(customerOrders.status, fromStatus),
+            ),
+          )
+          .returning();
 
-      if (!header) return null;
+        if (!header) return null;
 
-      await tx.insert(customerOrderStatusChanges).values({
-        orderId,
-        fromStatus,
-        toStatus: status,
-        /* `changedAt` lo pone la base con su `now()`, no el proceso de Node: el reloj de la base es
+        await tx.insert(customerOrderStatusChanges).values({
+          orderId,
+          fromStatus,
+          toStatus: status,
+          /* `changedAt` lo pone la base con su `now()`, no el proceso de Node: el reloj de la base es
            el mismo para todos los pasos y `created_at`/`updated_at` ya salen de ahí. Mezclar dos
            relojes en una línea de tiempo es cómo se acaba viendo un paso "antes" del anterior. */
-        changedBy: changedBy ?? null,
-      });
+          changedBy: changedBy ?? null,
+        });
 
-      return header.status;
-    });
+        /* El inventario, aquí dentro. Un pedido que quedara aceptado sin descontar —o descontado sin
+         quedar aceptado— son las dos formas de que el número deje de significar nada. */
+        if (stockEffect !== "none") {
+          const moved = await moveStock(tx, orderId, stockEffect);
+
+          /* Si el `UPDATE` guardado no tocó todas las filas que debía, alguien se llevó las últimas
+           unidades entre la comprobación y la escritura. Se deshace **todo**, incluido el cambio de
+           estado: aceptar un pedido que no se puede servir es exactamente lo que este slice viene a
+           impedir. Quien llama lo ve como "se movió mientras tanto", que es lo que pasó. */
+          if (!moved) throw new StockUnavailableError();
+        }
+
+        return header.status;
+      });
+    } catch (error) {
+      /* Quedarse sin existencias a medio camino se ve igual que un pedido que se movió: no hay fila
+         que tocar. Cualquier otro fallo sí sube, porque sí es un fallo. */
+      if (error instanceof StockUnavailableError) return null;
+
+      throw error;
+    }
   }
 
   /**

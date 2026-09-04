@@ -35,7 +35,29 @@ function orderInStatus(
   };
 }
 
-function build(current: OrderWithSeller | null, applied?: OrderStatus | null) {
+/** Lo que el pedido pide de cada publicación, con lo que queda hoy. */
+type Demand = {
+  postId: string | null;
+  title: string;
+  quantity: number;
+  stockQuantity: number | null;
+};
+
+/** Por omisión, un renglón que NO lleva inventario: es lo que son las 418 publicaciones de hoy. */
+const SIN_INVENTARIO: Demand[] = [
+  {
+    postId: "f5258215-a56c-4c86-813e-89177f2860d2",
+    title: "Jugo Verde",
+    quantity: 2,
+    stockQuantity: null,
+  },
+];
+
+function build(
+  current: OrderWithSeller | null,
+  applied?: OrderStatus | null,
+  demands: Demand[] = SIN_INVENTARIO,
+) {
   const orders: OrderRepository = {
     createAll: vi.fn(),
     listBySeller: vi.fn(),
@@ -51,6 +73,7 @@ function build(current: OrderWithSeller | null, applied?: OrderStatus | null) {
       .mockResolvedValue(
         current ? { sellerId: current.sellerId, status: current.status } : null,
       ),
+    stockDemandOf: vi.fn().mockResolvedValue(demands),
     updateStatus: vi
       .fn()
       .mockResolvedValue(
@@ -78,6 +101,9 @@ describe("AdvanceOrderUseCase", () => {
       sellerId: SELLER,
       fromStatus: "PENDING",
       status: "CONFIRMED",
+      changedBy: undefined,
+      // Aceptar es lo que compromete mercancía, y viaja con la escritura.
+      stockEffect: "reserve",
     });
   });
 
@@ -168,4 +194,160 @@ describe("AdvanceOrderUseCase", () => {
       expect("status" in result).toBe(true);
     },
   );
+});
+
+describe("AdvanceOrderUseCase — el inventario", () => {
+  const DONA = "176a9519-6aab-4998-856b-86198f90d96a";
+
+  /** Un renglón de 2 "Dona Chocolate Keto" sobre un producto que sí lleva la cuenta. */
+  const conInventario = (stockQuantity: number | null): Demand[] => [
+    {
+      postId: DONA,
+      title: "Dona Chocolate Keto",
+      quantity: 2,
+      stockQuantity,
+    },
+  ];
+
+  it("aceptar descuenta lo que lleva", async () => {
+    const { useCase, orders } = build(
+      orderInStatus("PENDING"),
+      "CONFIRMED",
+      conInventario(12),
+    );
+
+    const result = await useCase.execute({
+      orderId: ORDER_ID,
+      sellerId: SELLER,
+      status: "CONFIRMED",
+    });
+
+    expect("status" in result && result.status).toBe("CONFIRMED");
+    expect(orders.updateStatus).toHaveBeenCalledWith(
+      expect.objectContaining({ stockEffect: "reserve" }),
+    );
+  });
+
+  it("no se acepta lo que no se puede servir, y no se escribe nada", async () => {
+    const { useCase, orders } = build(
+      orderInStatus("PENDING"),
+      "CONFIRMED",
+      conInventario(1),
+    );
+
+    const result = await useCase.execute({
+      orderId: ORDER_ID,
+      sellerId: SELLER,
+      status: "CONFIRMED",
+    });
+
+    expect(result).toEqual({ error: "insufficient-stock" });
+    expect(orders.updateStatus).not.toHaveBeenCalled();
+  });
+
+  it("con lo justo sí se acepta", async () => {
+    const { useCase, orders } = build(
+      orderInStatus("PENDING"),
+      "CONFIRMED",
+      conInventario(2),
+    );
+
+    await useCase.execute({
+      orderId: ORDER_ID,
+      sellerId: SELLER,
+      status: "CONFIRMED",
+    });
+
+    expect(orders.updateStatus).toHaveBeenCalled();
+  });
+
+  /* La garantía de que esto no toca a las 418 publicaciones que no llevan la cuenta. */
+  it("lo que no lleva inventario no bloquea nada", async () => {
+    const { useCase, orders } = build(
+      orderInStatus("PENDING"),
+      "CONFIRMED",
+      conInventario(null),
+    );
+
+    const result = await useCase.execute({
+      orderId: ORDER_ID,
+      sellerId: SELLER,
+      status: "CONFIRMED",
+    });
+
+    expect("status" in result && result.status).toBe("CONFIRMED");
+    expect(orders.updateStatus).toHaveBeenCalled();
+  });
+
+  it("cancelar un pedido ya aceptado devuelve lo suyo", async () => {
+    const { useCase, orders } = build(
+      orderInStatus("CONFIRMED"),
+      "CANCELLED",
+      conInventario(10),
+    );
+
+    await useCase.execute({
+      orderId: ORDER_ID,
+      sellerId: SELLER,
+      status: "CANCELLED",
+    });
+
+    expect(orders.updateStatus).toHaveBeenCalledWith(
+      expect.objectContaining({ stockEffect: "release" }),
+    );
+  });
+
+  it("cancelar uno que nunca se aceptó no devuelve nada", async () => {
+    const { useCase, orders } = build(
+      orderInStatus("PENDING"),
+      "CANCELLED",
+      conInventario(12),
+    );
+
+    await useCase.execute({
+      orderId: ORDER_ID,
+      sellerId: SELLER,
+      status: "CANCELLED",
+    });
+
+    expect(orders.updateStatus).toHaveBeenCalledWith(
+      expect.objectContaining({ stockEffect: "none" }),
+    );
+  });
+
+  /* Sólo aceptar consulta el inventario: preguntar por él para cancelar o entregar sería una
+     consulta que se tira a la basura en el camino más recorrido de la pantalla. */
+  it("no consulta el inventario cuando el paso no lo mueve", async () => {
+    const { useCase, orders } = build(
+      orderInStatus("CONFIRMED"),
+      "PREPARING",
+      conInventario(10),
+    );
+
+    await useCase.execute({
+      orderId: ORDER_ID,
+      sellerId: SELLER,
+      status: "PREPARING",
+    });
+
+    expect(orders.stockDemandOf).not.toHaveBeenCalled();
+  });
+
+  /* Entre leer y escribir cabe otro pedido: la garantía la pone el `WHERE` del `UPDATE`, que deja la
+     transacción sin fila que tocar, y eso se ve desde fuera como que el pedido se movió. */
+  it("si alguien se lleva las últimas unidades entre medias, no se inventa un pedido aceptado", async () => {
+    const { useCase } = build(
+      orderInStatus("PENDING"),
+      null,
+      conInventario(12),
+    );
+
+    const result = await useCase.execute({
+      orderId: ORDER_ID,
+      sellerId: SELLER,
+      status: "CONFIRMED",
+    });
+
+    expect(result).toEqual({ error: "not-found" });
+  });
 });

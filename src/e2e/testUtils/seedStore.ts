@@ -30,10 +30,14 @@ export type SeededStore = {
  * Siembra una tienda de prueba **sin dueño**, y opcionalmente su sucursal a la distancia que pida
  * el escenario.
  *
- * `user_id` se deja en `NULL` a propósito. Colgarla de la cuenta de la suite bloquearía a los seis
- * escenarios que empiezan abriendo tienda —`/cuenta` deja de pintar el formulario de alta cuando ya
- * hay una— y ese fallo ya costó una corrida entera (ver `testData.ts`). El barrido la reconoce por
- * el prefijo `e2e-` del slug.
+ * `user_id` se deja en `NULL` **por omisión**. Colgarla de la cuenta de la suite bloquearía a los
+ * seis escenarios que empiezan abriendo tienda —`/cuenta` deja de pintar el formulario de alta
+ * cuando ya hay una— y ese fallo ya costó una corrida entera (ver `testData.ts`). El barrido la
+ * reconoce por el prefijo `e2e-` del slug.
+ *
+ * `ownerId` existe para lo que **no se puede probar sin dueño**: el panel de inventario, que se
+ * llega por `findSellerOfUser`. Quien lo use debe pasar una cuenta que **no** sea la de la suite,
+ * por lo mismo de arriba, y borrar la tienda al terminar.
  *
  * La sucursal se coloca desplazando **solo la latitud** desde el ancla de la comunidad: sobre un
  * meridiano un grado son ~111.32 km sin importar dónde estés, así que la distancia sale sin meter
@@ -42,10 +46,11 @@ export type SeededStore = {
 export async function seedStore(
   store: SeededStore,
   branchDistanceKm: number | null,
+  ownerId: string | null = null,
 ): Promise<void> {
   await db.execute(sql`
     INSERT INTO sellers (name, slug, category, phone, user_id)
-    VALUES (${store.name}, ${store.handle}, 'Food', ${store.phone}, NULL)
+    VALUES (${store.name}, ${store.handle}, 'Food', ${store.phone}, ${ownerId})
   `);
 
   if (branchDistanceKm === null) return;
