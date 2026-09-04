@@ -16,9 +16,12 @@ import { storePath } from "../storePath";
 import AccountCard from "./AccountCard";
 
 export default function BecomeSellerForm({
+  id,
   action,
   defaultName,
 }: {
+  /** El ancla del bloque, de `anchors.ts`. */
+  id?: string;
   action: (
     state: BecomeSellerState,
     data: FormData,
@@ -50,7 +53,11 @@ export default function BecomeSellerForm({
   const handlePreview = generateSellerHandle(name);
 
   return (
-    <AccountCard title={t("becomeSellerTitle")} intro={t("becomeSellerIntro")}>
+    <AccountCard
+      id={id}
+      title={t("becomeSellerTitle")}
+      intro={t("becomeSellerIntro")}
+    >
       {state.errorMessage ? (
         <p
           data-testid="become-seller-error"

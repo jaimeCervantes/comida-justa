@@ -22,12 +22,21 @@ import { Heading } from "~/presentation/design_system/typography/Heading";
  * No traduce nada: recibe el texto ya resuelto, igual que `Button` recibe su `loadingLabel`.
  */
 export default function AccountCard({
+  id,
   title,
   intro,
   children,
   testId,
   className,
 }: {
+  /**
+   * El ancla del bloque, de `anchors.ts`.
+   *
+   * Va con `scroll-mt-24` siempre y no solo cuando hay `id`: el encabezado del sitio es fijo, así
+   * que un salto sin margen deja el título de la tarjeta **debajo** de la barra y quien pulsa cree
+   * que el enlace no hizo nada.
+   */
+  id?: string;
   title: string;
   /** Para qué sirve el bloque. Acepta nodos porque alguno lleva la dirección en negrita. */
   intro?: ReactNode;
@@ -38,6 +47,7 @@ export default function AccountCard({
   return (
     <Surface
       as="section"
+      id={id}
       background="raised"
       border="subtle"
       elevation="sm"
@@ -45,7 +55,7 @@ export default function AccountCard({
       /* El mismo relleno y la misma separación que cualquier otra tarjeta del sitio: iba con `p-6`
          y márgenes propios en cada hijo (`mt-2`, `mt-4`) mientras la de una publicación usaba
          `p-5`. Ver `cardSpacing.ts`. */
-      className={cn(CARD_PADDING, CARD_STACK, className)}
+      className={cn(CARD_PADDING, CARD_STACK, "scroll-mt-24", className)}
       data-testid={testId}
     >
       <Heading level={2} size="xs">

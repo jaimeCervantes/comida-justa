@@ -48,8 +48,13 @@ export default class SellerAccountPage {
     ).toBeVisible();
   }
 
+  /** La cabecera de identidad: quién eres y qué direcciones repartes. */
+  private identity(): Locator {
+    return this.page.getByTestId("account-identity");
+  }
+
   async expectStoreCard(name: string): Promise<void> {
-    await expect(this.page.getByTestId("store-card")).toContainText(name);
+    await expect(this.identity()).toContainText(name);
   }
 
   /**
@@ -57,15 +62,20 @@ export default class SellerAccountPage {
    * repartir**.
    *
    * Tras abrir la tienda, la Server Action revalida `/cuenta` y quien acaba de darse de alta
-   * aterriza en `StoreCard` — no en ninguna pantalla de «recién creada», que existía en el código y
-   * no llegaba a pintarse nunca.
+   * aterriza en la cabecera de identidad — no en ninguna pantalla de «recién creada», que existía
+   * en el código y no llegaba a pintarse nunca.
+   *
+   * **El ancla cambió de tarjeta en el slice 1 de `005-2026-09-04-cuenta-configurable`, no de
+   * promesa.** Antes era `store-card`; las direcciones públicas subieron a `account-identity`, que
+   * es lo que se ve al entrar. Lo que se afirma —camino corto, pestaña nueva y botón de repartir—
+   * es exactamente lo mismo.
    *
    * Se afirma el enlace y **el disparador** del menú de compartir: `ShareMenu` cuelga su
    * identificador de `${testId}-trigger`, no del `testId` a secas, y buscarlo pelado da cero sin
    * que nada esté roto.
    */
   async expectAddressReadableAndShareable(handle: string): Promise<void> {
-    const tarjeta = this.page.getByTestId("store-card");
+    const tarjeta = this.identity();
 
     await expect(tarjeta).toBeVisible();
 

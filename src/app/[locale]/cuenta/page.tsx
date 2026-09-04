@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import type { User } from "~/domain/entities/post/types";
+import { readAccountSetup } from "~/domain/entities/seller/accountSetup";
+import type { Branch } from "~/domain/entities/seller/types";
 import { resolveLocale } from "~/i18n/routing";
 import { auth } from "~/infra/auth";
 import { redirectToSignIn } from "~/infra/auth/redirectToSignIn";
@@ -9,7 +11,6 @@ import {
   findProfileOfUser,
   findSellerOfUser,
 } from "~/infra/dataAccess/identity/sessionIdentity";
-import { Heading } from "~/presentation/design_system/typography/Heading";
 import BranchList from "~/presentation/directory/BranchList/BranchList";
 import {
   addBranch,
@@ -17,11 +18,13 @@ import {
   claimUsername,
   updateStoreProfile,
 } from "./actions";
+import { ANCHOR } from "./anchors";
 import AccountCard from "./ui/AccountCard";
+import AccountHeader from "./ui/AccountHeader";
 import AccountSection from "./ui/AccountSection";
 import AddBranchForm from "./ui/AddBranchForm";
 import BecomeSellerForm from "./ui/BecomeSellerForm";
-import StoreCard from "./ui/StoreCard";
+import SetupChecklist from "./ui/SetupChecklist";
 import StoreProfileForm from "./ui/StoreProfileForm";
 import UsernameSection from "./ui/UsernameSection";
 
@@ -40,12 +43,17 @@ export async function generateMetadata(): Promise<Metadata> {
  * El ancho lo pone el layout (`container-width`); aquí solo se reparte en dos columnas a partir
  * de `lg`, para no dejar media pantalla vacía en escritorio.
  *
- * El reparto no es arbitrario: a la izquierda **lo que se enseña** —la tienda y la dirección
- * personal, con su botón de compartir— y a la derecha **lo que se edita** —la ficha y las
- * sucursales—. Antes la dirección personal caía al final de la segunda columna, debajo del alta de
- * sucursales, y era lo último que veía quien entraba a repartir su enlace.
+ * **El reparto cambió de criterio en el slice 1 de `005-2026-09-04-cuenta-configurable`.** Era «lo
+ * que se enseña» a la izquierda y «lo que se edita» a la derecha, y ese corte partía las sucursales
+ * en dos: la lista en una columna y su alta en la otra, a media pantalla la una de la otra. Ahora
+ * las dos columnas son **dos temas** —la tienda y sus sucursales—, así que lo que se lee junto está
+ * junto. Lo que se enseña de verdad —las direcciones públicas— subió a la cabecera, que es donde se
+ * mira al entrar.
  */
 const COLUMNS = "grid gap-6 lg:grid-cols-2 items-start";
+
+/** La cabecera y la lista de pendientes ocupan el ancho entero, encima de las dos columnas. */
+const PAGE_STACK = "flex flex-col gap-6";
 
 export default async function CuentaPage({
   params,
@@ -77,54 +85,88 @@ export default async function CuentaPage({
     findProfileOfUser(user.id),
   ]);
 
-  const usernameSection = (
+  /* Sin tienda no hay sucursales que pedir: la consulta se ahorra en vez de devolver una lista
+     vacía que nadie pinta. */
+  const branches: Branch[] = seller
+    ? await createBranchRepository().listBySeller(seller.id)
+    : [];
+
+  /* Ni una consulta más que antes: los cinco pasos salen de lo que la página ya leyó para pintarse. */
+  const setup = readAccountSetup({
+    storeName: seller?.name ?? null,
+    username: profile?.username ?? null,
+    logoUrl: seller?.logoUrl ?? null,
+    description: seller?.description ?? null,
+    branchCoordinates: branches.map((branch) => branch.coordinates),
+  });
+
+  /* La dirección reservada la enseña la cabecera; aquí solo queda el formulario de quien todavía no
+     tiene ninguna, que no es un duplicado sino la acción que falta. */
+  const usernameSection = profile?.username ? null : (
     <UsernameSection
+      id={ANCHOR.username}
       action={claimUsername}
-      currentUsername={profile?.username ?? null}
       defaultName={user.name}
+    />
+  );
+
+  const header = (
+    <AccountHeader
+      storeName={seller?.name ?? null}
+      logoUrl={seller?.logoUrl ?? null}
+      handle={seller?.handle ?? null}
+      username={profile?.username ?? null}
     />
   );
 
   if (!seller) {
     return (
       <AccountSection active="account">
-        <Heading level={1} className="mb-6">
-          {t("heading")}
-        </Heading>
+        <div className={PAGE_STACK}>
+          {header}
+          <SetupChecklist setup={setup} />
 
-        <div className={COLUMNS}>
-          <BecomeSellerForm action={becomeSeller} defaultName={user.name} />
-          {usernameSection}
+          <div className={COLUMNS}>
+            <BecomeSellerForm
+              id={ANCHOR.store}
+              action={becomeSeller}
+              defaultName={user.name}
+            />
+            {usernameSection}
+          </div>
         </div>
       </AccountSection>
     );
   }
 
-  const branches = await createBranchRepository().listBySeller(seller.id);
-
   return (
     <AccountSection active="account">
-      <Heading level={1} className="mb-6">
-        {t("heading")}
-      </Heading>
+      <div className={PAGE_STACK}>
+        {header}
+        <SetupChecklist setup={setup} />
 
-      <div className={COLUMNS}>
-        {/* Lo que se reparte. */}
-        <div className="flex flex-col gap-6">
-          <StoreCard seller={seller} />
-          {usernameSection}
-          <AccountCard title={t("branchesHeading")}>
-            <BranchList
-              branches={branches}
-              emptyMessage={tBranches("emptyWithoutLocation")}
+        <div className={COLUMNS}>
+          {/* La tienda. */}
+          <div className="flex flex-col gap-6">
+            {usernameSection}
+            <StoreProfileForm
+              id={ANCHOR.storeProfile}
+              action={updateStoreProfile}
+              seller={seller}
             />
-          </AccountCard>
-        </div>
+          </div>
 
-        {/* Lo que se edita. */}
-        <div className="flex flex-col gap-6">
-          <StoreProfileForm action={updateStoreProfile} seller={seller} />
-          <AddBranchForm action={addBranch} />
+          {/* Sus sucursales: la lista y su alta, ya en la misma columna. El slice 2 las mete en la
+              misma tarjeta. */}
+          <div className="flex flex-col gap-6">
+            <AccountCard id={ANCHOR.branches} title={t("branchesHeading")}>
+              <BranchList
+                branches={branches}
+                emptyMessage={tBranches("emptyWithoutLocation")}
+              />
+            </AccountCard>
+            <AddBranchForm id={ANCHOR.addBranch} action={addBranch} />
+          </div>
         </div>
       </div>
     </AccountSection>

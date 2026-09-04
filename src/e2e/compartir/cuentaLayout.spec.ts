@@ -49,19 +49,23 @@ test.describe("Cuando una vendedora abre su cuenta", () => {
 
   /* Había tres: el de la página, el de la tarjeta de la tienda y el del alta. Un lector de pantalla
      anunciaba tres títulos principales para una sola pantalla, y quien navega por encabezados no
-     tenía forma de saber cuál era el de verdad. */
-  test("Entonces la página tiene un solo título principal", async ({
+     tenía forma de saber cuál era el de verdad.
+
+     El slice 1 de `005-2026-09-04-cuenta-configurable` cambia **qué dice** ese único título: era
+     «Mi cuenta», que es lo mismo que dice el menú de la izquierda dos centímetros más allá. Ahora
+     lo gasta en nombrar la tienda, que es lo único que esta pantalla puede decir y el menú no. */
+  test("Entonces la página tiene un solo título principal, y nombra la tienda", async ({
     page,
   }) => {
     await expect(page.locator("h1")).toHaveCount(1);
-    await expect(page.locator("h1")).toHaveText(es.account.heading);
+    await expect(page.locator("h1")).toHaveText(store.name);
   });
 
   test("Entonces cada bloque cuelga de ese título, en su propia tarjeta", async ({
     page,
   }) => {
     for (const title of [
-      es.account.storeCardTitle,
+      es.account.setupHeading,
       es.account.usernameTitle,
       es.account.storeProfileTitle,
       es.account.branchesHeading,
@@ -75,21 +79,37 @@ test.describe("Cuando una vendedora abre su cuenta", () => {
     }
   });
 
-  /* Lo que se reparte va antes que lo que se edita: la dirección personal caía al final de la
-     segunda columna, debajo del alta de sucursales. */
-  test("Entonces lo que se comparte va antes que lo que se edita", async ({
+  /* La regla de antes era «lo que se reparte va antes que lo que se edita», repartido entre las dos
+     columnas. El slice 1 la endurece: lo que se reparte ya no compite por una columna, está en la
+     cabecera, **encima de todo lo demás**. Se afirma la promesa —mis direcciones son lo primero que
+     veo— y no el orden de dos títulos concretos, que es lo que se rompía cada vez que un bloque
+     cambiaba de sitio. */
+  test("Entonces mis direcciones públicas van antes que cualquier bloque que editar", async ({
     page,
   }) => {
-    const headings = await page
-      .getByRole("heading", { level: 2 })
-      .allTextContents();
+    const cabecera = page.getByTestId("account-identity");
 
-    expect(headings.indexOf(es.account.storeCardTitle)).toBeLessThan(
-      headings.indexOf(es.account.storeProfileTitle),
+    await expect(cabecera).toBeVisible();
+    await expect(
+      cabecera.getByRole("link", {
+        name: new RegExp(`/tienda/${store.handle}$`),
+      }),
+    ).toBeVisible();
+
+    const primerBloque = page.getByRole("heading", { level: 2 }).first();
+
+    /* `toBeLessThan(0)` sería un falso positivo si la cabecera no estuviera: `compareDocumentPosition`
+       devuelve 0 para el mismo nodo, así que se compara contra la máscara de "va después". */
+    const cabeceraVaAntes = await cabecera.evaluate(
+      (header, heading) =>
+        Boolean(
+          header.compareDocumentPosition(heading as Node) &
+            Node.DOCUMENT_POSITION_FOLLOWING,
+        ),
+      await primerBloque.elementHandle(),
     );
-    expect(headings.indexOf(es.account.usernameTitle)).toBeLessThan(
-      headings.indexOf(es.account.addBranchTitle),
-    );
+
+    expect(cabeceraVaAntes).toBe(true);
   });
 
   /* Quien vende sí necesita su agenda: es de lo poco que se revisa a diario. Sin dirección

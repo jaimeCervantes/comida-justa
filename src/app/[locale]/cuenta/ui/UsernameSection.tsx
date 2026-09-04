@@ -9,21 +9,35 @@ import { Button } from "~/presentation/design_system/buttons/Button";
 import { TextField } from "~/presentation/design_system/forms/TextField";
 import { ValidatedForm } from "~/presentation/forms/ValidatedForm";
 import type { ClaimUsernameState } from "../actions";
-import { profileHref, profilePath } from "../profilePath";
+import { profilePath } from "../profilePath";
 import AccountCard from "./AccountCard";
-import PublicAddressRow from "./PublicAddressRow";
 
+/**
+ * Donde se reserva la dirección personal.
+ *
+ * **Ya no tiene la rama de «ya reservada», y no fue por gusto.** Tenía una: al volver el estado con
+ * la dirección recién reservada, pintaba una tarjeta con el enlace y su botón de repartir. Nunca
+ * llega a verse. `claimUsername` revalida `/cuenta`, la página vuelve con la dirección puesta y la
+ * cabecera de identidad —que es la dueña de las direcciones públicas desde el slice 1 de
+ * `005-2026-09-04-cuenta-configurable`— la enseña ahí arriba; esta sección deja de montarse entera.
+ * Es exactamente lo que ya le pasó a `StoreReadyMessage` en `BecomeSellerForm`, y se comprobó igual:
+ * los seis escenarios que buscaban la tarjeta `username-card` la esperaron cinco segundos y no
+ * apareció.
+ *
+ * Así que quien llama solo la monta **mientras no haya dirección**, y este componente es una cosa
+ * sola: el formulario.
+ */
 export default function UsernameSection({
+  id,
   action,
-  currentUsername,
   defaultName,
 }: {
+  /** El ancla del bloque, de `anchors.ts`. */
+  id?: string;
   action: (
     state: ClaimUsernameState,
     data: FormData,
   ) => Promise<ClaimUsernameState>;
-  /** Si ya la reclamó, se muestra en vez del formulario. */
-  currentUsername: string | null;
   defaultName?: string | null;
 }) {
   const t = useTranslations("account");
@@ -34,33 +48,12 @@ export default function UsernameSection({
   >(action, {});
   const [requested, setRequested] = useState<string>(defaultName ?? "");
 
-  const username = currentUsername ?? state.username;
-
-  if (username) {
-    // Quien la reservó ya la tiene: lo siguiente que necesita es repartirla.
-    const profileUrl = `${PUBLIC_BASE_URL}${profilePath(username, locale)}`;
-    const shareName = defaultName || `@${username}`;
-
-    return (
-      <AccountCard title={t("usernameTitle")} testId="username-card">
-        <PublicAddressRow
-          href={profileHref(username)}
-          path={profilePath(username, locale)}
-          shareUrl={profileUrl}
-          shareTitle={shareName}
-          shareText={t("shareProfileText", { name: shareName })}
-          shareTestId="share-profile"
-        />
-      </AccountCard>
-    );
-  }
-
   // Se calcula con la MISMA función del dominio que corre en el servidor: lo que se lee aquí
   // es lo que va a quedar guardado.
   const preview = generateUsername(requested);
 
   return (
-    <AccountCard title={t("usernameTitle")} intro={t("usernameIntro")}>
+    <AccountCard id={id} title={t("usernameTitle")} intro={t("usernameIntro")}>
       {state.errorMessage ? (
         <p data-testid="username-error" className="mb-4 text-brand-clay-700">
           {state.errorMessage}

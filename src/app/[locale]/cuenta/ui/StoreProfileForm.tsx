@@ -18,9 +18,12 @@ import { storePath } from "../storePath";
 import AccountCard from "./AccountCard";
 
 export default function StoreProfileForm({
+  id,
   action,
   seller,
 }: {
+  /** El ancla del bloque, de `anchors.ts`. */
+  id?: string;
   action: (
     state: StoreProfileState,
     data: FormData,
@@ -44,6 +47,7 @@ export default function StoreProfileForm({
 
   return (
     <AccountCard
+      id={id}
       title={t("storeProfileTitle")}
       intro={t.rich("storeAddressStable", {
         address: `${PUBLIC_BASE_URL}${storePath(seller.handle ?? "", locale)}`,

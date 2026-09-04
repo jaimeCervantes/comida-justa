@@ -85,9 +85,7 @@ describe("formularios de cuenta — validación visible", () => {
   it("UsernameSection bloquea el envío inválido con el mensaje del catálogo", async () => {
     const action = vi.fn(async () => ({}));
 
-    renderWithIntl(
-      <UsernameSection action={action} currentUsername={null} defaultName="" />,
-    );
+    renderWithIntl(<UsernameSection action={action} defaultName="" />);
 
     await userEvent.click(
       screen.getByRole("button", { name: "Reservar mi dirección" }),
