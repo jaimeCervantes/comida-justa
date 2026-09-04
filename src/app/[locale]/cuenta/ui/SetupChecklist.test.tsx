@@ -108,6 +108,27 @@ describe("SetupChecklist", () => {
        hecho cambió en el slice 2, al fundirse el alta con la lista—. Lo que sí se afirma literal es
        que hay fragmento: sin él, el enlace deja a la persona arriba del todo mirando esta misma
        lista. */
+    /* Sin tienda, tres de los cinco pasos apuntaban a bloques que esa rama de la página ni siquiera
+       pinta: el botón existía y no llevaba a ningún sitio. El consejo se queda —sigue explicando
+       por qué importa—, el botón no. */
+    it("un paso bloqueado conserva su consejo pero no ofrece atajo", () => {
+      renderFor(EMPTY);
+      const bloqueado = step(es.account.setupStepLogo);
+
+      expect(
+        within(bloqueado).getByText(es.account.setupStepLogoHint),
+      ).toBeVisible();
+      expect(within(bloqueado).queryByRole("link")).not.toBeInTheDocument();
+    });
+
+    it("abrir la tienda sí lo ofrece, porque es lo que desbloquea el resto", () => {
+      renderFor(EMPTY);
+
+      expect(
+        within(step(es.account.setupStepStore)).getByRole("link"),
+      ).toBeInTheDocument();
+    });
+
     it("el enlace apunta al ancla del bloque, no al principio de la página", () => {
       renderFor({ ...COMPLETE, branchCoordinates: [] });
 

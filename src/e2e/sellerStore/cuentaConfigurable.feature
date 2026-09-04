@@ -204,8 +204,43 @@ Característica: La cuenta se configura sola
 
   # ------------------------------------------------------------------ slice 4
 
-  @slice-4 @future
-  Escenario: Sin tienda, la cuenta pide una sola cosa
+  # El «Cancelar» llevaba a "/". No cancelaba nada —no había nada empezado que deshacer—: era una
+  # salida de la cuenta disfrazada de botón secundario, justo al lado del que abre la tienda.
+  @slice-4
+  Escenario: Sin tienda, nada me saca del sitio a medio empezar
     Dado que entro sin tienda abierta
     Cuando abro "/cuenta"
-    Entonces abrir la tienda es la acción principal y no hay ningún botón que me saque del sitio
+    Entonces el alta de la tienda no ofrece ningún "Cancelar"
+    Y su único botón es "Abrir mi tienda"
+
+  @slice-4
+  Escenario: Abrir la tienda va primero, y la dirección personal después
+    Dado que entro sin tienda abierta
+    Cuando abro "/cuenta"
+    Entonces "Vende lo que haces" aparece antes que "Tu dirección personal"
+    Y los dos ocupan el ancho entero, uno debajo del otro
+
+  @slice-4 @component
+  Escenario: El alta sigue siendo un formulario con una sola salida
+    Cuando se pinta el alta de la tienda
+    Entonces tiene exactamente un botón, y es el de enviar
+
+  # Salió al mirar la captura del slice 4: tres de los cinco pasos ofrecían «Configurar» hacia
+  # anclas de bloques que la rama sin tienda ni siquiera pinta. Un botón que no lleva a ningún
+  # sitio es peor que no ofrecer botón.
+  @slice-4 @component
+  Esquema del escenario: Sin tienda, los pasos que dependen de ella no ofrecen atajo
+    Dado un retrato de cuenta sin tienda abierta
+    Cuando se calcula la lista de pendientes
+    Entonces el paso "<paso>" queda "<estado>"
+
+    Ejemplos: bloqueados — sus bloques no existen todavía
+      | paso           | estado    |
+      | logo           | bloqueado |
+      | description    | bloqueado |
+      | branchLocation | bloqueado |
+
+    Ejemplos: accionables — no dependen de tener tienda
+      | paso     | estado    |
+      | store    | pendiente |
+      | username | pendiente |

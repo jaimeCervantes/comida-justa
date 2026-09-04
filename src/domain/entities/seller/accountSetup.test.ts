@@ -103,6 +103,42 @@ describe("readAccountSetup", () => {
     ).toBe(true);
   });
 
+  describe("un paso bloqueado no es lo mismo que uno pendiente", () => {
+    /* Sin tienda, la ficha y la tarjeta de sucursales ni se pintan: ofrecer un atajo a esos pasos
+       sería mandar a alguien a una puerta que no está. */
+    const sinTienda = readAccountSetup(EMPTY);
+    const blocked = (key: AccountSetupStepKey): boolean =>
+      sinTienda.steps.find((step) => step.key === key)?.blocked ?? false;
+
+    it.each(["logo", "description", "branchLocation"] as AccountSetupStepKey[])(
+      "%s se bloquea mientras no haya tienda",
+      (key) => {
+        expect(blocked(key)).toBe(true);
+      },
+    );
+
+    it("abrir la tienda no se bloquea a sí misma", () => {
+      expect(blocked("store")).toBe(false);
+    });
+
+    /* La dirección personal es de la persona, no del negocio: se puede reservar sin vender nada. */
+    it("la dirección personal no depende de tener tienda", () => {
+      expect(blocked("username")).toBe(false);
+    });
+
+    it("con la tienda abierta se desbloquean los tres", () => {
+      const conTienda = readAccountSetup({ ...EMPTY, storeName: "Panadería" });
+
+      expect(conTienda.steps.filter((step) => step.blocked)).toHaveLength(0);
+    });
+
+    it("un paso ya cumplido nunca se marca bloqueado", () => {
+      expect(
+        readAccountSetup(COMPLETE).steps.filter((step) => step.blocked),
+      ).toHaveLength(0);
+    });
+  });
+
   describe("el avance se cuenta sobre los cinco pasos", () => {
     it("cuenta cero y no se da por terminado en una cuenta vacía", () => {
       const setup = readAccountSetup(EMPTY);

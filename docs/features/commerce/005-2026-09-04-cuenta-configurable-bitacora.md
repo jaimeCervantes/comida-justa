@@ -478,3 +478,111 @@ Con esto el roadmap de `005-2026-09-04-cuenta-configurable` va por tres slices d
    buen «listo» pero obliga a reabrirla si vas a dar de alta tres seguidas. Depende de si eso pasa.
 
 **Pendiente de tu lado**: elegir. La rama es `feat/ficha-sin-muro`, sin empujar.
+
+---
+
+## Slice 4 — Abrir tienda deja de ser una bifurcación (2026-09-04)
+
+### Objetivo
+
+Que quien entra sin tienda vea **una sola cosa que hacer**, y que nada de esa pantalla lo saque del
+sitio a medio empezar.
+
+### Decisiones, y por qué
+
+**1. Fuera el «Cancelar».** Llevaba a `/`, y no cancelaba nada: el alta es un formulario, no un
+asistente de varios pasos, así que no hay nada empezado que deshacer. Era una **salida de la cuenta
+disfrazada de acción secundaria**, a un centímetro del único botón que esa pantalla quiere que se
+pulse. Para irse ya está todo lo demás del sitio: el menú de la sección, el encabezado y el botón de
+atrás del navegador. Con él se va también la clave `account.cancel`, que se queda sin usar.
+
+**2. Los dos bloques se apilan en vez de repartirse en columnas.** «Vende lo que haces» y «Tu
+dirección personal» iban lado a lado, con el mismo peso: dos decisiones sin relación al mismo nivel,
+justo lo que el diagnóstico del roadmap señalaba. Apilados, el orden dice cuál va primero — y es el
+mismo orden que la lista de pendientes de arriba ya enumera. No hizo falta inventar una jerarquía
+visual nueva: bastó dejar de contradecir la que ya había.
+
+**3. La prueba afirma que no hay ningún enlace, no que falte cierta palabra.** Lo que se promete es
+que nada de dentro del formulario te saca del sitio. Afirmar «no existe un botón llamado Cancelar»
+pasaría igual el día que alguien meta otra salida con otro nombre.
+
+### El hallazgo de la captura: tres atajos que no llevaban a ningún sitio
+
+Al mirar la pantalla sin tienda salió un defecto que venía del slice 1 y que ninguna prueba miraba:
+**tres de los cinco pasos ofrecían «Configurar» hacia anclas de bloques que esa rama de la página ni
+siquiera pinta.** Sin tienda no hay ficha donde subir el logo ni tarjeta de sucursales, así que el
+ancla existía en el catálogo y no en la pantalla: el botón funcionaba y no llevaba a ninguna parte.
+Es el fallo más difícil de detectar de todos —nada revienta— y por eso mirar la captura sigue siendo
+parte del trabajo.
+
+La regla nueva vive en el dominio, no en el componente: `AccountSetupStep` gana `blocked`, y
+`NEEDS_STORE` dice qué pasos dependen de tener tienda abierta. **Bloqueado no es lo mismo que
+pendiente**: un pendiente se resuelve pulsando, un bloqueado no lleva a ninguna parte todavía. El
+consejo de debajo se queda —sigue explicando por qué ese paso importa—; lo que desaparece es el
+botón.
+
+`username` no se bloquea: la dirección personal es de la persona, no del negocio, y se puede
+reservar sin vender nada.
+
+### Archivos tocados
+
+**Dominio**
+- `domain/entities/seller/accountSetup.ts`: `blocked` y `NEEDS_STORE` + `.test.ts`
+
+**Ruta `/cuenta`**
+- `ui/BecomeSellerForm.tsx` (sin `Cancelar`, un solo botón) + `ui/BecomeSellerForm.test.tsx` (nuevo)
+- `ui/SetupChecklist.tsx` (un paso bloqueado no ofrece atajo) + `.test.tsx`
+- `page.tsx`: la rama sin vendedor apila en vez de repartir en columnas
+
+**Catálogos**
+- se va `account.cancel`, ya sin usar. Los dos catálogos siguen idénticos en estructura
+
+**Pruebas**
+- `e2e/sellerStore/abrirTiendaSinBifurcacion.spec.ts` (nuevo)
+- `e2e/sellerStore/cuentaConfigurable.feature`: los `@slice-4` dejan de ser esqueleto y se añade la
+  corrida de escritorio del hallazgo
+
+### Comandos y resultados
+
+| Comando | Resultado |
+| --- | --- |
+| `pnpm run test:run` | **2704/2704** en 249 archivos |
+| `pnpm run typecheck` y `typecheck:tests` | limpios |
+| `pnpm run lint` | limpio |
+| `playwright src/e2e/sellerStore/abrirTiendaSinBifurcacion.spec.ts` | **3/3** |
+| `playwright src/e2e/{sellerStore,compartir}` **en 3 shards** | **76/76** (26 + 25 + 25) |
+
+**Escrito en la base compartida**: este slice no abre ninguna tienda en su propio spec —solo entra
+con la sesión y la borra al terminar—. Los demás escenarios de la corrida siembran y limpian lo suyo
+como siempre. Nada que deshacer a mano.
+
+### Recap
+
+Quien entra sin tienda ve ahora una pantalla con una sola cosa que hacer: la lista de pendientes
+dice por dónde empezar, «Vende lo que haces» ocupa el ancho entero con un único botón, y la
+dirección personal queda debajo como el paso segundo que la lista ya decía que era. Nada de esa
+pantalla lleva fuera de la cuenta. Y los tres pasos que sin tienda no se podían hacer dejaron de
+ofrecer un atajo a bloques que no existen —un fallo silencioso que venía del slice 1 y que solo se
+vio mirando la captura—.
+
+Con esto **el roadmap de `005-2026-09-04-cuenta-configurable` queda completo**: los cuatro slices
+entregados, uno de ellos con una promesa retirada por describir un estado imposible.
+
+### Próximos pasos (opciones)
+
+1. **Verificar que el punto de una sucursal es el correcto.** El problema real que el aviso retirado
+   del slice 2 no atacaba: `coordinates.ts` tiene dos patrones porque la gente copia el centro del
+   mapa en vez del pin, así que una sucursal puede quedar situada en el sitio equivocado sin que
+   nadie lo note. Enseñar el punto guardado con un enlace para comprobarlo sería el siguiente paso
+   honesto para «que te encuentren cerca».
+2. **Traducir los textos de reserva de `ImageVideoUploader`.** El slice 3 le pasó los suyos desde la
+   ficha, pero el componente sigue con `⏳ Subiendo...` en duro para quien no los pase. Quedan dos
+   llamadores por revisar.
+3. **Que el alta de sucursal siga abierta tras guardar**, si en la práctica se dan de alta varias
+   seguidas. Hoy se pliega al revalidar, lo cual es un buen «listo» pero obliga a reabrirla.
+4. **Mirar `/pedidos` y `/cuenta/agenda` con los mismos ojos.** Son las otras dos pantallas de la
+   sección y no se han tocado en este roadmap; la agenda en concreto sigue siendo dos formularios
+   seguidos sin agrupar.
+
+**Pendiente de tu lado**: elegir, o dar por cerrada la entrega. La rama es
+`feat/abrir-tienda-sin-bifurcacion`, sin empujar.

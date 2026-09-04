@@ -124,14 +124,16 @@ export default async function CuentaPage({
           {header}
           <SetupChecklist setup={setup} />
 
-          <div className={COLUMNS}>
-            <BecomeSellerForm
-              id={ANCHOR.store}
-              action={becomeSeller}
-              defaultName={user.name}
-            />
-            {usernameSection}
-          </div>
+          {/* Uno debajo del otro y no en dos columnas. En columnas pesaban lo mismo, así que la
+              pantalla ofrecía dos decisiones sin relación al mismo nivel; apilados, el orden dice
+              cuál va primero — y es el mismo orden que la lista de pendientes de arriba ya
+              enumera. */}
+          <BecomeSellerForm
+            id={ANCHOR.store}
+            action={becomeSeller}
+            defaultName={user.name}
+          />
+          {usernameSection}
         </div>
       </AccountSection>
     );

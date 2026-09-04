@@ -97,10 +97,16 @@ export default function SetupChecklist({ setup }: { setup: AccountSetup }) {
             done: step.done,
             label: t(messages.label),
             hint: t(messages.hint),
-            /* La forma con objeto y no una cadena con `#`: `Link` traduce el camino al idioma
+            /* Sin tienda abierta, tres de los cinco pasos no llevan a ninguna parte: la ficha y
+               la tarjeta de sucursales ni siquiera se pintan en esa rama de la página, así que el
+               ancla existe en el catálogo y no en la pantalla. Un botón que no lleva a ningún
+               sitio es peor que no ofrecer botón, y el consejo de debajo sigue explicando por qué
+               ese paso importa.
+
+               La forma con objeto y no una cadena con `#`: `Link` traduce el camino al idioma
                activo y le pega el fragmento, así que en inglés lleva a `/en/cuenta#…` sin que este
                archivo sepa nada de idiomas. */
-            action: (
+            action: step.blocked ? undefined : (
               <Link
                 href={STEP_TARGET[step.key]}
                 /* Perfilado y no relleno: son hasta cinco a la vez, y cinco botones sólidos en

@@ -3,7 +3,6 @@ import { useLocale, useTranslations } from "next-intl";
 import { useActionState, useState } from "react";
 import { MdPhone, MdStorefront } from "react-icons/md";
 import { generateSellerHandle } from "~/domain/entities/seller/handle";
-import { Link } from "~/i18n/navigation";
 import { resolveLocale } from "~/i18n/routing";
 import { PUBLIC_BASE_URL } from "~/infra/constants";
 import { Button } from "~/presentation/design_system/buttons/Button";
@@ -70,6 +69,7 @@ export default function BecomeSellerForm({
       <ValidatedForm
         action={becomeSellerAction}
         aria-label={t("becomeSellerFormLabel")}
+        className="flex flex-col"
       >
         <TextField
           required
@@ -117,20 +117,20 @@ export default function BecomeSellerForm({
           className="mb-6"
         />
 
-        <footer className="flex justify-center gap-5 mt-4">
-          <Link href="/">
-            <Button>{t("cancel")}</Button>
-          </Link>
-
-          <Button
-            type="submit"
-            color="green"
-            isLoading={isPending}
-            disabled={isPending}
-          >
-            {t("becomeSellerSubmit")}
-          </Button>
-        </footer>
+        {/* Un solo botón. Al lado del de abrir la tienda había un «Cancelar» que llevaba a "/", y
+            no cancelaba nada: no hay nada empezado que deshacer —el alta es un formulario, no un
+            asistente de varios pasos—. Era una salida de la cuenta disfrazada de acción secundaria,
+            a un centímetro de la única que esta pantalla quiere que se pulse. Para irse ya está
+            todo lo demás del sitio: el menú de la sección, el encabezado y el botón de atrás. */}
+        <Button
+          type="submit"
+          color="green"
+          isLoading={isPending}
+          disabled={isPending}
+          className="mt-4 self-start"
+        >
+          {t("becomeSellerSubmit")}
+        </Button>
       </ValidatedForm>
     </AccountCard>
   );

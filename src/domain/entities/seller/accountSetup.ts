@@ -39,6 +39,14 @@ export interface AccountSetupSnapshot {
 export interface AccountSetupStep {
   key: AccountSetupStepKey;
   done: boolean;
+  /**
+   * Todavía no se puede hacer: depende de tener tienda abierta.
+   *
+   * No es lo mismo que pendiente. Un pendiente se resuelve pulsando; un bloqueado no lleva a
+   * ninguna parte —sin tienda no existe la ficha donde se sube el logo, ni la tarjeta de
+   * sucursales—, así que ofrecerle un botón sería mandar a alguien a una puerta que no está.
+   */
+  blocked: boolean;
 }
 
 export interface AccountSetup {
@@ -50,6 +58,21 @@ export interface AccountSetup {
   complete: boolean;
 }
 
+/**
+ * Qué pasos necesitan una tienda abierta antes de poder tocarse.
+ *
+ * `username` no la necesita —la dirección personal es de la persona, no del negocio— y `store` es
+ * la propia tienda. Los otros tres viven en bloques de `/cuenta` que solo se pintan cuando hay
+ * vendedor.
+ */
+const NEEDS_STORE: Record<AccountSetupStepKey, boolean> = {
+  store: false,
+  username: false,
+  logo: true,
+  description: true,
+  branchLocation: true,
+};
+
 /** Qué le falta a esta cuenta para que sus clientes la encuentren. */
 export function readAccountSetup(snapshot: AccountSetupSnapshot): AccountSetup {
   const done: Record<AccountSetupStepKey, boolean> = {
@@ -60,7 +83,11 @@ export function readAccountSetup(snapshot: AccountSetupSnapshot): AccountSetup {
     branchLocation: snapshot.branchCoordinates.some(areValidCoordinates),
   };
 
-  const steps = ACCOUNT_SETUP_ORDER.map((key) => ({ key, done: done[key] }));
+  const steps = ACCOUNT_SETUP_ORDER.map((key) => ({
+    key,
+    done: done[key],
+    blocked: !done[key] && NEEDS_STORE[key] && !done.store,
+  }));
   const completed = steps.filter((step) => step.done).length;
 
   return {
