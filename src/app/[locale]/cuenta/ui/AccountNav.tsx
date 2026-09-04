@@ -34,7 +34,12 @@ export const ACCOUNT_PAGE_LAYOUT =
  * marcar: una página que se cuelga de la sección sin estar en esta lista quedaría con el menú
  * puesto y ninguna entrada señalada, o sea diciendo «estás en la cuenta» sin decir dónde.
  */
-export type AccountSectionKey = "account" | "orders" | "schedule" | "habits";
+export type AccountSectionKey =
+  | "account"
+  | "orders"
+  | "inventory"
+  | "schedule"
+  | "habits";
 
 function NavItem({
   href,
@@ -111,10 +116,19 @@ export default function AccountNav({
         {t("myOrders")}
       </NavItem>
 
+      {/* Las dos de tienda van juntas y bajo la misma condición: sin tienda, ni hay catálogo que
+          contar ni agenda que llenar. Enseñarlas llevaría a dos pantallas que sólo saben decir
+          «primero abre una tienda». */}
       {hasStore ? (
-        <NavItem href="/cuenta/agenda" active={active === "schedule"}>
-          {t("schedule")}
-        </NavItem>
+        <>
+          <NavItem href="/cuenta/inventario" active={active === "inventory"}>
+            {t("inventory")}
+          </NavItem>
+
+          <NavItem href="/cuenta/agenda" active={active === "schedule"}>
+            {t("schedule")}
+          </NavItem>
+        </>
       ) : null}
 
       <NavItem href="/habitos" active={active === "habits"}>

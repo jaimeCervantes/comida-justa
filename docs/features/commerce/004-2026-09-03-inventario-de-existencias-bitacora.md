@@ -153,3 +153,125 @@ pero no el botón de editar. Todo verde: 2587 unitarias y 11 e2e.
 **Pendiente de tu parte:** decidir cuál de las cuatro. Y, si quieres verlo funcionando ya, elegir a
 qué productos reales ponerles existencias — hasta que alguien escriba un número, la entrega es
 invisible por diseño.
+
+---
+
+## Slice 2 — El panel de inventario de la tienda (2026-09-03)
+
+### Objetivo
+
+Que poner existencias deje de significar abrir 418 fichas. `/cuenta/inventario` enseña los productos
+de la tienda con su número editable en el mismo renglón, y tres filtros que contestan las preguntas
+que de verdad se le hacen a un inventario.
+
+### Decisiones y por qué
+
+- **Tres ámbitos, no un filtro genérico.** `all`, `out` («qué repongo») y `untracked` («qué me falta
+  por contar»). El tercero es el que importa el primer día: en una tienda que estrena inventario
+  **todo** está sin contar, y sin ese filtro el trabajo pendiente queda escondido entre lo hecho.
+  Un parámetro inventado cae a `all` en vez de dar error: es alguien que editó la URL.
+- **`= 0` y `IS NULL` son consultas distintas, y esa diferencia es el modelo.** Un `= 0` que también
+  atrapara los nulos pondría las 418 publicaciones sin contar en la lista de «hay que reponer».
+- **La lista va por `seller_id`, no por `user_id`.** Es la misma decisión que toma `canManagePost` al
+  autorizar la escritura: si el dueño puede guardar el número, tiene que poder verlo. `Hazlo Sano`
+  tiene productos escritos por más de una cuenta.
+- **Sí filtra por estado de moderación**, y eso lo encontró una prueba, no yo (ver abajo). Lo que la
+  moderación bajó no está en el escaparate: contarle unidades no cambia nada, y la tarea que le toca
+  es arreglarlo, conversación que pasa por su ficha.
+- **Ordenado por título, no por fecha.** Una lista de novedades se lee de arriba abajo; un inventario
+  se recorre buscando algo entre 418 renglones, y por orden alfabético la página donde está algo es
+  adivinable. Desempata por `id`: seis "Barra de Proteína … — Pieza individual" comparten casi todo
+  el nombre.
+- **20 por página**, no 10 como los pedidos: aquí no se lee cada renglón, se busca uno y se escribe
+  un número.
+- **El campo del renglón es el mismo `StockControl` de la ficha**, en variante `compact`. Escribir un
+  segundo campo de existencias habría sido dos sitios donde arreglar la misma regla y dos formas de
+  que el número se guarde distinto según por dónde entres. La variante cambia la forma, no la
+  conducta: el rótulo sigue estando como `aria-label` porque un lector de pantalla no ve la columna.
+- **`OrdersPagination` se partió en dos** en vez de copiarse. Lo que se pinta vive ahora en
+  `presentation/navigation/QueryPagination`, y cada lista aporta cómo arma su dirección y sus frases.
+  Era literalmente el mismo componente por segunda vez.
+- **`CurrencyAmount` declaraba `value: number` mientras su cuerpo ya trataba la ausencia.** Nadie lo
+  notó porque quien lo llamaba lo hacía desde un `Post` sin forma. El primer llamador tipado —esta
+  tabla— lo destapó; el tipo ahora dice lo que el componente siempre hizo.
+- **`seedStore` acepta dueño.** El panel se llega por `findSellerOfUser`, así que sin dueño no hay
+  nada que probar. Sigue siendo `NULL` por omisión, porque colgarle una tienda a la cuenta de la
+  suite rompe los seis escenarios que empiezan dándose de alta — un fallo que ya costó una corrida.
+
+### Archivos tocados
+
+**Dominio.** `entities/post/inventoryScope.ts` + prueba.
+
+**Infra.** `dataAccess/storeInventory/` (interfaz, repositorio Postgres, factoría).
+
+**Rutas y UI.** `app/[locale]/cuenta/inventario/` (página, `InventoryTable`, `InventoryScopes`,
+`inventoryHref` + prueba), `cuenta/ui/AccountNav.tsx`, `i18n/routing.ts`.
+
+**Compartido.** `presentation/navigation/QueryPagination/`, `pedidos/ui/OrdersPagination.tsx`
+(ahora lo usa), `presentation/post/StockControl/` (variante `compact`),
+`presentation/money/CurrencyAmount/`.
+
+**Pruebas.** `e2e/inventory/panelDeInventario.spec.ts` e `InventoryPanel.ts`, `testUtils/seedStore.ts`
+(dueño opcional) y `testUtils/suiteAccount.ts` (`findUserIdByEmail`, movido desde `simulateLogin`).
+
+**i18n.** Catorce claves nuevas en `account` y una en `nav`, en `es.json` y `en.json`.
+
+### Validación
+
+- `typecheck`: limpio.
+- `lint`: limpio (`biome check`, 1091 archivos).
+- `test:run`: **2603 pruebas en 241 archivos, todas en verde**.
+- `playwright test src/e2e/inventory/panelDeInventario.spec.ts`: **9 de 9**, en 2.6 min.
+- **Pendiente y NO ejecutado:** `playwright test src/e2e/orders`. `OrdersPagination` se refactorizó
+  para usar `QueryPagination` y su suite no se volvió a correr. Los `data-testid` cambiaron de
+  `orders-prev`/`orders-next` a `orders-pagination-prev`/`-next`; se comprobó por `grep` que **ningún
+  spec ni componente los referencia**, así que el riesgo es bajo, pero es una comprobación pendiente,
+  no una que pasara.
+- Tampoco se volvió a correr el directorio `src/e2e/inventory` **entero** (20 escenarios) después del
+  último arreglo; sus dos specs pasaron por separado.
+
+### Lo que se escribió en la base compartida, y cómo se deshace
+
+Sólo datos de prueba, todos con prefijo `e2e-`: una tienda con dueño (`danielsrodroguez@gmail.com`)
+y sus productos, borrados en el `afterEach` por `deleteTestSellerByHandle`. El escenario de
+paginación corre contra `Hazlo Sano` **sin escribir nada**.
+
+### Desviaciones del roadmap
+
+- **Apareció un guardián que el roadmap no anticipaba.** `publishedPosts.test.ts` comprueba por
+  lectura de ficheros que ninguna consulta lea `posts` sin declarar qué deja ver, y tumbó el
+  repositorio nuevo. No es un tecnicismo: obligó a decidir si el panel enseña lo que la moderación
+  bajó. Se decidió que no. Es exactamente la conversación que esa prueba existe para forzar.
+- **Una corrida entera falló y no se reprodujo.** Los 8 escenarios del panel devolvieron el 404
+  global del sitio, incluido el que sólo lee. Se comprobó a mano contra un servidor de desarrollo que
+  `/cuenta/inventario`, `/cuenta/agenda` y `/en/account/inventory` responden 307 a la puerta de
+  entrar, o sea que la ruta se resuelve; el puerto 3000 estaba libre. La repetición dio 9 de 9 sin
+  tocar nada. Queda anotado como ambiental, **no como arreglado**: no hubo cambio que lo explique.
+- **La paginación se afirma sobre el primer renglón, no sobre la lista.** Leer los títulos justo
+  después del clic los lee antes de que la navegación del cliente traiga la página siguiente;
+  `expect(locator)` reintenta y esa carrera desaparece.
+
+### Recap
+
+`/cuenta/inventario` existe y es la pantalla desde la que una tienda lleva su catálogo: veinte
+renglones por página, ordenados por título, con el campo de existencias dentro de cada uno y tres
+filtros —todos, agotados, sin contar—. Enseña los productos publicados de la tienda venga de quien
+venga la ficha, y deja fuera lo que no se cuenta por piezas y lo que la moderación bajó. El campo es
+el mismo de la ficha, así que guardar desde aquí o desde allá es el mismo código y el mismo
+resultado. Por el camino se partió la paginación de pedidos en una pieza compartida y se corrigió el
+tipo de `CurrencyAmount`, que mentía desde antes. Unitarias 2603/2603; la e2e del panel 9/9; la de
+pedidos quedó pendiente.
+
+### Próximos pasos (opciones)
+
+1. **Correr las dos e2e pendientes** (`src/e2e/orders` y `src/e2e/inventory` completo) antes de
+   cualquier otra cosa. Es lo único que separa este slice de estar cerrado del todo.
+2. **Slice 3 — que el pedido descuente al aceptarse.** Ya hay panel para poner los números iniciales,
+   así que ahora sí tiene sentido: cierra el círculo y elimina el mantenimiento a mano.
+3. **Una búsqueda en el panel.** Con 418 productos y sólo orden alfabético, encontrar uno concreto
+   son varias páginas. Barato y se nota desde el primer uso.
+4. **Enseñar las existencias en la tarjeta de los listados**, no sólo en la ficha y el panel.
+
+**Pendiente de tu parte:** decidir si corres tú las dos e2e o quieres que las corra yo, y elegir
+entre 2, 3 y 4. Y sigue en pie lo del slice 1: hasta que alguien escriba números en productos
+reales, el inventario es invisible por diseño.

@@ -118,23 +118,62 @@ Feature: Inventario de existencias
   # Slice 2 — El panel de inventario de la tienda
   # ---------------------------------------------------------------------------------------------
 
-  @slice-2 @future
+  # `Hazlo Sano` tiene 418 productos. Ese número es el escenario: poner existencias abriendo 418
+  # fichas no es una tarea, es un motivo para no hacerlo nunca. La tabla existe para eso.
+
+  @slice-2
   Scenario: La tienda ve su inventario en una tabla
-    Given una tienda con varios productos, unos con inventario y otros sin él
+    Given "Hazlo Sano" con productos suyos, alguno publicado por otra cuenta
     When su dueño abre "/cuenta/inventario"
-    Then ve todos los productos de su tienda con sus existencias
+    Then ve un renglón por producto de la tienda, con sus existencias
+    And también los que publicó otra persona, porque el inventario es de la tienda
 
-  @slice-2 @future
+  @slice-2
   Scenario: Corrijo un número sin salir de la tabla
-    Given el panel de inventario de "Hazlo Sano"
-    When cambio las existencias de un renglón
-    Then el renglón refleja el número nuevo y la ficha del producto también
+    Given el panel de inventario de "Hazlo Sano" con "Dona Chocolate Keto" sin inventario
+    When escribo 12 en su renglón y guardo
+    Then el renglón dice que quedan 12
+    And la ficha del producto también
 
-  @slice-2 @future
-  Scenario: Filtro lo que hay que reponer
-    Given el panel de inventario con productos agotados y con existencias
-    When filtro por agotados
-    Then solo quedan los que están en cero
+  # Los tres ámbitos son las tres preguntas que se le hacen a un inventario: qué tengo, qué hay que
+  # reponer y qué falta por contar.
+  @slice-2
+  Scenario Outline: Filtro por lo que quiero mirar
+    Given el panel con un producto agotado, uno con existencias y uno sin inventario
+    When filtro por "<ámbito>"
+    Then salen "<cuáles>"
+
+    Examples:
+      | ámbito     | cuáles                              | reason                          |
+      | todos      | los tres                            | el estado por omisión           |
+      | agotados   | solo el que está en cero            | lo que hay que reponer          |
+      | sin contar | solo el que no lleva inventario     | lo que falta por poner a contar |
+
+  # Un servicio no se entrega en piezas y un anuncio no se vende: meterlos en la tabla sería
+  # ofrecer un campo que el servidor rechazaría, la misma regla que ya aplica la ficha.
+  @slice-2
+  Scenario: El inventario es de los productos, no de todo lo publicado
+    Given "Hazlo Sano" con un producto, un servicio, un evento y un anuncio
+    When su dueño abre el panel de inventario
+    Then solo aparece el producto
+
+  @slice-2
+  Scenario: La tabla no mete el catálogo entero en una página
+    Given una tienda con más productos de los que caben en una página
+    When su dueño abre el panel
+    Then ve una página de renglones y el paso a la siguiente
+
+  @slice-2
+  Scenario: El menú lleva al inventario solo si hay tienda
+    Given una cuenta con tienda y otra sin ella
+    When cada una abre "/cuenta"
+    Then solo la que tiene tienda ve la entrada de inventario en el menú
+
+  @slice-2
+  Scenario: Sin tienda, la página lo dice en vez de enseñar una tabla vacía
+    Given una cuenta sin tienda
+    When abre "/cuenta/inventario"
+    Then se le explica que primero hace falta abrir una tienda
 
   # ---------------------------------------------------------------------------------------------
   # Slice 3 — El pedido descuenta al aceptarse

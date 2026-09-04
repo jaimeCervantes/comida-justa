@@ -23,6 +23,27 @@ export const SUITE_ACCOUNT_EMAIL = "pw.healthy.food@gmail.com";
  * El respaldo ordenado por `id` existe para entornos donde esa cuenta no esté sembrada; también
  * ordenado, para no reintroducir el mismo azar.
  */
+/**
+ * El id de una cuenta concreta, por correo.
+ *
+ * Vive aquí y no dentro de `simulateLogin` porque ya no sólo sirve para entrar: los escenarios que
+ * necesitan una tienda con dueño tienen que nombrar **a alguien que no sea la cuenta de la suite**,
+ * y esa elección es de este módulo, que es el que sabe quién es quién.
+ */
+export async function findUserIdByEmail(email: string): Promise<string> {
+  const rows = await db
+    .select({ id: users.id })
+    .from(users)
+    .where(eq(users.email, email))
+    .limit(1);
+
+  if (rows.length === 0) {
+    throw new Error(`No hay ninguna cuenta con el correo "${email}".`);
+  }
+
+  return rows[0].id;
+}
+
 export async function findSuiteUserId(): Promise<string> {
   const pinned = await db
     .select({ id: users.id })

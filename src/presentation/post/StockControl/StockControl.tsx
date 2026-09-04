@@ -42,6 +42,7 @@ export default function StockControl({
   slug,
   kind,
   stockQuantity,
+  compact = false,
 }: {
   action: (state: StockState, data: FormData) => Promise<StockState>;
   postId: string;
@@ -49,6 +50,15 @@ export default function StockControl({
   kind?: string | null;
   /** Lo guardado. `null` = no lleva inventario. */
   stockQuantity: number | null;
+  /**
+   * En un renglón de tabla, no en una ficha.
+   *
+   * Cambia la forma, **no la conducta**: el mismo campo, la misma validación y la misma acción. La
+   * columna ya rotula, así que repetir «Existencias» en cada renglón sería decir 418 veces lo que
+   * la cabecera dice una — pero el rótulo sigue estando, como `aria-label`, porque un lector de
+   * pantalla no ve la columna.
+   */
+  compact?: boolean;
 }) {
   const t = useTranslations("post");
   const [state, stockAction, isPending] = useActionState<StockState, FormData>(
@@ -60,6 +70,7 @@ export default function StockControl({
 
   const saved = state.stockQuantity ?? stockQuantity;
   const invalid = t("stockErrorInvalidStock");
+  const label = t("stockLabel");
 
   return (
     /* `Form` y no un `<form>` pelado: apaga el globito del navegador —que sale en el idioma del
@@ -74,7 +85,9 @@ export default function StockControl({
       }}
       serverErrorSignal={state.error}
       data-testid="stock-control"
-      className="flex flex-col items-start gap-2"
+      className={
+        compact ? "flex items-start gap-2" : "flex flex-col items-start gap-2"
+      }
     >
       <input type="hidden" name="postId" value={postId} />
       <input type="hidden" name="slug" value={slug} />
@@ -88,11 +101,12 @@ export default function StockControl({
         min={0}
         step={1}
         inputMode="numeric"
-        label={t("stockLabel")}
-        hint={t("stockHelp")}
+        label={compact ? undefined : label}
+        aria-label={compact ? label : undefined}
+        hint={compact ? undefined : t("stockHelp")}
         error={state.error ? t(ERROR_KEYS[state.error]) : null}
         defaultValue={saved ?? ""}
-        containerClassName="w-48"
+        containerClassName={compact ? "w-24" : "w-48"}
         data-testid="stock-input"
       />
 
