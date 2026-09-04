@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import type { User } from "~/domain/entities/post/types";
 import { resolveScope } from "~/domain/order/order";
+import { normalizeListTerm } from "~/domain/search/listTerm";
 import { resolveLocale, routing } from "~/i18n/routing";
 import { auth } from "~/infra/auth";
 import { redirectToSignIn } from "~/infra/auth/redirectToSignIn";
@@ -154,7 +155,7 @@ function readParams(
        aunque la pida por la URL. */
     view: isSeller && first(search.vista) !== "placed" ? "received" : "placed",
     scope: resolveScope(first(search.estado)),
-    term: (first(search.q) ?? "").trim().slice(0, 80),
+    term: normalizeListTerm(first(search.q)),
     page: Number.isInteger(page) && page > 0 ? page : 1,
   };
 }

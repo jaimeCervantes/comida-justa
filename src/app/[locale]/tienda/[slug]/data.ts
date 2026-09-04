@@ -40,6 +40,8 @@ export async function getStoreByHandle(
   /** Quién mira. Su dueño ve lo agotado —lo necesita para volver a ofrecerlo—; el resto no. */
   viewerId?: string | null,
   currentPillar: PublicationPillar | null = null,
+  /** Filtra el catálogo por título. Vacío = no filtrar. Lo ve cualquiera: es un catálogo público. */
+  term = "",
 ): Promise<StorePageData | null> {
   const seller = await createSellerRepository().findByHandle(handle);
 
@@ -59,6 +61,7 @@ export async function getStoreByHandle(
         includeSoldOut: isOwner,
         categoryKeys:
           await categoryKeysForActivePublicationPillar(currentPillar),
+        term,
       },
     ),
     createBranchRepository().listBySeller(seller.id),

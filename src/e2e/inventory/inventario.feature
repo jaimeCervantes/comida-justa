@@ -307,3 +307,57 @@ Feature: Inventario de existencias
     When lo miro con mi sesión
     Then no veo campo de existencias en su tarjeta
     And forzar la acción se responde igual que en la ficha: no es suyo
+
+  # ---------------------------------------------------------------------------------------------
+  # Slice 5 — Buscar dentro del inventario y dentro de la tienda
+  # ---------------------------------------------------------------------------------------------
+
+  # 418 productos y ninguna de las dos pantallas donde se recorren dejaba buscar. `/buscar` es
+  # semántica y global: sirve para descubrir, no para filtrar lo que ya estás mirando.
+
+  @slice-5
+  Scenario: Encuentro un producto en el panel sin paginar a ciegas
+    Given el panel de inventario con "Pan de Masa Madre Natural" y "Jugo Verde"
+    When escribo "masa madre" en el buscador
+    Then la tabla se queda solo con el pan, sin que yo pulse Enter
+    And el término viaja en la dirección, así que recargar no lo pierde
+
+  @slice-5
+  Scenario: Buscar y filtrar se combinan
+    Given el panel con un producto agotado que se llama "Pan de Masa Madre Natural"
+    And otro con existencias que también dice "masa madre"
+    When busco "masa madre" y filtro por agotados
+    Then solo queda el agotado
+
+  @slice-5
+  Scenario: Una búsqueda sin resultados lo dice
+    Given el panel de inventario de una tienda con productos
+    When busco algo que no existe
+    Then se me dice que no hay nada con ese filtro
+    But no se me dice que la tienda no tiene productos, porque sí tiene
+
+  @slice-5
+  Scenario: En la tienda cualquiera puede buscar
+    Given "Hazlo Sano" con "Pan de Masa Madre Natural" y "Jugo Verde" en su catálogo
+    When un visitante sin sesión busca "masa madre" en "/tienda/hazlo-sano"
+    Then el catálogo se queda solo con el pan
+    # Es un catálogo público: buscar dentro de él no es administrar.
+
+  @slice-5
+  Scenario: En la tienda, buscar y el pilar se combinan
+    Given una tienda con productos de más de un pilar que comparten una palabra
+    When busco esa palabra y además filtro por un pilar
+    Then salen solo los que cumplen las dos cosas
+    And pasar a la página siguiente conserva la búsqueda y el pilar
+
+  @slice-5
+  Scenario Outline: El término se limpia igual en las tres pantallas
+    Given cualquiera de las listas que se pueden filtrar
+    When llega "<entrada>" en la dirección
+    Then se busca "<usado>"
+
+    Examples:
+      | entrada           | usado         | reason                                    |
+      | "  masa madre  "  | "masa madre"  | los espacios de los lados no son término  |
+      | ""                | ""            | vacío es no filtrar, no buscar la nada    |
+      | 200 caracteres    | los 80 primeros | el tope lo pone el dominio, no el campo |

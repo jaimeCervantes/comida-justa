@@ -147,7 +147,12 @@ export interface IPostQueryRepository {
     sellerId: string,
     page: number,
     pageSize: number,
-    options?: { includeSoldOut?: boolean; categoryKeys?: readonly string[] },
+    options?: {
+      includeSoldOut?: boolean;
+      categoryKeys?: readonly string[];
+      /** Filtra el catálogo por título, en cualquiera de sus idiomas. */
+      term?: string;
+    },
   ): Promise<PaginatedPostsResult>;
   /**
    * El catálogo filtrado por categoría. Recibe **las claves ya resueltas** —la clave pedida más

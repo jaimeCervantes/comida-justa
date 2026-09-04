@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { resolveInventoryScope } from "~/domain/entities/post/inventoryScope";
 import type { User } from "~/domain/entities/post/types";
+import { normalizeListTerm } from "~/domain/search/listTerm";
 import { resolveLocale, routing } from "~/i18n/routing";
 import { auth } from "~/infra/auth";
 import { redirectToSignIn } from "~/infra/auth/redirectToSignIn";
@@ -11,6 +12,7 @@ import { Heading } from "~/presentation/design_system/typography/Heading";
 import QueryPagination from "~/presentation/navigation/QueryPagination/QueryPagination";
 import AccountSection from "../ui/AccountSection";
 import InventoryScopes from "./ui/InventoryScopes";
+import InventorySearchField from "./ui/InventorySearchField";
 import InventoryTable from "./ui/InventoryTable";
 import { type InventoryParams, inventoryHref } from "./ui/inventoryHref";
 
@@ -43,6 +45,7 @@ function readParams(
   return {
     scope: resolveInventoryScope(raw.filtro),
     page: Number.isInteger(page) && page > 0 ? page : 1,
+    term: normalizeListTerm(raw.q),
   };
 }
 
@@ -96,6 +99,7 @@ export default async function InventarioPage({
     seller.id,
     {
       scope: current.scope,
+      term: current.term,
       page: current.page,
       pageSize: PAGE_SIZE,
       locale,
@@ -112,10 +116,18 @@ export default async function InventarioPage({
       </Heading>
       <p className="mb-6 text-text-support">{t("inventoryIntro")}</p>
 
+      <InventorySearchField current={current} />
       <InventoryScopes current={current} />
 
       {items.length === 0 ? (
-        <p data-testid="inventory-empty">{t("inventoryEmpty")}</p>
+        /* No es lo mismo «no hay nada que coincida» que «aquí no hay nada»: lo primero se arregla
+           borrando el filtro y lo segundo poniéndose a publicar. Decir el segundo cuando pasa el
+           primero hace creer que se perdió el catálogo. */
+        <p data-testid="inventory-empty">
+          {current.term || current.scope !== "all"
+            ? t("inventoryNothingFound")
+            : t("inventoryEmpty")}
+        </p>
       ) : (
         <InventoryTable items={items} />
       )}

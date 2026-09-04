@@ -20,6 +20,8 @@ export interface InventoryItem {
 
 export interface InventoryQuery {
   scope: InventoryScope;
+  /** Filtra por título en cualquier idioma. Vacío = no filtrar. */
+  term: string;
   page: number;
   pageSize: number;
   locale: string;

@@ -169,6 +169,51 @@ interruptor. La tarjeta ya ofrece editar y marcar agotado; le falta la cuenta.
 **Qué NO entra.** La búsqueda —ni en el panel ni en la tienda— es otra rebanada; que la tienda no
 tenga buscador hoy es cierto y no lo arregla ésta.
 
+### Slice 5 — Buscar dentro del inventario y dentro de la tienda
+
+- **Problem:** `Hazlo Sano` tiene 418 productos y ninguna de las dos pantallas donde se recorren
+  deja buscar. El panel sólo ordena alfabéticamente, así que llegar a uno concreto son varias
+  páginas de 20; la tienda sólo filtra por pilar, y quien busca «masa madre» entre 418 tarjetas no
+  lo encuentra: se rinde. La búsqueda del sitio (`/buscar`) es semántica y global — sirve para
+  descubrir, no para filtrar un catálogo que ya estás mirando.
+- **Savings:** dejar de paginar a ciegas. Un recuento que hoy cuesta encontrar el producto pasa a
+  costar teclear tres letras, y una tienda con catálogo grande deja de ser un muro para quien
+  compra.
+- **Why:** el inventario sólo se mantiene si mantenerlo es barato, y una tienda sólo vende lo que se
+  puede encontrar. Las dos búsquedas son la misma pieza puesta en dos sitios.
+
+**Alcance.**
+
+1. **Un solo campo, reutilizado tres veces.** `OrdersSearchField` ya resuelve esto bien —filtra al
+   teclear, con `<form>` que sigue funcionando sin JavaScript, `replace` para no llenar el historial,
+   y una referencia a lo último pedido para que la respuesta a la tercera letra no devuelva el campo
+   atrás cuando vas por la quinta—. Escribirlo dos veces más sería la tercera copia: se extrae a
+   `presentation/search/`, y pedidos pasa a ser uno de sus tres clientes, como ya hizo
+   `OrdersPagination` con `QueryPagination`.
+2. **Una sola regla para el término.** Hoy el tope de 80 caracteres y el `trim` están escritos dos
+   veces —en `/pedidos/page.tsx` y en su campo—. Pasa al dominio y lo comparten los tres.
+3. **El panel** (`/cuenta/inventario`) gana `?q=`, que convive con sus tres ámbitos.
+4. **La tienda** (`/tienda/<handle>`) gana `?q=`, que convive con el filtro de pilar y viaja en la
+   paginación por segmento, igual que ya hace `pillar`.
+
+**Cómo busca.** Por **título**, con `ILIKE`, en cualquiera de sus idiomas: quien teclea «masa madre»
+lo espera aunque esté mirando en inglés. No por contenido —un filtro que devuelve cosas cuyo texto
+menciona la palabra es ruido— y no semántico: eso ya es `/buscar`, y aquí se filtra lo que ya se
+está mirando.
+
+**Criterios de aceptación.**
+
+1. En el panel, teclear filtra la tabla sin pulsar Enter; el término viaja en la dirección y
+   sobrevive a recargar y a compartir el enlace.
+2. Buscar y filtrar por ámbito se combinan; cambiar cualquiera de los dos vuelve a la página 1.
+3. En la tienda, buscar filtra el catálogo y se combina con el filtro de pilar; la paginación
+   conserva los dos.
+4. Sin resultados, cada pantalla lo dice con una frase que distingue «no hay nada con ese filtro» de
+   «no hay nada».
+5. La búsqueda de la tienda la ve **cualquiera**, no sólo su dueño: es un catálogo público.
+6. Con JavaScript apagado, el `<form>` sigue funcionando con Enter en las tres pantallas.
+7. Pedidos sigue comportándose exactamente igual: su suite entera vuelve a pasar.
+
 ## Riesgos
 
 - **La base es compartida.** La migración la administra Alembic en el backend Python

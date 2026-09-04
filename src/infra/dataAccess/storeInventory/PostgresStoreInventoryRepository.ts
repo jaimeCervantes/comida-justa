@@ -20,6 +20,28 @@ interface InventoryRow {
 }
 
 /**
+ * El filtro por título, en **cualquiera** de sus idiomas.
+ *
+ * `EXISTS` sobre `post_translations` y no una comparación con el título ya elegido: quien teclea
+ * «masa madre» lo espera aunque esté mirando el panel en inglés, y una publicación tiene un título
+ * por idioma. Con `EXISTS` basta que uno case, y no multiplica la fila como haría un `JOIN`.
+ *
+ * **`strpos` y no `ILIKE`**: lo que se busca es «contiene», y en un `LIKE` el `%` y el `_` que
+ * alguien teclee son comodines. Habría que escaparlos —un guion bajo en un título es de lo más
+ * normal— y ese escapado es justo la clase de detalle que se escribe mal una vez y nadie vuelve a
+ * mirar. Sin comodines no hay nada que escapar, y el término entra parametrizado igual.
+ */
+function termCondition(term: string) {
+  if (term === "") return sql``;
+
+  return sql`AND EXISTS (
+    SELECT 1 FROM post_translations pt
+    WHERE pt.post_id = p.id
+      AND strpos(lower(pt.title), lower(${term})) > 0
+  )`;
+}
+
+/**
  * Lo que cada ámbito añade al `WHERE`.
  *
  * `untracked` pregunta por `IS NULL` y `out` por `= 0`, y esa diferencia **es** el modelo: nulo
@@ -63,6 +85,7 @@ export class PostgresStoreInventoryRepository
       AND p.kind = ${PRODUCT_KIND}
       AND ${PUBLISHED_POSTS}
       ${scopeCondition(query.scope)}
+      ${termCondition(query.term)}
     `;
 
     const [total, items] = await Promise.all([

@@ -524,3 +524,101 @@ interruptor. Todo verde: 2634 unitarias y 99 e2e.
 
 **Pendiente de tu parte:** elegir. Y un aviso operativo que ya cuesta dos corridas: si una corrida
 e2e falla entera con 404 en todo, no la diagnostiques — borra `.next` y repite.
+
+---
+
+## Slice 5 — Buscar dentro del inventario y dentro de la tienda (2026-09-04)
+
+### Objetivo
+
+Dejar de paginar a ciegas. 418 productos y ninguna de las dos pantallas donde se recorren dejaba
+buscar: el panel sólo ordenaba alfabéticamente y la tienda sólo filtraba por pilar.
+
+### Decisiones y por qué
+
+- **Una pieza, tres clientes.** `OrdersSearchField` ya resolvía esto bien, y escribirlo dos veces
+  más habría sido copiar también sus cuatro decisiones difíciles: el `<form>` que hace que Enter
+  siga funcionando sin JavaScript, `replace` en vez de `push` para que el botón de atrás no obligue
+  a deshacer la búsqueda letra por letra, `scroll: false` porque quien escribe mira el campo, y una
+  referencia a lo último pedido para que la respuesta a la tercera letra no devuelva el campo atrás
+  cuando ya vas por la quinta. Se extrajo a `presentation/search/ListSearchField` y pedidos pasó a
+  ser uno de sus tres clientes — el mismo movimiento que `QueryPagination` en el slice 2.
+- **Una regla para el término, en el dominio.** El `trim` y el tope de 80 estaban escritos **dos
+  veces** (la página de pedidos al leer la dirección y su campo al escribirla). Esa duplicación es
+  la que hace que un día el campo mande 90 caracteres y el servidor busque otros 80: el campo
+  creería estar filtrando por algo que la lista no filtró. Ahora `normalizeListTerm` y las tres
+  pantallas no pueden discrepar.
+- **`strpos` y no `ILIKE`.** Lo que se busca es «contiene», y en un `LIKE` el `%` y el `_` que
+  alguien teclee son comodines que habría que escapar —un guion bajo en un título es normal—. Ese
+  escapado es justo la clase de detalle que se escribe mal una vez y nadie vuelve a mirar; de hecho
+  la primera versión de este slice lo escribió mal. Sin comodines no hay nada que escapar.
+- **`EXISTS` sobre `post_translations`, no comparación con el título ya elegido.** Quien teclea
+  «masa madre» lo espera aunque esté mirando en inglés, y una publicación tiene un título por
+  idioma. Con `EXISTS` basta que uno case, y no multiplica la fila como haría un `JOIN`.
+- **La búsqueda de la tienda la ve cualquiera.** Un catálogo de 418 productos es un muro para quien
+  viene a comprar, y buscar dentro de él no es administrar nada. Decidido con el usuario.
+- **Dos frases distintas para la lista vacía.** «No hay nada que coincida» y «aquí no hay nada» se
+  arreglan de maneras opuestas —borrando el filtro o poniéndose a publicar—, y decir la segunda
+  cuando pasa la primera hace creer que se perdió el catálogo.
+- **Los dos filtros viajan con la página.** Pasar a la siguiente no puede tirar ni el pilar ni la
+  búsqueda; y cambiar cualquiera de los dos vuelve a la página 1, que es la regla que ya seguía
+  `ordersHref`.
+
+### Archivos tocados
+
+**Dominio.** `search/listTerm.ts` (nuevo) + prueba.
+
+**Presentación.** `search/ListSearchField/` (nuevo, extraído de pedidos);
+`pedidos/ui/OrdersSearchField.tsx` (ahora es su envoltura).
+
+**Panel.** `inventario/ui/InventorySearchField.tsx` (nuevo), `inventoryHref.ts`, `page.tsx`,
+`storeInventory/IStoreInventoryRepository.ts` y su repositorio.
+
+**Tienda.** `tienda/[slug]/ui/StoreSearchField.tsx` (nuevo), `StoreCatalog.tsx`, `data.ts` y las dos
+páginas; `posts/IPostQueryRepository.ts` y `PostgresPostQueryRepository.ts` (`termWhere`).
+
+**i18n.** Tres claves en `account` y tres en `store`, en los dos catálogos.
+
+**Pruebas.** `e2e/inventory/busquedaEnListas.spec.ts`.
+
+### Validación
+
+- `typecheck`: limpio. `lint`: limpio (1100 archivos).
+- `test:run`: **2644 pruebas en 243 archivos, todas en verde**.
+- `playwright test src/e2e/inventory src/e2e/orders src/e2e/sellerStore`: **105 de 105**, 19.5 min.
+  La suite de pedidos entera se volvió a correr a propósito: su buscador cambió por dentro.
+
+### Lo que se escribió en la base compartida
+
+Sólo datos `e2e-`, borrados en el `afterEach`.
+
+### Tropiezos
+
+- **Un heredoc se comió las llaves de las interpolaciones.** Editando el repositorio del inventario
+  con Python dentro de un heredoc, varios `${x}` quedaron como `$x` y el SQL pasó a mandar texto
+  literal. No lo destapó el `typecheck` —`$where` dentro de una plantilla es texto válido— sino el
+  `lint`, que avisó de tres importaciones y una función sin usar: la señal de que el `WHERE` entero
+  había dejado de referenciarlas. Se reparó a mano y se barrieron todos los archivos tocados
+  buscando el mismo patrón. **Un `$` suelto dentro de una plantilla SQL no lo ve el compilador**;
+  cuando se editen plantillas por script, conviene revisar el `lint` antes de dar nada por bueno.
+
+### Recap
+
+Las tres listas largas del sitio se filtran ahora con la misma pieza: los pedidos, el panel de
+inventario y el catálogo de una tienda. Se teclea y filtran solas, sin Enter, conservando el resto
+de filtros y la dirección; con JavaScript apagado el formulario sigue sirviendo. La búsqueda de la
+tienda es pública, la del panel privada, y las dos buscan por título en cualquier idioma con
+`strpos`, sin comodines que escapar. De paso desaparecieron dos duplicaciones que ya existían: el
+buscador de pedidos y la regla del término. Todo verde: 2644 unitarias y 105 e2e.
+
+### Próximos pasos (opciones)
+
+1. **Existencias visibles al visitante en la tarjeta.** Hoy «Quedan 3» sólo sale en la ficha; en el
+   catálogo y en los listados, no.
+2. **Decir cuál producto falta** en el aviso de inventario insuficiente. `shortfalls` ya lo sabe.
+3. **Buscar también en el perfil** (`/u/<username>`), la única de las listas de tarjetas que se
+   quedó sin campo.
+4. **Poner números a más productos reales** y dejar que el uso diga qué falta.
+
+**Pendiente de tu parte:** elegir. Y sigue en pie lo del backend: la migración `0048` vive sólo en
+`feat/post-stock-quantity` mientras la base compartida ya está en ella.
