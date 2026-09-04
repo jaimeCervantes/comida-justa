@@ -343,3 +343,138 @@ documentado en el `.feature` para que no vuelva.
 
 **Pendiente de tu lado**: elegir cuál va ahora. La rama sigue siendo `feat/cuenta-configurable` y no
 se ha empujado.
+
+---
+
+## Slice 3 — La ficha se edita sin muro (2026-09-04)
+
+### Objetivo
+
+Que la ficha de la tienda deje de ser una lista de cinco campos seguidos, que se vea el logo que la
+tienda ya tiene sin abrirla en otra pestaña, y que guardar diga algo también a quien no mira la
+pantalla.
+
+### Decisiones, y por qué
+
+**1. Tres tramos en vez de cinco campos seguidos.** Nombre, descripción, teléfono, sitio web y logo
+caían uno detrás de otro, cada uno con su propio `mb-6`, y no había forma de ver de un vistazo
+cuántas decisiones distintas se estaban pidiendo. Ahora son tres preguntas: **Identidad** (quién
+eres y qué haces), **Contacto** (cómo te escriben) e **Imagen** (cómo te ven).
+
+**2. `FieldGroup` es un `<fieldset>` con `<legend>`, no un `<div>` con un título.** La diferencia no
+se ve, se oye: un lector de pantalla anuncia «Contacto, teléfono de contacto» al entrar en el campo,
+así que el tramo se sabe sin salir de él. Con un `<h3>` suelto, el nombre se queda arriba y el campo
+se anuncia solo — que es el mismo muro, para quien no ve la pantalla. Vive en el design system
+porque no sabe nada de tiendas y no traduce nada.
+
+De paso, **la separación la reparte el grupo**: se fueron los cinco `containerClassName="mb-6"`, que
+eran cinco decisiones de espaciado para una que debería ser una. Es la regla de `cardSpacing`.
+
+**3. El logo que ya tienes se ve.** El selector decía «Cambia tu logo» sin enseñar cuál, así que
+para saber si valía la pena cambiarlo había que abrir la tienda en otra pestaña. Ahora está al lado,
+con el mismo `StoreLogo` del resto del sitio —cae a la inicial cuando no hay ninguno, en vez de una
+imagen rota—, y **al subir uno nuevo la vista previa pasa a ser el nuevo**: lo que se ve es lo que va
+a quedar, no lo que hay.
+
+**4. Los avisos son los del sistema.** Guardado y error iban en dos `<p>` con colores elegidos a
+mano (`text-pw-green`, `text-brand-clay-700`) y **sin `role` ninguno**, así que al guardar un lector
+de pantalla no anunciaba nada. `Alert` decide el `role` por el tono —un error interrumpe
+(`role="alert"`), una confirmación espera su turno (`role="status"`)— y obliga a poner la etiqueta
+escrita, para quien no distingue verde de rojo. Los `data-testid` se conservan, así que
+`storeProfile.spec.ts` no se tocó.
+
+**5. El progreso de la subida sale del catálogo.** `ImageVideoUploader` tenía `⏳ Subiendo... {n}%`
+y `✅ Subido` **en duro en español** como texto de reserva, y esta ficha no le pasaba los suyos: quien
+subiera un logo en inglés leía español en medio de su idioma. Ahora se los pasa. El componente
+conserva su reserva para quien no los pase — no es alcance de este slice arreglarle eso a los demás.
+
+### Una prueba intermitente que ya había costado tres diagnósticos
+
+`cuentaLayout › Y el hilo sobrevive a la paginación del perfil` daba por hecho que la cuenta de la
+suite tenía alguna publicación: `/u/<username>/page/1` responde **404** cuando no la hay, y el
+escenario informaba «no encuentro la barra de vuelta» — un diagnóstico que costó media hora tres
+veces distintas, incluida una en la que se registró por error como fallo preexistente. Ahora
+**siembra la suya** con `seedPost` y la borra en su `afterEach`, como ya hacía `profile.spec.ts`.
+
+### Un susto que no era: no hubo pérdida de datos
+
+A mitad de la validación, un shard entero empezó a devolver 404 en rutas públicas que sí existen
+—`/tienda/hazlo-sano` entre ellas—, y el barrido de la suite tiene una cláusula que borra tiendas
+**por dueño** (`user_id IN (SELECT id FROM users WHERE email = SUITE_ACCOUNT_EMAIL)`). Se paró la
+entrega y se auditó la base en solo lectura:
+
+| Comprobación | Resultado |
+| --- | --- |
+| Tienda `hazlo-sano` | existe, con su dueño real (`jaime.cervantes.ve@gmail.com`) |
+| Publicaciones totales | 432 |
+| Tiendas y traducciones con prefijo `e2e-` | 0 — sin residuo |
+| Tiendas que posee la cuenta de la suite | ninguna |
+
+O sea que la cláusula por dueño no alcanza nada real: la cuenta `pw.healthy.food@gmail.com` no tiene
+ninguna tienda abierta, que es justo lo que su docstring promete. **Lo que fallaba era el servidor de
+desarrollo**, degradado tras varios `rm -rf .next/dev/types` con compilaciones en vuelo: el shard
+tardó 6.2 min en vez de 3.4 y devolvía 404 en rutas compiladas a medias. Con `rm -rf .next` y una
+corrida limpia, 25/25.
+
+**Lección operativa**: no tocar `.next` con el servidor de Playwright vivo. Si hay que limpiarlo, se
+limpia entero y entre corridas.
+
+### Archivos tocados
+
+**Design system**
+- `presentation/design_system/forms/FieldGroup.tsx` (nuevo)
+
+**Ruta `/cuenta`**
+- `ui/StoreProfileForm.tsx` (tres tramos, vista previa del logo, avisos del sistema, textos de
+  subida traducidos) + `ui/StoreProfileForm.test.tsx` (nuevo)
+
+**Catálogos**
+- `common.alertSaved`; `account.storeGroup{Identity,Contact,Image}` y sus tres pistas;
+  `account.storeLogo{Current,None,Uploading,Uploaded}`
+
+**Pruebas**
+- `e2e/sellerStore/cuentaConfigurable.feature`: los escenarios `@slice-3` dejan de ser esqueleto
+- `e2e/compartir/cuentaLayout.spec.ts`: el escenario de la paginación siembra su publicación
+
+### Comandos y resultados
+
+| Comando | Resultado |
+| --- | --- |
+| `pnpm run test:run` | **2692/2692** en 248 archivos |
+| `pnpm run typecheck` y `typecheck:tests` | limpios |
+| `pnpm run lint` | limpio |
+| `playwright src/e2e/sellerStore/storeProfile.spec.ts` | **4/4** |
+| `playwright src/e2e/{sellerStore,compartir}` **en 3 shards** | **73/73** (25 + 24 + 24) |
+
+**Escrito en la base compartida**: tiendas, direcciones personales, sucursales y una publicación con
+prefijo `e2e-`, todas borradas por los `afterEach` y por el barrido de `globalTeardown`. La auditoría
+de arriba confirma que no queda nada. Nada que deshacer a mano.
+
+### Recap
+
+La ficha ya no es un muro: tres tramos con nombre —Identidad, Contacto, Imagen—, cada uno anunciado
+como grupo para quien navega con lector de pantalla, y el logo actual a la vista con la inicial de
+reserva cuando no hay ninguno. Guardar y fallar usan el mismo aviso que el resto del sitio, con su
+`role` correcto y su etiqueta escrita, así que por fin se anuncia algo al guardar. Los textos de la
+subida dejaron de estar en duro en español. Y por el camino se arregló la prueba intermitente que
+llevaba tres diagnósticos, y se auditó la base tras un susto que resultó ser el servidor de
+desarrollo y no los datos.
+
+Con esto el roadmap de `005-2026-09-04-cuenta-configurable` va por tres slices de cuatro.
+
+### Próximos pasos (opciones)
+
+1. **Slice 4 — Abrir tienda deja de ser una bifurcación.** Es el único que queda del roadmap: quitar
+   el «Cancelar» que expulsa a `/` en medio del alta y dejar abrir la tienda como paso único, con la
+   dirección personal como secundaria.
+2. **Verificar que el punto de una sucursal es el correcto.** El problema real que el aviso retirado
+   del slice 2 no atacaba: `coordinates.ts` tiene dos patrones porque la gente copia el centro del
+   mapa en vez del pin, así que una sucursal puede quedar situada en el sitio equivocado sin que
+   nadie lo note. Alcance nuevo.
+3. **Traducir los textos de reserva de `ImageVideoUploader`.** Este slice le pasó los suyos desde la
+   ficha, pero el componente sigue teniendo `⏳ Subiendo...` en duro para quien no los pase. Quedan
+   dos llamadores por revisar.
+4. **Que el alta de sucursal siga abierta tras guardar.** Hoy se pliega al revalidar, lo cual es un
+   buen «listo» pero obliga a reabrirla si vas a dar de alta tres seguidas. Depende de si eso pasa.
+
+**Pendiente de tu lado**: elegir. La rama es `feat/ficha-sin-muro`, sin empujar.

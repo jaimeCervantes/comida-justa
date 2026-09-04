@@ -6,13 +6,15 @@ import {
   findAnotherUserId,
   releaseUsername,
 } from "../testUtils/claimTestUsername";
+import { deleteOnePostBySlug } from "../testUtils/deleteOnePost";
 import { deleteTestSellerByHandle } from "../testUtils/deleteTestSeller";
+import { seedPost } from "../testUtils/seedPost";
 import {
   type DbSession,
   deleteSession,
   simulateLogin,
 } from "../testUtils/simulateLogin";
-import { testStore } from "../testUtils/testSlug";
+import { testSlug, testStore } from "../testUtils/testSlug";
 
 /**
  * La navegación interna del 5.15: siempre visible, cinco entradas y dos de ellas condicionadas.
@@ -195,6 +197,22 @@ test.describe("Cuando quien vende también reclamó su dirección personal", () 
   let dbSession: DbSession | undefined;
   const store = testStore("Panadería del Sol");
   const username = "e2e-cuenta-nav";
+  /**
+   * El perfil pagina sobre lo que ha publicado esta cuenta, así que **el escenario siembra lo
+   * suyo**.
+   *
+   * Antes daba por hecho que la cuenta de la suite tenía alguna publicación. Cuando no la tenía
+   * —porque otra corrida se cortó a la mitad y su barrido se llevó lo que había—,
+   * `/u/<username>/page/1` respondía 404 y el escenario informaba «no encuentro la barra de
+   * vuelta»: un diagnóstico que costó media hora tres veces distintas. Sembrando aquí, la página 1
+   * existe siempre y el escenario solo puede fallar por lo que dice comprobar.
+   */
+  const publicacion = {
+    title: `E2E Aviso para la paginación ${Date.now()}`,
+    slug: testSlug("aviso-paginacion-perfil"),
+    kind: "anuncio" as const,
+    origin: null,
+  };
 
   test.beforeEach(async ({ page, browserName }) => {
     dbSession = await simulateLogin(page, browserName);
@@ -204,12 +222,15 @@ test.describe("Cuando quien vende también reclamó su dirección personal", () 
     await account.fillAndSubmit({ name: store.name, phone: store.phone });
     await account.expectStoreLink(store.handle);
 
+    // `seedPost` publica como el mismo usuario que toma `simulateLogin`: el de la sesión.
+    await seedPost(publicacion);
     await claimUsernameFor(dbSession.userId, username);
     await page.reload();
   });
 
   test.afterEach(async () => {
     await releaseUsername(username);
+    await deleteOnePostBySlug(publicacion.slug);
     await deleteTestSellerByHandle(store.handle);
     if (dbSession?.id) {
       await deleteSession(dbSession.id);

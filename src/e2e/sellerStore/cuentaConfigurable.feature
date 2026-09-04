@@ -152,15 +152,55 @@ Característica: La cuenta se configura sola
 
   # ------------------------------------------------------------------ slice 3
 
-  @slice-3 @future
-  Escenario: La ficha enseña el logo que la tienda ya tiene
-    Cuando abro "/cuenta"
-    Entonces la ficha muestra el logo guardado antes de que suba uno nuevo
+  @slice-3 @component
+  # Vitest: son reglas de pintado de un formulario. Montarlo cuesta un render, y lo que de verdad
+  # hace la ficha —guardar contra la base— ya lo cubre `storeProfile.spec.ts`.
+  Escenario: La ficha agrupa sus campos por sentido, no en una lista larga
+    Cuando se pinta la ficha de la tienda
+    Entonces sus campos están repartidos en los grupos "Identidad", "Contacto" y "Imagen"
+    Y cada grupo se anuncia con su nombre
 
-  @slice-3 @future
-  Escenario: La agenda se ofrece una sola vez
-    Cuando abro "/cuenta"
-    Entonces "Mi agenda" aparece solo en el menú de la sección
+  @slice-3 @component
+  Esquema del escenario: Cada campo vive en el grupo que le toca
+    Cuando se pinta la ficha de la tienda
+    Entonces el campo "<campo>" está dentro del grupo "<grupo>"
+
+    Ejemplos:
+      | campo                 | grupo     |
+      | Nombre de tu tienda   | Identidad |
+      | ¿Qué vendes?          | Identidad |
+      | Teléfono de contacto  | Contacto  |
+      | Sitio web             | Contacto  |
+
+  @slice-3 @component
+  Escenario: La ficha enseña el logo que la tienda ya tiene
+    Dado que mi tienda "Panadería La Luz" ya tiene logo guardado
+    Cuando se pinta la ficha de la tienda
+    Entonces se ve ese logo antes de que suba ninguno nuevo
+
+  @slice-3 @component
+  Escenario: Sin logo guardado, el hueco lo llena la inicial y no una imagen rota
+    Dado que mi tienda "Panadería La Luz" no tiene logo
+    Cuando se pinta la ficha de la tienda
+    Entonces se lee la inicial "P" en el lugar del logo
+
+  @slice-3 @component
+  Esquema del escenario: Guardar bien y guardar mal usan el mismo aviso del sistema
+    Dado que la ficha vuelve con "<resultado>"
+    Cuando se pinta
+    Entonces el aviso tiene rol "<rol>" y lleva su etiqueta de tono escrita
+
+    Ejemplos:
+      | resultado | rol    |
+      | guardada  | status |
+      | rechazada | alert  |
+
+  @slice-3 @component
+  # Estaba en duro dentro de `ImageVideoUploader`: quien subiera un logo en inglés leía
+  # «⏳ Subiendo...» en medio de su idioma.
+  Escenario: El progreso de la subida se lee en el idioma de quien mira
+    Cuando se pinta la ficha de la tienda en "en"
+    Entonces el selector de logo no ofrece ningún texto en español
 
   # ------------------------------------------------------------------ slice 4
 
