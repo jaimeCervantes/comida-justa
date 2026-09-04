@@ -17,7 +17,7 @@ describe("resolveInventoryScope", () => {
     ["", "un parámetro vacío"],
     [undefined, "un parámetro ausente"],
     [["out"], "un parámetro repetido, que Next entrega como lista"],
-  ])("cae a todos con %j: %s", (raw) => {
+  ])("cae a todos con %j: %s", (raw, _motivo) => {
     expect(resolveInventoryScope(raw)).toBe("all");
   });
 });

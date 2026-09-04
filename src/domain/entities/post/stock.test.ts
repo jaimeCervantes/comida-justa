@@ -77,7 +77,7 @@ describe("parseStockQuantity", () => {
     ["abc", "no es un número"],
     ["", "no dice nada"],
     [null, "no vino en el formulario"],
-  ])("rechaza %j porque %s", (raw) => {
+  ])("rechaza %j porque %s", (raw, _motivo) => {
     expect(parseStockQuantity(raw)).toEqual({ error: "invalid-stock" });
   });
 

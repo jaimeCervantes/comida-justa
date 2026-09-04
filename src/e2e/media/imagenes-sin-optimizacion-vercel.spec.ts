@@ -25,7 +25,7 @@ async function storageImageSources(page: Page): Promise<string[]> {
   return page
     .locator("img")
     .evaluateAll((images) =>
-      images
+      (images as HTMLImageElement[])
         .map((image) => image.currentSrc || image.src)
         .filter((src) =>
           ["firebasestorage.googleapis.com", "storage.googleapis.com"].some(

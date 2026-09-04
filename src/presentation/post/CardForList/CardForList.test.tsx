@@ -445,7 +445,7 @@ describe("las existencias en la tarjeta", () => {
     ["servicio", 45],
     ["evento", null],
     ["anuncio", null],
-  ])("un %s no cuenta ejemplares en su tarjeta", (kind) => {
+  ])("un %s no cuenta ejemplares en su tarjeta", (kind, _ejemplares) => {
     const { queryByTestId } = render(
       <CardForList
         {...baseProps}

@@ -82,6 +82,10 @@ function build(products: CartProduct[]) {
     findById: vi.fn(),
     historyOf: vi.fn(),
     findHeader: vi.fn(),
+    /* Hacer un pedido no mueve inventario —eso pasa al avanzarlo—, así que este caso de uso no lo
+       llama nunca. Está para que el doble siga cumpliendo el puerto entero: un doble incompleto
+       compila hoy y esconde mañana que al caso de uso le falta un colaborador. */
+    stockDemandOf: vi.fn(),
     updateStatus: vi.fn(),
   };
   const cart: CartProductRepository = {
