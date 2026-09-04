@@ -418,3 +418,109 @@ Con esto el roadmap de `004` queda **completo**: las tres rebanadas entregadas.
 
 **Pendiente de tu parte:** elegir. Y si la opción es la 1, decidir a qué productos ponerles número —
 eso no lo puedo decidir yo, porque depende de lo que de verdad haya en la tienda.
+
+---
+
+## Slice 4 — Las existencias se editan desde la tarjeta (2026-09-03)
+
+### Objetivo
+
+Recontar donde ya estás mirando. La tarjeta ya ofrecía editar y marcar agotado; le faltaba la
+cuenta. Y de paso cerrar un hueco que llevaba abierto desde el slice 1.
+
+### El hueco que estaba en producción
+
+`CardForList` decidía quién manda con `viewerId === post.user.id`: **quién publicó**, no quién lleva
+la tienda. En `/tienda/<handle>`, a su dueño no se le ofrecía nada sobre lo que escribió otra cuenta
+— exactamente lo que el slice 1 habilitó en la ficha y que aquí seguía sin hacerse. Ahora la tarjeta
+pregunta `canManagePost`, la misma regla que autoriza la escritura.
+
+Para que esa regla pudiera responder hizo falta un dato que no llegaba: la proyección de la tarjeta
+traía `seller` —nombre y logo, lo que se **pinta**— pero no `sellerId`, que es lo que se **compara**.
+Sin él la vía de la tienda no podía dispararse nunca. Los dos van juntos en el DTO y con esa
+distinción escrita, porque se parecen lo bastante como para volver a confundirlos.
+
+### Decisiones y por qué
+
+- **La regla del slice 1 se mantiene, y se pregunta al mismo sitio.** El interruptor manual
+  desaparece cuando el producto lleva la cuenta, también en la tarjeta. Se consideró que
+  convivieran; hacerlo bien pedía una columna nueva (`is_offered`) porque hoy `is_available` tiene
+  dos oficios —interruptor en lo que no cuenta, valor derivado en lo que sí— y los dos mandos se
+  pisarían: marcar agotado a mano y volver a guardar el número borraría la intención sin avisar. Se
+  decidió no abrirlo.
+- **El campo es el mismo `StockControl` compacto** del panel. Tres pantallas —ficha, panel y
+  tarjeta— y una sola acción: no hay forma de que el número quede distinto según por dónde entres.
+- **`viewerSellerId` sólo lo baja la tienda.** En un perfil todo lo listado es de la misma cuenta,
+  así que la vía de la tienda no añadiría nada; declararlo allí sería un prop que no significa nada.
+- **No cuesta una consulta.** La página de la tienda ya sabe si quien mira es su dueño; si lo es, su
+  `sellerId` es justamente el de esta tienda, y todo el catálogo cuelga de ella. Se deriva de lo que
+  ya estaba en la mano.
+- **`article` como localizador en la e2e.** Es lo que `Card` es —su `Container` por omisión— y el
+  título es lo único que distingue una tarjeta de otra para quien mira. Ni una clase ni una
+  posición: las dos cambian con el diseño.
+
+### Archivos tocados
+
+**Lectura.** `posts/IPostQueryRepository.ts` (`stockQuantity` y `sellerId`),
+`posts/PostgresPostQueryRepository.ts` (las dos columnas en la proyección),
+`UI/mappers/posts/mapPostsToCards.ts`.
+
+**Presentación.** `post/CardOwnerControls.tsx` (el campo y la regla de convivencia),
+`post/CardForList/CardForList.tsx` (`canManagePost`, `viewerSellerId`, `stockQuantity`).
+
+**Rutas.** `tienda/[slug]/ui/StoreCatalog.tsx` y las dos páginas que lo montan.
+
+**Pruebas.** `CardForList.test.tsx` (9 casos nuevos), `e2e/inventory/existenciasEnLaTarjeta.spec.ts`,
+y el corte de `stockAction` en los cuatro tests que montan tarjetas.
+
+### Validación
+
+- `typecheck`: limpio. `lint`: limpio (1095 archivos).
+- `test:run`: **2634 pruebas en 242 archivos, todas en verde**.
+- `playwright test src/e2e/inventory src/e2e/orders src/e2e/sellerStore`: **99 de 99**, 16.1 min.
+  (La corrida se hizo antes de añadir los `vi.mock` a cuatro tests; esos archivos son de Vitest y no
+  entran en la e2e, así que no la invalidan.)
+
+### Lo que se escribió en la base compartida
+
+Sólo datos `e2e-`, borrados en el `afterEach`: publicaciones, una tienda con dueño y **una dirección
+personal prestada** a la cuenta de la suite, que se devuelve —es una cuenta real y tiene que quedar
+como estaba. Comprobado al terminar: 0 publicaciones, 0 tiendas y 0 usuarios con ese prefijo.
+
+### Desviaciones y tropiezos
+
+- **Dos corridas enteras devolvieron el 404 global del sitio**, incluidas pruebas que sólo leen. Ya
+  había pasado en el slice 2 y allí quedó anotado como ambiental sin explicación. Esta vez apareció
+  la causa: `.next/dev/types/routes.d.ts` estaba corrupto —lo destapó un `typecheck` que falló
+  dentro de un archivo generado— y con la caché de build en ese estado el servidor de desarrollo no
+  resuelve ninguna ruta. **`rm -rf .next` antes de la corrida** lo arregló, y el diagnóstico se
+  confirmó a mano: con un servidor limpio, `/tienda/<handle>` responde 200.
+- **Lo que quedó rojo después de limpiar era un fallo real**, y sólo se pudo ver una vez apagado el
+  ruido: las tres pruebas de la tienda seguían fallando mientras la del perfil ya pasaba. Esa
+  asimetría —el camino del dueño funciona, el de la tienda no— fue lo que señaló el `sellerId` que
+  no llegaba.
+- **Cuatro tests ajenos dejaron de cargar** al importar la tarjeta el Server Action nuevo. Ya
+  cortaban la cadena de `availabilityAction` por el mismo motivo; se les añadió el corte gemelo.
+
+### Recap
+
+Las existencias se recuentan desde la tarjeta, en el perfil de quien publicó y en la tienda de quien
+la lleva, con el mismo campo y la misma acción que la ficha y el panel. La tarjeta dejó de decidir
+por «quién publicó» y pasó a preguntar `canManagePost`, que es lo que ya autorizaba la escritura: el
+dueño de una tienda administra su catálogo aunque cada ficha la escribiera otra mano. Para eso hubo
+que llevar `sellerId` a la proyección de la tarjeta, que traía con qué pintar la tienda pero no con
+qué compararla. La regla del slice 1 sigue en pie y ahora en tres pantallas: donde hay cuenta, no hay
+interruptor. Todo verde: 2634 unitarias y 99 e2e.
+
+### Próximos pasos (opciones)
+
+1. **La búsqueda del panel de inventario.** Es lo que quedó fuera a propósito y lo que más se va a
+   notar: con 418 productos y sólo orden alfabético, llegar a uno concreto son varias páginas.
+   `OrdersSearchField` ya es el patrón — filtra mientras escribes, sin Enter.
+2. **Existencias visibles para el visitante en la tarjeta**, no sólo para quien administra. Hoy
+   «Quedan 3» sale en la ficha; en el listado no.
+3. **Decir cuál producto falta** en el aviso de inventario insuficiente. `shortfalls` ya lo sabe.
+4. **Poner números a más productos reales** y dejar que el uso diga qué falta.
+
+**Pendiente de tu parte:** elegir. Y un aviso operativo que ya cuesta dos corridas: si una corrida
+e2e falla entera con 404 en todo, no la diagnostiques — borra `.next` y repite.

@@ -9,6 +9,11 @@ vi.mock("~/presentation/post/availabilityAction", () => ({
   setAvailability: vi.fn(),
 }));
 
+// Lo mismo, por el mismo motivo: el campo de existencias también dispara un Server Action.
+vi.mock("~/presentation/post/stockAction", () => ({
+  setStock: vi.fn(),
+}));
+
 import userEvent from "@testing-library/user-event";
 import { PUBLIC_BASE_URL } from "~/infra/constants";
 import { renderWithIntl as render } from "~/infra/test-utils/renderWithIntl";
@@ -346,5 +351,110 @@ describe("When a card is listed", () => {
 
       expect(getByRole("img").getAttribute("src")).toContain("portada.webp");
     });
+  });
+});
+
+/**
+ * Slice 4: el número se recuenta desde la tarjeta.
+ *
+ * La tarjeta ya ofrecía editar y marcar agotado; lo que faltaba era la cuenta, y que el permiso lo
+ * decidiera la misma regla que autoriza la escritura y no sólo «quién publicó».
+ */
+describe("las existencias en la tarjeta", () => {
+  const producto = { ...baseProps, kind: "producto" } as const;
+
+  it("quien publicó puede recontar sin abrir la publicación", () => {
+    const { getByTestId } = render(
+      <CardForList {...producto} viewerId="user-1" stockQuantity={12} />,
+    );
+
+    expect(getByTestId("stock-control")).toBeInTheDocument();
+    expect(getByTestId("stock-input")).toHaveValue(12);
+  });
+
+  /* Dos mandos para lo mismo podrían contradecirse: un producto agotado a mano con 12 unidades
+     guardadas no sabría qué contestar. Misma regla que en la ficha. */
+  it("con inventario ya no ofrece además marcar agotado", () => {
+    const { queryByRole } = render(
+      <CardForList {...producto} viewerId="user-1" stockQuantity={12} />,
+    );
+
+    expect(
+      queryByRole("button", { name: /agotado|disponible/i }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("sin inventario conserva su interruptor y el campo nace vacío", () => {
+    const { getByRole, getByTestId } = render(
+      <CardForList {...producto} viewerId="user-1" stockQuantity={null} />,
+    );
+
+    expect(getByRole("button", { name: /agotado/i })).toBeInTheDocument();
+    expect(getByTestId("stock-input")).toHaveValue(null);
+  });
+
+  /* La segunda vía: el dueño de la tienda administra su catálogo aunque cada ficha la escribiera
+     otra mano. Es el hueco que el slice 1 cerró en la ficha y que aquí seguía abierto. */
+  it("el dueño de la tienda recuenta lo que publicó otra cuenta", () => {
+    const { getByTestId } = render(
+      <CardForList
+        {...producto}
+        user={{ id: "otra-cuenta", name: "Quien lo escribió" }}
+        sellerId="tienda-1"
+        viewerId="dueño-de-la-tienda"
+        viewerSellerId="tienda-1"
+        stockQuantity={5}
+      />,
+    );
+
+    expect(getByTestId("stock-control")).toBeInTheDocument();
+  });
+
+  it("el dueño de otra tienda no", () => {
+    const { queryByTestId } = render(
+      <CardForList
+        {...producto}
+        user={{ id: "otra-cuenta", name: "Quien lo escribió" }}
+        sellerId="tienda-1"
+        viewerId="dueño-de-otra"
+        viewerSellerId="tienda-2"
+        stockQuantity={5}
+      />,
+    );
+
+    expect(queryByTestId("card-owner-controls")).not.toBeInTheDocument();
+  });
+
+  /* Dos nulos no se parecen: sin tienda a un lado o al otro, la vía de la tienda no existe. */
+  it("sin tienda, la vía de la tienda no abre nada", () => {
+    const { queryByTestId } = render(
+      <CardForList
+        {...producto}
+        user={{ id: "otra-cuenta", name: "Quien lo escribió" }}
+        sellerId={null}
+        viewerId="alguien"
+        viewerSellerId={null}
+        stockQuantity={5}
+      />,
+    );
+
+    expect(queryByTestId("card-owner-controls")).not.toBeInTheDocument();
+  });
+
+  it.each([
+    ["servicio", 45],
+    ["evento", null],
+    ["anuncio", null],
+  ])("un %s no cuenta ejemplares en su tarjeta", (kind) => {
+    const { queryByTestId } = render(
+      <CardForList
+        {...baseProps}
+        kind={kind}
+        viewerId="user-1"
+        stockQuantity={null}
+      />,
+    );
+
+    expect(queryByTestId("stock-control")).not.toBeInTheDocument();
   });
 });

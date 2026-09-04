@@ -126,6 +126,49 @@ qué; los renglones de productos sin inventario no afectan a nada; un pedido can
 `PENDING` (que nunca descontó) no devuelve nada. Si el descuento agota un producto, queda agotado
 para todos por la regla derivada del slice 1.
 
+### Slice 4 — Las existencias se editan desde la tarjeta
+
+**De dónde sale.** De mirar el catálogo propio y no poder arreglar lo que se ve. Es el mismo
+argumento que ya justificó `CardOwnerControls` en su día —«obligarle a abrir cada publicación para
+apagar tres cosas que se acabaron convierte un minuto en cinco»— aplicado al número en vez de al
+interruptor. La tarjeta ya ofrece editar y marcar agotado; le falta la cuenta.
+
+- **Problem:** el número sólo se toca en dos sitios: la ficha de cada producto y el panel. Quien
+  está mirando su tienda o su perfil y ve que de algo quedan pocas tiene que irse a otra pantalla,
+  encontrarlo otra vez y volver. Y hay un hueco peor: en `/tienda/<handle>` la tarjeta decide quién
+  manda por **quién publicó** (`viewerId === post.user.id`), no por quién lleva la tienda, así que
+  al dueño no se le ofrece nada sobre lo que escribió otra cuenta — justo lo que el slice 1 vino a
+  habilitar en la ficha y aquí sigue sin hacerse.
+- **Savings:** recontar donde ya estás mirando, sin cambiar de pantalla ni buscar dos veces. Y una
+  incoherencia menos: el mismo permiso en los dos sitios donde aparece una publicación.
+- **Why:** el inventario sólo se mantiene si mantenerlo es más barato que no hacerlo. El panel sirve
+  para sentarse a hacer inventario; la tarjeta, para arreglar lo que ves de paso. Son dos momentos y
+  hacen falta los dos.
+
+**Alcance.**
+
+1. `stock_quantity` llega a la proyección que alimenta las tarjetas (`IPostQueryRepository` y
+   `PostgresPostQueryRepository`), como ya llegó a la de la ficha en el slice 1.
+2. `CardOwnerControls` gana el campo de existencias —el mismo `StockControl` compacto del panel— y
+   **esconde «marcar agotado» cuando el producto lleva la cuenta**, que es la regla del slice 1
+   preguntada al mismo sitio (`carriesInventory`), no reescrita.
+3. Las tarjetas dejan de decidir por «quién publicó» y pasan a preguntar `canManagePost`, con el
+   `sellerId` de quien mira. Sólo `/tienda/<handle>` necesita bajarlo: en `/u/<username>` todo lo
+   que se lista es de la misma cuenta, así que la vía de la tienda no añade nada.
+
+**Criterios de aceptación.**
+
+1. En su perfil y en su tienda, el dueño ve el campo de existencias en la tarjeta de un `producto` y
+   guardar desde ahí cambia el número igual que desde la ficha — es la misma acción.
+2. Una tarjeta cuyo producto lleva inventario **no** ofrece además «marcar agotado».
+3. El dueño de la tienda ve el campo en un producto de su tienda publicado por otra cuenta.
+4. Quien no es ni una cosa ni la otra no ve nada, y el servidor lo rechaza igual si lo fuerza.
+5. Un anuncio, un evento y un servicio siguen sin campo, y conservan lo que ya tenían.
+6. Guardar desde la tarjeta deja la ficha diciendo lo mismo, y en 0 aparece la insignia de agotado.
+
+**Qué NO entra.** La búsqueda —ni en el panel ni en la tienda— es otra rebanada; que la tienda no
+tenga buscador hoy es cierto y no lo arregla ésta.
+
 ## Riesgos
 
 - **La base es compartida.** La migración la administra Alembic en el backend Python

@@ -72,6 +72,7 @@ export function mapOnePostToCard(item: Post, context: CardMappingContext) {
     category: item.category ?? null,
     subCategory: item.subCategory ?? null,
     isAvailable: item.isAvailable,
+    stockQuantity: item.stockQuantity ?? null,
     /* Solo un evento las trae; en lo demás llegan nulas y la tarjeta no pinta nada. El estado
        (próximo / en curso / pasado) NO se calcula aquí: se deriva del reloj al pintar, o una
        página cacheada seguiría diciendo "próximo" al día siguiente. */
@@ -108,6 +109,8 @@ export function mapOnePostToCard(item: Post, context: CardMappingContext) {
      * no hay `/tienda/…` a donde ir y un logo que no lleva a ninguna parte engaña más que informa.
      */
     seller: item.seller ?? null,
+    /* Lo que se compara, no lo que se pinta: es la segunda vía de `canManagePost` en la tarjeta. */
+    sellerId: item.sellerId ?? null,
     summary: item.summary,
     contactInfo: item.contactInfo,
     to: createAbsoluteUrl(to),

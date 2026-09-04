@@ -243,3 +243,67 @@ Feature: Inventario de existencias
       | CONFIRMED | CANCELLED | devuelve  | había descontado                                |
       | PREPARING | DELIVERED | no cambia | ya descontó                                     |
       | PREPARING | CANCELLED | devuelve  | había descontado                                |
+
+  # ---------------------------------------------------------------------------------------------
+  # Slice 4 — Las existencias se editan desde la tarjeta
+  # ---------------------------------------------------------------------------------------------
+
+  # La tarjeta ya ofrece editar y marcar agotado desde el slice de `CardOwnerControls`; le falta la
+  # cuenta. El argumento es el mismo que se escribió entonces: obligar a abrir cada publicación para
+  # arreglar tres cosas convierte un minuto en cinco.
+
+  @slice-4
+  Scenario: Recuento sin salir de mi perfil
+    Given "Dona Chocolate Keto" a 40, mía y sin inventario, en "/u/<mi-usuario>"
+    When escribo 12 en su tarjeta y guardo
+    Then la tarjeta dice que quedan 12
+    And su ficha dice lo mismo, porque es la misma acción
+
+  @slice-4
+  Scenario: El dueño de la tienda recuenta lo que publicó otra persona
+    Given un producto de "Hazlo Sano" publicado por otra cuenta, con 5 existencias
+    When el dueño de la tienda abre "/tienda/hazlo-sano" y guarda 8 en su tarjeta
+    Then la tarjeta dice que quedan 8
+    # Hoy la tarjeta decide por `viewerId === post.user.id` y no le ofrecería nada: es el hueco
+    # que el slice 1 cerró en la ficha y que este cierra en el listado.
+
+  @slice-4
+  Scenario: En la tarjeta tampoco conviven los dos mandos
+    Given un producto mío con 12 existencias, en mi perfil
+    When miro su tarjeta
+    Then me ofrece el campo de existencias
+    But no me ofrece además "marcar agotado"
+
+  @slice-4
+  Scenario: Lo que no lleva inventario conserva su interruptor
+    Given un producto mío sin inventario, en mi perfil
+    When miro su tarjeta
+    Then me sigue ofreciendo "marcar agotado", como siempre
+    And el campo de existencias está vacío, esperando el primer número
+
+  @slice-4
+  Scenario: Agotar desde la tarjeta agota en todas partes
+    Given un producto mío con 1 existencia, en mi perfil
+    When guardo 0 en su tarjeta
+    Then su tarjeta lo marca como "Agotado"
+    And su ficha también, y deja de ofrecer "Pedir por WhatsApp"
+
+  @slice-4
+  Scenario Outline: El campo sigue siendo sólo de lo que se entrega en piezas
+    Given una publicación mía de tipo "<kind>" en mi perfil
+    When miro su tarjeta
+    Then el campo de existencias "<visibilidad>"
+
+    Examples:
+      | kind     | visibilidad | reason                                        |
+      | producto | se ve       | es lo único que se cuenta en unidades         |
+      | servicio | no se ve    | se vende, pero su disponibilidad es la agenda |
+      | evento   | no se ve    | no se agota, caduca                           |
+      | anuncio  | no se ve    | no se vende                                   |
+
+  @slice-4
+  Scenario: A quien no administra no se le ofrece, ni por la fuerza
+    Given un producto de otra persona, en el perfil de esa persona
+    When lo miro con mi sesión
+    Then no veo campo de existencias en su tarjeta
+    And forzar la acción se responde igual que en la ficha: no es suyo

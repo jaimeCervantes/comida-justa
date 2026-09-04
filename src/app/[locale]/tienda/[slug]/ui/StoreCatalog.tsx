@@ -16,6 +16,7 @@ export default function StoreCatalog({
   currentPage,
   totalPages,
   viewerId,
+  viewerSellerId,
   currentPillar,
 }: {
   catalog: Post[];
@@ -25,6 +26,13 @@ export default function StoreCatalog({
   currentPillar: PublicationPillar | null;
   /** Quién mira: decide si sus propias publicaciones le ofrecen editar y marcar agotado. */
   viewerId?: string | null;
+  /**
+   * La tienda de quien mira, cuando es **ésta**.
+   *
+   * Es la segunda vía de `canManagePost`: su dueño lleva el inventario de todo el catálogo, lo
+   * escribiera quien lo escribiera. Nulo para cualquier visitante, incluido el dueño de otra tienda.
+   */
+  viewerSellerId?: string | null;
 }) {
   const t = useTranslations("store");
   const pillarT = useTranslations("publicationPillars");
@@ -56,7 +64,12 @@ export default function StoreCatalog({
       />
       <section data-testid="store-catalog" className={CARD_MASONRY}>
         {catalog.map((post: Post) => (
-          <CardForList {...post} viewerId={viewerId} key={post.id} />
+          <CardForList
+            {...post}
+            viewerId={viewerId}
+            viewerSellerId={viewerSellerId}
+            key={post.id}
+          />
         ))}
       </section>
 
