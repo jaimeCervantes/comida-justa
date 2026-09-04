@@ -144,6 +144,13 @@ dato que no siembra ella misma —justo el patrón que `AGENTS.md` llama frágil
 Queda anotado como pendiente aparte, no se arregla aquí: tocarlo dentro de este slice mezclaría dos
 cambios sin relación en el mismo commit.
 
+> **Corrección, escrita al cerrar el slice 2.** Este escenario **no está roto**: pasa en cuanto la
+> base compartida está limpia (25/25 en el shard 1 de la validación final). Lo que se comprobó
+> contra el árbol base seguía teniendo residuo de una corrida interrumpida, así que la conclusión
+> «no lo rompió este trabajo» era correcta pero la de «está roto» no. Lo frágil sigue siendo real y
+> es otra cosa: el escenario da por hecho que la cuenta de la suite tiene publicaciones, en vez de
+> sembrar la suya, y por eso responde 404 cuando otra corrida se llevó por delante ese dato.
+
 **Nota de operación**: dos corridas de Playwright se interrumpieron a medias durante este slice. Sus
 `afterEach` no llegaron a correr y el residuo en la base compartida hizo fallar 7 escenarios de
 `src/e2e/compartir` en la siguiente pasada —incluidos cuatro de `compartirPublico`, que no tocan la
@@ -289,13 +296,22 @@ campo, que es el dato que decide.
 | `pnpm run lint` | limpio |
 | `playwright src/e2e/sellerStore` | 44/45 → tras arreglar `BranchesPage`, `branches.spec` **4/4** |
 | `playwright src/e2e/sellerStore/{sucursalesEnUnBloque,cuentaConfigurable}.spec.ts` | **11/11** |
-| `playwright src/e2e/compartir/cuentaLayout.spec.ts` | 11/14; los 3 fallos revisados uno a uno |
+| `playwright src/e2e/compartir/cuentaLayout.spec.ts` | 11/14 con la base sucia; ver abajo |
+| `playwright src/e2e/{sellerStore,compartir}` **en 3 shards** | **73/73** (25 + 24 + 24) |
 
-**Sobre esos tres**: uno es el fallo preexistente de la paginación del perfil (verificado contra el
-árbol base en el slice 1). Los otros dos —`/cuenta/agenda` y la barra de vuelta— pasan al repetirlos
-en base limpia: eran residuo de una corrida que el `timeout` cortó a media faena, cuyos `afterEach`
-no llegaron a correr. Es la segunda vez que pasa; de aquí en adelante las corridas largas van
-**partidas en shards** para que cada tramo termine dentro de la ventana.
+**Los tres fallos intermedios eran todos residuo, ninguno un defecto.** Una corrida que el `timeout`
+cortó a media faena dejó sin ejecutar sus `afterEach`, y las tiendas y direcciones `e2e-` que
+quedaron hicieron fallar `/cuenta/agenda`, la barra de vuelta del perfil y la paginación del perfil
+—las tres responden 404 cuando el dato que dan por hecho no está—. Con la base limpia pasan las
+tres: la validación final en shards salió **73/73**.
+
+Eso corrige lo que el slice 1 anotó como «fallo preexistente» de la paginación: no lo es. Lo frágil
+de ese escenario es otra cosa, y sigue en pie —da por hecho que la cuenta de la suite tiene
+publicaciones en vez de sembrar la suya—.
+
+**De aquí en adelante las corridas largas van partidas en shards** (`--shard=n/3`), para que cada
+tramo termine dentro de la ventana y ningún `afterEach` se quede sin correr. Es la segunda vez que
+una corrida cortada envenena la siguiente.
 
 **Escrito en la base compartida**: tiendas, direcciones personales y sucursales con prefijo `e2e-`,
 borradas por los `afterEach` y por el barrido de `globalTeardown`. Nada que deshacer a mano.
@@ -317,8 +333,9 @@ documentado en el `.feature` para que no vuelva.
    original; el enlace duplicado a la agenda ya cayó en el slice 1.
 2. **Slice 4 — Abrir tienda deja de ser una bifurcación.** Quitar el «Cancelar» que expulsa a `/` y
    dejar el alta como paso único.
-3. **Arreglar el escenario preexistente de la paginación del perfil**, que siembre su propia
-   publicación en vez de dar por hecho que la cuenta de la suite tiene alguna.
+3. **Que el escenario de la paginación del perfil siembre su propia publicación** en vez de dar por
+   hecho que la cuenta de la suite tiene alguna. No está roto —pasa con la base limpia—, pero es el
+   primero que cae cuando otra corrida deja residuo, y diagnosticarlo cuesta media hora cada vez.
 4. **Verificar que el punto de una sucursal es el correcto.** Es el problema real que sí existe y que
    el aviso retirado no atacaba: `coordinates.ts` tiene dos patrones porque la gente copia el centro
    del mapa en vez del pin, así que una sucursal puede estar situada en el sitio equivocado sin que
