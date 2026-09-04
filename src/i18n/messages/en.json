@@ -903,6 +903,7 @@
     "elapsedHoursMinutes": "{hours} h {minutes} min later",
     "elapsedMinutes": "{minutes, plural, =0 {right away} one {1 min later} other {# min later}}",
     "errorEmpty": "There is nothing from that store in your cart anymore. Go back to the catalogue and add what you want to order.",
+    "errorInsufficientStock": "You do not have enough stock to accept this order.",
     "errorTransition": "This order changed while you were looking at it. Reload to see where it stands.",
     "errorUnavailable": "Everything you had from this store sold out while you were deciding. See what else they have, or message them on WhatsApp.",
     "heading": "Orders",

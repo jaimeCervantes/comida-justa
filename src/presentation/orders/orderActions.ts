@@ -21,7 +21,9 @@ import {
 import { createCartProductRepository } from "~/infra/dataAccess/cart/factory";
 import { findSellerOfUser } from "~/infra/dataAccess/identity/sessionIdentity";
 import { createOrderRepository } from "~/infra/dataAccess/orders/factory";
-import AdvanceOrderUseCase from "~/use_cases/advanceOrder/advanceOrderUseCase";
+import AdvanceOrderUseCase, {
+  type AdvanceOrderError,
+} from "~/use_cases/advanceOrder/advanceOrderUseCase";
 import PlaceOrderUseCase, {
   type PlaceOrderError,
 } from "~/use_cases/placeOrder/placeOrderUseCase";
@@ -104,7 +106,7 @@ export async function placeOrder(
   );
 }
 
-export type AdvanceOrderState = { error?: "not-found" | "invalid-transition" };
+export type AdvanceOrderState = { error?: AdvanceOrderError };
 
 /**
  * Mueve un pedido por su proceso.

@@ -179,26 +179,67 @@ Feature: Inventario de existencias
   # Slice 3 — El pedido descuenta al aceptarse
   # ---------------------------------------------------------------------------------------------
 
-  @slice-3 @future
+  # **Aceptar es el momento**, no hacer el pedido. Un pedido pendiente es alguien preguntando; lo que
+  # compromete mercancía es que el vendedor diga que sí. Y como un pedido no vuelve atrás —de
+  # CONFIRMED sólo se sale a PREPARING, DELIVERED o CANCELLED—, su estado actual ya dice si descontó:
+  # no hace falta una columna ni una tabla que lo recuerde.
+
+  @slice-3
   Scenario: Aceptar un pedido descuenta lo que lleva
-    Given un pedido pendiente de 2 donas de un producto con 12 existencias
+    Given un pedido pendiente de 2 "Dona Chocolate Keto" de un producto con 12 existencias
     When el vendedor lo acepta
-    Then quedan 10 existencias
+    Then el pedido queda aceptado
+    And quedan 10 existencias
 
-  @slice-3 @future
+  @slice-3
   Scenario: No se acepta un pedido que no se puede servir
-    Given un pedido pendiente de 5 donas de un producto con 2 existencias
+    Given un pedido pendiente de 5 "Dona Chocolate Keto" de un producto con 2 existencias
     When el vendedor intenta aceptarlo
-    Then se le dice que no le alcanza el inventario y el pedido sigue pendiente
+    Then se le dice que no le alcanza el inventario
+    And el pedido sigue pendiente
+    And siguen quedando 2 existencias
 
-  @slice-3 @future
+  @slice-3
+  Scenario: Aceptar lo último lo deja agotado para todos
+    Given un pedido pendiente de 3 "Dona Chocolate Keto" de un producto con 3 existencias
+    When el vendedor lo acepta
+    Then quedan 0 existencias
+    And su ficha lo marca como "Agotado"
+    # Por la regla derivada del slice 1: is_available sale del número, no de un interruptor.
+
+  @slice-3
   Scenario: Cancelar un pedido ya aceptado devuelve lo suyo
-    Given un pedido aceptado que descontó 2 donas
+    Given un pedido de 2 "Dona Chocolate Keto" ya aceptado, que dejó el producto en 10
     When el vendedor lo cancela
-    Then las 2 vuelven al inventario
+    Then vuelven a quedar 12 existencias
 
-  @slice-3 @future
+  @slice-3
   Scenario: Cancelar un pedido que nunca se aceptó no devuelve nada
-    Given un pedido pendiente de 2 donas
+    Given un pedido pendiente de 2 "Dona Chocolate Keto" de un producto con 12 existencias
     When el vendedor lo cancela
-    Then el inventario no cambia
+    Then siguen quedando 12 existencias
+
+  # La garantía de que esto no toca a las 418 publicaciones que no llevan la cuenta.
+  @slice-3
+  Scenario: Lo que no lleva inventario no estorba
+    Given un pedido pendiente con un producto sin inventario y otro con 5 existencias
+    When el vendedor lo acepta
+    Then el pedido queda aceptado
+    And el que no lleva inventario sigue sin llevarla
+    And al otro le quedan 4
+
+  @slice-3 @component
+  Scenario Outline: Qué le hace cada paso al inventario
+    # En Vitest y no en Playwright: son las nueve combinaciones de una regla pura, y montar nueve
+    # pedidos en el navegador para leerlas sería pagar diez minutos por lo que una tabla dice mejor.
+    Given un pedido que pasa de "<desde>" a "<hasta>"
+    Then el inventario "<efecto>"
+
+    Examples:
+      | desde     | hasta     | efecto   | reason                                          |
+      | PENDING   | CONFIRMED | descuenta | aceptar es comprometer mercancía               |
+      | PENDING   | CANCELLED | no cambia | nunca llegó a descontar                        |
+      | CONFIRMED | PREPARING | no cambia | ya descontó al aceptarse; no descuenta dos veces |
+      | CONFIRMED | CANCELLED | devuelve  | había descontado                                |
+      | PREPARING | DELIVERED | no cambia | ya descontó                                     |
+      | PREPARING | CANCELLED | devuelve  | había descontado                                |

@@ -275,3 +275,146 @@ pedidos quedó pendiente.
 **Pendiente de tu parte:** decidir si corres tú las dos e2e o quieres que las corra yo, y elegir
 entre 2, 3 y 4. Y sigue en pie lo del slice 1: hasta que alguien escriba números en productos
 reales, el inventario es invisible por diseño.
+
+---
+
+## Slice 3 — El pedido descuenta al aceptarse (2026-09-03)
+
+### Objetivo
+
+Que el número deje de mantenerse a mano. Cuando el vendedor acepta un pedido, las unidades salen
+del inventario solas; si lo cancela después, vuelven. Y un pedido que no se puede servir no se
+acepta, con un aviso que dice por qué.
+
+### El hallazgo que abarató el slice
+
+**El estado actual del pedido ya cuenta toda su historia.** `TRANSITIONS` no tiene marcha atrás —de
+`CONFIRMED` sólo se sale a `PREPARING`, `DELIVERED` o `CANCELLED`—, así que saber si un pedido
+descontó no necesita ni una columna nueva ni consultar `customer_order_status_changes`: si está en
+uno de esos tres, se aceptó; si está en `PENDING`, no. El roadmap contemplaba derivarlo del
+histórico; no hizo falta.
+
+Lo que decide es una función pura de dos estados, `stockEffectOf(from, to)`, y sus seis
+combinaciones caben en una tabla que se lee de un vistazo.
+
+### Decisiones y por qué
+
+- **Aceptar es el momento, no hacer el pedido.** Un pedido pendiente es alguien preguntando; lo que
+  compromete mercancía es que el vendedor diga que sí. Antes de eso, dos personas pueden estar
+  preguntando por la última dona y las dos tienen razón en preguntar.
+- **Cancelar devuelve sólo si había descontado.** Un pedido cancelado desde `PENDING` nunca tocó el
+  inventario, y devolverle unidades inventaría existencias que nadie apartó.
+- **El descuento va en la MISMA transacción que el cambio de estado.** Un pedido aceptado sin
+  descontar, o descontado sin quedar aceptado, son las dos formas de que el número deje de
+  significar nada. Por eso `stockEffect` viaja como parámetro de `updateStatus` en vez de calcularse
+  abajo: la decisión es del dominio, la atomicidad es de la infraestructura.
+- **La garantía de verdad la pone el `WHERE`, no el `if`.** El `UPDATE` lleva
+  `stock_quantity >= d.q`: dos vendedores aceptando a la vez el último lote leen los dos «quedan 3»,
+  y sólo uno encuentra fila. El que llega tarde mueve menos filas de las que debía y se lleva la
+  transacción entera por delante. La comprobación previa existe **para explicarlo**, no para
+  garantizarlo — sin ella, quedarse corto se vería como «no se pudo, no sabemos por qué».
+- **Un error propio y no `tx.rollback()`.** Drizzle vuelve a lanzar lo que salga de la transacción,
+  y quedarse sin existencias tiene que verse como `null` —«se movió mientras tanto»— y no como una
+  caída. `StockUnavailableError` es lo que permite distinguirlo de un fallo de verdad.
+- **La demanda se agrupa por publicación, en la lectura y en la escritura.** Nada impide dos
+  renglones del mismo producto —no hay `UNIQUE(order_id, post_id)`— y un `UPDATE ... FROM` con dos
+  filas que casan aplica una sola, arbitrariamente. Las dos consultas agrupan igual a propósito: si
+  contaran distinto, avisaría de una cosa y descontaría otra.
+- **Sólo aceptar consulta el inventario.** Preguntar por él para cancelar o entregar sería una
+  consulta a la basura en el camino más recorrido de la pantalla.
+- **El vendedor gana un mensaje propio.** Hasta aquí había uno solo para cualquier fallo, porque
+  sólo había una forma de fallar. «No se pudo» se arregla recargando y «no te alcanza el inventario»
+  reponiendo: son dos conversaciones. Los otros dos códigos siguen compartiendo frase a propósito —
+  distinguir «no existe» de «no es tuyo» le contaría a un extraño si el id que probó era bueno.
+- **`is_available` se sigue derivando**, también aquí. Que un producto se agote por un pedido y que
+  se agote a mano se ven igual en la ficha, en el carrito y para el bot.
+
+### Archivos tocados
+
+**Dominio.** `order/orderStock.ts` (nuevo: `stockEffectOf`, `shortfalls`) + prueba;
+`order/ports.ts` (`stockDemandOf`, `stockEffect` en `updateStatus`).
+
+**Casos de uso.** `advanceOrder/advanceOrderUseCase.ts` (efecto + comprobación previa + el código
+`insufficient-stock`) y su prueba.
+
+**Infra.** `orders/PostgresOrderRepository.ts`: `stockDemandOf`, `moveStock` y el movimiento dentro
+de la transacción. `db/publishedPosts.test.ts`: entrada nueva en la lista de excepciones, con su
+motivo.
+
+**Presentación.** `orders/orderActions.ts` (el estado deja de enumerar códigos a mano) y
+`pedidos/ui/SellerOrders.tsx` (un mensaje por motivo).
+
+**i18n.** `orders.errorInsufficientStock` en `es.json` y `en.json`.
+
+**Pruebas.** `e2e/inventory/pedidoDescuenta.spec.ts`.
+
+### Validación
+
+- `typecheck`: limpio.
+- `lint`: limpio (`biome check`, 1094 archivos).
+- `test:run`: **2625 pruebas en 242 archivos, todas en verde** (14 nuevas de dominio, 8 nuevas del
+  caso de uso).
+- `playwright test src/e2e/orders src/e2e/inventory`: **60 de 60**, en 11.3 min. La suite de pedidos
+  entera se volvió a correr a propósito: `updateStatus` cambió de firma y de cuerpo.
+
+### Lo que se escribió en la base compartida
+
+Sólo datos de prueba con prefijo `e2e-`, borrados en el `afterEach`. Comprobado al terminar: **0
+publicaciones y 0 tiendas** con ese prefijo.
+
+**Un dato que no es residuo:** «Pan de masa madre de arándanos (hogaza 1kg)» tiene
+`stock_quantity = 13` e `is_available = true`. No lo escribió ninguna prueba —todas usan slugs
+`e2e-` y limpian—: **lo puso el dueño desde el navegador**, confirmado por él. Es el primer producto
+real que lleva la cuenta, y es la respuesta a lo que quedó pendiente del slice 1: hasta que alguien
+escribiera un número, la entrega era invisible por diseño.
+
+Conviene saberlo antes del siguiente pedido de ese pan: ahora sí se descuenta solo, y en 13 pedidos
+se agota para la ficha, el carrito y el bot sin que nadie apague nada.
+
+### Desviaciones del roadmap
+
+- **No hizo falta leer el histórico.** El roadmap proponía derivar «¿ya descontó?» de
+  `customer_order_status_changes`; el estado actual basta, porque un pedido no retrocede. Menos
+  consulta y menos acoplamiento.
+- **Un `Scenario Outline` se marcó `@component`.** Las seis combinaciones de `stockEffectOf` son una
+  regla pura: montar seis pedidos en el navegador para leerlas habría costado diez minutos de suite
+  por lo que una tabla de Vitest dice mejor.
+- **El guardián de `publishedPosts` volvió a saltar, y aquí la respuesta era la contraria.** En el
+  slice 2 el panel debía filtrar; aquí, no: lo que se pidió se descuenta aunque la publicación se
+  bajara después, y saltárselo dejaría el número mintiendo. Entró en la lista de excepciones con ese
+  motivo escrito, que es para lo que la lista existe.
+
+### Follow-ups
+
+- **El carrito no reserva.** Dos personas pueden llenar el carrito con la última dona; la segunda se
+  entera cuando el vendedor no puede aceptar. Es deliberado —reservar al añadir bloquea inventario
+  por carritos que nadie confirma— pero el día que duela, se mira.
+- **`DELIVERED` no se puede cancelar**, así que el `release` desde ahí es inalcanzable. La regla lo
+  contempla igualmente porque es verdad; si algún día se permite devolver, ya está escrito.
+- El aviso de «no te alcanza» no dice **cuál** producto falta. `shortfalls` ya devuelve los renglones
+  enteros justo para eso; pintarlos es una línea el día que haya pedidos con muchos renglones.
+
+### Recap
+
+El inventario ya se mantiene solo. Aceptar un pedido resta sus unidades en la misma transacción en
+que el pedido cambia de estado; cancelarlo después las devuelve; cancelarlo sin haberlo aceptado no
+toca nada. Un pedido que pide más de lo que hay no se puede aceptar y el vendedor lee por qué, y si
+aceptarlo agota el producto, queda agotado para la ficha, el carrito y el bot por la misma regla
+derivada del slice 1. Lo que no lleva la cuenta —las 418 publicaciones de siempre— sigue sin
+enterarse de nada. Todo verde: 2625 unitarias y 60 e2e, con la suite de pedidos entera repetida
+porque `updateStatus` cambió por dentro.
+
+Con esto el roadmap de `004` queda **completo**: las tres rebanadas entregadas.
+
+### Próximos pasos (opciones)
+
+1. **Seguir poniendo existencias a productos reales.** El pan de arándanos ya tiene 13. El circuito
+   completo —panel, pedido, descuento, agotado— sólo se puede juzgar con números de verdad encima, y
+   con uno solo no se ve el conjunto.
+2. **Una búsqueda en el panel de inventario.** Con 418 productos y sólo orden alfabético, llegar a
+   uno concreto son varias páginas. Es lo que más se va a notar en cuanto se use de verdad.
+3. **Enseñar las existencias en la tarjeta de los listados**, no sólo en la ficha y el panel.
+4. **Decir cuál producto falta** en el aviso de inventario insuficiente. `shortfalls` ya lo sabe.
+
+**Pendiente de tu parte:** elegir. Y si la opción es la 1, decidir a qué productos ponerles número —
+eso no lo puedo decidir yo, porque depende de lo que de verdad haya en la tienda.

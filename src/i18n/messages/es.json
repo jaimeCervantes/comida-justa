@@ -903,6 +903,7 @@
     "elapsedHoursMinutes": "{hours} h {minutes} min después",
     "elapsedMinutes": "{minutes, plural, =0 {enseguida} one {1 min después} other {# min después}}",
     "errorEmpty": "Ya no tienes nada de esa tienda en el carrito. Vuelve al catálogo y añade lo que quieras pedirle.",
+    "errorInsufficientStock": "No te alcanza el inventario para aceptar este pedido.",
     "errorTransition": "Ese pedido cambió mientras lo mirabas. Recarga para ver cómo está.",
     "errorUnavailable": "Se agotó todo lo que llevabas de esta tienda mientras decidías. Mira qué más tiene, o pídele por WhatsApp.",
     "heading": "Pedidos",
