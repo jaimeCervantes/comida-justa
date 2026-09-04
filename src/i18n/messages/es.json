@@ -1398,7 +1398,16 @@
     "routeStart": "Salida",
     "seeCategory": "Ver más de {category}",
     "serviceDuration": "{minutes} min",
-    "soldBy": "Lo vende {name}"
+    "soldBy": "Lo vende {name}",
+    "stockErrorInvalidStock": "Escribe un número entero de cero o más.",
+    "stockErrorNotAllowed": "Solo quien lo publicó o la tienda que lo vende pueden cambiar esto.",
+    "stockErrorNotTrackable": "Solo un producto lleva inventario de ejemplares.",
+    "stockHeading": "Inventario",
+    "stockHelp": "Cuántas unidades te quedan. En 0 se marca agotado solo.",
+    "stockLabel": "Existencias",
+    "stockRemaining": "{count, plural, one {Queda # unidad} other {Quedan # unidades}}",
+    "stockSave": "Guardar existencias",
+    "stockSaved": "Existencias guardadas"
   },
   "privacyPolicy": {
     "description": "Política de Privacidad de Hazlo Sano - Chatbot de Bienestar",

@@ -6,6 +6,7 @@ import type IPostAdminRepository from "~/use_cases/managePost/ports/IPostAdminRe
 import type {
   EditablePost,
   PostContentUpdate,
+  PostStockUpdate,
 } from "~/use_cases/managePost/ports/IPostAdminRepository";
 
 /** La transacción que abre `db.transaction`, sin tener que nombrar los genéricos de Drizzle. */
@@ -59,6 +60,7 @@ async function replaceMedia(
 interface EditableRow {
   id: string;
   owner_id: string;
+  seller_id: string | null;
   slug: string;
   locale: string;
   title: string;
@@ -73,6 +75,7 @@ interface EditableRow {
   ends_at: Date | null;
   duration_minutes: number | null;
   is_available: boolean;
+  stock_quantity: number | null;
   [key: string]: unknown;
 }
 
@@ -95,6 +98,29 @@ export class PostgresPostAdminRepository implements IPostAdminRepository {
   async setAvailability(postId: string, isAvailable: boolean): Promise<void> {
     await db.execute(sql`
       UPDATE posts SET is_available = ${isAvailable} WHERE id = ${postId}
+    `);
+  }
+
+  /**
+   * Las existencias y la disponibilidad, en **una sola sentencia**.
+   *
+   * No es una optimización: es lo que impide que exista un instante en el que `stock_quantity` ya
+   * vale 0 y `is_available` todavía dice que sí. Quien lee esa segunda columna es el chatbot, que
+   * en esa ventana seguiría recomendando lo que acaba de agotarse.
+   *
+   * `is_available` llega calculada desde el caso de uso (`availabilityForStock`) y no se recalcula
+   * aquí: la regla de negocio vive en el dominio, no en el SQL.
+   */
+  async setStock({
+    postId,
+    quantity,
+    isAvailable,
+  }: PostStockUpdate): Promise<void> {
+    await db.execute(sql`
+      UPDATE posts
+      SET stock_quantity = ${quantity},
+          is_available   = ${isAvailable}
+      WHERE id = ${postId}
     `);
   }
 
@@ -139,6 +165,7 @@ export class PostgresPostAdminRepository implements IPostAdminRepository {
       SELECT
         p.id,
         p.user_id AS owner_id,
+        p.seller_id,
         t.slug,
         t.locale,
         t.title,
@@ -152,7 +179,8 @@ export class PostgresPostAdminRepository implements IPostAdminRepository {
         p.starts_at,
         p.ends_at,
         p.duration_minutes,
-        p.is_available
+        p.is_available,
+        p.stock_quantity
       FROM posts p
       JOIN post_translations t ON t.post_id = p.id
       WHERE ${where}
@@ -169,6 +197,7 @@ export class PostgresPostAdminRepository implements IPostAdminRepository {
       media: await this.readMedia(row.id),
       id: row.id,
       ownerId: row.owner_id,
+      sellerId: row.seller_id,
       slug: row.slug,
       locale: row.locale,
       title: row.title,
@@ -183,6 +212,7 @@ export class PostgresPostAdminRepository implements IPostAdminRepository {
       endsAt: row.ends_at,
       durationMinutes: row.duration_minutes,
       isAvailable: row.is_available,
+      stockQuantity: row.stock_quantity,
     };
   }
 

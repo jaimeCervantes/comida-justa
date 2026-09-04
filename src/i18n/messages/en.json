@@ -1398,7 +1398,16 @@
     "routeStart": "Start",
     "seeCategory": "See more from {category}",
     "serviceDuration": "{minutes} min",
-    "soldBy": "Sold by {name}"
+    "soldBy": "Sold by {name}",
+    "stockErrorInvalidStock": "Enter a whole number of zero or more.",
+    "stockErrorNotAllowed": "Only whoever published it or the store that sells it can change this.",
+    "stockErrorNotTrackable": "Only a product keeps a unit inventory.",
+    "stockHeading": "Inventory",
+    "stockHelp": "How many units you have left. At 0 it is marked sold out automatically.",
+    "stockLabel": "Units in stock",
+    "stockRemaining": "{count, plural, one {# left} other {# left}}",
+    "stockSave": "Save stock",
+    "stockSaved": "Stock saved"
   },
   "privacyPolicy": {
     "description": "Privacy Policy for Hazlo Sano - Wellness Chatbot",

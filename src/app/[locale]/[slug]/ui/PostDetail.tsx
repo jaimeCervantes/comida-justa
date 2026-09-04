@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { MdPhone } from "react-icons/md";
 import { canBeOrdered, isSellable } from "~/domain/entities/post/availability";
 import { EVENT_KIND } from "~/domain/entities/post/kind";
+import { canManagePost } from "~/domain/entities/post/postPermissions";
 import { resolvePostTranslation } from "~/domain/entities/post/translations";
 import type { PostMediaFile } from "~/domain/entities/post/types";
 import { buildWhatsappEventAttendanceLink } from "~/domain/entities/post/whatsappEventAttendance";
@@ -12,6 +13,7 @@ import { getPathname } from "~/i18n/navigation";
 import { type AppLocale, resolveLocale, routing } from "~/i18n/routing";
 import { signInPathFor } from "~/infra/auth/signInPath";
 import { PUBLIC_BASE_URL, SITE_CURRENCY } from "~/infra/constants";
+import { findSellerOfUser } from "~/infra/dataAccess/identity/sessionIdentity";
 import type { Post, PostUser } from "~/infra/types/Posts";
 import AddToCartButton from "~/presentation/cart/AddToCartButton/AddToCartButton";
 import { cn } from "~/presentation/design_system/styling/merge-class-names";
@@ -32,6 +34,8 @@ import ProvenanceBadge, {
   showsProvenanceBadge,
 } from "~/presentation/post/ProvenanceBadge";
 import SoldOutBadge from "~/presentation/post/SoldOutBadge/SoldOutBadge";
+import StockRemaining from "~/presentation/post/StockRemaining/StockRemaining";
+import { setStock } from "~/presentation/post/stockAction";
 import WhatsappButton from "~/presentation/post/WhatsappButton/WhatsappButton";
 import ShareMenu from "~/presentation/sharing/ShareMenu/ShareMenu";
 import { postCategoryLabel } from "../categoryLabel";
@@ -150,6 +154,14 @@ export default async function PostDetail({
   /** `null` en la base significa disponible: solo un `false` explícito lo agota. */
   const isAvailable = postDetails.isAvailable !== false;
 
+  /* `Post` de `infra/types/Posts.d.ts` acaba en una firma de índice, así que la columna llega sin
+     forma. Se estrecha aquí en vez de castear: lo que no sea un número **no** es un inventario, y
+     eso incluye el `null` de la base, que significa "nadie lleva la cuenta". */
+  const stockQuantity =
+    typeof postDetails.stockQuantity === "number"
+      ? postDetails.stockQuantity
+      : null;
+
   /**
    * El texto alternativo sale de la traducción, no de la columna.
    *
@@ -232,6 +244,29 @@ export default async function PostDetail({
 
   const isOwner = Boolean(user?.id) && user?.id === postDetails.user?.id;
 
+  /* La tienda de quien mira, que es la segunda vía por la que se administra una publicación. Va
+     cacheada por render y el encabezado ya la pidió en esta misma petición, así que no es una
+     consulta más: es la misma fila, deduplicada.
+
+     Enseñar el inventario a quien lleva la tienda es lo que hace visible la regla que el servidor
+     ya aplicaba: sin esto, `canManagePost` autorizaba a alguien que no tenía dónde pulsar. */
+  const viewerSellerId = user?.id
+    ? ((await findSellerOfUser(user.id))?.id ?? null)
+    : null;
+
+  const canManageStock =
+    Boolean(user?.id) &&
+    canManagePost(
+      {
+        ownerId: String(postDetails.user?.id ?? ""),
+        sellerId:
+          typeof postDetails.sellerId === "string"
+            ? postDetails.sellerId
+            : null,
+      },
+      { userId: String(user?.id), sellerId: viewerSellerId },
+    );
+
   const categoryLabel = await postCategoryLabel(category, subCategory, locale);
 
   /* El `data-testid` de la raíz permite que una prueba distinga la ficha de las tarjetas
@@ -300,6 +335,7 @@ export default async function PostDetail({
           ) : null}
           <CategoryTag label={categoryLabel} />
           <SoldOutBadge kind={kind} isAvailable={isAvailable} />
+          <StockRemaining kind={kind} stockQuantity={stockQuantity} />
           {/* Aquí aterriza quien recibe el enlace por WhatsApp: es donde más importa que diga
               cuándo, y si todavía se puede ir. */}
           <EventDate kind={kind} startsAt={startsAt} endsAt={endsAt} />
@@ -370,17 +406,21 @@ export default async function PostDetail({
 
       {bookingSlot}
 
-      {isOwner ? (
+      {canManageStock ? (
         <>
           <OwnerControls
             action={setAvailability}
+            stockAction={setStock}
             postId={String(id ?? "")}
             slug={slug ?? ""}
+            kind={kind}
             isAvailable={isAvailable}
             isSellable={isSellable({ kind })}
+            stockQuantity={stockQuantity}
+            canEdit={isOwner}
           />
           {/* Publicó sin tienda: es el momento en que el consejo sirve, con la tarea ya hecha. */}
-          {seller ? null : <OpenStoreHint className="mt-4" />}
+          {isOwner && !seller ? <OpenStoreHint className="mt-4" /> : null}
         </>
       ) : null}
       <section className="whitespace-pre-wrap mt-4">{content}</section>

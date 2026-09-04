@@ -32,6 +32,19 @@ export const posts = pgTable(
     /** Lo que filtra el chatbot; por defecto true para no ocultar lo ya publicado. */
     isAvailable: boolean("is_available").notNull().default(true),
     /**
+     * Cuántas unidades quedan. Espejo de la migración `0048_2026_09_03`.
+     *
+     * **Nulo NO es cero.** Nulo significa «esta publicación no lleva inventario», que es lo que son
+     * las 432 filas del día de la migración: su disponibilidad la sigue decidiendo el interruptor
+     * manual de `is_available`. Cero significa que se acabó. La base sólo afirma que no sea
+     * negativa (`CHECK`); que sólo un `producto` la use es regla del dominio, como `starts_at`.
+     *
+     * Cuando sí lleva inventario, **manda ella**: quien la escribe deriva `is_available` en la
+     * misma sentencia, para que el bot, el carrito y la búsqueda sigan leyendo la columna de
+     * siempre sin conocer ésta. Ver `src/domain/entities/post/stock.ts`.
+     */
+    stockQuantity: integer("stock_quantity"),
+    /**
      * `published` | `in_review` | `rejected`, con `CHECK` en la base (migración `0040_2026_08_16`).
      * Por omisión `published`: quien inserte sin conocer la columna —el bot— sigue funcionando.
      */

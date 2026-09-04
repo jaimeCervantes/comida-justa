@@ -7,6 +7,7 @@ export type PostRowSnapshot = {
   price: string | null;
   origin: string | null;
   is_available: boolean;
+  stock_quantity: number | null;
   category: string | null;
   sub_category: string | null;
   seller_id: string | null;
@@ -27,7 +28,7 @@ export async function readPostRowBySlug(
   slug: string,
 ): Promise<PostRowSnapshot | null> {
   const result = await db.execute(sql`
-    SELECT p.id, p.kind, p.price::text, p.origin, p.is_available, p.category, p.sub_category, p.seller_id,
+    SELECT p.id, p.kind, p.price::text, p.origin, p.is_available, p.stock_quantity, p.category, p.sub_category, p.seller_id,
            p.external_url, p.starts_at, p.ends_at, p.duration_minutes,
            p.contact_phone, p.moderation_status, p.moderation_reason
     FROM posts p
