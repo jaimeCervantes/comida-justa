@@ -68,6 +68,10 @@ Característica: La cuenta se configura sola
       | descripción        | Pan de masa madre cada mañana  | description     | cumplido  |
       | sucursal ubicada   | 18.6013,-96.7089               | branchLocation  | cumplido  |
 
+    # La fila de `0,0` es una defensa, no un caso que se pueda producir: `branches.location` es
+    # NOT NULL y el alta rechaza las coordenadas inválidas, así que en la práctica este paso
+    # equivale a «tiene al menos una sucursal». Se conserva porque la regla del dominio la afirma
+    # y cuesta un microsegundo, no porque describa algo que pase.
     Ejemplos: pendientes — lo vacío y lo que solo parece un dato
       | dato               | valor                          | paso            | estado    |
       | tienda             |                                | store           | pendiente |
@@ -94,35 +98,57 @@ Característica: La cuenta se configura sola
   Escenario: Con todo configurado, la lista de pendientes desaparece
     Dado que mi tienda tiene logo y descripción
     Y que reservé mi dirección personal
-    Y que tengo una sucursal con ubicación en el mapa
+    Y que tengo una sucursal
     Cuando abro "/cuenta"
     Entonces la lista de pendientes de la cuenta no está en la página
     Y la cabecera de la cuenta sigue mostrando mis dos direcciones públicas
 
   # ------------------------------------------------------------------ slice 2
 
-  @slice-2 @future
+  @slice-2
   Escenario: La lista de sucursales y su alta viven en el mismo bloque
-    Dado que tengo una sucursal
+    Dado que tengo la sucursal "Sucursal Centro"
     Cuando abro "/cuenta"
-    Entonces la sucursal y el botón para agregar otra están en la misma tarjeta
+    Entonces "Sucursal Centro" y el botón "Agregar otra sucursal" están en la misma tarjeta
+    Y "Agrega una sucursal" ya no es un bloque aparte de la página
 
-  @slice-2 @future
-  Escenario: Con sucursales, el formulario de alta arranca plegado
-    Dado que tengo una sucursal
+  @slice-2
+  Escenario: Con sucursales, el alta arranca plegada
+    Dado que tengo la sucursal "Sucursal Centro"
     Cuando abro "/cuenta"
-    Entonces los campos del alta no están visibles hasta que pido agregar otra
+    Entonces el campo "Nombre de la sucursal" no está visible
+    Y al pulsar "Agregar otra sucursal" el campo "Nombre de la sucursal" queda visible
 
-  @slice-2 @future
-  Escenario: Cada sucursal dice si el mapa la puede encontrar
-    Dado que tengo una sucursal sin ubicación
+  # Sin ninguna sucursal, plegar el alta escondería la única acción de la tarjeta detrás de un
+  # clic de más: quien no tiene ninguna viene justamente a dar de alta la primera.
+  @slice-2
+  Escenario: Sin ninguna sucursal, el alta arranca desplegada
+    Dado que no tengo ninguna sucursal
     Cuando abro "/cuenta"
-    Entonces esa sucursal avisa que sin ubicación no aparece en las búsquedas por cercanía
+    Entonces el campo "Nombre de la sucursal" está visible
 
-  @slice-2 @future
-  Escenario: El enlace al mapa se lee en el idioma de quien mira
-    Cuando un visitante inglés abre la tienda
-    Entonces el enlace al mapa de la sucursal no está en español
+  # ------------------------------------------------------------------------------------------
+  # RETIRADO — «Cada sucursal dice si el mapa la puede encontrar»
+  #
+  # El roadmap prometía avisar en las sucursales sin ubicación. Ese estado NO EXISTE:
+  # `branches.location` es NOT NULL y `AddBranchUseCase` rechaza el alta sin coordenadas
+  # («sin coordenadas no hay sucursal»). Lo destapó la semilla del propio escenario, que reventó
+  # contra la restricción. Un escenario de algo imposible pasa siempre y no describe nada, así que
+  # se retira en vez de adaptarse. Se deja escrito para que nadie vuelva a proponerlo.
+  # ------------------------------------------------------------------------------------------
+
+  @slice-2 @component
+  # Vitest y no Playwright: es la traducción de un rótulo, y montar la lista cuesta un render en
+  # vez de un alta completa contra la base compartida.
+  Esquema del escenario: El enlace al mapa se lee en el idioma de quien mira
+    Dado una sucursal con enlace de Google Maps
+    Cuando se pinta la lista en "<locale>"
+    Entonces el enlace al mapa dice "<etiqueta>"
+
+    Ejemplos:
+      | locale | etiqueta        |
+      | es     | Ver en el mapa  |
+      | en     | See it on the map |
 
   # ------------------------------------------------------------------ slice 3
 

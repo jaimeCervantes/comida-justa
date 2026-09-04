@@ -59,7 +59,7 @@ const STEP_TARGET: Record<AccountSetupStepKey, AppHref> = {
   username: { pathname: "/cuenta", hash: ANCHOR.username },
   logo: { pathname: "/cuenta", hash: ANCHOR.storeProfile },
   description: { pathname: "/cuenta", hash: ANCHOR.storeProfile },
-  branchLocation: { pathname: "/cuenta", hash: ANCHOR.addBranch },
+  branchLocation: { pathname: "/cuenta", hash: ANCHOR.branches },
 };
 
 /**

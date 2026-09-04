@@ -18,5 +18,4 @@ export const ANCHOR = {
   username: "direccion-personal",
   storeProfile: "ficha-de-tu-tienda",
   branches: "tus-sucursales",
-  addBranch: "agregar-sucursal",
 } as const;

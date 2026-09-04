@@ -11,7 +11,6 @@ import {
   findProfileOfUser,
   findSellerOfUser,
 } from "~/infra/dataAccess/identity/sessionIdentity";
-import BranchList from "~/presentation/directory/BranchList/BranchList";
 import {
   addBranch,
   becomeSeller,
@@ -19,11 +18,10 @@ import {
   updateStoreProfile,
 } from "./actions";
 import { ANCHOR } from "./anchors";
-import AccountCard from "./ui/AccountCard";
 import AccountHeader from "./ui/AccountHeader";
 import AccountSection from "./ui/AccountSection";
-import AddBranchForm from "./ui/AddBranchForm";
 import BecomeSellerForm from "./ui/BecomeSellerForm";
+import BranchesCard from "./ui/BranchesCard";
 import SetupChecklist from "./ui/SetupChecklist";
 import StoreProfileForm from "./ui/StoreProfileForm";
 import UsernameSection from "./ui/UsernameSection";
@@ -63,9 +61,9 @@ export default async function CuentaPage({
   const { locale: rawLocale } = await params;
   const locale = resolveLocale(rawLocale);
   setRequestLocale(locale);
-  const t = await getTranslations("account");
-  const tBranches = await getTranslations("branches");
 
+  /* La página ya no lee el catálogo: desde el slice 2 no le queda ni un texto propio. Cada bloque
+     traduce lo suyo, que es lo que hace que mover uno de columna no toque este archivo. */
   const session = await auth();
 
   if (!session) {
@@ -145,28 +143,21 @@ export default async function CuentaPage({
         {header}
         <SetupChecklist setup={setup} />
 
+        {/* A ancho completo y no en una columna: es una acción pendiente —la misma que reclama la
+            lista de arriba—, y metida en la columna izquierda empujaba la ficha hacia abajo
+            dejando media pantalla vacía a la derecha. Cuando ya hay dirección no se pinta nada. */}
+        {usernameSection}
+
         <div className={COLUMNS}>
           {/* La tienda. */}
-          <div className="flex flex-col gap-6">
-            {usernameSection}
-            <StoreProfileForm
-              id={ANCHOR.storeProfile}
-              action={updateStoreProfile}
-              seller={seller}
-            />
-          </div>
+          <StoreProfileForm
+            id={ANCHOR.storeProfile}
+            action={updateStoreProfile}
+            seller={seller}
+          />
 
-          {/* Sus sucursales: la lista y su alta, ya en la misma columna. El slice 2 las mete en la
-              misma tarjeta. */}
-          <div className="flex flex-col gap-6">
-            <AccountCard id={ANCHOR.branches} title={t("branchesHeading")}>
-              <BranchList
-                branches={branches}
-                emptyMessage={tBranches("emptyWithoutLocation")}
-              />
-            </AccountCard>
-            <AddBranchForm id={ANCHOR.addBranch} action={addBranch} />
-          </div>
+          {/* Sus sucursales: la lista y su alta, en una sola tarjeta desde el slice 2. */}
+          <BranchesCard branches={branches} action={addBranch} />
         </div>
       </div>
     </AccountSection>

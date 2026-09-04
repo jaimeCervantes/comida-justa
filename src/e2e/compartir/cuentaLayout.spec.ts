@@ -69,7 +69,6 @@ test.describe("Cuando una vendedora abre su cuenta", () => {
       es.account.usernameTitle,
       es.account.storeProfileTitle,
       es.account.branchesHeading,
-      es.account.addBranchTitle,
     ]) {
       /* `exact` no es opcional aquí: por omisión el nombre se compara por subcadena, y "Tu tienda"
          casaba también con "La ficha de tu tienda". */

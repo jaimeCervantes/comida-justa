@@ -75,6 +75,8 @@
   "account": {
     "addBranchFormLabel": "Agrega una sucursal",
     "addBranchIntro": "Con su ubicación en el mapa, el chatbot puede recomendarte a quien está cerca. Sin ella, apareces solo en las búsquedas sin ubicación.",
+    "addBranchOpen": "Agregar otra sucursal",
+    "addBranchOpenFirst": "Agregar mi primera sucursal",
     "addBranchTitle": "Agrega una sucursal",
     "becomeSellerFormLabel": "Abre tu tienda",
     "becomeSellerIntro": "Abre tu tienda y ten una sola dirección que dar a tus clientes: ahí aparece todo lo que publiques.",
@@ -85,6 +87,7 @@
     "branchAddress": "Dirección:",
     "branchAddressPlaceholder": "Calle, número, colonia, ciudad",
     "branchesHeading": "Tus sucursales",
+    "branchesIntro": "Cada sucursal con un punto en el mapa es una razón más para que te encuentren cerca.",
     "branchMapsHint": "Búscate en Google Maps y usa «Compartir», o copia la dirección de la barra.",
     "branchMapsLink": "Enlace de Google Maps:",
     "branchName": "Nombre de la sucursal:",
@@ -139,7 +142,7 @@
     "setupHeading": "Termina de configurar tu tienda",
     "setupIntro": "Cada paso que cierras es una razón más para que te encuentren.",
     "setupPending": "Pendiente",
-    "setupStepBranchLocation": "Agrega una sucursal con ubicación",
+    "setupStepBranchLocation": "Agrega una sucursal",
     "setupStepBranchLocationHint": "Sin un punto en el mapa no apareces en las búsquedas por cercanía.",
     "setupStepDescription": "Di qué vendes",
     "setupStepDescriptionHint": "Sin descripción, quien llega a tu tienda tiene que adivinar a qué te dedicas.",
@@ -601,7 +604,8 @@
     "terms": "Al continuar aceptas nuestros términos y la política de privacidad."
   },
   "branches": {
-    "emptyWithoutLocation": "Todavía no tienes sucursales con ubicación, así que el chatbot no puede recomendarte por cercanía."
+    "emptyWithoutLocation": "Todavía no tienes sucursales con ubicación, así que el chatbot no puede recomendarte por cercanía.",
+    "seeOnMap": "Ver en el mapa"
   },
   "cart": {
     "add": "Añadir al carrito",

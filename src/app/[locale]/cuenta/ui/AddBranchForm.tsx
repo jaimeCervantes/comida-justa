@@ -6,16 +6,21 @@ import { Button } from "~/presentation/design_system/buttons/Button";
 import { TextField } from "~/presentation/design_system/forms/TextField";
 import { ValidatedForm } from "~/presentation/forms/ValidatedForm";
 import type { AddBranchState } from "../actions";
-import AccountCard from "./AccountCard";
 
 type GeolocationState = "idle" | "locating" | "located" | "failed";
 
+/**
+ * El alta de una sucursal.
+ *
+ * **Ya no trae tarjeta propia.** Vivía dentro de su `AccountCard`, con su titulo y su intro, en la
+ * columna de al lado de la lista de sucursales: la misma tarea partida en dos bloques a media
+ * pantalla el uno del otro, y en el teléfono a tres tarjetas de desplazamiento. Desde el slice 2 la
+ * tarjeta la pone `BranchesCard`, que sujeta la lista y el alta juntas; este componente es solo el
+ * formulario.
+ */
 export default function AddBranchForm({
-  id,
   action,
 }: {
-  /** El ancla del bloque, de `anchors.ts`. */
-  id?: string;
   action: (state: AddBranchState, data: FormData) => Promise<AddBranchState>;
 }) {
   const t = useTranslations("account");
@@ -49,11 +54,7 @@ export default function AddBranchForm({
   };
 
   return (
-    <AccountCard
-      id={id}
-      title={t("addBranchTitle")}
-      intro={t("addBranchIntro")}
-    >
+    <>
       {state.errorMessage ? (
         <p data-testid="add-branch-error" className="mb-4 text-brand-clay-700">
           {state.errorMessage}
@@ -140,7 +141,7 @@ export default function AddBranchForm({
           </Button>
         </footer>
       </ValidatedForm>
-    </AccountCard>
+    </>
   );
 }
 

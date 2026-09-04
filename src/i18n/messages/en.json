@@ -75,6 +75,8 @@
   "account": {
     "addBranchFormLabel": "Add a branch",
     "addBranchIntro": "With its location on the map, the chatbot can recommend you to whoever is nearby. Without it, you only show up in searches without a location.",
+    "addBranchOpen": "Add another branch",
+    "addBranchOpenFirst": "Add my first branch",
     "addBranchTitle": "Add a branch",
     "becomeSellerFormLabel": "Open your store",
     "becomeSellerIntro": "Open your store and have one address to give your customers: everything you publish shows up there.",
@@ -85,6 +87,7 @@
     "branchAddress": "Address:",
     "branchAddressPlaceholder": "Street, number, neighbourhood, city",
     "branchesHeading": "Your branches",
+    "branchesIntro": "Every branch with a point on the map is one more reason for people nearby to find you.",
     "branchMapsHint": "Find yourself on Google Maps and use «Share», or copy the address from the bar.",
     "branchMapsLink": "Google Maps link:",
     "branchName": "Branch name:",
@@ -139,7 +142,7 @@
     "setupHeading": "Finish setting up your store",
     "setupIntro": "Every step you close is one more reason for people to find you.",
     "setupPending": "Pending",
-    "setupStepBranchLocation": "Add a branch with a location",
+    "setupStepBranchLocation": "Add a branch",
     "setupStepBranchLocationHint": "Without a point on the map you do not show up in nearby searches.",
     "setupStepDescription": "Say what you sell",
     "setupStepDescriptionHint": "Without a description, whoever lands on your store has to guess what you do.",
@@ -601,7 +604,8 @@
     "terms": "By continuing you accept our terms and our privacy policy."
   },
   "branches": {
-    "emptyWithoutLocation": "You don't have any branch with a location yet, so the chatbot can't recommend you by proximity."
+    "emptyWithoutLocation": "You don't have any branch with a location yet, so the chatbot can't recommend you by proximity.",
+    "seeOnMap": "See it on the map"
   },
   "cart": {
     "add": "Add to cart",

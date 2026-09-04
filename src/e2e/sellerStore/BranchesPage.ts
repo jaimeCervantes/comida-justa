@@ -22,7 +22,36 @@ export default class BranchesPage {
     await this.page.goto(`/tienda/${handle}`);
   }
 
+  /**
+   * Despliega el alta si viene plegada.
+   *
+   * Desde el slice 2 de `005-2026-09-04-cuenta-configurable` el formulario llega plegado en cuanto
+   * hay al menos una sucursal, así que **dar de alta la segunda pide un clic que antes no
+   * existía**. Lo destapó el escenario de «puede tener más de una»: escribía en campos ocultos y
+   * fallaba. Se pregunta por el `open` del `<details>` en vez de por la visibilidad del campo
+   * porque es el dato que decide, y así el page object no adivina.
+   */
+  private async openForm(): Promise<void> {
+    const disclosure = this.page.getByTestId("add-branch");
+
+    await expect(disclosure).toBeVisible();
+
+    const isOpen = await disclosure.evaluate(
+      (element) => (element as HTMLDetailsElement).open,
+    );
+
+    if (!isOpen) {
+      await this.page.getByTestId("add-branch-toggle").click();
+    }
+
+    await expect(
+      this.page.getByRole("textbox", { name: /nombre de la sucursal/i }),
+    ).toBeVisible();
+  }
+
   async addBranch(draft: BranchDraft): Promise<void> {
+    await this.openForm();
+
     await this.page
       .getByRole("textbox", { name: /nombre de la sucursal/i })
       .fill(draft.name);

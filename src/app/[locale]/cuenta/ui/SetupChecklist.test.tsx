@@ -6,6 +6,7 @@ import {
 } from "~/domain/entities/seller/accountSetup";
 import es from "~/i18n/messages/es.json";
 import { renderWithIntl } from "~/infra/test-utils/renderWithIntl";
+import { ANCHOR } from "../anchors";
 import SetupChecklist from "./SetupChecklist";
 
 const EMPTY: AccountSetupSnapshot = {
@@ -102,12 +103,17 @@ describe("SetupChecklist", () => {
       ).toHaveAttribute("href", expect.stringContaining("#"));
     });
 
+    /* Contra `ANCHOR` y no contra la cadena escrita a mano: lo que promete el paso es «te llevo al
+       bloque de sucursales», y el nombre del ancla puede cambiar sin que esa promesa cambie —de
+       hecho cambió en el slice 2, al fundirse el alta con la lista—. Lo que sí se afirma literal es
+       que hay fragmento: sin él, el enlace deja a la persona arriba del todo mirando esta misma
+       lista. */
     it("el enlace apunta al ancla del bloque, no al principio de la página", () => {
       renderFor({ ...COMPLETE, branchCoordinates: [] });
 
       expect(
         within(step(es.account.setupStepBranchLocation)).getByRole("link"),
-      ).toHaveAttribute("href", "/cuenta#agregar-sucursal");
+      ).toHaveAttribute("href", `/cuenta#${ANCHOR.branches}`);
     });
   });
 });

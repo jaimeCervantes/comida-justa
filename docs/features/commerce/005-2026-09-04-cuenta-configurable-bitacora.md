@@ -186,3 +186,143 @@ intacto: ni un token nuevo, ni una `dark:` suelta.
 
 **Pendiente de tu lado**: decidir cuál de las cuatro va ahora. La rama es `feat/cuenta-configurable`
 y no se ha empujado.
+
+---
+
+## Slice 2 — Las sucursales, en un solo bloque (2026-09-04)
+
+### Objetivo
+
+Que la lista de sucursales y su alta dejen de ser dos bloques separados, que el formulario no domine
+la tarjeta cuando ya no hace falta, y que el enlace al mapa se lea en el idioma de quien mira.
+
+### El hallazgo que cambió el alcance
+
+El roadmap prometía cuatro cosas. **Una de ellas describía un estado que no puede existir.**
+
+«Cada sucursal dice si el mapa la puede encontrar» daba por hecho que una sucursal podía guardarse
+sin ubicación. No puede:
+
+- `branches.location` es **`NOT NULL`** — la semilla del propio escenario reventó contra la
+  restricción, y así se destapó.
+- `AddBranchUseCase` la rechaza antes de llegar ahí, con `BranchLocationUnresolvedError`.
+- Su docstring ya lo decía, y con el motivo: «sin coordenadas no hay sucursal (…) una sucursal sin
+  punto en el mapa no aporta nada al único lugar donde se usa —el radio de
+  `search_posts_semantic`—, y guardarla daría la impresión de que ya te pueden encontrar cerca
+  cuando no es cierto».
+
+Fue un error de diagnóstico al escribir el roadmap, no un fallo del código. Se paró la entrega y se
+consultó; la decisión fue **retirar el aviso** en vez de conservarlo por si acaso: un aviso de algo
+imposible es código que nadie ve fallar. El escenario se queda escrito en el `.feature` como bloque
+`RETIRADO`, con el porqué, para que nadie lo vuelva a proponer.
+
+**Efecto sobre el slice 1**: el paso de la lista de pendientes decía «Agrega una sucursal con
+ubicación». El matiz no existe —toda sucursal la tiene por fuerza—, así que pasa a decir «Agrega una
+sucursal». El consejo de debajo («sin un punto en el mapa no apareces en las búsquedas por
+cercanía») sigue siendo cierto y sigue explicando por qué importa. La fila `0,0` de la corrida de
+escritorio se conserva anotada como **defensa**, no como caso real.
+
+### Decisiones, y por qué
+
+**1. Una tarjeta, `BranchesCard`, sujeta las dos mitades.** `AddBranchForm` perdió su `AccountCard`
+propia; ahora es solo el formulario. El título del alta deja de ser un `h2`: en un desplegable, la
+etiqueta del botón hace ese trabajo.
+
+**2. Se pliega con `<details>` y no con estado de React.** Es exactamente lo que ese elemento
+resuelve: funciona antes de que hidrate nada, el navegador pone el `aria-expanded`, y no añade un
+componente de cliente a una página que ya tiene cinco. El `open` inicial lo decide el servidor con un
+dato que ya tenía —cuántas sucursales hay—, así que la tarjeta llega al navegador en la forma
+correcta y no parpadea.
+
+**3. Sin ninguna sucursal, arranca desplegada.** Plegarla ahí escondería la única acción de la
+tarjeta detrás de un clic de más, y quien no tiene ninguna viene justamente a dar de alta la primera.
+El rótulo del botón cambia con el caso: «Agregar mi primera sucursal» / «Agregar otra sucursal».
+
+**4. `BranchList` traduce el rótulo del mapa, pero no el mensaje de vacío.** Es la diferencia entre
+un texto que cambia con **quien mira** y uno que cambia con **dónde se pinta**. «Ver en el mapa» dice
+lo mismo en la cuenta y en la tienda —y estaba en duro en español, pintándose también para un
+visitante inglés—, así que sale del catálogo dentro del componente. `emptyMessage` sigue llegando por
+prop porque dice cosas distintas según la pantalla.
+
+**5. La reserva de dirección personal sube a ancho completo.** Se vio en la captura: metida en la
+columna izquierda empujaba la ficha hacia abajo y dejaba media pantalla vacía a la derecha. Es una
+acción pendiente —la misma que reclama la lista de arriba—, así que va con ella.
+
+**6. La página ya no lee el catálogo.** Al mudarse el último texto a `BranchesCard`, `page.tsx` se
+quedó sin ni una cadena propia. Es lo que hace que mover un bloque de columna no toque ese archivo.
+
+### Una regresión que encontró la suite
+
+`branches.spec.ts › puede tener más de una y ambas se listan` falló, y **con razón**: tras guardar la
+primera sucursal la página revalida, ya hay una, y el alta vuelve plegada — así que el segundo alta
+escribía en campos ocultos. Es la promesa del escenario funcionando, no una prueba frágil: dar de
+alta la segunda **pide ahora un clic que antes no existía**. `BranchesPage.addBranch` despliega el
+formulario si viene plegado, preguntando por el `open` del `<details>` y no por la visibilidad del
+campo, que es el dato que decide.
+
+### Archivos tocados
+
+**Presentación compartida**
+- `presentation/directory/BranchList/BranchList.tsx`: traduce `seeOnMap`, `data-testid` por renglón
+- `presentation/directory/BranchList/BranchList.test.tsx` (nuevo)
+
+**Ruta `/cuenta`**
+- `ui/BranchesCard.tsx` (nuevo), `ui/AddBranchForm.tsx` (pierde su tarjeta), `page.tsx`,
+  `anchors.ts` (se va `addBranch`), `ui/SetupChecklist.tsx` (el paso apunta a la tarjeta fundida),
+  `ui/SetupChecklist.test.tsx` (afirma contra `ANCHOR`, no contra la cadena)
+
+**Catálogos**
+- `branches.seeOnMap`, `account.branchesIntro`, `account.addBranchOpen`,
+  `account.addBranchOpenFirst`; se reescribe `account.setupStepBranchLocation`
+
+**Pruebas**
+- `e2e/sellerStore/sucursalesEnUnBloque.spec.ts` (nuevo), `e2e/testUtils/seedBranch.ts` (nuevo),
+  `e2e/testUtils/completeStoreSetup.ts` (lo reutiliza), `e2e/sellerStore/BranchesPage.ts`,
+  `e2e/compartir/cuentaLayout.spec.ts` (el alta ya no es un `h2` propio)
+
+### Comandos y resultados
+
+| Comando | Resultado |
+| --- | --- |
+| `pnpm run test:run` | **2681/2681** en 247 archivos |
+| `pnpm run typecheck` y `typecheck:tests` | limpios |
+| `pnpm run lint` | limpio |
+| `playwright src/e2e/sellerStore` | 44/45 → tras arreglar `BranchesPage`, `branches.spec` **4/4** |
+| `playwright src/e2e/sellerStore/{sucursalesEnUnBloque,cuentaConfigurable}.spec.ts` | **11/11** |
+| `playwright src/e2e/compartir/cuentaLayout.spec.ts` | 11/14; los 3 fallos revisados uno a uno |
+
+**Sobre esos tres**: uno es el fallo preexistente de la paginación del perfil (verificado contra el
+árbol base en el slice 1). Los otros dos —`/cuenta/agenda` y la barra de vuelta— pasan al repetirlos
+en base limpia: eran residuo de una corrida que el `timeout` cortó a media faena, cuyos `afterEach`
+no llegaron a correr. Es la segunda vez que pasa; de aquí en adelante las corridas largas van
+**partidas en shards** para que cada tramo termine dentro de la ventana.
+
+**Escrito en la base compartida**: tiendas, direcciones personales y sucursales con prefijo `e2e-`,
+borradas por los `afterEach` y por el barrido de `globalTeardown`. Nada que deshacer a mano.
+
+### Recap
+
+Las sucursales dejaron de estar partidas: la lista y su alta viven en una sola tarjeta, con el
+formulario plegado tras un botón en cuanto hay al menos una y abierto de par en par cuando no hay
+ninguna, resuelto con `<details>` y sin un solo componente de cliente nuevo. El «Ver en el mapa» que
+estaba en duro en español —y se pintaba también en la página pública— sale ya del catálogo en los dos
+idiomas. Y el slice se quedó por el camino una de sus cuatro promesas: avisar de las sucursales sin
+ubicación, que resultó describir un estado que ni el esquema ni el caso de uso permiten. Está
+documentado en el `.feature` para que no vuelva.
+
+### Próximos pasos (opciones)
+
+1. **Slice 3 — La ficha sin muro.** Agrupar los campos de `StoreProfileForm` por sentido y enseñar el
+   logo que la tienda **ya** tiene, no solo el que acabas de subir. Es lo que queda del plan
+   original; el enlace duplicado a la agenda ya cayó en el slice 1.
+2. **Slice 4 — Abrir tienda deja de ser una bifurcación.** Quitar el «Cancelar» que expulsa a `/` y
+   dejar el alta como paso único.
+3. **Arreglar el escenario preexistente de la paginación del perfil**, que siembre su propia
+   publicación en vez de dar por hecho que la cuenta de la suite tiene alguna.
+4. **Verificar que el punto de una sucursal es el correcto.** Es el problema real que sí existe y que
+   el aviso retirado no atacaba: `coordinates.ts` tiene dos patrones porque la gente copia el centro
+   del mapa en vez del pin, así que una sucursal puede estar situada en el sitio equivocado sin que
+   nadie lo note. Sería alcance nuevo, no lo acordado.
+
+**Pendiente de tu lado**: elegir cuál va ahora. La rama sigue siendo `feat/cuenta-configurable` y no
+se ha empujado.
