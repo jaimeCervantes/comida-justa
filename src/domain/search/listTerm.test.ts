@@ -18,7 +18,7 @@ describe("normalizeListTerm", () => {
     [null, "llegó nulo"],
     [["masa"], "Next entrega una lista cuando el parámetro se repite"],
     [42, "no es texto"],
-  ])("cae a vacío con %j: %s", (raw) => {
+  ])("cae a vacío con %j: %s", (raw, _motivo) => {
     expect(normalizeListTerm(raw)).toBe("");
   });
 
