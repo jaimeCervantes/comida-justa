@@ -46,9 +46,12 @@ export default function BranchesCard({
       intro={t("branchesIntro")}
       testId="branches-card"
     >
+      {/* Solo aquí: el enlace al punto guardado es para comprobar, y quien comprueba es el dueño.
+          A un visitante el enlace pegado suele llevarle a la ficha del negocio con su nombre. */}
       <BranchList
         branches={branches}
         emptyMessage={tBranches("emptyWithoutLocation")}
+        checkPointLabel={t("branchCheckPoint")}
       />
 
       <details open={isFirst} className="mt-4 group" data-testid="add-branch">

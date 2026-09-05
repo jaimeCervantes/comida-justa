@@ -83,6 +83,33 @@ export function parseCoordinatesFromMapUrl(
   return null;
 }
 
+/**
+ * La dirección de Google Maps que enseña **este punto exacto**.
+ *
+ * Es el reverso de `parseCoordinatesFromMapUrl`: aquella lee coordenadas de una dirección, esta
+ * escribe una dirección desde coordenadas. Vive aquí por eso, y porque este archivo ya es el que
+ * conoce el formato de Google.
+ *
+ * **Existe para poder comprobar lo que se guardó, no para navegar.** Lo que la lista de sucursales
+ * enseña como «Ver en el mapa» es el enlace que pegó el vendedor, y ese siempre le parece correcto
+ * porque es el suyo; lo que decide si aparece en las búsquedas por cercanía es `branches.location`,
+ * que hasta ahora no se veía en ninguna pantalla. Cuando el enlace pegado solo traía el `@` del
+ * encuadre, las dos cosas pueden estar a cientos de metros y nadie se enteraba.
+ *
+ * Devuelve `null` con coordenadas que no valen, en vez de una dirección que lleva al Golfo de
+ * Guinea.
+ */
+export function mapPointUrl(value: Coordinates | null): string | null {
+  if (!areValidCoordinates(value)) return null;
+
+  const { latitude, longitude } = value as Coordinates;
+
+  /* `?q=lat,lng` y no `?ll=` ni `/@`: es la forma que Google documenta para «enseña este punto», la
+     que entienden también las aplicaciones de móvil, y la única que deja caer un pin en un sitio
+     sin nombre — que es justo el caso que se quiere ver cuando el punto está mal. */
+  return `https://www.google.com/maps?q=${latitude},${longitude}`;
+}
+
 /** Un enlace copiado a mano puede traer `%2C` en vez de coma, o venir mal codificado. */
 function safeDecode(url: string): string {
   try {

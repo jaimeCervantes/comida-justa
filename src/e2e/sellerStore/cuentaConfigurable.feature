@@ -150,6 +150,43 @@ Característica: La cuenta se configura sola
       | es     | Ver en el mapa  |
       | en     | See it on the map |
 
+  # ------------------------------------------------- 006 · el punto de la sucursal
+
+  # Ver `docs/features/commerce/006-2026-09-04-punto-de-la-sucursal.md`.
+  # El enlace que se enseñaba era el que el vendedor pegó, y ese siempre le parece correcto porque
+  # es el suyo. Lo que decide si aparece en las búsquedas por cercanía es `branches.location`, y eso
+  # no se veía en ninguna pantalla.
+
+  @punto-sucursal
+  Escenario: Puedo comprobar el punto que quedó guardado de mi sucursal
+    Dado que tengo la sucursal "Sucursal Centro"
+    Cuando abro "/cuenta"
+    Entonces esa sucursal ofrece un enlace al punto guardado, aparte del "Ver en el mapa"
+    Y ese enlace lleva a las coordenadas que tiene la base, no a las del enlace que pegué
+    Y se abre en una pestaña nueva
+
+  # Es una herramienta de quien administra la tienda. A un visitante no le sirve de nada, y además
+  # el enlace pegado suele llevarle a la ficha del negocio con su nombre, que es mejor destino.
+  @punto-sucursal
+  Escenario: A un visitante no se le ofrece esa comprobación
+    Dado que tengo la sucursal "Sucursal Centro"
+    Cuando un visitante abre la tienda
+    Entonces la sucursal aparece con su "Ver en el mapa" y sin enlace al punto guardado
+
+  @punto-sucursal @component
+  # `mapPointUrl` es el reverso de `parseCoordinatesFromMapUrl`: una lee coordenadas de una
+  # dirección, la otra escribe una dirección desde coordenadas.
+  Esquema del escenario: La dirección del punto se arma con latitud y longitud, en ese orden
+    Dado un punto en "<latitud>,<longitud>"
+    Cuando se pide su dirección de Google Maps
+    Entonces se obtiene "<direccion>"
+
+    Ejemplos:
+      | latitud   | longitud   | direccion                                              |
+      | 18.6013   | -96.7089   | https://www.google.com/maps?q=18.6013,-96.7089          |
+      | 0         | 12.5       | https://www.google.com/maps?q=0,12.5                    |
+      | -33.4489  | -70.6693   | https://www.google.com/maps?q=-33.4489,-70.6693         |
+
   # ------------------------------------------------------------------ slice 3
 
   @slice-3 @component

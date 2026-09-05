@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   areValidCoordinates,
   isShortMapUrl,
+  mapPointUrl,
   parseCoordinatesFromMapUrl,
 } from "./coordinates";
 
@@ -72,5 +73,40 @@ describe("areValidCoordinates", () => {
     [null, false],
   ])("%j → %s", (value, expected) => {
     expect(areValidCoordinates(value)).toBe(expected);
+  });
+});
+
+describe("mapPointUrl", () => {
+  /* La corrida de escritorio: latitud primero, longitud después, y el signo tal cual. Invertirlas
+     manda a quien comprueba su punto al otro lado del mundo sin que nada falle. */
+  it.each([
+    [{ latitude: 18.6013, longitude: -96.7089 }, "18.6013,-96.7089"],
+    [{ latitude: 0, longitude: 12.5 }, "0,12.5"],
+    [{ latitude: -33.4489, longitude: -70.6693 }, "-33.4489,-70.6693"],
+  ])("arma la dirección de %j", (point, esperado) => {
+    expect(mapPointUrl(point)).toBe(
+      `https://www.google.com/maps?q=${esperado}`,
+    );
+  });
+
+  /* Mejor ningún enlace que uno que lleva al Golfo de Guinea: `0,0` es lo que queda cuando no se
+     pudo leer nada, y enseñarlo como «tu punto» sería mentir con precisión de seis decimales. */
+  it.each([
+    ["nulo", null],
+    ["0,0", { latitude: 0, longitude: 0 }],
+    ["fuera de rango", { latitude: 91, longitude: 0 }],
+    ["no numérico", { latitude: Number.NaN, longitude: 0 }],
+  ])("no arma nada con %s", (_caso, point) => {
+    expect(mapPointUrl(point)).toBeNull();
+  });
+
+  /* El reverso encaja con el derecho: lo que se escribe se vuelve a leer igual. */
+  it("lo que arma lo sabe releer `parseCoordinatesFromMapUrl`", () => {
+    const point = { latitude: 18.6013, longitude: -96.7089 };
+    const url = mapPointUrl(point);
+
+    if (!url) throw new Error("mapPointUrl devolvió null con un punto válido");
+
+    expect(parseCoordinatesFromMapUrl(url)).toEqual(point);
   });
 });

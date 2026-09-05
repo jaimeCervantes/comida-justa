@@ -23,14 +23,28 @@ Use this skill for behavior changes. Start from a small scenario, then tests, th
 > **Playwright siempre en shards cuando pasen de ~20 escenarios.** Una corrida que se corta a la
 > mitad —por un tiempo de espera, por un `Ctrl+C`— deja sin ejecutar sus `afterEach`, y el residuo
 > en la base compartida hace fallar la corrida siguiente con errores que no tienen nada que ver
-> (404 en rutas que sí existen, tiendas duplicadas). Diagnosticarlo cuesta más que evitarlo. Parte
-> en tramos que terminen holgados:
+> (404 en rutas que sí existen, tiendas duplicadas). Diagnosticarlo cuesta más que evitarlo.
+>
+> **Cuenta antes de partir.** El número de tramos no es fijo: sale de dividir el total entre ~15.
 >
 > ```sh
-> pnpm exec playwright test <rutas> --shard=1/3 --reporter=line
-> pnpm exec playwright test <rutas> --shard=2/3 --reporter=line
-> pnpm exec playwright test <rutas> --shard=3/3 --reporter=line
+> pnpm exec playwright test <rutas> --list          # → "Total: 79 tests in 16 files"
+> pnpm exec playwright test <rutas> --shard=1/5 --reporter=line
+> pnpm exec playwright test <rutas> --shard=2/5 --reporter=line   # …y así hasta 5/5
 > ```
+>
+> Tres tramos bastaban con 73 escenarios y se pasaron con 79: cada tramo paga además ~40 s de
+> arranque del servidor, que no se reparten entre ellos.
+>
+> **Borra `.next` antes de cada tramo.** Dos servidores de desarrollo consecutivos compartiendo esa
+> carpeta la dejan a medias, y el síntoma engaña: rutas que existen —`/cuenta`, `/u/<username>`,
+> `/tienda/<handle>`— empiezan a responder **404** cayendo al catch-all `[slug]`, y la prueba
+> informa «no encuentro tal elemento» cuando lo que pasa es que la página no se compiló. Se
+> diagnostica como un fallo del código y no lo es. Comprobado: el primer tramo tras limpiar pasa
+> siempre y el siguiente cae; limpiando antes de cada uno, 79/79.
+>
+> Corolario: **no toques `.next` con el servidor de Playwright vivo**. Si hay que limpiarlo, entero
+> y entre corridas.
 >
 > Se lanzan **uno detrás de otro, nunca en paralelo**: cada tramo levanta su propio servidor en el
 > mismo puerto. Si una corrida se corta igualmente, antes de repetir hay que (1) matar el `next dev`
