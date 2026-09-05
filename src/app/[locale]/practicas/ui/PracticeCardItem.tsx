@@ -17,9 +17,18 @@ import { pillarColorClasses } from "~/presentation/habits/pillarColors";
 export default function PracticeCardItem({
   practice,
   pillar,
+  adopted,
+  signedIn,
+  signInHref,
+  action,
 }: {
   practice: PracticeCard;
   pillar: PillarKey;
+  /** Si quien mira la lleva activa. Siempre `false` sin sesión. */
+  adopted: boolean;
+  signedIn: boolean;
+  signInHref: string;
+  action: (formData: FormData) => Promise<void>;
 }): React.ReactNode {
   const t = useTranslations("practicesIndex");
   const tPillars = useTranslations("pillars");
@@ -80,6 +89,52 @@ export default function PracticeCardItem({
           {bridges.map((key) => tPillars(`${key}.short`)).join(" · ")}
         </p>
       )}
+
+      {/*
+        Empezar y dejar viven en el mismo sitio y con el mismo peso visual. Dejar una práctica no es
+        un fracaso que haya que esconder detrás de un menú: es información, y este producto ya
+        decidió que volver después de dejarla vale más que fingir perfección. Un botón difícil de
+        encontrar sólo consigue que la gente deje de practicar sin decirlo.
+      */}
+      <div className="mt-5">
+        {signedIn ? (
+          <form action={action}>
+            <input type="hidden" name="practiceKey" value={practice.key} />
+            <input
+              type="hidden"
+              name="intent"
+              value={adopted ? "stop" : "start"}
+            />
+            <button
+              type="submit"
+              data-testid="practice-toggle"
+              className={
+                adopted
+                  ? "focus-ring rounded-control border border-separator px-4 py-2 text-caption font-semibold text-text-support"
+                  : `focus-ring rounded-control px-4 py-2 font-semibold text-white ${color.badge}`
+              }
+            >
+              {adopted ? t("stop") : t("start")}
+            </button>
+          </form>
+        ) : (
+          <a
+            href={signInHref}
+            className={`focus-ring rounded-control px-4 py-2 font-semibold text-white ${color.badge}`}
+          >
+            {t("startSignedOut")}
+          </a>
+        )}
+
+        {adopted && (
+          <p
+            data-testid="practice-adopted"
+            className={`mt-2 text-caption font-semibold ${color.text}`}
+          >
+            {t("practising")}
+          </p>
+        )}
+      </div>
     </li>
   );
 }

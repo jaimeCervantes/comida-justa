@@ -324,11 +324,36 @@ un consejo de un hábito, y una casa donde verse.
   sistema le lleva pidiendo 484 mensajes.
 - `safety_note` viaja siempre con la práctica.
 
-### Slice 4 — Registrar una práctica, desde donde sea
+### Slice 4 — Registrar una práctica ✅
 
-`user_practices (user_id, practice_id, started_at, stopped_at, sharing_enabled, source)`.
-`source` distingue `web` de `telegram` sin partir el modelo: es la misma fila de `users` y la misma
-tabla de progreso. Privada por omisión, igual que `habit_challenge_progress`.
+`user_practices (user_id, practice_id, started_at, stopped_at, sharing_enabled, source)`, migración
+0053. Privada por omisión, igual que `habit_challenge_progress`.
+
+- **Dejar una práctica no borra la fila**: se marca `stopped_at`. Dejarla es información, y volver
+  —que es lo que este producto premia por encima de todo— tiene que reabrir la misma adopción sin
+  tocar `started_at`. De ahí que la clave sea el par y no un uuid.
+- `source` guarda **por dónde entró**, no a quién pertenece: nada filtra por él. `public.users` ya es
+  una sola tabla para los dos canales, así que la fila se ve igual desde la web y desde el chat.
+- El repositorio sólo inscribe en prácticas **publicadas**: mandar una clave a mano no sirve.
+- El catálogo se lee entero sin sesión; entrar sirve para llevar las tuyas.
+
+**Lo que este slice deliberadamente NO hace: contar repeticiones.** Adoptar una práctica y
+practicarla un día son dos cosas, y la segunda ya tiene tabla —`habit_repetitions`, con su índice
+único por persona, reto y fecha, que es lo que impone un aporte por pilar y por día—. Que el catálogo
+escriba ahí implica decidir que marcar una práctica de sueño cuenta como haber practicado el pilar
+del sueño; es razonable, es lo que el jardín ya mide, y merece decidirse a propósito en vez de
+colarse aquí. Ver «Slice 4b».
+
+### Slice 4b — Marcar el día (pendiente de decisión)
+
+Lo que cierra la cuarta ley del todo. La opción que recomiendo: **reutilizar `habit_repetitions`**,
+escribiendo la repetición con el `challenge_key` del pilar primario de la práctica. Con eso el jardín,
+la tabla de aportes, los niveles y las celebraciones funcionan sin tocar nada, y la regla del aporte
+por pilar y día la impone el índice único que ya existe.
+
+Implica que marcar cualquier práctica de un pilar inscribe a esa persona en el ritual de ese pilar
+(`habit_challenge_progress`). Es coherente —el ritual es la práctica insignia del pilar— pero es una
+decisión de producto, no un detalle de implementación.
 
 ### Slice 5 — Compartirla con la comunidad
 

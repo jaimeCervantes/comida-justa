@@ -230,3 +230,43 @@ export const pillarStudies = pgTable(
     index("ix_pillar_studies_study").on(table.studyId),
   ],
 );
+
+/**
+ * Quién practica qué, desde dónde y desde cuándo.
+ *
+ * `public.users` ya es una sola tabla para el sitio y para el bot —15 usuarios con `email`, 6 sólo
+ * con su id de Telegram—, así que empezar una práctica por chat y verla en la web es un `INSERT`, no
+ * un modelo nuevo. `source` guarda **por dónde entró**, no a quién pertenece: nada filtra por él.
+ *
+ * **Dejar una práctica no borra la fila.** Se marca `stoppedAt`, porque dejarla es información y
+ * porque volver —que es lo que este producto premia por encima de todo— tiene que reabrir la misma
+ * fila, no crear una segunda. De ahí que la clave sea el par y no un uuid.
+ *
+ * `sharingEnabled` nace en `false`, igual que `habitChallengeProgress`: aparecer con nombre en una
+ * pantalla pública es una decisión, no un efecto secundario de practicar.
+ */
+export const userPractices = pgTable(
+  "user_practices",
+  {
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    practiceId: uuid("practice_id")
+      .notNull()
+      .references(() => practices.id, { onDelete: "cascade" }),
+    startedAt: timestamp("started_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    /** Nulo mientras siga practicándose. */
+    stoppedAt: timestamp("stopped_at", { withTimezone: true }),
+    sharingEnabled: boolean("sharing_enabled").notNull().default(false),
+    /** `web` | `telegram` | `whatsapp`. */
+    source: text("source").notNull().default("web"),
+  },
+  (table) => [
+    primaryKey({ columns: [table.userId, table.practiceId] }),
+    index("ix_user_practices_practice")
+      .on(table.practiceId)
+      .where(sql`${table.stoppedAt} IS NULL`),
+  ],
+);

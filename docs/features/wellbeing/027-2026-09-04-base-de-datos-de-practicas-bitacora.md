@@ -567,3 +567,86 @@ hacerlo.
 
 **Pendiente del usuario:** revisar el desplegado del bot. El código está commiteado en
 `feat/practice-catalog` del backend, sin push y sin desplegar.
+
+---
+
+## Slice 4 — Registrar una práctica (2026-09-05)
+
+### Objetivo
+
+Que una práctica del catálogo se pueda empezar y dejar. Sin eso, las 45 son una lista de deseos.
+
+### Decisiones y porqué
+
+**Dejar una práctica no borra la fila.** Se marca `stopped_at`. Dejarla es información —alguien que
+empezó tres y sostiene una está diciendo algo que un `DELETE` borraría— y sobre todo: volver es lo
+que este producto premia por encima de todo, y para premiarlo hay que saber que ya se había empezado
+antes. Volver hace `ON CONFLICT DO UPDATE SET stopped_at = NULL` **sin tocar `started_at`**: la
+primera vez que alguien empezó algo no se sobrescribe. Por eso la clave primaria es el par
+`(user_id, practice_id)` y no un uuid.
+
+**`source` guarda por dónde entró, no a quién pertenece.** Es información de producto —¿sirve el chat
+de puerta de entrada?— y no una partición: nada filtra por él, y la fila se ve igual desde los dos
+canales porque `public.users` ya es una sola tabla.
+
+**El repositorio sólo inscribe en prácticas publicadas.** El `INSERT … SELECT … WHERE status =
+'published'` es lo que impide inscribir a nadie en una práctica retirada aunque le manden la clave a
+mano: sin fila que seleccionar no hay inserción, y `rowCount` en cero se devuelve como `false`.
+
+**El catálogo se lee entero sin sesión.** `activeFor(null)` devuelve un conjunto vacío y ni siquiera
+consulta la base. Si exigiera identidad, la página tendría que tener dos versiones.
+
+**Empezar y dejar tienen el mismo peso visual.** Dejar no se esconde detrás de un menú: un botón
+difícil de encontrar sólo consigue que la gente deje de practicar sin decirlo.
+
+### Lo que este slice deliberadamente no hace
+
+**No cuenta repeticiones.** Adoptar una práctica y practicarla un día son dos cosas distintas, y la
+segunda ya tiene su tabla: `habit_repetitions`, cuyo índice único por persona, reto y fecha es
+exactamente lo que impone «un aporte por pilar y por día».
+
+Que el catálogo escriba ahí implica decidir que marcar una práctica de sueño **cuenta como haber
+practicado el pilar del sueño**, e inscribe a esa persona en el ritual del pilar. Es coherente y es
+lo que el jardín ya mide, pero es una decisión de producto y no un detalle de implementación: se
+documentó como slice 4b en el roadmap en vez de colarse dentro de una migración.
+
+### Archivos tocados
+
+- **Backend:** `alembic/versions/0053_2026-09-05_add_user_practices.py`.
+- **Dominio:** `practices/adoption.ts` + `.test.ts` (5 pruebas).
+- **Caso de uso:** `practiceAdoptionUseCase.ts` + `.test.ts` (5), su puerto.
+- **Infra:** `PostgresPracticeAdoption.ts`, espejo de Drizzle (`userPractices`).
+- **Rutas:** `practicas/practiceActions.ts` (server action), `page.tsx` y `ui/PracticeCardItem.tsx`
+  con cuatro pruebas nuevas (11 en total).
+- **e2e:** `practicasPropias.spec.ts` (5 escenarios, con sesión real y limpieza en `afterEach`).
+- `es.json` / `en.json`: cinco claves en `practicesIndex`.
+
+### Comandos y resultados
+
+```
+alembic upgrade head                            0052 → 0053
+pnpm run validate                               260 archivos, 2779 pruebas, verde
+playwright practicasPropias                     5/5
+playwright src/e2e/pilares                      50/50
+```
+
+### Lo que se escribió en la base compartida
+
+Una tabla nueva, `user_practices`, vacía salvo lo que la e2e crea y borra en su `afterEach`. Ninguna
+fila existente se tocó. Para deshacerlo: `alembic downgrade 0052_2026_09_05`.
+
+### Recap
+
+Cualquiera de las 45 prácticas se puede empezar y dejar desde `/practicas`, privada por omisión, y
+volver reabre la misma adopción conservando desde cuándo. El catálogo sigue siendo público. Falta
+marcar el día para cerrar la cuarta ley, y esa es una decisión de producto documentada como 4b.
+
+### Próximos pasos (opciones)
+
+1. **Slice 4b** — marcar el día reutilizando `habit_repetitions`. Cierra la cuarta ley y hace real
+   la regla del aporte por pilar y día.
+2. **Slice 2b** — el catálogo por temas.
+3. **Slice 5** — compartir la práctica en el muro.
+
+**Pendiente del usuario:** decidir 4b (si marcar una práctica de un pilar inscribe en el ritual de
+ese pilar) y desplegar el bot.

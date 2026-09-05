@@ -254,22 +254,43 @@ Feature: Base de datos de practicas - la practica deja de ser prosa y pasa a ser
   # Slice 4 - Registrar una practica, desde donde sea
   # ---------------------------------------------------------------------------------------------
 
-  @slice-4 @future
-  Scenario Outline: Empezar una practica, por el canal que sea
-    # `public.users` ya es una sola tabla: 15 usuarios de la web con email y 6 del bot con su id de
-    # Telegram. `source` distingue el canal sin partir el modelo.
+  # Escenarios de extremo a extremo en `src/e2e/pilares/practicasPropias.spec.ts`.
+
+  @slice-4
+  Scenario: Empezar una practica del catalogo
     Given que hay una practica publicada
-    When alguien la empieza desde "<canal>"
-    Then queda registrada como suya con origen "<canal>"
+    When alguien que entro la empieza desde la web
+    Then queda registrada como suya con origen "web"
     And es privada mientras no diga lo contrario
 
-    Examples:
-      | canal    |
-      | web      |
-      | telegram |
+  @slice-4
+  Scenario: Dejarla no borra que la empezaste
+    # Dejar una practica es informacion, no un error que corregir.
+    Given que alguien lleva una practica
+    When la deja
+    Then la fila sigue existiendo, marcada con la fecha en que la dejo
+
+  @slice-4
+  Scenario: Volver reabre la misma, no inventa otra
+    # Es la regla que atraviesa el producto: volver vale mas que fingir perfeccion, y para premiarlo
+    # hay que saber que ya se habia empezado antes.
+    Given que alguien empezo una practica y la dejo
+    When la vuelve a empezar
+    Then se reabre la misma adopcion
+    And la fecha en que la empezo la primera vez no cambia
+
+  @slice-4
+  Scenario: El catalogo se lee entero sin entrar
+    # Entrar sirve para llevar las tuyas, no para leerlo: si no, la pagina tendria dos versiones.
+    Given que no hay sesion
+    When abro "/practicas"
+    Then veo todas las practicas
+    And se me invita a entrar para empezar una
 
   @slice-4 @future
   Scenario: Lo empezado en Telegram se ve en la web
+    # La tabla ya lo admite —`source` lo distingue y `public.users` es una sola— pero el bot todavia
+    # no escribe adopciones.
     Given que alguien empezo una practica desde Telegram
     And que esa misma persona entra al sitio con su cuenta
     When abre sus practicas

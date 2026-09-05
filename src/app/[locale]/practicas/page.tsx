@@ -8,11 +8,16 @@ import {
 import { Link } from "~/i18n/navigation";
 import { pillarHref } from "~/i18n/routes";
 import { resolveLocale } from "~/i18n/routing";
+import { readViewerId } from "~/infra/auth/readViewerId";
+import { signInPathFor } from "~/infra/auth/signInPath";
+import { PostgresPracticeAdoption } from "~/infra/dataAccess/practices/PostgresPracticeAdoption";
 import { PostgresPracticeCatalog } from "~/infra/dataAccess/practices/PostgresPracticeCatalog";
 import { localizedAlternates } from "~/infra/UI/metadata/alternates";
 import { Heading } from "~/presentation/design_system/typography/Heading";
 import { pillarColorClasses } from "~/presentation/habits/pillarColors";
+import PracticeAdoptionUseCase from "~/use_cases/practices/practiceAdoptionUseCase";
 import PracticeCatalogUseCase from "~/use_cases/practices/practiceCatalogUseCase";
+import { manageOwnPractice } from "./practiceActions";
 import PracticeCardItem from "./ui/PracticeCardItem";
 
 export async function generateMetadata({
@@ -56,9 +61,19 @@ export default async function PracticesIndexPage({
   const tPillars = await getTranslations("pillars");
   const habitT = await getTranslations("atomicChallenges");
   const sleepT = await getTranslations("atomicSleepChallenge");
-  const groups = await new PracticeCatalogUseCase(
-    new PostgresPracticeCatalog(),
-  ).listByPillar(locale);
+  const userId = await readViewerId();
+  /* Las dos lecturas van juntas: el catálogo es público y lo que alguien lleva es suyo, pero la
+     página necesita las dos a la vez para pintar cada tarjeta una sola vez. Sin sesión, el conjunto
+     de adoptadas viene vacío y la lista se lee igual — el índice no tiene dos versiones. */
+  const [groups, adopted] = await Promise.all([
+    new PracticeCatalogUseCase(new PostgresPracticeCatalog()).listByPillar(
+      locale,
+    ),
+    new PracticeAdoptionUseCase(new PostgresPracticeAdoption()).activeFor(
+      userId,
+    ),
+  ]);
+  const signInHref = signInPathFor(locale, "/practicas");
 
   return (
     <article>
@@ -70,6 +85,11 @@ export default async function PracticesIndexPage({
           {t("title")}
         </Heading>
         <p className="mt-4 max-w-3xl text-lg text-body">{t("intro")}</p>
+        {userId === null && (
+          <p className="mt-2 max-w-3xl text-caption text-text-muted">
+            {t("signedOutNote")}
+          </p>
+        )}
       </header>
 
       {groups.length === 0 ? (
@@ -112,6 +132,10 @@ export default async function PracticesIndexPage({
                       key={practice.key}
                       practice={practice}
                       pillar={pillar}
+                      adopted={adopted.has(practice.key)}
+                      signedIn={userId !== null}
+                      signInHref={signInHref}
+                      action={manageOwnPractice}
                     />
                   ))}
                 </ul>
