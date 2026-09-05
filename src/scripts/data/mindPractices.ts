@@ -223,7 +223,7 @@ export const MIND_PRACTICE_SEED: readonly PracticeSeed[] = [
     effortMinutes: 5,
     costLevel: 0,
     pillars: ["mindSpirit"],
-    dois: [],
+    dois: ["10.1037/0022-3514.84.2.377"],
     es: {
       title: "Cerrar el día con gratitud",
       summary:

@@ -329,6 +329,25 @@ un consejo de un hábito, y una casa donde verse.
 **Qué falta para cerrar las cuatro leyes:** *satisfactorio*. Es seguimiento, y eso es
 `user_practices` — el slice 4.
 
+### Slice 2e — Ninguna práctica sin respaldo ✅
+
+Pedido explícito: **todas las prácticas respaldadas por estudios científicos, análisis clínicos o
+estudios de campo.** Se cerró la brecha de 10 prácticas que no citaban ninguno.
+
+- **131 estudios** (antes 116). Los 15 nuevos se buscaron en `api.crossref.org`, se verificó uno por
+  uno que el DOI resuelve y que el **título sostiene la afirmación**, y cada uno lleva en
+  `pillarBibliography.ts` el comentario de qué práctica respalda.
+- **Ninguna cita se prestó de otra práctica ni se inventó.** Era el riesgo real del encargo: una cita
+  falsa en un producto de salud hace más daño que no tener ninguna.
+- La regla quedó **impuesta por el código**: `practiceCatalogSeed.test.ts` falla si alguna práctica
+  se publica con `dois: []`, si cita un DOI que no está en ninguna bibliografía —no llegaría a
+  `studies` y el vínculo se perdería en silencio— o si repite el mismo estudio dos veces.
+- El escenario que decía «una práctica sin evidencia lo dice en vez de callarlo» se reescribió: la
+  promesa se endureció, y ahora afirma que **toda** tarjeta declara en cuántos estudios se apoya.
+
+La tarjeta sigue sabiendo pintar el caso «sin estudio» a propósito: es la red de seguridad si algún
+día entra una práctica sin respaldo por otra vía.
+
 ### Slice 3 — El bot responde con la práctica, y cita el estudio ✅
 
 **Es el slice que justifica el modelo.** En el backend:

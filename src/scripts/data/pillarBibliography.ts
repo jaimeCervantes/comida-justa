@@ -72,6 +72,19 @@ export const SLEEP_BIBLIOGRAPHY: readonly string[] = [
    * «pendientes, no lo ya hecho» de esa sección.
    */
   "10.1037/xge0000374",
+  /*
+   * Lo que se buscó para que ninguna práctica del descanso se quedara sin respaldo.
+   *
+   * Infusión sin cafeína: ensayo aleatorizado de té de manzanilla sobre calidad del sueño. Es la
+   * evidencia de la práctica que hasta ahora no tenía ninguna; se citaba «algo tibio» sin más.
+   */
+  "10.1111/jan.12836",
+  /*
+   * Notar cómo amaneciste: el auto-registro es una de las técnicas de cambio de conducta con más
+   * respaldo, y esa meta-revisión es la que lo sostiene. Sin ella, «fíjate en cómo despiertas» era
+   * un consejo sin nada detrás.
+   */
+  "10.1080/17437199.2020.1721310",
 ];
 
 export const NUTRITION_BIBLIOGRAPHY: readonly string[] = [
@@ -117,6 +130,47 @@ export const NUTRITION_BIBLIOGRAPHY: readonly string[] = [
    * internet al atribuirle al prensado en frío el punto de humo del refinado.
    */
   "10.1016/b978-1-893997-97-4.50008-5",
+  /*
+   * Lo que se buscó para que ninguna práctica de alimentación se quedara sin respaldo.
+   *
+   * Una planta más: las dos revisiones dosis-respuesta que miden qué añade cada porción diaria. La
+   * práctica dice «una más», y esto es lo que la hace algo más que una intuición.
+   */
+  "10.1093/ije/dyw319",
+  "10.1136/bmj.g5472",
+  /*
+   * La triada del plato: los dos estudios que miden qué cambia cuando se da una referencia visual
+   * de proporciones en vez de una cifra. Sostienen la forma de la práctica —se ve, no se pesa—, no
+   * una proporción concreta como óptima.
+   */
+  "10.7759/cureus.25231",
+  "10.1016/j.jneb.2012.03.066",
+  /*
+   * Proteína y saciedad, que es exactamente lo que la práctica promete.
+   */
+  "10.1006/appe.2000.0332",
+  /*
+   * Carbohidratos del territorio. El de The Lancet es la revisión de calidad del carbohidrato —fibra
+   * y grano entero— que sostiene lo de la liberación lenta y la microbiota; el de grano entero mide
+   * el riesgo de diabetes tipo 2; y el del enfriado mide el almidón resistente que gana un
+   * carbohidrato cocido y enfriado, que es la nota concreta del catálogo.
+   */
+  "10.1016/s0140-6736(18)31809-9",
+  "10.1007/s10654-013-9852-5",
+  "10.3390/metabo14110585",
+  /*
+   * Grasas sanas: el ensayo que mide la absorción de carotenoides con aliño entero frente a aliño
+   * desgrasado. Es la evidencia de «sin ellas no se absorben las vitaminas liposolubles», que hasta
+   * ahora era una afirmación de libro de texto sin cita.
+   */
+  "10.1093/ajcn/80.2.396",
+  /*
+   * Cenar en presencia: la revisión sistemática y el estudio de mecanismos sobre comer frente a una
+   * pantalla. Sostienen la práctica tal y como está escrita —sin pantallas—, y no una afirmación
+   * más amplia sobre atención plena.
+   */
+  "10.3390/nu17010166",
+  "10.1016/j.appet.2014.01.005",
 ];
 
 export const MOVEMENT_BIBLIOGRAPHY: readonly string[] = [
@@ -163,6 +217,12 @@ export const MOVEMENT_BIBLIOGRAPHY: readonly string[] = [
    * fuerza del pie. Sostiene la sección del pie y el terreno, incluida su nota de transición.
    */
   "10.1038/s41598-021-98070-0",
+  /*
+   * Notar el triple impacto: la meta-regresión que identifica el auto-registro entre las técnicas
+   * efectivas de cambio de conducta. Es lo que convierte «fíjate al día siguiente» en una práctica
+   * y no en una coletilla.
+   */
+  "10.1037/a0016136",
 ];
 
 export const MIND_SPIRIT_BIBLIOGRAPHY: readonly string[] = [
@@ -207,4 +267,9 @@ export const MIND_SPIRIT_BIBLIOGRAPHY: readonly string[] = [
    * Es la evidencia del arraigo al aire libre.
    */
   "10.1016/j.envres.2023.116303",
+  /*
+   * Cerrar el día con gratitud: el experimento clásico de contar bendiciones frente a contar
+   * cargas. La práctica pide tres cosas del entorno, y ésta es la forma que se midió.
+   */
+  "10.1037/0022-3514.84.2.377",
 ];

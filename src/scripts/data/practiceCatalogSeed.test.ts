@@ -225,3 +225,40 @@ describe("los temas del catálogo", () => {
     }
   });
 });
+
+describe("el respaldo de cada práctica", () => {
+  /**
+   * **Toda práctica publicada cita al menos un estudio.** Es la regla que el usuario pidió, y vive
+   * aquí porque aquí es donde se rompería: añadir una práctica nueva es escribir un objeto en el
+   * módulo de su pilar, y `dois: []` compila igual de bien que una lista.
+   *
+   * La base no puede afirmarlo —haría falta un CHECK que consultara otra tabla—, así que lo afirma
+   * la semilla, que es la única fuente de estas filas.
+   */
+  it("ninguna práctica se publica sin al menos un estudio", () => {
+    const huerfanas = PRACTICE_SEED.filter(({ dois }) => dois.length === 0);
+
+    expect(huerfanas.map(({ key }) => key)).toEqual([]);
+  });
+
+  it("cada DOI citado existe en la bibliografía de algún pilar", () => {
+    /* Un DOI que sólo estuviera en `practice_studies` no llegaría a `studies` —las siembra la
+       bibliografía— y el vínculo se perdería en silencio: la práctica diría tener respaldo y la
+       página no enseñaría ninguno. */
+    const bibliography = new Set(
+      PILLAR_SEED.flatMap(({ bibliography: dois }) => dois),
+    );
+
+    for (const { key, dois } of PRACTICE_SEED) {
+      for (const doi of dois) {
+        expect(bibliography.has(doi), `${key} → ${doi}`).toBe(true);
+      }
+    }
+  });
+
+  it("no cita dos veces el mismo estudio en la misma práctica", () => {
+    for (const { key, dois } of PRACTICE_SEED) {
+      expect(new Set(dois).size, key).toBe(dois.length);
+    }
+  });
+});

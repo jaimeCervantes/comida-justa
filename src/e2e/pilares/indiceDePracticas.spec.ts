@@ -62,12 +62,19 @@ test.describe("Cuando alguien busca qué practicar", () => {
     await expect(compartida).toContainText("También sirve a");
   });
 
-  test("Entonces una práctica sin estudio lo dice en vez de callarlo", async ({
-    page,
-  }) => {
-    const sinEstudio = page.locator('[data-practice="sleep-notice-clarity"]');
+  test("Entonces toda práctica declara en qué se apoya", async ({ page }) => {
+    /* La promesa se endureció: antes bastaba con que una práctica sin evidencia lo dijera en vez de
+       callarlo, y ahora **ninguna se publica sin al menos un estudio**. Se afirma sobre todas las
+       tarjetas y no sobre una: la que se quede sin respaldo al sembrarse es justo la que nadie
+       miraría. Que la semilla no pueda introducir una sin estudio lo comprueba
+       `practiceCatalogSeed.test.ts`; esto comprueba que además se ve. */
+    const evidencias = page.getByTestId("practice-evidence");
+    const total = await evidencias.count();
+    expect(total).toBeGreaterThan(0);
 
-    await expect(sinEstudio).toContainText("Sin estudio");
+    for (let index = 0; index < total; index++) {
+      await expect(evidencias.nth(index)).toContainText(/\d+ estudios?/);
+    }
   });
 
   test("Entonces se llega desde la portada de los pilares", async ({

@@ -249,7 +249,7 @@ export const MOVEMENT_PRACTICE_SEED: readonly PracticeSeed[] = [
     effortMinutes: 2,
     costLevel: 0,
     pillars: ["movement"],
-    dois: [],
+    dois: ["10.1037/a0016136"],
     es: {
       title: "Notar el triple impacto",
       summary:

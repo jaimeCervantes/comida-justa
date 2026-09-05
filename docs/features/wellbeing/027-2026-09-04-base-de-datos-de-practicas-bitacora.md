@@ -887,3 +887,102 @@ son prosa de artículo, no listas.
    las últimas listas de acciones que siguen en i18n. Mismo tratamiento que el catálogo.
 
 **Pendiente del usuario:** desplegar el bot.
+
+---
+
+## Slice 2e — Ninguna práctica sin respaldo (2026-09-05)
+
+### Objetivo
+
+Pedido explícito del usuario: **todas las prácticas respaldadas por estudios científicos, análisis
+clínicos o estudios de campo.** Diez de las 45 no citaban ninguno.
+
+### Cómo se buscó, y la regla que no se rompió
+
+El riesgo del encargo no era técnico: era inventar una cita. **Una cita falsa en un producto de
+salud hace más daño que no tener ninguna**, y es exactamente lo que este catálogo existe para evitar.
+
+Así que: búsqueda en `api.crossref.org/works?query.bibliographic=…`, revisión del título de cada
+candidato a mano, y verificación uno por uno de que el DOI resuelve antes de ligarlo. Ninguna cita
+se prestó de otra práctica, ninguna se inventó, y ninguna se aceptó porque «suene» al tema.
+
+Las diez, con lo que las sostiene:
+
+| Práctica | Estudio |
+|---|---|
+| `mind-gratitude` | Emmons & McCullough 2003, contar bendiciones frente a contar cargas |
+| `movement-notice-vitality` | Michie 2009, meta-regresión de técnicas de cambio de conducta |
+| `sleep-notice-clarity` | Meta-revisión 2020 de técnicas auto-regulatorias |
+| `sleep-caffeine-free-infusion` | Ensayo aleatorizado de té de manzanilla y calidad del sueño |
+| `nutrition-one-more-plant` | Las dos revisiones dosis-respuesta de fruta y verdura |
+| `nutrition-plate-triad` | Los dos estudios del plato visual (Cureus 2022, JNEB 2012) |
+| `nutrition-regional-protein` | Proteína y saciedad (Appetite 2000) |
+| `nutrition-territory-carbs` | Calidad del carbohidrato (The Lancet 2019), grano entero, almidón resistente |
+| `nutrition-healthy-fats` | Absorción de carotenoides con aliño entero frente a desgrasado |
+| `nutrition-eat-in-presence` | Revisión sistemática 2025 de comer frente a una pantalla |
+
+De 116 a **131 estudios**. Cada uno lleva en `pillarBibliography.ts` el comentario de qué práctica
+respalda, igual que los que ya estaban.
+
+### La regla, impuesta por el código
+
+Tres pruebas en `practiceCatalogSeed.test.ts`, porque el sitio donde esto se rompería es la semilla:
+añadir una práctica es escribir un objeto, y `dois: []` compila igual de bien que una lista.
+
+1. Ninguna práctica publicada con la lista vacía.
+2. Todo DOI citado existe en la bibliografía de algún pilar — si sólo estuviera en `practice_studies`
+   no llegaría a `studies`, que las siembra la bibliografía, y el vínculo se perdería en silencio:
+   la práctica diría tener respaldo y la página no enseñaría ninguno.
+3. Ninguna práctica cita dos veces el mismo estudio.
+
+La base no puede afirmarlo —haría falta un CHECK que consultara otra tabla—, así que lo afirma la
+semilla, que es la única fuente de estas filas.
+
+### Un escenario que cambió porque la promesa cambió
+
+«Una práctica sin estudio lo dice en vez de callarlo» dejó de tener premisa: `sleep-notice-clarity`
+ya tiene estudio. No se parcheó para que pasara: se reescribió con la promesa nueva, que es más
+fuerte —**toda** tarjeta declara en cuántos estudios se apoya—, y se comprueba sobre todas las
+tarjetas y no sobre una.
+
+La tarjeta sigue sabiendo pintar el caso «sin estudio» a propósito: es la red de seguridad si algún
+día entra una práctica sin respaldo por otra vía.
+
+### Y la regla de e2e que el usuario pidió escribir
+
+Durante esta entrega aparecieron dos corridas seguidas con **dos fallos cada una, distintos entre
+sí**, todos en la primera interacción de su escenario y todos verdes en aislamiento. No era
+intermitencia: `/practicas` y `/habitos` son rutas nuevas y no estaban en
+`src/e2e/testUtils/warmRoutes.ts`, así que el primer escenario que las visitaba pagaba la
+compilación dentro del plazo de 5 s de un `toBeVisible`.
+
+Quedó escrito en `AGENTS.md` y en el skill como dos reglas que van juntas: **borrar `.next` antes de
+cualquier corrida de e2e**, y **añadir las rutas nuevas a `warmRoutes.ts` en el mismo commit**.
+Borrar `.next` sin lo segundo empeora el problema en vez de arreglarlo.
+
+### Comandos y resultados
+
+```
+pnpm run seed:practice-catalog     131 estudios · 45 prácticas · 0 sin respaldo
+pnpm run validate                  262 archivos, 2793 pruebas, verde
+playwright src/e2e/pilares         54/55 en frío → 55/55
+playwright src/e2e/habits          27/28 en frío → 28/28
+```
+
+Los dos fallos en frío fueron **distintos entre sí** y en escenarios que este cambio no toca (el
+`href` de un DOI y una celebración); los dos verdes al repetir. Es la intermitencia ya documentada.
+
+Distribución final: 22 prácticas con un estudio, 16 con dos, 4 con tres, 2 con cuatro, 1 con cinco.
+
+### Recap
+
+Las 45 prácticas citan al menos un estudio real y verificado, y el código impide que entre una sin
+él. La bibliografía pasó de 116 a 131 estudios, y las rutas nuevas ya se calientan antes de la e2e.
+
+### Próximos pasos (opciones)
+
+1. **Slice 5** — compartir la práctica en el muro.
+2. **Que el bot marque el día**, que es lo que haría real el `source = 'telegram'`.
+3. **Reforzar las 22 que citan un solo estudio**, si quieres más de una fuente por afirmación.
+
+**Pendiente del usuario:** desplegar el bot.

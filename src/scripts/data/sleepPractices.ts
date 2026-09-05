@@ -7,8 +7,9 @@
  *
  * **Los DOIs no se inventaron.** Salen de los comentarios de `pillarBibliography.ts`, que ya
  * explicaban qué afirmación sostenía cada estudio, y de títulos de Crossref que lo dicen sin
- * ambigüedad. Dos prácticas se quedan con la lista vacía —la infusión y notar la claridad— porque
- * ninguno de los 116 estudios habla de eso: una bibliografía de adorno es peor que una lista corta.
+ * ambigüedad. **Todas llevan al menos un estudio.** Las dos que no lo tenían —la infusión sin cafeína y notar
+ * la claridad— lo tienen desde que se buscó en Crossref el ensayo de manzanilla y la meta-revisión
+ * de auto-registro; ninguna cita se puso sin leer de qué trata.
  *
  * **Respirar despacio no está aquí, y sirve al descanso igual.** Vive en `mindPractices.ts` porque
  * su pilar primario es Mente, y `practice_pillars` la trae a Sueño sin copiarla. Es la práctica que
@@ -256,7 +257,7 @@ export const SLEEP_PRACTICE_SEED: readonly PracticeSeed[] = [
     pillars: ["sleep"],
     // Ninguno de los 116 estudios habla de infusiones. Se queda sin bibliografía en vez de
     // pedirle prestada la de otra práctica.
-    dois: [],
+    dois: ["10.1111/jan.12836"],
     es: {
       title: "Una infusión caliente sin cafeína",
       summary:
@@ -300,7 +301,7 @@ export const SLEEP_PRACTICE_SEED: readonly PracticeSeed[] = [
     costLevel: 0,
     pillars: ["sleep"],
     // Notar cómo amaneciste es el cierre del ritual, no una intervención medida. Sin estudio.
-    dois: [],
+    dois: ["10.1080/17437199.2020.1721310"],
     es: {
       title: "Notar la claridad al despertar",
       summary:

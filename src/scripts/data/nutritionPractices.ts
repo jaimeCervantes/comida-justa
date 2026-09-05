@@ -6,10 +6,11 @@
  *
  * **Los DOIs no se inventaron.** Salen de los comentarios de `pillarBibliography.ts` —la
  * crononutrición, los aldehídos, el punto de humo del aguacate— y de títulos de Crossref que dicen
- * sin ambigüedad de qué tratan. Cuatro prácticas se quedan con la lista vacía: la triada, sus tres
- * componentes y cenar en presencia son buenas decisiones, pero ninguno de los 116 estudios de esta
- * bibliografía las mide. Prestarles la evidencia de los ultraprocesados sería exactamente la
- * autoridad de segunda mano que este catálogo vino a deshacer.
+ * sin ambigüedad de qué tratan. **Todas llevan al menos un estudio.** Las seis que no lo tenían —la triada, sus tres componentes,
+ * una planta más y cenar en presencia— lo tienen desde que se buscaron en Crossref: la absorción de
+ * carotenoides con grasa, las revisiones dosis-respuesta de fruta y verdura, los dos estudios del
+ * plato visual, la saciedad de la proteína, la calidad del carbohidrato de The Lancet y la revisión
+ * de comer frente a una pantalla. Ninguna se prestó de otra práctica.
  */
 import type { PracticeSeed } from "./practiceSeed";
 
@@ -74,7 +75,7 @@ export const NUTRITION_PRACTICE_SEED: readonly PracticeSeed[] = [
     key: "nutrition-one-more-plant",
     costLevel: 1,
     pillars: ["nutrition"],
-    dois: [],
+    dois: ["10.1093/ije/dyw319", "10.1136/bmj.g5472"],
     es: {
       title: "Una planta más en el plato",
       summary:
@@ -99,7 +100,7 @@ export const NUTRITION_PRACTICE_SEED: readonly PracticeSeed[] = [
     key: "nutrition-plate-triad",
     costLevel: 1,
     pillars: ["nutrition"],
-    dois: [],
+    dois: ["10.7759/cureus.25231", "10.1016/j.jneb.2012.03.066"],
     es: {
       title: "Servir la triada del plato",
       summary:
@@ -222,7 +223,7 @@ export const NUTRITION_PRACTICE_SEED: readonly PracticeSeed[] = [
     key: "nutrition-regional-protein",
     costLevel: 1,
     pillars: ["nutrition"],
-    dois: [],
+    dois: ["10.1006/appe.2000.0332"],
     es: {
       title: "Proteína regional",
       summary: "Aminoácidos y saciedad sin sobrecargar la digestión nocturna.",
@@ -243,7 +244,11 @@ export const NUTRITION_PRACTICE_SEED: readonly PracticeSeed[] = [
     key: "nutrition-territory-carbs",
     costLevel: 1,
     pillars: ["nutrition"],
-    dois: [],
+    dois: [
+      "10.1016/s0140-6736(18)31809-9",
+      "10.1007/s10654-013-9852-5",
+      "10.3390/metabo14110585",
+    ],
     es: {
       title: "Carbohidratos del territorio",
       summary:
@@ -265,7 +270,7 @@ export const NUTRITION_PRACTICE_SEED: readonly PracticeSeed[] = [
     key: "nutrition-healthy-fats",
     costLevel: 1,
     pillars: ["nutrition"],
-    dois: [],
+    dois: ["10.1093/ajcn/80.2.396"],
     es: {
       title: "Grasas sanas de la región",
       summary: "Sin ellas no se absorben las vitaminas A, D, E y K.",
@@ -286,7 +291,7 @@ export const NUTRITION_PRACTICE_SEED: readonly PracticeSeed[] = [
     costLevel: 0,
     // También de Mente: es la misma higiene digital, vista desde la mesa.
     pillars: ["nutrition", "mindSpirit"],
-    dois: [],
+    dois: ["10.3390/nu17010166", "10.1016/j.appet.2014.01.005"],
     es: {
       title: "Cenar en presencia",
       summary:

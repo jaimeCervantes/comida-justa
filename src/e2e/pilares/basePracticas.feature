@@ -189,12 +189,15 @@ Feature: Base de datos de practicas - la practica deja de ser prosa y pasa a ser
     Then aparece una sola vez
     And su tarjeta dice a que otro pilar sirve
 
-  @slice-2d
-  Scenario: Una practica sin evidencia lo dice
-    # Cero se ensena igual que cinco: esconderlo dejaria creer que todas estan respaldadas por igual.
-    Given que "sleep-notice-clarity" no tiene ningun estudio ligado
+  @slice-2e
+  Scenario: Ninguna practica se publica sin respaldo
+    # La promesa se endurecio: antes bastaba con que una practica sin evidencia lo dijera en vez de
+    # callarlo. Ahora toda practica cita al menos un estudio, un analisis clinico o un estudio de
+    # campo, y la semilla no puede introducir una sin el.
+    Given que las 45 practicas estan sembradas
     When abro "/practicas"
-    Then su tarjeta lo declara en vez de callarlo
+    Then cada tarjeta declara en cuantos estudios se apoya
+    And ninguna dice que no tiene ninguno
 
   # ---------------------------------------------------------------------------------------------
   # Slice 3 - El bot responde con la practica, y cita el estudio
