@@ -117,6 +117,12 @@ export default class HabitChallengeUseCase {
     return this.toProgress(stored);
   }
 
+  /**
+   * El registro del ritual: exige sus **dos anclas** y después cuenta el día.
+   *
+   * La comprobación de las anclas es lo único suyo; todo lo demás —la ventana, la fecha, la
+   * repetición y el reconocimiento— lo comparte con cualquier otra forma de practicar el pilar.
+   */
   async completeCheckIn(
     userId: string,
     input: HabitCheckInInput,
@@ -124,6 +130,27 @@ export default class HabitChallengeUseCase {
     if (evaluateHabitCheckIn(input) === "incomplete") {
       return { ok: false, reason: "incomplete" };
     }
+    return this.recordPracticeDay(userId, input.cycleDate);
+  }
+
+  /**
+   * Contar un día de práctica del pilar, sin las dos anclas del ritual.
+   *
+   * Existe porque el catálogo también practica. Marcar «hecho hoy» en *Penumbra total* es haber
+   * practicado el descanso, y la unidad de conteo de este producto es el **pilar y el día**, no la
+   * práctica: `uq_habit_repetitions_local_cycle` es único por persona, reto y fecha, así que hacer
+   * doce cosas un martes sigue siendo un día. Esa es la regla que impide que la tabla del jardín
+   * premie a quien marca más casillas.
+   *
+   * Las anclas no se piden porque son el mínimo **del ritual** —cerrar la noche, abrir la mañana— y
+   * cada práctica del catálogo tiene el suyo, escrito en `practice_translations.minimum`. Pedir las
+   * del ritual aquí obligaría a marcarlas como ciertas sin serlo, que es mentir en la base para que
+   * cuadre una firma.
+   */
+  async recordPracticeDay(
+    userId: string,
+    cycleDate: LocalDate,
+  ): Promise<CompleteCycleResult> {
     const stored = await this.repository.findProgress(userId);
     if (!stored) {
       return { ok: false, reason: "not-started" };
@@ -132,7 +159,7 @@ export default class HabitChallengeUseCase {
     if (!period) return { ok: false, reason: "not-scheduled" };
 
     const dateEvaluation = evaluateCycleDate({
-      cycleDate: input.cycleDate,
+      cycleDate,
       period,
       now: this.clock.now(),
     });
@@ -142,7 +169,7 @@ export default class HabitChallengeUseCase {
 
     const newlyCompleted = await this.repository.recordCycle(
       userId,
-      input.cycleDate,
+      cycleDate,
       this.clock.now(),
     );
     return {
@@ -150,7 +177,7 @@ export default class HabitChallengeUseCase {
       newlyCompleted,
       recognition: recognizeCycleCompletion(
         stored.completedDates,
-        input.cycleDate,
+        cycleDate,
         newlyCompleted,
       ),
       progress: await this.requiredProgress(userId),

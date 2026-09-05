@@ -27,6 +27,11 @@ function catalogOf(
     async listPublished() {
       return practices;
     },
+    async findPrimaryPillar(practiceKey) {
+      return (
+        practices.find(({ key }) => key === practiceKey)?.pillars[0] ?? null
+      );
+    },
   };
 }
 
@@ -85,10 +90,36 @@ describe("el catálogo agrupado por pilar", () => {
         asked.push(locale);
         return [];
       },
+      async findPrimaryPillar() {
+        return null;
+      },
     };
 
     await new PracticeCatalogUseCase(repository).listByPillar("en");
 
     expect(asked).toEqual(["en"]);
+  });
+});
+
+describe("el pilar del que una práctica es portada", () => {
+  it("se resuelve por su clave, para que el conteo no dependa del formulario", async () => {
+    const useCase = new PracticeCatalogUseCase(
+      catalogOf([
+        practice({
+          key: "mind-slow-breathing",
+          pillars: ["mindSpirit", "sleep"],
+        }),
+      ]),
+    );
+
+    await expect(useCase.primaryPillarOf("mind-slow-breathing")).resolves.toBe(
+      "mindSpirit",
+    );
+  });
+
+  it("una clave que no existe no apunta a ningún pilar", async () => {
+    await expect(
+      new PracticeCatalogUseCase(catalogOf([])).primaryPillarOf("inventada"),
+    ).resolves.toBeNull();
   });
 });

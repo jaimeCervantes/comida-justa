@@ -18,17 +18,22 @@ export default function PracticeCardItem({
   practice,
   pillar,
   adopted,
+  doneToday,
   signedIn,
   signInHref,
   action,
+  markAction,
 }: {
   practice: PracticeCard;
   pillar: PillarKey;
   /** Si quien mira la lleva activa. Siempre `false` sin sesión. */
   adopted: boolean;
+  /** Si el **pilar** de esta práctica ya cuenta hoy. La unidad es el pilar, no la práctica. */
+  doneToday: boolean;
   signedIn: boolean;
   signInHref: string;
   action: (formData: FormData) => Promise<void>;
+  markAction: (formData: FormData) => Promise<void>;
 }): React.ReactNode {
   const t = useTranslations("practicesIndex");
   const tPillars = useTranslations("pillars");
@@ -127,12 +132,40 @@ export default function PracticeCardItem({
         )}
 
         {adopted && (
-          <p
-            data-testid="practice-adopted"
-            className={`mt-2 text-caption font-semibold ${color.text}`}
-          >
-            {t("practising")}
-          </p>
+          <>
+            <p
+              data-testid="practice-adopted"
+              className={`mt-2 text-caption font-semibold ${color.text}`}
+            >
+              {t("practising")}
+            </p>
+
+            {/*
+              Marcar el día. Cuando el pilar ya cuenta, el botón desaparece y se dice por qué: la
+              unidad de este producto es el pilar y el día, así que marcar otra práctica del mismo
+              pilar no sumaría nada. Decirlo aquí enseña la regla usándola, en vez de esconder que
+              el segundo clic no hace nada.
+            */}
+            {doneToday ? (
+              <p
+                data-testid="practice-done-today"
+                className="mt-2 text-caption text-text-muted"
+              >
+                {t("countedToday")}
+              </p>
+            ) : (
+              <form action={markAction} className="mt-2">
+                <input type="hidden" name="practiceKey" value={practice.key} />
+                <button
+                  type="submit"
+                  data-testid="practice-mark"
+                  className="focus-ring rounded-control border border-separator px-3 py-1.5 text-caption font-semibold text-text-support"
+                >
+                  {t("markDone")}
+                </button>
+              </form>
+            )}
+          </>
         )}
       </div>
     </li>

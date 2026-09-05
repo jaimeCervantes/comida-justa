@@ -713,3 +713,98 @@ tres opciones sobre la mesa.
 3. **Slice 5** — compartir en el muro; depende de 4b.
 
 **Pendiente del usuario:** las dos decisiones de arriba, y desplegar el bot.
+
+---
+
+## Slice 4b — Marcar el día, y la corrección del diagnóstico de 2b (2026-09-05)
+
+### Objetivo
+
+Cerrar la cuarta ley: que practicar deje huella. Aprobado por el usuario con la condición que se
+había planteado — marcar una práctica de un pilar cuenta como haber practicado ese pilar.
+
+### Decisiones y porqué
+
+**Sin tablas nuevas.** La repetición se escribe en `habit_repetitions` con el `challenge_key` del
+pilar primario de la práctica. Con eso el jardín, la tabla de aportes, los niveles y las
+celebraciones funcionan sin tocarse, y `uq_habit_repetitions_local_cycle` —único por persona, reto y
+fecha— impone la regla del aporte por pilar y día sin una línea de código. Era el objetivo desde que
+se diseñó la tabla de aportes; aquí simplemente se cobra.
+
+**`recordPracticeDay` se extrajo de `completeCheckIn`, no se duplicó.** Lo único propio del ritual
+era la comprobación de sus dos anclas —cerrar la noche, abrir la mañana—; la ventana, la fecha, la
+repetición y el reconocimiento los comparte con cualquier otra forma de practicar el pilar. Pasar
+las anclas del ritual como ciertas desde el catálogo habría sido mentir en la base para que cuadrara
+una firma; cada práctica tiene su propio mínimo, en `practice_translations.minimum`.
+
+**El pilar se resuelve contra la base.** El formulario manda la clave de la práctica y nada más:
+a qué pilar apunta la repetición no lo decide quien envía el formulario.
+
+**«Hoy» es la fecha local de la comunidad.** Ni la del navegador ni la del servidor. La semana de la
+práctica ya está anclada en `America/Mexico_City`, y una segunda definición de «hoy» haría que el
+botón y el conteo discreparan al filo de la medianoche — que es exactamente el fallo que ya hubo que
+arreglar cuando la liga anclaba su lunes en UTC. Hay una prueba con `2026-08-24T00:30:00Z`, que en
+México todavía es domingo.
+
+**Cuando el pilar ya cuenta, el botón desaparece y se explica la regla:** «Hoy ya cuenta. Un pilar
+suma una vez al día, hagas una práctica o cinco». Esconder que el segundo clic no hace nada dejaría
+creer que marcar cinco prácticas vale por cinco — justo la lectura que la tabla del jardín evita.
+La regla se aprende usándola.
+
+### La corrección sobre el slice 2b
+
+El usuario cuestionó el diagnóstico de «dos modelos» y tenía razón. Al volver a los datos:
+
+- Los cuatro ítems de *Proximidad y pausas activas* (Movimiento) son **tres acciones distintas**, que
+  ya están sembradas como `movement-no-motor`, `movement-break-the-chair` y
+  `movement-take-the-stairs`.
+- Los cuatro ítems de *Proteínas de calidad* (Alimentación) son **cuatro opciones de una sola
+  acción**, y esa acción también está sembrada: el `how_to` de `nutrition-regional-protein` es
+  literalmente «leguminosas a granel, huevo de granja cercana, pesca local sustentable o aves de
+  pastoreo».
+
+No son dos modelos: es **el mismo a dos granularidades**. Todos son acciones; las de Alimentación
+están escritas más gruesas, con sus opciones dentro. Así que **una sola tabla basta**:
+`pillar_themes` + `pillar_theme_translations` (título y los dos impactos) y un `theme_id` nulable en
+`practices`. Los temas de Alimentación tendrán 1-2 prácticas en vez de 3-5, y eso es cómo se escribió
+el contenido, no una distorsión.
+
+Queda escrito en el roadmap. Lo que **no** haría es promover las cuatro opciones a cuatro prácticas:
+«comer frijol» y «comer huevo de granja» no son cuatro hábitos, son cuatro maneras de hacer uno, y
+partirlos inflaría el catálogo con casi-duplicados y rompería el «elige una práctica».
+
+### Archivos tocados
+
+- `habitChallengeUseCase.ts` — `recordPracticeDay` extraído; `completeCheckIn` lo llama.
+- `practiceActions.ts` — `markPracticeDone`.
+- `PracticeCatalogRepository` / `PostgresPracticeCatalog` — `findPrimaryPillar`.
+- `PracticeAdoptionRepository` / `PostgresPracticeAdoption` — `pillarsPractisedOn`.
+- `practiceCatalogUseCase.ts` (`primaryPillarOf`) y `practiceAdoptionUseCase.ts`
+  (`pillarsPractisedToday`), con sus pruebas (5 nuevas).
+- `PracticeCardItem` — botón de marcar y su explicación; 4 pruebas nuevas (15 en total).
+- `practicasPropias.spec.ts` — 3 escenarios nuevos (10 en total).
+
+### Comandos y resultados
+
+```
+pnpm run validate                261 archivos, 2791 pruebas, verde
+playwright practicasPropias      10/10
+playwright src/e2e/habits        28/28
+```
+
+El escenario que importa: adoptar dos prácticas de descanso, marcar una, y comprobar que la otra ya
+no ofrece marcar y que `habit_repetitions` tiene **una** fila.
+
+### Recap
+
+Practicar deja huella y alimenta lo que ya existía: el jardín, la tabla de aportes y los niveles.
+La regla del aporte por pilar y día dejó de ser una intención documentada y es lo que la base impone.
+Las cuatro leyes están cubiertas.
+
+### Próximos pasos (opciones)
+
+1. **Slice 2b** con el modelo corregido: una sola tabla de temas para los cuatro pilares.
+2. **Slice 5** — compartir la práctica en el muro, que ya tiene todo lo que necesita.
+3. **Que el bot pueda marcar el día**, que es lo que haría real el `source = 'telegram'`.
+
+**Pendiente del usuario:** desplegar el bot. Nada más.

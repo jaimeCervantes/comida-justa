@@ -1,5 +1,9 @@
 import { sql } from "drizzle-orm";
 import { cache } from "react";
+import { PILLAR_KEY_BY_CHALLENGE } from "~/app/[locale]/pilares/components/pilaresData";
+import type { LocalDate } from "~/domain/habits/habitChallenge";
+import { findHabitChallengeExperience } from "~/domain/habits/habitChallengeExperiences";
+import type { PillarKey } from "~/domain/pillars/pillarKey";
 import type {
   PracticeAdoption,
   PracticeSource,
@@ -73,6 +77,33 @@ export class PostgresPracticeAdoption implements PracticeAdoptionRepository {
         AND p.key = ${practiceKey}
         AND up.stopped_at IS NULL
     `);
+  }
+
+  /**
+   * De qué pilares hay repetición en una fecha.
+   *
+   * Lee `habit_repetitions`, que es la tabla de conteo del producto entero: la comparten el ritual
+   * de cada pilar y el catálogo, y su índice único por persona, reto y fecha es lo que impone un
+   * aporte por pilar y por día. Traducir el reto a pilar se hace con el catálogo de experiencias y no
+   * con una tabla nueva: son los mismos cuatro de siempre.
+   */
+  async pillarsPractisedOn(
+    userId: string,
+    cycleDate: LocalDate,
+  ): Promise<ReadonlySet<PillarKey>> {
+    const result = await db.execute(sql`
+      SELECT DISTINCT challenge_key
+      FROM habit_repetitions
+      WHERE user_id = ${userId} AND cycle_date = ${cycleDate}::date
+    `);
+
+    const pillars = new Set<PillarKey>();
+    for (const row of result.rows as Array<{ challenge_key: string }>) {
+      const experience = findHabitChallengeExperience(row.challenge_key);
+      if (experience)
+        pillars.add(PILLAR_KEY_BY_CHALLENGE[experience.experienceKey]);
+    }
+    return pillars;
   }
 }
 

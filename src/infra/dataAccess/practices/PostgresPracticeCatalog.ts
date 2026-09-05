@@ -73,6 +73,17 @@ export class PostgresPracticeCatalog implements PracticeCatalogRepository {
 
     return (result.rows as CatalogRow[]).map(toCard);
   }
+
+  async findPrimaryPillar(practiceKey: string): Promise<PillarKey | null> {
+    const result = await db.execute(sql`
+      SELECT pp.pillar_key
+      FROM practices p
+      JOIN practice_pillars pp ON pp.practice_id = p.id AND pp.is_primary
+      WHERE p.key = ${practiceKey} AND p.status = 'published'
+    `);
+    const row = result.rows[0] as { pillar_key: string } | undefined;
+    return (row?.pillar_key as PillarKey) ?? null;
+  }
 }
 
 function toCard(row: CatalogRow): PracticeCard {

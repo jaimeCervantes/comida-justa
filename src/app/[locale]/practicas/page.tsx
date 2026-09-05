@@ -17,7 +17,7 @@ import { Heading } from "~/presentation/design_system/typography/Heading";
 import { pillarColorClasses } from "~/presentation/habits/pillarColors";
 import PracticeAdoptionUseCase from "~/use_cases/practices/practiceAdoptionUseCase";
 import PracticeCatalogUseCase from "~/use_cases/practices/practiceCatalogUseCase";
-import { manageOwnPractice } from "./practiceActions";
+import { manageOwnPractice, markPracticeDone } from "./practiceActions";
 import PracticeCardItem from "./ui/PracticeCardItem";
 
 export async function generateMetadata({
@@ -65,13 +65,13 @@ export default async function PracticesIndexPage({
   /* Las dos lecturas van juntas: el catálogo es público y lo que alguien lleva es suyo, pero la
      página necesita las dos a la vez para pintar cada tarjeta una sola vez. Sin sesión, el conjunto
      de adoptadas viene vacío y la lista se lee igual — el índice no tiene dos versiones. */
-  const [groups, adopted] = await Promise.all([
+  const adoptions = new PracticeAdoptionUseCase(new PostgresPracticeAdoption());
+  const [groups, adopted, practisedToday] = await Promise.all([
     new PracticeCatalogUseCase(new PostgresPracticeCatalog()).listByPillar(
       locale,
     ),
-    new PracticeAdoptionUseCase(new PostgresPracticeAdoption()).activeFor(
-      userId,
-    ),
+    adoptions.activeFor(userId),
+    adoptions.pillarsPractisedToday(userId),
   ]);
   const signInHref = signInPathFor(locale, "/practicas");
 
@@ -133,9 +133,11 @@ export default async function PracticesIndexPage({
                       practice={practice}
                       pillar={pillar}
                       adopted={adopted.has(practice.key)}
+                      doneToday={practisedToday.has(pillar)}
                       signedIn={userId !== null}
                       signInHref={signInHref}
                       action={manageOwnPractice}
+                      markAction={markPracticeDone}
                     />
                   ))}
                 </ul>

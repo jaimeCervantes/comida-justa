@@ -30,17 +30,20 @@ function render(
   practice: PracticeCard,
   {
     adopted = false,
+    doneToday = false,
     signedIn = true,
-  }: { adopted?: boolean; signedIn?: boolean } = {},
+  }: { adopted?: boolean; doneToday?: boolean; signedIn?: boolean } = {},
 ) {
   return renderWithIntl(
     <PracticeCardItem
       practice={practice}
       pillar={practice.pillars[0]}
       adopted={adopted}
+      doneToday={doneToday}
       signedIn={signedIn}
       signInHref="/auth/signin?callbackUrl=%2Fpracticas"
       action={async () => {}}
+      markAction={async () => {}}
     />,
   );
 }
@@ -154,5 +157,42 @@ describe("empezar y dejar una práctica", () => {
     );
     expect(form?.querySelector('input[name="intent"]')).toHaveValue("stop");
     expect(form?.querySelector('input[name="userId"]')).toBeNull();
+  });
+});
+
+describe("marcar el día", () => {
+  it("sólo se ofrece a quien la lleva", () => {
+    render(practice());
+
+    expect(screen.queryByTestId("practice-mark")).not.toBeInTheDocument();
+  });
+
+  it("quien la lleva puede marcar que hoy la hizo", () => {
+    render(practice(), { adopted: true });
+
+    expect(screen.getByTestId("practice-mark")).toHaveTextContent(
+      /Lo hice hoy/,
+    );
+  });
+
+  it("con el pilar ya contado, explica la regla en vez de esconder el botón", () => {
+    /* La unidad es el pilar y el día. Un segundo clic no sumaría nada, y callarlo dejaría creer que
+       marcar cinco prácticas del mismo pilar vale por cinco. */
+    render(practice(), { adopted: true, doneToday: true });
+
+    expect(screen.queryByTestId("practice-mark")).not.toBeInTheDocument();
+    expect(screen.getByTestId("practice-done-today")).toHaveTextContent(
+      /Un pilar suma una vez al día/,
+    );
+  });
+
+  it("manda sólo la clave: a qué pilar apunta lo decide el servidor", () => {
+    render(practice(), { adopted: true });
+    const form = screen.getByTestId("practice-mark").closest("form");
+
+    expect(form?.querySelector('input[name="practiceKey"]')).toHaveValue(
+      "sleep-mental-unload",
+    );
+    expect(form?.querySelector('input[name="pillar"]')).toBeNull();
   });
 });

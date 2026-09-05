@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import type { PillarKey } from "~/domain/pillars/pillarKey";
 import type {
   PracticeAdoption,
   PracticeSource,
@@ -6,16 +7,22 @@ import type {
 import type { PracticeAdoptionRepository } from "./ports/PracticeAdoptionRepository";
 import PracticeAdoptionUseCase from "./practiceAdoptionUseCase";
 
-function repository(adoptions: readonly PracticeAdoption[] = []) {
+function repository(
+  adoptions: readonly PracticeAdoption[] = [],
+  practisedToday: PillarKey[] = [],
+) {
   const started: Array<[string, string, PracticeSource]> = [];
   const stopped: Array<[string, string]> = [];
+  const askedDates: Array<[string, string]> = [];
   const repo: PracticeAdoptionRepository & {
     started: typeof started;
     stopped: typeof stopped;
+    askedDates: typeof askedDates;
     asked: string[];
   } = {
     started,
     stopped,
+    askedDates,
     asked: [],
     async listFor(userId) {
       repo.asked.push(userId);
@@ -27,6 +34,10 @@ function repository(adoptions: readonly PracticeAdoption[] = []) {
     },
     async stop(userId, practiceKey) {
       stopped.push([userId, practiceKey]);
+    },
+    async pillarsPractisedOn(userId, cycleDate) {
+      askedDates.push([userId, cycleDate]);
+      return new Set(practisedToday);
     },
   };
   return repo;
@@ -98,5 +109,39 @@ describe("empezar y dejar", () => {
     await new PracticeAdoptionUseCase(repo).stop("user-1", "mind-gratitude");
 
     expect(repo.stopped).toEqual([["user-1", "mind-gratitude"]]);
+  });
+});
+
+describe("qué pilares ya cuentan hoy", () => {
+  it("sin sesión no se le pregunta a la base", async () => {
+    const repo = repository();
+
+    await expect(
+      new PracticeAdoptionUseCase(repo).pillarsPractisedToday(null),
+    ).resolves.toEqual(new Set());
+    expect(repo.askedDates).toEqual([]);
+  });
+
+  it("devuelve pilares y no prácticas: ésa es la unidad de conteo", async () => {
+    const repo = repository([], ["sleep"]);
+
+    const pillars = await new PracticeAdoptionUseCase(
+      repo,
+    ).pillarsPractisedToday("user-1");
+
+    expect([...pillars]).toEqual(["sleep"]);
+  });
+
+  it("«hoy» es la fecha local de la comunidad, no la del servidor", async () => {
+    /* A las 00:30 UTC del lunes en México sigue siendo domingo. Si esto usara UTC, el botón diría
+       que el día ya cuenta mientras el conteo lo pondría en la semana siguiente. */
+    const repo = repository();
+
+    await new PracticeAdoptionUseCase(repo).pillarsPractisedToday(
+      "user-1",
+      new Date("2026-08-24T00:30:00Z"),
+    );
+
+    expect(repo.askedDates).toEqual([["user-1", "2026-08-23"]]);
   });
 });

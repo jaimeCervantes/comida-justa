@@ -18,9 +18,29 @@ import { db } from "~/infra/dataAccess/db/connection";
  */
 const PRACTICA = "sleep-mental-unload";
 
+/** Otra práctica del mismo pilar, para comprobar que el día se cuenta por pilar y no por práctica. */
+const HERMANA = "sleep-dark-room";
+
 async function deletePracticeAdoptions(): Promise<void> {
   const userId = await findSuiteUserId();
   await db.execute(sql`DELETE FROM user_practices WHERE user_id = ${userId}`);
+  /* Las repeticiones cuelgan de `habit_challenge_progress` por clave compuesta, así que basta con
+     borrar el progreso: el `ON DELETE CASCADE` se lleva las repeticiones y las celebraciones. */
+  await db.execute(sql`
+    DELETE FROM habit_challenge_progress WHERE user_id = ${userId}
+  `);
+}
+
+async function countRepetitions(): Promise<number> {
+  const userId = await findSuiteUserId();
+  const result = await db.execute(sql`
+    SELECT COUNT(*)::int AS n FROM habit_repetitions WHERE user_id = ${userId}
+  `);
+  return Number((result.rows[0] as { n: number }).n);
+}
+
+function cardFor(page: import("@playwright/test").Page, key: string) {
+  return page.locator(`[data-practice="${key}"]`);
 }
 
 async function readAdoption(): Promise<{
@@ -130,6 +150,45 @@ test.describe("Cuando alguien quiere llevar una práctica", () => {
     // empezado sin saber que existe.
     await expect(mias).toBeVisible();
     await expect(mias.locator(`[data-practice="${PRACTICA}"]`)).toHaveCount(0);
+  });
+
+  test("Y puede marcar que hoy la hizo", async ({ page }) => {
+    await card(page).getByTestId("practice-toggle").click();
+    await expect(card(page).getByTestId("practice-adopted")).toBeVisible();
+
+    await card(page).getByTestId("practice-mark").click();
+
+    await expect(card(page).getByTestId("practice-done-today")).toBeVisible();
+    expect(await countRepetitions()).toBe(1);
+  });
+
+  test("Y el día se cuenta por pilar, no por practica", async ({ page }) => {
+    /* La regla que sostiene toda la tabla del jardín: marcar doce prácticas de descanso un martes
+       sigue siendo un día. Aquí se comprueba con dos prácticas del mismo pilar. */
+    for (const key of [PRACTICA, HERMANA]) {
+      await cardFor(page, key).getByTestId("practice-toggle").click();
+      await expect(
+        cardFor(page, key).getByTestId("practice-adopted"),
+      ).toBeVisible();
+    }
+
+    await cardFor(page, PRACTICA).getByTestId("practice-mark").click();
+    await expect(
+      cardFor(page, PRACTICA).getByTestId("practice-done-today"),
+    ).toBeVisible();
+
+    // La hermana ya no ofrece marcar: su pilar ya cuenta hoy, y lo dice.
+    await expect(
+      cardFor(page, HERMANA).getByTestId("practice-mark"),
+    ).toHaveCount(0);
+    await expect(
+      cardFor(page, HERMANA).getByTestId("practice-done-today"),
+    ).toContainText("una vez al día");
+    expect(await countRepetitions()).toBe(1);
+  });
+
+  test("Y marcar sólo se ofrece sobre lo que se lleva", async ({ page }) => {
+    await expect(card(page).getByTestId("practice-mark")).toHaveCount(0);
   });
 });
 

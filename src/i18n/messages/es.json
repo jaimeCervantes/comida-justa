@@ -1483,6 +1483,7 @@
   },
   "practicesIndex": {
     "alsoServes": "También sirve a",
+    "countedToday": "Hoy ya cuenta. Un pilar suma una vez al día, hagas una práctica o cinco.",
     "cueLabel": "Cuándo",
     "effort": "{minutes} min",
     "empty": "Todavía no hay prácticas sembradas.",
@@ -1491,6 +1492,7 @@
     "identityLabel": "Quien practica este pilar dice:",
     "intro": "Cada práctica dice cuándo se hace, qué basta para que cuente y en qué se apoya. Elige una. Una sola, y la que más fácil te resulte hoy.",
     "isRitual": "Es el ritual del pilar",
+    "markDone": "Lo hice hoy",
     "mineBrowse": "Ver el catálogo de prácticas",
     "mineEmpty": "Todavía no llevas ninguna.",
     "mineTitle": "Mis prácticas",

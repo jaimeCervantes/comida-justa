@@ -1,3 +1,8 @@
+import {
+  COMMUNITY_TIMEZONE,
+  localDateAt,
+} from "~/domain/habits/habitChallenge";
+import type { PillarKey } from "~/domain/pillars/pillarKey";
 import type {
   PracticeAdoption,
   PracticeSource,
@@ -41,5 +46,23 @@ export default class PracticeAdoptionUseCase {
 
   async stop(userId: string, practiceKey: string): Promise<void> {
     await this.repository.stop(userId, practiceKey);
+  }
+
+  /**
+   * Qué pilares ya cuentan hoy para esta persona.
+   *
+   * «Hoy» es la fecha local de la comunidad y no la del navegador: la semana de la práctica ya está
+   * anclada en `America/Mexico_City`, y una segunda definición de hoy haría que el botón y el conteo
+   * discreparan al filo de la medianoche.
+   */
+  async pillarsPractisedToday(
+    userId: string | null,
+    now: Date = new Date(),
+  ): Promise<ReadonlySet<PillarKey>> {
+    if (!userId) return new Set();
+    return this.repository.pillarsPractisedOn(
+      userId,
+      localDateAt(now, COMMUNITY_TIMEZONE),
+    );
   }
 }

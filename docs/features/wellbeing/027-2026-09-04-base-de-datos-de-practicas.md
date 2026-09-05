@@ -372,16 +372,24 @@ escriba ahí implica decidir que marcar una práctica de sueño cuenta como habe
 del sueño; es razonable, es lo que el jardín ya mide, y merece decidirse a propósito en vez de
 colarse aquí. Ver «Slice 4b».
 
-### Slice 4b — Marcar el día (pendiente de decisión)
+### Slice 4b — Marcar el día ✅
 
-Lo que cierra la cuarta ley del todo. La opción que recomiendo: **reutilizar `habit_repetitions`**,
-escribiendo la repetición con el `challenge_key` del pilar primario de la práctica. Con eso el jardín,
-la tabla de aportes, los niveles y las celebraciones funcionan sin tocar nada, y la regla del aporte
-por pilar y día la impone el índice único que ya existe.
+Cierra la cuarta ley. **Sin tablas nuevas**: la repetición se escribe en `habit_repetitions` con el
+`challenge_key` del pilar primario de la práctica, así que el jardín, la tabla de aportes, los
+niveles y las celebraciones funcionan sin tocar nada, y `uq_habit_repetitions_local_cycle` impone la
+regla del aporte por pilar y día sin una línea de código.
 
-Implica que marcar cualquier práctica de un pilar inscribe a esa persona en el ritual de ese pilar
-(`habit_challenge_progress`). Es coherente —el ritual es la práctica insignia del pilar— pero es una
-decisión de producto, no un detalle de implementación.
+- `HabitChallengeUseCase.recordPracticeDay` se extrajo de `completeCheckIn`: lo único propio del
+  ritual era la comprobación de sus **dos anclas**, y una práctica del catálogo tiene su propio
+  mínimo. Pedir las del ritual habría obligado a marcarlas como ciertas sin serlo.
+- El pilar se resuelve **contra la base** (`primaryPillarOf`), no contra el formulario.
+- Marcar una práctica de un pilar inscribe en el ritual de ese pilar (`start`, idempotente). Es a
+  propósito: el ritual es la práctica insignia del pilar, y es lo que el jardín ya mide.
+- «Hoy» es la fecha local de la comunidad, no la del navegador ni la del servidor: una segunda
+  definición haría que el botón y el conteo discreparan al filo de la medianoche.
+- Cuando el pilar ya cuenta, **el botón desaparece y se explica la regla**: «un pilar suma una vez al
+  día, hagas una práctica o cinco». Esconder que el segundo clic no hace nada dejaría creer que
+  marcar cinco vale por cinco.
 
 ### Slice 5 — Compartirla con la comunidad
 

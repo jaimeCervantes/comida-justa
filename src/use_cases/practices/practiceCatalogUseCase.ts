@@ -24,6 +24,16 @@ export default class PracticeCatalogUseCase {
    */
 
   /**
+   * El pilar del que una práctica es portada.
+   *
+   * Lo pide el conteo del día: la unidad es el pilar, y a cuál apunta una repetición se decide
+   * contra la base y no contra lo que mande un formulario.
+   */
+  async primaryPillarOf(practiceKey: string): Promise<PillarKey | null> {
+    return this.repository.findPrimaryPillar(practiceKey);
+  }
+
+  /**
    * Las prácticas que alguien lleva, ya con su título y su ancla.
    *
    * Compone las dos lecturas que ya existen en vez de escribir una consulta nueva: el catálogo

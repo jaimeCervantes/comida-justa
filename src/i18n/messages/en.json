@@ -1483,6 +1483,7 @@
   },
   "practicesIndex": {
     "alsoServes": "Also serves",
+    "countedToday": "Today already counts. A pillar adds once a day, whether you do one practice or five.",
     "cueLabel": "When",
     "effort": "{minutes} min",
     "empty": "No practices seeded yet.",
@@ -1491,6 +1492,7 @@
     "identityLabel": "Someone who practises this pillar says:",
     "intro": "Each practice says when it happens, what is enough for it to count, and what it rests on. Pick one. Just one, and the one that feels easiest today.",
     "isRitual": "This is the pillar's ritual",
+    "markDone": "I did it today",
     "mineBrowse": "Browse the practice catalogue",
     "mineEmpty": "You are not carrying any yet.",
     "mineTitle": "My practices",
