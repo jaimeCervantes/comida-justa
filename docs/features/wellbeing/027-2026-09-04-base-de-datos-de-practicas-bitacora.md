@@ -478,3 +478,92 @@ cuarta —satisfactorio— es seguimiento, o sea `user_practices`.
 3. **Slice 2b**, el catálogo por temas, que sigue pendiente de decidir su modelo.
 
 **Pendiente del usuario:** nada. Se sigue de corrido.
+
+---
+
+## Slice 3 — El bot contesta con la práctica y cita el estudio (2026-09-05)
+
+### Objetivo
+
+Que las 69 de cada 92 sesiones que piden un pilar dejen de recibir sólo una lista de productos.
+
+### Lo que se construyó
+
+**`recommend_practices` (migración 0052).** Espejo de `recommend_posts` con una diferencia que es de
+producto y no de SQL: **no hay boost comercial**. `recommend_posts` multiplica por membresía y por
+anuncios pagados porque ordena un catálogo en venta; una práctica no lo está, y aplicarle la puja
+sería vender consejo de salud al mejor postor. Tampoco filtra por cercanía: dónde vives decide qué se
+te puede recomendar comprar, no si te conviene atenuar la casa antes de dormir.
+
+**Los embeddings, sembrados desde el sitio.** `pnpm run backfill:practice-embeddings`, con
+`GeminiEmbeddingService` — el mismo modelo y las mismas 768 dimensiones que `post_translations`.
+Otro modelo no fallaría: devolvería vecinos absurdos, que es peor. 90 de 90 vectorizadas.
+
+El documento que se vectoriza lleva **el ancla y el mínimo** además del título y la promesa, porque
+quien escribe al bot describe un momento —«no puedo dormir»— más a menudo que un tema. Un vector que
+sólo conozca el título encuentra la práctica por su nombre, que es justo lo que quien pregunta no
+sabe todavía. La advertencia se queda fuera: es idéntica dentro de un pilar y acercaría entre sí a
+todas sus prácticas.
+
+**`PracticeAdvisor`** en el backend. Resuelve la intención a pilar con un `JOIN` sobre
+`pillars.bot_intent` en vez de con la lista de literales, ofrece **una** práctica y no tres —quien
+escribe a las once de la noche no quiere elegir— y lleva umbral de distancia, porque sin él «¿a qué
+hora abren?» devuelve la menos lejana de las cuarenta y cinco como si viniera a cuento.
+
+**El mensaje** pone el *cuándo* antes del *cómo*, cita título y año con enlace al DOI, y arrastra
+siempre la advertencia: en un chat la práctica llega sola.
+
+### La decisión que más importa: todo el camino es opcional
+
+Si el repositorio no está inyectado, si el pilar no se reconoce, si nada queda bajo el umbral o si la
+consulta revienta, el bot contesta **exactamente como antes**. `practice_repo` es un parámetro con
+valor por omisión y el `advise` entero está envuelto en un `try`. Este cambio no puede dejar sin
+servicio a los 484 mensajes que ya funcionaban.
+
+### Comprobación de extremo a extremo
+
+`tests/integration_practice_probe.py` —a mano, porque necesita la base sembrada y una clave de
+Gemini— con cinco preguntas reales:
+
+| Pregunta | Práctica ofrecida |
+|---|---|
+| «no puedo dormir, me despierto a media noche» | Un cuarto fresco y ventilado, citando el estudio de ambiente térmico (2012) |
+| «me la paso sentado todo el día» | Dos minutos de pie cada cincuenta, con los tres estudios de interrumpir la silla |
+| «me siento muy solo últimamente» | Darle presencia real a alguien, con el metaanálisis de soledad y mortalidad |
+| «llego tarde y termino cenando cualquier cosa» | Cenar al atardecer, con los dos de crononutrición |
+| «¿a qué hora abren?» | ninguna — la intención no es de pilar |
+
+### Comandos y resultados
+
+```
+alembic upgrade head                        0051 → 0052
+pnpm run backfill:practice-embeddings       90 de 90 vectorizadas
+pytest tests/unit/test_practice_advisor.py  11/11
+pytest tests                                139 pasan · 2 fallan (previos)
+ruff check app tests                        limpio
+```
+
+Los dos fallos de `test_search_golden.py` son **previos**: 210 productos siguen sin embedding en la
+base compartida y nada de este slice los toca. Comprobado con `git stash`.
+
+`ruff format` reformateó de paso seis archivos ajenos al slice; se revirtieron. El repositorio no
+está formateado con ruff de punta a punta, así que correr el formateador sobre todo `app` mete ruido
+de otros en el diff: conviene acotarlo a los archivos tocados.
+
+### Recap
+
+El bot ya puede contestar lo que lleva 484 mensajes sin poder contestar: una práctica concreta, con
+su ancla, lo que basta para que cuente, y el estudio real que la sostiene. La búsqueda de productos
+no desaparece — se queda después, que es donde le toca: primero qué hacer, después qué hay cerca para
+hacerlo.
+
+### Próximos pasos (opciones)
+
+1. **`user_practices`** (slice 4): cierra la cuarta ley —satisfactorio— y hace real la regla del
+   aporte por pilar y día. Es también lo que permite registrar desde Telegram y ver en la web.
+2. **Slice 2b**, el catálogo por temas.
+3. **Afinar el umbral** con conversaciones reales: 0.45 salió de las cinco preguntas de la sonda, no
+   de datos.
+
+**Pendiente del usuario:** revisar el desplegado del bot. El código está commiteado en
+`feat/practice-catalog` del backend, sin push y sin desplegar.

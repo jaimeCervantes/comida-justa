@@ -91,8 +91,8 @@ una línea extra.
 
 ## Modelo
 
-Siete tablas nuevas en el slice 1 (seis en la migración 0049 y una en la 0050). Ninguna tabla
-existente se toca.
+Siete tablas nuevas en el slice 1 (seis en la 0049 y una en la 0050), más dos columnas en la 0051 y
+la función `recommend_practices` en la 0052. Ninguna tabla existente se toca.
 
 ```
 pillars                 4 filas. Ancla de la FK y traductor de intenciones.
@@ -128,7 +128,9 @@ practice_translations   mismo patrón que post_translations y category_translati
   locale       text
   title        text
   summary      text            la promesa en una frase
+  cue          text NULL       cuándo y dónde (0051). Nunca una hora del reloj
   how_to       text NULL       cómo se hace
+  minimum      text NULL       qué basta (0051). Nulo = la práctica entera ya es mínima
   safety_note  text NULL       la advertencia que tiene que viajar con ella
   embedding    vector(768)     NULL   gemini-embedding-001, igual que post_translations
   UNIQUE (practice_id, locale)
@@ -306,7 +308,7 @@ un consejo de un hábito, y una casa donde verse.
 **Qué falta para cerrar las cuatro leyes:** *satisfactorio*. Es seguimiento, y eso es
 `user_practices` — el slice 4.
 
-### Slice 3 — El bot responde con la práctica, y cita el estudio
+### Slice 3 — El bot responde con la práctica, y cita el estudio ✅
 
 **Es el slice que justifica el modelo.** En el backend:
 
@@ -358,4 +360,5 @@ aprobación explícita, y no antes de que el modelo nuevo se haya ganado el siti
 - **Una práctica en un chat llega sin contexto.** De ahí `safety_note`. El riesgo no es técnico: es
   que el bot dé un consejo de salud recortado a alguien que no leyó el artículo.
 
-> **Estado:** slices 1 y 2 entregados el 2026-09-04. Ver la bitácora.
+> **Estado:** slices 1, 2, 2c, 2d y 3 entregados. Pendientes: 2b (catálogo por temas),
+> 4 (`user_practices`), 5 (compartir) y 6 (unificar los retos). Ver la bitácora.
