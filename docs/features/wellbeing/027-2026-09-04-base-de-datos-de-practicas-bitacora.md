@@ -373,3 +373,108 @@ no se ve — que es lo correcto con 3 personas practicando.
 3. **`user_practices`**, donde la regla «un aporte por pilar y día» deja de ser teoría.
 
 **Pendiente del usuario:** nada. Se sigue de corrido.
+
+---
+
+## Slice 2d — Las anclas de las prácticas, y el índice donde se ven (2026-09-05)
+
+### Objetivo
+
+Que las 45 prácticas dejen de ser un consejo y sean un hábito: que digan **cuándo** se hacen y qué
+basta para que cuenten, y que tengan una página donde verse.
+
+### El diagnóstico que lo motivó
+
+Contra las cuatro leyes que este producto se comprometió a seguir, el catálogo cumplía media:
+
+| Ley | Los 4 rituales | Las 45 prácticas, antes |
+|---|---|---|
+| Obvio (cuándo) | Dos anclas explícitas | **5 de 45** |
+| Atractivo (identidad) | 4 frases en primera persona | 0 |
+| Fácil (versión mínima) | «El mínimo que cuenta» | `effort_minutes` en 12 de 45 |
+| Satisfactorio (recompensa) | Celebración, niveles, jardín | nada |
+
+«Penumbra total» es un buen consejo. No es un hábito hasta que dice cuándo.
+
+### Decisiones y porqué
+
+**Dos columnas, no tres.** `cue` y `minimum` entran; `identity` **no**. La identidad es del pilar, no
+de la práctica, y las cuatro frases ya existen y ya están traducidas. Una columna por práctica habría
+pedido escribir 45 identidades donde hay 4 verdaderas y 90 filas de texto para repetir la misma
+frase. La página la lee del pilar.
+
+**`minimum` nulo no significa «no tiene mínimo»**: significa que la práctica entera ya lo es. Una
+infusión no tiene una versión más pequeña. Se escribió en las 15 compuestas, quedó nulo en las 30
+que ya son mínimas.
+
+**Ningún ancla es una hora del reloj.** «Al apagar la luz, mirando qué sigue encendido», «cuando
+alcances las llaves del coche», «cuando notes que se te aprieta la mandíbula». Es la misma razón por
+la que el primer ritual se negó a fijar «tomar el sol a las 6 p. m.»: un ancla es un momento de la
+vida de alguien, no del reloj.
+
+**El ancla se pinta arriba del título.** Quien recorre la lista buscando qué empezar lee *cuándo*
+antes que *qué*. Hay una prueba que lo afirma comparando las dos posiciones en el texto de la
+tarjeta, para que un rediseño no lo invierta sin querer.
+
+**Las 45 anclas se aplicaron con un script y una tabla, no a mano.** Son 90 textos: a mano, la
+probabilidad de dejar una práctica sin ancla o de pegarla en la de al lado es alta, y un ancla
+equivocada es peor que ninguna. El script falla si sobra o falta una clave.
+
+**`pillarColorClasses` se promovió** a `src/presentation/habits/pillarColors.ts`. La segunda ruta que
+lo quería tendría que haber importado de `app/[locale]/pilares/`, y eso es lo que `AGENTS.md`
+prohíbe. `pilaresData.ts` lo reexporta para no tocar a sus importadores.
+
+### Dos defectos que cazaron las pruebas
+
+**El agregado de pilares traía uno solo.** La consulta fundía en un JOIN el recorrido de todos los
+pilares de una práctica con la selección del primario: `JOIN pillars pl ON pl.key = pp.pillar_key AND
+pp.is_primary`. Esa condición filtraba también el `array_agg`, así que la práctica compartida salía
+con un único pilar y su tarjeta no anunciaba ningún puente — el modelo N:N funcionando en la base e
+invisible en la página. Lo cazó el escenario de la práctica compartida, que existe exactamente para
+eso. Ahora son dos JOINs: `pp` recorre, `main` selecciona.
+
+**Un comentario rompió el SQL.** El comentario que explicaba lo anterior se escribió con backticks
+alrededor de los nombres de tabla, dentro de un template literal de `sql`. Cerró la plantilla y los
+seis escenarios fallaron a la vez. Los comentarios dentro de `sql` van con `--` y sin backticks.
+
+### Archivos tocados
+
+- **Backend:** `alembic/versions/0051_2026-09-05_add_practice_anchors.py`.
+- **Semilla:** `practiceSeed.ts` (tipos), las cuatro listas de prácticas con sus 45 anclas,
+  `seedPracticeCatalog.ts`.
+- **Dominio:** `practiceCard.ts` + `.test.ts` (3 pruebas).
+- **Caso de uso:** `practiceCatalogUseCase.ts` + `.test.ts` (5), su puerto.
+- **Infra:** `PostgresPracticeCatalog.ts`, espejo de Drizzle.
+- **Rutas:** `/practicas` registrada en `routing.ts`; `page.tsx` y `ui/PracticeCardItem.tsx`
+  + `.test.tsx` (7 pruebas).
+- **Presentación:** `pillarColors.ts` promovido.
+- **Enlace de entrada:** `PilaresOverviewPage` — una página a la que sólo se llega escribiendo la
+  URL no está entregada, y hay un escenario que lo comprueba.
+- `es.json` / `en.json`: namespace `practicesIndex` y `pillarsOverview.seeAllPractices`.
+
+### Comandos y resultados
+
+```
+alembic upgrade head              0050 → 0051
+pnpm run seed:practice-catalog    90 traducciones · 90 con ancla · 30 con mínimo
+pnpm run validate                 258 archivos, 2765 pruebas, verde
+playwright indiceDePracticas       6/6
+playwright src/e2e/pilares        45/45
+```
+
+### Recap
+
+Las 45 prácticas tienen ancla en los dos idiomas, 15 tienen además su versión mínima, y todas viven
+en `/practicas` agrupadas por pilar con la identidad del pilar delante. La práctica compartida
+aparece una sola vez y dice a qué otro pilar sirve. Tres de las cuatro leyes están cubiertas; la
+cuarta —satisfactorio— es seguimiento, o sea `user_practices`.
+
+### Próximos pasos (opciones)
+
+1. **El bot** (slice 3): ya tiene los cuatro pilares sembrados y ahora también las anclas, que son
+   justo lo que un chat necesita para dar un consejo accionable.
+2. **`user_practices`** (slice 4): cierra la cuarta ley y hace real la regla del aporte por pilar y
+   día.
+3. **Slice 2b**, el catálogo por temas, que sigue pendiente de decidir su modelo.
+
+**Pendiente del usuario:** nada. Se sigue de corrido.

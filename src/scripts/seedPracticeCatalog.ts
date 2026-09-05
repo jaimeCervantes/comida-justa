@@ -165,13 +165,18 @@ async function seedTranslation(
   copy: PracticeTranslationSeed,
 ): Promise<void> {
   await db.execute(sql`
-    INSERT INTO practice_translations (practice_id, locale, title, summary, how_to, safety_note)
-    SELECT p.id, ${locale}, ${copy.title}, ${copy.summary}, ${copy.howTo ?? null}, ${copy.safetyNote ?? null}
+    INSERT INTO practice_translations (
+      practice_id, locale, title, summary, cue, how_to, minimum, safety_note
+    )
+    SELECT p.id, ${locale}, ${copy.title}, ${copy.summary}, ${copy.cue ?? null},
+           ${copy.howTo ?? null}, ${copy.minimum ?? null}, ${copy.safetyNote ?? null}
     FROM practices p WHERE p.key = ${practiceKey}
     ON CONFLICT ON CONSTRAINT uq_practice_translations_locale DO UPDATE
       SET title       = EXCLUDED.title,
           summary     = EXCLUDED.summary,
+          cue         = EXCLUDED.cue,
           how_to      = EXCLUDED.how_to,
+          minimum     = EXCLUDED.minimum,
           safety_note = EXCLUDED.safety_note
   `);
 }
@@ -278,6 +283,14 @@ async function main(): Promise<void> {
   /* `COUNT(DISTINCT …)` en las tres, y no `COUNT(*)`: el `LEFT JOIN` con las citas multiplica cada
      práctica por sus estudios, así que un `COUNT(*)` contaba filas del producto y no prácticas —23
      «propias» en Alimentación donde hay 12—. */
+  const anchored = await db.execute(sql`
+    SELECT COUNT(*) FILTER (WHERE cue IS NOT NULL)::int     AS con_ancla,
+           COUNT(*) FILTER (WHERE minimum IS NOT NULL)::int AS con_minimo,
+           COUNT(*)::int                                    AS traducciones
+    FROM practice_translations
+  `);
+  console.log("Anclas:", JSON.stringify(anchored.rows[0]));
+
   const summary = await db.execute(sql`
     SELECT pp.pillar_key,
            COUNT(DISTINCT pp.practice_id) FILTER (WHERE pp.is_primary)::int AS propias,

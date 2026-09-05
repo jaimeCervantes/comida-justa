@@ -723,6 +723,15 @@
     "metaTitle": "Editar publicación",
     "submit": "Guardar cambios"
   },
+  "events": {
+    "backToList": "Volver a los eventos",
+    "description": "Talleres, rodadas, meditaciones y encuentros de la comunidad, ordenados por fecha.",
+    "empty": "Aún no hay eventos publicados.",
+    "emptyBody": "Una caminata, un taller, una cena: un evento es cualquier cosa a la que se pueda llegar. Publica el tuyo y aparece aquí.",
+    "emptyCta": "Publicar un evento",
+    "pagedTitle": "{title} - Página {page}",
+    "title": "Eventos"
+  },
   "feed": {
     "backToHome": "Volver a la página principal",
     "empty": "No hay comidas publicadas aún.",
@@ -1412,6 +1421,7 @@
     "metaTitle": "Los 4 pilares de {brand}",
     "practiceLabel": "práctica",
     "readMore": "Leer más",
+    "seeAllPractices": "Ver las 45 prácticas de los cuatro pilares",
     "whyBody": "La ciencia moderna confirma lo que la sabiduría ancestral ya sabía: el sueño reparador, la alimentación natural, el movimiento diario y la conexión con nuestra comunidad son los cimientos de una vida saludable. Cada pilar refuerza a los demás, creando un círculo virtuoso de bienestar integral.",
     "whyHeading": "¿Por qué estos cuatro pilares?"
   },
@@ -1470,6 +1480,22 @@
     "stockRemaining": "{count, plural, one {Queda # unidad} other {Quedan # unidades}}",
     "stockSave": "Guardar existencias",
     "stockSaved": "Existencias guardadas"
+  },
+  "practicesIndex": {
+    "alsoServes": "También sirve a",
+    "cueLabel": "Cuándo",
+    "effort": "{minutes} min",
+    "empty": "Todavía no hay prácticas sembradas.",
+    "eyebrow": "Los cuatro pilares, acción por acción",
+    "free": "Sin costo",
+    "identityLabel": "Quien practica este pilar dice:",
+    "intro": "Cada práctica dice cuándo se hace, qué basta para que cuente y en qué se apoya. Elige una. Una sola, y la que más fácil te resulte hoy.",
+    "isRitual": "Es el ritual del pilar",
+    "minimumLabel": "Lo que basta:",
+    "pillarPracticeCount": "{count, plural, one {1 práctica} other {# prácticas}}",
+    "readPillar": "Leer el pilar completo",
+    "studies": "{count, plural, =0 {Sin estudio en nuestra bibliografía} one {1 estudio} other {# estudios}}",
+    "title": "Prácticas"
   },
   "privacyPolicy": {
     "description": "Política de Privacidad de Hazlo Sano - Chatbot de Bienestar",
@@ -1564,21 +1590,21 @@
     "pagedTitle": "{title} - Página {page}",
     "title": "Productos y servicios"
   },
-  "events": {
-    "backToList": "Volver a los eventos",
-    "description": "Talleres, rodadas, meditaciones y encuentros de la comunidad, ordenados por fecha.",
-    "empty": "Aún no hay eventos publicados.",
-    "emptyBody": "Una caminata, un taller, una cena: un evento es cualquier cosa a la que se pueda llegar. Publica el tuyo y aparece aquí.",
-    "emptyCta": "Publicar un evento",
-    "pagedTitle": "{title} - Página {page}",
-    "title": "Eventos"
-  },
   "profile": {
     "backToProfile": "Volver al perfil",
     "empty": "Esta persona todavía no ha publicado nada.",
     "metaDescription": "Lo que publica {name} en {brand}.",
     "publicationCount": "{total, plural, one {# publicación} other {# publicaciones}}",
     "theirStore": "Su tienda: {name}"
+  },
+  "publicationPillars": {
+    "all": "Todo",
+    "empty": "Todavía no hay publicaciones de {pillar} aquí.",
+    "filterLabel": "Filtrar por pilar",
+    "mindSpirit": "Mente/Espíritu",
+    "movement": "Movimiento",
+    "nutrition": "Alimentación",
+    "sleep": "Sueño"
   },
   "publish": {
     "cancel": "Cancelar",
@@ -1691,15 +1717,6 @@
     "semanticNote": "No hubo coincidencias exactas, así que esto es lo más parecido a lo que pediste.",
     "seeAll": "Ver todos los resultados",
     "showingResultsFor": "Mostrando resultados para:"
-  },
-  "publicationPillars": {
-    "all": "Todo",
-    "empty": "Todavía no hay publicaciones de {pillar} aquí.",
-    "filterLabel": "Filtrar por pilar",
-    "mindSpirit": "Mente/Espíritu",
-    "movement": "Movimiento",
-    "nutrition": "Alimentación",
-    "sleep": "Sueño"
   },
   "share": {
     "copied": "¡Copiado!",

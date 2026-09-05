@@ -129,7 +129,11 @@ export const practiceTranslations = pgTable(
     title: text("title").notNull(),
     /** La promesa en una frase. Es también lo que el estudio ligado sostiene. */
     summary: text("summary").notNull(),
+    /** Cuándo y dónde. La primera ley: lo que separa un consejo de un hábito. */
+    cue: text("cue"),
     howTo: text("how_to"),
+    /** Qué basta para que cuente. Nulo cuando la práctica entera ya es el mínimo. */
+    minimum: text("minimum"),
     safetyNote: text("safety_note"),
     embedding: vector("embedding", { dimensions: 768 }),
   },

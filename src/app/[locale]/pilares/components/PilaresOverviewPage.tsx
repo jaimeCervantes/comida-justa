@@ -172,6 +172,17 @@ export default function PilaresOverviewPage({
           })}
         </div>
 
+        {/* La salida al catálogo completo. Las cuatro tarjetas enseñan el ritual de cada pilar; las
+            otras cuarenta y una prácticas vivían en la base sin ninguna puerta que llevara a ellas. */}
+        <p className="px-6 pb-6 sm:px-10">
+          <Link
+            href="/practicas"
+            className="focus-ring rounded-control font-semibold text-pw-green underline underline-offset-4 hover:opacity-80"
+          >
+            {t("seeAllPractices")}
+          </Link>
+        </p>
+
         <div className="px-6 sm:px-10 pb-8 sm:pb-10 space-y-10">
           <CommunityHabitGarden garden={garden} />
           <PublicHabitCelebrationList

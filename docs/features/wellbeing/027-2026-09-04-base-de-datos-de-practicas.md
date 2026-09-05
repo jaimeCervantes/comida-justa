@@ -286,6 +286,26 @@ maquillaje: cambia lo que se mide.
 **pilar y día**, no por práctica y día. Si no, marcar doce prácticas un martes son doce aportes y la
 tabla se vuelve quién marca más casillas.
 
+### Slice 2d — Las anclas, y el índice donde se ven ✅
+
+Las 45 prácticas tenían el qué, el porqué y el cómo. Les faltaba el **cuándo**, que es lo que separa
+un consejo de un hábito, y una casa donde verse.
+
+- **Migración 0051**: `practice_translations` gana `cue` y `minimum`. No gana `identity`: la
+  identidad es del **pilar** —«soy una persona que respeta los ritmos naturales de su cuerpo» vale
+  igual para atenuar la casa que para la descarga mental— y las cuatro frases ya existen traducidas.
+  Una columna por práctica habría pedido escribir 45 identidades donde hay 4 verdaderas.
+- **45 anclas y 15 mínimos**, en los dos idiomas. Nunca una hora del reloj: un ancla es un momento
+  de la vida de alguien («al apagar la luz, mirando qué sigue encendido»), y ése fue el argumento
+  por el que el primer ritual se negó a fijar «a las 6 p. m.».
+- **`/practicas`**: el índice, agrupado por pilar, con la identidad del pilar arriba. Cada práctica
+  aparece **una sola vez**, bajo el pilar del que es portada, y su tarjeta dice a qué otros sirve.
+- `pillarColorClasses` se promovió a `src/presentation/habits/pillarColors.ts`: una segunda ruta lo
+  necesitaba, y una ruta no importa de otra.
+
+**Qué falta para cerrar las cuatro leyes:** *satisfactorio*. Es seguimiento, y eso es
+`user_practices` — el slice 4.
+
 ### Slice 3 — El bot responde con la práctica, y cita el estudio
 
 **Es el slice que justifica el modelo.** En el backend:

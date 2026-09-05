@@ -723,6 +723,15 @@
     "metaTitle": "Edit publication",
     "submit": "Save changes"
   },
+  "events": {
+    "backToList": "Back to events",
+    "description": "Community workshops, rides, meditations and gatherings, ordered by date.",
+    "empty": "No events have been published yet.",
+    "emptyBody": "A walk, a workshop, a dinner: an event is anything you can show up to. Publish yours and it appears here.",
+    "emptyCta": "Publish an event",
+    "pagedTitle": "{title} - Page {page}",
+    "title": "Events"
+  },
   "feed": {
     "backToHome": "Back to the main page",
     "empty": "No food has been published yet.",
@@ -1412,6 +1421,7 @@
     "metaTitle": "The 4 pillars of {brand}",
     "practiceLabel": "practice",
     "readMore": "Read more",
+    "seeAllPractices": "See all 45 practices across the four pillars",
     "whyBody": "Modern science confirms what ancestral wisdom already knew: restorative sleep, natural food, daily movement and connection with our community are the foundations of a healthy life. Each pillar reinforces the others, creating a virtuous circle of whole wellbeing.",
     "whyHeading": "Why these four pillars?"
   },
@@ -1470,6 +1480,22 @@
     "stockRemaining": "{count, plural, one {# left} other {# left}}",
     "stockSave": "Save stock",
     "stockSaved": "Stock saved"
+  },
+  "practicesIndex": {
+    "alsoServes": "Also serves",
+    "cueLabel": "When",
+    "effort": "{minutes} min",
+    "empty": "No practices seeded yet.",
+    "eyebrow": "The four pillars, action by action",
+    "free": "Free",
+    "identityLabel": "Someone who practises this pillar says:",
+    "intro": "Each practice says when it happens, what is enough for it to count, and what it rests on. Pick one. Just one, and the one that feels easiest today.",
+    "isRitual": "This is the pillar's ritual",
+    "minimumLabel": "What is enough:",
+    "pillarPracticeCount": "{count, plural, one {1 practice} other {# practices}}",
+    "readPillar": "Read the full pillar",
+    "studies": "{count, plural, =0 {No study in our bibliography} one {1 study} other {# studies}}",
+    "title": "Practices"
   },
   "privacyPolicy": {
     "description": "Privacy Policy for Hazlo Sano - Wellness Chatbot",
@@ -1564,21 +1590,21 @@
     "pagedTitle": "{title} - Page {page}",
     "title": "Products and services"
   },
-  "events": {
-    "backToList": "Back to events",
-    "description": "Community workshops, rides, meditations and gatherings, ordered by date.",
-    "empty": "No events have been published yet.",
-    "emptyBody": "A walk, a workshop, a dinner: an event is anything you can show up to. Publish yours and it appears here.",
-    "emptyCta": "Publish an event",
-    "pagedTitle": "{title} - Page {page}",
-    "title": "Events"
-  },
   "profile": {
     "backToProfile": "Back to the profile",
     "empty": "This person hasn't published anything yet.",
     "metaDescription": "What {name} publishes on {brand}.",
     "publicationCount": "{total, plural, one {# publication} other {# publications}}",
     "theirStore": "Their store: {name}"
+  },
+  "publicationPillars": {
+    "all": "All",
+    "empty": "There are no {pillar} publications here yet.",
+    "filterLabel": "Filter by pillar",
+    "mindSpirit": "Mind/Spirit",
+    "movement": "Movement",
+    "nutrition": "Nutrition",
+    "sleep": "Sleep"
   },
   "publish": {
     "cancel": "Cancel",
@@ -1691,15 +1717,6 @@
     "semanticNote": "No exact matches, so this is the closest thing to what you asked for.",
     "seeAll": "See all results",
     "showingResultsFor": "Showing results for:"
-  },
-  "publicationPillars": {
-    "all": "All",
-    "empty": "There are no {pillar} publications here yet.",
-    "filterLabel": "Filter by pillar",
-    "mindSpirit": "Mind/Spirit",
-    "movement": "Movement",
-    "nutrition": "Nutrition",
-    "sleep": "Sleep"
   },
   "share": {
     "copied": "Copied!",

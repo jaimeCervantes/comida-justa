@@ -32,6 +32,9 @@ export const MOVEMENT_PRACTICE_SEED: readonly PracticeSeed[] = [
       howTo:
         "Alargarlo le hace bien a tu cuerpo. El mínimo es un piso, no un techo, y nadie compite por intensidad ni distancia.",
       safetyNote: MOVEMENT_SAFETY_ES,
+      cue: "El primer trayecto corto del día, y cada vez que lleves cincuenta minutos sentado.",
+      minimum:
+        "Un trayecto sin motor y dos minutos de pie, como tu cuerpo permita.",
     },
     en: {
       title: "Living, local, functional movement",
@@ -40,6 +43,9 @@ export const MOVEMENT_PRACTICE_SEED: readonly PracticeSeed[] = [
       howTo:
         "Doing more is good for your body. The minimum is a floor, not a ceiling, and nobody competes on intensity or distance.",
       safetyNote: MOVEMENT_SAFETY_EN,
+      cue: "The first short trip of the day, and every time you have been sitting for fifty minutes.",
+      minimum:
+        "One trip under your own power and two minutes on your feet, however your body allows.",
     },
   },
   {
@@ -59,6 +65,8 @@ export const MOVEMENT_PRACTICE_SEED: readonly PracticeSeed[] = [
       howTo:
         "Sentadillas, elevaciones de talones, movilidad de cadera y torácica. Como tu cuerpo permita.",
       safetyNote: MOVEMENT_SAFETY_ES,
+      cue: "Cuando termines una llamada o cierres una pestaña.",
+      minimum: "Ponerte de pie. Aunque sean treinta segundos.",
     },
     en: {
       title: "Two minutes on your feet every fifty",
@@ -67,6 +75,8 @@ export const MOVEMENT_PRACTICE_SEED: readonly PracticeSeed[] = [
       howTo:
         "Squats, calf raises, hip and thoracic mobility. However your body allows.",
       safetyNote: MOVEMENT_SAFETY_EN,
+      cue: "When you end a call or close a tab.",
+      minimum: "Standing up. Even for thirty seconds.",
     },
   },
   {
@@ -81,6 +91,7 @@ export const MOVEMENT_PRACTICE_SEED: readonly PracticeSeed[] = [
       howTo:
         "El mercado, la tienda, la casa de alguien: a pie, en bici o con tu propio impulso.",
       safetyNote: MOVEMENT_SAFETY_ES,
+      cue: "Cuando alcances las llaves del coche para un mandado cerca.",
     },
     en: {
       title: "The short trip, under your own power",
@@ -89,6 +100,7 @@ export const MOVEMENT_PRACTICE_SEED: readonly PracticeSeed[] = [
       howTo:
         "The market, the shop, someone's house: on foot, by bike, or under your own power.",
       safetyNote: MOVEMENT_SAFETY_EN,
+      cue: "When you reach for the car keys for an errand nearby.",
     },
   },
   {
@@ -104,6 +116,7 @@ export const MOVEMENT_PRACTICE_SEED: readonly PracticeSeed[] = [
         "La exposición diaria a luz natural adelanta el sueño y reduce la somnolencia diurna.",
       howTo:
         "En tierra, pasto o sendero, mejor que sobre asfalto: el terreno irregular despierta el pie y el equilibrio.",
+      cue: "Después de comer, o cuando la casa se quede en silencio.",
     },
     en: {
       title: "Twenty to thirty minutes outdoors",
@@ -111,6 +124,7 @@ export const MOVEMENT_PRACTICE_SEED: readonly PracticeSeed[] = [
         "Daily exposure to natural light brings sleep earlier and reduces daytime sleepiness.",
       howTo:
         "On soil, grass or a trail rather than asphalt: uneven ground wakes up the foot and your balance.",
+      cue: "After lunch, or when the house goes quiet.",
     },
   },
   {
@@ -125,6 +139,7 @@ export const MOVEMENT_PRACTICE_SEED: readonly PracticeSeed[] = [
       howTo:
         "Caminar descalzo un rato sobre pasto o tierra limpia es la versión más simple, y no cuesta nada.",
       safetyNote: MOVEMENT_SAFETY_ES,
+      cue: "Cuando pases junto a un parque o a un camino de tierra.",
     },
     en: {
       title: "Walking on uneven ground",
@@ -133,6 +148,7 @@ export const MOVEMENT_PRACTICE_SEED: readonly PracticeSeed[] = [
       howTo:
         "Walking barefoot for a while on grass or clean soil is the simplest version, and it costs nothing.",
       safetyNote: MOVEMENT_SAFETY_EN,
+      cue: "When you pass a park or a dirt path.",
     },
   },
   {
@@ -148,6 +164,7 @@ export const MOVEMENT_PRACTICE_SEED: readonly PracticeSeed[] = [
         "Horma ancha para que los dedos se separen, suela flexible para sentir el suelo, y drop cero o bajo.",
       safetyNote:
         "Cambia de calzado poco a poco. Un pie acostumbrado a suela rígida y talón alto necesita semanas para adaptarse, y acelerar esa transición es la forma más común de lesionarse intentando cuidarse.",
+      cue: "Al comprar zapatos, mirando la punta y la suela antes que el precio.",
     },
     en: {
       title: "Footwear that lets the foot work",
@@ -157,6 +174,7 @@ export const MOVEMENT_PRACTICE_SEED: readonly PracticeSeed[] = [
         "A wide toe box so the toes can spread, a flexible sole so the foot feels the ground, and zero or low drop.",
       safetyNote:
         "Change footwear gradually. A foot used to a rigid sole and a raised heel needs weeks to adapt, and rushing that transition is the most common way to get injured while trying to take care of yourself.",
+      cue: "When buying shoes, looking at the toe box and the sole before the price.",
     },
   },
   {
@@ -171,6 +189,7 @@ export const MOVEMENT_PRACTICE_SEED: readonly PracticeSeed[] = [
       howTo:
         "Calistenia en el parque, cargar garrafones o las compras, trabajo en el huerto, o una rutina guiada en el gimnasio de tu zona.",
       safetyNote: MOVEMENT_SAFETY_ES,
+      cue: "El día de la semana que ya tienes libre, y siempre el mismo.",
     },
     en: {
       title: "Useful strength, once a week",
@@ -179,6 +198,7 @@ export const MOVEMENT_PRACTICE_SEED: readonly PracticeSeed[] = [
       howTo:
         "Calisthenics in the park, carrying water jugs or the shopping, work in the garden, or a guided routine at the gym near you.",
       safetyNote: MOVEMENT_SAFETY_EN,
+      cue: "The day of the week you already have free, and always the same one.",
     },
   },
   {
@@ -193,6 +213,7 @@ export const MOVEMENT_PRACTICE_SEED: readonly PracticeSeed[] = [
         "Fortalece el sistema cardiorrespiratorio y, de paso, recupera los espacios públicos que dejan de usarse cuando nadie sale.",
       howTo:
         "Un partido del barrio, una caminata en grupo, o una clase colectiva en un estudio de la zona.",
+      cue: "Cuando alguien invite, y el fin de semana antes de que se llene.",
     },
     en: {
       title: "Sport with other people",
@@ -200,6 +221,7 @@ export const MOVEMENT_PRACTICE_SEED: readonly PracticeSeed[] = [
         "It strengthens the cardiorespiratory system and, along the way, reclaims the public spaces that fall out of use when nobody goes out.",
       howTo:
         "A neighbourhood match, a group walk, or a class at a studio near you.",
+      cue: "When somebody invites you, and at the weekend before it fills up.",
     },
   },
   {
@@ -212,12 +234,14 @@ export const MOVEMENT_PRACTICE_SEED: readonly PracticeSeed[] = [
       summary:
         "Es gasto espontáneo, el que no aparece en ninguna rutina y decide buena parte del total del día.",
       howTo: "Y bajarte una parada antes, para hacer el último tramo a pie.",
+      cue: "Al llegar frente al elevador.",
     },
     en: {
       title: "Taking the stairs",
       summary:
         "It is spontaneous expenditure — the kind that shows up in no routine and decides a good part of the daily total.",
       howTo: "And getting off one stop early, to walk the last stretch.",
+      cue: "When you arrive in front of the lift.",
     },
   },
   {
@@ -230,11 +254,13 @@ export const MOVEMENT_PRACTICE_SEED: readonly PracticeSeed[] = [
       title: "Notar el triple impacto",
       summary:
         "Vitalidad en el cuerpo, gasolina que no se fue y vecinos con los que sí te cruzaste.",
+      cue: "Al día siguiente, cuando te levantes.",
     },
     en: {
       title: "Noticing the triple impact",
       summary:
         "Vitality in your body, fuel you did not spend, and neighbours you actually ran into.",
+      cue: "The next morning, when you get up.",
     },
   },
 ];

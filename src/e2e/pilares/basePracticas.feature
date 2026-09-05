@@ -156,6 +156,47 @@ Feature: Base de datos de practicas - la practica deja de ser prosa y pasa a ser
     Then la clave retirada ya no existe en `practices`
 
   # ---------------------------------------------------------------------------------------------
+  # Slice 2d - Las anclas y el indice de practicas
+  # Escenarios de extremo a extremo en `src/e2e/pilares/indiceDePracticas.spec.ts`.
+  # ---------------------------------------------------------------------------------------------
+
+  @slice-2d
+  Scenario: Las 45 practicas tienen casa
+    Given que el catalogo esta sembrado
+    When abro "/practicas"
+    Then los cuatro pilares tienen sus practicas
+    And se llega ahi desde la portada de los pilares
+
+  @slice-2d
+  Scenario: Cada practica dice cuando se hace
+    # La primera ley: hacerlo obvio. Sin ancla, una practica es un consejo.
+    Given que las 45 practicas tienen su ancla sembrada
+    When recorro la lista
+    Then ninguna tarjeta se queda sin decir cuando
+
+  @slice-2d
+  Scenario: La identidad la pone el pilar, no la practica
+    # Por eso no hay columna `identity`: hay 4 identidades verdaderas, no 45.
+    When abro "/practicas"
+    Then cada pilar dice quien es alguien que lo practica
+
+  @slice-2d
+  Scenario: Una practica compartida aparece una sola vez
+    # Es lo que compro que `practice_pillars` sea N:N. Repetirla por pilar contaria como dos lo que
+    # es una.
+    Given que "mind-slow-breathing" sirve a Mente y a Sueno
+    When abro "/practicas"
+    Then aparece una sola vez
+    And su tarjeta dice a que otro pilar sirve
+
+  @slice-2d
+  Scenario: Una practica sin evidencia lo dice
+    # Cero se ensena igual que cinco: esconderlo dejaria creer que todas estan respaldadas por igual.
+    Given que "sleep-notice-clarity" no tiene ningun estudio ligado
+    When abro "/practicas"
+    Then su tarjeta lo declara en vez de callarlo
+
+  # ---------------------------------------------------------------------------------------------
   # Slice 3 - El bot responde con la practica, y cita el estudio
   # Cubierto por pytest en `bot-whatsapp/backend/tests/`.
   # ---------------------------------------------------------------------------------------------

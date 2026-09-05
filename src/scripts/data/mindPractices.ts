@@ -36,6 +36,8 @@ export const MIND_PRACTICE_SEED: readonly PracticeSeed[] = [
       howTo:
         "Salir a tomar aire, conversar de verdad con alguien y cerrar con gratitud o con un gesto a quien vive cerca.",
       safetyNote: MIND_SAFETY_ES,
+      cue: "Los primeros minutos del día, y la primera conversación que tengas.",
+      minimum: "Abrir el día sin pantalla y escuchar de verdad a una persona.",
     },
     en: {
       title: "Presence, peace and local connection",
@@ -44,6 +46,9 @@ export const MIND_PRACTICE_SEED: readonly PracticeSeed[] = [
       howTo:
         "Step out for air, have a real conversation with someone, and close with gratitude or with a gesture towards someone who lives nearby.",
       safetyNote: MIND_SAFETY_EN,
+      cue: "The first minutes of the day, and the first conversation you have.",
+      minimum:
+        "Opening the day without a screen and really listening to one person.",
     },
   },
   {
@@ -58,6 +63,8 @@ export const MIND_PRACTICE_SEED: readonly PracticeSeed[] = [
       howTo:
         "De preferencia cara a cara y sin dispositivos a la vista. Si hoy no tienes a nadie cerca, una llamada sincera cuenta igual: lo que cuenta es escuchar de verdad, no el canal.",
       safetyNote: MIND_SAFETY_ES,
+      cue: "Cuando alguien te hable, antes de contestar.",
+      minimum: "Una persona, cinco minutos, sin el teléfono a la vista.",
     },
     en: {
       title: "Giving someone real presence",
@@ -66,6 +73,8 @@ export const MIND_PRACTICE_SEED: readonly PracticeSeed[] = [
       howTo:
         "Face to face if you can, with no devices in sight. If there is nobody nearby today, an honest phone call counts the same: what counts is really listening, not the channel.",
       safetyNote: MIND_SAFETY_EN,
+      cue: "When somebody speaks to you, before you answer.",
+      minimum: "One person, five minutes, with the phone out of sight.",
     },
   },
   {
@@ -80,6 +89,8 @@ export const MIND_PRACTICE_SEED: readonly PracticeSeed[] = [
         "Los primeros treinta a sesenta minutos sin redes, notificaciones ni noticias: ese rato es para respirar, estirarte o simplemente estar.",
       howTo:
         "Dejar el teléfono cargando fuera del cuarto lo vuelve casi automático.",
+      cue: "Al despertar, antes de tocar el teléfono.",
+      minimum: "Los primeros diez minutos. Si son treinta, mejor.",
     },
     en: {
       title: "Opening the day without a screen",
@@ -87,6 +98,8 @@ export const MIND_PRACTICE_SEED: readonly PracticeSeed[] = [
         "The first thirty to sixty minutes with no feeds, no notifications and no news: that stretch is for breathing, stretching or simply being.",
       howTo:
         "Leaving the phone charging outside the bedroom makes it almost automatic.",
+      cue: "On waking, before you touch the phone.",
+      minimum: "The first ten minutes. Thirty is better.",
     },
   },
   {
@@ -100,6 +113,7 @@ export const MIND_PRACTICE_SEED: readonly PracticeSeed[] = [
         "Hace posible la presencia plena: quien está enfrente deja de competir con una pantalla.",
       howTo:
         "Comidas sin dispositivos en la mesa, bloques en «no molestar» para trabajar o descansar, y el teléfono fuera del cuarto por la noche.",
+      cue: "Al sentarte a la mesa, y al empezar un bloque de trabajo.",
     },
     en: {
       title: "Digital hygiene",
@@ -107,6 +121,7 @@ export const MIND_PRACTICE_SEED: readonly PracticeSeed[] = [
         "It makes full presence possible: the person in front of you stops competing with a screen.",
       howTo:
         "Meals with no devices on the table, blocks on «do not disturb» for work or rest, and the phone out of the bedroom at night.",
+      cue: "As you sit down at the table, and as you start a block of work.",
     },
   },
   {
@@ -123,6 +138,8 @@ export const MIND_PRACTICE_SEED: readonly PracticeSeed[] = [
         "Una sola sesión de respiración lenta y profunda sube el tono vagal y baja la ansiedad.",
       howTo:
         "Baja las respiraciones por minuto y aflójate. No persigas una proporción exacta entre inhalar y exhalar: el ensayo que la probó, y su réplica, no hallaron diferencia, y perseguirla es la excusa habitual para abandonar creyendo que se hace mal. Si te marea, acorta los tiempos.",
+      cue: "Cuando notes que se te aprieta el pecho o la mandíbula.",
+      minimum: "Cuatro respiraciones lentas, sentado, donde estés.",
     },
     en: {
       title: "Slow breathing",
@@ -130,6 +147,8 @@ export const MIND_PRACTICE_SEED: readonly PracticeSeed[] = [
         "A single session of deep, slow breathing raises vagal tone and lowers anxiety.",
       howTo:
         "Bring your breaths per minute down and loosen up. Do not chase an exact ratio between inhaling and exhaling: the trial that tested it, and its replication, found no difference, and chasing it is the usual excuse for quitting in the belief you are doing it wrong. If it makes you dizzy, shorten the counts.",
+      cue: "When you notice your chest or your jaw tighten.",
+      minimum: "Four slow breaths, sitting, wherever you are.",
     },
   },
   {
@@ -145,6 +164,7 @@ export const MIND_PRACTICE_SEED: readonly PracticeSeed[] = [
         "La exposición a espacios verdes se asocia con menos depresión y menos ansiedad.",
       howTo:
         "De diez a quince minutos en el parque, el jardín o el sendero más cercano: luz en la cara, pies en tierra o pasto, y el sonido del lugar donde vives.",
+      cue: "Cuando la cabeza empiece a dar vueltas sobre lo mismo.",
     },
     en: {
       title: "Grounding outdoors",
@@ -152,6 +172,7 @@ export const MIND_PRACTICE_SEED: readonly PracticeSeed[] = [
         "Exposure to green space is associated with less depression and less anxiety.",
       howTo:
         "Ten to fifteen minutes in the nearest park, garden or trail: light on your face, feet on soil or grass, and the sound of the place where you live.",
+      cue: "When your head starts going round the same thing.",
     },
   },
   {
@@ -164,6 +185,7 @@ export const MIND_PRACTICE_SEED: readonly PracticeSeed[] = [
       summary:
         "Afina la inteligencia emocional y disuelve la sensación de aislamiento, de los dos lados.",
       howTo: "Sin mirar el teléfono, y sin ir armando lo que vas a decir.",
+      cue: "Cuando notes que ya estás armando tu respuesta.",
     },
     en: {
       title: "Listening without preparing your reply",
@@ -171,6 +193,7 @@ export const MIND_PRACTICE_SEED: readonly PracticeSeed[] = [
         "It sharpens emotional intelligence and dissolves the feeling of isolation, on both sides.",
       howTo:
         "Without looking at your phone, and without assembling what you are going to say.",
+      cue: "When you catch yourself assembling your reply.",
     },
   },
   {
@@ -184,6 +207,7 @@ export const MIND_PRACTICE_SEED: readonly PracticeSeed[] = [
         "Genera la confianza de barrio que hace que la gente se ayude sin que nadie lo organice.",
       howTo:
         "Saludar y platicar con vecinos y con quien te vende en el mercado. Cuenta igual que una conversación larga.",
+      cue: "Al cruzarte con alguien en la escalera, la banqueta o el mercado.",
     },
     en: {
       title: "Talking with the people who live nearby",
@@ -191,6 +215,7 @@ export const MIND_PRACTICE_SEED: readonly PracticeSeed[] = [
         "It builds the neighbourhood trust that gets people helping each other without anyone organising it.",
       howTo:
         "Greeting and chatting with neighbours and with whoever sells to you at the market. It counts the same as a long conversation.",
+      cue: "When you cross paths with someone on the stairs, the pavement or at the market.",
     },
   },
   {
@@ -204,6 +229,8 @@ export const MIND_PRACTICE_SEED: readonly PracticeSeed[] = [
       summary:
         "Tres cosas que agradeces de tu entorno, anotadas al cerrar el día.",
       howTo: "De tu entorno, no de ti: el ejercicio es mirar afuera.",
+      cue: "Al apagar la luz, antes de dormirte.",
+      minimum: "Una cosa. Una basta.",
     },
     en: {
       title: "Closing the day with gratitude",
@@ -211,6 +238,8 @@ export const MIND_PRACTICE_SEED: readonly PracticeSeed[] = [
         "Three things you are grateful for in your surroundings, written down as the day closes.",
       howTo:
         "About your surroundings, not about you: the exercise is to look outward.",
+      cue: "When you turn out the light, before you fall asleep.",
+      minimum: "One thing. One is enough.",
     },
   },
   {
@@ -225,6 +254,7 @@ export const MIND_PRACTICE_SEED: readonly PracticeSeed[] = [
       howTo:
         "Un huerto comunitario, una jornada de limpieza, un mercado artesanal, o simplemente ayudar a un vecino.",
       safetyNote: MIND_SAFETY_ES,
+      cue: "Cuando veas un aviso en el barrio, o cuando alguien pida ayuda.",
     },
     en: {
       title: "Lending a hand in your neighbourhood",
@@ -233,6 +263,7 @@ export const MIND_PRACTICE_SEED: readonly PracticeSeed[] = [
       howTo:
         "A community garden, a clean-up day, a craft market, or simply helping a neighbour.",
       safetyNote: MIND_SAFETY_EN,
+      cue: "When you see a notice in the neighbourhood, or when somebody asks for help.",
     },
   },
   {
@@ -246,12 +277,14 @@ export const MIND_PRACTICE_SEED: readonly PracticeSeed[] = [
       summary:
         "Corta la rumiación dándole a la cabeza algo concreto que atender, y de paso acerca la despensa.",
       howTo: "Una maceta cuenta. No hace falta un terreno.",
+      cue: "Con el café de la mañana, mirando si necesitan agua.",
     },
     en: {
       title: "Tending plants or a garden",
       summary:
         "It cuts rumination by giving your head something concrete to attend to, and brings the pantry closer along the way.",
       howTo: "A single pot counts. You do not need a plot of land.",
+      cue: "With the morning coffee, checking whether they need water.",
     },
   },
 ];
