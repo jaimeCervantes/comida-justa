@@ -22,6 +22,24 @@ export default class PracticeCatalogUseCase {
    * **No inventa pilares vacíos.** Un pilar sin prácticas sembradas no aparece, en vez de pintar un
    * encabezado con nada debajo.
    */
+
+  /**
+   * Las prácticas que alguien lleva, ya con su título y su ancla.
+   *
+   * Compone las dos lecturas que ya existen en vez de escribir una consulta nueva: el catálogo
+   * (memorizado por petición) trae el texto y el conjunto de adoptadas trae las claves. Una tercera
+   * consulta que uniera `user_practices` con `practice_translations` diría lo mismo con otro SQL que
+   * mantener, y se desincronizaría el día que el catálogo cambie de orden o de idioma de respaldo.
+   */
+  async listAdopted(
+    locale: string,
+    adopted: ReadonlySet<string>,
+  ): Promise<readonly PracticeCard[]> {
+    if (adopted.size === 0) return [];
+    const practices = await this.repository.listPublished(locale);
+    return practices.filter(({ key }) => adopted.has(key));
+  }
+
   async listByPillar(locale: string): Promise<readonly PillarPractices[]> {
     const practices = await this.repository.listPublished(locale);
     const groups = new Map<PillarKey, PracticeCard[]>();

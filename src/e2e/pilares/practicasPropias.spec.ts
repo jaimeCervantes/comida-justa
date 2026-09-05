@@ -107,6 +107,30 @@ test.describe("Cuando alguien quiere llevar una práctica", () => {
       new Date(primera as Date).getTime(),
     );
   });
+
+  test("Y la ve en «Mis hábitos», que es donde busca lo suyo", async ({
+    page,
+  }) => {
+    await card(page).getByTestId("practice-toggle").click();
+    await expect(card(page).getByTestId("practice-adopted")).toBeVisible();
+
+    await page.goto("/habitos");
+    const mias = page.getByTestId("my-practices");
+
+    await expect(mias.locator(`[data-practice="${PRACTICA}"]`)).toBeVisible();
+  });
+
+  test("Y al dejarla desaparece de ahí, sin que la sección se esconda", async ({
+    page,
+  }) => {
+    await page.goto("/habitos");
+    const mias = page.getByTestId("my-practices");
+
+    // Sin ninguna, la sección sigue estando e invita al catálogo: esconderla dejaría a quien no ha
+    // empezado sin saber que existe.
+    await expect(mias).toBeVisible();
+    await expect(mias.locator(`[data-practice="${PRACTICA}"]`)).toHaveCount(0);
+  });
 });
 
 test.describe("Cuando alguien lee el catálogo sin entrar", () => {

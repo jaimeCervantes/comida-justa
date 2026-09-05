@@ -9,11 +9,16 @@ import { pillarHref } from "~/i18n/routes";
 import { resolveLocale } from "~/i18n/routing";
 import { readViewerId } from "~/infra/auth/readViewerId";
 import { createHabitLeagueRepository } from "~/infra/dataAccess/habits/PostgresHabitLeagueRepository";
+import { PostgresPracticeAdoption } from "~/infra/dataAccess/practices/PostgresPracticeAdoption";
+import { PostgresPracticeCatalog } from "~/infra/dataAccess/practices/PostgresPracticeCatalog";
 import { localizedAlternates } from "~/infra/UI/metadata/alternates";
 import { Heading } from "~/presentation/design_system/typography/Heading";
 import HabitLeagueUseCase from "~/use_cases/habits/habitLeagueUseCase";
+import PracticeAdoptionUseCase from "~/use_cases/practices/practiceAdoptionUseCase";
+import PracticeCatalogUseCase from "~/use_cases/practices/practiceCatalogUseCase";
 import AccountSection from "../cuenta/ui/AccountSection";
 import { setHabitLeagueOptIn } from "./leagueActions";
+import MyPractices from "./ui/MyPractices";
 
 export async function generateMetadata({
   params,
@@ -41,6 +46,15 @@ export default async function AtomicChallengesPage({
   const league = await new HabitLeagueUseCase(
     createHabitLeagueRepository(),
   ).getState(userId);
+  /* Lo que esta persona lleva del catálogo. Se compone de dos lecturas memorizadas y no de una
+     consulta nueva; sin sesión el conjunto viene vacío y la sección invita al catálogo en vez de
+     desaparecer. */
+  const adopted = await new PracticeAdoptionUseCase(
+    new PostgresPracticeAdoption(),
+  ).activeFor(userId);
+  const myPractices = await new PracticeCatalogUseCase(
+    new PostgresPracticeCatalog(),
+  ).listAdopted(locale, adopted);
 
   /*
    * «Mis hábitos» es una entrada de `AccountNav`, y hasta aquí era un callejón sin salida: se
@@ -84,6 +98,8 @@ export default async function AtomicChallengesPage({
           );
         })}
       </div>
+
+      <MyPractices practices={myPractices} />
 
       <section className="mt-8 rounded-panel border border-feedback-warning/40 bg-feedback-warning/10 p-6">
         <Heading

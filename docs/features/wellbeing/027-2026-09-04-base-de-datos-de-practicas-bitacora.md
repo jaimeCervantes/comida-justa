@@ -650,3 +650,66 @@ marcar el día para cerrar la cuarta ley, y esa es una decisión de producto doc
 
 **Pendiente del usuario:** decidir 4b (si marcar una práctica de un pilar inscribe en el ritual de
 ese pilar) y desplegar el bot.
+
+---
+
+## Slice 4 (cierre) — «Mis prácticas», y por qué 2b se paró (2026-09-05)
+
+### Lo adoptado se ve donde la gente busca lo suyo
+
+`/practicas` deja empezar y dejar, pero quien vuelve al día siguiente no entra al catálogo: entra a
+«Mis hábitos». Ahora esa pantalla lista lo que lleva.
+
+**Enseña el ancla y no la promesa.** Quien vuelve no necesita que le convenzan otra vez de que
+atenuar la casa ayuda: necesita acordarse de *cuándo* lo hace. La promesa vive en `/practicas`, que
+es donde se elige.
+
+**Sin ninguna, la sección no se esconde**: invita al catálogo. Una sección que desaparece deja a
+quien todavía no ha empezado sin saber que existe.
+
+**Se compone de dos lecturas que ya existían** —el catálogo memorizado y el conjunto de claves
+adoptadas— en vez de una consulta nueva. Un tercer SQL que uniera `user_practices` con
+`practice_translations` diría lo mismo y se desincronizaría el día que el catálogo cambie de orden o
+de idioma de respaldo.
+
+### Por qué el slice 2b se paró antes de escribir la migración
+
+Al preparar la semilla de los 15 temas apareció algo que invalida el plan: **`PillarCatalog` sirve a
+dos modelos distintos**.
+
+En Sueño, Movimiento y Mente sus ítems son **acciones** —«Ir al mercado caminando», «Primera y última
+hora del día sin teléfono»— y mapean a prácticas. En Alimentación son **ingredientes**: «Leguminosas
+locales: frijol negro, bayo o pinto y lentejas a granel», «Camote, yuca y papa de agricultores
+cercanos».
+
+Un ingrediente no tiene ancla, ni versión mínima, ni se puede empezar ni dejar. La deduplicación del
+slice 2 ya lo había hecho evidente sin que se notara: las cuatro categorías de ingredientes acabaron
+como cuatro prácticas de una frase, mientras las de los otros pilares absorbían varios ítems cada
+una.
+
+Construirlo igual habría significado inventar dieciséis «prácticas» que son una lista de compra.
+Preferí parar y dejar la decisión escrita en el roadmap con sus tres opciones, en vez de deformar el
+modelo a las tres de la mañana para que cupiera una plantilla.
+
+### Comandos y resultados
+
+```
+pnpm run validate                261 archivos, 2782 pruebas, verde
+playwright practicasPropias      7/7
+playwright src/e2e/habits        28/28
+```
+
+### Recap
+
+El slice 4 está completo de punta a punta: se empieza y se deja desde `/practicas`, y lo adoptado
+aparece en «Mis hábitos» con su ancla. El 2b está parado a propósito, con el hallazgo documentado y
+tres opciones sobre la mesa.
+
+### Próximos pasos (opciones)
+
+1. **Slice 4b** — marcar el día. Cierra la cuarta ley. Necesita decidir si marcar una práctica de un
+   pilar cuenta como haber practicado ese pilar (recomiendo que sí: es lo que el jardín ya mide).
+2. **Slice 2b** — decidir cuál de las tres opciones del roadmap.
+3. **Slice 5** — compartir en el muro; depende de 4b.
+
+**Pendiente del usuario:** las dos decisiones de arriba, y desplegar el bot.

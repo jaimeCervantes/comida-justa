@@ -260,11 +260,39 @@ un agrupador (`pillar_themes`) y dos textos traducibles más por tema. Es una ex
 modelo, no un cambio de plantilla, y por eso se decide aparte en vez de deformar `practices` para
 que quepa. Ver «Slice 2b».
 
-### Slice 2b — El catálogo por temas (pendiente de decisión)
+### Slice 2b — El catálogo por temas (bloqueado por un hallazgo)
 
-Lo que falta para que `PillarCatalog` se pinte desde la base: una tabla de temas por pilar con su
-título, su intro y sus dos impactos traducibles, y la pertenencia de cada práctica a un tema. Son
-15 temas y 60 ítems ya escritos en `pillarPages.*`; el trabajo es de modelo, no de contenido.
+El plan era: una tabla de temas por pilar con su título y sus dos impactos, y la pertenencia de cada
+práctica a un tema. 15 temas y 60 ítems ya escritos.
+
+**Al ir a sembrarlo se descubrió que `PillarCatalog` sirve a dos modelos distintos.** En tres pilares
+sus ítems son **acciones** y mapean a prácticas:
+
+> «Ir al mercado o a la tienda del barrio caminando o en bici.»
+> «Primera y última hora del día sin teléfono.»
+
+En Alimentación son **ingredientes**:
+
+> «Leguminosas locales: frijol negro, bayo o pinto y lentejas a granel.»
+> «Camote, yuca y papa de agricultores cercanos; cocida y enfriada, la papa gana almidón resistente.»
+
+Un ingrediente no tiene ancla, ni versión mínima, ni se puede empezar ni dejar. Modelarlo como
+práctica obligaría a inventar dieciséis «prácticas» que en realidad son una lista de compra, y la
+deduplicación del slice 2 ya lo había hecho evidente sin que se viera: las cuatro categorías de
+ingredientes se convirtieron en cuatro prácticas de una frase (`nutrition-regional-protein`,
+`nutrition-territory-carbs`, `nutrition-healthy-fats`), mientras que las de los otros pilares
+absorbieron varios ítems cada una.
+
+**La decisión que hay que tomar antes de construir nada**, en orden de preferencia:
+
+1. **Dos modelos, dos nombres.** `pillar_themes` sobre prácticas para Sueño, Movimiento y Mente; y
+   un catálogo de **ingredientes** aparte para Alimentación —que además es el que podría enlazar con
+   `posts` y con las tiendas, porque un ingrediente sí se compra—. Es más trabajo y es lo que los
+   datos dicen que son.
+2. **Sólo los tres pilares de acciones**, y el de Alimentación se queda como prosa en i18n. Barato,
+   pero deja `PillarCatalog` leyendo de dos sitios, que es lo que el slice 2 vino a evitar.
+3. **Forzar los ingredientes a prácticas.** Es lo que no recomiendo: distorsiona el modelo para que
+   quepa una plantilla.
 
 ### Slice 2c — La tabla del jardín, sin podio ✅
 
