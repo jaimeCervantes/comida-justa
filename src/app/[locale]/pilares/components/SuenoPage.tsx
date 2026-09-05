@@ -8,10 +8,9 @@ import PillarArticle, {
   PillarPanel,
   PillarSectionHeading,
 } from "./PillarArticle";
+import PillarBibliography from "./PillarBibliography";
 import PillarLocal from "./PillarLocal";
 import PillarPractice from "./PillarPractice";
-import PillarReferences from "./PillarReferences";
-import { SLEEP_REFERENCES } from "./references";
 import SleepMentalUnload from "./SleepMentalUnload";
 import SleepPillarBridges from "./SleepPillarBridges";
 import SleepPracticeCatalog from "./SleepPracticeCatalog";
@@ -109,7 +108,10 @@ export default function SuenoPage({ locale }: { locale: AppLocale }) {
         </PillarCallout>
       </section>
 
-      <PillarReferences pillar="sleep" references={SLEEP_REFERENCES} />
+      {/* La bibliografía sale de la base: cada estudio con su título, su revista y su año, y
+          diciendo qué práctica sostiene. Los DOIs pelados de `references.ts` sólo sobreviven como
+          semilla; ver `docs/features/wellbeing/027-2026-09-04-base-de-datos-de-practicas.md`. */}
+      <PillarBibliography pillar="sleep" locale={locale} />
     </PillarArticle>
   );
 }

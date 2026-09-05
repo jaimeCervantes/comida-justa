@@ -11,10 +11,9 @@ import PillarArticle, {
   PillarPanel,
   PillarSectionHeading,
 } from "./PillarArticle";
+import PillarBibliography from "./PillarBibliography";
 import PillarLocal from "./PillarLocal";
 import PillarPractice from "./PillarPractice";
-import PillarReferences from "./PillarReferences";
-import { MIND_SPIRIT_REFERENCES } from "./references";
 
 export default function MenteEspirituPage({ locale }: { locale: AppLocale }) {
   const t = useTranslations("pillarPages.mindSpirit");
@@ -88,10 +87,7 @@ export default function MenteEspirituPage({ locale }: { locale: AppLocale }) {
         <PillarCallout pillar="mindSpirit">{t("callout")}</PillarCallout>
       </section>
 
-      <PillarReferences
-        pillar="mindSpirit"
-        references={MIND_SPIRIT_REFERENCES}
-      />
+      <PillarBibliography pillar="mindSpirit" locale={locale} />
     </PillarArticle>
   );
 }

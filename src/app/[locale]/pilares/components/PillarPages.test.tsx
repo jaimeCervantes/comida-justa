@@ -19,6 +19,12 @@ vi.mock("./PillarLocal", () => ({
   default: () => <section data-testid="pillar-local" />,
 }));
 
+/* Y la bibliografía consulta `pillar_studies`: tercera frontera asíncrona, mismo corte. Lo que la
+   lista promete se comprueba en `PillarReferences.test.tsx`, con estudios fijos. */
+vi.mock("./PillarBibliography", () => ({
+  default: () => <section data-testid="pillar-bibliography" />,
+}));
+
 type PillarPage = ComponentType<{ locale: AppLocale }>;
 
 /**

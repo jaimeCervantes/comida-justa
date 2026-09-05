@@ -11,10 +11,9 @@ import PillarArticle, {
   PillarPanel,
   PillarSectionHeading,
 } from "./PillarArticle";
+import PillarBibliography from "./PillarBibliography";
 import PillarLocal from "./PillarLocal";
 import PillarPractice from "./PillarPractice";
-import PillarReferences from "./PillarReferences";
-import { NUTRITION_REFERENCES } from "./references";
 
 export default function AlimentacionPage({ locale }: { locale: AppLocale }) {
   const t = useTranslations("pillarPages.nutrition");
@@ -87,7 +86,7 @@ export default function AlimentacionPage({ locale }: { locale: AppLocale }) {
         </ul>
       </section>
 
-      <PillarReferences pillar="nutrition" references={NUTRITION_REFERENCES} />
+      <PillarBibliography pillar="nutrition" locale={locale} />
     </PillarArticle>
   );
 }

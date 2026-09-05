@@ -6,8 +6,10 @@
  * clave del catálogo y el texto lo pone quien traduce.
  */
 import type { HabitChallengeExperienceKey } from "~/domain/habits/habitChallengeExperiences";
+import type { PillarKey } from "~/domain/pillars/pillarKey";
 
-export type PillarKey = "sleep" | "nutrition" | "movement" | "mindSpirit";
+/** Reexportada: el tipo vive en el dominio desde que la tabla `pillars` y su caso de uso lo usan. */
+export type { PillarKey };
 
 export interface PillarData {
   /** El segmento de la URL. Se queda en español mientras las rutas no se localicen (slice 4). */

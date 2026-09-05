@@ -1368,6 +1368,13 @@
     "heroLocalCta": "See what is nearby"
   },
   "pillars": {
+    "designCohort": "cohort study",
+    "designCrossSectional": "cross-sectional study",
+    "designGuideline": "clinical guideline",
+    "designMechanism": "mechanism study",
+    "designMetaAnalysis": "meta-analysis",
+    "designRct": "randomised trial",
+    "designSystematicReview": "systematic review",
     "mindSpirit": {
       "cardDescription": "Health is not only physical. This pillar centres on emotional care, mental clarity, connection with others —starting with whoever lives nearby— and a sense of purpose. Keeping healthy relationships and feeling part of something larger drives the other three pillars.",
       "description": "Silence, presence and real bonds with the people nearby",
@@ -1392,7 +1399,8 @@
       "description": "Better sleep hygiene, so your body can actually recover",
       "short": "Sleep and rest",
       "title": "Sleep and Rest"
-    }
+    },
+    "supports": "Supports:"
   },
   "pillarsOverview": {
     "heading": "The 4 Pillars of <brand>{brandName}</brand>",

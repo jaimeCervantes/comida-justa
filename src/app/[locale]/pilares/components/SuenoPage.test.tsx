@@ -13,6 +13,12 @@ vi.mock("./PillarLocal", () => ({
   default: () => <section data-testid="pillar-local" />,
 }));
 
+/* Y la bibliografía consulta `pillar_studies`: tercera frontera asíncrona, mismo corte. Lo que la
+   lista promete se comprueba en `PillarReferences.test.tsx`, con estudios fijos. */
+vi.mock("./PillarBibliography", () => ({
+  default: () => <section data-testid="pillar-bibliography" />,
+}));
+
 function sectionOf(heading: string): HTMLElement {
   const title = screen.getByRole("heading", { name: heading });
   const section = title.closest("section");

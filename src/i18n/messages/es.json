@@ -1368,6 +1368,13 @@
     "heroLocalCta": "Ver lo que hay cerca"
   },
   "pillars": {
+    "designCohort": "estudio de cohorte",
+    "designCrossSectional": "estudio transversal",
+    "designGuideline": "guía clínica",
+    "designMechanism": "estudio de mecanismo",
+    "designMetaAnalysis": "metaanálisis",
+    "designRct": "ensayo aleatorizado",
+    "designSystematicReview": "revisión sistemática",
     "mindSpirit": {
       "cardDescription": "La salud no es solo física. Este pilar se centra en el cuidado emocional, la claridad mental, la conexión con los demás —empezando por quien vive cerca— y el sentido de propósito. Mantener relaciones sanas y sentirse parte de algo más grande impulsa los otros tres pilares.",
       "description": "Silencio, presencia y lazos reales con quien vive cerca",
@@ -1392,7 +1399,8 @@
       "description": "Optimizar la higiene del sueño para tu recuperación biológica",
       "short": "Sueño y descanso",
       "title": "Sueño y Descanso"
-    }
+    },
+    "supports": "Sostiene:"
   },
   "pillarsOverview": {
     "heading": "Los 4 Pilares de <brand>{brandName}</brand>",

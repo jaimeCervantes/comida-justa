@@ -11,10 +11,9 @@ import PillarArticle, {
   PillarPanel,
   PillarSectionHeading,
 } from "./PillarArticle";
+import PillarBibliography from "./PillarBibliography";
 import PillarLocal from "./PillarLocal";
 import PillarPractice from "./PillarPractice";
-import PillarReferences from "./PillarReferences";
-import { MOVEMENT_REFERENCES } from "./references";
 
 export default function MovimientoPage({ locale }: { locale: AppLocale }) {
   const t = useTranslations("pillarPages.movement");
@@ -77,7 +76,7 @@ export default function MovimientoPage({ locale }: { locale: AppLocale }) {
         <PillarCallout pillar="movement">{t("callout")}</PillarCallout>
       </section>
 
-      <PillarReferences pillar="movement" references={MOVEMENT_REFERENCES} />
+      <PillarBibliography pillar="movement" locale={locale} />
     </PillarArticle>
   );
 }

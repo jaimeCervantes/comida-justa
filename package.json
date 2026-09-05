@@ -35,7 +35,8 @@
     "check:i18n": "tsx src/scripts/checkI18n.ts",
     "check:directives": "tsx src/scripts/checkDirectives.ts",
     "seed:pillar-subcategories": "tsx src/scripts/seedPillarSubcategories.ts",
-    "seed:home-care-categories": "tsx src/scripts/seedHomeAndCareCategories.ts"
+    "seed:home-care-categories": "tsx src/scripts/seedHomeAndCareCategories.ts",
+    "seed:practice-catalog": "tsx src/scripts/seedPracticeCatalog.ts"
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^1.11.2",
