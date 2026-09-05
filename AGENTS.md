@@ -35,6 +35,21 @@ Deliver features end-to-end without stopping for per-step validation. This is th
 - **After checkpoint 2 is approved, do NOT ask for validation or authorization for anything else.** Writing/editing any files (new modules, refactors, migrations-as-code), running tests/lint/typecheck, generating fixtures — just do it and run to completion. When the slice is green, **report** the outcome (with numbers) — that is a report, not a gate; do not wait for approval.
 - Between checkpoints, implement in a single run: tests first, then inner-to-outer layers, running `pnpm run test:run`, `pnpm run typecheck`, and `pnpm run lint` yourself.
 - Run the Playwright e2e scoped to the feature you touched (e.g. `pnpm exec playwright test src/e2e/<area>`) without asking, when the app stack is available (dev server + a reachable DB with pending migrations applied) — the suite seeds its own data and cleans it up in `afterEach`, including against the shared DB. **Never run the complete suite (`pnpm run test:e2e:run`, no path) unless the user explicitly asks for it** — it is slow and out of scope for a single slice. If e2e cannot run in the current environment, say so explicitly and leave it as a pending validation; never imply e2e passed when it was not executed.
+- **Borra `.next` antes de cualquier corrida de e2e** (`rm -rf .next`), sin excepciones. Playwright
+  levanta su propio `next dev`, y una corrida anterior que se cortó —tiempo de espera, `Ctrl+C`,
+  dos compilaciones solapadas— deja artefactos generados a medio escribir. Dos síntomas ya vistos,
+  los dos imposibles de diagnosticar desde el mensaje de error: `dev/types/validator.ts` con un JSON
+  o un TypeScript truncado, que tumba `pnpm typecheck` con errores de sintaxis **dentro de un
+  archivo generado**; y un `prerender-manifest.json` con basura al final, que hace que el servidor
+  responda 404 o 500 a todo y llena el informe de fallos que no tienen que ver con el cambio.
+- **Y su contrapartida obligatoria: si tu slice estrena una ruta, añádela a
+  `src/e2e/testUtils/warmRoutes.ts`.** Borrar `.next` hace que la corrida arranque en frío, y Next
+  dev compila cada ruta la primera vez que alguien la pide: el primer escenario que la visita paga
+  esa compilación **dentro** del plazo de 5 s de un `toBeVisible`, no dentro de los 90 s del
+  escenario. El síntoma es inconfundible y engañoso a la vez: fallan escenarios **distintos** en
+  cada corrida, siempre en su primera interacción, y todos pasan al repetirlos en aislamiento. Una
+  acción de servidor es su propia unidad de compilación, así que una ruta con formularios hay que
+  calentarla aunque la página parezca barata.
 - **Parte la corrida de Playwright en shards en cuanto pase de ~20 escenarios**, y lánzalos uno detrás de otro: `pnpm exec playwright test <rutas> --shard=1/3 --reporter=line`, luego `2/3`, luego `3/3`. **Nunca en paralelo**: cada tramo levanta su propio servidor en el mismo puerto. El motivo no es la velocidad: una corrida que se corta a la mitad —por un tiempo de espera o un `Ctrl+C`— deja sin ejecutar sus `afterEach`, y el residuo en la base compartida hace fallar la corrida siguiente con errores que no tienen nada que ver (404 en rutas que sí existen, tiendas duplicadas). **Un fallo justo después de una corrida cortada es residuo hasta que se demuestre lo contrario**: mata el `next dev` huérfano que se quedó escuchando en el puerto, deja que el barrido de `globalTeardown` limpie, y repite antes de diagnosticar nada.
 - After each slice, append an entry to the matching bitacora at `docs/features/<semantic-area>/<NNN>-<YYYY-MM-DD>-<feature>-bitacora.md` (append-only). Narrate the WHY, do not duplicate the diff (git log already has the what). Each entry: objective, decisions + rationale, files touched (grouped), key commands, validation results (with numbers), deviations from roadmap, follow-ups. **Every entry MUST end with two sections:** a **Recap** (one-paragraph current state) and **Próximos pasos (opciones)** — the concrete choices for what to do next, plus any actions pending on the user. This is mandatory for every slice, not optional.
 - **Interrupt mid-run ONLY for something very grave** — otherwise keep going and decide with best judgment, and run every command yourself until the slice is finished.
