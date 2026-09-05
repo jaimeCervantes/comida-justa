@@ -80,7 +80,7 @@ export default function StoreCatalog({
         pathname="/tienda/[slug]"
         params={{ slug: handle }}
       />
-      <section data-testid="store-catalog" className={CARD_MASONRY}>
+      <section data-testid="store-catalog" className={`${CARD_MASONRY} pt-2`}>
         {catalog.map((post: Post) => (
           <CardForList
             {...post}
