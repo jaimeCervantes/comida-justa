@@ -808,3 +808,82 @@ Las cuatro leyes están cubiertas.
 3. **Que el bot pueda marcar el día**, que es lo que haría real el `source = 'telegram'`.
 
 **Pendiente del usuario:** desplegar el bot. Nada más.
+
+---
+
+## Slice 2b — El catálogo por temas, con el modelo corregido (2026-09-05)
+
+### Objetivo
+
+Que los cuatro `PillarCatalog` se pinten desde la base y mueran las claves de i18n que los
+alimentaban.
+
+### El modelo, después de la corrección
+
+`pillar_themes` (clave, pilar, orden) + `pillar_theme_translations` (título y los dos impactos) +
+un `theme_id` nulable en `practices`. **Una sola tabla para los cuatro pilares**, no dos como se
+había planteado: ver la corrección del diagnóstico en la entrada anterior.
+
+Los temas de Alimentación agrupan una o dos prácticas y los de Movimiento tres. No es una
+distorsión: los cuatro «ítems» de *Proteínas de calidad* son cuatro opciones de una sola acción y ya
+viven dentro de su `how_to`, mientras que los de *Proximidad y pausas activas* son tres acciones
+distintas y ya estaban sembradas por separado.
+
+**`theme_id` nulable significa «esta práctica no vive en el catálogo»**, no «falta clasificar». Los
+cuatro rituales quedan fuera —son la insignia del pilar— y hay una prueba que lo afirma.
+
+**La invariante que la base no puede afirmar** —que el tema de una práctica pertenece al pilar del
+que esa práctica es portada— la comprueba la semilla, fila por fila: haría falta comparar contra
+`practice_pillars`, y una FK no llega ahí.
+
+### Lo que cambió en la página
+
+Los ítems de cada tarjeta son ahora **los nombres de las prácticas**, y la tarjeta enlaza a
+`/practicas`. Antes eran frases sueltas que repetían con otras palabras lo que la práctica ya dice;
+mantenerlas desde que el catálogo es dato habría sido una segunda redacción del mismo contenido — y
+ya se vio a dónde lleva eso: la respiración se contradecía consigo misma en dos páginas.
+
+El encabezado, la entradilla y las dos etiquetas se quedan en i18n: son el marco de la sección, no su
+contenido, y una tabla para cuatro filas de texto de página no compraba nada.
+
+### Lo que se borró
+
+- Cuatro componentes: `SleepPracticeCatalog`, `NutritionIngredientCatalog`, `MovementCatalog`,
+  `MindPracticeCatalog`.
+- **105 claves de i18n por idioma** (210 en total). `pillarPages` pasa de 338 a 236 claves.
+
+### Las pruebas que se movieron, y por qué
+
+Las cuatro pruebas de «el catálogo de X» vivían dentro de las pruebas de página y comprobaban el
+contenido contra el catálogo de idiomas. Desde que los temas viven en la base, afirmarlas desde la
+página exigiría montar una conexión para comprobar una decisión de presentación. Se mudaron a
+`PillarCatalog.test.tsx` con temas fijos — los reales de la semilla del descanso.
+
+**El doble de `PillarCatalogSection` pinta el encabezado que recibe.** Un doble vacío habría hecho
+fallar las pruebas del inglés, que comprueban que la página le pasa el encabezado traducido: aislar
+la lectura no debe llevarse por delante el contrato.
+
+### Comandos y resultados
+
+```
+alembic upgrade head             0053 → 0054
+pnpm run seed:practice-catalog   15 temas, 33 prácticas asignadas
+pnpm run validate                262 archivos, 2790 pruebas, verde
+playwright src/e2e/pilares       55/55
+playwright src/e2e/habits        28/28
+```
+
+### Recap
+
+El catálogo de los cuatro pilares sale de la base. `references.ts` murió en el slice 2 y los cuatro
+componentes de catálogo mueren aquí; de las 338 claves de `pillarPages` quedan 236, y las que quedan
+son prosa de artículo, no listas.
+
+### Próximos pasos (opciones)
+
+1. **Slice 5** — compartir la práctica en el muro. Tiene ya todo lo que necesita.
+2. **Que el bot marque el día**, que es lo que haría real el `source = 'telegram'`.
+3. **Las secciones sueltas de cada pilar** —santuario, triada, cadencia, ventanas de silencio— son
+   las últimas listas de acciones que siguen en i18n. Mismo tratamiento que el catálogo.
+
+**Pendiente del usuario:** desplegar el bot.

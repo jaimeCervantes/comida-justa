@@ -3,7 +3,6 @@ import type { AppLocale } from "~/i18n/routing";
 import { Heading } from "~/presentation/design_system/typography/Heading";
 import MindGroundingAndBreath from "./MindGroundingAndBreath";
 import MindPillarBridges from "./MindPillarBridges";
-import MindPracticeCatalog from "./MindPracticeCatalog";
 import MindSilenceWindows from "./MindSilenceWindows";
 import PillarArticle, {
   LabeledItem,
@@ -12,6 +11,7 @@ import PillarArticle, {
   PillarSectionHeading,
 } from "./PillarArticle";
 import PillarBibliography from "./PillarBibliography";
+import PillarCatalogSection from "./PillarCatalogSection";
 import PillarLocal from "./PillarLocal";
 import PillarPractice from "./PillarPractice";
 
@@ -69,7 +69,14 @@ export default function MenteEspirituPage({ locale }: { locale: AppLocale }) {
 
       <MindGroundingAndBreath />
 
-      <MindPracticeCatalog />
+      <PillarCatalogSection
+        pillar="mindSpirit"
+        locale={locale}
+        heading={t("catalogHeading")}
+        intro={t("catalogIntro")}
+        bodyLabel={t("catalogBodyLabel")}
+        localLabel={t("catalogLocalLabel")}
+      />
 
       {/* Los puentes cierran la pagina: se leen mejor cuando ya se entendio la practica. */}
       <MindPillarBridges />

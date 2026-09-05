@@ -15,6 +15,7 @@ import { resolve } from "node:path";
 import { config } from "dotenv";
 import { sql } from "drizzle-orm";
 import type { PillarKey } from "~/domain/pillars/pillarKey";
+import { PILLAR_THEME_SEED } from "./data/pillarThemes";
 import {
   PILLAR_SEED,
   PRACTICE_SEED,
@@ -249,6 +250,50 @@ async function retireOldKeys(db: Database): Promise<number> {
   return removed;
 }
 
+/**
+ * Los temas y la pertenencia de cada práctica a uno.
+ *
+ * Se siembra **después** de las prácticas porque `practices.theme_id` las necesita existiendo, y se
+ * limpia antes: una práctica que sale de un tema tiene que salir también de la página, y un
+ * `UPDATE` que sólo asigna no sabe desasignar.
+ */
+async function seedThemes(db: Database): Promise<void> {
+  await db.execute(sql`UPDATE practices SET theme_id = NULL`);
+
+  for (const theme of PILLAR_THEME_SEED) {
+    await db.execute(sql`
+      INSERT INTO pillar_themes (key, pillar_key, sort_order)
+      VALUES (${theme.key}, ${theme.pillar}, ${theme.sortOrder})
+      ON CONFLICT (key) DO UPDATE
+        SET pillar_key = EXCLUDED.pillar_key,
+            sort_order = EXCLUDED.sort_order
+    `);
+
+    for (const [locale, copy] of [
+      ["es", theme.es],
+      ["en", theme.en],
+    ] as const) {
+      await db.execute(sql`
+        INSERT INTO pillar_theme_translations (theme_id, locale, title, body_impact, local_impact)
+        SELECT t.id, ${locale}, ${copy.title}, ${copy.bodyImpact}, ${copy.localImpact}
+        FROM pillar_themes t WHERE t.key = ${theme.key}
+        ON CONFLICT ON CONSTRAINT uq_pillar_theme_translations_locale DO UPDATE
+          SET title        = EXCLUDED.title,
+              body_impact  = EXCLUDED.body_impact,
+              local_impact = EXCLUDED.local_impact
+      `);
+    }
+
+    for (const practiceKey of theme.practices) {
+      await db.execute(sql`
+        UPDATE practices
+        SET theme_id = (SELECT id FROM pillar_themes WHERE key = ${theme.key})
+        WHERE key = ${practiceKey}
+      `);
+    }
+  }
+}
+
 async function main(): Promise<void> {
   const { db } = await import("~/infra/dataAccess/db/connection");
 
@@ -279,6 +324,9 @@ async function main(): Promise<void> {
     await seedPractice(db, practice);
   }
   console.log(`Prácticas sembradas: ${PRACTICE_SEED.length}`);
+
+  await seedThemes(db);
+  console.log(`Temas sembrados: ${PILLAR_THEME_SEED.length}`);
 
   /* `COUNT(DISTINCT …)` en las tres, y no `COUNT(*)`: el `LEFT JOIN` con las citas multiplica cada
      práctica por sus estudios, así que un `COUNT(*)` contaba filas del producto y no prácticas —23

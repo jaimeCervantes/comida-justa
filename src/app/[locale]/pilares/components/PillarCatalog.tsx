@@ -1,3 +1,4 @@
+import { Link } from "~/i18n/navigation";
 import { Heading } from "~/presentation/design_system/typography/Heading";
 import { PillarSectionHeading } from "./PillarArticle";
 import { type PillarKey, pillarColorClasses } from "./pilaresData";
@@ -32,6 +33,7 @@ export default function PillarCatalog({
   intro,
   bodyLabel,
   localLabel,
+  browseLabel,
   categories,
 }: {
   pillar: PillarKey;
@@ -39,6 +41,8 @@ export default function PillarCatalog({
   intro: string;
   bodyLabel: string;
   localLabel: string;
+  /** Adónde ir a ver cada práctica con su ancla y su evidencia. */
+  browseLabel: string;
   categories: readonly PillarCatalogCategory[];
 }): React.ReactNode {
   const color = pillarColorClasses[pillar];
@@ -47,6 +51,12 @@ export default function PillarCatalog({
     <section>
       <PillarSectionHeading>{heading}</PillarSectionHeading>
       <p className="mb-6">{intro}</p>
+
+      <p className="mb-6 text-caption">
+        <Link href="/practicas" className={color.link}>
+          {browseLabel}
+        </Link>
+      </p>
 
       <ul className="grid gap-4 lg:grid-cols-2">
         {categories.map((category) => (

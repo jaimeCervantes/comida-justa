@@ -1,7 +1,6 @@
 import { useTranslations } from "next-intl";
 import type { AppLocale } from "~/i18n/routing";
 import { Heading } from "~/presentation/design_system/typography/Heading";
-import MovementCatalog from "./MovementCatalog";
 import MovementDailyCadence from "./MovementDailyCadence";
 import MovementFootAndTerrain from "./MovementFootAndTerrain";
 import MovementPillarBridges from "./MovementPillarBridges";
@@ -12,6 +11,7 @@ import PillarArticle, {
   PillarSectionHeading,
 } from "./PillarArticle";
 import PillarBibliography from "./PillarBibliography";
+import PillarCatalogSection from "./PillarCatalogSection";
 import PillarLocal from "./PillarLocal";
 import PillarPractice from "./PillarPractice";
 
@@ -67,7 +67,14 @@ export default function MovimientoPage({ locale }: { locale: AppLocale }) {
 
       <MovementFootAndTerrain />
 
-      <MovementCatalog />
+      <PillarCatalogSection
+        pillar="movement"
+        locale={locale}
+        heading={t("catalogHeading")}
+        intro={t("catalogIntro")}
+        bodyLabel={t("catalogBodyLabel")}
+        localLabel={t("catalogLocalLabel")}
+      />
 
       {/* Los puentes cierran la pagina: se leen mejor cuando ya se entendio la practica. */}
       <MovementPillarBridges />

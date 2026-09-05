@@ -3,10 +3,21 @@ import { cache } from "react";
 import type { PillarKey } from "~/domain/pillars/pillarKey";
 import type { PracticeCard } from "~/domain/practices/practiceCard";
 import { db } from "~/infra/dataAccess/db/connection";
-import type { PracticeCatalogRepository } from "~/use_cases/practices/ports/PracticeCatalogRepository";
+import type {
+  PillarTheme,
+  PracticeCatalogRepository,
+} from "~/use_cases/practices/ports/PracticeCatalogRepository";
 
 /** El idioma al que se cae cuando una práctica todavía no está traducida. */
 const FALLBACK_LOCALE = "es";
+
+type ThemeRow = {
+  key: string;
+  title: string;
+  body_impact: string;
+  local_impact: string;
+  practices: string[] | null;
+};
 
 type CatalogRow = {
   key: string;
@@ -83,6 +94,55 @@ export class PostgresPracticeCatalog implements PracticeCatalogRepository {
     `);
     const row = result.rows[0] as { pillar_key: string } | undefined;
     return (row?.pillar_key as PillarKey) ?? null;
+  }
+
+  /**
+   * Los temas de un pilar, en el orden en que se construyó el catálogo.
+   *
+   * `LEFT JOIN` hacia las prácticas: un tema recién sembrado y todavía sin prácticas asignadas se
+   * enseña con su título y sus dos impactos en vez de desaparecer sin decir por qué.
+   */
+  async listThemes(
+    pillar: PillarKey,
+    locale: string,
+  ): Promise<readonly PillarTheme[]> {
+    const result = await db.execute(sql`
+      SELECT th.key,
+             tt.title,
+             tt.body_impact,
+             tt.local_impact,
+             COALESCE(
+               array_agg(pt.title ORDER BY pt.title) FILTER (WHERE pt.title IS NOT NULL),
+               ARRAY[]::text[]
+             ) AS practices
+      FROM pillar_themes th
+      JOIN LATERAL (
+        SELECT t.title, t.body_impact, t.local_impact
+        FROM pillar_theme_translations t
+        WHERE t.theme_id = th.id AND t.locale IN (${locale}, ${FALLBACK_LOCALE})
+        ORDER BY (t.locale = ${locale}) DESC
+        LIMIT 1
+      ) tt ON TRUE
+      LEFT JOIN practices p ON p.theme_id = th.id AND p.status = 'published'
+      LEFT JOIN LATERAL (
+        SELECT t.title
+        FROM practice_translations t
+        WHERE t.practice_id = p.id AND t.locale IN (${locale}, ${FALLBACK_LOCALE})
+        ORDER BY (t.locale = ${locale}) DESC
+        LIMIT 1
+      ) pt ON TRUE
+      WHERE th.pillar_key = ${pillar}
+      GROUP BY th.id, th.sort_order, tt.title, tt.body_impact, tt.local_impact
+      ORDER BY th.sort_order
+    `);
+
+    return (result.rows as ThemeRow[]).map((row) => ({
+      key: row.key,
+      title: row.title,
+      bodyImpact: row.body_impact,
+      localImpact: row.local_impact,
+      practices: row.practices ?? [],
+    }));
   }
 }
 

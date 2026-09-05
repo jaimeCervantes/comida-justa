@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import type { PracticeCard } from "~/domain/practices/practiceCard";
-import type { PracticeCatalogRepository } from "./ports/PracticeCatalogRepository";
+import type {
+  PillarTheme,
+  PracticeCatalogRepository,
+} from "./ports/PracticeCatalogRepository";
 import PracticeCatalogUseCase from "./practiceCatalogUseCase";
 
 function practice(overrides: Partial<PracticeCard> = {}): PracticeCard {
@@ -22,6 +25,7 @@ function practice(overrides: Partial<PracticeCard> = {}): PracticeCard {
 
 function catalogOf(
   practices: readonly PracticeCard[],
+  themes: readonly PillarTheme[] = [],
 ): PracticeCatalogRepository {
   return {
     async listPublished() {
@@ -31,6 +35,9 @@ function catalogOf(
       return (
         practices.find(({ key }) => key === practiceKey)?.pillars[0] ?? null
       );
+    },
+    async listThemes() {
+      return themes;
     },
   };
 }
@@ -93,6 +100,9 @@ describe("el catálogo agrupado por pilar", () => {
       async findPrimaryPillar() {
         return null;
       },
+      async listThemes() {
+        return [];
+      },
     };
 
     await new PracticeCatalogUseCase(repository).listByPillar("en");
@@ -121,5 +131,29 @@ describe("el pilar del que una práctica es portada", () => {
     await expect(
       new PracticeCatalogUseCase(catalogOf([])).primaryPillarOf("inventada"),
     ).resolves.toBeNull();
+  });
+});
+
+describe("los temas del catálogo", () => {
+  const tema: PillarTheme = {
+    key: "sleep-light",
+    title: "Anclaje de luz solar",
+    bodyImpact: "Ajusta el reloj interno.",
+    localImpact: "Saca la vida a la calle.",
+    practices: ["Anclar la mañana con sol"],
+  };
+
+  it("los devuelve tal como los ordena la base", async () => {
+    const groups = await new PracticeCatalogUseCase(
+      catalogOf([], [tema]),
+    ).listThemes("sleep", "es");
+
+    expect(groups).toEqual([tema]);
+  });
+
+  it("un pilar sin catálogo devuelve una lista vacía, no un fallo", async () => {
+    await expect(
+      new PracticeCatalogUseCase(catalogOf([])).listThemes("nutrition", "es"),
+    ).resolves.toEqual([]);
   });
 });

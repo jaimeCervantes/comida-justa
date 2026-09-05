@@ -19,6 +19,16 @@ vi.mock("./PillarBibliography", () => ({
   default: () => <section data-testid="pillar-bibliography" />,
 }));
 
+/* Y el catálogo consulta `pillar_themes`: cuarta frontera asíncrona. Lo que la tarjeta promete se
+   comprueba en `PillarCatalog.test.tsx`, con temas fijos. */
+vi.mock("./PillarCatalogSection", () => ({
+  default: ({ heading }: { heading: string }) => (
+    <section data-testid="pillar-catalog">
+      <h2>{heading}</h2>
+    </section>
+  ),
+}));
+
 function sectionOf(heading: string): HTMLElement {
   const title = screen.getByRole("heading", { name: heading });
   const section = title.closest("section");
@@ -144,43 +154,6 @@ describe("la cocción limpia", () => {
     expect(
       within(cooking).getByText(/Vapor, freidora de aire/),
     ).toBeInTheDocument();
-  });
-});
-
-describe("el catálogo de ingredientes", () => {
-  /** Cada categoría dice las tres cosas; una tarjeta sin impacto ecológico vuelve opcional lo local. */
-  it("da a las cuatro categorías su impacto en el cuerpo y en el entorno", () => {
-    renderWithIntl(<AlimentacionPage locale="es" />);
-    const catalog = sectionOf("Catálogo de ingredientes de proximidad");
-
-    for (const category of [
-      "Proteínas de calidad",
-      "Carbohidratos complejos",
-      "Grasas saludables",
-      "Aceites sanos y cocción limpia",
-    ]) {
-      const card = within(catalog)
-        .getByRole("heading", { name: category })
-        .closest("li") as HTMLElement;
-
-      expect(within(card).getByText("En el cuerpo")).toBeInTheDocument();
-      expect(
-        within(card).getByText("En el entorno y la economía local"),
-      ).toBeInTheDocument();
-      expect(
-        within(card).getAllByRole("listitem").length,
-      ).toBeGreaterThanOrEqual(4);
-    }
-  });
-
-  /**
-   * La fuente de esto es una tabla de cuatro columnas. Trasladarla tal cual habría desbordado la
-   * página a lo ancho justo en el teléfono, que es donde se consulta al comprar.
-   */
-  it("no usa una tabla que obligue a desplazarse a lo ancho", () => {
-    const { container } = renderWithIntl(<AlimentacionPage locale="es" />);
-
-    expect(container.querySelector("table")).toBeNull();
   });
 });
 

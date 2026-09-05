@@ -19,6 +19,16 @@ vi.mock("./PillarBibliography", () => ({
   default: () => <section data-testid="pillar-bibliography" />,
 }));
 
+/* Y el catálogo consulta `pillar_themes`: cuarta frontera asíncrona. Lo que la tarjeta promete se
+   comprueba en `PillarCatalog.test.tsx`, con temas fijos. */
+vi.mock("./PillarCatalogSection", () => ({
+  default: ({ heading }: { heading: string }) => (
+    <section data-testid="pillar-catalog">
+      <h2>{heading}</h2>
+    </section>
+  ),
+}));
+
 function sectionOf(heading: string): HTMLElement {
   const title = screen.getByRole("heading", { name: heading });
   const section = title.closest("section");
@@ -137,40 +147,6 @@ describe("el arraigo y la respiración", () => {
     expect(
       within(grounding).getByText(/no llegar al 4-7-8 exacto/),
     ).toBeInTheDocument();
-  });
-});
-
-describe("el catálogo de prácticas", () => {
-  it("da a las cuatro categorías su impacto en la mente y en la comunidad", () => {
-    renderWithIntl(<MenteEspirituPage locale="es" />);
-    const catalog = sectionOf("Catálogo de prácticas de presencia");
-
-    for (const category of [
-      "Higiene digital y ayuno de pantallas",
-      "Arraigo y contemplación en la naturaleza",
-      "Diálogo presencial y gratitud",
-      "Servicio y cooperación comunitaria",
-    ]) {
-      const card = within(catalog)
-        .getByRole("heading", { name: category })
-        .closest("li") as HTMLElement;
-
-      expect(
-        within(card).getByText("En la mente y las emociones"),
-      ).toBeInTheDocument();
-      expect(
-        within(card).getByText("En la comunidad y el tejido social"),
-      ).toBeInTheDocument();
-      expect(
-        within(card).getAllByRole("listitem").length,
-      ).toBeGreaterThanOrEqual(4);
-    }
-  });
-
-  it("no usa una tabla que obligue a desplazarse a lo ancho", () => {
-    const { container } = renderWithIntl(<MenteEspirituPage locale="es" />);
-
-    expect(container.querySelector("table")).toBeNull();
   });
 });
 

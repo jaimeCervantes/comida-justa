@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { PILLAR_THEME_SEED } from "./pillarThemes";
 import {
   PILLAR_SEED,
   PRACTICE_SEED,
@@ -167,6 +168,60 @@ describe("las claves retiradas", () => {
 
     for (const retired of RETIRED_PRACTICE_KEYS) {
       expect(live.has(retired), retired).toBe(false);
+    }
+  });
+});
+
+describe("los temas del catálogo", () => {
+  /** La invariante que la base no puede afirmar: el tema de una práctica es de su propio pilar. */
+  const practiceByKey = new Map(PRACTICE_SEED.map((p) => [p.key, p]));
+
+  it("agrupa sólo prácticas del pilar del tema", () => {
+    for (const theme of PILLAR_THEME_SEED) {
+      for (const key of theme.practices) {
+        const practice = practiceByKey.get(key);
+        expect(practice, `${theme.key} → ${key}`).toBeDefined();
+        expect(practice?.pillars[0], `${theme.key} → ${key}`).toBe(
+          theme.pillar,
+        );
+      }
+    }
+  });
+
+  it("no mete una práctica en dos temas", () => {
+    const assigned = PILLAR_THEME_SEED.flatMap(({ practices }) => practices);
+    expect(new Set(assigned).size).toBe(assigned.length);
+  });
+
+  it("no repite claves de tema ni deja un pilar sin ninguno", () => {
+    const keys = PILLAR_THEME_SEED.map(({ key }) => key);
+    expect(new Set(keys).size).toBe(keys.length);
+
+    const pillars = new Set(PILLAR_THEME_SEED.map(({ pillar }) => pillar));
+    expect(pillars).toEqual(
+      new Set(["sleep", "nutrition", "movement", "mindSpirit"]),
+    );
+  });
+
+  it("traduce título y los dos impactos en los dos idiomas", () => {
+    for (const theme of PILLAR_THEME_SEED) {
+      for (const copy of [theme.es, theme.en]) {
+        expect(copy.title.length, theme.key).toBeGreaterThan(0);
+        expect(copy.bodyImpact.length, theme.key).toBeGreaterThan(0);
+        expect(copy.localImpact.length, theme.key).toBeGreaterThan(0);
+      }
+    }
+  });
+
+  it("deja fuera los cuatro rituales: son la insignia del pilar, no una fila del catálogo", () => {
+    const assigned = new Set(
+      PILLAR_THEME_SEED.flatMap(({ practices }) => practices),
+    );
+
+    for (const practice of PRACTICE_SEED) {
+      if (practice.challengeKey) {
+        expect(assigned.has(practice.key), practice.key).toBe(false);
+      }
     }
   });
 });

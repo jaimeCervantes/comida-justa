@@ -12,4 +12,24 @@ export interface PracticeCatalogRepository {
    * contra lo que mande el formulario.
    */
   findPrimaryPillar(practiceKey: string): Promise<PillarKey | null>;
+  /** Los temas del catálogo de un pilar, con los nombres de las prácticas que agrupan. */
+  listThemes(
+    pillar: PillarKey,
+    locale: string,
+  ): Promise<readonly PillarTheme[]>;
 }
+
+/**
+ * Un tema del catálogo: qué agrupa y qué hace, por dentro y por fuera.
+ *
+ * Los dos impactos van en el mismo tema y no en una sección de sostenibilidad aparte: son la misma
+ * decisión, y separarlos volvería opcional la mitad que sostiene al barrio.
+ */
+export type PillarTheme = {
+  key: string;
+  title: string;
+  bodyImpact: string;
+  localImpact: string;
+  /** Los nombres de sus prácticas. El detalle de cada una vive en `/practicas`. */
+  practices: readonly string[];
+};

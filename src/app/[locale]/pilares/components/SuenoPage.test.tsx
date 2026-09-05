@@ -19,6 +19,16 @@ vi.mock("./PillarBibliography", () => ({
   default: () => <section data-testid="pillar-bibliography" />,
 }));
 
+/* Y el catálogo consulta `pillar_themes`: cuarta frontera asíncrona. Lo que la tarjeta promete se
+   comprueba en `PillarCatalog.test.tsx`, con temas fijos. */
+vi.mock("./PillarCatalogSection", () => ({
+  default: ({ heading }: { heading: string }) => (
+    <section data-testid="pillar-catalog">
+      <h2>{heading}</h2>
+    </section>
+  ),
+}));
+
 function sectionOf(heading: string): HTMLElement {
   const title = screen.getByRole("heading", { name: heading });
   const section = title.closest("section");
@@ -158,30 +168,7 @@ describe("los puentes con los otros pilares", () => {
   });
 });
 
-describe("el catálogo de prácticas de descanso", () => {
-  /** Son tres y no cuatro: la fuente tiene tres, e inventar una cuarta por simetría sería relleno. */
-  it("da a las tres categorías su impacto en el cuerpo y en el gasto", () => {
-    renderWithIntl(<SuenoPage locale="es" />);
-    const catalog = sectionOf("Catálogo de prácticas de descanso");
-
-    for (const category of [
-      "Anclaje de luz solar",
-      "Ambiente y control de estímulos",
-      "Cierre mental y calma",
-    ]) {
-      const card = within(catalog)
-        .getByRole("heading", { name: category })
-        .closest("li") as HTMLElement;
-
-      expect(
-        within(card).getByText("En el cuerpo y el ánimo"),
-      ).toBeInTheDocument();
-      expect(
-        within(card).getByText("En el gasto y el entorno"),
-      ).toBeInTheDocument();
-    }
-  });
-
+describe("la página entera", () => {
   it("no usa una tabla que obligue a desplazarse a lo ancho", () => {
     const { container } = renderWithIntl(<SuenoPage locale="es" />);
 

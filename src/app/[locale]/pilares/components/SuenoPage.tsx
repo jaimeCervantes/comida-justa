@@ -9,11 +9,11 @@ import PillarArticle, {
   PillarSectionHeading,
 } from "./PillarArticle";
 import PillarBibliography from "./PillarBibliography";
+import PillarCatalogSection from "./PillarCatalogSection";
 import PillarLocal from "./PillarLocal";
 import PillarPractice from "./PillarPractice";
 import SleepMentalUnload from "./SleepMentalUnload";
 import SleepPillarBridges from "./SleepPillarBridges";
-import SleepPracticeCatalog from "./SleepPracticeCatalog";
 import SleepSanctuary from "./SleepSanctuary";
 
 export default function SuenoPage({ locale }: { locale: AppLocale }) {
@@ -71,7 +71,14 @@ export default function SuenoPage({ locale }: { locale: AppLocale }) {
 
       <SleepMentalUnload />
 
-      <SleepPracticeCatalog />
+      <PillarCatalogSection
+        pillar="sleep"
+        locale={locale}
+        heading={t("catalogHeading")}
+        intro={t("catalogIntro")}
+        bodyLabel={t("catalogBodyLabel")}
+        localLabel={t("catalogLocalLabel")}
+      />
 
       {/* Los puentes cierran el círculo de los cuatro pilares, y por eso van al final: se leen
           mejor cuando ya se entendió qué protege el descanso. */}

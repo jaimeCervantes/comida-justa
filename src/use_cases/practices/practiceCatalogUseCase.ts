@@ -1,7 +1,10 @@
 import type { PillarKey } from "~/domain/pillars/pillarKey";
 import type { PracticeCard } from "~/domain/practices/practiceCard";
 import { primaryPillarOf } from "~/domain/practices/practiceCard";
-import type { PracticeCatalogRepository } from "./ports/PracticeCatalogRepository";
+import type {
+  PillarTheme,
+  PracticeCatalogRepository,
+} from "./ports/PracticeCatalogRepository";
 
 /** Las prácticas de un pilar, con el pilar delante para que la página no tenga que agrupar. */
 export type PillarPractices = {
@@ -22,6 +25,14 @@ export default class PracticeCatalogUseCase {
    * **No inventa pilares vacíos.** Un pilar sin prácticas sembradas no aparece, en vez de pintar un
    * encabezado con nada debajo.
    */
+
+  /** Los temas del catálogo de un pilar. Vacío significa que ese pilar no tiene catálogo. */
+  async listThemes(
+    pillar: PillarKey,
+    locale: string,
+  ): Promise<readonly PillarTheme[]> {
+    return this.repository.listThemes(pillar, locale);
+  }
 
   /**
    * El pilar del que una práctica es portada.

@@ -260,39 +260,32 @@ un agrupador (`pillar_themes`) y dos textos traducibles más por tema. Es una ex
 modelo, no un cambio de plantilla, y por eso se decide aparte en vez de deformar `practices` para
 que quepa. Ver «Slice 2b».
 
-### Slice 2b — El catálogo por temas (bloqueado por un hallazgo)
+### Slice 2b — El catálogo por temas ✅
 
-El plan era: una tabla de temas por pilar con su título y sus dos impactos, y la pertenencia de cada
-práctica a un tema. 15 temas y 60 ítems ya escritos.
+`pillar_themes` + `pillar_theme_translations` (migración 0054) y un `theme_id` nulable en
+`practices`. Los cuatro `PillarCatalog` se pintan desde la base, y mueren los cuatro componentes que
+los armaban desde i18n y sus **105 claves por idioma**.
 
-**Al ir a sembrarlo se descubrió que `PillarCatalog` sirve a dos modelos distintos.** En tres pilares
-sus ítems son **acciones** y mapean a prácticas:
+**Una sola tabla, no dos.** El diagnóstico inicial —«en Alimentación son ingredientes, hace falta
+otro modelo»— era demasiado fuerte, y el usuario tuvo razón en cuestionarlo. Volviendo a los datos:
 
-> «Ir al mercado o a la tienda del barrio caminando o en bici.»
-> «Primera y última hora del día sin teléfono.»
+| | Sus cuatro ítems son |
+|---|---|
+| Movimiento, *Proximidad y pausas activas* | **tres acciones distintas**, ya sembradas por separado |
+| Alimentación, *Proteínas de calidad* | **cuatro opciones de una acción**, ya sembradas dentro de su `how_to` |
 
-En Alimentación son **ingredientes**:
+No son dos modelos: es el mismo a dos granularidades. Los temas de Alimentación agrupan una o dos
+prácticas y los de Movimiento tres, y eso es cómo se escribió el contenido. Lo que **no** se hizo fue
+partir «comer frijol» y «comer huevo de granja» en dos prácticas: no son dos hábitos, son dos maneras
+de hacer uno, y partirlos habría inflado el catálogo con casi-duplicados.
 
-> «Leguminosas locales: frijol negro, bayo o pinto y lentejas a granel.»
-> «Camote, yuca y papa de agricultores cercanos; cocida y enfriada, la papa gana almidón resistente.»
+**`theme_id` nulable significa algo.** Los cuatro rituales no están en ningún tema —son la insignia
+del pilar, no una fila de su catálogo— y en Alimentación el catálogo trata de ingredientes, así que
+las prácticas sobre *cómo* se come tampoco. Nulo no es «falta clasificar».
 
-Un ingrediente no tiene ancla, ni versión mínima, ni se puede empezar ni dejar. Modelarlo como
-práctica obligaría a inventar dieciséis «prácticas» que en realidad son una lista de compra, y la
-deduplicación del slice 2 ya lo había hecho evidente sin que se viera: las cuatro categorías de
-ingredientes se convirtieron en cuatro prácticas de una frase (`nutrition-regional-protein`,
-`nutrition-territory-carbs`, `nutrition-healthy-fats`), mientras que las de los otros pilares
-absorbieron varios ítems cada una.
-
-**La decisión que hay que tomar antes de construir nada**, en orden de preferencia:
-
-1. **Dos modelos, dos nombres.** `pillar_themes` sobre prácticas para Sueño, Movimiento y Mente; y
-   un catálogo de **ingredientes** aparte para Alimentación —que además es el que podría enlazar con
-   `posts` y con las tiendas, porque un ingrediente sí se compra—. Es más trabajo y es lo que los
-   datos dicen que son.
-2. **Sólo los tres pilares de acciones**, y el de Alimentación se queda como prosa en i18n. Barato,
-   pero deja `PillarCatalog` leyendo de dos sitios, que es lo que el slice 2 vino a evitar.
-3. **Forzar los ingredientes a prácticas.** Es lo que no recomiendo: distorsiona el modelo para que
-   quepa una plantilla.
+**Los ítems son ahora los nombres de las prácticas**, y la tarjeta enlaza a `/practicas`. Antes eran
+frases que repetían con otras palabras lo que la práctica ya dice; mantenerlas habría sido una
+segunda redacción del mismo contenido, y ya se vio a dónde lleva eso.
 
 ### Slice 2c — La tabla del jardín, sin podio ✅
 
