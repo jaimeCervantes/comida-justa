@@ -122,16 +122,31 @@ export default async function AtomicChallengesPage({
             {t("league.conditioned")}
           </p>
         ) : (
-          <ol className="mt-5 space-y-2" aria-label={t("league.rankingLabel")}>
-            {league.ranking.map((entry) => (
+          /*
+            Una lista **ordenada** y sin puesto escrito: el `<ol>` numera, y esa es toda la posición
+            que hay. No hay corona, no hay «1er lugar» y no hay premio, porque un ganador semanal
+            fabrica nueve perdedores por cada ganador y suele ganar quien tiene la vida menos
+            caótica. Lo que sí se ve es el aporte de cada quien al mismo jardín.
+          */
+          <ol className="mt-5 space-y-2" aria-label={t("league.tableLabel")}>
+            {league.contributors.map((entry) => (
               <li
                 key={entry.alias}
-                className="flex justify-between rounded-control border p-3"
+                className="flex flex-wrap items-baseline justify-between gap-2 rounded-control border p-3"
               >
-                <span>
-                  {t("league.rank", { rank: entry.rank, alias: entry.alias })}
+                <span>{t("league.contributor", { alias: entry.alias })}</span>
+                <span className="flex items-baseline gap-3">
+                  <strong>
+                    {t("league.contributions", {
+                      contributions: entry.contributions,
+                    })}
+                  </strong>
+                  <span className="text-caption text-text-muted">
+                    {t("league.sustainedWeeks", {
+                      weeks: entry.sustainedWeeks,
+                    })}
+                  </span>
                 </span>
-                <strong>{t("league.points", { points: entry.score })}</strong>
               </li>
             ))}
           </ol>

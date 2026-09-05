@@ -264,6 +264,28 @@ Lo que falta para que `PillarCatalog` se pinte desde la base: una tabla de temas
 título, su intro y sus dos impactos traducibles, y la pertenencia de cada práctica a un tema. Son
 15 temas y 60 ítems ya escritos en `pillarPages.*`; el trabajo es de modelo, no de contenido.
 
+### Slice 2c — La tabla del jardín, sin podio ✅
+
+La liga deja de ser una clasificación y pasa a ser **quiénes hicieron crecer el jardín**. No es
+maquillaje: cambia lo que se mide.
+
+- **Aportes en vez de días distintos.** Con días el techo era 7, y sobre siete valores posibles una
+  tabla de veinte personas es un empate perpetuo: ordena sin informar. Un aporte es una repetición,
+  y el tope que importa ya lo pone la base — `uq_habit_repetitions_local_cycle` es único por
+  persona, reto y fecha, así que **un pilar aporta una vez al día**. Caminar diez kilómetros vale lo
+  mismo que caminar dos minutos; practicar dos pilares el mismo día sí vale más que practicar uno.
+  Amplitud sí, intensidad no.
+- **Semanas sostenidas** como segunda columna. Sube 1 por semana y no se puede acelerar. Reutiliza
+  `countSustainedWeeks`, que ya existía y **no es una racha**: un hueco no borra nada, porque
+  castigar a quien faltó y volvió contradice todo lo demás de esta práctica.
+- **Sin `rank`, sin corona, sin premio.** La lista es un `<ol>` y esa es toda la posición que hay.
+- El umbral de 10 y el consentimiento por alias se quedan igual: aparecer con nombre es una
+  decisión, no un efecto secundario de practicar.
+
+**La regla que hay que proteger** cuando las 45 prácticas sean registrables: el aporte se cuenta por
+**pilar y día**, no por práctica y día. Si no, marcar doce prácticas un martes son doce aportes y la
+tabla se vuelve quién marca más casillas.
+
 ### Slice 3 — El bot responde con la práctica, y cita el estudio
 
 **Es el slice que justifica el modelo.** En el backend:

@@ -311,17 +311,18 @@
     "indexIntro": "Elige una práctica para esta semana. Puedes cambiarla sin perder tu progreso.",
     "indexTitle": "Una práctica para cada pilar",
     "league": {
-      "aliasRequired": "Para participar necesitas un alias público; nunca usamos tu correo o nombre privado.",
+      "aliasRequired": "Para aparecer necesitas un alias público; nunca usamos tu correo o nombre privado.",
       "claimAlias": "Reclamar alias",
-      "conditioned": "La clasificación aparecerá solo cuando exista una comunidad semanal suficiente. No mostramos una tabla vacía.",
-      "ethics": "Un punto máximo por fecha con práctica, reinicio semanal, empates compartidos y ninguna medida de cuerpo, volumen o popularidad.",
-      "join": "Quiero participar esta semana",
-      "leave": "Salir de la liga",
-      "points": "{points} puntos",
-      "rank": "Posición {rank}: @{alias}",
-      "rankingLabel": "Clasificación semanal por constancia",
-      "threshold": "{active} de {threshold} participantes semanales activos",
-      "title": "Liga semanal de constancia"
+      "conditioned": "La tabla aparece cuando haya una comunidad semanal suficiente. No mostramos una tabla de dos filas: no dice nada y expone a quienes sí están.",
+      "contributions": "{contributions} aportes",
+      "contributor": "@{alias}",
+      "ethics": "No hay ganador, ni corona, ni premio: sólo el aporte de cada quien al mismo jardín. Un pilar aporta una vez al día, así que hacer más no compra más; la semana se reinicia; y las semanas practicando nunca bajan, porque volver después de faltar vale más que fingir perfección.",
+      "join": "Quiero aparecer esta semana",
+      "leave": "Quitar mi nombre de la tabla",
+      "sustainedWeeks": "{weeks} semanas practicando",
+      "tableLabel": "Aportes de la semana al jardín comunitario",
+      "threshold": "{active} de {threshold} personas apareciendo esta semana",
+      "title": "Quiénes hacen crecer el jardín"
     },
     "makeActive": "Cambiar a esta práctica",
     "nutritionExperience": {

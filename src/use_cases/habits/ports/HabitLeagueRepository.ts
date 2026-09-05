@@ -7,6 +7,11 @@ export interface HabitLeagueRepository {
    * que alguien practicó, no el instante en que lo escribió. Con `Date` había que convertir en el
    * adaptador, y esa conversión es justo donde se colaba el desfase de husos.
    */
+  /**
+   * Devuelve, por cada persona que aceptó aparecer, sus aportes de la semana pedida **y todas** sus
+   * fechas de práctica. Las segundas no se recortan a la semana: las semanas sostenidas son
+   * históricas, y quien vuelve tras un mes tiene que seguir viéndolas.
+   */
   readWeeklyParticipants(
     start: LocalDate,
     end: LocalDate,

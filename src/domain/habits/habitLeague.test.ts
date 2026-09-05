@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { currentCommunityWeek, openCommunityWeek } from "./habitChallenge";
 import {
-  buildWeeklyLeagueRanking,
+  buildGardenContributions,
   evaluateLeagueEligibility,
 } from "./habitLeague";
 
@@ -57,20 +57,84 @@ describe("weekly habit league", () => {
     );
   });
 
-  it("caps consistency at one point per date and shares ties", () => {
+  /**
+   * La tabla del jardín ordena por aporte y **no reparte puestos**: no hay `rank`, no hay corona y
+   * no hay premio. Quien quiera saber su posición la lee del orden.
+   */
+  it("orders by contribution, then by sustained weeks, then by alias", () => {
     expect(
-      buildWeeklyLeagueRanking([
+      buildGardenContributions([
+        {
+          alias: "sol",
+          weeklyRepetitions: 3,
+          practiceDates: ["2026-08-10"],
+        },
         {
           alias: "ana",
-          activeDates: ["2026-08-10", "2026-08-10", "2026-08-11"],
+          weeklyRepetitions: 7,
+          practiceDates: ["2026-08-10", "2026-08-17", "2026-08-24"],
         },
-        { alias: "luz", activeDates: ["2026-08-10", "2026-08-12"] },
-        { alias: "sol", activeDates: ["2026-08-10"] },
+        {
+          alias: "luz",
+          weeklyRepetitions: 3,
+          practiceDates: ["2026-08-10", "2026-08-17"],
+        },
       ]),
     ).toEqual([
-      { alias: "ana", score: 2, rank: 1 },
-      { alias: "luz", score: 2, rank: 1 },
-      { alias: "sol", score: 1, rank: 2 },
+      { alias: "ana", contributions: 7, sustainedWeeks: 3 },
+      { alias: "luz", contributions: 3, sustainedWeeks: 2 },
+      { alias: "sol", contributions: 3, sustainedWeeks: 1 },
     ]);
+  });
+
+  it("desempata por alias cuando el aporte y las semanas coinciden", () => {
+    // Sin este orden estable, dos personas iguales se intercambiaban de sitio en cada recarga.
+    const [first, second] = buildGardenContributions([
+      { alias: "zoe", weeklyRepetitions: 4, practiceDates: ["2026-08-10"] },
+      { alias: "abril", weeklyRepetitions: 4, practiceDates: ["2026-08-10"] },
+    ]);
+
+    expect([first.alias, second.alias]).toEqual(["abril", "zoe"]);
+  });
+
+  /**
+   * El cambio que hace que la tabla sirva: antes se contaban **días distintos**, con techo 7, y
+   * veinte personas empataban para siempre. Ahora se cuentan aportes, y el único tope lo pone la
+   * base: un pilar aporta una vez al día.
+   */
+  it("cuenta aportes y no días, para que la tabla tenga con qué moverse", () => {
+    const [ana, luz] = buildGardenContributions([
+      {
+        alias: "ana",
+        weeklyRepetitions: 12,
+        practiceDates: ["2026-08-10", "2026-08-11", "2026-08-12"],
+      },
+      {
+        alias: "luz",
+        weeklyRepetitions: 3,
+        practiceDates: ["2026-08-10", "2026-08-11", "2026-08-12"],
+      },
+    ]);
+
+    // Practicaron los mismos tres días; ana practicó más pilares cada uno de ellos.
+    expect(ana.contributions).toBeGreaterThan(luz.contributions);
+    expect(ana.sustainedWeeks).toBe(luz.sustainedWeeks);
+  });
+
+  /**
+   * Faltar una semana no borra nada. `countSustainedWeeks` lo dice en su propio docblock: una racha
+   * castigaría justo a quien regresó, que es lo contrario de todo lo demás de esta práctica.
+   */
+  it("un hueco de semanas no baja las semanas sostenidas", () => {
+    const [entry] = buildGardenContributions([
+      {
+        alias: "ana",
+        weeklyRepetitions: 1,
+        // Dos semanas seguidas, un mes de hueco, y la de vuelta.
+        practiceDates: ["2026-08-10", "2026-08-17", "2026-09-21"],
+      },
+    ]);
+
+    expect(entry.sustainedWeeks).toBe(3);
   });
 });

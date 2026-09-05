@@ -275,3 +275,101 @@ catálogo por temas se queda fuera hasta decidir su modelo, y `typecheck:tests` 
 
 **Pendiente del usuario:** el orden entre las tres, y si 2b lleva tabla nueva (migración sobre la BD
 compartida, o sea aprobación aparte).
+
+---
+
+## Slice 2c — La tabla del jardín deja de ser un podio (2026-09-05)
+
+### Objetivo
+
+Que la comunidad tenga una tabla que enganche —ver dónde estás, ver que otros están— sin proclamar
+un ganador semanal, y con una métrica que se mueva sin premiar el volumen.
+
+### Lo que se descubrió leyendo antes de escribir
+
+**El marcador ya era a prueba de volumen, y la advertencia previa estaba mal enfocada.**
+`buildWeeklyLeagueRanking` puntuaba días distintos, con las fechas ya `DISTINCT` cruzando los cuatro
+retos: el techo era 7 y no se movía. Lo que había que decir no era «no premies volumen» sino «no
+cambies la unidad sin pensarlo».
+
+**Pero un techo de 7 hace la tabla inútil.** Con veinte personas y siete valores posibles, la tabla
+ordena sin informar: casi todo son empates. Ésa era la razón real por la que no servía, y no la
+ética.
+
+**`countSustainedWeeks` ya existía y estaba mejor pensado que lo que se iba a escribir.** Su
+docblock explica que **no es una racha** a propósito: romperla castigaría a quien faltó una semana y
+volvió, justo lo contrario del reconocimiento `comeback` que el producto ya tiene.
+
+**La liga nunca ha corrido.** Exige 10 inscritos y hay 1; sólo 2 personas tienen alias. La actividad
+real son 3 personas, una con 8 días distintos en tres semanas.
+
+### Decisiones y porqué
+
+**Aportes (repeticiones) en vez de días distintos.** Da resolución —28 valores posibles por semana en
+vez de 7— sin premiar intensidad, porque la base ya impone un aporte por pilar y por día. Es la
+distinción que el producto necesitaba y no tenía: *amplitud sí, intensidad no*.
+
+**Semanas sostenidas como segunda columna**, reutilizando `countSustainedWeeks`.
+
+**Sin `rank`.** El tipo `GardenContributor` no lo tiene, y la lista es un `<ol>`: quien quiera su
+posición la lee del orden. Un ganador semanal fabrica nueve perdedores por cada ganador —en salud— y
+suele ganar quien tiene la vida menos caótica, que no es la conducta a premiar.
+
+**El repositorio hace dos lecturas con un solo rango.** Los aportes se filtran a la semana; las
+fechas salen enteras, porque las semanas sostenidas son históricas y quien decide qué es una semana
+es `communityWeekStart`, anclado en `America/Mexico_City`. Un `date_trunc` semanal en SQL habría sido
+una segunda definición de semana — exactamente el fallo que ya hubo que arreglar cuando la liga
+anclaba su lunes en UTC.
+
+### Una prueba que se cayó sola, y qué se hizo con ella
+
+Se escribió un escenario e2e que afirmaba que la sección nunca contiene la palabra «ganador». Falló,
+y con razón: la nota de ética dice «**No hay ganador**, ni corona, ni premio». La prueba encontraba
+justo la frase que promete lo contrario de lo que buscaba.
+
+La afirmación estaba en el nivel equivocado. Un podio no vuelve por Playwright: vuelve porque alguien
+escribe «1er lugar» en una clave del catálogo. Así que se retiró el escenario e2e y se escribió
+`gardenTableCopy.test.ts`, que recorre los **valores** de `atomicChallenges.league` en los dos
+idiomas y exige que ninguno proclame a nadie, con `ethics` como única excepción — es la que puede
+nombrar lo que no hay, para negarlo. Comprueba además que no queden las claves `rank` ni `points`.
+
+### Archivos tocados
+
+- `src/domain/habits/habitLeague.ts` — `buildGardenContributions`, `GardenContributor`,
+  `LeagueParticipantActivity` con aportes y fechas. `habitLeague.test.ts` reescrito (12 pruebas).
+- `src/domain/habits/gardenTableCopy.test.ts` — nuevo, 4 pruebas.
+- `src/use_cases/habits/habitLeagueUseCase.ts` — `ranking` → `contributors`; `.test.ts` nuevo con 6
+  pruebas, que antes no existía.
+- `src/use_cases/habits/ports/HabitLeagueRepository.ts`,
+  `src/infra/dataAccess/habits/PostgresHabitLeagueRepository.ts`.
+- `src/app/[locale]/habitos/page.tsx` — la tabla, sin puesto escrito.
+- `es.json` / `en.json` — el bloque `atomicChallenges.league` reescrito entero.
+- `src/e2e/habits/atomicSleepChallenge.spec.ts` — escenario del umbral actualizado, escenario frágil
+  retirado.
+
+### Comandos y resultados
+
+```
+pnpm run validate                255 archivos, 2750 pruebas, verde
+playwright src/e2e/habits        28/28
+```
+
+`.next` quedó con un `dev/types/validator.ts` a medio escribir tras una corrida de Playwright y
+tumbó el `typecheck` con errores de sintaxis dentro de un archivo generado. `rm -rf .next` y listo;
+no era del código.
+
+### Recap
+
+La tabla del jardín existe y mide lo correcto: aportes de la semana con tope de uno por pilar y día,
+más semanas sostenidas que nunca bajan. No hay puesto, ni corona, ni premio, y hay una prueba sobre
+el catálogo de textos que impide que vuelvan. Sigue detrás del umbral de 10 y del alias, así que hoy
+no se ve — que es lo correcto con 3 personas practicando.
+
+### Próximos pasos (opciones)
+
+1. **El índice de prácticas con sus anclas.** Las 45 necesitan superficie, y las anclas (`cue`,
+   `identity`, `minimum`) necesitan dónde verse.
+2. **El bot.**
+3. **`user_practices`**, donde la regla «un aporte por pilar y día» deja de ser teoría.
+
+**Pendiente del usuario:** nada. Se sigue de corrido.

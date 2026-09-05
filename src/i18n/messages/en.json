@@ -311,17 +311,18 @@
     "indexIntro": "Choose one practice for this week. You can switch without losing your progress.",
     "indexTitle": "One practice for every pillar",
     "league": {
-      "aliasRequired": "You need a public alias to participate; we never use your email or private name.",
+      "aliasRequired": "To appear you need a public alias; we never use your email or private name.",
       "claimAlias": "Claim an alias",
-      "conditioned": "The ranking will appear only when there is a sufficient weekly community. We do not show an empty table.",
-      "ethics": "At most one point per practice date, weekly reset, shared ties, and no body, volume or popularity measures.",
-      "join": "I want to participate this week",
-      "leave": "Leave the league",
-      "points": "{points} points",
-      "rank": "Rank {rank}: @{alias}",
-      "rankingLabel": "Weekly consistency ranking",
-      "threshold": "{active} of {threshold} weekly active participants",
-      "title": "Weekly consistency league"
+      "conditioned": "The table shows up once there is enough of a weekly community. We do not show a two-row table: it says nothing and it exposes the people who are there.",
+      "contributions": "{contributions} contributions",
+      "contributor": "@{alias}",
+      "ethics": "No winner, no crown, no prize: only what each person contributed to the same garden. A pillar contributes once a day, so doing more does not buy more; the week resets; and weeks practising never go down, because coming back after missing is worth more than faking perfection.",
+      "join": "I want to appear this week",
+      "leave": "Take my name off the table",
+      "sustainedWeeks": "{weeks} weeks practising",
+      "tableLabel": "This week's contributions to the community garden",
+      "threshold": "{active} of {threshold} people appearing this week",
+      "title": "Who is growing the garden"
     },
     "makeActive": "Switch to this practice",
     "nutritionExperience": {
