@@ -115,18 +115,45 @@ Feature: Base de datos de practicas - la practica deja de ser prosa y pasa a ser
   # Slice 2 - Los otros tres pilares
   # ---------------------------------------------------------------------------------------------
 
-  @slice-2 @future
-  Scenario: Los cuatro pilares leen su bibliografia de la base
-    Given que los 116 estudios estan sembrados
-    When abro cada uno de los cuatro pilares
-    Then ninguno lee ya de `references.ts`
+  @slice-2
+  Scenario: `references.ts` deja de existir
+    Given que los 116 estudios y su pilar viven en `pillar_studies`
+    When busco el archivo que los enumeraba
+    Then ya no esta en el arbol
+    And la lista que lo sustituye es la semilla, no lo que se pinta
 
-  @slice-2 @future
+  @slice-2
+  Scenario Outline: Cada pilar dice que practicas sostienen sus estudios
+    # En el slice 1 solo Sueno tenia practicas, asi que los otros tres ensenaban su bibliografia sin
+    # una sola linea de "Sostiene:". Ahora los cuatro tienen las suyas.
+    Given que las practicas de los cuatro pilares estan sembradas
+    When abro "<ruta>"
+    Then al menos un estudio declara la practica que sostiene
+
+    Examples:
+      | ruta                    |
+      | /pilares/sueno          |
+      | /pilares/alimentacion   |
+      | /pilares/movimiento     |
+      | /pilares/mente-espiritu |
+
+  @slice-2 @component
   Scenario: La respiracion deja de contradecirse
-    Given que "sleep-slow-breathing" tiene una sola redaccion
-    When la leo desde Sueno y desde Mente
+    # El catalogo de Sueno pedia "alargar la salida del aire" y la nota de Mente decia lo contrario,
+    # citando el ensayo de 2024 que no hallo diferencia. Escrita una vez, no puede volver a pasar.
+    Given que "mind-slow-breathing" tiene una sola redaccion
+    When la leo desde Mente y desde Sueno
     Then dice lo mismo en las dos
     And lo que dice es bajar el ritmo, no alargar la exhalacion
+    And cita el estudio que la sostiene y el que acoto su alcance
+
+  @slice-2 @component
+  Scenario: Una practica renombrada no deja su fila vieja detras
+    # `sleep-slow-breathing` paso a llamarse `mind-slow-breathing`. Un upsert por clave habria creado
+    # la fila nueva y dejado la vieja huerfana, con sus traducciones y sus citas colgando.
+    Given que la practica se sembro antes con otra clave
+    When se vuelve a sembrar el catalogo
+    Then la clave retirada ya no existe en `practices`
 
   # ---------------------------------------------------------------------------------------------
   # Slice 3 - El bot responde con la practica, y cita el estudio

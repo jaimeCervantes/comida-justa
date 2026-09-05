@@ -151,3 +151,127 @@ de la semilla.
    estudio. Un índice o una sección propia las haría visibles ya.
 
 **Pendiente del usuario:** decidir el orden entre 1, 2 y 3. Nada más está bloqueado.
+
+---
+
+## Arreglo previo — `typecheck:tests` nunca estuvo rota (2026-09-04)
+
+Los 7 errores de `globSync` que arrastraban tres archivos de `src/presentation/` desde hacía
+semanas **no eran un problema de código**: `package.json` declaraba `@types/node@^24.13.3`,
+`pnpm-lock.yaml` lo tenía resuelto a `24.13.3`, y `node_modules` guardaba la `20.19.43`. La
+instalación estaba desincronizada con el lockfile, y `fs.globSync` no existe en los tipos de la 20.
+
+`pnpm install` bastó. `pnpm run validate` completo —biome, `typecheck`, `typecheck:tests` y las
+2720 pruebas— pasa ahora en verde, así que el hook de pre-commit vuelve a servir para algo.
+
+La lección va al bolsillo de quien venga: antes de sospechar del código, comprobar que la versión
+instalada es la que el lockfile dice.
+
+## Slice 2 — Las prácticas de los cuatro pilares, y la muerte de `references.ts` (2026-09-04)
+
+### Objetivo
+
+Que los cuatro pilares tengan sus prácticas como filas, no sólo Sueño, y que el archivo que
+enumeraba los 116 DOIs deje de existir.
+
+### Decisiones y porqué
+
+**Un módulo por pilar.** `sleepPractices.ts`, `nutritionPractices.ts`, `movementPractices.ts` y
+`mindPractices.ts`, con la forma común en `practiceSeed.ts` y la tabla que los junta en
+`practiceCatalogSeed.ts`. Son cuatro cuerpos de contenido independientes; en un solo archivo, cada
+edición de Alimentación habría chocado con cada edición de Mente.
+
+**`references.ts` se mudó, no se copió.** Sus cuatro listas viven ahora en
+`src/scripts/data/pillarBibliography.ts`, con sus comentarios intactos —son los que explican qué
+afirmación sostiene cada estudio añadido, y los que se convirtieron en filas de `practice_studies`—
+y sin el prefijo `https://doi.org/`, que ya escribe `doiUrl()` una sola vez. Ese archivo ya no es lo
+que se pinta: es lo que siembra.
+
+**`sleep-slow-breathing` pasó a `mind-slow-breathing`.** Su pilar primario siempre fue Mente y la
+clave decía otra cosa. Un renombre no lo puede adivinar un `INSERT … ON CONFLICT (key)`: crea la
+fila nueva y deja la vieja huérfana con sus traducciones y sus citas colgando. De ahí
+`RETIRED_PRACTICE_KEYS`, que el sembrador recorre y borra. Vive en la semilla y no en una migración
+porque son datos sembrados: quien siembre desde cero nunca creará esas filas.
+
+**El sembrador ahora reescribe las citas, no sólo las añade.** `practice_studies` se borra y se
+vuelve a insertar por práctica. Con `ON CONFLICT DO NOTHING`, quitar un DOI de la semilla lo dejaba
+en la página para siempre.
+
+**Nueve prácticas sirven a más de un pilar.** Cenar al atardecer es Alimentación y Sueño; salir al
+aire libre es Movimiento y Sueño; respirar despacio es Mente y Sueño; el deporte de conjunto es
+Movimiento y Mente; cuidar plantas es Mente y Alimentación. Cada una está escrita **una vez**. Eso
+es lo que `practice_pillars` compró.
+
+**Veintiuna prácticas se quedan sin bibliografía, a propósito.** La triada del plato, sus tres
+componentes, la infusión sin cafeína, la gratitud… son buenas decisiones que ninguno de los 116
+estudios de esta bibliografía mide. Prestarles la evidencia de los ultraprocesados o de la soledad
+habría sido autoridad de segunda mano, que es justo lo que este catálogo vino a deshacer.
+
+### Desviación del roadmap: `PillarCatalog` no entra
+
+El roadmap prometía pintar los cuatro `PillarCatalog` desde la base «sin tablas nuevas», y eso no es
+posible. Ese componente pinta **categorías** —«Anclaje de luz solar», con cuatro ítems, un impacto
+en el cuerpo y un impacto en el entorno— y el modelo no tiene ni el agrupador ni los dos impactos.
+Meterlo a la fuerza pedía deformar `practices` para que cupiera. Queda como slice 2b, con el modelo
+que necesita descrito en el roadmap: 15 temas y 60 ítems ya escritos, trabajo de modelo y no de
+contenido.
+
+### Archivos tocados
+
+- **Nuevos:** `src/scripts/data/pillarBibliography.ts`, `practiceSeed.ts`, `sleepPractices.ts`,
+  `nutritionPractices.ts`, `movementPractices.ts`, `mindPractices.ts`.
+- **Reescritos:** `practiceCatalogSeed.ts` (ahora la tabla de pilares con su bibliografía y sus
+  prácticas), `seedPracticeCatalog.ts`, `practiceCatalogSeed.test.ts` (17 pruebas).
+- **Borrado:** `src/app/[locale]/pilares/components/references.ts`.
+- **Escenarios:** los cuatro `@slice-2` del `.feature` y ocho casos nuevos en el spec.
+
+### Comandos y resultados
+
+```
+pnpm install                    @types/node 20.19.43 → 24.13.3
+pnpm run validate               biome + typecheck + typecheck:tests + 2720 pruebas, verde
+pnpm run seed:practice-catalog  4 pilares · 116/116 estudios · 45 prácticas · 1 clave retirada
+pnpm run test:run               253 archivos, 2737 pruebas, todas en verde
+pnpm run typecheck              limpio
+pnpm run typecheck:tests        limpio (por primera vez en semanas)
+playwright src/e2e/pilares      39/39
+playwright src/e2e/habits       27/28 en frío; 19/19 al repetir el archivo que falló
+```
+
+El fallo de `atomicSleepChallenge.spec.ts:200` fue **flaky en frío**: el mismo archivo pasó entero
+al repetirlo sin tocar nada, y ese spec no roza nada de este slice.
+
+### Estado de la base
+
+| Tabla | Filas |
+|---|---|
+| `studies` | 116 |
+| `pillar_studies` | 116 |
+| `practices` | 45 |
+| `practice_translations` | 90 (los 45 × 2 idiomas, cero huérfanas) |
+| `practice_pillars` | 54 — 45 primarias y 9 prácticas compartidas |
+| `practice_studies` | 64 |
+
+Los cuatro retos atómicos siguen ligados: `sleep-evening-to-morning`, `nutrition-real-dinner`,
+`movement-living-movement` y `mind-presence-and-peace`. Para deshacerlo todo:
+`alembic downgrade 0048_2026_09_03`.
+
+### Recap
+
+Los cuatro pilares tienen sus prácticas en la base —45, de las cuales 9 sirven a más de un pilar sin
+estar escritas dos veces— y las cuatro bibliografías declaran qué práctica sostiene cada estudio.
+`references.ts` ya no existe: sus listas son semilla y lo que se pinta sale de `pillar_studies`. El
+catálogo por temas se queda fuera hasta decidir su modelo, y `typecheck:tests` volvió a verde.
+
+### Próximos pasos (opciones)
+
+1. **Slice 3 — el bot responde con la práctica y cita el estudio.** Ya tiene los cuatro pilares
+   sembrados, que era lo que le faltaba. `recommend_practices()` sin boost comercial, el sembrador
+   de embeddings y el orquestador resolviendo la intención por `pillars.bot_intent`.
+2. **Slice 2b — el catálogo por temas.** Modelar `pillar_themes` para que `PillarCatalog` se pinte
+   desde la base y mueran las 60 claves de `pillarPages.*catalog*`.
+3. **Enseñar las prácticas en el sitio.** Las 45 están en la base y sólo se asoman como el nombre
+   junto a un estudio. Un índice filtrable por pilar y por esfuerzo las haría visibles ya.
+
+**Pendiente del usuario:** el orden entre las tres, y si 2b lleva tabla nueva (migración sobre la BD
+compartida, o sea aprobación aparte).

@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { PILLAR_SEED, SLEEP_PRACTICE_SEED } from "./practiceCatalogSeed";
+import {
+  PILLAR_SEED,
+  PRACTICE_SEED,
+  RETIRED_PRACTICE_KEYS,
+} from "./practiceCatalogSeed";
 
 /**
  * El contrato de vocabulario entre las tres aplicaciones que comparten la base.
@@ -26,6 +30,14 @@ const PILLAR_CATEGORY_ROOTS = [
   "mente_y_espiritu",
 ];
 
+/** Los cuatro retos atómicos que ya existían, con su clave versionada. */
+const CHALLENGE_KEYS = [
+  "sleep-evening-to-morning-v1",
+  "nutrition-one-plant-v1",
+  "movement-two-minutes-v1",
+  "mind-one-connection-v1",
+];
+
 describe("la semilla de los pilares", () => {
   it("nombra las intenciones tal y como las emite el bot", () => {
     expect(PILLAR_SEED.map(({ botIntent }) => botIntent)).toEqual(BOT_INTENTS);
@@ -43,57 +55,118 @@ describe("la semilla de los pilares", () => {
       expect(new Set(values).size).toBe(values.length);
     }
   });
+
+  it("da a cada pilar su bibliografía, sin repetir un DOI dentro de ella", () => {
+    for (const { key, bibliography } of PILLAR_SEED) {
+      expect(bibliography.length, key).toBeGreaterThan(0);
+      expect(new Set(bibliography).size, key).toBe(bibliography.length);
+    }
+  });
+
+  it("no cita el mismo estudio en dos bibliografías", () => {
+    // Un estudio puede sostener prácticas de varios pilares, pero pertenece al cuerpo de evidencia
+    // de uno. Si eso deja de ser cierto habrá que decidirlo a propósito, no descubrirlo en la página.
+    const all = PILLAR_SEED.flatMap(({ bibliography }) => bibliography);
+    expect(new Set(all).size).toBe(all.length);
+  });
+
+  it("nunca guarda el resolutor dentro del identificador", () => {
+    for (const doi of PILLAR_SEED.flatMap(({ bibliography }) => bibliography)) {
+      expect(doi.startsWith("10."), doi).toBe(true);
+    }
+  });
 });
 
-describe("la semilla de las prácticas de Sueño", () => {
-  it("no repite ninguna clave", () => {
-    const keys = SLEEP_PRACTICE_SEED.map(({ key }) => key);
+describe("la semilla de las prácticas", () => {
+  it("no repite ninguna clave entre los cuatro pilares", () => {
+    const keys = PRACTICE_SEED.map(({ key }) => key);
     expect(new Set(keys).size).toBe(keys.length);
   });
 
   it("da a cada práctica un pilar primario y sólo uno", () => {
     // El primero de la lista es el primario, y el índice parcial de la base rechaza un segundo.
-    for (const practice of SLEEP_PRACTICE_SEED) {
-      expect(practice.pillars.length).toBeGreaterThan(0);
-      expect(new Set(practice.pillars).size).toBe(practice.pillars.length);
+    for (const practice of PRACTICE_SEED) {
+      expect(practice.pillars.length, practice.key).toBeGreaterThan(0);
+      expect(new Set(practice.pillars).size, practice.key).toBe(
+        practice.pillars.length,
+      );
     }
   });
 
-  it("tiene la práctica compartida que justifica que `practice_pillars` sea N:N", () => {
-    const shared = SLEEP_PRACTICE_SEED.find(
-      ({ key }) => key === "sleep-slow-breathing",
+  it("liga cada reto atómico con una práctica, y sólo una", () => {
+    const linked = PRACTICE_SEED.map(({ challengeKey }) => challengeKey).filter(
+      (key): key is string => Boolean(key),
     );
 
-    expect(shared?.pillars).toEqual(["mindSpirit", "sleep"]);
+    expect(linked.sort()).toEqual([...CHALLENGE_KEYS].sort());
+  });
+
+  it("cita sólo DOIs, nunca URLs", () => {
+    for (const { key, dois } of PRACTICE_SEED) {
+      for (const doi of dois) expect(doi.startsWith("10."), key).toBe(true);
+    }
+  });
+
+  it("traduce todas las prácticas a los dos idiomas", () => {
+    for (const practice of PRACTICE_SEED) {
+      for (const copy of [practice.es, practice.en]) {
+        expect(copy.title.length, practice.key).toBeGreaterThan(0);
+        expect(copy.summary.length, practice.key).toBeGreaterThan(0);
+      }
+    }
+  });
+
+  it("tiene una práctica en cada pilar, no sólo en el del descanso", () => {
+    const primary = new Set(PRACTICE_SEED.map(({ pillars }) => pillars[0]));
+
+    expect(primary).toEqual(
+      new Set(["sleep", "nutrition", "movement", "mindSpirit"]),
+    );
+  });
+});
+
+describe("las prácticas compartidas", () => {
+  /** Las que justifican que `practice_pillars` sea N:N y no una columna. */
+  const shared = PRACTICE_SEED.filter(({ pillars }) => pillars.length > 1);
+
+  it("existen, y son varias", () => {
+    expect(shared.length).toBeGreaterThan(1);
+  });
+
+  it("respirar despacio es de Mente y también de Sueño", () => {
+    const breathing = PRACTICE_SEED.find(
+      ({ key }) => key === "mind-slow-breathing",
+    );
+
+    expect(breathing?.pillars).toEqual(["mindSpirit", "sleep"]);
   });
 
   it("dice lo que la evidencia sostiene sobre respirar, no lo que decía el catálogo viejo", () => {
     /* El catálogo de Sueño pedía «alargar la salida del aire» y la nota de Mente decía justo lo
        contrario, citando el ensayo de 2024 que no halló diferencia. Escrita una vez, la
        contradicción no puede volver. */
-    const shared = SLEEP_PRACTICE_SEED.find(
-      ({ key }) => key === "sleep-slow-breathing",
+    const breathing = PRACTICE_SEED.find(
+      ({ key }) => key === "mind-slow-breathing",
     );
 
-    expect(shared?.es.howTo).toContain("No persigas una proporción exacta");
-    expect(shared?.dois).toContain("10.1007/s10484-024-09637-2");
+    expect(breathing?.es.howTo).toContain("No persigas una proporción exacta");
+    expect(breathing?.dois).toContain("10.1007/s10484-024-09637-2");
+  });
+});
+
+describe("las claves retiradas", () => {
+  it("nombra la que se renombró, para que el sembrador la borre", () => {
+    /* `sleep-slow-breathing` pasó a `mind-slow-breathing`. Un upsert por clave crea la fila nueva y
+       deja la vieja huérfana con sus traducciones y sus citas colgando; el sembrador no puede
+       adivinar un renombre, así que se le dice. */
+    expect(RETIRED_PRACTICE_KEYS).toContain("sleep-slow-breathing");
   });
 
-  it("traduce todas las prácticas a los dos idiomas", () => {
-    for (const practice of SLEEP_PRACTICE_SEED) {
-      expect(practice.es.title).not.toBe("");
-      expect(practice.en.title).not.toBe("");
-      expect(practice.es.summary).not.toBe("");
-      expect(practice.en.summary).not.toBe("");
+  it("no retira ninguna clave que la semilla siga usando", () => {
+    const live = new Set(PRACTICE_SEED.map(({ key }) => key));
+
+    for (const retired of RETIRED_PRACTICE_KEYS) {
+      expect(live.has(retired), retired).toBe(false);
     }
-  });
-
-  it("liga el reto atómico con la práctica que le corresponde", () => {
-    const withChallenge = SLEEP_PRACTICE_SEED.filter(
-      ({ challengeKey }) => challengeKey,
-    );
-
-    expect(withChallenge).toHaveLength(1);
-    expect(withChallenge[0].challengeKey).toBe("sleep-evening-to-morning-v1");
   });
 });

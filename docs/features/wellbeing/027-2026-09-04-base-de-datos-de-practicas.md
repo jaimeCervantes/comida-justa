@@ -246,10 +246,23 @@ visible: la bibliografía de `/pilares/sueno` deja de ser una lista de URLs.
 
 ### Slice 2 — Las prácticas de los otros tres pilares
 
-Semilla de las prácticas de Alimentación, Movimiento y Mente. Se borra `references.ts` y los cuatro
-`PillarCatalog` se pintan desde la base. Sin tablas nuevas: solo datos y la retirada del código
-muerto. Aquí la contradicción de la respiración desaparece también de la interfaz: en los datos ya
-está resuelta desde el slice 1, con una sola redacción en `sleep-slow-breathing`.
+Semilla de las prácticas de Alimentación, Movimiento y Mente, y la retirada de `references.ts`,
+cuyas cuatro listas se mudan a `src/scripts/data/pillarBibliography.ts` — su casa desde que lo que
+se pinta sale de `pillar_studies` y esa lista sólo siembra.
+
+**`PillarCatalog` NO entra aquí, y el roadmap se equivocaba al prometerlo «sin tablas nuevas».** Ese
+componente pinta *categorías* —«Anclaje de luz solar», con cuatro ítems, un impacto en el cuerpo y
+un impacto en el entorno—, y de eso el modelo no tiene nada: una práctica tiene título, promesa y
+cómo se hace, pero no pertenece a un tema ni carga los dos impactos. Renderizarlo desde la base pide
+un agrupador (`pillar_themes`) y dos textos traducibles más por tema. Es una extensión real del
+modelo, no un cambio de plantilla, y por eso se decide aparte en vez de deformar `practices` para
+que quepa. Ver «Slice 2b».
+
+### Slice 2b — El catálogo por temas (pendiente de decisión)
+
+Lo que falta para que `PillarCatalog` se pinte desde la base: una tabla de temas por pilar con su
+título, su intro y sus dos impactos traducibles, y la pertenencia de cada práctica a un tema. Son
+15 temas y 60 ítems ya escritos en `pillarPages.*`; el trabajo es de modelo, no de contenido.
 
 ### Slice 3 — El bot responde con la práctica, y cita el estudio
 
@@ -303,4 +316,4 @@ aprobación explícita, y no antes de que el modelo nuevo se haya ganado el siti
 - **Una práctica en un chat llega sin contexto.** De ahí `safety_note`. El riesgo no es técnico: es
   que el bot dé un consejo de salud recortado a alguien que no leyó el artículo.
 
-> **Estado:** slice 1 entregado el 2026-09-04. Ver la bitácora.
+> **Estado:** slices 1 y 2 entregados el 2026-09-04. Ver la bitácora.

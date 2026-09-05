@@ -92,9 +92,11 @@ test.describe("Cuando alguien llega al final del pilar del descanso", () => {
   });
 });
 
-test.describe("Cuando alguien abre cualquiera de los otros pilares", () => {
-  for (const slug of ["alimentacion", "movimiento", "mente-espiritu"]) {
-    test(`Entonces «${slug}» también lee su bibliografía de la base`, async ({
+test.describe("Cuando alguien abre cualquiera de los cuatro pilares", () => {
+  const PILARES = ["sueno", "alimentacion", "movimiento", "mente-espiritu"];
+
+  for (const slug of PILARES) {
+    test(`Entonces «${slug}» lee su bibliografía de la base`, async ({
       page,
     }) => {
       await page.goto(`/pilares/${slug}`);
@@ -102,6 +104,24 @@ test.describe("Cuando alguien abre cualquiera de los otros pilares", () => {
       const seccion = page.getByTestId(BIBLIOGRAFIA);
       await expect(seccion).toBeVisible();
       await expect(seccion).not.toContainText("https://doi.org/");
+    });
+  }
+
+  for (const slug of PILARES) {
+    test(`Y «${slug}» declara qué prácticas sostienen sus estudios`, async ({
+      page,
+    }) => {
+      /* En el slice 1 sólo Sueño tenía prácticas, así que los otros tres enseñaban su bibliografía
+         sin una sola línea de «Sostiene:». No se afirma cuántas: eso depende de lo que esté
+         sembrado, y ampliarlo no debería romper una prueba. Se afirma que existe el vínculo. */
+      await page.goto(`/pilares/${slug}`);
+
+      const declaran = page
+        .getByTestId(BIBLIOGRAFIA)
+        .getByRole("listitem")
+        .filter({ hasText: "Sostiene:" });
+
+      expect(await declaran.count()).toBeGreaterThan(0);
     });
   }
 });
