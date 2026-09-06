@@ -1,14 +1,21 @@
 import {
   COMMUNITY_TIMEZONE,
+  currentCommunityWeek,
   localDateAt,
 } from "~/domain/habits/habitChallenge";
-import type { PillarKey } from "~/domain/pillars/pillarKey";
+import { PILLAR_KEYS, type PillarKey } from "~/domain/pillars/pillarKey";
 import type {
   PracticeAdoption,
   PracticeSource,
 } from "~/domain/practices/adoption";
 import { activeKeys } from "~/domain/practices/adoption";
 import type { PracticeAdoptionRepository } from "./ports/PracticeAdoptionRepository";
+
+export type WeeklyPillarPracticeProgress = {
+  pillar: PillarKey;
+  completedDays: number;
+  countedToday: boolean;
+};
 
 export default class PracticeAdoptionUseCase {
   constructor(private readonly repository: PracticeAdoptionRepository) {}
@@ -65,4 +72,42 @@ export default class PracticeAdoptionUseCase {
       localDateAt(now, COMMUNITY_TIMEZONE),
     );
   }
+
+  /**
+   * El tablero personal de la semana, por pilar.
+   *
+   * Sale de `habit_repetitions` y no de la ventana guardada del reto: una ventana vieja puede estar
+   * cerrada y seguir existiendo, pero el tablero responde otra pregunta —qué pasó esta semana de la
+   * comunidad—, la misma que mira el jardín.
+   */
+  async weeklyPillarProgress(
+    userId: string | null,
+    now: Date = new Date(),
+  ): Promise<readonly WeeklyPillarPracticeProgress[]> {
+    if (!userId) return emptyWeeklyProgress(new Set(), new Map());
+
+    const week = currentCommunityWeek(now);
+    const today = localDateAt(now, COMMUNITY_TIMEZONE);
+    const [countedToday, weeklyCounts] = await Promise.all([
+      this.repository.pillarsPractisedOn(userId, today),
+      this.repository.pillarRepetitionsBetween(
+        userId,
+        week.startDate,
+        week.endDate,
+      ),
+    ]);
+
+    return emptyWeeklyProgress(countedToday, weeklyCounts);
+  }
+}
+
+function emptyWeeklyProgress(
+  countedToday: ReadonlySet<PillarKey>,
+  weeklyCounts: ReadonlyMap<PillarKey, number>,
+): readonly WeeklyPillarPracticeProgress[] {
+  return PILLAR_KEYS.map((pillar) => ({
+    pillar,
+    completedDays: weeklyCounts.get(pillar) ?? 0,
+    countedToday: countedToday.has(pillar),
+  }));
 }

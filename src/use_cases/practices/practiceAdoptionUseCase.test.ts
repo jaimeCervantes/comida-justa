@@ -10,19 +10,23 @@ import PracticeAdoptionUseCase from "./practiceAdoptionUseCase";
 function repository(
   adoptions: readonly PracticeAdoption[] = [],
   practisedToday: PillarKey[] = [],
+  weeklyCounts: ReadonlyMap<PillarKey, number> = new Map(),
 ) {
   const started: Array<[string, string, PracticeSource]> = [];
   const stopped: Array<[string, string]> = [];
   const askedDates: Array<[string, string]> = [];
+  const askedPeriods: Array<[string, string, string]> = [];
   const repo: PracticeAdoptionRepository & {
     started: typeof started;
     stopped: typeof stopped;
     askedDates: typeof askedDates;
+    askedPeriods: typeof askedPeriods;
     asked: string[];
   } = {
     started,
     stopped,
     askedDates,
+    askedPeriods,
     asked: [],
     async listFor(userId) {
       repo.asked.push(userId);
@@ -38,6 +42,10 @@ function repository(
     async pillarsPractisedOn(userId, cycleDate) {
       askedDates.push([userId, cycleDate]);
       return new Set(practisedToday);
+    },
+    async pillarRepetitionsBetween(userId, startDate, endDate) {
+      askedPeriods.push([userId, startDate, endDate]);
+      return weeklyCounts;
     },
   };
   return repo;
@@ -143,5 +151,52 @@ describe("qué pilares ya cuentan hoy", () => {
     );
 
     expect(repo.askedDates).toEqual([["user-1", "2026-08-23"]]);
+  });
+});
+
+describe("avance semanal por pilar", () => {
+  it("sin sesión devuelve los cuatro pilares en cero y no lee la base", async () => {
+    const repo = repository();
+
+    const progress = await new PracticeAdoptionUseCase(
+      repo,
+    ).weeklyPillarProgress(null);
+
+    expect(progress).toEqual([
+      { pillar: "sleep", completedDays: 0, countedToday: false },
+      { pillar: "nutrition", completedDays: 0, countedToday: false },
+      { pillar: "movement", completedDays: 0, countedToday: false },
+      { pillar: "mindSpirit", completedDays: 0, countedToday: false },
+    ]);
+    expect(repo.askedDates).toEqual([]);
+    expect(repo.askedPeriods).toEqual([]);
+  });
+
+  it("lee la semana comunitaria y marca lo que ya cuenta hoy", async () => {
+    const repo = repository(
+      [],
+      ["sleep"],
+      new Map<PillarKey, number>([
+        ["sleep", 2],
+        ["movement", 1],
+      ]),
+    );
+
+    const progress = await new PracticeAdoptionUseCase(
+      repo,
+    ).weeklyPillarProgress("user-1", new Date("2026-08-19T18:00:00Z"));
+
+    expect(repo.askedDates).toEqual([["user-1", "2026-08-19"]]);
+    expect(repo.askedPeriods).toEqual([["user-1", "2026-08-17", "2026-08-24"]]);
+    expect(progress).toContainEqual({
+      pillar: "sleep",
+      completedDays: 2,
+      countedToday: true,
+    });
+    expect(progress).toContainEqual({
+      pillar: "movement",
+      completedDays: 1,
+      countedToday: false,
+    });
   });
 });

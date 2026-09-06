@@ -12,3 +12,11 @@
  * habla.
  */
 export type PillarKey = "sleep" | "nutrition" | "movement" | "mindSpirit";
+
+/** Los cuatro pilares, en el orden con que la marca los presenta. */
+export const PILLAR_KEYS: readonly PillarKey[] = [
+  "sleep",
+  "nutrition",
+  "movement",
+  "mindSpirit",
+];

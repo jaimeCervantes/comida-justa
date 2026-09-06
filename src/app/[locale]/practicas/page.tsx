@@ -17,7 +17,7 @@ import { Heading } from "~/presentation/design_system/typography/Heading";
 import { pillarColorClasses } from "~/presentation/habits/pillarColors";
 import PracticeAdoptionUseCase from "~/use_cases/practices/practiceAdoptionUseCase";
 import PracticeCatalogUseCase from "~/use_cases/practices/practiceCatalogUseCase";
-import { manageOwnPractice, markPracticeDone } from "./practiceActions";
+import { manageOwnPractice, markPracticeDone } from "../practiceActions";
 import PracticeCardItem from "./ui/PracticeCardItem";
 
 export async function generateMetadata({

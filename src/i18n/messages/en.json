@@ -310,6 +310,16 @@
     },
     "indexIntro": "Choose one practice for this week. You can switch without losing your progress.",
     "indexTitle": "One practice for every pillar",
+    "weeklyDashboard": {
+      "body": "Mark a practice and its pillar counts today. The progress is yours; the garden only adds the collective contribution.",
+      "countedToday": "Counts today",
+      "eyebrow": "Your week",
+      "pendingToday": "Pending today",
+      "signedOutBody": "Sign in to see your week and mark what you practised today.",
+      "title": "Weekly progress",
+      "todaySummary": "{completed} of {total} pillars cared for today",
+      "weeklyDays": "{count, plural, =0 {No days this week} one {# day this week} other {# days this week}}"
+    },
     "league": {
       "aliasRequired": "To appear you need a public alias; we never use your email or private name.",
       "claimAlias": "Claim an alias",

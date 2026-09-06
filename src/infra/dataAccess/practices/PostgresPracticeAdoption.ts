@@ -105,6 +105,36 @@ export class PostgresPracticeAdoption implements PracticeAdoptionRepository {
     }
     return pillars;
   }
+
+  async pillarRepetitionsBetween(
+    userId: string,
+    startDate: LocalDate,
+    endDate: LocalDate,
+  ): Promise<ReadonlyMap<PillarKey, number>> {
+    const result = await db.execute(sql`
+      SELECT challenge_key, COUNT(DISTINCT cycle_date)::int AS repetitions
+      FROM habit_repetitions
+      WHERE user_id = ${userId}
+        AND cycle_date >= ${startDate}::date
+        AND cycle_date < ${endDate}::date
+      GROUP BY challenge_key
+    `);
+
+    const counts = new Map<PillarKey, number>();
+    for (const row of result.rows as Array<{
+      challenge_key: string;
+      repetitions: number;
+    }>) {
+      const experience = findHabitChallengeExperience(row.challenge_key);
+      if (experience) {
+        counts.set(
+          PILLAR_KEY_BY_CHALLENGE[experience.experienceKey],
+          Number(row.repetitions),
+        );
+      }
+    }
+    return counts;
+  }
 }
 
 /** Memorizada por petición: el índice la consulta una vez y pregunta por ella 45 veces. */

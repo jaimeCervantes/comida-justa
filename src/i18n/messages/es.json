@@ -310,6 +310,16 @@
     },
     "indexIntro": "Elige una práctica para esta semana. Puedes cambiarla sin perder tu progreso.",
     "indexTitle": "Una práctica para cada pilar",
+    "weeklyDashboard": {
+      "body": "Marca una práctica y su pilar cuenta hoy. El avance es tuyo; el jardín sólo suma el aporte colectivo.",
+      "countedToday": "Ya cuenta hoy",
+      "eyebrow": "Tu semana",
+      "pendingToday": "Pendiente hoy",
+      "signedOutBody": "Inicia sesión para ver tu semana y marcar lo que practicaste hoy.",
+      "title": "Avance semanal",
+      "todaySummary": "{completed} de {total} pilares cuidados hoy",
+      "weeklyDays": "{count, plural, =0 {Sin días esta semana} one {# día esta semana} other {# días esta semana}}"
+    },
     "league": {
       "aliasRequired": "Para aparecer necesitas un alias público; nunca usamos tu correo o nombre privado.",
       "claimAlias": "Reclamar alias",

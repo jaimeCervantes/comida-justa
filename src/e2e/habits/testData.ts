@@ -1,6 +1,7 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import {
   addLocalDays,
+  COMMUNITY_TIMEZONE,
   currentCommunityWeek,
   localDateAt,
   SLEEP_CHALLENGE_KEY,
@@ -17,12 +18,63 @@ import type { HabitCelebrationMilestone } from "~/use_cases/habits/ports/HabitCh
 
 export async function deleteHabitChallengeTestData(): Promise<void> {
   const userId = await findSuiteUserId();
+  await db.execute(sql`DELETE FROM user_practices WHERE user_id = ${userId}`);
   await db
     .delete(habitLeagueOptIns)
     .where(eq(habitLeagueOptIns.userId, userId));
   await db
     .delete(habitChallengeProgress)
     .where(eq(habitChallengeProgress.userId, userId));
+}
+
+export async function adoptPracticeForSuite(
+  practiceKey: string,
+): Promise<void> {
+  const userId = await findSuiteUserId();
+  const result = await db.execute(sql`
+    INSERT INTO user_practices (user_id, practice_id, source)
+    SELECT ${userId}, p.id, 'web'
+    FROM practices p
+    WHERE p.key = ${practiceKey} AND p.status = 'published'
+    ON CONFLICT (user_id, practice_id) DO UPDATE
+      SET stopped_at = NULL,
+          source = EXCLUDED.source
+  `);
+  if ((result.rowCount ?? 0) < 1) {
+    throw new Error(`The E2E practice ${practiceKey} is not published.`);
+  }
+}
+
+export async function seedTodaySleepRepetition(): Promise<void> {
+  const userId = await findSuiteUserId();
+  const today = localDateAt(new Date(), COMMUNITY_TIMEZONE);
+  const week = currentCommunityWeek(new Date());
+
+  await db
+    .insert(habitChallengeProgress)
+    .values({
+      userId,
+      challengeKey: SLEEP_CHALLENGE_KEY,
+      timezone: COMMUNITY_TIMEZONE,
+      periodStartDate: week.startDate,
+      periodEndDate: week.endDate,
+    })
+    .onConflictDoUpdate({
+      target: [
+        habitChallengeProgress.userId,
+        habitChallengeProgress.challengeKey,
+      ],
+      set: {
+        timezone: COMMUNITY_TIMEZONE,
+        periodStartDate: week.startDate,
+        periodEndDate: week.endDate,
+      },
+    });
+
+  await db
+    .insert(habitRepetitions)
+    .values({ userId, challengeKey: SLEEP_CHALLENGE_KEY, cycleDate: today })
+    .onConflictDoNothing();
 }
 
 /**

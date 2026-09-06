@@ -31,4 +31,16 @@ export interface PracticeAdoptionRepository {
     userId: string,
     cycleDate: LocalDate,
   ): Promise<ReadonlySet<PillarKey>>;
+
+  /**
+   * Cuántos días cuentan por pilar dentro de una ventana `[startDate, endDate)`.
+   *
+   * Lee la misma unidad que el jardín: una fila de `habit_repetitions` ya está limitada por persona,
+   * reto y fecha, así que el número es "días del pilar", no casillas apretadas.
+   */
+  pillarRepetitionsBetween(
+    userId: string,
+    startDate: LocalDate,
+    endDate: LocalDate,
+  ): Promise<ReadonlyMap<PillarKey, number>>;
 }

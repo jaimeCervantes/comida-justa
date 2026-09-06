@@ -17,8 +17,10 @@ import HabitLeagueUseCase from "~/use_cases/habits/habitLeagueUseCase";
 import PracticeAdoptionUseCase from "~/use_cases/practices/practiceAdoptionUseCase";
 import PracticeCatalogUseCase from "~/use_cases/practices/practiceCatalogUseCase";
 import AccountSection from "../cuenta/ui/AccountSection";
+import { markPracticeDone } from "../practiceActions";
 import { setHabitLeagueOptIn } from "./leagueActions";
 import MyPractices from "./ui/MyPractices";
+import WeeklyPracticeProgress from "./ui/WeeklyPracticeProgress";
 
 export async function generateMetadata({
   params,
@@ -49,9 +51,12 @@ export default async function AtomicChallengesPage({
   /* Lo que esta persona lleva del catálogo. Se compone de dos lecturas memorizadas y no de una
      consulta nueva; sin sesión el conjunto viene vacío y la sección invita al catálogo en vez de
      desaparecer. */
-  const adopted = await new PracticeAdoptionUseCase(
-    new PostgresPracticeAdoption(),
-  ).activeFor(userId);
+  const adoptions = new PracticeAdoptionUseCase(new PostgresPracticeAdoption());
+  const [adopted, practisedToday, weeklyProgress] = await Promise.all([
+    adoptions.activeFor(userId),
+    adoptions.pillarsPractisedToday(userId),
+    adoptions.weeklyPillarProgress(userId),
+  ]);
   const myPractices = await new PracticeCatalogUseCase(
     new PostgresPracticeCatalog(),
   ).listAdopted(locale, adopted);
@@ -73,6 +78,11 @@ export default async function AtomicChallengesPage({
         </Heading>
         <p className="mt-4 max-w-3xl text-lg text-body">{t("indexIntro")}</p>
       </header>
+
+      <WeeklyPracticeProgress
+        signedIn={userId !== null}
+        progress={weeklyProgress}
+      />
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2">
         {CURATED_CHALLENGES.map(({ challengeKey, pillar, slug }) => {
@@ -99,7 +109,11 @@ export default async function AtomicChallengesPage({
         })}
       </div>
 
-      <MyPractices practices={myPractices} />
+      <MyPractices
+        practices={myPractices}
+        doneTodayPillars={practisedToday}
+        markAction={userId ? markPracticeDone : undefined}
+      />
 
       <section className="mt-8 rounded-panel border border-feedback-warning/40 bg-feedback-warning/10 p-6">
         <Heading

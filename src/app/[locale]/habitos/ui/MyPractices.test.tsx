@@ -1,5 +1,6 @@
 import { screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
+import type { PillarKey } from "~/domain/pillars/pillarKey";
 import type { PracticeCard } from "~/domain/practices/practiceCard";
 import { renderWithIntl } from "~/infra/test-utils/renderWithIntl";
 import MyPractices from "./MyPractices";
@@ -63,5 +64,30 @@ describe("mis prácticas", () => {
     expect(
       screen.getByTestId("my-practices").querySelectorAll("[data-practice]"),
     ).toHaveLength(2);
+  });
+
+  it("muestra el mínimo y permite marcar una práctica pendiente", () => {
+    renderWithIntl(
+      <MyPractices practices={[practice()]} markAction={async () => {}} />,
+    );
+    const item = screen.getByTestId("my-practices");
+
+    expect(within(item).getByText(/Tres renglones bastan/)).toBeVisible();
+    expect(within(item).getByTestId("practice-mark")).toHaveTextContent(
+      "Lo hice hoy",
+    );
+  });
+
+  it("si el pilar ya cuenta hoy, lo explica y no ofrece otro aporte", () => {
+    renderWithIntl(
+      <MyPractices
+        practices={[practice(), practice({ key: "sleep-dark-room" })]}
+        doneTodayPillars={new Set<PillarKey>(["sleep"])}
+        markAction={async () => {}}
+      />,
+    );
+
+    expect(screen.queryAllByTestId("practice-mark")).toHaveLength(0);
+    expect(screen.getAllByTestId("practice-done-today")).toHaveLength(2);
   });
 });

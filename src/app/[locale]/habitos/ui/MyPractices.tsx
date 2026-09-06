@@ -1,4 +1,5 @@
 import { useTranslations } from "next-intl";
+import type { PillarKey } from "~/domain/pillars/pillarKey";
 import type { PracticeCard } from "~/domain/practices/practiceCard";
 import { primaryPillarOf } from "~/domain/practices/practiceCard";
 import { Link } from "~/i18n/navigation";
@@ -17,10 +18,15 @@ import { pillarColorClasses } from "~/presentation/habits/pillarColors";
  */
 export default function MyPractices({
   practices,
+  doneTodayPillars = new Set(),
+  markAction,
 }: {
   practices: readonly PracticeCard[];
+  doneTodayPillars?: ReadonlySet<PillarKey>;
+  markAction?: (formData: FormData) => Promise<void>;
 }): React.ReactNode {
   const t = useTranslations("practicesIndex");
+  const tPillars = useTranslations("pillars");
 
   return (
     <section
@@ -42,7 +48,9 @@ export default function MyPractices({
         <>
           <ul className="mt-5 space-y-3">
             {practices.map((practice) => {
-              const color = pillarColorClasses[primaryPillarOf(practice)];
+              const pillar = primaryPillarOf(practice);
+              const color = pillarColorClasses[pillar];
+              const doneToday = doneTodayPillars.has(pillar);
               return (
                 <li
                   key={practice.key}
@@ -52,6 +60,11 @@ export default function MyPractices({
                   <p className="font-semibold text-text-strong">
                     {practice.title}
                   </p>
+                  <p
+                    className={`mt-1 text-caption font-semibold ${color.text}`}
+                  >
+                    {tPillars(`${pillar}.short`)}
+                  </p>
                   {practice.cue && (
                     <p
                       className={`mt-1 text-caption font-semibold ${color.text}`}
@@ -59,6 +72,36 @@ export default function MyPractices({
                       {t("cueLabel")}: {practice.cue}
                     </p>
                   )}
+                  {practice.minimum && (
+                    <p className="mt-2 text-caption text-body">
+                      <span className="font-semibold">{t("minimumLabel")}</span>{" "}
+                      {practice.minimum}
+                    </p>
+                  )}
+
+                  {doneToday ? (
+                    <p
+                      data-testid="practice-done-today"
+                      className="mt-3 text-caption text-text-muted"
+                    >
+                      {t("countedToday")}
+                    </p>
+                  ) : markAction ? (
+                    <form action={markAction} className="mt-3">
+                      <input
+                        type="hidden"
+                        name="practiceKey"
+                        value={practice.key}
+                      />
+                      <button
+                        type="submit"
+                        data-testid="practice-mark"
+                        className="focus-ring rounded-control border border-separator px-3 py-1.5 text-caption font-semibold text-text-support"
+                      >
+                        {t("markDone")}
+                      </button>
+                    </form>
+                  ) : null}
                 </li>
               );
             })}
