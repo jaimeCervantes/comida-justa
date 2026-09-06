@@ -10,6 +10,7 @@ import { findSuiteUserId } from "~/e2e/testUtils/suiteAccount";
 import { db } from "~/infra/dataAccess/db/connection";
 import { users } from "~/infra/dataAccess/db/schema/auth";
 import {
+  habitCelebrations,
   habitChallengeProgress,
   habitLeagueOptIns,
   habitRepetitions,
@@ -126,6 +127,31 @@ export async function seedTodaySleepRepetition(): Promise<void> {
     .insert(habitRepetitions)
     .values({ userId, challengeKey: SLEEP_CHALLENGE_KEY, cycleDate: today })
     .onConflictDoNothing();
+}
+
+export async function seedPublicCelebrationForSuite(
+  challengeKey: string = SLEEP_CHALLENGE_KEY,
+): Promise<void> {
+  const userId = await findSuiteUserId();
+  await seedTodaySleepRepetition();
+
+  await db
+    .insert(habitCelebrations)
+    .values({
+      userId,
+      challengeKey,
+      milestone: "first_cycle",
+      publishedAt: new Date(),
+      withdrawnAt: null,
+    })
+    .onConflictDoUpdate({
+      target: [
+        habitCelebrations.userId,
+        habitCelebrations.challengeKey,
+        habitCelebrations.milestone,
+      ],
+      set: { publishedAt: new Date(), withdrawnAt: null },
+    });
 }
 
 /**

@@ -290,6 +290,7 @@
       "levelLabel": "Nivel",
       "levelSprout": "Brote",
       "loading": "Guardando tu práctica",
+      "profileAlias": "@{alias}",
       "reactionCelebrate": "Celebrar",
       "reactionCount": "{count} celebraciones",
       "reactionSignIn": "Inicia sesión para celebrar",

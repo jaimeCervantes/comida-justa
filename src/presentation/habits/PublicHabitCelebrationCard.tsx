@@ -1,6 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import { Link } from "~/i18n/navigation";
-import { pillarHref } from "~/i18n/routes";
+import { pillarHref, profileHref } from "~/i18n/routes";
 import Avatar from "~/presentation/user/Avatar/Avatar";
 import type { PublicHabitCelebration } from "~/use_cases/habits/ports/HabitChallengeRepository";
 import type { CommunitySectionVariant } from "./communitySectionVariant";
@@ -26,6 +26,7 @@ const SCALES = {
     eyebrow: "mb-1 text-xs tracking-[0.18em]",
     title: "text-xl sm:text-2xl",
     body: "mt-2 text-body",
+    profileLink: "mb-2 text-sm",
     link: "mt-4",
     actions: "mt-4 gap-3",
     button: "px-4 py-2 text-sm",
@@ -43,6 +44,7 @@ const SCALES = {
     eyebrow: "mb-1 text-[0.7rem] tracking-[0.12em]",
     title: "text-base",
     body: "mt-1 text-sm text-body",
+    profileLink: "mb-1 text-xs",
     link: "mt-2 text-sm",
     actions: "mt-3 flex-wrap gap-2",
     button: "px-3 py-1 text-xs",
@@ -148,6 +150,17 @@ export default async function PublicHabitCelebrationCard({
           />
         </div>
         <div className={scale.content}>
+          {celebration.username && (
+            <Link
+              href={profileHref(celebration.username)}
+              data-testid="public-habit-profile-link"
+              className={`focus-ring inline-flex rounded-chip font-bold underline underline-offset-4 ${scale.profileLink} ${theme.ink}`}
+            >
+              {habitT("experienceCommon.profileAlias", {
+                alias: celebration.username,
+              })}
+            </Link>
+          )}
           <p className={`font-bold uppercase ${scale.eyebrow} ${theme.ink}`}>
             {copy.eyebrow}
           </p>

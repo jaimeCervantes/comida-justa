@@ -9,6 +9,7 @@ import {
   deleteHabitChallengeTestData,
   readPracticeSharingForSuite,
   type SuiteProfileUsernameLease,
+  seedPublicCelebrationForSuite,
   seedTodaySleepRepetition,
   useSuiteProfileUsername,
 } from "./testData";
@@ -149,6 +150,40 @@ test.describe("Perfil público de prácticas", () => {
     await expect(sharedPractices).not.toContainText("La descarga mental");
     await expect(sharedPractices).not.toContainText(
       /puntos|ranking|campe[oó]n|primer lugar/i,
+    );
+  });
+});
+
+test.describe("Descubrimiento desde actividad pública", () => {
+  let usernameLease: SuiteProfileUsernameLease | null = null;
+
+  test.beforeEach(async () => {
+    await deleteHabitChallengeTestData();
+    usernameLease = await useSuiteProfileUsername();
+  });
+
+  test.afterEach(async () => {
+    await deleteHabitChallengeTestData();
+    if (usernameLease) await usernameLease.restore();
+    usernameLease = null;
+  });
+
+  test("un alias visible en una celebración lleva al perfil público", async ({
+    page,
+  }) => {
+    const username = usernameLease?.username ?? "e2e-practicas-ana";
+    await adoptPracticeForSuite(DARK_ROOM, true);
+    await seedPublicCelebrationForSuite();
+
+    await page.goto("/pilares");
+    await page
+      .getByTestId("public-habit-profile-link")
+      .filter({ hasText: username })
+      .click();
+
+    await expect(page).toHaveURL(`/u/${username}`);
+    await expect(page.getByTestId("public-shared-practices")).toContainText(
+      "Penumbra total",
     );
   });
 });

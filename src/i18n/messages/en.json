@@ -290,6 +290,7 @@
       "levelLabel": "Level",
       "levelSprout": "Sprout",
       "loading": "Saving your practice",
+      "profileAlias": "@{alias}",
       "reactionCelebrate": "Celebrate",
       "reactionCount": "{count} celebrations",
       "reactionSignIn": "Sign in to celebrate",

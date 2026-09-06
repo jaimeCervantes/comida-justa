@@ -51,6 +51,7 @@ const RUTAS = [
   /* La búsqueda pagina por query string: es la misma unidad de compilación que `/buscar`, pero con
      datos suficientes para calentar el flujo que usan los escenarios de resultados. */
   "/buscar?q=pan&page=1",
+  "/pilares",
   "/pilares/sueno",
   "/pilares/alimentacion",
   "/pilares/movimiento",

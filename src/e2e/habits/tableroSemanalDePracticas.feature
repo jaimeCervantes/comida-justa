@@ -69,11 +69,14 @@ Feature: Tablero semanal de practicas
     And no ve "La descarga mental"
     And el perfil no muestra puntos, ranking ni campeones
 
-  @slice-4 @future
+  @slice-4
   Scenario: Un alias visible lleva al perfil publico
-    Given una celebracion publica muestra el alias de una persona
-    When un visitante activa ese alias
-    Then llega al perfil publico de esa persona
+    Given Ana compartio la practica "Penumbra total"
+    And Ana publico una celebracion visible como "e2e-practicas-ana"
+    When un visitante abre "/pilares"
+    And activa el alias "e2e-practicas-ana"
+    Then llega a "/u/e2e-practicas-ana"
+    And ve "Penumbra total" en el perfil publico de Ana
 
   @slice-5 @future
   Scenario: El inicio muestra un pulso discreto de practica

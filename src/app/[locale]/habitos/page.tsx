@@ -6,7 +6,7 @@ import {
 } from "~/domain/habits/curatedChallenges";
 import { activeKeys, sharedActiveKeys } from "~/domain/practices/adoption";
 import { Link } from "~/i18n/navigation";
-import { pillarHref } from "~/i18n/routes";
+import { pillarHref, profileHref } from "~/i18n/routes";
 import { resolveLocale } from "~/i18n/routing";
 import { readViewerId } from "~/infra/auth/readViewerId";
 import { createHabitLeagueRepository } from "~/infra/dataAccess/habits/PostgresHabitLeagueRepository";
@@ -171,7 +171,13 @@ export default async function AtomicChallengesPage({
                 key={entry.alias}
                 className="flex flex-wrap items-baseline justify-between gap-2 rounded-control border p-3"
               >
-                <span>{t("league.contributor", { alias: entry.alias })}</span>
+                <Link
+                  href={profileHref(entry.alias)}
+                  data-testid="habit-league-profile-link"
+                  className="focus-ring rounded-chip font-semibold underline underline-offset-4"
+                >
+                  {t("league.contributor", { alias: entry.alias })}
+                </Link>
                 <span className="flex items-baseline gap-3">
                   <strong>
                     {t("league.contributions", {

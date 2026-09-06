@@ -78,13 +78,16 @@ agrupadas por pilar, con ancla, minimo y fecha de inicio.
 
 ### Slice 4 - Nombres como puertas
 
-**Alcance provisional.** Los alias que ya aparecen en celebraciones y aportes al jardin enlazan al
-perfil publico cuando existe.
+**Alcance.** Los alias que ya aparecen por actividad real —celebraciones publicas y aportes al
+jardin— enlazan al perfil publico cuando existe un `username`.
 
-**Criterios provisionales.**
+**Criterios de aceptacion.**
 
+- Una celebracion publica con alias enlaza al perfil publico de esa persona.
+- Una celebracion sin alias publico no inventa destino de perfil.
+- Los alias de aportes al jardin siguen siendo la misma tabla cooperativa, pero ahora son una puerta
+  al perfil publico.
 - El descubrimiento de personas parte de actividad real, no de un directorio vacio.
-- Si la persona no tiene perfil publico enlazable, no se inventa destino.
 
 ### Slice 5 - Pulso discreto en el inicio
 

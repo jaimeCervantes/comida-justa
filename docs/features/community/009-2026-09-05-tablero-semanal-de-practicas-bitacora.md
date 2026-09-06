@@ -280,3 +280,100 @@ introduce campeones, ranking ni puntos.
   densidad y orden si hace falta.
 - Cerrar aqui la parte de perfiles y medir si los switches de compartir empiezan a producir perfiles
   con contenido suficiente antes de abrir descubrimiento de personas.
+
+## 2026-09-06 - Slice 4: alias visibles como puertas al perfil
+
+### Objetivo
+
+Convertir la actividad social que ya existe en descubrimiento util: cuando una celebracion publica
+o un aporte al jardin muestra un alias real, ese alias debe llevar al perfil publico de la persona,
+sin crear un directorio vacio ni inventar perfiles donde no hay `username`.
+
+### Decisiones y rationale
+
+- Las celebraciones publicas muestran el `username` como `@alias` encima del texto del logro. El
+  nombre de perfil sigue viviendo dentro del titulo traducido, pero la puerta navegable es el alias
+  estable que la ruta publica entiende.
+- Si la celebracion no trae `username`, no se pinta enlace de perfil. La tarjeta conserva su texto
+  anonimo y no fabrica destinos.
+- La tabla de aportes del jardin ya exige alias publico para participar; por eso el mismo texto
+  `@alias` ahora enlaza a `/u/[username]` sin cambiar el modelo cooperativo ni agregar ranking.
+- El jardin agregado no se tocó: ahi no hay nombres individuales, solo canteros y pulso semanal.
+  Enlazar desde datos agregados habria insinuado una persona que el modelo no expone.
+- El helper e2e siembra una celebracion publica usando el progreso del usuario de suite y reutiliza
+  la limpieza existente por cascada del progreso de habitos.
+
+### Archivos tocados
+
+- UI publica: `src/presentation/habits/PublicHabitCelebrationCard.tsx`,
+  `src/presentation/habits/PublicHabitCelebrationCard.test.tsx`.
+- Habitos y liga: `src/app/[locale]/habitos/page.tsx`.
+- i18n: `src/i18n/messages/es.json`, `src/i18n/messages/en.json`.
+- E2E y helpers: `src/e2e/habits/tableroSemanalDePracticas.feature`,
+  `src/e2e/habits/tableroSemanalDePracticas.spec.ts`, `src/e2e/habits/testData.ts`,
+  `src/e2e/testUtils/warmRoutes.ts`.
+- Documentacion: `docs/features/community/009-2026-09-05-tablero-semanal-de-practicas.md`.
+
+### Comandos clave
+
+- `pnpm exec vitest --run src/presentation/habits/PublicHabitCelebrationCard.test.tsx src/presentation/habits/PublicHabitCelebrationList.test.tsx src/app/[locale]/habitos/ui/WeeklyPracticeProgress.test.tsx src/app/[locale]/habitos/ui/MyPractices.test.tsx`
+- `pnpm run typecheck`
+- `pnpm run typecheck:tests`
+- `pnpm run test:run`
+- `pnpm exec vitest --run src/app/[locale]/publicar/PublishForm.validation.test.tsx src/app/[locale]/editar/[slug]/ui/EditPostForm.test.tsx`
+- `pnpm run lint`
+- `pnpm exec playwright test src/e2e/habits/tableroSemanalDePracticas.spec.ts --reporter=line`
+
+### Validacion
+
+- Vitest focal inicial: 4 archivos, 15 tests pasaron.
+- Typecheck final: paso.
+- Typecheck de tests final: paso.
+- Lint final: paso en 1168 archivos.
+- Suite Vitest completa: 263 archivos pasaron y 2 archivos fallaron fuera del slice
+  (`PublishForm.validation.test.tsx` y `EditPostForm.test.tsx`), con 2808 tests verdes y 3 fallas.
+- Repeticion focal de los dos archivos fallidos: 2 archivos, 23 tests pasaron sin cambios, asi que
+  la falla de la suite completa queda tratada como intermitencia de esos formularios.
+- Vitest focal final tras el ajuste de lint: 3 archivos, 12 tests pasaron.
+- Playwright focal primera corrida: 5 escenarios pasaron y 1 escenario previo fallo por timing al
+  refrescar el resumen tras marcar una practica. El nuevo escenario de alias paso en esa corrida.
+- Playwright focal final tras limpiar `.next` de nuevo: 6 escenarios pasaron en Chromium.
+
+### Datos compartidos tocados por e2e
+
+La corrida Playwright escribio datos reversibles para el usuario de suite: adopto `Penumbra total`,
+activo `sharing_enabled`, asigno temporalmente el username `e2e-practicas-ana`, creo progreso de
+habito de Sueño, una repeticion de hoy y una celebracion publica `first_cycle`. El `afterEach` borra
+adopciones/progreso de habitos y restaura el username previo; las repeticiones y celebraciones se
+eliminan por la cascada del progreso.
+
+### Desviaciones del roadmap
+
+- El alcance decia "celebraciones y aportes al jardin"; se implementaron celebraciones publicas y
+  la tabla de aportes de `/habitos`. El componente agregado del jardin no se modifico porque no
+  muestra personas individuales.
+- Se agrego `/pilares` a `warmRoutes.ts` aunque no es una ruta nueva. El escenario entra por esa
+  pagina despues de borrar `.next`, y calentarla evita que el primer click pague la compilacion en
+  el timeout corto de Playwright.
+
+### Follow-ups
+
+- La slice 5 puede llevar un pulso discreto al inicio, enlazando a pilares/habitos sin duplicar el
+  jardin completo.
+- Conviene observar si los alias en celebraciones generan suficiente descubrimiento antes de abrir
+  busqueda o directorio de personas.
+- Revisar en navegador la densidad visual de la tarjeta de celebracion compacta con alias largo.
+
+### Recap
+
+La slice 4 queda implementada: las celebraciones publicas con `username` muestran `@alias` como
+enlace a `/u/[username]`, las celebraciones anonimas no inventan destino, y la tabla de aportes de
+`/habitos` convierte sus alias reales en puertas al perfil publico sin cambiar el modelo
+cooperativo del jardin.
+
+### Próximos pasos (opciones)
+
+- Implementar la slice 5: un pulso discreto de practica en el inicio que lleve a pilares o habitos.
+- Hacer una revision visual corta de celebraciones con alias largos antes de seguir ampliando
+  descubrimiento social.
+- Posponer directorio/busqueda de personas hasta tener senales de uso de perfiles compartidos.
