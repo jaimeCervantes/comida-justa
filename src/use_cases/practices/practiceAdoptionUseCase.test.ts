@@ -35,6 +35,12 @@ function repository(
       repo.asked.push(userId);
       return adoptions;
     },
+    async listSharedActiveFor(userId) {
+      repo.asked.push(`shared:${userId}`);
+      return adoptions.filter(
+        ({ sharingEnabled, stoppedAt }) => sharingEnabled && !stoppedAt,
+      );
+    },
     async start(userId, practiceKey, source) {
       started.push([userId, practiceKey, source]);
       return true;
@@ -93,6 +99,33 @@ describe("lo que alguien practica", () => {
 
     expect(active.has("sleep-mental-unload")).toBe(true);
     expect(active.has("sleep-paper-book")).toBe(false);
+  });
+
+  it("el perfil público lee sólo prácticas compartidas y activas", async () => {
+    const repo = repository([
+      adoption({
+        practiceKey: "sleep-dark-room",
+        sharingEnabled: true,
+      }),
+      adoption({
+        practiceKey: "sleep-mental-unload",
+        sharingEnabled: false,
+      }),
+      adoption({
+        practiceKey: "mind-gratitude",
+        sharingEnabled: true,
+        stoppedAt: new Date("2026-08-20T06:00:00Z"),
+      }),
+    ]);
+
+    const shared = await new PracticeAdoptionUseCase(repo).sharedActiveFor(
+      "user-1",
+    );
+
+    expect(repo.asked).toEqual(["shared:user-1"]);
+    expect(shared.map(({ practiceKey }) => practiceKey)).toEqual([
+      "sleep-dark-room",
+    ]);
   });
 });
 

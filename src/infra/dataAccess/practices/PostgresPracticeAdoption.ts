@@ -39,6 +39,30 @@ export class PostgresPracticeAdoption implements PracticeAdoptionRepository {
     }));
   }
 
+  async listSharedActiveFor(
+    userId: string,
+  ): Promise<readonly PracticeAdoption[]> {
+    const result = await db.execute(sql`
+      SELECT p.key AS practice_key, up.started_at, up.stopped_at,
+             up.sharing_enabled, up.source
+      FROM user_practices up
+      JOIN practices p ON p.id = up.practice_id
+      WHERE up.user_id = ${userId}
+        AND up.stopped_at IS NULL
+        AND up.sharing_enabled
+        AND p.status = 'published'
+      ORDER BY up.started_at DESC
+    `);
+
+    return (result.rows as AdoptionRow[]).map((row) => ({
+      practiceKey: row.practice_key,
+      startedAt: new Date(row.started_at),
+      stoppedAt: row.stopped_at ? new Date(row.stopped_at) : null,
+      sharingEnabled: row.sharing_enabled,
+      source: row.source as PracticeSource,
+    }));
+  }
+
   /**
    * `ON CONFLICT DO UPDATE SET stopped_at = NULL`: volver reabre, no duplica ni reinicia.
    *

@@ -8,7 +8,9 @@ import {
   adoptPracticeForSuite,
   deleteHabitChallengeTestData,
   readPracticeSharingForSuite,
+  type SuiteProfileUsernameLease,
   seedTodaySleepRepetition,
+  useSuiteProfileUsername,
 } from "./testData";
 
 const HABITS = "/habitos";
@@ -108,6 +110,46 @@ test.describe("Tablero semanal de prácticas", () => {
 
     await expect(practice(page, DARK_ROOM)).toContainText("Privada");
     expect(await readPracticeSharingForSuite(DARK_ROOM)).toBe(false);
+  });
+});
+
+test.describe("Perfil público de prácticas", () => {
+  let usernameLease: SuiteProfileUsernameLease | null = null;
+
+  test.beforeEach(async () => {
+    await deleteHabitChallengeTestData();
+    usernameLease = await useSuiteProfileUsername();
+  });
+
+  test.afterEach(async () => {
+    await deleteHabitChallengeTestData();
+    if (usernameLease) await usernameLease.restore();
+    usernameLease = null;
+  });
+
+  test("muestra sólo prácticas compartidas agrupadas por pilar", async ({
+    page,
+  }) => {
+    await adoptPracticeForSuite(DARK_ROOM, true);
+    await adoptPracticeForSuite(MENTAL_UNLOAD, false);
+
+    await page.goto(`/u/${usernameLease?.username ?? "e2e-practicas-ana"}`);
+
+    const sharedPractices = page.getByTestId("public-shared-practices");
+    await expect(sharedPractices).toBeVisible();
+    await expect(
+      sharedPractices
+        .getByTestId("public-shared-practices-pillar")
+        .filter({ hasText: "Sueño" }),
+    ).toBeVisible();
+    await expect(sharedPractices).toContainText("Penumbra total");
+    await expect(sharedPractices).toContainText("Cuándo:");
+    await expect(sharedPractices).toContainText("Lo que basta:");
+    await expect(sharedPractices).toContainText("Desde");
+    await expect(sharedPractices).not.toContainText("La descarga mental");
+    await expect(sharedPractices).not.toContainText(
+      /puntos|ranking|campe[oó]n|primer lugar/i,
+    );
   });
 });
 

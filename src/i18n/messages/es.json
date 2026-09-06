@@ -1515,6 +1515,14 @@
     "empty": "Esta persona todavía no ha publicado nada.",
     "metaDescription": "Lo que publica {name} en {brand}.",
     "publicationCount": "{total, plural, one {# publicación} other {# publicaciones}}",
+    "sharedPracticeCount": "{count, plural, one {1 práctica} other {# prácticas}}",
+    "sharedPracticeCueLabel": "Cuándo:",
+    "sharedPracticeMinimumLabel": "Lo que basta:",
+    "sharedPracticeMinimumWhole": "La práctica completa ya es el mínimo.",
+    "sharedPracticeSince": "Desde {date}",
+    "sharedPracticesEyebrow": "Lo que practica",
+    "sharedPracticesIntro": "Sólo aparecen las prácticas que esta persona decidió compartir desde su tablero privado.",
+    "sharedPracticesTitle": "Prácticas que comparte",
     "theirStore": "Su tienda: {name}"
   },
   "publicationPillars": {

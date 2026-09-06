@@ -8,6 +8,8 @@ import type {
 /** Dónde vive lo que cada persona practica. */
 export interface PracticeAdoptionRepository {
   listFor(userId: string): Promise<readonly PracticeAdoption[]>;
+  /** Prácticas activas que la persona eligió enseñar en su perfil público. */
+  listSharedActiveFor(userId: string): Promise<readonly PracticeAdoption[]>;
   /**
    * Empieza una práctica, o **reabre** la que se había dejado.
    *

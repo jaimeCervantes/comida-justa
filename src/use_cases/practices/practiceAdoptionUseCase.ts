@@ -36,6 +36,10 @@ export default class PracticeAdoptionUseCase {
     return this.repository.listFor(userId);
   }
 
+  async sharedActiveFor(userId: string): Promise<readonly PracticeAdoption[]> {
+    return this.repository.listSharedActiveFor(userId);
+  }
+
   /**
    * Empezar es idempotente y **reabre** lo que se había dejado.
    *

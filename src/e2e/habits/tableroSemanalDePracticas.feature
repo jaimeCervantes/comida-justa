@@ -59,11 +59,15 @@ Feature: Tablero semanal de practicas
     When Ana deja de compartir "Penumbra total"
     Then "Penumbra total" vuelve a privada
 
-  @slice-3 @future
+  @slice-3
   Scenario: El perfil publico muestra practicas compartidas
-    Given una persona compartio una practica activa
-    When un visitante abre su perfil
-    Then ve esa practica agrupada por pilar
+    Given Ana lleva la practica "Penumbra total" y decidio compartirla
+    And Ana lleva la practica "La descarga mental" pero sigue privada
+    When un visitante abre "/u/e2e-practicas-ana"
+    Then ve "Penumbra total" agrupada bajo "Sueno"
+    And ve cuando y que basta para practicarla
+    And no ve "La descarga mental"
+    And el perfil no muestra puntos, ranking ni campeones
 
   @slice-4 @future
   Scenario: Un alias visible lleva al perfil publico

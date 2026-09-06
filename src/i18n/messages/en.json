@@ -1515,6 +1515,14 @@
     "empty": "This person hasn't published anything yet.",
     "metaDescription": "What {name} publishes on {brand}.",
     "publicationCount": "{total, plural, one {# publication} other {# publications}}",
+    "sharedPracticeCount": "{count, plural, one {1 practice} other {# practices}}",
+    "sharedPracticeCueLabel": "When:",
+    "sharedPracticeMinimumLabel": "What counts:",
+    "sharedPracticeMinimumWhole": "The whole practice is already the minimum.",
+    "sharedPracticeSince": "Since {date}",
+    "sharedPracticesEyebrow": "What they practice",
+    "sharedPracticesIntro": "Only the practices this person chose to share from their private dashboard appear here.",
+    "sharedPracticesTitle": "Practices they share",
     "theirStore": "Their store: {name}"
   },
   "publicationPillars": {

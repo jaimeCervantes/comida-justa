@@ -65,12 +65,15 @@ persona decida que practicas quedan listas para aparecer en su perfil publico.
 
 ### Slice 3 - El perfil practica
 
-**Alcance provisional.** `/u/[username]` muestra las practicas compartidas por esa persona, agrupadas
-por pilar, con ancla, desde cuando practica y semanas sostenidas.
+**Alcance.** `/u/[username]` muestra las practicas activas que esa persona decidio compartir,
+agrupadas por pilar, con ancla, minimo y fecha de inicio.
 
-**Criterios provisionales.**
+**Criterios de aceptacion.**
 
-- Solo aparecen practicas con `sharing_enabled`.
+- Solo aparecen practicas activas con `sharing_enabled`.
+- Una practica privada no aparece aunque la persona la lleve.
+- Cada practica se agrupa por su pilar primario.
+- La tarjeta publica muestra titulo, ancla, minimo y desde cuando se practica.
 - El perfil no muestra puntos, ranking ni comparacion personal.
 
 ### Slice 4 - Nombres como puertas

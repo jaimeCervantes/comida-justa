@@ -179,3 +179,104 @@ detenidas.
 - Revisar el switch en navegador con datos reales antes de construir el perfil publico.
 - Mantener la red social sin directorio todavia y esperar a que los perfiles compartidos tengan
   contenido suficiente.
+
+## 2026-09-06 - Slice 3: practicas compartidas en el perfil publico
+
+### Objetivo
+
+Hacer que `/u/[username]` muestre una parte social concreta sin convertir salud en competencia:
+las practicas activas que la persona eligio compartir desde `/habitos`, agrupadas por pilar y con
+datos accionables para que otra persona pueda imitarlas.
+
+### Decisiones y rationale
+
+- La lectura publica vive en el caso de uso de adopciones como `sharedActiveFor`. El perfil ya
+  resuelve `profile.id`, asi que no hizo falta crear una busqueda nueva por username dentro del
+  repositorio de practicas.
+- El repositorio filtra `sharing_enabled`, `stopped_at IS NULL` y practicas publicadas. Asi una fila
+  historica o una practica retirada no aparece por accidente.
+- El perfil cruza las adopciones compartidas con el catalogo localizado existente. Esto conserva el
+  orden, los textos y el fallback de idioma del catalogo, en vez de duplicar otra consulta de
+  traducciones.
+- La tarjeta publica muestra titulo, resumen, ancla, minimo y fecha de inicio. Cuando `minimum` es
+  nulo, la UI lo explica como "la practica completa ya es el minimo"; esconder la fila hacia que el
+  perfil pareciera incompleto.
+- La seccion se renderiza tambien en la pagina paginada del perfil para que no desaparezca al pasar
+  a `/u/[username]/page/[page]`.
+- No se agregaron puntos, ranking, campeones ni comparaciones personales.
+
+### Archivos tocados
+
+- Dominio y casos de uso: `src/use_cases/practices/ports/PracticeAdoptionRepository.ts`,
+  `src/use_cases/practices/practiceAdoptionUseCase.ts`,
+  `src/use_cases/practices/practiceAdoptionUseCase.test.ts`.
+- Infraestructura: `src/infra/dataAccess/practices/PostgresPracticeAdoption.ts`.
+- Perfil publico: `src/app/[locale]/u/[username]/data.ts`,
+  `src/app/[locale]/u/[username]/types.ts`, `src/app/[locale]/u/[username]/page.tsx`,
+  `src/app/[locale]/u/[username]/page/[page]/page.tsx`,
+  `src/app/[locale]/u/[username]/ui/ProfileSharedPractices.tsx`,
+  `src/app/[locale]/u/[username]/ui/ProfileSharedPractices.test.tsx`.
+- i18n: `src/i18n/messages/es.json`, `src/i18n/messages/en.json`.
+- E2E y documentacion: `src/e2e/habits/tableroSemanalDePracticas.feature`,
+  `src/e2e/habits/tableroSemanalDePracticas.spec.ts`, `src/e2e/habits/testData.ts`,
+  `docs/features/community/009-2026-09-05-tablero-semanal-de-practicas.md`.
+
+### Comandos clave
+
+- `pnpm exec vitest --run src/use_cases/practices/practiceAdoptionUseCase.test.ts src/app/[locale]/u/[username]/ui/ProfileSharedPractices.test.tsx src/app/[locale]/habitos/ui/MyPractices.test.tsx`
+- `pnpm run lint`
+- `pnpm run typecheck`
+- `pnpm run typecheck:tests`
+- `pnpm run test:run`
+- `pnpm exec playwright test src/e2e/habits/tableroSemanalDePracticas.spec.ts --reporter=line`
+
+### Validacion
+
+- Vitest focal final: 3 archivos, 23 tests pasaron.
+- Lint final: paso en 1167 archivos.
+- Typecheck final: paso.
+- Typecheck de tests final: paso.
+- Suite Vitest completa final: 264 archivos, 2809 tests pasaron.
+- Playwright focal final: 5 escenarios pasaron en Chromium.
+- La primera corrida Playwright dentro del sandbox no fue valida: el servidor no pudo consultar la
+  base por `EACCES`/`ETIMEDOUT` y se detuvo manualmente tras quedar sin salida. Se limpio `.next` y
+  se repitio fuera del sandbox.
+- Una corrida Playwright posterior encontro un defecto real: "Penumbra total" no tenia minimo
+  propio y la UI escondia la etiqueta "Lo que basta". Se corrigio con el fallback explicito y la
+  corrida final paso.
+
+### Datos compartidos tocados por e2e
+
+La corrida Playwright escribio datos reversibles para el usuario de suite: adopto dos practicas,
+activo `sharing_enabled` en una, mantuvo otra privada y asigno temporalmente el username
+`e2e-practicas-ana`. El `afterEach` borra las adopciones/progreso de habitos y restaura el username
+previo de la cuenta.
+
+### Desviaciones del roadmap
+
+- No se implementaron "semanas sostenidas" por practica. La fuente actual cuenta repeticiones por
+  pilar y dia, no por practica concreta; mostrar semanas por practica habria inventado precision que
+  el modelo no guarda todavia.
+
+### Follow-ups
+
+- La slice 4 puede enlazar alias de celebraciones/aportes hacia `/u/[username]` cuando exista
+  username.
+- Si mas adelante se quiere "semanas sostenidas por practica", hace falta modelar repeticiones por
+  practica o aceptar que el dato sea por pilar, no por practica individual.
+
+### Recap
+
+La slice 3 queda implementada: el perfil publico ahora muestra una seccion de practicas compartidas
+activas, agrupadas por pilar, con ancla, minimo o fallback honesto y fecha de inicio. La decision de
+privacidad sigue naciendo en `/habitos`; el perfil solo lee lo que la persona ya compartio y no
+introduce campeones, ranking ni puntos.
+
+### Próximos pasos (opciones)
+
+- Implementar la slice 4: convertir alias visibles en celebraciones y aportes del jardin en enlaces
+  al perfil publico cuando exista username.
+- Revisar visualmente el perfil con varias practicas compartidas de distintos pilares para ajustar
+  densidad y orden si hace falta.
+- Cerrar aqui la parte de perfiles y medir si los switches de compartir empiezan a producir perfiles
+  con contenido suficiente antes de abrir descubrimiento de personas.

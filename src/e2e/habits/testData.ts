@@ -29,20 +29,54 @@ export async function deleteHabitChallengeTestData(): Promise<void> {
 
 export async function adoptPracticeForSuite(
   practiceKey: string,
+  sharingEnabled = false,
 ): Promise<void> {
   const userId = await findSuiteUserId();
   const result = await db.execute(sql`
-    INSERT INTO user_practices (user_id, practice_id, source)
-    SELECT ${userId}, p.id, 'web'
+    INSERT INTO user_practices (user_id, practice_id, source, sharing_enabled)
+    SELECT ${userId}, p.id, 'web', ${sharingEnabled}
     FROM practices p
     WHERE p.key = ${practiceKey} AND p.status = 'published'
     ON CONFLICT (user_id, practice_id) DO UPDATE
       SET stopped_at = NULL,
-          source = EXCLUDED.source
+          source = EXCLUDED.source,
+          sharing_enabled = EXCLUDED.sharing_enabled
   `);
   if ((result.rowCount ?? 0) < 1) {
     throw new Error(`The E2E practice ${practiceKey} is not published.`);
   }
+}
+
+export type SuiteProfileUsernameLease = {
+  username: string;
+  restore(): Promise<void>;
+};
+
+export async function useSuiteProfileUsername(
+  username = "e2e-practicas-ana",
+): Promise<SuiteProfileUsernameLease> {
+  const userId = await findSuiteUserId();
+  const [suiteUser] = await db
+    .select({ username: users.username })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
+
+  await db.execute(sql`
+    UPDATE users SET username = NULL
+    WHERE username = ${username} AND id <> ${userId}
+  `);
+  await db.update(users).set({ username }).where(eq(users.id, userId));
+
+  return {
+    username,
+    async restore(): Promise<void> {
+      await db
+        .update(users)
+        .set({ username: suiteUser?.username ?? null })
+        .where(eq(users.id, userId));
+    },
+  };
 }
 
 export async function readPracticeSharingForSuite(

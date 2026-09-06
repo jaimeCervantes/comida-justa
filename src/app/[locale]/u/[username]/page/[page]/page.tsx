@@ -13,6 +13,7 @@ import { getProfileByUsername } from "../../data";
 import { buildProfileMetadata } from "../../metadata";
 import ProfileHeader from "../../ui/ProfileHeader";
 import ProfilePublications from "../../ui/ProfilePublications";
+import ProfileSharedPractices from "../../ui/ProfileSharedPractices";
 
 type Props = {
   params: Promise<{ locale: string; username: string; page: string }>;
@@ -86,6 +87,8 @@ export default async function ProfilePaginatedPage({
         isOwner={isOwner}
         path={profilePath(username, locale)}
       />
+
+      <ProfileSharedPractices practices={data.sharedPractices} />
 
       <ProfilePublications
         viewerId={viewerId}
