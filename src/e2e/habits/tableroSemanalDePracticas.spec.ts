@@ -7,6 +7,7 @@ import {
 import {
   adoptPracticeForSuite,
   deleteHabitChallengeTestData,
+  readPracticeSharingForSuite,
   seedTodaySleepRepetition,
 } from "./testData";
 
@@ -83,6 +84,30 @@ test.describe("Tablero semanal de prácticas", () => {
     await expect(mine.getByTestId("practice-mark")).toHaveCount(0);
     await expect(mine.getByTestId("practice-done-today")).toHaveCount(2);
     await expect(mine).toContainText("Un pilar suma una vez al día");
+  });
+
+  test("una práctica activa se puede compartir y retirar del perfil público", async ({
+    page,
+  }) => {
+    await adoptPracticeForSuite(DARK_ROOM);
+
+    await page.goto(HABITS);
+    await expect(practice(page, DARK_ROOM)).toContainText("Privada");
+    expect(await readPracticeSharingForSuite(DARK_ROOM)).toBe(false);
+
+    await practice(page, DARK_ROOM)
+      .getByTestId("practice-sharing-toggle")
+      .click();
+
+    await expect(practice(page, DARK_ROOM)).toContainText("Compartida");
+    expect(await readPracticeSharingForSuite(DARK_ROOM)).toBe(true);
+
+    await practice(page, DARK_ROOM)
+      .getByTestId("practice-sharing-toggle")
+      .click();
+
+    await expect(practice(page, DARK_ROOM)).toContainText("Privada");
+    expect(await readPracticeSharingForSuite(DARK_ROOM)).toBe(false);
   });
 });
 

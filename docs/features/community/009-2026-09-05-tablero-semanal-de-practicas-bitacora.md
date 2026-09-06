@@ -90,3 +90,92 @@ semanales.
   publico.
 - Afinar copy/visual del tablero despues de verlo con datos reales de usuarios.
 - Dejar esta slice como cierre actual y medir si aumenta el regreso semanal antes de abrir perfiles.
+
+## 2026-09-05 - Slice 2: control de compartir practicas
+
+### Objetivo
+
+Dar a cada persona control explicito sobre que practicas activas quedaran disponibles para su futuro
+perfil publico, sin mezclar esa decision con empezar, dejar o marcar una practica como hecha.
+
+### Decisiones y rationale
+
+- El control vive en `/habitos`, dentro de `Mis practicas`, porque esa pantalla es privada y ya
+  representa "lo mio". El catalogo `/practicas` sigue dedicado a descubrir y adoptar.
+- La practica nace privada y el usuario la cambia con un switch. Esta forma hace visible que es una
+  preferencia binaria, no un logro ni una publicacion.
+- La mutacion usa la sesion del servidor y no acepta identidad desde el formulario. El formulario
+  solo manda `practiceKey` e `intent`.
+- El repositorio actualiza `sharing_enabled` solo si la adopcion sigue activa (`stopped_at IS NULL`).
+  Una fila historica no debe filtrarse al perfil publico por accidente.
+- No se agrego migracion: la columna ya existia y estaba preparada para este paso.
+
+### Archivos tocados
+
+- Dominio y casos de uso: `src/domain/practices/adoption.ts`,
+  `src/domain/practices/adoption.test.ts`,
+  `src/use_cases/practices/ports/PracticeAdoptionRepository.ts`,
+  `src/use_cases/practices/practiceAdoptionUseCase.ts`,
+  `src/use_cases/practices/practiceAdoptionUseCase.test.ts`.
+- Infraestructura: `src/infra/dataAccess/practices/PostgresPracticeAdoption.ts`.
+- App y presentacion: `src/app/[locale]/habitos/page.tsx`,
+  `src/app/[locale]/habitos/ui/MyPractices.tsx`,
+  `src/app/[locale]/habitos/ui/MyPractices.test.tsx`,
+  `src/app/[locale]/practiceActions.ts`, `src/app/[locale]/practicas/practiceActions.ts`.
+- Estabilizacion de test ajeno: `src/app/[locale]/editar/[slug]/ui/EditPostForm.test.tsx`.
+- i18n: `src/i18n/messages/es.json`, `src/i18n/messages/en.json`.
+- E2E y documentacion: `src/e2e/habits/tableroSemanalDePracticas.feature`,
+  `src/e2e/habits/tableroSemanalDePracticas.spec.ts`, `src/e2e/habits/testData.ts`,
+  `docs/features/community/009-2026-09-05-tablero-semanal-de-practicas.md`.
+
+### Comandos clave
+
+- `pnpm exec vitest --run src/domain/practices/adoption.test.ts src/use_cases/practices/practiceAdoptionUseCase.test.ts src/app/[locale]/habitos/ui/MyPractices.test.tsx`
+- `pnpm run typecheck`
+- `pnpm run lint`
+- `pnpm run test:run`
+- `pnpm exec vitest --run src/app/[locale]/editar/[slug]/ui/EditPostForm.test.tsx`
+- `pnpm exec playwright test src/e2e/habits/tableroSemanalDePracticas.spec.ts --reporter=line`
+
+### Validacion
+
+- Vitest focal: 3 archivos, 24 tests pasaron.
+- Typecheck: paso.
+- Lint: paso en 1164 archivos.
+- Playwright focal: 4 escenarios pasaron en Chromium.
+- La primera corrida completa de `pnpm run test:run` expuso una espera fragil en
+  `EditPostForm.test.tsx`, fuera del area de producto tocada. Ese archivo paso aislado con 8 de 8;
+  se estabilizo esperando explicitamente la llamada a la action antes de buscar el estado renderizado.
+- Suite Vitest completa final: 263 archivos, 2804 tests pasaron.
+
+### Datos compartidos tocados por e2e
+
+La corrida Playwright creo y limpio datos reversibles para el usuario de suite: adopciones en
+`user_practices`, cambios de `sharing_enabled`, progreso de reto y repeticiones del dia. El helper
+`deleteHabitChallengeTestData` borra esas filas al terminar cada escenario.
+
+### Desviaciones del roadmap
+
+- No hubo cambio de alcance. La slice se quedo en control de visibilidad; no se implemento todavia
+  el perfil publico ni enlaces desde alias.
+
+### Follow-ups
+
+- La slice 3 ya puede leer solo `sharing_enabled = true` para mostrar practicas compartidas en
+  `/u/[username]`.
+- Conviene revisar visualmente el switch con varias practicas activas para confirmar densidad y
+  escaneo en movil.
+
+### Recap
+
+La slice 2 deja lista la decision de privacidad por practica: cada practica activa en `/habitos`
+puede pasar de privada a compartida y volver, sin dejar de practicarse ni alterar el conteo semanal.
+El backend persiste esa decision en la fila existente de `user_practices` y evita exponer practicas
+detenidas.
+
+### Próximos pasos (opciones)
+
+- Implementar la slice 3: perfil publico con practicas compartidas agrupadas por pilar.
+- Revisar el switch en navegador con datos reales antes de construir el perfil publico.
+- Mantener la red social sin directorio todavia y esperar a que los perfiles compartidos tengan
+  contenido suficiente.

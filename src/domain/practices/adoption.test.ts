@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { activeKeys, isActive, type PracticeAdoption } from "./adoption";
+import {
+  activeKeys,
+  isActive,
+  type PracticeAdoption,
+  sharedActiveKeys,
+} from "./adoption";
 
 function adoption(overrides: Partial<PracticeAdoption> = {}): PracticeAdoption {
   return {
@@ -44,5 +49,21 @@ describe("las claves activas", () => {
 
   it("sin adopciones es un conjunto vacío, no un fallo", () => {
     expect(activeKeys([]).size).toBe(0);
+  });
+});
+
+describe("las claves activas compartidas", () => {
+  it("deja fuera las privadas y las que ya se dejaron", () => {
+    const adoptions = [
+      adoption({ sharingEnabled: true }),
+      adoption({
+        practiceKey: "sleep-paper-book",
+        sharingEnabled: true,
+        stoppedAt: new Date("2026-08-20T06:00:00Z"),
+      }),
+      adoption({ practiceKey: "mind-gratitude" }),
+    ];
+
+    expect([...sharedActiveKeys(adoptions)]).toEqual(["sleep-mental-unload"]);
   });
 });

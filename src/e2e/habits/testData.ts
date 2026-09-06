@@ -45,6 +45,23 @@ export async function adoptPracticeForSuite(
   }
 }
 
+export async function readPracticeSharingForSuite(
+  practiceKey: string,
+): Promise<boolean> {
+  const userId = await findSuiteUserId();
+  const result = await db.execute(sql`
+    SELECT up.sharing_enabled
+    FROM user_practices up
+    JOIN practices p ON p.id = up.practice_id
+    WHERE up.user_id = ${userId} AND p.key = ${practiceKey}
+  `);
+  const row = result.rows[0] as { sharing_enabled: boolean } | undefined;
+  if (!row) {
+    throw new Error(`The E2E practice ${practiceKey} was not adopted.`);
+  }
+  return row.sharing_enabled;
+}
+
 export async function seedTodaySleepRepetition(): Promise<void> {
   const userId = await findSuiteUserId();
   const today = localDateAt(new Date(), COMMUNITY_TIMEZONE);

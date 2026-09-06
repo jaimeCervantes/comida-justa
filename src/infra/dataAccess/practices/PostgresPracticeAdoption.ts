@@ -79,6 +79,22 @@ export class PostgresPracticeAdoption implements PracticeAdoptionRepository {
     `);
   }
 
+  async setSharing(
+    userId: string,
+    practiceKey: string,
+    enabled: boolean,
+  ): Promise<void> {
+    await db.execute(sql`
+      UPDATE user_practices up
+      SET sharing_enabled = ${enabled}
+      FROM practices p
+      WHERE p.id = up.practice_id
+        AND up.user_id = ${userId}
+        AND p.key = ${practiceKey}
+        AND up.stopped_at IS NULL
+    `);
+  }
+
   /**
    * De qué pilares hay repetición en una fecha.
    *

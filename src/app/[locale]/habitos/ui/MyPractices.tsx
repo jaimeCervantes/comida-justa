@@ -20,10 +20,14 @@ export default function MyPractices({
   practices,
   doneTodayPillars = new Set(),
   markAction,
+  sharedPracticeKeys = new Set(),
+  sharingAction,
 }: {
   practices: readonly PracticeCard[];
   doneTodayPillars?: ReadonlySet<PillarKey>;
   markAction?: (formData: FormData) => Promise<void>;
+  sharedPracticeKeys?: ReadonlySet<string>;
+  sharingAction?: (formData: FormData) => Promise<void>;
 }): React.ReactNode {
   const t = useTranslations("practicesIndex");
   const tPillars = useTranslations("pillars");
@@ -51,6 +55,7 @@ export default function MyPractices({
               const pillar = primaryPillarOf(practice);
               const color = pillarColorClasses[pillar];
               const doneToday = doneTodayPillars.has(pillar);
+              const shared = sharedPracticeKeys.has(practice.key);
               return (
                 <li
                   key={practice.key}
@@ -102,6 +107,50 @@ export default function MyPractices({
                       </button>
                     </form>
                   ) : null}
+
+                  {sharingAction && (
+                    <div className="mt-4 flex items-center justify-between gap-3 rounded-control border border-separator bg-surface/70 px-3 py-2">
+                      <div>
+                        <p className="text-caption font-semibold text-text-strong">
+                          {t("sharingTitle")}
+                        </p>
+                        <p
+                          data-testid="practice-sharing-status"
+                          className="text-caption text-text-muted"
+                        >
+                          {shared ? t("sharingShared") : t("sharingPrivate")}
+                        </p>
+                      </div>
+                      <form action={sharingAction}>
+                        <input
+                          type="hidden"
+                          name="practiceKey"
+                          value={practice.key}
+                        />
+                        <input
+                          type="hidden"
+                          name="intent"
+                          value={shared ? "withdraw" : "share"}
+                        />
+                        <button
+                          type="submit"
+                          role="switch"
+                          aria-checked={shared}
+                          data-testid="practice-sharing-toggle"
+                          className={`focus-ring flex h-7 w-12 shrink-0 items-center rounded-full border p-1 transition ${
+                            shared
+                              ? "justify-end border-pw-green bg-pw-green"
+                              : "justify-start border-separator bg-surface-elevation-1"
+                          }`}
+                        >
+                          <span className="sr-only">
+                            {shared ? t("sharingDisable") : t("sharingEnable")}
+                          </span>
+                          <span className="block size-4 rounded-full bg-white shadow-sm" />
+                        </button>
+                      </form>
+                    </div>
+                  )}
                 </li>
               );
             })}

@@ -48,11 +48,16 @@ Feature: Tablero semanal de practicas
     And no contiene "ganador"
     And no contiene "primer lugar"
 
-  @slice-2 @future
+  @slice-2
   Scenario: Una persona decide que practica comparte en su perfil
-    Given una persona lleva una practica activa
-    When activa compartir esa practica
-    Then la practica queda disponible para su perfil publico
+    Given Ana lleva la practica "Penumbra total"
+    And esa practica todavia es privada
+    When Ana abre "/habitos"
+    And activa compartir "Penumbra total"
+    Then "Penumbra total" aparece como compartida
+    And la practica queda disponible para su perfil publico
+    When Ana deja de compartir "Penumbra total"
+    Then "Penumbra total" vuelve a privada
 
   @slice-3 @future
   Scenario: El perfil publico muestra practicas compartidas

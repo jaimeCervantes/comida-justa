@@ -55,6 +55,14 @@ export default class PracticeAdoptionUseCase {
     await this.repository.stop(userId, practiceKey);
   }
 
+  async setSharing(
+    userId: string,
+    practiceKey: string,
+    enabled: boolean,
+  ): Promise<void> {
+    await this.repository.setSharing(userId, practiceKey, enabled);
+  }
+
   /**
    * Qué pilares ya cuentan hoy para esta persona.
    *

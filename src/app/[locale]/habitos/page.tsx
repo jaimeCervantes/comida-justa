@@ -4,6 +4,7 @@ import {
   CURATED_CHALLENGES,
   type CuratedHabitPillar,
 } from "~/domain/habits/curatedChallenges";
+import { activeKeys, sharedActiveKeys } from "~/domain/practices/adoption";
 import { Link } from "~/i18n/navigation";
 import { pillarHref } from "~/i18n/routes";
 import { resolveLocale } from "~/i18n/routing";
@@ -17,7 +18,7 @@ import HabitLeagueUseCase from "~/use_cases/habits/habitLeagueUseCase";
 import PracticeAdoptionUseCase from "~/use_cases/practices/practiceAdoptionUseCase";
 import PracticeCatalogUseCase from "~/use_cases/practices/practiceCatalogUseCase";
 import AccountSection from "../cuenta/ui/AccountSection";
-import { markPracticeDone } from "../practiceActions";
+import { markPracticeDone, setPracticeSharing } from "../practiceActions";
 import { setHabitLeagueOptIn } from "./leagueActions";
 import MyPractices from "./ui/MyPractices";
 import WeeklyPracticeProgress from "./ui/WeeklyPracticeProgress";
@@ -52,11 +53,15 @@ export default async function AtomicChallengesPage({
      consulta nueva; sin sesión el conjunto viene vacío y la sección invita al catálogo en vez de
      desaparecer. */
   const adoptions = new PracticeAdoptionUseCase(new PostgresPracticeAdoption());
-  const [adopted, practisedToday, weeklyProgress] = await Promise.all([
-    adoptions.activeFor(userId),
-    adoptions.pillarsPractisedToday(userId),
-    adoptions.weeklyPillarProgress(userId),
-  ]);
+  const [practiceAdoptions, practisedToday, weeklyProgress] = await Promise.all(
+    [
+      userId ? adoptions.listFor(userId) : [],
+      adoptions.pillarsPractisedToday(userId),
+      adoptions.weeklyPillarProgress(userId),
+    ],
+  );
+  const adopted = activeKeys(practiceAdoptions);
+  const sharedPractices = sharedActiveKeys(practiceAdoptions);
   const myPractices = await new PracticeCatalogUseCase(
     new PostgresPracticeCatalog(),
   ).listAdopted(locale, adopted);
@@ -113,6 +118,8 @@ export default async function AtomicChallengesPage({
         practices={myPractices}
         doneTodayPillars={practisedToday}
         markAction={userId ? markPracticeDone : undefined}
+        sharedPracticeKeys={sharedPractices}
+        sharingAction={userId ? setPracticeSharing : undefined}
       />
 
       <section className="mt-8 rounded-panel border border-feedback-warning/40 bg-feedback-warning/10 p-6">

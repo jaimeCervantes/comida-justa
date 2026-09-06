@@ -33,3 +33,19 @@ export function activeKeys(
     adoptions.filter(isActive).map(({ practiceKey }) => practiceKey),
   );
 }
+
+/**
+ * Lo que puede aparecer públicamente: compartido **y** vigente.
+ *
+ * Una práctica dejada puede seguir existiendo en la historia privada, pero no debe filtrarse al
+ * perfil futuro sólo porque alguna vez se había marcado como compartida.
+ */
+export function sharedActiveKeys(
+  adoptions: readonly PracticeAdoption[],
+): ReadonlySet<string> {
+  return new Set(
+    adoptions
+      .filter((adoption) => isActive(adoption) && adoption.sharingEnabled)
+      .map(({ practiceKey }) => practiceKey),
+  );
+}

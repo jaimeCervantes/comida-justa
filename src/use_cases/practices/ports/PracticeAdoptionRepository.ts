@@ -21,6 +21,17 @@ export interface PracticeAdoptionRepository {
   ): Promise<boolean>;
   stop(userId: string, practiceKey: string): Promise<void>;
   /**
+   * Decide si una práctica activa puede aparecer en el perfil público de la persona.
+   *
+   * La práctica sigue activa en ambos casos: compartir es una decisión de visibilidad, no una forma
+   * de empezar ni dejar.
+   */
+  setSharing(
+    userId: string,
+    practiceKey: string,
+    enabled: boolean,
+  ): Promise<void>;
+  /**
    * Los pilares que esta persona ya marcó en una fecha.
    *
    * Devuelve **pilares y no prácticas** porque ésa es la unidad de conteo: una repetición es «hoy

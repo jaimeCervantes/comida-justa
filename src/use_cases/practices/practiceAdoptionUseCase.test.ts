@@ -14,17 +14,20 @@ function repository(
 ) {
   const started: Array<[string, string, PracticeSource]> = [];
   const stopped: Array<[string, string]> = [];
+  const sharing: Array<[string, string, boolean]> = [];
   const askedDates: Array<[string, string]> = [];
   const askedPeriods: Array<[string, string, string]> = [];
   const repo: PracticeAdoptionRepository & {
     started: typeof started;
     stopped: typeof stopped;
+    sharing: typeof sharing;
     askedDates: typeof askedDates;
     askedPeriods: typeof askedPeriods;
     asked: string[];
   } = {
     started,
     stopped,
+    sharing,
     askedDates,
     askedPeriods,
     asked: [],
@@ -38,6 +41,9 @@ function repository(
     },
     async stop(userId, practiceKey) {
       stopped.push([userId, practiceKey]);
+    },
+    async setSharing(userId, practiceKey, enabled) {
+      sharing.push([userId, practiceKey, enabled]);
     },
     async pillarsPractisedOn(userId, cycleDate) {
       askedDates.push([userId, cycleDate]);
@@ -117,6 +123,20 @@ describe("empezar y dejar", () => {
     await new PracticeAdoptionUseCase(repo).stop("user-1", "mind-gratitude");
 
     expect(repo.stopped).toEqual([["user-1", "mind-gratitude"]]);
+  });
+
+  it("compartir o retirar del perfil público no cambia si la sigue practicando", async () => {
+    const repo = repository();
+    const useCase = new PracticeAdoptionUseCase(repo);
+
+    await useCase.setSharing("user-1", "mind-gratitude", true);
+    await useCase.setSharing("user-1", "mind-gratitude", false);
+
+    expect(repo.sharing).toEqual([
+      ["user-1", "mind-gratitude", true],
+      ["user-1", "mind-gratitude", false],
+    ]);
+    expect(repo.stopped).toEqual([]);
   });
 });
 

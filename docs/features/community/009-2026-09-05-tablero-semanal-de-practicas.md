@@ -53,13 +53,15 @@ comunidad local. El modelo correcto es "practico y aporto al jardin", no "gano c
 
 ### Slice 2 - Control de compartir practicas
 
-**Alcance provisional.** Abrir la bandera `user_practices.sharing_enabled` desde la interfaz para
-que cada persona decida que practicas aparecen en su perfil publico.
+**Alcance.** Abrir la bandera `user_practices.sharing_enabled` desde `/habitos` para que cada
+persona decida que practicas quedan listas para aparecer en su perfil publico.
 
-**Criterios provisionales.**
+**Criterios de aceptacion.**
 
 - Una practica activa puede compartirse o retirarse sin dejar de practicarse.
 - La decision nace en privado y se puede revertir.
+- La accion no acepta identidad desde el formulario; usa la sesion actual.
+- Una practica dejada no queda disponible para perfil publico aunque su fila historica exista.
 
 ### Slice 3 - El perfil practica
 

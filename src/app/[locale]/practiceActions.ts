@@ -43,6 +43,25 @@ export async function manageOwnPractice(formData: FormData): Promise<void> {
   revalidateLocalizedPath("/habitos");
 }
 
+export async function setPracticeSharing(formData: FormData): Promise<void> {
+  const userId = await readViewerId();
+  if (!userId) return;
+
+  const practiceKey = formData.get("practiceKey");
+  if (typeof practiceKey !== "string" || practiceKey === "") return;
+
+  const intent = formData.get("intent");
+  if (intent !== "share" && intent !== "withdraw") return;
+
+  await new PracticeAdoptionUseCase(new PostgresPracticeAdoption()).setSharing(
+    userId,
+    practiceKey,
+    intent === "share",
+  );
+
+  revalidateLocalizedPath("/habitos");
+}
+
 /**
  * Marcar que hoy se practicó.
  *

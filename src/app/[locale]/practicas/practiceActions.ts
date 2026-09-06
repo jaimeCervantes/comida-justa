@@ -1,1 +1,5 @@
-export { manageOwnPractice, markPracticeDone } from "../practiceActions";
+export {
+  manageOwnPractice,
+  markPracticeDone,
+  setPracticeSharing,
+} from "../practiceActions";

@@ -78,6 +78,40 @@ describe("mis prácticas", () => {
     );
   });
 
+  it("muestra una práctica como privada hasta que la persona decide compartirla", () => {
+    renderWithIntl(
+      <MyPractices practices={[practice()]} sharingAction={async () => {}} />,
+    );
+    const item = screen.getByTestId("my-practices");
+
+    expect(
+      within(item).getByTestId("practice-sharing-status"),
+    ).toHaveTextContent("Privada");
+    expect(within(item).getByTestId("practice-sharing-toggle")).toHaveAttribute(
+      "aria-checked",
+      "false",
+    );
+  });
+
+  it("muestra una práctica compartida como visible y permite retirarla", () => {
+    renderWithIntl(
+      <MyPractices
+        practices={[practice()]}
+        sharedPracticeKeys={new Set(["sleep-mental-unload"])}
+        sharingAction={async () => {}}
+      />,
+    );
+    const item = screen.getByTestId("my-practices");
+
+    expect(
+      within(item).getByTestId("practice-sharing-status"),
+    ).toHaveTextContent("Compartida");
+    expect(within(item).getByTestId("practice-sharing-toggle")).toHaveAttribute(
+      "aria-checked",
+      "true",
+    );
+  });
+
   it("si el pilar ya cuenta hoy, lo explica y no ofrece otro aporte", () => {
     renderWithIntl(
       <MyPractices
