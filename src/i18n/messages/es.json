@@ -831,6 +831,12 @@
     "heroIntro": "Tu recurso máximo no renovable: no se compra y no se recupera. Con diez minutos al día ganas salud, belleza y longevidad — y de paso fortaleces a tu comunidad.",
     "heroIdentity": "Vivir bien no es un lujo. Es un acto de amor propio que se contagia.",
     "heroLocationTitle": "Tu ubicación",
+    "practicePulse": {
+      "active": "{count, plural, one {# persona está practicando esta semana} other {# personas están practicando esta semana}}",
+      "cta": "Elegir una práctica",
+      "empty": "Todavía nadie ha practicado esta semana",
+      "label": "Pulso semanal de práctica"
+    },
     "publishCta": "Publicar lo mío",
     "title": "❤️💚 Hazlo sano: Cuando cuidas tu salud, también estás cuidando lo más valioso que tienes: tu tiempo. Tu recurso máximo no renovable."
   },

@@ -831,6 +831,12 @@
     "heroIntro": "Your one non-renewable resource: you can't buy it and you can't get it back. Ten minutes a day earn you health, beauty and longevity — and they strengthen your community along the way.",
     "heroIdentity": "Living well isn't a luxury. It's an act of self-love, and it spreads.",
     "heroLocationTitle": "Your location",
+    "practicePulse": {
+      "active": "{count, plural, one {# person is practising this week} other {# people are practising this week}}",
+      "cta": "Choose a practice",
+      "empty": "Nobody has practised this week yet",
+      "label": "Weekly practice pulse"
+    },
     "publishCta": "Publish mine",
     "title": "❤️💚 Just Health: When you take care of your health, you're also protecting the most valuable thing you have: your time. Your ultimate non-renewable resource."
   },

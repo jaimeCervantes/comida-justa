@@ -377,3 +377,96 @@ cooperativo del jardin.
 - Hacer una revision visual corta de celebraciones con alias largos antes de seguir ampliando
   descubrimiento social.
 - Posponer directorio/busqueda de personas hasta tener senales de uso de perfiles compartidos.
+
+## 2026-09-06 - Slice 5: pulso discreto de practica en el inicio
+
+### Objetivo
+
+Llevar al inicio una senal minima de que la comunidad esta practicando esta semana, con una puerta a
+`/pilares`, sin duplicar el jardin completo ni convertir el home en otra pantalla de gamificacion.
+
+### Decisiones y rationale
+
+- El pulso usa `CommunityGarden.weeklyPractitioners`, el mismo dato semanal que ya alimenta el
+  jardin. No se agrego consulta nueva de ranking ni se invento una metrica de portada.
+- La pieza vive como `HomePracticePulse` en `src/app/(home)` porque solo la usa el home y depende
+  de su ritmo visual: en escritorio queda entre la portada y "Recien publicado"; en movil queda
+  arriba del feed, ya que el hero esta oculto.
+- Se renderiza una sola instancia responsive para evitar test ids duplicados y lecturas dobles de
+  lector de pantalla.
+- El enlace apunta a `/pilares`, no a `/habitos`: quien llega desde el inicio puede descubrir los
+  cuatro pilares antes de entrar a sus practicas personales.
+- El e2e no espera "1 persona" fijo. La base compartida puede tener otras repeticiones reales, asi
+  que el test lee el conteo semanal real despues de sembrar el aporte de suite y afirma ese mismo
+  numero en la UI.
+
+### Archivos tocados
+
+- Home: `src/app/(home)/HomePracticePulse.tsx`,
+  `src/app/(home)/HomePracticePulse.test.tsx`, `src/app/[locale]/page.tsx`.
+- i18n: `src/i18n/messages/es.json`, `src/i18n/messages/en.json`.
+- E2E y helpers: `src/e2e/habits/tableroSemanalDePracticas.feature`,
+  `src/e2e/habits/tableroSemanalDePracticas.spec.ts`, `src/e2e/habits/testData.ts`.
+- Documentacion: `docs/features/community/009-2026-09-05-tablero-semanal-de-practicas.md`.
+
+### Comandos clave
+
+- `pnpm exec vitest --run 'src/app/(home)/HomePracticePulse.test.tsx' 'src/app/(home)/HomeHero.test.tsx'`
+- `pnpm run typecheck`
+- `pnpm run typecheck:tests`
+- `pnpm run lint`
+- `pnpm run test:run`
+- `pnpm exec playwright test src/e2e/habits/tableroSemanalDePracticas.spec.ts --reporter=line`
+- `pnpm exec playwright test src/e2e/home/homeHero.spec.ts --reporter=line`
+
+### Validacion
+
+- Vitest focal de home: 2 archivos, 21 tests pasaron.
+- Typecheck final: paso.
+- Typecheck de tests final: paso.
+- Lint final: paso en 1170 archivos.
+- Suite Vitest completa: 266 archivos, 2814 tests pasaron.
+- Playwright `tableroSemanalDePracticas.spec.ts`: primera corrida tuvo 5 escenarios verdes y 2
+  fallas; una era el timing intermitente ya observado al refrescar el resumen de `/habitos`, y la
+  otra expuso que la base compartida ya tenia 2 practicantes semanales. Se ajusto el escenario para
+  afirmar el conteo real.
+- Playwright `tableroSemanalDePracticas.spec.ts` final: 7 escenarios pasaron en Chromium.
+- Playwright `homeHero.spec.ts` final: 7 escenarios pasaron en Chromium.
+
+### Datos compartidos tocados por e2e
+
+La corrida Playwright escribio datos reversibles para el usuario de suite: creo progreso de Sueño,
+una repeticion de hoy y activo `garden_sharing_enabled` para que el pulso tuviera una contribucion
+real del jardin. El `afterEach` borra el progreso de habitos del usuario de suite; las repeticiones
+asociadas se eliminan por cascada.
+
+### Desviaciones del roadmap
+
+- El roadmap decia "una sola linea"; se implemento como una banda compacta con una frase y un CTA
+  dentro del mismo enlace. Sigue siendo una sola entrada visual y no duplica el jardin.
+- Se eligio `/pilares` como destino en lugar de `/habitos` porque el inicio es publico y debe
+  explicar primero el espacio de practica.
+
+### Follow-ups
+
+- Revisar visualmente el pulso con conteos de dos y tres digitos para confirmar que envuelve bien
+  antes de crecer a mensajes mas ricos.
+- Medir si el enlace desde el home lleva a mas inicios de practica antes de plantear directorio de
+  personas.
+- Si el timing intermitente de `/habitos` vuelve a aparecer, conviene estabilizar ese escenario
+  como deuda de test separada.
+
+### Recap
+
+La slice 5 queda implementada: el inicio muestra un pulso semanal real del jardin, enlazado a
+`/pilares`, sin podios ni lenguaje competitivo. En escritorio acompaña la portada antes del feed; en
+movil entra como una banda pequena antes de las tarjetas, manteniendo el foco del home en lo
+publicado por la comunidad.
+
+### Próximos pasos (opciones)
+
+- Hacer una revision visual manual del home en escritorio y movil con datos reales.
+- Cerrar este roadmap como entregado y abrir uno nuevo solo si se decide medir descubrimiento social
+  o busqueda de personas.
+- Corregir por separado la intermitencia del escenario "una practica activa se puede marcar desde
+  Habitos" si vuelve a fallar en CI.

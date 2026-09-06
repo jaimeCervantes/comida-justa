@@ -154,6 +154,37 @@ export async function seedPublicCelebrationForSuite(
     });
 }
 
+export async function seedSharedGardenPulseForSuite(): Promise<void> {
+  const userId = await findSuiteUserId();
+  await seedTodaySleepRepetition();
+
+  await db
+    .update(habitChallengeProgress)
+    .set({ gardenSharingEnabled: true })
+    .where(
+      and(
+        eq(habitChallengeProgress.userId, userId),
+        eq(habitChallengeProgress.challengeKey, SLEEP_CHALLENGE_KEY),
+      ),
+    );
+}
+
+export async function countWeeklyGardenPractitioners(): Promise<number> {
+  const week = currentCommunityWeek(new Date());
+  const result = await db.execute(sql`
+    SELECT count(DISTINCT r.user_id)::int AS practitioners
+    FROM habit_repetitions r
+    JOIN habit_challenge_progress p
+      ON p.user_id = r.user_id
+      AND p.challenge_key = r.challenge_key
+    WHERE p.garden_sharing_enabled = true
+      AND r.cycle_date >= ${week.startDate}
+      AND r.cycle_date < ${week.endDate}
+  `);
+  const row = result.rows[0] as { practitioners?: number | string } | undefined;
+  return Number(row?.practitioners ?? 0);
+}
+
 /**
  * Retrasa la ventana de siete días de UN ritual para poder registrar cinco fechas seguidas.
  *

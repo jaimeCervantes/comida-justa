@@ -91,13 +91,16 @@ jardin— enlazan al perfil publico cuando existe un `username`.
 
 ### Slice 5 - Pulso discreto en el inicio
 
-**Alcance provisional.** El inicio muestra una sola linea de descubrimiento hacia la parte de
-practica, por ejemplo cuantas personas practicaron esta semana, sin duplicar el jardin completo.
+**Alcance.** El inicio muestra una sola linea de descubrimiento hacia la practica: cuantas personas
+aportaron al jardin esta semana y un enlace a la portada de pilares.
 
-**Criterios provisionales.**
+**Criterios de aceptacion.**
 
-- El inicio sigue centrado en publicaciones, productos y economia local.
-- El pulso enlaza al hub de pilares o habitos.
+- El pulso usa actividad semanal real del jardin, no una cifra inventada.
+- El inicio sigue centrado en publicaciones, productos y economia local; no duplica el jardin
+  completo.
+- La linea enlaza a `/pilares`.
+- No introduce campeones, ranking, primer lugar ni premios.
 
 ## Fuera de alcance
 

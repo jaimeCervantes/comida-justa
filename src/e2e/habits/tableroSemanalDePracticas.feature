@@ -78,8 +78,10 @@ Feature: Tablero semanal de practicas
     Then llega a "/u/e2e-practicas-ana"
     And ve "Penumbra total" en el perfil publico de Ana
 
-  @slice-5 @future
+  @slice-5
   Scenario: El inicio muestra un pulso discreto de practica
-    Given la comunidad tuvo actividad esta semana
-    When un visitante abre el inicio
-    Then ve una linea que enlaza al espacio de practica
+    Given Ana aporto una repeticion al jardin esta semana
+    When un visitante abre "/"
+    Then ve cuantas personas estan practicando esta semana
+    And esa linea enlaza a "/pilares"
+    And no ve campeones, ranking ni primer lugar

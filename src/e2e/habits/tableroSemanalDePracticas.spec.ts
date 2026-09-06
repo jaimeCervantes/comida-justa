@@ -6,10 +6,12 @@ import {
 } from "~/e2e/testUtils/simulateLogin";
 import {
   adoptPracticeForSuite,
+  countWeeklyGardenPractitioners,
   deleteHabitChallengeTestData,
   readPracticeSharingForSuite,
   type SuiteProfileUsernameLease,
   seedPublicCelebrationForSuite,
+  seedSharedGardenPulseForSuite,
   seedTodaySleepRepetition,
   useSuiteProfileUsername,
 } from "./testData";
@@ -184,6 +186,38 @@ test.describe("Descubrimiento desde actividad pública", () => {
     await expect(page).toHaveURL(`/u/${username}`);
     await expect(page.getByTestId("public-shared-practices")).toContainText(
       "Penumbra total",
+    );
+  });
+});
+
+test.describe("Pulso de práctica en el inicio", () => {
+  test.beforeEach(async () => {
+    await deleteHabitChallengeTestData();
+  });
+
+  test.afterEach(async () => {
+    await deleteHabitChallengeTestData();
+  });
+
+  test("muestra actividad semanal real como una entrada a pilares", async ({
+    page,
+  }) => {
+    await seedSharedGardenPulseForSuite();
+    const weeklyPractitioners = await countWeeklyGardenPractitioners();
+    const expectedPulse =
+      weeklyPractitioners === 1
+        ? "1 persona está practicando esta semana"
+        : `${weeklyPractitioners} personas están practicando esta semana`;
+
+    await page.goto("/");
+
+    const pulse = page.getByTestId("home-practice-pulse");
+    await expect(pulse).toContainText(expectedPulse);
+    await expect(
+      pulse.getByRole("link", { name: /Elegir una práctica/ }),
+    ).toHaveAttribute("href", "/pilares");
+    await expect(pulse).not.toContainText(
+      /campe[oó]n|ranking|primer lugar|ganador/i,
     );
   });
 });
