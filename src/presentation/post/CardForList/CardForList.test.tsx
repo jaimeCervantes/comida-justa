@@ -165,15 +165,25 @@ describe("When a card is listed", () => {
         category="sueno_y_descanso"
         categoryLabel="Sueño"
         price={null}
+        user={{
+          id: "user-1",
+          name: "Ana Sana",
+          username: "ana-sana",
+        }}
       />,
     );
 
     expect(getByTestId("practice-post-badge")).toHaveTextContent("Práctica");
+    expect(getByTestId("card-author-profile")).toHaveAttribute(
+      "href",
+      "/u/ana-sana",
+    );
     expect(getByTestId("practice-post-start")).toHaveAttribute(
       "href",
       "/practicas",
     );
     expect(queryByTestId("add-to-cart")).not.toBeInTheDocument();
+    expect(queryByTestId("card-book-service")).not.toBeInTheDocument();
   });
 
   /* Un anuncio no se agota: a su dueño se le ofrece editarlo y nada más. */

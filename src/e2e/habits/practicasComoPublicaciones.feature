@@ -40,12 +40,18 @@ Feature: Practicas como publicaciones
     Then su avance semanal se actualiza como hoy
     And el feed no recibe una publicacion nueva de practica
 
-  @slice-2 @future
+  @slice-2
   Scenario: El feed distingue una practica de una venta o evento
-    Given Ana publico una practica con evidencia
+    Given Ana publico una practica con evidencia y tiene perfil publico
     When un visitante abre el feed
     Then la tarjeta se lee como actividad sana
-    And enlaza al pilar para empezar algo parecido
+    And la firma enlaza al perfil publico de Ana
+    And enlaza a practicas para empezar algo parecido
+    And no ofrece comprar, agendar ni pedir por WhatsApp
+    When abre la publicacion
+    Then el detalle la presenta como practica saludable
+    And el CTA principal vuelve a practicas
+    And no muestra telefono, precio, carrito ni agenda
 
   @slice-3 @future
   Scenario: Una practica publicada recibe una reaccion de apoyo

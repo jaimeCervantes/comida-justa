@@ -39,6 +39,7 @@ interface PostRow {
   user_name: string | null;
   user_email: string | null;
   user_image: string | null;
+  user_username: string | null;
   seller_slug: string | null;
   seller_name: string | null;
   seller_logo_url: string | null;
@@ -109,6 +110,7 @@ const POST_COLUMNS: SQL = sql`
         u.name AS user_name,
         u.email AS user_email,
         u.image AS user_image,
+        u.username AS user_username,
         /* Quién lo vende, para que la tarjeta lo diga sin abrirla. La distancia ya se calculaba
            desde p.seller_id (ver distanceColumn), pero el nombre y el logo no se pedían: un
            listado decía "a 2 km" sin decir de quién. */
@@ -629,6 +631,7 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
           name: row.user_name ?? undefined,
           email: row.user_email ?? undefined,
           image: row.user_image ?? undefined,
+          username: row.user_username ?? undefined,
         },
         /* Sin `slug` no hay a dónde enlazar, así que la tienda no existe para quien pinta: una
            tienda a medio dar de alta no debe salir como un enlace roto. */
