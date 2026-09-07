@@ -72,6 +72,10 @@ Deliver features end-to-end without stopping for per-step validation. This is th
 - Every commit is the user's alone. Never add a `Co-Authored-By` trailer, a session link, or any
   other AI-attribution to a commit message — write it exactly as the user would have written it
   themselves.
+- Si el código ya fue probado y validado antes de commitear, crea los commits semánticos con
+  `--no-verify`. La validación relevante (`test:run`, `typecheck`, `lint`, y e2e scoped cuando
+  aplique) debe estar corrida y reportada con números; no repitas el hook solo para escribir el
+  commit.
 
 ## Documentation organization
 

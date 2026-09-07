@@ -81,6 +81,10 @@ branch) directly.
   `git checkout -b`, so nothing is lost.
 - Commit per zone or per slice, not in one gigantic commit. Push and open the PR only when the user
   asks.
+- If the slice/code was already tested and validated before committing, create the semantic commits
+  with `--no-verify`. The relevant validation (`test:run`, `typecheck`, `lint`, and scoped e2e when
+  applicable) must already be run and reported with numbers; do not rerun hooks only to write the
+  commit.
 - Every commit is the user's alone: never add a `Co-Authored-By` trailer, a session link, or any
   other AI-attribution to the message (see `AGENTS.md` → "Commit authorship").
 
