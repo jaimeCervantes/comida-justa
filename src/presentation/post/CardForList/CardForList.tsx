@@ -1,6 +1,6 @@
 import { useTranslations } from "next-intl";
 import { canBeOrdered, isSellable } from "~/domain/entities/post/availability";
-import { SERVICE_KIND } from "~/domain/entities/post/kind";
+import { PRACTICE_POST_KIND, SERVICE_KIND } from "~/domain/entities/post/kind";
 import { hasKnownAspect } from "~/domain/entities/post/mediaAspect";
 import { canManagePost } from "~/domain/entities/post/postPermissions";
 import { Link } from "~/i18n/navigation";
@@ -202,6 +202,14 @@ export default function CardForList(
           <ProvenanceBadge origin={origin} />
         ) : null}
         <CategoryTag label={categoryLabel} />
+        {kind === PRACTICE_POST_KIND ? (
+          <span
+            data-testid="practice-post-badge"
+            className="rounded-chip border border-pw-green/30 bg-pw-green/10 px-2 py-0.5 text-xs font-semibold text-pw-green"
+          >
+            {t("practiceBadge")}
+          </span>
+        ) : null}
         <SoldOutBadge kind={kind} isAvailable={isAvailable} />
         {/* Solo se pinta en un evento: es lo que responde "¿todavía puedo ir?". */}
         <EventDate kind={kind} startsAt={startsAt} endsAt={endsAt} />
@@ -217,7 +225,18 @@ export default function CardForList(
         <CurrencyAmount value={price} currency={SITE_CURRENCY} />
       </span>
 
-      {kind === SERVICE_KIND && canBeOrdered({ kind, isAvailable }) ? (
+      {kind === PRACTICE_POST_KIND ? (
+        <Link
+          href="/practicas"
+          data-testid="practice-post-start"
+          className={cn(
+            "focus-ring mt-2 inline-flex w-fit items-center justify-center rounded-control",
+            "border border-separator px-2 py-2 text-xs font-semibold text-text-support transition-colors hover:border-pw-green hover:text-pw-green",
+          )}
+        >
+          {t("practiceStart")}
+        </Link>
+      ) : kind === SERVICE_KIND && canBeOrdered({ kind, isAvailable }) ? (
         <Link
           href={detailHref}
           data-testid="card-book-service"

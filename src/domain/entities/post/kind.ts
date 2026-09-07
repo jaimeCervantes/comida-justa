@@ -9,6 +9,11 @@
 export const POST_KINDS = [
   /** Contenido o aviso: no se vende ni ocurre. Es el que cae por omisión. */
   "anuncio",
+  /**
+   * Evidencia de una práctica saludable. Nace desde `/habitos`, ya enlazada a un pilar, por eso no
+   * se ofrece en el formulario genérico de `/publicar`.
+   */
+  "practica",
   /** Algo que entregas. Exige precio > 0 y procedencia. */
   "producto",
   /**
@@ -35,6 +40,8 @@ export const DEFAULT_POST_KIND: PostKind = "anuncio";
 export const EVENT_KIND: PostKind = "evento";
 
 export const SERVICE_KIND: PostKind = "servicio";
+
+export const PRACTICE_POST_KIND: PostKind = "practica";
 
 /**
  * Lo que se cobra y se pide: un producto y un servicio.

@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_POST_KIND, POST_KINDS } from "~/domain/entities/post/kind";
+import {
+  DEFAULT_POST_KIND,
+  POST_KINDS,
+  PRACTICE_POST_KIND,
+} from "~/domain/entities/post/kind";
 import {
   OFFERED_KINDS,
   PUBLISH_KIND_OPTIONS,
@@ -8,12 +12,18 @@ import {
 
 describe("Los tipos que ofrece /publicar", () => {
   /**
-   * Un tipo que existe en el dominio y no se ofrece es un tipo que **nadie puede publicar**: la
-   * validación lo aceptaría, las consultas lo filtrarían, y la única forma de crear uno sería por
-   * la base. Al revés es peor todavía: una píldora que guarda un tipo que `isValidKind` rechaza.
+   * `practica` existe en el dominio, pero no se elige aquí: nace desde `/habitos`, ya enlazada a su
+   * pilar y sin campos comerciales. Lo que esta pantalla ofrece son los tipos que una persona puede
+   * componer desde cero.
    */
-  it("son exactamente los del dominio", () => {
-    expect([...OFFERED_KINDS].sort()).toEqual([...POST_KINDS].sort());
+  it("son exactamente los tipos que se componen desde /publicar", () => {
+    expect([...OFFERED_KINDS].sort()).toEqual(
+      POST_KINDS.filter((kind) => kind !== PRACTICE_POST_KIND).sort(),
+    );
+  });
+
+  it("no ofrece práctica porque esa publicación nace desde /habitos", () => {
+    expect(OFFERED_KINDS).not.toContain(PRACTICE_POST_KIND);
   });
 
   it("no repite ninguno", () => {

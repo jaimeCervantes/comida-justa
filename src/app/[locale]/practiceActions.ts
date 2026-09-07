@@ -1,19 +1,47 @@
 "use server";
 
+import { getLocale, getTranslations } from "next-intl/server";
 import { CHALLENGE_KEY_BY_PILLAR } from "~/app/[locale]/pilares/components/pilaresData";
+import { PRACTICE_POST_KIND } from "~/domain/entities/post/kind";
+import { parsePostMediaPayload } from "~/domain/entities/post/mediaPayload";
+import PostEntity from "~/domain/entities/post/Post";
+import type { User } from "~/domain/entities/post/types";
 import {
   COMMUNITY_TIMEZONE,
   localDateAt,
 } from "~/domain/habits/habitChallenge";
 import { HABIT_CHALLENGE_EXPERIENCES } from "~/domain/habits/habitChallengeExperiences";
+import type { PillarKey } from "~/domain/pillars/pillarKey";
+import { activeKeys } from "~/domain/practices/adoption";
+import { primaryPillarOf } from "~/domain/practices/practiceCard";
+import {
+  categoryKeyForPracticePillar,
+  practiceEvidenceSlug,
+} from "~/domain/practices/practicePost";
+import PostValidator from "~/domain/schemas/PostValidator";
+import getErrorMessage from "~/domain/shared/getErrorMessage";
 import { revalidateLocalizedPath } from "~/i18n/revalidateLocalizedPath";
+import { auth } from "~/infra/auth";
 import { readViewerId } from "~/infra/auth/readViewerId";
+import { createPostRepository } from "~/infra/dataAccess/createOnePost/factory";
 import { createHabitChallengeRepository } from "~/infra/dataAccess/habits/PostgresHabitChallengeRepository";
 import { PostgresPracticeAdoption } from "~/infra/dataAccess/practices/PostgresPracticeAdoption";
 import { PostgresPracticeCatalog } from "~/infra/dataAccess/practices/PostgresPracticeCatalog";
+import type { ActionState } from "~/infra/types/Actions";
+import CreateOnePostUseCase from "~/use_cases/createOnePost/createOnePostUseCase";
 import HabitChallengeUseCase from "~/use_cases/habits/habitChallengeUseCase";
 import PracticeAdoptionUseCase from "~/use_cases/practices/practiceAdoptionUseCase";
 import PracticeCatalogUseCase from "~/use_cases/practices/practiceCatalogUseCase";
+
+type PracticeEvidenceActionState = ActionState & {
+  message?: string | null;
+};
+
+const createPracticePost = new CreateOnePostUseCase(
+  new PostValidator(),
+  new PostEntity(),
+  createPostRepository(),
+);
 
 /**
  * Empezar o dejar una práctica del catálogo.
@@ -62,6 +90,23 @@ export async function setPracticeSharing(formData: FormData): Promise<void> {
   revalidateLocalizedPath("/habitos");
 }
 
+async function recordPracticeForPillar(
+  userId: string,
+  pillar: PillarKey,
+): Promise<void> {
+  const { challengeKey } =
+    HABIT_CHALLENGE_EXPERIENCES[CHALLENGE_KEY_BY_PILLAR[pillar]];
+  const useCase = new HabitChallengeUseCase(
+    createHabitChallengeRepository(challengeKey),
+  );
+
+  await useCase.start(userId, COMMUNITY_TIMEZONE);
+  await useCase.recordPracticeDay(
+    userId,
+    localDateAt(new Date(), COMMUNITY_TIMEZONE),
+  );
+}
+
 /**
  * Marcar que hoy se practicó.
  *
@@ -85,18 +130,159 @@ export async function markPracticeDone(formData: FormData): Promise<void> {
   ).primaryPillarOf(practiceKey);
   if (!pillar) return;
 
-  const { challengeKey } =
-    HABIT_CHALLENGE_EXPERIENCES[CHALLENGE_KEY_BY_PILLAR[pillar]];
-  const useCase = new HabitChallengeUseCase(
-    createHabitChallengeRepository(challengeKey),
-  );
-
-  await useCase.start(userId, COMMUNITY_TIMEZONE);
-  await useCase.recordPracticeDay(
-    userId,
-    localDateAt(new Date(), COMMUNITY_TIMEZONE),
-  );
+  await recordPracticeForPillar(userId, pillar);
 
   revalidateLocalizedPath("/practicas");
   revalidateLocalizedPath("/habitos");
+}
+
+/**
+ * Convierte una práctica hecha en una publicación social con evidencia.
+ *
+ * La práctica no se elige desde un formulario genérico: llega como `practiceKey` desde el tablero,
+ * se valida contra las prácticas activas de la persona y de ahí salen pilar, categoría, título y
+ * descripción. Eso mantiene baja la fricción sin permitir que el navegador invente a qué pilar
+ * pertenece lo publicado.
+ */
+export async function publishPracticeEvidence(
+  _prevState: PracticeEvidenceActionState,
+  formData: FormData,
+): Promise<PracticeEvidenceActionState> {
+  const t = await getTranslations("practicesIndex");
+  const session = await auth();
+  const user = session?.user as User | undefined;
+
+  if (!user?.id) {
+    return {
+      errors: { errorMessage: t("evidenceSignIn") },
+      success: false,
+      id: null,
+      slug: null,
+      message: null,
+    };
+  }
+
+  const practiceKey = formData.get("practiceKey");
+  if (typeof practiceKey !== "string" || practiceKey === "") {
+    return {
+      errors: { errorMessage: t("evidencePracticeMissing") },
+      success: false,
+      id: null,
+      slug: null,
+      message: null,
+    };
+  }
+
+  const media = parsePostMediaPayload(formData.get("media") as string | null);
+  if (media.length === 0) {
+    return {
+      errors: { media: t("evidenceMediaRequired") },
+      success: false,
+      id: null,
+      slug: null,
+      message: null,
+    };
+  }
+
+  const locale = await getLocale();
+  const adoptionUseCase = new PracticeAdoptionUseCase(
+    new PostgresPracticeAdoption(),
+  );
+  const adopted = activeKeys(await adoptionUseCase.listFor(user.id));
+
+  if (!adopted.has(practiceKey)) {
+    return {
+      errors: { errorMessage: t("evidencePracticeMissing") },
+      success: false,
+      id: null,
+      slug: null,
+      message: null,
+    };
+  }
+
+  const practice = (
+    await new PracticeCatalogUseCase(new PostgresPracticeCatalog()).listAdopted(
+      locale,
+      adopted,
+    )
+  ).find(({ key }) => key === practiceKey);
+
+  if (!practice) {
+    return {
+      errors: { errorMessage: t("evidencePracticeMissing") },
+      success: false,
+      id: null,
+      slug: null,
+      message: null,
+    };
+  }
+
+  const pillar = primaryPillarOf(practice);
+  const title = t("evidencePostTitle", { practice: practice.title });
+  const minimum = practice.minimum ?? t("evidencePostMinimumWhole");
+  const note = String(formData.get("note") ?? "").trim();
+  const content = [
+    t("evidencePostContent", {
+      summary: practice.summary,
+      minimum,
+    }),
+    note,
+  ]
+    .filter(Boolean)
+    .join("\n\n");
+  const mediaWithAlt = parsePostMediaPayload(formData.get("media") as string, {
+    alt: title,
+  });
+  const now = new Date();
+
+  const result = await createPracticePost.execute(
+    {
+      title,
+      slug: practiceEvidenceSlug(practice.key, now),
+      content,
+      contactInfo: { phone: "" },
+      price: null,
+      kind: PRACTICE_POST_KIND,
+      origin: null,
+      category: categoryKeyForPracticePillar(pillar),
+      subCategory: null,
+      sellerId: null,
+      startsAt: null,
+      endsAt: null,
+      durationMinutes: null,
+      createdAt: now,
+      media: mediaWithAlt,
+      user,
+    },
+    locale,
+  );
+
+  if (result.error || !result.id || !result.slug) {
+    return {
+      errors: {
+        errorMessage:
+          process.env.NODE_ENV === "development"
+            ? getErrorMessage(result.error, t("evidenceUnexpected"))
+            : t("evidenceUnexpected"),
+      },
+      success: false,
+      id: null,
+      slug: null,
+      message: null,
+    };
+  }
+
+  await recordPracticeForPillar(user.id, pillar);
+
+  revalidateLocalizedPath("/");
+  revalidateLocalizedPath("/practicas");
+  revalidateLocalizedPath("/habitos");
+
+  return {
+    errors: {},
+    success: true,
+    id: result.id,
+    slug: result.slug,
+    message: t("evidencePublished"),
+  };
 }

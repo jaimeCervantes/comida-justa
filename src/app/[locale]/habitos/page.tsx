@@ -18,7 +18,11 @@ import HabitLeagueUseCase from "~/use_cases/habits/habitLeagueUseCase";
 import PracticeAdoptionUseCase from "~/use_cases/practices/practiceAdoptionUseCase";
 import PracticeCatalogUseCase from "~/use_cases/practices/practiceCatalogUseCase";
 import AccountSection from "../cuenta/ui/AccountSection";
-import { markPracticeDone, setPracticeSharing } from "../practiceActions";
+import {
+  markPracticeDone,
+  publishPracticeEvidence,
+  setPracticeSharing,
+} from "../practiceActions";
 import { setHabitLeagueOptIn } from "./leagueActions";
 import MyPractices from "./ui/MyPractices";
 import WeeklyPracticeProgress from "./ui/WeeklyPracticeProgress";
@@ -120,6 +124,7 @@ export default async function AtomicChallengesPage({
         markAction={userId ? markPracticeDone : undefined}
         sharedPracticeKeys={sharedPractices}
         sharingAction={userId ? setPracticeSharing : undefined}
+        evidenceAction={userId ? publishPracticeEvidence : undefined}
       />
 
       <section className="mt-8 rounded-panel border border-feedback-warning/40 bg-feedback-warning/10 p-6">

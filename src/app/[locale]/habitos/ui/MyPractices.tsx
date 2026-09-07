@@ -5,6 +5,9 @@ import { primaryPillarOf } from "~/domain/practices/practiceCard";
 import { Link } from "~/i18n/navigation";
 import { Heading } from "~/presentation/design_system/typography/Heading";
 import { pillarColorClasses } from "~/presentation/habits/pillarColors";
+import PracticeEvidenceForm, {
+  type PracticeEvidenceActionState,
+} from "./PracticeEvidenceForm";
 
 /**
  * Lo que esta persona lleva del catálogo, en la pantalla donde ya busca «lo mío».
@@ -22,12 +25,17 @@ export default function MyPractices({
   markAction,
   sharedPracticeKeys = new Set(),
   sharingAction,
+  evidenceAction,
 }: {
   practices: readonly PracticeCard[];
   doneTodayPillars?: ReadonlySet<PillarKey>;
   markAction?: (formData: FormData) => Promise<void>;
   sharedPracticeKeys?: ReadonlySet<string>;
   sharingAction?: (formData: FormData) => Promise<void>;
+  evidenceAction?: (
+    state: PracticeEvidenceActionState,
+    data: FormData,
+  ) => Promise<PracticeEvidenceActionState>;
 }): React.ReactNode {
   const t = useTranslations("practicesIndex");
   const tPillars = useTranslations("pillars");
@@ -151,6 +159,14 @@ export default function MyPractices({
                       </form>
                     </div>
                   )}
+
+                  {evidenceAction ? (
+                    <PracticeEvidenceForm
+                      practice={practice}
+                      pillarLabel={tPillars(`${pillar}.short`)}
+                      action={evidenceAction}
+                    />
+                  ) : null}
                 </li>
               );
             })}

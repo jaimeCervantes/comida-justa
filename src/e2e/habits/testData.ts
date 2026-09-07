@@ -19,6 +19,7 @@ import type { HabitCelebrationMilestone } from "~/use_cases/habits/ports/HabitCh
 
 export async function deleteHabitChallengeTestData(): Promise<void> {
   const userId = await findSuiteUserId();
+  await deletePracticeEvidencePostsForSuite();
   await db.execute(sql`DELETE FROM user_practices WHERE user_id = ${userId}`);
   await db
     .delete(habitLeagueOptIns)
@@ -26,6 +27,34 @@ export async function deleteHabitChallengeTestData(): Promise<void> {
   await db
     .delete(habitChallengeProgress)
     .where(eq(habitChallengeProgress.userId, userId));
+}
+
+export async function deletePracticeEvidencePostsForSuite(): Promise<void> {
+  const userId = await findSuiteUserId();
+  await db.execute(sql`
+    DELETE FROM posts p
+    USING post_translations t
+    WHERE t.post_id = p.id
+      AND p.user_id = ${userId}
+      AND p.kind = 'practica'
+      AND t.slug LIKE 'practica-%'
+  `);
+}
+
+export async function countPracticeEvidencePostsForSuite(
+  practiceKey: string,
+): Promise<number> {
+  const userId = await findSuiteUserId();
+  const result = await db.execute(sql`
+    SELECT count(DISTINCT p.id)::int AS total
+    FROM posts p
+    JOIN post_translations t ON t.post_id = p.id
+    WHERE p.user_id = ${userId}
+      AND p.kind = 'practica'
+      AND t.slug LIKE ${`practica-${practiceKey}-%`}
+  `);
+  const row = result.rows[0] as { total?: number | string } | undefined;
+  return Number(row?.total ?? 0);
 }
 
 export async function adoptPracticeForSuite(

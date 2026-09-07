@@ -1,7 +1,8 @@
 import { POST_KINDS, type PostKind } from "~/domain/entities/post/kind";
 
 /**
- * Los cuatro tipos de publicación, en el orden en que se ofrecen y con su rótulo.
+ * Los tipos de publicación que se componen desde cero, en el orden en que se ofrecen y con su
+ * rótulo.
  *
  * **El orden no es el del dominio, y es a propósito.** `POST_KINDS` empieza por `anuncio` porque es
  * el que cae por omisión; el 5.3 empieza por producto, evento y servicio y deja el anuncio al final.
@@ -9,9 +10,8 @@ import { POST_KINDS, type PostKind } from "~/domain/entities/post/kind";
  * se ve tiene que ser lo que la comunidad viene a buscar, y publicar algo que se vende o que ocurre
  * vale más que publicar un aviso.
  *
- * Lo que **sí** sale del dominio es la lista: una prueba comprueba que están los cuatro y solo los
- * cuatro, así que sumar un tipo en `POST_KINDS` sin ofrecerlo aquí se pone rojo en vez de dejar un
- * tipo que existe y no se puede elegir.
+ * `practica` existe como tipo del dominio, pero no pertenece a este selector: nace desde `/habitos`
+ * con pilar, descripción y CTA derivados de la práctica.
  *
  * Las claves de traducción se escriben enteras —nada de `` t(`kind${capitalize(key)}`) ``—: una
  * clave que no se puede encontrar con grep es una clave que se pierde en la siguiente limpieza.
@@ -30,7 +30,7 @@ export const PUBLISH_KIND_OPTIONS: readonly PublishKindOption[] = [
   { value: "anuncio", labelKey: "kindAnnouncement" },
 ];
 
-/** Todos los tipos del dominio, sin sobras ni ausencias. Lo comprueba `publishKinds.test.ts`. */
+/** Los tipos que una persona puede elegir en `/publicar`. */
 export const OFFERED_KINDS: readonly PostKind[] = PUBLISH_KIND_OPTIONS.map(
   (option) => option.value,
 );

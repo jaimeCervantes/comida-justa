@@ -53,6 +53,8 @@ function moveItem<T>(items: readonly T[], from: number, to: number): T[] {
  */
 export default function PostMediaField({
   name = "media",
+  label,
+  addMoreLabel,
   initialItems = [],
   onLoadingChange,
   onItemsChange,
@@ -61,6 +63,10 @@ export default function PostMediaField({
 }: {
   /** El campo oculto que lee la Server Action. */
   name?: string;
+  /** Etiqueta inicial, ya traducida, para pantallas que reutilizan el campo fuera de `/publicar`. */
+  label?: string;
+  /** Etiqueta cuando ya hay archivos y se pueden sumar más. */
+  addMoreLabel?: string;
   /** Lo que la publicación ya tiene. Vacío al publicar. */
   initialItems?: readonly PostMediaFieldItem[];
   /** Para que el formulario pueda decir «subiendo…» en su botón de envío. */
@@ -135,7 +141,11 @@ export default function PostMediaField({
   return (
     <div className={className}>
       <ImageVideoUploader
-        label={items.length === 0 ? t("media") : t("mediaAddMore")}
+        label={
+          items.length === 0
+            ? (label ?? t("media"))
+            : (addMoreLabel ?? t("mediaAddMore"))
+        }
         name={""}
         onUploaded={onUploaded}
         className="mb-2"
