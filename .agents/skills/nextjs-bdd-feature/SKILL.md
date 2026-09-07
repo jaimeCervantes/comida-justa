@@ -35,6 +35,15 @@ Use this skill for behavior changes. Start from a small scenario, then tests, th
 > intermitencia. Una acción de servidor es su propia unidad de compilación: una ruta con formularios
 > hay que calentarla aunque la página parezca barata.
 >
+> **Si Playwright falla dentro del sandbox por red, DB o permisos, reintenta fuera del sandbox antes
+> de diagnosticar código.** Síntomas típicos: consultas con `EACCES`, `ETIMEDOUT`, `ECONNREFUSED`,
+> errores de adapter de NextAuth/session token causados por no poder leer la DB, o `next/font`
+> intentando bajar fuentes sin red. Deja que la corrida cierre y ejecute `afterEach`; si se queda
+> colgada, interrúmpela, confirma que no haya `next dev` escuchando en 3000, borra `.next` otra vez y
+> repite **el mismo Playwright scoped** con `sandbox_permissions: "require_escalated"` (idealmente
+> pidiendo una regla persistente para `node node_modules/@playwright/test/cli.js test` o
+> `pnpm exec playwright test`). Solo diagnostica la app si el fallo se reproduce fuera del sandbox.
+>
 > **Playwright siempre en shards cuando pasen de ~20 escenarios.** Una corrida que se corta a la
 > mitad —por un tiempo de espera, por un `Ctrl+C`— deja sin ejecutar sus `afterEach`, y el residuo
 > en la base compartida hace fallar la corrida siguiente con errores que no tienen nada que ver

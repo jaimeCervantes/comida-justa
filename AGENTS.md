@@ -50,6 +50,15 @@ Deliver features end-to-end without stopping for per-step validation. This is th
   cada corrida, siempre en su primera interacción, y todos pasan al repetirlos en aislamiento. Una
   acción de servidor es su propia unidad de compilación, así que una ruta con formularios hay que
   calentarla aunque la página parezca barata.
+- **Si Playwright falla dentro del sandbox por red, DB o permisos, no sigas diagnosticando la app
+  ahí.** Síntomas típicos: consultas con `EACCES`, `ETIMEDOUT`, `ECONNREFUSED`, errores de adapter
+  de NextAuth/session token causados por no poder leer la DB, o `next/font` intentando bajar fuentes
+  sin red. Deja que la corrida cierre y ejecute `afterEach`; si se queda colgada, interrúmpela,
+  confirma que no haya `next dev` escuchando en 3000, borra `.next` otra vez y repite **el mismo
+  Playwright scoped** fuera del sandbox con `sandbox_permissions: "require_escalated"` (idealmente
+  pidiendo una regla persistente para `node node_modules/@playwright/test/cli.js test` o
+  `pnpm exec playwright test`). Solo diagnostica código de la app si el fallo se reproduce fuera
+  del sandbox.
 - **Parte la corrida de Playwright en shards en cuanto pase de ~20 escenarios**, y lánzalos uno detrás de otro: `pnpm exec playwright test <rutas> --shard=1/3 --reporter=line`, luego `2/3`, luego `3/3`. **Nunca en paralelo**: cada tramo levanta su propio servidor en el mismo puerto. El motivo no es la velocidad: una corrida que se corta a la mitad —por un tiempo de espera o un `Ctrl+C`— deja sin ejecutar sus `afterEach`, y el residuo en la base compartida hace fallar la corrida siguiente con errores que no tienen nada que ver (404 en rutas que sí existen, tiendas duplicadas). **Un fallo justo después de una corrida cortada es residuo hasta que se demuestre lo contrario**: mata el `next dev` huérfano que se quedó escuchando en el puerto, deja que el barrido de `globalTeardown` limpie, y repite antes de diagnosticar nada.
 - After each slice, append an entry to the matching bitacora at `docs/features/<semantic-area>/<NNN>-<YYYY-MM-DD>-<feature>-bitacora.md` (append-only). Narrate the WHY, do not duplicate the diff (git log already has the what). Each entry: objective, decisions + rationale, files touched (grouped), key commands, validation results (with numbers), deviations from roadmap, follow-ups. **Every entry MUST end with two sections:** a **Recap** (one-paragraph current state) and **Próximos pasos (opciones)** — the concrete choices for what to do next, plus any actions pending on the user. This is mandatory for every slice, not optional.
 - **Interrupt mid-run ONLY for something very grave** — otherwise keep going and decide with best judgment, and run every command yourself until the slice is finished.
