@@ -14,6 +14,7 @@ import { HABIT_CHALLENGE_EXPERIENCES } from "~/domain/habits/habitChallengeExper
 import type { PillarKey } from "~/domain/pillars/pillarKey";
 import { activeKeys } from "~/domain/practices/adoption";
 import { primaryPillarOf } from "~/domain/practices/practiceCard";
+import { practiceDaySlug } from "~/domain/practices/practiceDayPost";
 import {
   categoryKeyForPracticePillar,
   practiceEvidenceSlug,
@@ -21,6 +22,7 @@ import {
 import PostValidator from "~/domain/schemas/PostValidator";
 import getErrorMessage from "~/domain/shared/getErrorMessage";
 import { revalidateLocalizedPath } from "~/i18n/revalidateLocalizedPath";
+import { resolveLocale } from "~/i18n/routing";
 import { auth } from "~/infra/auth";
 import { readViewerId } from "~/infra/auth/readViewerId";
 import { createPostRepository } from "~/infra/dataAccess/createOnePost/factory";
@@ -32,6 +34,7 @@ import CreateOnePostUseCase from "~/use_cases/createOnePost/createOnePostUseCase
 import HabitChallengeUseCase from "~/use_cases/habits/habitChallengeUseCase";
 import PracticeAdoptionUseCase from "~/use_cases/practices/practiceAdoptionUseCase";
 import PracticeCatalogUseCase from "~/use_cases/practices/practiceCatalogUseCase";
+import { publishPracticeDayPost } from "./publishPracticeDayPost";
 
 type PracticeEvidenceActionState = ActionState & {
   message?: string | null;
@@ -131,9 +134,54 @@ export async function markPracticeDone(formData: FormData): Promise<void> {
   if (!pillar) return;
 
   await recordPracticeForPillar(userId, pillar);
+  await publishMarkedPractice(userId, practiceKey, pillar);
 
+  revalidateLocalizedPath("/");
   revalidateLocalizedPath("/practicas");
   revalidateLocalizedPath("/habitos");
+}
+
+/**
+ * Marcar una práctica también publica, igual que marcar el día del ritual.
+ *
+ * **La unidad de publicación es la práctica y el día, no el pilar y el día.** Esa es la diferencia
+ * con `habit_repetitions`: hacer *Penumbra total* y *La descarga mental* el mismo martes cuenta como
+ * un día de descanso para el jardín, pero son dos acciones distintas y merecen dos publicaciones.
+ * `practiceDaySlug` lleva la clave de la práctica, así que la segunda no choca con la primera.
+ *
+ * Publicar evidencia no pasa por aquí: tiene su propia publicación con foto, y engancharla al mismo
+ * sitio que `recordPracticeForPillar` —que ambos caminos comparten— daría dos posts por una práctica.
+ */
+async function publishMarkedPractice(
+  userId: string,
+  practiceKey: string,
+  pillar: PillarKey,
+): Promise<void> {
+  const locale = resolveLocale(await getLocale());
+  const t = await getTranslations({ locale, namespace: "practicesIndex" });
+  const practice = (
+    await new PracticeCatalogUseCase(new PostgresPracticeCatalog()).listAdopted(
+      locale,
+      new Set([practiceKey]),
+    )
+  ).find(({ key }) => key === practiceKey);
+  if (!practice) return;
+
+  await publishPracticeDayPost({
+    slug: practiceDaySlug({
+      practiceKey,
+      cycleDate: localDateAt(new Date(), COMMUNITY_TIMEZONE),
+      userId,
+    }),
+    title: t("evidencePostTitle", { practice: practice.title }),
+    content: t("evidencePostContent", {
+      summary: practice.summary,
+      minimum: practice.minimum ?? t("evidencePostMinimumWhole"),
+    }),
+    category: categoryKeyForPracticePillar(pillar),
+    userId,
+    locale,
+  });
 }
 
 /**

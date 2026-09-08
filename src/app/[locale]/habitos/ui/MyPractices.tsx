@@ -1,5 +1,4 @@
 import { useTranslations } from "next-intl";
-import type { PillarKey } from "~/domain/pillars/pillarKey";
 import type { PracticeCard } from "~/domain/practices/practiceCard";
 import { primaryPillarOf } from "~/domain/practices/practiceCard";
 import { Link } from "~/i18n/navigation";
@@ -21,14 +20,20 @@ import PracticeEvidenceForm, {
  */
 export default function MyPractices({
   practices,
-  doneTodayPillars = new Set(),
+  markedTodayKeys = new Set(),
   markAction,
   sharedPracticeKeys = new Set(),
   sharingAction,
   evidenceAction,
 }: {
   practices: readonly PracticeCard[];
-  doneTodayPillars?: ReadonlySet<PillarKey>;
+  /**
+   * Qué prácticas se marcaron hoy, una por una.
+   *
+   * No es el pilar: el jardín sigue contando pilar y día, pero cada práctica marcada deja su propia
+   * publicación, así que el botón se esconde práctica por práctica.
+   */
+  markedTodayKeys?: ReadonlySet<string>;
   markAction?: (formData: FormData) => Promise<void>;
   sharedPracticeKeys?: ReadonlySet<string>;
   sharingAction?: (formData: FormData) => Promise<void>;
@@ -62,7 +67,7 @@ export default function MyPractices({
             {practices.map((practice) => {
               const pillar = primaryPillarOf(practice);
               const color = pillarColorClasses[pillar];
-              const doneToday = doneTodayPillars.has(pillar);
+              const doneToday = markedTodayKeys.has(practice.key);
               const shared = sharedPracticeKeys.has(practice.key);
               return (
                 <li

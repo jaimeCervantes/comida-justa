@@ -4,6 +4,10 @@ import {
   CURATED_CHALLENGES,
   type CuratedHabitPillar,
 } from "~/domain/habits/curatedChallenges";
+import {
+  COMMUNITY_TIMEZONE,
+  localDateAt,
+} from "~/domain/habits/habitChallenge";
 import { activeKeys, sharedActiveKeys } from "~/domain/practices/adoption";
 import { Link } from "~/i18n/navigation";
 import { pillarHref, profileHref } from "~/i18n/routes";
@@ -12,6 +16,7 @@ import { readViewerId } from "~/infra/auth/readViewerId";
 import { createHabitLeagueRepository } from "~/infra/dataAccess/habits/PostgresHabitLeagueRepository";
 import { PostgresPracticeAdoption } from "~/infra/dataAccess/practices/PostgresPracticeAdoption";
 import { PostgresPracticeCatalog } from "~/infra/dataAccess/practices/PostgresPracticeCatalog";
+import { findPracticeKeysMarkedToday } from "~/infra/dataAccess/practices/PostgresPracticeDayPosts";
 import { localizedAlternates } from "~/infra/UI/metadata/alternates";
 import { Heading } from "~/presentation/design_system/typography/Heading";
 import HabitLeagueUseCase from "~/use_cases/habits/habitLeagueUseCase";
@@ -57,18 +62,25 @@ export default async function AtomicChallengesPage({
      consulta nueva; sin sesión el conjunto viene vacío y la sección invita al catálogo en vez de
      desaparecer. */
   const adoptions = new PracticeAdoptionUseCase(new PostgresPracticeAdoption());
-  const [practiceAdoptions, practisedToday, weeklyProgress] = await Promise.all(
-    [
-      userId ? adoptions.listFor(userId) : [],
-      adoptions.pillarsPractisedToday(userId),
-      adoptions.weeklyPillarProgress(userId),
-    ],
-  );
+  const [practiceAdoptions, weeklyProgress] = await Promise.all([
+    userId ? adoptions.listFor(userId) : [],
+    adoptions.weeklyPillarProgress(userId),
+  ]);
   const adopted = activeKeys(practiceAdoptions);
   const sharedPractices = sharedActiveKeys(practiceAdoptions);
-  const myPractices = await new PracticeCatalogUseCase(
-    new PostgresPracticeCatalog(),
-  ).listAdopted(locale, adopted);
+  const [myPractices, markedToday] = await Promise.all([
+    new PracticeCatalogUseCase(new PostgresPracticeCatalog()).listAdopted(
+      locale,
+      adopted,
+    ),
+    /* Práctica por práctica, no por pilar: el jardín cuenta un día del pilar, pero cada práctica
+       marcada deja su propia publicación. */
+    findPracticeKeysMarkedToday({
+      userId,
+      practiceKeys: [...adopted],
+      cycleDate: localDateAt(new Date(), COMMUNITY_TIMEZONE),
+    }),
+  ]);
 
   /*
    * «Mis hábitos» es una entrada de `AccountNav`, y hasta aquí era un callejón sin salida: se
@@ -120,7 +132,7 @@ export default async function AtomicChallengesPage({
 
       <MyPractices
         practices={myPractices}
-        doneTodayPillars={practisedToday}
+        markedTodayKeys={markedToday}
         markAction={userId ? markPracticeDone : undefined}
         sharedPracticeKeys={sharedPractices}
         sharingAction={userId ? setPracticeSharing : undefined}
