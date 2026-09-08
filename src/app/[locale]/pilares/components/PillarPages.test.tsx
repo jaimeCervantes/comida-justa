@@ -19,6 +19,22 @@ vi.mock("./PillarLocal", () => ({
   default: () => <section data-testid="pillar-local" />,
 }));
 
+/* Y la bibliografía consulta `pillar_studies`: tercera frontera asíncrona, mismo corte. Lo que la
+   lista promete se comprueba en `PillarReferences.test.tsx`, con estudios fijos. */
+vi.mock("./PillarBibliography", () => ({
+  default: () => <section data-testid="pillar-bibliography" />,
+}));
+
+/* Y el catálogo consulta `pillar_themes`: cuarta frontera asíncrona. Lo que la tarjeta promete se
+   comprueba en `PillarCatalog.test.tsx`, con temas fijos. */
+vi.mock("./PillarCatalogSection", () => ({
+  default: ({ heading }: { heading: string }) => (
+    <section data-testid="pillar-catalog">
+      <h2>{heading}</h2>
+    </section>
+  ),
+}));
+
 type PillarPage = ComponentType<{ locale: AppLocale }>;
 
 /**

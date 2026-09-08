@@ -1,3 +1,4 @@
+import { Link } from "~/i18n/navigation";
 import { cn } from "~/presentation/design_system/styling/merge-class-names";
 import {
   CARD_PADDING,
@@ -17,12 +18,25 @@ export default function Card({
   Container = "article",
   style = {},
   user = {},
+  userHref,
   footerChildren = null,
   actions = null,
   AnchorElement = "a",
   anchorProps = {},
   children,
 }: CardProps) {
+  const userName =
+    user.displayName ?? user.name ?? user.username ?? user.email ?? "";
+  const signature = (
+    <>
+      <Avatar user={{ name: userName, image: user.image ?? user.photoURL }} />
+      <div className="flex flex-col text-label text-text-support">
+        <span className="font-medium text-text-base">{userName}</span>
+        <FormattedDate isoDateString={createdAt} />
+      </div>
+    </>
+  );
+
   return (
     <Surface
       as={Container}
@@ -56,13 +70,17 @@ export default function Card({
             tarjetas de altura distinta. El `pt-4` se queda: el borde necesita aire propio, más
             que la separación de la pila. */}
         <div className="mt-auto flex justify-start gap-3 items-center pt-4 border-t border-separator">
-          <Avatar user={user} />
-          <div className="flex flex-col text-label text-text-support">
-            <span className="font-medium text-text-base">
-              {user.displayName}
-            </span>
-            <FormattedDate isoDateString={createdAt} />
-          </div>
+          {userHref ? (
+            <Link
+              href={userHref}
+              data-testid="card-author-profile"
+              className="inline-flex items-center gap-3 hover:underline"
+            >
+              {signature}
+            </Link>
+          ) : (
+            signature
+          )}
           {actions ? <div className="ml-auto">{actions}</div> : null}
         </div>
       </section>

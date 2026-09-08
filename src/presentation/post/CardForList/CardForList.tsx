@@ -1,10 +1,10 @@
 import { useTranslations } from "next-intl";
 import { canBeOrdered, isSellable } from "~/domain/entities/post/availability";
-import { SERVICE_KIND } from "~/domain/entities/post/kind";
+import { PRACTICE_POST_KIND, SERVICE_KIND } from "~/domain/entities/post/kind";
 import { hasKnownAspect } from "~/domain/entities/post/mediaAspect";
 import { canManagePost } from "~/domain/entities/post/postPermissions";
 import { Link } from "~/i18n/navigation";
-import { storeHref } from "~/i18n/routes";
+import { profileHref, storeHref } from "~/i18n/routes";
 import { PUBLIC_BASE_URL, SITE_CURRENCY } from "~/infra/constants";
 import type { Post } from "~/infra/types/Posts";
 import AddToCartButton from "~/presentation/cart/AddToCartButton/AddToCartButton";
@@ -53,6 +53,16 @@ function absoluteUrl(to: string): string {
   return `${PUBLIC_BASE_URL}${to.startsWith("/") ? to : `/${to}`}`;
 }
 
+function usernameOf(user: unknown): string | null {
+  if (!user || typeof user !== "object") return null;
+
+  const username = (user as { username?: unknown }).username;
+
+  return typeof username === "string" && username.trim()
+    ? username.trim()
+    : null;
+}
+
 /**
  * Una publicación en forma de tarjeta.
  *
@@ -99,6 +109,7 @@ export default function CardForList(
   } = props;
   const anchorProps = { href: to, title: title };
   const detailHref = slug ? `/${String(slug)}` : to;
+  const authorUsername = usernameOf(user);
   /* La misma regla que autoriza la escritura (`canManagePost`), preguntada aquí para no enseñar un
      control que el servidor iba a negar —ni esconder uno que sí habría aceptado—. */
   const canManage =
@@ -122,6 +133,7 @@ export default function CardForList(
       title={title}
       createdAt={createdAt}
       user={user}
+      userHref={authorUsername ? profileHref(authorUsername) : undefined}
       className="flex flex-col justify-between"
       AnchorElement={Link}
       anchorProps={anchorProps}
@@ -202,6 +214,14 @@ export default function CardForList(
           <ProvenanceBadge origin={origin} />
         ) : null}
         <CategoryTag label={categoryLabel} />
+        {kind === PRACTICE_POST_KIND ? (
+          <span
+            data-testid="practice-post-badge"
+            className="rounded-chip border border-pw-green/30 bg-pw-green/10 px-2 py-0.5 text-xs font-semibold text-pw-green"
+          >
+            {t("practiceBadge")}
+          </span>
+        ) : null}
         <SoldOutBadge kind={kind} isAvailable={isAvailable} />
         {/* Solo se pinta en un evento: es lo que responde "¿todavía puedo ir?". */}
         <EventDate kind={kind} startsAt={startsAt} endsAt={endsAt} />
@@ -217,7 +237,18 @@ export default function CardForList(
         <CurrencyAmount value={price} currency={SITE_CURRENCY} />
       </span>
 
-      {kind === SERVICE_KIND && canBeOrdered({ kind, isAvailable }) ? (
+      {kind === PRACTICE_POST_KIND ? (
+        <Link
+          href="/practicas"
+          data-testid="practice-post-start"
+          className={cn(
+            "focus-ring mt-2 inline-flex w-fit items-center justify-center rounded-control",
+            "border border-separator px-2 py-2 text-xs font-semibold text-text-support transition-colors hover:border-pw-green hover:text-pw-green",
+          )}
+        >
+          {t("practiceStart")}
+        </Link>
+      ) : kind === SERVICE_KIND && canBeOrdered({ kind, isAvailable }) ? (
         <Link
           href={detailHref}
           data-testid="card-book-service"

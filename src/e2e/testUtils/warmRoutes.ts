@@ -51,10 +51,23 @@ const RUTAS = [
   /* La búsqueda pagina por query string: es la misma unidad de compilación que `/buscar`, pero con
      datos suficientes para calentar el flujo que usan los escenarios de resultados. */
   "/buscar?q=pan&page=1",
+  "/pilares",
   "/pilares/sueno",
   "/pilares/alimentacion",
   "/pilares/movimiento",
   "/pilares/mente-espiritu",
+
+  /* El catálogo de prácticas y «Mis hábitos». Entraron por el camino de siempre: dos corridas
+     seguidas dieron dos fallos cada una, **distintos entre sí**, todos en la primera interacción de
+     su escenario —un `click` en el botón de empezar y detrás un `toBeVisible` de 5 s sobre lo que
+     devuelve la acción de servidor—, y todos verdes al repetirlos en aislamiento.
+
+     `/practicas` es de las caras: pinta las 45 tarjetas con sus cuatro consultas y arrastra dos
+     acciones de servidor, y **una acción de servidor es su propia unidad de compilación**, así que
+     no basta con que la página parezca barata. `/habitos` la pisan los escenarios que comprueban
+     que lo adoptado se ve donde uno busca lo suyo. */
+  "/practicas",
+  "/habitos",
 
   /* Identificarse son **dos unidades de compilación**, y la que muerde es la segunda.
      `/auth/signin` se pinta sola, pero los botones de proveedor no vienen del servidor: los trae

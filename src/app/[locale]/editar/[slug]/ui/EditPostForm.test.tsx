@@ -1,4 +1,4 @@
-import { screen } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { renderWithIntl } from "~/infra/test-utils/renderWithIntl";
@@ -105,6 +105,8 @@ describe("EditPostForm — errores del servidor", () => {
       screen.getByRole("button", { name: /guardar cambios/i }),
     );
 
+    await waitFor(() => expect(action).toHaveBeenCalledTimes(1));
+
     const alert = await screen.findByRole("alert");
 
     expect(alert).toHaveTextContent("Error");
@@ -123,6 +125,8 @@ describe("EditPostForm — errores del servidor", () => {
     await userEvent.click(
       screen.getByRole("button", { name: /guardar cambios/i }),
     );
+
+    await waitFor(() => expect(action).toHaveBeenCalledTimes(1));
 
     expect(
       await screen.findByText("El título es obligatorio."),

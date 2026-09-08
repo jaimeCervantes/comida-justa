@@ -1,4 +1,5 @@
 import type { ElementType } from "react";
+import type { AppHref } from "~/i18n/navigation";
 
 export type CardProps = {
   title: string;
@@ -17,10 +18,14 @@ export type CardProps = {
   style?: React.CSSProperties;
   user?: {
     displayName?: string;
+    name?: string;
     email?: string;
+    image?: string;
     photoURL?: string;
     phoneNumber?: string;
+    username?: string;
   };
+  userHref?: AppHref;
   footerChildren?: React.JSX.Element | string | undefined | null;
   /**
    * Lo que se puede hacer con la tarjeta **sin abrirla**, alineado al final del renglón de la firma.

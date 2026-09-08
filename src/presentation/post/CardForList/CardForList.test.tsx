@@ -156,6 +156,36 @@ describe("When a card is listed", () => {
     expect(queryByTestId("add-to-cart")).not.toBeInTheDocument();
   });
 
+  it("a una práctica le da reconocimiento y una puerta para practicar", () => {
+    const { getByTestId, queryByTestId } = render(
+      <CardForList
+        {...baseProps}
+        title="Practiqué Penumbra total"
+        kind="practica"
+        category="sueno_y_descanso"
+        categoryLabel="Sueño"
+        price={null}
+        user={{
+          id: "user-1",
+          name: "Ana Sana",
+          username: "ana-sana",
+        }}
+      />,
+    );
+
+    expect(getByTestId("practice-post-badge")).toHaveTextContent("Práctica");
+    expect(getByTestId("card-author-profile")).toHaveAttribute(
+      "href",
+      "/u/ana-sana",
+    );
+    expect(getByTestId("practice-post-start")).toHaveAttribute(
+      "href",
+      "/practicas",
+    );
+    expect(queryByTestId("add-to-cart")).not.toBeInTheDocument();
+    expect(queryByTestId("card-book-service")).not.toBeInTheDocument();
+  });
+
   /* Un anuncio no se agota: a su dueño se le ofrece editarlo y nada más. */
   it("a un anuncio propio solo le ofrece editar", () => {
     const { getByTestId } = render(

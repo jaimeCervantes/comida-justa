@@ -15,6 +15,7 @@ import { getProfileByUsername } from "./data";
 import { buildProfileMetadata } from "./metadata";
 import ProfileHeader from "./ui/ProfileHeader";
 import ProfilePublications from "./ui/ProfilePublications";
+import ProfileSharedPractices from "./ui/ProfileSharedPractices";
 
 type Props = {
   params: Promise<{ locale: string; username: string }>;
@@ -82,6 +83,8 @@ export default async function ProfilePage({ params, searchParams }: Props) {
         isOwner={isOwner}
         path={profilePath(username, locale)}
       />
+
+      <ProfileSharedPractices practices={data.sharedPractices} />
 
       <ProfilePublications
         viewerId={viewerId}

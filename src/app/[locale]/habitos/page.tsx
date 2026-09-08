@@ -4,16 +4,28 @@ import {
   CURATED_CHALLENGES,
   type CuratedHabitPillar,
 } from "~/domain/habits/curatedChallenges";
+import { activeKeys, sharedActiveKeys } from "~/domain/practices/adoption";
 import { Link } from "~/i18n/navigation";
-import { pillarHref } from "~/i18n/routes";
+import { pillarHref, profileHref } from "~/i18n/routes";
 import { resolveLocale } from "~/i18n/routing";
 import { readViewerId } from "~/infra/auth/readViewerId";
 import { createHabitLeagueRepository } from "~/infra/dataAccess/habits/PostgresHabitLeagueRepository";
+import { PostgresPracticeAdoption } from "~/infra/dataAccess/practices/PostgresPracticeAdoption";
+import { PostgresPracticeCatalog } from "~/infra/dataAccess/practices/PostgresPracticeCatalog";
 import { localizedAlternates } from "~/infra/UI/metadata/alternates";
 import { Heading } from "~/presentation/design_system/typography/Heading";
 import HabitLeagueUseCase from "~/use_cases/habits/habitLeagueUseCase";
+import PracticeAdoptionUseCase from "~/use_cases/practices/practiceAdoptionUseCase";
+import PracticeCatalogUseCase from "~/use_cases/practices/practiceCatalogUseCase";
 import AccountSection from "../cuenta/ui/AccountSection";
+import {
+  markPracticeDone,
+  publishPracticeEvidence,
+  setPracticeSharing,
+} from "../practiceActions";
 import { setHabitLeagueOptIn } from "./leagueActions";
+import MyPractices from "./ui/MyPractices";
+import WeeklyPracticeProgress from "./ui/WeeklyPracticeProgress";
 
 export async function generateMetadata({
   params,
@@ -41,6 +53,22 @@ export default async function AtomicChallengesPage({
   const league = await new HabitLeagueUseCase(
     createHabitLeagueRepository(),
   ).getState(userId);
+  /* Lo que esta persona lleva del catálogo. Se compone de dos lecturas memorizadas y no de una
+     consulta nueva; sin sesión el conjunto viene vacío y la sección invita al catálogo en vez de
+     desaparecer. */
+  const adoptions = new PracticeAdoptionUseCase(new PostgresPracticeAdoption());
+  const [practiceAdoptions, practisedToday, weeklyProgress] = await Promise.all(
+    [
+      userId ? adoptions.listFor(userId) : [],
+      adoptions.pillarsPractisedToday(userId),
+      adoptions.weeklyPillarProgress(userId),
+    ],
+  );
+  const adopted = activeKeys(practiceAdoptions);
+  const sharedPractices = sharedActiveKeys(practiceAdoptions);
+  const myPractices = await new PracticeCatalogUseCase(
+    new PostgresPracticeCatalog(),
+  ).listAdopted(locale, adopted);
 
   /*
    * «Mis hábitos» es una entrada de `AccountNav`, y hasta aquí era un callejón sin salida: se
@@ -59,6 +87,11 @@ export default async function AtomicChallengesPage({
         </Heading>
         <p className="mt-4 max-w-3xl text-lg text-body">{t("indexIntro")}</p>
       </header>
+
+      <WeeklyPracticeProgress
+        signedIn={userId !== null}
+        progress={weeklyProgress}
+      />
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2">
         {CURATED_CHALLENGES.map(({ challengeKey, pillar, slug }) => {
@@ -84,6 +117,15 @@ export default async function AtomicChallengesPage({
           );
         })}
       </div>
+
+      <MyPractices
+        practices={myPractices}
+        doneTodayPillars={practisedToday}
+        markAction={userId ? markPracticeDone : undefined}
+        sharedPracticeKeys={sharedPractices}
+        sharingAction={userId ? setPracticeSharing : undefined}
+        evidenceAction={userId ? publishPracticeEvidence : undefined}
+      />
 
       <section className="mt-8 rounded-panel border border-feedback-warning/40 bg-feedback-warning/10 p-6">
         <Heading
@@ -122,16 +164,37 @@ export default async function AtomicChallengesPage({
             {t("league.conditioned")}
           </p>
         ) : (
-          <ol className="mt-5 space-y-2" aria-label={t("league.rankingLabel")}>
-            {league.ranking.map((entry) => (
+          /*
+            Una lista **ordenada** y sin puesto escrito: el `<ol>` numera, y esa es toda la posición
+            que hay. No hay corona, no hay «1er lugar» y no hay premio, porque un ganador semanal
+            fabrica nueve perdedores por cada ganador y suele ganar quien tiene la vida menos
+            caótica. Lo que sí se ve es el aporte de cada quien al mismo jardín.
+          */
+          <ol className="mt-5 space-y-2" aria-label={t("league.tableLabel")}>
+            {league.contributors.map((entry) => (
               <li
                 key={entry.alias}
-                className="flex justify-between rounded-control border p-3"
+                className="flex flex-wrap items-baseline justify-between gap-2 rounded-control border p-3"
               >
-                <span>
-                  {t("league.rank", { rank: entry.rank, alias: entry.alias })}
+                <Link
+                  href={profileHref(entry.alias)}
+                  data-testid="habit-league-profile-link"
+                  className="focus-ring rounded-chip font-semibold underline underline-offset-4"
+                >
+                  {t("league.contributor", { alias: entry.alias })}
+                </Link>
+                <span className="flex items-baseline gap-3">
+                  <strong>
+                    {t("league.contributions", {
+                      contributions: entry.contributions,
+                    })}
+                  </strong>
+                  <span className="text-caption text-text-muted">
+                    {t("league.sustainedWeeks", {
+                      weeks: entry.sustainedWeeks,
+                    })}
+                  </span>
                 </span>
-                <strong>{t("league.points", { points: entry.score })}</strong>
               </li>
             ))}
           </ol>

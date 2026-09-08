@@ -2,7 +2,6 @@ import { useTranslations } from "next-intl";
 import type { AppLocale } from "~/i18n/routing";
 import { Heading } from "~/presentation/design_system/typography/Heading";
 import NutritionCleanCooking from "./NutritionCleanCooking";
-import NutritionIngredientCatalog from "./NutritionIngredientCatalog";
 import NutritionPillarBridges from "./NutritionPillarBridges";
 import NutritionPlateTriad from "./NutritionPlateTriad";
 import PillarArticle, {
@@ -11,10 +10,10 @@ import PillarArticle, {
   PillarPanel,
   PillarSectionHeading,
 } from "./PillarArticle";
+import PillarBibliography from "./PillarBibliography";
+import PillarCatalogSection from "./PillarCatalogSection";
 import PillarLocal from "./PillarLocal";
 import PillarPractice from "./PillarPractice";
-import PillarReferences from "./PillarReferences";
-import { NUTRITION_REFERENCES } from "./references";
 
 export default function AlimentacionPage({ locale }: { locale: AppLocale }) {
   const t = useTranslations("pillarPages.nutrition");
@@ -67,7 +66,14 @@ export default function AlimentacionPage({ locale }: { locale: AppLocale }) {
 
       <NutritionCleanCooking />
 
-      <NutritionIngredientCatalog />
+      <PillarCatalogSection
+        pillar="nutrition"
+        locale={locale}
+        heading={t("catalogHeading")}
+        intro={t("catalogIntro")}
+        bodyLabel={t("catalogNutritionLabel")}
+        localLabel={t("catalogLocalLabel")}
+      />
 
       {/* Los puentes cierran la pagina: se leen mejor cuando ya se entendio la practica. */}
       <NutritionPillarBridges />
@@ -87,7 +93,7 @@ export default function AlimentacionPage({ locale }: { locale: AppLocale }) {
         </ul>
       </section>
 
-      <PillarReferences pillar="nutrition" references={NUTRITION_REFERENCES} />
+      <PillarBibliography pillar="nutrition" locale={locale} />
     </PillarArticle>
   );
 }

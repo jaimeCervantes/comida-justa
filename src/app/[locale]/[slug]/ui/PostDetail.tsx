@@ -2,14 +2,14 @@ import { getTranslations } from "next-intl/server";
 import type { ReactNode } from "react";
 import { MdPhone } from "react-icons/md";
 import { canBeOrdered, isSellable } from "~/domain/entities/post/availability";
-import { EVENT_KIND } from "~/domain/entities/post/kind";
+import { EVENT_KIND, PRACTICE_POST_KIND } from "~/domain/entities/post/kind";
 import { canManagePost } from "~/domain/entities/post/postPermissions";
 import { resolvePostTranslation } from "~/domain/entities/post/translations";
 import type { PostMediaFile } from "~/domain/entities/post/types";
 import { buildWhatsappEventAttendanceLink } from "~/domain/entities/post/whatsappEventAttendance";
 import { buildWhatsappOrderLink } from "~/domain/entities/post/whatsappOrder";
 import type { EventAttendee } from "~/domain/eventAttendance/eventAttendance";
-import { getPathname } from "~/i18n/navigation";
+import { getPathname, Link } from "~/i18n/navigation";
 import { type AppLocale, resolveLocale, routing } from "~/i18n/routing";
 import { signInPathFor } from "~/infra/auth/signInPath";
 import { PUBLIC_BASE_URL, SITE_CURRENCY } from "~/infra/constants";
@@ -153,6 +153,7 @@ export default async function PostDetail({
   const content = translation?.content ?? postDetails.content;
   /** `null` en la base significa disponible: solo un `false` explícito lo agota. */
   const isAvailable = postDetails.isAvailable !== false;
+  const isPracticePost = kind === PRACTICE_POST_KIND;
 
   /* `Post` de `infra/types/Posts.d.ts` acaba en una firma de índice, así que la columna llega sin
      forma. Se estrecha aquí en vez de castear: lo que no sea un número **no** es un inventario, y
@@ -204,21 +205,23 @@ export default async function PostDetail({
 
   // Solo se ofrece pedir lo que se vende y sigue habiendo: mandar a WhatsApp por algo agotado
   // empieza la conversación con una decepción.
-  const orderLink = canBeOrdered({ kind, isAvailable })
-    ? buildWhatsappOrderLink({
-        title: String(title ?? ""),
-        price,
-        url: postUrl,
-        whatsapp: contactInfo?.whatsapp,
-        phone: contactInfo?.phone,
-      })
-    : null;
+  const orderLink =
+    canBeOrdered({ kind, isAvailable }) && !isPracticePost
+      ? buildWhatsappOrderLink({
+          title: String(title ?? ""),
+          price,
+          url: postUrl,
+          whatsapp: contactInfo?.whatsapp,
+          phone: contactInfo?.phone,
+        })
+      : null;
   const attendanceWhen = formatEventAttendanceWhen({
     startsAt,
     endsAt,
     locale: currentLocale,
   });
-  const offersEventAttendance = kind === EVENT_KIND && Boolean(attendanceWhen);
+  const offersEventAttendance =
+    kind === EVENT_KIND && !isPracticePost && Boolean(attendanceWhen);
   const attendanceLink =
     offersEventAttendance && attendanceWhen
       ? buildWhatsappEventAttendanceLink({
@@ -334,6 +337,14 @@ export default async function PostDetail({
             <ProvenanceBadge origin={origin} />
           ) : null}
           <CategoryTag label={categoryLabel} />
+          {isPracticePost ? (
+            <span
+              data-testid="practice-detail-badge"
+              className="rounded-chip border border-pw-green/30 bg-pw-green/10 px-2 py-0.5 text-xs font-semibold text-pw-green"
+            >
+              {t("practiceBadge")}
+            </span>
+          ) : null}
           <SoldOutBadge kind={kind} isAvailable={isAvailable} />
           <StockRemaining kind={kind} stockQuantity={stockQuantity} />
           {/* Aquí aterriza quien recibe el enlace por WhatsApp: es donde más importa que diga
@@ -343,11 +354,13 @@ export default async function PostDetail({
         {/* Sin envoltura propia: `CurrencyAmount` ya es un `span` y se calla solo cuando no hay
             precio —un anuncio no lo tiene—. Dentro de un `<p>` dejaba un párrafo vacío que en esta
             fila con `gap-x-3` se veía como un hueco sin motivo. */}
-        <CurrencyAmount value={price} currency={SITE_CURRENCY} />
+        {isPracticePost ? null : (
+          <CurrencyAmount value={price} currency={SITE_CURRENCY} />
+        )}
 
         {/* Hoy las 31 publicaciones traen teléfono, pero nada en el esquema lo garantiza: sin la
             guarda, una sin él pintaba el icono junto a un enlace `tel:undefined` y vacío. */}
-        {contactInfo?.phone ? (
+        {contactInfo?.phone && !isPracticePost ? (
           <p className="flex items-center">
             <MdPhone className="mr-2" size="24" aria-hidden />
             <a
@@ -360,17 +373,44 @@ export default async function PostDetail({
         ) : null}
       </section>
 
+      {isPracticePost ? (
+        <section
+          data-testid="practice-detail-context"
+          className="mb-4 rounded-card border border-pw-green/20 bg-pw-green/5 p-3"
+        >
+          <p className="text-label font-semibold text-pw-green">
+            {t("practiceDetailTitle")}
+          </p>
+          <p className="mt-1 text-sm text-text-support">
+            {t("practiceDetailBody")}
+          </p>
+        </section>
+      ) : null}
+
       {/* Compartir va junto a pedir: son las dos salidas de la ficha. Una lleva al vendedor y la
           otra a quien todavía no conoce esto — y para un anuncio, que no se pide, es la única. */}
       <div className="mt-4 flex flex-wrap items-center gap-3">
         {/* Pedir uno y juntar varios conviven a propósito: quien quiere una sola cosa no debería
             tener que pasar por el carrito, y quien quiere tres no debería abrir tres
             conversaciones. La regla de cuándo se pinta cada uno es la misma (`canBeOrdered`). */}
-        <AddToCartButton
-          postId={String(id ?? "")}
-          kind={kind}
-          isAvailable={postDetails.isAvailable}
-        />
+        {isPracticePost ? (
+          <Link
+            href="/practicas"
+            data-testid="practice-detail-start"
+            className={cn(
+              "focus-ring inline-flex items-center justify-center rounded-control",
+              "bg-pw-green px-3 py-2 text-label font-semibold text-white transition-colors hover:bg-pw-green/80",
+            )}
+          >
+            {t("practiceStart")}
+          </Link>
+        ) : (
+          <AddToCartButton
+            postId={String(id ?? "")}
+            kind={kind}
+            isAvailable={postDetails.isAvailable}
+          />
+        )}
 
         <WhatsappButton href={orderLink} testId="whatsapp-order">
           {t("orderOnWhatsapp")}
@@ -404,7 +444,7 @@ export default async function PostDetail({
 
       <EventAttendeeList attendees={eventAttendees} />
 
-      {bookingSlot}
+      {isPracticePost ? null : bookingSlot}
 
       {canManageStock ? (
         <>

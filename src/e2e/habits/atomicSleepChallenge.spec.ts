@@ -641,22 +641,17 @@ test.describe("Del atardecer al amanecer", () => {
     await expect(card).not.toContainText(/respuestas|popularidad/);
   });
 
-  test("the weekly league shows its threshold instead of an empty ranking", async ({
+  test("the garden table shows its threshold instead of a two-row table", async ({
     page,
   }) => {
     await page.goto("/habitos");
-    const league = page.getByTestId("habit-league");
+    const table = page.getByTestId("habit-league");
     /* Sin fijar el número: la base la comparten tres proyectos y cuentas reales, así que cuántas
        personas hay apuntadas esta semana no es asunto de la suite. Lo que se prueba es que debajo
-       del umbral se explique la condición en vez de pintar una clasificación vacía. */
-    await expect(league).toContainText(
-      /\d+ de 10 participantes semanales activos/,
-    );
-    await expect(league).toContainText("No mostramos una tabla vacía");
+       del umbral se explique la condición en vez de pintar una tabla de dos filas. */
+    await expect(table).toContainText(/\d+ de 10 personas/);
     await expect(
-      league.getByRole("list", {
-        name: "Clasificación semanal por constancia",
-      }),
+      table.getByRole("list", { name: /Aportes de la semana/ }),
     ).toHaveCount(0);
   });
 

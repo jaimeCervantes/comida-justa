@@ -20,6 +20,30 @@ Use this skill for behavior changes. Start from a small scenario, then tests, th
 > shared resource and how to undo it. A report is not a gate. **Never run the complete e2e suite
 > (`pnpm run test:e2e:run` with no path) unless the user explicitly asks for it.**
 >
+> **Antes de cualquier corrida de e2e, `rm -rf .next`.** Sin excepciones. Playwright levanta su
+> propio `next dev`, y una corrida anterior que se cortó deja artefactos generados a medio escribir.
+> Los dos síntomas ya vistos son imposibles de diagnosticar desde el error: `dev/types/validator.ts`
+> truncado, que tumba `pnpm typecheck` con errores de sintaxis **dentro de un archivo generado**, y
+> un `prerender-manifest.json` con basura al final, que hace que el servidor conteste 404 o 500 a
+> todo.
+>
+> **Y su contrapartida: si el slice estrena una ruta, añádela a `src/e2e/testUtils/warmRoutes.ts`.**
+> Borrar `.next` arranca la corrida en frío, y Next dev compila cada ruta al pedirla: el primer
+> escenario que la visita paga esa compilación dentro del plazo de 5 s de un `toBeVisible`, no
+> dentro de los 90 s del escenario. El síntoma engaña —fallan escenarios **distintos** en cada
+> corrida, siempre en su primera interacción, y todos pasan en aislamiento— y se confunde con
+> intermitencia. Una acción de servidor es su propia unidad de compilación: una ruta con formularios
+> hay que calentarla aunque la página parezca barata.
+>
+> **Si Playwright falla dentro del sandbox por red, DB o permisos, reintenta fuera del sandbox antes
+> de diagnosticar código.** Síntomas típicos: consultas con `EACCES`, `ETIMEDOUT`, `ECONNREFUSED`,
+> errores de adapter de NextAuth/session token causados por no poder leer la DB, o `next/font`
+> intentando bajar fuentes sin red. Deja que la corrida cierre y ejecute `afterEach`; si se queda
+> colgada, interrúmpela, confirma que no haya `next dev` escuchando en 3000, borra `.next` otra vez y
+> repite **el mismo Playwright scoped** con `sandbox_permissions: "require_escalated"` (idealmente
+> pidiendo una regla persistente para `node node_modules/@playwright/test/cli.js test` o
+> `pnpm exec playwright test`). Solo diagnostica la app si el fallo se reproduce fuera del sandbox.
+>
 > **Playwright siempre en shards cuando pasen de ~20 escenarios.** Una corrida que se corta a la
 > mitad —por un tiempo de espera, por un `Ctrl+C`— deja sin ejecutar sus `afterEach`, y el residuo
 > en la base compartida hace fallar la corrida siguiente con errores que no tienen nada que ver
@@ -71,6 +95,10 @@ branch) directly.
   `git checkout -b`, so nothing is lost.
 - Commit per zone or per slice, not in one gigantic commit. Push and open the PR only when the user
   asks.
+- If the slice/code was already tested and validated before committing, create the semantic commits
+  with `--no-verify`. The relevant validation (`test:run`, `typecheck`, `lint`, and scoped e2e when
+  applicable) must already be run and reported with numbers; do not rerun hooks only to write the
+  commit.
 - Every commit is the user's alone: never add a `Co-Authored-By` trailer, a session link, or any
   other AI-attribution to the message (see `AGENTS.md` → "Commit authorship").
 

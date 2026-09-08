@@ -46,6 +46,19 @@ describe("PostValidator — kind & origin", () => {
     expect(() => validator.validate(makePost())).not.toThrow();
   });
 
+  it("accepts a practice post without price, origin, date, duration or phone", () => {
+    expect(() =>
+      validator.validate(
+        makePost({
+          kind: "practica",
+          price: null,
+          origin: null,
+          contactInfo: { phone: "" },
+        }),
+      ),
+    ).not.toThrow();
+  });
+
   it("rejects a producto without price", () => {
     expect(() =>
       validator.validate(makePost({ kind: "producto", price: null })),

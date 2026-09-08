@@ -41,6 +41,9 @@ export const pathnames = {
     es: "/categoria/[key]/page/[page]",
     en: "/category/[key]/page/[page]",
   },
+  /* El índice de las 45 prácticas del catálogo. Su interfaz está traducida, así que su URL puede
+     estarlo; el slug de cada práctica no aparece todavía en ninguna dirección. */
+  "/practicas": { es: "/practicas", en: "/practices" },
   "/publicar": { es: "/publicar", en: "/publish" },
   "/cuenta": { es: "/cuenta", en: "/account" },
   "/cuenta/agenda": { es: "/cuenta/agenda", en: "/account/schedule" },

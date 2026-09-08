@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { hasLocale } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import HomeHero from "~/app/(home)/HomeHero";
+import HomePracticePulse from "~/app/(home)/HomePracticePulse";
 import { homeFeedKey } from "~/app/(home)/homeFeedKey";
 import PostsWithLoadMore from "~/app/(home)/PostsWithLoadMore";
 import {
@@ -25,6 +26,7 @@ import {
 } from "~/infra/constants";
 import { createPostQueryRepository } from "~/infra/dataAccess/getMultiplePosts";
 import { categoryKeysForActivePublicationPillar } from "~/infra/dataAccess/posts/publicationPillarFilter";
+import { readCommunityGarden } from "~/infra/habits/readCommunityGarden";
 import { readViewerLocationContext } from "~/infra/location/viewerLocationContext";
 import { mapPostsToCardsForLocale } from "~/infra/UI/mappers/posts/mapPostsToCardsForLocale";
 import { localizedAlternates } from "~/infra/UI/metadata/alternates";
@@ -113,11 +115,10 @@ export default async function Inicio({
     getTranslations({ locale, namespace: "feed" }),
   ]);
   const { visitor } = await readViewerLocationContext();
-  const { posts, total, totalPages } = await getPosts(
-    locale,
-    visitor,
-    currentPillar,
-  );
+  const [{ posts, total, totalPages }, garden] = await Promise.all([
+    getPosts(locale, visitor, currentPillar),
+    readCommunityGarden(),
+  ]);
 
   /*
    * Cuánto de lo publicado le queda cerca a quien mira, y a qué distancia lo más cercano.
@@ -159,7 +160,11 @@ export default async function Inicio({
           extra. */}
       <div className="hidden lg:block lg:space-y-6">
         <HomeHero publicationCount={total} nearby={nearby} latest={posts[0]} />
+      </div>
 
+      <HomePracticePulse weeklyPractitioners={garden.weeklyPractitioners} />
+
+      <div className="hidden lg:block">
         <Heading level={2} size="sm">
           {tFeed("latestHeading")}
         </Heading>

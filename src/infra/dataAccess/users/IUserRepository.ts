@@ -3,6 +3,8 @@ export interface PostUser {
   email?: string;
   name?: string;
   image?: string;
+  /** Dirección pública personal: `/u/<username>`. */
+  username?: string;
 }
 
 export interface IUserRepository {

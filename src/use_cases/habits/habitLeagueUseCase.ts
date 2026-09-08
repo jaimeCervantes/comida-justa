@@ -1,17 +1,24 @@
 import { currentCommunityWeek } from "~/domain/habits/habitChallenge";
 import {
-  buildWeeklyLeagueRanking,
+  buildGardenContributions,
   evaluateLeagueEligibility,
-  type LeagueRankingEntry,
+  type GardenContributor,
   MINIMUM_WEEKLY_LEAGUE_PARTICIPANTS,
 } from "~/domain/habits/habitLeague";
 import type { HabitLeagueRepository } from "./ports/HabitLeagueRepository";
 
+/**
+ * Quiénes hicieron crecer el jardín esta semana.
+ *
+ * `contributors` sustituye al `ranking` anterior: la misma gente, ordenada igual, sin puesto
+ * proclamado. Sigue detrás del mismo umbral y del mismo consentimiento — aparecer con nombre en una
+ * pantalla pública es una decisión, no un efecto secundario de practicar.
+ */
 export type HabitLeagueState = {
   activeOptIns: number;
   threshold: number;
   eligible: boolean;
-  ranking: LeagueRankingEntry[];
+  contributors: GardenContributor[];
   viewerAlias: string | null;
   viewerOptedIn: boolean;
 };
@@ -36,7 +43,7 @@ export default class HabitLeagueUseCase {
       activeOptIns: participants.length,
       threshold: MINIMUM_WEEKLY_LEAGUE_PARTICIPANTS,
       eligible,
-      ranking: eligible ? buildWeeklyLeagueRanking(participants) : [],
+      contributors: eligible ? buildGardenContributions(participants) : [],
       viewerAlias: viewer.alias,
       viewerOptedIn: viewer.optedIn,
     };
