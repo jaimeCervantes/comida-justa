@@ -21,7 +21,8 @@ import CardOwnerControls from "~/presentation/post/CardOwnerControls";
 import CategoryTag from "~/presentation/post/CategoryTag/CategoryTag";
 import EventDate from "~/presentation/post/EventDate/EventDate";
 import PillarBadge from "~/presentation/post/PillarBadge/PillarBadge";
-import PracticePostReactionButton from "~/presentation/post/PracticePostReaction/PracticePostReactionButton";
+import PostReactionButton from "~/presentation/post/PostReaction/PostReactionButton";
+import PracticeCover from "~/presentation/post/PracticeCover/PracticeCover";
 import ProvenanceBadge, {
   showsProvenanceBadge,
 } from "~/presentation/post/ProvenanceBadge";
@@ -157,10 +158,19 @@ export default function CardForList(
          es de lo que vive la mampostería. */
       media={
         <Link {...anchorProps} className="relative block">
-          <MediaContent
-            media={media[0]}
-            className={hasKnownAspect(media[0] ?? {}) ? "" : "h-64"}
-          />
+          {/* Una práctica sin evidencia no es una publicación a la que le falte la foto: su portada
+              es el pilar. Ver `PracticeCover`. */}
+          {kind === PRACTICE_POST_KIND && !media[0] ? (
+            <PracticeCover
+              category={typeof category === "string" ? category : null}
+              className="h-64"
+            />
+          ) : (
+            <MediaContent
+              media={media[0]}
+              className={hasKnownAspect(media[0] ?? {}) ? "" : "h-64"}
+            />
+          )}
 
           {/* El pilar, encima de la foto: en el feed lo primero que se mira es la imagen, y ahí
               es donde se lee de un vistazo. Se calla en lo que no tiene pilar —los anuncios van
@@ -240,8 +250,11 @@ export default function CardForList(
         <CurrencyAmount value={price} currency={SITE_CURRENCY} />
       </span>
 
-      {kind === PRACTICE_POST_KIND ? (
-        <div className="mt-2 flex flex-wrap items-center gap-2">
+      {/* El apoyo es infraestructura de cualquier publicación, no solo de práctica: se pinta junto
+          al CTA propio del tipo, sin reemplazarlo. Ver slice 4 de
+          docs/features/community/010-2026-09-06-practicas-como-publicaciones.md. */}
+      <div className="mt-2 flex flex-wrap items-center gap-2">
+        {kind === PRACTICE_POST_KIND ? (
           <Link
             href="/practicas"
             data-testid="practice-post-start"
@@ -252,39 +265,38 @@ export default function CardForList(
           >
             {t("practiceStart")}
           </Link>
-          <PracticePostReactionButton
+        ) : kind === SERVICE_KIND && canBeOrdered({ kind, isAvailable }) ? (
+          <Link
+            href={detailHref}
+            data-testid="card-book-service"
+            className={cn(
+              "focus-ring inline-flex w-fit items-center justify-center rounded-control",
+              "bg-pw-green px-2 py-2 text-xs text-white transition-colors hover:bg-pw-green/80",
+            )}
+          >
+            {t("bookSubmit")}
+          </Link>
+        ) : (
+          /* Juntar sin abrir la publicación: el camino real de quien compra productos es recorrer
+             el listado y echar al carrito lo que reconoce, no entrar y volver trece veces. Un
+             servicio con agenda no pasa por este camino: primero se elige horario en la ficha. */
+          <AddToCartButton
             postId={String(id ?? "")}
-            reacted={props.viewerReacted === true}
-            reactions={
-              typeof props.reactionCount === "number" ? props.reactionCount : 0
-            }
-            canReact={Boolean(viewerId)}
-            signInHref={reactionSignInHref}
+            kind={kind}
+            isAvailable={isAvailable}
+            size="xs"
           />
-        </div>
-      ) : kind === SERVICE_KIND && canBeOrdered({ kind, isAvailable }) ? (
-        <Link
-          href={detailHref}
-          data-testid="card-book-service"
-          className={cn(
-            "focus-ring mt-2 inline-flex w-fit items-center justify-center rounded-control",
-            "bg-pw-green px-2 py-2 text-xs text-white transition-colors hover:bg-pw-green/80",
-          )}
-        >
-          {t("bookSubmit")}
-        </Link>
-      ) : (
-        /* Juntar sin abrir la publicación: el camino real de quien compra productos es recorrer el
-           listado y echar al carrito lo que reconoce, no entrar y volver trece veces. Un servicio
-           con agenda no pasa por este camino: primero se elige horario en la ficha. */
-        <AddToCartButton
+        )}
+        <PostReactionButton
           postId={String(id ?? "")}
-          kind={kind}
-          isAvailable={isAvailable}
-          size="xs"
-          className="mt-2"
+          reacted={props.viewerReacted === true}
+          reactions={
+            typeof props.reactionCount === "number" ? props.reactionCount : 0
+          }
+          canReact={Boolean(viewerId)}
+          signInHref={reactionSignInHref}
         />
-      )}
+      </div>
 
       {canManage ? (
         <CardOwnerControls

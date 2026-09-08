@@ -37,12 +37,9 @@ vi.mock("~/presentation/post/EventAttendance/eventAttendanceAction", () => ({
   toggleEventAttendance: vi.fn(),
 }));
 
-vi.mock(
-  "~/presentation/post/PracticePostReaction/practicePostReactionAction",
-  () => ({
-    setPracticePostReaction: vi.fn(),
-  }),
-);
+vi.mock("~/presentation/post/PostReaction/postReactionAction", () => ({
+  setPostReaction: vi.fn(),
+}));
 
 vi.mock("~/i18n/navigation", async () => {
   const actual =
@@ -120,13 +117,13 @@ describe("PostDetail para publicaciones de práctica", () => {
       "href",
       "/practicas",
     );
-    expect(screen.getByTestId("practice-post-reaction-signin")).toHaveAttribute(
+    expect(screen.getByTestId("post-reaction-signin")).toHaveAttribute(
       "href",
       "/auth/signin?callbackUrl=%2Fpractica-sleep-dark-room-ana",
     );
-    expect(
-      screen.getByTestId("practice-post-reaction-count"),
-    ).toHaveTextContent("3 apoyos");
+    expect(screen.getByTestId("post-reaction-count")).toHaveTextContent(
+      "3 apoyos",
+    );
     expect(screen.getByTestId("post-identity-author")).toHaveAttribute(
       "href",
       "/u/ana-sana",
@@ -150,11 +147,73 @@ describe("PostDetail para publicaciones de práctica", () => {
       }),
     );
 
+    expect(screen.getByTestId("post-reaction-toggle")).toHaveTextContent(
+      "Apoyar",
+    );
+    expect(screen.getByTestId("post-reaction-count")).toHaveTextContent(
+      "3 apoyos",
+    );
+  });
+});
+
+/**
+ * El ritual publica sin foto, así que la ficha de una práctica sin evidencia es el caso normal:
+ * lleva la portada de su pilar en lugar del hueco de la galería.
+ */
+describe("PostDetail de una práctica sin evidencia", () => {
+  it("pinta la portada del pilar en vez de un hueco", async () => {
+    renderWithIntl(
+      await PostDetail({
+        post: { ...practicePost, media: [] },
+        className: "",
+        user: undefined,
+        locale: "es",
+        slug: "practica-ritual-mind-one-connection-v1-2026-09-07-abc",
+      }),
+    );
+
+    expect(screen.getByTestId("practice-cover")).toHaveAttribute(
+      "data-pillar",
+      "sleep",
+    );
+  });
+});
+
+/**
+ * Slice 4: el apoyo deja de ser exclusivo de práctica. Un producto conserva su propio CTA
+ * (agregar al carrito / pedir por WhatsApp) y además puede recibir apoyo, igual que una práctica.
+ */
+describe("PostDetail para publicaciones que no son práctica", () => {
+  const productPost = {
+    ...practicePost,
+    id: "product-post-1",
+    title: "Miel de abeja",
+    kind: "producto",
+    price: 120,
+    reactionCount: 2,
+    viewerReacted: true,
+  };
+
+  it("ofrece apoyo junto al CTA comercial de un producto", async () => {
+    renderWithIntl(
+      await PostDetail({
+        post: productPost,
+        className: "",
+        user: { id: "luis", name: "Luis" },
+        locale: "es",
+        slug: "miel-de-abeja",
+      }),
+    );
+
+    expect(screen.getByTestId("post-reaction-toggle")).toHaveTextContent(
+      "Retirar apoyo",
+    );
+    expect(screen.getByTestId("post-reaction-count")).toHaveTextContent(
+      "2 apoyos",
+    );
+    expect(screen.getByTestId("whatsapp-order")).toBeInTheDocument();
     expect(
-      screen.getByTestId("practice-post-reaction-toggle"),
-    ).toHaveTextContent("Apoyar");
-    expect(
-      screen.getByTestId("practice-post-reaction-count"),
-    ).toHaveTextContent("3 apoyos");
+      screen.queryByTestId("practice-detail-badge"),
+    ).not.toBeInTheDocument();
   });
 });

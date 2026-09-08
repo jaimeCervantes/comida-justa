@@ -20,13 +20,10 @@ vi.mock("~/presentation/post/stockAction", () => ({
   setStock: vi.fn(),
 }));
 
-// Las reacciones de prácticas también son Server Action; esta suite solo valida el feed.
-vi.mock(
-  "~/presentation/post/PracticePostReaction/practicePostReactionAction",
-  () => ({
-    setPracticePostReaction: vi.fn(),
-  }),
-);
+// El apoyo a publicaciones también es Server Action; esta suite solo valida el feed.
+vi.mock("~/presentation/post/PostReaction/postReactionAction", () => ({
+  setPostReaction: vi.fn(),
+}));
 
 import type { PublicationPillar } from "~/domain/entities/post/publicationPillars";
 import type { Coordinates } from "~/domain/entities/seller/coordinates";

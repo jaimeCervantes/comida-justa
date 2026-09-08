@@ -1,11 +1,9 @@
 import { and, count, eq } from "drizzle-orm";
 import { db } from "~/infra/dataAccess/db/connection";
 import { postReactions, posts } from "~/infra/dataAccess/db/schema/posts";
-import type { PracticePostReactionRepository } from "~/use_cases/practicePostReactions/ports/PracticePostReactionRepository";
+import type { PostReactionRepository } from "~/use_cases/postReactions/ports/PostReactionRepository";
 
-export class PostgresPracticePostReactionRepository
-  implements PracticePostReactionRepository
-{
+export class PostgresPostReactionRepository implements PostReactionRepository {
   async findPostById(postId: string) {
     const [row] = await db
       .select({ id: posts.id, kind: posts.kind })
@@ -55,10 +53,10 @@ export class PostgresPracticePostReactionRepository
   }
 }
 
-let instance: PostgresPracticePostReactionRepository | null = null;
+let instance: PostgresPostReactionRepository | null = null;
 
-export function createPracticePostReactionRepository(): PostgresPracticePostReactionRepository {
+export function createPostReactionRepository(): PostgresPostReactionRepository {
   if (instance) return instance;
-  instance = new PostgresPracticePostReactionRepository();
+  instance = new PostgresPostReactionRepository();
   return instance;
 }

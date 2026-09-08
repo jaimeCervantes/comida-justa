@@ -6,24 +6,24 @@ import { MdFavorite, MdFavoriteBorder } from "react-icons/md";
 import { usePathname } from "~/i18n/navigation";
 import { Button } from "~/presentation/design_system/buttons/Button";
 import {
-  type PracticePostReactionActionState,
-  setPracticePostReaction,
-} from "./practicePostReactionAction";
+  type PostReactionActionState,
+  setPostReaction,
+} from "./postReactionAction";
 
-function PracticePostReactionCount({ count }: { count: number }) {
+function PostReactionCount({ count }: { count: number }) {
   const t = useTranslations("post");
 
   return (
     <span
       className="text-label text-text-support"
-      data-testid="practice-post-reaction-count"
+      data-testid="post-reaction-count"
     >
-      {t("practiceReactionCount", { count })}
+      {t("reactionCount", { count })}
     </span>
   );
 }
 
-export default function PracticePostReactionButton({
+export default function PostReactionButton({
   postId,
   reacted,
   reactions,
@@ -39,25 +39,25 @@ export default function PracticePostReactionButton({
   const t = useTranslations("post");
   const pathname = usePathname();
   const [state, action, isPending] = useActionState<
-    PracticePostReactionActionState,
+    PostReactionActionState,
     FormData
-  >(setPracticePostReaction, { reacted, reactions });
+  >(setPostReaction, { reacted, reactions });
 
   if (!canReact || state.needsSignIn) {
     return (
       <span
         className="inline-flex flex-wrap items-center gap-2"
-        data-testid="practice-post-reaction"
+        data-testid="post-reaction"
       >
         <a
           href={signInHref}
-          data-testid="practice-post-reaction-signin"
+          data-testid="post-reaction-signin"
           className="focus-ring inline-flex items-center gap-1 rounded-chip text-label font-semibold text-pw-green underline underline-offset-4"
         >
           <MdFavoriteBorder size="18" aria-hidden />
-          {t("practiceReactionSignIn")}
+          {t("reactionSignIn")}
         </a>
-        <PracticePostReactionCount count={state.reactions} />
+        <PostReactionCount count={state.reactions} />
       </span>
     );
   }
@@ -66,7 +66,7 @@ export default function PracticePostReactionButton({
     <form
       action={action}
       className="inline-flex flex-wrap items-center gap-2"
-      data-testid="practice-post-reaction"
+      data-testid="post-reaction"
     >
       <input type="hidden" name="postId" value={postId} />
       <input
@@ -81,7 +81,7 @@ export default function PracticePostReactionButton({
         color={state.reacted ? "default" : "green"}
         isLoading={isPending}
         disabled={isPending}
-        data-testid="practice-post-reaction-toggle"
+        data-testid="post-reaction-toggle"
         startIcon={
           state.reacted ? (
             <MdFavorite aria-hidden size="18" />
@@ -89,13 +89,11 @@ export default function PracticePostReactionButton({
             <MdFavoriteBorder aria-hidden size="18" />
           )
         }
-        loadingLabel={t("practiceReactionLoading")}
+        loadingLabel={t("reactionLoading")}
       >
-        {state.reacted
-          ? t("practiceReactionWithdraw")
-          : t("practiceReactionSupport")}
+        {state.reacted ? t("reactionWithdraw") : t("reactionSupport")}
       </Button>
-      <PracticePostReactionCount count={state.reactions} />
+      <PostReactionCount count={state.reactions} />
     </form>
   );
 }

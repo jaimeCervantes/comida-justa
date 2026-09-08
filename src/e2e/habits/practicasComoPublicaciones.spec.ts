@@ -192,9 +192,13 @@ test.describe("Prácticas como publicaciones", () => {
 
     await page.goto(postHref);
 
-    const reaction = page.getByTestId("practice-post-reaction");
-    const button = reaction.getByTestId("practice-post-reaction-toggle");
-    const count = reaction.getByTestId("practice-post-reaction-count");
+    /* Escopado a `post-detail`: cualquier tarjeta relacionada en la misma página también trae su
+       propio control de apoyo desde el slice 4, así que `post-reaction` a secas ya no es único. */
+    const reaction = page
+      .getByTestId("post-detail")
+      .getByTestId("post-reaction");
+    const button = reaction.getByTestId("post-reaction-toggle");
+    const count = reaction.getByTestId("post-reaction-count");
 
     await expect(button).toHaveText(/Apoyar/);
     await expect(count).toHaveText("Nadie ha apoyado");

@@ -297,3 +297,111 @@ schema necesario para leer y escribir la tabla.
   completa de posiciones.
 - Deuda técnica: optimizar el warm-up e2e de rutas compartidas para evitar timeouts de arranque en
   Next dev.
+
+## 2026-09-07 — Slice 4: el apoyo es infraestructura social de cualquier publicación
+
+### Objetivo
+
+Replantear el slice 4 original ("comentarios en publicaciones de práctica"): el usuario confirmó que
+los comentarios ya existían para toda publicación antes de esta entrega, así que no había nada que
+habilitar ahí. Lo que sí distinguía una práctica del resto era el botón de apoyo del slice 3,
+restringido por `kind`. Si una práctica es una publicación más, el reconocimiento social (apoyo,
+conteo) debía ser capacidad de cualquier tipo de publicación; lo que cambia por tipo es el CTA
+principal (comprar, agendar, asistir, contactar), no si puede recibir apoyo.
+
+### Decisiones y racional
+
+- Se generalizó `practicePostReactions` a `postReactions` en dominio, caso de uso, puerto e
+  infraestructura: `rejectPostReactionRequest` ya no rechaza por `kind`, solo valida usuario, post
+  existente e intención. El trabajo de renombrado ya venía adelantado; esta entrega lo completó y lo
+  probó de punta a punta.
+- Las consultas (`PostgresPostQueryRepository`, `PostgresGetOnePost`) ya calculaban `reaction_count`
+  y `viewer_reacted` sin filtrar por `kind` desde el slice 3 — la restricción vivía solo en la UI. Por
+  eso este slice no tocó SQL ni necesitó una migración nueva: alcanzó con quitar la condición
+  `kind === PRACTICE_POST_KIND` alrededor de `PracticePostReactionButton` en `CardForList` y
+  `PostDetail`, y renombrar el componente a `PostReactionButton`.
+- Se auditó si faltaba `viewerId` en listados no-práctica (productos, eventos, categoría, tienda,
+  perfil, pilares) antes de asumir una segunda pasada: los 13 `page.tsx` que arman esos listados ya
+  leen `readViewerId()` y lo pasan hasta `CardForList`. No hubo trabajo de plomería pendiente.
+- Las claves de i18n `practiceReaction*` pasaron a `reaction*` dentro del namespace `post`, sin
+  choque con las `reactionCount`/`reactionSignIn` de `atomicChallenges`/`atomicSleepChallenge` (otro
+  namespace, otra feature).
+- El escenario de slice 4 en el `.feature` quedó como `Scenario Outline` con `@component`: la
+  mecánica de extremo a extremo (servidor, persistencia, revalidación) ya la prueba el e2e de
+  slice 3; lo único nuevo es que el botón se pinta también para producto/evento/servicio/anuncio, que
+  es una prueba de presentación cubierta por Vitest.
+
+### Archivos tocados
+
+- Dominio y caso de uso: `src/domain/postReactions/*`, `src/use_cases/postReactions/*`.
+- Infraestructura: `src/infra/dataAccess/postReactions/*`.
+- Presentación: `src/presentation/post/PostReaction/*`,
+  `src/presentation/post/CardForList/CardForList.tsx`,
+  `src/app/[locale]/[slug]/ui/PostDetail.tsx`.
+- Pruebas actualizadas por el renombrado (mocks de la Server Action, testids `post-reaction-*`):
+  `src/presentation/post/CardForList/CardForList.test.tsx`,
+  `src/app/[locale]/[slug]/ui/PostDetail.test.tsx`,
+  `src/app/(home)/PostsWithLoadMore.test.tsx`,
+  `src/app/[locale]/eventos/ui/EventsList.test.tsx`,
+  `src/app/[locale]/pilares/components/PillarLocalSection.test.tsx`,
+  `src/app/[locale]/productos/ui/ProductsList.test.tsx`.
+- i18n: `src/i18n/messages/es.json`, `src/i18n/messages/en.json`.
+- Specs: `src/e2e/habits/practicasComoPublicaciones.feature`,
+  `src/e2e/habits/practicasComoPublicaciones.spec.ts` (testid `post-reaction*`, escopado a
+  `post-detail` porque las tarjetas relacionadas ahora también traen su propio control de apoyo).
+- Roadmap: `docs/features/community/010-2026-09-06-practicas-como-publicaciones.md` (slice 4
+  reescrito).
+
+### Comandos clave
+
+- `pnpm exec vitest --run src/domain/postReactions/postReaction.test.ts src/use_cases/postReactions/setPostReactionUseCase.test.ts src/presentation/post/PostReaction/PostReactionButton.test.tsx src/presentation/post/CardForList/CardForList.test.tsx "src/app/[locale]/[slug]/ui/PostDetail.test.tsx" src/infra/UI/mappers/posts/mapPostsToCards.test.ts`
+- `pnpm exec vitest --run "src/app/(home)/PostsWithLoadMore.test.tsx" "src/app/[locale]/eventos/ui/EventsList.test.tsx" "src/app/[locale]/pilares/components/PillarLocalSection.test.tsx" "src/app/[locale]/productos/ui/ProductsList.test.tsx"`
+- `pnpm run typecheck`
+- `pnpm run lint` (más `biome format --write` sobre los 4 archivos que quedaron mal formateados)
+- `pnpm run test:run -- --pool=forks`
+- `node node_modules/@playwright/test/cli.js test src/e2e/habits/practicasComoPublicaciones.spec.ts --reporter=line`
+
+### Validación
+
+- Vitest focal: 10 archivos, 111 tests pasaron entre las dos corridas.
+- Typecheck: pasó.
+- Lint: 1185 archivos revisados; quedaron 4 errores de formato (herencia del trabajo a medias con
+  ChatGPT) resueltos con `biome format --write`, luego 0 errores.
+- Vitest completo: 272 archivos, 2855 tests pasaron.
+- Playwright scoped: 6 escenarios pasaron en 2.1 min, corrido dentro del sandbox sin bloqueos de
+  red/DB esta vez.
+- No se corrieron los e2e de otras áreas (carrito, pedidos, agenda de servicios, eventos) que también
+  usan `CardForList`. Se auditó su riesgo: todos escopan sus `getByTestId` a `add-to-cart` o
+  `card-book-service` dentro de una tarjeta o del detalle, así que el nuevo botón de apoyo hermano no
+  debería romper esos selectores; queda como riesgo residual no verificado, no como validación hecha.
+
+### Desviaciones del roadmap
+
+- El roadmap original de slice 4 ("comentarios moderados") se descartó por completo: los comentarios
+  ya eran genéricos. Se reemplazó por el slice de generalización de apoyo, documentado arriba.
+- No se agregó un nuevo escenario Playwright para la generalización: se decidió que la prueba de
+  presentación (el botón aparece también en producto/evento/servicio/anuncio) pertenece a Vitest,
+  porque el mecanismo de extremo a extremo ya lo prueba el e2e de slice 3 sobre práctica.
+
+### Follow-ups
+
+- Correr los e2e de carrito, pedidos, agenda de servicios y eventos cuando se toque de nuevo esa
+  área, para confirmar que el botón de apoyo adicional en cada tarjeta no interfiere.
+- Slice 5: top semanal de practicantes destacados.
+- Evaluar si `PostReactionPost.kind`, que ya no se usa para rechazar nada, vale la pena simplificar a
+  solo `id` en una limpieza posterior.
+
+### Recap
+
+El slice 4 deja el apoyo social como capacidad de cualquier publicación, no solo de práctica: el
+mismo botón, el mismo conteo y la misma regla de una reacción por persona aplican a producto, evento,
+servicio y anuncio, sin tocar SQL porque la consulta ya era genérica desde el slice 3. El CTA propio
+de cada tipo (comprar, agendar, practicar algo parecido) sigue intacto junto al apoyo. Unit, tipo,
+lint y el e2e scoped de práctica quedaron en verde.
+
+### Próximos pasos (opciones)
+
+- Correr los e2e de otras áreas que usan `CardForList` (carrito, pedidos, servicios, eventos) para
+  cerrar el riesgo residual no verificado.
+- Slice 5: practicantes destacados de la semana, sin posiciones visibles.
+- Limpieza opcional: simplificar `PostReactionPost` a solo `id` si no aparece un uso real de `kind`.

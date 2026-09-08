@@ -123,19 +123,32 @@ gamificacion correcta es visibilidad, apoyo y progreso, antes que competencia ab
 - Una persona no autenticada ve el reconocimiento, pero no puede reaccionar sin iniciar sesion.
 - La reaccion no afecta ranking ni inventario de puntos.
 
-### Slice 4 - Comentarios en publicaciones de practica
+### Slice 4 - Apoyo como infraestructura social de cualquier publicacion
+
+**Replantea el slice original.** El roadmap decia "comentarios en publicaciones de practica", pero
+los comentarios ya existian para toda publicacion antes de este slice (confirmado con el usuario):
+no hay nada que habilitar ahi. Lo que si distinguia una practica del resto era el boton de apoyo del
+slice 3, restringido por `kind`. Si una practica es una publicacion mas, el apoyo y el conteo de
+comentarios deberian ser capacidad de cualquier publicacion; lo que cambia por tipo es el CTA
+principal (comprar, agendar, asistir, contactar), no si puede recibir reconocimiento social.
 
 **Alcance.**
 
-- Habilitar el hilo de comentarios existente para publicaciones de practica.
-- Mantener moderacion y denuncias actuales.
-- Hacer que comentar sea apoyo o pregunta concreta sobre la practica.
+- Generalizar `practicePostReactions` a `postReactions`: dominio, caso de uso, puerto e
+  infraestructura dejan de preguntar por `kind`.
+- `PostReactionButton` (antes `PracticePostReactionButton`) se muestra en cualquier tipo de
+  publicacion, junto al CTA propio del tipo, sin reemplazarlo.
+- La tabla y las consultas ya eran genericas desde el slice 3 (`post_reactions` sobre `posts`, sin
+  filtro de `kind`); este slice solo quita la restriccion que quedaba en la UI.
 
 **Criterios de aceptacion.**
 
-- Una publicacion de practica tiene comentarios como cualquier post visible.
-- El comentario queda sujeto a las mismas reglas de moderacion.
-- La UI no empuja comparacion corporal, peso ni promesas medicas.
+1. Una publicacion de cualquier tipo (practica, producto, evento, servicio, anuncio) muestra el
+   control de apoyo con su conteo, en tarjeta y en detalle.
+2. Reaccionar y retirar la reaccion funciona igual sin importar el tipo de publicacion.
+3. El CTA especifico del tipo sigue visible junto al apoyo: comprar, agendar, practicar algo
+   parecido, etc.
+4. Quien no ha iniciado sesion ve el reconocimiento pero no puede reaccionar sin entrar.
 
 ### Slice 5 - Practicantes destacados de la semana
 
