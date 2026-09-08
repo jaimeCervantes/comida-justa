@@ -53,12 +53,13 @@ Feature: Practicas como publicaciones
     And el CTA principal vuelve a practicas
     And no muestra telefono, precio, carrito ni agenda
 
-  @slice-3 @future
+  @slice-3
   Scenario: Una practica publicada recibe una reaccion de apoyo
     Given Ana publico una practica con evidencia
     When Luis reacciona a esa publicacion
-    Then Ana ve una reaccion agregada de apoyo
+    Then la publicacion muestra 1 apoyo
     And Luis puede retirar su reaccion
+    And la reaccion no cambia el avance semanal ni crea puntos
 
   @slice-4 @future
   Scenario: Una practica publicada recibe comentarios moderados

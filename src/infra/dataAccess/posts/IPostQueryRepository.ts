@@ -33,6 +33,10 @@ export interface PostData {
   origin: string | null;
   /** Lo que el chatbot filtra y lo que el vendedor apaga al quedarse sin existencias. */
   isAvailable?: boolean;
+  /** Reconocimiento social positivo. Ausente en legados que no lo pidan. */
+  reactionCount?: number;
+  /** Si la persona que mira ya apoyó esta publicación. */
+  viewerReacted?: boolean;
   /**
    * Cuántas quedan, o `null` si no lleva inventario. **Nulo no es cero.**
    *
@@ -85,6 +89,8 @@ export interface IPostQueryRepository {
     /** Dónde está quien mira. El home no reordena por cercanía: solo pone la distancia. */
     near?: Coordinates | null,
     filters?: PostListingFilters,
+    /** Quién mira: solo afecta el estado de su reacción, no la visibilidad del feed. */
+    viewerId?: string | null,
   ): Promise<PaginatedPostsResult>;
   /**
    * Cuántas publicaciones tienen su tienda dentro de un radio de quien mira, y a qué distancia

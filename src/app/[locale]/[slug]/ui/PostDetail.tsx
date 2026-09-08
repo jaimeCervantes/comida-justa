@@ -30,6 +30,7 @@ import EventAttendeeList from "~/presentation/post/EventAttendance/EventAttendee
 import EventAttendanceWhatsapp from "~/presentation/post/EventAttendanceWhatsapp/EventAttendanceWhatsapp";
 import EventDate from "~/presentation/post/EventDate/EventDate";
 import OpenStoreHint from "~/presentation/post/OpenStoreHint";
+import PracticePostReactionButton from "~/presentation/post/PracticePostReaction/PracticePostReactionButton";
 import ProvenanceBadge, {
   showsProvenanceBadge,
 } from "~/presentation/post/ProvenanceBadge";
@@ -411,6 +412,20 @@ export default async function PostDetail({
             isAvailable={postDetails.isAvailable}
           />
         )}
+
+        {isPracticePost ? (
+          <PracticePostReactionButton
+            postId={String(id ?? "")}
+            reacted={postDetails.viewerReacted === true}
+            reactions={
+              typeof postDetails.reactionCount === "number"
+                ? postDetails.reactionCount
+                : 0
+            }
+            canReact={Boolean(user?.id)}
+            signInHref={attendanceSignInHref}
+          />
+        ) : null}
 
         <WhatsappButton href={orderLink} testId="whatsapp-order">
           {t("orderOnWhatsapp")}

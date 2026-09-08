@@ -72,6 +72,9 @@ export function mapOnePostToCard(item: Post, context: CardMappingContext) {
     category: item.category ?? null,
     subCategory: item.subCategory ?? null,
     isAvailable: item.isAvailable,
+    reactionCount:
+      typeof item.reactionCount === "number" ? item.reactionCount : 0,
+    viewerReacted: item.viewerReacted === true,
     stockQuantity: item.stockQuantity ?? null,
     /* Solo un evento las trae; en lo demás llegan nulas y la tarjeta no pinta nada. El estado
        (próximo / en curso / pasado) NO se calcula aquí: se deriva del reloj al pintar, o una

@@ -8,8 +8,12 @@ import { stubStorageUpload } from "~/e2e/testUtils/stubStorageUpload";
 import {
   adoptPracticeForSuite,
   countPracticeEvidencePostsForSuite,
+  countSleepRepetitions,
   deleteHabitChallengeTestData,
+  deletePracticeReactionUser,
+  type PracticeReactionUser,
   type SuiteProfileUsernameLease,
+  seedPracticeReactionUser,
   seedTodaySleepRepetition,
   useSuiteProfileUsername,
 } from "./testData";
@@ -18,10 +22,16 @@ const HABITS = "/habitos";
 const HOME = "/";
 const DARK_ROOM = "sleep-dark-room";
 const PHOTO = "./src/e2e/dummies/post.jpg";
+const LUIS: PracticeReactionUser = {
+  id: `e2e-practice-reaction-luis-${Date.now()}`,
+  email: `pw.practice.reaction.luis.${Date.now()}@example.com`,
+  name: "Luis Apoyo",
+};
 
 test.describe("Prácticas como publicaciones", () => {
   let session: DbSession | null = null;
   let usernameLease: SuiteProfileUsernameLease | null = null;
+  let luisSeeded = false;
 
   test.beforeEach(async ({ page, browserName }) => {
     await deleteHabitChallengeTestData();
@@ -33,8 +43,10 @@ test.describe("Prácticas como publicaciones", () => {
     await deleteHabitChallengeTestData();
     if (session) await deleteSession(session.sessionToken);
     if (usernameLease) await usernameLease.restore();
+    if (luisSeeded) await deletePracticeReactionUser(LUIS);
     session = null;
     usernameLease = null;
+    luisSeeded = false;
   });
 
   test("una práctica con evidencia se publica en el feed", async ({ page }) => {
@@ -61,7 +73,9 @@ test.describe("Prácticas como publicaciones", () => {
       "href",
       "/practicas",
     );
-    await expect(card.locator("img")).toHaveCount(1);
+    await expect(card.getByTestId(/media-image-(sized|unsized)/)).toHaveCount(
+      1,
+    );
   });
 
   test("el formulario de evidencia nace configurado por la práctica", async ({
@@ -159,6 +173,44 @@ test.describe("Prácticas como publicaciones", () => {
     ).toHaveCount(0);
     await expect(detail.locator("a[href^='tel:']")).toHaveCount(0);
     await expect(detail).not.toContainText(/\$\d/);
+  });
+
+  test("una práctica publicada recibe una reacción de apoyo", async ({
+    page,
+    browserName,
+  }) => {
+    await adoptPracticeForSuite(DARK_ROOM);
+    const postHref = await publishPracticeEvidence(page);
+    const repetitionsAfterPublish = await countSleepRepetitions();
+
+    if (session) await deleteSession(session.sessionToken);
+    session = null;
+    await page.context().clearCookies();
+    await seedPracticeReactionUser(LUIS);
+    luisSeeded = true;
+    session = await simulateLogin(page, browserName, { email: LUIS.email });
+
+    await page.goto(postHref);
+
+    const reaction = page.getByTestId("practice-post-reaction");
+    const button = reaction.getByTestId("practice-post-reaction-toggle");
+    const count = reaction.getByTestId("practice-post-reaction-count");
+
+    await expect(button).toHaveText(/Apoyar/);
+    await expect(count).toHaveText("Nadie ha apoyado");
+
+    await button.click();
+    await expect(count).toHaveText("1 apoyo");
+    await expect(button).toHaveText(/Retirar apoyo/);
+
+    await page.reload();
+    await expect(count).toHaveText("1 apoyo");
+    await expect(button).toHaveText(/Retirar apoyo/);
+    expect(await countSleepRepetitions()).toBe(repetitionsAfterPublish);
+
+    await button.click();
+    await expect(count).toHaveText("Nadie ha apoyado");
+    await expect(button).toHaveText(/Apoyar/);
   });
 });
 

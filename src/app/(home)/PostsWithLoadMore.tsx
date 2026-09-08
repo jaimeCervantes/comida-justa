@@ -51,11 +51,14 @@ export default function PostsWithLoadMore({
   totalPages = Math.ceil(totalPosts / PAGINATION_PAGE_SIZE),
   locale,
   viewerId,
+  reactionSignInHref,
   currentPillar,
 }: {
   initialPosts: Post[];
   /** Quién mira: decide si sus propias publicaciones le ofrecen editar y marcar agotado. */
   viewerId?: string | null;
+  /** Puerta de entrada para apoyar prácticas publicadas desde el feed. */
+  reactionSignInHref?: string;
 
   totalPosts: number;
   initialPage?: number;
@@ -174,6 +177,7 @@ export default function PostsWithLoadMore({
             <CardForList
               {...post}
               viewerId={viewerId}
+              reactionSignInHref={reactionSignInHref}
               onAvailabilityChange={updatePostAvailability}
               key={post.id}
             />

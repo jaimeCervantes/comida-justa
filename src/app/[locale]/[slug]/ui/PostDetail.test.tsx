@@ -37,6 +37,22 @@ vi.mock("~/presentation/post/EventAttendance/eventAttendanceAction", () => ({
   toggleEventAttendance: vi.fn(),
 }));
 
+vi.mock(
+  "~/presentation/post/PracticePostReaction/practicePostReactionAction",
+  () => ({
+    setPracticePostReaction: vi.fn(),
+  }),
+);
+
+vi.mock("~/i18n/navigation", async () => {
+  const actual =
+    await vi.importActual<typeof import("~/i18n/navigation")>(
+      "~/i18n/navigation",
+    );
+
+  return { ...actual, usePathname: () => "/practica-sleep-dark-room-ana" };
+});
+
 vi.mock("../categoryLabel", () => ({
   postCategoryLabel: vi.fn().mockResolvedValue("Sueño"),
 }));
@@ -77,6 +93,8 @@ const practicePost = {
     name: "Ana Sana",
     username: "ana-sana",
   },
+  reactionCount: 3,
+  viewerReacted: false,
 };
 
 describe("PostDetail para publicaciones de práctica", () => {
@@ -102,6 +120,13 @@ describe("PostDetail para publicaciones de práctica", () => {
       "href",
       "/practicas",
     );
+    expect(screen.getByTestId("practice-post-reaction-signin")).toHaveAttribute(
+      "href",
+      "/auth/signin?callbackUrl=%2Fpractica-sleep-dark-room-ana",
+    );
+    expect(
+      screen.getByTestId("practice-post-reaction-count"),
+    ).toHaveTextContent("3 apoyos");
     expect(screen.getByTestId("post-identity-author")).toHaveAttribute(
       "href",
       "/u/ana-sana",
@@ -112,5 +137,24 @@ describe("PostDetail para publicaciones de práctica", () => {
     expect(screen.queryByText(/\$999/)).not.toBeInTheDocument();
     expect(screen.getByTestId("post-meta")).not.toHaveTextContent(/\$/);
     expect(screen.getByTestId("post-meta")).not.toHaveTextContent("2781123456");
+  });
+
+  it("permite apoyar una práctica publicada cuando la persona inició sesión", async () => {
+    renderWithIntl(
+      await PostDetail({
+        post: practicePost,
+        className: "",
+        user: { id: "luis", name: "Luis" },
+        locale: "es",
+        slug: "practica-sleep-dark-room-ana",
+      }),
+    );
+
+    expect(
+      screen.getByTestId("practice-post-reaction-toggle"),
+    ).toHaveTextContent("Apoyar");
+    expect(
+      screen.getByTestId("practice-post-reaction-count"),
+    ).toHaveTextContent("3 apoyos");
   });
 });

@@ -21,6 +21,7 @@ import CardOwnerControls from "~/presentation/post/CardOwnerControls";
 import CategoryTag from "~/presentation/post/CategoryTag/CategoryTag";
 import EventDate from "~/presentation/post/EventDate/EventDate";
 import PillarBadge from "~/presentation/post/PillarBadge/PillarBadge";
+import PracticePostReactionButton from "~/presentation/post/PracticePostReaction/PracticePostReactionButton";
 import ProvenanceBadge, {
   showsProvenanceBadge,
 } from "~/presentation/post/ProvenanceBadge";
@@ -80,6 +81,7 @@ export default function CardForList(
   props: Post & {
     viewerId?: string | null;
     viewerSellerId?: string | null;
+    reactionSignInHref?: string;
     seller?: StoreIdentity | null;
     onAvailabilityChange?: (postId: string, isAvailable: boolean) => void;
   },
@@ -104,6 +106,7 @@ export default function CardForList(
     seller,
     viewerId,
     viewerSellerId,
+    reactionSignInHref,
     stockQuantity,
     onAvailabilityChange,
   } = props;
@@ -238,16 +241,27 @@ export default function CardForList(
       </span>
 
       {kind === PRACTICE_POST_KIND ? (
-        <Link
-          href="/practicas"
-          data-testid="practice-post-start"
-          className={cn(
-            "focus-ring mt-2 inline-flex w-fit items-center justify-center rounded-control",
-            "border border-separator px-2 py-2 text-xs font-semibold text-text-support transition-colors hover:border-pw-green hover:text-pw-green",
-          )}
-        >
-          {t("practiceStart")}
-        </Link>
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          <Link
+            href="/practicas"
+            data-testid="practice-post-start"
+            className={cn(
+              "focus-ring inline-flex w-fit items-center justify-center rounded-control",
+              "border border-separator px-2 py-2 text-xs font-semibold text-text-support transition-colors hover:border-pw-green hover:text-pw-green",
+            )}
+          >
+            {t("practiceStart")}
+          </Link>
+          <PracticePostReactionButton
+            postId={String(id ?? "")}
+            reacted={props.viewerReacted === true}
+            reactions={
+              typeof props.reactionCount === "number" ? props.reactionCount : 0
+            }
+            canReact={Boolean(viewerId)}
+            signInHref={reactionSignInHref}
+          />
+        </div>
       ) : kind === SERVICE_KIND && canBeOrdered({ kind, isAvailable }) ? (
         <Link
           href={detailHref}

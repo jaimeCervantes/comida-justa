@@ -14,6 +14,22 @@ vi.mock("~/presentation/post/stockAction", () => ({
   setStock: vi.fn(),
 }));
 
+vi.mock(
+  "~/presentation/post/PracticePostReaction/practicePostReactionAction",
+  () => ({
+    setPracticePostReaction: vi.fn(),
+  }),
+);
+
+vi.mock("~/i18n/navigation", async () => {
+  const actual =
+    await vi.importActual<typeof import("~/i18n/navigation")>(
+      "~/i18n/navigation",
+    );
+
+  return { ...actual, usePathname: () => "/" };
+});
+
 import userEvent from "@testing-library/user-event";
 import { PUBLIC_BASE_URL } from "~/infra/constants";
 import { renderWithIntl as render } from "~/infra/test-utils/renderWithIntl";
@@ -170,6 +186,9 @@ describe("When a card is listed", () => {
           name: "Ana Sana",
           username: "ana-sana",
         }}
+        reactionCount={2}
+        viewerReacted={false}
+        viewerId="luis"
       />,
     );
 
@@ -182,8 +201,55 @@ describe("When a card is listed", () => {
       "href",
       "/practicas",
     );
+    expect(getByTestId("practice-post-reaction-toggle")).toHaveTextContent(
+      "Apoyar",
+    );
+    expect(getByTestId("practice-post-reaction-count")).toHaveTextContent(
+      "2 apoyos",
+    );
     expect(queryByTestId("add-to-cart")).not.toBeInTheDocument();
     expect(queryByTestId("card-book-service")).not.toBeInTheDocument();
+  });
+
+  it("a una práctica ya apoyada le permite retirar el apoyo", () => {
+    const { getByTestId } = render(
+      <CardForList
+        {...baseProps}
+        kind="practica"
+        reactionCount={1}
+        viewerReacted
+        viewerId="luis"
+      />,
+    );
+
+    expect(getByTestId("practice-post-reaction-toggle")).toHaveTextContent(
+      "Retirar apoyo",
+    );
+    expect(getByTestId("practice-post-reaction-count")).toHaveTextContent(
+      "1 apoyo",
+    );
+  });
+
+  it("a una práctica sin sesión le muestra el apoyo sin intentar reaccionar", () => {
+    const { getByTestId, queryByTestId } = render(
+      <CardForList
+        {...baseProps}
+        kind="practica"
+        reactionCount={4}
+        reactionSignInHref="/auth/signin?callbackUrl=%2F"
+      />,
+    );
+
+    expect(
+      queryByTestId("practice-post-reaction-toggle"),
+    ).not.toBeInTheDocument();
+    expect(getByTestId("practice-post-reaction-signin")).toHaveAttribute(
+      "href",
+      "/auth/signin?callbackUrl=%2F",
+    );
+    expect(getByTestId("practice-post-reaction-count")).toHaveTextContent(
+      "4 apoyos",
+    );
   });
 
   /* Un anuncio no se agota: a su dueño se le ofrece editarlo y nada más. */

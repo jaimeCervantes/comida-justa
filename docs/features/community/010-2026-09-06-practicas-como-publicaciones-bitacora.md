@@ -192,3 +192,108 @@ de red/DB ya vive en las instrucciones del repo.
 - Slice 4: agregar comentarios moderados sobre publicaciones de práctica.
 - Mejora de ruta: diseñar un destino por pilar/práctica en `/practicas` para que el CTA sea más
   específico que la portada de prácticas.
+
+## 2026-09-07 — Slice 3: apoyo social para prácticas publicadas
+
+### Objetivo
+
+Dar reconocimiento visible a quien practica sin convertir la experiencia en una tabla de posiciones.
+Las publicaciones `practica` necesitaban una reacción simple, reversible y contable para que la
+comunidad pudiera apoyar evidencia saludable en el feed y en el detalle.
+
+### Decisiones y racional
+
+- La reacción se modeló como una relación única por persona y publicación. Eso evita inflar
+  artificialmente el reconocimiento, pero permite retirar el apoyo sin castigar la publicación ni el
+  avance semanal.
+- La lógica vive en dominio y caso de uso (`practicePostReactions`) y la acción de servidor solo
+  resuelve sesión, delega y revalida. Así la regla de negocio queda probada sin depender de Next.
+- El contador y el estado `viewerReacted` se agregaron a las consultas de lista y detalle. El feed
+  no necesita una segunda carga ni un endpoint extra para pintar el apoyo inicial.
+- Solo las publicaciones de práctica muestran el control de apoyo. Productos, eventos y servicios
+  mantienen sus acciones propias para no mezclar intención social con intención comercial.
+- La migración real se hizo en el repo hermano `bot-whatsapp`; este repo solo actualizó su espejo de
+  Drizzle para leer y escribir la tabla ya versionada por Alembic.
+- La acción usa `revalidatePath(path, "page")` cuando recibe una ruta dinámica, eliminando el warning
+  de Next sobre paths con segmentos `[...]`.
+
+### Archivos tocados
+
+- Dominio y caso de uso: `src/domain/practicePostReactions/*`,
+  `src/use_cases/practicePostReactions/*`.
+- Infraestructura: `src/infra/dataAccess/practicePostReactions/*`,
+  `src/infra/dataAccess/db/schema/posts.ts`,
+  `src/infra/dataAccess/posts/*`,
+  `src/infra/dataAccess/getOnePostWithPaginatedComments/PostgresGetOnePost.ts`.
+- Presentación y app: `src/presentation/post/PracticePostReaction/*`,
+  `src/presentation/post/CardForList/*`,
+  `src/app/(home)/PostsWithLoadMore.tsx`,
+  `src/app/[locale]/page.tsx`,
+  `src/app/[locale]/page/[page]/page.tsx`,
+  `src/app/[locale]/[slug]/ui/PostDetail.tsx`,
+  `src/app/api/posts/[...pagination]/route.ts`.
+- i18n y mapeos: `src/i18n/messages/es.json`, `src/i18n/messages/en.json`,
+  `src/infra/UI/mappers/posts/mapPostsToCards.ts`.
+- Pruebas/specs: `src/e2e/habits/practicasComoPublicaciones.feature`,
+  `src/e2e/habits/practicasComoPublicaciones.spec.ts`,
+  `src/e2e/habits/testData.ts` y tests focales de tarjetas, detalle, mappers, dominio y caso de
+  uso.
+- Repo hermano: `bot-whatsapp/backend/alembic/versions/0055_2026-09-07_add_post_reactions.py`.
+
+### Comandos clave
+
+- `uv run ruff check alembic/versions/0055_2026-09-07_add_post_reactions.py`
+- `uv run ruff format --check alembic/versions/0055_2026-09-07_add_post_reactions.py`
+- `uv run alembic heads`
+- `uv run alembic upgrade 0054_2026_09_05:0055_2026_09_07 --sql`
+- `pnpm exec vitest --run src/domain/practicePostReactions/practicePostReaction.test.ts src/use_cases/practicePostReactions/setPracticePostReactionUseCase.test.ts src/presentation/post/PracticePostReaction/PracticePostReactionButton.test.tsx src/presentation/post/CardForList/CardForList.test.tsx src/app/[locale]/[slug]/ui/PostDetail.test.tsx src/infra/UI/mappers/posts/mapPostsToCards.test.ts`
+- `pnpm run lint`
+- `pnpm run typecheck`
+- `pnpm run test:run`
+- `pnpm exec playwright test 'src/e2e/habits/practicasComoPublicaciones.spec.ts' --reporter=line`
+
+### Validación
+
+- Migración Alembic: `ruff check`, `ruff format --check`, `alembic heads` y SQL offline pasaron; la
+  migración quedó como head `0055_2026_09_07`.
+- Vitest focal: 6 archivos, 73 tests pasaron.
+- Lint: 1185 archivos revisados, sin errores.
+- Typecheck: pasó.
+- Vitest completo: 272 archivos, 2847 tests pasaron.
+- Playwright scoped fuera del sandbox: validado manualmente por el usuario con el spec de 6
+  escenarios `src/e2e/habits/practicasComoPublicaciones.spec.ts`.
+- La corrida e2e escribe datos reversibles de la suite: usuarios/sesiones temporales, progreso de
+  práctica, publicaciones `practica-%` y reacciones sobre esas publicaciones. Los helpers del spec
+  eliminan esos registros al terminar.
+
+### Desviaciones del roadmap
+
+- Se agregó una migración Alembic en `bot-whatsapp` porque la tabla `post_reactions` no existía en
+  la base compartida. No se creó migración Drizzle en este repo.
+- El e2e tuvo corridas previas no contadas: una falló por falta de tabla antes de aplicar la
+  migración, otra por timeout inicial de DB y otra fue interrumpida por instrucción explícita del
+  usuario. La validación final considerada es la corrida manual posterior.
+
+### Follow-ups
+
+- Slice 4: comentarios moderados en publicaciones de práctica, reutilizando reconocimiento social
+  sin abrir ruido ni spam.
+- Evaluar una superficie de "Top 10 practicantes" semanal sin posiciones visibles, basada en
+  actividad con evidencia y apoyo comunitario.
+- Reducir el costo del calentamiento e2e de `/` y rutas compartidas para que el spec scoped vuelva a
+  cerrar en minutos incluso desde `.next` limpio.
+
+### Recap
+
+El slice 3 deja las prácticas publicadas con apoyo social real: una persona puede reaccionar una vez,
+retirar su apoyo y ver el contador actualizado tanto en feed como en detalle, sin alterar las reglas
+de avance semanal. La persistencia quedó versionada en `bot-whatsapp` y el repo web solo refleja el
+schema necesario para leer y escribir la tabla.
+
+### Próximos pasos (opciones)
+
+- Slice 4: comentarios moderados para que la evidencia saludable tenga conversación.
+- Slice 5: top semanal de practicantes destacados, mostrando solo el grupo destacado y no una tabla
+  completa de posiciones.
+- Deuda técnica: optimizar el warm-up e2e de rutas compartidas para evitar timeouts de arranque en
+  Next dev.
