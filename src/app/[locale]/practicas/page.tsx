@@ -2,6 +2,10 @@ import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { CHALLENGE_KEY_BY_PILLAR } from "~/app/[locale]/pilares/components/pilaresData";
 import {
+  COMMUNITY_TIMEZONE,
+  localDateAt,
+} from "~/domain/habits/habitChallenge";
+import {
   HABIT_CHALLENGE_EXPERIENCES,
   type HabitChallengeExperienceKey,
 } from "~/domain/habits/habitChallengeExperiences";
@@ -12,6 +16,7 @@ import { readViewerId } from "~/infra/auth/readViewerId";
 import { signInPathFor } from "~/infra/auth/signInPath";
 import { PostgresPracticeAdoption } from "~/infra/dataAccess/practices/PostgresPracticeAdoption";
 import { PostgresPracticeCatalog } from "~/infra/dataAccess/practices/PostgresPracticeCatalog";
+import { findPracticeKeysMarkedToday } from "~/infra/dataAccess/practices/PostgresPracticeDayPosts";
 import { localizedAlternates } from "~/infra/UI/metadata/alternates";
 import { Heading } from "~/presentation/design_system/typography/Heading";
 import { pillarColorClasses } from "~/presentation/habits/pillarColors";
@@ -66,13 +71,20 @@ export default async function PracticesIndexPage({
      página necesita las dos a la vez para pintar cada tarjeta una sola vez. Sin sesión, el conjunto
      de adoptadas viene vacío y la lista se lee igual — el índice no tiene dos versiones. */
   const adoptions = new PracticeAdoptionUseCase(new PostgresPracticeAdoption());
-  const [groups, adopted, practisedToday] = await Promise.all([
+  const [groups, adopted] = await Promise.all([
     new PracticeCatalogUseCase(new PostgresPracticeCatalog()).listByPillar(
       locale,
     ),
     adoptions.activeFor(userId),
-    adoptions.pillarsPractisedToday(userId),
   ]);
+  /* Qué marcó hoy, práctica por práctica. La unidad del jardín sigue siendo el pilar y el día, pero
+     el botón se esconde por práctica: dos prácticas distintas del mismo pilar son dos acciones y
+     cada una deja su publicación. */
+  const markedToday = await findPracticeKeysMarkedToday({
+    userId,
+    practiceKeys: [...adopted],
+    cycleDate: localDateAt(new Date(), COMMUNITY_TIMEZONE),
+  });
   const signInHref = signInPathFor(locale, "/practicas");
 
   return (
@@ -133,7 +145,7 @@ export default async function PracticesIndexPage({
                       practice={practice}
                       pillar={pillar}
                       adopted={adopted.has(practice.key)}
-                      doneToday={practisedToday.has(pillar)}
+                      markedToday={markedToday.has(practice.key)}
                       signedIn={userId !== null}
                       signInHref={signInHref}
                       action={manageOwnPractice}

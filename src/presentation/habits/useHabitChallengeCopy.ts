@@ -52,6 +52,7 @@ export type HabitChallengeCopy = {
   minimumHeading: string;
   noHabitClaim: string;
   progressCounter: (completed: number, total: number) => string;
+  publishNote: string;
   recordCycle: string;
   share: string;
   shared: string;
@@ -173,6 +174,7 @@ function sleepCopy(t: SleepTranslator): HabitChallengeCopy {
     noHabitClaim: t("noHabitClaim"),
     progressCounter: (completed: number, total: number): string =>
       t("progressCounter", { completed, total }),
+    publishNote: t("publishNote"),
     recordCycle: t("recordCycle"),
     share: t("share"),
     shared: t("shared"),
@@ -208,6 +210,7 @@ function commonCopy(t: CommonTranslator) {
     levelLabel: t("levelLabel"),
     levelSprout: t("levelSprout"),
     loading: t("loading"),
+    publishNote: t("publishNote"),
     share: t("share"),
     shared: t("shared"),
     shareNote: t("shareNote"),

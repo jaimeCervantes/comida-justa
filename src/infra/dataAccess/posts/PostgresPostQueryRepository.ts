@@ -58,6 +58,8 @@ interface PostRow {
     height: number | null;
   }>;
   distance_meters: string | null;
+  reaction_count: number;
+  viewer_reacted: boolean;
   total_count: number;
   [key: string]: unknown;
 }
@@ -89,7 +91,8 @@ const ALL_POSTS_WHERE: SQL = sql`TRUE`;
  * orden** —por parecido, no por fecha—, y tener la proyección escrita dos veces era garantizar que
  * un día devolvieran cosas distintas.
  */
-const POST_COLUMNS: SQL = sql`
+function postColumns(viewerId?: string | null): SQL {
+  return sql`
         p.id,
         p.user_id,
         p.price::text,
@@ -118,7 +121,23 @@ const POST_COLUMNS: SQL = sql`
         s.name     AS seller_name,
         s.logo_url AS seller_logo_url,
         COALESCE(t.translations, '[]'::jsonb) AS translations,
-        COALESCE(m.media, '[]'::jsonb)        AS media`;
+        COALESCE(m.media, '[]'::jsonb)        AS media,
+        (
+          SELECT count(*)::int
+          FROM post_reactions pr
+          WHERE pr.post_id = p.id
+        ) AS reaction_count,
+        ${
+          viewerId
+            ? sql`EXISTS (
+                SELECT 1
+                FROM post_reactions pr
+                WHERE pr.post_id = p.id
+                  AND pr.user_id = ${viewerId}
+              )`
+            : sql`false`
+        } AS viewer_reacted`;
+}
 
 const POST_JOINS: SQL = sql`
       FROM posts p
@@ -233,6 +252,8 @@ interface ListingOptions {
   categoryKeys?: readonly string[];
   /** Filtra por título en cualquier idioma. Vacío o ausente = no filtrar. */
   term?: string;
+  /** Quién mira: solo decide `viewerReacted`, no filtra el listado. */
+  viewerId?: string | null;
   /** Orden especial de listados que no son feed ni catálogo por cercanía, como `/eventos`. */
   order?: SQL;
 }
@@ -288,12 +309,14 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
     pageSize: number,
     near: Coordinates | null = null,
     filters: { categoryKeys?: readonly string[] } = {},
+    viewerId?: string | null,
   ): Promise<PaginatedPostsResult> {
     // El home es un feed: gana la distancia, conserva el orden cronológico.
     return this.getPaginatedPosts(ALL_POSTS_WHERE, page, pageSize, {
       near,
       sortByDistance: false,
       categoryKeys: filters.categoryKeys,
+      viewerId,
     });
   }
 
@@ -391,6 +414,7 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
     return this.getPaginatedPosts(sql`p.user_id = ${userId}`, page, pageSize, {
       visibility: publishedOrOwnedBy(viewerId === userId ? viewerId : null),
       categoryKeys: filters.categoryKeys,
+      viewerId,
     });
   }
 
@@ -528,7 +552,7 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
           AND locale IN (${locale}, ${fallbackLocale})
         ORDER BY post_id, (locale = ${locale}) DESC
       )
-      SELECT ${POST_COLUMNS}
+      SELECT ${postColumns()}
       ${POST_JOINS}
       JOIN vecinas v ON v.post_id = p.id
       CROSS JOIN referencia r
@@ -551,7 +575,7 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
     const visibility = options.visibility ?? PUBLISHED_POSTS;
 
     const raw = await db.execute(sql`
-      SELECT ${POST_COLUMNS},
+      SELECT ${postColumns(options.viewerId)},
         ${distanceColumn(near)},
         COUNT(*) OVER()::int AS total_count
       ${POST_JOINS}
@@ -649,6 +673,8 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
         category: row.category ?? null,
         subCategory: row.sub_category ?? null,
         isAvailable: row.is_available,
+        reactionCount: Number(row.reaction_count ?? 0),
+        viewerReacted: Boolean(row.viewer_reacted),
         stockQuantity: row.stock_quantity,
         sellerId: row.seller_id,
         startsAt: row.starts_at,

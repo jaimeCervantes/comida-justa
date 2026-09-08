@@ -30,16 +30,16 @@ function render(
   practice: PracticeCard,
   {
     adopted = false,
-    doneToday = false,
+    markedToday = false,
     signedIn = true,
-  }: { adopted?: boolean; doneToday?: boolean; signedIn?: boolean } = {},
+  }: { adopted?: boolean; markedToday?: boolean; signedIn?: boolean } = {},
 ) {
   return renderWithIntl(
     <PracticeCardItem
       practice={practice}
       pillar={practice.pillars[0]}
       adopted={adopted}
-      doneToday={doneToday}
+      markedToday={markedToday}
       signedIn={signedIn}
       signInHref="/auth/signin?callbackUrl=%2Fpracticas"
       action={async () => {}}
@@ -175,14 +175,14 @@ describe("marcar el día", () => {
     );
   });
 
-  it("con el pilar ya contado, explica la regla en vez de esconder el botón", () => {
-    /* La unidad es el pilar y el día. Un segundo clic no sumaría nada, y callarlo dejaría creer que
-       marcar cinco prácticas del mismo pilar vale por cinco. */
-    render(practice(), { adopted: true, doneToday: true });
+  /* Ya marcada, el botón se va y se dice por qué. La regla del jardín —un pilar suma una vez al
+     día— se sigue contando, porque explica que la segunda práctica publique pero no sume. */
+  it("con esta práctica ya marcada, lo dice en vez de ofrecer un segundo clic", () => {
+    render(practice(), { adopted: true, markedToday: true });
 
     expect(screen.queryByTestId("practice-mark")).not.toBeInTheDocument();
     expect(screen.getByTestId("practice-done-today")).toHaveTextContent(
-      /Un pilar suma una vez al día/,
+      /Ya la marcaste hoy/,
     );
   });
 

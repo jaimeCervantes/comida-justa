@@ -1,6 +1,5 @@
 import { screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import type { PillarKey } from "~/domain/pillars/pillarKey";
 import type { PracticeCard } from "~/domain/practices/practiceCard";
 import { renderWithIntl } from "~/infra/test-utils/renderWithIntl";
 import MyPractices from "./MyPractices";
@@ -112,16 +111,27 @@ describe("mis prácticas", () => {
     );
   });
 
-  it("si el pilar ya cuenta hoy, lo explica y no ofrece otro aporte", () => {
+  /**
+   * Marcar publica, y cada práctica publica la suya. Por eso el botón se retira práctica por
+   * práctica y no por pilar: atenuar la casa y descargar la mente son dos acciones distintas,
+   * aunque el jardín siga contando un solo día de descanso.
+   */
+  it("retira el botón de la práctica ya marcada y conserva el de las demás del mismo pilar", () => {
     renderWithIntl(
       <MyPractices
         practices={[practice(), practice({ key: "sleep-dark-room" })]}
-        doneTodayPillars={new Set<PillarKey>(["sleep"])}
+        markedTodayKeys={new Set(["sleep-mental-unload"])}
         markAction={async () => {}}
       />,
     );
 
-    expect(screen.queryAllByTestId("practice-mark")).toHaveLength(0);
-    expect(screen.getAllByTestId("practice-done-today")).toHaveLength(2);
+    expect(screen.getAllByTestId("practice-mark")).toHaveLength(1);
+    expect(screen.getAllByTestId("practice-done-today")).toHaveLength(1);
+    expect(
+      screen
+        .getByTestId("practice-mark")
+        .closest("[data-practice]")
+        ?.getAttribute("data-practice"),
+    ).toBe("sleep-dark-room");
   });
 });

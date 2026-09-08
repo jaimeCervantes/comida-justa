@@ -30,6 +30,8 @@ import EventAttendeeList from "~/presentation/post/EventAttendance/EventAttendee
 import EventAttendanceWhatsapp from "~/presentation/post/EventAttendanceWhatsapp/EventAttendanceWhatsapp";
 import EventDate from "~/presentation/post/EventDate/EventDate";
 import OpenStoreHint from "~/presentation/post/OpenStoreHint";
+import PostReactionButton from "~/presentation/post/PostReaction/PostReactionButton";
+import PracticeCover from "~/presentation/post/PracticeCover/PracticeCover";
 import ProvenanceBadge, {
   showsProvenanceBadge,
 } from "~/presentation/post/ProvenanceBadge";
@@ -285,7 +287,15 @@ export default async function PostDetail({
       {/* `priority` porque es la imagen por la que se entra a esta página: está arriba del todo y es
           la que el navegador mide como "contenido más grande". Es el único sitio de la aplicación
           que la lleva; en los listados sería pedirlo todo a la vez. */}
-      <MediaGallery items={media} className="mb-4" preload />
+      {/* Una práctica sin evidencia lleva la portada de su pilar, no un hueco: ver `PracticeCover`. */}
+      {isPracticePost && media.length === 0 ? (
+        <PracticeCover
+          category={typeof category === "string" ? category : null}
+          className="mb-4 h-72"
+        />
+      ) : (
+        <MediaGallery items={media} className="mb-4" preload />
+      )}
 
       {/* Todo lo que se mira para decidir, en un solo bloque bajo la imagen: de quién es, qué es, a
           qué distancia queda, cuánto cuesta y a qué número se llama.
@@ -411,6 +421,20 @@ export default async function PostDetail({
             isAvailable={postDetails.isAvailable}
           />
         )}
+
+        {/* El apoyo es infraestructura de cualquier publicación, no solo de práctica: ver slice 4
+            de docs/features/community/010-2026-09-06-practicas-como-publicaciones.md. */}
+        <PostReactionButton
+          postId={String(id ?? "")}
+          reacted={postDetails.viewerReacted === true}
+          reactions={
+            typeof postDetails.reactionCount === "number"
+              ? postDetails.reactionCount
+              : 0
+          }
+          canReact={Boolean(user?.id)}
+          signInHref={attendanceSignInHref}
+        />
 
         <WhatsappButton href={orderLink} testId="whatsapp-order">
           {t("orderOnWhatsapp")}

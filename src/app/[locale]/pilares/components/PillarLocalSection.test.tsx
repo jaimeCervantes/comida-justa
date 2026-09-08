@@ -11,6 +11,10 @@ vi.mock("~/presentation/post/stockAction", () => ({
   setStock: vi.fn(),
 }));
 
+vi.mock("~/presentation/post/PostReaction/postReactionAction", () => ({
+  setPostReaction: vi.fn(),
+}));
+
 import { screen, within } from "@testing-library/react";
 import type { StoreSummary } from "~/domain/entities/seller/directory";
 import { renderWithIntl as render } from "~/infra/test-utils/renderWithIntl";

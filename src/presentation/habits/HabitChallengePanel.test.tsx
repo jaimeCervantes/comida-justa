@@ -307,6 +307,29 @@ describe("HabitChallengePanel", () => {
   });
 
   /**
+   * Marcar el día publica en el feed, así que el panel lo dice **antes** de pulsar. Prometer
+   * privacidad y publicar de todos modos sería peor que publicar.
+   */
+  it("avisa que registrar el día publica la práctica, junto al botón que lo hace", () => {
+    renderWithIntl(
+      <HabitChallengePanel
+        action={action}
+        challenge="mind"
+        initialProgress={progress}
+        signedIn
+        signInHref="/auth/signin"
+      />,
+    );
+
+    const note = screen.getByTestId("ritual-publish-note");
+
+    expect(note).toHaveTextContent(/se publica/i);
+    expect(note.closest("form")).toContainElement(
+      screen.getByRole("button", { name: /Registrar/ }),
+    );
+  });
+
+  /**
    * Sueño llegó a este panel desde su propio envoltorio, y sus pruebas vivían con él. El envoltorio
    * ya no existe —la práctica pasa la acción directamente— así que sus casos se quedan aquí: son
    * los del panel, no los de una página.

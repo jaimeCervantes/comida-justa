@@ -3,6 +3,7 @@ import {
   parsePublicationPillar,
 } from "~/domain/entities/post/publicationPillars";
 import { routing } from "~/i18n/routing";
+import { readViewerId } from "~/infra/auth/readViewerId";
 import { PAGINATION_INIT_PAGE, PAGINATION_PAGE_SIZE } from "~/infra/constants";
 import { createPostQueryRepository } from "~/infra/dataAccess/getMultiplePosts";
 import { categoryKeysForActivePublicationPillar } from "~/infra/dataAccess/posts/publicationPillarFilter";
@@ -41,6 +42,7 @@ export async function GET(
         categoryKeys:
           await categoryKeysForActivePublicationPillar(currentPillar),
       },
+      await readViewerId(),
     );
 
     const posts = await mapPostsToCardsForLocale(

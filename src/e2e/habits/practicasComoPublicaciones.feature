@@ -53,19 +53,28 @@ Feature: Practicas como publicaciones
     And el CTA principal vuelve a practicas
     And no muestra telefono, precio, carrito ni agenda
 
-  @slice-3 @future
+  @slice-3
   Scenario: Una practica publicada recibe una reaccion de apoyo
     Given Ana publico una practica con evidencia
     When Luis reacciona a esa publicacion
-    Then Ana ve una reaccion agregada de apoyo
+    Then la publicacion muestra 1 apoyo
     And Luis puede retirar su reaccion
+    And la reaccion no cambia el avance semanal ni crea puntos
 
-  @slice-4 @future
-  Scenario: Una practica publicada recibe comentarios moderados
-    Given Ana publico una practica con evidencia
-    When Luis comenta con una pregunta de apoyo
-    Then el comentario aparece en el hilo de la publicacion
-    And queda sujeto a moderacion y denuncia
+  @slice-4 @component
+  Scenario Outline: El apoyo es infraestructura social de cualquier publicacion, no solo de practicas
+    Given una publicacion existente de tipo "<kind>"
+    When alguien con sesion la reacciona con apoyo
+    Then el conteo de apoyo sube y puede retirarlo
+    And el CTA propio de "<kind>" sigue visible junto al apoyo
+
+    Examples:
+      | kind     |
+      | practica |
+      | producto |
+      | evento   |
+      | servicio |
+      | anuncio  |
 
   @slice-5 @future
   Scenario: La semana muestra practicantes destacados sin posiciones

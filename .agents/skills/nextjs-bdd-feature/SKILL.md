@@ -102,6 +102,21 @@ branch) directly.
 - Every commit is the user's alone: never add a `Co-Authored-By` trailer, a session link, or any
   other AI-attribution to the message (see `AGENTS.md` → "Commit authorship").
 
+## Instruction mirrors (mandatory)
+
+- When this skill changes under either `.agents/skills/nextjs-bdd-feature/SKILL.md` or
+  `.claude/skills/nextjs-bdd-feature/SKILL.md`, update the other copy in the same change.
+- When a workflow rule in this skill also belongs at repo level, update `AGENTS.md` and `CLAUDE.md`
+  when the instruction applies to both agents.
+- The mirror rule is bidirectional: changes that start in either copy must be reflected in the other
+  when they apply to both agents.
+
+## Database migrations
+
+- For this repository, database migrations are created, applied, and versioned from the sibling
+  project `bot-whatsapp`. Do not generate or run Drizzle migrations from this web repo; only update
+  the Drizzle schema mirror after the real migration exists there.
+
 0. Alignment gate (mandatory, no exceptions):
    1. Ask the user for:
       - **The Problem:** What real friction exists?
