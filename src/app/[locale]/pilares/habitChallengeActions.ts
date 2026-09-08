@@ -1,10 +1,13 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { getLocale } from "next-intl/server";
 import type { CycleRecognition } from "~/domain/habits/habitChallenge";
 import { findHabitChallengeExperience } from "~/domain/habits/habitChallengeExperiences";
+import { publishesRitualPractice } from "~/domain/habits/ritualPost";
 import { revalidateLocalizedPath } from "~/i18n/revalidateLocalizedPath";
 import { pillarHref } from "~/i18n/routes";
+import { resolveLocale } from "~/i18n/routing";
 import { readViewerId } from "~/infra/auth/readViewerId";
 import { createHabitChallengeRepository } from "~/infra/dataAccess/habits/PostgresHabitChallengeRepository";
 import type {
@@ -13,6 +16,7 @@ import type {
 } from "~/presentation/habits/habitChallengeAction";
 import HabitChallengeUseCase from "~/use_cases/habits/habitChallengeUseCase";
 import type { HabitCelebrationMilestone } from "~/use_cases/habits/ports/HabitChallengeRepository";
+import { publishRitualPractice } from "./publishRitualPractice";
 
 /**
  * La única acción de los cuatro rituales.
@@ -62,16 +66,27 @@ export async function manageHabitChallenge(
   }
 
   if (intent === "complete") {
+    const cycleDate = String(formData.get("cycleDate") ?? "");
     const result = await useCase.completeCheckIn(userId, {
       cueCompleted: formData.get("cueCompleted") === "on",
       minimumCompleted: formData.get("minimumCompleted") === "on",
-      cycleDate: String(formData.get("cycleDate") ?? ""),
+      cycleDate,
     });
     if (!result.ok) {
       return {
         status: result.reason === "incomplete" ? "incomplete" : "unavailable",
         progress: await useCase.getProgress(userId),
       };
+    }
+    /* Practicar es el acto social: cada repetición nueva deja publicación en el feed. Un día que ya
+       estaba contado (`duplicate`) no publica dos veces. */
+    if (publishesRitualPractice(result.recognition)) {
+      await publishRitualPractice({
+        experience,
+        userId,
+        cycleDate,
+        locale: resolveLocale(await getLocale()),
+      });
     }
     revalidatePillarSurfaces(pillarPath);
     return {

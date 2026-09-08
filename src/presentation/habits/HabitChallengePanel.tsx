@@ -244,6 +244,13 @@ export default function HabitChallengePanel({
                 ? copy.complete
                 : copy.recordCycle}
             </Button>
+            {/* Marcar el día publica, así que se dice antes de pulsar y no después. */}
+            <p
+              data-testid="ritual-publish-note"
+              className="mt-3 text-caption text-text-support"
+            >
+              {copy.publishNote}
+            </p>
           </form>
         )}
 
