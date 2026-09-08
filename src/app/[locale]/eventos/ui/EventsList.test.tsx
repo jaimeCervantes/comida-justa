@@ -9,6 +9,10 @@ vi.mock("~/presentation/post/stockAction", () => ({
   setStock: vi.fn(),
 }));
 
+vi.mock("~/presentation/post/PostReaction/postReactionAction", () => ({
+  setPostReaction: vi.fn(),
+}));
+
 import { renderWithIntl as render } from "~/infra/test-utils/renderWithIntl";
 import EventsList from "./EventsList";
 

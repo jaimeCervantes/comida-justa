@@ -11,6 +11,16 @@ This repository is a Next.js full-stack application. Keep instructions here focu
 
 **Do NOT start implementation until the skill's context is loaded.** The skill enforces its own workflow (alignment gate, tests first, step-by-step acceptance). Without it, you are operating with incomplete instructions.
 
+## Instruction mirrors (mandatory)
+
+- When updating `AGENTS.md`, also update `CLAUDE.md` in the same change if the Claude entrypoint
+  needs the same instruction or a pointer to it.
+- When updating any `.agents/skills/<skill>/SKILL.md`, also update the matching
+  `.claude/skills/<skill>/SKILL.md` in the same change. Keep the two skill copies semantically
+  aligned; do not let one agent inherit stale workflow rules.
+- The mirror rule is bidirectional: changes that start in `CLAUDE.md` or `.claude/skills/` must be
+  reflected back into `AGENTS.md` or `.agents/skills/` when the instruction applies to both agents.
+
 ## Feature alignment gate (mandatory)
 
 - Before implementing any feature or behavior change, ask and capture:
@@ -82,6 +92,13 @@ Deliver features end-to-end without stopping for per-step validation. This is th
 - New documentation belongs in a semantic subfolder under `docs/` (`features/<area>/`, `architecture/`, `operations/`, `design_system/`, `troubleshooting/`, etc.) instead of growing a large flat directory.
 - Name new docs as `<NNN>-<YYYY-MM-DD>-<slug>.md`; use the current local date and the next three-digit sequence number in that semantic folder. Related files share the same prefix, for example `<NNN>-<YYYY-MM-DD>-<feature>.md` and `<NNN>-<YYYY-MM-DD>-<feature>-bitacora.md`.
 - Keep appending to existing legacy docs when continuing the same work. Do not rename or move old docs as part of unrelated feature work; do a dedicated documentation migration if the reorganization itself is the task.
+
+## Database migrations (mandatory)
+
+- Schema migrations are owned by the sibling project `bot-whatsapp`, not by this web repo. Create,
+  apply, and version migrations from `bot-whatsapp`; this repo only mirrors the resulting schema in
+  its Drizzle table definitions after the migration exists there.
+- Do not create or run Drizzle migrations against the shared database from this repo.
 
 ## Tooling baseline (pnpm)
 

@@ -82,6 +82,34 @@ export type SuiteProfileUsernameLease = {
   restore(): Promise<void>;
 };
 
+export type PracticeReactionUser = {
+  id: string;
+  email: string;
+  name: string;
+};
+
+export async function seedPracticeReactionUser({
+  id,
+  email,
+  name,
+}: PracticeReactionUser): Promise<void> {
+  await db.execute(sql`
+    INSERT INTO users (id, name, email, external_id)
+    VALUES (${id}, ${name}, ${email}, ${id})
+    ON CONFLICT (id) DO UPDATE
+      SET name = EXCLUDED.name,
+          email = EXCLUDED.email,
+          external_id = EXCLUDED.external_id
+  `);
+}
+
+export async function deletePracticeReactionUser({
+  id,
+}: Pick<PracticeReactionUser, "id">): Promise<void> {
+  await db.execute(sql`DELETE FROM sessions WHERE user_id = ${id}`);
+  await db.execute(sql`DELETE FROM users WHERE id = ${id}`);
+}
+
 export async function useSuiteProfileUsername(
   username = "e2e-practicas-ana",
 ): Promise<SuiteProfileUsernameLease> {

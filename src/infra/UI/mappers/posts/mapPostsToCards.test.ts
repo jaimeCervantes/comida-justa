@@ -35,6 +35,30 @@ describe("When a post carries provenance", () => {
   });
 });
 
+describe("When a practice post carries social support", () => {
+  it("keeps the reaction count and the viewer reaction flag on the card", () => {
+    const card = mapOnePostToCard(
+      {
+        ...posts[0],
+        kind: "practica",
+        reactionCount: 4,
+        viewerReacted: true,
+      },
+      es,
+    );
+
+    expect(card.reactionCount).toBe(4);
+    expect(card.viewerReacted).toBe(true);
+  });
+
+  it("defaults social support to zero and false for older query rows", () => {
+    const card = mapOnePostToCard({ ...posts[0], kind: "practica" }, es);
+
+    expect(card.reactionCount).toBe(0);
+    expect(card.viewerReacted).toBe(false);
+  });
+});
+
 /**
  * Escenario "A card shows the label in the visitor's language" (@slice-2).
  *

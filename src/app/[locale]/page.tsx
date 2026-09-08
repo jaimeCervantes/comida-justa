@@ -16,6 +16,7 @@ import { buildSiteJsonLd } from "~/domain/seo/jsonLd/site";
 import { ensureAbsoluteUrl } from "~/domain/seo/url";
 import { resolveLocale, routing } from "~/i18n/routing";
 import { readViewerId } from "~/infra/auth/readViewerId";
+import { signInPathFor } from "~/infra/auth/signInPath";
 import {
   BRAND_SOCIAL_URLS,
   CANONICAL_URL,
@@ -79,6 +80,7 @@ async function getPosts(
   locale: string,
   near: Coordinates | null,
   currentPillar: PublicationPillar | null,
+  viewerId?: string | null,
 ) {
   const postRepo = createPostQueryRepository();
 
@@ -89,6 +91,7 @@ async function getPosts(
     {
       categoryKeys: await categoryKeysForActivePublicationPillar(currentPillar),
     },
+    viewerId,
   );
 
   return {
@@ -116,7 +119,7 @@ export default async function Inicio({
   ]);
   const { visitor } = await readViewerLocationContext();
   const [{ posts, total, totalPages }, garden] = await Promise.all([
-    getPosts(locale, visitor, currentPillar),
+    getPosts(locale, visitor, currentPillar, viewerId),
     readCommunityGarden(),
   ]);
 
@@ -176,6 +179,7 @@ export default async function Inicio({
       <PostsWithLoadMore
         key={homeFeedKey(visitor, currentPillar)}
         viewerId={viewerId}
+        reactionSignInHref={signInPathFor(locale, "/")}
         initialPosts={posts}
         totalPosts={total}
         totalPages={totalPages}

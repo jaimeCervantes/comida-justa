@@ -37,6 +37,8 @@ interface PostRow {
   contact_email: string | null;
   contact_whatsapp: string | null;
   created_at: Date;
+  reaction_count: number;
+  viewer_reacted: boolean;
   media: Array<{
     url: string;
     type: string;
@@ -111,6 +113,21 @@ export async function getPostBySlug(slug: string, viewer: PostViewer = {}) {
       p.contact_email,
       p.contact_whatsapp,
       p.created_at,
+      (
+        SELECT count(*)::int
+        FROM post_reactions pr
+        WHERE pr.post_id = p.id
+      ) AS reaction_count,
+      ${
+        viewer.id
+          ? sql`EXISTS (
+              SELECT 1
+              FROM post_reactions pr
+              WHERE pr.post_id = p.id
+                AND pr.user_id = ${viewer.id}
+            )`
+          : sql`false`
+      } AS viewer_reacted,
       COALESCE(
         (
           SELECT jsonb_agg(
@@ -261,6 +278,8 @@ export async function getPostBySlug(slug: string, viewer: PostViewer = {}) {
     category: row.category ?? null,
     subCategory: row.sub_category ?? null,
     isAvailable: row.is_available,
+    reactionCount: Number(row.reaction_count ?? 0),
+    viewerReacted: Boolean(row.viewer_reacted),
     stockQuantity: row.stock_quantity,
     startsAt: row.starts_at,
     endsAt: row.ends_at,

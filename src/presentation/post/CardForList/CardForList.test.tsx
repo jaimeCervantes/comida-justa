@@ -14,6 +14,19 @@ vi.mock("~/presentation/post/stockAction", () => ({
   setStock: vi.fn(),
 }));
 
+vi.mock("~/presentation/post/PostReaction/postReactionAction", () => ({
+  setPostReaction: vi.fn(),
+}));
+
+vi.mock("~/i18n/navigation", async () => {
+  const actual =
+    await vi.importActual<typeof import("~/i18n/navigation")>(
+      "~/i18n/navigation",
+    );
+
+  return { ...actual, usePathname: () => "/" };
+});
+
 import userEvent from "@testing-library/user-event";
 import { PUBLIC_BASE_URL } from "~/infra/constants";
 import { renderWithIntl as render } from "~/infra/test-utils/renderWithIntl";
@@ -147,6 +160,30 @@ describe("When a card is listed", () => {
     expect(queryByTestId("add-to-cart")).not.toBeInTheDocument();
   });
 
+  /*
+   * Slice 4: el apoyo deja de ser exclusivo de práctica. Un producto y un servicio conservan su
+   * propio CTA y además pueden recibir apoyo, con el mismo botón que ya probó el slice 3.
+   */
+  it.each([
+    ["producto", "add-to-cart"],
+    ["servicio", "card-book-service"],
+    ["anuncio", null],
+  ])("a un %s le ofrece apoyo junto a su CTA propio", (kind, ctaTestId) => {
+    const { getByTestId } = render(
+      <CardForList
+        {...baseProps}
+        kind={kind}
+        isAvailable={true}
+        reactionCount={3}
+        viewerId="luis"
+      />,
+    );
+
+    if (ctaTestId) expect(getByTestId(ctaTestId)).toBeInTheDocument();
+    expect(getByTestId("post-reaction-toggle")).toHaveTextContent("Apoyar");
+    expect(getByTestId("post-reaction-count")).toHaveTextContent("3 apoyos");
+  });
+
   it("a un servicio agotado no le ofrece agendar ni carrito", () => {
     const { queryByTestId } = render(
       <CardForList {...baseProps} kind="servicio" isAvailable={false} />,
@@ -170,6 +207,9 @@ describe("When a card is listed", () => {
           name: "Ana Sana",
           username: "ana-sana",
         }}
+        reactionCount={2}
+        viewerReacted={false}
+        viewerId="luis"
       />,
     );
 
@@ -182,8 +222,95 @@ describe("When a card is listed", () => {
       "href",
       "/practicas",
     );
+    expect(getByTestId("post-reaction-toggle")).toHaveTextContent("Apoyar");
+    expect(getByTestId("post-reaction-count")).toHaveTextContent("2 apoyos");
     expect(queryByTestId("add-to-cart")).not.toBeInTheDocument();
     expect(queryByTestId("card-book-service")).not.toBeInTheDocument();
+  });
+
+  /*
+   * Practicar publica a diario y el ritual no pide foto, así que la práctica sin evidencia es el
+   * caso normal, no el degradado. Sin portada propia el feed se llenaba de recuadros grises que
+   * dicen «Publicación sin imagen», que se lee como un error.
+   */
+  it("a una práctica sin evidencia le pinta la portada de su pilar", () => {
+    const { getByTestId, queryByTestId } = render(
+      <CardForList
+        {...baseProps}
+        kind="practica"
+        media={[]}
+        category="mente_y_espiritu"
+      />,
+    );
+
+    expect(getByTestId("practice-cover")).toHaveAttribute(
+      "data-pillar",
+      "mindSpirit",
+    );
+    expect(queryByTestId("media-placeholder")).not.toBeInTheDocument();
+  });
+
+  it("pero si trae evidencia, manda la foto", () => {
+    const { getByRole, queryByTestId } = render(
+      <CardForList
+        {...baseProps}
+        kind="practica"
+        category="mente_y_espiritu"
+      />,
+    );
+
+    expect(getByRole("img")).toBeInTheDocument();
+    expect(queryByTestId("practice-cover")).not.toBeInTheDocument();
+  });
+
+  /* Solo las prácticas: un producto sin foto sigue diciendo que le falta la imagen. */
+  it("un producto sin foto no estrena portada de pilar", () => {
+    const { getByTestId, queryByTestId } = render(
+      <CardForList
+        {...baseProps}
+        kind="producto"
+        media={[]}
+        category="alimentacion"
+      />,
+    );
+
+    expect(getByTestId("media-placeholder")).toBeInTheDocument();
+    expect(queryByTestId("practice-cover")).not.toBeInTheDocument();
+  });
+
+  it("a una práctica ya apoyada le permite retirar el apoyo", () => {
+    const { getByTestId } = render(
+      <CardForList
+        {...baseProps}
+        kind="practica"
+        reactionCount={1}
+        viewerReacted
+        viewerId="luis"
+      />,
+    );
+
+    expect(getByTestId("post-reaction-toggle")).toHaveTextContent(
+      "Retirar apoyo",
+    );
+    expect(getByTestId("post-reaction-count")).toHaveTextContent("1 apoyo");
+  });
+
+  it("a una práctica sin sesión le muestra el apoyo sin intentar reaccionar", () => {
+    const { getByTestId, queryByTestId } = render(
+      <CardForList
+        {...baseProps}
+        kind="practica"
+        reactionCount={4}
+        reactionSignInHref="/auth/signin?callbackUrl=%2F"
+      />,
+    );
+
+    expect(queryByTestId("post-reaction-toggle")).not.toBeInTheDocument();
+    expect(getByTestId("post-reaction-signin")).toHaveAttribute(
+      "href",
+      "/auth/signin?callbackUrl=%2F",
+    );
+    expect(getByTestId("post-reaction-count")).toHaveTextContent("4 apoyos");
   });
 
   /* Un anuncio no se agota: a su dueño se le ofrece editarlo y nada más. */

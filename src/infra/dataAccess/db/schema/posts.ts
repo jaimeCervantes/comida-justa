@@ -14,9 +14,9 @@ import {
 import { users } from "./auth";
 
 /**
- * Espejo del esquema que administra Alembic en el backend Python (ver `docs/data/001-2026-06-19-database.md`).
- * Nunca correr `drizzle-kit generate/migrate` contra esta BD: se edita a mano después de que
- * la migración de Alembic quedó aplicada.
+ * Espejo del esquema que administra el proyecto hermano `bot-whatsapp`
+ * (ver `docs/data/001-2026-06-19-database.md`). Nunca correr `drizzle-kit generate/migrate`
+ * contra esta BD: se edita a mano después de que la migración quedó aplicada desde `bot-whatsapp`.
  */
 export const posts = pgTable(
   "posts",
@@ -163,6 +163,33 @@ export const postReports = pgTable(
   (table) => [
     index("ix_post_reports_post_id").on(table.postId),
     unique("post_reports_one_per_person").on(table.postId, table.userId),
+  ],
+);
+
+/**
+ * Reacciones positivas sobre publicaciones.
+ *
+ * Una fila por persona y publicación. Por ahora la única reacción es apoyo, así que no lleva tipo:
+ * agregar variantes visuales más tarde no debe romper el contrato actual de "apoyé / retiré".
+ */
+export const postReactions = pgTable(
+  "post_reactions",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    postId: text("post_id")
+      .notNull()
+      .references(() => posts.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    index("ix_post_reactions_post_id").on(table.postId),
+    index("ix_post_reactions_user_id").on(table.userId),
+    unique("post_reactions_one_per_person").on(table.postId, table.userId),
   ],
 );
 

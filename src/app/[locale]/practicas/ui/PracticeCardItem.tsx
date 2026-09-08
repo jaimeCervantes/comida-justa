@@ -18,7 +18,7 @@ export default function PracticeCardItem({
   practice,
   pillar,
   adopted,
-  doneToday,
+  markedToday,
   signedIn,
   signInHref,
   action,
@@ -28,8 +28,16 @@ export default function PracticeCardItem({
   pillar: PillarKey;
   /** Si quien mira la lleva activa. Siempre `false` sin sesión. */
   adopted: boolean;
-  /** Si el **pilar** de esta práctica ya cuenta hoy. La unidad es el pilar, no la práctica. */
-  doneToday: boolean;
+  /**
+   * Si **esta práctica** ya se marcó hoy.
+   *
+   * Antes era el pilar quien decidía, y escondía el botón de las demás prácticas del mismo pilar.
+   * Eso tenía sentido cuando marcar solo alimentaba el conteo del jardín —donde la unidad sigue
+   * siendo el pilar y el día—, pero desde que marcar publica son dos preguntas distintas: el jardín
+   * cuenta un día de descanso, y aun así atenuar la casa y descargar la mente son dos acciones que
+   * merecen su publicación.
+   */
+  markedToday: boolean;
   signedIn: boolean;
   signInHref: string;
   action: (formData: FormData) => Promise<void>;
@@ -141,12 +149,11 @@ export default function PracticeCardItem({
             </p>
 
             {/*
-              Marcar el día. Cuando el pilar ya cuenta, el botón desaparece y se dice por qué: la
-              unidad de este producto es el pilar y el día, así que marcar otra práctica del mismo
-              pilar no sumaría nada. Decirlo aquí enseña la regla usándola, en vez de esconder que
-              el segundo clic no hace nada.
+              Marcar el día. Cuando **esta** práctica ya se marcó, el botón desaparece y se dice por
+              qué. Las demás prácticas del mismo pilar conservan el suyo: cada una deja su propia
+              publicación, aunque para el jardín el pilar siga contando una vez al día.
             */}
-            {doneToday ? (
+            {markedToday ? (
               <p
                 data-testid="practice-done-today"
                 className="mt-2 text-caption text-text-muted"

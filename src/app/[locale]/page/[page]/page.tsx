@@ -9,6 +9,7 @@ import {
 import { Link } from "~/i18n/navigation";
 import { resolveLocale } from "~/i18n/routing";
 import { readViewerId } from "~/infra/auth/readViewerId";
+import { signInPathFor } from "~/infra/auth/signInPath";
 import {
   DEFAULT_SHARE_IMAGE,
   PAGINATION_INIT_PAGE,
@@ -69,6 +70,7 @@ async function getPosts(
   page: number,
   locale: string,
   currentPillar: PublicationPillar | null,
+  viewerId?: string | null,
 ) {
   const pageNum = Math.max(PAGINATION_INIT_PAGE, page);
   const postRepo = createPostQueryRepository();
@@ -80,6 +82,7 @@ async function getPosts(
     {
       categoryKeys: await categoryKeysForActivePublicationPillar(currentPillar),
     },
+    viewerId,
   );
 
   return {
@@ -105,7 +108,12 @@ export default async function PaginatedPage({ params, searchParams }: Props) {
     notFound();
   }
 
-  const { posts, totalPages } = await getPosts(page, locale, currentPillar);
+  const { posts, totalPages } = await getPosts(
+    page,
+    locale,
+    currentPillar,
+    viewerId,
+  );
 
   // Si la página no tiene contenido y está fuera de rango, mostrar 404
   if (posts.length === 0 && page > 1 && page > totalPages) {
@@ -131,7 +139,14 @@ export default async function PaginatedPage({ params, searchParams }: Props) {
           </p>
         ) : (
           posts.map((post: Post) => {
-            return <CardForList {...post} viewerId={viewerId} key={post.id} />;
+            return (
+              <CardForList
+                {...post}
+                viewerId={viewerId}
+                reactionSignInHref={signInPathFor(locale, "/")}
+                key={post.id}
+              />
+            );
           })
         )}
       </section>
