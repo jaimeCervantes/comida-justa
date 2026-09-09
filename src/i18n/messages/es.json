@@ -626,6 +626,7 @@
     "chooseProvider": "un proveedor para iniciar sesión.",
     "chooseProviderIntro": "Elige un proveedor para iniciar sesión.",
     "intro": "Accede para publicar, comentar y participar en la comunidad. Elige un proveedor para iniciar sesión.",
+    "optionsLabel": "Opciones de inicio de sesión",
     "signInWith": "Iniciar sesión con",
     "terms": "Al continuar aceptas nuestros términos y la política de privacidad."
   },

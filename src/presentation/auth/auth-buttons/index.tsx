@@ -18,17 +18,19 @@ export function SignIn({
   children,
   ...props
 }: Omit<React.ComponentProps<typeof AuthActionButton>, "action">) {
+  const icon = <PersonIcon aria-hidden />;
+
   return (
     <AuthActionButton
       color="green"
-      startIcon={<PersonIcon />}
+      startIcon={children ? icon : undefined}
       {...props}
       action={async () => {
         "use server";
         await redirectToSignInFromReferer();
       }}
     >
-      {children}
+      {children ?? icon}
     </AuthActionButton>
   );
 }
@@ -37,10 +39,12 @@ export function SignOut({
   children,
   ...props
 }: Omit<React.ComponentProps<typeof AuthActionButton>, "action">) {
+  const icon = <ExitIcon aria-hidden />;
+
   return (
     <AuthActionButton
       color="black"
-      startIcon={<ExitIcon />}
+      startIcon={children ? icon : undefined}
       {...props}
       action={async () => {
         "use server";
@@ -54,7 +58,7 @@ export function SignOut({
         await signOut({ redirectTo: getPathname({ locale, href: "/" }) });
       }}
     >
-      {children}
+      {children ?? icon}
     </AuthActionButton>
   );
 }

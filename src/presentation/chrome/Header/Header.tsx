@@ -25,24 +25,6 @@ import MobileNav from "./MobileNav";
 import Nav from "./Nav";
 import UserMenu from "./UserMenu";
 
-/**
- * Cuándo las dos acciones de la derecha —«Publicar» e «Iniciar sesión»— enseñan su texto.
- *
- * Los cuatro tramos, y por qué:
- *
- * - **Hasta `sm`**: solo icono. Es lo que ya hacía; en un teléfono no hay ancho que gastar.
- * - **De `sm` a `lg`**: con texto. La barra de navegación todavía no está y sobra sitio.
- * - **De `lg` a `xl`**: solo icono otra vez, y este es el tramo nuevo. La barra aparece en `lg`
- *   (1024px) pero el header no cabía hasta 1280: medido, desbordaba 198px a 1024 y 70px a 1152, y
- *   lo que se salía por el borde era «Iniciar sesión» y el selector de idioma. O sea que el sitio
- *   se veía roto en 256px de ventana de escritorio.
- * - **Desde `xl`**: con texto. Ahí ya caben las dos cosas.
- *
- * Las dos llevan `aria-label` desde antes, así que quedarse sin texto visible no las deja sin
- * nombre: quien usa lector de pantalla oye lo mismo en los cuatro tramos.
- */
-const ACTION_LABEL = "hidden sm:block lg:hidden xl:block";
-
 export default async function Header({
   theme,
 }: {
@@ -152,11 +134,11 @@ export default async function Header({
             <LinkButton
               href="/publicar"
               color="green"
-              startIcon={<LuSalad title={t("publish")} />}
               aria-label={t("publish")}
+              className="size-12 p-0"
               showLoader
             >
-              <span className={ACTION_LABEL}>{t("publish")}</span>
+              <LuSalad aria-hidden className="size-5" />
             </LinkButton>
           </div>
 
@@ -191,10 +173,15 @@ export default async function Header({
           ) : (
             /* Secundaria, no verde. La anotación del 5.1 lo dice: «antes competían tres botones
                verdes y uno negro; ahora hay una acción primaria, un avatar y el idioma». La acción
-               primaria del sitio es publicar; acceder es la puerta, no la invitación. */
-            <SignIn color="white" aria-label={t("signIn")}>
-              <span className={ACTION_LABEL}>{t("signIn")}</span>
-            </SignIn>
+               primaria del sitio es publicar; acceder es la puerta, no la invitación.
+
+               En escritorio va sin texto visible: la fila derecha compite con navegación,
+               búsqueda, carrito, tema e idioma. El nombre sigue en `aria-label`. */
+            <SignIn
+              color="white"
+              aria-label={t("signIn")}
+              className="size-12 p-0"
+            />
           )}
 
           {/* El idioma vive aquí. El 5.16 lo bajaba al pie —«el header ya cargaba con búsqueda,

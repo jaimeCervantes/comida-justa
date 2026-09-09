@@ -28,18 +28,24 @@ export default function SignInOptions({
   }, []);
 
   return (
-    <div className="w-full max-w-lg flex items-center justify-center align-items-center mx-auto">
-      <div className="mx-auto bg-surface-elevation-1/70 backdrop-blur-md rounded-card shadow-xl ring-1 ring-separator overflow-hidden">
-        <div className="p-8 md:p-10 flex flex-col items-center text-center">
-          <div className="h-40 bg-white flex items-center justify-center mb-4">
+    <section
+      aria-label={t("optionsLabel")}
+      className="mx-auto flex w-full max-w-lg items-center justify-center px-0 sm:px-4"
+    >
+      <div className="w-full overflow-hidden rounded-card bg-surface-elevation-1/70 shadow-xl ring-1 ring-separator backdrop-blur-md">
+        <div className="flex flex-col items-center gap-5 p-6 text-center sm:p-8 md:p-10">
+          <div
+            data-testid="signin-artwork"
+            className="flex aspect-square size-32 items-center justify-center overflow-hidden rounded-full bg-white p-2 shadow-xs sm:size-36"
+          >
             <Image
               loading="eager"
               src="/logo.webp"
-              alt="Logo"
-              className="h-40"
-              width={100}
-              height={100}
-              style={{ width: "auto", height: "auto" }}
+              alt=""
+              aria-hidden
+              className="h-full w-full object-contain"
+              width={144}
+              height={144}
             />
           </div>
 
@@ -47,7 +53,7 @@ export default function SignInOptions({
             {t("intro")}
           </p>
 
-          <div className="w-full mt-6 space-y-3">
+          <div className="w-full space-y-3">
             {providers &&
               Object.values(providers).map((provider) => (
                 <button
@@ -93,9 +99,9 @@ export default function SignInOptions({
               ))}
           </div>
 
-          <div className="mt-6 text-xs text-text-muted">{t("terms")}</div>
+          <div className="text-xs text-text-muted">{t("terms")}</div>
         </div>
       </div>
-    </div>
+    </section>
   );
 }

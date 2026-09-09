@@ -626,6 +626,7 @@
     "chooseProvider": "a provider to sign in.",
     "chooseProviderIntro": "Choose a provider to sign in.",
     "intro": "Sign in to publish, comment and take part in the community. Choose a provider to sign in.",
+    "optionsLabel": "Sign-in options",
     "signInWith": "Sign in with",
     "terms": "By continuing you accept our terms and our privacy policy."
   },
