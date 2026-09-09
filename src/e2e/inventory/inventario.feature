@@ -361,3 +361,25 @@ Feature: Inventario de existencias
       | "  masa madre  "  | "masa madre"  | los espacios de los lados no son término  |
       | ""                | ""            | vacío es no filtrar, no buscar la nada    |
       | 200 caracteres    | los 80 primeros | el tope lo pone el dominio, no el campo |
+
+  # ---------------------------------------------------------------------------------------------
+  # Slice 6 — La búsqueda lee las existencias guardadas
+  # ---------------------------------------------------------------------------------------------
+
+  # La tarjeta de resultados ya sabe enseñar existencias cuando el dato le llega. El hueco está en
+  # la carga inicial de `/buscar`: después de guardar, una recarga no debe depender del estado que
+  # quedó vivo en el cliente.
+
+  @slice-6
+  Scenario: La búsqueda muestra existencias desde el primer render
+    Given un producto sembrado "Dona Chocolate Keto" a 40 con 8 existencias
+    When busco "Dona Chocolate Keto" en "/buscar"
+    Then la tarjeta de resultados dice que quedan 8 existencias
+    When recargo la búsqueda actual
+    Then la tarjeta de resultados sigue diciendo que quedan 8 existencias
+
+  @slice-7 @future
+  Scenario: Editar existencias desde búsqueda se conserva al volver a buscar
+    Given un producto mío aparece en los resultados de búsqueda
+    When guardo un nuevo número de existencias desde su tarjeta
+    Then una búsqueda nueva arranca mostrando ese mismo número
