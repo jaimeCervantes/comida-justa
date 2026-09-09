@@ -1,10 +1,17 @@
 "use client";
 
 import { useActionState, useState } from "react";
+import { MdAdd, MdDeleteOutline, MdSave } from "react-icons/md";
 import type { WeeklyHours } from "~/domain/schedule/slots";
+import { Button } from "~/presentation/design_system/buttons/Button";
+import { Alert } from "~/presentation/design_system/feedback/Alert";
+import { Select } from "~/presentation/design_system/forms/Select";
+import { TextField } from "~/presentation/design_system/forms/TextField";
 import { saveSchedule } from "../actions";
 
 export type ScheduleLabels = {
+  formLabel: string;
+  listLabel: string;
   weekday: string;
   from: string;
   to: string;
@@ -13,7 +20,9 @@ export type ScheduleLabels = {
   empty: string;
   submit: string;
   saved: string;
+  savedStatusLabel: string;
   invalid: string;
+  invalidStatusLabel: string;
   days: readonly string[];
 };
 
@@ -59,108 +68,125 @@ export default function ScheduleForm({
     );
 
   return (
-    <form action={action} data-testid="schedule-form">
+    <form
+      action={action}
+      aria-label={labels.formLabel}
+      data-testid="schedule-form"
+      className="flex flex-col gap-5"
+    >
       {rows.length === 0 ? (
-        <p className="text-text-support mb-4" data-testid="schedule-empty">
+        <div
+          className="rounded-control border border-dashed border-separator bg-surface-elevation-2 p-4 text-sm text-text-support"
+          data-testid="schedule-empty"
+        >
           {labels.empty}
-        </p>
+        </div>
       ) : null}
 
-      <ul className="list-none p-0 m-0">
+      <ul
+        aria-label={labels.listLabel}
+        className="m-0 flex list-none flex-col gap-3 p-0"
+      >
         {rows.map((row, index) => (
           <li
             // El índice ES la identidad aquí: las filas no tienen id hasta guardarse.
             // biome-ignore lint/suspicious/noArrayIndexKey: ver la línea de arriba.
             key={`${row.weekday}-${index}`}
             data-testid={`schedule-row-${index}`}
-            className="flex flex-wrap items-end gap-2 mb-3"
+            className="grid min-w-0 gap-3 rounded-control border border-separator bg-surface-elevation-2 p-3 sm:grid-cols-[minmax(150px,1.2fr)_minmax(120px,0.8fr)_minmax(120px,0.8fr)_auto] sm:items-end"
           >
-            <label className="flex flex-col">
-              <span className="text-sm">{labels.weekday}</span>
-              <select
-                name="weekday"
-                value={row.weekday}
-                onChange={(e) =>
-                  update(index, { weekday: Number(e.target.value) })
-                }
-                className="border rounded px-2 py-1 bg-transparent"
-              >
-                {labels.days.map((day, value) => (
-                  <option key={day} value={value}>
-                    {day}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <Select
+              name="weekday"
+              value={row.weekday}
+              label={labels.weekday}
+              onChange={(e) =>
+                update(index, { weekday: Number(e.target.value) })
+              }
+            >
+              {labels.days.map((day, value) => (
+                <option key={day} value={value}>
+                  {day}
+                </option>
+              ))}
+            </Select>
 
-            <label className="flex flex-col">
-              <span className="text-sm">{labels.from}</span>
-              <input
-                type="time"
-                name="from"
-                value={row.from}
-                onChange={(e) => update(index, { from: e.target.value })}
-                className="border rounded px-2 py-1 bg-transparent"
-              />
-            </label>
+            <TextField
+              type="time"
+              name="from"
+              value={row.from}
+              label={labels.from}
+              onChange={(e) => update(index, { from: e.target.value })}
+            />
 
-            <label className="flex flex-col">
-              <span className="text-sm">{labels.to}</span>
-              <input
-                type="time"
-                name="to"
-                value={row.to}
-                onChange={(e) => update(index, { to: e.target.value })}
-                className="border rounded px-2 py-1 bg-transparent"
-              />
-            </label>
+            <TextField
+              type="time"
+              name="to"
+              value={row.to}
+              label={labels.to}
+              onChange={(e) => update(index, { to: e.target.value })}
+            />
 
             <button
               type="button"
-              onClick={() => setRows(rows.filter((_, i) => i !== index))}
+              onClick={() =>
+                setRows((current) => current.filter((_, i) => i !== index))
+              }
               data-testid={`schedule-remove-${index}`}
-              className="text-sm underline text-pw-green"
+              className="focus-ring inline-flex min-h-11 items-center justify-center gap-1.5 rounded-control px-3 py-2 text-sm font-semibold text-highlight hover:bg-surface-elevation-1"
             >
+              <MdDeleteOutline aria-hidden="true" className="size-4" />
               {labels.remove}
             </button>
           </li>
         ))}
       </ul>
 
-      <div className="flex flex-wrap items-center gap-4 mt-4">
-        <button
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+        <Button
           type="button"
           onClick={() =>
-            setRows([...rows, { weekday: 1, from: "09:00", to: "14:00" }])
+            setRows((current) => [
+              ...current,
+              { weekday: 1, from: "09:00", to: "14:00" },
+            ])
           }
           data-testid="schedule-add"
-          className="text-sm underline text-pw-green"
+          startIcon={<MdAdd aria-hidden="true" />}
+          className="w-full sm:w-auto"
         >
           {labels.add}
-        </button>
+        </Button>
 
-        <button
+        <Button
           type="submit"
+          color="green"
           disabled={pending}
+          isLoading={pending}
           data-testid="schedule-submit"
-          className="rounded bg-pw-green px-4 py-2 text-white disabled:opacity-50"
+          startIcon={<MdSave aria-hidden="true" />}
+          className="w-full sm:w-auto"
         >
           {labels.submit}
-        </button>
+        </Button>
       </div>
 
       {state.saved ? (
-        <p className="mt-3 text-sm" data-testid="schedule-saved">
+        <Alert
+          tone="success"
+          label={labels.savedStatusLabel}
+          data-testid="schedule-saved"
+        >
           {labels.saved}
-        </p>
+        </Alert>
       ) : null}
       {state.error === "invalid" ? (
-        <p
-          className="mt-3 text-sm text-feedback-error"
+        <Alert
+          tone="error"
+          label={labels.invalidStatusLabel}
           data-testid="schedule-error"
         >
           {labels.invalid}
-        </p>
+        </Alert>
       ) : null}
     </form>
   );
