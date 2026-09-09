@@ -638,6 +638,7 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
              `as unknown as`; con el cast, esta discrepancia no existía para TypeScript. */
           kind: isValidKind(row.kind) ? row.kind : DEFAULT_POST_KIND,
           isAvailable: row.isAvailable,
+          stockQuantity: row.stockQuantity ?? null,
           /* El resto de la línea de insignias, para que un resultado de búsqueda enseñe lo mismo
              que la misma publicación en `/productos`: de dónde viene, qué es y de quién es. */
           origin: isValidOrigin(row.origin) ? row.origin : null,

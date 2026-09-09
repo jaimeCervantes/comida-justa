@@ -27,6 +27,7 @@ import ProvenanceBadge, {
   showsProvenanceBadge,
 } from "~/presentation/post/ProvenanceBadge";
 import SoldOutBadge from "~/presentation/post/SoldOutBadge/SoldOutBadge";
+import StockRemaining from "~/presentation/post/StockRemaining/StockRemaining";
 import ShareMenu from "~/presentation/sharing/ShareMenu/ShareMenu";
 
 /**
@@ -236,6 +237,7 @@ export default function CardForList(
           </span>
         ) : null}
         <SoldOutBadge kind={kind} isAvailable={isAvailable} />
+        <StockRemaining kind={kind} stockQuantity={stockQuantity} />
         {/* Solo se pinta en un evento: es lo que responde "¿todavía puedo ir?". */}
         <EventDate kind={kind} startsAt={startsAt} endsAt={endsAt} />
         <StoreDistance meters={distanceMeters ?? null} />

@@ -69,6 +69,8 @@ export type Post = {
   sellerId?: string | null;
   /** `false` = agotado: sale de la tienda y el chatbot deja de recomendarlo. */
   isAvailable?: boolean;
+  /** `posts.stock_quantity`. `null`/ausente = esta publicación no lleva inventario. */
+  stockQuantity?: number | null;
   contactInfo: {
     phone: string;
     email?: string;

@@ -407,6 +407,35 @@ describe("When a card is listed", () => {
       expect(getByTestId("card-facts")).not.toHaveTextContent(/\$/);
     });
 
+    it("dice cuántas existencias quedan cuando la publicación lleva inventario", () => {
+      const { getByTestId } = render(
+        <CardForList
+          {...baseProps}
+          kind="producto"
+          isAvailable={true}
+          stockQuantity={8}
+        />,
+      );
+
+      expect(getByTestId("stock-remaining")).toHaveTextContent(
+        "Quedan 8 unidades",
+      );
+    });
+
+    it("no duplica el cero: agotado ya lo dice la insignia", () => {
+      const { getByTestId, queryByTestId } = render(
+        <CardForList
+          {...baseProps}
+          kind="producto"
+          isAvailable={false}
+          stockQuantity={0}
+        />,
+      );
+
+      expect(getByTestId("sold-out-badge")).toBeInTheDocument();
+      expect(queryByTestId("stock-remaining")).not.toBeInTheDocument();
+    });
+
     /* Los 10 anuncios de la base van sin precio, sin categoría y sin origen, y 5 tampoco tienen
        tienda: ahí todos los hijos de la fila deciden no pintarse y quedaba un elemento sin nada
        dentro ocupando su separación, que es el hueco que aparecía bajo el título.

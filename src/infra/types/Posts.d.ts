@@ -14,6 +14,7 @@ export type Post =
         summary: string;
         kind: "anuncio" | "producto";
         origin: string | null;
+        stockQuantity: number | null;
         reactionCount: number;
         viewerReacted: boolean;
         contactInfo: {
