@@ -176,6 +176,30 @@ Lo pidió el usuario al ver el slice 1 funcionando, y los tres problemas eran re
 - **Se abre en pestaña nueva.** Quien pulsa está comprobando cómo se ve su página antes de
   repartirla, no navegando: perder la cuenta a medio configurar es justo lo que no quiere.
 
+### Slice 6 — El avatar hereda todos los enlaces de Mi cuenta
+
+**Alcance.** El menú desplegable del avatar deja de ser una lista paralela y pasa a ofrecer los
+mismos destinos de `AccountNav`, con las mismas condiciones.
+
+- Siempre ofrece `Mi cuenta`, `Mis pedidos` y `Mis hábitos`.
+- Si la persona reservó dirección personal, ofrece `Mis publicaciones` apuntando al mismo perfil
+  público que antes aparecía como `Mi perfil`.
+- Si la persona tiene tienda, ofrece `Mi inventario` y `Mi agenda`.
+- El atajo público `Mi tienda` se conserva porque no vive en `AccountNav`, pero sigue siendo útil
+  para verse como cliente sin pasar por `/cuenta`.
+- No se crean rutas nuevas ni se cambia la navegación móvil en este slice.
+
+**Criterios de aceptación.**
+
+1. Una vendedora con tienda y dirección personal ve en el avatar los seis enlaces de su cuenta:
+   `Mi cuenta`, `Mis publicaciones`, `Mis pedidos`, `Mi inventario`, `Mi agenda` y `Mis hábitos`.
+2. Los enlaces del avatar apuntan a los mismos destinos que la navegación de cuenta:
+   `/cuenta`, `/u/<username>`, `/pedidos`, `/cuenta/inventario`, `/cuenta/agenda` y `/habitos`.
+3. Una persona sin tienda ni dirección personal no ve enlaces a páginas que no existen: conserva
+   `Mi cuenta`, `Mis pedidos` y `Mis hábitos`, y no ve `Mis publicaciones`, `Mi inventario`,
+   `Mi agenda`, `Mi tienda` ni `Mi perfil`.
+4. Todo el texto visible sale del namespace `nav` en `es.json` y `en.json`.
+
 ## Pendientes que este trabajo no resuelve
 
 - Los dos `sellers` `e2e-…` huérfanos en la base, residuo de una corrida caída.

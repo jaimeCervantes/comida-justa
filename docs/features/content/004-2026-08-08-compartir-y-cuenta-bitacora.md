@@ -498,3 +498,114 @@ con `typecheck` y `lint` limpios. La rama `feat/compartir-y-cuenta` queda lista 
    puede juzgar.
 
 **Pendiente del usuario:** decidir el reparto de commits.
+
+---
+
+## Slice 6 — El avatar hereda todos los enlaces de Mi cuenta (2026-09-08)
+
+### Objetivo
+
+Que el menú desplegable del avatar deje de tener una lista casi igual, pero incompleta, frente a la
+navegación interna de la cuenta. `AccountNav` ya era la lista privada canónica: Mi cuenta, Mis
+publicaciones, Mis pedidos, Mi inventario, Mi agenda y Mis hábitos. El avatar tenía tienda, perfil,
+pedidos, cuenta y agenda; le faltaban inventario y hábitos, y el acceso al perfil propio seguía
+nombrado como "Mi perfil" en vez de "Mis publicaciones".
+
+### Decisiones y por qué
+
+**El avatar copia el modelo de `AccountNav`, no sus componentes.** `AccountNav` vive en la sección
+de cuenta y marca `aria-current`; el avatar es un menú Radix con semántica de `menuitem`. Reusar el
+componente entero habría mezclado dos superficies distintas. Lo que se compartió fue el criterio:
+siempre Mi cuenta, Mis pedidos y Mis hábitos; con perfil, Mis publicaciones; con tienda, Mi
+inventario y Mi agenda.
+
+**"Mi tienda" se conserva como atajo público extra.** No pertenece a `AccountNav`, pero sí al gesto
+del avatar: quien vende suele querer verse como cliente sin entrar a `/cuenta`. Por eso se queda
+además de los enlaces privados, no en lugar de ellos.
+
+**"Mi perfil" sale del menú del avatar.** La navegación de cuenta ya decidió que esa puerta se llama
+"Mis publicaciones", porque lleva al perfil público donde el dueño puede editar y administrar lo
+que publica. Mantener dos nombres para el mismo destino obligaba a recordar dos modelos.
+
+**No se tocó el menú móvil.** El slice aprobado fue el desplegable que se abre desde el avatar; el
+menú móvil no es ese desplegable y ya tenía su propio diseño compacto. Cambiarlo habría ampliado el
+alcance sin necesidad para cerrar la fricción reportada.
+
+### Archivos tocados
+
+**Presentación**
+- `src/presentation/chrome/Header/UserMenu.tsx` — añade Mis publicaciones, Mi inventario y Mis
+  hábitos; renombra el acceso al perfil propio.
+- `src/presentation/chrome/Header/UserMenu.test.tsx` — desk check de los cuatro estados de perfil y
+  tienda, más destinos privados.
+
+**E2E y especificación**
+- `src/e2e/compartir/avatarMenu.spec.ts` — verifica la lista completa del avatar y el caso sin
+  tienda ni dirección.
+- `src/e2e/compartir/compartir.feature` — slice 6 con dos escenarios.
+
+**Documentación**
+- `docs/features/content/004-2026-08-08-compartir-y-cuenta.md` — roadmap del slice 6.
+- `docs/features/content/004-2026-08-08-compartir-y-cuenta-bitacora.md` — esta entrada.
+
+### Comandos clave
+
+```
+.\node_modules\.bin\vitest.cmd --run src/presentation/chrome/Header/UserMenu.test.tsx
+pnpm run test:run
+pnpm run typecheck
+pnpm run lint
+.\node_modules\.bin\playwright.cmd test src/e2e/compartir/avatarMenu.spec.ts --reporter=line
+```
+
+Antes de Playwright se borró `.next` con verificación de ruta dentro del workspace. La primera
+corrida de Playwright dentro del sandbox no ejecutó escenarios: el `webServer` de la config salió
+con código 1. Se repitió el mismo scoped fuera del sandbox, como indican las reglas del repo.
+
+### Validación
+
+| Comando | Resultado |
+| --- | --- |
+| `.\node_modules\.bin\vitest.cmd --run src/presentation/chrome/Header/UserMenu.test.tsx` | **13/13** |
+| `pnpm run test:run` | **2894/2894** en 275 archivos |
+| `pnpm run typecheck` | limpio |
+| `pnpm run lint` | **1198 archivos** revisados, sin fixes |
+| `playwright test src/e2e/compartir/avatarMenu.spec.ts --reporter=line` | **6/6** en 2.9 min |
+
+### Recursos compartidos
+
+La corrida e2e escribió datos reversibles en la base compartida: sesiones de prueba, una tienda
+`e2e-...` y una dirección personal `e2e-...`, todas creadas por los helpers existentes del spec. Sus
+`afterEach` liberaron la dirección, borraron la tienda y eliminaron las sesiones. No quedó una acción
+manual pendiente por esos datos.
+
+### Desviaciones del roadmap
+
+Ninguna funcional. El único ajuste operativo fue ejecutar Vitest y Playwright fuera del sandbox por
+permisos locales: Vitest no podía leer la configuración desde esbuild dentro del sandbox, y
+Playwright no pudo arrancar el `webServer` ahí. Se mantuvieron los mismos comandos de validación y
+el mismo Playwright scoped.
+
+### Follow-ups
+
+- Si el usuario quiere paridad también en teléfono, abrir un slice separado para que
+  `MobileAccountCard` incluya Mi inventario y Mis hábitos sin saturar la tarjeta compacta.
+- Revisar si otros textos antiguos todavía dicen "Mi perfil" donde el modelo de cuenta ya debería
+  decir "Mis publicaciones".
+
+### Recap
+
+El avatar ya ofrece la lista privada completa de la cuenta: Mi cuenta, Mis publicaciones, Mis
+pedidos, Mi inventario, Mi agenda y Mis hábitos, con las mismas condiciones que la navegación
+lateral. "Mi tienda" se mantiene como salida pública adicional para quien vende. El slice está verde
+en componente, suite Vitest completa, typecheck, lint y Playwright scoped del menú del avatar.
+
+### Próximos pasos (opciones)
+
+1. **Comitear el slice 6** en la rama `codex/avatar-account-links`.
+2. **Extender la paridad al menú móvil** si también quieres que esa tarjeta compacta tenga
+   inventario y hábitos.
+3. **Limpiar deuda de copy** revisando usos restantes de "Mi perfil" frente a "Mis publicaciones".
+
+**Pendiente del usuario:** decidir si este slice se commitea ahora o se agrupa con otro ajuste de
+menú móvil.
