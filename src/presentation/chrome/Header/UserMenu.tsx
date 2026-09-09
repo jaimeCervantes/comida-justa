@@ -20,9 +20,9 @@ import {
  * `avatar` y `signOut` llegan como nodos ya renderizados en el servidor: `SignOut` encierra una
  * Server Action, y este componente es de cliente. Es el mismo reparto que usa `MobileNav`.
  *
- * **La tienda y el perfil se ofrecen solo si existen.** No se pinta una entrada que lleve a dar de
- * alta lo que falta: para eso ya está «Mi cuenta», que es lo único que ven los 20 de 21 usuarios
- * que hoy no han reservado nada.
+ * **La tienda, las publicaciones, el inventario y la agenda se ofrecen solo si existen.** No se
+ * pinta una entrada que lleve a dar de alta lo que falta: para eso ya está «Mi cuenta», que es lo
+ * único que ven los 20 de 21 usuarios que hoy no han reservado nada.
  */
 export default function UserMenu({
   avatar,
@@ -95,8 +95,8 @@ export default function UserMenu({
             </>
           ) : null}
 
-          {/* Lo propio primero y lo público antes que lo privado: quien abre este menú suele venir
-              a verse como lo ven sus clientes, no a editar su ficha. */}
+          {/* Atajo público extra: no vive en `AccountNav`, pero evita pasar por `/cuenta` para verse
+              como cliente. */}
           {storeHandle ? (
             <DropdownMenu.Item asChild>
               <Link
@@ -109,36 +109,26 @@ export default function UserMenu({
             </DropdownMenu.Item>
           ) : null}
 
-          {/* Mismo gate que la tienda —`storeHandle`—, porque la agenda solo le sirve a quien
-              atiende. Está aquí además de en `/cuenta` porque es de las pocas cosas que se abren
-              a diario: quien atiende revisa su semana mucho más de lo que edita su ficha. */}
-          {storeHandle ? (
-            <DropdownMenu.Item asChild>
-              <Link
-                href="/cuenta/agenda"
-                className={ITEM_CLASS}
-                data-testid="menu-my-schedule"
-              >
-                {t("schedule")}
-              </Link>
-            </DropdownMenu.Item>
-          ) : null}
+          {/* Los privados siguen el mismo modelo que `AccountNav`: destinos de cuenta siempre
+              visibles, y destinos que requieren perfil o tienda solo cuando existen. */}
+          <DropdownMenu.Item asChild>
+            <Link href="/cuenta" className={ITEM_CLASS}>
+              {t("myAccount")}
+            </Link>
+          </DropdownMenu.Item>
 
           {username ? (
             <DropdownMenu.Item asChild>
               <Link
                 href={profileHref(username)}
                 className={ITEM_CLASS}
-                data-testid="menu-my-profile"
+                data-testid="menu-my-publications"
               >
-                {t("myProfile")}
+                {t("myPublications")}
               </Link>
             </DropdownMenu.Item>
           ) : null}
 
-          {/* Antes que «Mi cuenta» porque cambia a diario y la cuenta no: un pedido pendiente es
-              alguien esperando respuesta. Se ofrece a todo el mundo, venda o no — la misma página
-              enseña lo que te han pedido y lo que has pedido tú. */}
           <DropdownMenu.Item asChild>
             <Link
               href="/pedidos"
@@ -149,9 +139,37 @@ export default function UserMenu({
             </Link>
           </DropdownMenu.Item>
 
+          {storeHandle ? (
+            <>
+              <DropdownMenu.Item asChild>
+                <Link
+                  href="/cuenta/inventario"
+                  className={ITEM_CLASS}
+                  data-testid="menu-my-inventory"
+                >
+                  {t("inventory")}
+                </Link>
+              </DropdownMenu.Item>
+
+              <DropdownMenu.Item asChild>
+                <Link
+                  href="/cuenta/agenda"
+                  className={ITEM_CLASS}
+                  data-testid="menu-my-schedule"
+                >
+                  {t("schedule")}
+                </Link>
+              </DropdownMenu.Item>
+            </>
+          ) : null}
+
           <DropdownMenu.Item asChild>
-            <Link href="/cuenta" className={ITEM_CLASS}>
-              {t("myAccount")}
+            <Link
+              href="/habitos"
+              className={ITEM_CLASS}
+              data-testid="menu-my-habits"
+            >
+              {t("myHabits")}
             </Link>
           </DropdownMenu.Item>
 

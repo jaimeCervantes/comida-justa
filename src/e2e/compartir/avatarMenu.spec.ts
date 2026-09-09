@@ -28,6 +28,16 @@ const openAvatarMenu = (page: Page) =>
  */
 const avatarMenu = (page: Page) => page.getByTestId("user-menu");
 
+async function expectMenuLink(
+  page: Page,
+  label: string,
+  href: RegExp,
+): Promise<void> {
+  await expect(
+    avatarMenu(page).getByRole("menuitem", { name: label, exact: true }),
+  ).toHaveAttribute("href", href);
+}
+
 /**
  * Cuánto se espera a que la navegación llegue a su destino.
  *
@@ -85,11 +95,35 @@ test.describe("Cuando una vendedora con tienda y perfil abre su avatar", () => {
     await page.goto("/");
     await openAvatarMenu(page);
 
-    await page.getByTestId("menu-my-profile").click();
+    await page.getByTestId("menu-my-publications").click();
 
     await expect(page).toHaveURL(new RegExp(`/u/${username}$`), {
       timeout: NAVIGATION_TIMEOUT,
     });
+  });
+
+  test("Entonces el avatar ofrece todos los enlaces privados de su cuenta", async ({
+    page,
+  }) => {
+    await page.goto("/");
+    await openAvatarMenu(page);
+
+    await expectMenuLink(page, es.nav.myAccount, /\/cuenta$/);
+    await expectMenuLink(
+      page,
+      es.nav.myPublications,
+      new RegExp(`/u/${username}$`),
+    );
+    await expectMenuLink(page, es.nav.myOrders, /\/pedidos$/);
+    await expectMenuLink(page, es.nav.inventory, /\/cuenta\/inventario$/);
+    await expectMenuLink(page, es.nav.schedule, /\/cuenta\/agenda$/);
+    await expectMenuLink(page, es.nav.myHabits, /\/habitos$/);
+    await expectMenuLink(
+      page,
+      es.nav.myStore,
+      new RegExp(`/tienda/${store.handle}$`),
+    );
+    await expect(avatarMenu(page).getByText(es.nav.myProfile)).toHaveCount(0);
   });
 
   /* Es lo que dice con qué identidad estás mirando el sitio, y es lo que ponen ahí Instagram,
@@ -117,9 +151,11 @@ test.describe("Cuando alguien sin tienda ni dirección abre su avatar", () => {
     }
   });
 
-  /* Es el caso de 20 de los 21 usuarios de la base: el menú no puede ofrecer una puerta a una
-     página que todavía no existe. */
-  test("Entonces solo se le ofrece su cuenta", async ({ page }) => {
+  /* Es el caso de 20 de los 21 usuarios de la base: el menú ofrece lo común de la cuenta, pero no
+     puede enlazar a páginas que todavía no existen. */
+  test("Entonces se le ofrece lo privado que no depende de tienda ni dirección", async ({
+    page,
+  }) => {
     await page.goto("/");
     await openAvatarMenu(page);
 
@@ -129,8 +165,23 @@ test.describe("Cuando alguien sin tienda ni dirección abre su avatar", () => {
         exact: true,
       }),
     ).toBeVisible();
+    await expect(
+      avatarMenu(page).getByRole("menuitem", {
+        name: es.nav.myOrders,
+        exact: true,
+      }),
+    ).toBeVisible();
+    await expect(
+      avatarMenu(page).getByRole("menuitem", {
+        name: es.nav.myHabits,
+        exact: true,
+      }),
+    ).toBeVisible();
     await expect(page.getByTestId("menu-my-store")).toHaveCount(0);
-    await expect(page.getByTestId("menu-my-profile")).toHaveCount(0);
+    await expect(page.getByTestId("menu-my-publications")).toHaveCount(0);
+    await expect(page.getByTestId("menu-my-inventory")).toHaveCount(0);
+    await expect(page.getByTestId("menu-my-schedule")).toHaveCount(0);
+    await expect(avatarMenu(page).getByText(es.nav.myProfile)).toHaveCount(0);
   });
 });
 

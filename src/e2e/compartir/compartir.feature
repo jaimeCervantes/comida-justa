@@ -241,3 +241,34 @@ Feature: Compartir la tienda y el perfil, y llegar a ellos desde el avatar
     Given que estoy en la segunda página de mis publicaciones
     When miro el encabezado
     Then el hilo de vuelta a "Mi cuenta" sigue ahí
+
+  # ---------------------------------------------------------------------------
+  # Slice 6 — El avatar hereda todos los enlaces de Mi cuenta  (actual)
+  #
+  # `AccountNav` terminó siendo la lista canónica de la sección privada: Mi cuenta, Mis
+  # publicaciones, Mis pedidos, Mi inventario, Mi agenda y Mis hábitos. El avatar conservaba una
+  # lista parecida pero no igual: tenía tienda, perfil, pedidos, cuenta y agenda; le faltaban
+  # inventario y hábitos, y "Mis publicaciones" seguía nombrado como "Mi perfil". Eso obliga a
+  # recordar qué acceso vive en cada sitio.
+  # ---------------------------------------------------------------------------
+
+  @slice-6
+  Scenario: El avatar ofrece todos los enlaces de mi cuenta
+    Given que soy vendedora con tienda abierta y dirección personal reservada
+    When despliego el menú de mi avatar
+    Then encuentro los mismos enlaces privados que en la navegación de mi cuenta:
+      | enlace            | destino            |
+      | Mi cuenta         | /cuenta            |
+      | Mis publicaciones | /u/<mi-direccion>  |
+      | Mis pedidos       | /pedidos           |
+      | Mi inventario     | /cuenta/inventario |
+      | Mi agenda         | /cuenta/agenda     |
+      | Mis hábitos       | /habitos           |
+    And "Mi tienda" sigue disponible como atajo público a "/tienda/<mi-tienda>"
+
+  @slice-6
+  Scenario: El avatar no inventa páginas de cuenta que todavía no existen
+    Given que estoy autenticada, sin tienda y sin dirección personal
+    When despliego el menú de mi avatar
+    Then encuentro "Mi cuenta", "Mis pedidos" y "Mis hábitos"
+    And no encuentro "Mis publicaciones", "Mi inventario", "Mi agenda", "Mi tienda" ni "Mi perfil"

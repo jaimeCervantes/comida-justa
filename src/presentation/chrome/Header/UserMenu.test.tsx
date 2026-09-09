@@ -49,6 +49,8 @@ describe("When a signed-in visitor opens the avatar menu", () => {
     await openMenu();
 
     expect(screen.getByText(es.nav.myAccount)).toBeInTheDocument();
+    expect(screen.getByText(es.nav.myOrders)).toBeInTheDocument();
+    expect(screen.getByText(es.nav.myHabits)).toBeInTheDocument();
     expect(screen.getByText(es.nav.signOut)).toBeInTheDocument();
   });
 
@@ -85,33 +87,89 @@ describe("When a signed-in visitor opens the avatar menu", () => {
       screen.getByText(label).closest("a")?.getAttribute("href");
 
     expect(hrefFor(es.nav.myAccount)).toBe("/cuenta");
+    expect(hrefFor(es.nav.myOrders)).toBe("/pedidos");
+    expect(hrefFor(es.nav.myHabits)).toBe("/habitos");
     expect(hrefFor(es.nav.catalog)).toBe("/admin/catalogo");
     expect(hrefFor(es.nav.report)).toBe("/admin/productos");
   });
 });
 
 describe("When the avatar menu offers what belongs to the visitor", () => {
-  /* La corrida de escritorio del escenario "El menú solo ofrece lo que existe". De los 21 usuarios
-     de la base, 20 están en la última fila: no tener ni tienda ni dirección es el caso común. */
+  /* La corrida de escritorio del escenario "El menú solo ofrece lo que existe". Las tres entradas
+     privadas que no dependen de reservar nada se ofrecen siempre; las otras dependen del mismo dato
+     que usa `AccountNav`. */
   it.each([
-    ["con tienda y con perfil", "hazlo-sano", "jaime-cervantes", true, true],
-    ["con tienda y sin perfil", "hazlo-sano", null, true, false],
-    ["sin tienda y con perfil", null, "jaime-cervantes", false, true],
-    ["sin tienda y sin perfil", null, null, false, false],
+    [
+      "con tienda y con perfil",
+      "hazlo-sano",
+      "jaime-cervantes",
+      [
+        es.nav.myStore,
+        es.nav.myPublications,
+        es.nav.myOrders,
+        es.nav.inventory,
+        es.nav.schedule,
+        es.nav.myHabits,
+        es.nav.myAccount,
+      ],
+      [es.nav.myProfile],
+    ],
+    [
+      "con tienda y sin perfil",
+      "hazlo-sano",
+      null,
+      [
+        es.nav.myStore,
+        es.nav.myOrders,
+        es.nav.inventory,
+        es.nav.schedule,
+        es.nav.myHabits,
+        es.nav.myAccount,
+      ],
+      [es.nav.myPublications, es.nav.myProfile],
+    ],
+    [
+      "sin tienda y con perfil",
+      null,
+      "jaime-cervantes",
+      [
+        es.nav.myPublications,
+        es.nav.myOrders,
+        es.nav.myHabits,
+        es.nav.myAccount,
+      ],
+      [es.nav.myStore, es.nav.inventory, es.nav.schedule, es.nav.myProfile],
+    ],
+    [
+      "sin tienda y sin perfil",
+      null,
+      null,
+      [es.nav.myOrders, es.nav.myHabits, es.nav.myAccount],
+      [
+        es.nav.myStore,
+        es.nav.myPublications,
+        es.nav.inventory,
+        es.nav.schedule,
+        es.nav.myProfile,
+      ],
+    ],
   ] as const)(
-    "Then a session %s offers store=%s profile=%s",
-    async (_caso, storeHandle, username, offersStore, offersProfile) => {
+    "Then a session %s offers the account links that exist",
+    async (_caso, storeHandle, username, expected, absent) => {
       renderMenu({ storeHandle, username });
       await openMenu();
 
-      expect(!!screen.queryByText(es.nav.myStore)).toBe(offersStore);
-      expect(!!screen.queryByText(es.nav.myProfile)).toBe(offersProfile);
-      // La cuenta está siempre: es la puerta a dar de alta lo que todavía no existe.
-      expect(screen.getByText(es.nav.myAccount)).toBeInTheDocument();
+      for (const label of expected) {
+        expect(screen.getByText(label)).toBeInTheDocument();
+      }
+
+      for (const label of absent) {
+        expect(screen.queryByText(label)).not.toBeInTheDocument();
+      }
     },
   );
 
-  it("Then the store and the profile point at their public address", async () => {
+  it("Then every private account entry points where AccountNav points", async () => {
     renderMenu({ storeHandle: "hazlo-sano", username: "jaime-cervantes" });
     await openMenu();
 
@@ -119,7 +177,12 @@ describe("When the avatar menu offers what belongs to the visitor", () => {
       screen.getByText(label).closest("a")?.getAttribute("href");
 
     expect(hrefFor(es.nav.myStore)).toBe("/tienda/hazlo-sano");
-    expect(hrefFor(es.nav.myProfile)).toBe("/u/jaime-cervantes");
+    expect(hrefFor(es.nav.myAccount)).toBe("/cuenta");
+    expect(hrefFor(es.nav.myPublications)).toBe("/u/jaime-cervantes");
+    expect(hrefFor(es.nav.myOrders)).toBe("/pedidos");
+    expect(hrefFor(es.nav.inventory)).toBe("/cuenta/inventario");
+    expect(hrefFor(es.nav.schedule)).toBe("/cuenta/agenda");
+    expect(hrefFor(es.nav.myHabits)).toBe("/habitos");
   });
 
   /* Es lo que Instagram, TikTok y X ponen bajo el nombre en este mismo menú: dice con qué identidad
