@@ -133,6 +133,16 @@ export default defineConfig({
        */
       SEARCH_REPORTER: "console",
     },
-    timeout: 180_000,
+    /*
+     * Cinco minutos, y no los tres de antes, porque `rm -rf .next` es obligatorio antes de cada
+     * corrida (ver `AGENTS.md`) y eso deja a Turbopack compilando desde cero.
+     *
+     * El servidor está escuchando en 2.6 s; lo que tarda es la primera petición. La sonda de
+     * Playwright pide `/`, que es la ruta más cara del sitio —el home con su feed—: medido el
+     * 2026-09-10 en esta máquina, 101 s con la caché a medio calentar. Desde frío se pasaba de los
+     * 180 s y la suite moría en "Timed out waiting from config.webServer", que es un mensaje que
+     * no dice nada sobre la aplicación y manda a buscar el fallo donde no está.
+     */
+    timeout: 300_000,
   },
 });

@@ -89,6 +89,15 @@ const RUTAS = [
      es el segmento, no la consulta—. */
   "/api/posts/page/2/pageSize/9",
 
+  /* El buscador del Header, que es la **tercera** de esta familia y entró por el mismo camino: la
+     página `/buscar` no lo calienta, porque esa consulta la hace el servidor llamando al caso de
+     uso directamente (ver el docstring de `buscar/data.ts`). `/api/search` solo la pide
+     `SearchBar` desde el navegador, así que nadie más la compila en toda la corrida y el primer
+     escenario que teclea en el buscador paga esa compilación dentro del plazo de 5 s de un
+     `toBeVisible`. Es lo que tumbó a `publicationPillarFilter.spec.ts:95` el 2026-09-10, verde al
+     repetirlo. El término no importa: lo que se compila es el segmento, no la consulta. */
+  "/api/search?q=pan",
+
   /* La edición. La pisan siete escenarios —los tres de `managePost` y los cuatro de `editarMedia`—
      y acaba de encarecerse: desde que se puede cambiar la media, arrastra el selector de archivos,
      la bandeja con sus miniaturas y la medición de imágenes, que antes solo compilaba `/publicar`.
