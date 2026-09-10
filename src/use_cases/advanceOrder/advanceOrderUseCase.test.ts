@@ -62,6 +62,8 @@ function build(
     createAll: vi.fn(),
     listBySeller: vi.fn(),
     listByBuyer: vi.fn(),
+    listAppointmentsByBuyer: vi.fn(),
+    listAppointmentsBySeller: vi.fn(),
     listByCheckout: vi.fn(),
     countOpen: vi.fn(),
     findById: vi.fn(),

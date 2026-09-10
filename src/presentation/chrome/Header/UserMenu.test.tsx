@@ -50,6 +50,7 @@ describe("When a signed-in visitor opens the avatar menu", () => {
 
     expect(screen.getByText(es.nav.myAccount)).toBeInTheDocument();
     expect(screen.getByText(es.nav.myOrders)).toBeInTheDocument();
+    expect(screen.getByText(es.nav.appointments)).toBeInTheDocument();
     expect(screen.getByText(es.nav.myHabits)).toBeInTheDocument();
     expect(screen.getByText(es.nav.signOut)).toBeInTheDocument();
   });
@@ -88,6 +89,7 @@ describe("When a signed-in visitor opens the avatar menu", () => {
 
     expect(hrefFor(es.nav.myAccount)).toBe("/cuenta");
     expect(hrefFor(es.nav.myOrders)).toBe("/pedidos");
+    expect(hrefFor(es.nav.appointments)).toBe("/citas");
     expect(hrefFor(es.nav.myHabits)).toBe("/habitos");
     expect(hrefFor(es.nav.catalog)).toBe("/admin/catalogo");
     expect(hrefFor(es.nav.report)).toBe("/admin/productos");
@@ -107,6 +109,7 @@ describe("When the avatar menu offers what belongs to the visitor", () => {
         es.nav.myStore,
         es.nav.myPublications,
         es.nav.myOrders,
+        es.nav.appointments,
         es.nav.inventory,
         es.nav.schedule,
         es.nav.myHabits,
@@ -121,6 +124,7 @@ describe("When the avatar menu offers what belongs to the visitor", () => {
       [
         es.nav.myStore,
         es.nav.myOrders,
+        es.nav.appointments,
         es.nav.inventory,
         es.nav.schedule,
         es.nav.myHabits,
@@ -135,6 +139,7 @@ describe("When the avatar menu offers what belongs to the visitor", () => {
       [
         es.nav.myPublications,
         es.nav.myOrders,
+        es.nav.appointments,
         es.nav.myHabits,
         es.nav.myAccount,
       ],
@@ -144,7 +149,7 @@ describe("When the avatar menu offers what belongs to the visitor", () => {
       "sin tienda y sin perfil",
       null,
       null,
-      [es.nav.myOrders, es.nav.myHabits, es.nav.myAccount],
+      [es.nav.myOrders, es.nav.appointments, es.nav.myHabits, es.nav.myAccount],
       [
         es.nav.myStore,
         es.nav.myPublications,
@@ -180,6 +185,7 @@ describe("When the avatar menu offers what belongs to the visitor", () => {
     expect(hrefFor(es.nav.myAccount)).toBe("/cuenta");
     expect(hrefFor(es.nav.myPublications)).toBe("/u/jaime-cervantes");
     expect(hrefFor(es.nav.myOrders)).toBe("/pedidos");
+    expect(hrefFor(es.nav.appointments)).toBe("/citas");
     expect(hrefFor(es.nav.inventory)).toBe("/cuenta/inventario");
     expect(hrefFor(es.nav.schedule)).toBe("/cuenta/agenda");
     expect(hrefFor(es.nav.myHabits)).toBe("/habitos");

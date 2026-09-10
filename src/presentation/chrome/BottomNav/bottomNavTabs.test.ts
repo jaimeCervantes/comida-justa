@@ -20,6 +20,7 @@ describe("la pestaña activa de la barra inferior", () => {
     ["/productos/page/[page]", "products"],
     ["/cuenta", "account"],
     ["/cuenta/agenda", "account"],
+    ["/citas", "account"],
   ])("marca %s como %s", (pathname, esperada) => {
     expect(activeBottomNavTab(pathname)).toBe(esperada);
   });

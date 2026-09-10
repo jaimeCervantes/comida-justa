@@ -5,7 +5,7 @@ import { renderWithIntl } from "~/infra/test-utils/renderWithIntl";
 import AccountNav, { type AccountSectionKey } from "./AccountNav";
 
 describe("AccountNav", () => {
-  it("Mi cuenta, Mis pedidos y Mis hábitos se ofrecen siempre", () => {
+  it("Mi cuenta, Mis pedidos, Mis citas y Mis hábitos se ofrecen siempre", () => {
     renderWithIntl(
       <AccountNav active="account" username={null} hasStore={false} />,
     );
@@ -17,12 +17,16 @@ describe("AccountNav", () => {
       screen.getByRole("link", { name: es.nav.myOrders }),
     ).toBeInTheDocument();
     expect(
+      screen.getByRole("link", { name: es.nav.appointments }),
+    ).toBeInTheDocument();
+    expect(
       screen.getByRole("link", { name: es.nav.myHabits }),
     ).toBeInTheDocument();
   });
 
   it.each<[AccountSectionKey, string]>([
     ["account", es.nav.myAccount],
+    ["appointments", es.nav.appointments],
     ["orders", es.nav.myOrders],
     ["schedule", es.nav.schedule],
     /* «Mis hábitos» era la única entrada que no podía marcarse: `/habitos` no montaba el menú, así
