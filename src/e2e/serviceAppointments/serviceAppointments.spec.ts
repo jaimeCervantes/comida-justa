@@ -176,6 +176,16 @@ async function seedNormalOrder(postId: string): Promise<string> {
   return orderId;
 }
 
+async function addAlwaysAvailableSchedule(): Promise<void> {
+  await db.execute(sql`
+    INSERT INTO provider_availability (seller_id, weekday, starts_at, ends_at)
+    SELECT s.id, weekday, TIME '09:00', TIME '13:00'
+    FROM sellers s
+    CROSS JOIN generate_series(0, 6) AS weekday
+    WHERE s.slug = ${STORE.handle}
+  `);
+}
+
 test.beforeEach(async () => {
   await deleteTestSellerByHandle(STORE.handle);
   await deleteSeedUsers();
@@ -183,6 +193,7 @@ test.beforeEach(async () => {
   await seedUser(PROVIDER);
   await seedUser(BUYER);
   await seedStore(STORE, null, PROVIDER.id);
+  await addAlwaysAvailableSchedule();
 
   const serviceId = await seedPost(SERVICE);
   const productId = await seedPost(NORMAL_ORDER_PRODUCT);
@@ -203,6 +214,25 @@ test.afterEach(async () => {
 });
 
 test.describe("Cliente y proveedora revisan citas de servicio", () => {
+  test("al agendar, la confirmacion lleva a Mis citas", async ({
+    page,
+    browserName,
+  }) => {
+    dbSession = await simulateLogin(page, browserName, { email: BUYER.email });
+
+    await page.goto(`/${SERVICE.slug}`);
+    await page.getByTestId("slot-select").selectOption({ index: 1 });
+    await page.getByTestId("book-submit").click();
+
+    const confirmation = page.getByTestId("book-done");
+
+    await expect(confirmation).toContainText(es.post.bookDone);
+    await expect(confirmation).toContainText(es.post.bookAppointmentsLink);
+    await expect(
+      confirmation.getByTestId("book-appointments-link"),
+    ).toHaveAttribute("href", "/citas");
+  });
+
   test("la clienta ve sus citas separadas de pedidos genericos en movil", async ({
     page,
     browserName,
@@ -221,6 +251,27 @@ test.describe("Cliente y proveedora revisan citas de servicio", () => {
     await expect(
       appointment.getByRole("link", { name: es.orders.viewOrder }),
     ).toBeVisible();
+
+    await appointment.getByRole("link", { name: es.orders.viewOrder }).click();
+    await expect(
+      page.getByRole("heading", {
+        level: 1,
+        name: es.orders.appointmentPlaced,
+      }),
+    ).toBeVisible();
+    await expect(page.getByTestId("order-appointment-detail")).toContainText(
+      "Cita",
+    );
+
+    const href = await page.getByTestId("order-notify").getAttribute("href");
+    const message = decodeURIComponent(href?.split("text=")[1] ?? "");
+
+    expect(message).toContain("cita de servicio");
+    expect(message).toContain(SERVICE.title);
+    expect(message).toContain("2032");
+    expect(message).toContain("10:00");
+
+    await page.goto("/citas");
 
     await expect(page.getByTestId("appointments-page")).not.toContainText(
       NORMAL_ORDER_PRODUCT.title,

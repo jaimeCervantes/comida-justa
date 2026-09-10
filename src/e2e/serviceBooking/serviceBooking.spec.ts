@@ -53,7 +53,7 @@ test.afterEach(async () => {
 });
 
 test.describe("Cuando una persona agenda un servicio", () => {
-  test("Entonces la confirmacion explica que la cita esta en pedidos", async ({
+  test("Entonces la confirmacion explica que la cita esta en Mis citas", async ({
     page,
   }) => {
     await page.goto(`/${servicio.slug}`);
@@ -67,11 +67,10 @@ test.describe("Cuando una persona agenda un servicio", () => {
     const confirmation = page.getByTestId("book-done");
 
     await expect(confirmation).toContainText("Tu cita quedó agendada");
-    await expect(confirmation).toContainText("Mis pedidos");
-    await expect(confirmation.getByTestId("book-orders-link")).toHaveAttribute(
-      "href",
-      "/pedidos?vista=placed",
-    );
+    await expect(confirmation).toContainText("Mis citas");
+    await expect(
+      confirmation.getByTestId("book-appointments-link"),
+    ).toHaveAttribute("href", "/citas");
     await expect(page.getByTestId("cart-count")).toHaveCount(0);
   });
 });

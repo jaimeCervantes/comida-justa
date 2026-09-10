@@ -6,6 +6,11 @@ import {
 } from "./whatsappOrderNotice";
 
 const labels = { intro: "Hola, te acabo de hacer un pedido:", total: "Total" };
+const appointmentLabels = {
+  intro: "Hola, te agendé esta cita de servicio:",
+  appointmentWhen: "Cita: jueves 20 de mayo de 2032, 10:00",
+  total: "Total",
+};
 const ORDER_URL = "https://hazlosano.com/pedido/abc-123";
 
 const order: Order = {
@@ -63,6 +68,32 @@ describe("buildWhatsappOrderNoticeMessage", () => {
     expect(
       buildWhatsappOrderNoticeMessage(huerfano, ORDER_URL, labels),
     ).toContain("2 × Jugo Verde — $80");
+  });
+
+  it("si el pedido tiene horario, lo presenta como cita con dia y hora", () => {
+    const cita: Order = {
+      ...order,
+      appointment: {
+        startsAt: new Date("2032-05-20T16:00:00.000Z"),
+        endsAt: new Date("2032-05-20T17:00:00.000Z"),
+      },
+      lines: [{ ...order.lines[0], title: "Masaje de recuperacion" }],
+    };
+
+    expect(
+      buildWhatsappOrderNoticeMessage(cita, ORDER_URL, appointmentLabels),
+    ).toBe(
+      [
+        "Hola, te agendé esta cita de servicio:",
+        "",
+        "Cita: jueves 20 de mayo de 2032, 10:00",
+        "",
+        "2 × Masaje de recuperacion — $80",
+        "",
+        "Total: $80",
+        "https://hazlosano.com/pedido/abc-123",
+      ].join("\n"),
+    );
   });
 });
 
