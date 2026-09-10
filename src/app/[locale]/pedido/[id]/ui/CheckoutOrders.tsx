@@ -41,6 +41,10 @@ export default async function CheckoutOrders({
   locale: AppLocale;
 }) {
   const t = await getTranslations("orders");
+  const dateFormatter = new Intl.DateTimeFormat(locale, {
+    dateStyle: "full",
+    timeStyle: "short",
+  });
 
   return (
     <Surface
@@ -101,7 +105,16 @@ export default async function CheckoutOrders({
                   sellerPhone={order.sellerPhone}
                   orderUrl={absoluteOrderUrl(locale, order.id)}
                   labels={{
-                    intro: t("noticeIntro"),
+                    intro: order.appointment
+                      ? t("appointmentNoticeIntro")
+                      : t("noticeIntro"),
+                    appointmentWhen: order.appointment
+                      ? t("appointmentNoticeWhen", {
+                          date: dateFormatter.format(
+                            order.appointment.startsAt,
+                          ),
+                        })
+                      : undefined,
                     total: t("total"),
                     cta: t("notifyShort"),
                   }}

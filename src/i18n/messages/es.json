@@ -973,10 +973,16 @@
       "PREPARING": "Empezar a prepararlo"
     },
     "appointmentWhen": "Cita: {date}",
+    "appointmentCreatedOn": "Agendada el {date}",
+    "appointmentDetailWhen": "Cita para {date}",
     "appointmentsEmpty": "Todavía no tienes citas próximas.",
     "appointmentsHeading": "Mis citas",
     "appointmentsIntro": "Tus servicios agendados, con la hora reservada, la tienda que te atiende y el pedido que los respalda.",
     "appointmentsMetaDescription": "Servicios agendados y sus pedidos.",
+    "appointmentNoticeIntro": "Hola, te agendé esta cita de servicio:",
+    "appointmentNoticeWhen": "Cita: {date}",
+    "appointmentPlaced": "Cita agendada",
+    "appointmentPlacedHint": "Falta un paso: avísale al prestador por WhatsApp para que tenga la fecha y hora de tu cita.",
     "buyer": "Lo pidió {name}",
     "buyerEmpty": "Todavía no has hecho ningún pedido.",
     "buyerEmptyCta": "Ver el catálogo",
@@ -1367,6 +1373,7 @@
     "whyHeading": "¿Por qué estos cuatro pilares?"
   },
   "post": {
+    "bookAppointmentsLink": "Mis citas",
     "bookDone": "Tu cita quedó agendada.",
     "bookDoneHelp": "Puedes verla y darle seguimiento en",
     "bookHeading": "Elige tu hora",

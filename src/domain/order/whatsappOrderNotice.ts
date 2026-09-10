@@ -4,6 +4,8 @@ import { lineAmount, type Order, orderTotal } from "./order";
 export interface OrderNoticeLabels {
   /** Encabeza el mensaje. Ej.: "Hola, te acabo de hacer un pedido:" */
   intro: string;
+  /** Fecha de la cita ya formateada en el idioma de quien avisa. */
+  appointmentWhen?: string;
   /** Etiqueta del total. Ej.: "Total" */
   total: string;
 }
@@ -24,8 +26,12 @@ export function buildWhatsappOrderNoticeMessage(
   const items = order.lines
     .map((line) => `${line.quantity} × ${line.title} — $${lineAmount(line)}`)
     .join("\n");
+  const appointmentLine =
+    order.appointment && labels.appointmentWhen
+      ? `\n\n${labels.appointmentWhen}`
+      : "";
 
-  return `${labels.intro}\n\n${items}\n\n${labels.total}: $${orderTotal(order.lines)}\n${orderUrl}`;
+  return `${labels.intro}${appointmentLine}\n\n${items}\n\n${labels.total}: $${orderTotal(order.lines)}\n${orderUrl}`;
 }
 
 /** El enlace listo para `wa.me`, o `null` cuando la tienda no tiene número al que escribir. */

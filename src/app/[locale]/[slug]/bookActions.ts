@@ -53,6 +53,7 @@ export async function bookSlot(
 
   /* La ficha vuelve a pintarse sin el hueco que se acaba de ocupar, y los pedidos del vendedor
      enseñan la cita nueva. */
+  revalidatePath("/citas");
   revalidatePath("/pedidos");
 
   return { booked: true, orderId: result.orderId };

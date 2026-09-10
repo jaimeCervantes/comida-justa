@@ -95,11 +95,22 @@ export default async function PedidoPage({
         readCartSelection(),
       ])
     : [[], []];
+  const isAppointment = Boolean(order.appointment);
+  const appointmentDate = order.appointment
+    ? format.dateTime(order.appointment.startsAt, {
+        dateStyle: "full",
+        timeStyle: "short",
+      })
+    : null;
 
   return (
     <main>
       <Heading level={1} className="mb-2">
-        {isBuyer ? t("placed") : t("title")}
+        {isAppointment
+          ? t("appointmentPlaced")
+          : isBuyer
+            ? t("placed")
+            : t("title")}
       </Heading>
 
       <p className="mb-6 flex flex-wrap items-center gap-x-3 gap-y-1 text-text-support">
@@ -110,9 +121,13 @@ export default async function PedidoPage({
             `toLocaleDateString(locale)`: el locale del routing es `es` a secas e `Intl` lo lee como
             español de España. Es el mismo tropiezo que ya arregló `CurrencyAmount`. */}
         <span data-testid="order-placed-on" className="text-label">
-          {t("placedOn", {
-            date: format.dateTime(order.createdAt, { dateStyle: "medium" }),
-          })}
+          {isAppointment
+            ? t("appointmentCreatedOn", {
+                date: format.dateTime(order.createdAt, { dateStyle: "medium" }),
+              })
+            : t("placedOn", {
+                date: format.dateTime(order.createdAt, { dateStyle: "medium" }),
+              })}
         </span>
       </p>
 
@@ -128,6 +143,15 @@ export default async function PedidoPage({
         <Heading level={2} size="xs" className="mb-3">
           {order.sellerName}
         </Heading>
+
+        {appointmentDate ? (
+          <p
+            className="mb-3 font-medium text-text-base"
+            data-testid="order-appointment-detail"
+          >
+            {t("appointmentDetailWhen", { date: appointmentDate })}
+          </p>
+        ) : null}
 
         {/* Sólo al vendedor: a quien compró, decirle que lo pidió él no le informa de nada. */}
         {isSeller ? (
@@ -147,13 +171,20 @@ export default async function PedidoPage({
             misma regla que aplica la lista. */}
         {isBuyer && canNotifySeller(order.status) ? (
           <div className="mt-4 border-t border-separator pt-4">
-            <p className="mb-3 text-text-support">{t("placedHint")}</p>
+            <p className="mb-3 text-text-support">
+              {isAppointment ? t("appointmentPlacedHint") : t("placedHint")}
+            </p>
             <NotifySellerButton
               order={order}
               sellerPhone={order.sellerPhone}
               orderUrl={absoluteOrderUrl(locale, order.id)}
               labels={{
-                intro: t("noticeIntro"),
+                intro: isAppointment
+                  ? t("appointmentNoticeIntro")
+                  : t("noticeIntro"),
+                appointmentWhen: appointmentDate
+                  ? t("appointmentNoticeWhen", { date: appointmentDate })
+                  : undefined,
                 total: t("total"),
                 cta: t("notifySeller", { store: order.sellerName }),
               }}

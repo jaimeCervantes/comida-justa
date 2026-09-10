@@ -973,10 +973,16 @@
       "PREPARING": "Start preparing it"
     },
     "appointmentWhen": "Appointment: {date}",
+    "appointmentCreatedOn": "Scheduled on {date}",
+    "appointmentDetailWhen": "Appointment for {date}",
     "appointmentsEmpty": "You have no upcoming appointments yet.",
     "appointmentsHeading": "My appointments",
     "appointmentsIntro": "Your booked services, with the reserved time, the store serving you and the order behind them.",
     "appointmentsMetaDescription": "Booked services and their orders.",
+    "appointmentNoticeIntro": "Hi, I scheduled this service appointment with you:",
+    "appointmentNoticeWhen": "Appointment: {date}",
+    "appointmentPlaced": "Appointment scheduled",
+    "appointmentPlacedHint": "One step left: message the provider on WhatsApp so they have your appointment date and time.",
     "buyer": "Ordered by {name}",
     "buyerEmpty": "You have not placed any order yet.",
     "buyerEmptyCta": "Browse the catalog",
@@ -1367,6 +1373,7 @@
     "whyHeading": "Why these four pillars?"
   },
   "post": {
+    "bookAppointmentsLink": "My appointments",
     "bookDone": "Your appointment is scheduled.",
     "bookDoneHelp": "You can view it and follow up in",
     "bookHeading": "Pick your time",

@@ -51,11 +51,11 @@ export default function SlotPicker({
         <p className="mt-1 text-text-support">
           {t("bookDoneHelp")}{" "}
           <Link
-            href={{ pathname: "/pedidos", query: { vista: "placed" } }}
-            data-testid="book-orders-link"
+            href="/citas"
+            data-testid="book-appointments-link"
             className="font-medium text-pw-green underline"
           >
-            {t("bookOrdersLink")}
+            {t("bookAppointmentsLink")}
           </Link>
         </p>
       </div>

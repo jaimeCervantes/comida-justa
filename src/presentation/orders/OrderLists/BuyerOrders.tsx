@@ -1,5 +1,5 @@
 "use client";
-import { useLocale, useTranslations } from "next-intl";
+import { useFormatter, useLocale, useTranslations } from "next-intl";
 import type { OrderWithSeller } from "~/domain/order/ports";
 import { Link } from "~/i18n/navigation";
 import { resolveLocale } from "~/i18n/routing";
@@ -27,6 +27,7 @@ export default function BuyerOrders({
   emptyKey: "filtered" | "none";
 }) {
   const t = useTranslations("orders");
+  const format = useFormatter();
   /* `useLocale` y no una prop: el idioma ya viaja en el contexto de next-intl, y sólo hace falta
      para armar la dirección que va dentro del mensaje. `resolveLocale` porque llega como `string`. */
   const locale = resolveLocale(useLocale());
@@ -68,7 +69,17 @@ export default function BuyerOrders({
               sellerPhone={order.sellerPhone}
               orderUrl={absoluteOrderUrl(locale, order.id)}
               labels={{
-                intro: t("noticeIntro"),
+                intro: order.appointment
+                  ? t("appointmentNoticeIntro")
+                  : t("noticeIntro"),
+                appointmentWhen: order.appointment
+                  ? t("appointmentNoticeWhen", {
+                      date: format.dateTime(order.appointment.startsAt, {
+                        dateStyle: "full",
+                        timeStyle: "short",
+                      }),
+                    })
+                  : undefined,
                 total: t("total"),
                 /* Sin el nombre de la tienda: está escrito arriba, en esta misma tarjeta, y
                    repetirlo desbordaba el botón en pantallas estrechas. */
