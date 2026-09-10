@@ -1,13 +1,13 @@
 import { getTranslations } from "next-intl/server";
 import {
   PUBLICATION_PILLAR_QUERY_PARAM,
-  PUBLICATION_PILLARS,
   type PublicationPillar,
 } from "~/domain/entities/post/publicationPillars";
 import { type AppHref, Link } from "~/i18n/navigation";
-import { BadgeCounter } from "~/presentation/design_system/badges/Badge";
 import { cn } from "~/presentation/design_system/styling/merge-class-names";
-import { Heading } from "~/presentation/design_system/typography/Heading";
+import PublicationPillarFilter, {
+  FILTER_CHIP,
+} from "~/presentation/post/PublicationPillarFilter";
 
 export const ONLY_AVAILABLE_PARAM = "disponibles";
 
@@ -19,8 +19,22 @@ interface FacetsProps {
   counts: Readonly<Record<string, number>> | null;
 }
 
-/** La misma búsqueda con un filtro cambiado. La página vuelve siempre a la 1: el orden cambió. */
-function hrefWith(
+/**
+ * Cinco filtros y un interruptor que no se parten: la fila entera se desliza.
+ *
+ * Es el mismo trato que `NearbyPillarFilter` le da a la barra de cercanía, y por el mismo motivo:
+ * partidos se llevaban tres renglones justo encima de lo que se vino a leer. El `overflow-x` vive
+ * en la fila y no en cada mitad, para que un solo gesto arrastre todo —rótulos incluidos— en vez de
+ * dejar el desplazamiento encerrado en la parte ancha.
+ */
+const IN_A_SINGLE_ROW = "shrink-0 flex-nowrap py-0";
+
+/** El rótulo en versalitas: dice de qué va cada mitad sin gastar un renglón, y se calla donde el ancho es caro. */
+const EYEBROW =
+  "hidden shrink-0 text-label font-medium uppercase tracking-[0.14em] text-text-muted sm:inline";
+
+/** La misma búsqueda con la disponibilidad cambiada. La página vuelve siempre a la 1: el orden cambió. */
+function hrefWithAvailability(
   query: string,
   pillar: PublicationPillar | null,
   onlyAvailable: boolean,
@@ -48,6 +62,17 @@ function hrefWith(
  *
  * **Se cuenta sin el filtro de pilar puesto**, que es lo que hace de esto una faceta y no un
  * marcador: con el filtro aplicado los otros tres saldrían en cero y no habría por dónde volver.
+ *
+ * **Arriba y no al lado, desde el slice 1 de `listadosCompactos.feature`.** Como barra lateral
+ * costaba 264 px del ancho —dejaba los resultados en 952 y las tarjetas en 306— y, en el teléfono,
+ * unos 360 px de alto que había que recorrer antes de ver el primer resultado. En una fila cuesta
+ * un renglón en las dos pantallas, y los resultados quedan con los mismos 1216 px que el resto del
+ * sitio.
+ *
+ * **Los pilares los pinta `PublicationPillarFilter`**, que es el mismo control que ya usan el home,
+ * la barra de cercanía, categoría, tienda y perfil. Escribir aquí una segunda fila de chips habría
+ * sido copiar cinco colores, un contador y un estado activo para que divergieran a la primera; lo
+ * que esta pantalla añade —las cuentas por pilar— viaja como prop.
  */
 export default async function SearchFacets({
   query,
@@ -56,125 +81,63 @@ export default async function SearchFacets({
   counts,
 }: FacetsProps): Promise<React.ReactElement> {
   const t = await getTranslations("search");
-  const pillarT = await getTranslations("publicationPillars");
 
   return (
     <aside
       aria-label={t("facetsLabel")}
       data-testid="search-facets"
-      className="rounded-card border border-separator bg-surface-elevation-1 p-5"
+      className="rounded-card border border-separator bg-surface-elevation-1"
     >
-      <Heading
-        level={2}
-        size="eyebrow"
-        tone="inherit"
-        className="text-text-muted"
-      >
-        {t("facetPillar")}
-      </Heading>
+      {/* `py-2` no es solo aire: `overflow-x` recorta también en vertical, y esos 8px son los que
+          dejan que el anillo de foco de un filtro se vea entero al tabular. */}
+      <div className="no-scrollbar scroll-hint-x flex items-center gap-3 overflow-x-auto px-3 py-2">
+        <span className={EYEBROW}>{t("facetPillar")}</span>
 
-      <ul className="mt-3 flex flex-col gap-1">
-        <li>
-          <Link
-            href={hrefWith(query, null, onlyAvailable)}
-            aria-current={currentPillar === null ? "true" : undefined}
-            data-testid="facet-pillar-all"
-            className={cn(
-              "focus-ring flex items-center justify-between rounded-chip px-2 py-2 text-label transition-colors hover:bg-surface-elevation-2",
-              currentPillar === null
-                ? "font-semibold text-brand-green-900"
-                : "text-text-base",
-            )}
-          >
-            {pillarT("all")}
-          </Link>
-        </li>
+        <PublicationPillarFilter
+          currentPillar={currentPillar}
+          pathname="/buscar"
+          query={{
+            q: query,
+            [ONLY_AVAILABLE_PARAM]: onlyAvailable ? "1" : undefined,
+          }}
+          counts={counts}
+          testIdPrefix="facet-pillar"
+          className={IN_A_SINGLE_ROW}
+        />
 
-        {PUBLICATION_PILLARS.map(({ key, categoryKey, number }) => {
-          const isActive = currentPillar === key;
-          /* `countByCategory` solo devuelve las categorías que **tienen** filas, así que un pilar
-             vacío no viene en el mapa. Se rellena con cero en vez de callarlo: decir «Mente y
-             Espíritu 0» ahorra el clic que no lleva a ninguna parte, y esa es la mitad del valor de
-             una faceta. `undefined` queda reservado para «no se pueden afirmar». */
-          const count = counts ? (counts[categoryKey] ?? 0) : undefined;
-          /* Cero no se esconde: decir «Mente y Espíritu 0» ahorra el clic que no lleva a ninguna
-             parte, que es la mitad del valor de una faceta. Pero sí se apaga. */
-          const isEmpty = count === 0;
+        <span aria-hidden className="h-6 w-px shrink-0 bg-separator" />
 
-          return (
-            <li key={key}>
-              <Link
-                href={hrefWith(query, isActive ? null : key, onlyAvailable)}
-                aria-current={isActive ? "true" : undefined}
-                data-testid={`facet-pillar-${key}`}
-                className={cn(
-                  "focus-ring flex items-center justify-between gap-2 rounded-chip px-2 py-2 text-label transition-colors hover:bg-surface-elevation-2",
-                  isActive
-                    ? "font-semibold text-brand-green-900"
-                    : isEmpty
-                      ? "text-text-muted"
-                      : "text-text-base",
-                )}
-              >
-                <span className="flex items-center gap-2">
-                  {/* El número del pilar acompaña siempre al color: Movimiento y Mente contrastan
-                      1.14 entre sí como tinta. */}
-                  <BadgeCounter tone={key}>{number}</BadgeCounter>
-                  {pillarT(key)}
-                </span>
+        <span className={EYEBROW}>{t("facetAvailability")}</span>
 
-                {count === undefined ? null : (
-                  <span
-                    data-testid={`facet-count-${key}`}
-                    className="font-mono text-caption text-text-muted tabular-nums"
-                  >
-                    {count}
-                  </span>
-                )}
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
-
-      <hr className="my-4 border-separator" />
-
-      <Heading
-        level={2}
-        size="eyebrow"
-        tone="inherit"
-        className="text-text-muted"
-      >
-        {t("facetAvailability")}
-      </Heading>
-
-      {/* Un enlace y no una casilla: la búsqueda entera vive en la dirección, así que este filtro
-          se comparte, se guarda y vuelve con el botón de atrás como cualquier otro. Una casilla
-          controlada por JavaScript no haría ninguna de las tres. */}
-      <Link
-        href={hrefWith(query, currentPillar, !onlyAvailable)}
-        aria-pressed={onlyAvailable}
-        data-testid="facet-only-available"
-        className={cn(
-          "focus-ring mt-3 flex items-center gap-2 rounded-chip px-2 py-2 text-label transition-colors hover:bg-surface-elevation-2",
-          onlyAvailable
-            ? "font-semibold text-brand-green-900"
-            : "text-text-base",
-        )}
-      >
-        <span
-          aria-hidden
+        {/* Un enlace y no una casilla: la búsqueda entera vive en la dirección, así que este filtro
+            se comparte, se guarda y vuelve con el botón de atrás como cualquier otro. Una casilla
+            controlada por JavaScript no haría ninguna de las tres. */}
+        <Link
+          href={hrefWithAvailability(query, currentPillar, !onlyAvailable)}
+          aria-pressed={onlyAvailable}
+          data-testid="facet-only-available"
           className={cn(
-            "grid size-4 shrink-0 place-items-center rounded-chip border",
+            FILTER_CHIP,
+            "gap-2",
             onlyAvailable
-              ? "border-brand-green-900 bg-brand-green-soft text-brand-green-900"
-              : "border-border-field",
+              ? "border-pw-green bg-pw-green text-white"
+              : "border-separator bg-surface-elevation-1 text-text-base hover:bg-surface-elevation-2",
           )}
         >
-          {onlyAvailable ? "✓" : null}
-        </span>
-        {t("facetOnlyAvailable")}
-      </Link>
+          <span
+            aria-hidden
+            className={cn(
+              "grid size-4 shrink-0 place-items-center rounded-chip border",
+              onlyAvailable
+                ? "border-white bg-white/20 text-white"
+                : "border-border-field",
+            )}
+          >
+            {onlyAvailable ? "✓" : null}
+          </span>
+          {t("facetOnlyAvailable")}
+        </Link>
+      </div>
     </aside>
   );
 }

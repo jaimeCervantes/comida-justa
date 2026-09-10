@@ -88,7 +88,11 @@ export default async function SearchPage({
         />
       ) : null}
 
-      <div className="mt-4 grid gap-6 lg:grid-cols-[minmax(0,240px)_minmax(0,1fr)] lg:items-start">
+      {/* Los filtros arriba y no al lado: como barra lateral se llevaban 264 px del ancho —dejaban
+          los resultados en 952 y las tarjetas en 306— y unos 360 px de alto en el teléfono, que
+          había que recorrer antes de ver el primer resultado. Ver el slice 1 de
+          `docs/features/platform/039-2026-09-10-listados-compactos.md`. */}
+      <div className="mt-4">
         {/* Las facetas solo tienen sentido con algo que filtrar. */}
         {q ? (
           <SearchFacets
@@ -99,35 +103,37 @@ export default async function SearchPage({
           />
         ) : null}
 
-        <div>
-          {q && cards.length === 0 && (
-            <EmptyState
-              testId="search-empty"
-              title={publicationPillarEmptyMessage({
-                currentPillar,
-                fallback: t("noResults"),
-                t: pillarT,
-              })}
-              action={
-                <Link
-                  href="/productos"
-                  /* `default` y no `white`: la tarjeta del vacío ya es blanca, y el relleno blanco
-                 dejaba el botón sin silueta. */
-                  className={buttonVariants({ color: "default", size: "sm" })}
-                >
-                  {t("noResultsCta")}
-                </Link>
-              }
-            >
-              {t("noResultsBody")}
-            </EmptyState>
-          )}
-          <section className={`${CARD_MASONRY} pt-6`}>
-            {cards.map((card) => (
-              <CardForList key={card.id} {...card} viewerId={viewerId} />
-            ))}
-          </section>
-        </div>
+        {q && cards.length === 0 && (
+          <EmptyState
+            testId="search-empty"
+            className="mt-6"
+            title={publicationPillarEmptyMessage({
+              currentPillar,
+              fallback: t("noResults"),
+              t: pillarT,
+            })}
+            action={
+              <Link
+                href="/productos"
+                /* `default` y no `white`: la tarjeta del vacío ya es blanca, y el relleno blanco
+               dejaba el botón sin silueta. */
+                className={buttonVariants({ color: "default", size: "sm" })}
+              >
+                {t("noResultsCta")}
+              </Link>
+            }
+          >
+            {t("noResultsBody")}
+          </EmptyState>
+        )}
+        <section
+          data-testid="search-results"
+          className={`${CARD_MASONRY} pt-6`}
+        >
+          {cards.map((card) => (
+            <CardForList key={card.id} {...card} viewerId={viewerId} />
+          ))}
+        </section>
       </div>
       <Pagination
         currentPage={pageInt}

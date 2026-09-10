@@ -18,12 +18,39 @@ interface PublicationPillarFilterProps {
   /** Por omisión asume que va justo debajo de un título o buscador. `NearbyPillarFilter` lo
    * sobrescribe: ahí ya vive dentro de una fila con su propio espaciado. */
   className?: string;
+  /**
+   * Cuántos resultados hay por pilar, cuando se pueden afirmar.
+   *
+   * Es lo que convierte el filtro en una **faceta**: un "0" ahorra el clic que no lleva a ninguna
+   * parte, y esa es la mitad de su valor. Se indexa por `categoryKey` porque así es como cuenta
+   * quien consulta. `null` y `undefined` no son lo mismo: `null` es "no se pueden afirmar" —el
+   * rescate semántico respondió y contar palabras describiría otra cosa— y entonces no se enseña
+   * ningún número; una clave ausente dentro del mapa sí es un cero.
+   */
+  counts?: Readonly<Record<string, number>> | null;
+  /**
+   * Prefijo de `data-testid` por chip, para quien tenga su propio contrato.
+   *
+   * La búsqueda ya publicaba `facet-pillar-<key>` antes de que este componente la alojara, y ese
+   * nombre es el que conocen sus pruebas. Se hereda en vez de renombrarlo: mudar un control no es
+   * motivo para romper a quien lo apuntaba.
+   */
+  testIdPrefix?: string;
 }
 
-/* `shrink-0` para el montaje de la barra del chrome, que los pone en una fila deslizable: sin él
-   los cinco se comprimirían hasta partir su etiqueta en vez de salirse y dejarse arrastrar. Donde
-   la fila se parte (las otras cuatro rutas) no cambia nada: ahí nunca les falta ancho. */
-const BASE_LINK =
+/**
+ * La forma de un chip de filtro: una sola, para que los que van en la misma fila se lean como un
+ * grupo y no como dos controles que coincidieron.
+ *
+ * Se exporta porque la búsqueda pone «Solo con existencia» junto a estos cinco. El color y el
+ * estado los decide cada uno; lo que no se decide dos veces es el alto, el radio y el relleno —que
+ * es justo lo que se nota cuando difiere—.
+ *
+ * `shrink-0` para el montaje de la barra del chrome, que los pone en una fila deslizable: sin él
+ * los cinco se comprimirían hasta partir su etiqueta en vez de salirse y dejarse arrastrar. Donde
+ * la fila se parte (las otras cuatro rutas) no cambia nada: ahí nunca les falta ancho.
+ */
+export const FILTER_CHIP =
   "focus-ring inline-flex min-h-10 shrink-0 items-center rounded-full border px-4 py-2 text-sm font-semibold transition-colors";
 
 const ALL_ACTIVE = "border-pw-green bg-pw-green text-white";
@@ -103,6 +130,8 @@ export default function PublicationPillarFilter({
   params,
   query,
   className,
+  counts,
+  testIdPrefix,
 }: PublicationPillarFilterProps): React.ReactNode {
   const t = useTranslations("publicationPillars");
 
@@ -121,15 +150,17 @@ export default function PublicationPillarFilter({
           pillar: null,
         })}
         aria-current={currentPillar === null ? "page" : undefined}
-        className={`${BASE_LINK} ${
+        data-testid={testIdPrefix ? `${testIdPrefix}-all` : undefined}
+        className={`${FILTER_CHIP} ${
           currentPillar === null ? ALL_ACTIVE : ALL_INACTIVE
         }`}
       >
         {t("all")}
       </Link>
-      {PUBLICATION_PILLARS.map(({ key, number }) => {
+      {PUBLICATION_PILLARS.map(({ key, categoryKey, number }) => {
         const active = currentPillar === key;
         const color = PILLAR_CLASSES[key];
+        const count = counts ? (counts[categoryKey] ?? 0) : undefined;
 
         return (
           <Link
@@ -142,13 +173,29 @@ export default function PublicationPillarFilter({
               pillar: key,
             })}
             aria-current={active ? "page" : undefined}
-            className={`${BASE_LINK} gap-2 pl-2 ${active ? color.active : color.inactive}`}
+            data-testid={testIdPrefix ? `${testIdPrefix}-${key}` : undefined}
+            /* El pilar sin nada se apaga, pero no se esconde ni se desactiva: sigue siendo el
+               camino de vuelta cuando ya hay un filtro puesto. */
+            className={cn(
+              FILTER_CHIP,
+              "gap-2 pl-2",
+              active ? color.active : color.inactive,
+              count === 0 && !active && "opacity-60",
+            )}
           >
             {/* El número acompaña siempre al color. Movimiento y Mente contrastan 1.14 entre sí
                 como tinta —lo dejó medido `pillarPalette.contrast.test.ts`—, así que quien no
                 distingue el tono necesita este dato para saber qué filtro está pulsando. */}
             <BadgeCounter tone={key}>{number}</BadgeCounter>
             {t(key)}
+            {count === undefined ? null : (
+              <span
+                data-testid={testIdPrefix ? `facet-count-${key}` : undefined}
+                className="font-mono text-caption tabular-nums opacity-80"
+              >
+                {count}
+              </span>
+            )}
           </Link>
         );
       })}
