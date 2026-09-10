@@ -61,6 +61,22 @@ export default function OrderCard({
               {t("items", { count: orderItemCount(order.lines) })}
             </span>
           </span>
+          {order.appointment ? (
+            <span
+              className="text-label font-medium text-text-base"
+              data-testid="order-appointment"
+            >
+              {t("appointmentWhen", {
+                date: format.dateTime(order.appointment.startsAt, {
+                  weekday: "short",
+                  day: "numeric",
+                  month: "short",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                }),
+              })}
+            </span>
+          ) : null}
         </div>
 
         {/* La insignia y **desde cuándo**, juntas: la insignia habla del presente, así que la fecha

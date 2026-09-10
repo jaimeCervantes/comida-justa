@@ -43,6 +43,7 @@ const RUTAS = [
      esperando un elemento de una ruta que aún no existía compilada, y todos verdes al reintentar.
      Las pisa cada escenario de `orders`. */
   "/carrito",
+  "/citas",
   "/pedidos",
   /* Sin sesión redirige a identificarse, y eso basta: lo que se busca es compilar el segmento, no
      ver un pedido. El uuid de ceros no existe ni existirá. */

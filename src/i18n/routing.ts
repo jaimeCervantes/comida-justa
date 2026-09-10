@@ -52,6 +52,7 @@ export const pathnames = {
     en: "/account/inventory",
   },
   "/carrito": { es: "/carrito", en: "/cart" },
+  "/citas": { es: "/citas", en: "/appointments" },
   "/pedidos": { es: "/pedidos", en: "/orders" },
   /* El id no se traduce: es un uuid. La página es privada —solo la ven quien compró y quien
      vende—, así que su dirección no se reparte ni se indexa. */

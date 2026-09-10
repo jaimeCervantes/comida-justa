@@ -128,6 +128,8 @@
     "scheduleFormLabel": "Edit weekly hours",
     "scheduleFrom": "From",
     "scheduleHeading": "Your schedule",
+    "scheduleAppointmentsTab": "Appointments",
+    "scheduleAvailabilityTab": "Availability",
     "scheduleIntro": "Say when you are available and people will be able to pick a slot when they book your services. Without a schedule, your services are requested like anything else and you reply yourself.",
     "scheduleInvalid": "The end time has to come after the start time.",
     "scheduleLink": "Set up your schedule",
@@ -142,6 +144,7 @@
     "scheduleSummaryWeeklyCount": "{count, plural, one {# weekly slot} other {# weekly slots}}",
     "scheduleSummaryWeeklyEmpty": "No weekly hours",
     "scheduleSubmit": "Save my schedule",
+    "scheduleTabsLabel": "Schedule sections",
     "scheduleTo": "To",
     "scheduleWeekday": "Day",
     "setupDone": "Done",
@@ -928,6 +931,7 @@
     "communitySections": "Sections",
     "events": "Events",
     "eventsDescription": "Workshops, rides, meditations and dated gatherings",
+    "appointments": "My appointments",
     "inventory": "My inventory",
     "moderation": "Moderation",
     "myAccount": "My account",
@@ -968,6 +972,11 @@
       "DELIVERED": "Mark as delivered",
       "PREPARING": "Start preparing it"
     },
+    "appointmentWhen": "Appointment: {date}",
+    "appointmentsEmpty": "You have no upcoming appointments yet.",
+    "appointmentsHeading": "My appointments",
+    "appointmentsIntro": "Your booked services, with the reserved time, the store serving you and the order behind them.",
+    "appointmentsMetaDescription": "Booked services and their orders.",
     "buyer": "Ordered by {name}",
     "buyerEmpty": "You have not placed any order yet.",
     "buyerEmptyCta": "Browse the catalog",
@@ -1003,6 +1012,7 @@
     "placedHint": "One step left: message the store on WhatsApp so they can prepare it.",
     "placedOn": "Placed on {date}",
     "previous": "Previous",
+    "pastAppointments": "Past and closed",
     "scope": {
       "all": "All",
       "closed": "Finished",
@@ -1011,6 +1021,7 @@
     "searchLabel": "Search your orders",
     "searchPlaceholder": "Search a product…",
     "sellerEmpty": "Nobody has ordered from you yet.",
+    "sellerAppointmentsEmpty": "You have no upcoming appointments with customers.",
     "signInToOrder": "Sign in to place your order",
     "since": {
       "DRAFT": "Draft since {date}",
@@ -1036,6 +1047,7 @@
     },
     "title": "Order",
     "total": "Total",
+    "upcomingAppointments": "Upcoming",
     "viewOrder": "View order"
   },
   "pillarLocal": {

@@ -36,6 +36,7 @@ export const ACCOUNT_PAGE_LAYOUT =
  */
 export type AccountSectionKey =
   | "account"
+  | "appointments"
   | "orders"
   | "inventory"
   | "schedule"
@@ -114,6 +115,10 @@ export default function AccountNav({
 
       <NavItem href="/pedidos" active={active === "orders"}>
         {t("myOrders")}
+      </NavItem>
+
+      <NavItem href="/citas" active={active === "appointments"}>
+        {t("appointments")}
       </NavItem>
 
       {/* Las dos de tienda van juntas y bajo la misma condición: sin tienda, ni hay catálogo que

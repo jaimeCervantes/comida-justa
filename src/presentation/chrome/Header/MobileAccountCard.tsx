@@ -48,16 +48,24 @@ export default function MobileAccountCard({
         </span>
       </Link>
 
-      {/* Fuera del bloque condicional de abajo: los pedidos se ofrecen aunque no haya tienda ni
-          dirección personal reclamada, que es el caso de 20 de los 21 usuarios de hoy. */}
-      <Link
-        href="/pedidos"
-        onClick={onNavigate}
-        className={SHORTCUT_CLASS}
-        data-testid="mobile-my-orders"
-      >
-        {t("myOrders")}
-      </Link>
+      <div className="flex gap-3">
+        <Link
+          href="/pedidos"
+          onClick={onNavigate}
+          className={SHORTCUT_CLASS}
+          data-testid="mobile-my-orders"
+        >
+          {t("myOrders")}
+        </Link>
+        <Link
+          href="/citas"
+          onClick={onNavigate}
+          className={SHORTCUT_CLASS}
+          data-testid="mobile-my-appointments"
+        >
+          {t("appointments")}
+        </Link>
+      </div>
 
       {storeHandle || username ? (
         <div className="flex gap-3">

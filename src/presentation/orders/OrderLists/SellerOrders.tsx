@@ -3,6 +3,7 @@ import { useTranslations } from "next-intl";
 import { useActionState } from "react";
 import { nextStatuses } from "~/domain/order/order";
 import type { OrderWithBuyer } from "~/domain/order/ports";
+import { Link } from "~/i18n/navigation";
 import { Button } from "~/presentation/design_system/buttons/Button";
 import OrderBuyer from "~/presentation/orders/OrderBuyer/OrderBuyer";
 import OrderCard from "~/presentation/orders/OrderCard/OrderCard";
@@ -89,23 +90,33 @@ function SellerOrderCard({ order }: { order: OrderWithBuyer }) {
       }
     >
       {/* Un pedido entregado o cancelado no ofrece nada: `nextStatuses` devuelve la lista vacía. */}
-      <div className="flex flex-wrap gap-2">
-        {nextStatuses(order.status).map((status) => (
-          <form key={status} action={action}>
-            <input type="hidden" name="orderId" value={order.id} />
-            <input type="hidden" name="status" value={status} />
-            <Button
-              type="submit"
-              size="sm"
-              color={status === "CANCELLED" ? "default" : "green"}
-              isLoading={isPending}
-              disabled={isPending}
-              data-testid={`order-action-${status}`}
-            >
-              {t(`action.${status}`)}
-            </Button>
-          </form>
-        ))}
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <Link
+          href={{ pathname: "/pedido/[id]", params: { id: order.id } }}
+          data-testid="seller-order-link"
+          className="focus-ring rounded-control px-2 py-1 font-medium text-pw-green hover:underline"
+        >
+          {t("viewOrder")}
+        </Link>
+
+        <div className="flex flex-wrap gap-2">
+          {nextStatuses(order.status).map((status) => (
+            <form key={status} action={action}>
+              <input type="hidden" name="orderId" value={order.id} />
+              <input type="hidden" name="status" value={status} />
+              <Button
+                type="submit"
+                size="sm"
+                color={status === "CANCELLED" ? "default" : "green"}
+                isLoading={isPending}
+                disabled={isPending}
+                data-testid={`order-action-${status}`}
+              >
+                {t(`action.${status}`)}
+              </Button>
+            </form>
+          ))}
+        </div>
       </div>
 
       {state.error ? (

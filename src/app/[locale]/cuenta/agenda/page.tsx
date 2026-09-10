@@ -1,14 +1,18 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import type { User } from "~/domain/entities/post/types";
+import { splitAppointmentOrders } from "~/domain/order/appointments";
+import { Link } from "~/i18n/navigation";
 import { resolveLocale } from "~/i18n/routing";
 import { auth } from "~/infra/auth";
 import { redirectToSignIn } from "~/infra/auth/redirectToSignIn";
+import { createOrderRepository } from "~/infra/dataAccess/orders/factory";
 import { createScheduleRepository } from "~/infra/dataAccess/schedule/factory";
 import { createSellerRepository } from "~/infra/dataAccess/sellers/factory";
 import { CARD_PADDING } from "~/presentation/design_system/surfaces/cardSpacing";
 import { Surface } from "~/presentation/design_system/surfaces/Surface";
 import { Heading } from "~/presentation/design_system/typography/Heading";
+import SellerOrders from "~/presentation/orders/OrderLists/SellerOrders";
 import AccountCard from "../ui/AccountCard";
 import AccountSection from "../ui/AccountSection";
 import ScheduleForm, { type ScheduleLabels } from "./ui/ScheduleForm";
@@ -29,18 +33,24 @@ export async function generateMetadata(): Promise<Metadata> {
  */
 export default async function AgendaPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string }>;
+  searchParams?: Promise<{ tab?: string | string[] }>;
 }) {
   const { locale } = await params;
-  setRequestLocale(resolveLocale(locale));
+  const resolvedLocale = resolveLocale(locale);
+  setRequestLocale(resolvedLocale);
   const t = await getTranslations("account");
+  const tOrders = await getTranslations("orders");
   const tCommon = await getTranslations("common");
+  const requestedTab = firstParam((await searchParams)?.tab);
+  const activeTab = requestedTab === "citas" ? "appointments" : "availability";
 
   const session = await auth();
   const userId = (session?.user as User | undefined)?.id;
 
-  if (!userId) redirectToSignIn(resolveLocale(locale), "/cuenta/agenda");
+  if (!userId) redirectToSignIn(resolvedLocale, "/cuenta/agenda");
 
   const seller = await createSellerRepository().findByUserId(userId);
 
@@ -52,6 +62,88 @@ export default async function AgendaPage({
           {t("scheduleHeading")}
         </Heading>
         <p data-testid="schedule-needs-store">{t("scheduleNeedsStore")}</p>
+      </AccountSection>
+    );
+  }
+
+  function AgendaHeader(): React.ReactElement {
+    return (
+      <header className="flex flex-col gap-4">
+        <div>
+          <Heading level={1} className="mb-2">
+            {t("scheduleHeading")}
+          </Heading>
+          <p className="max-w-3xl text-text-support">{t("scheduleIntro")}</p>
+        </div>
+
+        <nav
+          aria-label={t("scheduleTabsLabel")}
+          className="flex flex-wrap gap-2"
+          data-testid="schedule-tabs"
+        >
+          <Link
+            href="/cuenta/agenda"
+            aria-current={activeTab === "availability" ? "page" : undefined}
+            className={tabClass(activeTab === "availability")}
+          >
+            {t("scheduleAvailabilityTab")}
+          </Link>
+          <Link
+            href={{ pathname: "/cuenta/agenda", query: { tab: "citas" } }}
+            aria-current={activeTab === "appointments" ? "page" : undefined}
+            className={tabClass(activeTab === "appointments")}
+          >
+            {t("scheduleAppointmentsTab")}
+          </Link>
+        </nav>
+      </header>
+    );
+  }
+
+  if (activeTab === "appointments") {
+    const appointments = await createOrderRepository().listAppointmentsBySeller(
+      {
+        sellerId: seller.id,
+        locale: resolvedLocale,
+        fallbackLocale: "es",
+      },
+    );
+    const groups = splitAppointmentOrders(appointments);
+
+    return (
+      <AccountSection active="schedule">
+        <div className="flex flex-col gap-6" data-testid="seller-appointments">
+          <AgendaHeader />
+
+          <section
+            className="flex flex-col gap-4"
+            aria-label={tOrders("upcomingAppointments")}
+            data-testid="seller-appointments-upcoming"
+          >
+            <Heading level={2}>{tOrders("upcomingAppointments")}</Heading>
+            {groups.upcoming.length > 0 ? (
+              <SellerOrders orders={groups.upcoming} emptyKey="filtered" />
+            ) : (
+              <p
+                className="text-text-support"
+                data-testid="seller-appointments-empty"
+              >
+                {tOrders("sellerAppointmentsEmpty")}
+              </p>
+            )}
+          </section>
+
+          {groups.past.length > 0 ? (
+            <section
+              className="flex flex-col gap-4"
+              aria-label={tOrders("pastAppointments")}
+              data-testid="seller-appointments-past"
+            >
+              <Heading level={2}>{tOrders("pastAppointments")}</Heading>
+              <SellerOrders orders={groups.past} emptyKey="filtered" />
+            </section>
+          ) : null}
+        </div>
       </AccountSection>
     );
   }
@@ -90,12 +182,7 @@ export default async function AgendaPage({
   return (
     <AccountSection active="schedule">
       <div className="flex flex-col gap-6">
-        <header>
-          <Heading level={1} className="mb-2">
-            {t("scheduleHeading")}
-          </Heading>
-          <p className="max-w-3xl text-text-support">{t("scheduleIntro")}</p>
-        </header>
+        <AgendaHeader />
 
         <Surface
           as="section"
@@ -171,4 +258,17 @@ export default async function AgendaPage({
       </div>
     </AccountSection>
   );
+}
+
+function firstParam(value: string | string[] | undefined): string | undefined {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+function tabClass(active: boolean): string {
+  const base =
+    "focus-ring rounded-control px-3 py-2 text-sm font-medium transition-colors";
+
+  return active
+    ? `${base} bg-brand-green-soft text-brand-green-900`
+    : `${base} text-text-base hover:bg-surface-elevation-2 hover:text-highlight`;
 }

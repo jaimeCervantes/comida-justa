@@ -128,6 +128,8 @@
     "scheduleFormLabel": "Editar horario semanal",
     "scheduleFrom": "Desde",
     "scheduleHeading": "Tu agenda",
+    "scheduleAppointmentsTab": "Citas",
+    "scheduleAvailabilityTab": "Disponibilidad",
     "scheduleIntro": "Di cuándo atiendes y la gente podrá elegir un hueco al pedir tus servicios. Sin horario, tus servicios se piden como cualquier cosa y contestas tú.",
     "scheduleInvalid": "La hora de fin tiene que ir después de la de inicio.",
     "scheduleLink": "Define tu agenda",
@@ -142,6 +144,7 @@
     "scheduleSummaryWeeklyCount": "{count, plural, one {# franja semanal} other {# franjas semanales}}",
     "scheduleSummaryWeeklyEmpty": "Sin horario semanal",
     "scheduleSubmit": "Guardar mi horario",
+    "scheduleTabsLabel": "Secciones de agenda",
     "scheduleTo": "Hasta",
     "scheduleWeekday": "Día",
     "setupDone": "Listo",
@@ -928,6 +931,7 @@
     "communitySections": "Secciones",
     "events": "Eventos",
     "eventsDescription": "Talleres, rodadas, meditaciones y encuentros con fecha",
+    "appointments": "Mis citas",
     "inventory": "Mi inventario",
     "moderation": "Moderación",
     "myAccount": "Mi cuenta",
@@ -968,6 +972,11 @@
       "DELIVERED": "Marcar entregado",
       "PREPARING": "Empezar a prepararlo"
     },
+    "appointmentWhen": "Cita: {date}",
+    "appointmentsEmpty": "Todavía no tienes citas próximas.",
+    "appointmentsHeading": "Mis citas",
+    "appointmentsIntro": "Tus servicios agendados, con la hora reservada, la tienda que te atiende y el pedido que los respalda.",
+    "appointmentsMetaDescription": "Servicios agendados y sus pedidos.",
     "buyer": "Lo pidió {name}",
     "buyerEmpty": "Todavía no has hecho ningún pedido.",
     "buyerEmptyCta": "Ver el catálogo",
@@ -1003,6 +1012,7 @@
     "placedHint": "Falta un paso: avísale a la tienda por WhatsApp para que lo prepare.",
     "placedOn": "Hecho el {date}",
     "previous": "Anterior",
+    "pastAppointments": "Pasadas y cerradas",
     "scope": {
       "all": "Todos",
       "closed": "Terminados",
@@ -1011,6 +1021,7 @@
     "searchLabel": "Buscar en tus pedidos",
     "searchPlaceholder": "Buscar producto…",
     "sellerEmpty": "Todavía no te han hecho ningún pedido.",
+    "sellerAppointmentsEmpty": "No tienes citas próximas con clientes.",
     "signInToOrder": "Inicia sesión para hacer tu pedido",
     "since": {
       "DRAFT": "En borrador desde el {date}",
@@ -1036,6 +1047,7 @@
     },
     "title": "Pedido",
     "total": "Total",
+    "upcomingAppointments": "Próximas",
     "viewOrder": "Ver el pedido"
   },
   "pillarLocal": {

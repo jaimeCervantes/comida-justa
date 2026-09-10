@@ -1,4 +1,5 @@
 import { and, eq, sql } from "drizzle-orm";
+import { hasAppointment } from "~/domain/order/appointments";
 import {
   OPEN_STATUSES,
   type Order,
@@ -9,6 +10,8 @@ import {
 } from "~/domain/order/order";
 import type { StockDemand, StockEffect } from "~/domain/order/orderStock";
 import type {
+  AppointmentOrderWithBuyer,
+  AppointmentOrderWithSeller,
   NewOrder,
   OrderPage,
   OrderQuery,
@@ -133,6 +136,8 @@ interface OrderRow {
   created_at: string;
   /** Texto por lo mismo que `created_at`, y se convierte al mapear. */
   updated_at: string;
+  appointment_starts_at: string | null;
+  appointment_ends_at: string | null;
   total_count: number;
   seller_name: string;
   seller_slug: string | null;
@@ -163,6 +168,7 @@ interface LineRow {
  * algún día un carrito se reparte entre muchas tiendas. Con las dos de hoy sobra de largo.
  */
 const CHECKOUT_MAX_ORDERS = 20;
+const APPOINTMENTS_MAX_ORDERS = 80;
 
 /** `status IN (…)`: drizzle no serializa un array de JS, así que se emite un marcador por valor. */
 function statusList(statuses: readonly OrderStatus[]) {
@@ -282,6 +288,62 @@ export class PostgresOrderRepository implements OrderRepository {
         ({ buyerName, buyerHandle, buyerImage, ...order }) => order,
       ),
     };
+  }
+
+  async listAppointmentsByBuyer({
+    buyerId,
+    locale,
+    fallbackLocale,
+    limit = APPOINTMENTS_MAX_ORDERS,
+  }: {
+    buyerId: string;
+    locale: string;
+    fallbackLocale: string;
+    limit?: number;
+  }): Promise<AppointmentOrderWithSeller[]> {
+    const page = await this.listWhere(
+      sql`o.user_id = ${buyerId} AND o.during IS NOT NULL`,
+      {
+        page: 1,
+        pageSize: limit,
+        scope: "all",
+        locale,
+        fallbackLocale,
+      },
+      sql`lower(o.during) ASC`,
+    );
+
+    return page.orders
+      .map(({ buyerName, buyerHandle, buyerImage, ...order }) => order)
+      .filter(hasAppointment);
+  }
+
+  async listAppointmentsBySeller({
+    sellerId,
+    locale,
+    fallbackLocale,
+    limit = APPOINTMENTS_MAX_ORDERS,
+  }: {
+    sellerId: string;
+    locale: string;
+    fallbackLocale: string;
+    limit?: number;
+  }): Promise<AppointmentOrderWithBuyer[]> {
+    const page = await this.listWhere(
+      sql`o.seller_id = ${sellerId}::uuid AND o.during IS NOT NULL`,
+      {
+        page: 1,
+        pageSize: limit,
+        scope: "all",
+        locale,
+        fallbackLocale,
+      },
+      sql`lower(o.during) ASC`,
+    );
+
+    return page.orders
+      .map(({ sellerName, sellerHandle, sellerPhone, ...order }) => order)
+      .filter(hasAppointment);
   }
 
   /**
@@ -538,6 +600,8 @@ export class PostgresOrderRepository implements OrderRepository {
     const raw = await db.execute(sql`
       SELECT
         o.id, o.checkout_id, o.seller_id, o.user_id, o.status, o.created_at, o.updated_at,
+        lower(o.during)::text AS appointment_starts_at,
+        upper(o.during)::text AS appointment_ends_at,
         s.name AS seller_name, s.slug AS seller_slug, s.phone AS seller_phone,
         u.name AS buyer_name, u.username AS buyer_username, u.image AS buyer_image,
         count(*) OVER ()::int AS total_count
@@ -570,6 +634,13 @@ export class PostgresOrderRepository implements OrderRepository {
         buyerId: row.user_id,
         status: row.status,
         lines: linesByOrder.get(row.id) ?? [],
+        appointment:
+          row.appointment_starts_at && row.appointment_ends_at
+            ? {
+                startsAt: new Date(row.appointment_starts_at),
+                endsAt: new Date(row.appointment_ends_at),
+              }
+            : null,
         createdAt: new Date(row.created_at),
         updatedAt: new Date(row.updated_at),
         sellerName: row.seller_name,

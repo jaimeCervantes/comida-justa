@@ -1,3 +1,5 @@
+import type { Interval } from "~/domain/schedule/slots";
+
 /**
  * Los estados por los que pasa un pedido.
  *
@@ -168,6 +170,8 @@ export interface Order {
   buyerId: string;
   status: OrderStatus;
   lines: OrderLine[];
+  /** Rango reservado cuando el pedido nacio de un servicio agendado. */
+  appointment?: Interval | null;
   createdAt: Date;
   /**
    * Desde cuándo está en el estado en que está.

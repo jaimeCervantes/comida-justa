@@ -9,12 +9,12 @@ import { redirectToSignIn } from "~/infra/auth/redirectToSignIn";
 import { findSellerOfUser } from "~/infra/dataAccess/identity/sessionIdentity";
 import { createOrderRepository } from "~/infra/dataAccess/orders/factory";
 import { Heading } from "~/presentation/design_system/typography/Heading";
+import BuyerOrders from "~/presentation/orders/OrderLists/BuyerOrders";
+import SellerOrders from "~/presentation/orders/OrderLists/SellerOrders";
 import AccountSection from "../cuenta/ui/AccountSection";
-import BuyerOrders from "./ui/BuyerOrders";
 import OrdersControls from "./ui/OrdersControls";
 import OrdersPagination from "./ui/OrdersPagination";
 import type { OrdersParams } from "./ui/ordersHref";
-import SellerOrders from "./ui/SellerOrders";
 
 /**
  * Cuántos pedidos por página.

@@ -139,6 +139,16 @@ export default function UserMenu({
             </Link>
           </DropdownMenu.Item>
 
+          <DropdownMenu.Item asChild>
+            <Link
+              href="/citas"
+              className={ITEM_CLASS}
+              data-testid="menu-my-appointments"
+            >
+              {t("appointments")}
+            </Link>
+          </DropdownMenu.Item>
+
           {storeHandle ? (
             <>
               <DropdownMenu.Item asChild>

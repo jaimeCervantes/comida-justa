@@ -56,6 +56,14 @@ export interface OrderWithBuyer extends Order {
  */
 export interface OrderWithParties extends OrderWithSeller, OrderWithBuyer {}
 
+export type AppointmentOrderWithSeller = OrderWithSeller & {
+  appointment: NonNullable<Order["appointment"]>;
+};
+
+export type AppointmentOrderWithBuyer = OrderWithBuyer & {
+  appointment: NonNullable<Order["appointment"]>;
+};
+
 /**
  * Qué trozo de la lista se pide.
  *
@@ -118,6 +126,20 @@ export interface OrderRepository {
     buyerId: string,
     query: OrderQuery,
   ): Promise<OrderPage<OrderWithSeller>>;
+
+  listAppointmentsByBuyer(input: {
+    buyerId: string;
+    locale: string;
+    fallbackLocale: string;
+    limit?: number;
+  }): Promise<AppointmentOrderWithSeller[]>;
+
+  listAppointmentsBySeller(input: {
+    sellerId: string;
+    locale: string;
+    fallbackLocale: string;
+    limit?: number;
+  }): Promise<AppointmentOrderWithBuyer[]>;
 
   /**
    * Cuántos pedidos abiertos tiene cada papel, para las pestañas.

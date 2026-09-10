@@ -84,7 +84,7 @@ export const BOTTOM_NAV_TABS: readonly BottomNavTab[] = [
     id: "account",
     href: "/cuenta",
     labelKey: "bottomAccount",
-    pathnames: ["/cuenta", "/cuenta/agenda"],
+    pathnames: ["/cuenta", "/cuenta/agenda", "/citas"],
   },
 ] as const;
 
