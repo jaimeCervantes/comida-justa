@@ -41,7 +41,26 @@ estados para no partir el flujo actual de confirmacion, preparacion, entrega o c
 - La vista funciona en movil como tarjetas apiladas y en desktop como una lista escaneable sin
   scroll horizontal.
 
-## Slice 2 - Elegir horario con calendario ligero en la ficha del servicio
+## Slice 2 - Los pedidos agendados hablan como citas
+
+### Scope
+
+- Cambiar el texto post-agenda para que confirme una cita y lleve a `/citas`, no a la lista
+  generica de pedidos.
+- En la ficha `/pedido/[id]`, cuando el pedido tenga `during`, titular y orientar como cita:
+  servicio, dia/hora, prestador y estado siguen siendo visibles.
+- Ajustar el mensaje de WhatsApp al vendedor/prestador para que diga que es una cita e incluya
+  servicio, dia, hora y enlace.
+- Mantener "pedido" solo como referencia secundaria al respaldo interno cuando sea necesario.
+
+### Acceptance
+
+- Al agendar "E2E Masaje de recuperacion", la confirmacion dice cita y el enlace lleva a `/citas`.
+- Al abrir el detalle del respaldo, la pantalla dice "Cita agendada" y muestra dia/hora.
+- El WhatsApp para la tienda dice que se agendo una cita de servicio e incluye la fecha y hora.
+- Los pedidos sin horario conservan los textos actuales de pedido.
+
+## Slice 3 - Elegir horario con calendario ligero en la ficha del servicio
 
 ### Scope futuro
 
@@ -55,7 +74,7 @@ estados para no partir el flujo actual de confirmacion, preparacion, entrega o c
   una hora.
 - En movil puede cambiar de dia sin abrir un desplegable largo de horarios.
 
-## Slice 3 - Calendario operativo del proveedor
+## Slice 4 - Calendario operativo del proveedor
 
 ### Scope futuro
 
@@ -68,7 +87,7 @@ estados para no partir el flujo actual de confirmacion, preparacion, entrega o c
 - La proveedora puede responder "a quien atiendo hoy y a que hora" desde una vista semanal.
 - Las ausencias no se confunden con citas, pero ocupan el mismo espacio temporal.
 
-## Slice 4 - Recordatorios y exportacion
+## Slice 5 - Recordatorios y exportacion
 
 ### Scope futuro
 

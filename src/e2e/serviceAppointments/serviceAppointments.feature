@@ -35,13 +35,25 @@ Feature: Citas de servicios
     Then no ve "E2E Pan de caja" como cita
     And puede seguir consultandolo desde "/pedidos"
 
-  @slice-2 @future
+  @slice-2
+  Scenario: La cita usa lenguaje de cita desde que se agenda hasta WhatsApp
+    Given la tienda "E2E Agenda Sana" ofrece el servicio "E2E Masaje de recuperacion" con agenda
+    And una clienta elige un hueco disponible
+    When confirma la reserva
+    Then la confirmacion dice que la cita quedo agendada
+    And el enlace principal lleva a "/citas"
+    When abre el respaldo de la cita
+    Then el detalle se presenta como "Cita agendada"
+    And muestra la fecha y hora reservada
+    And el mensaje de WhatsApp dice que es una cita de servicio con fecha y hora
+
+  @slice-3 @future
   Scenario: La ficha del servicio muestra dias y horas disponibles
     Given la tienda "E2E Agenda Sana" atiende de lunes a viernes
     When una clienta abre el servicio "E2E Masaje de recuperacion"
     Then elige primero un dia disponible y despues una hora
 
-  @slice-3 @future
+  @slice-4 @future
   Scenario: La proveedora revisa sus citas en una semana
     Given la proveedora tiene citas y ausencias en la misma semana
     When abre el calendario de agenda
