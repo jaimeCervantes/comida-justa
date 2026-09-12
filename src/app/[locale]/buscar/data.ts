@@ -12,8 +12,17 @@ import {
   SearchPostsUseCase,
 } from "~/use_cases/searchPosts/SearchPostsUseCase";
 
-/** Las dos rutas de búsqueda enseñan lo mismo con distinta plantilla; el tamaño de página también. */
-export const SEARCH_PAGE_SIZE = 6;
+/**
+ * Las dos rutas de búsqueda enseñan lo mismo con distinta plantilla; el tamaño de página también.
+ *
+ * **Doce y no seis desde el slice 3 de `listadosCompactos.feature`**, y no por enseñar más: la
+ * multi-columna de CSS **equilibra**, así que reparte el contenido en columnas de la misma altura y
+ * usa sólo las que necesite. Con seis tarjetas que no se pueden partir le salían dos por columna,
+ * le bastaban tres, y la cuarta quedaba vacía — un hueco muerto a la derecha que se lee como que
+ * algo falló. Doce es divisible entre 2, 3 y 4, que son exactamente las columnas que el listado
+ * puede tener.
+ */
+export const SEARCH_PAGE_SIZE = 12;
 
 /**
  * Los resultados de una búsqueda, para un Server Component.

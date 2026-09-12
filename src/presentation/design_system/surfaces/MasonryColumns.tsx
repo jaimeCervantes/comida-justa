@@ -11,20 +11,38 @@ import {
 import { CARD_MASONRY } from "./cardList";
 
 /**
- * Ancho mínimo de columna.
+ * Lo que se le pide de ancho a una columna.
  *
- * **Tiene que ser el mismo número que el `columns-[300px]` de `CARD_MASONRY`**, que es quien
- * maqueta mientras no hay nada medido: si los dos lados se separan, el número de columnas cambiaría
- * al hidratar y volvería el brinco. Tailwind no puede leer esta constante —sus clases se extraen
- * del código fuente—, así que hay un test que vigila que sigan diciendo lo mismo.
+ * **Tienen que ser los mismos números que la utilidad `card-columns` de `globals.css`**, que es
+ * quien maqueta mientras no hay nada medido: si los dos lados se separan, el número de columnas
+ * cambiaría al hidratar y volvería el brinco. El CSS no puede leer estas constantes, así que hay un
+ * test que abre el archivo y comprueba que sigan diciendo lo mismo.
  */
-export const MIN_COLUMN_WIDTH = 300;
+export const COLUMN_WIDTH = 220;
 
 /** Separación entre tarjetas, en píxeles. Es el `gap-4` de Tailwind. */
 export const GAP = 16;
 
-function columnsFor(width: number): number {
-  return Math.max(1, Math.floor((width + GAP) / (MIN_COLUMN_WIDTH + GAP)));
+/** Nunca más de cuatro, por anchas que vengan las pantallas: a la quinta la foto deja de leerse. */
+export const MAX_COLUMNS = 4;
+
+/**
+ * Tantas como quepan, nunca más de cuatro.
+ *
+ * Es la misma cuenta que hace la multi-columna de CSS cuando se le dan `column-width` y
+ * `column-count` a la vez, escrita en JavaScript porque el feed del inicio necesita saber el número
+ * para repartir a mano.
+ *
+ * **No hay suelo declarado, y es una decisión.** Un teléfono de pie no da para dos columnas de 220,
+ * y forzarlas ahí sería decidir por el ancho en vez de leerlo: saldrían dos tiras de 156px porque
+ * lo dice una regla, no porque quepan. Girar el teléfono ensancha el contenedor y las columnas
+ * aparecen solas.
+ */
+export function columnsFor(width: number): number {
+  return Math.max(
+    1,
+    Math.min(MAX_COLUMNS, Math.floor((width + GAP) / (COLUMN_WIDTH + GAP))),
+  );
 }
 
 /**
@@ -86,8 +104,8 @@ type Layout = {
  * números, así que el número de columnas no cambia al hidratar; lo único que se acomoda al medir es
  * en qué columna cae cada tarjeta.
  *
- * Y cuando solo cabe una columna —el teléfono— ni eso: CSS ya pone las tarjetas en orden, una
- * debajo de otra, que es exactamente lo que haría el reparto, así que no se toca el DOM.
+ * Y cuando solo cabe una columna —el teléfono de pie— ni eso: CSS ya pone las tarjetas en orden,
+ * una debajo de otra, que es exactamente lo que haría el reparto, así que no se toca el DOM.
  */
 export default function MasonryColumns({
   children,

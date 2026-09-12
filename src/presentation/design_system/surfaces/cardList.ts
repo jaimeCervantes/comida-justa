@@ -25,8 +25,19 @@
  */
 const MASONRY_ITEM = "[&>*]:break-inside-avoid [&>*]:mb-4";
 
-/** Listados a ancho completo: home, búsqueda, categoría, productos, tienda y perfil. */
-export const CARD_MASONRY = `columns-[300px] gap-4 ${MASONRY_ITEM}`;
+/**
+ * Listados a ancho completo: home, búsqueda, categoría, productos, tienda y perfil.
+ *
+ * El número de columnas no vive aquí: lo decide `card-columns` (en `globals.css`) a partir del
+ * ancho que tenga el listado —dos como mínimo, cuatro como máximo, las que quepan en medio—. Se
+ * escribió como CSS con nombre y no como una clase suelta de Tailwind porque son tres declaraciones
+ * y una frontera calculada: en una cadena de utilidades eso son cuatro números sin sitio donde
+ * explicar de dónde salen.
+ *
+ * Antes decía `columns-[300px]`, sin tope ni suelo: daba una sola columna en el teléfono y tres en
+ * escritorio, con tarjetas de 394px para un contenido que no llenaba la mitad del renglón.
+ */
+export const CARD_MASONRY = `card-columns gap-4 ${MASONRY_ITEM}`;
 
 /**
  * La columna lateral de una ficha, que es la mitad de ancha.

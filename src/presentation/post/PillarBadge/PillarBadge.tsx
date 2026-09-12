@@ -46,7 +46,16 @@ export default function PillarBadge({
       <BadgeCounter tone={pillar}>
         {publicationPillarNumber(pillar)}
       </BadgeCounter>
-      {t(pillar)}
+      {/* En la tarjeta horizontal la foto es una miniatura de ~143px y el nombre del pilar no
+          cabe encima: se sale por el borde. Queda el número, que es el dato que
+          `pillarPalette.contrast.test.ts` dejó como imprescindible —Movimiento y Mente contrastan
+          1.14 entre sí como tinta, así que quien no distingue el tono lo necesita—, y el nombre
+          sigue ahí para quien escucha.
+
+          La condición mira el ancho de **la tarjeta**, no el de la ventana, y sólo se activa
+          dentro de una: fuera de un `@container` no hay contra qué resolverla, así que donde esta
+          insignia se use sin tarjeta alrededor el nombre se sigue leyendo. */}
+      <span className="@min-[320px]:sr-only">{t(pillar)}</span>
     </Badge>
   );
 }

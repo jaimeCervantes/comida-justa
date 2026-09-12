@@ -39,38 +39,70 @@ Feature: Listados compactos
   # editarlo: si hay que tocarlo, se rompió una promesa de verdad. No se duplica aquí: un mismo
   # comportamiento con dos pruebas es una que se queda desfasada.
 
-  @slice-2 @future
+  @slice-2
   Scenario: Las acciones de una tarjeta caben en un renglón
-    Given una publicación listada
-    When un visitante la mira
-    Then sus acciones se enseñan como iconos, cada uno con su nombre accesible completo
+    Given un visitante que busca "proteína"
+    When mira la primera publicación de la lista
+    Then juntar al carrito y apoyar se enseñan en el mismo renglón
+    And cada una se alcanza por su nombre completo, aunque no enseñe texto
 
-  @slice-2 @future
-  Scenario: Compartir vive sobre la imagen
-    Given una publicación listada con foto
-    Then compartir se enseña encima de la imagen, con el pilar y el contador de archivos
+  @slice-2
+  Scenario: Compartir se alcanza sin bajar hasta la firma
+    Given un visitante que busca "proteína"
+    When mira la primera publicación de la lista
+    Then compartir queda por encima del título, sobre la imagen
 
-  @slice-2 @future
-  Scenario: Lo que solo puede hacer el dueño no compite con comprar
-    Given quien publicó "Barra de Proteína Sabor Chocolate Naranja — Pieza individual"
+  @slice-2
+  Scenario: Lo que solo puede hacer el dueño cabe en el mismo renglón
+    Given quien publicó "E2E Barra de Proteína del listado"
     When ve su propia publicación en un listado
-    Then editar, marcar agotado y guardar existencias están detrás de un menú
-    And quien no es el dueño no encuentra ese menú
+    Then editar y marcar agotado se enseñan como iconos, en la misma fila que juntar al carrito
+    And quien solo mira no los encuentra
 
-  @slice-3 @future
-  Scenario Outline: Cada pantalla reparte las publicaciones en las columnas que le tocan
+  # El campo de existencias es la excepción, y por eso queda un menú: es un campo de texto con su
+  # botón de guardar, no un icono, y en una columna de 136px partiría la fila en tres. Lo prueba
+  # `inventory/existenciasEnLaTarjeta.spec.ts`.
+  #
+  # Y que agotar desde la tarjeta agote en todas partes lo cubre
+  # `localProducers/cardControls.spec.ts`, donde ese comportamiento vive desde su slice 7. No se
+  # duplica aquí: dos pruebas para una promesa son una que se queda desfasada.
+
+  # El «tiene icono» se prueba con Vitest y no con Playwright: es una propiedad del componente, no
+  # de un recorrido, y levantar un navegador para mirar si hay un `svg` dentro de un botón cuesta
+  # cien veces más que renderizarlo.
+  @slice-2 @component
+  Scenario Outline: Ningún botón se queda sin icono
+    Given <componente> ya renderizado
+    Then el botón "<botón>" enseña un icono junto a su texto
+
+    Examples:
+      | componente          | botón                | dónde                        |
+      | OwnerControls       | Marcar agotado       | la ficha de la publicación   |
+      | CardOwnerControls   | Marcar agotado       | el menú de la tarjeta        |
+      | StockControl        | Guardar existencias  | las dos                      |
+
+  @slice-3
+  Scenario Outline: El listado reparte en las columnas que le quepan, nunca más de cuatro
     Given un visitante en una ventana de <ancho> por <alto>
     When busca "proteína"
     Then las publicaciones se reparten en <columnas> columnas
 
     Examples:
-      | ancho | alto | columnas | quién                 |
-      | 390   | 844  | 2        | teléfono              |
-      | 768   | 1024 | 3        | tableta               |
-      | 1280  | 900  | 4        | escritorio            |
+      | ancho | alto | columnas | quién                        |
+      | 390   | 844  | 1        | teléfono de pie              |
+      | 844   | 390  | 3        | el mismo teléfono, girado    |
+      | 768   | 1024 | 3        | tableta                      |
+      | 1280  | 900  | 4        | escritorio                   |
+      | 2400  | 900  | 4        | pantalla enorme, sigue en 4  |
 
-  @slice-3 @future
+  # Que ensanchar nunca **quite** columnas —la propiedad que de verdad protege la frontera— se prueba
+  # con Vitest sobre `columnsFor`, recorriendo todos los anchos de 200 a 2400 de cuatro en cuatro.
+  # Un navegador no puede afirmar eso: tendría que abrir seiscientas ventanas.
+  @slice-3 @component
+  Scenario: Ensanchar nunca quita columnas
+
+  # Y que cargar más no mueva lo ya visto lo prueba `MasonryColumns.test.tsx` sobre el reparto puro,
+  # que es donde vive la propiedad: colocar la tarjeta diez no puede cambiar dónde quedaron las nueve
+  # anteriores. Es de antes de este slice y sigue en pie.
+  @slice-3 @component
   Scenario: Cargar más no mueve lo que ya se estaba viendo
-    Given un visitante que recorrió el home hasta el final de la primera página
-    When pide más publicaciones
-    Then las que ya estaban siguen donde estaban

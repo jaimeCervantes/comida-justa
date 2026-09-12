@@ -1,10 +1,13 @@
+import { readFileSync } from "node:fs";
 import { render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import { CARD_MASONRY } from "./cardList";
 import MasonryColumns, {
   assignToColumns,
+  COLUMN_WIDTH,
+  columnsFor,
   GAP,
-  MIN_COLUMN_WIDTH,
+  MAX_COLUMNS,
 } from "./MasonryColumns";
 
 /**
@@ -132,12 +135,13 @@ describe("MasonryColumns, antes de haber medido nada", () => {
     );
 
     expect(screen.queryAllByTestId("masonry-column")).toHaveLength(0);
-    expect(screen.getByTestId("listado")).toHaveClass("columns-[300px]");
+    expect(screen.getByTestId("listado")).toHaveClass("card-columns");
     expect(screen.getAllByRole("article")).toHaveLength(2);
   });
 
   it("y en cuanto hay ancho y alturas, reparte cada tarjeta a la columna más corta", () => {
-    conAncho(1216);
+    // 720 px es una tableta: tres columnas. Ver la corrida de escritorio de `columnsFor`.
+    conAncho(720);
 
     render(
       <MasonryColumns testId="listado">
@@ -157,8 +161,8 @@ describe("MasonryColumns, antes de haber medido nada", () => {
   });
 
   /* En una sola columna CSS ya hace exactamente lo que haría el reparto —las tarjetas en orden,
-     una debajo de otra—, así que no hay razón para tocar el DOM. Es el caso del teléfono, que es
-     donde se reportó el fallo: ahí el JavaScript no llega a mover nada. */
+     una debajo de otra—, así que no hay razón para tocar el DOM. Es el caso del teléfono de pie,
+     que es donde se reportó el fallo: ahí el JavaScript no llega a mover nada. */
   it("y cuando solo cabe una columna, se queda en CSS y no toca el DOM", () => {
     conAncho(358);
 
@@ -169,18 +173,85 @@ describe("MasonryColumns, antes de haber medido nada", () => {
     );
 
     expect(screen.queryAllByTestId("masonry-column")).toHaveLength(0);
-    expect(screen.getByTestId("listado")).toHaveClass("columns-[300px]");
+    expect(screen.getByTestId("listado")).toHaveClass("card-columns");
+  });
+});
+
+/**
+ * La escalera de columnas, leída como una corrida de escritorio.
+ *
+ * Los anchos son de contenido, ya descontado el relleno de `container-width` (16px a cada lado por
+ * debajo de 640, 24 hasta 1024, 32 arriba). Lo que se afirma no es cada número por separado sino la
+ * forma de la escalera: nunca menos de dos, nunca más de cuatro, y **nunca hacia atrás**.
+ */
+describe("columnsFor", () => {
+  it.each([
+    { quien: "teléfono estrecho de pie", ancho: 288, columnas: 1 },
+    { quien: "teléfono de pie", ancho: 328, columnas: 1 },
+    { quien: "teléfono grande de pie", ancho: 398, columnas: 1 },
+    { quien: "justo donde entra la segunda", ancho: 456, columnas: 2 },
+    { quien: "tableta pequeña", ancho: 592, columnas: 2 },
+    { quien: "tableta", ancho: 720, columnas: 3 },
+    { quien: "teléfono girado", ancho: 796, columnas: 3 },
+    { quien: "portátil", ancho: 960, columnas: 4 },
+    { quien: "escritorio", ancho: 1216, columnas: 4 },
+    { quien: "pantalla enorme", ancho: 2400, columnas: 4 },
+  ])("$quien ($ancho px) reparte en $columnas", ({ ancho, columnas }) => {
+    expect(columnsFor(ancho)).toBe(columnas);
+  });
+
+  /*
+   * La propiedad que de verdad importa, y la que no se ve mirando la tabla de arriba: ensanchar
+   * nunca quita columnas. Una frontera mal puesta produce anchos donde salen tres apretadas y al
+   * agrandar la ventana vuelven a ser dos, y eso se lee como un fallo del sitio.
+   */
+  it("ensanchar nunca quita columnas", () => {
+    let anterior = columnsFor(200);
+
+    for (let ancho = 200; ancho <= 2400; ancho += 4) {
+      const actual = columnsFor(ancho);
+      expect(actual).toBeGreaterThanOrEqual(anterior);
+      anterior = actual;
+    }
+  });
+
+  it("y nunca se queda en cero ni pasa del tope", () => {
+    for (let ancho = 120; ancho <= 4000; ancho += 8) {
+      expect(columnsFor(ancho)).toBeGreaterThanOrEqual(1);
+      expect(columnsFor(ancho)).toBeLessThanOrEqual(MAX_COLUMNS);
+    }
   });
 });
 
 /**
  * Las dos maquetaciones tienen que medir la columna igual, o el número de columnas cambiaría al
- * hidratar y volvería el brinco. Viven en sitios distintos —una clase de Tailwind y dos constantes
- * de TypeScript— porque Tailwind no puede leer un valor de JavaScript, así que lo vigila este test.
+ * hidratar y volvería el brinco. Viven en sitios distintos —una utilidad de CSS y unas constantes
+ * de TypeScript— porque el CSS no puede leer un valor de JavaScript, así que lo vigila este test:
+ * abre el archivo de estilos y comprueba que dice los mismos números.
  */
 describe("El primer pintado y el reparto medido miden la columna igual", () => {
-  it("la clase de CSS lleva los mismos números que las constantes del reparto", () => {
-    expect(CARD_MASONRY).toContain(`columns-[${MIN_COLUMN_WIDTH}px]`);
+  const css = readFileSync("src/app/styles/globals.css", "utf8");
+
+  it("el CSS pide columnas del mismo ancho que el reparto", () => {
+    expect(css).toContain(`column-width: ${COLUMN_WIDTH}px`);
+  });
+
+  it("y el mismo tope de columnas", () => {
+    expect(css).toContain(`column-count: ${MAX_COLUMNS}`);
+  });
+
+  /*
+   * Y no fuerza ningún número por punto de corte. Es la propiedad que hace que un teléfono girado
+   * gane columnas sin que nadie escriba una regla para él: si alguien añadiera una media query
+   * aquí, el listado dejaría de leer el ancho y empezaría a adivinarlo por el dispositivo.
+   */
+  it("y no decide columnas por tamaño de ventana en ninguna parte", () => {
+    const reglaDeColumnas = css.slice(css.indexOf("@utility card-columns"));
+
+    expect(reglaDeColumnas).not.toMatch(/@media[^}]*column-count/);
+  });
+
+  it("y el listado sigue pidiendo la misma separación", () => {
     // La escala de espaciado de Tailwind va de 4 en 4 píxeles: `gap-4` son 16.
     expect(CARD_MASONRY).toContain(`gap-${GAP / 4}`);
   });

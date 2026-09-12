@@ -226,6 +226,64 @@
   @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
 }
 
+/**
+ * Las columnas de un listado de tarjetas: las que quepan, nunca más de cuatro.
+ *
+ * **El número no se declara por punto de corte, se deduce del sitio que hay.** `column-width` pide
+ * columnas de 220px y el navegador pone las que entren; `column-count` es el tope. Cuando los dos
+ * están puestos, la multi-columna usa el menor de ambos, que es exactamente "tantas como quepan,
+ * nunca más de cuatro".
+ *
+ * Por eso no hay una sola regla por dispositivo, ni falta: un teléfono de pie da para una columna,
+ * el mismo teléfono girado para tres, y una pantalla de 2400px sigue dando cuatro porque a la
+ * quinta la foto deja de leerse. Girar es ensanchar el contenedor, y el cálculo ya estaba mirando
+ * el ancho.
+ *
+ * El tope no es capricho: sin `column-count`, una pantalla ancha llegaba a siete columnas de 220,
+ * y a ese tamaño la tarjeta deja de ser una tarjeta.
+ *
+ * `MasonryColumns` repite este mismo cálculo en JavaScript para el feed del inicio, y hay un test
+ * que vigila que los dos digan los mismos números.
+ */
+@utility card-columns {
+  column-width: 220px;
+  column-count: 4;
+}
+
+/**
+ * La foto de una tarjeta ancha: una miniatura cuadrada a la izquierda.
+ *
+ * **Se dispara por el ancho de la tarjeta, no por el del teléfono.** A una sola columna —el
+ * teléfono de pie— la tarjeta mide unos 358px y el título cabe al lado de la foto; en cuanto hay
+ * dos o más columnas nunca pasa de ~318, y ahí la foto tiene que ir arriba o no queda sitio para
+ * leer nada. 320px es la frontera entre esas dos situaciones, y la pregunta la contesta
+ * `@container`, así que la tarjeta no necesita saber en qué pantalla está: la misma regla
+ * acierta en un teléfono de pie, en el mismo teléfono girado —que pasa a tres columnas y vuelve a
+ * apilar— y en la columna de «Publicaciones relacionadas».
+ *
+ * El cuadrado recorta a propósito. Con la foto a lo alto, una vertical de 1200x1600 estiraba la
+ * tarjeta hasta tres veces el alto de su texto; recortada al centro, las tarjetas de una lista
+ * vuelven a leerse como una lista.
+ */
+@utility card-media {
+  @container (min-width: 320px) {
+    aspect-ratio: 1;
+    overflow: hidden;
+
+    & > *,
+    & .sj-media-wrapper {
+      height: 100%;
+    }
+
+    & img,
+    & video {
+      height: 100%;
+      width: 100%;
+      object-fit: cover;
+    }
+  }
+}
+
 @layer utilities {
   html {
     scroll-behavior: smooth;
