@@ -46,17 +46,22 @@ test.describe("Cuando un vendedor mira su propio catálogo", () => {
       .filter({ hasText: post.title })
       .first();
 
+    /* Agotar es un icono más de la fila de acciones desde el slice 2 de
+       `listadosCompactos.feature`: sin texto, pero con su nombre accesible entero, que es por donde
+       lo encuentra esta prueba. */
     await tarjeta
       .getByRole("button", { name: /marcar agotado/i })
       .first()
       .click();
 
-    // Se espera a que la propia tarjeta lo confirme —el botón pasa a ofrecer lo contrario— antes
-    // de navegar: un `goto` inmediato adelanta a la acción del servidor y la prueba mide la
-    // carrera en vez del comportamiento.
-    await expect(
-      tarjeta.getByRole("button", { name: /marcar disponible/i }).first(),
-    ).toBeVisible();
+    /* Se espera a que la propia tarjeta lo confirme antes de navegar: un `goto` inmediato adelanta
+       a la acción del servidor y la prueba mediría la carrera en vez del comportamiento.
+
+       Se mira la insignia y no el botón del menú, que es además lo que miraría una persona: el
+       panel se cierra solo al confirmar, así que reabrirlo es inventarse un paso que nadie da —y
+       dejaba puesto el bloqueo modal de Radix, con el que el `goto` de abajo llegó a abortarse a
+       media navegación (`net::ERR_ABORTED`)—. */
+    await expect(tarjeta.getByTestId("sold-out-badge")).toBeVisible();
 
     // El mismo dato, visto desde su página: no son dos verdades.
     await page.goto(`/${post.slug}`);

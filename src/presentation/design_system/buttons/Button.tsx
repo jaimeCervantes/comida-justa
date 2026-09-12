@@ -31,6 +31,7 @@ export function Button({
   className,
   size,
   color,
+  iconOnly,
   disabled,
   type = "button",
   onClick,
@@ -65,7 +66,7 @@ export function Button({
       onClick={handleClick}
       disabled={disabled || isBtnLoading}
       aria-busy={isBtnLoading}
-      className={cn(buttonVariants({ color, size }), className)}
+      className={cn(buttonVariants({ color, size, iconOnly }), className)}
       {...moreProps}
     >
       {/* La ruedita va superpuesta y el contenido se oculta con `invisible`, que conserva su
@@ -75,8 +76,10 @@ export function Button({
       <span
         className={cn(
           "flex gap-2 items-center",
-          startIcon && "ml-1",
-          endIcon && "mr-1",
+          /* Los desplazamientos ópticos compensan el relleno del texto, que en un botón de solo
+             icono no existe: aplicarlos ahí descentraría el icono dentro de su cuadrado. */
+          !iconOnly && startIcon && "ml-1",
+          !iconOnly && endIcon && "mr-1",
           isBtnLoading && "invisible",
         )}
       >

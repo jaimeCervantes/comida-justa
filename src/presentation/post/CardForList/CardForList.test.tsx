@@ -32,6 +32,15 @@ import { PUBLIC_BASE_URL } from "~/infra/constants";
 import { renderWithIntl as render } from "~/infra/test-utils/renderWithIntl";
 import CardForList from "./CardForList";
 
+/**
+ * El campo de existencias es lo único que queda detrás del menú de la tarjeta: es un campo de texto
+ * con su botón de guardar, no un icono, y no entra en la fila de acciones. Editar y agotar sí están
+ * en la fila, así que a esos se llega sin abrir nada.
+ */
+async function abrirMenuDelDueño(trigger: HTMLElement): Promise<void> {
+  await userEvent.setup().click(trigger);
+}
+
 const baseProps = {
   id: "post-1",
   title: "Miel de abeja",
@@ -91,7 +100,7 @@ describe("When a card is listed", () => {
    * `to` viene absoluto del mapper, así que recortarle el primer `/` producía
    * `/editar/http://localhost:3000/suero-natural`. El enlace se arma con el `slug` suelto.
    */
-  it("enlaza a editar con el slug, no con la URL absoluta", () => {
+  it("enlaza a editar con el slug, no con la URL absoluta", async () => {
     const { getByTestId } = render(
       <CardForList
         {...baseProps}
@@ -102,12 +111,13 @@ describe("When a card is listed", () => {
       />,
     );
 
-    const enlace = getByTestId("card-owner-controls").querySelector("a");
-
-    expect(enlace).toHaveAttribute("href", "/editar/suero-natural");
+    expect(getByTestId("card-edit")).toHaveAttribute(
+      "href",
+      "/editar/suero-natural",
+    );
   });
 
-  it("y si la tarjeta llega sin slug, lo saca del último tramo de la URL", () => {
+  it("y si la tarjeta llega sin slug, lo saca del último tramo de la URL", async () => {
     const { getByTestId } = render(
       <CardForList
         {...baseProps}
@@ -117,9 +127,10 @@ describe("When a card is listed", () => {
       />,
     );
 
-    expect(
-      getByTestId("card-owner-controls").querySelector("a"),
-    ).toHaveAttribute("href", "/editar/suero-natural");
+    expect(getByTestId("card-edit")).toHaveAttribute(
+      "href",
+      "/editar/suero-natural",
+    );
   });
 
   it("no se los ofrece a quien solo está mirando", () => {
@@ -180,7 +191,14 @@ describe("When a card is listed", () => {
     );
 
     if (ctaTestId) expect(getByTestId(ctaTestId)).toBeInTheDocument();
-    expect(getByTestId("post-reaction-toggle")).toHaveTextContent("Apoyar");
+    /* El nombre accesible y no el texto pintado: desde el slice 2 la tarjeta enseña el corazón sin
+       la palabra, y lo que la prueba defiende es que la acción siga llamándose «Apoyar» para quien
+       navega escuchando — no en qué nodo del DOM está escrita. */
+    expect(getByTestId("post-reaction-toggle")).toHaveAccessibleName("Apoyar");
+    /* En la tarjeta el contador pinta el número pelado —la frase entera medía 110px y partía en
+       dos la fila de acciones— y dice la frase completa en `sr-only`. Sigue afirmándose por
+       contenido porque el texto escondido también es contenido: lo que la prueba defiende es que
+       el dato no se pierda, no en qué nodo se escribe. */
     expect(getByTestId("post-reaction-count")).toHaveTextContent("3 apoyos");
   });
 
@@ -222,7 +240,7 @@ describe("When a card is listed", () => {
       "href",
       "/practicas",
     );
-    expect(getByTestId("post-reaction-toggle")).toHaveTextContent("Apoyar");
+    expect(getByTestId("post-reaction-toggle")).toHaveAccessibleName("Apoyar");
     expect(getByTestId("post-reaction-count")).toHaveTextContent("2 apoyos");
     expect(queryByTestId("add-to-cart")).not.toBeInTheDocument();
     expect(queryByTestId("card-book-service")).not.toBeInTheDocument();
@@ -289,7 +307,7 @@ describe("When a card is listed", () => {
       />,
     );
 
-    expect(getByTestId("post-reaction-toggle")).toHaveTextContent(
+    expect(getByTestId("post-reaction-toggle")).toHaveAccessibleName(
       "Retirar apoyo",
     );
     expect(getByTestId("post-reaction-count")).toHaveTextContent("1 apoyo");
@@ -315,14 +333,12 @@ describe("When a card is listed", () => {
 
   /* Un anuncio no se agota: a su dueño se le ofrece editarlo y nada más. */
   it("a un anuncio propio solo le ofrece editar", () => {
-    const { getByTestId } = render(
+    const { getByTestId, queryByRole } = render(
       <CardForList {...baseProps} kind="anuncio" viewerId="user-1" />,
     );
 
-    const controls = getByTestId("card-owner-controls");
-
-    expect(controls).toHaveTextContent(/editar/i);
-    expect(controls).not.toHaveTextContent(/agotado/i);
+    expect(getByTestId("card-edit")).toBeInTheDocument();
+    expect(queryByRole("button", { name: /agotado/i })).not.toBeInTheDocument();
   });
 
   it("shows no badge when the post has no origin", () => {
@@ -549,10 +565,12 @@ describe("When a card is listed", () => {
 describe("las existencias en la tarjeta", () => {
   const producto = { ...baseProps, kind: "producto" } as const;
 
-  it("quien publicó puede recontar sin abrir la publicación", () => {
+  it("quien publicó puede recontar sin abrir la publicación", async () => {
     const { getByTestId } = render(
       <CardForList {...producto} viewerId="user-1" stockQuantity={12} />,
     );
+
+    await abrirMenuDelDueño(getByTestId("card-owner-menu-trigger"));
 
     expect(getByTestId("stock-control")).toBeInTheDocument();
     expect(getByTestId("stock-input")).toHaveValue(12);
@@ -560,28 +578,48 @@ describe("las existencias en la tarjeta", () => {
 
   /* Dos mandos para lo mismo podrían contradecirse: un producto agotado a mano con 12 unidades
      guardadas no sabría qué contestar. Misma regla que en la ficha. */
-  it("con inventario ya no ofrece además marcar agotado", () => {
-    const { queryByRole } = render(
+  /*
+   * Sin texto, el dibujo es lo único que queda: un botón de icono cuyo icono no llegara sería un
+   * cuadrado mudo. El nombre accesible lo defiende la prueba de arriba; esto defiende lo que ve
+   * quien mira.
+   */
+  it("el interruptor se reconoce por su dibujo, que es lo único que enseña", () => {
+    const { getByRole } = render(
+      <CardForList {...producto} viewerId="user-1" stockQuantity={null} />,
+    );
+
+    expect(
+      getByRole("button", { name: /agotado/i }).querySelector("svg"),
+    ).toBeInTheDocument();
+  });
+
+  it("con inventario ya no ofrece además marcar agotado", async () => {
+    const { getByTestId, queryByRole } = render(
       <CardForList {...producto} viewerId="user-1" stockQuantity={12} />,
     );
 
+    /* El interruptor vive en la fila, a la vista: que no esté es que no se pintó, no que quedara
+       escondido detrás de algo sin abrir. */
+    expect(getByTestId("card-owner-controls")).toBeInTheDocument();
     expect(
       queryByRole("button", { name: /agotado|disponible/i }),
     ).not.toBeInTheDocument();
   });
 
-  it("sin inventario conserva su interruptor y el campo nace vacío", () => {
+  it("sin inventario conserva su interruptor y el campo nace vacío", async () => {
     const { getByRole, getByTestId } = render(
       <CardForList {...producto} viewerId="user-1" stockQuantity={null} />,
     );
 
+    // El interruptor está en la fila; el campo, detrás del menú.
     expect(getByRole("button", { name: /agotado/i })).toBeInTheDocument();
+    await abrirMenuDelDueño(getByTestId("card-owner-menu-trigger"));
     expect(getByTestId("stock-input")).toHaveValue(null);
   });
 
   /* La segunda vía: el dueño de la tienda administra su catálogo aunque cada ficha la escribiera
      otra mano. Es el hueco que el slice 1 cerró en la ficha y que aquí seguía abierto. */
-  it("el dueño de la tienda recuenta lo que publicó otra cuenta", () => {
+  it("el dueño de la tienda recuenta lo que publicó otra cuenta", async () => {
     const { getByTestId } = render(
       <CardForList
         {...producto}
@@ -592,6 +630,8 @@ describe("las existencias en la tarjeta", () => {
         stockQuantity={5}
       />,
     );
+
+    await abrirMenuDelDueño(getByTestId("card-owner-menu-trigger"));
 
     expect(getByTestId("stock-control")).toBeInTheDocument();
   });

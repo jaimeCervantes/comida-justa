@@ -1,6 +1,7 @@
 "use client";
 import { useTranslations } from "next-intl";
 import { useActionState } from "react";
+import { MdSave } from "react-icons/md";
 import { canTrackStock } from "~/domain/entities/post/stock";
 import { Button } from "~/presentation/design_system/buttons/Button";
 import { Form } from "~/presentation/design_system/forms/Form";
@@ -115,6 +116,7 @@ export default function StockControl({
         size="sm"
         isLoading={isPending}
         disabled={isPending}
+        startIcon={<MdSave aria-hidden />}
       >
         {t("stockSave")}
       </Button>

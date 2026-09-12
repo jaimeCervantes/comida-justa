@@ -30,6 +30,20 @@ const manualToggle = () =>
   screen.queryByRole("button", { name: /agotado|disponible/i });
 
 describe("OwnerControls", () => {
+  /*
+   * Escenario `@component` de `listadosCompactos.feature`: ningún botón se queda sin icono.
+   *
+   * «Marcar agotado» era el único de la ficha que sólo tenía palabra, y en una fila donde sus dos
+   * vecinos sí dibujan, el que no dibuja se lee como de otra familia. Se afirma que hay **un**
+   * icono, no cuál: cambiar el dibujo es una decisión de diseño y no tiene por qué costar una
+   * prueba.
+   */
+  it("el interruptor manual se reconoce por su dibujo, no sólo por su texto", () => {
+    render();
+
+    expect(manualToggle()?.querySelector("svg")).toBeInTheDocument();
+  });
+
   it("quien publicó edita, agota a mano y lleva el inventario", () => {
     render();
 

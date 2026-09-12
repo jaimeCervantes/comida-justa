@@ -5,6 +5,7 @@ import {
 } from "../testUtils/claimTestUsername";
 import { deleteOnePostBySlug } from "../testUtils/deleteOnePost";
 import { deleteTestSellerByHandle } from "../testUtils/deleteTestSeller";
+import { openWhenHydrated } from "../testUtils/openWhenHydrated";
 import { readPostRowBySlug } from "../testUtils/readPostRow";
 import { type SeedPostInput, seedPost } from "../testUtils/seedPost";
 import { seedStock } from "../testUtils/seedStock";
@@ -40,6 +41,31 @@ let borrowedUsername: string | null = null;
  */
 function card(page: Page, title: string): Locator {
   return page.locator("article").filter({ hasText: title }).first();
+}
+
+/**
+ * El panel del dueño de una tarjeta.
+ *
+ * Editar, agotar y el campo de existencias viven detrás de un menú desde el slice 2 de
+ * `listadosCompactos.feature`: sueltos se llevaban la mitad del alto de la tarjeta compitiendo con
+ * juntar al carrito. El panel se monta en un portal, así que se busca desde `page` y no dentro de
+ * la tarjeta — sólo el disparador sigue estando ahí.
+ */
+async function ownerMenu(page: Page, title: string): Promise<Locator> {
+  const menu = page.getByTestId("card-owner-menu");
+
+  await openWhenHydrated(
+    card(page, title).getByTestId("card-owner-menu-trigger"),
+    menu,
+  );
+
+  return menu;
+}
+
+/** Radix abre en modo modal: con el panel puesto, navegar se aborta a media carga. */
+async function closeMenu(page: Page): Promise<void> {
+  await page.keyboard.press("Escape");
+  await expect(page.getByTestId("card-owner-menu")).toBeHidden();
 }
 
 async function seed(
@@ -94,7 +120,7 @@ test.describe("Las existencias se editan desde la tarjeta", () => {
 
     await page.goto(`/tienda/${store.handle}`);
 
-    const ficha = card(page, "E2E dona-chocolate-keto");
+    const ficha = await ownerMenu(page, "E2E dona-chocolate-keto");
     const submit = ficha.getByTestId("stock-control").getByRole("button");
 
     await ficha.getByTestId("stock-input").fill("8");
@@ -117,18 +143,25 @@ test.describe("Las existencias se editan desde la tarjeta", () => {
 
     await page.goto(`/tienda/${store.handle}`);
 
-    const conCuenta = card(page, "E2E dona-con-cuenta");
-    await expect(conCuenta.getByTestId("stock-input")).toHaveValue("12");
+    /* El interruptor manual vive en la fila de acciones y el campo detrás del menú, así que cada
+       uno se busca donde vive: en la tarjeta el primero, en el panel el segundo. */
     await expect(
-      conCuenta.getByRole("button", { name: /agotado|disponible/i }),
+      card(page, "E2E dona-con-cuenta").getByRole("button", {
+        name: /agotado|disponible/i,
+      }),
     ).toBeHidden();
+    const conCuenta = await ownerMenu(page, "E2E dona-con-cuenta");
+    await expect(conCuenta.getByTestId("stock-input")).toHaveValue("12");
+    await closeMenu(page);
 
     /* Y el que no lleva la cuenta conserva su interruptor de siempre, con el campo esperando el
        primer número. Es la garantía de que esto no cambia nada de lo ya publicado. */
-    const sinCuenta = card(page, "E2E jugo-sin-cuenta");
     await expect(
-      sinCuenta.getByRole("button", { name: /agotado/i }),
+      card(page, "E2E jugo-sin-cuenta").getByRole("button", {
+        name: /agotado/i,
+      }),
     ).toBeVisible();
+    const sinCuenta = await ownerMenu(page, "E2E jugo-sin-cuenta");
     await expect(sinCuenta.getByTestId("stock-input")).toHaveValue("");
   });
 
@@ -144,12 +177,13 @@ test.describe("Las existencias se editan desde la tarjeta", () => {
 
     await page.goto(`/tienda/${store.handle}`);
 
-    const ficha = card(page, "E2E dona-ultima");
+    const ficha = await ownerMenu(page, "E2E dona-ultima");
     const submit = ficha.getByTestId("stock-control").getByRole("button");
 
     await ficha.getByTestId("stock-input").fill("0");
     await submit.click();
     await expect(submit).toBeEnabled({ timeout: 30_000 });
+    await closeMenu(page);
 
     await page.goto(`/${slug}`);
     await expect(page.getByTestId("sold-out-badge")).toBeVisible();
@@ -172,8 +206,11 @@ test.describe("Las existencias se editan desde la tarjeta", () => {
 
     await page.goto(`/tienda/${store.handle}`);
 
+    /* Ni el panel ni la puerta que lleva a él: lo que se le niega a un tercero es el control
+       entero, no sólo su contenido. */
     const ficha = card(page, "E2E dona-ajena");
-    await expect(ficha.getByTestId("stock-control")).toBeHidden();
+    await expect(ficha.getByTestId("card-owner-menu-trigger")).toBeHidden();
+    await expect(page.getByTestId("stock-control")).toBeHidden();
     expect(await readPostRowBySlug(slug)).toMatchObject({ stock_quantity: 5 });
   });
 
@@ -192,7 +229,7 @@ test.describe("Las existencias se editan desde la tarjeta", () => {
     sessions.push(await simulateLogin(page, browserName));
     await page.goto(`/u/${username}`);
 
-    const ficha = card(page, "E2E dona-del-perfil");
+    const ficha = await ownerMenu(page, "E2E dona-del-perfil");
     const submit = ficha.getByTestId("stock-control").getByRole("button");
 
     await ficha.getByTestId("stock-input").fill("7");

@@ -17,12 +17,20 @@ export default function AddToCartButton({
   kind,
   isAvailable,
   size = "sm",
+  iconOnly = false,
   className,
 }: {
   postId: string;
   kind?: string | null;
   isAvailable?: boolean | null;
   size?: "xs" | "sm" | "md";
+  /**
+   * Solo el carrito, sin la palabra.
+   *
+   * Para la tarjeta de un listado: con texto ocupa 172 px y se lleva un renglón entero para ella
+   * sola. El nombre accesible sigue siendo el completo, que es lo que oye quien no ve el icono.
+   */
+  iconOnly?: boolean;
   className?: string;
 }) {
   const t = useTranslations("cart");
@@ -40,12 +48,14 @@ export default function AddToCartButton({
         type="submit"
         size={size}
         color="green"
+        iconOnly={iconOnly}
+        aria-label={iconOnly ? t("add") : undefined}
         startIcon={<MdAddShoppingCart />}
         isLoading={isPending}
         disabled={isPending}
         data-testid="add-to-cart"
       >
-        {t("add")}
+        {iconOnly ? null : t("add")}
       </Button>
     </form>
   );

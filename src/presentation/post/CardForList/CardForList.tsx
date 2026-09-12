@@ -1,4 +1,5 @@
 import { useTranslations } from "next-intl";
+import { MdEventAvailable, MdPlayArrow } from "react-icons/md";
 import { canBeOrdered, isSellable } from "~/domain/entities/post/availability";
 import { PRACTICE_POST_KIND, SERVICE_KIND } from "~/domain/entities/post/kind";
 import { hasKnownAspect } from "~/domain/entities/post/mediaAspect";
@@ -142,36 +143,30 @@ export default function CardForList(
       className="flex flex-col justify-between"
       AnchorElement={Link}
       anchorProps={anchorProps}
-      /* Solo el icono: doce tarjetas con un botón que dice «Compartir» compiten con los doce
-         títulos, que es lo que se viene a leer. El nombre accesible sigue siendo el completo. */
-      actions={
-        <ShareMenu
-          variant="icon"
-          testId="card-share"
-          url={absoluteUrl(to)}
-          title={title}
-          text={tShare("postText", { title })}
-        />
-      }
       /* El alto fijo solo cuando NO se sabe la forma del archivo. Con ella, imponer 256 px
          recortaría por el centro justo lo que se viene a mirar: de las 15 imágenes de la base, 10
          son verticales y se les tiraba el 36%. Y es lo que da altura distinta a cada tarjeta, que
          es de lo que vive la mampostería. */
       media={
-        <Link {...anchorProps} className="relative block">
-          {/* Una práctica sin evidencia no es una publicación a la que le falte la foto: su portada
+        /* El enlace ya no envuelve a los adornos: compartir es un `button`, y un `button` dentro
+           de un `a` es HTML inválido —el navegador se come la pulsación—. Así que el contenedor
+           posiciona, el enlace cubre solo la foto y lo demás son hermanos suyos. */
+        <div className="relative">
+          <Link {...anchorProps} className="block">
+            {/* Una práctica sin evidencia no es una publicación a la que le falte la foto: su portada
               es el pilar. Ver `PracticeCover`. */}
-          {kind === PRACTICE_POST_KIND && !media[0] ? (
-            <PracticeCover
-              category={typeof category === "string" ? category : null}
-              className="h-64"
-            />
-          ) : (
-            <MediaContent
-              media={media[0]}
-              className={hasKnownAspect(media[0] ?? {}) ? "" : "h-64"}
-            />
-          )}
+            {kind === PRACTICE_POST_KIND && !media[0] ? (
+              <PracticeCover
+                category={typeof category === "string" ? category : null}
+                className="h-64"
+              />
+            ) : (
+              <MediaContent
+                media={media[0]}
+                className={hasKnownAspect(media[0] ?? {}) ? "" : "h-64"}
+              />
+            )}
+          </Link>
 
           {/* El pilar, encima de la foto: en el feed lo primero que se mira es la imagen, y ahí
               es donde se lee de un vistazo. Se calla en lo que no tiene pilar —los anuncios van
@@ -187,12 +182,27 @@ export default function CardForList(
           {media.length > 1 ? (
             <span
               data-testid="post-media-count"
-              className="absolute right-2 top-2 rounded-full bg-black/70 px-2 py-0.5 text-xs text-white"
+              /* Se calla en la tarjeta horizontal: ahí la foto es una miniatura de ~143px y
+                 esta insignia se montaba encima de la del pilar, que dice más. */
+              className="absolute right-2 top-2 rounded-full bg-black/70 px-2 py-0.5 text-xs text-white @min-[320px]:hidden"
             >
               {t("mediaCount", { count: media.length })}
             </span>
           ) : null}
-        </Link>
+
+          {/* Compartir, en la esquina de la foto. Estaba en el pie, junto a la firma: ahí obligaba
+              a recorrer la tarjeta entera para repartir algo que se decide mirando la imagen, y
+              gastaba un renglón del cuerpo. Aquí no cuesta alto y queda con los otros dos
+              adornos. */}
+          <ShareMenu
+            variant="onMedia"
+            testId="card-share"
+            className="absolute bottom-2 right-2"
+            url={absoluteUrl(to)}
+            title={title}
+            text={tShare("postText", { title })}
+          />
+        </div>
       }
     >
       {/* Todo lo que se mira para decidir, en un renglón que se parte en varios cuando no cabe:
@@ -261,10 +271,11 @@ export default function CardForList(
             href="/practicas"
             data-testid="practice-post-start"
             className={cn(
-              "focus-ring inline-flex w-fit items-center justify-center rounded-control",
+              "focus-ring inline-flex w-fit items-center justify-center gap-1 rounded-control",
               "border border-separator px-2 py-2 text-xs font-semibold text-text-support transition-colors hover:border-pw-green hover:text-pw-green",
             )}
           >
+            <MdPlayArrow aria-hidden />
             {t("practiceStart")}
           </Link>
         ) : kind === SERVICE_KIND && canBeOrdered({ kind, isAvailable }) ? (
@@ -272,10 +283,11 @@ export default function CardForList(
             href={detailHref}
             data-testid="card-book-service"
             className={cn(
-              "focus-ring inline-flex w-fit items-center justify-center rounded-control",
+              "focus-ring inline-flex w-fit items-center justify-center gap-1 rounded-control",
               "bg-pw-green px-2 py-2 text-xs text-white transition-colors hover:bg-pw-green/80",
             )}
           >
+            <MdEventAvailable aria-hidden />
             {t("bookSubmit")}
           </Link>
         ) : (
@@ -287,9 +299,11 @@ export default function CardForList(
             kind={kind}
             isAvailable={isAvailable}
             size="xs"
+            iconOnly
           />
         )}
         <PostReactionButton
+          iconOnly
           postId={String(id ?? "")}
           reacted={props.viewerReacted === true}
           reactions={
@@ -298,25 +312,29 @@ export default function CardForList(
           canReact={Boolean(viewerId)}
           signInHref={reactionSignInHref}
         />
-      </div>
 
-      {canManage ? (
-        <CardOwnerControls
-          postId={String(id ?? "")}
-          slug={slug ? String(slug) : slugFromUrl(to)}
-          kind={kind}
-          isAvailable={isAvailable !== false}
-          isSellable={isSellable({ kind })}
-          stockQuantity={
-            typeof stockQuantity === "number" ? stockQuantity : null
-          }
-          onAvailabilityChange={
-            onAvailabilityChange
-              ? (available) => onAvailabilityChange(String(id ?? ""), available)
-              : undefined
-          }
-        />
-      ) : null}
+        {/* En la misma fila que apoyar y el carrito, no en un renglón propio: son tres acciones
+            sobre la misma publicación y se leen juntas. Aparte, el menú de quien administra se
+            llevaba un renglón entero de alto para una pulsación que casi nadie da. */}
+        {canManage ? (
+          <CardOwnerControls
+            postId={String(id ?? "")}
+            slug={slug ? String(slug) : slugFromUrl(to)}
+            kind={kind}
+            isAvailable={isAvailable !== false}
+            isSellable={isSellable({ kind })}
+            stockQuantity={
+              typeof stockQuantity === "number" ? stockQuantity : null
+            }
+            onAvailabilityChange={
+              onAvailabilityChange
+                ? (available) =>
+                    onAvailabilityChange(String(id ?? ""), available)
+                : undefined
+            }
+          />
+        ) : null}
+      </div>
     </Card>
   );
 }

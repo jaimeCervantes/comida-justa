@@ -41,13 +41,18 @@ export interface ShareMenuProps {
   /** El mensaje que acompaña al enlace, ya traducido. */
   text: string;
   /**
-   * `button` lleva la palabra «Compartir»; `icon` es solo el icono.
+   * `button` lleva la palabra «Compartir»; `icon` y `onMedia` son solo el icono.
    *
    * `icon` existe para las tarjetas de un listado: doce botones con texto compiten con el título de
    * cada publicación, que es lo que se viene a leer. En una ficha o en una cabecera de tienda, en
    * cambio, compartir es una acción principal y se nombra.
+   *
+   * `onMedia` es el mismo icono puesto **encima de la foto**, y no es un capricho de color: ahí
+   * abajo hay una imagen que sube cualquiera, así que un icono translúcido sobre tinta de apoyo
+   * puede acabar en blanco sobre blanco. Lleva el mismo fondo oscuro que el contador de archivos
+   * que ya vive en esa esquina, que es un contraste que no depende de la foto.
    */
-  variant?: "button" | "icon";
+  variant?: "button" | "icon" | "onMedia";
   testId?: string;
   className?: string;
 }
@@ -115,16 +120,19 @@ export default function ShareMenu({
 
      En `icon` el nombre accesible pasa al `aria-label`: sin él, el botón se anunciaría como
      "botón" a secas. Es el mismo texto, no uno acortado — lo que cambia es que no ocupa ancho. */
-  const isIcon = variant === "icon";
+  const isIcon = variant === "icon" || variant === "onMedia";
   const triggerProps = isIcon
     ? ({
         color: "white",
         size: "sm",
+        iconOnly: true,
         "aria-label": t("trigger"),
         title: t("trigger"),
         "data-testid": `${testId}-trigger`,
         className:
-          "rounded-full bg-transparent text-text-support hover:bg-surface-elevation-2 hover:text-pw-green",
+          variant === "onMedia"
+            ? "rounded-full bg-black/70 text-white hover:bg-black/85 hover:text-white"
+            : "rounded-full bg-transparent text-text-support hover:bg-surface-elevation-2 hover:text-pw-green",
         children: <MdShare aria-hidden size="18" />,
       } as const)
     : ({

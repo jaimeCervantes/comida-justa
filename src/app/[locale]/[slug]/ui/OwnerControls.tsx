@@ -1,7 +1,7 @@
 "use client";
 import { useTranslations } from "next-intl";
 import { useActionState } from "react";
-import { MdEdit } from "react-icons/md";
+import { MdCheckCircle, MdEdit, MdRemoveShoppingCart } from "react-icons/md";
 import { carriesInventory } from "~/domain/entities/post/stock";
 import { Link } from "~/i18n/navigation";
 import { Button } from "~/presentation/design_system/buttons/Button";
@@ -93,6 +93,13 @@ export default function OwnerControls({
               color={available ? "default" : "green"}
               isLoading={isPending}
               disabled={isPending}
+              startIcon={
+                available ? (
+                  <MdRemoveShoppingCart aria-hidden />
+                ) : (
+                  <MdCheckCircle aria-hidden />
+                )
+              }
             >
               {available ? t("markSoldOut") : t("markAvailable")}
             </Button>

@@ -62,10 +62,39 @@ export const buttonVariants = cva(
         lg: "min-h-14 px-6 py-4 text-base",
         xl: "min-h-16 px-7 py-5 text-base",
       },
+      /**
+       * Solo el icono, en cuadrado.
+       *
+       * Existe para los listados: la tarjeta de una publicación llevaba tres acciones con texto
+       * —«Añadir al carrito» sola ocupa 172 px— y cada una caía en su propio renglón, así que las
+       * acciones se llevaban la mitad del alto de la tarjeta compitiendo con la foto y el título,
+       * que es lo que se viene a mirar. En una columna de 226 px no hay sitio para eso.
+       *
+       * **El relleno horizontal se va, el alto no.** Es lo que vuelve el botón cuadrado sin tocar
+       * su objetivo táctil: `md` sigue siendo 48px de lado, que es con lo que un pulgar acierta.
+       *
+       * **Quien lo use TIENE que pasar `aria-label`.** Un botón sin texto y sin etiqueta se
+       * anuncia como «botón» y deja de existir para quien navega escuchando. El nombre no se pone
+       * aquí porque el design system no puede leer el catálogo (ver `loadingLabel`).
+       */
+      iconOnly: {
+        true: "px-0 py-0 shrink-0",
+        false: "",
+      },
     },
+    compoundVariants: [
+      /* El lado sigue al tamaño: sin esto, quitar el relleno dejaría un botón tan ancho como su
+         icono —16 px— y el objetivo táctil se perdería aunque el alto se conservara. */
+      { iconOnly: true, size: "xs", class: "w-8" },
+      { iconOnly: true, size: "sm", class: "w-10" },
+      { iconOnly: true, size: "md", class: "w-12" },
+      { iconOnly: true, size: "lg", class: "w-14" },
+      { iconOnly: true, size: "xl", class: "w-16" },
+    ],
     defaultVariants: {
       color: "default",
       size: "md",
+      iconOnly: false,
     },
   },
 );
