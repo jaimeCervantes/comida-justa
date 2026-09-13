@@ -44,7 +44,7 @@ export default function Card({
       <span className="@min-[320px]:hidden">
         <Avatar user={{ name: userName, image: user.image ?? user.photoURL }} />
       </span>
-      <div className="flex min-w-0 flex-col text-label text-text-support @min-[320px]:text-caption">
+      <div className="flex min-w-0 flex-col text-label text-text-support @min-[320px]:text-tiny">
         <span className="truncate font-medium text-text-base">{userName}</span>
         <span className="@min-[320px]:hidden">
           <FormattedDate isoDateString={createdAt} />
@@ -75,7 +75,7 @@ export default function Card({
       {/* Foto a la izquierda y texto a la derecha en cuanto la tarjeta pasa de 320px, que es lo
           que ocurre cuando va sola en su renglón — el teléfono de pie. Ver `card-media`. */}
       <div className="@min-[320px]:flex">
-        <div className="card-media @min-[320px]:w-[38%] @min-[320px]:shrink-0">
+        <div className="card-media @min-[320px]:w-1/2 @min-[320px]:shrink-0">
           {media}
         </div>
         {/* El espaciado sale del estándar y no de márgenes en cada hijo: ver `cardSpacing.ts`. Con
@@ -107,7 +107,7 @@ export default function Card({
             size="xs"
             className={cn(
               "group-hover:text-highlight transition-colors",
-              "@min-[320px]:text-body @min-[320px]:font-medium @min-[320px]:line-clamp-2",
+              "@min-[320px]:text-label @min-[320px]:font-medium @min-[320px]:line-clamp-2",
             )}
           >
             <AnchorElement {...anchorProps}>{title}</AnchorElement>

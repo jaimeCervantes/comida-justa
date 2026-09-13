@@ -271,8 +271,22 @@
     align-self: stretch;
     overflow: hidden;
 
+    /*
+     * La cadena de alturas, entera y por eso enumerada.
+     *
+     * Un `height: 100%` sólo resuelve si su padre tiene alto, así que basta con que un eslabón se
+     * quede en automático para que todo lo de abajo colapse. Aquí hay cuatro: el envoltorio que
+     * posiciona las insignias, el **enlace** que envuelve la foto, el hueco que pinta
+     * `MediaContent` y el marco del esqueleto de carga. El enlace era el que faltaba, y el
+     * síntoma era una foto pequeña con un hueco debajo.
+     *
+     * Se podría arreglar sacando el `img` fuera del enlace —se ve igual— pero entonces la foto
+     * deja de llevar a la publicación, que es de las primeras cosas que alguien toca.
+     */
     & > *,
-    & .sj-media-wrapper {
+    & a,
+    & a > *,
+    & .sj-media-wrapper > * {
       height: 100%;
     }
 

@@ -237,7 +237,10 @@ export default function CardForList(
         {showsProvenanceBadge(origin, Boolean(seller)) ? (
           <ProvenanceBadge origin={origin} />
         ) : null}
-        <CategoryTag label={categoryLabel} />
+        <CategoryTag
+          label={categoryLabel}
+          className="@min-[320px]:text-caption"
+        />
         {kind === PRACTICE_POST_KIND ? (
           <span
             data-testid="practice-post-badge"
@@ -264,7 +267,7 @@ export default function CardForList(
         <CurrencyAmount
           value={price}
           currency={SITE_CURRENCY}
-          className="@min-[320px]:text-heading-md"
+          className="@min-[320px]:text-heading-sm"
         />
       </span>
 

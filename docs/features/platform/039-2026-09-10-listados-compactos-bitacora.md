@@ -435,3 +435,67 @@ la tarjeta y no por el de la pantalla.
    usarlo se ve estrecha o ancha, es una línea.
 3. **El contador de apoyos junto al corazón** enseña «0» cuando nadie apoyó. La referencia no enseña
    ceros; podría callarse hasta el primer apoyo.
+
+## Ajuste — La foto llena su mitad (2026-09-12)
+
+### Objetivo
+
+En el renglón de móvil la foto seguía viéndose pequeña aunque ya estirara: quedaba angosta dentro de
+su columna y con aire por abajo. Se pidió además texto más chico.
+
+### Decisiones y por qué
+
+**1. El fallo estaba en la cadena de alturas, y lo encontró el usuario inspeccionando el DOM.** Un
+`height: 100%` sólo resuelve si su padre tiene alto, así que basta con que un eslabón quede en
+automático para que todo lo de abajo colapse. La cadena tiene cuatro: el envoltorio que posiciona las
+insignias, **el enlace que envuelve la foto**, el hueco que pinta `MediaContent` y el marco del
+esqueleto de carga. `card-media` ponía el alto en el primero y en el tercero; el enlace, en medio, se
+quedaba fuera.
+
+El usuario lo comprobó moviendo el `<img>` fuera del `<a>` en el inspector: así se ve bien, porque se
+salta el eslabón roto. No se hizo así. La foto es de las primeras cosas que alguien toca en un
+listado, y sacarla del enlace la deja sin llevar a ninguna parte. Se completó la cadena en el CSS,
+con los cuatro eslabones enumerados y el motivo escrito, porque es un fallo que vuelve en cuanto
+alguien mete un `div` más en medio.
+
+**2. La foto ocupa la mitad exacta del renglón.** Se pidió «mínimo el 50%». Un mínimo de verdad —que
+crezca si sobra— no tiene sentido aquí: la foto y el texto se reparten un ancho fijo, así que lo que
+se le da a una se le quita a la otra. A partir de ~55% el título empieza a cortarse en la primera
+palabra.
+
+**3. Todo el texto baja un escalón** en el renglón horizontal: título a `text-label`, categoría a
+`text-caption`, firma a `text-tiny`, precio a `text-heading-sm`. El precio baja con los demás y sigue
+mandando: lo que lo hace grande es el contraste con el título, no su tamaño absoluto.
+
+**El coste, que se avisó:** con la columna más angosta y el texto más chico, un título largo se corta
+antes. «Falcon Protein – Proteína Vegana en Polvo – Chocolate 1.8 kg» ya no cabe entero en dos
+renglones. Se aceptó a cambio de la lista compacta; las salidas son un tercer renglón de título o
+devolver la foto al 46%.
+
+### Archivos tocados
+
+- `src/app/styles/globals.css` — la cadena de alturas de `card-media`, completa.
+- `src/presentation/post/Card/Card.tsx` — la foto al 50%, título y firma más chicos.
+- `src/presentation/post/CardForList/CardForList.tsx` — precio y categoría más chicos.
+
+### Validación
+
+| Qué | Resultado |
+| --- | --- |
+| `pnpm run typecheck` / `lint` | limpios, 1209 archivos |
+| `pnpm run test:run` | **278 archivos, todas verdes** |
+| Playwright acotado | **19/19** en 4.3 min |
+| A ojo | 390 de pie, búsqueda y home, con y sin sesión |
+
+### Recap
+
+La foto del renglón de móvil llena su mitad entera —ancho y alto, recortada al centro— y el texto
+cabe alrededor en cuatro escalones más bajos. El enlace sigue envolviendo la imagen, así que tocarla
+sigue llevando a la publicación. Nada de esto toca la tarjeta apilada.
+
+### Próximos pasos (opciones)
+
+1. **El título cortado**, si molesta: tres renglones en vez de dos, o foto al 46%.
+2. **El «0» del contador** cuando nadie ha apoyado, que la referencia no enseña.
+3. **La insignia del pilar sobre la miniatura** quedó reducida a su número; en una foto oscura se lee
+   suelta.
