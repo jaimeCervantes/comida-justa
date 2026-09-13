@@ -347,3 +347,91 @@ búsqueda, en una tienda y en la columna de relacionadas.
    que sean preexistentes.
 
 **Pendiente de tu parte:** decidir si la fila del dueño y el resto de listados se revisan a ojo.
+
+## Ajuste — La tarjeta de móvil, al estilo de un catálogo (2026-09-12)
+
+### Objetivo
+
+El renglón horizontal del teléfono no gustó al verlo: la foto parecía una estampilla con un hueco
+blanco debajo, el título gritaba más que el precio y las acciones se partían en dos renglones. La
+referencia pedida fue Mercado Libre en su lista de móvil.
+
+### Qué se midió antes de tocar
+
+En la tarjeta de un teléfono de pie la columna de texto son **191 px útiles** y la fila de acciones
+pedía **210**: cinco botones de 32, el contador y cinco separaciones. Por eso el «⋯» caía abajo. Con
+tres controles la fila pide unos 130 y entra con holgura.
+
+### Decisiones y por qué
+
+**1. La foto llena el alto del renglón.** Era un cuadrado, y como la columna de texto siempre es más
+alta quedaba un hueco blanco debajo — que es exactamente lo que se leía como «la imagen se ve muy
+pequeña». Estirada al alto de la tarjeta, la foto es la mitad izquierda entera. El recorte al centro
+es el precio de que una vertical de 1200x1600 no estire el renglón.
+
+**2. Los controles de dueño vuelven al «⋯», deshaciendo lo que se pidió dos mensajes antes.** Se
+autorizó explícitamente («si es necesario poner menos acciones, adelante») y sin eso la fila no cabe
+por mucho que se apriete: estrechar separaciones y relleno dejaba 207 contra 200, al filo, a costa de
+juntar objetivos táctiles. Lo paga quien administra una publicación —una persona por tarjeta— con una
+pulsación más; lo cobraba, en alto, todo el que sólo viene a mirar.
+
+**3. La jerarquía se invierte: manda el precio.** El título baja a `text-body` con peso medio y se
+corta a dos renglones; el precio sube a `text-heading-md`. Un título de tarjeta a peso semibold
+compitiendo con la cifra hacía que ninguno de los dos mandara. Cortar el título a dos renglones
+además hace que dos tarjetas seguidas midan parecido, que es lo que convierte un listado en una
+lista.
+
+**4. La firma se encoge a una línea.** El avatar de 45px y la fecha en su propio renglón se llevaban
+un tercio del alto para decir algo que no decide ninguna compra. Queda el nombre; el retrato y el día
+exacto vuelven en cuanto la tarjeta es apilada y hay alto de sobra. **Quién publicó no se quita**: es
+de lo que vive el sitio, y es la diferencia con la referencia, que no lo enseña.
+
+**Todo lo anterior es del renglón horizontal.** La tarjeta apilada —escritorio, tableta, teléfono
+girado— no cambia ni un píxel: las cinco condiciones son consultas de contenedor.
+
+### Archivos tocados
+
+- `src/app/styles/globals.css` — `card-media` estira en vez de cuadrar.
+- `src/presentation/post/Card/Card.tsx` — proporciones, tipografía y firma del renglón.
+- `src/presentation/post/CardForList/CardForList.tsx` — el precio.
+- `src/presentation/post/CardOwnerControls.tsx` — los tres controles, de vuelta al menú.
+- Pruebas: `CardForList.test.tsx`, `PostsWithLoadMore.test.tsx`, `cardControls.spec.ts`,
+  `existenciasEnLaTarjeta.spec.ts`, `tarjetaCompacta.spec.ts` y el `.feature`.
+
+### Validación
+
+| Qué | Resultado |
+| --- | --- |
+| `pnpm run typecheck` / `lint` | limpios, 1209 archivos |
+| `pnpm run test:run` | **278 archivos, todas verdes** |
+| Playwright acotado | **19/19** en 3.7 min |
+| A ojo, con sesión iniciada | 390 de pie y 1280, con una publicación propia |
+
+Los 3 escenarios de `inventory` que quedaron sin diagnosticar al cortarse una corrida anterior se
+repitieron aislados: **3/3 en verde**. No eran regresiones ni fallos preexistentes — eran los
+`page.goto` expirando con el servidor ahogado dentro del sandbox.
+
+### Desviaciones
+
+1. **Tercer cambio de rumbo sobre el mismo control.** Los controles de dueño fueron menú, luego fila,
+   y ahora menú otra vez. Los dos primeros se decidieron sin medir la columna; el tercero se decidió
+   **después** de medirla en el navegador con sesión iniciada. La medida está escrita arriba para que
+   el cuarto cambio, si llega, empiece por ahí.
+2. **`data-testid="card-edit"`** sobrevivió a la mudanza al menú, así que las pruebas que apuntaban al
+   enlace de editar siguieron sirviendo con sólo abrir el panel antes.
+
+### Recap
+
+La tarjeta de un teléfono de pie se lee como un renglón de catálogo: foto a toda la altura a la
+izquierda, título discreto a dos renglones, precio mandando, tres acciones en una sola fila y una
+firma de una línea. Lo que sólo puede hacer quien administra cuelga de un «⋯» que comparte ese
+renglón. Nada de esto toca la tarjeta apilada, porque las cinco condiciones preguntan por el ancho de
+la tarjeta y no por el de la pantalla.
+
+### Próximos pasos (opciones)
+
+1. **Mirar el home y el perfil en un teléfono**, que heredan el renglón horizontal sin haberse visto.
+2. **La foto ocupa el 38%.** Es un número elegido a ojo entre los 33% y 40% de la referencia; si al
+   usarlo se ve estrecha o ancha, es una línea.
+3. **El contador de apoyos junto al corazón** enseña «0» cuando nadie apoyó. La referencia no enseña
+   ceros; podría callarse hasta el primer apoyo.

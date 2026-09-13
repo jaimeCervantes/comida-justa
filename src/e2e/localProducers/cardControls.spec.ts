@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 import { VISITOR_LOCATION_COOKIE } from "~/infra/location/locationCookie";
 import { deleteOnePostBySlug } from "../testUtils/deleteOnePost";
 import { deleteTestSellerByHandle } from "../testUtils/deleteTestSeller";
+import { openWhenHydrated } from "../testUtils/openWhenHydrated";
 import { type SeedPostInput, seedPost } from "../testUtils/seedPost";
 import { coordinatesAtKm, seedStore } from "../testUtils/seedStore";
 import {
@@ -46,13 +47,18 @@ test.describe("Cuando un vendedor mira su propio catálogo", () => {
       .filter({ hasText: post.title })
       .first();
 
-    /* Agotar es un icono más de la fila de acciones desde el slice 2 de
-       `listadosCompactos.feature`: sin texto, pero con su nombre accesible entero, que es por donde
-       lo encuentra esta prueba. */
-    await tarjeta
-      .getByRole("button", { name: /marcar agotado/i })
-      .first()
-      .click();
+    /* Lo que sólo puede hacer quien administra vive detrás del «⋯»: sueltos, los cinco controles
+       no cabían en la columna de texto de un teléfono de pie. Lo que se agota sigue agotándose
+       desde el listado; lo que cambió es que cuesta una pulsación más. */
+    const menu = page.getByTestId("card-owner-menu");
+    await openWhenHydrated(
+      tarjeta
+        .getByRole("button", { name: /opciones de la publicación/i })
+        .first(),
+      menu,
+    );
+
+    await menu.getByRole("button", { name: /marcar agotado/i }).click();
 
     /* Se espera a que la propia tarjeta lo confirme antes de navegar: un `goto` inmediato adelanta
        a la acción del servidor y la prueba mediría la carrera en vez del comportamiento.

@@ -143,25 +143,20 @@ test.describe("Las existencias se editan desde la tarjeta", () => {
 
     await page.goto(`/tienda/${store.handle}`);
 
-    /* El interruptor manual vive en la fila de acciones y el campo detrás del menú, así que cada
-       uno se busca donde vive: en la tarjeta el primero, en el panel el segundo. */
-    await expect(
-      card(page, "E2E dona-con-cuenta").getByRole("button", {
-        name: /agotado|disponible/i,
-      }),
-    ).toBeHidden();
+    /* Los dos viven en el mismo panel, así que los dos se preguntan ahí. */
     const conCuenta = await ownerMenu(page, "E2E dona-con-cuenta");
     await expect(conCuenta.getByTestId("stock-input")).toHaveValue("12");
+    await expect(
+      conCuenta.getByRole("button", { name: /agotado|disponible/i }),
+    ).toBeHidden();
     await closeMenu(page);
 
     /* Y el que no lleva la cuenta conserva su interruptor de siempre, con el campo esperando el
        primer número. Es la garantía de que esto no cambia nada de lo ya publicado. */
-    await expect(
-      card(page, "E2E jugo-sin-cuenta").getByRole("button", {
-        name: /agotado/i,
-      }),
-    ).toBeVisible();
     const sinCuenta = await ownerMenu(page, "E2E jugo-sin-cuenta");
+    await expect(
+      sinCuenta.getByRole("button", { name: /agotado/i }),
+    ).toBeVisible();
     await expect(sinCuenta.getByTestId("stock-input")).toHaveValue("");
   });
 

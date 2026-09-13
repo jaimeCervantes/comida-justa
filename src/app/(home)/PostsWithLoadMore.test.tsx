@@ -204,10 +204,16 @@ describe("El feed del home", () => {
       .closest("article");
     expect(primeraTarjeta).not.toBeNull();
 
+    /* Agotar cuesta abrir el menú: con cinco controles sueltos la fila no cabía en la columna
+       de un teléfono. El panel se monta en un portal, así que se busca desde `screen` y no
+       dentro de la tarjeta. */
     await userEvent.click(
       within(primeraTarjeta as HTMLElement).getByRole("button", {
-        name: "Marcar agotado",
+        name: "Opciones de la publicación",
       }),
+    );
+    await userEvent.click(
+      screen.getByRole("button", { name: "Marcar agotado" }),
     );
 
     await waitFor(() => {

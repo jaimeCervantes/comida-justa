@@ -33,12 +33,22 @@ export default function Card({
    * tarjeta en vez de cortarse. La columna más estrecha del sitio son 220px, y ahí un nombre de
    * cuatro palabras ya no cabe.
    */
+  /*
+   * En el renglón horizontal la firma se encoge a una línea: el avatar de 45px y la fecha en su
+   * propio renglón se llevaban un tercio del alto de la tarjeta para decir algo que no decide
+   * ninguna compra. Quién publicó se queda —es de lo que vive este sitio—; el retrato y el día
+   * exacto se van, y vuelven en cuanto la tarjeta es apilada y hay alto de sobra.
+   */
   const signature = (
     <>
-      <Avatar user={{ name: userName, image: user.image ?? user.photoURL }} />
-      <div className="flex min-w-0 flex-col text-label text-text-support">
+      <span className="@min-[320px]:hidden">
+        <Avatar user={{ name: userName, image: user.image ?? user.photoURL }} />
+      </span>
+      <div className="flex min-w-0 flex-col text-label text-text-support @min-[320px]:text-caption">
         <span className="truncate font-medium text-text-base">{userName}</span>
-        <FormattedDate isoDateString={createdAt} />
+        <span className="@min-[320px]:hidden">
+          <FormattedDate isoDateString={createdAt} />
+        </span>
       </div>
     </>
   );
@@ -64,8 +74,8 @@ export default function Card({
     >
       {/* Foto a la izquierda y texto a la derecha en cuanto la tarjeta pasa de 320px, que es lo
           que ocurre cuando va sola en su renglón — el teléfono de pie. Ver `card-media`. */}
-      <div className="@min-[320px]:flex @min-[320px]:items-start">
-        <div className="card-media @min-[320px]:w-2/5 @min-[320px]:shrink-0">
+      <div className="@min-[320px]:flex">
+        <div className="card-media @min-[320px]:w-[38%] @min-[320px]:shrink-0">
           {media}
         </div>
         {/* El espaciado sale del estándar y no de márgenes en cada hijo: ver `cardSpacing.ts`. Con
@@ -73,12 +83,32 @@ export default function Card({
           precio ni categoría— deja de ocupar sitio, cosa que un `mb-*` en el hermano de arriba no
           hacía: ahí estaba el hueco que quedaba bajo el título. */}
         {/* `min-w-0` es lo que deja que el título se parta en vez de empujar a la foto: un hijo
-          de flex no baja de su contenido mientras no se le diga. */}
-        <section className={cn(CARD_PADDING, CARD_STACK, "grow min-w-0")}>
+          de flex no baja de su contenido mientras no se le diga.
+
+          El relleno cede en el renglón horizontal: 20px a cada lado sobre una columna de 215
+          son casi un quinto del ancho, y ese quinto es lo que le falta a la fila de acciones
+          para caber sin partirse. */}
+        <section
+          className={cn(
+            CARD_PADDING,
+            "@min-[320px]:p-3",
+            CARD_STACK,
+            "@min-[320px]:gap-2",
+            "grow min-w-0",
+          )}
+        >
+          {/* Más pequeño y menos pesado en el renglón horizontal, y no es capricho: ahí el
+              protagonista es el precio. Un título de tarjeta a peso semibold compitiendo con
+              la cifra hace que ninguno de los dos mande, que es lo que pasaba. Se corta a dos
+              renglones para que dos tarjetas seguidas midan parecido y la lista se lea como
+              lista. */}
           <Heading
             level={3}
             size="xs"
-            className="group-hover:text-highlight transition-colors"
+            className={cn(
+              "group-hover:text-highlight transition-colors",
+              "@min-[320px]:text-body @min-[320px]:font-medium @min-[320px]:line-clamp-2",
+            )}
           >
             <AnchorElement {...anchorProps}>{title}</AnchorElement>
           </Heading>
@@ -86,7 +116,7 @@ export default function Card({
           {/* `mt-auto` empuja la firma al fondo, que es lo que alinea los pies de una fila de
             tarjetas de altura distinta. El `pt-4` se queda: el borde necesita aire propio, más
             que la separación de la pila. */}
-          <div className="mt-auto flex justify-start gap-3 items-center pt-4 border-t border-separator">
+          <div className="mt-auto flex justify-start gap-3 items-center pt-4 border-t border-separator @min-[320px]:pt-2">
             {userHref ? (
               <Link
                 href={userHref}

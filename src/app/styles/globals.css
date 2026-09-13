@@ -261,13 +261,14 @@
  * acierta en un teléfono de pie, en el mismo teléfono girado —que pasa a tres columnas y vuelve a
  * apilar— y en la columna de «Publicaciones relacionadas».
  *
- * El cuadrado recorta a propósito. Con la foto a lo alto, una vertical de 1200x1600 estiraba la
- * tarjeta hasta tres veces el alto de su texto; recortada al centro, las tarjetas de una lista
- * vuelven a leerse como una lista.
+ * **Llena el alto del renglón, y eso es lo que la hace grande.** Cuadrada quedaba como una
+ * estampilla con un hueco blanco debajo, porque la columna de texto siempre es más alta; estirada,
+ * la foto es la mitad izquierda entera y la tarjeta se lee como un renglón de catálogo. El recorte
+ * al centro es el precio: una vertical de 1200x1600 no cabe entera y no debe estirar la tarjeta.
  */
 @utility card-media {
   @container (min-width: 320px) {
-    aspect-ratio: 1;
+    align-self: stretch;
     overflow: hidden;
 
     & > *,

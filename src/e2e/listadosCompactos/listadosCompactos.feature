@@ -53,14 +53,16 @@ Feature: Listados compactos
     Then compartir queda por encima del título, sobre la imagen
 
   @slice-2
-  Scenario: Lo que solo puede hacer el dueño cabe en el mismo renglón
+  Scenario: Lo que solo puede hacer el dueño no le cuesta alto a quien mira
     Given quien publicó "E2E Barra de Proteína del listado"
     When ve su propia publicación en un listado
-    Then editar y marcar agotado se enseñan como iconos, en la misma fila que juntar al carrito
-    And quien solo mira no los encuentra
+    Then editar, marcar agotado y recontar cuelgan de un menú
+    And ese menú comparte renglón con juntar al carrito y apoyar
+    And quien solo mira no lo encuentra
 
-  # El campo de existencias es la excepción, y por eso queda un menú: es un campo de texto con su
-  # botón de guardar, no un icono, y en una columna de 136px partiría la fila en tres. Lo prueba
+  # Estuvieron sueltos en la fila, que es donde se pidieron. Se midió en el navegador: en la
+  # tarjeta de un teléfono de pie la columna de texto son 191px y cinco controles piden 210, así
+  # que el «⋯» caía a un segundo renglón. Lo que cuelga del menú lo prueba
   # `inventory/existenciasEnLaTarjeta.spec.ts`.
   #
   # Y que agotar desde la tarjeta agote en todas partes lo cubre

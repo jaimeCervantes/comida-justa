@@ -33,9 +33,9 @@ import { renderWithIntl as render } from "~/infra/test-utils/renderWithIntl";
 import CardForList from "./CardForList";
 
 /**
- * El campo de existencias es lo único que queda detrás del menú de la tarjeta: es un campo de texto
- * con su botón de guardar, no un icono, y no entra en la fila de acciones. Editar y agotar sí están
- * en la fila, así que a esos se llega sin abrir nada.
+ * Lo que sólo puede hacer quien administra vive detrás del «⋯» de la tarjeta: sueltos, los cinco
+ * controles no cabían en la columna de texto de un teléfono de pie. Verlos cuesta una pulsación,
+ * así que las pruebas la dan.
  */
 async function abrirMenuDelDueño(trigger: HTMLElement): Promise<void> {
   await userEvent.setup().click(trigger);
@@ -111,6 +111,8 @@ describe("When a card is listed", () => {
       />,
     );
 
+    await abrirMenuDelDueño(getByTestId("card-owner-menu-trigger"));
+
     expect(getByTestId("card-edit")).toHaveAttribute(
       "href",
       "/editar/suero-natural",
@@ -126,6 +128,8 @@ describe("When a card is listed", () => {
         viewerId="user-1"
       />,
     );
+
+    await abrirMenuDelDueño(getByTestId("card-owner-menu-trigger"));
 
     expect(getByTestId("card-edit")).toHaveAttribute(
       "href",
@@ -332,10 +336,12 @@ describe("When a card is listed", () => {
   });
 
   /* Un anuncio no se agota: a su dueño se le ofrece editarlo y nada más. */
-  it("a un anuncio propio solo le ofrece editar", () => {
+  it("a un anuncio propio solo le ofrece editar", async () => {
     const { getByTestId, queryByRole } = render(
       <CardForList {...baseProps} kind="anuncio" viewerId="user-1" />,
     );
+
+    await abrirMenuDelDueño(getByTestId("card-owner-menu-trigger"));
 
     expect(getByTestId("card-edit")).toBeInTheDocument();
     expect(queryByRole("button", { name: /agotado/i })).not.toBeInTheDocument();
@@ -578,15 +584,15 @@ describe("las existencias en la tarjeta", () => {
 
   /* Dos mandos para lo mismo podrían contradecirse: un producto agotado a mano con 12 unidades
      guardadas no sabría qué contestar. Misma regla que en la ficha. */
-  /*
-   * Sin texto, el dibujo es lo único que queda: un botón de icono cuyo icono no llegara sería un
-   * cuadrado mudo. El nombre accesible lo defiende la prueba de arriba; esto defiende lo que ve
-   * quien mira.
-   */
-  it("el interruptor se reconoce por su dibujo, que es lo único que enseña", () => {
-    const { getByRole } = render(
+  /* Escenario @component de listadosCompactos.feature: ningún botón se queda sin icono. Se
+     afirma que hay **uno**, no cuál: cambiar el dibujo es una decisión de diseño y no tiene por
+     qué costar una prueba. */
+  it("el interruptor del menú se reconoce por su dibujo, no sólo por su texto", async () => {
+    const { getByRole, getByTestId } = render(
       <CardForList {...producto} viewerId="user-1" stockQuantity={null} />,
     );
+
+    await abrirMenuDelDueño(getByTestId("card-owner-menu-trigger"));
 
     expect(
       getByRole("button", { name: /agotado/i }).querySelector("svg"),
@@ -598,9 +604,11 @@ describe("las existencias en la tarjeta", () => {
       <CardForList {...producto} viewerId="user-1" stockQuantity={12} />,
     );
 
-    /* El interruptor vive en la fila, a la vista: que no esté es que no se pintó, no que quedara
-       escondido detrás de algo sin abrir. */
-    expect(getByTestId("card-owner-controls")).toBeInTheDocument();
+    /* Se abre el menú antes de afirmar la ausencia: sin abrirlo, este not.toBeInTheDocument
+       pasaría porque el panel está cerrado, no porque el interruptor no esté. Una prueba que
+       pasa por el motivo equivocado deja de avisar el día que importa. */
+    await abrirMenuDelDueño(getByTestId("card-owner-menu-trigger"));
+
     expect(
       queryByRole("button", { name: /agotado|disponible/i }),
     ).not.toBeInTheDocument();
@@ -611,9 +619,9 @@ describe("las existencias en la tarjeta", () => {
       <CardForList {...producto} viewerId="user-1" stockQuantity={null} />,
     );
 
-    // El interruptor está en la fila; el campo, detrás del menú.
-    expect(getByRole("button", { name: /agotado/i })).toBeInTheDocument();
     await abrirMenuDelDueño(getByTestId("card-owner-menu-trigger"));
+
+    expect(getByRole("button", { name: /agotado/i })).toBeInTheDocument();
     expect(getByTestId("stock-input")).toHaveValue(null);
   });
 

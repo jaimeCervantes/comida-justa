@@ -259,7 +259,13 @@ export default function CardForList(
         {/* Sin `className`: llevaba `text-xl text-pw-green`, que pisaba lo que el primitivo ya
             decide —serif, tamaño de sección y tinta—. El verde además señalaba como si el precio
             llevara a algún sitio, y no lleva. Ver el docstring de `CurrencyAmount`. */}
-        <CurrencyAmount value={price} currency={SITE_CURRENCY} />
+        {/* El precio crece cuando la tarjeta es un renglón de lista: es lo que se compara de un
+            vistazo entre una y otra, y con el título ya rebajado puede mandar sin gritar. */}
+        <CurrencyAmount
+          value={price}
+          currency={SITE_CURRENCY}
+          className="@min-[320px]:text-heading-md"
+        />
       </span>
 
       {/* El apoyo es infraestructura de cualquier publicación, no solo de práctica: se pinta junto

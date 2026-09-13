@@ -94,7 +94,7 @@ test.describe("Cuando quien publicó mira su propia tarjeta", () => {
     }
   });
 
-  test("Lo suyo comparte renglón con juntar al carrito", async ({ page }) => {
+  test("Su menú comparte renglón con juntar al carrito", async ({ page }) => {
     await page.goto("/");
 
     const tarjeta = page
@@ -102,15 +102,16 @@ test.describe("Cuando quien publicó mira su propia tarjeta", () => {
       .filter({ hasText: post.title })
       .first();
 
-    const editar = tarjeta.getByRole("link", { name: es.post.edit });
-    const agotar = tarjeta.getByRole("button", { name: es.post.markSoldOut });
     const carrito = tarjeta.getByRole("button", { name: es.cart.add });
+    const suyo = tarjeta
+      .getByRole("button", { name: es.post.ownerMenu })
+      .first();
 
-    /* Las cuatro acciones a la misma altura: es lo que separa "una fila" de "cuatro renglones".
-       Antes cada una caía en el suyo y los del dueño se llevaban la mitad del alto de la tarjeta,
-       que es alto que también pagaba quien sólo viene a mirar. */
+    /* A la misma altura: es lo que separa un renglón de acciones de dos. Lo que cuelga del «⋯»
+       —editar, agotar, recontar— no ocupa sitio hasta que alguien lo pide, que es la diferencia
+       entre cobrarle ese alto a una persona por tarjeta o a todas las demás. */
     const alturas = await Promise.all(
-      [carrito, editar, agotar].map(async (accion) =>
+      [carrito, suyo].map(async (accion) =>
         Math.round(centro(await caja(accion))),
       ),
     );
