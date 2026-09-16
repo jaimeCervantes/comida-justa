@@ -145,6 +145,30 @@ test.describe("When an admin takes a publication down", () => {
     await moderation.gotoPost(slug);
     await expect(page.getByTestId("moderation-notice")).toHaveCount(0);
   });
+
+  /*
+   * El usuario lo reportó: el `<select>` de motivo se dimensionaba al texto del motivo más
+   * largo —"Ofrece algo que no se puede vender aquí: alcohol, tabaco, vapeadores, sustancias o
+   * armas."— y en un teléfono eso desbordaba la página. `Select` (design system) fija el ancho
+   * desde su caja en vez de dejárselo al navegador; ver `ModerationControls.tsx`.
+   */
+  test("Then the reason select never forces the page to scroll sideways on a phone", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+
+    const moderation = new ModerationPanelPage(page);
+    await moderation.gotoPost(slug);
+
+    const select = page.getByTestId("moderation-reason");
+    const box = await select.boundingBox();
+    expect(box?.width ?? Number.POSITIVE_INFINITY).toBeLessThanOrEqual(390);
+
+    const scrollWidth = await page.evaluate(
+      () => document.documentElement.scrollWidth,
+    );
+    expect(scrollWidth).toBeLessThanOrEqual(390);
+  });
 });
 
 test.describe("When a non-admin opens the moderation panel", () => {
