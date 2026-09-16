@@ -433,6 +433,7 @@ export default function PublishForm({
             <div className="flex items-center gap-2">
               {step > 0 ? (
                 <Button
+                  key="back"
                   type="button"
                   onClick={() => setStep(step - 1)}
                   data-testid="publish-back"
@@ -440,7 +441,7 @@ export default function PublishForm({
                   {t("stepBack")}
                 </Button>
               ) : (
-                <Link href="/">
+                <Link key="cancel" href="/">
                   <Button type="button">{t("cancel")}</Button>
                 </Link>
               )}
@@ -449,6 +450,7 @@ export default function PublishForm({
             <div className="flex items-center gap-2">
               {step < PUBLISH_STEPS.length - 1 ? (
                 <Button
+                  key="next"
                   type="button"
                   color="green"
                   onClick={() => setStep(step + 1)}
@@ -458,6 +460,7 @@ export default function PublishForm({
                 </Button>
               ) : (
                 <Button
+                  key="submit"
                   type="submit"
                   color="green"
                   isLoading={isPending && !state.success}
