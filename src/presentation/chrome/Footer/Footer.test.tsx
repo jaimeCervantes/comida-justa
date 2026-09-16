@@ -59,6 +59,28 @@ describe("When the footer is rendered", () => {
   });
 });
 
+/**
+ * El enlace de retroalimentación: mismo WhatsApp de siempre, con un mensaje ya escrito para que se
+ * note que es "dinos qué falta" y no "escríbenos para comprar". Ver
+ * `docs/features/platform/041-2026-09-16-enlace-de-retroalimentacion.md`.
+ */
+describe("El enlace de retroalimentación del pie", () => {
+  it("lleva al WhatsApp de la comunidad con el mensaje ya escrito", () => {
+    const view = render(<Footer theme={null} />);
+    const link = view.getByTestId("feedback-link-footer");
+
+    expect(link).toHaveAttribute(
+      "href",
+      expect.stringContaining("wa.me/522781126948"),
+    );
+    expect(link).toHaveAttribute(
+      "href",
+      expect.stringContaining(encodeURIComponent("Hola, quiero compartir")),
+    );
+    expect(link).toHaveTextContent("¿Qué te hace falta?");
+  });
+});
+
 describe("Los pilares del pie", () => {
   /**
    * Eran cuatro palomitas con un nombre al lado, sin enlace: decoración justo donde alguien busca a
