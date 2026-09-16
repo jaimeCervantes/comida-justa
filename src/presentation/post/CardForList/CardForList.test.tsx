@@ -52,9 +52,19 @@ const baseProps = {
 };
 
 describe("When a card is listed", () => {
-  it("shows the Hazlo Sano badge for a hazlo_sano_* origin", () => {
+  /* Hazlo Sano lo hace ella misma, y esa mitad de la insignia ya no la nombra: dice "Local", igual
+     que cualquier otra procedencia que sí lo sea, sin repetir la marca. */
+  it("shows the Local badge for what Hazlo Sano makes itself", () => {
     const { getByTestId } = render(
       <CardForList {...baseProps} origin="hazlo_sano_propio" />,
+    );
+
+    expect(getByTestId("provenance-badge")).toHaveTextContent("Local");
+  });
+
+  it("keeps the Hazlo Sano badge for what it only resells", () => {
+    const { getByTestId } = render(
+      <CardForList {...baseProps} origin="hazlo_sano_reventa" />,
     );
 
     expect(getByTestId("provenance-badge")).toHaveTextContent("Hazlo Sano");
@@ -389,7 +399,7 @@ describe("When a card is listed", () => {
 
     it("se calla la procedencia cuando el logo ya dice lo mismo", () => {
       const { queryByTestId } = render(
-        <CardForList {...CON_TIENDA} origin="hazlo_sano_propio" />,
+        <CardForList {...CON_TIENDA} origin="hazlo_sano_reventa" />,
       );
 
       expect(queryByTestId("provenance-badge")).not.toBeInTheDocument();
@@ -402,6 +412,16 @@ describe("When a card is listed", () => {
       );
 
       expect(getByTestId("provenance-badge")).toBeInTheDocument();
+    });
+
+    /* Lo mismo que arriba, pero para lo que Hazlo Sano hace ella misma: "Local" tampoco se lee en
+       el logo, así que la insignia se queda aunque la tienda ya se vea. */
+    it("y también la de Local para lo que Hazlo Sano hace ella misma", () => {
+      const { getByTestId } = render(
+        <CardForList {...CON_TIENDA} origin="hazlo_sano_propio" />,
+      );
+
+      expect(getByTestId("provenance-badge")).toHaveTextContent("Local");
     });
   });
 

@@ -14,10 +14,14 @@ describe("ProvenanceBadge", () => {
    * La insignia solo afirma lo que el dato respalda. Un `productor` **no** presume locación: si es
    * local o no lo dice la distancia de su sucursal, que esta tarjeta no consulta. Dice entonces lo
    * único que el vendedor sí respaldó —que lo hace él— y la locación se resuelve en el directorio.
+   *
+   * `hazlo_sano_propio` sí puede afirmarlo directo: su única sucursal es el ancla misma de la
+   * comunidad, así que no hace falta consultar nada para saber que es local — y se pide que no
+   * repita la marca, que ya la dice el logo de al lado.
    */
   it.each<[string, AppLocale, string]>([
-    ["hazlo_sano_propio", "es", "🌿 Hazlo Sano"],
-    ["hazlo_sano_propio", "en", "🌿 Hazlo Sano"],
+    ["hazlo_sano_propio", "es", "📍 Local"],
+    ["hazlo_sano_propio", "en", "📍 Local"],
     ["hazlo_sano_reventa", "es", "🌿 Hazlo Sano"],
     ["productor", "es", "🧑‍🌾 Lo hace quien lo vende"],
     ["productor", "en", "🧑‍🌾 Made by the seller"],

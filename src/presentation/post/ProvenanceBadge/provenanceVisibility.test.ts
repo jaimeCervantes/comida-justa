@@ -12,14 +12,14 @@ describe("Cuándo se calla la insignia de procedencia", () => {
     {
       origin: "hazlo_sano_propio",
       hasStoreIdentity: true,
-      expected: false,
-      razón: "el logo de la tienda ya dice Hazlo Sano",
+      expected: true,
+      razón: "ahora pinta «📍 Local», que el logo no dice",
     },
     {
       origin: "hazlo_sano_reventa",
       hasStoreIdentity: true,
       expected: false,
-      razón: "también pinta «🌿 Hazlo Sano», así que duplica igual",
+      razón: "sigue pintando «🌿 Hazlo Sano», así que duplica el logo",
     },
     {
       origin: "productor",
