@@ -1,4 +1,8 @@
 import { type SQL, sql } from "drizzle-orm";
+import {
+  HAZLO_SANO_OWN_MADE_ORIGIN,
+  PRODUCER_ORIGIN,
+} from "~/domain/entities/post/origin";
 import type { Coordinates } from "~/domain/entities/seller/coordinates";
 import {
   type DirectoryKind,
@@ -33,9 +37,12 @@ interface StoreRow {
  *
  * 1. **Quién produce** lo dice lo que publica (`EXISTS` sobre `posts`), no una columna del vendedor.
  *    Así una tienda entra el día que publica su primer producto propio, sin que nadie la marque.
+ *    Cuenta tanto `productor` (la comunidad) como `hazlo_sano_propio` (lo que Hazlo Sano hace ella
+ *    misma) — ver `isLocallyProducedOrigin`; `hazlo_sano_reventa` no, porque eso lo revende.
  * 2. **Si eso es local** lo dice la distancia, no la declaración: su sucursal tiene que caer dentro
  *    del radio sostenible del ancla de la comunidad. `branches.location` es `geography`, así que
- *    `ST_DWithin` recibe metros y usa el índice espacial en vez de calcular fila por fila.
+ *    `ST_DWithin` recibe metros y usa el índice espacial en vez de calcular fila por fila. La única
+ *    sucursal de Hazlo Sano **es** ese ancla, así que este filtro la deja pasar sin trato especial.
  *
  * Consecuencia buscada: una tienda **sin sucursal** no aparece aquí aunque publique como productor.
  * Sin ubicación no hay distancia que verificar, y esa es justo la razón para completar la tienda.
@@ -61,10 +68,8 @@ export async function listStores(
    * distingue "no hay nadie cerca de ti" de "esto está roto". Así que se repite la consulta sin la
    * mitad del radio y se dice que lo que sale queda lejos.
    *
-   * Se cae **solo el radio**, no el `origin = 'productor'`: si no hay productores, no hay
-   * productores, y llenar el directorio con negocios que no producen sería mentir sobre lo que la
-   * página promete. Hoy mismo, con 0 publicaciones `productor` en la base, este respaldo devuelve
-   * vacío a propósito.
+   * Se cae **solo el radio**, no el "quién produce": si no hay productores, no hay productores, y
+   * llenar el directorio con negocios que no producen sería mentir sobre lo que la página promete.
    */
   if (withRadius.total > 0 || !near || !onlyProducers(kind)) return withRadius;
 
@@ -147,7 +152,8 @@ function producerFilter(
 
   return sql`AND EXISTS (
         SELECT 1 FROM posts p
-        WHERE ${PUBLISHED_POSTS} AND p.seller_id = s.id AND p.origin = 'productor'
+        WHERE ${PUBLISHED_POSTS} AND p.seller_id = s.id
+          AND p.origin IN (${PRODUCER_ORIGIN}, ${HAZLO_SANO_OWN_MADE_ORIGIN})
       )
       ${radiusFilter}`;
 }

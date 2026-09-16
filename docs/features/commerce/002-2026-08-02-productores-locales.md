@@ -101,6 +101,10 @@ dato que tiene:
 | `reventa_cercana` | Local |
 | `reventa_lejana` | *(sin insignia)* |
 
+> **Actualizado por el slice 11:** `hazlo_sano_propio` dejó de estar en la fila `hazlo_sano_*` y
+> ahora pinta "📍 Local" — solo `hazlo_sano_reventa` conserva "🌿 Hazlo Sano". Ver el slice 11 más
+> abajo para el porqué.
+
 Es una insignia más honesta que la de hoy: "lo hace quien lo vende" es la afirmación que el vendedor
 respalda, y la locación se resuelve donde importa —el directorio y, después, el orden por cercanía—.
 
@@ -195,6 +199,60 @@ directorio vacío es peor que uno honesto.
 
 Un mapa que sitúe las tiendas que venden lo buscado, para decidir por cercanía viéndolo en vez de
 leyendo una cifra.
+
+### Slice 11 — lo que Hazlo Sano hace ella misma también es producción local *(entregado, 2026-09-15)*
+
+**Problema:** `hazlo_sano_propio` afirma exactamente lo que el slice 1 exige para entrar al
+directorio de productores —"lo hace quien lo vende"—, pero el filtro de `/productores-locales` solo
+miraba `origin = 'productor'` (`PostgresStoreDirectory.ts:150`), así que ni el directorio ni la
+insignia lo decían nunca. Un usuario lo notó al ver "Salsa macha con aceite de aguacate" —que Hazlo
+Sano hace ella misma— sin ninguna marca de que fuera local.
+
+**Savings:** quien visita ve de un vistazo qué de lo que vende Hazlo Sano se hace aquí, sin que nadie
+tenga que explicarlo publicación por publicación.
+
+**Why:** la insignia y el directorio son la misma promesa —comprarle a quien lo hace, aquí—, y
+dejaban fuera de esa promesa justo a quien más publica bajo esa promesa.
+
+**Decisión de alcance (confirmada con el usuario):** sin nombrar la marca. La insignia de
+`hazlo_sano_propio` deja de decir "🌿 Hazlo Sano" y pasa a decir "📍 Local" —la misma que ya usa
+`reventa_cercana`—, porque el logo de la tienda, a treinta píxeles de ahí, ya dice de sobra que es
+Hazlo Sano. `hazlo_sano_reventa` no cambia: sigue diciendo "🌿 Hazlo Sano" y sigue fuera del
+directorio de productores, porque eso lo revende, no lo hace.
+
+**Por qué es seguro tratarlo como local sin consultar distancia:** a diferencia de un `productor`
+comunitario —cuya cercanía depende de dónde esté su tienda, y por eso el directorio sí le exige una
+sucursal dentro del radio—, la única sucursal de Hazlo Sano **es** el ancla misma de la comunidad
+(0 km). El filtro de distancia sigue aplicándose sin excepción (`isLocallyProducedOrigin` solo
+resuelve la mitad de "quién produce"); simplemente siempre lo cumple.
+
+**Alcance:**
+
+- `src/domain/entities/post/origin.ts`: `isHazloSanoOwnMadeOrigin` e `isLocallyProducedOrigin`
+  (nuevas), sin tocar `isProducerOrigin` (esa sigue siendo, a propósito, solo `productor`).
+- `ProvenanceBadge`: `hazlo_sano_propio` pinta "📍 Local"; `hazlo_sano_reventa` sigue pintando
+  "🌿 Hazlo Sano".
+- `showsProvenanceBadge`: solo calla la insignia cuando duplicaría el logo, y eso ya no incluye a
+  `hazlo_sano_propio`.
+- `PostgresStoreDirectory.ts`: el `EXISTS` de "quién produce" pasa de `origin = 'productor'` a
+  `origin IN ('productor', 'hazlo_sano_propio')`.
+
+**Criterios de aceptación:**
+
+1. Una tienda con sucursal dentro del radio que publica con `hazlo_sano_propio` aparece en
+   `/productores-locales`.
+2. Una tienda que solo publica con `hazlo_sano_reventa` no aparece ahí, aunque sí siga en
+   `/negocios-locales`.
+3. La insignia de un producto `hazlo_sano_propio` dice "📍 Local" y no nombra la marca, se vea o no
+   el logo de la tienda al lado.
+4. La insignia de un producto `hazlo_sano_reventa` sigue diciendo "🌿 Hazlo Sano" y se sigue callando
+   cuando el logo ya está al lado.
+
+**Cobertura:** `src/e2e/localProducers/localProducers.feature` (@slice-11) +
+`localProducers.spec.ts`; componentes actualizados en `origin.test.ts`, `ProvenanceBadge.test.tsx`,
+`provenanceVisibility.test.ts`, `CardForList.test.tsx`, `ProductsList.test.tsx`; e2e sobre datos
+reales actualizado en `sellerStore/postIdentity.spec.ts` ("suero-natural" es `hazlo_sano_propio` en
+la base compartida y ahora sí muestra su insignia).
 
 ### Slice 8 — conservar la disponibilidad al redistribuir la tarjeta *(en corrección)*
 

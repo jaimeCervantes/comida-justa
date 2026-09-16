@@ -263,7 +263,7 @@ Feature: Vendedores y tiendas
     Then ve el logo de "Hazlo Sano" enlazando a "/tienda/hazlo-sano"
     And ve el avatar de "Jaime Cervantes" enlazando a su perfil
     And los dos van en el mismo renglón que la categoría y la distancia, que es donde se decide
-    And ya no ve la insignia "🌿 Hazlo Sano", porque el logo de al lado dice lo mismo
+    And ve la insignia "📍 Local", porque eso el logo no lo dice
 
   # Los nombres no se leen: el renglón ya es largo y el logo dice quién es. Pero un enlace cuyo
   # único hijo visible es una imagen decorativa se anuncia como "enlace" a secas, así que el nombre
@@ -295,14 +295,19 @@ Feature: Vendedores y tiendas
     # dice quién lo hizo, así que la insignia se queda. Hoy en la base no hay ninguna `productor`,
     # pero el formulario de publicar la ofrece y el directorio de productores se apoya en ella.
     # Vale igual en la ficha y en la tarjeta: desde que las dos enseñan el logo, las dos duplican.
+    #
+    # `hazlo_sano_propio` cambió de bando en el slice 11 de
+    # `docs/features/commerce/002-2026-08-02-productores-locales.md`: su insignia dejó de repetir
+    # la marca ("🌿 Hazlo Sano") y ahora dice "📍 Local", sin nombrar a Hazlo Sano — eso el logo
+    # tampoco lo dice, así que deja de callarse aunque la tienda ya se vea al lado.
     Given una publicación con origen "<origen>" y <tienda>
     When se pinta
     Then la insignia de procedencia <resultado>
 
     Examples:
       | origen             | tienda           | resultado                                          |
-      | hazlo_sano_propio  | la tienda al lado | no se pinta, porque el logo ya lo dice            |
-      | hazlo_sano_reventa | la tienda al lado | no se pinta, por lo mismo: también es "Hazlo Sano" |
+      | hazlo_sano_propio  | la tienda al lado | se pinta "📍 Local": eso el logo no lo dice        |
+      | hazlo_sano_reventa | la tienda al lado | no se pinta: también es "Hazlo Sano", igual que el logo |
       | productor          | la tienda al lado | se pinta: el logo no dice quién lo hizo           |
       | reventa_cercana    | la tienda al lado | se pinta: "📍 Local" tampoco se deduce del logo    |
       | hazlo_sano_propio  | sin tienda        | se pinta: no hay nada al lado que lo diga         |

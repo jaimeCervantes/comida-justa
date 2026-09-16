@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   isAdminOnlyOrigin,
   isHazloSanoOrigin,
+  isHazloSanoOwnMadeOrigin,
+  isLocallyProducedOrigin,
   isNearbyResaleOrigin,
   isProducerOrigin,
   isValidOrigin,
@@ -59,6 +61,23 @@ describe("post origin", () => {
     it("treats Hazlo Sano origins as admin-only", () => {
       expect(isAdminOnlyOrigin("hazlo_sano_propio")).toBe(true);
       expect(isAdminOnlyOrigin("productor")).toBe(false);
+    });
+
+    it("detects what Hazlo Sano makes itself, not what it resells", () => {
+      expect(isHazloSanoOwnMadeOrigin("hazlo_sano_propio")).toBe(true);
+      expect(isHazloSanoOwnMadeOrigin("hazlo_sano_reventa")).toBe(false);
+      expect(isHazloSanoOwnMadeOrigin("productor")).toBe(false);
+      expect(isHazloSanoOwnMadeOrigin(null)).toBe(false);
+    });
+
+    /* La mitad "quién produce" del filtro del directorio de productores locales: un `productor`
+       comunitario y lo que Hazlo Sano hace ella misma cuentan igual; lo que revende, no. */
+    it("counts a community producer and Hazlo Sano's own-made goods the same way", () => {
+      expect(isLocallyProducedOrigin("productor")).toBe(true);
+      expect(isLocallyProducedOrigin("hazlo_sano_propio")).toBe(true);
+      expect(isLocallyProducedOrigin("hazlo_sano_reventa")).toBe(false);
+      expect(isLocallyProducedOrigin("reventa_cercana")).toBe(false);
+      expect(isLocallyProducedOrigin(null)).toBe(false);
     });
   });
 

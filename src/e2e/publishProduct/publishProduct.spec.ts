@@ -8,7 +8,8 @@ import {
 import { testPost } from "../testUtils/testSlug";
 import PublishProductPage from "./PublishProductPage";
 
-// Slice 1 — admin publishes a Hazlo Sano product and the badge is shown.
+// Slice 1 — admin publishes a Hazlo Sano product; the badge says "Local", not the brand
+// (see docs/features/commerce/002-2026-08-02-productores-locales.md, slice 11).
 // Requires the running stack (PostgreSQL) and that the first email in
 // HAZLO_SANO_ADMIN_EMAILS belongs to an existing user, so the origin selector renders.
 const adminEmail = (process.env.HAZLO_SANO_ADMIN_EMAILS ?? "")
@@ -35,7 +36,7 @@ test.describe("When an admin publishes a Hazlo Sano product", () => {
     }
   });
 
-  test("Then the product detail shows the Hazlo Sano badge", async ({
+  test("Then the product detail shows the Local badge, not the brand", async ({
     page,
   }) => {
     const publishPage = new PublishProductPage(page);
@@ -59,6 +60,6 @@ test.describe("When an admin publishes a Hazlo Sano product", () => {
     await expect(
       page.getByRole("heading", { name: /crema de cacahuate/i }),
     ).toBeAttached();
-    await publishPage.expectHazloSanoBadge();
+    await publishPage.expectLocalBadge();
   });
 });

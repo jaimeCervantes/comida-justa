@@ -74,7 +74,7 @@ describe("When the products and services list is rendered", () => {
 
     expect(getByText(product.title)).toBeInTheDocument();
     expect(getByText(service.title)).toBeInTheDocument();
-    expect(getByTestId("provenance-badge")).toHaveTextContent("Hazlo Sano");
+    expect(getByTestId("provenance-badge")).toHaveTextContent("Local");
     expect(getByTestId("card-book-service")).toHaveTextContent("Agendar");
     expect(queryByTestId("add-to-cart")).toBeInTheDocument();
   });

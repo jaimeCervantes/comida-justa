@@ -13,8 +13,11 @@
  */
 export const PRODUCER_ORIGIN = "productor";
 
+/** Lo que Hazlo Sano hace ella misma, no lo que revende. */
+export const HAZLO_SANO_OWN_MADE_ORIGIN = "hazlo_sano_propio";
+
 export const POST_ORIGINS = [
-  "hazlo_sano_propio",
+  HAZLO_SANO_OWN_MADE_ORIGIN,
   "hazlo_sano_reventa",
   PRODUCER_ORIGIN,
   "reventa_cercana",
@@ -48,6 +51,28 @@ export function isHazloSanoOrigin(value: string | null | undefined): boolean {
  */
 export function isProducerOrigin(value: string | null | undefined): boolean {
   return value === PRODUCER_ORIGIN;
+}
+
+/** ¿Hazlo Sano lo hace ella misma, y no solo lo revende? */
+export function isHazloSanoOwnMadeOrigin(
+  value: string | null | undefined,
+): boolean {
+  return value === HAZLO_SANO_OWN_MADE_ORIGIN;
+}
+
+/**
+ * ¿Cuenta como productor local para el directorio de `/productores-locales`?
+ *
+ * A un `productor` comunitario la distancia se la resuelve la sucursal de su tienda (la otra mitad
+ * de este filtro, en `PostgresStoreDirectory`). A Hazlo Sano no hay nada que resolverle: su única
+ * sucursal **es** el ancla de la comunidad, así que entra por la misma puerta sin que el directorio
+ * tenga que preguntarle nada dos veces. `hazlo_sano_reventa` se queda fuera a propósito: eso lo
+ * revende, no lo hace.
+ */
+export function isLocallyProducedOrigin(
+  value: string | null | undefined,
+): boolean {
+  return isProducerOrigin(value) || isHazloSanoOwnMadeOrigin(value);
 }
 
 /** ¿El vendedor declaró que lo consiguió cerca? Es lo único que la insignia puede afirmar sola. */

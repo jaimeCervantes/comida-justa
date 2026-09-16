@@ -129,11 +129,12 @@ Feature: Quién produce lo declara, qué tan lejos lo dice la distancia
     Then la insignia dice "<insignia>"
 
     Examples:
-      | origen            | insignia               | razón                                          |
-      | hazlo_sano_propio | 🌿 Hazlo Sano          | sin cambio                                     |
-      | productor         | Lo hace quien lo vende | la locación no se sabe sin consultar distancia |
-      | reventa_cercana   | Local                  | el vendedor lo declaró y lo respalda           |
-      | reventa_lejana    | (ninguna)              | no hay nada que presumir                       |
+      | origen             | insignia               | razón                                            |
+      | hazlo_sano_propio  | Local                  | su única sucursal es el ancla; ver slice 11      |
+      | hazlo_sano_reventa | 🌿 Hazlo Sano          | eso sí lo revende, no lo hace                    |
+      | productor          | Lo hace quien lo vende | la locación no se sabe sin consultar distancia   |
+      | reventa_cercana    | Local                  | el vendedor lo declaró y lo respalda             |
+      | reventa_lejana     | (ninguna)              | no hay nada que presumir                         |
 
   @slice-1
   Scenario: Lo publicado antes de la regla se queda como está
@@ -454,3 +455,42 @@ Feature: Quién produce lo declara, qué tan lejos lo dice la distancia
       | tiendas | resultado                                        |
       | 2       | va del extremo más al sur al más al norte de los tres |
       | 0       | no existe: un mapa con un solo pin no dice nada  |
+
+  # ---------------------------------------------------------------------------
+  # Slice 11 — lo que Hazlo Sano hace ella misma también es producción local
+  # ---------------------------------------------------------------------------
+  #
+  # Problem: `hazlo_sano_propio` afirma "lo hace Hazlo Sano", que es exactamente lo que el slice 1
+  # exige para entrar al directorio de productores — pero el filtro solo miraba `origin =
+  # 'productor'`, así que ni la insignia ni `/productores-locales` lo decían nunca, aunque la
+  # sucursal de Hazlo Sano sea el propio ancla de la comunidad (0 km, siempre dentro del radio).
+  # Savings: quien visita ve de un vistazo qué de lo que vende Hazlo Sano se hace aquí, sin que
+  # nadie tenga que ir publicación por publicación explicándolo.
+  # Why: la insignia y el directorio son la misma promesa —comprarle a quien lo hace, aquí— y
+  # dejaban a Hazlo Sano afuera de su propia promesa por un `origin` que no encajaba en la allowlist
+  # original de dos valores.
+  #
+  # A propósito, no cambia: `hazlo_sano_reventa` sigue sin contar como producción, ni para la
+  # insignia ni para el directorio — eso lo revende, no lo hace.
+
+  @slice-11
+  Scenario: Lo que Hazlo Sano hace ella misma entra al directorio de productores
+    Given una tienda "Hazlo Sano Piloto" con una sucursal a 2 km del ancla de la comunidad
+    And esa tienda publicó "Salsa macha con aceite de aguacate" con origen "hazlo_sano_propio"
+    When alguien abre "/productores-locales"
+    Then "Hazlo Sano Piloto" aparece listada
+
+  @slice-11
+  Scenario: Lo que Hazlo Sano solo revende no cuenta como producción
+    Given una tienda "Hazlo Sano Piloto" con una sucursal a 2 km del ancla de la comunidad
+    And esa tienda publicó únicamente productos con origen "hazlo_sano_reventa"
+    When alguien abre "/productores-locales"
+    Then "Hazlo Sano Piloto" no aparece listada
+    And "/negocios-locales" sí la sigue listando
+
+  @slice-11 @component
+  Scenario: La insignia de lo que Hazlo Sano hace ella misma dice "Local", sin nombrarla
+    Given un producto con origen "hazlo_sano_propio", junto al logo de su tienda
+    When un visitante lo ve
+    Then la insignia dice "📍 Local"
+    And no dice "Hazlo Sano"
