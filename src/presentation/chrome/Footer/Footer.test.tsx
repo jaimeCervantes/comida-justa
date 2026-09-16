@@ -75,7 +75,7 @@ describe("El enlace de retroalimentación del pie", () => {
     );
     expect(link).toHaveAttribute(
       "href",
-      expect.stringContaining(encodeURIComponent("Hola, quiero compartir")),
+      expect.stringContaining(encodeURIComponent("Hola, quiero sugerir")),
     );
     expect(link).toHaveTextContent("¿Qué te hace falta?");
   });
