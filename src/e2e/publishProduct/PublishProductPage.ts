@@ -89,9 +89,8 @@ export default class PublishProductPage {
     await submitButton.click();
   }
 
-  async expectHazloSanoBadge() {
-    await expect(this.page.getByTestId("provenance-badge")).toHaveText(
-      /Hazlo Sano/,
-    );
+  /** Lo que Hazlo Sano hace ella misma dice "Local", no la marca: ya la dice el logo de al lado. */
+  async expectLocalBadge() {
+    await expect(this.page.getByTestId("provenance-badge")).toHaveText(/Local/);
   }
 }

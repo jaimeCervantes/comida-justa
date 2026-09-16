@@ -68,14 +68,19 @@ test.describe("Cuando alguien abre una publicación de Hazlo Sano", () => {
     ).toHaveCount(1);
   });
 
-  test("Y ya no ve la insignia que decía lo mismo que el logo", async ({
+  /*
+   * "suero-natural" es `hazlo_sano_propio`: lo hace Hazlo Sano. Antes esa insignia repetía "🌿
+   * Hazlo Sano" y se apagaba para no decir el logo dos veces; ahora dice "📍 Local" —algo que el
+   * logo no dice— así que ya no hay nada que duplicar y se queda.
+   */
+  test("Y la insignia dice que es local, no repite lo que ya dice el logo", async ({
     page,
   }) => {
     // Acotado a la ficha para que la prueba diga solo lo suyo: las «relacionadas» son tarjetas y
     // deciden lo mismo por su cuenta, con la misma regla.
     await expect(
       page.getByTestId("post-detail").getByTestId("provenance-badge"),
-    ).toHaveCount(0);
+    ).toHaveText(/Local/);
   });
 
   test("Y las salidas del final también muestran de quién son", async ({

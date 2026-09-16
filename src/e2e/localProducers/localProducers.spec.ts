@@ -99,3 +99,65 @@ test.describe("Cuando una tienda publica algo que ella misma elabora", () => {
     ).toBeVisible();
   });
 });
+
+/**
+ * Slice 11 de `docs/features/commerce/002-2026-08-02-productores-locales.md`.
+ *
+ * `hazlo_sano_propio` afirma exactamente lo mismo que `productor` —"lo hace quien lo vende"—, así
+ * que cuenta igual para el filtro de "quién produce". `hazlo_sano_reventa` no: eso lo revende.
+ */
+test.describe("Cuando una tienda vende algo que Hazlo Sano hace ella misma", () => {
+  const propio = testStore("Hazlo Sano Piloto Propio");
+  const reventa = testStore("Hazlo Sano Piloto Reventa");
+
+  test.beforeAll(async () => {
+    await seedStore(propio, 2);
+    await seedStore(reventa, 2);
+
+    await seedPost({
+      title: `E2E Salsa macha con aceite de aguacate ${Date.now()}`,
+      slug: testSlug("salsa-macha-con-aceite-de-aguacate-e2e"),
+      kind: "producto",
+      origin: "hazlo_sano_propio",
+      price: 85,
+      sellerHandle: propio.handle,
+    });
+    await seedPost({
+      title: `E2E Aceite importado ${Date.now()}`,
+      slug: testSlug("aceite-importado-e2e"),
+      kind: "producto",
+      origin: "hazlo_sano_reventa",
+      price: 60,
+      sellerHandle: reventa.handle,
+    });
+  });
+
+  test.afterAll(async () => {
+    await deleteTestSellerByHandle(propio.handle);
+    await deleteTestSellerByHandle(reventa.handle);
+  });
+
+  test("Entonces lo que hace ella misma la mete al directorio de productores", async ({
+    page,
+  }) => {
+    await page.goto("/productores-locales");
+
+    await expect(
+      page.getByTestId("store-summary").filter({ hasText: propio.name }),
+    ).toBeVisible();
+  });
+
+  test("Pero lo que solo revende no la mete, aunque siga siendo un negocio local", async ({
+    page,
+  }) => {
+    await page.goto("/productores-locales");
+    await expect(
+      page.getByTestId("store-summary").filter({ hasText: reventa.name }),
+    ).toHaveCount(0);
+
+    await page.goto("/negocios-locales");
+    await expect(
+      page.getByTestId("store-summary").filter({ hasText: reventa.name }),
+    ).toBeVisible();
+  });
+});
