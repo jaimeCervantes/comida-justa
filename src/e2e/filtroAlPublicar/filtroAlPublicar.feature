@@ -77,6 +77,16 @@ Feature: Se publica, se revisa, y lo que no cumple se baja
     Then the response status is 404
     And no moderation entry is shown in the navigation
 
+  # El usuario lo reportó: el `<select>` nativo del motivo se dimensionaba al texto del motivo
+  # más largo, y en un teléfono eso desbordaba la página. `ModerationControls` y `ModerationQueue`
+  # ahora usan el `Select` del design system, que fija el ancho desde su caja.
+  @slice-1
+  Scenario: El selector de motivo no desborda la página en un teléfono
+    Given the published post "Dona Chocolate Keto" at 35
+    When an admin opens its detail page on a 390px-wide phone
+    Then the reason select fits inside the screen
+    And the page never scrolls sideways
+
   # ---------------------------------------------------------------------------
   # Slice 2 — el clasificador que decide solo  (entregado 2026-08-16)
   #
