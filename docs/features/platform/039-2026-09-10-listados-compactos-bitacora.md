@@ -499,3 +499,65 @@ sigue llevando a la publicación. Nada de esto toca la tarjeta apilada.
 2. **El «0» del contador** cuando nadie ha apoyado, que la referencia no enseña.
 3. **La insignia del pilar sobre la miniatura** quedó reducida a su número; en una foto oscura se lee
    suelta.
+
+## Corrección — más aire y una etiqueta en el menú del dueño (2026-09-16)
+
+### Objetivo
+
+El usuario reportó que, dentro del menú «⋯» de una tarjeta editable, los tres controles (editar,
+agotado/disponible, existencias) quedaban muy juntos; que "Guardar existencias" era un botón
+innecesariamente largo; y que el campo de existencias no decía para qué era.
+
+### Decisiones y por qué
+
+- **La causa era una suposición mezclada en una sola bandera.** `StockControl` usaba `compact` para
+  decidir dos cosas a la vez: el ancho del campo y si pintaba su propia etiqueta. Eso funcionaba en
+  `/cuenta/inventario` —una tabla con columna «Existencias»— pero el menú de la tarjeta también es
+  compacto y no tiene ninguna columna al lado: el campo se quedaba mudo salvo para un lector de
+  pantalla, que sí oía el `aria-label`.
+- **Se separó en dos props independientes**, `compact` (ancho) y `showLabel` (etiqueta visible),
+  con `showLabel` siguiendo a `compact` por omisión para no tocar la tabla existente, y
+  `CardOwnerControls` forzándolo aparte. Es la solución mínima: ni un componente nuevo ni una copia
+  del campo, solo separar dos decisiones que nunca debieron viajar juntas.
+- **"Guardar existencias" → "Guardar".** Con la etiqueta ya visible al lado del campo, el botón
+  repetía la misma palabra dos veces. Se acortó en las dos traducciones (`es`/`en`), y afecta
+  también a la tabla de inventario — ahí es igual de redundante y el cambio es una mejora, no solo
+  un efecto colateral.
+- **Espaciado:** el botón de agotado/disponible y el bloque de existencias pasan de `mt-1` a
+  `mt-2`/`my-2`, con `cn()` para no tocar `MENU_SEPARATOR_CLASS` (compartida con otros menús).
+
+### Archivos tocados
+
+- `src/presentation/post/StockControl/StockControl.tsx` + `.test.tsx`: prop `showLabel`, dos
+  pruebas nuevas.
+- `src/presentation/post/CardOwnerControls.tsx`: `showLabel` forzado, más espaciado.
+- `src/i18n/messages/es.json` / `en.json`: `stockSave` acortado.
+- `docs/features/platform/039-2026-09-10-listados-compactos.md` (esta sección).
+
+### Comandos y validación
+
+- `pnpm exec vitest run src/presentation/post/StockControl/StockControl.test.tsx` — 6 tests,
+  verdes.
+- `pnpm exec vitest run src/presentation/post/CardForList/CardForList.test.tsx` — 50 tests, verdes,
+  sin tocarlos.
+- `pnpm run test:run` — 278 archivos, 2929 tests, verdes.
+- `pnpm run typecheck` / `pnpm run lint` — limpios.
+- `pnpm exec playwright test src/e2e/inventory/existenciasEnLaTarjeta.spec.ts` — 5/5, verdes.
+- `pnpm exec playwright test src/e2e/inventory/inventario.spec.ts src/e2e/inventory/panelDeInventario.spec.ts` —
+  20/20, verdes — confirma que la tabla de `/cuenta/inventario` no cambió de comportamiento.
+
+### Desviaciones
+
+Ninguna. Acortar `stockSave` afecta también a la tabla de inventario, pero es deliberado: ahí el
+botón también repetía la columna que ya rotula el campo.
+
+### Recap
+
+El menú del dueño de una tarjeta ya no amontona sus tres controles: hay más aire entre editar,
+agotado/disponible y existencias, el botón dice solo "Guardar" y el campo de existencias tiene su
+propia etiqueta visible, sin que la tabla de inventario haya cambiado de comportamiento.
+
+### Próximos pasos (opciones)
+
+1. Cerrar aquí: lo reportado queda resuelto y documentado.
+2. Confirmar visualmente en un teléfono real que el menú se ve con el espaciado esperado.
