@@ -529,4 +529,95 @@ de la mampostería, muestra la insignia y el botón inverso, y no borra páginas
    verdes, pero la E2E completa local quedó parcial por duración.
 2. Tratar aparte la carrera de traducción asíncrona y limpieza E2E que deja mensajes FK, sin mezclarla
    con esta corrección.
+
+## Slice 11 — lo que Hazlo Sano hace ella misma también es producción local (2026-09-15)
+
+### Objetivo
+
+El usuario notó que "Salsa macha con aceite de aguacate" —que Hazlo Sano hace ella misma— no llevaba
+ninguna marca de que fuera local, y pidió revisarlo. Pidió explícitamente **no nombrar la marca**: la
+misma insignia "📍 Local" que ya usa `reventa_cercana`, no "🌿 Hazlo Sano".
+
+### Decisiones y por qué
+
+**1. Se investigó antes de tocar código.** La primera lectura fue que el detalle simplemente
+apagaba la insignia entera cuando ya se ve el logo de la tienda (`provenanceVisibility.ts`) — cierto,
+pero no toda la historia: aun sin esa supresión, `badgeKey` nunca llegaba a preguntar "¿lo hace quien
+lo vende?" para un origen `hazlo_sano_*`, porque el chequeo de marca iba primero y ganaba siempre.
+
+**2. Se confirmó con datos reales antes de diseñar el arreglo.** Una consulta de solo lectura contra
+la base compartida mostró que tanto "salsa-macha-con-aceite-de-aguacate" como "suero-natural" —el
+producto real que ya usaba `src/e2e/sellerStore/postIdentity.spec.ts`— son `hazlo_sano_propio`. Eso
+adelantó que el cambio iba a tocar un escenario e2e existente sobre datos reales, no solo pruebas
+nuevas.
+
+**3. `isProducerOrigin` no se tocó.** Ya tenía un contrato probado ("lo hace quien lo vende, y solo
+eso" → solo `productor`) que otro código (la etiqueta "🧑‍🌾 Lo hace quien lo vende") sigue
+necesitando sin cambios. Se agregó `isHazloSanoOwnMadeOrigin` e `isLocallyProducedOrigin` como
+predicados nuevos en vez de ensanchar uno existente y arriesgar un efecto colateral en quien ya
+confiaba en su alcance original.
+
+**4. Por qué es seguro afirmar "Local" sin consultar distancia para `hazlo_sano_propio`.** A un
+`productor` comunitario la locación se la resuelve la sucursal de su tienda —de ahí que su insignia
+sea más cautelosa ("Lo hace quien lo vende", no "Local")—. Hazlo Sano no necesita esa cautela: su
+única sucursal **es** el ancla misma de la comunidad, así que la condición de distancia del
+directorio la satisface siempre, trivialmente.
+
+**5. Alcance confirmado con el usuario en dos preguntas, no una.** La primera pregunta (¿solo la
+insignia, o también el directorio?) fue rechazada porque el usuario quería aclarar algo antes de
+responder: no quería que se nombrara "Hazlo Sano" en la insignia, y lo ejemplificó señalando que
+"la última publicación" ya mostraba "📍 Local" y quería lo mismo. Con eso resuelto, la segunda
+pregunta (más corta) sí se contestó: también el directorio.
+
+### Archivos tocados
+
+- **Dominio:** `src/domain/entities/post/origin.ts` (`isHazloSanoOwnMadeOrigin`,
+  `isLocallyProducedOrigin`) + `origin.test.ts`.
+- **Presentación:** `ProvenanceBadge.tsx` (orden de `badgeKey`), `provenanceVisibility.ts` (regla de
+  cuándo se calla) + sus tests; `CardForList.test.tsx`, `ProductsList.test.tsx`.
+- **Infra:** `PostgresStoreDirectory.ts` (`producerFilter` ahora incluye `hazlo_sano_propio`).
+- **E2E:** `src/e2e/localProducers/localProducers.feature` (+slice 11, tabla de insignias
+  actualizada) y `.spec.ts` (nuevo `describe` con dos escenarios); `src/e2e/sellerStore/postIdentity.spec.ts`
+  y `sellerStore.feature` actualizados porque "suero-natural" —dato real— cambió de comportamiento;
+  `src/e2e/publishProduct/PublishProductPage.ts` (`expectHazloSanoBadge` → `expectLocalBadge`) y
+  `publishProduct.spec.ts`.
+- **Docs:** este archivo y `002-2026-08-02-productores-locales.md` (slice 11 + nota sobre la tabla
+  de insignias de 2026-08-02, que quedó desactualizada).
+
+### Comandos y validación
+
+- `pnpm exec vitest run src/domain/entities/post/origin.test.ts src/presentation/post/ProvenanceBadge src/presentation/post/CardForList/CardForList.test.tsx "src/app/[locale]/productos/ui/ProductsList.test.tsx"` — 5 archivos, 83 tests, verdes.
+- `pnpm run test:run` — 278 archivos, 2926 tests, verdes.
+- `pnpm run typecheck` — limpio.
+- `pnpm run lint` — un error de formato en `PublishProductPage.ts`, corregido con
+  `biome check --write`; limpio después (1210 archivos).
+- `pnpm exec playwright test src/e2e/localProducers/localProducers.spec.ts src/e2e/sellerStore/postIdentity.spec.ts src/e2e/publishProduct/publishProduct.spec.ts` —
+  11 escenarios, todos verdes. Incluye el escenario nuevo de directorio (`hazlo_sano_propio` entra,
+  `hazlo_sano_reventa` no), el de datos reales de `postIdentity.spec.ts` (ahora exige la insignia
+  "Local" en vez de su ausencia), y `publishProduct.spec.ts` — que además dejó de estar
+  intermitente: en la sesión anterior había fallado igual sin este cambio (confirmado con
+  `git stash`), y aquí pasó limpio.
+
+### Desviaciones del roadmap
+
+Ninguna respecto al slice acordado. El alcance creció una sola vez, de forma explícita: de "solo la
+insignia" a "insignia + directorio", por decisión del usuario en la segunda pregunta.
+
+### Recap
+
+Un producto `hazlo_sano_propio` —lo que Hazlo Sano hace ella misma— ahora se ve y se cuenta como
+producción local: su insignia dice "📍 Local" sin nombrar la marca (se vea o no el logo de la tienda
+al lado), y su tienda entra a `/productores-locales` igual que cualquier vendedor de la comunidad
+que declare `productor`. Lo que Hazlo Sano solo revende (`hazlo_sano_reventa`) no cambió: sigue
+diciendo "🌿 Hazlo Sano" y sigue fuera de ese directorio. Todo lo tocado —dominio, presentación,
+infra, e2e sobre datos reales y sobre datos sembrados— quedó cubierto y en verde.
+
+### Próximos pasos (opciones)
+
+1. Cerrar aquí: el reporte del usuario queda resuelto y documentado.
+2. Confirmar visualmente en producción que "Salsa macha con aceite de aguacate" ya muestra "📍
+   Local" tras el despliegue.
+3. Revisar si el reporte de `/admin/productos` (que cuenta publicaciones por `origin` tal cual)
+   debería agrupar `hazlo_sano_propio` junto a `productor` para reflejar la misma noción de
+   "producción local" — hoy sigue contando cada valor por separado, sin cambios de este slice.
 3. No queda ninguna acción funcional pendiente para el usuario en este slice.
