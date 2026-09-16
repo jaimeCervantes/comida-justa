@@ -17,6 +17,7 @@ import {
   MENU_ITEM_CLASS,
   MENU_SEPARATOR_CLASS,
 } from "~/presentation/design_system/styling/menuSurface";
+import { cn } from "~/presentation/design_system/styling/merge-class-names";
 import { type AvailabilityState, setAvailability } from "./availabilityAction";
 import StockControl from "./StockControl/StockControl";
 import { setStock } from "./stockAction";
@@ -158,7 +159,7 @@ export default function CardOwnerControls({
             /* `asChild` no sirve aquí: el hijo tiene que ser un `form`, y Radix cerraría el menú
                al pulsar antes de que la acción llegue a enviarse. Se queda como contenido normal
                del panel. */
-            <form action={availabilityAction} className="mt-1">
+            <form action={availabilityAction} className="mt-2">
               <input type="hidden" name="postId" value={postId} />
               <input type="hidden" name="slug" value={slug} />
               <input
@@ -197,8 +198,10 @@ export default function CardOwnerControls({
 
           {tracksStock ? (
             <>
-              <span aria-hidden className={MENU_SEPARATOR_CLASS} />
-              <span className="block px-1">
+              <span aria-hidden className={cn(MENU_SEPARATOR_CLASS, "my-2")} />
+              {/* `showLabel`: a diferencia de la tabla de inventario, este panel no tiene ninguna
+                  columna «Existencias» al lado que rotule el campo por él. */}
+              <span className="block px-1 pb-1">
                 <StockControl
                   action={setStock}
                   postId={postId}
@@ -206,6 +209,7 @@ export default function CardOwnerControls({
                   kind={kind}
                   stockQuantity={stockQuantity ?? null}
                   compact
+                  showLabel
                 />
               </span>
             </>

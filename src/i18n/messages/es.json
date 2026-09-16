@@ -1439,7 +1439,7 @@
     "stockHelp": "Cuántas unidades te quedan. En 0 se marca agotado solo.",
     "stockLabel": "Existencias",
     "stockRemaining": "{count, plural, one {Queda # unidad} other {Quedan # unidades}}",
-    "stockSave": "Guardar existencias",
+    "stockSave": "Guardar",
     "stockSaved": "Existencias guardadas"
   },
   "practicesIndex": {
