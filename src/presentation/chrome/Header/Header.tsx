@@ -1,15 +1,20 @@
 import Image from "next/image";
 import { getLocale, getTranslations } from "next-intl/server";
 import { LuSalad } from "react-icons/lu";
+import { MdOutlineFeedback } from "react-icons/md";
 import {
   categoryTree,
   navigableCategories,
 } from "~/domain/entities/post/taxonomy";
+import { whatsappLink } from "~/domain/shared/whatsappLink";
 import { Link } from "~/i18n/navigation";
 import { resolveLocale } from "~/i18n/routing";
 import { auth } from "~/infra/auth";
 import { isAdmin } from "~/infra/auth/isAdmin";
-import { PUBLIC_BRAND_NAME } from "~/infra/constants";
+import {
+  HAZLO_SANO_WHATSAPP_PHONE,
+  PUBLIC_BRAND_NAME,
+} from "~/infra/constants";
 import { getCategoryTaxonomy } from "~/infra/dataAccess/categories/cachedCategoryTaxonomy";
 import { findPublicAddresses } from "~/infra/dataAccess/identity/sessionIdentity";
 import type { ThemePreference } from "~/infra/theme/themeCookie";
@@ -53,6 +58,14 @@ export default async function Header({
   const categories = navigableCategories(taxonomy, locale);
   const categoryBranches = categoryTree(taxonomy, locale);
 
+  /* Un enlace, dos formas: icono en el header de escritorio, fila de texto en el menú móvil. Se
+     calcula una sola vez aquí y baja a `MobileNav` como uno de sus `children`, en vez de que cada
+     forma vuelva a construir el mismo mensaje. */
+  const feedbackHref = whatsappLink(
+    HAZLO_SANO_WHATSAPP_PHONE,
+    tCommon("feedbackWhatsappMessage"),
+  );
+
   return (
     <header className="sticky top-0 z-50 w-full glass transition-all duration-300">
       <div className="container-width flex h-16 items-center justify-between">
@@ -69,6 +82,19 @@ export default async function Header({
             <div className="flex justify-start">
               <ThemeToggle initial={theme} showLabel={false} />
             </div>
+
+            {feedbackHref ? (
+              <a
+                href={feedbackHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                data-testid="feedback-link-mobile"
+                className="flex items-center gap-2 text-base text-text-support hover:text-highlight transition-colors"
+              >
+                <MdOutlineFeedback aria-hidden className="size-5" />
+                {tCommon("feedbackLabel")}
+              </a>
+            ) : null}
 
             {/* Publicar y la sesión, en una fila de dos columnas: son las dos acciones del menú y
                 una debajo de la otra ocupaban el alto de tres filas del propio menú. */}
@@ -145,6 +171,24 @@ export default async function Header({
           {/* Antes de la sesión: el carrito no la pide, y quien está comprando no debería tener que
               buscarlo dentro del menú del avatar. */}
           <CartLink />
+
+          {/* Solo en escritorio: en el teléfono va como fila de texto dentro del menú de
+              hamburguesa (`feedbackHref` más arriba), porque la barra inferior ya tiene sus cinco
+              lugares ocupados y el header móvil no tiene sitio de sobra. */}
+          {feedbackHref ? (
+            <div className="hidden lg:block">
+              <a
+                href={feedbackHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={tCommon("feedbackLabel")}
+                data-testid="feedback-link-header"
+                className="focus-ring relative inline-flex items-center rounded-control p-2 text-text-base transition-colors hover:text-pw-green"
+              >
+                <MdOutlineFeedback size="24" aria-hidden />
+              </a>
+            </div>
+          ) : null}
 
           <div className="hidden lg:block">
             <ThemeToggle initial={theme} showLabel={false} />

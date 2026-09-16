@@ -2,8 +2,12 @@ import Image from "next/image";
 import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 import { publicationPillarNumber } from "~/domain/entities/post/publicationPillars";
+import { whatsappLink } from "~/domain/shared/whatsappLink";
 import { Link } from "~/i18n/navigation";
-import { PUBLIC_BRAND_NAME } from "~/infra/constants";
+import {
+  HAZLO_SANO_WHATSAPP_PHONE,
+  PUBLIC_BRAND_NAME,
+} from "~/infra/constants";
 import type { ThemePreference } from "~/infra/theme/themeCookie";
 import { BadgeCounter } from "~/presentation/design_system/badges/Badge";
 import { Heading } from "~/presentation/design_system/typography/Heading";
@@ -29,12 +33,21 @@ const LINK_CLASS = "text-text-support transition-colors hover:text-highlight";
 /**
  * Un enlace externo del pie. Los cuatro se escribían con la misma tríada de atributos.
  */
-function ExternalLink({ href, children }: { href: string; children: string }) {
+function ExternalLink({
+  href,
+  children,
+  "data-testid": dataTestId,
+}: {
+  href: string;
+  children: string;
+  "data-testid"?: string;
+}) {
   return (
     <a
       href={href}
       target="_blank"
       rel="noopener noreferrer"
+      data-testid={dataTestId}
       className={LINK_CLASS}
     >
       {children}
@@ -78,6 +91,10 @@ export default function Footer({ theme }: { theme: ThemePreference | null }) {
   const tNav = useTranslations("nav");
   const tCommon = useTranslations("common");
   const currentYear = new Date().getFullYear();
+  const feedbackHref = whatsappLink(
+    HAZLO_SANO_WHATSAPP_PHONE,
+    tCommon("feedbackWhatsappMessage"),
+  );
 
   return (
     <footer className="mt-16 border-t border-border bg-surface-elevation-1 pt-16 pb-28 text-text-base lg:pb-8">
@@ -104,6 +121,19 @@ export default function Footer({ theme }: { theme: ThemePreference | null }) {
           </p>
 
           <ul className="flex flex-wrap gap-x-4 gap-y-2 text-label">
+            {/* Distinto del WhatsApp de contacto de abajo: ese es "escríbenos", este es
+                "dinos qué falta" — mismo número, mensaje ya escrito para que se note la
+                diferencia. */}
+            {feedbackHref ? (
+              <li>
+                <ExternalLink
+                  href={feedbackHref}
+                  data-testid="feedback-link-footer"
+                >
+                  {t("feedback")}
+                </ExternalLink>
+              </li>
+            ) : null}
             <li>
               <ExternalLink href="https://wa.me/522781126948">
                 {t("whatsapp")}

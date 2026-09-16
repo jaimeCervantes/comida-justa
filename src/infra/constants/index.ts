@@ -76,3 +76,10 @@ export const BRAND_SOCIAL_URLS: readonly string[] = [
   "https://fb.com/hazlo.sano.comunidad",
   "https://t.me/HazloSanoBot",
 ];
+
+/**
+ * El WhatsApp de la comunidad. Vivía repetido como literal en el pie y en `/nosotros`
+ * (`522781126948`, con la lada ya puesta); aquí se guarda a diez dígitos, como
+ * `sellers.phone`, y `whatsappLink` le agrega la lada al construir el enlace.
+ */
+export const HAZLO_SANO_WHATSAPP_PHONE = "2781126948";
