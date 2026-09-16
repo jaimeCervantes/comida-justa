@@ -1,4 +1,5 @@
 import { MODERATION_REASONS } from "~/domain/entities/post/moderation";
+import { Select } from "~/presentation/design_system/forms/Select";
 import type { ModeratedPost } from "~/use_cases/moderatePost/ports/IModerationRepository";
 import { decideModeration } from "../actions";
 
@@ -97,17 +98,19 @@ function Row({ post, labels }: { post: ModeratedPost; labels: QueueLabels }) {
           </button>
         </form>
 
-        {/* Bajar exige elegir motivo: sin él, el autor vería un aviso que no explica nada. */}
+        {/* Bajar exige elegir motivo: sin él, el autor vería un aviso que no explica nada. Mismo
+            componente y mismo motivo que en ModerationControls: sin un ancho propio, el motivo
+            más largo desbordaba el `<select>` nativo. */}
         <form action={decideModeration} className="inline flex gap-2">
           <input type="hidden" name="postId" value={post.id} />
           <input type="hidden" name="action" value="reject" />
-          <select
+          <Select
             name="reason"
             required
             defaultValue=""
             aria-label={labels.columnReason}
             data-testid={`moderation-reason-${post.id}`}
-            className="text-sm border rounded px-1 py-0.5 bg-transparent"
+            containerClassName="w-56"
           >
             <option value="" disabled>
               {labels.reasonPlaceholder}
@@ -117,7 +120,7 @@ function Row({ post, labels }: { post: ModeratedPost; labels: QueueLabels }) {
                 {labels.reasons[reason]}
               </option>
             ))}
-          </select>
+          </Select>
           <button
             type="submit"
             data-testid={`moderation-reject-${post.id}`}

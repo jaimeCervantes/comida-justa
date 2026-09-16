@@ -3,6 +3,7 @@ import {
   MODERATION_REASONS,
   type ModerationStatus,
 } from "~/domain/entities/post/moderation";
+import { Select } from "~/presentation/design_system/forms/Select";
 import { decideModeration } from "../../admin/moderacion/actions";
 
 /** Las claves del catálogo para cada motivo, igual que en el panel y en el aviso. */
@@ -61,17 +62,22 @@ export default async function ModerationControls({
   return (
     <form
       action={decideModeration}
-      className="w-full mb-4 flex flex-wrap items-center gap-2"
+      className="w-full mb-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center"
     >
       <input type="hidden" name="postId" value={postId} />
       <input type="hidden" name="action" value="reject" />
-      <select
+      {/* El `<select>` nativo se dimensiona al motivo más largo —"Ofrece algo que no se puede
+          vender aquí: alcohol, tabaco, vapeadores, sustancias o armas."—, y sin un ancho propio
+          eso se desborda en un teléfono. `Select` fija el ancho desde su caja en vez de dejárselo
+          al navegador, y de paso deja de ser el único campo del sitio con las clases sueltas de
+          antes en vez del componente compartido. */}
+      <Select
         name="reason"
         required
         defaultValue=""
         aria-label={t("moderationColumnReason")}
         data-testid="moderation-reason"
-        className="text-sm border rounded px-1 py-0.5 bg-transparent"
+        containerClassName="w-full sm:w-64"
       >
         <option value="" disabled>
           {t("moderationReasonPlaceholder")}
@@ -81,7 +87,7 @@ export default async function ModerationControls({
             {tModeration(REASON_KEYS[reason])}
           </option>
         ))}
-      </select>
+      </Select>
       <button
         type="submit"
         data-testid="moderation-reject"
