@@ -44,6 +44,7 @@ export default function StockControl({
   kind,
   stockQuantity,
   compact = false,
+  showLabel = !compact,
 }: {
   action: (state: StockState, data: FormData) => Promise<StockState>;
   postId: string;
@@ -51,15 +52,20 @@ export default function StockControl({
   kind?: string | null;
   /** Lo guardado. `null` = no lleva inventario. */
   stockQuantity: number | null;
-  /**
-   * En un renglón de tabla, no en una ficha.
-   *
-   * Cambia la forma, **no la conducta**: el mismo campo, la misma validación y la misma acción. La
-   * columna ya rotula, así que repetir «Existencias» en cada renglón sería decir 418 veces lo que
-   * la cabecera dice una — pero el rótulo sigue estando, como `aria-label`, porque un lector de
-   * pantalla no ve la columna.
-   */
+  /** Un campo más angosto, para un renglón de tabla o un panel estrecho. Solo cambia el ancho. */
   compact?: boolean;
+  /**
+   * Si el campo pinta su propia etiqueta, o se queda con un `aria-label`.
+   *
+   * Por omisión sigue a `compact`, que es lo que necesita `InventoryTable`: su columna ya dice
+   * «Existencias», y repetirlo en cada renglón sería decir 418 veces lo que la cabecera dice una —
+   * el rótulo sigue estando, como `aria-label`, porque un lector de pantalla no ve la columna.
+   *
+   * El menú de una tarjeta (`CardOwnerControls`) es compacto **y** no tiene ninguna columna al
+   * lado, así que fuerza `showLabel` aparte: sin ella, quien abre el menú ve un número suelto sin
+   * decir de qué es.
+   */
+  showLabel?: boolean;
 }) {
   const t = useTranslations("post");
   const [state, stockAction, isPending] = useActionState<StockState, FormData>(
@@ -87,7 +93,7 @@ export default function StockControl({
       serverErrorSignal={state.error}
       data-testid="stock-control"
       className={
-        compact ? "flex items-start gap-2" : "flex flex-col items-start gap-2"
+        showLabel ? "flex flex-col items-start gap-2" : "flex items-start gap-2"
       }
     >
       <input type="hidden" name="postId" value={postId} />
@@ -102,8 +108,8 @@ export default function StockControl({
         min={0}
         step={1}
         inputMode="numeric"
-        label={compact ? undefined : label}
-        aria-label={compact ? label : undefined}
+        label={showLabel ? label : undefined}
+        aria-label={showLabel ? undefined : label}
         hint={compact ? undefined : t("stockHelp")}
         error={state.error ? t(ERROR_KEYS[state.error]) : null}
         defaultValue={saved ?? ""}

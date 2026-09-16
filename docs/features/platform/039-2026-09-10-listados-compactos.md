@@ -109,3 +109,28 @@ relacionadas», y ninguno se deduce del viewport.
 - Tocar `SEARCH_PAGE_SIZE` (6). Con 4 columnas la segunda fila queda de 2, y en mampostería eso no
   deja hueco. Si al ver el resultado molesta, es un cambio de una línea en otro slice.
 - Filtro por distancia o cualquier faceta nueva: se mudan las que hay.
+
+## Corrección — más aire y una etiqueta en el menú del dueño *(2026-09-16)*
+
+**Problema:** el usuario reportó que, dentro del menú «⋯» de una tarjeta editable (editar / agotado
+o disponible / existencias), los controles quedaban muy juntos, que el botón «Guardar existencias»
+era innecesariamente largo, y que el campo de existencias no decía para qué era.
+
+**Causa:** `StockControl` nació para dos sitios con una sola bandera (`compact`), y uno de los dos
+—la tabla de `/cuenta/inventario`— tiene una columna «Existencias» que rotula el campo por él; el
+otro —este menú— no tiene ninguna columna al lado, así que el campo se quedaba mudo salvo para un
+lector de pantalla.
+
+**Arreglo:**
+
+- `StockControl` separa esa suposición en dos props: `compact` (ancho) y `showLabel` (si pinta su
+  propia etiqueta), con `showLabel` siguiendo a `compact` por omisión —la tabla no cambia— y
+  `CardOwnerControls` forzándolo aparte.
+- `stockSave` pasa de "Guardar existencias" a "Guardar": con la etiqueta ya visible al lado, repetir
+  «existencias» en el botón era decirlo dos veces.
+- Más separación entre los tres grupos del menú: el botón de agotado/disponible y el bloque de
+  existencias ganan `mt-2` / `my-2` en vez de `mt-1`.
+
+**Cobertura:** dos pruebas nuevas en `StockControl.test.tsx` (con `showLabel` y sin él); las
+existentes (`existenciasEnLaTarjeta.spec.ts`, `inventario.spec.ts`, `panelDeInventario.spec.ts`)
+siguieron pasando sin tocarlas.

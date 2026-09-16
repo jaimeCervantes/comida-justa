@@ -58,4 +58,27 @@ describe("StockControl", () => {
 
     expect(screen.queryByTestId("stock-input")).not.toBeInTheDocument();
   });
+
+  /*
+   * Una tabla con su propia columna «Existencias» no necesita que cada renglón la repita: el
+   * rótulo se queda como `aria-label`, no como texto visible.
+   */
+  it("compacto sin más se queda sin etiqueta visible, para no repetir la columna", () => {
+    render({ compact: true });
+
+    expect(screen.queryByText("Existencias")).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Existencias")).toBe(
+      screen.getByTestId("stock-input"),
+    );
+  });
+
+  /*
+   * El menú de una tarjeta también es compacto, pero no tiene ninguna columna al lado: sin
+   * `showLabel`, quien lo abre ve un número suelto sin decir de qué es.
+   */
+  it("compacto con showLabel sí pinta la etiqueta, para el menú sin columna", () => {
+    render({ compact: true, showLabel: true });
+
+    expect(screen.getByText("Existencias")).toBeInTheDocument();
+  });
 });
