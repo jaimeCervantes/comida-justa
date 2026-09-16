@@ -481,3 +481,71 @@ que alguien pueda avisar.
    si hace falta un umbral automático o si con el panel basta. Hoy sería adivinar.
 
 **Pendiente del usuario:** nada.
+
+## Corrección — el select de motivo no desborda en el teléfono (2026-09-16)
+
+**Objetivo:** el usuario reportó que, en el detalle de una publicación, el `<select>` de motivo (el
+interruptor de bajar) usaba demasiado ancho horizontal en móvil, y pidió de paso que ese campo use
+un componente propio en vez de un `<select>` suelto.
+
+**Decisiones y por qué:**
+
+- **Causa exacta:** `ModerationControls.tsx` tenía un `<select>` nativo sin ancho propio
+  (`className="text-sm border rounded px-1 py-0.5 bg-transparent"`, sin `width`). Sin él, el
+  navegador dimensiona el control al `<option>` más largo — "Ofrece algo que no se puede vender
+  aquí: alcohol, tabaco, vapeadores, sustancias o armas." — que a 390px se desborda.
+- **El arreglo y el "componente propio" pedido son la misma cosa.** El design system ya tiene
+  `Select` (el mismo que usa `/publicar`), con ancho fijado desde su caja (`InputShell`, `w-full`),
+  foco, flecha propia y estados de error. Cambiar el `<select>` suelto por `Select` resuelve el
+  desborde y cumple el segundo pedido sin construir nada nuevo.
+- **Se encontró el mismo `<select>` duplicado** en `ModerationQueue.tsx` (`/admin/moderacion`).
+  Preguntado al usuario si arreglar solo el reportado o los dos: contestó "los dos".
+- **El cambio es un reemplazo casi transparente:** como `Select` reenvía `...props` (incluido
+  `data-testid`, `name`, `aria-label`, `defaultValue`) directo al `<select>` real, las pruebas
+  existentes (`ModerationQueue.test.tsx`, el `selectOption` de Playwright en
+  `ModerationPanelPage.ts`) siguieron pasando sin tocarlas.
+- **Fallo de datos encontrado de paso, sin relación con el select:** al correr la suite completa
+  apareció `Footer.test.tsx` fallando — el mensaje de WhatsApp de retroalimentación (slice previo,
+  ya en `dev`) tenía un texto distinto en la prueba y en `es.json`/`en.json` (el inglés además con
+  un typo, "abn" por "an"). Se corrigió alineando la prueba al texto ya publicado en `es.json` y
+  arreglando el typo en `en.json`; no tiene relación con este slice pero se dejó en verde antes de
+  seguir.
+
+**Archivos tocados:**
+
+- `src/app/[locale]/[slug]/ui/ModerationControls.tsx` y
+  `src/app/[locale]/admin/moderacion/ui/ModerationQueue.tsx`: `<select>` → `Select` del design
+  system, con ancho fijo (`sm:w-64` / `w-56`) y el formulario del detalle apilado en móvil
+  (`flex-col` → `sm:flex-row`).
+- `src/e2e/filtroAlPublicar/filtroAlPublicar.feature` + `.spec.ts`: escenario nuevo que mide, a
+  390px, que el select no exceda el viewport y que la página no adquiera scroll horizontal.
+- `src/i18n/messages/en.json`, `src/presentation/chrome/Footer/Footer.test.tsx`: corrección del
+  hallazgo de paso descrito arriba.
+- `docs/features/platform/005-2026-08-16-filtro-al-publicar.md` (esta sección).
+
+**Comandos y validación:**
+
+- `pnpm exec vitest run src/app/[locale]/admin/moderacion/ui/ModerationQueue.test.tsx` — 10 tests,
+  verdes, sin tocar el archivo de prueba.
+- `pnpm run test:run` — 278 archivos, 2927 tests, verdes (tras la corrección del hallazgo de paso).
+- `pnpm run typecheck` — limpio. `pnpm run lint` — limpio. `pnpm run check:i18n` — el único
+  hallazgo (`publishPracticeDayPost.ts`) es preexistente y ajeno a este cambio.
+- `pnpm exec playwright test src/e2e/filtroAlPublicar/filtroAlPublicar.spec.ts` — 6 escenarios,
+  verdes (incluido el nuevo de ancho móvil).
+- `pnpm exec playwright test src/e2e/filtroAlPublicar/denuncia.spec.ts` — 5 escenarios, verdes.
+
+**Desviaciones:** ninguna respecto a lo acordado; el alcance creció una sola vez, de forma
+explícita, de "solo el reportado" a "los dos selects iguales".
+
+### Recap
+
+El `<select>` de motivo, en el detalle de una publicación y en el panel de moderación, ya no se
+desborda en un teléfono: los dos usan ahora `Select` del design system, con ancho fijo y la misma
+UX que el resto de los formularios del sitio. De paso quedó en verde un desajuste de texto en el
+enlace de retroalimentación que no tenía relación con este cambio.
+
+### Próximos pasos (opciones)
+
+1. Cerrar aquí: lo reportado queda resuelto y documentado.
+2. Confirmar visualmente en un teléfono real (no solo en la medición automatizada) que el detalle de
+   una publicación se ve bien tras el despliegue.

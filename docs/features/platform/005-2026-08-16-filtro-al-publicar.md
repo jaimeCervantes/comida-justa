@@ -252,3 +252,19 @@ dejó pasar.
 ### Slice 4 *(opción)* — el mismo filtro en los comentarios
 
 `addCommentToPosts` no tiene ninguna revisión hoy. El puerto ya existiría; es reusarlo en otra puerta.
+
+### Corrección — el select de motivo no desborda en el teléfono *(entregada 2026-09-16)*
+
+**Problema:** el usuario reportó que el `<select>` de motivo, en el interruptor de la publicación,
+usaba demasiado ancho horizontal en móvil. Causa: era un `<select>` nativo sin ancho propio
+(`ModerationControls.tsx`), y el navegador lo dimensionaba al motivo más largo —"Ofrece algo que no
+se puede vender aquí: alcohol, tabaco, vapeadores, sustancias o armas."—, que a 390px se desborda.
+
+**Arreglo:** ese `<select>` (y su gemelo, copiado tal cual en `ModerationQueue.tsx` del panel
+`/admin/moderacion`) pasan a usar `Select` del design system, el mismo que ya usa el formulario de
+publicar. Fija el ancho desde su propia caja en vez de dejárselo al navegador, además de dejar de
+ser el único campo del sitio con clases sueltas en vez del componente compartido — que era la otra
+mitad de lo que pidió el usuario.
+
+Cubierto por un escenario nuevo en `filtroAlPublicar.feature`/`.spec.ts` que mide, en un navegador
+real a 390px, que el `<select>` no exceda el viewport y que la página no adquiera scroll horizontal.
