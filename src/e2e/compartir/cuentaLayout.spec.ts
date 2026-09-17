@@ -394,4 +394,42 @@ test.describe("Cuando alguien sin tienda abre su cuenta", () => {
       0,
     );
   });
+
+  /*
+   * El usuario lo reportó: en el teléfono el menú era una lista vertical apilada encima del
+   * contenido, y lo quería como el resto del sitio ya resuelve esto — una fila que se arrastra con
+   * el dedo, igual que los pilares o las facetas de `/buscar`. En escritorio sigue siendo la
+   * columna lateral de siempre.
+   */
+  test("Entonces en un teléfono el menú es un renglón que se desliza, y en escritorio se apila", async ({
+    page,
+  }) => {
+    const nav = accountNav(page);
+    const cuenta = nav.getByRole("link", { name: es.nav.myAccount });
+    const pedidos = nav.getByRole("link", { name: es.nav.myOrders });
+
+    await page.setViewportSize({ width: 390, height: 780 });
+    const cuentaMovil = await cuenta.boundingBox();
+    const pedidosMovil = await pedidos.boundingBox();
+    if (!cuentaMovil || !pedidosMovil) {
+      throw new Error("Algún enlace del menú no tiene caja: ¿está oculto?");
+    }
+    expect(
+      Math.abs(
+        cuentaMovil.y +
+          cuentaMovil.height / 2 -
+          (pedidosMovil.y + pedidosMovil.height / 2),
+      ),
+    ).toBeLessThanOrEqual(2);
+
+    await page.setViewportSize({ width: 1440, height: 900 });
+    const cuentaEscritorio = await cuenta.boundingBox();
+    const pedidosEscritorio = await pedidos.boundingBox();
+    if (!cuentaEscritorio || !pedidosEscritorio) {
+      throw new Error("Algún enlace del menú no tiene caja: ¿está oculto?");
+    }
+    expect(pedidosEscritorio.y).toBeGreaterThanOrEqual(
+      cuentaEscritorio.y + cuentaEscritorio.height,
+    );
+  });
 });
