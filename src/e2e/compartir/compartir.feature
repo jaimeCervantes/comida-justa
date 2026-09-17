@@ -272,3 +272,20 @@ Feature: Compartir la tienda y el perfil, y llegar a ellos desde el avatar
     When despliego el menú de mi avatar
     Then encuentro "Mi cuenta", "Mis pedidos" y "Mis hábitos"
     And no encuentro "Mis publicaciones", "Mi inventario", "Mi agenda", "Mi tienda" ni "Mi perfil"
+
+  # ---------------------------------------------------------------------------
+  # Slice 7 — En el teléfono, el menú se desliza en vez de apilarse  (actual)
+  #
+  # El usuario lo reportó: `AccountNav` era una lista vertical de hasta seis enlaces puesta
+  # encima del contenido en el teléfono, y lo pidió como el resto del sitio ya resuelve una fila
+  # de opciones —los pilares, las facetas de `/buscar`—: un renglón que se arrastra con el dedo.
+  # En escritorio no cambia nada; sigue siendo la columna lateral de siempre.
+  # ---------------------------------------------------------------------------
+
+  @slice-7
+  Scenario: El menú de la cuenta se desliza en el teléfono y se apila en escritorio
+    Given que he iniciado sesión
+    When abro "/cuenta" en un teléfono
+    Then "Mi cuenta" y "Mis pedidos" comparten renglón
+    When abro "/cuenta" en un escritorio
+    Then "Mis pedidos" queda debajo de "Mi cuenta", no al lado
