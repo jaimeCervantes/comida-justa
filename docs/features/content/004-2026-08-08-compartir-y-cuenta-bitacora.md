@@ -609,3 +609,58 @@ en componente, suite Vitest completa, typecheck, lint y Playwright scoped del me
 
 **Pendiente del usuario:** decidir si este slice se commitea ahora o se agrupa con otro ajuste de
 menú móvil.
+
+## Slice 7 — el menú se desliza en el teléfono (2026-09-16)
+
+### Objetivo
+
+El usuario notó que, en el teléfono, `AccountNav` seguía siendo una lista vertical apilada encima
+del contenido —justo lo que el slice 6 había dejado escrito como pendiente— y pidió que se viera
+como el resto del sitio ya resuelve una fila de opciones: los pilares, y en concreto lo comparó con
+"el filtro de búsqueda" (`SearchFacets`).
+
+### Decisiones y por qué
+
+- **Se investigó el patrón ya existente antes de escribir nada.** `SearchFacets.tsx` y
+  `NearbyBar.tsx` ya resuelven exactamente esto —una fila que se arrastra con el dedo— con tres
+  piezas CSS puras (`overflow-x-auto`, `no-scrollbar`, `scroll-hint-x`) y cero JavaScript. No existe
+  ningún hook de "drag scroll"; es scroll nativo del navegador con esas tres clases.
+- **El envoltorio de tarjeta (`bg-surface-elevation-1` + borde) no es decoración de más: es
+  necesario.** `scroll-hint-x` pinta su desvanecido con el color `surface-elevation-1`, que es
+  distinto del fondo de la página (`surface-background`). Sin esa tarjeta alrededor, el borde
+  difuminado se vería con un color que no coincide con lo que tiene detrás. Es el mismo motivo por
+  el que `SearchFacets` —el componente que el usuario señaló como referencia— envuelve su fila en
+  un `<aside>` con esa misma superficie.
+- **Nada cambia en escritorio.** La columna lateral de `AccountNav` en `lg:` sigue siendo
+  `flex-col` con `items-stretch` (el valor por omisión de un `flex-col`, que había que devolver
+  explícitamente al convertir la fila en horizontal por omisión).
+- **No hizo falta ningún componente nuevo.** El pedido del usuario ("mejora la UX... como lo hacen
+  los pilares") era literalmente "usa el patrón que ya existe", así que la solución fue aplicar las
+  mismas clases responsivamente, no diseñar nada desde cero.
+
+### Archivos tocados
+
+- `src/app/[locale]/cuenta/ui/AccountNav.tsx`: clases responsivas nuevas, sin tocar qué enlaces se
+  ofrecen ni sus condiciones.
+- `src/e2e/compartir/compartir.feature` (+slice 7) y `cuentaLayout.spec.ts` (nuevo escenario).
+- Este archivo y `004-2026-08-08-compartir-y-cuenta.md`.
+
+### Comandos y validación
+
+- `pnpm exec vitest run "src/app/[locale]/cuenta/ui/AccountNav.test.tsx" "src/app/[locale]/cuenta/ui/AccountSection.test.tsx"` —
+  15 tests, verdes, sin tocar ninguno de los dos archivos de prueba existentes.
+- `pnpm run typecheck` / `pnpm run lint` — limpios.
+- `pnpm exec playwright test src/e2e/compartir/cuentaLayout.spec.ts` — **15/15**, verdes, incluido
+  el escenario nuevo del renglón/apilado.
+
+### Recap
+
+`AccountNav` ya no se apila en el teléfono: se desliza en un renglón, con el mismo tratamiento
+visual (tarjeta + desvanecido en los bordes) que ya usan los pilares y las facetas de búsqueda. En
+escritorio no cambió nada.
+
+### Próximos pasos (opciones)
+
+1. Cerrar aquí: lo reportado queda resuelto y documentado.
+2. Confirmar visualmente en un teléfono real que el renglón se arrastra bien y que la tarjeta se ve
+   coherente con el resto de la página.

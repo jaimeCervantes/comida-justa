@@ -200,6 +200,36 @@ mismos destinos de `AccountNav`, con las mismas condiciones.
    `Mi agenda`, `Mi tienda` ni `Mi perfil`.
 4. Todo el texto visible sale del namespace `nav` en `es.json` y `en.json`.
 
+### Slice 7 — En el teléfono, el menú se desliza en vez de apilarse *(entregado 2026-09-16)*
+
+**Problema:** el slice 6 dejó escrito a propósito "no se cambia la navegación móvil en este
+slice" — `AccountNav` seguía siendo una lista vertical de hasta seis enlaces puesta encima del
+contenido en el teléfono. El usuario lo reportó y pidió que se viera como el resto del sitio ya
+resuelve una fila de opciones: los pilares, las facetas de `/buscar` — un renglón que se arrastra
+con el dedo.
+
+**Arreglo:** mismo trato que `NearbyBar`/`SearchFacets` — `overflow-x-auto` + `no-scrollbar` +
+`scroll-hint-x` sobre una fila `flex` sin salto de línea, envuelta en una tarjeta
+(`bg-surface-elevation-1`) para que el desvanecido del borde no choque contra el fondo de la
+página. En `lg:` no cambia nada: sigue siendo la columna lateral de siempre
+(`flex-col`/`items-stretch`, sin tarjeta).
+
+**Alcance:**
+
+- `AccountNav.tsx`: nuevas clases responsivas (`NAV_CLASS`, `NAV_ROW_CLASS`), `shrink-0` en cada
+  enlace.
+- Sin cambios en qué enlaces se ofrecen ni en sus condiciones — eso ya lo resolvió el slice 6.
+
+**Criterios de aceptación:**
+
+1. En un teléfono, los enlaces de `AccountNav` comparten renglón y la fila se puede arrastrar
+   horizontalmente.
+2. En escritorio, `AccountNav` sigue apilada en una columna, igual que antes de este slice.
+
+**Cobertura:** `src/e2e/compartir/compartir.feature` (@slice-7) + `cuentaLayout.spec.ts`, midiendo
+que dos enlaces compartan centro vertical en 390px y que se apilen en 1440px — la misma técnica que
+ya usa `nearbyBar.spec.ts` para el mismo tipo de afirmación.
+
 ## Pendientes que este trabajo no resuelve
 
 - Los dos `sellers` `e2e-…` huérfanos en la base, residuo de una corrida caída.
