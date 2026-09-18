@@ -279,6 +279,8 @@ describe("When a card is listed", () => {
       "data-pillar",
       "mindSpirit",
     );
+    /* La otra mitad de la portada es de quien practicó, no solo del pilar. */
+    expect(getByTestId("practice-cover-avatar")).toBeInTheDocument();
     expect(queryByTestId("media-placeholder")).not.toBeInTheDocument();
   });
 

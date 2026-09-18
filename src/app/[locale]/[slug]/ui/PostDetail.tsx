@@ -291,6 +291,7 @@ export default async function PostDetail({
       {isPracticePost && media.length === 0 ? (
         <PracticeCover
           category={typeof category === "string" ? category : null}
+          user={postDetails.user}
           className="mb-4 h-72"
         />
       ) : (

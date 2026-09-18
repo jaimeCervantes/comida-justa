@@ -7,7 +7,7 @@ import { canManagePost } from "~/domain/entities/post/postPermissions";
 import { Link } from "~/i18n/navigation";
 import { profileHref, storeHref } from "~/i18n/routes";
 import { PUBLIC_BASE_URL, SITE_CURRENCY } from "~/infra/constants";
-import type { Post } from "~/infra/types/Posts";
+import type { Post, PostUser } from "~/infra/types/Posts";
 import AddToCartButton from "~/presentation/cart/AddToCartButton/AddToCartButton";
 import { cn } from "~/presentation/design_system/styling/merge-class-names";
 import { CARD_ROW } from "~/presentation/design_system/surfaces/cardSpacing";
@@ -158,6 +158,7 @@ export default function CardForList(
             {kind === PRACTICE_POST_KIND && !media[0] ? (
               <PracticeCover
                 category={typeof category === "string" ? category : null}
+                user={user as PostUser | null | undefined}
                 className="h-64"
               />
             ) : (

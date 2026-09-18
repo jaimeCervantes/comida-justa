@@ -176,6 +176,8 @@ describe("PostDetail de una práctica sin evidencia", () => {
       "data-pillar",
       "sleep",
     );
+    /* La otra mitad de la portada es de quien practicó, no solo del pilar. */
+    expect(screen.getByTestId("practice-cover-avatar")).toBeInTheDocument();
   });
 });
 

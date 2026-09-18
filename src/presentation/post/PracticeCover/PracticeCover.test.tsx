@@ -34,4 +34,26 @@ describe("PracticeCover", () => {
       expect(screen.queryByTestId("practice-cover")).not.toBeInTheDocument();
     },
   );
+
+  /*
+   * El feed es social: "quién lo hace" importa tanto como "qué pilar es". Ver
+   * docs/features/community/012-2026-09-18-portada-practica-avatar.md.
+   */
+  it("reserva la mitad de arriba para el avatar de quien practicó", () => {
+    renderWithIntl(
+      <PracticeCover
+        category="alimentacion"
+        user={{ id: "ana", name: "Ana Sana" }}
+      />,
+    );
+
+    expect(screen.getByTestId("practice-cover-avatar")).toBeInTheDocument();
+  });
+
+  /* Sin usuario tampoco revienta: la mitad de arriba cae en el respaldo del propio Avatar. */
+  it("no revienta cuando la portada no trae usuario", () => {
+    renderWithIntl(<PracticeCover category="alimentacion" />);
+
+    expect(screen.getByTestId("practice-cover-avatar")).toBeInTheDocument();
+  });
 });
