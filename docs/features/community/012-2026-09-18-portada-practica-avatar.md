@@ -55,3 +55,34 @@ el feed vive de mostrar comunidad, no solo categoría.
 
 - Cualquier tamaño de avatar nuevo en el design system: se reutiliza el `md` que ya existe.
 - Mostrar el nombre de quien practica dentro de la portada (ya lo dice la firma de la tarjeta/ficha).
+
+## Slice 2 — La portada del home tampoco se queda vacía
+
+**Problem.** `HomeHero` enseña "lo último que publicó la comunidad" en el lado derecho de la
+portada de escritorio, pero solo si esa publicación trae foto (`latest?.media?.[0]`). Una práctica
+—que hoy es lo más común, porque el ritual no pide evidencia— deja ese lado completamente vacío
+junto al titular "Cuidar tu salud, es cuidar tu tiempo".
+
+**Savings.** El hero deja de depender de que lo último publicado traiga foto para cumplir su propia
+promesa.
+
+**Why.** Mismo espíritu del slice único: una práctica es una publicación de primera clase y también
+puede protagonizar la portada, no solo el feed.
+
+**Alcance.**
+
+- En `HomeHero`, cuando `latest.kind === PRACTICE_POST_KIND` y no trae media, se usa `PracticeCover`
+  en el lugar de la foto — la misma portada partida avatar/pilar del slice único, con el mismo alto.
+- Se aplica la misma comprobación de pilar válido que ya usa `PracticeCover` internamente
+  (`publicationPillarForCategory`), para no dejar un enlace con el pie de foto y nada arriba cuando
+  la categoría no cuelga de ningún pilar.
+- Con foto real, el hero sigue mostrándola como hoy. Ningún otro tipo de publicación cambia: un
+  producto/servicio/anuncio sin foto sigue sin pintar nada en el hero.
+
+**Criterios de aceptación.**
+
+1. Si lo último publicado es una práctica sin evidencia con categoría de pilar válida, el hero
+   enseña la portada partida (avatar/pilar) en vez de un hueco.
+2. Si lo último publicado trae foto, el hero sigue mostrando esa foto.
+3. Si lo último publicado no tiene foto y no es una práctica con pilar válido, el hero sigue sin
+   inventar una portada — como antes.

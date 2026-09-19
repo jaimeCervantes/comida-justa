@@ -99,6 +99,48 @@ todas en verde.
 aparte a Microsoft Graph); ese caso ya cae en el respaldo de iniciales del propio `Avatar`, sin
 cambios aquí.
 
+## Slice 2 — La portada del home también usa la portada partida (2026-09-18)
+
+**Objetivo.** El usuario notó que en escritorio el lado derecho del hero ("Cuidar tu salud, es
+cuidar tu tiempo") se veía vacío. Causa: `HomeHero` solo pinta su portada cuando `latest` trae foto,
+y una práctica reciente sin evidencia —el caso normal— no trae ninguna.
+
+**Decisión + razón.** Reutilizar `PracticeCover` dentro de `HomeHero`, igual que ya hace
+`CardForList`/`PostDetail`, en vez de inventar una portada nueva para este sitio. Se repite la misma
+comprobación de pilar válido (`publicationPillarForCategory`) para no dejar un enlace con el pie de
+foto y nada arriba cuando la categoría de la práctica no cuelga de ningún pilar.
+
+**Archivos tocados.**
+
+- `src/app/(home)/HomeHero.tsx` — calcula `showsPracticeCover` y renderiza `PracticeCover` en vez de
+  `MediaContent` cuando aplica.
+- `src/app/(home)/HomeHero.test.tsx` — nueva prueba para la práctica sin evidencia con pilar válido,
+  y un caso más al `it.each` de "no inventa una portada" para la práctica sin pilar válido.
+- `docs/features/community/012-2026-09-18-portada-practica-avatar.md` — slice 2 del roadmap.
+
+**Comandos clave.**
+
+- `pnpm run typecheck` — limpio.
+- `pnpm exec vitest run "src/app/(home)/HomeHero.test.tsx"` — 20 pruebas, todas en verde.
+- `pnpm run lint` — 1213 archivos, sin hallazgos.
+- `pnpm run test:run` (suite completa) — corriendo en paralelo a la redacción de esta entrada; se
+  reporta el resultado antes de comitear.
+
+## Recap
+
+`HomeHero` ya no depende de que lo último publicado traiga foto: una práctica reciente sin evidencia
+(el caso normal) enseña ahora la misma portada partida avatar/pilar que la tarjeta y la ficha, en vez
+de dejar vacío el lado derecho de la portada de escritorio. Con foto real, o con una categoría que no
+cuelga de ningún pilar, el comportamiento no cambió.
+
+## Próximos pasos (opciones)
+
+- Confirmar el resultado de la suite completa antes de comitear.
+- Si se aprueba, seguir con los commits semánticos de este slice 2, separados de los del slice único
+  ya comiteado.
+- Ver en `pnpm run dev` cómo se ve la portada partida a la escala del hero (bastante más alta que la
+  tarjeta) antes de darlo por cerrado del todo.
+
 ## Recap
 
 `PracticeCover` ahora muestra, para una práctica sin evidencia, el avatar de quien la practicó en la
