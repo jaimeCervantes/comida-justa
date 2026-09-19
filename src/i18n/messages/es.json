@@ -973,7 +973,8 @@
       "CANCELLED": "Cancelar",
       "CONFIRMED": "Aceptar el pedido",
       "DELIVERED": "Marcar entregado",
-      "PREPARING": "Empezar a prepararlo"
+      "PREPARING": "Empezar a prepararlo",
+      "SHIPPED": "Marcar como enviado"
     },
     "appointmentWhen": "Cita: {date}",
     "appointmentCreatedOn": "Agendada el {date}",
@@ -1038,6 +1039,7 @@
       "CONFIRMED": "Aceptado el {date}",
       "PAID": "Pagado el {date}",
       "PREPARING": "En preparación desde el {date}",
+      "SHIPPED": "Enviado el {date}",
       "DELIVERED": "Entregado el {date}",
       "CANCELLED": "Cancelado el {date}"
     },
@@ -1048,7 +1050,8 @@
       "DRAFT": "Borrador",
       "PAID": "Pagado",
       "PENDING": "Pendiente",
-      "PREPARING": "En preparación"
+      "PREPARING": "En preparación",
+      "SHIPPED": "Enviado"
     },
     "tab": {
       "placed": "Yo pedí",

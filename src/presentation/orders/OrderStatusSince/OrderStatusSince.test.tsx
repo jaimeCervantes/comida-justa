@@ -21,6 +21,7 @@ describe("OrderStatusSince", () => {
   it.each([
     ["CONFIRMED", "Aceptado el"],
     ["PREPARING", "En preparación desde el"],
+    ["SHIPPED", "Enviado el"],
     ["DELIVERED", "Entregado el"],
     ["CANCELLED", "Cancelado el"],
   ] as Array<[OrderStatus, string]>)(

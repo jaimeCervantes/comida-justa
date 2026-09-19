@@ -181,7 +181,10 @@ describe("AdvanceOrderUseCase", () => {
     ["PENDING", "CANCELLED"],
     ["CONFIRMED", "PREPARING"],
     ["PREPARING", "DELIVERED"],
+    ["PREPARING", "SHIPPED"],
     ["PREPARING", "CANCELLED"],
+    ["SHIPPED", "DELIVERED"],
+    ["SHIPPED", "CANCELLED"],
   ] as Array<[OrderStatus, OrderStatus]>)(
     "deja pasar de %s a %s",
     async (from, to) => {
@@ -284,6 +287,24 @@ describe("AdvanceOrderUseCase — el inventario", () => {
   it("cancelar un pedido ya aceptado devuelve lo suyo", async () => {
     const { useCase, orders } = build(
       orderInStatus("CONFIRMED"),
+      "CANCELLED",
+      conInventario(10),
+    );
+
+    await useCase.execute({
+      orderId: ORDER_ID,
+      sellerId: SELLER,
+      status: "CANCELLED",
+    });
+
+    expect(orders.updateStatus).toHaveBeenCalledWith(
+      expect.objectContaining({ stockEffect: "release" }),
+    );
+  });
+
+  it("cancelar un pedido ya enviado devuelve lo suyo", async () => {
+    const { useCase, orders } = build(
+      orderInStatus("SHIPPED"),
       "CANCELLED",
       conInventario(10),
     );

@@ -201,14 +201,19 @@ Feature: Carrito y pedidos
       | PENDING   | CONFIRMED | se acepta | el vendedor lo acepta                  |
       | PENDING   | CANCELLED | se acepta | no puede atenderlo                     |
       | CONFIRMED | PREPARING | se acepta | se pone a ello                         |
-      | PREPARING | DELIVERED | se acepta | lo entrega                             |
+      | PREPARING | DELIVERED | se acepta | lo entrega directo, sin repartidor     |
+      | PREPARING | SHIPPED   | se acepta | lo despacha con el repartidor          |
+      | SHIPPED   | DELIVERED | se acepta | el repartidor lo entrega               |
+      | SHIPPED   | CANCELLED | se acepta | se cancela ya en camino                |
       | PREPARING | CANCELLED | se acepta | se le acabó a media preparación        |
 
     Examples: rechazadas
       | desde     | hasta     | resultado  | razón                                          |
       | PENDING   | DELIVERED | se rechaza | no se entrega lo que no se aceptó              |
       | PENDING   | PREPARING | se rechaza | saltarse la aceptación esconde el paso clave   |
+      | PENDING   | SHIPPED   | se rechaza | saltarse aceptar y preparar igual              |
       | CONFIRMED | PENDING   | se rechaza | no hay marcha atrás: nadie des-acepta          |
+      | SHIPPED   | PREPARING | se rechaza | no hay marcha atrás: ya salió del local        |
       | DELIVERED | CANCELLED | se rechaza | lo entregado no se deshace cambiando una fila  |
       | CANCELLED | CONFIRMED | se rechaza | un pedido cancelado no revive                  |
 
@@ -524,6 +529,7 @@ Feature: Carrito y pedidos
       | Pendiente      | sí        | el vendedor ni siquiera lo ha visto — es el caso de hoy   |
       | Aceptado       | sí        | ya lo vio, pero el pedido sigue vivo y hay de qué hablar  |
       | En preparación | sí        | lo mismo: alguien espera al otro lado                     |
+      | Enviado        | sí        | va en camino; todavía hay de qué hablar                   |
       | Entregado      | no        | ya está en manos del cliente; no hay nada que avisar      |
       | Cancelado      | no        | tampoco: el pedido dejó de moverse                        |
       | Borrador       | no        | no existe como pedido; el borrador es el carrito          |
@@ -610,6 +616,7 @@ Feature: Carrito y pedidos
       | estado     | frase                     | razón                                          |
       | CONFIRMED  | Aceptado el …             | el estado intermedio que antes no decía nada   |
       | PREPARING  | En preparación desde el … | sigue en marcha: "desde", no "el"              |
+      | SHIPPED    | Enviado el …              | despachar es un paso, con su día y su hora     |
       | DELIVERED  | Entregado el …            | terminó, y la entrega tiene su día y su hora   |
       | CANCELLED  | Cancelado el …            | también terminó, y también importa cuándo      |
 
@@ -656,11 +663,40 @@ Feature: Carrito y pedidos
     Then el renglón dice cuántos, de qué y cuánto suma, y lleva a su publicación
     But no enseña ninguna miniatura
 
+  # Slice 11. El pedido saltaba de "En preparación" directo a "Entregado": ni el vendedor ni el
+  # comprador tenían forma de decir/ver que ya salió del local. Es el primer paso del tracking en
+  # vivo del repartidor (slice 12): sin esta "ventana" no hay estado en el que después mostrar un
+  # mapa. Es OPCIONAL — quien entrega en mano sigue pudiendo saltar directo a Entregado, como hoy;
+  # las filas nuevas de las tablas de arriba (transiciones, fecha del estado, aviso por WhatsApp)
+  # ya cubren esa regla, así que aquí solo queda lo que es observable y nuevo: el botón y la
+  # insignia.
+  @slice-11
+  Scenario: El vendedor marca el pedido como enviado antes de entregarlo
+    Given un pedido En preparación en mi tienda
+    When lo marco como enviado desde "/pedidos"
+    Then pasa a Enviado
+    And sigue ofreciendo "Marcar entregado" y "Cancelar"
+
+  @slice-11
+  Scenario: El comprador ve que su pedido va en camino
+    Given mi pedido que el vendedor acaba de marcar como enviado
+    When abro "/pedidos" o la ficha del pedido
+    Then la insignia dice Enviado
+    And a su lado dice cuándo se envió
+
+  # El tracking en vivo: dónde está el repartidor y un mapa para quien compra. Depende de que el
+  # slice 11 esté en producción — sin la ventana "Enviado" no hay cuándo mostrar el mapa.
+  @slice-12 @future
+  Scenario: Veo en el mapa dónde va mi pedido
+    Given mi pedido Enviado
+    When abro su ficha
+    Then veo un mapa con la última posición del repartidor
+
   # El pago en línea es lo único sin fecha: sigue condicionado a que el volumen de pedidos lo
   # justifique. Va siempre al final, así que cada slice entregado lo empuja un número más abajo.
   # Desde el slice 8, la pregunta que lo condiciona —cuántos se caen entre PENDING y DELIVERED— por
   # fin se puede contestar.
-  @slice-10 @future
+  @slice-13 @future
   Scenario: Se paga en línea
     Given un pedido aceptado
     When pago

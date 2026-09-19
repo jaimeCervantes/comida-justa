@@ -37,7 +37,7 @@ const sueroNatural: OrderLine = {
 };
 
 describe("los estados", () => {
-  it("son los siete del enum que ya existe en la base", () => {
+  it("son los ocho del enum que ya existe en la base", () => {
     // Si alguien añade uno aquí sin migrar el enum, la escritura falla en producción y no en un test.
     expect([...ORDER_STATUSES]).toEqual([
       "DRAFT",
@@ -45,6 +45,7 @@ describe("los estados", () => {
       "CONFIRMED",
       "PAID",
       "PREPARING",
+      "SHIPPED",
       "DELIVERED",
       "CANCELLED",
     ]);
@@ -62,7 +63,10 @@ describe("canTransition", () => {
     ["PENDING", "CONFIRMED", true, "el vendedor lo acepta"],
     ["PENDING", "CANCELLED", true, "se arrepiente o no puede"],
     ["CONFIRMED", "PREPARING", true, "se pone a ello"],
-    ["PREPARING", "DELIVERED", true, "lo entrega"],
+    ["PREPARING", "DELIVERED", true, "lo entrega directo, sin repartidor"],
+    ["PREPARING", "SHIPPED", true, "lo despacha con el repartidor"],
+    ["SHIPPED", "DELIVERED", true, "el repartidor lo entrega"],
+    ["SHIPPED", "CANCELLED", true, "se cancela ya en camino"],
     ["PREPARING", "CANCELLED", true, "se le acabó a media preparación"],
     ["PENDING", "DELIVERED", false, "no se entrega lo que no se aceptó"],
     [
@@ -71,7 +75,9 @@ describe("canTransition", () => {
       false,
       "saltarse la aceptación esconde el paso que decide",
     ],
+    ["PENDING", "SHIPPED", false, "saltarse aceptar y preparar igual"],
     ["CONFIRMED", "PENDING", false, "no hay marcha atrás: nadie des-acepta"],
+    ["SHIPPED", "PREPARING", false, "no hay marcha atrás: ya salió del local"],
     [
       "DELIVERED",
       "CANCELLED",
@@ -90,6 +96,19 @@ describe("canTransition", () => {
   it("desde PENDING solo se puede aceptar o cancelar", () => {
     expect([...nextStatuses("PENDING")]).toEqual(["CONFIRMED", "CANCELLED"]);
   });
+
+  /* SHIPPED es opcional: desde PREPARING caben los dos caminos, despachar o entregar directo. */
+  it("desde PREPARING se puede despachar, entregar directo o cancelar", () => {
+    expect([...nextStatuses("PREPARING")]).toEqual([
+      "SHIPPED",
+      "DELIVERED",
+      "CANCELLED",
+    ]);
+  });
+
+  it("desde SHIPPED solo se puede entregar o cancelar", () => {
+    expect([...nextStatuses("SHIPPED")]).toEqual(["DELIVERED", "CANCELLED"]);
+  });
 });
 
 describe("isFinal", () => {
@@ -99,6 +118,7 @@ describe("isFinal", () => {
     ["PENDING", false],
     ["CONFIRMED", false],
     ["PREPARING", false],
+    ["SHIPPED", false],
   ] as Array<[OrderStatus, boolean]>)("%s es final: %s", (status, expected) => {
     expect(isFinal(status)).toBe(expected);
   });
@@ -125,6 +145,7 @@ describe("canNotifySeller", () => {
     ],
     ["CONFIRMED", true, "ya lo vio, pero el pedido sigue vivo"],
     ["PREPARING", true, "lo mismo: alguien espera al otro lado"],
+    ["SHIPPED", true, "va en camino; todavía hay de qué hablar"],
     ["DELIVERED", false, "ya está en manos del cliente"],
     ["CANCELLED", false, "el pedido dejó de moverse"],
     ["DRAFT", false, "no existe como pedido: el borrador es el carrito"],

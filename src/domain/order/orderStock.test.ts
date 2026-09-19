@@ -12,15 +12,19 @@ describe("stockEffectOf", () => {
     ["CONFIRMED", "CANCELLED", "release"],
     ["PREPARING", "DELIVERED", "none"],
     ["PREPARING", "CANCELLED", "release"],
+    ["PREPARING", "SHIPPED", "none"],
+    ["SHIPPED", "DELIVERED", "none"],
+    ["SHIPPED", "CANCELLED", "release"],
   ])("de %s a %s: %s", (from, to, expected) => {
     expect(stockEffectOf(from, to)).toBe(expected);
   });
 
   /* Aceptar es el único momento que compromete mercancía, y sólo ocurre una vez: de CONFIRMED no se
      vuelve a PENDING, así que no hay forma de descontar dos veces el mismo pedido. */
-  it("preparar y entregar no vuelven a descontar", () => {
+  it("preparar, despachar y entregar no vuelven a descontar", () => {
     expect(stockEffectOf("CONFIRMED", "PREPARING")).toBe("none");
-    expect(stockEffectOf("PREPARING", "DELIVERED")).toBe("none");
+    expect(stockEffectOf("PREPARING", "SHIPPED")).toBe("none");
+    expect(stockEffectOf("SHIPPED", "DELIVERED")).toBe("none");
   });
 });
 

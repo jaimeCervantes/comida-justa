@@ -84,6 +84,7 @@ const TEXT_PAIRS: readonly Pair[] = [
   ["--feedback-error-ink", "--feedback-error-soft", "aviso de error"],
   ["--brand-green-900", "--brand-green-soft", "tinta sobre el chip verde"],
   ["--brand-clay-700", "--brand-clay-soft", "tinta sobre el chip de barro"],
+  ["--brand-sky-ink", "--brand-sky-soft", "tinta sobre el chip de envío"],
   ["--text-support", "--surface-elevation-2", "tinta sobre el chip neutro"],
 ];
 

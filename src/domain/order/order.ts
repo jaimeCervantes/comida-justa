@@ -3,9 +3,11 @@ import type { Interval } from "~/domain/schedule/slots";
 /**
  * Los estados por los que pasa un pedido.
  *
- * Son **exactamente** los siete del enum `orderstatus` que ya existe en la base compartida: lo
- * diseñó el bot y nunca lo usó. Se respeta su grafía en mayúsculas para que el dominio y la columna
- * digan lo mismo sin una tabla de traducción en medio.
+ * Son **exactamente** los ocho del enum `orderstatus` que ya existe en la base compartida: lo
+ * diseñó el bot y nunca lo usó (salvo `SHIPPED`, que sumó este sitio — ver la migración
+ * `0057_2026-09-18_add_shipped_value_to_orderstatus_enum.py` de `bot-whatsapp`). Se respeta su
+ * grafía en mayúsculas para que el dominio y la columna digan lo mismo sin una tabla de traducción
+ * en medio.
  *
  * `DRAFT` y `PAID` se declaran pero **no participan todavía**: el primero no tiene sentido aquí —el
  * borrador es el carrito, que vive en el navegador— y el segundo entra cuando exista el pago en
@@ -17,6 +19,7 @@ export const ORDER_STATUSES = [
   "CONFIRMED",
   "PAID",
   "PREPARING",
+  "SHIPPED",
   "DELIVERED",
   "CANCELLED",
 ] as const;
@@ -47,15 +50,22 @@ export const INITIAL_STATUS: OrderStatus = "PENDING";
  */
 export type OrderAction = Extract<
   OrderStatus,
-  "CONFIRMED" | "PREPARING" | "DELIVERED" | "CANCELLED"
+  "CONFIRMED" | "PREPARING" | "SHIPPED" | "DELIVERED" | "CANCELLED"
 >;
 
+/**
+ * `SHIPPED` es **opcional**: quien entrega en mano o no usa repartidor sigue pudiendo llevar un
+ * pedido de `PREPARING` a `DELIVERED` directo, exactamente como antes de que este estado existiera.
+ * Por eso `PREPARING` tiene tres destinos y no dos — despachar con repartidor no reemplaza entregar
+ * directo, lo intercala.
+ */
 const TRANSITIONS: Readonly<Record<OrderStatus, readonly OrderAction[]>> = {
   DRAFT: [],
   PENDING: ["CONFIRMED", "CANCELLED"],
   CONFIRMED: ["PREPARING", "CANCELLED"],
   PAID: [],
-  PREPARING: ["DELIVERED", "CANCELLED"],
+  PREPARING: ["SHIPPED", "DELIVERED", "CANCELLED"],
+  SHIPPED: ["DELIVERED", "CANCELLED"],
   DELIVERED: [],
   CANCELLED: [],
 };
@@ -93,6 +103,7 @@ export const OPEN_STATUSES: readonly OrderStatus[] = [
   "PENDING",
   "CONFIRMED",
   "PREPARING",
+  "SHIPPED",
 ];
 
 /** Los que ya no se mueven y solo se consultan. */

@@ -21,6 +21,7 @@ export type StockEffect = "reserve" | "release" | "none";
 const STOCK_APPLIED: readonly OrderStatus[] = [
   "CONFIRMED",
   "PREPARING",
+  "SHIPPED",
   "DELIVERED",
 ];
 

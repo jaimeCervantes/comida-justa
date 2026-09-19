@@ -89,6 +89,7 @@ describe("NotifySellerButton", () => {
     ["PENDING", true],
     ["CONFIRMED", true],
     ["PREPARING", true],
+    ["SHIPPED", true],
     ["DELIVERED", false],
     ["CANCELLED", false],
   ] as Array<[OrderStatus, boolean]>)(

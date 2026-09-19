@@ -11,7 +11,12 @@ import {
 
 describe("los ámbitos de la lista", () => {
   it("abiertos son los que piden acción, y solo esos", () => {
-    expect([...OPEN_STATUSES]).toEqual(["PENDING", "CONFIRMED", "PREPARING"]);
+    expect([...OPEN_STATUSES]).toEqual([
+      "PENDING",
+      "CONFIRMED",
+      "PREPARING",
+      "SHIPPED",
+    ]);
   });
 
   /* `DRAFT` y `PAID` tampoco tienen salidas hoy, así que `isFinal` dice que sí para los dos — pero
@@ -39,7 +44,7 @@ describe("los ámbitos de la lista", () => {
 
 describe("statusesInScope", () => {
   it.each([
-    ["open", ["PENDING", "CONFIRMED", "PREPARING"]],
+    ["open", ["PENDING", "CONFIRMED", "PREPARING", "SHIPPED"]],
     ["closed", ["DELIVERED", "CANCELLED"]],
   ] as Array<["open" | "closed", OrderStatus[]]>)(
     "%s filtra a %j",

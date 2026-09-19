@@ -18,9 +18,13 @@ import { sellers } from "./sellers";
  * El enum que ya existe en la base desde que el bot creó su tabla `orders`.
  *
  * Se declara para tipar, **no para crearlo**: como todo este directorio, es un espejo de lo que
- * administra Alembic. El sitio solo transita `PENDING → CONFIRMED → PREPARING → DELIVERED`, con
- * `CANCELLED` desde cualquier punto menos el último; `DRAFT` es del carrito del bot y `PAID` espera
- * al pago en línea. Qué transición vale lo decide `src/domain/order/order.ts`.
+ * administra Alembic. El sitio transita `PENDING → CONFIRMED → PREPARING → (SHIPPED) → DELIVERED`
+ * — `SHIPPED` es opcional, se puede saltar directo de `PREPARING` a `DELIVERED` —, con `CANCELLED`
+ * desde cualquier punto menos el último; `DRAFT` es del carrito del bot y `PAID` espera al pago en
+ * línea. Qué transición vale lo decide `src/domain/order/order.ts`.
+ *
+ * `SHIPPED` se agregó en la migración `0057_2026-09-18_add_shipped_value_to_orderstatus_enum.py`
+ * de `bot-whatsapp`, aplicada a la base compartida el 2026-09-18.
  */
 export const orderStatus = pgEnum("orderstatus", [
   "DRAFT",
@@ -28,6 +32,7 @@ export const orderStatus = pgEnum("orderstatus", [
   "CONFIRMED",
   "PAID",
   "PREPARING",
+  "SHIPPED",
   "DELIVERED",
   "CANCELLED",
 ]);

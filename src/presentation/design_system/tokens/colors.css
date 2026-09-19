@@ -58,6 +58,14 @@
   --brand-honey-ink: #7a5a03;
   --brand-lightorange: var(--brand-honey-500);
 
+  /**
+   * Cuarto tono de marca, para el estado "Enviado" del pedido: verde, barro y miel ya estaban
+   * asignados (Aceptado/Pagado, Cancelado, En preparación), y confundir "Enviado" con "En
+   * preparación" sería el mismo problema que ya resolvió la miel frente al verde.
+   */
+  --brand-sky-soft: #dbeafe;
+  --brand-sky-ink: #1e40af;
+
   --brand-lightgreen: #5dbf17;
   --brand-gray: #3d4636;
   --brand-black: #1b1e18;
@@ -219,6 +227,9 @@
 
     --brand-honey-soft: #3a2f08;
 
+    --brand-sky-soft: #0f2a4a;
+    --brand-sky-ink: #93c5fd;
+
     --brand-gray: #2a3126;
 
     /**
@@ -301,6 +312,9 @@
 
   --brand-honey-soft: #3a2f08;
 
+  --brand-sky-soft: #0f2a4a;
+  --brand-sky-ink: #93c5fd;
+
   --brand-gray: #2a3126;
 
   /* El relleno «negro» deja de ser negro en oscuro: ver la nota del bloque de arriba. */
@@ -368,6 +382,8 @@
   --color-brand-clay-soft: var(--brand-clay-soft);
   --color-brand-honey-soft: var(--brand-honey-soft);
   --color-brand-honey-ink: var(--brand-honey-ink);
+  --color-brand-sky-soft: var(--brand-sky-soft);
+  --color-brand-sky-ink: var(--brand-sky-ink);
   --color-brand-gray: var(--brand-gray);
   --color-brand-black: var(--brand-black);
   --color-brand-white: var(--brand-white);
