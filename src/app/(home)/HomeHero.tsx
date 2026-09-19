@@ -1,4 +1,6 @@
 import { useTranslations } from "next-intl";
+import { PRACTICE_POST_KIND } from "~/domain/entities/post/kind";
+import { publicationPillarForCategory } from "~/domain/entities/post/publicationPillars";
 import { describeDistance } from "~/domain/entities/seller/distance";
 import { Link } from "~/i18n/navigation";
 import type { NearbySummary } from "~/infra/dataAccess/posts/IPostQueryRepository";
@@ -6,6 +8,7 @@ import type { Post } from "~/infra/types/Posts";
 import { buttonVariants } from "~/presentation/design_system/buttons/buttonVariants";
 import { Heading } from "~/presentation/design_system/typography/Heading";
 import MediaContent from "~/presentation/media/MediaContent/MediaContent";
+import PracticeCover from "~/presentation/post/PracticeCover/PracticeCover";
 
 /**
  * La portada del inicio: qué promete el sitio, con qué voz, y las dos cosas que se pueden hacer.
@@ -49,6 +52,11 @@ export default function HomeHero({
    * es una foto real, cambia sola, y demuestra la promesa del titular en lugar de ilustrarla. Se
    * repite justo debajo, en el feed — y esa repetición es el punto: lo primero que se ve es lo
    * último que alguien subió.
+   *
+   * **Una práctica sin evidencia no deja el hueco vacío.** El ritual no pide foto, así que si lo
+   * último publicado es una práctica sin media, la portada usa `PracticeCover` en su lugar — la
+   * misma que ya lleva la tarjeta y la ficha. Sin esto, el lado derecho del hero se quedaba en
+   * blanco cada vez que lo último era una práctica, que hoy es el caso más común.
    */
   latest?: Post;
 }): React.ReactNode {
@@ -74,6 +82,16 @@ export default function HomeHero({
      compartir. Como destino de un enlace interno haría recargar la página entera —y en local se
      iría a producción—, así que se usa el slug, igual que `CardForList` para su enlace de edición. */
   const coverHref = latest?.slug ? `/${String(latest.slug)}` : latest?.to;
+  const latestCategory =
+    typeof latest?.category === "string" ? latest.category : null;
+  /* Misma condición que decide `PracticeCover` en la tarjeta y en la ficha: solo cuando la
+     categoría cuelga de un pilar hay algo que dibujar en su lugar. Sin esta comprobación, una
+     práctica con una categoría que no mapea a ningún pilar dejaría el enlace con el pie de foto y
+     sin nada arriba. */
+  const showsPracticeCover =
+    latest?.kind === PRACTICE_POST_KIND &&
+    !cover &&
+    publicationPillarForCategory(latestCategory) !== null;
 
   return (
     <header className="grid items-center gap-8 border-b border-separator pb-8 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
@@ -150,7 +168,7 @@ export default function HomeHero({
 
           `sizes` describe el hueco real —una columna de la rejilla, no el ancho de la ventana— para
           que el navegador no se traiga la variante de 3840px y la encoja. */}
-      {cover ? (
+      {cover || showsPracticeCover ? (
         <Link
           href={coverHref ?? "/"}
           data-testid="home-cover"
@@ -160,16 +178,27 @@ export default function HomeHero({
               docstring de `MediaContent` —«quien lo pinta lo acompaña de un alto fijo que recorta
               con object-cover»—. Posicionar por dentro no sirve: `MediaContent` envuelve en un
               `div` y `ImageWithSkeleton` en un `span` más, así que el alto tiene que viajar hasta
-              la imagen, no quedarse en un contenedor de fuera. */}
-          <MediaContent
-            media={cover}
-            sizes="(max-width: 1024px) 100vw, 480px"
-            /* `transition-[opacity,transform]` y no `transition-transform`: `ImageWithSkeleton`
-              pone `transition-opacity` para apagar su esqueleto, y `cn` desempata entre las dos
-              —son la misma familia—, así que un `transition-transform` a secas se lo borraba y la
-              imagen aparecía de golpe. */
-            className="h-64 w-full object-cover transition-[opacity,transform] duration-base ease-natural group-hover:scale-[1.02] sm:h-80 lg:h-72"
-          />
+              la imagen, no quedarse en un contenedor de fuera.
+
+              Una práctica sin evidencia no tiene foto que recortar así: lleva la misma portada
+              partida (avatar + pilar) que ya usan la tarjeta y la ficha, con el mismo alto. */}
+          {cover ? (
+            <MediaContent
+              media={cover}
+              sizes="(max-width: 1024px) 100vw, 480px"
+              /* `transition-[opacity,transform]` y no `transition-transform`: `ImageWithSkeleton`
+                pone `transition-opacity` para apagar su esqueleto, y `cn` desempata entre las dos
+                —son la misma familia—, así que un `transition-transform` a secas se lo borraba y
+                la imagen aparecía de golpe. */
+              className="h-64 w-full object-cover transition-[opacity,transform] duration-base ease-natural group-hover:scale-[1.02] sm:h-80 lg:h-72"
+            />
+          ) : (
+            <PracticeCover
+              category={latestCategory}
+              user={latest?.user}
+              className="h-64 sm:h-80 lg:h-72"
+            />
+          )}
           <div className="flex flex-col gap-1 bg-surface-elevation-1 px-5 py-4">
             <span className="text-caption font-semibold uppercase tracking-[0.14em] text-text-muted">
               {t("coverLabel")}

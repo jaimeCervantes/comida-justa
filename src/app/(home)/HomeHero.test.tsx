@@ -1,4 +1,4 @@
-import { screen } from "@testing-library/react";
+import { screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { renderWithIntl } from "~/infra/test-utils/renderWithIntl";
 import HomeHero from "./HomeHero";
@@ -160,6 +160,19 @@ describe("HomeHero", () => {
       "con una publicación sin media",
       { id: "2", title: "Anuncio", to: "/a", media: [] },
     ],
+    /* Una práctica cuya categoría no cuelga de ningún pilar tampoco tiene portada que inventar —
+       misma regla que ya aplica `PracticeCover` a solas. */
+    [
+      "con una práctica de categoría sin pilar",
+      {
+        id: "4",
+        title: "Práctica rara",
+        to: "/practica-rara",
+        kind: "practica",
+        category: "otra_cosa",
+        media: [],
+      },
+    ],
   ])("no inventa una portada %s", (_caso, latest) => {
     renderWithIntl(
       <HomeHero
@@ -172,6 +185,39 @@ describe("HomeHero", () => {
     expect(screen.queryByTestId("home-cover")).not.toBeInTheDocument();
     // Pero el titular y las acciones siguen ahí: la portada no depende de la foto.
     expect(screen.getByRole("heading", { level: 1 })).toBeInTheDocument();
+  });
+
+  /*
+   * El ritual no pide evidencia, así que una práctica sin foto es el caso normal, no el
+   * degradado — y hasta ahora dejaba el lado derecho del hero completamente vacío en escritorio.
+   */
+  it("cuando lo último publicado es una práctica sin evidencia, la portada es la de su pilar", () => {
+    const practicaSinEvidencia = {
+      id: "3",
+      title: "Practiqué Penumbra total",
+      to: "/practica-penumbra-total",
+      kind: "practica",
+      category: "sueno_y_descanso",
+      media: [],
+      user: { id: "ana", name: "Ana Sana" },
+    };
+
+    renderWithIntl(
+      <HomeHero
+        publicationCount={12}
+        nearby={null}
+        latest={practicaSinEvidencia as unknown as typeof YOGA}
+      />,
+    );
+
+    const cover = screen.getByTestId("home-cover");
+
+    expect(cover).toHaveAttribute("href", "/practica-penumbra-total");
+    expect(cover).toHaveTextContent(/practiqué penumbra total/i);
+    expect(within(cover).getByTestId("practice-cover")).toHaveAttribute(
+      "data-pillar",
+      "sleep",
+    );
   });
 
   it("en inglés destaca la parte que le toca al inglés", () => {
