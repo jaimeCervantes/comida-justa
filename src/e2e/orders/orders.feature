@@ -533,7 +533,7 @@ Feature: Carrito y pedidos
       | Entregado      | no        | ya está en manos del cliente; no hay nada que avisar      |
       | Cancelado      | no        | tampoco: el pedido dejó de moverse                        |
       | Borrador       | no        | no existe como pedido; el borrador es el carrito          |
-      | Pagado         | no        | no participa todavía; cuando el pago exista se decide     |
+      | Pagado         | sí        | ya se cobró y el vendedor todavía tiene que prepararlo    |
 
   @slice-7 @component
   Scenario Outline: Una tienda sin número no pinta un enlace roto
@@ -692,12 +692,15 @@ Feature: Carrito y pedidos
     When abro su ficha
     Then veo un mapa con la última posición del repartidor
 
-  # El pago en línea es lo único sin fecha: sigue condicionado a que el volumen de pedidos lo
-  # justifique. Va siempre al final, así que cada slice entregado lo empuja un número más abajo.
-  # Desde el slice 8, la pregunta que lo condiciona —cuántos se caen entre PENDING y DELIVERED— por
-  # fin se puede contestar.
+  # El pago en línea deja de estar condicionado al volumen: se decidió avanzar ahora, con Stripe
+  # Connect (split directo al vendedor, sin que la plataforma retenga el dinero — así no genera la
+  # desconfianza de un intermediario custodio). El slice 1 (dominio + IPaymentGateway +
+  # StripePaymentGateway + HandlePaymentWebhookUseCase, sin Gherkin porque no hay nada observable
+  # todavía) ya está en el código. Este escenario sigue @future porque falta la cuenta Connect del
+  # vendedor (bloqueada por una migración en `bot-whatsapp`) y la sesión de checkout real.
   @slice-13 @future
-  Scenario: Se paga en línea
-    Given un pedido aceptado
-    When pago
-    Then el pedido queda en PAID
+  Scenario: Se paga en línea con Stripe Connect
+    Given un pedido Aceptado de una tienda con su cuenta de Stripe conectada
+    When el comprador completa el pago en Stripe Checkout
+    Then el webhook marca el pedido como Pagado
+    And el dinero llega directo a la cuenta del vendedor, con la comisión de la plataforma aparte

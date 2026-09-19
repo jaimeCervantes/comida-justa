@@ -9,9 +9,9 @@ import type { Interval } from "~/domain/schedule/slots";
  * grafía en mayúsculas para que el dominio y la columna digan lo mismo sin una tabla de traducción
  * en medio.
  *
- * `DRAFT` y `PAID` se declaran pero **no participan todavía**: el primero no tiene sentido aquí —el
- * borrador es el carrito, que vive en el navegador— y el segundo entra cuando exista el pago en
- * línea. Declararlos sin permitirlos es la diferencia entre "no lo hemos hecho" y "no existe".
+ * `DRAFT` se declara pero **no participa**: el borrador es el carrito, que vive en el navegador, no
+ * un pedido. `PAID` sí participa: lo alcanza el webhook de la pasarela de pago (`canMarkPaid`), no
+ * el vendedor — por eso no vive en `OrderAction` aunque ya tenga transiciones propias.
  */
 export const ORDER_STATUSES = [
   "DRAFT",
@@ -43,10 +43,11 @@ export const INITIAL_STATUS: OrderStatus = "PENDING";
 /**
  * Los estados **a los que** un vendedor puede llevar un pedido.
  *
- * Es un subconjunto propio de `OrderStatus`, no un alias: a `PENDING` no se vuelve, y `DRAFT` y
- * `PAID` no son destinos de nadie hoy. Tenerlo tipado aparte es lo que permite que la pantalla
- * pinte un botón por destino y el catálogo de textos exija exactamente estas cuatro etiquetas — sin
- * una segunda lista escrita a mano que se desincronice de estas reglas.
+ * Es un subconjunto propio de `OrderStatus`, no un alias: a `PENDING` no se vuelve, y ni `DRAFT` ni
+ * `PAID` son destinos del vendedor —a `PAID` lo lleva el webhook de la pasarela, no un botón—.
+ * Tenerlo tipado aparte es lo que permite que la pantalla pinte un botón por destino y el catálogo
+ * de textos exija exactamente estas cuatro etiquetas — sin una segunda lista escrita a mano que se
+ * desincronice de estas reglas.
  */
 export type OrderAction = Extract<
   OrderStatus,
@@ -58,12 +59,17 @@ export type OrderAction = Extract<
  * pedido de `PREPARING` a `DELIVERED` directo, exactamente como antes de que este estado existiera.
  * Por eso `PREPARING` tiene tres destinos y no dos — despachar con repartidor no reemplaza entregar
  * directo, lo intercala.
+ *
+ * `PAID` es igual de opcional, y por el mismo motivo: no todo vendedor tiene cobro en línea
+ * todavía, así que `CONFIRMED → PREPARING` sigue directo. A `PAID` no se entra por aquí —entra el
+ * webhook de la pasarela, ver `canMarkPaid`— pero una vez dentro, de ahí sí lo mueve el vendedor
+ * como a cualquier otro estado: a preparar o a cancelar.
  */
 const TRANSITIONS: Readonly<Record<OrderStatus, readonly OrderAction[]>> = {
   DRAFT: [],
   PENDING: ["CONFIRMED", "CANCELLED"],
   CONFIRMED: ["PREPARING", "CANCELLED"],
-  PAID: [],
+  PAID: ["PREPARING", "CANCELLED"],
   PREPARING: ["SHIPPED", "DELIVERED", "CANCELLED"],
   SHIPPED: ["DELIVERED", "CANCELLED"],
   DELIVERED: [],
@@ -78,6 +84,18 @@ export function canTransition(from: OrderStatus, to: OrderStatus): boolean {
   /* `to` llega como `OrderStatus` porque puede venir de un formulario: la gracia de esta función es
      justamente decir que no cuando el destino no es de los permitidos. */
   return (TRANSITIONS[from] as readonly OrderStatus[]).includes(to);
+}
+
+/**
+ * Si el webhook de la pasarela puede marcar este pedido como pagado.
+ *
+ * No es una transición del vendedor —`PAID` no vive en `OrderAction`, así que no pasa por
+ * `canTransition`— sino la puerta de entrada de quien sí la dispara: el evento firmado de la
+ * pasarela. Solo entra desde `CONFIRMED`: cobrar algo que el vendedor todavía no aceptó preparar no
+ * tiene sentido.
+ */
+export function canMarkPaid(status: OrderStatus): boolean {
+  return status === "CONFIRMED";
 }
 
 /** Un pedido que ya no se mueve: ni el vendedor ni nadie tiene nada que hacer con él. */
@@ -95,13 +113,15 @@ export function isFinal(status: OrderStatus): boolean {
 /**
  * Los que **piden acción**: alguien está esperando al otro lado.
  *
- * No se derivan de `isFinal` aunque parezca lo mismo: `DRAFT` y `PAID` tampoco tienen salidas hoy y
- * sin embargo no son pedidos abiertos —el primero es del carrito del bot y el segundo espera al pago
- * en línea—. Enumerarlos es lo que hace que añadir `PAID` al flujo no los meta aquí por accidente.
+ * No se deriva de `isFinal`: es una lista a mano y no un cálculo, y `DRAFT` es la prueba —tampoco
+ * tiene salidas y aun así no es un pedido abierto, porque no es un pedido: es el carrito del bot—.
+ * `PAID` sí entra aquí: ya se cobró, y el vendedor todavía tiene que prepararlo, que es exactamente
+ * lo que `OPEN_STATUSES` pregunta.
  */
 export const OPEN_STATUSES: readonly OrderStatus[] = [
   "PENDING",
   "CONFIRMED",
+  "PAID",
   "PREPARING",
   "SHIPPED",
 ];

@@ -17,9 +17,13 @@ export type StockEffect = "reserve" | "release" | "none";
  *
  * `DELIVERED` está aquí porque es verdad —descontó al aceptarse—, aunque hoy no se pueda cancelar
  * desde ahí: la lista dice lo que significa cada estado, no lo que la pantalla permite.
+ *
+ * `PAID` también, por la misma razón: solo se llega a él desde `CONFIRMED` (`canMarkPaid`), así que
+ * heredó el descuento de ahí. Sin esta entrada, cancelar un pedido ya pagado no devolvería nada.
  */
 const STOCK_APPLIED: readonly OrderStatus[] = [
   "CONFIRMED",
+  "PAID",
   "PREPARING",
   "SHIPPED",
   "DELIVERED",

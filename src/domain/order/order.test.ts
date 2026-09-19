@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  canMarkPaid,
   canNotifySeller,
   canTransition,
   checkoutTotal,
@@ -86,6 +87,15 @@ describe("canTransition", () => {
     ],
     ["CANCELLED", "CONFIRMED", false, "un pedido cancelado no revive"],
     ["DELIVERED", "PREPARING", false, "tampoco se vuelve atrás desde el final"],
+    [
+      "CONFIRMED",
+      "PAID",
+      false,
+      "a pagado no lo lleva el vendedor, lo lleva el webhook (canMarkPaid)",
+    ],
+    ["PAID", "PREPARING", true, "ya cobrado, el vendedor lo prepara"],
+    ["PAID", "CANCELLED", true, "se cancela después de cobrado"],
+    ["PAID", "DELIVERED", false, "no se salta preparar solo por estar pagado"],
   ] as Array<[OrderStatus, OrderStatus, boolean, string]>)(
     "de %s a %s: %s (%s)",
     (from, to, expected) => {
@@ -109,6 +119,35 @@ describe("canTransition", () => {
   it("desde SHIPPED solo se puede entregar o cancelar", () => {
     expect([...nextStatuses("SHIPPED")]).toEqual(["DELIVERED", "CANCELLED"]);
   });
+
+  /* PAID no lo alcanza el vendedor —eso es `canMarkPaid`— pero una vez dentro se mueve como
+     cualquier otro estado: a preparar o a cancelar. */
+  it("desde PAID se puede preparar o cancelar", () => {
+    expect([...nextStatuses("PAID")]).toEqual(["PREPARING", "CANCELLED"]);
+  });
+});
+
+describe("canMarkPaid", () => {
+  /* Corrida de escritorio de la puerta del webhook: solo entra desde CONFIRMED. */
+  it.each([
+    [
+      "CONFIRMED",
+      true,
+      "el webhook cobra lo que el vendedor ya aceptó preparar",
+    ],
+    ["PENDING", false, "el vendedor todavía no lo aceptó"],
+    ["PAID", false, "ya está pagado, no se paga dos veces"],
+    ["PREPARING", false, "el cobro llega antes de preparar, no después"],
+    ["SHIPPED", false, "ya va en camino, no es el momento de cobrar"],
+    ["DELIVERED", false, "ya se entregó sin pasar por aquí"],
+    ["CANCELLED", false, "un pedido cancelado no se cobra"],
+    ["DRAFT", false, "no es un pedido todavía, es el carrito"],
+  ] as Array<[OrderStatus, boolean, string]>)(
+    "%s: %s (%s)",
+    (status, expected) => {
+      expect(canMarkPaid(status)).toBe(expected);
+    },
+  );
 });
 
 describe("isFinal", () => {
@@ -117,21 +156,17 @@ describe("isFinal", () => {
     ["CANCELLED", true],
     ["PENDING", false],
     ["CONFIRMED", false],
+    ["PAID", false],
     ["PREPARING", false],
     ["SHIPPED", false],
   ] as Array<[OrderStatus, boolean]>)("%s es final: %s", (status, expected) => {
     expect(isFinal(status)).toBe(expected);
   });
 
-  /* `PAID` y `DRAFT` no tienen salidas todavía, así que hoy `isFinal` dice que sí. No es un
-     descuido: es la consecuencia honesta de que ningún pedido puede llegar a ellos aún. Cuando el
-     pago exista, PAID gana su salida hacia PREPARING y este test cambia con él. */
-  it.each([["DRAFT"], ["PAID"]] as Array<[OrderStatus]>)(
-    "%s todavía no participa del flujo",
-    (status) => {
-      expect(nextStatuses(status)).toEqual([]);
-    },
-  );
+  /* `DRAFT` no tiene salidas y nunca las tendrá: no es un pedido, es el carrito del bot. */
+  it("DRAFT todavía no participa del flujo", () => {
+    expect(nextStatuses("DRAFT")).toEqual([]);
+  });
 });
 
 /* La corrida de escritorio de `orders.feature` (@slice-7). Se avisa mientras el pedido siga ABIERTO,
@@ -149,7 +184,7 @@ describe("canNotifySeller", () => {
     ["DELIVERED", false, "ya está en manos del cliente"],
     ["CANCELLED", false, "el pedido dejó de moverse"],
     ["DRAFT", false, "no existe como pedido: el borrador es el carrito"],
-    ["PAID", false, "no participa todavía; cuando el pago exista se decide"],
+    ["PAID", true, "ya se cobró y el vendedor todavía tiene que prepararlo"],
   ] as Array<[OrderStatus, boolean, string]>)(
     "%s: %s (%s)",
     (status, expected) => {
@@ -157,12 +192,12 @@ describe("canNotifySeller", () => {
     },
   );
 
-  /* No se deriva de `isFinal` aunque hoy coincidan en cinco de siete: `DRAFT` y `PAID` son finales
-     por no tener salidas y aun así no se avisan. Si mañana `PAID` gana su transición, `isFinal`
-     dejaría de decir que no — y este test es lo que obliga a decidirlo a mano. */
-  it("no es lo contrario de isFinal: DRAFT y PAID no son finales por el mismo motivo", () => {
-    expect(canNotifySeller("PAID")).toBe(false);
-    expect(isFinal("PAID")).toBe(true);
+  /* No se deriva de `isFinal`: `DRAFT` es la prueba, porque no tiene salidas y aun así no se avisa.
+     Antes `PAID` era el segundo ejemplo; dejó de serlo el día que ganó su propia transición —y es
+     justo esa asimetría la que demuestra que la lista es curada a mano, no calculada. */
+  it("no es lo contrario de isFinal: DRAFT no es final por el mismo motivo", () => {
+    expect(canNotifySeller("DRAFT")).toBe(false);
+    expect(isFinal("DRAFT")).toBe(true);
   });
 });
 

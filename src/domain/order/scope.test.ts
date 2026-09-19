@@ -14,23 +14,22 @@ describe("los ámbitos de la lista", () => {
     expect([...OPEN_STATUSES]).toEqual([
       "PENDING",
       "CONFIRMED",
+      "PAID",
       "PREPARING",
       "SHIPPED",
     ]);
   });
 
-  /* `DRAFT` y `PAID` tampoco tienen salidas hoy, así que `isFinal` dice que sí para los dos — pero
-     NO son pedidos abiertos ni terminados del sitio: uno es del carrito del bot y el otro espera al
-     pago en línea. Este test existe para que enumerarlos no parezca redundante y alguien los
-     "simplifique" derivándolos de `isFinal`. */
-  it("no se derivan de isFinal, aunque se le parezca", () => {
+  /* Hoy coincide letra por letra con `!isFinal` —`PAID` dejó de ser el contraejemplo el día que
+     ganó su propia transición—, y es tentador "simplificar" derivándolo. No se puede: `DRAFT`
+     tampoco tiene salidas y aun así no es un pedido abierto, porque no es un pedido. La lista sigue
+     curada a mano, y este test es lo que avisa el día que un estado deje de coincidir. */
+  it("hoy coincide con !isFinal, pero sigue declarado a mano y no derivado", () => {
     const noFinales = ORDER_STATUSES.filter((status) => !isFinal(status));
 
     expect([...noFinales]).toEqual([...OPEN_STATUSES]);
     expect(isFinal("DRAFT")).toBe(true);
-    expect(isFinal("PAID")).toBe(true);
     expect(OPEN_STATUSES).not.toContain("DRAFT");
-    expect(CLOSED_STATUSES).not.toContain("PAID");
   });
 
   it("abiertos y terminados no se solapan", () => {
@@ -44,7 +43,7 @@ describe("los ámbitos de la lista", () => {
 
 describe("statusesInScope", () => {
   it.each([
-    ["open", ["PENDING", "CONFIRMED", "PREPARING", "SHIPPED"]],
+    ["open", ["PENDING", "CONFIRMED", "PAID", "PREPARING", "SHIPPED"]],
     ["closed", ["DELIVERED", "CANCELLED"]],
   ] as Array<["open" | "closed", OrderStatus[]]>)(
     "%s filtra a %j",

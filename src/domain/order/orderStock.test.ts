@@ -15,8 +15,19 @@ describe("stockEffectOf", () => {
     ["PREPARING", "SHIPPED", "none"],
     ["SHIPPED", "DELIVERED", "none"],
     ["SHIPPED", "CANCELLED", "release"],
+    ["CONFIRMED", "PAID", "none"],
+    ["PAID", "PREPARING", "none"],
+    ["PAID", "CANCELLED", "release"],
   ])("de %s a %s: %s", (from, to, expected) => {
     expect(stockEffectOf(from, to)).toBe(expected);
+  });
+
+  /* PAID solo se alcanza desde CONFIRMED, que ya descontó: cancelar desde ahí tiene que devolver
+     igual que cancelar desde CONFIRMED o PREPARING, o el inventario se quedaría corto. */
+  it("cancelar un pedido pagado devuelve lo suyo, igual que cancelar uno solo aceptado", () => {
+    expect(stockEffectOf("PAID", "CANCELLED")).toBe(
+      stockEffectOf("CONFIRMED", "CANCELLED"),
+    );
   });
 
   /* Aceptar es el único momento que compromete mercancía, y sólo ocurre una vez: de CONFIRMED no se
