@@ -231,6 +231,10 @@ input[type="search"]::-webkit-search-results-decoration {
   --map-marker-bg: #2563eb;
 }
 
+.map-marker--courier {
+  --map-marker-bg: #d97706;
+}
+
 /**
  * «Esta fila sigue»: un desvanecido y una flechita en el borde, **solo cuando queda algo que
  * arrastrar**.

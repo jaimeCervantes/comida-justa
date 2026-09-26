@@ -57,6 +57,13 @@ export const pathnames = {
   /* El id no se traduce: es un uuid. La página es privada —solo la ven quien compró y quien
      vende—, así que su dirección no se reparte ni se indexa. */
   "/pedido/[id]": { es: "/pedido/[id]", en: "/order/[id]" },
+  /* Tampoco el token: es la credencial del repartidor, no algo que se busque ni se navegue con
+     `<Link>`. Se registra igual para que un vendedor en inglés reciba un enlace que también
+     resuelve en inglés — el mismo motivo por el que `absoluteOrderUrl` pasa por aquí. */
+  "/pedido/[id]/repartidor/[token]": {
+    es: "/pedido/[id]/repartidor/[token]",
+    en: "/order/[id]/courier/[token]",
+  },
   "/buscar": { es: "/buscar", en: "/search" },
   "/condiciones-de-servicio": {
     es: "/condiciones-de-servicio",

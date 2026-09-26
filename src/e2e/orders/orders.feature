@@ -684,13 +684,71 @@ Feature: Carrito y pedidos
     Then la insignia dice Enviado
     And a su lado dice cuándo se envió
 
-  # El tracking en vivo: dónde está el repartidor y un mapa para quien compra. Depende de que el
-  # slice 11 esté en producción — sin la ventana "Enviado" no hay cuándo mostrar el mapa.
-  @slice-12 @future
-  Scenario: Veo en el mapa dónde va mi pedido
-    Given mi pedido Enviado
-    When abro su ficha
+  # Slice 12. El tracking en vivo, sobre la ventana que abrió el slice 11. **El repartidor no es
+  # usuario de Hazlo Sano**: en esta etapa es ocasional —un mototaxi, un familiar, el propio
+  # vendedor en su moto—, y pedirle cuenta para mandar una coordenada mata la función antes de
+  # empezar. En vez de eso el pedido lleva su propio token: el vendedor comparte un enlace y quien
+  # lo abra puede mandar la posición DE ESE PEDIDO y de ninguno más. El token no se invalida
+  # aparte — la escritura exige que el pedido siga Enviado, así que muere solo al entregarse.
+  @slice-12
+  Scenario: El vendedor le pasa al repartidor un enlace para compartir su ubicación
+    Given un pedido que acabo de marcar como Enviado en mi tienda
+    When miro el pedido en "/pedidos"
+    Then me ofrece el enlace del repartidor, para mandárselo por WhatsApp
+
+  @slice-12
+  Scenario: El repartidor comparte su ubicación sin tener cuenta
+    Given el enlace del repartidor de un pedido Enviado
+    When lo abro sin sesión iniciada y permito la ubicación
+    Then mi posición queda guardada en ese pedido
+    And se sigue mandando mientras la pestaña siga abierta
+
+  @slice-12
+  Scenario: El comprador ve en el mapa por dónde va su pedido
+    Given mi pedido Enviado, con el repartidor compartiendo su ubicación
+    When abro la ficha del pedido
     Then veo un mapa con la última posición del repartidor
+    And dice de cuándo es esa posición
+
+  @slice-12
+  Scenario: Un pedido Enviado sin posición todavía no pinta un mapa vacío
+    Given mi pedido Enviado, cuyo repartidor todavía no ha compartido nada
+    When abro la ficha del pedido
+    Then se me dice que aún no hay ubicación, en vez de un mapa en blanco
+
+  @slice-12
+  Scenario: Entregar apaga el seguimiento sin tener que revocar nada
+    Given un pedido Enviado cuyo repartidor estaba compartiendo su ubicación
+    When el vendedor lo marca como Entregado
+    Then el enlace del repartidor deja de aceptar posiciones
+    And la ficha del pedido ya no enseña el mapa
+
+  @slice-12 @component
+  Scenario Outline: Quién puede escribir la posición de un pedido
+    # Vitest sobre el caso de uso: son las combinaciones de una regla de autorización, y montar cada
+    # una en el navegador sería pagar un pedido sembrado por fila. El token viaja al WHERE de la
+    # escritura, igual que el `sellerId` en `AdvanceOrderUseCase`.
+    Given un pedido "<estado>" y un token "<token>"
+    When se intenta guardar una posición
+    Then <resultado>
+
+    Examples:
+      | estado    | token        | resultado   | razón                                          |
+      | SHIPPED   | el del pedido | se guarda   | es el caso para el que existe la función       |
+      | SHIPPED   | otro          | se rechaza  | el token es de otro pedido, o inventado        |
+      | SHIPPED   | (vacío)       | se rechaza  | sin token no hay a quién creerle               |
+      | PREPARING | el del pedido | se rechaza  | todavía no ha salido: no hay nada que seguir   |
+      | DELIVERED | el del pedido | se rechaza  | ya llegó; el enlace muere sin revocarlo        |
+      | CANCELLED | el del pedido | se rechaza  | el pedido dejó de moverse                      |
+
+  # Lo que NO entra en este slice: el recorrido (solo se guarda la ÚLTIMA posición, no el trazo),
+  # la distancia o el tiempo estimado de llegada, y el aviso de "ya llegó". Los tres dependen de
+  # tener primero posiciones reales guardándose, que es justo lo que este slice entrega.
+  @slice-14 @future
+  Scenario: Sé cuánto falta para que llegue
+    Given mi pedido Enviado con el repartidor en camino
+    When miro su ficha
+    Then me dice a qué distancia va y cuánto falta
 
   # El pago en línea deja de estar condicionado al volumen: se decidió avanzar ahora, con Stripe
   # Connect (split directo al vendedor, sin que la plataforma retenga el dinero — así no genera la

@@ -169,6 +169,27 @@ export function canNotifySeller(status: OrderStatus): boolean {
   return OPEN_STATUSES.includes(status);
 }
 
+/**
+ * Si vale la pena pintar el seguimiento del repartidor.
+ *
+ * Sólo `SHIPPED`: es la única ventana en la que puede haber un repartidor en camino. Antes de eso
+ * no ha salido, y después ya llegó o se canceló — enseñar un mapa fuera de esta ventana pintaría
+ * una posición que ya no significa nada.
+ */
+export function isTrackable(status: OrderStatus): boolean {
+  return status === "SHIPPED";
+}
+
+/**
+ * La última posición conocida del repartidor. **Sólo la última**, no el recorrido: guardar el
+ * trazo es una tabla y una decisión aparte que nadie ha pedido todavía.
+ */
+export interface CourierLocation {
+  lat: number;
+  lng: number;
+  updatedAt: Date;
+}
+
 export interface OrderLine {
   /** `null` cuando la publicación se borró: el renglón sobrevive con su copia. */
   postId: string | null;
@@ -203,6 +224,15 @@ export interface Order {
   lines: OrderLine[];
   /** Rango reservado cuando el pedido nacio de un servicio agendado. */
   appointment?: Interval | null;
+  /**
+   * Dónde está el repartidor, o `null` si nunca ha compartido nada.
+   *
+   * **No lleva el token.** El token es una credencial de escritura —lo que abre la puerta a mandar
+   * una posición— y este campo es de lectura y viaja en el `Order` que se pinta en pantallas de
+   * comprador y vendedor por igual; mezclarlos habría puesto la credencial en cualquier componente
+   * de cliente que reciba un pedido, empezando por `NotifySellerButton`.
+   */
+  courierLocation?: CourierLocation | null;
   createdAt: Date;
   /**
    * Desde cuándo está en el estado en que está.

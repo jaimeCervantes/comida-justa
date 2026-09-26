@@ -36,6 +36,9 @@ function build(
       .mockResolvedValue(
         applied === undefined ? (current?.status ?? null) : applied,
       ),
+    getCourierTrackingToken: vi.fn(),
+    findByCourierToken: vi.fn(),
+    saveCourierLocation: vi.fn(),
   };
 
   return orders;

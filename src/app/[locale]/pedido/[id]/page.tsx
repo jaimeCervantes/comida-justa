@@ -6,7 +6,7 @@ import {
   setRequestLocale,
 } from "next-intl/server";
 import type { User } from "~/domain/entities/post/types";
-import { canNotifySeller } from "~/domain/order/order";
+import { canNotifySeller, isTrackable } from "~/domain/order/order";
 import { Link } from "~/i18n/navigation";
 import { resolveLocale, routing } from "~/i18n/routing";
 import { auth } from "~/infra/auth";
@@ -14,15 +14,18 @@ import { redirectToSignIn } from "~/infra/auth/redirectToSignIn";
 import { readCartSelection } from "~/infra/cart/readCart";
 import { findSellerOfUser } from "~/infra/dataAccess/identity/sessionIdentity";
 import { createOrderRepository } from "~/infra/dataAccess/orders/factory";
+import { absoluteCourierTrackingUrl } from "~/infra/UI/mappers/absoluteCourierTrackingUrl";
 import { absoluteOrderUrl } from "~/infra/UI/mappers/absoluteOrderUrl";
 import { Surface } from "~/presentation/design_system/surfaces/Surface";
 import { Heading } from "~/presentation/design_system/typography/Heading";
+import CourierMap from "~/presentation/orders/CourierMap/CourierMap";
 import NotifySellerButton from "~/presentation/orders/NotifySellerButton/NotifySellerButton";
 import OrderBuyer from "~/presentation/orders/OrderBuyer/OrderBuyer";
 import OrderHistory from "~/presentation/orders/OrderHistory/OrderHistory";
 import OrderLines from "~/presentation/orders/OrderLines/OrderLines";
 import OrderStatusBadge from "~/presentation/orders/OrderStatusBadge/OrderStatusBadge";
 import OrderStatusSince from "~/presentation/orders/OrderStatusSince/OrderStatusSince";
+import ShareCourierLinkNotice from "~/presentation/orders/ShareCourierLinkNotice/ShareCourierLinkNotice";
 import CheckoutOrders from "./ui/CheckoutOrders";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -77,10 +80,23 @@ export default async function PedidoPage({
   /* La tienda solo se consulta si hace falta: quien compró ya está autorizado por la primera mitad
      de la condición, y es el caso normal de esta página. */
   const isBuyer = order.buyerId === userId;
-  const isSeller =
-    !isBuyer && (await findSellerOfUser(userId))?.id === order.sellerId;
+  const seller = isBuyer ? null : await findSellerOfUser(userId);
+  const isSeller = !isBuyer && seller?.id === order.sellerId;
 
   if (!isBuyer && !isSeller) notFound();
+
+  /* El token nunca viaja en `order`: es la credencial que abre la puerta a mandar una posición, y
+     `order` se pasa entero a `NotifySellerButton` más abajo, un componente de cliente que también
+     ve quien compró. Se pide aparte, sólo aquí, y solo se resuelve en algo si el pedido es de esta
+     tienda y sigue Enviado — lo mismo que ya exige `getCourierTrackingToken`. */
+  const courierTrackingUrl =
+    isSeller && seller && isTrackable(order.status)
+      ? await repository
+          .getCourierTrackingToken(order.id, seller.id)
+          .then((token) =>
+            token ? absoluteCourierTrackingUrl(locale, order.id, token) : null,
+          )
+      : null;
 
   /* La compra completa y lo que queda en el carrito, **solo para quien compró**. Al vendedor no le
      incumbe a qué otras tiendas le pidieron en el mismo carrito, ni qué lleva ahora mismo. */
@@ -165,6 +181,21 @@ export default async function PedidoPage({
         ) : null}
 
         <OrderLines lines={order.lines} />
+
+        {/* El mapa es sólo del comprador: es la ventana que abre "Enviado", y fuera de ella la
+            última posición ya no significa nada. */}
+        {isBuyer && isTrackable(order.status) ? (
+          <div className="mt-4 border-t border-separator pt-4">
+            <CourierMap location={order.courierLocation ?? null} />
+          </div>
+        ) : null}
+
+        {/* El enlace es sólo del vendedor: es quien lo comparte con el repartidor. */}
+        {courierTrackingUrl ? (
+          <div className="mt-4 border-t border-separator pt-4">
+            <ShareCourierLinkNotice url={courierTrackingUrl} />
+          </div>
+        ) : null}
 
         {/* Solo a quien compró se le pide que avise: el vendedor ya está del otro lado. Y solo
             mientras el pedido siga abierto — a un entregado no hay nada que avisarle, que es la

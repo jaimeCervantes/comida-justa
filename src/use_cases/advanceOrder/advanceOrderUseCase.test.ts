@@ -81,6 +81,9 @@ function build(
       .mockResolvedValue(
         applied === undefined ? (current?.status ?? null) : applied,
       ),
+    getCourierTrackingToken: vi.fn(),
+    findByCourierToken: vi.fn(),
+    saveCourierLocation: vi.fn(),
   };
 
   return { useCase: new AdvanceOrderUseCase(orders), orders };
@@ -107,6 +110,40 @@ describe("AdvanceOrderUseCase", () => {
       // Aceptar es lo que compromete mercancía, y viaja con la escritura.
       stockEffect: "reserve",
     });
+  });
+
+  /* El token nace justo aquí, en la misma escritura que el cambio de estado: un pedido no puede
+     quedar Enviado sin enlace que compartir. */
+  it("despachar con repartidor genera un token y lo devuelve para compartirlo", async () => {
+    const { useCase, orders } = build(orderInStatus("PREPARING"), "SHIPPED");
+
+    const result = await useCase.execute({
+      orderId: ORDER_ID,
+      sellerId: SELLER,
+      status: "SHIPPED",
+    });
+
+    expect(
+      "courierTrackingToken" in result && result.courierTrackingToken,
+    ).toEqual(expect.any(String));
+    expect(orders.updateStatus).toHaveBeenCalledWith(
+      expect.objectContaining({ courierTrackingToken: expect.any(String) }),
+    );
+  });
+
+  /* Cualquier otro destino no inventa un token que nadie va a usar. */
+  it("aceptar o entregar directo no generan token", async () => {
+    const { useCase, orders } = build(orderInStatus("PENDING"), "CONFIRMED");
+
+    await useCase.execute({
+      orderId: ORDER_ID,
+      sellerId: SELLER,
+      status: "CONFIRMED",
+    });
+
+    expect(orders.updateStatus).toHaveBeenCalledWith(
+      expect.objectContaining({ courierTrackingToken: undefined }),
+    );
   });
 
   it("rechaza saltarse la aceptación", async () => {

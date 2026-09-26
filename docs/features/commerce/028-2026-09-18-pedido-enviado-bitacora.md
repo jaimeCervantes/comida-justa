@@ -111,10 +111,125 @@ El slice 1 está **completo y cerrado**: `SHIPPED` existe en la base compartida 
 i18n) y las dos pruebas de Playwright del escenario lo confirman contra la base real, además de los
 2958 tests de Vitest y typecheck/lint en verde.
 
+## Slice 2 — Última posición del repartidor (2026-09-25)
+
+**Objetivo:** que el repartidor —sin cuenta, sin sesión— pueda compartir su ubicación para un
+pedido "Enviado" mediante un enlace con token, y que el comprador la vea en un mapa mientras dure
+esa ventana.
+
+### Decisiones y por qué
+
+- **El repartidor no es usuario de Hazlo Sano.** Es ocasional en esta etapa —mototaxi, familiar, el
+  propio vendedor—; pedirle cuenta mata la función. El pedido lleva su propio token, generado al
+  marcar "Enviado" y guardado en la misma transacción que el cambio de estado (mismo diseño que
+  `stockEffect` en `AdvanceOrderUseCase`: decidido en el caso de uso, aplicado por el repositorio).
+- **El token nunca viaja en el `Order` de dominio.** Es una credencial de escritura, y `Order` se
+  pasa entero a `NotifySellerButton` —un componente de cliente que también ve el comprador— en
+  `/pedido/[id]`. Ponerlo ahí lo habría filtrado al navegador de quien compró. Vive aparte, en tres
+  métodos nuevos del puerto (`getCourierTrackingToken`, `findByCourierToken`,
+  `saveCourierLocation`) y solo se resuelve dentro de la rama `isSeller` de la página de detalle, o
+  en el resultado inmediato de `advanceOrder` (seguro ahí porque `SellerOrders`/`SellerOrderCard`
+  es exclusivamente la vista del vendedor, nunca la comparte el comprador).
+- **La escritura de la posición exige token + `status = 'SHIPPED'` en el mismo `WHERE`** —
+  `saveCourierLocation`—, no en un `if` previo: el enlace deja de servir solo en cuanto el pedido se
+  entrega o se cancela, sin ningún proceso que lo invalide aparte.
+- **Columnas sueltas (`double precision`), no PostGIS.** `branches.location` es
+  `geography(POINT,4326)` porque se consulta por distancia en SQL; aquí solo se escribe y se pinta
+  un punto. El precedente que aplica es `users.lastLatitude/lastLongitude/locationUpdatedAt` —
+  exactamente el mismo caso, última posición conocida de alguien.
+- **El mapa del comprador hace *polling*, no websockets** (`router.refresh()` cada 15 s): es el
+  mismo criterio que ya se decidió para todo el tracking, y el sitio no tiene conexiones
+  persistentes hoy.
+- **`CourierMapCanvas` no reutiliza `StoresMapCanvas`.** Aquella resuelve "dónde caben N tiendas más
+  un visitante" (`viewFor`, ajuste de límites); aquí hay un solo punto fijo, así que reutiliza el
+  patrón (`divIcon`, `next/dynamic` con `ssr:false`, `Surface`+`isolate z-0`) y no el componente —
+  forzar la misma API habría sido más código, no menos.
+- **Sin sesión, sin `useActionState`.** El hook `useShareCourierLocation` no es un envío único con
+  pendiente/resultado como `useShareLocation`; repite el envío solo cada 15 s mientras la pestaña
+  siga abierta, y se detiene solo si el servidor contesta que el token ya no vale.
+
+### Archivos tocados
+
+**`bot-whatsapp` (repo hermano, sin aplicar a la base):**
+- `alembic/versions/0058_2026-09-25_add_courier_tracking_to_customer_orders.py` (nuevo): 4 columnas
+  nulables en `customer_orders` — `tracking_token`, `courier_lat`, `courier_lng`,
+  `courier_location_updated_at`.
+
+**Dominio:**
+- `src/domain/order/order.ts` — `isTrackable`, `CourierLocation`, `Order.courierLocation`
+- `src/domain/order/ports.ts` — `getCourierTrackingToken`, `findByCourierToken`,
+  `saveCourierLocation`, `updateStatus.courierTrackingToken`
+
+**Mirror de schema:**
+- `src/infra/dataAccess/db/schema/orders.ts` — las 4 columnas
+- `src/infra/dataAccess/orders/PostgresOrderRepository.ts` — los tres métodos nuevos, `updateStatus`
+  extendido, `listWhere` trae `courier_lat/lng/updated_at`
+
+**i18n:**
+- `src/i18n/routing.ts` — pathname `/pedido/[id]/repartidor/[token]`
+- `src/i18n/messages/es.json`, `en.json` — `courier.*`, `courierLink*`, `courierMap*`
+
+**Casos de uso:**
+- `src/use_cases/courierTracking/shareCourierLocation/shareCourierLocationUseCase.ts` (nuevo)
+- `src/use_cases/advanceOrder/advanceOrderUseCase.ts` — genera el token al pasar a `SHIPPED`
+
+**UI:**
+- `src/presentation/orders/ShareCourierLinkNotice/ShareCourierLinkNotice.tsx` (nuevo) — enlace +
+  botón de WhatsApp sin número de destino (`wa.me/?text=`, WhatsApp ofrece el selector de contacto)
+- `src/presentation/orders/CourierMap/CourierMap.tsx` + `CourierMapCanvas.tsx` (nuevos)
+- `src/presentation/orders/OrderLists/SellerOrders.tsx` — enseña el enlace justo tras marcar Enviado
+- `src/app/[locale]/pedido/[id]/page.tsx` — mapa (comprador) y enlace durable (vendedor)
+- `src/app/[locale]/pedido/[id]/repartidor/[token]/` (ruta nueva): `page.tsx`, `actions.ts`,
+  `ui/CourierLocationSharer.tsx`, `ui/useShareCourierLocation.ts`
+- `src/infra/UI/mappers/absoluteCourierTrackingUrl.ts` (nuevo)
+- `src/app/styles/utility-patterns.css` — tono `.map-marker--courier`
+
+**Tests:**
+- `src/domain/order/order.test.ts` — `isTrackable`
+- `src/use_cases/courierTracking/shareCourierLocation/shareCourierLocationUseCase.test.ts` (nuevo)
+- `src/use_cases/advanceOrder/advanceOrderUseCase.test.ts` — genera/no genera token
+- `src/presentation/orders/ShareCourierLinkNotice/ShareCourierLinkNotice.test.tsx` (nuevo)
+- Dobles de `OrderRepository` actualizados en `handlePaymentWebhookUseCase.test.ts` y
+  `placeOrderUseCase.test.ts` (tres métodos nuevos del puerto)
+- `src/e2e/orders/orders.feature` — 5 escenarios `@slice-12` + tabla de autorización `@component`
+- `src/e2e/orders/courierTracking.spec.ts` (nuevo)
+- `src/e2e/testUtils/warmRoutes.ts` — la ruta nueva
+
+### Validación
+
+- `pnpm run typecheck` → limpio.
+- `pnpm run lint` (biome) → limpio tras `biome format --write` en los archivos que lo pidieron.
+- **Migración aplicada** (`uv run alembic upgrade head` en `bot-whatsapp`). Confirmado con
+  `alembic current` → `0058_2026_09_25 (head)`.
+- `pnpm exec playwright test src/e2e/orders/courierTracking.spec.ts` → **4/4 en verde**, en tres
+  corridas. Dos escenarios cayeron en la primera y se corrigieron:
+  1. `useShareCourierLocation` pasaba a `"sharing"` **en cuanto se llamaba a `start()`**, antes de
+     que `getCurrentPosition` y el propio `shareCourierLocation` terminaran. El test esperaba ese
+     texto y cerraba el contexto del repartidor justo después — exactamente la misma clase de
+     carrera que ya apareció en el slice 1 (`orderShipped.spec.ts`), aquí un paso más adelante en
+     la cadena. Cerrar el contexto con el envío todavía en vuelo además dejó al servidor de
+     desarrollo en mal estado (`ECONNRESET`/`uncaughtException`), lo que arrastró un segundo
+     escenario a un fallo que no tenía que ver con él. Se corrigió con `await` real: el estado sólo
+     pasa a `"active"` cuando el servidor ya confirmó el guardado (nuevo estado intermedio
+     `"sending"`, con el botón en `isLoading`).
+  2. El helper `advance()` no tenía el caso especial de `DELIVERED` que sí tiene el de
+     `orderHistory.spec.ts`: al entregarse, el pedido sale del filtro "abiertos" de `/pedidos` y la
+     lista se vacía, así que esperar la insignia en un renglón que ya no está nunca se cumplía.
+     Se copió el mismo criterio (`seller-orders-empty` para ese paso).
+- `pnpm run test:run` (Vitest) → **283 archivos, 3008 tests, todos en verde**, tras los cambios de
+  arriba.
+
+### Recap
+
+El slice 2 está **completo y cerrado**: el repartidor comparte su ubicación sin cuenta con un
+enlace por pedido, el comprador la ve en un mapa mientras el pedido está Enviado, y el enlace deja
+de aceptar posiciones solo al entregarse o cancelarse — las cuatro pruebas de Playwright lo
+confirman contra la base real, además de los 3008 tests de Vitest y typecheck/lint en verde.
+
 ### Próximos pasos (opciones)
 
-1. **Arrancar el slice 2** (última posición del repartidor por GPS) — el roadmap ya lo deja
-   esbozado en grueso en este mismo documento.
-2. **Nada pendiente de tu parte** en el slice 1: código, migración y validación end-to-end están
+1. **Arrancar el slice 3** (distancia y ETA) — el roadmap ya lo deja esbozado en grueso en este
+   mismo documento.
+2. **Nada pendiente de tu parte** en el slice 2: código, migración y validación end-to-end están
    listos. Falta solo que decidas si quieres commitear/subir estos cambios (no se hizo commit
    todavía, ni en `comida-justa` ni en `bot-whatsapp`).

@@ -89,6 +89,9 @@ function build(products: CartProduct[]) {
        compila hoy y esconde mañana que al caso de uso le falta un colaborador. */
     stockDemandOf: vi.fn(),
     updateStatus: vi.fn(),
+    getCourierTrackingToken: vi.fn(),
+    findByCourierToken: vi.fn(),
+    saveCourierLocation: vi.fn(),
   };
   const cart: CartProductRepository = {
     findByIds: vi.fn().mockResolvedValue(products),

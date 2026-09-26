@@ -8,6 +8,7 @@ import {
   elapsedBetween,
   INITIAL_STATUS,
   isFinal,
+  isTrackable,
   lineAmount,
   nextStatuses,
   ORDER_STATUSES,
@@ -166,6 +167,23 @@ describe("isFinal", () => {
   /* `DRAFT` no tiene salidas y nunca las tendrá: no es un pedido, es el carrito del bot. */
   it("DRAFT todavía no participa del flujo", () => {
     expect(nextStatuses("DRAFT")).toEqual([]);
+  });
+});
+
+/* La corrida de escritorio de `orders.feature` (@slice-12). Sólo SHIPPED es la ventana en la que
+   puede haber un repartidor en camino. */
+describe("isTrackable", () => {
+  it.each([
+    ["SHIPPED", true],
+    ["PENDING", false],
+    ["CONFIRMED", false],
+    ["PREPARING", false],
+    ["DELIVERED", false],
+    ["CANCELLED", false],
+    ["DRAFT", false],
+    ["PAID", false],
+  ] as Array<[OrderStatus, boolean]>)("%s: %s", (status, expected) => {
+    expect(isTrackable(status)).toBe(expected);
   });
 });
 

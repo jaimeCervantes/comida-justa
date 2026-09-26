@@ -11,6 +11,7 @@ import {
   type AdvanceOrderState,
   advanceOrder,
 } from "~/presentation/orders/orderActions";
+import ShareCourierLinkNotice from "~/presentation/orders/ShareCourierLinkNotice/ShareCourierLinkNotice";
 import type { AdvanceOrderError } from "~/use_cases/advanceOrder/advanceOrderUseCase";
 
 /**
@@ -126,6 +127,15 @@ function SellerOrderCard({ order }: { order: OrderWithBuyer }) {
         >
           {t(ERROR_KEYS[state.error])}
         </p>
+      ) : null}
+
+      {/* Sólo justo después de marcar Enviado: `state` es del formulario, no del pedido, y se
+          pierde en la siguiente carga. Volver a verlo es cosa de la ficha del pedido. */}
+      {state.courierTrackingUrl ? (
+        <ShareCourierLinkNotice
+          url={state.courierTrackingUrl}
+          className="mt-3"
+        />
       ) : null}
     </OrderCard>
   );

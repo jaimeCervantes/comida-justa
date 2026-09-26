@@ -1,6 +1,7 @@
 import { sql } from "drizzle-orm";
 import {
   check,
+  doublePrecision,
   index,
   integer,
   numeric,
@@ -38,7 +39,8 @@ export const orderStatus = pgEnum("orderstatus", [
 ]);
 
 /**
- * Los pedidos del sitio. Espejo de la tabla que crea Alembic (`0032`).
+ * Los pedidos del sitio. Espejo de la tabla que crea Alembic (`0032`, seguimiento del repartidor
+ * en `0058`).
  *
  * **No es la tabla `orders`**, que es el carrito del bot y sigue siendo suya: allí una fila nace en
  * `DRAFT` sin vendedor y va acumulando artículos en un JSON conforme avanza la conversación de
@@ -70,6 +72,20 @@ export const customerOrders = pgTable(
     updatedAt: timestamp("updated_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
+    /**
+     * Seguimiento del repartidor. Las cuatro nulas: un pedido que nunca se despacha con repartidor
+     * no las usa nunca. `trackingToken` es una credencial de escritura y no se expone en el `Order`
+     * de dominio — ver el comentario de `courierLocation` ahí.
+     *
+     * `double precision` y no `geography(POINT,4326)` como `branches.location`: aquella se consulta
+     * por distancia en SQL; esta solo se escribe y se pinta un punto en un mapa.
+     */
+    trackingToken: text("tracking_token"),
+    courierLat: doublePrecision("courier_lat"),
+    courierLng: doublePrecision("courier_lng"),
+    courierLocationUpdatedAt: timestamp("courier_location_updated_at", {
+      withTimezone: true,
+    }),
   },
   (table) => [
     index("ix_customer_orders_seller").on(

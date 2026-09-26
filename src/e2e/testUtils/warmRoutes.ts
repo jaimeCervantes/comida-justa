@@ -48,6 +48,9 @@ const RUTAS = [
   /* Sin sesión redirige a identificarse, y eso basta: lo que se busca es compilar el segmento, no
      ver un pedido. El uuid de ceros no existe ni existirá. */
   "/pedido/00000000-0000-0000-0000-000000000000",
+  /* La página del repartidor, que no pide sesión: sin token que coincida responde 404, y con eso
+     ya se compiló el segmento. */
+  "/pedido/00000000-0000-0000-0000-000000000000/repartidor/calentar",
 
   /* La búsqueda pagina por query string: es la misma unidad de compilación que `/buscar`, pero con
      datos suficientes para calentar el flujo que usan los escenarios de resultados. */

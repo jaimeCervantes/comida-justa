@@ -138,6 +138,10 @@ interface OrderRow {
   updated_at: string;
   appointment_starts_at: string | null;
   appointment_ends_at: string | null;
+  courier_lat: number | null;
+  courier_lng: number | null;
+  /** Texto por lo mismo que `created_at`; sólo se lee cuando las dos coordenadas están presentes. */
+  courier_location_updated_at: string | null;
   total_count: number;
   seller_name: string;
   seller_slug: string | null;
@@ -441,6 +445,87 @@ export class PostgresOrderRepository implements OrderRepository {
     return row ?? null;
   }
 
+  async getCourierTrackingToken(
+    orderId: string,
+    sellerId: string,
+  ): Promise<string | null> {
+    const [row] = await db
+      .select({ trackingToken: customerOrders.trackingToken })
+      .from(customerOrders)
+      .where(
+        and(
+          eq(customerOrders.id, orderId),
+          eq(customerOrders.sellerId, sellerId),
+          eq(customerOrders.status, "SHIPPED"),
+        ),
+      )
+      .limit(1);
+
+    return row?.trackingToken ?? null;
+  }
+
+  /**
+   * Ni siquiera confirma que el pedido existe si el token no coincide: es la misma cautela que
+   * `findHeader` tiene con un id ajeno, aplicada aquí a un enlace que puede circular por WhatsApp
+   * más allá de quien lo recibió primero.
+   */
+  async findByCourierToken(
+    orderId: string,
+    token: string,
+  ): Promise<{ status: OrderStatus } | null> {
+    if (!token) return null;
+
+    const [row] = await db
+      .select({ status: customerOrders.status })
+      .from(customerOrders)
+      .where(
+        and(
+          eq(customerOrders.id, orderId),
+          eq(customerOrders.trackingToken, token),
+        ),
+      )
+      .limit(1);
+
+    return row ?? null;
+  }
+
+  /**
+   * El token y `status = 'SHIPPED'` van los dos en el `WHERE`, no en un `if` antes: es la misma
+   * garantía que `updateStatus` — la comprobación de verdad la pone la escritura, no una lectura
+   * previa que puede quedar desactualizada.
+   */
+  async saveCourierLocation({
+    orderId,
+    token,
+    lat,
+    lng,
+  }: {
+    orderId: string;
+    token: string;
+    lat: number;
+    lng: number;
+  }): Promise<boolean> {
+    if (!token) return false;
+
+    const rows = await db
+      .update(customerOrders)
+      .set({
+        courierLat: lat,
+        courierLng: lng,
+        courierLocationUpdatedAt: new Date(),
+      })
+      .where(
+        and(
+          eq(customerOrders.id, orderId),
+          eq(customerOrders.trackingToken, token),
+          eq(customerOrders.status, "SHIPPED"),
+        ),
+      )
+      .returning({ id: customerOrders.id });
+
+    return rows.length > 0;
+  }
+
   /**
    * Mueve el estado con las dos condiciones dentro del `WHERE`.
    *
@@ -499,6 +584,7 @@ export class PostgresOrderRepository implements OrderRepository {
     status,
     changedBy,
     stockEffect,
+    courierTrackingToken,
   }: {
     orderId: string;
     sellerId: string;
@@ -506,12 +592,19 @@ export class PostgresOrderRepository implements OrderRepository {
     status: OrderStatus;
     changedBy?: string | null;
     stockEffect: StockEffect;
+    courierTrackingToken?: string | null;
   }): Promise<OrderStatus | null> {
     try {
       return await db.transaction(async (tx) => {
         const [header] = await tx
           .update(customerOrders)
-          .set({ status, updatedAt: new Date() })
+          .set({
+            status,
+            updatedAt: new Date(),
+            ...(courierTrackingToken
+              ? { trackingToken: courierTrackingToken }
+              : {}),
+          })
           .where(
             and(
               eq(customerOrders.id, orderId),
@@ -602,6 +695,7 @@ export class PostgresOrderRepository implements OrderRepository {
         o.id, o.checkout_id, o.seller_id, o.user_id, o.status, o.created_at, o.updated_at,
         lower(o.during)::text AS appointment_starts_at,
         upper(o.during)::text AS appointment_ends_at,
+        o.courier_lat, o.courier_lng, o.courier_location_updated_at::text AS courier_location_updated_at,
         s.name AS seller_name, s.slug AS seller_slug, s.phone AS seller_phone,
         u.name AS buyer_name, u.username AS buyer_username, u.image AS buyer_image,
         count(*) OVER ()::int AS total_count
@@ -639,6 +733,16 @@ export class PostgresOrderRepository implements OrderRepository {
             ? {
                 startsAt: new Date(row.appointment_starts_at),
                 endsAt: new Date(row.appointment_ends_at),
+              }
+            : null,
+        courierLocation:
+          row.courier_lat !== null &&
+          row.courier_lng !== null &&
+          row.courier_location_updated_at
+            ? {
+                lat: row.courier_lat,
+                lng: row.courier_lng,
+                updatedAt: new Date(row.courier_location_updated_at),
               }
             : null,
         createdAt: new Date(row.created_at),

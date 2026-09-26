@@ -219,7 +219,47 @@ export interface OrderRepository {
      * son las dos formas de que el número deje de significar nada.
      */
     stockEffect: StockEffect;
+    /**
+     * El token del repartidor, **solo cuando `status` es `SHIPPED`**. Decidido en el caso de uso y
+     * no aquí, por lo mismo que `stockEffect`: viaja en la misma transacción que el cambio de
+     * estado, así que un pedido no puede quedar Enviado sin enlace que compartir.
+     */
+    courierTrackingToken?: string | null;
   }): Promise<OrderStatus | null>;
+
+  /**
+   * El token que ya tiene un pedido Enviado, para que el vendedor lo pueda compartir de nuevo.
+   *
+   * `null` tanto si el pedido no es de esa tienda como si no está `SHIPPED` — las dos cosas se ven
+   * igual desde fuera, mismo criterio que `findHeader`.
+   */
+  getCourierTrackingToken(
+    orderId: string,
+    sellerId: string,
+  ): Promise<string | null>;
+
+  /**
+   * Lo mínimo para decidir qué enseñarle a quien abre el enlace del repartidor: si el token no
+   * coincide, `null` — ni siquiera se le confirma que el pedido existe.
+   */
+  findByCourierToken(
+    orderId: string,
+    token: string,
+  ): Promise<{ status: OrderStatus } | null>;
+
+  /**
+   * Guarda la posición del repartidor **solo si el token coincide y el pedido sigue `SHIPPED`**.
+   *
+   * Las dos condiciones van en el `WHERE` de la escritura y no en un `if` previo — el mismo
+   * criterio que `updateStatus`. Así el enlace deja de aceptar posiciones en cuanto el pedido se
+   * entrega o se cancela, sin que nadie tenga que invalidarlo aparte.
+   */
+  saveCourierLocation(input: {
+    orderId: string;
+    token: string;
+    lat: number;
+    lng: number;
+  }): Promise<boolean>;
 
   /**
    * Por dónde pasó un pedido, del primer paso al último.

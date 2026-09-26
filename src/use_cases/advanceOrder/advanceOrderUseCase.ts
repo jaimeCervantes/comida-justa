@@ -22,7 +22,14 @@ export interface AdvanceOrderInput {
 }
 
 export type AdvanceOrderResult =
-  | { status: OrderStatus }
+  | {
+      status: OrderStatus;
+      /**
+       * El token para compartir con el repartidor, **solo cuando `status` es `SHIPPED`**. En
+       * cualquier otro destino es `undefined`: no hay nada nuevo que compartir.
+       */
+      courierTrackingToken?: string;
+    }
   | { error: AdvanceOrderError };
 
 export type AdvanceOrderError =
@@ -78,6 +85,13 @@ export default class AdvanceOrderUseCase {
       return { error: "insufficient-stock" };
     }
 
+    /* El token nace aquí, en el momento en que el pedido pasa a SHIPPED, y viaja en la misma
+       escritura que el cambio de estado — un pedido no puede quedar Enviado sin enlace que
+       compartir. Sale de `crypto.randomUUID()` directo, como ya hace `placeOrder` con el
+       `checkoutId`: no hace falta envolverlo en una función del dominio para una llamada. */
+    const courierTrackingToken =
+      status === "SHIPPED" ? crypto.randomUUID() : undefined;
+
     const applied = await this.orders.updateStatus({
       orderId,
       sellerId,
@@ -85,12 +99,15 @@ export default class AdvanceOrderUseCase {
       status,
       changedBy,
       stockEffect,
+      courierTrackingToken,
     });
 
     /* Sin fila devuelta, alguien lo movió entre la lectura y la escritura —o se llevó las últimas
        unidades—. No se reintenta: la decisión se tomó mirando un estado que ya no era el actual, así
        que lo honesto es que la pantalla se recargue y el vendedor vuelva a decidir. */
-    return applied ? { status: applied } : { error: "not-found" };
+    return applied
+      ? { status: applied, courierTrackingToken }
+      : { error: "not-found" };
   }
 
   private async isShort(orderId: string): Promise<boolean> {

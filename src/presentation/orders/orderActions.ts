@@ -21,6 +21,7 @@ import {
 import { createCartProductRepository } from "~/infra/dataAccess/cart/factory";
 import { findSellerOfUser } from "~/infra/dataAccess/identity/sessionIdentity";
 import { createOrderRepository } from "~/infra/dataAccess/orders/factory";
+import { absoluteCourierTrackingUrl } from "~/infra/UI/mappers/absoluteCourierTrackingUrl";
 import AdvanceOrderUseCase, {
   type AdvanceOrderError,
 } from "~/use_cases/advanceOrder/advanceOrderUseCase";
@@ -106,7 +107,16 @@ export async function placeOrder(
   );
 }
 
-export type AdvanceOrderState = { error?: AdvanceOrderError };
+export type AdvanceOrderState = {
+  error?: AdvanceOrderError;
+  /**
+   * El enlace del repartidor, **solo justo después** de marcar el pedido como Enviado. No se
+   * vuelve a mandar en cargas posteriores de esta misma pantalla: `SellerOrders` es de cliente y
+   * comparte tipo con lo que ve el comprador en otras pantallas, así que el token no viaja en el
+   * pedido — ver el pedido detalle, que sí lo puede volver a mostrar de forma segura.
+   */
+  courierTrackingUrl?: string;
+};
 
 /**
  * Mueve un pedido por su proceso.
@@ -131,9 +141,11 @@ export async function advanceOrder(
   // Quien no tiene tienda no tiene pedidos que mover; se responde como si no existiera.
   if (!seller) return { error: "not-found" };
 
+  const orderId = String(formData.get("orderId") ?? "");
+
   const result = await new AdvanceOrderUseCase(createOrderRepository()).execute(
     {
-      orderId: String(formData.get("orderId") ?? ""),
+      orderId,
       sellerId: seller.id,
       status: String(formData.get("status") ?? "") as OrderStatus,
       /* La persona y la tienda son cosas distintas: el `WHERE` de la escritura lleva la tienda, y el
@@ -146,5 +158,9 @@ export async function advanceOrder(
 
   revalidatePath("/", "layout");
 
-  return {};
+  return {
+    courierTrackingUrl: result.courierTrackingToken
+      ? absoluteCourierTrackingUrl(locale, orderId, result.courierTrackingToken)
+      : undefined,
+  };
 }
