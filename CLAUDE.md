@@ -11,3 +11,9 @@ When repository instructions change, keep Claude mirrors synchronized:
 
 Database migrations are owned by the sibling project `bot-whatsapp`. This repo only mirrors the
 schema after those migrations exist there; do not create or run Drizzle migrations from here.
+
+Every new feature or change to `src/domain/`, `src/use_cases/`, or the DB schema mirror must keep
+the core (listings/products/services/events, sellers, branches, orders, payments, categories, users)
+reusable for a different type of business, not only this one. See "Reusability across verticals" in
+`AGENTS.md` for the concrete rules (vertical vocabulary stays in its own module, no hardcoded
+privileged tenant, closed vocabularies in one named file).

@@ -296,6 +296,21 @@ When closing the task, always surface the exact validation commands you ran, or 
 - Do not use lazy imports for organizational reasons; keep imports explicit at module top level. Use `next/dynamic` only for genuine client-side code-splitting.
 - If a route or feature area grows too many sibling files, reorganize into shallow responsibility-based subfolders (`ui/`, `data.ts`, `types.ts`, `helpers.ts`) instead of expanding a flat directory.
 
+## Reusability across verticals (mandatory)
+
+See `AGENTS.md` → "Reusability across verticals" for the full rationale and precedent. Apply it while
+designing the slice, not as an afterthought:
+
+- When a slice touches `src/domain/` or `src/infra/dataAccess/db/schema/`, decide first whether the
+  concept is generic (listing/product/service/event, seller/branch, order, payment, user) or specific
+  to this fair-food/wellness vertical. Generic concepts extend the shared core; vertical-specific ones
+  get their own bounded module (the `src/domain/habits/`, `src/domain/practices/`, `src/domain/pillars/`
+  pattern), which may depend on the core but never the reverse.
+- Do not hardcode a privileged tenant/brand as a special case in domain logic. Do not scatter a new
+  closed vocabulary (`kind`, `origin`, `category`, …) across string literals — one named allowlist file.
+- This does not license extra abstraction, config flags, or speculative generality beyond the slice's
+  actual scope — it only steers which layer a new concept lands in.
+
 ## Component placement (mandatory)
 
 **Never write a new component before searching for an existing one.** Grep the three homes below for

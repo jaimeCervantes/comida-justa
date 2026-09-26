@@ -133,6 +133,33 @@ Deliver features end-to-end without stopping for per-step validation. This is th
 - HTTP Schemas/Zod validators for endpoints belong in `src/app/api/...` or a dedicated `schemas/` folder.
 - Database access patterns belong in `src/infra/db/` only.
 
+## Reusability across verticals (mandatory)
+
+The core (publications/listings, sellers, branches, orders, payments, categories, users) models a
+generic "buy/sell products, services, events, or listings, with multi-tenant sellers and locations"
+domain. Every new feature or change to `src/domain/`, `src/use_cases/`, or the DB schema mirror under
+`src/infra/dataAccess/db/schema/` must keep that core reusable for a different type of business, not
+only for this fair-food/wellness one.
+
+- Business-vertical vocabulary (this project's habits/practices/pillars, or any future
+  vertical-specific concept) belongs in its own bounded module that depends on the core, never the
+  reverse. `src/domain/habits/`, `src/domain/practices/`, `src/domain/pillars/` are the precedent:
+  the core `src/domain/entities/post/` does not import from them — the one narrow, already-accepted
+  exception is `publicationPillars.ts`; do not add more leaks like it.
+- Never hardcode a privileged tenant/brand as a special case inside domain logic (see the
+  `hazlo_sano_*` prefix in `src/domain/entities/post/origin.ts` as the anti-pattern, not the
+  template). Prefer a role, flag, or config value that any tenant could hold.
+- New closed vocabularies (`kind`, `origin`, `category`, moderation reasons, etc.) live in one named
+  constant/allowlist file, never scattered string literals, so retargeting the vocabulary for another
+  vertical is a one-file edit.
+- Before adding a column, table, or domain concept, ask: does this express something generic
+  (listing/product/service/event, seller/branch, order, payment, user) or something specific to this
+  vertical? Generic concepts extend the shared schema/domain; vertical-specific concepts get their
+  own module.
+- This is a design lens for the shape of new code, not a license to add abstraction layers, feature
+  flags, or plugin systems nobody asked for. Keep solving the requested feature — just prefer the
+  generic version of the solution when it is equally simple.
+
 ## Internationalization rules
 
 The routed locales are **`es` (default) and `en`**, via `next-intl` with `localePrefix: "as-needed"`:
