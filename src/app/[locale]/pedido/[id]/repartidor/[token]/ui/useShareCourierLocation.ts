@@ -1,5 +1,9 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import {
+  useScreenWakeLock,
+  type WakeLockStatus,
+} from "~/infra/UI/hooks/useScreenWakeLock";
 import { shareCourierLocation } from "../actions";
 
 export type CourierSharingState =
@@ -20,6 +24,8 @@ const SHARE_INTERVAL_MS = 15_000;
 export interface ShareCourierLocation {
   state: CourierSharingState;
   start: () => void;
+  /** Si la pantalla se queda encendida sola mientras se comparte (`useScreenWakeLock`). */
+  screen: WakeLockStatus;
 }
 
 /** `getCurrentPosition` con callbacks, prometizado para poder encadenarlo con `await`. */
@@ -45,6 +51,11 @@ function currentPosition(): Promise<GeolocationPosition> {
  * Si el servidor contesta que el token ya no vale —el pedido se entregó o se canceló mientras la
  * pestaña seguía abierta— el bucle se detiene solo: seguir mandando posiciones a un enlace muerto
  * no tiene destinatario.
+ *
+ * **Una página web no puede leer el GPS en segundo plano.** Mientras comparte se pide que la
+ * pantalla no se apague sola (`useScreenWakeLock`), y cuando la página vuelve a estar a la vista
+ * —tras abrir Google Maps o desbloquear el teléfono— se manda la posición **en ese momento**, sin
+ * esperar al siguiente turno: es cuando más vieja está la que tiene el comprador.
  */
 export function useShareCourierLocation(
   orderId: string,
@@ -52,6 +63,10 @@ export function useShareCourierLocation(
 ): ShareCourierLocation {
   const [state, setState] = useState<CourierSharingState>("idle");
   const intervalId = useRef<number | null>(null);
+  /* Lo que hace cada envío repetido. En una ref porque lo llaman el intervalo y el regreso a la
+     página, y los dos tienen que usar la versión de este render. */
+  const repeat = useRef<() => void>(() => {});
+  const screen = useScreenWakeLock(state === "active");
 
   useEffect(() => {
     return () => {
@@ -83,6 +98,29 @@ export function useShareCourierLocation(
     }
   };
 
+  /* Los repetidos son de mejor esfuerzo: sólo importa el resultado si el enlace murió. Un fallo
+     aislado de geolocalización no apaga el envío entero por un tropiezo. */
+  repeat.current = () => {
+    sendOnce()
+      .then((outcome) => {
+        if (outcome === "stopped") stop();
+      })
+      .catch(() => {});
+  };
+
+  useEffect(() => {
+    if (state !== "active") return;
+
+    const onVisibilityChange = (): void => {
+      if (document.visibilityState === "visible") repeat.current();
+    };
+
+    document.addEventListener("visibilitychange", onVisibilityChange);
+
+    return () =>
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+  }, [state]);
+
   const start = async (): Promise<void> => {
     if (!navigator.geolocation) {
       setState("denied");
@@ -100,19 +138,14 @@ export function useShareCourierLocation(
       }
 
       setState("active");
-      intervalId.current = window.setInterval(() => {
-        /* Los repetidos son de mejor esfuerzo: sólo importa el resultado si el enlace murió. Un
-           fallo aislado de geolocalización no apaga el envío entero por un tropiezo. */
-        sendOnce()
-          .then((outcome) => {
-            if (outcome === "stopped") stop();
-          })
-          .catch(() => {});
-      }, SHARE_INTERVAL_MS);
+      intervalId.current = window.setInterval(
+        () => repeat.current(),
+        SHARE_INTERVAL_MS,
+      );
     } catch {
       setState("denied");
     }
   };
 
-  return { state, start };
+  return { state, start, screen };
 }

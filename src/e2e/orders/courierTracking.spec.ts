@@ -127,6 +127,8 @@ test.describe("Cuando el repartidor abre su enlace", () => {
     await expect(courierPage.getByTestId("courier-share-button")).toBeVisible();
     await courierPage.getByTestId("courier-share-button").click();
     await expect(courierPage.getByTestId("courier-share-active")).toBeVisible();
+    /* @slice-15: una página web no lee el GPS en segundo plano, y el repartidor tiene que saberlo. */
+    await expect(courierPage.getByTestId("courier-keep-open")).toBeVisible();
 
     await courierContext.close();
 

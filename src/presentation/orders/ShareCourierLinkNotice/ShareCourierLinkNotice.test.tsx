@@ -25,6 +25,27 @@ describe("ShareCourierLinkNotice", () => {
     expect(decodeURIComponent(href.split("text=")[1] ?? "")).toContain(URL);
   });
 
+  /* @slice-15: el vendedor tiene que saber PARA QUÉ manda el enlace, y el repartidor, que la página
+     solo funciona abierta y a la vista. */
+  it("dice que con el enlace el cliente verá al repartidor en un mapa", () => {
+    render(<ShareCourierLinkNotice url={URL} />);
+
+    expect(screen.getByTestId("courier-link-notice")).toHaveTextContent(
+      /cliente verá al repartidor en un mapa/,
+    );
+  });
+
+  it("el mensaje de WhatsApp le pide al repartidor dejar la página abierta", () => {
+    render(<ShareCourierLinkNotice url={URL} />);
+
+    const href =
+      screen.getByTestId("courier-link-whatsapp").getAttribute("href") ?? "";
+    const message = decodeURIComponent(href.split("text=")[1] ?? "");
+
+    expect(message).toMatch(/abierto y a la vista/);
+    expect(message).toMatch(/mapa/);
+  });
+
   it("en inglés lo dice en inglés", () => {
     render(<ShareCourierLinkNotice url={URL} />, { locale: "en" });
 

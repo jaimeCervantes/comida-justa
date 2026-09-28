@@ -1,10 +1,13 @@
 import { describe, expect, it } from "vitest";
 import {
   ASSUMED_COURIER_SPEED_KMH,
+  COURIER_LOCATION_STALE_AFTER_MS,
   canShareDeliveryLocation,
   type DeliveryProgressInput,
   deliveryProgress,
   etaMinutes,
+  isCourierLocationStale,
+  staleMinutes,
 } from "./delivery";
 import type { OrderStatus } from "./order";
 
@@ -19,6 +22,9 @@ const deliveryLocation = {
   lng: -89.6352,
   updatedAt: new Date("2026-09-26T17:40:00Z"),
 };
+
+/* Un turno normal de envío después de la última posición: fresca. */
+const NOW = new Date(courierLocation.updatedAt.getTime() + 15_000);
 
 function shipped(
   overrides: Partial<DeliveryProgressInput> = {},
@@ -51,14 +57,15 @@ describe("deliveryProgress: de qué depende que se pueda mostrar distancia", () 
           destino === "guardado" && repartidor === "en camino" ? 1850 : null,
       });
 
-      expect(deliveryProgress(order) !== null).toBe(shown);
+      expect(deliveryProgress(order, NOW) !== null).toBe(shown);
     },
   );
 
   it("da la distancia que calculó la base y un tiempo estimado", () => {
-    expect(deliveryProgress(shipped())).toEqual({
+    expect(deliveryProgress(shipped(), NOW)).toEqual({
       distanceMeters: 1850,
       etaMinutes: etaMinutes(1850),
+      staleMinutes: null,
     });
   });
 
@@ -72,14 +79,74 @@ describe("deliveryProgress: de qué depende que se pueda mostrar distancia", () 
   ] as OrderStatus[])(
     "fuera de Enviado (%s) no hay distancia, aunque queden las dos posiciones",
     (status) => {
-      expect(deliveryProgress(shipped({ status }))).toBeNull();
+      expect(deliveryProgress(shipped({ status }), NOW)).toBeNull();
     },
   );
 
   it("sin cifra de la base no inventa una, aunque estén los dos puntos", () => {
     expect(
-      deliveryProgress(shipped({ courierDistanceMeters: null })),
+      deliveryProgress(shipped({ courierDistanceMeters: null }), NOW),
     ).toBeNull();
+  });
+});
+
+/* La corrida de escritorio de `orders.feature` (@slice-15 @component): a partir de 2 min —ocho
+   envíos perdidos seguidos— la posición ya no es un tropiezo de red, se detuvo. */
+describe("isCourierLocationStale", () => {
+  it.each([
+    ["15 s", 15_000, false, "es el turno normal de envío"],
+    ["1 min 59 s", 119_000, false, "todavía cabe en un tropiezo de red"],
+    ["2 min", 120_000, true, "ocho envíos perdidos seguidos: se detuvo"],
+    ["30 min", 30 * 60_000, true, "lleva rato sin moverse en la pantalla"],
+  ] as const)("hace %s → vieja: %s (%s)", (_, ageMs, stale) => {
+    const updatedAt = new Date("2026-09-28T18:00:00Z");
+    const now = new Date(updatedAt.getTime() + ageMs);
+
+    expect(isCourierLocationStale(updatedAt, now)).toBe(stale);
+  });
+
+  it("el umbral es de dos minutos", () => {
+    expect(COURIER_LOCATION_STALE_AFTER_MS).toBe(120_000);
+  });
+
+  /* Un reloj del servidor por detrás del de quien escribió no vuelve vieja una posición recién
+     llegada. */
+  it("una posición «del futuro» no está vieja", () => {
+    const updatedAt = new Date("2026-09-28T18:00:10Z");
+
+    expect(
+      isCourierLocationStale(updatedAt, new Date("2026-09-28T18:00:00Z")),
+    ).toBe(false);
+  });
+});
+
+describe("staleMinutes", () => {
+  const updatedAt = new Date("2026-09-28T18:00:00Z");
+
+  it("fresca: null, no hay nada que advertir", () => {
+    expect(
+      staleMinutes(updatedAt, new Date("2026-09-28T18:01:00Z")),
+    ).toBeNull();
+  });
+
+  it("vieja: los minutos enteros que lleva sin moverse", () => {
+    expect(staleMinutes(updatedAt, new Date("2026-09-28T18:07:40Z"))).toBe(7);
+  });
+});
+
+/* Con la posición vieja, la distancia sigue siendo un dato —dicho en pasado— pero el tiempo estimado
+   no: estimar desde un punto viejo es inventar. */
+describe("deliveryProgress con la posición vieja", () => {
+  it("da la distancia y cuánto hace, sin tiempo estimado", () => {
+    const sevenMinutesLater = new Date(
+      courierLocation.updatedAt.getTime() + 7 * 60_000,
+    );
+
+    expect(deliveryProgress(shipped(), sevenMinutesLater)).toEqual({
+      distanceMeters: 1850,
+      etaMinutes: null,
+      staleMinutes: 7,
+    });
   });
 });
 

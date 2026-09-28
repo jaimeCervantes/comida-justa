@@ -32,9 +32,33 @@ export type DeliveryProgressInput = Pick<
   "status" | "courierLocation" | "deliveryLocation" | "courierDistanceMeters"
 >;
 
+/**
+ * Desde cuándo la última posición del repartidor ya no dice dónde está.
+ *
+ * El repartidor manda cada 15 s mientras su página está a la vista; una página web **no puede** leer
+ * el GPS con el teléfono bloqueado o en segundo plano. Dos minutos son ocho envíos perdidos
+ * seguidos: ya no es un tropiezo de red, es que se detuvo — bloqueó el teléfono o se fue a Google
+ * Maps. A partir de ahí no se presenta como actual.
+ */
+export const COURIER_LOCATION_STALE_AFTER_MS = 2 * 60_000;
+
+export function isCourierLocationStale(updatedAt: Date, now: Date): boolean {
+  return now.getTime() - updatedAt.getTime() >= COURIER_LOCATION_STALE_AFTER_MS;
+}
+
+/** Los minutos enteros que lleva sin moverse, o `null` si todavía está fresca. */
+export function staleMinutes(updatedAt: Date, now: Date): number | null {
+  if (!isCourierLocationStale(updatedAt, now)) return null;
+
+  return Math.floor((now.getTime() - updatedAt.getTime()) / 60_000);
+}
+
 export interface DeliveryProgress {
   distanceMeters: number;
-  etaMinutes: number;
+  /** `null` cuando la posición es vieja: estimar desde un punto que ya no es actual es inventar. */
+  etaMinutes: number | null;
+  /** Cuánto hace de la posición, solo si ya es vieja (`staleMinutes`); con ella la distancia se dice en pasado. */
+  staleMinutes: number | null;
 }
 
 /**
@@ -48,17 +72,24 @@ export interface DeliveryProgress {
  * elipsoide), la misma cifra que ya enseñan el directorio y las tarjetas; la única aritmética de
  * distancia en JavaScript del proyecto es la de `locationFreshness.ts`, y es para decidir si vale
  * la pena escribir, nunca para enseñarle un número a nadie. Si la base no la trajo, no se inventa.
+ *
+ * **Con la posición vieja** (`isCourierLocationStale`) la distancia se sigue dando —es un dato real,
+ * de hace X minutos— pero el tiempo estimado no.
  */
 export function deliveryProgress(
   order: DeliveryProgressInput,
+  now: Date,
 ): DeliveryProgress | null {
   if (!isTrackable(order.status)) return null;
   if (!order.courierLocation || !order.deliveryLocation) return null;
   if (order.courierDistanceMeters == null) return null;
 
+  const stale = staleMinutes(order.courierLocation.updatedAt, now);
+
   return {
     distanceMeters: order.courierDistanceMeters,
-    etaMinutes: etaMinutes(order.courierDistanceMeters),
+    etaMinutes: stale === null ? etaMinutes(order.courierDistanceMeters) : null,
+    staleMinutes: stale,
   };
 }
 

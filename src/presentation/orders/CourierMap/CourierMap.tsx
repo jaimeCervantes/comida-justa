@@ -4,7 +4,7 @@ import { useFormatter, useTranslations } from "next-intl";
 import { useEffect } from "react";
 import { describeDistance } from "~/domain/entities/seller/distance";
 import type { DeliveryProgress } from "~/domain/order/delivery";
-import type { CourierLocation } from "~/domain/order/order";
+import type { CourierLocation, DeliveryLocation } from "~/domain/order/order";
 import { useRouter } from "~/i18n/navigation";
 import { Heading } from "~/presentation/design_system/typography/Heading";
 
@@ -30,14 +30,28 @@ const POLL_INTERVAL_MS = 15_000;
 export default function CourierMap({
   location,
   progress = null,
+  destination = null,
+  staleMinutes = null,
 }: {
   location: CourierLocation | null;
   /** Distancia y tiempo aproximado; `null` sin destino guardado, y el mapa queda como antes. */
   progress?: DeliveryProgress | null;
+  /** A dónde se entrega: con él, el mapa enseña los dos puntos unidos por una recta. */
+  destination?: DeliveryLocation | null;
+  /**
+   * Cuánto hace de la posición del repartidor **si ya es vieja** (`staleMinutes` del dominio), o
+   * `null`. Se calcula en el servidor, que es quien vuelve a pintar esto en cada `refresh`.
+   */
+  staleMinutes?: number | null;
 }) {
   const t = useTranslations("orders");
   const tDistance = useTranslations("distance");
   const distance = progress ? describeDistance(progress.distanceMeters) : null;
+  const distanceLabel = !distance
+    ? ""
+    : distance.unit === "meters"
+      ? tDistance("meters", { value: distance.value })
+      : tDistance("kilometers", { value: distance.value });
   const format = useFormatter();
   const router = useRouter();
 
@@ -60,23 +74,27 @@ export default function CourierMap({
               <p
                 className="font-medium text-text-base"
                 data-testid="delivery-progress-distance"
+                data-stale={progress.staleMinutes !== null}
               >
-                {t("deliveryProgressDistance", {
-                  distance:
-                    distance.unit === "meters"
-                      ? tDistance("meters", { value: distance.value })
-                      : tDistance("kilometers", { value: distance.value }),
-                })}
+                {progress.staleMinutes !== null
+                  ? t("deliveryProgressDistanceStale", {
+                      minutes: progress.staleMinutes,
+                      distance: distanceLabel,
+                    })
+                  : t("deliveryProgressDistance", { distance: distanceLabel })}
               </p>
-              <p
-                className="text-label text-text-support"
-                data-testid="delivery-progress-eta"
-              >
-                {t("deliveryProgressEta", { minutes: progress.etaMinutes })}
-              </p>
+              {/* Sin tiempo estimado sobre una posición vieja: sería inventarlo. */}
+              {progress.etaMinutes !== null ? (
+                <p
+                  className="text-label text-text-support"
+                  data-testid="delivery-progress-eta"
+                >
+                  {t("deliveryProgressEta", { minutes: progress.etaMinutes })}
+                </p>
+              ) : null}
             </div>
           ) : null}
-          <CourierMapCanvas location={location} />
+          <CourierMapCanvas location={location} destination={destination} />
           <p
             className="mt-2 text-label text-text-support"
             data-testid="courier-map-updated"
@@ -88,6 +106,14 @@ export default function CourierMap({
               }),
             })}
           </p>
+          {staleMinutes !== null ? (
+            <p
+              className="mt-1 text-label text-pw-orange"
+              data-testid="courier-map-stale"
+            >
+              {t("courierMapStale", { minutes: staleMinutes })}
+            </p>
+          ) : null}
         </>
       ) : (
         <p className="text-text-support" data-testid="courier-map-empty">

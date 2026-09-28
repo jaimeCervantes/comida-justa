@@ -199,3 +199,68 @@ test.describe("Con el pedido Enviado y el repartidor en camino", () => {
     await expect(distance).not.toHaveText(before ?? "");
   });
 });
+
+/** Envejece la última posición del repartidor, como si hubiera bloqueado el teléfono hace un rato. */
+async function ageCourierLocation(
+  orderUrl: string,
+  minutes: number,
+): Promise<void> {
+  const orderId = new URL(orderUrl).pathname.split("/").pop();
+
+  await db.execute(sql`
+    UPDATE customer_orders
+    SET courier_location_updated_at = now() - make_interval(mins => ${minutes})
+    WHERE id = ${orderId}::uuid
+  `);
+}
+
+/* Slice 4 de `028-...-pedido-enviado.md` (`@slice-15`): que la posición no mienta. */
+test.describe("Cuando la posición del repartidor ya es vieja", () => {
+  test("Entonces veo cuánto hace, la distancia en pasado y ningún tiempo estimado", async ({
+    page,
+    browser,
+  }) => {
+    await buyerAt(page, DESTINO);
+    const orderUrl = await shippedWithCourier(page, browser);
+    await ageCourierLocation(orderUrl, 7);
+
+    await page.goto(orderUrl);
+
+    await expect(page.getByTestId("courier-map-stale")).toContainText("7 min");
+    const distance = page.getByTestId("delivery-progress-distance");
+    await expect(distance).toHaveAttribute("data-stale", "true");
+    await expect(distance).toContainText("7 min");
+    await expect(page.getByTestId("delivery-progress-eta")).toHaveCount(0);
+  });
+});
+
+test.describe("El mapa del pedido Enviado", () => {
+  test("Entonces, con destino guardado, enseña al repartidor y al destino unidos por una recta", async ({
+    page,
+    browser,
+  }) => {
+    await buyerAt(page, DESTINO);
+    const orderUrl = await shippedWithCourier(page, browser);
+
+    await page.goto(orderUrl);
+
+    const map = page.getByTestId("courier-map");
+    await expect(map.getByTestId("map-marker-courier")).toHaveCount(1);
+    await expect(map.getByTestId("map-marker-destination")).toHaveCount(1);
+    await expect(map.locator(".courier-straight-line")).toHaveCount(1);
+  });
+
+  test("Entonces, sin destino guardado, enseña solo al repartidor", async ({
+    page,
+    browser,
+  }) => {
+    const orderUrl = await shippedWithCourier(page, browser);
+
+    await page.goto(orderUrl);
+
+    const map = page.getByTestId("courier-map");
+    await expect(map.getByTestId("map-marker-courier")).toHaveCount(1);
+    await expect(map.getByTestId("map-marker-destination")).toHaveCount(0);
+    await expect(map.locator(".courier-straight-line")).toHaveCount(0);
+  });
+});

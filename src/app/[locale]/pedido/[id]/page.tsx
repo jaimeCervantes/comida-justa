@@ -9,6 +9,7 @@ import type { User } from "~/domain/entities/post/types";
 import {
   canShareDeliveryLocation,
   deliveryProgress,
+  staleMinutes,
 } from "~/domain/order/delivery";
 import { canNotifySeller, isTrackable } from "~/domain/order/order";
 import { Link } from "~/i18n/navigation";
@@ -117,6 +118,9 @@ export default async function PedidoPage({
       ])
     : [[], []];
   const isAppointment = Boolean(order.appointment);
+  /* Una sola hora para toda la página: la antigüedad de la posición y el tiempo estimado se
+     deciden con el mismo reloj. `CourierMap` refresca la página cada 15 s, así que se recalcula. */
+  const now = new Date();
   const appointmentDate = order.appointment
     ? format.dateTime(order.appointment.startsAt, {
         dateStyle: "full",
@@ -193,7 +197,13 @@ export default async function PedidoPage({
           <div className="mt-4 border-t border-separator pt-4">
             <CourierMap
               location={order.courierLocation ?? null}
-              progress={deliveryProgress(order)}
+              progress={deliveryProgress(order, now)}
+              destination={order.deliveryLocation ?? null}
+              staleMinutes={
+                order.courierLocation
+                  ? staleMinutes(order.courierLocation.updatedAt, now)
+                  : null
+              }
             />
           </div>
         ) : null}

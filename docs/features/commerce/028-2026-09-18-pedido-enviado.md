@@ -143,3 +143,46 @@ puede compartir en dos momentos — al confirmar, o después desde la ficha.
 
 **Lo que NO entra:** ruteo real (calles, tráfico en vivo), notificación de "ya casi llega", y
 recorrido histórico del comprador (solo su última posición, igual que el repartidor).
+
+## Slice 4 (este) — Que la posición no mienta: pantalla encendida, aviso de posición vieja y mapa con los dos puntos
+
+**El hallazgo que lo motiva:** una página web **no puede leer el GPS con el teléfono bloqueado ni en
+segundo plano**. El envío del repartidor (cada 15 s) se detiene en cuanto la pantalla se apaga sola,
+se bloquea, o el repartidor abre Google Maps o WhatsApp para guiarse. Hoy el comprador sigue viendo
+el último punto sin ninguna señal de que se congeló, y la distancia y el tiempo se calculan sobre él
+como si fueran actuales. Arreglarlo de raíz exige una app nativa; lo que sí está a nuestro alcance es
+**que se congele menos** y **que nunca se presente algo viejo como actual**.
+
+**Alcance:**
+
+- **Textos que explican el para qué.** El aviso del vendedor y el mensaje de WhatsApp dicen que el
+  cliente verá al repartidor en un mapa; la página del repartidor le pide dejarla abierta y a la
+  vista, porque si cambia de app o bloquea el teléfono, se pausa.
+- **Pantalla encendida (Screen Wake Lock API).** Al empezar a compartir se le pide al navegador que
+  no apague la pantalla. El navegador lo suelta solo cuando la página deja de verse; al volver se
+  pide otra vez **y se manda la posición en ese momento**, sin esperar al siguiente turno de 15 s.
+  Si el navegador no lo soporta o lo niega (ahorro de batería), se le dice al repartidor que
+  mantenga la pantalla encendida él mismo. Se libera al dejar de compartir.
+- **Aviso de posición vieja.** Una posición es vieja si tiene **2 minutos o más** (ocho envíos
+  perdidos seguidos: ya no es un tropiezo de red). Es una regla de dominio con un umbral con nombre.
+  Con posición vieja, el comprador ve "última ubicación hace X min", la distancia se enseña en pasado
+  ("hace X min estaba a …") y **no se enseña tiempo estimado**: estimar desde un punto viejo es
+  inventar.
+- **El mapa enseña los dos puntos.** Con destino guardado, el mapa pinta también el destino y encuadra
+  a los dos, unidos por una **línea recta punteada** — la misma recta sobre la que se calcula la
+  distancia, no un camino por calles. Sin destino, un solo marcador, como en el slice 2.
+
+**Acceptance criteria:**
+
+- El vendedor lee, antes de mandarlo, que con el enlace su cliente verá al repartidor en un mapa.
+- El repartidor lee que debe dejar la página abierta y a la vista.
+- Mientras comparte, el navegador no apaga la pantalla sola (donde lo soporte); si no se puede, se le
+  dice.
+- Al volver a la página tras cambiar de app, se manda la posición de inmediato.
+- Con la posición de hace 2 min o más, el comprador ve cuánto hace, la distancia en pasado y ningún
+  tiempo estimado.
+- Con destino guardado, el mapa enseña al repartidor y al destino, unidos por una recta.
+
+**Lo que NO entra:** seguimiento con el teléfono bloqueado o en segundo plano (necesita app nativa),
+ruteo real por calles con tráfico (necesita un proveedor externo: Google Directions, Mapbox u OSRM
+propio — decisión de costo aparte), recorrido histórico, y aviso de "ya casi llega".

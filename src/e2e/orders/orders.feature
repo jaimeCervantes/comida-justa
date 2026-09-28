@@ -801,6 +801,84 @@ Feature: Carrito y pedidos
       | guardado   | (ninguno)  | no se muestra | falta la posición del repartidor           |
       | (ninguno)  | (ninguno)  | no se muestra | no hay ninguna de las dos                  |
 
+  # Slice 15. Una página web no puede leer el GPS con el teléfono bloqueado ni en segundo plano:
+  # el envío del repartidor se detiene en cuanto la pantalla se apaga, se bloquea, o abre Google
+  # Maps para guiarse. Sin app nativa no se puede evitar del todo; lo que sí se puede es que se
+  # congele MENOS (pantalla encendida con Wake Lock, reanudar al volver) y que una posición vieja
+  # NUNCA se presente como actual. Y el mapa enseña por fin los dos puntos.
+  @slice-15 @component
+  Scenario: El vendedor sabe para qué manda el enlace
+    # Vitest sobre ShareCourierLinkNotice: es texto de un componente, no un flujo.
+    Given mi pedido a "Hazlo Sano" recién marcado como Enviado
+    When veo el aviso con el enlace del repartidor
+    Then dice que con ese enlace el cliente verá al repartidor en un mapa
+    And el mensaje de WhatsApp le pide al repartidor dejar la página abierta
+
+  @slice-15
+  Scenario: El repartidor sabe que tiene que dejar la página a la vista
+    Given que abro el enlace del repartidor de un pedido Enviado
+    When empiezo a compartir mi ubicación
+    Then la página me dice que la deje abierta y a la vista
+    And que si cambio de app o bloqueo el teléfono, se pausa
+
+  @slice-15 @component
+  Scenario Outline: La pantalla no se apaga sola mientras comparto
+    # Vitest sobre useShareCourierLocation con navigator.wakeLock simulado: Playwright no tiene
+    # pantalla que apagar, así que no hay nada observable de punta a punta.
+    Given que mi navegador "<wake lock>"
+    When empiezo a compartir mi ubicación
+    Then <resultado>
+
+    Examples:
+      | wake lock          | resultado                                                    |
+      | lo concede         | se le pide que no apague la pantalla, y no se me dice nada más |
+      | lo niega           | se me pide mantener la pantalla encendida yo mismo           |
+      | no lo soporta      | se me pide mantener la pantalla encendida yo mismo           |
+
+  @slice-15 @component
+  Scenario: Al volver a la página, se manda la posición en ese momento
+    # Vitest: el cambio de visibilidad se simula en el documento.
+    Given que estoy compartiendo y cambié a Google Maps
+    When vuelvo a la página del enlace
+    Then se manda mi posición de inmediato, sin esperar al siguiente turno
+    And se vuelve a pedir que la pantalla no se apague
+
+  @slice-15 @component
+  Scenario Outline: Cuándo una posición del repartidor ya es vieja
+    # Vitest sobre el dominio: es aritmética de fechas, sin base ni navegador.
+    Given que la última posición del repartidor se guardó hace "<antigüedad>"
+    When se pregunta si está vieja
+    Then la respuesta es "<vieja>"
+
+    Examples:
+      | antigüedad | vieja | razón                                          |
+      | 15 s       | no    | es el turno normal de envío                    |
+      | 1 min 59 s | no    | todavía cabe en un tropiezo de red             |
+      | 2 min      | sí    | ocho envíos perdidos seguidos: se detuvo       |
+      | 30 min     | sí    | lleva rato sin moverse en la pantalla          |
+
+  @slice-15
+  Scenario: Con la posición vieja, no se presenta como actual
+    Given mi pedido Enviado, con destino guardado
+    And la última posición del repartidor es de hace 7 minutos
+    When abro la ficha del pedido
+    Then veo que la última ubicación es de hace 7 minutos
+    And la distancia se dice en pasado
+    And no se enseña ningún tiempo estimado
+
+  @slice-15
+  Scenario: Con destino guardado, el mapa enseña los dos puntos unidos por una recta
+    Given mi pedido Enviado, con destino guardado y el repartidor compartiendo su ubicación
+    When abro la ficha del pedido
+    Then el mapa enseña al repartidor y a mi destino
+    And los une una línea recta, no un camino por calles
+
+  @slice-15
+  Scenario: Sin destino guardado, el mapa sigue con un solo punto
+    Given mi pedido Enviado, con el repartidor compartiendo su ubicación pero sin destino guardado
+    When abro la ficha del pedido
+    Then el mapa enseña solo al repartidor
+
   # El pago en línea deja de estar condicionado al volumen: se decidió avanzar ahora, con Stripe
   # Connect (split directo al vendedor, sin que la plataforma retenga el dinero — así no genera la
   # desconfianza de un intermediario custodio). El slice 1 (dominio + IPaymentGateway +

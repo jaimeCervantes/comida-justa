@@ -364,3 +364,69 @@ tope de 20 s para que un diálogo sin contestar no detenga la compra.
 
 1. Revisar y fusionar el PR de `feat/pedido-enviado-eta` hacia `dev`.
 2. Pintar también el destino en el mapa y encuadrar los dos puntos.
+
+## Slice 4 — Que la posición no mienta (2026-09-28)
+
+**Objetivo:** una página web no puede leer el GPS con el teléfono bloqueado ni en segundo plano, y
+hasta ahora el comprador veía el último punto congelado como si fuera actual. Que se congele menos
+(pantalla encendida, reanudar al volver), que nunca se presente algo viejo como actual, y que el
+mapa enseñe los dos puntos.
+
+### Decisiones y por qué
+
+- **Textos que explican el para qué**: el aviso del vendedor dice que el cliente verá al repartidor
+  en un mapa; el mensaje de WhatsApp y la página del repartidor le piden dejarla abierta y a la
+  vista, y qué la pausa.
+- **Screen Wake Lock** en `src/infra/UI/hooks/useScreenWakeLock.ts` (genérico, sin saber de
+  pedidos): se pide al pasar a "compartiendo", se vuelve a pedir en cada `visibilitychange` a
+  visible (el navegador lo suelta solo al ocultarse la página) y se libera al dejar de compartir. Si
+  no hay soporte o se niega, el repartidor lee que mantenga la pantalla encendida él mismo.
+- **Reanudar al volver**: `useShareCourierLocation` manda la posición en cuanto la página vuelve a
+  estar visible, sin esperar al siguiente turno de 15 s. El intervalo y el regreso comparten una ref
+  (`repeat`) para usar siempre la versión del render actual.
+- **Posición vieja a partir de 2 min** (`COURIER_LOCATION_STALE_AFTER_MS`, ocho envíos perdidos):
+  `isCourierLocationStale` / `staleMinutes` en el dominio. `deliveryProgress` recibe ahora `now` y,
+  con la posición vieja, da la distancia con `staleMinutes` y `etaMinutes: null`. La hora la pone el
+  servidor (`page.tsx`), una sola por render, y se recalcula en cada `refresh` de 15 s.
+- **Mapa con los dos puntos**: el destino usa el mismo marcador que "Aquí estás tú"; los une una
+  `Polyline` **punteada** (`.courier-straight-line`) para que no se lea como un camino por calles; se
+  encuadran con `fitBounds` (tope de zoom 15). Sin destino, como antes.
+- **"La ruta"**: el usuario pidió **camino por calles**. Necesita un proveedor externo con clave y
+  costo, así que queda como slice 5 con esa decisión pendiente; la recta punteada se queda como
+  respaldo para cuando no haya camino.
+
+### Archivos tocados
+
+**Dominio:** `src/domain/order/delivery.ts` (+ test). **Infra UI:**
+`src/infra/UI/hooks/useScreenWakeLock.ts` (nuevo). **Repartidor:**
+`pedido/[id]/repartidor/[token]/ui/useShareCourierLocation.ts`, `CourierLocationSharer.tsx` (+
+`CourierLocationSharer.test.tsx`, nuevo). **Comprador:** `CourierMap.tsx`, `CourierMapCanvas.tsx`,
+`pedido/[id]/page.tsx`, `utility-patterns.css`. **Vendedor:** textos de `ShareCourierLinkNotice` (+
+2 tests). **i18n:** `es.json`, `en.json`. **E2E:** `orders.feature` (8 escenarios `@slice-15`),
+`deliveryEta.spec.ts` (+3), `courierTracking.spec.ts` (texto del repartidor).
+
+### Validación
+
+- `pnpm run typecheck` y `pnpm run lint` → limpios.
+- `pnpm run test:run` → **288 archivos, 3064 tests, en verde**.
+- `rm -rf .next && pnpm exec playwright test src/e2e/orders/deliveryEta.spec.ts
+  src/e2e/orders/courierTracking.spec.ts` → **13/13** a la primera.
+- Sin escrituras nuevas en la base compartida fuera de las que los e2e crean y borran.
+
+### Desviaciones
+
+- El escenario de Wake Lock es `@component`: Playwright no tiene pantalla que apagar. **Falta
+  probarlo en un teléfono real**, sobre todo abriendo el enlace dentro del navegador de WhatsApp.
+
+### Recap
+
+El seguimiento ya no presenta una posición congelada como actual: a partir de 2 min el comprador ve
+cuánto hace, la distancia en pasado y ningún tiempo estimado. El repartidor sabe que la página tiene
+que quedarse abierta, la pantalla no se apaga sola donde el navegador lo permite, y al volver a la
+página la posición se manda al instante. El mapa enseña repartidor y destino unidos por una recta.
+
+### Próximos pasos (opciones)
+
+1. **Slice 5, camino por calles**: pendiente de elegir proveedor (clave y costo) — decisión del
+   usuario.
+2. Probar el recorrido en dos teléfonos reales, con HTTPS, incluido el navegador interno de WhatsApp.
