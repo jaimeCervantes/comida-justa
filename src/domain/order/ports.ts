@@ -25,6 +25,11 @@ export interface NewOrder {
   sellerId: string;
   buyerId: string;
   lines: NewOrderLine[];
+  /**
+   * A dónde se entrega, si el navegador lo dio a tiempo al confirmar. Es de mejor esfuerzo: sin él
+   * el pedido se registra igual, y el comprador lo puede compartir después desde la ficha.
+   */
+  deliveryLocation?: { lat: number; lng: number } | null;
 }
 
 /** Un pedido con lo que hace falta para pintarlo sin volver a consultar. */
@@ -257,6 +262,20 @@ export interface OrderRepository {
   saveCourierLocation(input: {
     orderId: string;
     token: string;
+    lat: number;
+    lng: number;
+  }): Promise<boolean>;
+
+  /**
+   * Guarda o reemplaza a dónde se entrega el pedido, **solo si es de ese comprador y sigue
+   * abierto** (`canShareDeliveryLocation`).
+   *
+   * Las dos condiciones van en el `WHERE` de la escritura, mismo criterio que `saveCourierLocation`:
+   * un pedido ajeno, inexistente o ya cerrado se ven igual desde fuera — `false`.
+   */
+  saveDeliveryLocation(input: {
+    orderId: string;
+    buyerId: string;
     lat: number;
     lng: number;
   }): Promise<boolean>;

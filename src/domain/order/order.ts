@@ -190,6 +190,18 @@ export interface CourierLocation {
   updatedAt: Date;
 }
 
+/**
+ * A dónde se entrega **este** pedido, si el comprador lo compartió.
+ *
+ * Vive en el pedido y no en la cuenta: `users.lastLatitude` es la última ubicación compartida por
+ * cualquier motivo —pudo ser hace días, desde otro lugar—, no el destino de una entrega concreta.
+ */
+export interface DeliveryLocation {
+  lat: number;
+  lng: number;
+  updatedAt: Date;
+}
+
 export interface OrderLine {
   /** `null` cuando la publicación se borró: el renglón sobrevive con su copia. */
   postId: string | null;
@@ -233,6 +245,13 @@ export interface Order {
    * de cliente que reciba un pedido, empezando por `NotifySellerButton`.
    */
   courierLocation?: CourierLocation | null;
+  /** A dónde se entrega, o `null` si el comprador no lo ha compartido. */
+  deliveryLocation?: DeliveryLocation | null;
+  /**
+   * Metros en línea recta entre el repartidor y el destino, **calculados por PostGIS** al leer.
+   * `null` si falta cualquiera de las dos posiciones. Ver `deliveryProgress`.
+   */
+  courierDistanceMeters?: number | null;
   createdAt: Date;
   /**
    * Desde cuándo está en el estado en que está.

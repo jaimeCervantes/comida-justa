@@ -6,6 +6,10 @@ import {
   setRequestLocale,
 } from "next-intl/server";
 import type { User } from "~/domain/entities/post/types";
+import {
+  canShareDeliveryLocation,
+  deliveryProgress,
+} from "~/domain/order/delivery";
 import { canNotifySeller, isTrackable } from "~/domain/order/order";
 import { Link } from "~/i18n/navigation";
 import { resolveLocale, routing } from "~/i18n/routing";
@@ -19,6 +23,7 @@ import { absoluteOrderUrl } from "~/infra/UI/mappers/absoluteOrderUrl";
 import { Surface } from "~/presentation/design_system/surfaces/Surface";
 import { Heading } from "~/presentation/design_system/typography/Heading";
 import CourierMap from "~/presentation/orders/CourierMap/CourierMap";
+import DeliveryLocationShare from "~/presentation/orders/DeliveryLocationShare/DeliveryLocationShare";
 import NotifySellerButton from "~/presentation/orders/NotifySellerButton/NotifySellerButton";
 import OrderBuyer from "~/presentation/orders/OrderBuyer/OrderBuyer";
 import OrderHistory from "~/presentation/orders/OrderHistory/OrderHistory";
@@ -186,7 +191,22 @@ export default async function PedidoPage({
             última posición ya no significa nada. */}
         {isBuyer && isTrackable(order.status) ? (
           <div className="mt-4 border-t border-separator pt-4">
-            <CourierMap location={order.courierLocation ?? null} />
+            <CourierMap
+              location={order.courierLocation ?? null}
+              progress={deliveryProgress(order)}
+            />
+          </div>
+        ) : null}
+
+        {/* A dónde se entrega: sólo quien compró, mientras el pedido siga abierto, y no en una cita
+            —a un servicio agendado no se le lleva nada—. Fuera del mapa a propósito: se puede
+            compartir antes de que salga el repartidor. */}
+        {isBuyer && !isAppointment && canShareDeliveryLocation(order.status) ? (
+          <div className="mt-4 border-t border-separator pt-4">
+            <DeliveryLocationShare
+              orderId={order.id}
+              sharedAt={order.deliveryLocation?.updatedAt ?? null}
+            />
           </div>
         ) : null}
 

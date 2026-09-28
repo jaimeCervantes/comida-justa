@@ -86,6 +86,18 @@ export const customerOrders = pgTable(
     courierLocationUpdatedAt: timestamp("courier_location_updated_at", {
       withTimezone: true,
     }),
+    /**
+     * Destino de la entrega, en el propio pedido y no en la cuenta: `users.lastLatitude` es la
+     * última ubicación compartida por cualquier motivo, no dónde se entrega ESTE pedido. Las tres
+     * nulas: compartirlo es de mejor esfuerzo al confirmar o después desde la ficha. Columnas
+     * sueltas como las del repartidor; la distancia se calcula con `ST_Distance` sobre puntos
+     * armados al vuelo.
+     */
+    deliveryLat: doublePrecision("delivery_lat"),
+    deliveryLng: doublePrecision("delivery_lng"),
+    deliveryLocationUpdatedAt: timestamp("delivery_location_updated_at", {
+      withTimezone: true,
+    }),
   },
   (table) => [
     index("ix_customer_orders_seller").on(

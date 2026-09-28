@@ -233,3 +233,92 @@ confirman contra la base real, además de los 3008 tests de Vitest y typecheck/l
 2. **Nada pendiente de tu parte** en el slice 2: código, migración y validación end-to-end están
    listos. Falta solo que decidas si quieres commitear/subir estos cambios (no se hizo commit
    todavía, ni en `comida-justa` ni en `bot-whatsapp`).
+
+## Slice 3 — Distancia y ETA aproximado (2026-09-28)
+
+**Objetivo:** con el pedido Enviado y el repartidor compartiendo su posición, decirle al comprador a
+qué distancia va y un tiempo aproximado — a partir de un destino guardado en el propio pedido.
+
+### Decisiones y por qué
+
+- **El destino vive en el pedido, no en la cuenta.** El sitio no guarda direcciones de entrega, y
+  `users.lastLatitude` es "la última vez que compartiste tu ubicación por cualquier motivo", no a
+  dónde va este pedido. Migración `0059_2026-09-26_add_delivery_location_to_customer_orders.py` en
+  `bot-whatsapp` (`delivery_lat`, `delivery_lng`, `delivery_location_updated_at`, nulables,
+  `double precision` como las del repartidor), **aplicada a la base compartida** el 2026-09-28.
+- **Compartir al confirmar sin permiso ni paso nuevo** (`readGrantedPosition`): se consulta
+  `navigator.permissions` y solo si ya está `granted` se lee la posición, con un plazo de 3 s. Si el
+  permiso está en `prompt`, no se pregunta — preguntar en medio de la compra sería justo el paso
+  extra que el roadmap descarta. Así el primer pedido de alguien que nunca compartió sale sin
+  destino, y lo comparte desde la ficha.
+- **La distancia la calcula PostGIS** en la consulta común (`listWhere`): `ST_Distance` sobre
+  `ST_MakePoint(...)::geography` armados al vuelo; con cualquier coordenada nula sale `NULL`, sin
+  `CASE`. Verificado contra la base: dos puntos de Mérida → 1 845,87 m, y `NULL` con un nulo.
+- **El ETA es una suposición explícita** (`ASSUMED_COURIER_SPEED_KMH = 20`, línea recta), hacia
+  arriba y nunca menos de 1 min — "0 min" se leería como "ya llegó". Se rotula "aproximado, en
+  línea recta".
+- **Se puede compartir mientras el pedido siga abierto, no solo Enviado**
+  (`DELIVERY_SHAREABLE_STATUSES = OPEN_STATUSES`), y la condición va en el `WHERE` de la escritura
+  junto con el comprador, mismo criterio que `saveCourierLocation`. No se ofrece en citas.
+- **Se reutilizó `useShareLocation`** (ahora recibe a dónde mandar la posición, por defecto a la
+  cuenta como antes) y `describeDistance` + las cadenas `distance.meters/kilometers`, en vez de un
+  segundo trámite con el navegador y un segundo formateador.
+- **Los pasos de Playwright que ya repetía `courierTracking.spec.ts`** (hacer el pedido, avanzarlo,
+  leer el enlace, compartir como repartidor) se extrajeron a `src/e2e/testUtils/orderFlow.ts`.
+
+### Archivos tocados
+
+**Dominio:** `src/domain/order/delivery.ts` (nuevo: `deliveryProgress`, `etaMinutes`,
+`canShareDeliveryLocation`, `DELIVERY_SHAREABLE_STATUSES`), `order.ts` (`DeliveryLocation`,
+`Order.deliveryLocation`, `Order.courierDistanceMeters`), `ports.ts` (`NewOrder.deliveryLocation`,
+`saveDeliveryLocation`).
+
+**Casos de uso:** `src/use_cases/deliveryLocation/shareDeliveryLocation/` (nuevo),
+`placeOrder/placeOrderUseCase.ts` (destino de mejor esfuerzo, validado con `areValidCoordinates`).
+
+**Infra:** `db/schema/orders.ts` (espejo de la 0059), `PostgresOrderRepository.ts` (lectura con
+`ST_Distance`, `createAll` con destino, `saveDeliveryLocation`).
+
+**UI:** `presentation/location/readGrantedPosition.ts` (nuevo), `useShareLocation.ts` (destino
+parametrizable), `presentation/orders/DeliveryLocationShare/` (nuevo), `CourierMap.tsx` (distancia
+y ETA), `orderActions.ts` (`shareDeliveryLocation`, destino en `placeOrder`),
+`carrito/ui/ConfirmOrderButton.tsx`, `pedido/[id]/page.tsx`, `i18n/messages/{es,en}.json`.
+
+**Tests:** `delivery.test.ts`, `shareDeliveryLocationUseCase.test.ts`,
+`DeliveryLocationShare.test.tsx` (nuevos); `placeOrderUseCase.test.ts` (+4); dobles de
+`OrderRepository` con `saveDeliveryLocation`; `src/e2e/orders/deliveryEta.spec.ts` (nuevo),
+`courierTracking.spec.ts` (usa `orderFlow.ts`).
+
+### Validación
+
+- `pnpm run typecheck` → limpio. `pnpm run lint` → limpio.
+- `pnpm run test:run` → **286 archivos, 3043 tests, todos en verde**.
+- `rm -rf .next && pnpm exec playwright test src/e2e/orders/deliveryEta.spec.ts
+  src/e2e/orders/courierTracking.spec.ts` → **10/10 en verde** a la primera (6 del slice 3 + los
+  4 del slice 2 tras extraer los pasos compartidos).
+- Escritura en la base compartida: solo la migración 0059 (reversible con `alembic downgrade
+  0058_2026_09_25`); los e2e borran su tienda y pedidos en `afterEach`.
+
+### Desviaciones del roadmap
+
+- El roadmap decía "pide la ubicación al navegador en el mismo clic". Se precisó: **solo si el
+  permiso ya está concedido**; con `prompt` no se pregunta, para no convertir el clic de compra en
+  un diálogo del navegador.
+- El mapa sigue con un solo marcador (el repartidor); el destino no se pinta. No lo pide ningún
+  escenario.
+
+### Recap
+
+El slice 3 está completo: el pedido guarda su propio destino (al confirmar si el navegador ya tiene
+permiso, o después desde la ficha mientras siga abierto), y con el repartidor en camino la ficha
+dice a qué distancia va —calculada por PostGIS— y un tiempo aproximado rotulado como tal. Sin
+destino, el mapa queda como en el slice 2 y se invita a compartir la ubicación. Migración 0059
+aplicada; Vitest, typecheck, lint y los 10 e2e en verde.
+
+### Próximos pasos (opciones)
+
+1. **Empujar**: `comida-justa` tiene `dev` 2 commits por delante (slice 2) y esta rama
+   `feat/pedido-enviado-eta`; `bot-whatsapp` (`hazlo-sano-bot`) tiene `main` 2 por delante (0058 y
+   0059). Nada se ha empujado.
+2. Pintar también el destino en el mapa y encuadrar los dos puntos.
+3. Aviso de "ya casi llega" o ruteo real (Directions/OSRM) — fuera de este roadmap por ahora.

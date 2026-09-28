@@ -25,6 +25,7 @@ import { absoluteCourierTrackingUrl } from "~/infra/UI/mappers/absoluteCourierTr
 import AdvanceOrderUseCase, {
   type AdvanceOrderError,
 } from "~/use_cases/advanceOrder/advanceOrderUseCase";
+import ShareDeliveryLocationUseCase from "~/use_cases/deliveryLocation/shareDeliveryLocation/shareDeliveryLocationUseCase";
 import PlaceOrderUseCase, {
   type PlaceOrderError,
 } from "~/use_cases/placeOrder/placeOrderUseCase";
@@ -75,6 +76,7 @@ export async function placeOrder(
     fallbackLocale: routing.defaultLocale,
     sellerId,
     checkoutId,
+    deliveryLocation: deliveryLocationFrom(formData),
   });
 
   if ("error" in result) return { error: result.error };
@@ -105,6 +107,48 @@ export async function placeOrder(
     { pathname: "/pedido/[id]", params: { id: result.order.id } },
     locale,
   );
+}
+
+/**
+ * El destino que `ConfirmOrderButton` agrega al formulario **solo si el navegador contestó a
+ * tiempo**. Sin los dos campos no hay destino; si llegan pero no son una coordenada real, lo
+ * descarta el caso de uso.
+ */
+function deliveryLocationFrom(
+  formData: FormData,
+): { lat: number; lng: number } | null {
+  const lat = formData.get("deliveryLat");
+  const lng = formData.get("deliveryLng");
+
+  return lat && lng ? { lat: Number(lat), lng: Number(lng) } : null;
+}
+
+/**
+ * Guarda o reemplaza a dónde se entrega un pedido, desde su ficha.
+ *
+ * El comprador sale de la **sesión**, no del formulario: el `WHERE` de la escritura lleva su id, así
+ * que mandar el de un pedido ajeno no escribe nada. Un fallo no se explica —ni «no es tuyo» ni «ya
+ * se entregó»—; la ficha simplemente sigue como estaba.
+ */
+export async function shareDeliveryLocation(formData: FormData): Promise<void> {
+  const locale = resolveLocale(await getLocale());
+  const session = await auth();
+  const buyerId = (session?.user as User | undefined)?.id;
+
+  if (!buyerId) {
+    redirectToSignInFrom(locale, await refererPath());
+  }
+
+  const result = await new ShareDeliveryLocationUseCase(
+    createOrderRepository(),
+  ).execute({
+    orderId: String(formData.get("orderId") ?? ""),
+    buyerId,
+    lat: Number(formData.get("latitude")),
+    lng: Number(formData.get("longitude")),
+  });
+
+  if ("saved" in result) revalidatePath("/", "layout");
 }
 
 export type AdvanceOrderState = {

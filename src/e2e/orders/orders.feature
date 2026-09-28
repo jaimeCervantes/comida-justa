@@ -741,14 +741,65 @@ Feature: Carrito y pedidos
       | DELIVERED | el del pedido | se rechaza  | ya llegó; el enlace muere sin revocarlo        |
       | CANCELLED | el del pedido | se rechaza  | el pedido dejó de moverse                      |
 
-  # Lo que NO entra en este slice: el recorrido (solo se guarda la ÚLTIMA posición, no el trazo),
-  # la distancia o el tiempo estimado de llegada, y el aviso de "ya llegó". Los tres dependen de
-  # tener primero posiciones reales guardándose, que es justo lo que este slice entrega.
-  @slice-14 @future
-  Scenario: Sé cuánto falta para que llegue
-    Given mi pedido Enviado con el repartidor en camino
-    When miro su ficha
-    Then me dice a qué distancia va y cuánto falta
+  # Slice 14. Distancia y ETA, sobre las posiciones reales que ya entrega el slice 12. El sitio no
+  # guarda ninguna dirección de entrega —la logística se coordina por WhatsApp—, así que el destino
+  # vive en el PROPIO PEDIDO, no en la cuenta: compartirlo es de mejor esfuerzo al confirmar (el
+  # mismo clic de "Hacer el pedido", sin paso nuevo) y también se puede compartir o actualizar
+  # después, desde la ficha. La distancia la calcula PostGIS (`ST_Distance`), nunca una fórmula en
+  # JavaScript — es una regla ya escrita en `locationFreshness.ts`.
+  @slice-14
+  Scenario: Al confirmar, el navegador comparte mi ubicación sin pedir nada aparte
+    Given que mi navegador puede dar mi ubicación
+    When confirmo un pedido a "Hazlo Sano"
+    Then el pedido queda registrado con esa ubicación como destino
+    And no se me pidió ningún paso ni permiso extra al de siempre
+
+  @slice-14
+  Scenario: Si el navegador no contesta a tiempo, el pedido se registra igual
+    Given que mi navegador tarda en dar mi ubicación, o la niega
+    When confirmo un pedido a "Hazlo Sano"
+    Then el pedido queda registrado, sin destino
+
+  @slice-14
+  Scenario: Con destino y repartidor en camino, veo distancia y tiempo aproximado
+    Given mi pedido Enviado, con destino guardado y el repartidor compartiendo su ubicación
+    When abro la ficha del pedido
+    Then dice a qué distancia va el repartidor
+    And dice un tiempo estimado, marcado como aproximado
+
+  @slice-14
+  Scenario: Sin destino guardado, el mapa se queda como en el slice anterior
+    Given mi pedido Enviado, con el repartidor compartiendo su ubicación pero sin destino guardado
+    When abro la ficha del pedido
+    Then veo el mapa con la posición del repartidor, sin ninguna distancia
+    And se me invita a compartir mi ubicación
+
+  @slice-14
+  Scenario: Puedo compartir mi ubicación después, aunque no lo hice al confirmar
+    Given mi pedido Enviado, sin destino guardado
+    When comparto mi ubicación desde su ficha
+    Then la siguiente carga ya muestra distancia y tiempo estimado
+
+  @slice-14
+  Scenario: Actualizar mi ubicación cambia la distancia
+    Given mi pedido Enviado, con un destino guardado desde hace rato
+    When actualizo mi ubicación desde la ficha
+    Then la distancia que se enseña sale de la ubicación nueva, no de la anterior
+
+  @slice-14 @component
+  Scenario Outline: De qué depende que se pueda mostrar distancia
+    # Vitest sobre el dominio: combinar "hay destino" con "hay posición del repartidor" es
+    # aritmética de disponibilidad, no hace falta base ni navegador.
+    Given un pedido con destino "<destino>" y repartidor "<repartidor>"
+    When se pregunta si hay distancia que mostrar
+    Then <resultado>
+
+    Examples:
+      | destino    | repartidor | resultado    | razón                                        |
+      | guardado   | en camino  | se muestra   | están las dos posiciones                     |
+      | (ninguno)  | en camino  | no se muestra | falta el destino                           |
+      | guardado   | (ninguno)  | no se muestra | falta la posición del repartidor           |
+      | (ninguno)  | (ninguno)  | no se muestra | no hay ninguna de las dos                  |
 
   # El pago en línea deja de estar condicionado al volumen: se decidió avanzar ahora, con Stripe
   # Connect (split directo al vendedor, sin que la plataforma retenga el dinero — así no genera la

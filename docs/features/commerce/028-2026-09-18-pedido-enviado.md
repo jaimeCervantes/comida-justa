@@ -94,7 +94,51 @@ posición **de ese pedido y de ninguno más**.
 o tiempo estimado de llegada, y notificaciones de "ya llegó". Si algún día se quiere el trazo, se
 migra a una tabla aparte; hoy sería guardar datos que nadie mira.
 
-## Slice 3 (futuro) — Lo que el tracking pide después
+## Slice 3 (este) — Distancia y ETA aproximado
 
-Distancia y ETA al comprador, o el recorrido completo. Los dos dependen de tener primero posiciones
-reales guardándose, que es lo que entrega el slice 2.
+**El sitio no guarda ninguna dirección de entrega**, y ese es el hallazgo que enmarca el slice: la
+logística se coordina entera por WhatsApp, fuera de cualquier dato estructurado. `users.lastLatitude`
+existe, pero es "la última vez que alguien compartió su ubicación por cualquier motivo" — usarla como
+destino de una entrega concreta sería una suposición floja (pudo compartirse hace días, desde otro
+lugar). La decisión: **la ubicación de entrega vive en el propio pedido**, no en la cuenta, y se
+puede compartir en dos momentos — al confirmar, o después desde la ficha.
+
+**Alcance:**
+
+- **Migración en `bot-whatsapp`** (columnas nuevas en `customer_orders`): `delivery_lat`,
+  `delivery_lng`, `delivery_location_updated_at`. Mismo patrón que las de seguimiento del
+  repartidor — `double precision`, todas nulables.
+- **Compartir al confirmar es de mejor esfuerzo, sin paso nuevo.** El botón "Hacer el pedido a
+  {store}" pide la ubicación al navegador (con un plazo corto) en el mismo clic; si el navegador
+  contesta a tiempo, viaja con el propio formulario. Si no contesta, se niega, o tarda, el pedido se
+  registra igual, sin destino. **No se agrega un paso ni un permiso aparte del que ya existe.**
+- **También se puede compartir o actualizar después**, desde la ficha del pedido — el mismo botón
+  que ya existe en el sitio para esto (`ShareLocationButton`/`useShareLocation`), pero escribiendo
+  en el pedido y no en la cuenta.
+- **La distancia la calcula PostGIS, no una fórmula en JavaScript.** Es una regla ya escrita en el
+  código (`locationFreshness.ts`): la única aritmética de distancia en JS del proyecto es para
+  decidir si vale la pena escribir una actualización, nunca para la cifra que se le enseña a
+  alguien. Se calcula con `ST_Distance` sobre puntos armados al vuelo
+  (`ST_MakePoint(...)::geography`) a partir de las columnas sueltas — no hace falta convertirlas a
+  `geography` para eso.
+- **El ETA es una estimación explícita, no una promesa.** Distancia en línea recta ÷ una velocidad
+  urbana asumida (repartidor en moto, con paradas y tráfico) — no hay ruteo real (Google
+  Directions/OSRM sería otro slice). Se rotula como aproximado.
+- **Sin ubicación de entrega, el mapa se queda exactamente como en el slice 2**: la posición del
+  repartidor, sin distancia — no se pinta un espacio vacío ni un error, y se ofrece el botón para
+  compartirla en cualquier momento.
+
+**Acceptance criteria:**
+
+- Al confirmar un pedido, si el navegador entrega una posición a tiempo, ese pedido queda con su
+  propio destino guardado — sin pedir permiso dos veces ni añadir un paso.
+- Si el comprador no compartió nada al confirmar, puede hacerlo después desde la ficha del pedido,
+  en cualquier momento (no solo mientras está "Enviado").
+- Con destino guardado y el repartidor en camino, la ficha dice la distancia y un tiempo estimado,
+  marcado como aproximado.
+- Sin destino guardado, la ficha sigue exactamente como en el slice 2: mapa con la posición del
+  repartidor, sin distancia, con la invitación a compartir la ubicación.
+- Actualizar la ubicación desde la ficha cambia la distancia mostrada en la siguiente carga.
+
+**Lo que NO entra:** ruteo real (calles, tráfico en vivo), notificación de "ya casi llega", y
+recorrido histórico del comprador (solo su última posición, igual que el repartidor).

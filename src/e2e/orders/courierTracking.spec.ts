@@ -1,7 +1,12 @@
-import { expect, type Page, test } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import { sql } from "drizzle-orm";
 import { db } from "~/infra/dataAccess/db/connection";
 import { deleteTestSellerByHandle } from "../testUtils/deleteTestSeller";
+import {
+  advance,
+  placeOrderOf,
+  trackingUrlFromLastAdvance,
+} from "../testUtils/orderFlow";
 import { seedPost } from "../testUtils/seedPost";
 import { seedStore } from "../testUtils/seedStore";
 import {
@@ -47,52 +52,6 @@ async function attachStoreToSuite(): Promise<void> {
   `);
 }
 
-/** Deja un pedido recién hecho y devuelve la dirección de su ficha. */
-async function placeOrder(page: Page): Promise<string> {
-  await page.goto(`/${producto.slug}`);
-  await page.getByTestId("post-detail").getByTestId("add-to-cart").click();
-  await expect(page.getByTestId("cart-count")).toHaveText("1");
-  await page.goto("/carrito");
-  await page.getByTestId("cart-confirm").click();
-  await expect(page.getByTestId("order-detail")).toBeVisible();
-
-  return page.url();
-}
-
-/** Lo lleva por el proceso desde el panel del vendedor, esperando a cada paso. */
-async function advance(
-  page: Page,
-  statuses: readonly ("CONFIRMED" | "PREPARING" | "SHIPPED" | "DELIVERED")[],
-): Promise<void> {
-  await page.goto("/pedidos");
-
-  for (const status of statuses) {
-    await page.getByTestId(`order-action-${status}`).first().click();
-    /* Al entregarlo sale del filtro "abiertos" y la lista se vacía: eso ES el comportamiento, así
-       que la espera de este paso mira la lista vacía y no la insignia. */
-    if (status === "DELIVERED") {
-      await expect(page.getByTestId("seller-orders-empty")).toBeVisible();
-    } else {
-      await expect(
-        page.getByTestId("seller-order").first().getByTestId("order-status"),
-      ).toHaveAttribute("data-status", status);
-    }
-  }
-}
-
-/** El enlace que el vendedor acaba de recibir al despachar, tras el último clic de `advance`. */
-async function trackingUrlFromLastAdvance(page: Page): Promise<string> {
-  const href = await page
-    .getByTestId("seller-order")
-    .first()
-    .getByTestId("courier-link-url")
-    .getAttribute("href");
-
-  if (!href) throw new Error("El aviso no trajo el enlace del repartidor.");
-
-  return href;
-}
-
 test.beforeEach(async ({ page, browserName }) => {
   await deleteTestSellerByHandle(TIENDA.handle);
   await seedStore(TIENDA, null);
@@ -112,7 +71,7 @@ test.describe("Cuando el vendedor despacha con repartidor", () => {
   test("Entonces obtiene un enlace para compartir, listo para mandar por WhatsApp", async ({
     page,
   }) => {
-    await placeOrder(page);
+    await placeOrderOf(page, producto.slug);
     await advance(page, ["CONFIRMED", "PREPARING", "SHIPPED"]);
 
     const notice = page
@@ -135,7 +94,7 @@ test.describe("Cuando el vendedor despacha con repartidor", () => {
   test("Entonces mi pedido sin posición todavía no pinta un mapa vacío", async ({
     page,
   }) => {
-    const orderUrl = await placeOrder(page);
+    const orderUrl = await placeOrderOf(page, producto.slug);
     await advance(page, ["CONFIRMED", "PREPARING", "SHIPPED"]);
 
     await page.goto(orderUrl);
@@ -150,7 +109,7 @@ test.describe("Cuando el repartidor abre su enlace", () => {
     page,
     browser,
   }) => {
-    const orderUrl = await placeOrder(page);
+    const orderUrl = await placeOrderOf(page, producto.slug);
     await advance(page, ["CONFIRMED", "PREPARING", "SHIPPED"]);
     const trackingUrl = await trackingUrlFromLastAdvance(page);
 
@@ -183,7 +142,7 @@ test.describe("Cuando el pedido deja de estar Enviado", () => {
     page,
     browser,
   }) => {
-    const orderUrl = await placeOrder(page);
+    const orderUrl = await placeOrderOf(page, producto.slug);
     await advance(page, ["CONFIRMED", "PREPARING", "SHIPPED"]);
     const trackingUrl = await trackingUrlFromLastAdvance(page);
 
