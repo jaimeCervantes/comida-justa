@@ -111,7 +111,8 @@ puede compartir en dos momentos — al confirmar, o después desde la ficha.
 - **Compartir al confirmar es de mejor esfuerzo, sin paso nuevo.** El botón "Hacer el pedido a
   {store}" pide la ubicación al navegador (con un plazo corto) en el mismo clic; si el navegador
   contesta a tiempo, viaja con el propio formulario. Si no contesta, se niega, o tarda, el pedido se
-  registra igual, sin destino. **No se agrega un paso ni un permiso aparte del que ya existe.**
+  registra igual, sin destino. **No se agrega un paso propio del sitio**: si el navegador todavía no
+  tiene permiso, lo pide en ese mismo clic (decidido el 2026-09-28; ver la bitácora).
 - **También se puede compartir o actualizar después**, desde la ficha del pedido — el mismo botón
   que ya existe en el sitio para esto (`ShareLocationButton`/`useShareLocation`), pero escribiendo
   en el pedido y no en la cuenta.
@@ -131,7 +132,7 @@ puede compartir en dos momentos — al confirmar, o después desde la ficha.
 **Acceptance criteria:**
 
 - Al confirmar un pedido, si el navegador entrega una posición a tiempo, ese pedido queda con su
-  propio destino guardado — sin pedir permiso dos veces ni añadir un paso.
+  propio destino guardado — la única pregunta es, si hace falta, el permiso del navegador.
 - Si el comprador no compartió nada al confirmar, puede hacerlo después desde la ficha del pedido,
   en cualquier momento (no solo mientras está "Enviado").
 - Con destino guardado y el repartidor en camino, la ficha dice la distancia y un tiempo estimado,

@@ -744,15 +744,15 @@ Feature: Carrito y pedidos
   # Slice 14. Distancia y ETA, sobre las posiciones reales que ya entrega el slice 12. El sitio no
   # guarda ninguna dirección de entrega —la logística se coordina por WhatsApp—, así que el destino
   # vive en el PROPIO PEDIDO, no en la cuenta: compartirlo es de mejor esfuerzo al confirmar (el
-  # mismo clic de "Hacer el pedido", sin paso nuevo) y también se puede compartir o actualizar
-  # después, desde la ficha. La distancia la calcula PostGIS (`ST_Distance`), nunca una fórmula en
+  # mismo clic de "Hacer el pedido"; si hace falta, el navegador pide su permiso ahí mismo) y
+  # también se puede compartir o actualizar después, desde la ficha. La distancia la calcula PostGIS (`ST_Distance`), nunca una fórmula en
   # JavaScript — es una regla ya escrita en `locationFreshness.ts`.
   @slice-14
-  Scenario: Al confirmar, el navegador comparte mi ubicación sin pedir nada aparte
-    Given que mi navegador puede dar mi ubicación
+  Scenario: Al confirmar, el navegador comparte mi ubicación en el mismo clic
+    Given que le doy permiso a mi navegador para dar mi ubicación
     When confirmo un pedido a "Hazlo Sano"
     Then el pedido queda registrado con esa ubicación como destino
-    And no se me pidió ningún paso ni permiso extra al de siempre
+    And el único paso extra fue, si hacía falta, el permiso del propio navegador
 
   @slice-14
   Scenario: Si el navegador no contesta a tiempo, el pedido se registra igual

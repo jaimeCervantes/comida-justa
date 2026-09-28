@@ -322,3 +322,45 @@ aplicada; Vitest, typecheck, lint y los 10 e2e en verde.
    0059). Nada se ha empujado.
 2. Pintar también el destino en el mapa y encuadrar los dos puntos.
 3. Aviso de "ya casi llega" o ruteo real (Directions/OSRM) — fuera de este roadmap por ahora.
+
+## Slice 3, ajuste — Al confirmar sí se pide la ubicación (2026-09-28)
+
+**Objetivo:** que el primer pedido de alguien que nunca compartió su ubicación también salga con
+destino, en vez de depender de que lo comparta después desde la ficha.
+
+### Decisiones y por qué
+
+- **Decisión del usuario:** al confirmar, si el navegador todavía no tiene permiso, se le pide en
+  ese mismo clic. Revierte la desviación anotada en la entrada anterior ("solo si ya está
+  `granted`"). Sigue sin haber un paso propio del sitio: la única pregunta es el diálogo del
+  navegador.
+- `readGrantedPosition` pasa a `readDeliveryPosition`: con `denied` no insiste (el navegador
+  tampoco preguntaría); con `granted` espera 3 s; con `prompt` (o sin API de permisos) espera como
+  mucho 20 s **en total**, porque el `timeout` de `getCurrentPosition` no cuenta el rato que la
+  persona tarda en contestar el diálogo, y un diálogo ignorado no puede dejar la compra colgada.
+- Escenario y roadmap actualizados: "el único paso extra fue, si hacía falta, el permiso del propio
+  navegador".
+
+### Archivos tocados
+
+`src/presentation/location/readDeliveryPosition.ts` (renombrado desde `readGrantedPosition.ts`) +
+`readDeliveryPosition.test.ts` (nuevo, 5 casos), `carrito/ui/ConfirmOrderButton.tsx`,
+`src/e2e/orders/orders.feature`, `src/e2e/orders/deliveryEta.spec.ts` (textos),
+`docs/features/commerce/028-2026-09-18-pedido-enviado.md`.
+
+### Validación
+
+- `pnpm run typecheck` y `pnpm run lint` → limpios.
+- `pnpm run test:run` → **287 archivos, 3048 tests, en verde**.
+- `rm -rf .next && pnpm exec playwright test src/e2e/orders/deliveryEta.spec.ts` → **6/6**. El
+  escenario sin permiso ahora sí pregunta, y Playwright contesta que no: el pedido sale sin destino.
+
+### Recap
+
+El slice 3 queda igual salvo por el clic de confirmar: ahora pide la ubicación si hace falta, con un
+tope de 20 s para que un diálogo sin contestar no detenga la compra.
+
+### Próximos pasos (opciones)
+
+1. Revisar y fusionar el PR de `feat/pedido-enviado-eta` hacia `dev`.
+2. Pintar también el destino en el mapa y encuadrar los dos puntos.

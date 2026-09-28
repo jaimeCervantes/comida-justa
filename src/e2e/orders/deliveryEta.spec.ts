@@ -110,13 +110,13 @@ test.afterEach(async () => {
 });
 
 test.describe("Al confirmar un pedido", () => {
-  test("Entonces, si el navegador ya puede dar mi ubicación, queda como destino sin ningún paso extra", async ({
+  test("Entonces, si le doy permiso al navegador, mi ubicación queda como destino en el mismo clic", async ({
     page,
   }) => {
     await buyerAt(page, DESTINO);
 
     /* `placeOrderOf` es el mismo recorrido de siempre —carrito, un clic, ficha—: si hubiera un paso
-       nuevo, no llegaría a la ficha. */
+       propio del sitio, no llegaría a la ficha. */
     const orderUrl = await placeOrderOf(page, producto.slug);
 
     const stored = await storedDestination(orderUrl);
@@ -127,7 +127,8 @@ test.describe("Al confirmar un pedido", () => {
   test("Entonces, si el navegador no da la ubicación, el pedido se registra igual, sin destino", async ({
     page,
   }) => {
-    /* Sin permiso concedido: el botón no pregunta, no espera, y sigue. */
+    /* Sin permiso concedido: el botón sí pregunta, y Playwright contesta que no — es el caso de
+       quien niega el diálogo. El pedido no espera a nada más. */
     const orderUrl = await placeOrderOf(page, producto.slug);
 
     expect(await storedDestination(orderUrl)).toEqual({ lat: null, lng: null });
