@@ -1,5 +1,6 @@
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import { hasAppointment } from "~/domain/order/appointments";
+import { DELIVERY_SHAREABLE_STATUSES } from "~/domain/order/delivery";
 import {
   OPEN_STATUSES,
   type Order,
@@ -142,6 +143,12 @@ interface OrderRow {
   courier_lng: number | null;
   /** Texto por lo mismo que `created_at`; sólo se lee cuando las dos coordenadas están presentes. */
   courier_location_updated_at: string | null;
+  delivery_lat: number | null;
+  delivery_lng: number | null;
+  /** Texto por lo mismo que `created_at`. */
+  delivery_location_updated_at: string | null;
+  /** `NULL` cuando falta cualquiera de las dos posiciones: `ST_MakePoint` con un nulo es nulo. */
+  courier_distance_m: number | null;
   total_count: number;
   seller_name: string;
   seller_slug: string | null;
@@ -216,6 +223,13 @@ export class PostgresOrderRepository implements OrderRepository {
             checkoutId: order.checkoutId,
             sellerId: order.sellerId,
             userId: order.buyerId,
+            ...(order.deliveryLocation
+              ? {
+                  deliveryLat: order.deliveryLocation.lat,
+                  deliveryLng: order.deliveryLocation.lng,
+                  deliveryLocationUpdatedAt: new Date(),
+                }
+              : {}),
           })),
         )
         .returning();
@@ -255,6 +269,16 @@ export class PostgresOrderRepository implements OrderRepository {
       buyerId: header.userId,
       status: header.status,
       lines: linesByOrder.get(header.id) ?? [],
+      deliveryLocation:
+        header.deliveryLat !== null &&
+        header.deliveryLng !== null &&
+        header.deliveryLocationUpdatedAt
+          ? {
+              lat: header.deliveryLat,
+              lng: header.deliveryLng,
+              updatedAt: header.deliveryLocationUpdatedAt,
+            }
+          : null,
       createdAt: header.createdAt,
       updatedAt: header.updatedAt,
     }));
@@ -526,6 +550,82 @@ export class PostgresOrderRepository implements OrderRepository {
     return rows.length > 0;
   }
 
+  /** El comprador va en el `WHERE`: un pedido ajeno se ve igual que uno que no existe. */
+  async findDeliveryTracking(orderId: string, buyerId: string) {
+    const [row] = await db
+      .select({
+        status: customerOrders.status,
+        courierLat: customerOrders.courierLat,
+        courierLng: customerOrders.courierLng,
+        courierAt: customerOrders.courierLocationUpdatedAt,
+        deliveryLat: customerOrders.deliveryLat,
+        deliveryLng: customerOrders.deliveryLng,
+        deliveryAt: customerOrders.deliveryLocationUpdatedAt,
+      })
+      .from(customerOrders)
+      .where(
+        and(eq(customerOrders.id, orderId), eq(customerOrders.userId, buyerId)),
+      )
+      .limit(1);
+
+    if (!row) return null;
+
+    return {
+      status: row.status,
+      courierLocation:
+        row.courierLat !== null && row.courierLng !== null && row.courierAt
+          ? {
+              lat: row.courierLat,
+              lng: row.courierLng,
+              updatedAt: row.courierAt,
+            }
+          : null,
+      deliveryLocation:
+        row.deliveryLat !== null && row.deliveryLng !== null && row.deliveryAt
+          ? {
+              lat: row.deliveryLat,
+              lng: row.deliveryLng,
+              updatedAt: row.deliveryAt,
+            }
+          : null,
+    };
+  }
+
+  /**
+   * Comprador y estado abierto van en el `WHERE`, igual que el token en `saveCourierLocation`: la
+   * comprobación de verdad la hace la escritura. Reemplaza lo que hubiera — solo la última
+   * ubicación, como la del repartidor.
+   */
+  async saveDeliveryLocation({
+    orderId,
+    buyerId,
+    lat,
+    lng,
+  }: {
+    orderId: string;
+    buyerId: string;
+    lat: number;
+    lng: number;
+  }): Promise<boolean> {
+    const rows = await db
+      .update(customerOrders)
+      .set({
+        deliveryLat: lat,
+        deliveryLng: lng,
+        deliveryLocationUpdatedAt: new Date(),
+      })
+      .where(
+        and(
+          eq(customerOrders.id, orderId),
+          eq(customerOrders.userId, buyerId),
+          inArray(customerOrders.status, [...DELIVERY_SHAREABLE_STATUSES]),
+        ),
+      )
+      .returning({ id: customerOrders.id });
+
+    return rows.length > 0;
+  }
+
   /**
    * Mueve el estado con las dos condiciones dentro del `WHERE`.
    *
@@ -696,6 +796,14 @@ export class PostgresOrderRepository implements OrderRepository {
         lower(o.during)::text AS appointment_starts_at,
         upper(o.during)::text AS appointment_ends_at,
         o.courier_lat, o.courier_lng, o.courier_location_updated_at::text AS courier_location_updated_at,
+        o.delivery_lat, o.delivery_lng,
+        o.delivery_location_updated_at::text AS delivery_location_updated_at,
+        /* La distancia la pone PostGIS y no JavaScript (ver deliveryProgress). Los puntos se arman
+           al vuelo desde las columnas sueltas; basta un nulo en cualquiera para que salga nulo. */
+        ST_Distance(
+          ST_SetSRID(ST_MakePoint(o.courier_lng, o.courier_lat), 4326)::geography,
+          ST_SetSRID(ST_MakePoint(o.delivery_lng, o.delivery_lat), 4326)::geography
+        ) AS courier_distance_m,
         s.name AS seller_name, s.slug AS seller_slug, s.phone AS seller_phone,
         u.name AS buyer_name, u.username AS buyer_username, u.image AS buyer_image,
         count(*) OVER ()::int AS total_count
@@ -745,6 +853,17 @@ export class PostgresOrderRepository implements OrderRepository {
                 updatedAt: new Date(row.courier_location_updated_at),
               }
             : null,
+        deliveryLocation:
+          row.delivery_lat !== null &&
+          row.delivery_lng !== null &&
+          row.delivery_location_updated_at
+            ? {
+                lat: row.delivery_lat,
+                lng: row.delivery_lng,
+                updatedAt: new Date(row.delivery_location_updated_at),
+              }
+            : null,
+        courierDistanceMeters: row.courier_distance_m,
         createdAt: new Date(row.created_at),
         updatedAt: new Date(row.updated_at),
         sellerName: row.seller_name,

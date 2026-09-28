@@ -84,6 +84,8 @@ function build(
     getCourierTrackingToken: vi.fn(),
     findByCourierToken: vi.fn(),
     saveCourierLocation: vi.fn(),
+    findDeliveryTracking: vi.fn(),
+    saveDeliveryLocation: vi.fn(),
   };
 
   return { useCase: new AdvanceOrderUseCase(orders), orders };

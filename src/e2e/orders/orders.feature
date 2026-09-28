@@ -741,14 +741,196 @@ Feature: Carrito y pedidos
       | DELIVERED | el del pedido | se rechaza  | ya llegó; el enlace muere sin revocarlo        |
       | CANCELLED | el del pedido | se rechaza  | el pedido dejó de moverse                      |
 
-  # Lo que NO entra en este slice: el recorrido (solo se guarda la ÚLTIMA posición, no el trazo),
-  # la distancia o el tiempo estimado de llegada, y el aviso de "ya llegó". Los tres dependen de
-  # tener primero posiciones reales guardándose, que es justo lo que este slice entrega.
-  @slice-14 @future
-  Scenario: Sé cuánto falta para que llegue
-    Given mi pedido Enviado con el repartidor en camino
-    When miro su ficha
-    Then me dice a qué distancia va y cuánto falta
+  # Slice 14. Distancia y ETA, sobre las posiciones reales que ya entrega el slice 12. El sitio no
+  # guarda ninguna dirección de entrega —la logística se coordina por WhatsApp—, así que el destino
+  # vive en el PROPIO PEDIDO, no en la cuenta: compartirlo es de mejor esfuerzo al confirmar (el
+  # mismo clic de "Hacer el pedido"; si hace falta, el navegador pide su permiso ahí mismo) y
+  # también se puede compartir o actualizar después, desde la ficha. La distancia la calcula PostGIS (`ST_Distance`), nunca una fórmula en
+  # JavaScript — es una regla ya escrita en `locationFreshness.ts`.
+  @slice-14
+  Scenario: Al confirmar, el navegador comparte mi ubicación en el mismo clic
+    Given que le doy permiso a mi navegador para dar mi ubicación
+    When confirmo un pedido a "Hazlo Sano"
+    Then el pedido queda registrado con esa ubicación como destino
+    And el único paso extra fue, si hacía falta, el permiso del propio navegador
+
+  @slice-14
+  Scenario: Si el navegador no contesta a tiempo, el pedido se registra igual
+    Given que mi navegador tarda en dar mi ubicación, o la niega
+    When confirmo un pedido a "Hazlo Sano"
+    Then el pedido queda registrado, sin destino
+
+  @slice-14
+  Scenario: Con destino y repartidor en camino, veo distancia y tiempo aproximado
+    Given mi pedido Enviado, con destino guardado y el repartidor compartiendo su ubicación
+    When abro la ficha del pedido
+    Then dice a qué distancia va el repartidor
+    And dice un tiempo estimado, marcado como aproximado
+
+  @slice-14
+  Scenario: Sin destino guardado, el mapa se queda como en el slice anterior
+    Given mi pedido Enviado, con el repartidor compartiendo su ubicación pero sin destino guardado
+    When abro la ficha del pedido
+    Then veo el mapa con la posición del repartidor, sin ninguna distancia
+    And se me invita a compartir mi ubicación
+
+  @slice-14
+  Scenario: Puedo compartir mi ubicación después, aunque no lo hice al confirmar
+    Given mi pedido Enviado, sin destino guardado
+    When comparto mi ubicación desde su ficha
+    Then la siguiente carga ya muestra distancia y tiempo estimado
+
+  @slice-14
+  Scenario: Actualizar mi ubicación cambia la distancia
+    Given mi pedido Enviado, con un destino guardado desde hace rato
+    When actualizo mi ubicación desde la ficha
+    Then la distancia que se enseña sale de la ubicación nueva, no de la anterior
+
+  @slice-14 @component
+  Scenario Outline: De qué depende que se pueda mostrar distancia
+    # Vitest sobre el dominio: combinar "hay destino" con "hay posición del repartidor" es
+    # aritmética de disponibilidad, no hace falta base ni navegador.
+    Given un pedido con destino "<destino>" y repartidor "<repartidor>"
+    When se pregunta si hay distancia que mostrar
+    Then <resultado>
+
+    Examples:
+      | destino    | repartidor | resultado    | razón                                        |
+      | guardado   | en camino  | se muestra   | están las dos posiciones                     |
+      | (ninguno)  | en camino  | no se muestra | falta el destino                           |
+      | guardado   | (ninguno)  | no se muestra | falta la posición del repartidor           |
+      | (ninguno)  | (ninguno)  | no se muestra | no hay ninguna de las dos                  |
+
+  # Slice 15. Una página web no puede leer el GPS con el teléfono bloqueado ni en segundo plano:
+  # el envío del repartidor se detiene en cuanto la pantalla se apaga, se bloquea, o abre Google
+  # Maps para guiarse. Sin app nativa no se puede evitar del todo; lo que sí se puede es que se
+  # congele MENOS (pantalla encendida con Wake Lock, reanudar al volver) y que una posición vieja
+  # NUNCA se presente como actual. Y el mapa enseña por fin los dos puntos.
+  @slice-15 @component
+  Scenario: El vendedor sabe para qué manda el enlace
+    # Vitest sobre ShareCourierLinkNotice: es texto de un componente, no un flujo.
+    Given mi pedido a "Hazlo Sano" recién marcado como Enviado
+    When veo el aviso con el enlace del repartidor
+    Then dice que con ese enlace el cliente verá al repartidor en un mapa
+    And el mensaje de WhatsApp le pide al repartidor dejar la página abierta
+
+  @slice-15
+  Scenario: El repartidor sabe que tiene que dejar la página a la vista
+    Given que abro el enlace del repartidor de un pedido Enviado
+    When empiezo a compartir mi ubicación
+    Then la página me dice que la deje abierta y a la vista
+    And que si cambio de app o bloqueo el teléfono, se pausa
+
+  @slice-15 @component
+  Scenario Outline: La pantalla no se apaga sola mientras comparto
+    # Vitest sobre useShareCourierLocation con navigator.wakeLock simulado: Playwright no tiene
+    # pantalla que apagar, así que no hay nada observable de punta a punta.
+    Given que mi navegador "<wake lock>"
+    When empiezo a compartir mi ubicación
+    Then <resultado>
+
+    Examples:
+      | wake lock          | resultado                                                    |
+      | lo concede         | se le pide que no apague la pantalla, y no se me dice nada más |
+      | lo niega           | se me pide mantener la pantalla encendida yo mismo           |
+      | no lo soporta      | se me pide mantener la pantalla encendida yo mismo           |
+
+  @slice-15 @component
+  Scenario: Al volver a la página, se manda la posición en ese momento
+    # Vitest: el cambio de visibilidad se simula en el documento.
+    Given que estoy compartiendo y cambié a Google Maps
+    When vuelvo a la página del enlace
+    Then se manda mi posición de inmediato, sin esperar al siguiente turno
+    And se vuelve a pedir que la pantalla no se apague
+
+  @slice-15 @component
+  Scenario Outline: Cuándo una posición del repartidor ya es vieja
+    # Vitest sobre el dominio: es aritmética de fechas, sin base ni navegador.
+    Given que la última posición del repartidor se guardó hace "<antigüedad>"
+    When se pregunta si está vieja
+    Then la respuesta es "<vieja>"
+
+    Examples:
+      | antigüedad | vieja | razón                                          |
+      | 15 s       | no    | es el turno normal de envío                    |
+      | 1 min 59 s | no    | todavía cabe en un tropiezo de red             |
+      | 2 min      | sí    | ocho envíos perdidos seguidos: se detuvo       |
+      | 30 min     | sí    | lleva rato sin moverse en la pantalla          |
+
+  @slice-15
+  Scenario: Con la posición vieja, no se presenta como actual
+    Given mi pedido Enviado, con destino guardado
+    And la última posición del repartidor es de hace 7 minutos
+    When abro la ficha del pedido
+    Then veo que la última ubicación es de hace 7 minutos
+    And la distancia se dice en pasado
+    And no se enseña ningún tiempo estimado
+
+  @slice-15
+  Scenario: Con destino guardado, el mapa enseña los dos puntos unidos por una recta
+    Given mi pedido Enviado, con destino guardado y el repartidor compartiendo su ubicación
+    When abro la ficha del pedido
+    Then el mapa enseña al repartidor y a mi destino
+    And los une una línea recta, no un camino por calles
+
+  @slice-15
+  Scenario: Sin destino guardado, el mapa sigue con un solo punto
+    Given mi pedido Enviado, con el repartidor compartiendo su ubicación pero sin destino guardado
+    When abro la ficha del pedido
+    Then el mapa enseña solo al repartidor
+
+  # Slice 16. El camino que le falta al repartidor, por calles, con Mapbox Directions. Sus términos
+  # (Product Terms 2026-07, cláusula 2.10.1) prohíben guardar o cachear el resultado: la ruta se pide
+  # cada vez que se enseña y vive solo en la pantalla. Mientras se enseña, el mapa lleva la
+  # atribución de Mapbox (1.4). La clave se queda en el servidor.
+  @slice-16
+  Scenario: Con destino y repartidor en camino, veo el camino por calles que falta
+    Given mi pedido Enviado, con destino guardado y el repartidor compartiendo su ubicación
+    And que Mapbox devuelve un camino por calles de 2.6 km y 9 minutos
+    When abro la ficha del pedido
+    Then el mapa enseña ese camino por calles, no una recta
+    And dice que el repartidor está a 2.6 km por calles
+    And dice un tiempo de unos 9 min, marcado como aproximado
+    And el mapa lleva la atribución de Mapbox
+
+  @slice-16
+  Scenario: Si no hay camino, el mapa se queda como antes
+    Given mi pedido Enviado, con destino guardado y el repartidor compartiendo su ubicación
+    And que Mapbox no contesta
+    When abro la ficha del pedido
+    Then el mapa enseña la recta punteada y la estimación en línea recta
+    And no se ve ningún error
+
+  @slice-16 @component
+  Scenario Outline: Cuándo se pide un camino
+    # Vitest sobre el dominio: es una regla sobre el pedido, sin base ni red.
+    Given un pedido "<estado>", destino "<destino>" y la posición del repartidor "<posición>"
+    When se pregunta si pedir camino
+    Then la respuesta es "<pedir>"
+
+    Examples:
+      | estado    | destino   | posición  | pedir | razón                                        |
+      | SHIPPED   | guardado  | fresca    | sí    | hay de dónde partir y a dónde llegar         |
+      | SHIPPED   | (ninguno) | fresca    | no    | no hay a dónde llegar                        |
+      | SHIPPED   | guardado  | vieja     | no    | no hay de dónde partir: se detuvo            |
+      | SHIPPED   | guardado  | (ninguna) | no    | el repartidor todavía no compartió nada      |
+      | DELIVERED | guardado  | fresca    | no    | ya llegó                                     |
+
+  @slice-16 @component
+  Scenario: Una ficha abierta pide como mucho un camino por minuto, y no lo guarda
+    # Vitest sobre el hook de la ficha con temporizadores simulados: la cuota y los términos de
+    # Mapbox se cumplen en el cliente, que es quien decide cuándo volver a pedir.
+    Given la ficha de mi pedido Enviado abierta durante 3 minutos
+    When pasan los refrescos de cada 15 segundos
+    Then se pidieron como mucho 3 caminos
+    And ninguno se escribió en la base
+
+  @slice-16 @component
+  Scenario: Solo quien compró puede pedir el camino de su pedido
+    # Vitest sobre el caso de uso: la autorización es del servidor, no de la pantalla.
+    Given un pedido Enviado de otra persona
+    When pido su camino
+    Then no se consulta a Mapbox y no recibo nada
 
   # El pago en línea deja de estar condicionado al volumen: se decidió avanzar ahora, con Stripe
   # Connect (split directo al vendedor, sin que la plataforma retenga el dinero — así no genera la

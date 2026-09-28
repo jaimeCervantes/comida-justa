@@ -39,6 +39,8 @@ function build(
     getCourierTrackingToken: vi.fn(),
     findByCourierToken: vi.fn(),
     saveCourierLocation: vi.fn(),
+    findDeliveryTracking: vi.fn(),
+    saveDeliveryLocation: vi.fn(),
   };
 
   return orders;

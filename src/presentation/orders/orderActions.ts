@@ -4,6 +4,7 @@ import { getLocale } from "next-intl/server";
 import { removeFromSelection } from "~/domain/cart/cartSelection";
 import type { User } from "~/domain/entities/post/types";
 import type { OrderStatus } from "~/domain/order/order";
+import type { Route } from "~/domain/routing/route";
 import { redirectKeepingLocale } from "~/i18n/redirectKeepingLocale";
 import { resolveLocale, routing } from "~/i18n/routing";
 import { auth } from "~/infra/auth";
@@ -21,10 +22,13 @@ import {
 import { createCartProductRepository } from "~/infra/dataAccess/cart/factory";
 import { findSellerOfUser } from "~/infra/dataAccess/identity/sessionIdentity";
 import { createOrderRepository } from "~/infra/dataAccess/orders/factory";
+import { createRouteProvider } from "~/infra/routing/factory";
 import { absoluteCourierTrackingUrl } from "~/infra/UI/mappers/absoluteCourierTrackingUrl";
 import AdvanceOrderUseCase, {
   type AdvanceOrderError,
 } from "~/use_cases/advanceOrder/advanceOrderUseCase";
+import ShareDeliveryLocationUseCase from "~/use_cases/deliveryLocation/shareDeliveryLocation/shareDeliveryLocationUseCase";
+import RouteToDestinationUseCase from "~/use_cases/deliveryRoute/routeToDestination/routeToDestinationUseCase";
 import PlaceOrderUseCase, {
   type PlaceOrderError,
 } from "~/use_cases/placeOrder/placeOrderUseCase";
@@ -75,6 +79,7 @@ export async function placeOrder(
     fallbackLocale: routing.defaultLocale,
     sellerId,
     checkoutId,
+    deliveryLocation: deliveryLocationFrom(formData),
   });
 
   if ("error" in result) return { error: result.error };
@@ -105,6 +110,70 @@ export async function placeOrder(
     { pathname: "/pedido/[id]", params: { id: result.order.id } },
     locale,
   );
+}
+
+/**
+ * El destino que `ConfirmOrderButton` agrega al formulario **solo si el navegador contestó a
+ * tiempo**. Sin los dos campos no hay destino; si llegan pero no son una coordenada real, lo
+ * descarta el caso de uso.
+ */
+function deliveryLocationFrom(
+  formData: FormData,
+): { lat: number; lng: number } | null {
+  const lat = formData.get("deliveryLat");
+  const lng = formData.get("deliveryLng");
+
+  return lat && lng ? { lat: Number(lat), lng: Number(lng) } : null;
+}
+
+/**
+ * Guarda o reemplaza a dónde se entrega un pedido, desde su ficha.
+ *
+ * El comprador sale de la **sesión**, no del formulario: el `WHERE` de la escritura lleva su id, así
+ * que mandar el de un pedido ajeno no escribe nada. Un fallo no se explica —ni «no es tuyo» ni «ya
+ * se entregó»—; la ficha simplemente sigue como estaba.
+ */
+export async function shareDeliveryLocation(formData: FormData): Promise<void> {
+  const locale = resolveLocale(await getLocale());
+  const session = await auth();
+  const buyerId = (session?.user as User | undefined)?.id;
+
+  if (!buyerId) {
+    redirectToSignInFrom(locale, await refererPath());
+  }
+
+  const result = await new ShareDeliveryLocationUseCase(
+    createOrderRepository(),
+  ).execute({
+    orderId: String(formData.get("orderId") ?? ""),
+    buyerId,
+    lat: Number(formData.get("latitude")),
+    lng: Number(formData.get("longitude")),
+  });
+
+  if ("saved" in result) revalidatePath("/", "layout");
+}
+
+/**
+ * El camino por calles que le falta al repartidor, para la ficha del comprador.
+ *
+ * **Es una lectura que no se guarda**: los términos de Mapbox prohíben guardar o cachear la ruta,
+ * así que se consulta cada vez y solo vive en la pantalla. La frecuencia la limita la ficha
+ * (`useDeliveryRoute`, una por minuto). Sin sesión no hay camino: no se redirige a nadie desde un
+ * refresco en segundo plano.
+ */
+export async function routeToDestination(
+  orderId: string,
+): Promise<Route | null> {
+  const session = await auth();
+  const buyerId = (session?.user as User | undefined)?.id;
+
+  if (!buyerId || !orderId) return null;
+
+  return new RouteToDestinationUseCase(
+    createOrderRepository(),
+    createRouteProvider(),
+  ).execute({ orderId, buyerId, now: new Date() });
 }
 
 export type AdvanceOrderState = {

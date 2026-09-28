@@ -21,7 +21,7 @@ export default function CourierLocationSharer({
   token: string;
 }) {
   const t = useTranslations("orders");
-  const { state, start } = useShareCourierLocation(orderId, token);
+  const { state, start, screen } = useShareCourierLocation(orderId, token);
 
   if (state === "denied") {
     return (
@@ -39,14 +39,30 @@ export default function CourierLocationSharer({
     );
   }
 
+  /* Compartiendo: se dice qué la pausa, porque una página web no puede leer el GPS en segundo
+     plano. Y si el navegador no deja mantener la pantalla encendida, se le pide al repartidor que lo
+     haga él. */
   if (state === "active") {
     return (
-      <p
-        data-testid="courier-share-active"
-        className="font-medium text-pw-green"
-      >
-        {t("courier.active")}
-      </p>
+      <div>
+        <p
+          data-testid="courier-share-active"
+          className="font-medium text-pw-green"
+        >
+          {t("courier.active")}
+        </p>
+        <p data-testid="courier-keep-open" className="mt-2 text-text-support">
+          {t("courier.keepOpen")}
+        </p>
+        {screen === "unavailable" ? (
+          <p
+            data-testid="courier-screen-manual"
+            className="mt-2 text-label text-pw-orange"
+          >
+            {t("courier.screenOnManual")}
+          </p>
+        ) : null}
+      </div>
     );
   }
 

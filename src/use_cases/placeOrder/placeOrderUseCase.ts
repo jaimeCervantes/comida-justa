@@ -5,6 +5,7 @@ import {
 } from "~/domain/cart/cart";
 import type { CartSelection } from "~/domain/cart/cartSelection";
 import type { CartProductRepository } from "~/domain/cart/ports";
+import { areValidCoordinates } from "~/domain/entities/seller/coordinates";
 import type { Order } from "~/domain/order/order";
 import type {
   NewOrder,
@@ -27,6 +28,12 @@ export interface PlaceOrderInput {
    * hermanaba nada — que era justo para lo que existía.
    */
   checkoutId: string;
+  /**
+   * A dónde se entrega, si el navegador lo dio a tiempo en el mismo clic de confirmar. De mejor
+   * esfuerzo: si falta o no es una coordenada real, el pedido se crea igual, sin destino — nunca se
+   * pierde un pedido por no saber a dónde va, eso se sigue arreglando por WhatsApp.
+   */
+  deliveryLocation?: { lat: number; lng: number } | null;
 }
 
 export type PlaceOrderResult =
@@ -65,6 +72,7 @@ export default class PlaceOrderUseCase {
     fallbackLocale,
     sellerId,
     checkoutId,
+    deliveryLocation,
   }: PlaceOrderInput): Promise<PlaceOrderResult> {
     const group = await this.findGroup(
       selection,
@@ -84,6 +92,7 @@ export default class PlaceOrderUseCase {
       sellerId: group.seller.id,
       buyerId,
       lines,
+      deliveryLocation: validDestination(deliveryLocation),
     };
 
     const [order] = await this.orders.createAll([newOrder]);
@@ -119,6 +128,19 @@ export default class PlaceOrderUseCase {
 
     return groups.find((group) => group.seller.id === sellerId) ?? null;
   }
+}
+
+function validDestination(
+  location: PlaceOrderInput["deliveryLocation"],
+): NewOrder["deliveryLocation"] {
+  if (!location) return null;
+
+  return areValidCoordinates({
+    latitude: location.lat,
+    longitude: location.lng,
+  })
+    ? location
+    : null;
 }
 
 /** El precio de hoy se copia al renglón: a partir de aquí, el pedido ya no cambia de importe. */

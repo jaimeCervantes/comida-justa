@@ -233,3 +233,272 @@ confirman contra la base real, además de los 3008 tests de Vitest y typecheck/l
 2. **Nada pendiente de tu parte** en el slice 2: código, migración y validación end-to-end están
    listos. Falta solo que decidas si quieres commitear/subir estos cambios (no se hizo commit
    todavía, ni en `comida-justa` ni en `bot-whatsapp`).
+
+## Slice 3 — Distancia y ETA aproximado (2026-09-28)
+
+**Objetivo:** con el pedido Enviado y el repartidor compartiendo su posición, decirle al comprador a
+qué distancia va y un tiempo aproximado — a partir de un destino guardado en el propio pedido.
+
+### Decisiones y por qué
+
+- **El destino vive en el pedido, no en la cuenta.** El sitio no guarda direcciones de entrega, y
+  `users.lastLatitude` es "la última vez que compartiste tu ubicación por cualquier motivo", no a
+  dónde va este pedido. Migración `0059_2026-09-26_add_delivery_location_to_customer_orders.py` en
+  `bot-whatsapp` (`delivery_lat`, `delivery_lng`, `delivery_location_updated_at`, nulables,
+  `double precision` como las del repartidor), **aplicada a la base compartida** el 2026-09-28.
+- **Compartir al confirmar sin permiso ni paso nuevo** (`readGrantedPosition`): se consulta
+  `navigator.permissions` y solo si ya está `granted` se lee la posición, con un plazo de 3 s. Si el
+  permiso está en `prompt`, no se pregunta — preguntar en medio de la compra sería justo el paso
+  extra que el roadmap descarta. Así el primer pedido de alguien que nunca compartió sale sin
+  destino, y lo comparte desde la ficha.
+- **La distancia la calcula PostGIS** en la consulta común (`listWhere`): `ST_Distance` sobre
+  `ST_MakePoint(...)::geography` armados al vuelo; con cualquier coordenada nula sale `NULL`, sin
+  `CASE`. Verificado contra la base: dos puntos de Mérida → 1 845,87 m, y `NULL` con un nulo.
+- **El ETA es una suposición explícita** (`ASSUMED_COURIER_SPEED_KMH = 20`, línea recta), hacia
+  arriba y nunca menos de 1 min — "0 min" se leería como "ya llegó". Se rotula "aproximado, en
+  línea recta".
+- **Se puede compartir mientras el pedido siga abierto, no solo Enviado**
+  (`DELIVERY_SHAREABLE_STATUSES = OPEN_STATUSES`), y la condición va en el `WHERE` de la escritura
+  junto con el comprador, mismo criterio que `saveCourierLocation`. No se ofrece en citas.
+- **Se reutilizó `useShareLocation`** (ahora recibe a dónde mandar la posición, por defecto a la
+  cuenta como antes) y `describeDistance` + las cadenas `distance.meters/kilometers`, en vez de un
+  segundo trámite con el navegador y un segundo formateador.
+- **Los pasos de Playwright que ya repetía `courierTracking.spec.ts`** (hacer el pedido, avanzarlo,
+  leer el enlace, compartir como repartidor) se extrajeron a `src/e2e/testUtils/orderFlow.ts`.
+
+### Archivos tocados
+
+**Dominio:** `src/domain/order/delivery.ts` (nuevo: `deliveryProgress`, `etaMinutes`,
+`canShareDeliveryLocation`, `DELIVERY_SHAREABLE_STATUSES`), `order.ts` (`DeliveryLocation`,
+`Order.deliveryLocation`, `Order.courierDistanceMeters`), `ports.ts` (`NewOrder.deliveryLocation`,
+`saveDeliveryLocation`).
+
+**Casos de uso:** `src/use_cases/deliveryLocation/shareDeliveryLocation/` (nuevo),
+`placeOrder/placeOrderUseCase.ts` (destino de mejor esfuerzo, validado con `areValidCoordinates`).
+
+**Infra:** `db/schema/orders.ts` (espejo de la 0059), `PostgresOrderRepository.ts` (lectura con
+`ST_Distance`, `createAll` con destino, `saveDeliveryLocation`).
+
+**UI:** `presentation/location/readGrantedPosition.ts` (nuevo), `useShareLocation.ts` (destino
+parametrizable), `presentation/orders/DeliveryLocationShare/` (nuevo), `CourierMap.tsx` (distancia
+y ETA), `orderActions.ts` (`shareDeliveryLocation`, destino en `placeOrder`),
+`carrito/ui/ConfirmOrderButton.tsx`, `pedido/[id]/page.tsx`, `i18n/messages/{es,en}.json`.
+
+**Tests:** `delivery.test.ts`, `shareDeliveryLocationUseCase.test.ts`,
+`DeliveryLocationShare.test.tsx` (nuevos); `placeOrderUseCase.test.ts` (+4); dobles de
+`OrderRepository` con `saveDeliveryLocation`; `src/e2e/orders/deliveryEta.spec.ts` (nuevo),
+`courierTracking.spec.ts` (usa `orderFlow.ts`).
+
+### Validación
+
+- `pnpm run typecheck` → limpio. `pnpm run lint` → limpio.
+- `pnpm run test:run` → **286 archivos, 3043 tests, todos en verde**.
+- `rm -rf .next && pnpm exec playwright test src/e2e/orders/deliveryEta.spec.ts
+  src/e2e/orders/courierTracking.spec.ts` → **10/10 en verde** a la primera (6 del slice 3 + los
+  4 del slice 2 tras extraer los pasos compartidos).
+- Escritura en la base compartida: solo la migración 0059 (reversible con `alembic downgrade
+  0058_2026_09_25`); los e2e borran su tienda y pedidos en `afterEach`.
+
+### Desviaciones del roadmap
+
+- El roadmap decía "pide la ubicación al navegador en el mismo clic". Se precisó: **solo si el
+  permiso ya está concedido**; con `prompt` no se pregunta, para no convertir el clic de compra en
+  un diálogo del navegador.
+- El mapa sigue con un solo marcador (el repartidor); el destino no se pinta. No lo pide ningún
+  escenario.
+
+### Recap
+
+El slice 3 está completo: el pedido guarda su propio destino (al confirmar si el navegador ya tiene
+permiso, o después desde la ficha mientras siga abierto), y con el repartidor en camino la ficha
+dice a qué distancia va —calculada por PostGIS— y un tiempo aproximado rotulado como tal. Sin
+destino, el mapa queda como en el slice 2 y se invita a compartir la ubicación. Migración 0059
+aplicada; Vitest, typecheck, lint y los 10 e2e en verde.
+
+### Próximos pasos (opciones)
+
+1. **Empujar**: `comida-justa` tiene `dev` 2 commits por delante (slice 2) y esta rama
+   `feat/pedido-enviado-eta`; `bot-whatsapp` (`hazlo-sano-bot`) tiene `main` 2 por delante (0058 y
+   0059). Nada se ha empujado.
+2. Pintar también el destino en el mapa y encuadrar los dos puntos.
+3. Aviso de "ya casi llega" o ruteo real (Directions/OSRM) — fuera de este roadmap por ahora.
+
+## Slice 3, ajuste — Al confirmar sí se pide la ubicación (2026-09-28)
+
+**Objetivo:** que el primer pedido de alguien que nunca compartió su ubicación también salga con
+destino, en vez de depender de que lo comparta después desde la ficha.
+
+### Decisiones y por qué
+
+- **Decisión del usuario:** al confirmar, si el navegador todavía no tiene permiso, se le pide en
+  ese mismo clic. Revierte la desviación anotada en la entrada anterior ("solo si ya está
+  `granted`"). Sigue sin haber un paso propio del sitio: la única pregunta es el diálogo del
+  navegador.
+- `readGrantedPosition` pasa a `readDeliveryPosition`: con `denied` no insiste (el navegador
+  tampoco preguntaría); con `granted` espera 3 s; con `prompt` (o sin API de permisos) espera como
+  mucho 20 s **en total**, porque el `timeout` de `getCurrentPosition` no cuenta el rato que la
+  persona tarda en contestar el diálogo, y un diálogo ignorado no puede dejar la compra colgada.
+- Escenario y roadmap actualizados: "el único paso extra fue, si hacía falta, el permiso del propio
+  navegador".
+
+### Archivos tocados
+
+`src/presentation/location/readDeliveryPosition.ts` (renombrado desde `readGrantedPosition.ts`) +
+`readDeliveryPosition.test.ts` (nuevo, 5 casos), `carrito/ui/ConfirmOrderButton.tsx`,
+`src/e2e/orders/orders.feature`, `src/e2e/orders/deliveryEta.spec.ts` (textos),
+`docs/features/commerce/028-2026-09-18-pedido-enviado.md`.
+
+### Validación
+
+- `pnpm run typecheck` y `pnpm run lint` → limpios.
+- `pnpm run test:run` → **287 archivos, 3048 tests, en verde**.
+- `rm -rf .next && pnpm exec playwright test src/e2e/orders/deliveryEta.spec.ts` → **6/6**. El
+  escenario sin permiso ahora sí pregunta, y Playwright contesta que no: el pedido sale sin destino.
+
+### Recap
+
+El slice 3 queda igual salvo por el clic de confirmar: ahora pide la ubicación si hace falta, con un
+tope de 20 s para que un diálogo sin contestar no detenga la compra.
+
+### Próximos pasos (opciones)
+
+1. Revisar y fusionar el PR de `feat/pedido-enviado-eta` hacia `dev`.
+2. Pintar también el destino en el mapa y encuadrar los dos puntos.
+
+## Slice 4 — Que la posición no mienta (2026-09-28)
+
+**Objetivo:** una página web no puede leer el GPS con el teléfono bloqueado ni en segundo plano, y
+hasta ahora el comprador veía el último punto congelado como si fuera actual. Que se congele menos
+(pantalla encendida, reanudar al volver), que nunca se presente algo viejo como actual, y que el
+mapa enseñe los dos puntos.
+
+### Decisiones y por qué
+
+- **Textos que explican el para qué**: el aviso del vendedor dice que el cliente verá al repartidor
+  en un mapa; el mensaje de WhatsApp y la página del repartidor le piden dejarla abierta y a la
+  vista, y qué la pausa.
+- **Screen Wake Lock** en `src/infra/UI/hooks/useScreenWakeLock.ts` (genérico, sin saber de
+  pedidos): se pide al pasar a "compartiendo", se vuelve a pedir en cada `visibilitychange` a
+  visible (el navegador lo suelta solo al ocultarse la página) y se libera al dejar de compartir. Si
+  no hay soporte o se niega, el repartidor lee que mantenga la pantalla encendida él mismo.
+- **Reanudar al volver**: `useShareCourierLocation` manda la posición en cuanto la página vuelve a
+  estar visible, sin esperar al siguiente turno de 15 s. El intervalo y el regreso comparten una ref
+  (`repeat`) para usar siempre la versión del render actual.
+- **Posición vieja a partir de 2 min** (`COURIER_LOCATION_STALE_AFTER_MS`, ocho envíos perdidos):
+  `isCourierLocationStale` / `staleMinutes` en el dominio. `deliveryProgress` recibe ahora `now` y,
+  con la posición vieja, da la distancia con `staleMinutes` y `etaMinutes: null`. La hora la pone el
+  servidor (`page.tsx`), una sola por render, y se recalcula en cada `refresh` de 15 s.
+- **Mapa con los dos puntos**: el destino usa el mismo marcador que "Aquí estás tú"; los une una
+  `Polyline` **punteada** (`.courier-straight-line`) para que no se lea como un camino por calles; se
+  encuadran con `fitBounds` (tope de zoom 15). Sin destino, como antes.
+- **"La ruta"**: el usuario pidió **camino por calles**. Necesita un proveedor externo con clave y
+  costo, así que queda como slice 5 con esa decisión pendiente; la recta punteada se queda como
+  respaldo para cuando no haya camino.
+
+### Archivos tocados
+
+**Dominio:** `src/domain/order/delivery.ts` (+ test). **Infra UI:**
+`src/infra/UI/hooks/useScreenWakeLock.ts` (nuevo). **Repartidor:**
+`pedido/[id]/repartidor/[token]/ui/useShareCourierLocation.ts`, `CourierLocationSharer.tsx` (+
+`CourierLocationSharer.test.tsx`, nuevo). **Comprador:** `CourierMap.tsx`, `CourierMapCanvas.tsx`,
+`pedido/[id]/page.tsx`, `utility-patterns.css`. **Vendedor:** textos de `ShareCourierLinkNotice` (+
+2 tests). **i18n:** `es.json`, `en.json`. **E2E:** `orders.feature` (8 escenarios `@slice-15`),
+`deliveryEta.spec.ts` (+3), `courierTracking.spec.ts` (texto del repartidor).
+
+### Validación
+
+- `pnpm run typecheck` y `pnpm run lint` → limpios.
+- `pnpm run test:run` → **288 archivos, 3064 tests, en verde**.
+- `rm -rf .next && pnpm exec playwright test src/e2e/orders/deliveryEta.spec.ts
+  src/e2e/orders/courierTracking.spec.ts` → **13/13** a la primera.
+- Sin escrituras nuevas en la base compartida fuera de las que los e2e crean y borran.
+
+### Desviaciones
+
+- El escenario de Wake Lock es `@component`: Playwright no tiene pantalla que apagar. **Falta
+  probarlo en un teléfono real**, sobre todo abriendo el enlace dentro del navegador de WhatsApp.
+
+### Recap
+
+El seguimiento ya no presenta una posición congelada como actual: a partir de 2 min el comprador ve
+cuánto hace, la distancia en pasado y ningún tiempo estimado. El repartidor sabe que la página tiene
+que quedarse abierta, la pantalla no se apaga sola donde el navegador lo permite, y al volver a la
+página la posición se manda al instante. El mapa enseña repartidor y destino unidos por una recta.
+
+### Próximos pasos (opciones)
+
+1. **Slice 5, camino por calles**: pendiente de elegir proveedor (clave y costo) — decisión del
+   usuario.
+2. Probar el recorrido en dos teléfonos reales, con HTTPS, incluido el navegador interno de WhatsApp.
+
+## Slice 5 — Camino por calles con Mapbox Directions (2026-09-28)
+
+**Objetivo:** en vez de la recta punteada, trazar el camino por calles que le falta al repartidor, y
+sacar distancia y tiempo de ese camino. Decisión del usuario: Mapbox.
+
+### Decisiones y por qué
+
+- **Se leyeron los términos de Mapbox** (Product Terms, 21 de julio de 2026) antes de diseñar:
+  - 2.10.1 prohíbe guardar o cachear resultados de las Navigation APIs → **ninguna ruta se guarda**:
+    ni en la base, ni en caché del servidor (`fetch` con `cache: "no-store"`), ni en
+    `localStorage`. Vive solo en el estado de `CourierMap`.
+  - 1.4.1/1.4.2 exigen logo, "© Mapbox", "© OpenStreetMap" e "Improve this map" →
+    `MapboxAttribution`, visible **solo mientras se enseña un camino de Mapbox**. El logo sale del
+    control oficial de atribución de `mapbox-gl.css` (`public/brand/mapbox-logo.svg`).
+  - 2.2 ("uso vehicular") se interpretó como no aplicable: la app no está pensada para usarse dentro
+    del vehículo y la página del repartidor no llama a Mapbox. Queda anotado en el roadmap.
+- **Puerto genérico** `RouteProvider` en `src/domain/routing/` (sin pedidos ni Mapbox), adaptador
+  `MapboxRouteProvider` en `src/infra/routing/` con perfil `driving-traffic`. Sin
+  `MAPBOX_ACCESS_TOKEN`, la fábrica devuelve un proveedor que nunca da camino.
+- **Cuándo se pide** (`shouldRequestRoute`): Enviado, con destino y posición fresca. Con posición
+  vieja no se gasta consulta.
+- **Una consulta por minuto como mucho** por ficha abierta (`useDeliveryRoute`), aunque el mapa se
+  refresque cada 15 s; un salto fresca→vieja→fresca dentro del mismo minuto no dispara otra.
+- **Autorización en el servidor**: la acción `routeToDestination` saca al comprador de la sesión, y
+  `findDeliveryTracking` lo lleva en el `WHERE`.
+- **Sin camino, todo queda como en el slice 4**: recta punteada, estimación en línea recta, sin
+  error visible.
+- **E2E contra un Mapbox falso local** (`src/e2e/testUtils/fakeMapbox.ts`, puerto 4010):
+  `playwright.config.ts` fija `MAPBOX_ACCESS_TOKEN`/`MAPBOX_DIRECTIONS_BASE_URL` para el servidor
+  de pruebas, así que la suite **nunca** gasta cuota aunque `.env.development` tenga la clave real.
+
+### Variables de entorno
+
+- `MAPBOX_ACCESS_TOKEN` — solo servidor (sin `NEXT_PUBLIC_`). Sin ella, no hay camino por calles.
+- `MAPBOX_DIRECTIONS_BASE_URL` — solo para e2e; en producción no se define.
+
+### Archivos tocados
+
+**Dominio:** `src/domain/routing/{route,ports}.ts` (+ test), `order/delivery.ts`
+(`shouldRequestRoute`, + tests), `order/ports.ts` (`findDeliveryTracking`). **Caso de uso:**
+`src/use_cases/deliveryRoute/routeToDestination/` (+ test). **Infra:**
+`src/infra/routing/{MapboxRouteProvider,factory}.ts` (+ test), `PostgresOrderRepository.ts`.
+**UI:** `presentation/orders/orderActions.ts` (`routeToDestination`),
+`CourierMap/{CourierMap,CourierMapCanvas,MapboxAttribution,useDeliveryRoute}.tsx` (+ test del
+hook), `pedido/[id]/page.tsx`, `utility-patterns.css` (`.courier-route-line`), i18n,
+`public/brand/mapbox-logo.svg`. **E2E:** `playwright.config.ts`, `testUtils/fakeMapbox.ts`,
+`deliveryEta.spec.ts` (+2), `orders.feature` (5 escenarios `@slice-16`). Dobles de
+`OrderRepository` con `findDeliveryTracking`.
+
+### Validación
+
+- `pnpm run typecheck` y `pnpm run lint` → limpios.
+- `pnpm run test:run` → **292 archivos, 3087 tests, en verde**.
+- `rm -rf .next && pnpm exec playwright test src/e2e/orders/deliveryEta.spec.ts
+  src/e2e/orders/courierTracking.spec.ts` → **15/15**. La primera corrida dio 14/15: el camino
+  llegaba pero la línea conservaba la clase de la recta — las dos `Polyline` condicionales
+  compartían posición en el árbol y react-leaflet solo aplica `setStyle`, que no cambia
+  `className`. Se corrigió con `key` distintas.
+- **Sin probar contra Mapbox real**: todavía no hay `MAPBOX_ACCESS_TOKEN` en `.env.development`.
+
+### Recap
+
+Con destino y repartidor en camino, la ficha pide cada minuto el camino por calles a Mapbox, lo
+pinta continuo, da distancia y tiempo "por calles y con tráfico" y enseña la atribución que piden
+sus términos; nada de eso se guarda. Si no hay camino, todo queda como en el slice 4.
+
+### Próximos pasos (opciones)
+
+1. **Pendiente del usuario:** crear la cuenta de Mapbox y agregar `MAPBOX_ACCESS_TOKEN` a
+   `.env.development` (y al entorno de producción). Después, una prueba manual contra Mapbox real.
+2. Probar el recorrido en dos teléfonos reales, con HTTPS.

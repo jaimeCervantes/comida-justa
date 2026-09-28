@@ -19,7 +19,14 @@ export interface ShareLocation {
  * habría significado dos sitios donde arreglar el día que cambie, y dos sitios donde olvidarse de
  * que negar el permiso no es un error del que haya que reponerse.
  */
-export function useShareLocation(): ShareLocation {
+export function useShareLocation(
+  /**
+   * A dónde se manda. Por defecto, a la ubicación de quien mira (cookie y cuenta); la ficha de un
+   * pedido la manda al destino de ESE pedido. El trámite con el navegador es el mismo, y es lo que
+   * este hook existe para no duplicar.
+   */
+  send: (data: FormData) => Promise<void> = shareLocation,
+): ShareLocation {
   const [state, setState] = useState<ShareLocationState>("idle");
   const [isPending, startTransition] = useTransition();
 
@@ -38,7 +45,7 @@ export function useShareLocation(): ShareLocation {
 
         startTransition(async () => {
           try {
-            await shareLocation(data);
+            await send(data);
           } catch {
             /* Un fallo del servidor no es `failed`: ese estado significa "dijiste que no" y saca
                copia que se lo reprocha ("No compartiste tu ubicación"), que es exactamente lo

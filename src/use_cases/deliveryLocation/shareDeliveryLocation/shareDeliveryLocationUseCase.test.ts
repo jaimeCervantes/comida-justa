@@ -1,9 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
 import type { OrderRepository } from "~/domain/order/ports";
-import ShareCourierLocationUseCase from "./shareCourierLocationUseCase";
+import ShareDeliveryLocationUseCase from "./shareDeliveryLocationUseCase";
 
 const ORDER_ID = "order-1";
-const TOKEN = "a-real-token";
+const BUYER = "user-jaime";
+/* Colonia Obispado, Monterrey. */
+const DESTINO = { lat: 25.6766, lng: -100.3303 };
 
 function build(saved: boolean) {
   const orders: OrderRepository = {
@@ -21,62 +23,56 @@ function build(saved: boolean) {
     updateStatus: vi.fn(),
     getCourierTrackingToken: vi.fn(),
     findByCourierToken: vi.fn(),
-    saveCourierLocation: vi.fn().mockResolvedValue(saved),
+    saveCourierLocation: vi.fn(),
     findDeliveryTracking: vi.fn(),
-    saveDeliveryLocation: vi.fn(),
+    saveDeliveryLocation: vi.fn().mockResolvedValue(saved),
   };
 
-  return { useCase: new ShareCourierLocationUseCase(orders), orders };
+  return { useCase: new ShareDeliveryLocationUseCase(orders), orders };
 }
 
-describe("ShareCourierLocationUseCase", () => {
-  it("guarda una coordenada real", async () => {
+describe("ShareDeliveryLocationUseCase", () => {
+  it("guarda el destino del pedido a nombre de quien lo compró", async () => {
     const { useCase, orders } = build(true);
 
     const result = await useCase.execute({
       orderId: ORDER_ID,
-      token: TOKEN,
-      lat: 25.6866,
-      lng: -100.3161,
+      buyerId: BUYER,
+      ...DESTINO,
     });
 
     expect(result).toEqual({ saved: true });
-    expect(orders.saveCourierLocation).toHaveBeenCalledWith({
+    expect(orders.saveDeliveryLocation).toHaveBeenCalledWith({
       orderId: ORDER_ID,
-      token: TOKEN,
-      lat: 25.6866,
-      lng: -100.3161,
+      buyerId: BUYER,
+      ...DESTINO,
     });
   });
 
-  /* 0,0 es el Golfo de Guinea: en la práctica significa "no se pudo leer nada", igual que en
-     `areValidCoordinates`. No se escribe eso como si fuera una posición real. */
   it("rechaza coordenadas que no valen, sin llegar a la escritura", async () => {
     const { useCase, orders } = build(true);
 
     const result = await useCase.execute({
       orderId: ORDER_ID,
-      token: TOKEN,
+      buyerId: BUYER,
       lat: 0,
       lng: 0,
     });
 
     expect(result).toEqual({ error: "invalid-coordinates" });
-    expect(orders.saveCourierLocation).not.toHaveBeenCalled();
+    expect(orders.saveDeliveryLocation).not.toHaveBeenCalled();
   });
 
-  /* El token no coincide, el pedido no existe, o ya no está SHIPPED — el repositorio ya no
-     distingue, y el caso de uso tampoco inventa una razón. */
-  it("un token que no escribe nada se ve como token inválido", async () => {
+  /* No existe, no es suyo o ya se cerró: el repositorio no distingue, y el caso de uso tampoco. */
+  it("un pedido en el que no se escribe nada se ve como no encontrado", async () => {
     const { useCase } = build(false);
 
     const result = await useCase.execute({
       orderId: ORDER_ID,
-      token: "otro-token",
-      lat: 25.6866,
-      lng: -100.3161,
+      buyerId: "otra-persona",
+      ...DESTINO,
     });
 
-    expect(result).toEqual({ error: "invalid-token" });
+    expect(result).toEqual({ error: "not-found" });
   });
 });

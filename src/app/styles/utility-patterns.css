@@ -235,6 +235,22 @@ input[type="search"]::-webkit-search-results-decoration {
   --map-marker-bg: #d97706;
 }
 
+/* La recta entre el repartidor y el destino: punteada para que no se lea como un camino por calles,
+   y del tono del repartidor, que es quien la recorre. */
+.courier-straight-line {
+  stroke: #d97706;
+  stroke-dasharray: 6 8;
+  stroke-width: 3;
+}
+
+/* El camino por calles de Mapbox: continuo, que es lo que lo distingue de la recta punteada. */
+.courier-route-line {
+  stroke: #d97706;
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 /**
  * «Esta fila sigue»: un desvanecido y una flechita en el borde, **solo cuando queda algo que
  * arrastrar**.

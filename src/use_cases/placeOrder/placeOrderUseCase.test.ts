@@ -92,6 +92,8 @@ function build(products: CartProduct[]) {
     getCourierTrackingToken: vi.fn(),
     findByCourierToken: vi.fn(),
     saveCourierLocation: vi.fn(),
+    findDeliveryTracking: vi.fn(),
+    saveDeliveryLocation: vi.fn(),
   };
   const cart: CartProductRepository = {
     findByIds: vi.fn().mockResolvedValue(products),
@@ -268,5 +270,39 @@ describe("PlaceOrderUseCase", () => {
     expect(result).toEqual({ error: "empty-for-seller" });
     expect(cart.findByIds).not.toHaveBeenCalled();
     expect(orders.createAll).not.toHaveBeenCalled();
+  });
+
+  /* @slice-14: el destino viaja con el propio pedido si el navegador lo dio a tiempo al confirmar.
+     Es de mejor esfuerzo: sin él, o con algo que no es una coordenada, el pedido sale igual. */
+  it("guarda como destino la ubicación que dio el navegador al confirmar", async () => {
+    const { useCase, created } = build([jugoVerde]);
+
+    await useCase.execute({
+      ...baseInput,
+      selection: [{ postId: jugoVerde.postId, quantity: 1 }],
+      deliveryLocation: { lat: 25.6766, lng: -100.3303 },
+    });
+
+    expect(created[0].deliveryLocation).toEqual({
+      lat: 25.6766,
+      lng: -100.3303,
+    });
+  });
+
+  it.each([
+    ["sin ubicación", undefined],
+    ["con 0,0, que es «no se pudo leer nada»", { lat: 0, lng: 0 }],
+    ["con una latitud imposible", { lat: 123, lng: -100.3303 }],
+  ])("%s el pedido se crea igual, sin destino", async (_, deliveryLocation) => {
+    const { useCase, created } = build([jugoVerde]);
+
+    const result = await useCase.execute({
+      ...baseInput,
+      selection: [{ postId: jugoVerde.postId, quantity: 1 }],
+      deliveryLocation,
+    });
+
+    expect("order" in result).toBe(true);
+    expect(created[0].deliveryLocation ?? null).toBeNull();
   });
 });

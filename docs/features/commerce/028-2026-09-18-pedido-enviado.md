@@ -94,7 +94,139 @@ posición **de ese pedido y de ninguno más**.
 o tiempo estimado de llegada, y notificaciones de "ya llegó". Si algún día se quiere el trazo, se
 migra a una tabla aparte; hoy sería guardar datos que nadie mira.
 
-## Slice 3 (futuro) — Lo que el tracking pide después
+## Slice 3 (este) — Distancia y ETA aproximado
 
-Distancia y ETA al comprador, o el recorrido completo. Los dos dependen de tener primero posiciones
-reales guardándose, que es lo que entrega el slice 2.
+**El sitio no guarda ninguna dirección de entrega**, y ese es el hallazgo que enmarca el slice: la
+logística se coordina entera por WhatsApp, fuera de cualquier dato estructurado. `users.lastLatitude`
+existe, pero es "la última vez que alguien compartió su ubicación por cualquier motivo" — usarla como
+destino de una entrega concreta sería una suposición floja (pudo compartirse hace días, desde otro
+lugar). La decisión: **la ubicación de entrega vive en el propio pedido**, no en la cuenta, y se
+puede compartir en dos momentos — al confirmar, o después desde la ficha.
+
+**Alcance:**
+
+- **Migración en `bot-whatsapp`** (columnas nuevas en `customer_orders`): `delivery_lat`,
+  `delivery_lng`, `delivery_location_updated_at`. Mismo patrón que las de seguimiento del
+  repartidor — `double precision`, todas nulables.
+- **Compartir al confirmar es de mejor esfuerzo, sin paso nuevo.** El botón "Hacer el pedido a
+  {store}" pide la ubicación al navegador (con un plazo corto) en el mismo clic; si el navegador
+  contesta a tiempo, viaja con el propio formulario. Si no contesta, se niega, o tarda, el pedido se
+  registra igual, sin destino. **No se agrega un paso propio del sitio**: si el navegador todavía no
+  tiene permiso, lo pide en ese mismo clic (decidido el 2026-09-28; ver la bitácora).
+- **También se puede compartir o actualizar después**, desde la ficha del pedido — el mismo botón
+  que ya existe en el sitio para esto (`ShareLocationButton`/`useShareLocation`), pero escribiendo
+  en el pedido y no en la cuenta.
+- **La distancia la calcula PostGIS, no una fórmula en JavaScript.** Es una regla ya escrita en el
+  código (`locationFreshness.ts`): la única aritmética de distancia en JS del proyecto es para
+  decidir si vale la pena escribir una actualización, nunca para la cifra que se le enseña a
+  alguien. Se calcula con `ST_Distance` sobre puntos armados al vuelo
+  (`ST_MakePoint(...)::geography`) a partir de las columnas sueltas — no hace falta convertirlas a
+  `geography` para eso.
+- **El ETA es una estimación explícita, no una promesa.** Distancia en línea recta ÷ una velocidad
+  urbana asumida (repartidor en moto, con paradas y tráfico) — no hay ruteo real (Google
+  Directions/OSRM sería otro slice). Se rotula como aproximado.
+- **Sin ubicación de entrega, el mapa se queda exactamente como en el slice 2**: la posición del
+  repartidor, sin distancia — no se pinta un espacio vacío ni un error, y se ofrece el botón para
+  compartirla en cualquier momento.
+
+**Acceptance criteria:**
+
+- Al confirmar un pedido, si el navegador entrega una posición a tiempo, ese pedido queda con su
+  propio destino guardado — la única pregunta es, si hace falta, el permiso del navegador.
+- Si el comprador no compartió nada al confirmar, puede hacerlo después desde la ficha del pedido,
+  en cualquier momento (no solo mientras está "Enviado").
+- Con destino guardado y el repartidor en camino, la ficha dice la distancia y un tiempo estimado,
+  marcado como aproximado.
+- Sin destino guardado, la ficha sigue exactamente como en el slice 2: mapa con la posición del
+  repartidor, sin distancia, con la invitación a compartir la ubicación.
+- Actualizar la ubicación desde la ficha cambia la distancia mostrada en la siguiente carga.
+
+**Lo que NO entra:** ruteo real (calles, tráfico en vivo), notificación de "ya casi llega", y
+recorrido histórico del comprador (solo su última posición, igual que el repartidor).
+
+## Slice 4 (este) — Que la posición no mienta: pantalla encendida, aviso de posición vieja y mapa con los dos puntos
+
+**El hallazgo que lo motiva:** una página web **no puede leer el GPS con el teléfono bloqueado ni en
+segundo plano**. El envío del repartidor (cada 15 s) se detiene en cuanto la pantalla se apaga sola,
+se bloquea, o el repartidor abre Google Maps o WhatsApp para guiarse. Hoy el comprador sigue viendo
+el último punto sin ninguna señal de que se congeló, y la distancia y el tiempo se calculan sobre él
+como si fueran actuales. Arreglarlo de raíz exige una app nativa; lo que sí está a nuestro alcance es
+**que se congele menos** y **que nunca se presente algo viejo como actual**.
+
+**Alcance:**
+
+- **Textos que explican el para qué.** El aviso del vendedor y el mensaje de WhatsApp dicen que el
+  cliente verá al repartidor en un mapa; la página del repartidor le pide dejarla abierta y a la
+  vista, porque si cambia de app o bloquea el teléfono, se pausa.
+- **Pantalla encendida (Screen Wake Lock API).** Al empezar a compartir se le pide al navegador que
+  no apague la pantalla. El navegador lo suelta solo cuando la página deja de verse; al volver se
+  pide otra vez **y se manda la posición en ese momento**, sin esperar al siguiente turno de 15 s.
+  Si el navegador no lo soporta o lo niega (ahorro de batería), se le dice al repartidor que
+  mantenga la pantalla encendida él mismo. Se libera al dejar de compartir.
+- **Aviso de posición vieja.** Una posición es vieja si tiene **2 minutos o más** (ocho envíos
+  perdidos seguidos: ya no es un tropiezo de red). Es una regla de dominio con un umbral con nombre.
+  Con posición vieja, el comprador ve "última ubicación hace X min", la distancia se enseña en pasado
+  ("hace X min estaba a …") y **no se enseña tiempo estimado**: estimar desde un punto viejo es
+  inventar.
+- **El mapa enseña los dos puntos.** Con destino guardado, el mapa pinta también el destino y encuadra
+  a los dos, unidos por una **línea recta punteada** — la misma recta sobre la que se calcula la
+  distancia, no un camino por calles. Sin destino, un solo marcador, como en el slice 2.
+
+**Acceptance criteria:**
+
+- El vendedor lee, antes de mandarlo, que con el enlace su cliente verá al repartidor en un mapa.
+- El repartidor lee que debe dejar la página abierta y a la vista.
+- Mientras comparte, el navegador no apaga la pantalla sola (donde lo soporte); si no se puede, se le
+  dice.
+- Al volver a la página tras cambiar de app, se manda la posición de inmediato.
+- Con la posición de hace 2 min o más, el comprador ve cuánto hace, la distancia en pasado y ningún
+  tiempo estimado.
+- Con destino guardado, el mapa enseña al repartidor y al destino, unidos por una recta.
+
+**Lo que NO entra:** seguimiento con el teléfono bloqueado o en segundo plano (necesita app nativa),
+ruteo real por calles con tráfico (necesita un proveedor externo: Google Directions, Mapbox u OSRM
+propio — decisión de costo aparte), recorrido histórico, y aviso de "ya casi llega".
+
+## Slice 5 (este) — Camino por calles con Mapbox Directions
+
+**Decisión del usuario (2026-09-28):** trazar el camino que le falta al repartidor por calles, con
+Mapbox Directions, en vez de la recta punteada del slice 4.
+
+**Lo que imponen los términos de Mapbox** (Product Terms, 21 de julio de 2026), y que da forma al
+diseño:
+
+- **2.10.1: no se puede guardar ni cachear el resultado** ("shall not export, download, cache or
+  store results from any request to a Navigation API"). La ruta no va a la base ni a una caché del
+  servidor: se pide cada vez que se enseña y vive solo en la pantalla del comprador.
+- **1.4.1 y 1.4.2: atribución**: mientras el mapa enseña un camino de Mapbox, lleva el logo de
+  Mapbox, "© Mapbox", "© OpenStreetMap" y "Improve this map".
+- **2.2: licencia para "uso vehicular"**: aplica a aplicaciones "primarily intended for use within
+  vehicles". Esta no lo es —el comprador mira desde su casa y la página del repartidor no llama a
+  Mapbox—, pero es una interpretación, anotada aquí para revisarla si el uso cambia.
+
+**Alcance:**
+
+- **Un puerto de rutas genérico** en el dominio (`RouteProvider`: de un punto a otro → metros,
+  segundos y trazo), sin nada de Mapbox ni de pedidos. El adaptador de Mapbox vive en `src/infra/` y
+  usa el perfil `driving-traffic` (tráfico en vivo; no hay perfil de moto).
+- **La clave nunca llega al navegador**: `MAPBOX_ACCESS_TOKEN` solo en el servidor. La ficha le pide
+  la ruta al servidor, que comprueba que quien la pide es el comprador del pedido.
+- **Como mucho una ruta por minuto** por ficha abierta, y solo si hay destino, el pedido está
+  Enviado y la posición del repartidor no es vieja. Con posición vieja no se pide: no hay de dónde
+  partir.
+- **Con camino**: línea continua por calles, y la distancia y el tiempo salen de Mapbox (rotulados
+  "por calles, con tráfico, aproximado").
+- **Sin camino** —sin clave, Mapbox caído, sin ruta posible, o posición vieja—: todo queda como en el
+  slice 4 (recta punteada y estimación en línea recta). Nunca un mapa vacío ni un error a la vista.
+
+**Acceptance criteria:**
+
+- Con destino y repartidor en camino, el mapa enseña el camino por calles que falta, y la distancia y
+  el tiempo salen de ese camino.
+- Si no hay camino, el mapa queda exactamente como en el slice 4.
+- Con la posición vieja no se pide camino.
+- Una ficha abierta pide como mucho un camino por minuto, y ninguno se guarda.
+- Mientras se enseña un camino de Mapbox, el mapa lleva su atribución.
+
+**Lo que NO entra:** recorrido ya hecho (el trazo de GPS guardado), aviso de "ya casi llega", y
+cualquier guardado de rutas.
