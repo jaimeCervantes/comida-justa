@@ -10,6 +10,7 @@ import {
   useMap,
 } from "react-leaflet";
 import type { CourierLocation, DeliveryLocation } from "~/domain/order/order";
+import type { GeoPoint } from "~/domain/routing/route";
 import { Surface } from "~/presentation/design_system/surfaces/Surface";
 
 /** Mismo `divIcon` que `StoresMapCanvas`: sin él, Leaflet referencia imágenes que el bundler no
@@ -70,9 +71,15 @@ const FIT_PADDING: [number, number] = [48, 48];
 export default function CourierMapCanvas({
   location,
   destination = null,
+  routePath = null,
 }: {
   location: CourierLocation;
   destination?: DeliveryLocation | null;
+  /**
+   * El camino por calles de Mapbox, si llegó. Con él se pinta **continuo** en vez de la recta
+   * punteada; sin él, la recta de siempre.
+   */
+  routePath?: GeoPoint[] | null;
 }) {
   return (
     <Surface radius="chip" className="overflow-hidden">
@@ -89,13 +96,28 @@ export default function CourierMapCanvas({
         <FollowCourier courier={location} destination={destination} />
         {destination ? (
           <>
-            <Polyline
-              positions={[
-                [location.lat, location.lng],
-                [destination.lat, destination.lng],
-              ]}
-              pathOptions={{ className: "courier-straight-line" }}
-            />
+            {/* `key` distintas a propósito: sin ellas React reutiliza la misma `Polyline` y
+                react-leaflet solo aplica `setStyle`, que no cambia `className` — el camino se
+                quedaba con la clase de la recta. */}
+            {routePath ? (
+              <Polyline
+                key="route"
+                positions={routePath.map((point): [number, number] => [
+                  point.lat,
+                  point.lng,
+                ])}
+                pathOptions={{ className: "courier-route-line" }}
+              />
+            ) : (
+              <Polyline
+                key="straight"
+                positions={[
+                  [location.lat, location.lng],
+                  [destination.lat, destination.lng],
+                ]}
+                pathOptions={{ className: "courier-straight-line" }}
+              />
+            )}
             <Marker
               position={[destination.lat, destination.lng]}
               icon={destinationIcon}

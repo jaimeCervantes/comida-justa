@@ -7,6 +7,7 @@ import {
   deliveryProgress,
   etaMinutes,
   isCourierLocationStale,
+  shouldRequestRoute,
   staleMinutes,
 } from "./delivery";
 import type { OrderStatus } from "./order";
@@ -179,4 +180,50 @@ describe("canShareDeliveryLocation", () => {
   ] as Array<[OrderStatus, boolean]>)("%s: %s", (status, expected) => {
     expect(canShareDeliveryLocation(status)).toBe(expected);
   });
+});
+
+/* La corrida de escritorio de `orders.feature` (@slice-16 @component): solo se pide camino con
+   de dónde partir —posición fresca— y a dónde llegar —destino—, y mientras siga Enviado. */
+describe("shouldRequestRoute", () => {
+  const fresh = NOW;
+  const old = new Date(courierLocation.updatedAt.getTime() + 5 * 60_000);
+
+  it.each([
+    [
+      "SHIPPED",
+      "guardado",
+      "fresca",
+      true,
+      "hay de dónde partir y a dónde llegar",
+    ],
+    ["SHIPPED", "(ninguno)", "fresca", false, "no hay a dónde llegar"],
+    [
+      "SHIPPED",
+      "guardado",
+      "vieja",
+      false,
+      "no hay de dónde partir: se detuvo",
+    ],
+    [
+      "SHIPPED",
+      "guardado",
+      "(ninguna)",
+      false,
+      "el repartidor todavía no compartió nada",
+    ],
+    ["DELIVERED", "guardado", "fresca", false, "ya llegó"],
+  ] as const)(
+    "%s, destino %s, posición %s → %s (%s)",
+    (status, destino, posicion, expected) => {
+      const order = {
+        status: status as OrderStatus,
+        deliveryLocation: destino === "guardado" ? deliveryLocation : null,
+        courierLocation: posicion === "(ninguna)" ? null : courierLocation,
+      };
+
+      expect(
+        shouldRequestRoute(order, posicion === "vieja" ? old : fresh),
+      ).toBe(expected);
+    },
+  );
 });

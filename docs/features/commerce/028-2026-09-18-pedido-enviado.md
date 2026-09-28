@@ -186,3 +186,47 @@ como si fueran actuales. Arreglarlo de raíz exige una app nativa; lo que sí es
 **Lo que NO entra:** seguimiento con el teléfono bloqueado o en segundo plano (necesita app nativa),
 ruteo real por calles con tráfico (necesita un proveedor externo: Google Directions, Mapbox u OSRM
 propio — decisión de costo aparte), recorrido histórico, y aviso de "ya casi llega".
+
+## Slice 5 (este) — Camino por calles con Mapbox Directions
+
+**Decisión del usuario (2026-09-28):** trazar el camino que le falta al repartidor por calles, con
+Mapbox Directions, en vez de la recta punteada del slice 4.
+
+**Lo que imponen los términos de Mapbox** (Product Terms, 21 de julio de 2026), y que da forma al
+diseño:
+
+- **2.10.1: no se puede guardar ni cachear el resultado** ("shall not export, download, cache or
+  store results from any request to a Navigation API"). La ruta no va a la base ni a una caché del
+  servidor: se pide cada vez que se enseña y vive solo en la pantalla del comprador.
+- **1.4.1 y 1.4.2: atribución**: mientras el mapa enseña un camino de Mapbox, lleva el logo de
+  Mapbox, "© Mapbox", "© OpenStreetMap" y "Improve this map".
+- **2.2: licencia para "uso vehicular"**: aplica a aplicaciones "primarily intended for use within
+  vehicles". Esta no lo es —el comprador mira desde su casa y la página del repartidor no llama a
+  Mapbox—, pero es una interpretación, anotada aquí para revisarla si el uso cambia.
+
+**Alcance:**
+
+- **Un puerto de rutas genérico** en el dominio (`RouteProvider`: de un punto a otro → metros,
+  segundos y trazo), sin nada de Mapbox ni de pedidos. El adaptador de Mapbox vive en `src/infra/` y
+  usa el perfil `driving-traffic` (tráfico en vivo; no hay perfil de moto).
+- **La clave nunca llega al navegador**: `MAPBOX_ACCESS_TOKEN` solo en el servidor. La ficha le pide
+  la ruta al servidor, que comprueba que quien la pide es el comprador del pedido.
+- **Como mucho una ruta por minuto** por ficha abierta, y solo si hay destino, el pedido está
+  Enviado y la posición del repartidor no es vieja. Con posición vieja no se pide: no hay de dónde
+  partir.
+- **Con camino**: línea continua por calles, y la distancia y el tiempo salen de Mapbox (rotulados
+  "por calles, con tráfico, aproximado").
+- **Sin camino** —sin clave, Mapbox caído, sin ruta posible, o posición vieja—: todo queda como en el
+  slice 4 (recta punteada y estimación en línea recta). Nunca un mapa vacío ni un error a la vista.
+
+**Acceptance criteria:**
+
+- Con destino y repartidor en camino, el mapa enseña el camino por calles que falta, y la distancia y
+  el tiempo salen de ese camino.
+- Si no hay camino, el mapa queda exactamente como en el slice 4.
+- Con la posición vieja no se pide camino.
+- Una ficha abierta pide como mucho un camino por minuto, y ninguno se guarda.
+- Mientras se enseña un camino de Mapbox, el mapa lleva su atribución.
+
+**Lo que NO entra:** recorrido ya hecho (el trazo de GPS guardado), aviso de "ya casi llega", y
+cualquier guardado de rutas.

@@ -2,6 +2,7 @@ import { type Browser, expect, type Page, test } from "@playwright/test";
 import { sql } from "drizzle-orm";
 import { db } from "~/infra/dataAccess/db/connection";
 import { deleteTestSellerByHandle } from "../testUtils/deleteTestSeller";
+import { type FakeMapbox, startFakeMapbox } from "../testUtils/fakeMapbox";
 import {
   advance,
   courierSharesFrom,
@@ -47,6 +48,17 @@ const DESTINO = { latitude: 25.6766, longitude: -100.3303 };
 const DESTINO_NUEVO = { latitude: 25.7018, longitude: -100.2988 };
 
 let dbSession: DbSession | undefined;
+/* Arranca "caído": los escenarios anteriores al slice 16 esperan la recta, que es lo que se ve sin
+   camino. Solo el escenario del camino lo pone en `route`. */
+let mapbox: FakeMapbox;
+
+test.beforeAll(async () => {
+  mapbox = await startFakeMapbox();
+});
+
+test.afterAll(async () => {
+  await mapbox.close();
+});
 
 async function attachStoreToSuite(): Promise<void> {
   const userId = await findSuiteUserId();
@@ -103,6 +115,7 @@ test.beforeEach(async ({ page, browserName }) => {
 });
 
 test.afterEach(async () => {
+  mapbox.setMode("down");
   await deleteTestSellerByHandle(TIENDA.handle);
   if (dbSession?.id) {
     await deleteSession(dbSession.id);
@@ -262,5 +275,54 @@ test.describe("El mapa del pedido Enviado", () => {
     await expect(map.getByTestId("map-marker-courier")).toHaveCount(1);
     await expect(map.getByTestId("map-marker-destination")).toHaveCount(0);
     await expect(map.locator(".courier-straight-line")).toHaveCount(0);
+  });
+});
+
+/* Slice 5 de `028-...-pedido-enviado.md` (`@slice-16`): camino por calles con Mapbox, contra el
+   Mapbox falso local — nunca el real en la suite. */
+test.describe("El camino por calles", () => {
+  test("Entonces, con destino y repartidor en camino, veo el camino por calles, su distancia y tiempo, y la atribución de Mapbox", async ({
+    page,
+    browser,
+  }) => {
+    await buyerAt(page, DESTINO);
+    const orderUrl = await shippedWithCourier(page, browser);
+    mapbox.setMode("route");
+
+    await page.goto(orderUrl);
+
+    const distance = page.getByTestId("delivery-progress-distance");
+    await expect(distance).toHaveAttribute("data-source", "route");
+    await expect(distance).toContainText("2.6 km");
+    await expect(distance).toContainText("por calles");
+    await expect(page.getByTestId("delivery-progress-eta")).toContainText(
+      "9 min",
+    );
+
+    const map = page.getByTestId("courier-map");
+    await expect(map.locator(".courier-route-line")).toHaveCount(1);
+    await expect(map.locator(".courier-straight-line")).toHaveCount(0);
+    await expect(page.getByTestId("mapbox-attribution")).toContainText(
+      "Improve this map",
+    );
+  });
+
+  test("Entonces, si Mapbox no contesta, el mapa se queda con la recta y sin ningún error", async ({
+    page,
+    browser,
+  }) => {
+    await buyerAt(page, DESTINO);
+    const orderUrl = await shippedWithCourier(page, browser);
+
+    await page.goto(orderUrl);
+    await expect.poll(() => mapbox.requests()).toBeGreaterThan(0);
+
+    await expect(
+      page.getByTestId("delivery-progress-distance"),
+    ).toHaveAttribute("data-source", "straight");
+    await expect(
+      page.getByTestId("courier-map").locator(".courier-straight-line"),
+    ).toHaveCount(1);
+    await expect(page.getByTestId("mapbox-attribution")).toHaveCount(0);
   });
 });

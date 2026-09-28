@@ -9,6 +9,7 @@ import type { User } from "~/domain/entities/post/types";
 import {
   canShareDeliveryLocation,
   deliveryProgress,
+  shouldRequestRoute,
   staleMinutes,
 } from "~/domain/order/delivery";
 import { canNotifySeller, isTrackable } from "~/domain/order/order";
@@ -196,6 +197,8 @@ export default async function PedidoPage({
         {isBuyer && isTrackable(order.status) ? (
           <div className="mt-4 border-t border-separator pt-4">
             <CourierMap
+              orderId={order.id}
+              canRoute={shouldRequestRoute(order, now)}
               location={order.courierLocation ?? null}
               progress={deliveryProgress(order, now)}
               destination={order.deliveryLocation ?? null}

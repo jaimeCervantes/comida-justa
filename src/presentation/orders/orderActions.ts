@@ -4,6 +4,7 @@ import { getLocale } from "next-intl/server";
 import { removeFromSelection } from "~/domain/cart/cartSelection";
 import type { User } from "~/domain/entities/post/types";
 import type { OrderStatus } from "~/domain/order/order";
+import type { Route } from "~/domain/routing/route";
 import { redirectKeepingLocale } from "~/i18n/redirectKeepingLocale";
 import { resolveLocale, routing } from "~/i18n/routing";
 import { auth } from "~/infra/auth";
@@ -21,11 +22,13 @@ import {
 import { createCartProductRepository } from "~/infra/dataAccess/cart/factory";
 import { findSellerOfUser } from "~/infra/dataAccess/identity/sessionIdentity";
 import { createOrderRepository } from "~/infra/dataAccess/orders/factory";
+import { createRouteProvider } from "~/infra/routing/factory";
 import { absoluteCourierTrackingUrl } from "~/infra/UI/mappers/absoluteCourierTrackingUrl";
 import AdvanceOrderUseCase, {
   type AdvanceOrderError,
 } from "~/use_cases/advanceOrder/advanceOrderUseCase";
 import ShareDeliveryLocationUseCase from "~/use_cases/deliveryLocation/shareDeliveryLocation/shareDeliveryLocationUseCase";
+import RouteToDestinationUseCase from "~/use_cases/deliveryRoute/routeToDestination/routeToDestinationUseCase";
 import PlaceOrderUseCase, {
   type PlaceOrderError,
 } from "~/use_cases/placeOrder/placeOrderUseCase";
@@ -149,6 +152,28 @@ export async function shareDeliveryLocation(formData: FormData): Promise<void> {
   });
 
   if ("saved" in result) revalidatePath("/", "layout");
+}
+
+/**
+ * El camino por calles que le falta al repartidor, para la ficha del comprador.
+ *
+ * **Es una lectura que no se guarda**: los términos de Mapbox prohíben guardar o cachear la ruta,
+ * así que se consulta cada vez y solo vive en la pantalla. La frecuencia la limita la ficha
+ * (`useDeliveryRoute`, una por minuto). Sin sesión no hay camino: no se redirige a nadie desde un
+ * refresco en segundo plano.
+ */
+export async function routeToDestination(
+  orderId: string,
+): Promise<Route | null> {
+  const session = await auth();
+  const buyerId = (session?.user as User | undefined)?.id;
+
+  if (!buyerId || !orderId) return null;
+
+  return new RouteToDestinationUseCase(
+    createOrderRepository(),
+    createRouteProvider(),
+  ).execute({ orderId, buyerId, now: new Date() });
 }
 
 export type AdvanceOrderState = {

@@ -243,6 +243,14 @@ input[type="search"]::-webkit-search-results-decoration {
   stroke-width: 3;
 }
 
+/* El camino por calles de Mapbox: continuo, que es lo que lo distingue de la recta punteada. */
+.courier-route-line {
+  stroke: #d97706;
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 /**
  * «Esta fila sigue»: un desvanecido y una flechita en el borde, **solo cuando queda algo que
  * arrastrar**.

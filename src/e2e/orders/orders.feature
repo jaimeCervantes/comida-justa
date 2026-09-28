@@ -879,6 +879,59 @@ Feature: Carrito y pedidos
     When abro la ficha del pedido
     Then el mapa enseña solo al repartidor
 
+  # Slice 16. El camino que le falta al repartidor, por calles, con Mapbox Directions. Sus términos
+  # (Product Terms 2026-07, cláusula 2.10.1) prohíben guardar o cachear el resultado: la ruta se pide
+  # cada vez que se enseña y vive solo en la pantalla. Mientras se enseña, el mapa lleva la
+  # atribución de Mapbox (1.4). La clave se queda en el servidor.
+  @slice-16
+  Scenario: Con destino y repartidor en camino, veo el camino por calles que falta
+    Given mi pedido Enviado, con destino guardado y el repartidor compartiendo su ubicación
+    And que Mapbox devuelve un camino por calles de 2.6 km y 9 minutos
+    When abro la ficha del pedido
+    Then el mapa enseña ese camino por calles, no una recta
+    And dice que el repartidor está a 2.6 km por calles
+    And dice un tiempo de unos 9 min, marcado como aproximado
+    And el mapa lleva la atribución de Mapbox
+
+  @slice-16
+  Scenario: Si no hay camino, el mapa se queda como antes
+    Given mi pedido Enviado, con destino guardado y el repartidor compartiendo su ubicación
+    And que Mapbox no contesta
+    When abro la ficha del pedido
+    Then el mapa enseña la recta punteada y la estimación en línea recta
+    And no se ve ningún error
+
+  @slice-16 @component
+  Scenario Outline: Cuándo se pide un camino
+    # Vitest sobre el dominio: es una regla sobre el pedido, sin base ni red.
+    Given un pedido "<estado>", destino "<destino>" y la posición del repartidor "<posición>"
+    When se pregunta si pedir camino
+    Then la respuesta es "<pedir>"
+
+    Examples:
+      | estado    | destino   | posición  | pedir | razón                                        |
+      | SHIPPED   | guardado  | fresca    | sí    | hay de dónde partir y a dónde llegar         |
+      | SHIPPED   | (ninguno) | fresca    | no    | no hay a dónde llegar                        |
+      | SHIPPED   | guardado  | vieja     | no    | no hay de dónde partir: se detuvo            |
+      | SHIPPED   | guardado  | (ninguna) | no    | el repartidor todavía no compartió nada      |
+      | DELIVERED | guardado  | fresca    | no    | ya llegó                                     |
+
+  @slice-16 @component
+  Scenario: Una ficha abierta pide como mucho un camino por minuto, y no lo guarda
+    # Vitest sobre el hook de la ficha con temporizadores simulados: la cuota y los términos de
+    # Mapbox se cumplen en el cliente, que es quien decide cuándo volver a pedir.
+    Given la ficha de mi pedido Enviado abierta durante 3 minutos
+    When pasan los refrescos de cada 15 segundos
+    Then se pidieron como mucho 3 caminos
+    And ninguno se escribió en la base
+
+  @slice-16 @component
+  Scenario: Solo quien compró puede pedir el camino de su pedido
+    # Vitest sobre el caso de uso: la autorización es del servidor, no de la pantalla.
+    Given un pedido Enviado de otra persona
+    When pido su camino
+    Then no se consulta a Mapbox y no recibo nada
+
   # El pago en línea deja de estar condicionado al volumen: se decidió avanzar ahora, con Stripe
   # Connect (split directo al vendedor, sin que la plataforma retenga el dinero — así no genera la
   # desconfianza de un intermediario custodio). El slice 1 (dominio + IPaymentGateway +

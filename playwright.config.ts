@@ -1,5 +1,6 @@
 import { defineConfig, devices } from "@playwright/test";
 import dotenv from "dotenv";
+import { FAKE_MAPBOX_PORT } from "./src/e2e/testUtils/fakeMapbox";
 
 /**
  * Read environment variables from file.
@@ -132,6 +133,14 @@ export default defineConfig({
        * después: no hay prefijo que los marque. Así que no se escriben.
        */
       SEARCH_REPORTER: "console",
+      /*
+       * Mapbox **nunca** de verdad en la suite: cada consulta cuenta contra la cuota y su resultado
+       * depende del tráfico del momento. El servidor apunta a un Mapbox falso local
+       * (`fakeMapbox.ts`) que cada spec levanta y controla; si ninguno lo levantó, la consulta falla
+       * y la ficha se queda con la recta, que es justo el comportamiento sin camino.
+       */
+      MAPBOX_ACCESS_TOKEN: "e2e-fake-token",
+      MAPBOX_DIRECTIONS_BASE_URL: `http://127.0.0.1:${FAKE_MAPBOX_PORT}`,
     },
     /*
      * Cinco minutos, y no los tres de antes, porque `rm -rf .next` es obligatorio antes de cada

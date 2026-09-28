@@ -5,8 +5,11 @@ import { useEffect } from "react";
 import { describeDistance } from "~/domain/entities/seller/distance";
 import type { DeliveryProgress } from "~/domain/order/delivery";
 import type { CourierLocation, DeliveryLocation } from "~/domain/order/order";
+import { routeMinutes } from "~/domain/routing/route";
 import { useRouter } from "~/i18n/navigation";
 import { Heading } from "~/presentation/design_system/typography/Heading";
+import MapboxAttribution from "./MapboxAttribution";
+import { useDeliveryRoute } from "./useDeliveryRoute";
 
 /** Mismo motivo que `StoresMapCanvas`: Leaflet toca `window` al importarse. */
 const CourierMapCanvas = dynamic(() => import("./CourierMapCanvas"), {
@@ -26,13 +29,20 @@ const POLL_INTERVAL_MS = 15_000;
  * **Se refresca solo.** `router.refresh()` vuelve a correr el Server Component de la página, que
  * relee `courierLocation` de la base — es la misma vía por la que llegó la primera vez, y la única
  * que existe: el repartidor no tiene sesión con la que abrir un canal en tiempo real.
+ *
+ * **El camino por calles se pide aparte** (`useDeliveryRoute`, una vez por minuto) y no viaja con la
+ * página: los términos de Mapbox prohíben guardarlo, así que vive solo aquí. Mientras llega —o si no
+ * llega— todo queda como antes: recta punteada y estimación en línea recta.
  */
 export default function CourierMap({
+  orderId,
   location,
   progress = null,
   destination = null,
   staleMinutes = null,
+  canRoute = false,
 }: {
+  orderId: string;
   location: CourierLocation | null;
   /** Distancia y tiempo aproximado; `null` sin destino guardado, y el mapa queda como antes. */
   progress?: DeliveryProgress | null;
@@ -43,10 +53,15 @@ export default function CourierMap({
    * `null`. Se calcula en el servidor, que es quien vuelve a pintar esto en cada `refresh`.
    */
   staleMinutes?: number | null;
+  /** Si vale la pena pedir el camino por calles (`shouldRequestRoute`, decidido en el servidor). */
+  canRoute?: boolean;
 }) {
   const t = useTranslations("orders");
   const tDistance = useTranslations("distance");
-  const distance = progress ? describeDistance(progress.distanceMeters) : null;
+  const route = useDeliveryRoute(orderId, canRoute);
+  /* Con camino, la distancia es la del camino por calles; sin él, la recta que calculó PostGIS. */
+  const meters = route?.distanceMeters ?? progress?.distanceMeters ?? null;
+  const distance = meters === null ? null : describeDistance(meters);
   const distanceLabel = !distance
     ? ""
     : distance.unit === "meters"
@@ -69,11 +84,28 @@ export default function CourierMap({
 
       {location ? (
         <>
-          {progress && distance ? (
+          {route && distance ? (
             <div className="mb-2" data-testid="delivery-progress">
               <p
                 className="font-medium text-text-base"
                 data-testid="delivery-progress-distance"
+                data-source="route"
+              >
+                {t("deliveryRouteDistance", { distance: distanceLabel })}
+              </p>
+              <p
+                className="text-label text-text-support"
+                data-testid="delivery-progress-eta"
+              >
+                {t("deliveryRouteEta", { minutes: routeMinutes(route) })}
+              </p>
+            </div>
+          ) : progress && distance ? (
+            <div className="mb-2" data-testid="delivery-progress">
+              <p
+                className="font-medium text-text-base"
+                data-testid="delivery-progress-distance"
+                data-source="straight"
                 data-stale={progress.staleMinutes !== null}
               >
                 {progress.staleMinutes !== null
@@ -94,7 +126,12 @@ export default function CourierMap({
               ) : null}
             </div>
           ) : null}
-          <CourierMapCanvas location={location} destination={destination} />
+          <CourierMapCanvas
+            location={location}
+            destination={destination}
+            routePath={route?.path ?? null}
+          />
+          {route ? <MapboxAttribution /> : null}
           <p
             className="mt-2 text-label text-text-support"
             data-testid="courier-map-updated"

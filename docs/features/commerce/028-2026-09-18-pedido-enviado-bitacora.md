@@ -430,3 +430,75 @@ página la posición se manda al instante. El mapa enseña repartidor y destino 
 1. **Slice 5, camino por calles**: pendiente de elegir proveedor (clave y costo) — decisión del
    usuario.
 2. Probar el recorrido en dos teléfonos reales, con HTTPS, incluido el navegador interno de WhatsApp.
+
+## Slice 5 — Camino por calles con Mapbox Directions (2026-09-28)
+
+**Objetivo:** en vez de la recta punteada, trazar el camino por calles que le falta al repartidor, y
+sacar distancia y tiempo de ese camino. Decisión del usuario: Mapbox.
+
+### Decisiones y por qué
+
+- **Se leyeron los términos de Mapbox** (Product Terms, 21 de julio de 2026) antes de diseñar:
+  - 2.10.1 prohíbe guardar o cachear resultados de las Navigation APIs → **ninguna ruta se guarda**:
+    ni en la base, ni en caché del servidor (`fetch` con `cache: "no-store"`), ni en
+    `localStorage`. Vive solo en el estado de `CourierMap`.
+  - 1.4.1/1.4.2 exigen logo, "© Mapbox", "© OpenStreetMap" e "Improve this map" →
+    `MapboxAttribution`, visible **solo mientras se enseña un camino de Mapbox**. El logo sale del
+    control oficial de atribución de `mapbox-gl.css` (`public/brand/mapbox-logo.svg`).
+  - 2.2 ("uso vehicular") se interpretó como no aplicable: la app no está pensada para usarse dentro
+    del vehículo y la página del repartidor no llama a Mapbox. Queda anotado en el roadmap.
+- **Puerto genérico** `RouteProvider` en `src/domain/routing/` (sin pedidos ni Mapbox), adaptador
+  `MapboxRouteProvider` en `src/infra/routing/` con perfil `driving-traffic`. Sin
+  `MAPBOX_ACCESS_TOKEN`, la fábrica devuelve un proveedor que nunca da camino.
+- **Cuándo se pide** (`shouldRequestRoute`): Enviado, con destino y posición fresca. Con posición
+  vieja no se gasta consulta.
+- **Una consulta por minuto como mucho** por ficha abierta (`useDeliveryRoute`), aunque el mapa se
+  refresque cada 15 s; un salto fresca→vieja→fresca dentro del mismo minuto no dispara otra.
+- **Autorización en el servidor**: la acción `routeToDestination` saca al comprador de la sesión, y
+  `findDeliveryTracking` lo lleva en el `WHERE`.
+- **Sin camino, todo queda como en el slice 4**: recta punteada, estimación en línea recta, sin
+  error visible.
+- **E2E contra un Mapbox falso local** (`src/e2e/testUtils/fakeMapbox.ts`, puerto 4010):
+  `playwright.config.ts` fija `MAPBOX_ACCESS_TOKEN`/`MAPBOX_DIRECTIONS_BASE_URL` para el servidor
+  de pruebas, así que la suite **nunca** gasta cuota aunque `.env.development` tenga la clave real.
+
+### Variables de entorno
+
+- `MAPBOX_ACCESS_TOKEN` — solo servidor (sin `NEXT_PUBLIC_`). Sin ella, no hay camino por calles.
+- `MAPBOX_DIRECTIONS_BASE_URL` — solo para e2e; en producción no se define.
+
+### Archivos tocados
+
+**Dominio:** `src/domain/routing/{route,ports}.ts` (+ test), `order/delivery.ts`
+(`shouldRequestRoute`, + tests), `order/ports.ts` (`findDeliveryTracking`). **Caso de uso:**
+`src/use_cases/deliveryRoute/routeToDestination/` (+ test). **Infra:**
+`src/infra/routing/{MapboxRouteProvider,factory}.ts` (+ test), `PostgresOrderRepository.ts`.
+**UI:** `presentation/orders/orderActions.ts` (`routeToDestination`),
+`CourierMap/{CourierMap,CourierMapCanvas,MapboxAttribution,useDeliveryRoute}.tsx` (+ test del
+hook), `pedido/[id]/page.tsx`, `utility-patterns.css` (`.courier-route-line`), i18n,
+`public/brand/mapbox-logo.svg`. **E2E:** `playwright.config.ts`, `testUtils/fakeMapbox.ts`,
+`deliveryEta.spec.ts` (+2), `orders.feature` (5 escenarios `@slice-16`). Dobles de
+`OrderRepository` con `findDeliveryTracking`.
+
+### Validación
+
+- `pnpm run typecheck` y `pnpm run lint` → limpios.
+- `pnpm run test:run` → **292 archivos, 3087 tests, en verde**.
+- `rm -rf .next && pnpm exec playwright test src/e2e/orders/deliveryEta.spec.ts
+  src/e2e/orders/courierTracking.spec.ts` → **15/15**. La primera corrida dio 14/15: el camino
+  llegaba pero la línea conservaba la clase de la recta — las dos `Polyline` condicionales
+  compartían posición en el árbol y react-leaflet solo aplica `setStyle`, que no cambia
+  `className`. Se corrigió con `key` distintas.
+- **Sin probar contra Mapbox real**: todavía no hay `MAPBOX_ACCESS_TOKEN` en `.env.development`.
+
+### Recap
+
+Con destino y repartidor en camino, la ficha pide cada minuto el camino por calles a Mapbox, lo
+pinta continuo, da distancia y tiempo "por calles y con tráfico" y enseña la atribución que piden
+sus términos; nada de eso se guarda. Si no hay camino, todo queda como en el slice 4.
+
+### Próximos pasos (opciones)
+
+1. **Pendiente del usuario:** crear la cuenta de Mapbox y agregar `MAPBOX_ACCESS_TOKEN` a
+   `.env.development` (y al entorno de producción). Después, una prueba manual contra Mapbox real.
+2. Probar el recorrido en dos teléfonos reales, con HTTPS.

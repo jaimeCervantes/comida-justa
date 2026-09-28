@@ -550,6 +550,47 @@ export class PostgresOrderRepository implements OrderRepository {
     return rows.length > 0;
   }
 
+  /** El comprador va en el `WHERE`: un pedido ajeno se ve igual que uno que no existe. */
+  async findDeliveryTracking(orderId: string, buyerId: string) {
+    const [row] = await db
+      .select({
+        status: customerOrders.status,
+        courierLat: customerOrders.courierLat,
+        courierLng: customerOrders.courierLng,
+        courierAt: customerOrders.courierLocationUpdatedAt,
+        deliveryLat: customerOrders.deliveryLat,
+        deliveryLng: customerOrders.deliveryLng,
+        deliveryAt: customerOrders.deliveryLocationUpdatedAt,
+      })
+      .from(customerOrders)
+      .where(
+        and(eq(customerOrders.id, orderId), eq(customerOrders.userId, buyerId)),
+      )
+      .limit(1);
+
+    if (!row) return null;
+
+    return {
+      status: row.status,
+      courierLocation:
+        row.courierLat !== null && row.courierLng !== null && row.courierAt
+          ? {
+              lat: row.courierLat,
+              lng: row.courierLng,
+              updatedAt: row.courierAt,
+            }
+          : null,
+      deliveryLocation:
+        row.deliveryLat !== null && row.deliveryLng !== null && row.deliveryAt
+          ? {
+              lat: row.deliveryLat,
+              lng: row.deliveryLng,
+              updatedAt: row.deliveryAt,
+            }
+          : null,
+    };
+  }
+
   /**
    * Comprador y estado abierto van en el `WHERE`, igual que el token en `saveCourierLocation`: la
    * comprobación de verdad la hace la escritura. Reemplaza lo que hubiera — solo la última

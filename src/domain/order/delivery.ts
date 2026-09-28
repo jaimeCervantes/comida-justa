@@ -94,6 +94,23 @@ export function deliveryProgress(
 }
 
 /**
+ * Si vale la pena pedirle a un servicio de rutas el camino que le falta al repartidor.
+ *
+ * Hace falta **de dónde partir** —una posición del repartidor que no sea vieja— y **a dónde
+ * llegar** —el destino del pedido—, y que siga Enviado. Pedir un camino desde un punto donde el
+ * repartidor ya no está es gastar cuota para enseñar algo falso.
+ */
+export function shouldRequestRoute(
+  order: Pick<Order, "status" | "courierLocation" | "deliveryLocation">,
+  now: Date,
+): boolean {
+  if (!isTrackable(order.status)) return false;
+  if (!order.courierLocation || !order.deliveryLocation) return false;
+
+  return !isCourierLocationStale(order.courierLocation.updatedAt, now);
+}
+
+/**
  * En qué estados el comprador todavía puede compartir o actualizar a dónde se le entrega.
  *
  * **Mientras el pedido siga abierto, no solo Enviado**: quien no lo compartió al confirmar tiene

@@ -1,4 +1,6 @@
 import type {
+  CourierLocation,
+  DeliveryLocation,
   Order,
   OrderLine,
   OrderScope,
@@ -279,6 +281,22 @@ export interface OrderRepository {
     lat: number;
     lng: number;
   }): Promise<boolean>;
+
+  /**
+   * Lo justo para decidir si pedir el camino del repartidor: estado y las dos posiciones, **solo si
+   * el pedido es de ese comprador** (`null` si no existe o es de otro, sin distinguir).
+   *
+   * Aparte de `findById` porque se pregunta una vez por minuto mientras la ficha está abierta, y
+   * traer renglones, slugs y miniaturas para eso eran tres `JOIN` a la basura.
+   */
+  findDeliveryTracking(
+    orderId: string,
+    buyerId: string,
+  ): Promise<{
+    status: OrderStatus;
+    courierLocation: CourierLocation | null;
+    deliveryLocation: DeliveryLocation | null;
+  } | null>;
 
   /**
    * Por dónde pasó un pedido, del primer paso al último.

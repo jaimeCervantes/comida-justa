@@ -1020,6 +1020,8 @@
     "deliveryProgressDistance": "El repartidor está {distance} de tu ubicación",
     "deliveryProgressDistanceStale": "Hace {minutes} min, el repartidor estaba {distance} de tu ubicación",
     "deliveryProgressEta": "Llegaría en unos {minutes} min (aproximado, en línea recta)",
+    "deliveryRouteDistance": "El repartidor está {distance} de tu ubicación, por calles",
+    "deliveryRouteEta": "Llegaría en unos {minutes} min (aproximado, por calles y con tráfico)",
     "deliveryLocationShared": "Compartiste tu ubicación de entrega el {date}.",
     "deliveryLocationMissing": "Todavía no sabemos a dónde te lo llevan. Si compartes tu ubicación, te decimos a qué distancia va el repartidor.",
     "deliveryLocationShare": "Compartir mi ubicación",
