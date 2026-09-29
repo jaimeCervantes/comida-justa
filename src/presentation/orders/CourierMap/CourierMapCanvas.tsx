@@ -1,13 +1,14 @@
 "use client";
 import "leaflet/dist/leaflet.css";
 import { divIcon, latLngBounds } from "leaflet";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import {
   MapContainer,
   Marker,
   Polyline,
   TileLayer,
   useMap,
+  useMapEvents,
 } from "react-leaflet";
 import type { CourierLocation, DeliveryLocation } from "~/domain/order/order";
 import type { GeoPoint } from "~/domain/routing/route";
@@ -134,7 +135,13 @@ export default function CourierMapCanvas({
  * `MapContainer` sólo aplica `center`/`zoom` al montarse — es lo que documenta react-leaflet, y lo
  * que hace que el mapa no siguiera al repartidor entre una actualización y la siguiente sin esto.
  * Los `Marker` sí son reactivos a su `position`; el encuadre del mapa no, y por eso hace falta
- * moverlo a mano: centrado en el repartidor si está solo, o encuadrando a los dos si hay destino.
+ * moverlo a mano con cada posición nueva.
+ *
+ * **El zoom es de quien mira.** Mientras no lo toque, con destino se encuadra a los dos puntos. En
+ * cuanto lo ajusta, una posición nueva solo recentra en el repartidor y conserva su zoom: antes,
+ * `fitBounds` lo recalculaba en cada refresco y le quitaba el acercamiento (visto en producción el
+ * 2026-09-28). Los movimientos propios van sin animación para que sus eventos lleguen dentro de la
+ * llamada, y así distinguirlos de los de la persona.
  */
 function FollowCourier({
   courier,
@@ -145,22 +152,48 @@ function FollowCourier({
 }) {
   const map = useMap();
   const { lat, lng } = courier;
+  /* Si la persona ya ajustó el zoom, y si el movimiento en curso es nuestro y no suyo. */
+  const userSetZoom = useRef(false);
+  const movingOnOurOwn = useRef(false);
+
+  useMapEvents({
+    zoomend: () => {
+      if (!movingOnOurOwn.current) userSetZoom.current = true;
+      /* El zoom queda a la vista en el contenedor: lo lee el e2e para comprobar que no se pisa. */
+      map.getContainer().dataset.zoom = String(map.getZoom());
+    },
+  });
+
   const destinationLat = destination?.lat ?? null;
   const destinationLng = destination?.lng ?? null;
 
   useEffect(() => {
-    if (destinationLat === null || destinationLng === null) {
-      map.setView([lat, lng]);
-      return;
-    }
+    map.getContainer().dataset.zoom = String(map.getZoom());
+  }, [map]);
 
-    map.fitBounds(
-      latLngBounds([
-        [lat, lng],
-        [destinationLat, destinationLng],
-      ]),
-      { padding: FIT_PADDING, maxZoom: ZOOM },
-    );
+  useEffect(() => {
+    movingOnOurOwn.current = true;
+
+    try {
+      if (
+        userSetZoom.current ||
+        destinationLat === null ||
+        destinationLng === null
+      ) {
+        map.setView([lat, lng], map.getZoom(), { animate: false });
+        return;
+      }
+
+      map.fitBounds(
+        latLngBounds([
+          [lat, lng],
+          [destinationLat, destinationLng],
+        ]),
+        { padding: FIT_PADDING, maxZoom: ZOOM, animate: false },
+      );
+    } finally {
+      movingOnOurOwn.current = false;
+    }
   }, [map, lat, lng, destinationLat, destinationLng]);
 
   return null;

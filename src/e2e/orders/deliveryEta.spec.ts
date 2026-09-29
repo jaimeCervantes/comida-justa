@@ -326,3 +326,53 @@ test.describe("El camino por calles", () => {
     await expect(page.getByTestId("mapbox-attribution")).toHaveCount(0);
   });
 });
+
+/** Mueve al repartidor ~400 m al norte, como una posición nueva recién llegada. */
+async function moveCourier(orderUrl: string): Promise<void> {
+  const orderId = new URL(orderUrl).pathname.split("/").pop();
+
+  await db.execute(sql`
+    UPDATE customer_orders
+    SET courier_lat = courier_lat + 0.004, courier_location_updated_at = now()
+    WHERE id = ${orderId}::uuid
+  `);
+}
+
+test.describe("El zoom del mapa", () => {
+  test("Entonces, si ajusto el zoom, una posición nueva recentra el mapa pero no me lo quita", async ({
+    page,
+    browser,
+  }) => {
+    await buyerAt(page, DESTINO);
+    const orderUrl = await shippedWithCourier(page, browser);
+    await page.goto(orderUrl);
+
+    const map = page.getByTestId("courier-map");
+    const canvas = map.locator(".leaflet-container");
+    await expect(canvas).toHaveAttribute("data-zoom", /\d+/);
+    const fitted = Number(await canvas.getAttribute("data-zoom"));
+
+    await map.locator(".leaflet-control-zoom-in").click();
+    await map.locator(".leaflet-control-zoom-in").click();
+    await expect(canvas).toHaveAttribute("data-zoom", String(fitted + 2));
+
+    const courierMarker = map.getByTestId("map-marker-courier");
+    const before = await courierMarker.evaluate((marker) =>
+      marker.closest(".leaflet-marker-icon")?.getAttribute("style"),
+    );
+    await moveCourier(orderUrl);
+
+    /* El mapa se refresca cada 15 s: se espera a que la posición nueva mueva el marcador. */
+    await expect
+      .poll(
+        () =>
+          courierMarker.evaluate((marker) =>
+            marker.closest(".leaflet-marker-icon")?.getAttribute("style"),
+          ),
+        { timeout: 45_000 },
+      )
+      .not.toBe(before);
+
+    await expect(canvas).toHaveAttribute("data-zoom", String(fitted + 2));
+  });
+});
