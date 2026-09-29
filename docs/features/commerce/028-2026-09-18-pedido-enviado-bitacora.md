@@ -502,3 +502,37 @@ sus términos; nada de eso se guarda. Si no hay camino, todo queda como en el sl
 1. **Pendiente del usuario:** crear la cuenta de Mapbox y agregar `MAPBOX_ACCESS_TOKEN` a
    `.env.development` (y al entorno de producción). Después, una prueba manual contra Mapbox real.
 2. Probar el recorrido en dos teléfonos reales, con HTTPS.
+
+## Arreglo — El mapa ya no quita el zoom de quien mira (2026-09-29)
+
+**Visto en producción por el usuario:** al acercar el mapa, al rato se quitaba el zoom y se volvía a
+centrar. Con destino, cada posición nueva llamaba a `fitBounds`, que recalcula el zoom para encuadrar
+los dos puntos y pisaba el que había puesto la persona.
+
+### Decisión
+
+- Mientras la persona no toque el zoom, se encuadra como antes. En cuanto lo ajusta (botones, rueda
+  o pellizco), una posición nueva **solo recentra en el repartidor y conserva su zoom**
+  (`setView(…, map.getZoom())`).
+- Para distinguir el zoom de la persona del nuestro, nuestros movimientos van con `animate: false`:
+  sus eventos llegan dentro de la llamada, marcada con `movingOnOurOwn`, y todo `zoomend` fuera de
+  ella es de la persona.
+- El contenedor del mapa publica `data-zoom`, que es lo que lee el e2e.
+
+### Validación
+
+- **Reproducido antes de arreglar:** encuadre inicial zoom 14, acercado a 16, y la posición nueva lo
+  regresó a 15 (el `maxZoom` de `fitBounds`).
+- Escenario `@slice-16` nuevo en `orders.feature` y su e2e en `deliveryEta.spec.ts`: mueve al
+  repartidor en la base y espera el refresco de 15 s.
+- `pnpm run lint` limpio; `pnpm run test:run` → **292 archivos, 3087 tests**; Playwright
+  `deliveryEta.spec.ts` + `courierTracking.spec.ts` → **16/16**.
+
+### Recap
+
+El mapa sigue al repartidor, pero el zoom ya es de quien mira.
+
+### Próximos pasos (opciones)
+
+1. Mergear `fix/mapa-conserva-zoom` a `dev`, empujar y desplegar.
+2. Terminar la prueba en dos teléfonos.

@@ -932,6 +932,17 @@ Feature: Carrito y pedidos
     When pido su camino
     Then no se consulta a Mapbox y no recibo nada
 
+  # Arreglo visto en producción el 2026-09-28: con destino, cada posición nueva volvía a encuadrar a
+  # los dos puntos y eso pisaba el zoom que había puesto quien miraba. El mapa sigue al repartidor,
+  # pero el zoom es de quien mira.
+  @slice-16
+  Scenario: Si ajusto el zoom, una posición nueva recentra el mapa pero no me lo quita
+    Given mi pedido Enviado, con destino guardado y el repartidor compartiendo su ubicación
+    And que acerqué el mapa con el zoom
+    When llega una posición nueva del repartidor
+    Then el mapa se centra en el repartidor
+    And conserva el zoom que yo puse
+
   # El pago en línea deja de estar condicionado al volumen: se decidió avanzar ahora, con Stripe
   # Connect (split directo al vendedor, sin que la plataforma retenga el dinero — así no genera la
   # desconfianza de un intermediario custodio). El slice 1 (dominio + IPaymentGateway +
