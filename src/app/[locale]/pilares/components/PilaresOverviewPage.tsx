@@ -7,6 +7,7 @@ import { signInPathFor } from "~/infra/auth/signInPath";
 import { PUBLIC_BRAND_NAME } from "~/infra/constants";
 import { buttonVariants } from "~/presentation/design_system/buttons/buttonVariants";
 import { Heading } from "~/presentation/design_system/typography/Heading";
+import PillarsOverviewAnimation from "~/presentation/habits/animations/PillarsOverviewAnimation";
 import CommunityHabitGarden from "~/presentation/habits/CommunityHabitGarden";
 import PillarHero from "~/presentation/habits/PillarHero";
 import PracticeInvitation from "~/presentation/habits/PracticeInvitation";
@@ -88,6 +89,15 @@ export default function PilaresOverviewPage({
           }
           actionNote={t("heroNote")}
         />
+
+        {/*
+          La animación va entre el héroe y las tarjetas: explica los cuatro pilares antes de pedir
+          que se elija uno, y su cierre lleva a esas mismas tarjetas. Arranca sola solo la primera
+          vez; ver `docs/features/wellbeing/028-2026-09-29-animaciones-de-los-pilares.md`.
+        */}
+        <div className="px-6 pt-6 sm:px-10 sm:pt-10">
+          <PillarsOverviewAnimation practicesHref={`#${PRACTICES_ANCHOR}`} />
+        </div>
 
         <div
           id={PRACTICES_ANCHOR}

@@ -1091,6 +1091,51 @@
     "upcomingAppointments": "Upcoming",
     "viewOrder": "View order"
   },
+  "pillarAnimations": {
+    "player": {
+      "regionLabel": "The four pillars, animated",
+      "play": "Watch the animation",
+      "pause": "Pause",
+      "resume": "Resume",
+      "replay": "Watch again",
+      "previous": "Previous scene",
+      "next": "Next scene",
+      "sceneOf": "Scene {current} of {total}",
+      "goToScene": "Go to scene {number}",
+      "stepsNote": "Your device asks for less motion: move scene by scene, at your own pace."
+    },
+    "overview": {
+      "intro": {
+        "b1": "Your body took hundreds of thousands of years to form. The world it lives in changed in little more than a century.",
+        "b2": "That's why you sometimes feel drained, your head too full, or far from others. It isn't your failure: it's a mismatch.",
+        "b3": "There are four pillars to set it right again."
+      },
+      "sleep": {
+        "b1": "For thousands of years, the sun was our clock. When it got dark, the body knew it was time to rest.",
+        "b2": "In 1879, Edison's light bulb made the night stop being dark. Today the screen follows us to the pillow, and the body no longer knows when it's night.",
+        "b3": "Sun on your face when you wake, low light at dusk. Sleeping to the rhythm of light again, not of screens."
+      },
+      "nutrition": {
+        "b1": "Your grandparents ate what the land gave near home, in its season, and they knew who had planted it.",
+        "b2": "After the war, the goal became producing a lot, and cheaply. Food began travelling thousands of kilometres wrapped in plastic, made to last, not to nourish.",
+        "b3": "Back to real food: in season, from the people who grow it nearby."
+      },
+      "movement": {
+        "b1": "Moving wasn't exercise: it was walking to the fields, carrying, sowing, playing. It was living.",
+        "b2": "Factories, and then offices, sat us down for eight, ten, twelve hours under a roof. Today we even drive two blocks.",
+        "b3": "Getting the body back onto the street, the trail and the neighbourhood pitch."
+      },
+      "mindSpirit": {
+        "b1": "We never lived alone. Community, ritual and the silence of nature held us up.",
+        "b2": "Today we're connected to thousands of people… and often we don't know the name of the person next door.",
+        "b3": "Getting back silence, presence and the people who live nearby."
+      },
+      "closing": {
+        "b1": "The four hold each other up: moving by day calls for sleep at night; a table without screens feeds body and mind.",
+        "b2": "You don't have to change your whole life. Start today with one minimal practice."
+      }
+    }
+  },
   "pillarLocal": {
     "heading": "Near you",
     "mind": {
