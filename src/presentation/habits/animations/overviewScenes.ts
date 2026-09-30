@@ -3,7 +3,7 @@ import type { IllustratedBeat } from "./scenes/IllustratedScene";
 
 export interface IllustratedSceneConfig {
   beats: readonly IllustratedBeat[];
-  logo?: "opening" | "closing";
+  logo?: "closing";
 }
 
 /**
@@ -19,7 +19,6 @@ export interface IllustratedSceneConfig {
 export const OVERVIEW_SCENES: Record<OverviewSceneId, IllustratedSceneConfig> =
   {
     intro: {
-      logo: "opening",
       beats: [
         {
           art: "intro-1",

@@ -49,15 +49,18 @@ Característica: Una animación explica los pilares antes de pedir que se lean
     Cuando dejo que la escena se reproduzca entera
     Entonces veo tres subtítulos sucesivos: antes, lo que cambió y el regreso
 
+  # Hasta el 2026-09-30 el logo también abría: aparecía en el centro y se iba a la esquina. Se
+  # quitó a pedido del usuario: la cabecera del sitio y la del video ya lo llevan arriba a la
+  # izquierda, y dos logos a la vez sobraban.
   @slice-1
-  Esquema del escenario: El logo abre y cierra la animación, y no aparece en medio
+  Esquema del escenario: El logo solo cierra la animación
     Dado que la animación de los cuatro pilares está en pausa
     Cuando avanzo hasta la escena <escena>
     Entonces el logo de la marca <logo>
 
     Ejemplos:
       | escena | logo           |
-      | 1      | se ve          |
+      | 1      | no se ve       |
       | 3      | no se ve       |
       | 6      | se ve          |
 

@@ -148,7 +148,7 @@ test.describe("La animación de los cuatro pilares en /pilares", () => {
   }
 
   for (const { scene, visible } of [
-    { scene: 1, visible: true },
+    { scene: 1, visible: false },
     { scene: 3, visible: false },
     { scene: 6, visible: true },
   ]) {

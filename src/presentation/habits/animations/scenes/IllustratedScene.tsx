@@ -58,8 +58,9 @@ const CONFETTI = Array.from({ length: 28 }, (_, index) => {
  * ilustración vive lo que la hace un plano y no una diapositiva: brasas, estrellas, polvo en la
  * luz. Todo va en la línea de tiempo de la escena, gobernada por el reloj del guion.
  *
- * `logo` pone la marca: al abrir (grande, y luego en la esquina) o al cerrar (sobre el cielo, con
- * confeti de los cuatro colores).
+ * `logo` pone la marca al cerrar: sobre el cielo, con confeti de los cuatro colores. Al abrir no
+ * va: la cabecera del sitio y la del video ya lo llevan arriba a la izquierda, y dos logos a la vez
+ * sobraban (lo pidió el usuario el 2026-09-30).
  */
 export default function IllustratedScene({
   beats,
@@ -67,7 +68,7 @@ export default function IllustratedScene({
   ...props
 }: SceneProps & {
   beats: readonly IllustratedBeat[];
-  logo?: "opening" | "closing";
+  logo?: "closing";
 }) {
   const rootRef = useRef<HTMLDivElement>(null);
 
@@ -114,33 +115,6 @@ export default function IllustratedScene({
         animateAtmosphere(tl, q, item.atmosphere, item.art, fadeIn, holdUntil);
       }
     });
-
-    if (logo === "opening") {
-      tl.fromTo(
-        q(".logo"),
-        { opacity: 0, scale: 0.8 },
-        { opacity: 1, scale: 1, duration: 1.2, ease: "back.out(1.6)" },
-        0.1,
-      );
-      tl.fromTo(
-        q(".logo-veil"),
-        { opacity: 0 },
-        { opacity: 1, duration: 0.8 },
-        0,
-      );
-      tl.to(
-        q(".logo"),
-        {
-          left: "86%",
-          top: "5%",
-          width: "11%",
-          duration: 1.1,
-          ease: "power3.inOut",
-        },
-        2.6,
-      );
-      tl.to(q(".logo-veil"), { opacity: 0, duration: 1 }, 2.6);
-    }
 
     if (logo === "closing") {
       const reveal = beat(beats.length - 1, 0.3);
@@ -220,16 +194,6 @@ export default function IllustratedScene({
           );
         })}
 
-        {logo === "opening" && (
-          <div
-            className="logo-veil pointer-events-none absolute inset-0"
-            style={{
-              opacity: 0,
-              background:
-                "radial-gradient(60% 70% at 50% 38%, rgb(15 10 35 / 0.55), transparent 75%)",
-            }}
-          />
-        )}
         {logo === "closing" && (
           <svg
             viewBox="0 0 1920 1072"
@@ -273,13 +237,9 @@ export default function IllustratedScene({
             src="/logo.webp"
             alt={PUBLIC_BRAND_NAME}
             draggable={false}
-            style={
-              logo === "opening"
-                ? { left: "35%", top: "6%", width: "30%" }
-                : /* Sobre el cielo y por encima de las cabezas: el logo es cuadrado, así que su
-                     alto es 16/9 de su ancho medido en alto del cuadro. */
-                  { left: "39.5%", top: "1.5%", width: "21%", opacity: 0 }
-            }
+            /* Sobre el cielo y por encima de las cabezas: el logo es cuadrado, así que su alto es
+               16/9 de su ancho medido en alto del cuadro. */
+            style={{ left: "39.5%", top: "1.5%", width: "21%", opacity: 0 }}
           />
         )}
       </div>
