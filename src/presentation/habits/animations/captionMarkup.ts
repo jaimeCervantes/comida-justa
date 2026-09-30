@@ -25,6 +25,19 @@ export function parseCaption(markup: string): CaptionSegment[] {
   if (cursor < markup.length) {
     segments.push({ text: markup.slice(cursor), highlight: false });
   }
+  /* La puntuación pegada a la frase clave («…<hl>dormíamos</hl>. El sol») se queda con ella.
+     Cada palabra se dibuja como un bloque en línea para poder animarla, y después de un bloque
+     el navegador siempre puede partir la línea: el punto acababa solo al principio del renglón
+     siguiente. Dentro de la frase clave va subrayado con ella, como con un marcatexto. */
+  for (let index = 1; index < segments.length; index++) {
+    const previous = segments[index - 1];
+    const segment = segments[index];
+    const punctuation = segment.text.match(/^[^\s\p{L}\p{N}]+/u)?.[0];
+    if (previous.highlight && !segment.highlight && punctuation) {
+      previous.text += punctuation;
+      segment.text = segment.text.slice(punctuation.length);
+    }
+  }
   return segments.filter((segment) => segment.text.length > 0);
 }
 
