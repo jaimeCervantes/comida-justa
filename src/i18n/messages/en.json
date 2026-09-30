@@ -1183,6 +1183,99 @@
       },
       "regionLabel": "Sleep and rest, animated"
     },
+    "nutrition": {
+      "before": {
+        "b1": "For generations we ate <hl>what the land gave</hl> close to home: corn, beans and squash, each in its season.",
+        "b2": "Food was cooked at home, and <hl>we knew who grew it</hl>.",
+        "chip": "What the land gave"
+      },
+      "change": {
+        "b1": "After the war the goal became <hl>lots of cheap calories</hl> moved far away: white flour, refined oils and sugar in everything.",
+        "b2": "We stopped eating food and started eating <hl>products made to survive the journey</hl>, not to nourish.",
+        "chip": "The global chain"
+      },
+      "cost": {
+        "b1": "That journey is paid for three times, and <hl>none of it is on the label</hl>. First, thousands of kilometres for every ingredient.",
+        "b2": "Then, <hl>tonnes of plastic</hl> whose only job is to get the food through the trip.",
+        "b3": "And what rots along the way, plus weeks in <hl>cold storage</hl> to keep something that has already lost its nutrients.",
+        "chip": "The hidden cost"
+      },
+      "counterweight": {
+        "b1": "The counterweight is <hl>season and proximity</hl>: food harvested ripe arrives with its vitamins and without packaging.",
+        "b2": "And your money <hl>stays with whoever grew it</hl>, a few kilometres from your table.",
+        "b3": "Clean cooking counts too: steam, homemade broth or a few drops of avocado oil, <hl>no refined oils</hl>.",
+        "chip": "The counterweight"
+      },
+      "practice": {
+        "b1": "The minimum that counts has two anchors. <hl>Have dinner at sunset</hl>, so digestion is done before bed.",
+        "b2": "And <hl>serve the triad</hl>: half the plate in seasonal vegetables, a quarter protein, a quarter carbohydrate from your region and a little healthy fat.",
+        "b3": "No counting calories. <hl>Start with your next dinner.</hl>",
+        "chip": "The minimum that counts"
+      },
+      "regionLabel": "Natural food, animated"
+    },
+    "movement": {
+      "before": {
+        "b1": "For almost all of history, moving was not exercise: it was <hl>walking to the fields, carrying, sowing and playing</hl>.",
+        "b2": "Nobody had to plan it: <hl>moving was survival</hl>, outdoors and under the sun.",
+        "chip": "Moving was living"
+      },
+      "change": {
+        "b1": "Factories and then offices took us indoors and <hl>sat us down for eight, ten, twelve hours</hl> at a task or a screen.",
+        "b2": "Machines did the effort for us, and something new in history arrived: <hl>sedentary life</hl>.",
+        "chip": "The chair and the screen"
+      },
+      "cost": {
+        "b1": "And it followed us to the front door: <hl>even two blocks now get an engine</hl>. That is paid for three times.",
+        "b2": "In fuel, for a trip that fitted on foot, and in <hl>the air and noise of your own street</hl>, where the neighbourhood children play.",
+        "b3": "And in the body: <hl>fewer steps without meaning to</hl>, the very ones that keep your metabolism going.",
+        "chip": "The hidden cost"
+      },
+      "counterweight": {
+        "b1": "The counterweight is your neighbourhood: <hl>walking or cycling the short trips</hl>, and using the trails, parks and pitches nearby.",
+        "b2": "You do not need to change your life: <hl>you need to stop motorising what fitted on foot</hl>.",
+        "b3": "And give your feet work again: grass, soil and trails <hl>wake up your balance</hl> with every step.",
+        "chip": "The counterweight"
+      },
+      "practice": {
+        "b1": "The minimum that counts has two anchors. <hl>Move without an engine</hl>: one short trip on foot or by bike, however your body can.",
+        "b2": "And <hl>two minutes on your feet</hl> for every fifty in a chair: squats, calf raises, hips.",
+        "b3": "Points count days, not kilometres. <hl>Start with your next errand.</hl>",
+        "chip": "The minimum that counts"
+      },
+      "regionLabel": "Natural movement, animated"
+    },
+    "mindSpirit": {
+      "before": {
+        "b1": "For almost all of history, <hl>we never lived alone</hl>. Loneliness was a deadly danger.",
+        "b2": "We were held up by <hl>community, ritual and the silence of nature</hl>, and by stories around the fire.",
+        "chip": "We never lived alone"
+      },
+      "change": {
+        "b1": "We went from the village, where everyone knew each other, to the anonymous city, and then to <hl>thousands of contacts on a screen</hl>.",
+        "b2": "Your brain still expects <hl>to look someone in the eye</hl>, and it gets likes instead of hugs.",
+        "chip": "From village to screen"
+      },
+      "cost": {
+        "b1": "Being always available is paid for three times. <hl>The overload</hl>: a mind on alert all day, unable to stay with one thing.",
+        "b2": "<hl>The uprooting</hl>: you know what is happening ten thousand kilometres away and do not recognise who lives next door.",
+        "b3": "And <hl>crowded loneliness</hl>: hundreds of contacts, and nobody to call on an ordinary Tuesday.",
+        "chip": "The hidden cost"
+      },
+      "counterweight": {
+        "b1": "The counterweight is not disconnecting from the world: it is <hl>the world no longer being on top of you</hl> all day.",
+        "b2": "Windows of silence: <hl>the first hour, the table and the last hour</hl>, without the phone.",
+        "b3": "And step out to breathe: <hl>ten minutes outdoors</hl>, feet on the earth and light on your face.",
+        "chip": "The counterweight"
+      },
+      "practice": {
+        "b1": "The minimum that counts has two anchors. <hl>Open the day screen-free</hl>: the first half hour, with no feeds or news.",
+        "b2": "And <hl>presence with someone</hl>: really listening to one person, face to face where you can.",
+        "b3": "Start with whoever lives nearby. <hl>Today.</hl>",
+        "chip": "The minimum that counts"
+      },
+      "regionLabel": "Mind, spirit and community, animated"
+    },
     "social": {
       "outroTitle": "The four pillars of a healthy life"
     }

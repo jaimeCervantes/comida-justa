@@ -7,7 +7,10 @@ import {
 import type { AnimationScene } from "../playhead";
 import type { IllustratedSceneConfig } from "../scenes/IllustratedScene";
 import type { SceneTiming } from "../scenes/useSceneTimeline";
-import { storyTimings } from "../stories/pillarStory";
+import { MIND_SPIRIT_STORY } from "../stories/mindSpiritStory";
+import { MOVEMENT_STORY } from "../stories/movementStory";
+import { NUTRITION_STORY } from "../stories/nutritionStory";
+import { type PillarStory, storyTimings } from "../stories/pillarStory";
 import { SLEEP_STORY } from "../stories/sleepStory";
 
 /** Una animación tal como la necesita la composición para redes. */
@@ -32,6 +35,25 @@ const OVERVIEW_ACCENTS: Record<OverviewSceneId, string> = {
   closing: "#4ade80",
 };
 
+/** Las animaciones de cada pilar, por el nombre con que se exportan (`--animacion=sueno`). */
+export const STORY_FILMS = {
+  sueno: SLEEP_STORY,
+  alimentacion: NUTRITION_STORY,
+  movimiento: MOVEMENT_STORY,
+  mente: MIND_SPIRIT_STORY,
+} satisfies Record<string, PillarStory>;
+
+/** La animación de un pilar sale entera, con el color de su pilar en todas las escenas. */
+function storyFilm(story: PillarStory): Film {
+  return {
+    script: story.script,
+    scenes: story.script.map((scene) => story.scenes[scene.id]),
+    timings: storyTimings(story),
+    accents: story.script.map(() => story.videoAccent),
+    cuts: { completo: story.script.map((_, index) => index) },
+  };
+}
+
 /**
  * Las animaciones que se exportan a video. `pilares` es la de los cuatro pilares, con la completa
  * y un corte por pilar (cada escena de pilar cabe en un video corto); las de cada pilar salen
@@ -51,13 +73,10 @@ export const FILMS = {
       mente: [4],
     },
   },
-  sueno: {
-    script: SLEEP_STORY.script,
-    scenes: SLEEP_STORY.script.map((scene) => SLEEP_STORY.scenes[scene.id]),
-    timings: storyTimings(SLEEP_STORY),
-    accents: SLEEP_STORY.script.map(() => SLEEP_STORY.videoAccent),
-    cuts: { completo: SLEEP_STORY.script.map((_, index) => index) },
-  },
+  sueno: storyFilm(SLEEP_STORY),
+  alimentacion: storyFilm(NUTRITION_STORY),
+  movimiento: storyFilm(MOVEMENT_STORY),
+  mente: storyFilm(MIND_SPIRIT_STORY),
 } satisfies Record<string, Film>;
 
 export type FilmId = keyof typeof FILMS;

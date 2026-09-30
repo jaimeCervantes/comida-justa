@@ -38,7 +38,12 @@ const PILLARS_ROUTE = "/pilares/[[...slug]]";
  * páginas del sitio: importar aquí las animaciones las metería en cada una. `pillarStories.test.ts`
  * comprueba que las dos listas coinciden.
  */
-export const PILLAR_SLUGS_WITH_ANIMATION: readonly string[] = ["sueno"];
+export const PILLAR_SLUGS_WITH_ANIMATION: readonly string[] = [
+  "sueno",
+  "alimentacion",
+  "movimiento",
+  "mente-espiritu",
+];
 
 /**
  * Si en esta página cabe la invitación. La portada de los pilares no invita porque ya tiene la

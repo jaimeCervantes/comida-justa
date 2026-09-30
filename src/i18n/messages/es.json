@@ -1183,6 +1183,99 @@
       },
       "regionLabel": "El sueño y el descanso, en animación"
     },
+    "nutrition": {
+      "before": {
+        "b1": "Durante generaciones comimos <hl>lo que daba la tierra</hl> cerca de casa: maíz, frijol y calabaza, cada cosa en su temporada.",
+        "b2": "Se cocinaba en casa y <hl>se conocía a quien la sembraba</hl>.",
+        "chip": "Lo que daba la tierra"
+      },
+      "change": {
+        "b1": "Después de la guerra se buscó producir <hl>muchas calorías baratas</hl> y moverlas lejos: harinas blancas, aceites refinados y azúcar en todo.",
+        "b2": "Dejamos de comer comida y empezamos a comer <hl>productos hechos para aguantar el viaje</hl>, no para nutrir.",
+        "chip": "La cadena global"
+      },
+      "cost": {
+        "b1": "Ese viaje se paga tres veces, y <hl>ninguna viene en la etiqueta</hl>. Primero, miles de kilómetros por cada ingrediente.",
+        "b2": "Después, <hl>toneladas de plástico</hl> que solo sirven para que la comida sobreviva al trayecto.",
+        "b3": "Y lo que se pudre en el camino, más semanas en <hl>cámaras frías</hl> para cuidar algo que ya perdió sus nutrientes.",
+        "chip": "El costo oculto"
+      },
+      "counterweight": {
+        "b1": "El contrapeso es <hl>la temporada y la cercanía</hl>: lo cosechado maduro llega con sus vitaminas y sin empaque.",
+        "b2": "Y tu dinero <hl>se queda con quien lo cultivó</hl>, a unos kilómetros de tu mesa.",
+        "b3": "Cocinar limpio también cuenta: vapor, caldo casero o unas gotas de aceite de aguacate, <hl>sin aceites refinados</hl>.",
+        "chip": "El contrapeso"
+      },
+      "practice": {
+        "b1": "El mínimo que cuenta tiene dos anclas. <hl>Cenar al atardecer</hl>, para que la digestión termine antes de dormir.",
+        "b2": "Y <hl>servir la triada</hl>: medio plato de vegetales de temporada, un cuarto de proteína, un cuarto de carbohidrato de tu región y algo de grasa sana.",
+        "b3": "Sin contar calorías. <hl>Empieza con tu próxima cena.</hl>",
+        "chip": "El mínimo que cuenta"
+      },
+      "regionLabel": "La alimentación natural, en animación"
+    },
+    "movement": {
+      "before": {
+        "b1": "Durante casi toda la historia, moverse no era ejercicio: era <hl>caminar al campo, cargar, sembrar y jugar</hl>.",
+        "b2": "Nadie tenía que proponérselo: <hl>moverse era sobrevivir</hl>, al aire libre y bajo el sol.",
+        "chip": "Moverse era vivir"
+      },
+      "change": {
+        "b1": "Las fábricas y luego las oficinas nos llevaron bajo techo, y <hl>nos sentaron ocho, diez, doce horas</hl> frente a una tarea o una pantalla.",
+        "b2": "Las máquinas hicieron el esfuerzo por nosotros, y llegó algo nuevo en la historia: <hl>el sedentarismo</hl>.",
+        "chip": "La silla y la pantalla"
+      },
+      "cost": {
+        "b1": "Y nos siguió hasta la puerta de casa: <hl>hasta dos cuadras las hacemos con motor</hl>. Eso se paga tres veces.",
+        "b2": "En gasolina, por un viaje que cabía a pie, y en <hl>el aire y el ruido de tu propia calle</hl>, donde juegan los niños del barrio.",
+        "b3": "Y en el cuerpo: <hl>menos pasos sin proponértelo</hl>, que son justo los que sostienen tu metabolismo.",
+        "chip": "El costo oculto"
+      },
+      "counterweight": {
+        "b1": "El contrapeso es tu barrio: <hl>caminar o pedalear los trayectos cortos</hl>, y usar los senderos, parques y canchas de la zona.",
+        "b2": "No hace falta cambiar de vida: <hl>hace falta dejar de motorizar lo que cabía a pie</hl>.",
+        "b3": "Y darle trabajo al pie: pasto, tierra y senderos <hl>despiertan el equilibrio</hl> a cada paso.",
+        "chip": "El contrapeso"
+      },
+      "practice": {
+        "b1": "El mínimo que cuenta tiene dos anclas. <hl>Moverte sin motor</hl>: un trayecto corto a pie o en bici, como tu cuerpo pueda.",
+        "b2": "Y <hl>dos minutos de pie</hl> por cada cincuenta de silla: sentadillas, talones, cadera.",
+        "b3": "Los puntos cuentan días, no kilómetros. <hl>Empieza con tu próximo mandado.</hl>",
+        "chip": "El mínimo que cuenta"
+      },
+      "regionLabel": "El movimiento natural, en animación"
+    },
+    "mindSpirit": {
+      "before": {
+        "b1": "Durante casi toda la historia, <hl>nunca vivimos solos</hl>. La soledad era un peligro de muerte.",
+        "b2": "Nos sostenían <hl>la comunidad, el ritual y el silencio de la naturaleza</hl>, y las historias alrededor del fuego.",
+        "chip": "Nunca vivimos solos"
+      },
+      "change": {
+        "b1": "Pasamos de la aldea, donde todos se conocían, a la ciudad anónima, y luego a <hl>miles de contactos en una pantalla</hl>.",
+        "b2": "Tu cerebro sigue esperando <hl>mirar a los ojos a alguien</hl>, y recibe likes en lugar de abrazos.",
+        "chip": "De la aldea a la pantalla"
+      },
+      "cost": {
+        "b1": "Estar siempre disponible se paga tres veces. <hl>La saturación</hl>: una cabeza en alerta todo el día, que ya no se queda en una sola cosa.",
+        "b2": "<hl>El desarraigo</hl>: sabes lo que pasa a diez mil kilómetros y no reconoces a quien vive al lado.",
+        "b3": "Y <hl>la soledad acompañada</hl>: cientos de contactos, y nadie a quién llamar un martes cualquiera.",
+        "chip": "El costo oculto"
+      },
+      "counterweight": {
+        "b1": "El contrapeso no es desconectarse del mundo: es que <hl>el mundo deje de estar encima</hl> todo el día.",
+        "b2": "Ventanas de silencio: <hl>la primera hora, la mesa y la última hora</hl>, sin teléfono.",
+        "b3": "Y salir a respirar: <hl>diez minutos al aire libre</hl>, con los pies en la tierra y la luz en la cara.",
+        "chip": "El contrapeso"
+      },
+      "practice": {
+        "b1": "El mínimo que cuenta tiene dos anclas. <hl>Abrir el día sin pantalla</hl>: la primera media hora, sin redes ni noticias.",
+        "b2": "Y <hl>presencia con alguien</hl>: escuchar de verdad a una persona, de preferencia cara a cara.",
+        "b3": "Empieza por quien vive cerca. <hl>Hoy mismo.</hl>",
+        "chip": "El mínimo que cuenta"
+      },
+      "regionLabel": "La mente, el espíritu y la comunidad, en animación"
+    },
     "social": {
       "outroTitle": "Los cuatro pilares de una vida sana"
     }

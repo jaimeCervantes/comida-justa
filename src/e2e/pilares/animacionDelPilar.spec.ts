@@ -1,5 +1,8 @@
 import { expect, test } from "@playwright/test";
 import es from "~/i18n/messages/es.json";
+import { MIND_SPIRIT_STORY } from "~/presentation/habits/animations/stories/mindSpiritStory";
+import { MOVEMENT_STORY } from "~/presentation/habits/animations/stories/movementStory";
+import { NUTRITION_STORY } from "~/presentation/habits/animations/stories/nutritionStory";
 import { SLEEP_STORY } from "~/presentation/habits/animations/stories/sleepStory";
 import { PILLAR_PRACTICE_ANCHOR } from "~/presentation/habits/pillarPageAnchors";
 import {
@@ -122,3 +125,42 @@ test.describe("La animación de Sueño en /pilares/sueno", () => {
       ]);
   });
 });
+
+/**
+ * Los otros tres pilares (slices 4–6) usan la plantilla de Sueño: aquí se comprueba lo que cambia
+ * de un pilar a otro —que su página la monte, que arranque y adónde lleva—; el resto del
+ * reproductor ya lo cubren las pruebas de Sueño. Van sin sonido hasta que llegue su voz.
+ */
+for (const story of [NUTRITION_STORY, MOVEMENT_STORY, MIND_SPIRIT_STORY]) {
+  const path = `/pilares/${story.slug}`;
+
+  test.describe(`La animación de ${path}`, () => {
+    test("la primera visita la reproduce sola, entre el héroe y la práctica", async ({
+      page,
+    }) => {
+      await openWithAnimation(page, path);
+
+      const [heroBox, playerBox, practiceBox] = await Promise.all([
+        page.getByTestId("pillar-hero-action").boundingBox(),
+        player(page).boundingBox(),
+        page.locator(`#${PILLAR_PRACTICE_ANCHOR}`).boundingBox(),
+      ]);
+      expect(playerBox?.y).toBeGreaterThan(heroBox?.y ?? Infinity);
+      expect(playerBox?.y).toBeLessThan(practiceBox?.y ?? -Infinity);
+      await expect(player(page)).toHaveAttribute("data-state", "playing");
+      await expect(player(page)).toHaveAttribute("data-pillar", story.pillar);
+    });
+
+    test("su cierre lleva a la práctica de la misma página", async ({
+      page,
+    }) => {
+      await markAnimationAsSeen(page, story.animationId);
+      await openWithAnimation(page, path);
+      await goToAnimationScene(page, story.script.length);
+
+      await player(page).getByTestId("animation-cta").click();
+
+      await expect(page.locator(`#${PILLAR_PRACTICE_ANCHOR}`)).toBeInViewport();
+    });
+  });
+}

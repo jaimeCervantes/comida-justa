@@ -79,20 +79,36 @@ Característica: Cada pilar se explica con su propia animación, bajo el héroe 
 
   # ── Slices futuros (esqueletos) ──────────────────────────────────────────────────────────────
 
-  @slice-4 @future
-  Escenario: La primera visita a /pilares/alimentacion reproduce su propia animación
-    Dado que nunca he visto la animación de Alimentación
-    Cuando abro "/pilares/alimentacion"
-    Entonces su animación está bajo el héroe y se reproduce sola
+  # ── Slices 4, 5 y 6: los otros tres pilares, con la plantilla de Sueño ──────────────────────
+  # Van con texto y sin sonido: su voz se narra al final, y entonces se miden los tiempos (hoy
+  # estimados con la velocidad del narrador), se mezcla su pista y se exportan sus videos.
 
-  @slice-5 @future
-  Escenario: La primera visita a /pilares/movimiento reproduce su propia animación
-    Dado que nunca he visto la animación de Movimiento
-    Cuando abro "/pilares/movimiento"
-    Entonces su animación está bajo el héroe y se reproduce sola
+  @slice-4 @slice-5 @slice-6
+  Esquema del escenario: La primera visita a cada pilar reproduce su propia animación
+    Dado que nunca he visto la animación de "<pilar>"
+    Cuando abro "<ruta>"
+    Entonces la animación está entre el héroe y la práctica y se reproduce sola
 
-  @slice-6 @future
-  Escenario: La primera visita a /pilares/mente-espiritu reproduce su propia animación
-    Dado que nunca he visto la animación de Mente y espíritu
-    Cuando abro "/pilares/mente-espiritu"
-    Entonces su animación está bajo el héroe y se reproduce sola
+    Ejemplos:
+      | pilar            | ruta                    |
+      | Alimentación     | /pilares/alimentacion   |
+      | Movimiento       | /pilares/movimiento     |
+      | Mente y espíritu | /pilares/mente-espiritu |
+
+  @slice-4 @slice-5 @slice-6
+  Esquema del escenario: El cierre de cada pilar lleva a su práctica
+    Dado que la animación de "<pilar>" llega a su última escena
+    Cuando pulso "Empezar la práctica"
+    Entonces llego a la práctica de "<ruta>"
+
+    Ejemplos:
+      | pilar            | ruta                    |
+      | Alimentación     | /pilares/alimentacion   |
+      | Movimiento       | /pilares/movimiento     |
+      | Mente y espíritu | /pilares/mente-espiritu |
+
+  @slice-4 @slice-5 @slice-6 @future
+  Escenario: La voz de los otros tres pilares llega al final
+    Dado que ya está narrada la animación de un pilar
+    Cuando se reproduce en su página
+    Entonces tiene botón de sonido y su pista en el idioma de quien mira
