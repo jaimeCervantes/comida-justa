@@ -445,9 +445,13 @@ test.describe("Del atardecer al amanecer", () => {
     page,
   }) => {
     await page.goto("/pilares/movimiento");
+    /* Exacto: el nombre de la práctica también aparece dentro de las tarjetas de la comunidad
+       («Practiqué Movimiento vivo, local y funcional…»), y sin `exact` el encabezado deja de ser
+       uno solo en cuanto alguien la publica. */
     await expect(
       page.getByRole("heading", {
         name: "Movimiento vivo, local y funcional",
+        exact: true,
       }),
     ).toBeVisible();
     await expect(
