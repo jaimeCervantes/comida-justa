@@ -110,6 +110,12 @@ introduce ningún dato nuevo.
 
 ## Slices
 
+**Orden acordado el 2026-09-29** (tras ver la animación ilustrada): 1 → **2** → **7** → 3–6 según
+lo que digan los datos del slice 2 → 8 → 9 solo con autorización expresa del usuario. Razón: con
+pocos visitantes, el canal para llegar a gente nueva son las redes; antes de construir cuatro
+animaciones más hay que medir si la general se ve y lleva a elegir práctica, y exportar a video lo
+que ya existe cuesta casi nada.
+
 ### Slice 1 — La animación de los cuatro pilares en `/pilares`
 
 - Reproductor bajo el héroe de `/pilares` con el guion de 6 escenas y sus 17 subtítulos.
@@ -128,6 +134,10 @@ introduce ningún dato nuevo.
 - Al aceptarla se reproduce la animación de los cuatro pilares sin salir de la página; al cerrarla o
   al verla, no vuelve a aparecer.
 - No aparece en `/pilares` (ahí ya está la animación) ni en flujos de compra/pago.
+- **Medición** (añadida al reordenar): eventos de Google Analytics 4, que el sitio ya carga en
+  producción — invitación mostrada, aceptada y descartada; reproducción (y cómo arrancó); escena
+  alcanzada; animación completa; clic en «Elegir mi práctica». Con eso se decide si construir las
+  animaciones de cada pilar.
 
 ### Slice 3 — Animación de Sueño bajo el héroe de `/pilares/sueno`
 
@@ -139,13 +149,20 @@ introduce ningún dato nuevo.
 
 - Un guion por pilar sobre la plantilla del slice 3.
 
-### Slice 7 — Exportar a video para redes
+### Slice 7 — Exportar a video para redes (va después del 2)
 
-- Formato vertical (1080×1920) y cuadrado (1080×1080) desde el mismo guion.
-- Se decide ahí entre Remotion (licencia gratuita para equipos pequeños) y captura con Playwright.
+- La animación completa y un corte por pilar (cada escena de pilar dura 16–22 s): cinco videos sin
+  generar una sola imagen nueva, con los subtítulos incrustados y música libre de derechos.
+- Formato vertical (1080×1920) y cuadrado (1080×1080) desde el mismo guion: el reloj se puede llevar
+  a cualquier instante, así que se graba cuadro por cuadro.
 
 ### Slice 8 — Voz
 
 - Locución de hombre mexicano, voz grave, sincronizada por escena. Se decide ahí entre locutor
   humano y voz sintética `es-MX`. Los subtítulos se quedan.
 - Botón de silencio; el sonido nunca arranca solo en la web (los navegadores lo bloquean y molesta).
+
+### Slice 9 — Clips con Veo 3.1 (solo con autorización expresa del usuario)
+
+- Convertir las ilustraciones en clips con movimiento real de personajes, para redes. Tiene costo
+  apreciable (decenas de dólares) y no se inicia sin que el usuario lo autorice.

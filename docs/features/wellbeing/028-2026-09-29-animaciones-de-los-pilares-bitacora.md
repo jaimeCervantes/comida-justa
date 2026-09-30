@@ -249,3 +249,81 @@ Playwright en verde.
 2. Clips con Veo 3.1 a partir de estas mismas ilustraciones, para redes (costo aparte).
 3. Slice 2 — invitación en la primera visita a cualquier página.
 4. Slices 3–6 — la animación de cada pilar con el mismo proceso y los mismos personajes.
+
+## 2026-09-29 — Slice 2: invitación en la primera visita y medición
+
+### Objetivo
+
+Llevar la animación a donde está quien llega por primera vez —casi nunca `/pilares`— y medir si se
+ve, para decidir con datos si construir la animación de cada pilar. Orden acordado con el usuario:
+este slice, luego exportar a video (7), luego los pilares según los datos, la voz, y Veo solo con su
+autorización.
+
+### Decisiones y por qué
+
+- **Medición con Google Analytics 4**, que el layout ya carga en producción: nada de tablas nuevas
+  (las migraciones son de `bot-whatsapp`) ni de otro servicio. Se llama a `gtag` si existe; fuera de
+  producción no hace nada y no ensucia la consola.
+- **Siete eventos, en un vocabulario cerrado** (`animationAnalytics.ts`): invitación mostrada,
+  aceptada y descartada; reproducción (sola, con el botón, al continuar o al repetir); escena
+  alcanzada; animación completa; clic en «Elegir mi práctica». Todos llevan `animation` y
+  `placement` («page» o «invite»). Ningún dato personal.
+- **El reproductor no sabe de analítica**: avisa por `onEvent` y quien lo monta decide adónde va.
+- **La invitación es una tarjeta, no una ventana**: en una esquina (encima de la barra inferior en el
+  teléfono), a los 6 s, sin robar el foco. Una sola vez por navegador y solo a quien no vio la
+  animación; se recuerda en cuanto aparece. No aparece en `/pilares` ni donde se hace algo concreto
+  (compra, pedidos, citas, publicar, cuenta, administración, entrar): lista cerrada en
+  `inviteRoutes.ts`, con prueba.
+- **Aceptarla abre la animación en un diálogo**, sin salir de la página, con el patrón accesible de
+  `MediaPreviewDialog`. La animación se descarga al abrirlo: el resto del sitio no carga GSAP ni las
+  escenas.
+- **La suite de Playwright arranca con la invitación ya mostrada** (`storageState` en la
+  configuración): una tarjeta a los pocos segundos podría tapar el botón que otro escenario pulsa.
+  Su especificación empieza de cero.
+- El ancla de las tarjetas de `/pilares` pasó a `pillarPageAnchors.ts`, para que la animación
+  abierta desde otra página lleve al mismo sitio que la de la portada.
+
+### Archivos
+
+- Invitación: `PillarsInvite.tsx`, `PillarsAnimationDialog.tsx`, `inviteRoutes.ts` (+ prueba);
+  montada en `src/app/[locale]/layout.tsx`.
+- Medición: `src/infra/analytics/sendAnalyticsEvent.ts`, `animationAnalytics.ts`; `onEvent` en el
+  reproductor; `placement` en `PillarsOverviewAnimation`.
+- Textos: `pillarAnimations.invite` (es/en).
+- Pruebas: `invitacionPilares.feature` / `.spec.ts`; `storageState` en `playwright.config.ts`.
+
+### Validación
+
+- `pnpm run test:run`: 3142 de 3143 en verde; la que faltaba era la regla de radios del sistema de
+  diseño (la invitación y el diálogo pedían `rounded-xl/2xl/3xl`): corregida a `rounded-control`,
+  `rounded-card` y `rounded-panel`, y su prueba pasa (28/28). `typecheck` y `lint` limpios.
+- Playwright de `src/e2e/pilares` en 6 tramos: 81/83. `invitacionPilares.spec.ts` en verde tras
+  hacer deterministas sus tiempos (un marcador que solo existe ya hidratado y el reloj adelantado a
+  pasos). Los 2 fallos son de `practicasPropias.spec.ts` y **anteriores a este slice**: fallan igual
+  sin estos cambios (comprobado con `git stash`). Causa: «marcada hoy» se decide por la publicación
+  del día de la práctica, y la limpieza de esa prueba no la borra; pasan en la primera corrida del
+  día y fallan en las siguientes. Pendiente aparte, fuera de este slice.
+- Para correr Playwright se detuvo el `next dev` del usuario (autorizado por él).
+
+### Pendiente del usuario
+
+- **En GA4 (Administrar → Definiciones personalizadas)**, registrar como dimensiones de evento
+  `placement`, `scene`, `trigger` y `animation`. Sin eso los eventos se cuentan, pero sus datos no
+  aparecen en los informes estándar.
+- Dejar correr unas semanas antes de decidir las animaciones de cada pilar. Lo que conviene mirar:
+  de las invitaciones mostradas, cuántas se aceptan; de las reproducciones, cuántas llegan a la
+  escena 6; y cuántas terminan en «Elegir mi práctica».
+
+### Recap
+
+Quien entra por primera vez al sitio, por casi cualquier página, recibe a los 6 s una invitación
+discreta a ver los cuatro pilares; aceptarla la reproduce encima de la página. La animación de
+`/pilares` y la de la invitación envían siete eventos a GA4 que dicen si se ve y si lleva a elegir
+práctica.
+
+### Próximos pasos (opciones)
+
+1. **Slice 7 — exportar a video para redes**: la animación completa y un corte por pilar, con
+   subtítulos incrustados y música libre de derechos.
+2. Con datos de unas semanas, decidir las animaciones de cada pilar (slices 3–6).
+3. La voz (slice 8), al final de todas las animaciones. Veo (slice 9) solo con autorización.
