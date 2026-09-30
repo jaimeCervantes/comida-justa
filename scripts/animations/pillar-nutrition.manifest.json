@@ -1,0 +1,72 @@
+{
+  "model": "gemini-3-pro-image",
+  "style": "Art direction: premium soft 3D clay animation still, like a frame from an award-winning animated short by an international design studio. Rounded, soft, slightly chunky forms; matte clay and felt-like materials with a subtle handmade texture; gentle subsurface glow; warm cinematic lighting with soft global illumination, soft shadows and a delicate rim light; shallow depth of field with a softly blurred foreground element that adds depth; rich yet harmonious colour palette. Match the material, colours and charm of the reference heart mascot image (a red clay heart with green leaves). Setting: Mexico and Latin America; warm, hopeful mood. Composition: wide 16:9 cinematic frame; keep every important subject inside the central 70% of the width because phones crop the sides; keep the top 12% of the frame calm and uncluttered. Absolutely no text, letters, numbers, readable signs, logos, watermarks or user-interface elements anywhere in the image.",
+  "refs": ["public/logo.webp"],
+  "items": [
+    {
+      "id": "nutrition-before-1",
+      "refs": ["cast.jpg"],
+      "prompt": "Recurring characters: use the reference character sheet so they look exactly the same. Scene idea: 'For generations we ate what the land gave close to home: corn, beans and squash, each in its season.' A traditional Mexican milpa at golden hour in a green valley: tall corn plants with bean vines climbing them and big squash leaves and flowers on the ground. Abuela Rosa harvests ears of corn into a woven basket while Tomás carries a ripe squash in his arms, both smiling; a small adobe house with a clay tile roof stands nearby. Abundant, warm and timeless. Golden, green and earthy palette. Important: do not include the heart mascot or any heart-shaped character anywhere in this scene; the mascot image is only a reference for the clay style."
+    },
+    {
+      "id": "nutrition-before-2",
+      "refs": ["cast.jpg"],
+      "prompt": "Recurring characters: use the reference character sheet so they look exactly the same. Scene idea: 'Food was cooked at home, and we knew who grew it.' A warm adobe kitchen: Abuela Rosa makes tortillas on a clay comal over a wood fire; at the open door Leo, dressed as a local farmer with a straw hat, hands her a basket of fresh corn, beans and squash from his field, and they greet each other like old friends; Tomás watches from the table. Cosy, intimate and trusting. Warm terracotta and golden light. Important: do not include the heart mascot or any heart-shaped character anywhere in this scene; the mascot image is only a reference for the clay style."
+    },
+    {
+      "id": "nutrition-change-1",
+      "refs": ["cast.jpg"],
+      "prompt": "Recurring characters: use the reference character sheet so they look exactly the same. Scene idea: 'After the war the goal became lots of cheap calories moved far away: white flour, refined oils and sugar in everything.' A 1950s food factory drawn as a playful clay diorama: long conveyor belts carry identical white flour sacks, oil bottles and sugar sacks, huge pipes and chimneys, and in the background cargo ships and trucks leave towards the horizon. Small workers in overalls. Mass-produced and impersonal, but still charming clay. Muted grey, beige and steel-blue palette with small red accents. The sacks, bottles and boxes are completely plain, with no letters, words, numbers or labels at all. Important: do not include the heart mascot or any heart-shaped character anywhere in this scene; the mascot image is only a reference for the clay style."
+    },
+    {
+      "id": "nutrition-change-2",
+      "refs": ["cast.jpg"],
+      "prompt": "Recurring characters: use the reference character sheet so they look exactly the same. Scene idea: 'We stopped eating food and started eating products made to survive the journey, not to nourish.' A bright supermarket aisle with endless shelves of identical, glossy, colourful ultra-processed packages with no readable text; Ana pushes a shopping cart and looks at a shiny snack package in her hand with a doubtful, tired face; the packages glow with an artificial, almost plastic light. Cold fluorescent palette with saturated candy colours. No readable text, logos or brands. Important: do not include the heart mascot or any heart-shaped character anywhere in this scene; the mascot image is only a reference for the clay style."
+    },
+    {
+      "id": "nutrition-cost-1",
+      "refs": ["cast.jpg"],
+      "prompt": "Recurring characters: use the reference character sheet so they look exactly the same. Scene idea: 'That journey is paid for three times, and none of it is on the label. First, thousands of kilometres for every ingredient.' A clay diorama of a round globe floating on a soft blue background: a single tomato travels around it by lorry, cargo ship and aeroplane along long dotted route lines, leaving small puffs of grey smoke; tiny clay mountains and oceans on the globe. There are no people or characters in this scene: only the globe, the travelling tomato and its vehicles. Whimsical but a little absurd. Soft blue, grey and tomato-red palette. No readable text. Important: do not include the heart mascot or any heart-shaped character anywhere in this scene; the mascot image is only a reference for the clay style."
+    },
+    {
+      "id": "nutrition-cost-2",
+      "refs": ["cast.jpg"],
+      "prompt": "Recurring characters: use the reference character sheet so they look exactly the same. Scene idea: 'Then, tonnes of plastic whose only job is to get the food through the trip.' Behind a small neighbourhood shop, a huge mountain of plastic packaging (bottles, wrappers, trays and bags) rises higher than the rooftops; Tomás stands in front of it holding a single apple, looking up at the pile with sad wonder. Dusky light. Muted, slightly grey palette with colourful plastic. No readable text or brand labels. Important: do not include the heart mascot or any heart-shaped character anywhere in this scene; the mascot image is only a reference for the clay style."
+    },
+    {
+      "id": "nutrition-cost-3",
+      "refs": ["cast.jpg"],
+      "prompt": "Recurring characters: use the reference character sheet so they look exactly the same. Scene idea: 'And what rots along the way, plus weeks in cold storage to keep something that has already lost its nutrients.' Inside a huge industrial cold-storage warehouse with frosty metal shelves stacked with crates of fruit and vegetables that look pale and faded; some produce in the front crate is wilting; frosty breath in the air and cold blue light; Leo, exactly as in the character sheet (the man with short black hair and deep brown skin), now wearing a thick padded jacket over his teal t-shirt, checks a crate with a worried face. Cold blue and pale grey palette. No readable text. Important: do not include the heart mascot or any heart-shaped character anywhere in this scene; the mascot image is only a reference for the clay style."
+    },
+    {
+      "id": "nutrition-counterweight-1",
+      "refs": ["cast.jpg"],
+      "prompt": "Recurring characters: use the reference character sheet so they look exactly the same. Scene idea: 'The counterweight is season and proximity: food harvested ripe arrives with its vitamins and without packaging.' A lively Mexican street market (tianguis) on a sunny morning, with colourful awnings: Ana chooses ripe tomatoes, chillies and greens from a farmer's stall and puts them straight into her own cloth bag; everything is loose, fresh and unpackaged; baskets of seasonal fruit and vegetables all around. Vibrant, joyful and fresh. Warm sunlight with red, green and yellow accents. No readable signs or text. Important: do not include the heart mascot or any heart-shaped character anywhere in this scene; the mascot image is only a reference for the clay style."
+    },
+    {
+      "id": "nutrition-counterweight-2",
+      "refs": ["cast.jpg"],
+      "prompt": "Recurring characters: use the reference character sheet so they look exactly the same. Scene idea: 'And your money stays with whoever grew it, a few kilometres from your table.' At a market stall, Leo, dressed as a local farmer with a straw hat, receives a few coins from Ana with a warm smile; behind him, beyond the market, you can see his green field and small farmhouse on a nearby hill, very close. A small glowing path of light connects Ana's hand, Leo's hand and his field. Heart-warming, community feeling. Warm golden and fresh green palette. No readable text. Important: do not include the heart mascot or any heart-shaped character anywhere in this scene; the mascot image is only a reference for the clay style."
+    },
+    {
+      "id": "nutrition-counterweight-3",
+      "refs": ["cast.jpg"],
+      "prompt": "Recurring characters: use the reference character sheet so they look exactly the same. Scene idea: 'Clean cooking counts too: steam, homemade broth or a few drops of avocado oil, no refined oils.' In a bright, cosy home kitchen, Ana, exactly as in the character sheet (long straight black hair and her coral-red long-sleeve top), lifts the lid of a clay pot of homemade vegetable broth and soft steam rises; beside it a bamboo steamer with vegetables, a cast-iron pan, and a small glass bottle of green avocado oil; no plastic oil bottles anywhere. Calm and appetising. Warm morning light, green and terracotta palette. No readable labels. Important: do not include the heart mascot or any heart-shaped character anywhere in this scene; the mascot image is only a reference for the clay style."
+    },
+    {
+      "id": "nutrition-practice-1",
+      "refs": ["cast.jpg"],
+      "prompt": "Recurring characters: use the reference character sheet so they look exactly the same. Scene idea: 'Have dinner at sunset, so digestion is done before bed.' Early evening: the four characters sit together at a wooden table by a large open window and share a simple home-cooked dinner while the sun sets over the neighbourhood rooftops outside; golden sunset light fills the room; no screens anywhere. Warm, relaxed and familial. Golden orange and soft pink palette. Important: do not include the heart mascot or any heart-shaped character anywhere in this scene; the mascot image is only a reference for the clay style."
+    },
+    {
+      "id": "nutrition-practice-2",
+      "refs": ["cast.jpg"],
+      "prompt": "Recurring characters: use the reference character sheet so they look exactly the same. Scene idea: 'Serve the triad: half the plate in seasonal vegetables, a quarter protein, a quarter carbohydrate from your region and a little healthy fat.' A beautiful close-up, seen from slightly above, of a hand-painted clay plate on a wooden table: half of the plate is colourful seasonal vegetables, a quarter is black beans with a fried egg, a quarter is corn tortillas and roasted squash, with a few slices of avocado; Ana's hands add a sprig of coriander. Appetising, natural and generous. Warm, colourful palette. Important: do not include the heart mascot or any heart-shaped character anywhere in this scene; the mascot image is only a reference for the clay style."
+    },
+    {
+      "id": "nutrition-practice-3",
+      "refs": ["cast.jpg"],
+      "prompt": "Recurring characters: use the reference character sheet so they look exactly the same. Scene idea: 'No counting calories. Start with your next dinner.' A calm dusk view from a gentle hill over a Mexican neighbourhood next to green fields of milpa: warm windows begin to glow and the sky turns from gold to soft violet. The four characters walk home together along a path, small, in the lower third, carrying a basket of fresh vegetables. The centre and upper part of the sky stay open, calm and glowing, because a logo will be placed there later. Important: do not include the heart mascot or any heart-shaped character anywhere in this scene; the mascot image is only a reference for the clay style."
+    }
+  ]
+}

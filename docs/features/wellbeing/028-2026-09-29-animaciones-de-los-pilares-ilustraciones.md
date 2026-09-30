@@ -71,3 +71,8 @@ Se generan primero en una hoja (`cast`), y esa hoja va como referencia en cada e
   51 archivos WebP; en un teléfono se descargan los de 960 px, ~36 KB cada uno (los de 1920 px,
   ~100 KB).
 - **La de Sueño:** 13 ilustraciones, todas a la primera (≈ 1,7 USD). 2,6 MB entre sus 39 WebP.
+- **Las otras tres:** 39 ilustraciones más 6 regeneraciones (≈ 5,9 USD). Alimentación rehízo
+  cuatro (texto en los costales, un personaje que no es del reparto, Leo y Ana que no se parecían
+  a sí mismos), Movimiento una (una sala repetida dos veces) y Mente y espíritu una (la palabra
+  «NEWS» en una burbuja). Pedirle «sin texto» no basta cuando la escena invita a rotular algo:
+  hay que decir qué va en su lugar («solo íconos y formas»).

@@ -111,19 +111,25 @@ describe.each(STORIES.map((story) => [story.animationId, story] as const))(
       }
     });
 
-    it("vive en la página de su pilar y trae su pista de sonido en los dos idiomas", () => {
+    it("vive en la página de su pilar", () => {
       expect(PILLARS.find((pillar) => pillar.key === story.pillar)?.slug).toBe(
         story.slug,
       );
-      for (const locale of ["es", "en"]) {
-        const file = path.join(
-          process.cwd(),
-          "public",
-          `${story.soundtrackBase}-${locale}.mp3`,
-        );
-        expect(fs.existsSync(file)).toBe(true);
-      }
     });
+
+    it.skipIf(!story.soundtrackBase)(
+      "si ya tiene voz, trae su pista de sonido en los dos idiomas",
+      () => {
+        for (const locale of ["es", "en"]) {
+          const file = path.join(
+            process.cwd(),
+            "public",
+            `${story.soundtrackBase}-${locale}.mp3`,
+          );
+          expect(fs.existsSync(file)).toBe(true);
+        }
+      },
+    );
   },
 );
 

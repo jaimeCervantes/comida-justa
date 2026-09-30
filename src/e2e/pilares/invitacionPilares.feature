@@ -20,10 +20,10 @@ Característica: La primera visita invita a ver los cuatro pilares, y se mide si
     Y no me tapa la página: el foco sigue donde estaba
 
     Ejemplos:
-      | ruta                  |
-      | /                     |
-      | /productos            |
-      | /pilares/alimentacion |
+      | ruta       |
+      | /          |
+      | /productos |
+      | /practicas |
 
   @slice-2
   Escenario: Al aceptarla, la animación se reproduce sin salir de la página
@@ -49,7 +49,7 @@ Característica: La primera visita invita a ver los cuatro pilares, y se mide si
     Ejemplos:
       | ruta           | razón                                          |
       | /pilares       | ahí ya está la animación                       |
-      | /pilares/sueno | ya tiene la suya bajo el héroe (slice 3)       |
+      | /pilares/sueno | cada pilar tiene la suya bajo el héroe         |
       | /carrito       | es una compra: no se interrumpe                |
 
   @slice-2

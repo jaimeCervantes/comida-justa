@@ -14,13 +14,13 @@ import {
   FILMS,
   type FilmId,
   isFilmId,
+  STORY_FILMS,
 } from "~/presentation/habits/animations/social/films";
 import SocialComposition from "~/presentation/habits/animations/social/SocialComposition";
 import {
   isSocialCut,
   isSocialFormat,
 } from "~/presentation/habits/animations/social/socialCuts";
-import { SLEEP_STORY } from "~/presentation/habits/animations/stories/sleepStory";
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -40,21 +40,20 @@ async function filmTexts(
 ): Promise<FilmTexts> {
   const t = await getTranslations({ locale, namespace: "pillarAnimations" });
   const host = new URL(PRODUCTION_URL).host;
-  if (filmId === "sueno") {
+  if (filmId !== "pilares") {
+    const story = STORY_FILMS[filmId];
     const tPages = await getTranslations({ locale, namespace: "pillarPages" });
     return {
-      captions: SLEEP_STORY.script.map((scene) =>
-        SLEEP_STORY.captionKeys[scene.id].map((key) => String(t.raw(key))),
+      captions: story.script.map((scene) =>
+        story.captionKeys[scene.id].map((key) => String(t.raw(key))),
       ),
-      chips: SLEEP_STORY.script.map((scene) =>
-        t(SLEEP_STORY.chipKeys[scene.id]),
-      ),
-      outroTitle: tPages("sleep.heading"),
+      chips: story.script.map((scene) => t(story.chipKeys[scene.id])),
+      outroTitle: tPages(`${story.pillar}.heading`),
       siteUrl: `${host}${getPathname({
         locale,
         href: {
           pathname: "/pilares/[[...slug]]",
-          params: { slug: [SLEEP_STORY.slug] },
+          params: { slug: [story.slug] },
         },
       })}`,
     };

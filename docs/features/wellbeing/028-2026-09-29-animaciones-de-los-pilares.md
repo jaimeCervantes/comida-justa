@@ -190,7 +190,68 @@ Todo sale de la página del pilar; ningún dato nuevo. Entre corchetes, la frase
 ### Slices 4, 5 y 6 — Alimentación, Movimiento, Mente y espíritu
 
 - Un guion por pilar sobre la plantilla del slice 3: sus cinco tiempos con lo que ya dice su
-  página, 13–14 ilustraciones, narración, música y su `PillarStory`.
+  página, 13 ilustraciones, música propia y su `PillarStory`. Como el de Sueño, se escribieron y
+  produjeron sin que el usuario los revisara antes: están aquí para eso.
+- **Primero con texto, la voz al final** (lo propuso el usuario el 2026-09-30, cuando la cuota
+  diaria de voz se agotó a media producción). Sin voz, cada subtítulo dura lo que tardaría el
+  narrador según la velocidad a la que ya lee Algieba (84 frases medidas, más 0,25 s de margen);
+  al narrar se miden de verdad y se ajustan, y entonces llegan el botón de sonido y los videos.
+- La invitación a ver los cuatro pilares ya no aparece en ninguna página de pilar: todas tienen
+  su propia animación.
+
+#### Guion de Alimentación
+
+| Tiempo | Etiqueta | Texto (es) |
+|---|---|---|
+| Antes | Lo que daba la tierra | Durante generaciones comimos [lo que daba la tierra] cerca de casa: maíz, frijol y calabaza, cada cosa en su temporada. |
+|  |  | Se cocinaba en casa y [se conocía a quien la sembraba]. |
+| Lo que cambió | La cadena global | Después de la guerra se buscó producir [muchas calorías baratas] y moverlas lejos: harinas blancas, aceites refinados y azúcar en todo. |
+|  |  | Dejamos de comer comida y empezamos a comer [productos hechos para aguantar el viaje], no para nutrir. |
+| Lo que cuesta | El costo oculto | Ese viaje se paga tres veces, y [ninguna viene en la etiqueta]. Primero, miles de kilómetros por cada ingrediente. |
+|  |  | Después, [toneladas de plástico] que solo sirven para que la comida sobreviva al trayecto. |
+|  |  | Y lo que se pudre en el camino, más semanas en [cámaras frías] para cuidar algo que ya perdió sus nutrientes. |
+| Lo que compensa | El contrapeso | El contrapeso es [la temporada y la cercanía]: lo cosechado maduro llega con sus vitaminas y sin empaque. |
+|  |  | Y tu dinero [se queda con quien lo cultivó], a unos kilómetros de tu mesa. |
+|  |  | Cocinar limpio también cuenta: vapor, caldo casero o unas gotas de aceite de aguacate, [sin aceites refinados]. |
+| La práctica | El mínimo que cuenta | El mínimo que cuenta tiene dos anclas. [Cenar al atardecer], para que la digestión termine antes de dormir. |
+|  |  | Y [servir la triada]: medio plato de vegetales de temporada, un cuarto de proteína, un cuarto de carbohidrato de tu región y algo de grasa sana. |
+|  |  | Sin contar calorías. [Empieza con tu próxima cena.] *(logo · «Empezar la práctica»)* |
+
+#### Guion de Movimiento
+
+| Tiempo | Etiqueta | Texto (es) |
+|---|---|---|
+| Antes | Moverse era vivir | Durante casi toda la historia, moverse no era ejercicio: era [caminar al campo, cargar, sembrar y jugar]. |
+|  |  | Nadie tenía que proponérselo: [moverse era sobrevivir], al aire libre y bajo el sol. |
+| Lo que cambió | La silla y la pantalla | Las fábricas y luego las oficinas nos llevaron bajo techo, y [nos sentaron ocho, diez, doce horas] frente a una tarea o una pantalla. |
+|  |  | Las máquinas hicieron el esfuerzo por nosotros, y llegó algo nuevo en la historia: [el sedentarismo]. |
+| Lo que cuesta | El costo oculto | Y nos siguió hasta la puerta de casa: [hasta dos cuadras las hacemos con motor]. Eso se paga tres veces. |
+|  |  | En gasolina, por un viaje que cabía a pie, y en [el aire y el ruido de tu propia calle], donde juegan los niños del barrio. |
+|  |  | Y en el cuerpo: [menos pasos sin proponértelo], que son justo los que sostienen tu metabolismo. |
+| Lo que compensa | El contrapeso | El contrapeso es tu barrio: [caminar o pedalear los trayectos cortos], y usar los senderos, parques y canchas de la zona. |
+|  |  | No hace falta cambiar de vida: [hace falta dejar de motorizar lo que cabía a pie]. |
+|  |  | Y darle trabajo al pie: pasto, tierra y senderos [despiertan el equilibrio] a cada paso. |
+| La práctica | El mínimo que cuenta | El mínimo que cuenta tiene dos anclas. [Moverte sin motor]: un trayecto corto a pie o en bici, como tu cuerpo pueda. |
+|  |  | Y [dos minutos de pie] por cada cincuenta de silla: sentadillas, talones, cadera. |
+|  |  | Los puntos cuentan días, no kilómetros. [Empieza con tu próximo mandado.] *(logo · «Empezar la práctica»)* |
+
+#### Guion de Mente y espíritu
+
+| Tiempo | Etiqueta | Texto (es) |
+|---|---|---|
+| Antes | Nunca vivimos solos | Durante casi toda la historia, [nunca vivimos solos]. La soledad era un peligro de muerte. |
+|  |  | Nos sostenían [la comunidad, el ritual y el silencio de la naturaleza], y las historias alrededor del fuego. |
+| Lo que cambió | De la aldea a la pantalla | Pasamos de la aldea, donde todos se conocían, a la ciudad anónima, y luego a [miles de contactos en una pantalla]. |
+|  |  | Tu cerebro sigue esperando [mirar a los ojos a alguien], y recibe likes en lugar de abrazos. |
+| Lo que cuesta | El costo oculto | Estar siempre disponible se paga tres veces. [La saturación]: una cabeza en alerta todo el día, que ya no se queda en una sola cosa. |
+|  |  | [El desarraigo]: sabes lo que pasa a diez mil kilómetros y no reconoces a quien vive al lado. |
+|  |  | Y [la soledad acompañada]: cientos de contactos, y nadie a quién llamar un martes cualquiera. |
+| Lo que compensa | El contrapeso | El contrapeso no es desconectarse del mundo: es que [el mundo deje de estar encima] todo el día. |
+|  |  | Ventanas de silencio: [la primera hora, la mesa y la última hora], sin teléfono. |
+|  |  | Y salir a respirar: [diez minutos al aire libre], con los pies en la tierra y la luz en la cara. |
+| La práctica | El mínimo que cuenta | El mínimo que cuenta tiene dos anclas. [Abrir el día sin pantalla]: la primera media hora, sin redes ni noticias. |
+|  |  | Y [presencia con alguien]: escuchar de verdad a una persona, de preferencia cara a cara. |
+|  |  | Empieza por quien vive cerca. [Hoy mismo.] *(logo · «Empezar la práctica»)* |
 
 ### Slice 7 — Exportar a video para redes (va después del 2)
 

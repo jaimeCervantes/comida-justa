@@ -47,7 +47,11 @@ export default function PillarStoryAnimation({
       captions={captions}
       looks={looks}
       regionLabel={t(story.regionLabelKey)}
-      soundtrack={`${story.soundtrackBase}-${locale}.mp3`}
+      soundtrack={
+        story.soundtrackBase
+          ? `${story.soundtrackBase}-${locale}.mp3`
+          : undefined
+      }
       cta={{ href: practiceHref, label: tPages("heroPracticeCta") }}
     />
   );

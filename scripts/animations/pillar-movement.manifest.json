@@ -1,0 +1,72 @@
+{
+  "model": "gemini-3-pro-image",
+  "style": "Art direction: premium soft 3D clay animation still, like a frame from an award-winning animated short by an international design studio. Rounded, soft, slightly chunky forms; matte clay and felt-like materials with a subtle handmade texture; gentle subsurface glow; warm cinematic lighting with soft global illumination, soft shadows and a delicate rim light; shallow depth of field with a softly blurred foreground element that adds depth; rich yet harmonious colour palette. Match the material, colours and charm of the reference heart mascot image (a red clay heart with green leaves). Setting: Mexico and Latin America; warm, hopeful mood. Composition: wide 16:9 cinematic frame; keep every important subject inside the central 70% of the width because phones crop the sides; keep the top 12% of the frame calm and uncluttered. Absolutely no text, letters, numbers, readable signs, logos, watermarks or user-interface elements anywhere in the image.",
+  "refs": ["public/logo.webp"],
+  "items": [
+    {
+      "id": "movement-before-1",
+      "refs": ["cast.jpg"],
+      "prompt": "Recurring characters: use the reference character sheet so they look exactly the same. Scene idea: 'For almost all of history, moving was not exercise: it was walking to the fields, carrying, sowing and playing.' Early morning in a rural Mexican valley: Leo walks along a dirt path towards the fields carrying a hoe on his shoulder, Abuela Rosa carries a clay water jar, and Tomás runs ahead rolling a hoop with a stick; green hills and a soft sunrise. Lively, natural movement. Fresh green, golden and sky-blue palette. Important: do not include the heart mascot or any heart-shaped character anywhere in this scene; the mascot image is only a reference for the clay style."
+    },
+    {
+      "id": "movement-before-2",
+      "refs": ["cast.jpg"],
+      "prompt": "Recurring characters: use the reference character sheet so they look exactly the same. Scene idea: 'Nobody had to plan it: moving was survival, outdoors and under the sun.' Bright midday in a sunny field: Leo and Abuela Rosa, in simple traditional clothes, bend and stretch while sowing seeds and hoeing the soil, bodies in natural motion, sweat glinting; Tomás carries a basket; strong warm sunlight and a big blue sky. Energetic and wholesome. Warm yellow, green and earthy palette. Important: do not include the heart mascot or any heart-shaped character anywhere in this scene; the mascot image is only a reference for the clay style."
+    },
+    {
+      "id": "movement-change-1",
+      "refs": ["cast.jpg"],
+      "prompt": "Recurring characters: use the reference character sheet so they look exactly the same. Scene idea: 'Factories and then offices took us indoors and sat us down for eight, ten, twelve hours at a task or a screen.' A large open-plan office under cold fluorescent lights, with rows of identical desks and glowing screens; Ana sits slumped in an office chair among many other seated workers, her back curved; small high windows barely show the sky; a wall clock with no numbers. Static, stale and a little grey. Cold blue-grey palette with pale screen glow. No readable text. Important: do not include the heart mascot or any heart-shaped character anywhere in this scene; the mascot image is only a reference for the clay style."
+    },
+    {
+      "id": "movement-change-2",
+      "refs": ["cast.jpg"],
+      "prompt": "Recurring characters: use the reference character sheet so they look exactly the same. Scene idea: 'Machines did the effort for us, and something new in history arrived: sedentary life.' A cosy but motionless living room: Leo sinks into a deep sofa holding a remote control, surrounded by labour-saving machines (a robot vacuum, a car key on the table, a delivery box at the door); through the window, an escalator in a mall across the street. Everything moves except him. Soft, sleepy warm-grey palette. No readable text or logos. Important: do not include the heart mascot or any heart-shaped character anywhere in this scene; the mascot image is only a reference for the clay style."
+    },
+    {
+      "id": "movement-cost-1",
+      "refs": ["cast.jpg"],
+      "prompt": "Recurring characters: use the reference character sheet so they look exactly the same. Scene idea: 'And it followed us to the front door: even two blocks now get an engine.' A comic, slightly absurd neighbourhood scene: Ana starts her car to drive to the corner shop, which is clearly visible just two houses away down the same short street; a little dotted line on the ground shows how short the trip is. Sunny afternoon in a Mexican street. Playful, gently ironic. Warm pastel palette. No readable signs. Important: the car has no visible brand or licence plate text. Important: do not include the heart mascot or any heart-shaped character anywhere in this scene; the mascot image is only a reference for the clay style."
+    },
+    {
+      "id": "movement-cost-2",
+      "refs": ["cast.jpg"],
+      "prompt": "Recurring characters: use the reference character sheet so they look exactly the same. Scene idea: 'In fuel, for a trip that fitted on foot, and in the air and noise of your own street, where the neighbourhood children play.' A narrow neighbourhood street crowded with idling cars and motorbikes, soft grey exhaust clouds and wavy noise lines in the air; on the pavement Tomás and another child try to play with a ball, covering their ears; a petrol pump icon-like station at the corner. Hazy, slightly smoggy light. Grey, beige and muted colours. No readable signs or text. Important: do not include the heart mascot or any heart-shaped character anywhere in this scene; the mascot image is only a reference for the clay style."
+    },
+    {
+      "id": "movement-cost-3",
+      "refs": ["cast.jpg"],
+      "prompt": "Recurring characters: use the reference character sheet so they look exactly the same. Scene idea: 'And in the body: fewer steps without meaning to, the very ones that keep your metabolism going.' One single, continuous living room shown once, as a single wide shot (do not repeat, stack or tile the room). Evening at home: Leo sits slumped on the sofa, tired; on the floor only three faint glowing footprints lead from the front door to the sofa, and the rest of the room is still; a small inner glow in his chest looks dim like a low flame. Quiet, a little melancholic. Dim warm-grey palette with a small orange glow. Important: do not include the heart mascot or any heart-shaped character anywhere in this scene; the mascot image is only a reference for the clay style."
+    },
+    {
+      "id": "movement-counterweight-1",
+      "refs": ["cast.jpg"],
+      "prompt": "Recurring characters: use the reference character sheet so they look exactly the same. Scene idea: 'The counterweight is your neighbourhood: walking or cycling the short trips, and using the trails, parks and pitches nearby.' A sunny tree-lined Mexican neighbourhood street: Ana walks with a cloth shopping bag towards a colourful street market while Tomás rides a small bicycle beside her; neighbours walk dogs; a park with trees and a small football pitch in the background. Joyful and active. Fresh green, warm yellow and sky blue. No readable signs. Important: do not include the heart mascot or any heart-shaped character anywhere in this scene; the mascot image is only a reference for the clay style."
+    },
+    {
+      "id": "movement-counterweight-2",
+      "refs": ["cast.jpg"],
+      "prompt": "Recurring characters: use the reference character sheet so they look exactly the same. Scene idea: 'You do not need to change your life: you need to stop motorising what fitted on foot.' A neighbourhood park in the late afternoon: Leo plays football with neighbours on a small local pitch, some people do bodyweight exercises on park bars, and a small group walks along a path; community and movement together. Energetic and friendly. Warm golden light, green grass and colourful clothes. No readable text. Important: do not include the heart mascot or any heart-shaped character anywhere in this scene; the mascot image is only a reference for the clay style."
+    },
+    {
+      "id": "movement-counterweight-3",
+      "refs": ["cast.jpg"],
+      "prompt": "Recurring characters: use the reference character sheet so they look exactly the same. Scene idea: 'And give your feet work again: grass, soil and trails wake up your balance with every step.' A close, low camera view of Ana walking barefoot along a grassy dirt trail in a park, her feet and ankles in focus, toes spread, the arch visible; tiny dew drops sparkle on the grass; her sneakers dangle from her hand. Fresh and grounded. Morning green and soft gold palette. Important: do not include the heart mascot or any heart-shaped character anywhere in this scene; the mascot image is only a reference for the clay style."
+    },
+    {
+      "id": "movement-practice-1",
+      "refs": ["cast.jpg"],
+      "prompt": "Recurring characters: use the reference character sheet so they look exactly the same. Scene idea: 'Move without an engine: one short trip on foot or by bike, however your body can.' A sunny morning street: Ana rides a bicycle with a basket past a parked car, Abuela Rosa walks with her cane at her own pace towards the corner shop, and Tomás rides a kick scooter; everyone moves in their own way. Inclusive, cheerful and bright. Warm yellow, green and sky-blue palette. No readable signs. Important: do not include the heart mascot or any heart-shaped character anywhere in this scene; the mascot image is only a reference for the clay style."
+    },
+    {
+      "id": "movement-practice-2",
+      "refs": ["cast.jpg"],
+      "prompt": "Recurring characters: use the reference character sheet so they look exactly the same. Scene idea: 'Two minutes on your feet for every fifty in a chair: squats, calf raises, hips.' A bright home office: Ana has stood up from her desk chair next to her laptop and does a squat with a smile, arms forward; a small plant and a window with daylight; soft motion lines show her movement. Light-hearted and energising. Fresh daylight, green and coral palette. No readable text on the screen. Important: do not include the heart mascot or any heart-shaped character anywhere in this scene; the mascot image is only a reference for the clay style."
+    },
+    {
+      "id": "movement-practice-3",
+      "refs": ["cast.jpg"],
+      "prompt": "Recurring characters: use the reference character sheet so they look exactly the same. Scene idea: 'Points count days, not kilometres. Start with your next errand.' Golden-hour view of a lively neighbourhood park from a gentle hill: people walk, cycle and play on paths and a small pitch; the four characters walk together along a path in the lower third, small, carrying a shopping bag. The centre and upper part of the sky stay open, calm and glowing, because a logo will be placed there later. Important: do not include the heart mascot or any heart-shaped character anywhere in this scene; the mascot image is only a reference for the clay style."
+    }
+  ]
+}

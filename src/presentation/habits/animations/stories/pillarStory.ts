@@ -43,8 +43,11 @@ export interface PillarStory {
   looks: Record<StorySceneId, Omit<SceneLook, "chip">>;
   /** El color de la etiqueta y del subrayado en el video, sobre fondo oscuro. */
   videoAccent: string;
-  /** La pista de sonido de la web, sin el idioma: `/animations/pilares/sonido-sueno`. */
-  soundtrackBase: string;
+  /**
+   * La pista de sonido de la web, sin el idioma: `/animations/pilares/sonido-sueno`. Sin ella, la
+   * animación va solo con texto y sin botón de sonido: la voz de un pilar puede llegar después.
+   */
+  soundtrackBase?: string;
 }
 
 /** Las ilustraciones de una animación, en orden de aparición: para precargarlas. */

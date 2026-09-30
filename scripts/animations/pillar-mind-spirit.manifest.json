@@ -1,0 +1,72 @@
+{
+  "model": "gemini-3-pro-image",
+  "style": "Art direction: premium soft 3D clay animation still, like a frame from an award-winning animated short by an international design studio. Rounded, soft, slightly chunky forms; matte clay and felt-like materials with a subtle handmade texture; gentle subsurface glow; warm cinematic lighting with soft global illumination, soft shadows and a delicate rim light; shallow depth of field with a softly blurred foreground element that adds depth; rich yet harmonious colour palette. Match the material, colours and charm of the reference heart mascot image (a red clay heart with green leaves). Setting: Mexico and Latin America; warm, hopeful mood. Composition: wide 16:9 cinematic frame; keep every important subject inside the central 70% of the width because phones crop the sides; keep the top 12% of the frame calm and uncluttered. Absolutely no text, letters, numbers, readable signs, logos, watermarks or user-interface elements anywhere in the image.",
+  "refs": ["public/logo.webp"],
+  "items": [
+    {
+      "id": "mind-before-1",
+      "refs": ["cast.jpg"],
+      "prompt": "Recurring characters: use the reference character sheet so they look exactly the same. Scene idea: 'For almost all of history, we never lived alone. Loneliness was a deadly danger.' Night in an ancient village in a Mexican valley: a big community sits close together around a warm bonfire under a starry sky, sharing food and blankets; children sleep on their parents' laps; Leo, Abuela Rosa and Tomás are among them. Warm, safe and together. Deep blue night with warm orange firelight. Important: do not include the heart mascot or any heart-shaped character anywhere in this scene; the mascot image is only a reference for the clay style."
+    },
+    {
+      "id": "mind-before-2",
+      "refs": ["cast.jpg"],
+      "prompt": "Recurring characters: use the reference character sheet so they look exactly the same. Scene idea: 'We were held up by community, ritual and the silence of nature, and by stories around the fire.' At dawn on a quiet hill above the valley, Abuela Rosa tells a story to a small circle of listeners including Tomás, while soft copal smoke rises from a clay burner; mist in the valley below, birds on a tree, total calm. Spiritual, gentle and wise. Soft lilac, peach and misty green palette. Important: do not include the heart mascot or any heart-shaped character anywhere in this scene; the mascot image is only a reference for the clay style."
+    },
+    {
+      "id": "mind-change-1",
+      "refs": ["cast.jpg"],
+      "prompt": "Recurring characters: use the reference character sheet so they look exactly the same. Scene idea: 'We went from the village, where everyone knew each other, to the anonymous city, and then to thousands of contacts on a screen.' A tall city apartment block at night seen from outside: in every lit window a different person sits alone with a glowing phone; thin glowing lines fly from each phone to far-away places beyond the frame, but no line connects neighbouring windows; Ana is in one window. Isolated, a little sad, beautiful. Deep blue night with many small cold screen glows. No readable text. Important: do not include the heart mascot or any heart-shaped character anywhere in this scene; the mascot image is only a reference for the clay style."
+    },
+    {
+      "id": "mind-change-2",
+      "refs": ["cast.jpg"],
+      "prompt": "Recurring characters: use the reference character sheet so they look exactly the same. Scene idea: 'Your brain still expects to look someone in the eye, and it gets likes instead of hugs.' Ana sits alone on her bed in the evening holding her phone; small glowing like-hearts and thumbs-up bubbles float up from the screen like bubbles, while beside her an empty space on the bed and a faint outline of a hug that is not there. Wistful and tender. Soft violet and pink palette with a cold screen glow. The floating likes must be simple icons, not the brand mascot, and there is no readable text. Important: the floating like icons are small simple shapes; do not draw the clay heart mascot."
+    },
+    {
+      "id": "mind-cost-1",
+      "refs": ["cast.jpg"],
+      "prompt": "Recurring characters: use the reference character sheet so they look exactly the same. Scene idea: 'The overload: a mind on alert all day, unable to stay with one thing.' Ana sits at a kitchen table trying to read a paper book while dozens of glowing notification bubbles, news screens and alerts swirl around her head like a storm; her eyes are tense; above her head a tangled scribble of thin glowing lines. Busy, noisy and overwhelming, but still clay and charming. Harsh bluish light with red alert accents. Every bubble and screen shows only simple abstract icons and shapes (bells, dots, lines, exclamation marks); absolutely no letters, words or readable text anywhere, not even the word news. Important: do not include the heart mascot or any heart-shaped character anywhere in this scene; the mascot image is only a reference for the clay style."
+    },
+    {
+      "id": "mind-cost-2",
+      "refs": ["cast.jpg"],
+      "prompt": "Recurring characters: use the reference character sheet so they look exactly the same. Scene idea: 'The uprooting: you know what is happening ten thousand kilometres away and do not recognise who lives next door.' Leo sits in his living room absorbed in a big glowing screen that shows a spinning globe and far-away places; through the window behind him, unseen, his neighbour Abuela Rosa waves at him from her doorstep with a warm smile, and he does not notice. Poignant and a little ironic. Cold screen blue inside, warm golden light outside. No readable text. Important: do not include the heart mascot or any heart-shaped character anywhere in this scene; the mascot image is only a reference for the clay style."
+    },
+    {
+      "id": "mind-cost-3",
+      "refs": ["cast.jpg"],
+      "prompt": "Recurring characters: use the reference character sheet so they look exactly the same. Scene idea: 'And crowded loneliness: hundreds of contacts, and nobody to call on an ordinary Tuesday.' An ordinary weekday evening: Ana sits alone at a small kitchen table with a cup of tea and her phone, which shows a long scrolling list of blurred contact bubbles; three empty chairs around the table; rain on the window. Quiet, lonely and tender. Muted blue-grey palette with a warm lamp. No readable text or names. Important: do not include the heart mascot or any heart-shaped character anywhere in this scene; the mascot image is only a reference for the clay style."
+    },
+    {
+      "id": "mind-counterweight-1",
+      "refs": ["cast.jpg"],
+      "prompt": "Recurring characters: use the reference character sheet so they look exactly the same. Scene idea: 'The counterweight is not disconnecting from the world: it is the world no longer being on top of you all day.' In her living room, Ana places her phone face down on a shelf and breathes out with relief; a heavy grey storm cloud of notification bubbles that was pressing on her shoulders lifts away through the open window and dissolves into a clear sky. Relief and lightness. From grey to warm clear light; soft blue and gold palette. No readable text. Important: do not include the heart mascot or any heart-shaped character anywhere in this scene; the mascot image is only a reference for the clay style."
+    },
+    {
+      "id": "mind-counterweight-2",
+      "refs": ["cast.jpg"],
+      "prompt": "Recurring characters: use the reference character sheet so they look exactly the same. Scene idea: 'Windows of silence: the first hour, the table and the last hour, without the phone.' A warm home in three connected moments seen as one wide cut-away house: on the left, early morning, Ana drinks tea by the window; in the middle, the family eats at the table with the phones in a basket on a shelf; on the right, at night, Ana reads a paper book in bed with the phone charging outside the room. Calm and cosy. Soft gradient from morning gold to evening lilac to night blue. Important: do not include the heart mascot or any heart-shaped character anywhere in this scene; the mascot image is only a reference for the clay style."
+    },
+    {
+      "id": "mind-counterweight-3",
+      "refs": ["cast.jpg"],
+      "prompt": "Recurring characters: use the reference character sheet so they look exactly the same. Scene idea: 'And step out to breathe: ten minutes outdoors, feet on the earth and light on your face.' In a neighbourhood park in soft morning light, Ana stands barefoot on the grass with her eyes closed and her face turned to the light, breathing slowly; gentle circular ripples of warm light spread around her; birds on a tree, a quiet path. Peaceful and grounded. Warm peach, gold and fresh green palette. Important: do not include the heart mascot or any heart-shaped character anywhere in this scene; the mascot image is only a reference for the clay style."
+    },
+    {
+      "id": "mind-practice-1",
+      "refs": ["cast.jpg"],
+      "prompt": "Recurring characters: use the reference character sheet so they look exactly the same. Scene idea: 'Open the day screen-free: the first half hour, with no feeds or news.' Early morning at home: Ana stretches by an open window with a cup of tea while soft sunrise light enters; her phone rests charging on a small table in the hallway, dark and out of reach; a plant and birds outside. Fresh, calm and unhurried. Soft gold and lilac palette. Important: do not include the heart mascot or any heart-shaped character anywhere in this scene; the mascot image is only a reference for the clay style."
+    },
+    {
+      "id": "mind-practice-2",
+      "refs": ["cast.jpg"],
+      "prompt": "Recurring characters: use the reference character sheet so they look exactly the same. Scene idea: 'And presence with someone: really listening to one person, face to face where you can.' On a sunny doorstep in the neighbourhood, Ana and her neighbour Abuela Rosa sit together with two cups of coffee, talking and laughing face to face; no phones anywhere; a flowering bougainvillea over the door; Tomás plays nearby. Warm, genuine and heart-warming. Warm terracotta, pink and green palette. Important: do not include the heart mascot or any heart-shaped character anywhere in this scene; the mascot image is only a reference for the clay style."
+    },
+    {
+      "id": "mind-practice-3",
+      "refs": ["cast.jpg"],
+      "prompt": "Recurring characters: use the reference character sheet so they look exactly the same. Scene idea: 'Start with whoever lives nearby. Today.' Dusk in a small neighbourhood courtyard strung with warm lights: neighbours come out of their doors, greet each other and gather; the four characters stand together in the lower third, small, waving to neighbours. The centre and upper part of the sky stay open, calm and glowing, because a logo will be placed there later. Important: do not include the heart mascot or any heart-shaped character anywhere in this scene; the mascot image is only a reference for the clay style."
+    }
+  ]
+}

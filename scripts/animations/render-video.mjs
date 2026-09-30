@@ -47,6 +47,9 @@ const SIZES = {
 const MUSIC = {
   pilares: "out/music/calida-170s.mp3",
   sueno: "out/music/nocturna-150s.mp3",
+  alimentacion: "out/music/cocina-150s.mp3",
+  movimiento: "out/music/caminata-150s.mp3",
+  mente: "out/music/presencia-150s.mp3",
 };
 
 const base = options.base ?? "http://localhost:3000";

@@ -640,3 +640,91 @@ definición, a falta de su voz, que espera la cuota diaria de Gemini TTS.
    en GA4 la dimensión `state`.
 4. **Deuda que apareció otra vez:** `practicasPropias` deja publicaciones en la base compartida, y
    rompen pruebas de otros archivos (aquí, el título de Movimiento).
+
+## 2026-09-30 — Slices 4, 5 y 6: Alimentación, Movimiento y Mente y espíritu, con texto (la voz, al final)
+
+### Objetivo
+
+Que cada pilar tenga su propia animación bajo el héroe de su página, con la plantilla de Sueño:
+los otros tres, el mismo día. A media producción se agotó la cuota diaria de voz, y el usuario
+propuso separar: **primero las animaciones con texto, la voz al final**.
+
+### Decisiones y por qué
+
+- **El mismo arco de cinco tiempos**, con lo que ya dice cada página: Alimentación (la cadena
+  global de la posguerra, el costo del traslado, la temporada y la cercanía, la cocción limpia, la
+  cena al atardecer y la triada), Movimiento (la Revolución Industrial, dos cuadras en motor, el
+  barrio como espacio de movimiento, el pie y el terreno, moverse sin motor y dos minutos de pie) y
+  Mente y espíritu (la aldea que se volvió pantalla, la saturación, el desarraigo y la soledad
+  acompañada, las ventanas de silencio, el arraigo, abrir el día sin pantalla y la presencia). Los
+  guiones están en el roadmap para que el usuario los revise: se produjeron sin su aprobación.
+- **Trece ilustraciones por pilar**, revisadas una por una. Seis se regeneraron: texto legible
+  («Flour», «Sugar», «Oil» en la fábrica; «NEWS» en una burbuja), un hombre con barba que no está
+  en la hoja de personajes, Leo y Ana que no se parecían a sí mismos, y una sala que salió repetida
+  dos veces, una encima de la otra. Cuatro traen una franja lisa arriba (lo que el modelo entiende
+  por «deja calmo el 12 % superior»); la cámara la deja fuera acercándose desde abajo.
+- **Música propia por pilar**, de Lyria: `cocina` (Alimentación), `caminata` (Movimiento) y
+  `presencia` (Mente y espíritu).
+- **Sin voz, los tiempos se estiman.** Cada subtítulo dura lo que tardaría el narrador según la
+  velocidad a la que ya lee Algieba, ajustada sobre las 84 frases narradas (español:
+  −0,18 s + 0,078 s por letra; inglés: −0,55 s + 0,081 s por letra; la peor subestimación fue de
+  1,8 s), con la regla de siempre y 0,25 s de margen. Alimentación usa sus tiempos medidos, salvo
+  las dos frases del cierre que en inglés quedaron sin narrar. Al llegar la voz se miden de verdad.
+- **Sin voz, sin botón de sonido.** `soundtrackBase` pasó a ser opcional: la animación va solo con
+  texto, y la prueba de la pista se salta en las que aún no la tienen, diciendo por qué.
+- **Narrar por escena** (`generate-narration.mjs --por-escena`): un pedido por escena en vez de uno
+  por frase, cortado en las pausas y comprobado con el ritmo de lectura. Con la cuota de 50 pedidos
+  al día de Gemini 2.5 Pro TTS, las tres animaciones pasan de ~52 pedidos a ~21.
+- **La invitación a ver los cuatro pilares ya no aparece en ninguna página de pilar.** Sus
+  ejemplos de «sí invita» pasan a `/practicas`.
+- **Cada historia se exporta por su nombre** (`STORY_FILMS`: `alimentacion`, `movimiento`,
+  `mente`), con su música ya asignada en `render-video.mjs`: los videos saldrán con el mismo
+  comando cuando haya voz.
+
+### Tropiezos que conviene recordar
+
+- **La cuota de voz es por pedido, no por dinero:** 50 pedidos al día para `gemini-2.5-pro-tts`, y
+  se renueva sola. Una animación de pilar son 26 frases entre los dos idiomas.
+- **La máquina se quedó sin memoria** con dos procesos en segundo plano (una búsqueda vieja y una
+  corrida de pruebas); Claude Code los detuvo. Se cerraron los huérfanos y se retomó con permiso.
+- **El servidor del usuario ocupaba el 3000** cuando tocaba probar: se le preguntó antes de
+  detenerlo, y lo detuvo él.
+
+### Archivos
+
+- Historias: `stories/nutritionStory.ts`, `stories/movementStory.ts`, `stories/mindSpiritStory.ts`;
+  `pillarStory.ts` (`soundtrackBase` opcional), `pillarStories.ts` (+ prueba),
+  `PillarStoryAnimation.tsx`; textos en `pillarAnimations.{nutrition,movement,mindSpirit}`.
+- Video: `social/films.ts` (`STORY_FILMS`), `app/[locale]/animaciones/video/page.tsx`;
+  `render-video.mjs` (música de cada pilar).
+- Invitación: `inviteRoutes.ts` (+ prueba), `invitacionPilares.feature` y `.spec.ts`.
+- Pruebas: `animacionDelPilar.feature` y `.spec.ts` (slices 4–6).
+- Recursos: 117 WebP (39 por pilar) y `pillar-{nutrition,movement,mind-spirit}.manifest.json`.
+- Docs: roadmap (los tres guiones).
+
+### Validación
+
+- `pnpm run test:run`: **3204 pruebas** en verde y 3 omitidas a propósito (la pista de sonido de
+  los tres pilares sin voz), en 300 archivos; `typecheck` sin errores y `lint` limpio (1322
+  archivos).
+- Playwright de las animaciones y de todas las páginas de pilar —11 archivos, **127 pruebas**, en
+  9 tramos con `.next` borrado antes de cada uno y el 3000 libre—: **127/127** a la primera.
+- Revisión en movimiento: un cuadro por subtítulo de cada una de las tres (39 cuadros, desde la
+  página de render servida por el `next dev` del usuario): encuadres, franjas fuera, subtítulos y
+  logo solo al cierre.
+
+### Recap
+
+Los cuatro pilares tienen su animación bajo el héroe de su página. Sueño va completa, con voz y
+música; Alimentación, Movimiento y Mente y espíritu van con texto, con sus ilustraciones, su música
+ya generada y tiempos estimados con la velocidad del narrador. La invitación a ver los cuatro
+pilares ya no aparece en ninguna página de pilar.
+
+### Próximos pasos (opciones)
+
+1. **La voz de los tres** (programado para las 18:12, cuando se renueva la cuota): narrar por
+   escena (~21 pedidos), medir y ajustar los tiempos, darles su pista de sonido y su prueba.
+2. **Sus videos**, en vertical, cuadrado y horizontal, en cuanto tengan voz.
+3. **Pendiente del usuario:** revisar los cuatro guiones en el roadmap; registrar en GA4 la
+   dimensión `state`.
+4. **Deuda:** `practicasPropias` sigue dejando publicaciones en la base compartida.

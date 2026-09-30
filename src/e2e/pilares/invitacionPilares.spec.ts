@@ -53,7 +53,7 @@ function invite(page: Page) {
 }
 
 test.describe("La invitación de la primera visita", () => {
-  for (const path of ["/", "/productos", "/pilares/alimentacion"]) {
+  for (const path of ["/", "/productos", "/practicas"]) {
     test(`En ${path}, la primera visita invita sin quitar el foco`, async ({
       page,
     }) => {

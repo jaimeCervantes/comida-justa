@@ -1,4 +1,7 @@
 import type { PillarKey } from "~/domain/pillars/pillarKey";
+import { MIND_SPIRIT_STORY } from "./mindSpiritStory";
+import { MOVEMENT_STORY } from "./movementStory";
+import { NUTRITION_STORY } from "./nutritionStory";
 import type { PillarStory } from "./pillarStory";
 import { SLEEP_STORY } from "./sleepStory";
 
@@ -8,6 +11,9 @@ import { SLEEP_STORY } from "./sleepStory";
  */
 export const PILLAR_STORIES: Partial<Record<PillarKey, PillarStory>> = {
   sleep: SLEEP_STORY,
+  nutrition: NUTRITION_STORY,
+  movement: MOVEMENT_STORY,
+  mindSpirit: MIND_SPIRIT_STORY,
 };
 
 export type StoryPillar = keyof typeof PILLAR_STORIES;

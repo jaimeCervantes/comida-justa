@@ -18,15 +18,21 @@ describe("Dónde cabe la invitación a ver los cuatro pilares", () => {
     },
     {
       pathname: "/pilares/[[...slug]]",
-      slug: ["alimentacion"],
-      invites: true,
-      why: "la página de un pilar que todavía no tiene su animación",
+      slug: ["sueno"],
+      invites: false,
+      why: "la página de Sueño tiene la suya bajo el héroe",
     },
     {
       pathname: "/pilares/[[...slug]]",
-      slug: ["sueno"],
+      slug: ["mente-espiritu"],
       invites: false,
-      why: "la página de Sueño ya tiene la suya bajo el héroe",
+      why: "y también la de cada uno de los otros pilares",
+    },
+    {
+      pathname: "/practicas",
+      slug: undefined,
+      invites: true,
+      why: "el índice de prácticas no tiene animación",
     },
     {
       pathname: "/pilares/[[...slug]]",
