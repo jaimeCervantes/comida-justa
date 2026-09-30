@@ -1,0 +1,92 @@
+{
+  "model": "gemini-3-pro-image",
+  "style": "Art direction: premium soft 3D clay animation still, like a frame from an award-winning animated short by an international design studio. Rounded, soft, slightly chunky forms; matte clay and felt-like materials with a subtle handmade texture; gentle subsurface glow; warm cinematic lighting with soft global illumination, soft shadows and a delicate rim light; shallow depth of field with a softly blurred foreground element that adds depth; rich yet harmonious colour palette. Match the material, colours and charm of the reference heart mascot image (a red clay heart with green leaves). Setting: Mexico and Latin America; warm, hopeful mood. Composition: wide 16:9 cinematic frame; keep every important subject inside the central 70% of the width because phones crop the sides; keep the top 12% of the frame calm and uncluttered. Absolutely no text, letters, numbers, readable signs, logos, watermarks or user-interface elements anywhere in the image.",
+  "refs": ["public/logo.webp"],
+  "items": [
+    {
+      "id": "cast",
+      "prompt": "Create a character model sheet for this animated short. Four recurring characters stand side by side, full body, three-quarter front view, relaxed friendly pose, evenly spaced with no overlap, on a plain warm light-grey studio background with soft contact shadows. Friendly simple faces with small dark eyes and gentle smiles. (1) Ana: Mexican woman about 30, warm brown skin, long straight black hair, coral-red long-sleeve top, navy trousers, white sneakers. (2) Leo: Mexican man about 35, deep brown skin, short black hair, teal t-shirt, dark jeans, brown boots. (3) Abuela Rosa: Mexican grandmother about 70, brown skin, silver-grey hair in a bun, terracotta blouse with a striped woven rebozo shawl, long brown skirt. (4) Tomás: boy about 8, light brown skin, curly dark-brown hair, mustard-yellow t-shirt, blue shorts, red sneakers."
+    },
+    {
+      "id": "intro-1",
+      "refs": ["cast.jpg"],
+      "prompt": "Recurring characters: use the reference character sheet so they look exactly the same. Scene idea: 'Your body was shaped over hundreds of thousands of years; the world it lives in changed in little more than a century.' Ana stands in the centre on a winding path, seen from behind at three-quarter, looking at the horizon. The left half of the frame is an ancient, timeless landscape at sunset — savanna grass, a small campfire, a starry violet sky; the right half blends into a dense modern city of glowing screens, towers and neon lights. The two worlds meet right behind her. Epic but gentle scale, violet and warm orange palette."
+    },
+    {
+      "id": "intro-2",
+      "refs": ["cast.jpg"],
+      "prompt": "Recurring characters: use the reference character sheet so they look exactly the same. Scene idea: tired and overwhelmed. Night in a small cosy apartment. Ana sits curled up on a sofa hugging a cushion, shoulders slumped, lit only by the cold blue glow of the phone lying beside her. Above her head floats a tangled scribble of thin glowing lines, like a head too full. Through the window, far away, tiny silhouettes of friends in other lit windows. Muted blue and violet palette; a warm floor lamp stands switched off."
+    },
+    {
+      "id": "intro-3",
+      "prompt": "Scene idea: hope and structure. Sunrise over a soft green valley. Four tall rounded clay pillars rise from the ground in a row, each a different colour — violet, orange, green and sky blue — and above each floats a simple clay symbol: a crescent moon, a young sprout, a sneaker, a lotus flower. Warm golden morning light, small glowing particles in the air, calm and uplifting."
+    },
+    {
+      "id": "sleep-1",
+      "refs": ["cast.jpg"],
+      "prompt": "Recurring characters: use the reference character sheet so they look exactly the same. Scene idea: 'For thousands of years the sun was our clock.' Dusk in a Mexican valley. An ancient family — Leo, Abuela Rosa and Tomás in simple traditional clothes — sits around a small campfire; the sun is setting behind the hills and the first stars appear in a violet-pink sky; Tomás yawns and leans on Abuela. Warm firelight on their faces, peaceful and sleepy mood. Violet and warm orange palette."
+    },
+    {
+      "id": "sleep-2",
+      "refs": ["cast.jpg"],
+      "prompt": "Recurring characters: use the reference character sheet so they look exactly the same. Scene idea: 'In 1879 Edison's light bulb made the night stop being dark; today the screen follows us to the pillow.' Two in the morning in a city bedroom. Ana lies in bed scrolling her phone, her face lit by harsh blue screen light; a single old-fashioned Edison light bulb hangs glowing above; through the window the city is full of bright lights and illuminated windows. A small clock on the nightstand glows pink with no readable digits. Restless mood, cold violet-blue palette."
+    },
+    {
+      "id": "sleep-3",
+      "refs": ["cast.jpg", "sleep-2.jpg"],
+      "prompt": "Recurring characters: use the reference character sheet so they look exactly the same, and keep the same bedroom as the second reference image. Scene idea: 'Sun on your face when you wake, low light at dusk.' Sunrise in that same bedroom: Ana sits up in bed and stretches with a peaceful smile; golden morning sunlight streams through the window onto her face in soft rays, dust motes glowing; her phone lies face down on the nightstand next to a small warm lamp. Serene and fresh, warm gold and soft lilac palette. Important: do not include the heart mascot or any heart-shaped character anywhere in this scene; the mascot image is only a reference for the clay style."
+    },
+    {
+      "id": "nutrition-1",
+      "refs": ["cast.jpg"],
+      "prompt": "Recurring characters: use the reference character sheet so they look exactly the same. Scene idea: 'Your grandparents ate what the land gave near home, in its season, and knew who had planted it.' Morning in rural Mexico. Abuela Rosa harvests in a lush milpa — tall corn, climbing beans and orange squash — right next to her small adobe house with a terracotta roof; she hands a woven basket of fresh vegetables to Tomás, who smiles up at her. Warm morning sun, rich greens and warm oranges."
+    },
+    {
+      "id": "nutrition-2",
+      "prompt": "Scene idea: 'After the war the aim was to produce a lot, cheaply; food began travelling thousands of kilometres wrapped in plastic, made to last, not to nourish.' A cold, sterile industrial scene: a long conveyor belt carrying identical plastic-wrapped packages under fluorescent light; behind it a large stylised clay globe crossed by glowing flight and shipping routes, with a tiny cargo plane and a cargo ship. Grey-blue desaturated palette with a few artificial neon package colours."
+    },
+    {
+      "id": "nutrition-3",
+      "refs": ["cast.jpg"],
+      "prompt": "Recurring characters: use the reference character sheet so they look exactly the same. Scene idea: 'Back to real food: in season, from the people who grow it nearby.' A bright, appetising three-quarter view of a wooden table with a colourful healthy Mexican plate — half fresh vegetables (lettuce, tomato, broccoli, cucumber), a quarter black beans, a quarter corn tortillas and half an avocado — with gentle steam. In the soft-focus background, Leo — the adult man from the character sheet, deep brown skin, short black hair, teal t-shirt — stands behind a small local market stall full of fresh produce, smiling and waving. No children in this scene. Warm natural daylight, fresh greens and warm oranges. Important: do not include the heart mascot or any heart-shaped character anywhere in this scene; the mascot image is only a reference for the clay style."
+    },
+    {
+      "id": "movement-1",
+      "refs": ["cast.jpg"],
+      "prompt": "Recurring characters: use the reference character sheet so they look exactly the same. Scene idea: 'Moving wasn't exercise: it was walking to the fields, carrying, sowing, playing. It was living.' A sunny green valley with mountains: Leo walks along a dirt path carrying a basket of harvest, Abuela Rosa works the soil with a hoe, and Tomás runs after a ball; birds in the sky. Bright, energetic, fresh greens and sky blue."
+    },
+    {
+      "id": "movement-2",
+      "refs": ["cast.jpg"],
+      "prompt": "Recurring characters: use the reference character sheet so they look exactly the same. Scene idea: 'Factories and then offices sat us down for eight, ten, twelve hours under a roof.' A low-ceilinged grey office under flat fluorescent light: Ana and Leo sit hunched at desks in front of glowing monitors, a large wall clock with no numbers, stacks of paper; through the window, a car drives just a few metres down an empty street. Flat, tired, grey-blue palette."
+    },
+    {
+      "id": "movement-3",
+      "refs": ["cast.jpg"],
+      "prompt": "Recurring characters: use the reference character sheet so they look exactly the same. Scene idea: 'Getting the body back onto the street, the trail and the neighbourhood pitch.' A vibrant neighbourhood on a sunny afternoon: a winding trail through a small park where Ana jogs and Leo walks; beside it a small community football pitch where Tomás kicks a ball towards a mini goal; trees and flowers, joyful movement. Bright greens and warm sunlight. Important: do not include the heart mascot or any heart-shaped character anywhere in this scene; the mascot image is only a reference for the clay style."
+    },
+    {
+      "id": "mind-1",
+      "refs": ["cast.jpg"],
+      "prompt": "Recurring characters: use the reference character sheet so they look exactly the same. Scene idea: 'We never lived alone; community, ritual and the silence of nature held us up.' Night in the mountains under a starry sky with a soft green-violet aurora: a circle of people — Abuela Rosa, Leo, Ana, Tomás and a few neighbours — sit around a campfire sharing stories, warm firelight on their faces, sparks rising. Deep blue and warm orange palette, a strong sense of belonging."
+    },
+    {
+      "id": "mind-2",
+      "prompt": "Scene idea: 'Today we are connected to thousands of people, and often we don't know the name of the person next door.' Night view of an apartment building facade: in each window a single person sits alone, lit by the cold blue light of a phone; above the building a vast glowing network of thin connected lines and dots fills the sky. Lonely, cool blue palette."
+    },
+    {
+      "id": "mind-3",
+      "refs": ["cast.jpg"],
+      "prompt": "Recurring characters: use the reference character sheet so they look exactly the same. Scene idea: 'Getting back silence, presence and the people who live nearby.' Golden hour in a small community courtyard with trees: Ana stands in the centre with her eyes closed, breathing calmly, soft circular ripples of warm light around her; neighbours — Leo, Abuela Rosa and Tomás — come out of their doors and walk towards her, smiling and waving. Warm peach, gold and teal palette, gentle and heart-warming."
+    },
+    {
+      "id": "closing-1",
+      "prompt": "Scene idea: 'The four pillars hold each other up.' Four rounded clay pillars in violet, orange, green and sky blue stand in a circle on a softly lit stage, connected by flowing ribbons of light that form a loop; in the centre floats a small glowing clay heart. Dark violet background with soft coloured glows, elegant and harmonious."
+    },
+    {
+      "id": "closing-2",
+      "refs": ["cast.jpg"],
+      "prompt": "Recurring characters: use the reference character sheet so they look exactly the same. Scene idea: 'Start today with one small practice.' A hopeful sunrise over a Mexican neighbourhood and green hills, seen from a gentle hilltop: the four characters stand together in the lower third looking at the sunrise, small, with warm rim light; the centre and upper part of the sky stay open, calm and glowing, because a logo will be placed there later. Warm gold, pink and soft violet palette."
+    }
+  ]
+}
