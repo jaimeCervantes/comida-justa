@@ -17,9 +17,11 @@
 1. **El texto fuera del cuadro; el cuadro, dibujado.** Los subtítulos salen de `next-intl` y viven
    fuera del escenario, así que la animación existe en español e inglés sin volver a producir nada.
    Lo que se ve en el escenario empezó como SVG + CSS sin dependencias; en el slice 1b pasó a SVG
-   animado con **GSAP** (línea de tiempo por escena, gobernada por el reloj del guion) porque el
-   usuario pidió un acabado moderno, y el siguiente paso es sustituir los dibujos por ilustraciones
-   3D generadas (ver la bitácora). Video o Lottie obligarían a rehacer el archivo por idioma.
+   animado con **GSAP** (línea de tiempo por escena, gobernada por el reloj del guion), y en el 1c
+   a **ilustraciones 3D de arcilla generadas con Gemini**, animadas con la misma línea de tiempo:
+   cámara, fundidos y efectos encima de la imagen. Cómo se hacen:
+   `028-2026-09-29-animaciones-de-los-pilares-ilustraciones.md`. Video o Lottie obligarían a rehacer
+   el archivo por idioma.
 2. **Cada escena es una función del tiempo.** Una animación es un guion: lista de escenas con su
    duración, su pilar y su clave de texto. Qué escena toca y cuánto lleva recorrida se calcula con
    una función pura (`sceneAt(guion, ms)`). Eso es lo que permite, en un slice posterior, exportar

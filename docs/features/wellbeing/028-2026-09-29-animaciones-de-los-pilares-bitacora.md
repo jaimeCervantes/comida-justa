@@ -169,3 +169,83 @@ cámara, paralaje y personajes que respiran. Los 17 escenarios de aceptación si
    reproductor (autorizado por el usuario, costo estimado 3–10 USD).
 2. Clips con Veo 3.1 a partir de esas ilustraciones, para redes (costo aparte, por decidir).
 3. Slice 2 — invitación en la primera visita a cualquier página.
+
+## 2026-09-29 — Slice 1c: ilustraciones 3D de arcilla
+
+### Objetivo
+
+El usuario vio la versión vectorial pulida y pidió un acabado «de agencia internacional de diseño»,
+con personajes e imágenes que no parezcan de PowerPoint. Eligió la ruta de ilustraciones generadas
+con animación 2.5D (antes que clips de video o seguir con vectores) y el estilo «3D suave, como el
+logo». Autorizó el costo en su cuenta de Gemini (estimado 3–10 USD).
+
+### Decisiones y por qué
+
+- **Gemini 3 Pro Image**, disponible con la `GEMINI_API_KEY` del proyecto, con el logo como
+  referencia de estilo y una **hoja de personajes** generada primero como referencia de cada escena:
+  es lo que mantiene a Ana, Leo, la abuela Rosa y Tomás iguales en los 17 planos.
+- **Una ilustración por subtítulo** con fundido cruzado de 1 s centrado en el cambio de texto, y una
+  **cámara distinta en cada una** (acercarse, alejarse, recorrer): el mismo movimiento dos veces
+  seguidas se nota.
+- **Lo que se mueve encima de la imagen** —brasas, estrellas, polvo en la luz, rayos, ondas, vapor,
+  resplandores— va anclado a coordenadas medidas sobre cada ilustración y dentro de la misma capa
+  que la cámara, así que se mueve con ella. Todo sigue en la línea de tiempo del reloj del guion.
+- **El logo real, no el generado**: se superpone al abrir (con un velo para leerse) y al cerrar
+  (sobre el cielo, por encima de las cabezas, con confeti de los cuatro colores). Así la marca sale
+  nítida y la prueba del logo sigue midiendo lo mismo.
+- **Tres anchos por imagen** (960, 1440 y 1920 px en WebP): el proyecto sirve imágenes sin optimizar
+  (`images.unoptimized`), así que el `srcSet` necesita los anchos hechos. **Precarga**: al empezar a
+  reproducirse se descargan en oculto las ilustraciones que vienen; quien nunca reproduce no descarga
+  nada de más.
+- **El proceso queda en el repo** (`scripts/animations/` y
+  `028-2026-09-29-animaciones-de-los-pilares-ilustraciones.md`) porque las animaciones de cada pilar
+  lo van a repetir.
+
+### Tropiezos que conviene recordar
+
+- **El modelo cuela la mascota** en escenas intermedias si el logo va como referencia: hay que
+  prohibirlo en la indicación. Dos escenas se regeneraron por eso, y una por poner a Tomás donde
+  tocaba Leo.
+- **`TaskStop` no mata el `next dev` hijo**: el puerto se queda ocupado por un proceso huérfano.
+  Cerrarlo por el puerto.
+- **Borré `.next` con el servidor del usuario encendido.** El comando comprobaba el puerto 3000 pero
+  seguía aunque estuviera ocupado; su servidor pasó a responder 500 y hay que reiniciarlo. La
+  comprobación tiene que **abortar** si hay un servidor, no solo informarlo.
+
+### Archivos
+
+- Escenas: `scenes/IllustratedScene.tsx`, `scenes/atmosphere.tsx`, `scenes/artSources.ts`,
+  `scenes/seededRandom.ts`; configuración en `overviewScenes.ts` (+ prueba). Se borraron las escenas
+  vectoriales y su kit (quedan en el historial, commit `e64b4ec`).
+- Reproductor: precarga (`preload`); el hook de escena acepta cualquier elemento como raíz.
+- Ilustraciones: `public/animations/pilares/` (51 archivos, 3,6 MB).
+- Proceso: `scripts/animations/generate-illustrations.mjs`, `prepare-illustrations.mjs` y el
+  manifiesto de indicaciones.
+
+### Validación
+
+- `pnpm run test:run`: 296 archivos, **3131 pruebas** en verde. `typecheck` limpio; `lint` limpio
+  (1284 archivos).
+- Revisión visual de las 17 ilustraciones animadas en escritorio y en teléfono (390 px): sin errores
+  en consola.
+- `pnpm exec playwright test src/e2e/pilares/animacionesPilares.spec.ts`: **17/17** (2,5 min), en
+  cuanto el usuario detuvo su servidor; con `.next` borrado antes y solo tras comprobar que no había
+  ningún servidor escuchando. Solo lee `/pilares`; no escribe en la base.
+
+### Costo
+
+21 imágenes generadas (18 + 3 regeneraciones), ≈ 2,8 USD con la tarifa publicada en 2025.
+
+### Recap
+
+La animación de `/pilares` cuenta los cuatro pilares con 17 ilustraciones 3D de arcilla en la
+estética del logo, con personajes consistentes, cámara lenta, fundidos y efectos vivos encima de cada
+imagen, sincronizados con los subtítulos. Pruebas unitarias, tipos, linter y los 17 escenarios de
+Playwright en verde.
+
+### Próximos pasos (opciones)
+
+1. **Pendiente del usuario:** volver a levantar su `next dev` (`pnpm dev`) y revisar la animación.
+2. Clips con Veo 3.1 a partir de estas mismas ilustraciones, para redes (costo aparte).
+3. Slice 2 — invitación en la primera visita a cualquier página.
+4. Slices 3–6 — la animación de cada pilar con el mismo proceso y los mismos personajes.
