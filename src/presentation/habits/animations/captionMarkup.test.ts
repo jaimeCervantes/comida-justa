@@ -28,8 +28,8 @@ describe("El marcado de los subtítulos", () => {
         { text: "En ", highlight: false },
         { text: "1879", highlight: true },
         { text: " y ", highlight: false },
-        { text: "hoy", highlight: true },
-        { text: ".", highlight: false },
+        /* El punto final se queda con la frase clave: ver la regla de la puntuación, abajo. */
+        { text: "hoy.", highlight: true },
       ],
     },
   ])("separa «$markup» en tramos", ({ markup, segments }) => {
@@ -41,4 +41,36 @@ describe("El marcado de los subtítulos", () => {
       captionPlainText("Volver a <hl>dormir al ritmo de la luz</hl>."),
     ).toBe("Volver a dormir al ritmo de la luz.");
   });
+});
+
+describe("La puntuación que sigue a la frase clave", () => {
+  it.each([
+    {
+      markup:
+        "Durante años, <hl>la luz decidió cuándo dormíamos</hl>. El sol se iba.",
+      highlighted: "la luz decidió cuándo dormíamos.",
+      after: " El sol se iba.",
+    },
+    {
+      markup: "Dos anclas. <hl>Cerrar la noche</hl>: una hora antes.",
+      highlighted: "Cerrar la noche:",
+      after: " una hora antes.",
+    },
+    {
+      markup: "Hay <hl>cuatro pilares</hl> para volver a acomodarlo.",
+      highlighted: "cuatro pilares",
+      after: " para volver a acomodarlo.",
+    },
+  ])(
+    "se queda con ella, para no empezar sola el renglón: «$highlighted»",
+    ({ markup, highlighted, after }) => {
+      const segments = parseCaption(markup);
+      const index = segments.findIndex((segment) => segment.highlight);
+      expect(segments[index].text).toBe(highlighted);
+      expect(segments[index + 1].text).toBe(after);
+      expect(captionPlainText(markup)).toBe(
+        segments.map((segment) => segment.text).join(""),
+      );
+    },
+  );
 });

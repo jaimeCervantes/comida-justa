@@ -29,15 +29,12 @@ describe("Las ilustraciones de la animación de los cuatro pilares", () => {
     }
   });
 
-  it("el logo solo abre y cierra: los pilares son los protagonistas de su escena", () => {
+  it("el logo solo cierra: al abrir ya está en la cabecera, y los pilares son los protagonistas de su escena", () => {
     const withLogo = PILLARS_OVERVIEW_SCRIPT.filter(
       (scene) => OVERVIEW_SCENES[scene.id].logo,
     ).map((scene) => [scene.id, OVERVIEW_SCENES[scene.id].logo]);
 
-    expect(withLogo).toEqual([
-      ["intro", "opening"],
-      ["closing", "closing"],
-    ]);
+    expect(withLogo).toEqual([["closing", "closing"]]);
   });
 
   it("los efectos se anclan dentro de la ilustración", () => {

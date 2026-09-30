@@ -5,6 +5,8 @@ import { buttonVariants } from "~/presentation/design_system/buttons/buttonVaria
 import { Surface } from "~/presentation/design_system/surfaces/Surface";
 import { Heading } from "~/presentation/design_system/typography/Heading";
 import { Text } from "~/presentation/design_system/typography/Text";
+import PillarStoryAnimation from "~/presentation/habits/animations/stories/PillarStoryAnimation";
+import { PILLAR_STORIES } from "~/presentation/habits/animations/stories/pillarStories";
 import PillarHero from "~/presentation/habits/PillarHero";
 import {
   PILLAR_LOCAL_ANCHOR,
@@ -48,6 +50,7 @@ export default function PillarArticle({
 }) {
   const t = useTranslations("pillarPages");
   const number = pillarNumberOf(challenge);
+  const pillar = PILLAR_KEY_BY_CHALLENGE[challenge];
 
   return (
     <article>
@@ -91,6 +94,20 @@ export default function PillarArticle({
           </>
         }
       />
+
+      {/*
+        La animación propia del pilar va entre el héroe y el artículo: cuenta en dos minutos lo que
+        el artículo desarrolla, y su final lleva a la práctica de más abajo. Solo se monta si el
+        pilar ya tiene la suya; ver `docs/features/wellbeing/028-2026-09-29-animaciones-de-los-pilares.md`.
+      */}
+      {PILLAR_STORIES[pillar] && (
+        <div className="mb-10">
+          <PillarStoryAnimation
+            pillar={pillar}
+            practiceHref={`#${PILLAR_PRACTICE_ANCHOR}`}
+          />
+        </div>
+      )}
 
       <div className="space-y-8 text-lg leading-relaxed">{children}</div>
     </article>

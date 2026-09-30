@@ -30,8 +30,9 @@ fs.mkdirSync(OUT_DIR, { recursive: true });
 
 const sources = fs
   .readdirSync(sourceDir)
-  /* Solo ilustraciones de escena («intro-1.jpg»): ni la hoja de personajes ni otras imágenes de trabajo. */
-  .filter((file) => /^[a-z]+-\d+\.(jpe?g|png)$/.test(file))
+  /* Solo ilustraciones de escena («intro-1.jpg», «sleep-cost-2.jpg»): ni la hoja de personajes ni
+     otras imágenes de trabajo, que no terminan en número. */
+  .filter((file) => /^[a-z]+(?:-[a-z]+)*-\d+\.(jpe?g|png)$/.test(file))
   .filter((file) => !wanted || wanted.has(path.parse(file).name));
 
 for (const file of sources) {

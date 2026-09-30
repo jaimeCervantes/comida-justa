@@ -1,0 +1,72 @@
+{
+  "model": "gemini-3-pro-image",
+  "style": "Art direction: premium soft 3D clay animation still, like a frame from an award-winning animated short by an international design studio. Rounded, soft, slightly chunky forms; matte clay and felt-like materials with a subtle handmade texture; gentle subsurface glow; warm cinematic lighting with soft global illumination, soft shadows and a delicate rim light; shallow depth of field with a softly blurred foreground element that adds depth; rich yet harmonious colour palette. Match the material, colours and charm of the reference heart mascot image (a red clay heart with green leaves). Setting: Mexico and Latin America; warm, hopeful mood. Composition: wide 16:9 cinematic frame; keep every important subject inside the central 70% of the width because phones crop the sides; keep the top 12% of the frame calm and uncluttered. Absolutely no text, letters, numbers, readable signs, logos, watermarks or user-interface elements anywhere in the image.",
+  "refs": ["public/logo.webp"],
+  "items": [
+    {
+      "id": "sleep-before-1",
+      "refs": ["cast.jpg"],
+      "prompt": "Recurring characters: use the reference character sheet so they look exactly the same. Scene idea: 'For hundreds of thousands of years, light decided when we slept. The sun went down, the fire died out and the night was truly dark.' Deep blue night in an ancient Mexican valley, long before electricity. A small ancestral family (Leo, Abuela Rosa and Tomás in simple traditional clothes of woven cotton) lie down to sleep on woven palm mats beside the last glowing embers of a campfire. Above them an immense, crystal-clear starry sky with the Milky Way; the hills are dark silhouettes; there is no artificial light anywhere. Peaceful, silent and deeply restful mood. Deep indigo and violet palette with a small warm glow from the embers. Important: do not include the heart mascot or any heart-shaped character anywhere in this scene; the mascot image is only a reference for the clay style."
+    },
+    {
+      "id": "sleep-before-2",
+      "refs": ["cast.jpg", "sleep-before-1.jpg"],
+      "prompt": "Recurring characters: use the reference character sheet so they look exactly the same, and keep the same night setting as the second reference image. Scene idea: 'In the dark, the body released melatonin, the signal to repair. That clock is still inside you.' A closer view: Tomás sleeps deeply on the woven mat, curled up under a striped blanket, with a serene little smile. Tiny soft glowing particles, like calm fireflies, rise gently from him into the dark. High above him in the starry sky floats a faint, elegant circular dial made of light (one half deep night blue with a crescent moon, the other half soft dawn gold with a small sun) with no numbers, ticks or marks. Calm, magical and reassuring. Indigo and violet with a touch of gold. Important: do not include the heart mascot or any heart-shaped character anywhere in this scene; the mascot image is only a reference for the clay style."
+    },
+    {
+      "id": "sleep-change-1",
+      "refs": ["cast.jpg"],
+      "prompt": "Recurring characters: use the reference character sheet so they look exactly the same. Scene idea: 'In 1879 the light bulb took the darkness out of the night.' A small Mexican town square at night in the late nineteenth century: the first electric street lamps and warm glowing Edison light bulbs hang above the plaza; townspeople in 1880s clothes, including Leo and Abuela Rosa dressed in period style, stroll, eat at a food stall and chat late into the night, looking up at the bright bulbs with wonder. Above the plaza the stars fade into a washed-out glow. Warm electric yellow against a dim blue sky; festive but slightly overwhelming brightness. No readable signs. Important: do not include the heart mascot or any heart-shaped character anywhere in this scene; the mascot image is only a reference for the clay style."
+    },
+    {
+      "id": "sleep-change-2",
+      "refs": ["cast.jpg", "ref-bedroom-night.jpg"],
+      "prompt": "Recurring characters: use the reference character sheet so they look exactly the same, and keep the same bedroom as the second reference image. Scene idea: 'Bright light at night holds back melatonin: your brain thinks it is still midday.' Late at night in that bedroom: Ana sits up in bed wide awake, her face lit by the harsh blue glow of her phone and by a bright ceiling light. Above her head floats a soft round dream bubble in which a blazing midday sun shines in a bright blue sky, as if her brain believed it were noon. Through the window, the dark night city. Strong contrast between the cold blue room and the confusing bright yellow sun inside the bubble. No readable text or digits. Important: do not include the heart mascot or any heart-shaped character anywhere in this scene; the mascot image is only a reference for the clay style."
+    },
+    {
+      "id": "sleep-cost-1",
+      "refs": ["cast.jpg", "ref-bedroom-night.jpg"],
+      "prompt": "Recurring characters: use the reference character sheet so they look exactly the same, and keep the same bedroom as the second reference image. Scene idea: 'Sleep breaks apart: you sleep the same hours and rest less.' Night in that bedroom, lit only by dim blue moonlight: Ana sleeps restlessly, twisted in tangled sheets, her brow furrowed. Floating above the bed, a long ribbon of soft glowing light that stands for her sleep is broken into separate pieces with gaps between them, like a cracked wave. The small clock on the nightstand glows pink with no readable digits. Melancholic cool blue and violet palette. Important: do not include the heart mascot or any heart-shaped character anywhere in this scene; the mascot image is only a reference for the clay style."
+    },
+    {
+      "id": "sleep-cost-2",
+      "refs": ["cast.jpg"],
+      "prompt": "Recurring characters: use the reference character sheet so they look exactly the same. Scene idea: 'The debt grows: tiredness gets covered with coffee in the morning, and that coffee gets in the way of the next night.' Early morning in a small Mexican kitchen: Leo, exhausted, with heavy eyelids and dark circles under his eyes, holds a huge steaming mug of coffee next to a plate of sweet bread and a sugar bowl. The steam from the mug curls up and loops around in a circle that reaches a small crescent moon visible through the window, suggesting a vicious cycle. Dull morning light, a slightly grey-blue palette with warm coffee browns. No readable text or brand labels. Important: do not include the heart mascot or any heart-shaped character anywhere in this scene; the mascot image is only a reference for the clay style."
+    },
+    {
+      "id": "sleep-cost-3",
+      "refs": ["cast.jpg"],
+      "prompt": "Recurring characters: use the reference character sheet so they look exactly the same. Scene idea: 'And the neighbourhood night never gets fully dark, not for you and not for the birds.' A Mexican neighbourhood at night seen from a rooftop: bright orange street lights, glowing shop fronts and lit windows cast a hazy orange dome of light pollution into the sky, so no stars are visible. On a power line a small bird sits awake and confused; moths circle a street lamp. From her window, Abuela Rosa looks up at the starless sky, a little sad. Orange haze against a murky purple sky. No readable signs or text. Important: do not include the heart mascot or any heart-shaped character anywhere in this scene; the mascot image is only a reference for the clay style."
+    },
+    {
+      "id": "sleep-counterweight-1",
+      "refs": ["cast.jpg"],
+      "prompt": "Recurring characters: use the reference character sheet so they look exactly the same. Scene idea: 'You do not need to buy anything: it is the cheapest pillar. Almost all of it is switching things off.' Evening in Ana's small cosy apartment: Ana, relieved and smiling, presses a light switch; the harsh ceiling light and the television are going dark, leaving only a warm, low table lamp glowing. Through the window the sky is a deep evening blue with the first stars. A feeling of relief and calm. Warm amber and deep blue palette. Important: do not include the heart mascot or any heart-shaped character anywhere in this scene; the mascot image is only a reference for the clay style."
+    },
+    {
+      "id": "sleep-counterweight-2",
+      "refs": ["cast.jpg", "ref-bedroom-night.jpg"],
+      "prompt": "Recurring characters: use the reference character sheet so they look exactly the same, and keep the same bedroom as the second reference image. Scene idea: 'A dark, cool room without a phone reminds your brain what the bed is for.' That bedroom turned into a sanctuary for sleep at night: thick curtains almost closed, the window slightly open with a gentle breeze moving the curtain, cool silver-blue moonlight, a green plant, the bed neatly made and inviting, and no screens anywhere in the room. Through the half-open bedroom door, the phone rests charging on a small table in the hallway outside. Ana, in comfortable pyjamas, stands at the doorway about to step in, calm. Cool, fresh and serene; silver-blue and soft violet palette. Important: do not include the heart mascot or any heart-shaped character anywhere in this scene; the mascot image is only a reference for the clay style."
+    },
+    {
+      "id": "sleep-counterweight-3",
+      "refs": ["cast.jpg", "ref-bedroom-night.jpg"],
+      "prompt": "Recurring characters: use the reference character sheet so they look exactly the same, and keep the same bedroom as the second reference image. Scene idea: 'Five minutes with a notebook: writing down tomorrow's to-dos helps your mind let them go.' In that bedroom, lit by a small warm bedside lamp: Ana sits on the edge of the bed in pyjamas writing in a paper notebook with a pencil. Above her head a tangled scribble of thin glowing lines, like a head too full, gently unwinds and flows down into the notebook as calm, tidy strands of light. The notebook pages show only soft abstract lines, never readable letters. Relief and calm. Warm amber and soft violet palette. Important: do not include the heart mascot or any heart-shaped character anywhere in this scene; the mascot image is only a reference for the clay style."
+    },
+    {
+      "id": "sleep-practice-1",
+      "refs": ["cast.jpg"],
+      "prompt": "Recurring characters: use the reference character sheet so they look exactly the same. Scene idea: 'Close the evening: an hour before bed, screens away and lights low.' Early evening in Ana's living room: Ana places her phone face down in a small woven basket on a shelf by the door, where a tablet already rests; the room is lit only by a warm low lamp; through the window the sky is turning deep blue with the first stars. A peaceful little ritual. Warm amber and deep indigo palette. Important: do not include the heart mascot or any heart-shaped character anywhere in this scene; the mascot image is only a reference for the clay style."
+    },
+    {
+      "id": "sleep-practice-2",
+      "refs": ["cast.jpg"],
+      "prompt": "Recurring characters: use the reference character sheet so they look exactly the same. Scene idea: 'Open the morning: ten to fifteen minutes of natural light outdoors when you wake.' Early morning on a rooftop terrace in a Mexican neighbourhood, with potted plants: Ana, freshly awake, stands outdoors holding a cup of tea, her face turned towards the soft morning light with her eyes closed and a calm smile; she is not looking at the sun. The low sun sits to one side behind the neighbourhood rooftops and bathes everything in golden light; on a nearby rooftop Abuela Rosa waters her plants and Tomás stretches. Fresh, hopeful and energising. Warm gold, peach and soft sky-blue palette. Important: do not include the heart mascot or any heart-shaped character anywhere in this scene; the mascot image is only a reference for the clay style."
+    },
+    {
+      "id": "sleep-practice-3",
+      "refs": ["cast.jpg"],
+      "prompt": "Recurring characters: use the reference character sheet so they look exactly the same. Scene idea: 'It does not have to be perfect. Start tonight.' A calm twilight view of a Mexican neighbourhood and green hills from a gentle hilltop: the sky blends softly from dusk violet on one side to a first hint of dawn gold on the other; warm windows glow below and the first stars appear. The four characters sit together, small, in the lower third, relaxed, looking at the sky. The centre and upper part of the sky stay open, calm and glowing, because a logo will be placed there later. Important: do not include the heart mascot or any heart-shaped character anywhere in this scene; the mascot image is only a reference for the clay style."
+    }
+  ]
+}

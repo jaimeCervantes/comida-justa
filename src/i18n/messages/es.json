@@ -1093,7 +1093,7 @@
   },
   "pillarAnimations": {
     "invite": {
-      "body": "Míralo en minuto y medio: de dónde vienen y cómo volver a ellos.",
+      "body": "Míralo en dos minutos y medio: de dónde vienen y cómo volver a ellos.",
       "close": "Cerrar",
       "dialogLabel": "Los cuatro pilares, en animación",
       "label": "Invitación a ver los cuatro pilares",
@@ -1151,6 +1151,37 @@
       "soundOff": "Silenciar",
       "soundOn": "Activar el sonido",
       "stepsNote": "Tu dispositivo pide menos movimiento: avanza escena por escena, a tu ritmo."
+    },
+    "sleep": {
+      "before": {
+        "b1": "Durante cientos de miles de años, <hl>la luz decidió cuándo dormíamos</hl>. El sol se iba, el fuego se apagaba y la noche era oscura de verdad.",
+        "b2": "En la oscuridad, el cuerpo soltaba <hl>melatonina</hl>: la señal de reparar. Ese reloj <hl>sigue dentro de ti</hl>.",
+        "chip": "El reloj de siempre"
+      },
+      "change": {
+        "b1": "En <hl>1879</hl>, la bombilla le quitó la oscuridad a la noche. Hoy la pantalla nos sigue hasta la almohada.",
+        "b2": "La luz brillante de noche frena la melatonina: <hl>tu cerebro cree que sigue siendo mediodía</hl>.",
+        "chip": "La noche encendida"
+      },
+      "cost": {
+        "b1": "Eso se paga tres veces. <hl>El sueño se rompe</hl>: duermes las mismas horas y descansas menos.",
+        "b2": "<hl>La deuda crece</hl>: el cansancio se tapa con café por la mañana, y ese café estorba la noche siguiente.",
+        "b3": "Y la noche del barrio <hl>ya no oscurece del todo</hl>, ni para ti ni para las aves.",
+        "chip": "El costo oculto"
+      },
+      "counterweight": {
+        "b1": "No hace falta comprar nada: <hl>es el pilar más barato</hl>. Casi todo consiste en apagar cosas.",
+        "b2": "Un cuarto <hl>oscuro, fresco y sin teléfono</hl> le recuerda a tu cerebro para qué es la cama.",
+        "b3": "Y cinco minutos con una libreta: <hl>anotar lo pendiente de mañana</hl> ayuda a que la cabeza lo suelte.",
+        "chip": "El contrapeso"
+      },
+      "practice": {
+        "b1": "Tu versión mínima tiene dos anclas. <hl>Cerrar la noche</hl>: una hora antes de dormir, pantallas lejos y luz baja.",
+        "b2": "Y <hl>abrir la mañana</hl>: de diez a quince minutos de luz natural afuera, al despertar. Esa luz programa tu sueño de esta noche.",
+        "b3": "No tiene que ser perfecto. <hl>Empieza esta noche.</hl>",
+        "chip": "Tu versión mínima"
+      },
+      "regionLabel": "El sueño y el descanso, en animación"
     },
     "social": {
       "outroTitle": "Los cuatro pilares de una vida sana"

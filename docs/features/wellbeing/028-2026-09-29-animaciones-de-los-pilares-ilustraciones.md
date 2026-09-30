@@ -36,10 +36,14 @@ Se generan primero en una hoja (`cast`), y esa hoja va como referencia en cada e
 
 ## Proceso
 
-1. **Indicaciones** en `scripts/animations/pillars-overview.manifest.json`: la dirección de arte
-   común (`style`), el logo como referencia de todas y una entrada por ilustración. La hoja de
-   personajes es la primera; las escenas la citan como `cast.jpg`. Una escena puede citar a otra
-   (el amanecer en el cuarto usa el cuarto de noche para que sea el mismo).
+1. **Indicaciones** en `scripts/animations/pillars-overview.manifest.json` (la general) o
+   `pillar-<pilar>.manifest.json` (la de cada pilar): la dirección de arte común (`style`), el logo
+   como referencia de todas y una entrada por ilustración. La hoja de personajes es la primera; las
+   escenas la citan como `cast.jpg`. Una escena puede citar a otra (el amanecer en el cuarto usa el
+   cuarto de noche para que sea el mismo) o a una de otra animación, copiada a su carpeta con otro
+   nombre (`ref-bedroom-night.jpg` es el cuarto de Ana de la general).
+   Los originales viven en `out/illustrations/<animación>/`, fuera del repositorio, con la hoja de
+   personajes copiada en cada carpeta.
 2. **Generación** con Gemini 3 Pro Image (`gemini-3-pro-image`, 2K, 16:9):
    `node scripts/animations/generate-illustrations.mjs scripts/animations/pillars-overview.manifest.json <carpeta> [ids]`.
    Usa `GEMINI_API_KEY` y **tiene costo**: ~0,13 USD por imagen con la tarifa publicada en 2025.
@@ -49,14 +53,21 @@ Se generan primero en una hoja (`cast`), y esa hoja va como referencia en cada e
 4. **Preparación para la web**:
    `node scripts/animations/prepare-illustrations.mjs <carpeta>` escribe
    `public/animations/pilares/<id>-{960,1440,1920}.webp` (el proyecto sirve las imágenes sin
-   optimizar, así que los anchos se preparan aquí).
-5. **Escena** en `src/presentation/habits/animations/overviewScenes.ts`: una ilustración por
-   subtítulo, su movimiento de cámara y sus efectos (brasas, estrellas, polvo, rayos, ondas, vapor,
-   resplandores), anclados con coordenadas medidas sobre la ilustración en %. Para medirlas sirve
-   superponer una cuadrícula al 10 % a una copia reducida.
+   optimizar, así que los anchos se preparan aquí). Solo toma los archivos cuyo nombre termina en
+   número (`sleep-cost-2.jpg`): la hoja de personajes y las referencias se quedan fuera.
+5. **Escena** en `src/presentation/habits/animations/overviewScenes.ts` (la general) o en la
+   `PillarStory` del pilar (`stories/sleepStory.ts`): una ilustración por subtítulo, su movimiento
+   de cámara y sus efectos (brasas, estrellas, polvo, rayos, ondas, vapor, resplandores), anclados
+   con coordenadas medidas sobre la ilustración en %. Para medirlas sirve superponer una cuadrícula
+   al 10 % a una copia reducida. Si una ilustración trae una franja lisa en un borde, la cámara la
+   deja fuera acercándose con el origen del lado contrario.
+6. **Revisión en movimiento** antes de exportar: un cuadro por subtítulo desde la página de render
+   (`window.__renderFrame(ms)`), para ver encuadre, efectos y subtítulo juntos.
 
-## Lo que costó la animación de los cuatro pilares
+## Lo que costó
 
-18 ilustraciones más 3 regeneraciones (dos escenas con la mascota colada y una con Tomás donde
-tocaba Leo): 21 imágenes, ≈ 2,8 USD. Pesan 3,6 MB entre los 51 archivos WebP; en un teléfono se
-descargan los de 960 px, ~36 KB cada uno (los de 1920 px, ~100 KB).
+- **La animación de los cuatro pilares:** 18 ilustraciones más 3 regeneraciones (dos escenas con la
+  mascota colada y una con Tomás donde tocaba Leo): 21 imágenes, ≈ 2,8 USD. Pesan 3,6 MB entre los
+  51 archivos WebP; en un teléfono se descargan los de 960 px, ~36 KB cada uno (los de 1920 px,
+  ~100 KB).
+- **La de Sueño:** 13 ilustraciones, todas a la primera (≈ 1,7 USD). 2,6 MB entre sus 39 WebP.

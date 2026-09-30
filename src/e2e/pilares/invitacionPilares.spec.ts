@@ -53,7 +53,7 @@ function invite(page: Page) {
 }
 
 test.describe("La invitación de la primera visita", () => {
-  for (const path of ["/", "/productos", "/pilares/sueno"]) {
+  for (const path of ["/", "/productos", "/pilares/alimentacion"]) {
     test(`En ${path}, la primera visita invita sin quitar el foco`, async ({
       page,
     }) => {
@@ -101,7 +101,7 @@ test.describe("La invitación de la primera visita", () => {
     await expect(invite(page)).toHaveCount(0);
   });
 
-  for (const path of ["/pilares", "/carrito"]) {
+  for (const path of ["/pilares", "/pilares/sueno", "/carrito"]) {
     test(`No aparece en ${path}`, async ({ page }) => {
       await open(page, path);
       await letInviteTimePass(page);

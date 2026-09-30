@@ -9,7 +9,7 @@ Característica: Una animación explica los pilares antes de pedir que se lean
   - Por qué: captar gente nueva y reutilizar la misma animación como video para redes.
 
   Como alguien que llega por primera vez
-  Quiero ver en minuto y medio qué son los cuatro pilares y por qué existen
+  Quiero ver en dos minutos y medio qué son los cuatro pilares y por qué existen
   Para entender el proyecto sin leer cuatro artículos
 
   # ── Slice 1: la animación de los cuatro pilares en /pilares ──────────────────────────────────
@@ -49,15 +49,18 @@ Característica: Una animación explica los pilares antes de pedir que se lean
     Cuando dejo que la escena se reproduzca entera
     Entonces veo tres subtítulos sucesivos: antes, lo que cambió y el regreso
 
+  # Hasta el 2026-09-30 el logo también abría: aparecía en el centro y se iba a la esquina. Se
+  # quitó a pedido del usuario: la cabecera del sitio y la del video ya lo llevan arriba a la
+  # izquierda, y dos logos a la vez sobraban.
   @slice-1
-  Esquema del escenario: El logo abre y cierra la animación, y no aparece en medio
+  Esquema del escenario: El logo solo cierra la animación
     Dado que la animación de los cuatro pilares está en pausa
     Cuando avanzo hasta la escena <escena>
     Entonces el logo de la marca <logo>
 
     Ejemplos:
       | escena | logo           |
-      | 1      | se ve          |
+      | 1      | no se ve       |
       | 3      | no se ve       |
       | 6      | se ve          |
 
@@ -116,11 +119,8 @@ Característica: Una animación explica los pilares antes de pedir que se lean
   # El slice 2 (invitación en la primera visita y medición) tiene su propio par:
   # invitacionPilares.feature / invitacionPilares.spec.ts.
 
-  @slice-3 @future
-  Escenario: La primera visita a un pilar reproduce su propia animación
-    Dado que nunca he visto la animación de "Sueño"
-    Cuando abro "/pilares/sueno"
-    Entonces su animación está debajo del héroe y se reproduce sola
+  # Los slices 3–6 (la animación propia de cada pilar) tienen su propio par:
+  # animacionDelPilar.feature / animacionDelPilar.spec.ts.
 
   # Slice 7 — exportar a video. Es una herramienta, no una pantalla: la ejecuta el script
   # `scripts/animations/render-video.mjs` contra `/animaciones/video` (solo en desarrollo) y se
