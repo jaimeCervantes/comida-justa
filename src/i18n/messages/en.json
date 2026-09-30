@@ -1152,6 +1152,37 @@
       "soundOn": "Turn sound on",
       "stepsNote": "Your device asks for less motion: move scene by scene, at your own pace."
     },
+    "sleep": {
+      "before": {
+        "b1": "For hundreds of thousands of years, <hl>light decided when we slept</hl>. The sun went down, the fire died out and the night was truly dark.",
+        "b2": "In the dark, the body released <hl>melatonin</hl>: the signal to repair. That clock <hl>is still inside you</hl>.",
+        "chip": "The clock we always had"
+      },
+      "change": {
+        "b1": "In <hl>1879</hl>, the light bulb took the darkness out of the night. Today the screen follows us to the pillow.",
+        "b2": "Bright light at night holds melatonin back: <hl>your brain thinks it is still midday</hl>.",
+        "chip": "The night switched on"
+      },
+      "cost": {
+        "b1": "That is paid for three times. <hl>Sleep breaks apart</hl>: you sleep the same hours and rest less.",
+        "b2": "<hl>The debt grows</hl>: tiredness gets covered with coffee in the morning, and that coffee gets in the way of the next night.",
+        "b3": "And the neighbourhood night <hl>never gets fully dark</hl>, not for you and not for the birds.",
+        "chip": "The hidden cost"
+      },
+      "counterweight": {
+        "b1": "You do not need to buy anything: <hl>it is the cheapest pillar</hl>. Almost all of it is switching things off.",
+        "b2": "A <hl>dark, cool room without a phone</hl> reminds your brain what the bed is for.",
+        "b3": "And five minutes with a notebook: <hl>writing down tomorrow’s to-dos</hl> helps your mind let them go.",
+        "chip": "The counterweight"
+      },
+      "practice": {
+        "b1": "Your minimum version has two anchors. <hl>Close the evening</hl>: an hour before bed, screens away and lights low.",
+        "b2": "And <hl>open the morning</hl>: ten to fifteen minutes of natural light outdoors when you wake. That light sets up tonight’s sleep.",
+        "b3": "It does not have to be perfect. <hl>Start tonight.</hl>",
+        "chip": "Your minimum version"
+      },
+      "regionLabel": "Sleep and rest, animated"
+    },
     "social": {
       "outroTitle": "The four pillars of a healthy life"
     }

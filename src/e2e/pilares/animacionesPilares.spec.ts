@@ -1,11 +1,20 @@
-import { expect, type Page, test } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import { PILLARS } from "~/app/[locale]/pilares/components/pilaresData";
 import en from "~/i18n/messages/en.json";
 import es from "~/i18n/messages/es.json";
 import { captionPlainText } from "~/presentation/habits/animations/captionMarkup";
 import { PILLARS_OVERVIEW_SCRIPT } from "~/presentation/habits/animations/pillarsOverviewScript";
 import { sceneStartMs } from "~/presentation/habits/animations/playhead";
-import { PILLAR_ANIMATION_SEEN_KEY_PREFIX } from "~/presentation/habits/animations/seenAnimations";
+import {
+  goToAnimationScene as goToScene,
+  markAnimationAsSeen,
+  openPlayingAnimation,
+  openWithAnimation,
+  animationPlayer as player,
+  soundButton,
+  soundtrack,
+  turnSoundOn,
+} from "../testUtils/animationPlayer";
 import { recordAnalytics, recordedEvents } from "../testUtils/recordAnalytics";
 
 /**
@@ -19,8 +28,6 @@ import { recordAnalytics, recordedEvents } from "../testUtils/recordAnalytics";
  * textos se afinan, lo que no cambia es en qué escena y en qué estado está.
  */
 
-const OVERVIEW_SEEN_KEY = `${PILLAR_ANIMATION_SEEN_KEY_PREFIX}pillars-overview`;
-
 /**
  * Los tiempos salen del guion, no se copian: cambian cada vez que se vuelve a narrar un texto, y
  * una prueba con los milisegundos escritos a mano se rompería sin que nada estuviera mal.
@@ -32,70 +39,13 @@ const SLEEP_FIRST_TWO_BEATS_MS = SLEEP_BEAT_1_MS + SLEEP_BEAT_2_MS + 200;
 /** Dónde empieza la escena de Sueño en la pista de sonido, en segundos. */
 const SLEEP_START_S = sceneStartMs(PILLARS_OVERVIEW_SCRIPT, 1) / 1000;
 const SOUNDTRACK_PATH = /\/animations\/pilares\/sonido-/;
-
-function player(page: Page) {
-  return page.getByTestId("pillars-animation");
-}
-
-async function markOverviewAsSeen(page: Page) {
-  await page.addInitScript((key) => {
-    window.localStorage.setItem(key, "1");
-  }, OVERVIEW_SEEN_KEY);
-}
-
-async function openOverview(page: Page, path = "/pilares") {
-  await page.clock.install();
-  await page.goto(path);
-  await player(page).scrollIntoViewIfNeeded();
-}
-
-function soundButton(page: Page) {
-  return player(page).getByTestId("animation-sound");
-}
-
-/**
- * Lo que está haciendo el audio, leído del elemento y no del botón: el botón dice lo que se pidió;
- * el elemento, lo que el navegador está reproduciendo.
- */
-function soundtrack(page: Page) {
-  return player(page)
-    .getByTestId("animation-soundtrack")
-    .evaluate((audio: HTMLAudioElement) => ({
-      paused: audio.paused,
-      seconds: audio.currentTime,
-      path: new URL(audio.currentSrc || audio.src).pathname,
-    }));
-}
-
-/**
- * La animación reproduciéndose sola, como en la primera visita. Hay que esperarla antes de tocar
- * nada: arranca cuando al menos la mitad del reproductor está a la vista, y un clic en los
- * controles de abajo desplaza la página y puede dejarlo por debajo de esa mitad.
- */
-async function openPlayingOverview(page: Page, path = "/pilares") {
-  await openOverview(page, path);
-  await expect(player(page)).toHaveAttribute("data-state", "playing");
-}
-
-async function turnSoundOn(page: Page) {
-  await soundButton(page).click();
-  await expect(soundButton(page)).toHaveAttribute("aria-pressed", "true");
-  await expect.poll(() => soundtrack(page)).toMatchObject({ paused: false });
-}
-
-async function goToScene(page: Page, scene: number) {
-  const current = Number(await player(page).getAttribute("data-scene"));
-  for (let step = current; step < scene; step++) {
-    await player(page).getByTestId("animation-next").click();
-  }
-  await expect(player(page)).toHaveAttribute("data-scene", String(scene));
-}
+const OVERVIEW_ID = "pillars-overview";
 
 test.describe("La animación de los cuatro pilares en /pilares", () => {
   test("La primera visita la reproduce sola, debajo del héroe", async ({
     page,
   }) => {
-    await openOverview(page);
+    await openWithAnimation(page, "/pilares");
 
     const heroAction = page.getByTestId("pillar-hero-action");
     const cards = page.locator("#practicas");
@@ -115,8 +65,8 @@ test.describe("La animación de los cuatro pilares en /pilares", () => {
   test("Al volver no arranca sola, pero se puede ver otra vez desde la escena 1", async ({
     page,
   }) => {
-    await markOverviewAsSeen(page);
-    await openOverview(page);
+    await markAnimationAsSeen(page, OVERVIEW_ID);
+    await openWithAnimation(page, "/pilares");
     await page.clock.fastForward(3000);
 
     await expect(player(page)).toHaveAttribute("data-state", "paused");
@@ -138,8 +88,8 @@ test.describe("La animación de los cuatro pilares en /pilares", () => {
 
   for (const { scene, pillar } of pillarByScene) {
     test(`La escena ${scene} es del pilar «${pillar}»`, async ({ page }) => {
-      await markOverviewAsSeen(page);
-      await openOverview(page);
+      await markAnimationAsSeen(page, OVERVIEW_ID);
+      await openWithAnimation(page, "/pilares");
 
       await goToScene(page, scene);
 
@@ -155,8 +105,8 @@ test.describe("La animación de los cuatro pilares en /pilares", () => {
     test(`El logo ${visible ? "se ve" : "no se ve"} en la escena ${scene}`, async ({
       page,
     }) => {
-      await markOverviewAsSeen(page);
-      await openOverview(page);
+      await markAnimationAsSeen(page, OVERVIEW_ID);
+      await openWithAnimation(page, "/pilares");
 
       await goToScene(page, scene);
 
@@ -168,8 +118,8 @@ test.describe("La animación de los cuatro pilares en /pilares", () => {
   }
 
   test("Cada pilar se cuenta en tres tiempos", async ({ page }) => {
-    await markOverviewAsSeen(page);
-    await openOverview(page);
+    await markAnimationAsSeen(page, OVERVIEW_ID);
+    await openWithAnimation(page, "/pilares");
     await goToScene(page, 2);
     await player(page).getByTestId("animation-play-toggle").click();
 
@@ -190,8 +140,8 @@ test.describe("La animación de los cuatro pilares en /pilares", () => {
   });
 
   test("Se puede pausar y retomar donde iba", async ({ page }) => {
-    await markOverviewAsSeen(page);
-    await openOverview(page);
+    await markAnimationAsSeen(page, OVERVIEW_ID);
+    await openWithAnimation(page, "/pilares");
     await goToScene(page, 2);
     const toggle = player(page).getByTestId("animation-play-toggle");
     await toggle.click();
@@ -212,8 +162,8 @@ test.describe("La animación de los cuatro pilares en /pilares", () => {
   test("El cierre invita a elegir una práctica en la misma página", async ({
     page,
   }) => {
-    await markOverviewAsSeen(page);
-    await openOverview(page);
+    await markAnimationAsSeen(page, OVERVIEW_ID);
+    await openWithAnimation(page, "/pilares");
     await goToScene(page, 6);
 
     await player(page).getByTestId("animation-cta").click();
@@ -226,7 +176,7 @@ test.describe("La animación de los cuatro pilares en /pilares", () => {
     test("no arranca sola y se lee como pasos", async ({ page }) => {
       /* Antes de cargar: la preferencia se lee al hidratar y decide si arranca. */
       await page.emulateMedia({ reducedMotion: "reduce" });
-      await openOverview(page);
+      await openWithAnimation(page, "/pilares");
       await page.clock.fastForward(5000);
 
       await expect(player(page)).toHaveAttribute("data-mode", "steps");
@@ -243,7 +193,7 @@ test.describe("La animación de los cuatro pilares en /pilares", () => {
       page,
     }) => {
       await page.emulateMedia({ reducedMotion: "reduce" });
-      await openOverview(page);
+      await openWithAnimation(page, "/pilares");
 
       await expect(player(page)).toHaveAttribute("data-mode", "steps");
       await expect(soundButton(page)).toHaveCount(0);
@@ -263,8 +213,8 @@ test.describe("La animación de los cuatro pilares en /pilares", () => {
     test(`En ${path}, el último subtítulo de Sueño va en su idioma`, async ({
       page,
     }) => {
-      await markOverviewAsSeen(page);
-      await openOverview(page, path);
+      await markAnimationAsSeen(page, OVERVIEW_ID);
+      await openWithAnimation(page, path);
       await goToScene(page, 2);
       await player(page).getByTestId("animation-play-toggle").click();
 
@@ -289,7 +239,7 @@ test.describe("El sonido de la animación", () => {
     page.on("request", (request) => {
       if (SOUNDTRACK_PATH.test(request.url())) downloads.push(request.url());
     });
-    await openPlayingOverview(page);
+    await openPlayingAnimation(page, "/pilares");
     await page.clock.fastForward(3000);
 
     await expect(soundButton(page)).toHaveAttribute("aria-pressed", "false");
@@ -302,7 +252,7 @@ test.describe("El sonido de la animación", () => {
     { path: "/en/pillars", track: "/animations/pilares/sonido-en.mp3" },
   ]) {
     test(`En ${path}, activarlo reproduce ${track}`, async ({ page }) => {
-      await openPlayingOverview(page, path);
+      await openPlayingAnimation(page, path);
 
       await turnSoundOn(page);
 
@@ -317,7 +267,7 @@ test.describe("El sonido de la animación", () => {
   test("va donde va la animación: salta con ella y calla en pausa", async ({
     page,
   }) => {
-    await openPlayingOverview(page);
+    await openPlayingAnimation(page, "/pilares");
     await turnSoundOn(page);
 
     await player(page).getByTestId("animation-next").click();
@@ -337,7 +287,7 @@ test.describe("El sonido de la animación", () => {
     page,
   }) => {
     await recordAnalytics(page);
-    await openPlayingOverview(page);
+    await openPlayingAnimation(page, "/pilares");
     await turnSoundOn(page);
 
     await soundButton(page).click();

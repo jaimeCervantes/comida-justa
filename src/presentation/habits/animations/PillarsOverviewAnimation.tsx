@@ -1,22 +1,16 @@
 "use client";
 import { useLocale, useTranslations } from "next-intl";
-import { buttonVariants } from "~/presentation/design_system/buttons/buttonVariants";
-import { type AnimationPlacement, trackAnimation } from "./animationAnalytics";
+import type { AnimationPlacement } from "./animationAnalytics";
+import IllustratedAnimation from "./IllustratedAnimation";
 import { OVERVIEW_ARTS, OVERVIEW_SCENES } from "./overviewScenes";
 import { OVERVIEW_TIMINGS } from "./overviewTimings";
-import PillarAnimationPlayer, {
-  type PlayerEvent,
-  type PlayerLabels,
-  type SceneLook,
-} from "./PillarAnimationPlayer";
+import type { SceneLook } from "./PillarAnimationPlayer";
 import {
   OVERVIEW_CAPTION_KEYS,
   OVERVIEW_CHIP_KEYS,
   type OverviewSceneId,
   PILLARS_OVERVIEW_SCRIPT,
 } from "./pillarsOverviewScript";
-import { ART_SIZES, artSources } from "./scenes/artSources";
-import IllustratedScene from "./scenes/IllustratedScene";
 
 /**
  * El acento de cada escena fuera del escenario. El subrayado usa los tokens del tema (se lee en
@@ -80,87 +74,22 @@ export default function PillarsOverviewAnimation({
     ...LOOKS[scene.id],
     chip: t(OVERVIEW_CHIP_KEYS[scene.id]),
   }));
-  const labels: PlayerLabels = {
-    regionLabel: t("player.regionLabel"),
-    play: t("player.play"),
-    pause: t("player.pause"),
-    resume: t("player.resume"),
-    replay: t("player.replay"),
-    previous: t("player.previous"),
-    next: t("player.next"),
-    sceneOf: (current, total) => t("player.sceneOf", { current, total }),
-    goToScene: (number) => t("player.goToScene", { number }),
-    stepsNote: t("player.stepsNote"),
-    soundOn: t("player.soundOn"),
-    soundOff: t("player.soundOff"),
-  };
-
-  const measure = (event: PlayerEvent) => {
-    if (event.type === "play") {
-      trackAnimation(ANIMATION_ID, "animation_play", placement, {
-        trigger: event.trigger,
-      });
-    } else if (event.type === "scene") {
-      trackAnimation(ANIMATION_ID, "animation_scene", placement, {
-        scene: event.scene,
-      });
-    } else if (event.type === "sound") {
-      trackAnimation(ANIMATION_ID, "animation_sound", placement, {
-        state: event.on ? "on" : "off",
-      });
-    } else {
-      trackAnimation(ANIMATION_ID, "animation_complete", placement);
-    }
-  };
 
   return (
-    <PillarAnimationPlayer
+    <IllustratedAnimation
       animationId={ANIMATION_ID}
-      onEvent={measure}
-      soundtrack={`/animations/pilares/sonido-${locale}.mp3`}
-      scenes={PILLARS_OVERVIEW_SCRIPT}
+      placement={placement}
+      script={PILLARS_OVERVIEW_SCRIPT}
+      sceneConfigs={PILLARS_OVERVIEW_SCRIPT.map(
+        (scene) => OVERVIEW_SCENES[scene.id],
+      )}
+      timings={OVERVIEW_TIMINGS}
+      arts={OVERVIEW_ARTS}
       captions={captions}
       looks={looks}
-      labels={labels}
-      renderScene={({ sceneIndex, active, steps, feed }) => {
-        const scene = OVERVIEW_SCENES[PILLARS_OVERVIEW_SCRIPT[sceneIndex].id];
-        return (
-          <IllustratedScene
-            beats={scene.beats}
-            logo={scene.logo}
-            timing={OVERVIEW_TIMINGS[sceneIndex]}
-            active={active}
-            steps={steps}
-            feed={feed}
-          />
-        );
-      }}
-      preload={OVERVIEW_ARTS.map((art) => {
-        const sources = artSources(art);
-        return (
-          // biome-ignore lint/performance/noImgElement: precarga con el mismo srcSet que usará la escena, para que el navegador elija y guarde el mismo archivo.
-          <img
-            key={art}
-            src={sources.src}
-            srcSet={sources.srcSet}
-            sizes={ART_SIZES}
-            alt=""
-            loading="eager"
-          />
-        );
-      })}
-      finale={
-        <a
-          href={practicesHref}
-          data-testid="animation-cta"
-          onClick={() =>
-            trackAnimation(ANIMATION_ID, "animation_cta", placement)
-          }
-          className={`${buttonVariants({ color: "orange", size: "lg" })} self-start`}
-        >
-          {tInvitation("cta")}
-        </a>
-      }
+      regionLabel={t("player.regionLabel")}
+      soundtrack={`/animations/pilares/sonido-${locale}.mp3`}
+      cta={{ href: practicesHref, label: tInvitation("cta") }}
     />
   );
 }

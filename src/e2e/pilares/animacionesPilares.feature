@@ -119,11 +119,8 @@ Característica: Una animación explica los pilares antes de pedir que se lean
   # El slice 2 (invitación en la primera visita y medición) tiene su propio par:
   # invitacionPilares.feature / invitacionPilares.spec.ts.
 
-  @slice-3 @future
-  Escenario: La primera visita a un pilar reproduce su propia animación
-    Dado que nunca he visto la animación de "Sueño"
-    Cuando abro "/pilares/sueno"
-    Entonces su animación está debajo del héroe y se reproduce sola
+  # Los slices 3–6 (la animación propia de cada pilar) tienen su propio par:
+  # animacionDelPilar.feature / animacionDelPilar.spec.ts.
 
   # Slice 7 — exportar a video. Es una herramienta, no una pantalla: la ejecuta el script
   # `scripts/animations/render-video.mjs` contra `/animaciones/video` (solo en desarrollo) y se

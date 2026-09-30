@@ -2,36 +2,20 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { PUBLIC_BRAND_NAME } from "~/infra/constants";
-import { OVERVIEW_SCENES } from "../overviewScenes";
-import { OVERVIEW_TIMINGS } from "../overviewTimings";
-import {
-  type OverviewSceneId,
-  PILLARS_OVERVIEW_SCRIPT,
-} from "../pillarsOverviewScript";
 import { playheadAt } from "../playhead";
 import { artSources } from "../scenes/artSources";
 import IllustratedScene from "../scenes/IllustratedScene";
 import type { ClockFeed, ClockFrame } from "../useAnimationClock";
 import { captionAt, easeOut, type FrameSegment } from "./captionFrame";
+import { FILMS, type Film, type FilmId } from "./films";
 import {
   type CutBeat,
   type CutRange,
   cutBeats,
   cutRange,
   SOCIAL_FORMATS,
-  type SocialCut,
   type SocialFormat,
 } from "./socialCuts";
-
-/** El color de cada escena en el video: el de su pilar; el gancho y el cierre, los de la marca. */
-const SCENE_ACCENTS: Record<OverviewSceneId, string> = {
-  intro: "#fb923c",
-  sleep: "#a78bfa",
-  nutrition: "#fb923c",
-  movement: "#4ade80",
-  mindSpirit: "#38bdf8",
-  closing: "#4ade80",
-};
 
 /** Lo que dura la escena saliente debajo de la entrante, igual que en el reproductor de la web. */
 const OUTGOING_MS = 1100;
@@ -148,9 +132,25 @@ function nextFrames(count: number): Promise<void> {
   });
 }
 
+/** Las ilustraciones que ya salieron en algún cuadro: esas ya están pintadas. */
+const settledImages = new WeakSet<HTMLImageElement>();
+
+/**
+ * Espera a que todas las imágenes estén cargadas y decodificadas, y, si alguna es nueva en este
+ * cuadro, un poco más: decodificada no es pintada, y al saltar de golpe a una escena la captura
+ * salía antes de que Chrome terminara de dibujar su ilustración. Pasa una vez por ilustración, no
+ * por cuadro.
+ */
 async function imagesReady(root: HTMLElement): Promise<void> {
+  const images = Array.from(root.querySelectorAll("img"));
+  /* La primera ilustración de cada escena se pide diferida (`loading="lazy"`): en la web no hace
+     falta hasta que se ve. Diferida, Chrome puede darla por `complete` sin haberla cargado, y el
+     cuadro salía sin ella al saltar de golpe a una escena. Aquí se piden todas ya. */
+  for (const image of images) {
+    if (image.loading === "lazy") image.loading = "eager";
+  }
   await Promise.all(
-    Array.from(root.querySelectorAll("img")).map((image) =>
+    images.map((image) =>
       image.complete
         ? image.decode().catch(() => undefined)
         : new Promise<void>((resolve) => {
@@ -159,11 +159,15 @@ async function imagesReady(root: HTMLElement): Promise<void> {
           }),
     ),
   );
+  const fresh = images.filter((image) => !settledImages.has(image));
+  if (fresh.length === 0) return;
+  await new Promise((resolve) => setTimeout(resolve, 350));
+  await nextFrames(2);
+  for (const image of fresh) settledImages.add(image);
 }
 
-function artAt(sceneIndex: number, beatIndex: number): string {
-  const sceneId = PILLARS_OVERVIEW_SCRIPT[sceneIndex].id;
-  return OVERVIEW_SCENES[sceneId].beats[beatIndex].art;
+function artAt(film: Film, sceneIndex: number, beatIndex: number): string {
+  return film.scenes[sceneIndex].beats[beatIndex].art;
 }
 
 /** El subtítulo de un instante, con cada palabra y su subrayado donde les toca. */
@@ -225,7 +229,8 @@ function FrameCaption({
 }
 
 /**
- * La animación de los cuatro pilares compuesta para redes, en un formato y un corte.
+ * Una animación compuesta para redes, en un formato y un corte: la de los cuatro pilares o la de un
+ * pilar (`FILMS`).
  *
  * No se reproduce: se **dibuja en un instante**. Expone `window.__renderFrame(ms)`, que la lleva a
  * ese instante y espera a que todo esté pintado (y las imágenes decodificadas); el script de
@@ -233,6 +238,7 @@ function FrameCaption({
  * CSS: todo lo que se mueve es función del tiempo, y el cuadro 312 sale igual cada vez.
  */
 export default function SocialComposition({
+  filmId,
   cut,
   format,
   captions,
@@ -240,7 +246,8 @@ export default function SocialComposition({
   outroTitle,
   siteUrl,
 }: {
-  cut: SocialCut;
+  filmId: FilmId;
+  cut: string;
   format: SocialFormat;
   captions: readonly (readonly string[])[];
   chips: readonly string[];
@@ -248,7 +255,8 @@ export default function SocialComposition({
   siteUrl: string;
 }) {
   const rootRef = useRef<HTMLDivElement>(null);
-  const range: CutRange = useMemo(() => cutRange(cut), [cut]);
+  const film: Film = FILMS[filmId];
+  const range: CutRange = useMemo(() => cutRange(film, cut), [film, cut]);
   const { width, height } = SOCIAL_FORMATS[format];
   const layout = LAYOUTS[format];
   const { feed, publish } = useManualFeed();
@@ -266,9 +274,9 @@ export default function SocialComposition({
       durationMs: range.durationMs,
       width,
       height,
-      beats: cutBeats(range),
+      beats: cutBeats(film, range),
       fromMs: range.fromMs,
-      wholeMs: cutRange("completo").durationMs,
+      wholeMs: cutRange(film, "completo").durationMs,
     };
     target.__renderFrame = async (ms: number) => {
       publish(absoluteAt(ms));
@@ -281,16 +289,15 @@ export default function SocialComposition({
       target.__renderFrame = undefined;
       target.__renderInfo = undefined;
     };
-  }, [publish, absoluteAt, range, width, height]);
+  }, [publish, absoluteAt, film, range, width, height]);
 
   const absolute = absoluteAt(localMs);
-  const playhead = playheadAt(PILLARS_OVERVIEW_SCRIPT, absolute);
-  const scene = PILLARS_OVERVIEW_SCRIPT[playhead.sceneIndex];
-  const timing = OVERVIEW_TIMINGS[playhead.sceneIndex];
+  const playhead = playheadAt(film.script, absolute);
+  const timing = film.timings[playhead.sceneIndex];
   const intoScene = absolute - timing.startMs;
   const beatStartMs = (timing.beatsSec[playhead.beatIndex] ?? 0) * 1000;
   const intoBeat = intoScene - beatStartMs;
-  const accent = SCENE_ACCENTS[scene.id];
+  const accent = film.accents[playhead.sceneIndex];
   const outroMs = localMs - span;
   const outro = outroMs >= 0 ? Math.min(1, outroMs / OUTRO_FADE_MS) : 0;
 
@@ -302,15 +309,15 @@ export default function SocialComposition({
 
   /* El fondo es la ilustración del momento, desenfocada; al cambiar de ilustración, la nueva entra
      sobre la anterior en un segundo, calculado y no con una transición CSS. */
-  const currentArt = artAt(playhead.sceneIndex, playhead.beatIndex);
+  const currentArt = artAt(film, playhead.sceneIndex, playhead.beatIndex);
   const previousArt =
     playhead.beatIndex > 0
-      ? artAt(playhead.sceneIndex, playhead.beatIndex - 1)
+      ? artAt(film, playhead.sceneIndex, playhead.beatIndex - 1)
       : playhead.sceneIndex > firstScene
         ? artAt(
+            film,
             playhead.sceneIndex - 1,
-            PILLARS_OVERVIEW_SCRIPT[playhead.sceneIndex - 1].beatDurationsMs
-              .length - 1,
+            film.script[playhead.sceneIndex - 1].beatDurationsMs.length - 1,
           )
         : null;
   const backdropMix = Math.min(1, intoBeat / BACKDROP_FADE_MS);
@@ -319,8 +326,8 @@ export default function SocialComposition({
   const segments =
     range.sceneIndexes.length > 1
       ? range.sceneIndexes.map((index) => {
-          const start = OVERVIEW_TIMINGS[index].startMs;
-          const length = OVERVIEW_TIMINGS[index].durationSec * 1000;
+          const start = film.timings[index].startMs;
+          const length = film.timings[index].durationSec * 1000;
           return Math.min(1, Math.max(0, (absolute - start) / length));
         })
       : timing.beatsSec.map((beatStart, index) => {
@@ -384,17 +391,15 @@ export default function SocialComposition({
         }}
       >
         {layers.map((index) => {
-          const config = OVERVIEW_SCENES[PILLARS_OVERVIEW_SCRIPT[index].id];
+          const config = film.scenes[index];
           const isCurrent = index === playhead.sceneIndex;
           return (
-            <div
-              key={PILLARS_OVERVIEW_SCRIPT[index].id}
-              className="absolute inset-0"
-            >
+            <div key={film.script[index].id} className="absolute inset-0">
               <IllustratedScene
                 beats={config.beats}
                 logo={config.logo}
-                timing={OVERVIEW_TIMINGS[index]}
+                sizes={`${layout.stage.width}px`}
+                timing={film.timings[index]}
                 active={isCurrent}
                 steps={!isCurrent}
                 feed={feed}

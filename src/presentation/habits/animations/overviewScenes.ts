@@ -1,10 +1,5 @@
 import type { OverviewSceneId } from "./pillarsOverviewScript";
-import type { IllustratedBeat } from "./scenes/IllustratedScene";
-
-export interface IllustratedSceneConfig {
-  beats: readonly IllustratedBeat[];
-  logo?: "closing";
-}
+import type { IllustratedSceneConfig } from "./scenes/IllustratedScene";
 
 /**
  * Qué se ve en cada subtítulo de la animación de los cuatro pilares.

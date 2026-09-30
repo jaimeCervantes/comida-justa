@@ -1,5 +1,5 @@
-import { PILLARS_OVERVIEW_SCRIPT } from "../pillarsOverviewScript";
 import { sceneStartMs, totalDurationMs } from "../playhead";
+import type { Film } from "./films";
 
 /** Los formatos de redes, en píxeles. */
 export const SOCIAL_FORMATS = {
@@ -9,20 +9,6 @@ export const SOCIAL_FORMATS = {
 } as const;
 
 export type SocialFormat = keyof typeof SOCIAL_FORMATS;
-
-/**
- * Las piezas que salen de la animación de los cuatro pilares: la completa y un corte por pilar.
- * Cada escena de pilar dura 16–22 s, que es lo que aguanta un video corto en redes.
- */
-export const SOCIAL_CUTS = {
-  completo: [0, 1, 2, 3, 4, 5],
-  sueno: [1],
-  alimentacion: [2],
-  movimiento: [3],
-  mente: [4],
-} as const satisfies Record<string, readonly number[]>;
-
-export type SocialCut = keyof typeof SOCIAL_CUTS;
 
 /** El cierre de cada pieza: el logo y la dirección del sitio, para que se sepa adónde ir. */
 export const OUTRO_MS = 3000;
@@ -35,15 +21,17 @@ export interface CutRange {
   sceneIndexes: readonly number[];
 }
 
-export function cutRange(cut: SocialCut): CutRange {
-  const sceneIndexes = SOCIAL_CUTS[cut];
+/** Dónde empieza y dónde acaba un corte dentro de su animación, y cuánto dura con el cierre. */
+export function cutRange(film: Film, cut: string): CutRange {
+  const sceneIndexes = film.cuts[cut];
+  if (!sceneIndexes) throw new Error(`Corte desconocido: ${cut}`);
   const first = sceneIndexes[0];
   const last = sceneIndexes[sceneIndexes.length - 1];
-  const fromMs = sceneStartMs(PILLARS_OVERVIEW_SCRIPT, first);
+  const fromMs = sceneStartMs(film.script, first);
   const toMs =
-    last === PILLARS_OVERVIEW_SCRIPT.length - 1
-      ? totalDurationMs(PILLARS_OVERVIEW_SCRIPT)
-      : sceneStartMs(PILLARS_OVERVIEW_SCRIPT, last + 1);
+    last === film.script.length - 1
+      ? totalDurationMs(film.script)
+      : sceneStartMs(film.script, last + 1);
   return { fromMs, toMs, durationMs: toMs - fromMs + OUTRO_MS, sceneIndexes };
 }
 
@@ -58,11 +46,10 @@ export interface CutBeat {
  * Dónde empieza cada subtítulo de un corte, medido desde el inicio del corte. La mezcla de sonido
  * pone ahí la narración de cada uno.
  */
-export function cutBeats(range: CutRange): CutBeat[] {
+export function cutBeats(film: Film, range: CutRange): CutBeat[] {
   return range.sceneIndexes.flatMap((sceneIndex) => {
-    const scene = PILLARS_OVERVIEW_SCRIPT[sceneIndex];
-    let cursor =
-      sceneStartMs(PILLARS_OVERVIEW_SCRIPT, sceneIndex) - range.fromMs;
+    const scene = film.script[sceneIndex];
+    let cursor = sceneStartMs(film.script, sceneIndex) - range.fromMs;
     return scene.beatDurationsMs.map((ms, beatIndex) => {
       const beat = { key: `${scene.id}.b${beatIndex + 1}`, startMs: cursor };
       cursor += ms;
@@ -71,8 +58,8 @@ export function cutBeats(range: CutRange): CutBeat[] {
   });
 }
 
-export function isSocialCut(value: string): value is SocialCut {
-  return value in SOCIAL_CUTS;
+export function isSocialCut(film: Film, value: string): boolean {
+  return value in film.cuts;
 }
 
 export function isSocialFormat(value: string): value is SocialFormat {

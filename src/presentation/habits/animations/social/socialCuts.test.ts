@@ -4,7 +4,10 @@ import {
   PILLARS_OVERVIEW_SCRIPT,
 } from "../pillarsOverviewScript";
 import { sceneStartMs, totalDurationMs } from "../playhead";
-import { cutBeats, cutRange, OUTRO_MS, SOCIAL_CUTS } from "./socialCuts";
+import { FILMS } from "./films";
+import { cutBeats, cutRange, OUTRO_MS } from "./socialCuts";
+
+const OVERVIEW = FILMS.pilares;
 
 const sceneDuration = (index: number) =>
   PILLARS_OVERVIEW_SCRIPT[index].beatDurationsMs.reduce(
@@ -14,7 +17,7 @@ const sceneDuration = (index: number) =>
 
 describe("Las piezas para redes", () => {
   it("la completa dura la animación entera, más el cierre", () => {
-    const range = cutRange("completo");
+    const range = cutRange(OVERVIEW, "completo");
     expect(range.fromMs).toBe(0);
     expect(range.toMs).toBe(totalDurationMs(PILLARS_OVERVIEW_SCRIPT));
     expect(range.durationMs).toBe(range.toMs + OUTRO_MS);
@@ -28,18 +31,16 @@ describe("Las piezas para redes", () => {
   ] as const)(
     "el corte «%s» es exactamente la escena de su pilar",
     (cut, index, pillar) => {
-      const range = cutRange(cut);
+      const range = cutRange(OVERVIEW, cut);
       expect(PILLARS_OVERVIEW_SCRIPT[index].pillar).toBe(pillar);
       expect(range.toMs - range.fromMs).toBe(sceneDuration(index));
     },
   );
 
   it("cada corte de pilar cabe en un video corto de redes (menos de 45 s con el cierre)", () => {
-    for (const cut of Object.keys(SOCIAL_CUTS)) {
+    for (const cut of Object.keys(OVERVIEW.cuts)) {
       if (cut === "completo") continue;
-      expect(cutRange(cut as keyof typeof SOCIAL_CUTS).durationMs).toBeLessThan(
-        45_000,
-      );
+      expect(cutRange(OVERVIEW, cut).durationMs).toBeLessThan(45_000);
     }
   });
 });
@@ -48,7 +49,7 @@ describe("Dónde entra la narración de cada subtítulo", () => {
   it("en el corte de Sueño, el primero entra al empezar y cada uno cuando acaba el anterior", () => {
     const [first, second] = PILLARS_OVERVIEW_SCRIPT[1].beatDurationsMs;
 
-    expect(cutBeats(cutRange("sueno"))).toEqual([
+    expect(cutBeats(OVERVIEW, cutRange(OVERVIEW, "sueno"))).toEqual([
       { key: "sleep.b1", startMs: 0 },
       { key: "sleep.b2", startMs: first },
       { key: "sleep.b3", startMs: first + second },
@@ -56,7 +57,7 @@ describe("Dónde entra la narración de cada subtítulo", () => {
   });
 
   it("en la pieza completa, cada escena empieza con su primer subtítulo", () => {
-    const beats = cutBeats(cutRange("completo"));
+    const beats = cutBeats(OVERVIEW, cutRange(OVERVIEW, "completo"));
 
     PILLARS_OVERVIEW_SCRIPT.forEach((scene, index) => {
       expect(beats).toContainEqual({
@@ -67,7 +68,7 @@ describe("Dónde entra la narración de cada subtítulo", () => {
   });
 
   it("cada subtítulo se llama como su texto en el catálogo, que es el nombre de su narración", () => {
-    const keys = cutBeats(cutRange("completo")).map(
+    const keys = cutBeats(OVERVIEW, cutRange(OVERVIEW, "completo")).map(
       ({ key }) => `overview.${key}`,
     );
 

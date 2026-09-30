@@ -2,10 +2,10 @@
  * Exporta la animación de los cuatro pilares a video, cuadro por cuadro, con su sonido.
  *
  *   node scripts/animations/render-video.mjs --pieza=sueno --formato=vertical [--idioma=es]
- *        [--base=http://localhost:3000] [--fps=30] [--salida=out/videos/…mp4]
- *        [--narracion=out/narration/es-final] [--musica=out/music/calida-170s.mp3]
+ *        [--animacion=pilares] [--base=http://localhost:3000] [--fps=30] [--salida=out/videos/…mp4]
+ *        [--narracion=out/narration/pilares/es-final] [--musica=out/music/calida-170s.mp3]
  *
- *   node scripts/animations/render-video.mjs --solo-sonido [--idioma=es]
+ *   node scripts/animations/render-video.mjs --solo-sonido [--animacion=sueno] [--idioma=es]
  *   node scripts/animations/render-video.mjs --resonorizar --pieza=sueno --formato=vertical
  *
  * Necesita un `next dev` ya levantado en `--base` (no lo levanta: dos servidores sobre la misma
@@ -14,14 +14,16 @@
  * (`yuv420p`, `+faststart`) con el sonido en AAC: lo que aceptan Instagram, TikTok, YouTube y
  * WhatsApp.
  *
- * Piezas: completo, sueno, alimentacion, movimiento, mente. Formatos: vertical (1080×1920),
- * cuadrado (1080×1080), horizontal (1920×1080).
+ * `--animacion` es `pilares` (la de los cuatro, por omisión) o la de un pilar, como `sueno`. Piezas
+ * de la de los cuatro: completo, sueno, alimentacion, movimiento, mente; las de cada pilar solo
+ * salen completas. Formatos: vertical (1080×1920), cuadrado (1080×1080), horizontal (1920×1080).
  *
  * El sonido es la narración de cada subtítulo en su momento (`<escena>.b<n>.wav`, de
  * `generate-narration.mjs`) con la música debajo (de `generate-music.mjs`), que baja sola mientras
  * habla el narrador. `--solo-sonido` escribe solo la pista de la animación completa, la que suena
- * en la web (`public/animations/pilares/sonido-<idioma>.mp3`); `--resonorizar` le cambia el sonido
- * a un video ya exportado sin volver a grabar sus cuadros.
+ * en la web (`public/animations/pilares/sonido-<idioma>.mp3`, o `sonido-sueno-<idioma>.mp3` para
+ * la de Sueño); `--resonorizar` le cambia el sonido a un video ya exportado sin volver a grabar sus
+ * cuadros.
  */
 import { spawn, spawnSync } from "node:child_process";
 import fs from "node:fs";
@@ -41,23 +43,35 @@ const SIZES = {
   cuadrado: [1080, 1080],
   horizontal: [1920, 1080],
 };
+/** La música de cada animación, de `generate-music.mjs`. */
+const MUSIC = {
+  pilares: "out/music/calida-170s.mp3",
+  sueno: "out/music/nocturna-150s.mp3",
+};
+
 const base = options.base ?? "http://localhost:3000";
 const soundOnly = "solo-sonido" in options;
 const resound = "resonorizar" in options;
+const animation = options.animacion ?? "pilares";
+const overview = animation === "pilares";
 const cut = soundOnly ? "completo" : (options.pieza ?? "completo");
 const format = options.formato ?? "vertical";
 const locale = options.idioma ?? "es";
 const fps = Number(options.fps ?? 30);
-const narrationDir = options.narracion ?? `out/narration/${locale}-final`;
-const music = options.musica ?? "out/music/calida-170s.mp3";
+const narrationDir =
+  options.narracion ?? `out/narration/${animation}/${locale}-final`;
+const music = options.musica ?? MUSIC[animation];
+if (!music) throw new Error(`Sin música para «${animation}»: usa --musica`);
 const size = SIZES[format];
 if (!size) throw new Error(`Formato desconocido: ${format}`);
 const [width, height] = size;
 const output =
   options.salida ??
   (soundOnly
-    ? `public/animations/pilares/sonido-${locale}.mp3`
-    : `out/videos/${cut}-${format}-${locale}.mp4`);
+    ? `public/animations/pilares/sonido-${overview ? "" : `${animation}-`}${locale}.mp3`
+    : overview
+      ? `out/videos/${cut}-${format}-${locale}.mp4`
+      : `out/videos/pilar-${animation}-${format}-${locale}.mp4`);
 fs.mkdirSync(path.dirname(output), { recursive: true });
 
 /** El subtítulo empieza a escribirse antes que la voz: el mismo margen con el que se midió el guion. */
@@ -189,7 +203,7 @@ async function mixSound(info, file) {
 /** Abre la composición de la pieza y espera a que esté lista para grabar. */
 async function openComposition() {
   const prefix = locale === "es" ? "" : `/${locale}`;
-  const url = `${base}${prefix}/animaciones/video?pieza=${cut}&formato=${format}`;
+  const url = `${base}${prefix}/animaciones/video?animacion=${animation}&pieza=${cut}&formato=${format}`;
   const browser = await chromium.launch();
   const page = await browser.newPage({
     viewport: { width, height },

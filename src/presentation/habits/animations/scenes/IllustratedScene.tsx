@@ -33,6 +33,12 @@ export interface IllustratedBeat {
   atmosphere?: readonly Atmosphere[];
 }
 
+/** Lo que se ve en una escena: una ilustración por subtítulo y, si es el cierre, el logo. */
+export interface IllustratedSceneConfig {
+  beats: readonly IllustratedBeat[];
+  logo?: "closing";
+}
+
 /** Cuánto dura el fundido entre dos ilustraciones, centrado en el cambio de subtítulo. */
 const CROSSFADE_SEC = 1;
 
@@ -65,10 +71,13 @@ const CONFETTI = Array.from({ length: 28 }, (_, index) => {
 export default function IllustratedScene({
   beats,
   logo,
+  sizes = ART_SIZES,
   ...props
 }: SceneProps & {
   beats: readonly IllustratedBeat[];
   logo?: "closing";
+  /** El `sizes` de las ilustraciones: el de la web por omisión; el video pasa su escenario. */
+  sizes?: string;
 }) {
   const rootRef = useRef<HTMLDivElement>(null);
 
@@ -179,7 +188,7 @@ export default function IllustratedScene({
                 <img
                   src={sources.src}
                   srcSet={sources.srcSet}
-                  sizes={ART_SIZES}
+                  sizes={sizes}
                   alt=""
                   draggable={false}
                   decoding="async"
