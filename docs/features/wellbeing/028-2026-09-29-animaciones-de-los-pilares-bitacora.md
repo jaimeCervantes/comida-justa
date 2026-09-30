@@ -98,3 +98,74 @@ lista para reutilizarse en el video.
 3. **Slice 7 — exportar a video** vertical y cuadrado para redes.
 4. **Pendiente del usuario:** ver la animación en `/pilares` y decir qué escena o frase ajustar
    (ritmo, dibujos, textos) antes de replicar el estilo en las animaciones de cada pilar.
+
+## 2026-09-29 — Slice 1b: rediseño moderno con GSAP
+
+### Objetivo
+
+El usuario vio la primera versión y la encontró demasiado sencilla («que sea moderno, estamos en el
+2026») y autorizó añadir una librería de animación. Objetivo: acabado de estudio con el mismo guion,
+los mismos escenarios de aceptación y sin tocar el modelo.
+
+### Decisiones y por qué
+
+- **GSAP y no anime.js.** Los dos tienen línea de tiempo con salto a un instante. GSAP ganó por la
+  deformación de figuras (el garabato que se vuelve una onda tranquila), el movimiento por ruta y el
+  hook oficial de React que limpia al desmontar. Licencia: gratuita («Standard no-charge»), no MIT; su
+  única restricción es no construir un editor visual que compita con Webflow.
+- **La línea de tiempo nunca corre sola.** Cada escena construye una línea pausada y el reloj del
+  guion le dice en qué segundo estar (`seek`) en cada cuadro, por un canal (`feed`) que no pasa por
+  React. Pausar congela todo, también la llama o las estrellas; saltar de escena es exacto; y la misma
+  escena se podrá exportar a video cuadro por cuadro.
+- **Fotograma de póster.** El segundo cero de una escena es su escenario vacío. En pausa al inicio de
+  una escena se muestra el segundo 2,2, ya construido; al reproducir arranca desde cero.
+- **La escena saliente se queda debajo 1,1 s**, quieta en su último cuadro, mientras la nueva entra
+  encima. Sin eso cada cambio era un corte a fondo vacío.
+- **Subtítulo cinético.** Las palabras entran una a una con desenfoque, y la frase clave se subraya
+  con el color del pilar. La marca (`<hl>`) vive en el catálogo porque el énfasis cambia de sitio con
+  el idioma; el script que la añadió verificó que el texto sin marcas es idéntico al aprobado.
+- **Barra de progreso por escenas, al estilo de las historias**, que además es la navegación; se
+  llena escribiendo directo en el DOM en cada cuadro.
+- **Pulido de la versión vectorial** (pedido explícito antes de pasar a ilustraciones): personas con
+  antebrazo, manga, cuello, rubor, suela y sombra de contacto; respiración sutil; paralaje por capas;
+  follaje en primer plano; transiciones entre actos con leve acercamiento de cámara. El gancho y el
+  cierre subrayan con las tintas de marca (naranja y verde), que son las de Alimentación y Movimiento
+  y ya tienen contraste verificado en claro y en oscuro.
+
+### Tropiezos que conviene recordar
+
+- **`<mark>` trae fondo amarillo de fábrica** y tapaba el color de cada pilar.
+- **Next 16 no deja levantar dos `next dev` en la misma carpeta.** Si el usuario tiene el suyo en el
+  3000, el de las vistas previas se cae con «Another next dev server is already running». Usar el
+  suyo, o esperar a que lo apague.
+- **Un `heredoc` muy largo con JSX rompe el shell**; los scripts de edición largos van a un archivo.
+
+### Archivos
+
+- Reproductor: `useAnimationClock.ts` (canal por cuadro), `PillarAnimationPlayer.tsx`,
+  `SceneProgress.tsx`, `useSceneLayers.ts`, `KineticCaption.tsx`, `captionMarkup.ts` (+ prueba),
+  `PillarAnimation.module.css`.
+- Escenas: `scenes/useSceneTimeline.ts`, `scenes/kit.tsx` y una escena por archivo (gancho, cuatro
+  pilares, cierre). Se borraron las escenas CSS del slice 1.
+- Textos: marcas `<hl>` y etiqueta de escena en `pillarAnimations` (es/en).
+- Dependencias: `gsap` 3.15.0 y `@gsap/react` 2.1.2.
+
+### Validación
+
+- `pnpm run test:run`: 295 archivos, **3110 pruebas** en verde. `typecheck` y `lint` limpios.
+- `pnpm exec playwright test src/e2e/pilares/animacionesPilares.spec.ts`: **17/17** (3,1 min), con
+  `.next` borrado antes. Solo lee `/pilares`; no escribe en la base.
+- Revisión visual de las seis escenas en varios instantes: sin errores en consola.
+
+### Recap
+
+La animación de `/pilares` tiene escenas vectoriales animadas con GSAP y sincronizadas al segundo con
+el guion, subtítulos cinéticos con la frase clave subrayada, progreso por escenas, transiciones con
+cámara, paralaje y personajes que respiran. Los 17 escenarios de aceptación siguen en verde.
+
+### Próximos pasos (opciones)
+
+1. **En curso — ilustraciones 3D de arcilla con Gemini 3 Pro Image**, animadas en 2.5D sobre el mismo
+   reproductor (autorizado por el usuario, costo estimado 3–10 USD).
+2. Clips con Veo 3.1 a partir de esas ilustraciones, para redes (costo aparte, por decidir).
+3. Slice 2 — invitación en la primera visita a cualquier página.

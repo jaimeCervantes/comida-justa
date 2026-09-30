@@ -14,10 +14,12 @@
 
 ## Decisiones de modelo
 
-1. **Escenas hechas en código (SVG + CSS), sin dependencias nuevas.** Los textos salen de
-   `next-intl`, así que la animación existe en español e inglés sin volver a producir nada, usa los
-   colores de pilar que ya son tokens y pesa casi nada. Video o Lottie obligarían a rehacer el
-   archivo por idioma y por cada ajuste de texto.
+1. **El texto fuera del cuadro; el cuadro, dibujado.** Los subtítulos salen de `next-intl` y viven
+   fuera del escenario, así que la animación existe en español e inglés sin volver a producir nada.
+   Lo que se ve en el escenario empezó como SVG + CSS sin dependencias; en el slice 1b pasó a SVG
+   animado con **GSAP** (línea de tiempo por escena, gobernada por el reloj del guion) porque el
+   usuario pidió un acabado moderno, y el siguiente paso es sustituir los dibujos por ilustraciones
+   3D generadas (ver la bitácora). Video o Lottie obligarían a rehacer el archivo por idioma.
 2. **Cada escena es una función del tiempo.** Una animación es un guion: lista de escenas con su
    duración, su pilar y su clave de texto. Qué escena toca y cuánto lleva recorrida se calcula con
    una función pura (`sceneAt(guion, ms)`). Eso es lo que permite, en un slice posterior, exportar
