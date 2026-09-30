@@ -405,3 +405,130 @@ esperando la música.
 2. Publicar las piezas y, con los datos de GA4 de unas semanas, decidir las animaciones de cada
    pilar (slices 3–6).
 3. La voz (slice 8) al final: con Gemini TTS cuesta centavos.
+
+## 2026-09-29 — Slice 8: la voz del narrador y la música
+
+### Objetivo
+
+Que la animación se entienda también escuchándola: la voz de un narrador dice cada subtítulo y una
+música original va debajo, en los once videos para redes y en la web, donde el sonido está apagado
+hasta que alguien lo pide. Se adelantó a los slices 3–6 a petición del usuario («¿no crees que debe
+ser hora de agregar el audio del narrador?»): los videos ya existían y sin voz eran media pieza.
+
+Decisiones del usuario: la voz **Algieba** entre las muestras; **música original con Lyria** frente
+a pistas libres de derechos; **videos y web**, con el sonido apagado por omisión. Y un cambio de
+texto: «el mundo en el que vive» pasa a «el mundo en el que **vives**» («the world you live in»).
+
+### Decisiones y por qué
+
+- **Gemini 2.5 Pro TTS, no 3.8 Flash.** El 3.8 leía en voz alta la dirección de la locución y no
+  acepta instrucción de sistema. El 2.5 Pro entiende la dirección escrita como «Say …:» delante del
+  texto. El acento sale latinoamericano neutro; el usuario lo sabe.
+- **El guion se mide con la voz.** Cada subtítulo dura lo que tarda el narrador en el idioma más
+  lento, más 0,35 s de entrada y 0,65 s de respiro, en cuartos de segundo. Con la voz cruda eran
+  ~167 s; acelerada un 7 % (sin cambiar el tono) quedan **152,5 s** (antes 104). Las escenas, la
+  cámara y los subtítulos siguen solos porque todo sale del guion.
+- **La música cálida, elegida por mí.** El usuario recibió las tres propuestas pero no alcanzó a
+  elegir; piano y cuerdas son lo que menos compite con una voz grave. Se generó una versión larga
+  (163 s) y su final se alinea con el final de la animación. Cambiarla es `--musica=`.
+- **La mezcla, medida y no a oído** (no hay oídos aquí): la música 14 dB por debajo de como llega,
+  agachada por la voz. Con una recuperación de 0,45 s subía en cada coma; con 1,2 s solo respira en
+  las pausas largas y entre escenas, unos 15 dB debajo de la voz. **−16 LUFS** con una sola ganancia
+  y un limitador de picos: `loudnorm` caía a su modo dinámico y comprimía la voz.
+- **Cada corte toma su ventana de la música de la pieza entera**, así que el video de Sueño suena
+  igual que Sueño dentro de la completa.
+- **En la web**, una pista MP3 por idioma que sigue al reloj: se corrige si se desvía más de 0,3 s,
+  salta con la escena y calla en pausa. No se descarga hasta que alguien pulsa el botón de sonido
+  (`preload="none"`). Al terminar la animación no se corta: trae 3 s de cola para que la música
+  cierre mientras aparece «Elegir mi práctica». No se le pide que busque mientras sigue buscando,
+  porque con una conexión lenta se quedaría buscando para siempre. El botón la desbloquea en el
+  mismo toque, que es lo que Safari exige. Con movimiento reducido no hay sonido.
+- **`--resonorizar`** cambia el sonido de un video ya exportado sin volver a grabar sus cuadros:
+  grabar la pieza completa tarda ~20 min y remezclar, segundos. Si el usuario pide otra música u otro
+  volumen, no hace falta volver a exportar.
+- **Las pistas intermedias viven en `out/`, sin versionar**, igual que los originales de las
+  ilustraciones. `prepare-narration.mjs` deja por escrito lo que antes eran comandos sueltos
+  (recortar silencios, tempo, medir). Se comprobó que reproduce los 17 tiempos del guion exactos, con
+  diferencias de 1,5 ms como mucho en la duración de las pistas.
+- **El registro de `gtag` de las pruebas** pasó a `src/e2e/testUtils/recordAnalytics.ts`, porque
+  ahora lo usan dos specs.
+
+### Tropiezos que conviene recordar
+
+- **El filtro de Lyria bloquea «Mexican folk»** sin decir por qué; los instrumentos ya dan el color.
+- **No se toca código de la app mientras se exportan videos.** El `next dev` que sirve la página de
+  render la recarga en caliente, y una recarga a mitad de la grabación puede estropear cuadros. Los
+  cambios de código se dejaron para después de la exportación.
+- **La página de render necesita internet.** Vive dentro del layout del sitio, que consulta la base
+  compartida (el mensaje de logros de la comunidad). Se cayó la conexión a mitad de la exportación y
+  dos piezas fallaron con un 500 (`getaddrinfo ENOTFOUND …supabase.com`). Con la conexión de vuelta
+  se repitieron solo esas dos.
+- **Una prueba tiene que cumplir su «Dado».** Dos escenarios de sonido fallaron la primera vez:
+  pulsaban el botón antes de que la animación arrancara. La animación arranca cuando al menos la
+  mitad del reproductor está a la vista, y el clic en los controles de abajo desplazaba la página
+  por debajo de esa mitad. No era un fallo del producto (el botón de sonido solo activa el sonido):
+  la prueba no esperaba a que la animación sonara, como dice el escenario. Ahora la espera.
+
+### Archivos
+
+- Guion y texto: `pillarsOverviewScript.ts` (duraciones medidas con la voz), `intro.b1` en
+  `es.json`/`en.json`.
+- Reproductor: `PillarAnimationPlayer.tsx` (botón y sincronía del sonido),
+  `PillarsOverviewAnimation.tsx` (pista por idioma, medición), `animationAnalytics.ts`
+  (`animation_sound`), `pillarAnimations.player.soundOn/soundOff`.
+- Video: `social/SocialComposition.tsx` y `social/socialCuts.ts` (`cutBeats`, + prueba): la
+  composición publica dónde empieza cada subtítulo del corte y qué ventana de la pieza es.
+- Scripts: `generate-narration.mjs`, `prepare-narration.mjs`, `generate-music.mjs` (nuevos);
+  `render-video.mjs` (mezcla, `--solo-sonido`, `--resonorizar`).
+- Pistas: `public/animations/pilares/sonido-{es,en}.mp3` (2,5 MB cada una).
+- Pruebas: `animacionesPilares.feature` y `.spec.ts` (slice 8), `invitacionPilares.spec.ts`,
+  `testUtils/recordAnalytics.ts`.
+- Docs: roadmap y `028-2026-09-29-animaciones-de-los-pilares-sonido.md` (cómo se hace el sonido).
+
+### Validación
+
+- `pnpm run test:run`: **3157 pruebas** en verde (299 archivos; 3 nuevas para `cutBeats`);
+  `typecheck` sin errores y `lint` limpio (1304 archivos).
+- Playwright de la animación y de la invitación: **34/34** en tres tramos (12 en 2,3 min, 11 en
+  2,3 min, 11 en 2,6 min), con `.next` borrado antes de cada uno y sin servidores escuchando en el
+  3000. En la primera pasada del segundo tramo fallaron 2, por la prueba y no por el producto (ver
+  tropiezos).
+- Exportación: **11 videos** en `out/videos/` (fuera del repositorio), verificados con `ffprobe`:
+  H.264 `yuv420p` a 30 fps, AAC estéreo a 48 kHz, entre −15,8 y −16,0 LUFS, picos por debajo de
+  −1,3 dBFS, y el audio dura lo mismo que el video, con una diferencia máxima de un cuadro.
+
+  | Pieza | Duración | Vertical | Cuadrado |
+  |---|---|---|---|
+  | Sueño | 37,0 s | 8,1 MB | 6,5 MB |
+  | Alimentación | 30,3 s | 7,6 MB | 6,1 MB |
+  | Movimiento | 28,3 s | 6,5 MB | 5,1 MB |
+  | Mente y espíritu | 27,0 s | 8,1 MB | 7,0 MB |
+  | Completa | 155,5 s | 38,9 MB | 31,6 MB |
+
+  Más la completa en horizontal (1920×1080, 57,9 MB). Se grabó a ~4–5 cuadros por segundo.
+- Pistas de la web: `sonido-es.mp3` y `sonido-en.mp3`, 155,5 s, MP3 de 128 kbps, −16,05 y −16,07
+  LUFS.
+- Cuadros revisados a ojo en la completa (vertical y horizontal): subtítulo en su escena, barra de
+  progreso y cierre con el logo.
+
+### Recap
+
+La animación de los cuatro pilares ya habla: un narrador (Algieba) dice cada subtítulo en español
+o en inglés, con música original de Lyria debajo que se agacha cuando habla. El guion se mide con
+la voz y dura 152,5 s. En la web el sonido está apagado hasta que alguien lo pide, no se descarga
+antes y sigue a la animación. Los once videos para redes están exportados con la misma mezcla. El
+proceso completo, de narrar a exportar, está en scripts y documentado.
+
+### Próximos pasos (opciones)
+
+1. **Pendiente del usuario: escuchar y opinar.** Los videos están en `out/videos/`, y en `/pilares`
+   el botón de sonido. Si la música va alta o baja, o se prefiere la propuesta `folk` o la
+   `ambiental`, cambiarla toma segundos (`--resonorizar` para cada video, `--solo-sonido` para la
+   web), sin volver a grabar cuadros.
+2. **Pendiente del usuario:** registrar en GA4 la dimensión personalizada `state` (junto a
+   `placement`, `scene`, `trigger` y `animation`), para leer quién enciende el sonido.
+3. Publicar las piezas en redes y, con unas semanas de datos, decidir las animaciones de cada pilar
+   (slices 3–6). El proceso de voz y música ya les sirve tal cual.
+4. Posibles mejoras: la narración frase por frase en el modo de movimiento reducido; los videos en
+   inglés (`--idioma=en`) si hay público para ellos.
+5. El slice 9 (Veo) sigue esperando la autorización expresa del usuario.

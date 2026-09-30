@@ -46,6 +46,10 @@
    personaje fotorrealista entre ilustraciones planas se ve pegado encima.
 9. **La voz llega después.** Voz de hombre, mexicana, grave. Se añade cuando el guion visual esté
    validado: grabar sobre un guion que todavía cambia es pagar la locución dos veces.
+   *Llegó en el slice 8:* voz sintética (Gemini TTS, voz Algieba) con música original de Lyria
+   debajo; **el guion pasó a medirse con la voz** (cada subtítulo dura lo que tarda el narrador en
+   decirlo, más su respiro), y el sonido nunca arranca solo. Cómo se hace:
+   `028-2026-09-29-animaciones-de-los-pilares-sonido.md`.
 
 ## Guion de la animación de los cuatro pilares (≈ 90 s) — para revisar
 
@@ -86,7 +90,7 @@ de cada una los subtítulos se suceden solos.
 
 | # | Escena | Tiempo | Texto en pantalla (es) | Imagen |
 |---|--------|--------|------------------------|--------|
-| 1 | Gancho | — | *(logo)* Tu cuerpo se formó durante cientos de miles de años. El mundo en el que vive cambió en poco más de un siglo. | Una línea de tiempo larguísima que se comprime de golpe en su último tramo |
+| 1 | Gancho | — | *(logo)* Tu cuerpo se formó durante cientos de miles de años. El mundo en el que vives cambió en poco más de un siglo. | Una línea de tiempo larguísima que se comprime de golpe en su último tramo |
 |   |        | — | Por eso a veces te sientes sin energía, con la cabeza llena o lejos de los demás. No es un fallo tuyo: es un desajuste. | Una silueta que se encoge un poco, y luego se relaja |
 |   |        | — | Hay cuatro pilares para volver a acomodarlo. | Cuatro columnas que se levantan, una de cada color |
 | 2 | Sueño (1) | Antes | Durante miles de años, el sol fue nuestro reloj. Al oscurecer, el cuerpo sabía que era hora de descansar. | Sol que baja, fogata, cielo estrellado |
@@ -115,6 +119,9 @@ lo que digan los datos del slice 2 → 8 → 9 solo con autorización expresa de
 pocos visitantes, el canal para llegar a gente nueva son las redes; antes de construir cuatro
 animaciones más hay que medir si la general se ve y lleva a elegir práctica, y exportar a video lo
 que ya existe cuesta casi nada.
+
+**El slice 8 se adelantó el mismo día**, a petición del usuario, antes de los 3–6: los videos para
+redes ya estaban listos y sin voz eran la mitad de la pieza.
 
 ### Slice 1 — La animación de los cuatro pilares en `/pilares`
 
@@ -157,13 +164,23 @@ que ya existe cuesta casi nada.
   a cualquier instante, así que se graba cuadro por cuadro. También horizontal (1920×1080) para
   YouTube y la web.
 - Un comando por pieza: `node scripts/animations/render-video.mjs --pieza=sueno --formato=vertical`
-  (con un `next dev` levantado). La música se mezcla aparte, cuando esté elegida.
+  (con un `next dev` levantado). Desde el slice 8 el mismo comando mezcla la narración y la música.
 
-### Slice 8 — Voz
+### Slice 8 — Voz y música (hecho, adelantado)
 
-- Locución de hombre mexicano, voz grave, sincronizada por escena. Se decide ahí entre locutor
-  humano y voz sintética `es-MX`. Los subtítulos se quedan.
-- Botón de silencio; el sonido nunca arranca solo en la web (los navegadores lo bloquean y molesta).
+- Locución de hombre, voz grave, en español e inglés, sintética: Gemini TTS con la voz **Algieba**,
+  elegida por el usuario entre muestras. El acento sale latinoamericano neutro, no marcadamente
+  mexicano. Los subtítulos se quedan.
+- **Música original** de Lyria (elegida frente a pistas libres de derechos), una pieza de ~2:43
+  cuyo final cae en el final de la animación. Se agacha sola mientras habla el narrador.
+- **El guion se mide con la voz:** cada subtítulo dura lo que tarda el narrador (el más lento de
+  los dos idiomas) más 1 s de margen. La animación pasó de 104 s a 152,5 s.
+- **En la web**, botón de sonido apagado por omisión: el sonido nunca arranca solo (los navegadores
+  lo bloquean y molesta) y la pista ni se descarga hasta que alguien lo pide. Una pista MP3 por
+  idioma que sigue al reloj de la animación: salta con ella, calla en pausa.
+- **En los videos**, la misma mezcla, en AAC, en las once piezas del slice 7.
+- Con movimiento reducido no hay sonido: la narración va al ritmo de la animación y los pasos no
+  tienen ritmo. (Posible mejora: una frase por paso.)
 
 ### Slice 9 — Clips con Veo 3.1 (solo con autorización expresa del usuario)
 
