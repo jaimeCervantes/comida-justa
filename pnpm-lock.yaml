@@ -14,6 +14,9 @@ importers:
       '@google-cloud/aiplatform':
         specifier: ^6.0.0
         version: 6.11.0
+      '@gsap/react':
+        specifier: ^2.1.2
+        version: 2.1.2(gsap@3.15.0)(react@19.2.4)
       '@next/third-parties':
         specifier: 16.2.1
         version: 16.2.1(next@16.2.1(@babel/core@7.29.7)(@opentelemetry/api@1.9.1)(@playwright/test@1.62.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react@19.2.4)
@@ -53,6 +56,9 @@ importers:
       firebase-admin:
         specifier: ^13.6.0
         version: 13.10.0
+      gsap:
+        specifier: ^3.15.0
+        version: 3.15.0
       leaflet:
         specifier: ^1.9.4
         version: 1.9.4
@@ -1317,6 +1323,12 @@ packages:
     resolution: {integrity: sha512-wtF6h+DY6M3YaDBPAmvuuA6jV8Sif9MjtOI5euKFWRgCDl5PeDpPsHR9u2l6St5ceY8AZgoNDww5+HvEsXFsGg==}
     engines: {node: '>=6'}
     hasBin: true
+
+  '@gsap/react@2.1.2':
+    resolution: {integrity: sha512-JqliybO1837UcgH2hVOM4VO+38APk3ECNrsuSM4MuXp+rbf+/2IG2K1YJiqfTcXQHH7XlA0m3ykniFYstfq0Iw==}
+    peerDependencies:
+      gsap: ^3.12.5
+      react: '>=17'
 
   '@img/colour@1.1.0':
     resolution: {integrity: sha512-Td76q7j57o/tLVdgS746cYARfSyxk8iEfRxewL9h4OMzYhbW4TAcppl0mT4eyqXddh6L/jwoM75mo7ixa/pCeQ==}
@@ -3767,6 +3779,9 @@ packages:
 
   graceful-fs@4.2.11:
     resolution: {integrity: sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==}
+
+  gsap@3.15.0:
+    resolution: {integrity: sha512-dMW4CWBTUK1AEEDeZc1g4xpPGIrSf9fJF960qbTZmN/QwZIWY5wgliS6JWl9/25fpTGJrMRtSjGtOmPnfjZB+A==}
 
   gtoken@7.1.0:
     resolution: {integrity: sha512-pCcEwRi+TKpMlxAQObHDQ56KawURgyAf6jtIY046fJ5tIv3zDe/LEIubckAO8fj6JnAxLdmWkUfNyulQ2iKdEw==}
@@ -6555,6 +6570,11 @@ snapshots:
       protobufjs: 7.6.5
       yargs: 17.7.3
 
+  '@gsap/react@2.1.2(gsap@3.15.0)(react@19.2.4)':
+    dependencies:
+      gsap: 3.15.0
+      react: 19.2.4
+
   '@img/colour@1.1.0': {}
 
   '@img/sharp-darwin-arm64@0.34.5':
@@ -8918,6 +8938,8 @@ snapshots:
 
   graceful-fs@4.2.11: {}
 
+  gsap@3.15.0: {}
+
   gtoken@7.1.0:
     dependencies:
       gaxios: 6.7.1
@@ -9438,7 +9460,7 @@ snapshots:
       next: 16.2.1(@babel/core@7.29.7)(@opentelemetry/api@1.9.1)(@playwright/test@1.62.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       oauth: 0.9.15
       openid-client: 5.7.1
-      preact: 10.29.7(preact-render-to-string@5.2.6)
+      preact: 10.29.7(preact-render-to-string@5.2.6(preact@10.24.3))
       preact-render-to-string: 5.2.6(preact@10.29.7)
       react: 19.2.4
       react-dom: 19.2.4(react@19.2.4)
@@ -9776,7 +9798,7 @@ snapshots:
 
   preact-render-to-string@5.2.6(preact@10.29.7):
     dependencies:
-      preact: 10.29.7(preact-render-to-string@5.2.6)
+      preact: 10.29.7(preact-render-to-string@5.2.6(preact@10.24.3))
       pretty-format: 3.8.0
 
   preact-render-to-string@6.5.11(preact@10.24.3):
@@ -9785,7 +9807,7 @@ snapshots:
 
   preact@10.24.3: {}
 
-  preact@10.29.7(preact-render-to-string@5.2.6):
+  preact@10.29.7(preact-render-to-string@5.2.6(preact@10.24.3)):
     optionalDependencies:
       preact-render-to-string: 5.2.6(preact@10.29.7)
 
