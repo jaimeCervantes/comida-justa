@@ -34,6 +34,19 @@ const PROPOSALS = {
   /* Sin nombrar un estilo nacional: «Mexican folk» lo bloqueó el filtro de Lyria sin decir por qué.
      Los instrumentos ya dan ese color. */
   folk: "Earthy, hopeful acoustic underscore: nylon-string guitar, soft marimba accents, warm upright bass, brushed percussion, a touch of strings. 84 BPM, G major. Gentle and warm, a little brighter in the middle.",
+  /* La de la animación de Sueño: va de la noche al amanecer, como la práctica «Del atardecer al
+     amanecer». */
+  nocturna:
+    "Gentle nocturnal lullaby underscore that slowly turns into a hopeful dawn: soft felt piano, celesta and music-box touches, warm low strings and airy pads. 70 BPM, F major. Dark, hushed and intimate at the start, brightening little by little, and resolving warmly like a sunrise at the end.",
+  /* La de Alimentación: mercado y cocina, de la milpa a la cena al atardecer. */
+  cocina:
+    "Earthy, warm acoustic underscore that feels like a sunny street market and a family kitchen: nylon-string guitar, soft marimba, light hand percussion, warm strings and a gentle wooden flute. 84 BPM, G major. Friendly and grounded at the start, a little more wistful in the middle, and resolving warmly like a dinner at sunset.",
+  /* La de Movimiento: paso de caminata por el barrio. */
+  caminata:
+    "Bright, light-footed acoustic underscore with a gentle walking groove: acoustic guitar strums, soft marimba, light hand claps and brushed percussion. 100 BPM, D major. Easy-going at the start, a little livelier in the middle, and resolving warmly like an evening walk home.",
+  /* La de Mente y espíritu: calma, presencia y gente cerca. */
+  presencia:
+    "Calm, spacious and warm underscore about presence and community: soft felt piano, gentle strings, warm pads, soft chimes and a subtle pulse like a slow heartbeat. 68 BPM, A major. Quiet and inward at the start, opening up gently, and ending warmly like neighbours gathering at dusk.",
   ambiental:
     "Modern, airy ambient underscore: evolving warm synth pads, soft plucked textures, a light pulse, occasional piano notes, a feeling of sunrise and renewal. 80 BPM, C major. Calm and never busy, with a gentle swell toward the end.",
 };
