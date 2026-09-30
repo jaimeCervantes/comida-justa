@@ -21,7 +21,8 @@ interface OverviewScene extends AnimationScene {
  * Por qué ese arco y no otro está en `docs/features/wellbeing/028-2026-09-29-animaciones-de-los-pilares.md`.
  *
  * Cada duración es ~250 ms por palabra del texto en español más 1,5 s de aire: lo que tarda en
- * leerse a un ritmo cómodo. El inglés es algo más corto y cabe holgado.
+ * leerse a un ritmo cómodo. El inglés es algo más corto y cabe holgado. Las escenas ilustradas
+ * sincronizan su movimiento con estos mismos tiempos.
  */
 export const PILLARS_OVERVIEW_SCRIPT: readonly OverviewScene[] = [
   { id: "intro", pillar: null, beatDurationsMs: [6500, 7500, 3500] },
@@ -62,3 +63,13 @@ export const OVERVIEW_CAPTION_KEYS = {
   ],
   closing: ["overview.closing.b1", "overview.closing.b2"],
 } as const satisfies Record<OverviewSceneId, readonly string[]>;
+
+/** La etiqueta que va sobre el escenario de cada escena («Pilar 1 · Sueño»). */
+export const OVERVIEW_CHIP_KEYS = {
+  intro: "overview.intro.chip",
+  sleep: "overview.sleep.chip",
+  nutrition: "overview.nutrition.chip",
+  movement: "overview.movement.chip",
+  mindSpirit: "overview.mindSpirit.chip",
+  closing: "overview.closing.chip",
+} as const satisfies Record<OverviewSceneId, string>;

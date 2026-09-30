@@ -2,6 +2,7 @@ import { expect, type Page, test } from "@playwright/test";
 import { PILLARS } from "~/app/[locale]/pilares/components/pilaresData";
 import en from "~/i18n/messages/en.json";
 import es from "~/i18n/messages/es.json";
+import { captionPlainText } from "~/presentation/habits/animations/captionMarkup";
 import { PILLAR_ANIMATION_SEEN_KEY_PREFIX } from "~/presentation/habits/animations/seenAnimations";
 
 /**
@@ -221,8 +222,11 @@ test.describe("La animación de los cuatro pilares en /pilares", () => {
   }
 });
 
-/** La frase con la que termina un subtítulo: la de la página del pilar, en su idioma. */
-function lastSentence(text: string): string {
-  const sentences = text.split(/(?<=\.)\s+/);
+/**
+ * La frase con la que termina un subtítulo: la de la página del pilar, en su idioma. El catálogo
+ * marca la frase clave con `<hl>`; lo que se lee en pantalla es el texto sin marcas.
+ */
+function lastSentence(markup: string): string {
+  const sentences = captionPlainText(markup).split(/(?<=\.)\s+/);
   return sentences[sentences.length - 1];
 }

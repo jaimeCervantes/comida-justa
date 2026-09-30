@@ -1,82 +1,90 @@
 "use client";
-import Image from "next/image";
 import { useTranslations } from "next-intl";
-import { type ComponentType, useEffect, useState } from "react";
-import { PUBLIC_BRAND_NAME } from "~/infra/constants";
+import type { ComponentType } from "react";
 import { buttonVariants } from "~/presentation/design_system/buttons/buttonVariants";
-import styles from "./PillarAnimation.module.css";
 import PillarAnimationPlayer, {
   type PlayerLabels,
-  type StageFrame,
+  type SceneLook,
 } from "./PillarAnimationPlayer";
 import {
   OVERVIEW_CAPTION_KEYS,
+  OVERVIEW_CHIP_KEYS,
   type OverviewSceneId,
   PILLARS_OVERVIEW_SCRIPT,
 } from "./pillarsOverviewScript";
-import ClosingStage from "./scenes/ClosingStage";
-import IntroStage from "./scenes/IntroStage";
-import MindSpiritStage from "./scenes/MindSpiritStage";
-import MovementStage from "./scenes/MovementStage";
-import NutritionStage from "./scenes/NutritionStage";
-import SleepStage from "./scenes/SleepStage";
+import { sceneStartMs } from "./playhead";
+import ClosingScene from "./scenes/ClosingScene";
+import IntroScene from "./scenes/IntroScene";
+import MindSpiritScene from "./scenes/MindSpiritScene";
+import MovementScene from "./scenes/MovementScene";
+import NutritionScene from "./scenes/NutritionScene";
+import SleepScene from "./scenes/SleepScene";
+import type { SceneProps, SceneTiming } from "./scenes/useSceneTimeline";
 
-const STAGES: Record<OverviewSceneId, ComponentType<{ beat: number }>> = {
-  intro: IntroStage,
-  sleep: SleepStage,
-  nutrition: NutritionStage,
-  movement: MovementStage,
-  mindSpirit: MindSpiritStage,
-  closing: ClosingStage,
+const SCENES: Record<OverviewSceneId, ComponentType<SceneProps>> = {
+  intro: IntroScene,
+  sleep: SleepScene,
+  nutrition: NutritionScene,
+  movement: MovementScene,
+  mindSpirit: MindSpiritScene,
+  closing: ClosingScene,
 };
 
-type LogoPlacement = "hero" | "corner" | null;
+/** Los tiempos de cada escena, sacados del guion una sola vez: las escenas los reciben estables. */
+const TIMINGS: readonly SceneTiming[] = PILLARS_OVERVIEW_SCRIPT.map(
+  (scene, index) => {
+    const beatsSec: number[] = [];
+    let cursor = 0;
+    for (const ms of scene.beatDurationsMs) {
+      beatsSec.push(cursor);
+      cursor += ms / 1000;
+    }
+    return {
+      startMs: sceneStartMs(PILLARS_OVERVIEW_SCRIPT, index),
+      beatsSec,
+      durationSec: cursor,
+    };
+  },
+);
 
 /**
- * El logo abre y cierra, y no aparece en medio: los pilares son los protagonistas de su escena.
- * Grande cuando habla la marca (el primer subtítulo, la invitación final); en la esquina mientras
- * el gancho y el templo se cuentan.
+ * El acento de cada escena fuera del escenario. El subrayado usa los tokens del tema (se lee en
+ * claro y en oscuro); el resplandor, los colores fijos del cuadro. El gancho y el cierre no son de
+ * ningún pilar y toman las dos tintas de la marca —el naranja y el verde—, que son las mismas de
+ * Alimentación y Movimiento y ya tienen su contraste verificado en los dos temas.
  */
-function logoPlacement(sceneId: OverviewSceneId, beat: number): LogoPlacement {
-  if (sceneId === "intro") return beat <= 0 ? "hero" : "corner";
-  if (sceneId === "closing") return beat >= 1 ? "hero" : "corner";
-  return null;
-}
-
-/**
- * Retrasa un cuadro el primer subtítulo de cada escena: lo que ya está «encendido» al montar no
- * tendría transición, y la escena aparecería de golpe en vez de construirse.
- */
-function SceneFrame({ frame }: { frame: StageFrame }) {
-  const [entered, setEntered] = useState(frame.steps);
-  useEffect(() => {
-    if (entered) return;
-    const handle = requestAnimationFrame(() => setEntered(true));
-    return () => cancelAnimationFrame(handle);
-  }, [entered]);
-
-  const sceneId = PILLARS_OVERVIEW_SCRIPT[frame.sceneIndex].id;
-  const beat = entered ? frame.beatIndex : -1;
-  const Stage = STAGES[sceneId];
-  const placement = logoPlacement(sceneId, beat);
-
-  return (
-    <>
-      <Stage beat={beat} />
-      {placement && (
-        <Image
-          src="/logo.webp"
-          alt={PUBLIC_BRAND_NAME}
-          width={500}
-          height={500}
-          data-testid="animation-logo"
-          data-placement={placement}
-          className={`${styles.logo} h-auto drop-shadow-lg`}
-        />
-      )}
-    </>
-  );
-}
+const LOOKS: Record<OverviewSceneId, Omit<SceneLook, "chip">> = {
+  intro: {
+    accentInk: "var(--color-pillar-nutrition-ink)",
+    accentSoft: "var(--color-brand-honey-soft)",
+    glow: ["#7c3aed", "#f97316", "#f43f5e"],
+  },
+  sleep: {
+    accentInk: "var(--color-pillar-sleep-ink)",
+    accentSoft: "var(--color-pillar-sleep-soft)",
+    glow: ["#7c3aed", "#f472b6", "#312e81"],
+  },
+  nutrition: {
+    accentInk: "var(--color-pillar-nutrition-ink)",
+    accentSoft: "var(--color-pillar-nutrition-soft)",
+    glow: ["#f97316", "#84cc16", "#facc15"],
+  },
+  movement: {
+    accentInk: "var(--color-pillar-movement-ink)",
+    accentSoft: "var(--color-pillar-movement-soft)",
+    glow: ["#22c55e", "#0ea5e9", "#facc15"],
+  },
+  mindSpirit: {
+    accentInk: "var(--color-pillar-mind-spirit-ink)",
+    accentSoft: "var(--color-pillar-mind-spirit-soft)",
+    glow: ["#0ea5e9", "#6366f1", "#14b8a6"],
+  },
+  closing: {
+    accentInk: "var(--color-pillar-movement-ink)",
+    accentSoft: "var(--color-brand-green-soft)",
+    glow: ["#f0380e", "#7c3aed", "#22c55e"],
+  },
+};
 
 export default function PillarsOverviewAnimation({
   practicesHref,
@@ -86,9 +94,15 @@ export default function PillarsOverviewAnimation({
   const t = useTranslations("pillarAnimations");
   const tInvitation = useTranslations("habitCommunity.invitation");
 
+  /* `t.raw` y no `t`: el subtítulo trae su frase clave marcada con `<hl>`, y la marca la interpreta
+     el subtítulo cinético, no el formateador de mensajes. */
   const captions = PILLARS_OVERVIEW_SCRIPT.map((scene) =>
-    OVERVIEW_CAPTION_KEYS[scene.id].map((key) => t(key)),
+    OVERVIEW_CAPTION_KEYS[scene.id].map((key) => String(t.raw(key))),
   );
+  const looks: SceneLook[] = PILLARS_OVERVIEW_SCRIPT.map((scene) => ({
+    ...LOOKS[scene.id],
+    chip: t(OVERVIEW_CHIP_KEYS[scene.id]),
+  }));
   const labels: PlayerLabels = {
     regionLabel: t("player.regionLabel"),
     play: t("player.play"),
@@ -107,10 +121,19 @@ export default function PillarsOverviewAnimation({
       animationId="pillars-overview"
       scenes={PILLARS_OVERVIEW_SCRIPT}
       captions={captions}
+      looks={looks}
       labels={labels}
-      renderStage={(frame) => (
-        <SceneFrame key={`${frame.sceneIndex}`} frame={frame} />
-      )}
+      renderScene={({ sceneIndex, active, steps, feed }) => {
+        const Scene = SCENES[PILLARS_OVERVIEW_SCRIPT[sceneIndex].id];
+        return (
+          <Scene
+            timing={TIMINGS[sceneIndex]}
+            active={active}
+            steps={steps}
+            feed={feed}
+          />
+        );
+      }}
       finale={
         <a
           href={practicesHref}

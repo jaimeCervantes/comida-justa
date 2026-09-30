@@ -1092,48 +1092,54 @@
     "viewOrder": "Ver el pedido"
   },
   "pillarAnimations": {
-    "player": {
-      "regionLabel": "Los cuatro pilares, en animación",
-      "play": "Ver animación",
-      "pause": "Pausar",
-      "resume": "Continuar",
-      "replay": "Ver otra vez",
-      "previous": "Escena anterior",
-      "next": "Escena siguiente",
-      "sceneOf": "Escena {current} de {total}",
-      "goToScene": "Ir a la escena {number}",
-      "stepsNote": "Tu dispositivo pide menos movimiento: avanza escena por escena, a tu ritmo."
-    },
     "overview": {
+      "closing": {
+        "b1": "<hl>Los cuatro se sostienen entre sí</hl>: moverte de día llama al sueño de noche; una mesa sin pantallas alimenta el cuerpo y la mente.",
+        "b2": "No tienes que cambiar tu vida entera. <hl>Empieza hoy con una práctica mínima.</hl>",
+        "chip": "Los cuatro pilares"
+      },
       "intro": {
-        "b1": "Tu cuerpo se formó durante cientos de miles de años. El mundo en el que vive cambió en poco más de un siglo.",
-        "b2": "Por eso a veces te sientes sin energía, con la cabeza llena o lejos de los demás. No es un fallo tuyo: es un desajuste.",
-        "b3": "Hay cuatro pilares para volver a acomodarlo."
-      },
-      "sleep": {
-        "b1": "Durante miles de años, el sol fue nuestro reloj. Al oscurecer, el cuerpo sabía que era hora de descansar.",
-        "b2": "En 1879, la bombilla de Edison hizo que la noche dejara de ser oscura. Hoy la pantalla nos sigue hasta la almohada, y el cuerpo ya no sabe cuándo es de noche.",
-        "b3": "Sol en la cara al despertar, luz baja al anochecer. Volver a dormir al ritmo de la luz, no al de las pantallas."
-      },
-      "nutrition": {
-        "b1": "Tus abuelos comían lo que daba la tierra cerca de casa, en su temporada, y conocían a quien lo sembraba.",
-        "b2": "Después de la guerra se buscó producir mucho y barato. La comida empezó a viajar miles de kilómetros envuelta en plástico, pensada para durar, no para nutrir.",
-        "b3": "Volver a la comida real, de temporada, de quien la cultiva cerca."
-      },
-      "movement": {
-        "b1": "Moverse no era ejercicio: era caminar al campo, cargar, sembrar, jugar. Era vivir.",
-        "b2": "Las fábricas y luego las oficinas nos sentaron ocho, diez, doce horas bajo techo. Hoy hasta dos cuadras las hacemos con motor.",
-        "b3": "Recuperar el cuerpo en la calle, el sendero y la cancha del barrio."
+        "b1": "Tu cuerpo se formó durante <hl>cientos de miles de años</hl>. El mundo en el que vive cambió en <hl>poco más de un siglo</hl>.",
+        "b2": "Por eso a veces te sientes sin energía, con la cabeza llena o lejos de los demás. <hl>No es un fallo tuyo: es un desajuste.</hl>",
+        "b3": "Hay <hl>cuatro pilares</hl> para volver a acomodarlo.",
+        "chip": "El desajuste"
       },
       "mindSpirit": {
-        "b1": "Nunca vivimos solos. La comunidad, el ritual y el silencio de la naturaleza nos sostenían.",
-        "b2": "Hoy estamos conectados con miles de personas… y muchas veces no sabemos el nombre de quien vive al lado.",
-        "b3": "Recuperar el silencio, la presencia y a la gente que vive cerca."
+        "b1": "<hl>Nunca vivimos solos.</hl> La comunidad, el ritual y el silencio de la naturaleza nos sostenían.",
+        "b2": "Hoy estamos conectados con miles de personas… y muchas veces <hl>no sabemos el nombre de quien vive al lado</hl>.",
+        "b3": "Recuperar <hl>el silencio, la presencia</hl> y a la gente que vive cerca.",
+        "chip": "Pilar 4 · Mente y espíritu"
       },
-      "closing": {
-        "b1": "Los cuatro se sostienen entre sí: moverte de día llama al sueño de noche; una mesa sin pantallas alimenta el cuerpo y la mente.",
-        "b2": "No tienes que cambiar tu vida entera. Empieza hoy con una práctica mínima."
+      "movement": {
+        "b1": "Moverse no era ejercicio: era caminar al campo, cargar, sembrar, jugar. <hl>Era vivir.</hl>",
+        "b2": "Las fábricas y luego las oficinas nos sentaron <hl>ocho, diez, doce horas</hl> bajo techo. Hoy hasta dos cuadras las hacemos con motor.",
+        "b3": "<hl>Recuperar el cuerpo</hl> en la calle, el sendero y la cancha del barrio.",
+        "chip": "Pilar 3 · Movimiento"
+      },
+      "nutrition": {
+        "b1": "Tus abuelos comían lo que daba la tierra cerca de casa, en su temporada, y <hl>conocían a quien lo sembraba</hl>.",
+        "b2": "Después de la guerra se buscó producir mucho y barato. La comida empezó a viajar <hl>miles de kilómetros</hl> envuelta en plástico, pensada para durar, <hl>no para nutrir</hl>.",
+        "b3": "<hl>Volver a la comida real</hl>, de temporada, de quien la cultiva cerca.",
+        "chip": "Pilar 2 · Alimentación"
+      },
+      "sleep": {
+        "b1": "Durante miles de años, <hl>el sol fue nuestro reloj</hl>. Al oscurecer, el cuerpo sabía que era hora de descansar.",
+        "b2": "En <hl>1879</hl>, la bombilla de Edison hizo que la noche dejara de ser oscura. Hoy la pantalla nos sigue hasta la almohada, y <hl>el cuerpo ya no sabe cuándo es de noche</hl>.",
+        "b3": "Sol en la cara al despertar, luz baja al anochecer. <hl>Volver a dormir al ritmo de la luz, no al de las pantallas.</hl>",
+        "chip": "Pilar 1 · Sueño"
       }
+    },
+    "player": {
+      "goToScene": "Ir a la escena {number}",
+      "next": "Escena siguiente",
+      "pause": "Pausar",
+      "play": "Ver animación",
+      "previous": "Escena anterior",
+      "regionLabel": "Los cuatro pilares, en animación",
+      "replay": "Ver otra vez",
+      "resume": "Continuar",
+      "sceneOf": "Escena {current} de {total}",
+      "stepsNote": "Tu dispositivo pide menos movimiento: avanza escena por escena, a tu ritmo."
     }
   },
   "pillarLocal": {

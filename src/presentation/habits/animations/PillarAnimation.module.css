@@ -1,331 +1,98 @@
 /*
- * El movimiento de las escenas.
- *
- * Todo lo que aparece o se va lo decide el subtítulo en curso: cada pieza lleva `data-on` y la
- * transición hace el resto. Los bucles (llama, estrellas, respiración) se congelan con la pausa, y
- * con movimiento reducido no se mueve nada: la escena se ve ya completa.
+ * La piel del reproductor. El movimiento de las escenas lo lleva GSAP, en línea con el reloj; aquí
+ * solo queda lo que no depende del tiempo del guion: la textura del escenario, la entrada de los
+ * subtítulos y el resplandor que tiñe el entorno con los colores de cada escena.
  */
 
-.stage svg {
-  display: block;
-  width: 100%;
-  height: 100%;
-}
-
-/*
- * Solo lo que escala o gira mide su origen sobre su propia caja. Ponerlo en todo el escenario
- * también movería el pivote de los `transform` escritos como atributo (el `scale` con que se
- * coloca una figura), y la figura acabaría en otra parte.
- */
-.grow,
-.pop,
-.slump,
-.flicker,
-.breathe,
-.glow,
-.stride,
-.strideBack {
-  transform-box: fill-box;
-}
-
-/*
- * La pausa congela lo dibujado, no el fundido con que entra la escena ni el logo: congelarlos
- * dejaría la escena a medio aparecer, lavada, mientras esté en pausa. Es más específico que
- * cualquier bucle (`.clase` o `.clase[data-on]`), así que no necesita `!important`.
- */
-.stage[data-paused="true"] svg * {
-  animation-play-state: paused;
-}
-
-.sceneEnter {
-  animation: sceneEnter 700ms ease-out both;
-}
-
-.captionEnter {
-  animation: captionEnter 600ms ease-out both;
-}
-
-@keyframes sceneEnter {
-  from {
-    opacity: 0;
-    transform: scale(1.03);
-  }
-}
-
-@keyframes captionEnter {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-}
-
-/* ── Aparecer y desaparecer según el subtítulo ─────────────────────────────────────────── */
-
-.fade {
-  opacity: 0;
-  transition: opacity 900ms ease;
-}
-.fade[data-on="true"] {
-  opacity: 1;
-}
-
-.rise {
-  opacity: 0;
-  transform: translateY(14px);
-  transition:
-    opacity 800ms ease,
-    transform 900ms cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-.rise[data-on="true"] {
-  opacity: 1;
-  transform: none;
-}
-
-.grow {
-  transform-origin: 50% 100%;
-  transform: scaleY(0);
-  transition: transform 1100ms cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-.grow[data-on="true"] {
-  transform: none;
-}
-
-.pop {
-  transform-origin: 50% 50%;
-  transform: scale(0);
-  opacity: 0;
-  transition:
-    transform 700ms cubic-bezier(0.3, 1.4, 0.5, 1),
-    opacity 400ms ease;
-}
-.pop[data-on="true"] {
-  transform: none;
-  opacity: 1;
-}
-
-.draw {
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
-  transition: stroke-dashoffset 2200ms ease-in-out;
-}
-.draw[data-on="true"] {
-  stroke-dashoffset: 0;
-}
-
-/* Se hunde (el sol al atardecer) o sube (al amanecer) mientras su subtítulo está en pantalla. */
-.sink {
-  transition: transform 5000ms ease-in;
-}
-.sink[data-on="true"] {
-  transform: translateY(70px);
-}
-.dawn {
-  transform: translateY(70px);
-  transition: transform 4500ms ease-out;
-}
-.dawn[data-on="true"] {
-  transform: none;
-}
-
-/* Baja del techo: el espacio que se cierra sobre quien trabaja sentado. */
-.ceiling {
-  transform: translateY(-100%);
-  transition: transform 2500ms cubic-bezier(0.4, 0, 0.2, 1);
-}
-.ceiling[data-on="true"] {
-  transform: translateY(0);
-}
-
-/* Se acerca al centro: los vecinos que vuelven a tener cara. */
-.approach {
-  transition: transform 3500ms cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-.approach[data-on="true"] {
-  transform: translate(var(--tx, 0), var(--ty, 0));
-}
-
-/* Se encoge un poco y luego se relaja: el cansancio, y el alivio de que no es culpa tuya. */
-.slump[data-on="true"] {
-  transform-origin: 50% 100%;
-  animation: slump 6000ms ease-in-out both;
-}
-@keyframes slump {
-  0% {
-    transform: none;
-  }
-  35%,
-  55% {
-    transform: rotate(-9deg) scaleY(0.93);
-  }
-  100% {
-    transform: none;
-  }
-}
-
-/* ── Bucles ─────────────────────────────────────────────────────────────────────────────── */
-
-.flicker {
-  transform-origin: 50% 100%;
-  animation: flicker 900ms ease-in-out infinite alternate;
-}
-@keyframes flicker {
-  to {
-    transform: scaleY(1.18) scaleX(0.9);
-    opacity: 0.85;
-  }
-}
-
-.twinkle {
-  animation: twinkle 2400ms ease-in-out infinite alternate;
-}
-@keyframes twinkle {
-  to {
-    opacity: 0.25;
-  }
-}
-
-.breathe {
-  transform-origin: 50% 50%;
-  animation: breathe 5000ms ease-in-out infinite;
-}
-@keyframes breathe {
-  50% {
-    transform: scale(1.14);
-  }
-}
-
-.glow {
-  transform-origin: 50% 50%;
-  animation: glow 1800ms ease-in-out infinite alternate;
-}
-@keyframes glow {
-  to {
-    transform: scale(1.25);
-    opacity: 0.5;
-  }
-}
-
-.walk {
-  animation: walk 9000ms linear infinite;
-}
-@keyframes walk {
-  from {
-    transform: translateX(-40px);
-  }
-  to {
-    transform: translateX(120px);
-  }
-}
-
-.stride {
-  transform-origin: 50% 0%;
-  animation: stride 700ms ease-in-out infinite alternate;
-}
-.strideBack {
-  transform-origin: 50% 0%;
-  animation: stride 700ms ease-in-out infinite alternate-reverse;
-}
-@keyframes stride {
-  from {
-    transform: rotate(-22deg);
-  }
-  to {
-    transform: rotate(22deg);
-  }
-}
-
-.travel {
-  animation: travel 7000ms ease-in-out infinite;
-}
-@keyframes travel {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(var(--distance, 160px));
-  }
-}
-
-.bob {
-  animation: bob 2200ms ease-in-out infinite alternate;
-}
-@keyframes bob {
-  to {
-    transform: translateY(-4px) rotate(-2deg);
-  }
-}
-
-.bounce {
-  animation: bounce 900ms cubic-bezier(0.5, 0, 0.5, 1) infinite alternate;
-}
-@keyframes bounce {
-  to {
-    transform: translateY(-22px);
-  }
-}
-
-.shortDrive {
-  animation: shortDrive 3000ms ease-in-out infinite;
-}
-@keyframes shortDrive {
-  0%,
-  15% {
-    transform: translateX(0);
-  }
-  60%,
-  100% {
-    transform: translateX(46px);
-  }
-}
-
-/* ── El logo: grande al abrir y al cerrar, en la esquina mientras se cuenta ───────────────── */
-
-.logo {
+/* Grano de película: un ruido fijo que quita el acabado de vector plano. Se pinta una sola vez. */
+.grain {
   position: absolute;
-  transition:
-    top 900ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    left 900ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    width 900ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    transform 900ms cubic-bezier(0.2, 0.8, 0.2, 1);
-  animation: logoEnter 1100ms cubic-bezier(0.3, 1.3, 0.5, 1) both;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.16;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 180px 180px;
 }
-.logo[data-placement="hero"] {
-  top: 50%;
-  left: 50%;
-  width: 34%;
-  transform: translate(-50%, -58%);
+
+/* Oscurece apenas los bordes: centra la mirada y da profundidad de lente. */
+.vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    120% 95% at 50% 42%,
+    transparent 58%,
+    rgb(0 0 0 / 0.3) 100%
+  );
 }
-.logo[data-placement="corner"] {
-  top: 4%;
-  left: 3%;
-  width: 13%;
-  transform: none;
+
+/* Contraste para la barra de progreso sobre cielos claros. */
+.topScrim {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 28%;
+  pointer-events: none;
+  background: linear-gradient(to bottom, rgb(0 0 0 / 0.42), transparent);
 }
-@keyframes logoEnter {
+
+/* El resplandor ambiental: toma los colores de la escena y los derrama alrededor del escenario. */
+.ambient {
+  transition: background-color 1400ms ease;
+}
+
+/* ── Subtítulo cinético ─────────────────────────────────────────────────────────────────── */
+
+.word {
+  display: inline-block;
+  animation: wordIn 760ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@keyframes wordIn {
   from {
     opacity: 0;
-    scale: 0.6;
+    transform: translateY(0.45em);
+    filter: blur(10px);
   }
 }
 
-/* Se queda, pero atenuado: el fondo cuando el logo toma el primer plano. */
-.dim {
-  transition: opacity 900ms ease;
-}
-.dim[data-on="false"] {
-  opacity: 0.18;
+.mark,
+.markStill {
+  color: var(--accent-ink);
+  /* `<mark>` trae de fábrica un fondo amarillo que taparía el color del pilar. */
+  background-color: transparent;
+  border-radius: 0.2em;
+  padding: 0 0.08em;
+  box-decoration-break: clone;
+  background-image: linear-gradient(var(--accent-soft), var(--accent-soft));
+  background-repeat: no-repeat;
+  background-position: 0 90%;
 }
 
-/*
- * Con movimiento reducido, nada se mueve: la escena se ve ya completa. Va al final y con
- * `[data-steps]` para ganar a `.clase[data-on]` sin `!important`.
- */
+.mark {
+  background-size: 0% 45%;
+  animation: markIn 900ms cubic-bezier(0.65, 0, 0.35, 1) forwards;
+}
+
+.markStill {
+  background-size: 100% 45%;
+}
+
+@keyframes markIn {
+  to {
+    background-size: 100% 45%;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .stage[data-steps] svg *,
-  .stage[data-steps] div,
-  .stage[data-steps] img,
-  .captionEnter {
+  .word,
+  .mark {
     animation: none;
+  }
+  .mark {
+    background-size: 100% 45%;
+  }
+  .ambient {
     transition: none;
   }
 }

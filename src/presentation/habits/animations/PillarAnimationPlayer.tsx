@@ -1,5 +1,5 @@
 "use client";
-import { type ReactNode, useEffect, useRef } from "react";
+import { type CSSProperties, type ReactNode, useEffect, useRef } from "react";
 import {
   MdChevronLeft,
   MdChevronRight,
@@ -8,14 +8,17 @@ import {
   MdReplay,
 } from "react-icons/md";
 import { buttonVariants } from "~/presentation/design_system/buttons/buttonVariants";
+import KineticCaption from "./KineticCaption";
 import styles from "./PillarAnimation.module.css";
 import type { AnimationScene } from "./playhead";
+import SceneProgress from "./SceneProgress";
 import { markAnimationSeen } from "./seenAnimations";
-import { useAnimationClock } from "./useAnimationClock";
+import { type ClockFeed, useAnimationClock } from "./useAnimationClock";
 import {
   useHasSeenAnimation,
   usePrefersReducedMotion,
 } from "./usePlaybackPreferences";
+import { useSceneLayers } from "./useSceneLayers";
 
 export interface PlayerLabels {
   regionLabel: string;
@@ -31,20 +34,32 @@ export interface PlayerLabels {
   stepsNote: string;
 }
 
-export interface StageFrame {
+/** Cómo se viste cada escena fuera del escenario: su etiqueta, su acento y su resplandor. */
+export interface SceneLook {
+  /** Etiqueta breve sobre el escenario: «Pilar 1 · Sueño». */
+  chip: string;
+  /** Tinta y fondo del subrayado del subtítulo; variables CSS del tema, para claro y oscuro. */
+  accentInk: string;
+  accentSoft: string;
+  /** Tres colores del resplandor ambiental, fijos como el escenario. */
+  glow: readonly [string, string, string];
+}
+
+export interface SceneRenderProps {
   sceneIndex: number;
-  beatIndex: number;
-  /** Movimiento reducido: la escena se muestra ya completa y quieta. */
+  active: boolean;
   steps: boolean;
+  feed: ClockFeed;
 }
 
 interface PillarAnimationPlayerProps {
   animationId: string;
   scenes: readonly AnimationScene[];
-  /** Los subtítulos de cada escena, en el orden en que se dicen. */
+  /** Los subtítulos de cada escena, con su frase clave entre `<hl>` y `</hl>`. */
   captions: readonly (readonly string[])[];
+  looks: readonly SceneLook[];
   labels: PlayerLabels;
-  renderStage: (frame: StageFrame) => ReactNode;
+  renderScene: (props: SceneRenderProps) => ReactNode;
   /** Lo que se ofrece en la última escena (la invitación a practicar). */
   finale?: ReactNode;
 }
@@ -62,13 +77,15 @@ export default function PillarAnimationPlayer({
   animationId,
   scenes,
   captions,
+  looks,
   labels,
-  renderStage,
+  renderScene,
   finale,
 }: PillarAnimationPlayerProps) {
   const clock = useAnimationClock(scenes);
   const seen = useHasSeenAnimation(animationId);
   const steps = usePrefersReducedMotion();
+  const layers = useSceneLayers(clock.sceneIndex, steps);
   const regionRef = useRef<HTMLElement>(null);
   const { play } = clock;
 
@@ -97,6 +114,7 @@ export default function PillarAnimationPlayer({
   }, [seen, steps, animationId, play]);
 
   const scene = scenes[clock.sceneIndex];
+  const look = looks[clock.sceneIndex];
   const sceneCaptions = captions[clock.sceneIndex] ?? [];
   const beatIndex = steps
     ? Math.max(scene.beatDurationsMs.length - 1, 0)
@@ -128,37 +146,86 @@ export default function PillarAnimationPlayer({
       data-total-scenes={scenes.length}
       data-beat={beatIndex + 1}
       data-pillar={scene.pillar ?? "none"}
-      className="flex flex-col gap-4"
+      className="flex flex-col gap-5"
     >
-      <div
-        className={`${styles.stage} relative aspect-video w-full overflow-hidden rounded-card shadow-md`}
-        data-paused={!playing}
-        data-steps={steps}
-      >
-        {/* La llave remonta la escena al cambiar: cada una entra con su fundido. */}
-        <div key={scene.id} className={`${styles.sceneEnter} absolute inset-0`}>
-          {renderStage({ sceneIndex: clock.sceneIndex, beatIndex, steps })}
+      <div className="relative isolate">
+        {/* El resplandor: los colores de la escena derramados alrededor, como una luz ambiente. */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -inset-4 -z-10 opacity-60 blur-3xl sm:-inset-8"
+        >
+          <div
+            className={`${styles.ambient} absolute top-[6%] left-[2%] h-3/4 w-1/2 rounded-full`}
+            style={{ backgroundColor: look.glow[0] }}
+          />
+          <div
+            className={`${styles.ambient} absolute top-[18%] right-[2%] h-3/4 w-1/2 rounded-full`}
+            style={{ backgroundColor: look.glow[1] }}
+          />
+          <div
+            className={`${styles.ambient} absolute bottom-0 left-1/4 h-1/2 w-1/2 rounded-full`}
+            style={{ backgroundColor: look.glow[2] }}
+          />
+        </div>
+
+        <div className="relative isolate aspect-[4/3] w-full overflow-hidden rounded-[1.75rem] bg-slate-950 shadow-2xl ring-1 ring-black/10 sm:aspect-video">
+          {layers.map((index) => (
+            <div key={scenes[index].id} className="absolute inset-0">
+              {renderScene({
+                sceneIndex: index,
+                active: index === clock.sceneIndex,
+                steps,
+                feed: clock.feed,
+              })}
+            </div>
+          ))}
+          <div className={styles.vignette} />
+          <div className={styles.grain} />
+          <div className={styles.topScrim} />
+          <SceneProgress
+            scenes={scenes}
+            feed={clock.feed}
+            current={clock.sceneIndex}
+            steps={steps}
+            labelFor={labels.goToScene}
+            onSelect={clock.goToScene}
+          />
+          <span
+            key={scene.id}
+            className="absolute top-8 left-3 z-10 inline-flex items-center gap-2 rounded-full bg-black/35 px-3 py-1 text-xs font-semibold tracking-wide text-white ring-1 ring-white/20 backdrop-blur-md sm:left-4"
+          >
+            <span
+              aria-hidden="true"
+              className="size-2 rounded-full"
+              style={{ backgroundColor: look.glow[0] }}
+            />
+            {look.chip}
+          </span>
         </div>
       </div>
 
       <div
         data-testid="animation-caption"
         aria-live={playing ? "off" : "polite"}
-        className="min-h-24 text-lg sm:text-xl leading-relaxed text-text-base text-balance"
+        style={
+          {
+            "--accent-ink": look.accentInk,
+            "--accent-soft": look.accentSoft,
+          } as CSSProperties
+        }
+        className="min-h-[7.5rem] text-[1.35rem] leading-snug font-medium tracking-tight text-balance text-text-base sm:min-h-[6.5rem] sm:text-2xl lg:text-[1.7rem]"
       >
         {steps ? (
-          sceneCaptions.map((caption) => (
-            <p key={caption} className="mb-2 last:mb-0">
-              {caption}
-            </p>
+          sceneCaptions.map((markup) => (
+            <div key={markup} className="mb-3 last:mb-0">
+              <KineticCaption markup={markup} still />
+            </div>
           ))
         ) : (
-          <p
+          <KineticCaption
             key={`${clock.sceneIndex}-${beatIndex}`}
-            className={styles.captionEnter}
-          >
-            {sceneCaptions[beatIndex]}
-          </p>
+            markup={sceneCaptions[beatIndex] ?? ""}
+          />
         )}
       </div>
 
@@ -173,12 +240,12 @@ export default function PillarAnimationPlayer({
             disabled={clock.sceneIndex === 0}
             onClick={() => clock.goToScene(clock.sceneIndex - 1)}
             className={buttonVariants({
-              color: "default",
+              color: "white",
               size: "md",
               iconOnly: true,
             })}
           >
-            <MdChevronLeft aria-hidden className="size-8 shrink-0" />
+            <MdChevronLeft aria-hidden className="size-7 shrink-0" />
           </button>
           {!steps && (
             <button
@@ -198,42 +265,17 @@ export default function PillarAnimationPlayer({
             disabled={isLastScene}
             onClick={() => clock.goToScene(clock.sceneIndex + 1)}
             className={buttonVariants({
-              color: "default",
+              color: "white",
               size: "md",
               iconOnly: true,
             })}
           >
-            <MdChevronRight aria-hidden className="size-8 shrink-0" />
+            <MdChevronRight aria-hidden className="size-7 shrink-0" />
           </button>
         </div>
-
-        <div className="flex items-center gap-3">
-          <ol className="flex items-center gap-1">
-            {scenes.map((item, index) => (
-              <li key={item.id}>
-                <button
-                  type="button"
-                  aria-label={labels.goToScene(index + 1)}
-                  aria-current={index === clock.sceneIndex ? "step" : undefined}
-                  onClick={() => clock.goToScene(index)}
-                  className="focus-ring flex h-8 w-6 items-center justify-center rounded-full"
-                >
-                  <span
-                    aria-hidden
-                    className={`block h-2.5 rounded-full transition-all ${
-                      index === clock.sceneIndex
-                        ? "w-5 bg-text-base"
-                        : "w-2.5 bg-text-muted/40"
-                    }`}
-                  />
-                </button>
-              </li>
-            ))}
-          </ol>
-          <span className="text-sm text-text-muted tabular-nums">
-            {labels.sceneOf(clock.sceneIndex + 1, scenes.length)}
-          </span>
-        </div>
+        <span className="text-sm text-text-muted tabular-nums">
+          {labels.sceneOf(clock.sceneIndex + 1, scenes.length)}
+        </span>
       </div>
 
       {steps && <p className="text-sm text-text-muted">{labels.stepsNote}</p>}
