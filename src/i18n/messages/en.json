@@ -1108,7 +1108,7 @@
         "chip": "The four pillars"
       },
       "intro": {
-        "b1": "Your body took <hl>hundreds of thousands of years</hl> to form. The world it lives in changed in <hl>little more than a century</hl>.",
+        "b1": "Your body took <hl>hundreds of thousands of years</hl> to form. The world you live in changed in <hl>little more than a century</hl>.",
         "b2": "That's why you sometimes feel drained, your head too full, or far from others. <hl>It isn't your failure: it's a mismatch.</hl>",
         "b3": "There are <hl>four pillars</hl> to set it right again.",
         "chip": "The mismatch"
@@ -1148,6 +1148,8 @@
       "replay": "Watch again",
       "resume": "Resume",
       "sceneOf": "Scene {current} of {total}",
+      "soundOff": "Mute",
+      "soundOn": "Turn sound on",
       "stepsNote": "Your device asks for less motion: move scene by scene, at your own pace."
     },
     "social": {

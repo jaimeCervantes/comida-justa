@@ -14,27 +14,34 @@ interface OverviewScene extends AnimationScene {
 }
 
 /**
- * El guion de la animación de los cuatro pilares (≈ 100 s).
+ * El guion de la animación de los cuatro pilares (≈ 150 s).
  *
  * Cada pilar se cuenta en tres tiempos —antes, lo que cambió, el regreso—, siempre en ese orden,
  * para que a partir del segundo pilar quien mira ya sepa leer la estructura y solo reciba lo nuevo.
  * Por qué ese arco y no otro está en `docs/features/wellbeing/028-2026-09-29-animaciones-de-los-pilares.md`.
  *
- * Cada duración es ~250 ms por palabra del texto en español más 1,5 s de aire: lo que tarda en
- * leerse a un ritmo cómodo. El inglés es algo más corto y cabe holgado. Las escenas ilustradas
- * sincronizan su movimiento con estos mismos tiempos.
+ * **Cada duración sale de la narración**: lo que tarda el narrador en decir la frase (la más larga
+ * de sus dos idiomas), más 0,35 s de entrada —el subtítulo empieza a escribirse antes que la voz—
+ * y 0,65 s de respiro, redondeado a cuartos de segundo. Si cambia un texto, se vuelve a narrar con
+ * `scripts/animations/generate-narration.mjs` y se vuelve a medir con `prepare-narration.mjs`
+ * (proceso en `docs/features/wellbeing/028-2026-09-29-animaciones-de-los-pilares-sonido.md`). Las
+ * escenas ilustradas y los subtítulos se sincronizan con estos mismos tiempos.
  */
 export const PILLARS_OVERVIEW_SCRIPT: readonly OverviewScene[] = [
-  { id: "intro", pillar: null, beatDurationsMs: [6500, 7500, 3500] },
-  { id: "sleep", pillar: "sleep", beatDurationsMs: [6250, 9000, 6500] },
-  { id: "nutrition", pillar: "nutrition", beatDurationsMs: [6750, 8500, 4500] },
-  { id: "movement", pillar: "movement", beatDurationsMs: [5500, 7000, 4500] },
+  { id: "intro", pillar: null, beatDurationsMs: [10250, 10000, 3750] },
+  { id: "sleep", pillar: "sleep", beatDurationsMs: [9000, 13750, 11250] },
+  {
+    id: "nutrition",
+    pillar: "nutrition",
+    beatDurationsMs: [7500, 13500, 6250],
+  },
+  { id: "movement", pillar: "movement", beatDurationsMs: [9250, 10500, 5500] },
   {
     id: "mindSpirit",
     pillar: "mindSpirit",
-    beatDurationsMs: [5500, 6000, 4500],
+    beatDurationsMs: [8750, 9000, 6250],
   },
-  { id: "closing", pillar: null, beatDurationsMs: [7000, 5000] },
+  { id: "closing", pillar: null, beatDurationsMs: [11250, 6750] },
 ];
 
 /**

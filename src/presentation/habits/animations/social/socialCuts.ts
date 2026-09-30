@@ -47,6 +47,30 @@ export function cutRange(cut: SocialCut): CutRange {
   return { fromMs, toMs, durationMs: toMs - fromMs + OUTRO_MS, sceneIndexes };
 }
 
+/** Un subtítulo del corte: su clave (`sleep.b2`, la de su texto y su narración) y cuándo empieza. */
+export interface CutBeat {
+  key: string;
+  /** Milisegundos desde el inicio del corte. */
+  startMs: number;
+}
+
+/**
+ * Dónde empieza cada subtítulo de un corte, medido desde el inicio del corte. La mezcla de sonido
+ * pone ahí la narración de cada uno.
+ */
+export function cutBeats(range: CutRange): CutBeat[] {
+  return range.sceneIndexes.flatMap((sceneIndex) => {
+    const scene = PILLARS_OVERVIEW_SCRIPT[sceneIndex];
+    let cursor =
+      sceneStartMs(PILLARS_OVERVIEW_SCRIPT, sceneIndex) - range.fromMs;
+    return scene.beatDurationsMs.map((ms, beatIndex) => {
+      const beat = { key: `${scene.id}.b${beatIndex + 1}`, startMs: cursor };
+      cursor += ms;
+      return beat;
+    });
+  });
+}
+
 export function isSocialCut(value: string): value is SocialCut {
   return value in SOCIAL_CUTS;
 }

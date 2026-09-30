@@ -1108,7 +1108,7 @@
         "chip": "Los cuatro pilares"
       },
       "intro": {
-        "b1": "Tu cuerpo se formó durante <hl>cientos de miles de años</hl>. El mundo en el que vive cambió en <hl>poco más de un siglo</hl>.",
+        "b1": "Tu cuerpo se formó durante <hl>cientos de miles de años</hl>. El mundo en el que vives cambió en <hl>poco más de un siglo</hl>.",
         "b2": "Por eso a veces te sientes sin energía, con la cabeza llena o lejos de los demás. <hl>No es un fallo tuyo: es un desajuste.</hl>",
         "b3": "Hay <hl>cuatro pilares</hl> para volver a acomodarlo.",
         "chip": "El desajuste"
@@ -1148,6 +1148,8 @@
       "replay": "Ver otra vez",
       "resume": "Continuar",
       "sceneOf": "Escena {current} de {total}",
+      "soundOff": "Silenciar",
+      "soundOn": "Activar el sonido",
       "stepsNote": "Tu dispositivo pide menos movimiento: avanza escena por escena, a tu ritmo."
     },
     "social": {

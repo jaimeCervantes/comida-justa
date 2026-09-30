@@ -1,5 +1,5 @@
 "use client";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { buttonVariants } from "~/presentation/design_system/buttons/buttonVariants";
 import { type AnimationPlacement, trackAnimation } from "./animationAnalytics";
 import { OVERVIEW_ARTS, OVERVIEW_SCENES } from "./overviewScenes";
@@ -68,6 +68,7 @@ export default function PillarsOverviewAnimation({
   placement?: AnimationPlacement;
 }) {
   const t = useTranslations("pillarAnimations");
+  const locale = useLocale();
   const tInvitation = useTranslations("habitCommunity.invitation");
 
   /* `t.raw` y no `t`: el subtítulo trae su frase clave marcada con `<hl>`, y la marca la interpreta
@@ -90,6 +91,8 @@ export default function PillarsOverviewAnimation({
     sceneOf: (current, total) => t("player.sceneOf", { current, total }),
     goToScene: (number) => t("player.goToScene", { number }),
     stepsNote: t("player.stepsNote"),
+    soundOn: t("player.soundOn"),
+    soundOff: t("player.soundOff"),
   };
 
   const measure = (event: PlayerEvent) => {
@@ -101,6 +104,10 @@ export default function PillarsOverviewAnimation({
       trackAnimation(ANIMATION_ID, "animation_scene", placement, {
         scene: event.scene,
       });
+    } else if (event.type === "sound") {
+      trackAnimation(ANIMATION_ID, "animation_sound", placement, {
+        state: event.on ? "on" : "off",
+      });
     } else {
       trackAnimation(ANIMATION_ID, "animation_complete", placement);
     }
@@ -110,6 +117,7 @@ export default function PillarsOverviewAnimation({
     <PillarAnimationPlayer
       animationId={ANIMATION_ID}
       onEvent={measure}
+      soundtrack={`/animations/pilares/sonido-${locale}.mp3`}
       scenes={PILLARS_OVERVIEW_SCRIPT}
       captions={captions}
       looks={looks}

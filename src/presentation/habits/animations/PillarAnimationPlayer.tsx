@@ -1,16 +1,24 @@
 "use client";
-import { type CSSProperties, type ReactNode, useEffect, useRef } from "react";
+import {
+  type CSSProperties,
+  type ReactNode,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import {
   MdChevronLeft,
   MdChevronRight,
   MdPause,
   MdPlayArrow,
   MdReplay,
+  MdVolumeOff,
+  MdVolumeUp,
 } from "react-icons/md";
 import { buttonVariants } from "~/presentation/design_system/buttons/buttonVariants";
 import KineticCaption from "./KineticCaption";
 import styles from "./PillarAnimation.module.css";
-import type { AnimationScene } from "./playhead";
+import { type AnimationScene, totalDurationMs } from "./playhead";
 import SceneProgress from "./SceneProgress";
 import { markAnimationSeen } from "./seenAnimations";
 import { type ClockFeed, useAnimationClock } from "./useAnimationClock";
@@ -32,6 +40,8 @@ export interface PlayerLabels {
   sceneOf: (current: number, total: number) => string;
   goToScene: (number: number) => string;
   stepsNote: string;
+  soundOn: string;
+  soundOff: string;
 }
 
 /** Cómo se viste cada escena fuera del escenario: su etiqueta, su acento y su resplandor. */
@@ -56,7 +66,8 @@ export type PlayerEvent =
       trigger: "auto" | "button" | "resume" | "replay";
     }
   | { type: "scene"; scene: number }
-  | { type: "complete" };
+  | { type: "complete" }
+  | { type: "sound"; on: boolean };
 
 export interface SceneRenderProps {
   sceneIndex: number;
@@ -82,6 +93,11 @@ interface PillarAnimationPlayerProps {
    */
   preload?: ReactNode;
   onEvent?: (event: PlayerEvent) => void;
+  /**
+   * La pista de sonido (narración y música) alineada con el guion, si la hay. Nunca suena sola: la
+   * activa quien mira con el botón de sonido, y desde ahí sigue al reloj.
+   */
+  soundtrack?: string;
 }
 
 /**
@@ -103,6 +119,7 @@ export default function PillarAnimationPlayer({
   finale,
   preload,
   onEvent,
+  soundtrack,
 }: PillarAnimationPlayerProps) {
   const clock = useAnimationClock(scenes);
   const seen = useHasSeenAnimation(animationId);
@@ -118,6 +135,33 @@ export default function PillarAnimationPlayer({
     onEventRef.current = onEvent;
   });
   const reportedSceneRef = useRef<number | null>(null);
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const [soundOn, setSoundOn] = useState(false);
+
+  /* El sonido sigue al reloj, no al revés: mientras se reproduce, la pista va donde va la
+     animación (si se desvía más de 0,3 s, se corrige); en pausa, calla; al saltar de escena,
+     salta. Al terminar no se corta: la pista trae unos segundos más para que la música cierre
+     mientras aparece la invitación final. Mientras busca no se le vuelve a pedir que busque: con
+     una conexión lenta, corregirla en cada cuadro la dejaría buscando para siempre. */
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    if (!soundOn || steps) {
+      audio.pause();
+      return;
+    }
+    const totalMs = totalDurationMs(scenes);
+    return clock.feed.subscribe(({ elapsedMs, playing }) => {
+      if (!playing) {
+        if (elapsedMs < totalMs && !audio.paused) audio.pause();
+        return;
+      }
+      const target = elapsedMs / 1000;
+      if (!audio.seeking && Math.abs(audio.currentTime - target) > 0.3)
+        audio.currentTime = target;
+      if (audio.paused) audio.play().catch(() => undefined);
+    });
+  }, [soundOn, steps, scenes, clock.feed]);
 
   useEffect(() => {
     if (clock.status !== "playing") return;
@@ -329,6 +373,36 @@ export default function PillarAnimationPlayer({
           >
             <MdChevronRight aria-hidden className="size-7 shrink-0" />
           </button>
+          {soundtrack && !steps && (
+            <button
+              type="button"
+              data-testid="animation-sound"
+              aria-pressed={soundOn}
+              aria-label={soundOn ? labels.soundOff : labels.soundOn}
+              onClick={() => {
+                const audio = audioRef.current;
+                /* Safari solo deja sonar un audio que se pide dentro del toque de quien mira, y
+                   el reloj lo pide después. Se desbloquea aquí; desde ahí manda el reloj. */
+                if (!soundOn && audio) {
+                  audio.play().catch(() => undefined);
+                  audio.pause();
+                }
+                setSoundOn(!soundOn);
+                onEventRef.current?.({ type: "sound", on: !soundOn });
+              }}
+              className={buttonVariants({
+                color: "white",
+                size: "md",
+                iconOnly: true,
+              })}
+            >
+              {soundOn ? (
+                <MdVolumeUp aria-hidden className="size-6 shrink-0" />
+              ) : (
+                <MdVolumeOff aria-hidden className="size-6 shrink-0" />
+              )}
+            </button>
+          )}
         </div>
         <span className="text-sm text-text-muted tabular-nums">
           {labels.sceneOf(clock.sceneIndex + 1, scenes.length)}
@@ -336,6 +410,15 @@ export default function PillarAnimationPlayer({
       </div>
 
       {steps && <p className="text-sm text-text-muted">{labels.stepsNote}</p>}
+      {soundtrack && (
+        // biome-ignore lint/a11y/useMediaCaption: la narración ya está escrita en pantalla, palabra por palabra, en el subtítulo de cada escena.
+        <audio
+          ref={audioRef}
+          src={soundtrack}
+          preload="none"
+          data-testid="animation-soundtrack"
+        />
+      )}
       {clock.started && preload && (
         <div hidden aria-hidden="true">
           {preload}

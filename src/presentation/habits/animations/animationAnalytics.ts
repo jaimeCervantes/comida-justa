@@ -15,6 +15,7 @@ export const ANIMATION_EVENTS = [
   "animation_scene",
   "animation_complete",
   "animation_cta",
+  "animation_sound",
 ] as const;
 
 export type AnimationEventName = (typeof ANIMATION_EVENTS)[number];

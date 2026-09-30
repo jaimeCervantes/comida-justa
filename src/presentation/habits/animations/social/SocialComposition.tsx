@@ -14,7 +14,9 @@ import IllustratedScene from "../scenes/IllustratedScene";
 import type { ClockFeed, ClockFrame } from "../useAnimationClock";
 import { captionAt, easeOut, type FrameSegment } from "./captionFrame";
 import {
+  type CutBeat,
   type CutRange,
+  cutBeats,
   cutRange,
   SOCIAL_FORMATS,
   type SocialCut,
@@ -87,9 +89,23 @@ const LAYOUTS: Record<SocialFormat, Layout> = {
   },
 };
 
+/**
+ * Lo que necesita quien graba. El sonido se arma fuera, con `ffmpeg`: la narración de cada
+ * subtítulo va en su `startMs`, y la música se toma de la ventana `fromMs` de la pieza entera, que
+ * dura `wholeMs` con su cierre, para que cada corte suene igual que en la animación completa.
+ */
+interface RenderInfo {
+  durationMs: number;
+  width: number;
+  height: number;
+  beats: CutBeat[];
+  fromMs: number;
+  wholeMs: number;
+}
+
 type RenderWindow = Window & {
   __renderFrame?: (ms: number) => Promise<void>;
-  __renderInfo?: { durationMs: number; width: number; height: number };
+  __renderInfo?: RenderInfo;
 };
 
 /** Un canal de tiempo que no corre solo: lo empuja quien graba, cuadro por cuadro. */
@@ -246,7 +262,14 @@ export default function SocialComposition({
 
   useEffect(() => {
     const target = window as RenderWindow;
-    target.__renderInfo = { durationMs: range.durationMs, width, height };
+    target.__renderInfo = {
+      durationMs: range.durationMs,
+      width,
+      height,
+      beats: cutBeats(range),
+      fromMs: range.fromMs,
+      wholeMs: cutRange("completo").durationMs,
+    };
     target.__renderFrame = async (ms: number) => {
       publish(absoluteAt(ms));
       flushSync(() => setLocalMs(ms));
@@ -258,7 +281,7 @@ export default function SocialComposition({
       target.__renderFrame = undefined;
       target.__renderInfo = undefined;
     };
-  }, [publish, absoluteAt, range.durationMs, width, height]);
+  }, [publish, absoluteAt, range, width, height]);
 
   const absolute = absoluteAt(localMs);
   const playhead = playheadAt(PILLARS_OVERVIEW_SCRIPT, absolute);

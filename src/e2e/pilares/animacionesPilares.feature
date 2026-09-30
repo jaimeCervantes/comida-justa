@@ -158,8 +158,55 @@ Característica: Una animación explica los pilares antes de pedir que se lean
     Cuando se dibuja en el mismo instante dos veces
     Entonces cada palabra y el subrayado están en el mismo punto
 
-  @slice-8 @future
-  Escenario: La voz acompaña a cada escena sin arrancar sola
-    Dado que la animación tiene locución
-    Cuando se reproduce en la web
-    Entonces empieza en silencio hasta que activo el sonido
+  # ── Slice 8: la narración y la música ────────────────────────────────────────────────────────
+  # Una pista por idioma —la voz del narrador con música original debajo— alineada con el guion:
+  # la escribe `scripts/animations/render-video.mjs --solo-sonido`. Los videos para redes llevan
+  # la misma mezcla, y eso se comprueba con `ffprobe` sobre el archivo, como el resto del slice 7.
+
+  @slice-8
+  Escenario: El sonido nunca arranca solo, ni se descarga sin pedirlo
+    Dado que nunca he visto la animación de los cuatro pilares
+    Cuando abro "/pilares" y la animación se reproduce sola
+    Entonces el sonido está apagado
+    Y la pista de sonido no se ha descargado
+
+  @slice-8
+  Esquema del escenario: Al activar el sonido se oye la narración en el idioma de quien mira
+    Dado que la animación de los cuatro pilares se reproduce en "<ruta>"
+    Cuando activo el sonido
+    Entonces suena la pista "<pista>"
+
+    Ejemplos:
+      | ruta        | pista                             |
+      | /pilares    | /animations/pilares/sonido-es.mp3 |
+      | /en/pillars | /animations/pilares/sonido-en.mp3 |
+
+  @slice-8
+  Escenario: El sonido va donde va la animación
+    Dado que la animación de los cuatro pilares suena en la escena 1
+    Cuando salto a la escena 2
+    Entonces la narración salta al segundo 24, donde empieza la escena de Sueño
+    Y al pausar la animación, calla
+
+  @slice-8
+  Escenario: Silenciar calla el sonido sin detener la animación
+    Dado que la animación de los cuatro pilares suena
+    Cuando pulso "Silenciar"
+    Entonces la animación sigue reproduciéndose, en silencio
+
+  @slice-8
+  Escenario: Con movimiento reducido no hay sonido
+    Dado que mi sistema pide reducir el movimiento
+    Cuando abro "/pilares"
+    Entonces no hay botón de sonido: la narración va al ritmo de la animación, y los pasos no lo tienen
+
+  @slice-8
+  Esquema del escenario: Encender y apagar el sonido queda medido
+    Dado que el sitio mide con Google Analytics
+    Cuando <acción> el sonido de la animación de "/pilares"
+    Entonces se registra el evento "animation_sound" con el estado "<estado>"
+
+    Ejemplos:
+      | acción   | estado |
+      | activo   | on     |
+      | silencio | off    |

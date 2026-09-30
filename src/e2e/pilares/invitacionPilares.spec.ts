@@ -1,6 +1,12 @@
 import { expect, type Page, test } from "@playwright/test";
 import { INVITE_DELAY_MS } from "~/presentation/habits/animations/inviteRoutes";
+import { PILLARS_OVERVIEW_SCRIPT } from "~/presentation/habits/animations/pillarsOverviewScript";
+import {
+  sceneStartMs,
+  totalDurationMs,
+} from "~/presentation/habits/animations/playhead";
 import { PILLAR_ANIMATION_SEEN_KEY_PREFIX } from "~/presentation/habits/animations/seenAnimations";
+import { recordAnalytics, recordedEvents } from "../testUtils/recordAnalytics";
 
 /**
  * La invitación a ver los cuatro pilares y la medición (`invitacionPilares.feature`, slice 2).
@@ -14,40 +20,10 @@ import { PILLAR_ANIMATION_SEEN_KEY_PREFIX } from "~/presentation/habits/animatio
 test.use({ storageState: { cookies: [], origins: [] } });
 
 const OVERVIEW_SEEN_KEY = `${PILLAR_ANIMATION_SEEN_KEY_PREFIX}pillars-overview`;
-/** La animación entera dura algo más de 100 s. */
-const WHOLE_ANIMATION_MS = 101_000;
-
-type RecordedEvent = [string, string, Record<string, string | number>];
-
-declare global {
-  interface Window {
-    __gaEvents?: RecordedEvent[];
-  }
-}
-
-/** Sustituye `gtag` por un registro: se comprueba qué se envía, no que Google lo reciba. */
-async function recordAnalytics(page: Page) {
-  await page.addInitScript(() => {
-    window.__gaEvents = [];
-    (window as unknown as { gtag: (...args: unknown[]) => void }).gtag = (
-      ...args: unknown[]
-    ) => {
-      window.__gaEvents?.push(args as RecordedEvent);
-    };
-  });
-}
-
-function recorded(page: Page, name: string) {
-  return page.evaluate(
-    (eventName) =>
-      (window.__gaEvents ?? [])
-        .filter(
-          ([command, event]) => command === "event" && event === eventName,
-        )
-        .map(([, , params]) => params),
-    name,
-  );
-}
+/** Toda la animación, con margen: sale del guion, que cambia al volver a narrar un texto. */
+const WHOLE_ANIMATION_MS = totalDurationMs(PILLARS_OVERVIEW_SCRIPT) + 1000;
+/** El comienzo de la segunda escena (Sueño), con margen. */
+const SECOND_SCENE_MS = sceneStartMs(PILLARS_OVERVIEW_SCRIPT, 1) + 100;
 
 /**
  * Abre la página y espera a que la invitación haya hidratado: su temporizador solo existe a partir
@@ -160,13 +136,13 @@ test.describe("La medición", () => {
     await expect(invite(page)).toBeVisible();
 
     await expect
-      .poll(() => recorded(page, "animation_invite_shown"))
+      .poll(() => recordedEvents(page, "animation_invite_shown"))
       .toEqual([expect.objectContaining({ placement: "invite" })]);
 
     await invite(page).getByTestId("pillars-invite-later").click();
 
     await expect
-      .poll(() => recorded(page, "animation_invite_dismiss"))
+      .poll(() => recordedEvents(page, "animation_invite_dismiss"))
       .toEqual([expect.objectContaining({ placement: "invite" })]);
   });
 
@@ -178,10 +154,10 @@ test.describe("La medición", () => {
     await invite(page).getByTestId("pillars-invite-watch").click();
 
     await expect
-      .poll(() => recorded(page, "animation_invite_accept"))
+      .poll(() => recordedEvents(page, "animation_invite_accept"))
       .toEqual([expect.objectContaining({ placement: "invite" })]);
     await expect
-      .poll(() => recorded(page, "animation_play"))
+      .poll(() => recordedEvents(page, "animation_play"))
       .toEqual([
         expect.objectContaining({ placement: "invite", trigger: "auto" }),
       ]);
@@ -196,21 +172,21 @@ test.describe("La medición", () => {
     await player.scrollIntoViewIfNeeded();
     await expect(player).toHaveAttribute("data-state", "playing");
 
-    await page.clock.fastForward(17_600);
+    await page.clock.fastForward(SECOND_SCENE_MS);
     await expect(player).toHaveAttribute("data-scene", "2");
     await expect
-      .poll(() => recorded(page, "animation_scene"))
+      .poll(() => recordedEvents(page, "animation_scene"))
       .toContainEqual(expect.objectContaining({ placement: "page", scene: 2 }));
 
     await page.clock.fastForward(WHOLE_ANIMATION_MS);
     await expect(player).toHaveAttribute("data-state", "finished");
     await expect
-      .poll(() => recorded(page, "animation_complete"))
+      .poll(() => recordedEvents(page, "animation_complete"))
       .toEqual([expect.objectContaining({ placement: "page" })]);
 
     await player.getByTestId("animation-cta").click();
     await expect
-      .poll(() => recorded(page, "animation_cta"))
+      .poll(() => recordedEvents(page, "animation_cta"))
       .toEqual([expect.objectContaining({ placement: "page" })]);
   });
 });
