@@ -7,10 +7,12 @@ import { signInPathFor } from "~/infra/auth/signInPath";
 import { PUBLIC_BRAND_NAME } from "~/infra/constants";
 import { buttonVariants } from "~/presentation/design_system/buttons/buttonVariants";
 import { Heading } from "~/presentation/design_system/typography/Heading";
+import PillarsOverviewAnimation from "~/presentation/habits/animations/PillarsOverviewAnimation";
 import CommunityHabitGarden from "~/presentation/habits/CommunityHabitGarden";
 import PillarHero from "~/presentation/habits/PillarHero";
 import PracticeInvitation from "~/presentation/habits/PracticeInvitation";
 import PublicHabitCelebrationList from "~/presentation/habits/PublicHabitCelebrationList";
+import { PILLARS_OVERVIEW_PRACTICES_ANCHOR } from "~/presentation/habits/pillarPageAnchors";
 import { getPillarTheme } from "~/presentation/habits/pillarThemes";
 import type { PublicHabitCelebration } from "~/use_cases/habits/ports/HabitChallengeRepository";
 import { setHabitCelebrationReaction } from "../../habitCommunityActions";
@@ -27,7 +29,7 @@ import {
  * lleva a la lista que ya está debajo. `scroll-mt` deja aire para el header fijo, que si no tapa la
  * primera tarjeta justo al llegar.
  */
-const PRACTICES_ANCHOR = "practicas";
+const PRACTICES_ANCHOR = PILLARS_OVERVIEW_PRACTICES_ANCHOR;
 
 export default function PilaresOverviewPage({
   celebrations,
@@ -88,6 +90,15 @@ export default function PilaresOverviewPage({
           }
           actionNote={t("heroNote")}
         />
+
+        {/*
+          La animación va entre el héroe y las tarjetas: explica los cuatro pilares antes de pedir
+          que se elija uno, y su cierre lleva a esas mismas tarjetas. Arranca sola solo la primera
+          vez; ver `docs/features/wellbeing/028-2026-09-29-animaciones-de-los-pilares.md`.
+        */}
+        <div className="px-6 pt-6 sm:px-10 sm:pt-10">
+          <PillarsOverviewAnimation practicesHref={`#${PRACTICES_ANCHOR}`} />
+        </div>
 
         <div
           id={PRACTICES_ANCHOR}

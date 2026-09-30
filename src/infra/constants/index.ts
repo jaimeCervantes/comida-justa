@@ -8,10 +8,17 @@ export const COMMENTS_PAGE_SIZE =
 /** Cuántas publicaciones parecidas acompañan al detalle. Cuatro llenan la columna sin empujar los comentarios fuera de la pantalla. */
 export const RELATED_POSTS_LIMIT =
   Number(process.env.NEXT_PUBLIC_RELATED_POSTS_LIMIT) || 4;
+/**
+ * La dirección pública del sitio, la de producción, sin depender del entorno. La usa lo que sale
+ * del sitio y se ve fuera de él —los videos para redes—, donde `CANONICAL_URL` diría `localhost`
+ * cuando se exporta desde desarrollo.
+ */
+export const PRODUCTION_URL =
+  process.env.NEXT_PUBLIC_PRODUCTION_URL || "https://hazlosano.com";
 export const CANONICAL_URL =
-  process.env.NEXT_PUBLIC_CANONICAL_URL || "https://hazlosano.com";
+  process.env.NEXT_PUBLIC_CANONICAL_URL || PRODUCTION_URL;
 export const PUBLIC_BASE_URL =
-  process.env.NEXT_PUBLIC_BASE_URL || "https://hazlosano.com";
+  process.env.NEXT_PUBLIC_BASE_URL || PRODUCTION_URL;
 export const POST_CONTENT_MAX_LENGTH =
   process.env.NEXT_POST_CONTENT_MAX_LENGTH || 2500;
 /**

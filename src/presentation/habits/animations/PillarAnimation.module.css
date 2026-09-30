@@ -1,0 +1,111 @@
+/*
+ * La piel del reproductor. El movimiento de las escenas lo lleva GSAP, en línea con el reloj; aquí
+ * solo queda lo que no depende del tiempo del guion: la textura del escenario, la entrada de los
+ * subtítulos y el resplandor que tiñe el entorno con los colores de cada escena.
+ */
+
+/* Grano de película: un ruido fijo que quita el acabado de vector plano. Se pinta una sola vez. */
+.grain {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.16;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 180px 180px;
+}
+
+/* Oscurece apenas los bordes: centra la mirada y da profundidad de lente. */
+.vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    120% 95% at 50% 42%,
+    transparent 58%,
+    rgb(0 0 0 / 0.3) 100%
+  );
+}
+
+/* Contraste para la barra de progreso sobre cielos claros. */
+.topScrim {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 28%;
+  pointer-events: none;
+  background: linear-gradient(to bottom, rgb(0 0 0 / 0.42), transparent);
+}
+
+/* El resplandor ambiental: toma los colores de la escena y los derrama alrededor del escenario. */
+.ambient {
+  transition: background-color 1400ms ease;
+}
+
+/* ── Subtítulo cinético ─────────────────────────────────────────────────────────────────── */
+
+.word {
+  display: inline-block;
+  animation: wordIn 760ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@keyframes wordIn {
+  from {
+    opacity: 0;
+    transform: translateY(0.45em);
+    filter: blur(10px);
+  }
+}
+
+.mark,
+.markStill {
+  color: var(--accent-ink);
+  /* `<mark>` trae de fábrica un fondo amarillo que taparía el color del pilar. */
+  background-color: transparent;
+  border-radius: 0.2em;
+  padding: 0 0.08em;
+  box-decoration-break: clone;
+  background-image: linear-gradient(var(--accent-soft), var(--accent-soft));
+  background-repeat: no-repeat;
+  background-position: 0 90%;
+}
+
+.mark {
+  background-size: 0% 45%;
+  animation: markIn 900ms cubic-bezier(0.65, 0, 0.35, 1) forwards;
+}
+
+.markStill {
+  background-size: 100% 45%;
+}
+
+@keyframes markIn {
+  to {
+    background-size: 100% 45%;
+  }
+}
+
+/* La invitación de la primera visita entra desde abajo, sin prisa: no debe sobresaltar. */
+.inviteEnter {
+  animation: inviteEnter 700ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@keyframes inviteEnter {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.98);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .word,
+  .mark,
+  .inviteEnter {
+    animation: none;
+  }
+  .mark {
+    background-size: 100% 45%;
+  }
+  .ambient {
+    transition: none;
+  }
+}

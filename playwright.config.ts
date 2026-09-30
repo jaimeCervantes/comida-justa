@@ -1,6 +1,8 @@
 import { defineConfig, devices } from "@playwright/test";
 import dotenv from "dotenv";
 import { FAKE_MAPBOX_PORT } from "./src/e2e/testUtils/fakeMapbox";
+import { PILLARS_INVITE_ID } from "./src/presentation/habits/animations/inviteRoutes";
+import { PILLAR_ANIMATION_SEEN_KEY_PREFIX } from "./src/presentation/habits/animations/seenAnimations";
 
 /**
  * Read environment variables from file.
@@ -63,6 +65,27 @@ export default defineConfig({
      * lo que dice probar; los escenarios que comparan idiomas piden su locale en la ruta.
      */
     locale: "es-MX",
+
+    /**
+     * La suite arranca con la invitación de la primera visita ya mostrada: una tarjeta que aparece a
+     * los pocos segundos en casi cualquier página podría tapar justo el botón que un escenario va a
+     * pulsar, y el fallo no diría nada de la invitación. Su propia especificación
+     * (`src/e2e/pilares/invitacionPilares.spec.ts`) empieza de cero.
+     */
+    storageState: {
+      cookies: [],
+      origins: [
+        {
+          origin: BASE_URL,
+          localStorage: [
+            {
+              name: `${PILLAR_ANIMATION_SEEN_KEY_PREFIX}${PILLARS_INVITE_ID}`,
+              value: "1",
+            },
+          ],
+        },
+      ],
+    },
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: "on-first-retry",
