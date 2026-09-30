@@ -154,7 +154,10 @@ que ya existe cuesta casi nada.
 - La animación completa y un corte por pilar (cada escena de pilar dura 16–22 s): cinco videos sin
   generar una sola imagen nueva, con los subtítulos incrustados y música libre de derechos.
 - Formato vertical (1080×1920) y cuadrado (1080×1080) desde el mismo guion: el reloj se puede llevar
-  a cualquier instante, así que se graba cuadro por cuadro.
+  a cualquier instante, así que se graba cuadro por cuadro. También horizontal (1920×1080) para
+  YouTube y la web.
+- Un comando por pieza: `node scripts/animations/render-video.mjs --pieza=sueno --formato=vertical`
+  (con un `next dev` levantado). La música se mezcla aparte, cuando esté elegida.
 
 ### Slice 8 — Voz
 

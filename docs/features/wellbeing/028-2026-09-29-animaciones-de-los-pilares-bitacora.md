@@ -327,3 +327,81 @@ práctica.
    subtítulos incrustados y música libre de derechos.
 2. Con datos de unas semanas, decidir las animaciones de cada pilar (slices 3–6).
 3. La voz (slice 8), al final de todas las animaciones. Veo (slice 9) solo con autorización.
+
+## 2026-09-29 — Slice 7: exportar a video para redes
+
+### Objetivo
+
+Sacar de la animación que ya existe las piezas para redes, sin generar ninguna imagen nueva: la
+animación completa y un corte por pilar, en vertical, cuadrado y horizontal, con los subtítulos
+incrustados. Con pocos visitantes, las redes son el canal para llegar a gente nueva.
+
+### Decisiones y por qué
+
+- **Se graba cuadro por cuadro, no en tiempo real.** Un script de Playwright abre
+  `/animaciones/video?pieza=…&formato=…`, lleva la composición a cada instante con
+  `window.__renderFrame(ms)` y le pasa la captura a `ffmpeg`. Todo lo que se mueve es función del
+  tiempo —las escenas con GSAP ya lo eran; el subtítulo cinético se recalcula en `captionFrame.ts`
+  en vez de animarse con CSS—, así que el cuadro 312 sale igual en cada exportación.
+- **Una composición por formato.** En vertical y cuadrado, el escenario 16:9 queda como una ventana
+  sobre su propia ilustración desenfocada, con el subtítulo grande debajo; en horizontal ocupa el
+  cuadro entero y el subtítulo va en el tercio inferior. Arriba, el logo, la etiqueta del pilar y el
+  progreso; abajo, la dirección del sitio; al final, 3 s de cierre con el logo.
+- **La página de render solo existe en desarrollo** (404 en producción, sin indexar). Vive bajo
+  `[locale]` porque ahí está el `<html>` y las fuentes; la composición cubre la ventana entera por
+  encima del resto del sitio.
+- **La dirección del video es la de producción** (`PRODUCTION_URL`), no la canónica del entorno,
+  que en desarrollo es `localhost`.
+- **Tiempos compartidos**: los del subtítulo cinético (`kineticTiming.ts`) y los de cada escena
+  (`overviewTimings.ts`) salieron de sus componentes para que la web y el video usen los mismos.
+- **Sin sonido por ahora.** La música se mezcla aparte con `ffmpeg` en segundos; generarla con Lyria
+  cuesta 0,08 USD por canción (tarifa publicada) y se consulta con el usuario antes.
+
+### Tropiezos que conviene recordar
+
+- **La animación dura 104 s, no ~100.** Un cálculo mental equivocado hizo parecer un fallo lo que
+  era el fundido exacto a mitad de camino en el segundo 99.
+- **`ffmpeg` recibe las capturas JPEG en rango completo** (`yuvj420p`); hay que convertir al rango
+  estándar de video o algunos reproductores lavan los negros.
+
+### Archivos
+
+- Composición: `social/SocialComposition.tsx`, `social/captionFrame.ts` (+ prueba),
+  `social/socialCuts.ts` (+ prueba); tiempos compartidos en `kineticTiming.ts` y
+  `overviewTimings.ts`.
+- Página: `src/app/[locale]/animaciones/video/page.tsx` (solo desarrollo).
+- Script: `scripts/animations/render-video.mjs`.
+- `PRODUCTION_URL` en `src/infra/constants`; texto del cierre en `pillarAnimations.social`.
+
+### Validación
+
+- `pnpm run test:run`: **3154 pruebas** en verde; `typecheck` y `lint` limpios (1300 archivos).
+- Playwright de la animación y de la invitación: **28/28** (3,3 min), con `.next` borrado antes y
+  sin servidores escuchando.
+- Exportación: 11 videos en `out/videos/` (fuera del repositorio), verificados con `ffprobe` —
+  H.264, `yuv420p` en rango estándar, 30 fps, cuadros exactos—:
+
+  | Pieza | Duración | Vertical | Cuadrado |
+  |---|---|---|---|
+  | Sueño | 24,8 s | 5,6 MB | 4,2 MB |
+  | Alimentación | 22,8 s | 6,0 MB | 4,6 MB |
+  | Movimiento | 20,0 s | 4,9 MB | 3,6 MB |
+  | Mente y espíritu | 19,0 s | 5,9 MB | 4,8 MB |
+  | Completa | 107,0 s | 28,7 MB | 22,1 MB |
+
+  Más la completa en horizontal (1920×1080, 41,9 MB). Se graba a ~6 cuadros por segundo: un corte
+  de pilar tarda ~2 min y la pieza completa ~9 min.
+
+### Recap
+
+La animación de los cuatro pilares se exporta a video con un comando, en tres formatos y cinco
+piezas, con subtítulos incrustados y cierre de marca. Once videos ya exportados, sin sonido,
+esperando la música.
+
+### Próximos pasos (opciones)
+
+1. **Pendiente del usuario:** autorizar la música con Lyria (~0,25 USD por tres propuestas), o
+   pasar pistas libres de derechos que prefiera; con eso se mezclan los once videos.
+2. Publicar las piezas y, con los datos de GA4 de unas semanas, decidir las animaciones de cada
+   pilar (slices 3–6).
+3. La voz (slice 8) al final: con Gemini TTS cuesta centavos.
