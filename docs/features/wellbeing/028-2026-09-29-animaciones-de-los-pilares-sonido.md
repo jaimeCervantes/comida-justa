@@ -13,9 +13,10 @@
     lo vuelve más regional. Si algún día se quiere un acento claramente mexicano, es locutor humano.
   - Gemini 3.8 Flash TTS no sirve para esto: lee la dirección en voz alta y no acepta instrucción
     de sistema («Developer instruction is not enabled for this model»).
-- **La música:** original, de **Lyria 3.5** (API de Interactions de Gemini), no de un catálogo. Se
-  generaron tres propuestas (`calida`, `folk`, `ambiental`) y va la **cálida**: piano de fieltro,
-  cuerdas suaves, 78 BPM, re mayor. Se pide unos segundos más larga que la animación (170 s; salió
+- **La música:** original, de **Lyria 3.5** (API de Interactions de Gemini), no de un catálogo. Para
+  la general se generaron tres propuestas (`calida`, `folk`, `ambiental`) y va la **cálida**: piano
+  de fieltro, cuerdas suaves, 78 BPM, re mayor. La de Sueño tiene la suya, **nocturna**: una canción
+  de cuna que se vuelve amanecer, como su práctica «Del atardecer al amanecer». Se pide unos segundos más larga que la animación (170 s; salió
   de 163 s) y la mezcla **alinea su final con el final del video**: el cierre de la música es el
   cierre de la pieza.
   - El filtro de Lyria bloquea «Mexican folk» sin decir por qué; los instrumentos ya dan el color.
@@ -33,26 +34,32 @@ ajustan los tiempos en `pillarsOverviewScript.ts` y se vuelve a mezclar.
 ## Proceso
 
 Todo con `GEMINI_API_KEY` (del entorno o de `.env.development`) y `ffmpeg`/`ffprobe` en el `PATH`.
-Las pistas intermedias viven en `out/` (no se versionan, como los originales de las
-ilustraciones); **si se pierden, se regeneran, pero la voz sale distinta y hay que volver a
-medir**. Lo que se publica en la web sí se versiona.
+Cada animación tiene un nombre corto que usan las carpetas y los scripts: `pilares` (la general) y
+`sueno`. Las pistas intermedias viven en `out/narration/<animación>/` y `out/music/` (no se
+versionan, como los originales de las ilustraciones); **si se pierden, se regeneran, pero la voz sale
+distinta y hay que volver a medir**. Lo que se publica en la web sí se versiona.
 
 1. **Narrar** cada subtítulo, por idioma:
-   `node scripts/animations/generate-narration.mjs --voz=Algieba --idioma=es --salida=out/narration/es`
-   (y `--idioma=en`). Una pista por subtítulo, `<escena>.b<n>.wav`, leída del catálogo sin las
-   marcas `<hl>`. `--claves=sleep.b2` rehace solo esa frase.
-2. **Preparar y medir:** `node scripts/animations/prepare-narration.mjs` quita los silencios de los
-   bordes, acelera la voz un 7 % (el narrador sintético lee pausado; así suena natural sin cambiar
-   el tono), deja las pistas en `out/narration/<idioma>-final/` e imprime la duración de cada
-   subtítulo con la regla de arriba. Esos números van en `pillarsOverviewScript.ts`.
-3. **Música:** `node scripts/animations/generate-music.mjs --propuestas=calida --duracion=170`
-   (unos segundos más de lo que dura la animación con su cierre).
+   `node scripts/animations/generate-narration.mjs --voz=Algieba --idioma=es --seccion=sleep --salida=out/narration/sueno/es`
+   (y `--idioma=en`). `--seccion` es la animación dentro de `pillarAnimations` en el catálogo
+   (`overview` por omisión). Una pista por subtítulo, `<escena>.b<n>.wav`, leída del catálogo sin
+   las marcas `<hl>`. `--claves=cost.b2` rehace solo esa frase.
+2. **Preparar y medir:** `node scripts/animations/prepare-narration.mjs --origen=out/narration/sueno`
+   quita los silencios de los bordes, acelera la voz un 7 % (el narrador sintético lee pausado; así
+   suena natural sin cambiar el tono), deja las pistas en `<origen>/<idioma>-final/` e imprime la
+   duración de cada subtítulo con la regla de arriba. Esos números van en el guion
+   (`pillarsOverviewScript.ts` o la `PillarStory` del pilar).
+3. **Música:** `node scripts/animations/generate-music.mjs --propuestas=nocturna --duracion=150`
+   (unos segundos más de lo que dura la animación con su cierre). El script de exportación sabe qué
+   música va con cada animación.
 4. **Mezclar para la web:** con un `next dev` levantado,
-   `node scripts/animations/render-video.mjs --solo-sonido --idioma=es` (y `en`) escribe
-   `public/animations/pilares/sonido-<idioma>.mp3`: la pieza entera, con 3 s de cola para que la
-   música cierre mientras aparece la invitación final.
-5. **Videos:** el mismo `render-video.mjs` de siempre ya mezcla el sonido de cada pieza. Para
-   cambiar solo el sonido de un video ya exportado, sin volver a grabar sus cuadros:
+   `node scripts/animations/render-video.mjs --solo-sonido --animacion=sueno --idioma=es` (y `en`)
+   escribe `public/animations/pilares/sonido-sueno-<idioma>.mp3` (`sonido-<idioma>.mp3` para la
+   general): la pieza entera, con 3 s de cola para que la música cierre mientras aparece la
+   invitación final.
+5. **Videos:** el mismo `render-video.mjs` de siempre ya mezcla el sonido de cada pieza
+   (`--animacion=sueno` para la de Sueño, que sale como `out/videos/pilar-sueno-<formato>-<idioma>.mp4`).
+   Para cambiar solo el sonido de un video ya exportado, sin volver a grabar sus cuadros:
    `--resonorizar --pieza=sueno --formato=vertical`.
 
 ## La mezcla
@@ -83,4 +90,5 @@ medir**. Lo que se publica en la web sí se versiona.
 ## Lo que costó
 
 Centavos: la narración de 17 frases en dos idiomas con Gemini TTS, más las muestras de voces, y
-cuatro piezas de Lyria a 0,08 USD cada una (tres propuestas y la versión larga).
+cuatro piezas de Lyria a 0,08 USD cada una (tres propuestas y la versión larga). La de Sueño: 13
+frases en dos idiomas y una pieza de Lyria.

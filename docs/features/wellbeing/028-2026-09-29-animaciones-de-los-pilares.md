@@ -40,10 +40,13 @@
 7. **Dónde vive el código:** el reproductor y el guion son vocabulario del vertical (pilares), así
    que van en `src/presentation/habits/animations/`, junto a `PillarHero`, y la lógica de tiempo en
    una función pura sin React. No toca `src/domain/` del núcleo ni el esquema.
-8. **El logo abre y cierra, y no habla.** Se usa `public/logo.webp` (el corazón con hojas, ya
-   publicado) tal cual: aparece con el gancho y vuelve junto a «Elegir mi práctica». Se descartó
-   convertirlo en un narrador animado: el logo es una imagen 3D, no un vector por partes, y un
-   personaje fotorrealista entre ilustraciones planas se ve pegado encima.
+8. **El logo cierra, y no habla.** Se usa `public/logo.webp` (el corazón con hojas, ya publicado)
+   tal cual: aparece junto a «Elegir mi práctica», con confeti. Se descartó convertirlo en un
+   narrador animado: el logo es una imagen 3D, no un vector por partes, y un personaje
+   fotorrealista entre ilustraciones planas se ve pegado encima.
+   *Hasta el 2026-09-30 también abría* (en el centro, y luego a la esquina superior derecha). Se
+   quitó a pedido del usuario: la cabecera del sitio y la del video ya lo llevan arriba a la
+   izquierda, y dos logos a la vez sobraban. Vale para todas las animaciones.
 9. **La voz llega después.** Voz de hombre, mexicana, grave. Se añade cuando el guion visual esté
    validado: grabar sobre un guion que todavía cambia es pagar la locución dos veces.
    *Llegó en el slice 8:* voz sintética (Gemini TTS, voz Algieba) con música original de Lyria
@@ -123,6 +126,9 @@ que ya existe cuesta casi nada.
 **El slice 8 se adelantó el mismo día**, a petición del usuario, antes de los 3–6: los videos para
 redes ya estaban listos y sin voz eran la mitad de la pieza.
 
+**Los slices 3–6 se empezaron el 2026-09-30**, también a petición del usuario («haz las animaciones
+para cada pilar, empieza con el sueño y descanso»), sin esperar los datos de GA4.
+
 ### Slice 1 — La animación de los cuatro pilares en `/pilares`
 
 - Reproductor bajo el héroe de `/pilares` con el guion de 6 escenas y sus 17 subtítulos.
@@ -146,15 +152,45 @@ redes ya estaban listos y sin voz eran la mitad de la pieza.
   alcanzada; animación completa; clic en «Elegir mi práctica». Con eso se decide si construir las
   animaciones de cada pilar.
 
-### Slice 3 — Animación de Sueño bajo el héroe de `/pilares/sueno`
+### Slice 3 — Animación de Sueño bajo el héroe de `/pilares/sueno` (hecho)
 
-- Plantilla para los otros tres: mismo reproductor, guion propio (~5 escenas, más detalle que la
-  general).
-- Arranca sola la primera vez que se abre **ese** pilar.
+- **La plantilla de los otros tres.** Cada pilar se cuenta en cinco tiempos, siempre en este orden:
+  cómo era antes, qué cambió, qué nos cuesta, qué lo compensa y la versión mínima de su práctica.
+  Es el arco de la animación general (antes, lo que cambió, el regreso) más el costo y la práctica,
+  que allí no caben. Dos minutos como mucho: quien la ve ya eligió ese pilar.
+- **Una animación es un dato** (`PillarStory`: guion, ilustraciones, textos y colores). El
+  reproductor, la exportación a video y la mezcla de sonido son los mismos para todas. Un pilar
+  nuevo es un archivo de datos, sus textos, sus ilustraciones y su narración.
+- Va entre el héroe y el artículo; arranca sola la primera vez que se abre **esa** página y su final
+  lleva a la práctica de la misma página. Narración, música propia y botón de sonido, como la
+  general. También sale en video para redes (vertical, cuadrado y horizontal).
+- **La invitación a ver los cuatro pilares ya no aparece en una página de pilar con animación
+  propia:** competiría con ella, y con el sonido encendido se oirían las dos.
+
+#### Guion de Sueño (1:56 con la voz)
+
+Todo sale de la página del pilar; ningún dato nuevo. Entre corchetes, la frase clave.
+
+| Tiempo | Etiqueta | Texto (es) |
+|---|---|---|
+| Antes | El reloj de siempre | Durante cientos de miles de años, [la luz decidió cuándo dormíamos]. El sol se iba, el fuego se apagaba y la noche era oscura de verdad. |
+| | | En la oscuridad, el cuerpo soltaba [melatonina]: la señal de reparar. Ese reloj [sigue dentro de ti]. |
+| Lo que cambió | La noche encendida | En [1879], la bombilla le quitó la oscuridad a la noche. Hoy la pantalla nos sigue hasta la almohada. |
+| | | La luz brillante de noche frena la melatonina: [tu cerebro cree que sigue siendo mediodía]. |
+| Lo que cuesta | El costo oculto | Eso se paga tres veces. [El sueño se rompe]: duermes las mismas horas y descansas menos. |
+| | | [La deuda crece]: el cansancio se tapa con café por la mañana, y ese café estorba la noche siguiente. |
+| | | Y la noche del barrio [ya no oscurece del todo], ni para ti ni para las aves. |
+| Lo que compensa | El contrapeso | No hace falta comprar nada: [es el pilar más barato]. Casi todo consiste en apagar cosas. |
+| | | Un cuarto [oscuro, fresco y sin teléfono] le recuerda a tu cerebro para qué es la cama. |
+| | | Y cinco minutos con una libreta: [anotar lo pendiente de mañana] ayuda a que la cabeza lo suelte. |
+| La práctica | Tu versión mínima | Tu versión mínima tiene dos anclas. [Cerrar la noche]: una hora antes de dormir, pantallas lejos y luz baja. |
+| | | Y [abrir la mañana]: de diez a quince minutos de luz natural afuera, al despertar. Esa luz programa tu sueño de esta noche. |
+| | | No tiene que ser perfecto. [Empieza esta noche.] *(logo · «Empezar la práctica»)* |
 
 ### Slices 4, 5 y 6 — Alimentación, Movimiento, Mente y espíritu
 
-- Un guion por pilar sobre la plantilla del slice 3.
+- Un guion por pilar sobre la plantilla del slice 3: sus cinco tiempos con lo que ya dice su
+  página, 13–14 ilustraciones, narración, música y su `PillarStory`.
 
 ### Slice 7 — Exportar a video para redes (va después del 2)
 

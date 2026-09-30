@@ -532,3 +532,111 @@ proceso completo, de narrar a exportar, está en scripts y documentado.
 4. Posibles mejoras: la narración frase por frase en el modo de movimiento reducido; los videos en
    inglés (`--idioma=en`) si hay público para ellos.
 5. El slice 9 (Veo) sigue esperando la autorización expresa del usuario.
+
+## 2026-09-30 — Slice 3: la animación de Sueño bajo el héroe de su página
+
+### Objetivo
+
+Que quien llega a `/pilares/sueno` —casi siempre desde un video en redes— entienda en dos minutos
+por qué importa el descanso y cómo empezar, sin leer el artículo. Y dejar hecha la plantilla de las
+otras tres. El usuario lo pidió estando fuera («haz las animaciones para cada pilar, empieza con el
+sueño y descanso»), sin esperar los datos de GA4 que el orden acordado ponía antes.
+
+### Decisiones y por qué
+
+- **El arco de cada pilar: cinco tiempos.** Antes, lo que cambió, lo que cuesta, lo que compensa y
+  la versión mínima de la práctica. Es el arco de la animación general más el costo y la práctica,
+  que allí no caben. Todo el texto sale de la página de Sueño; ningún dato nuevo. El guion está en el
+  roadmap para que el usuario lo revise: **no lo aprobó antes de producirlo**, porque no estaba.
+- **Una animación es un dato (`PillarStory`).** El reproductor, la exportación a video y la mezcla
+  de sonido pasaron a ser genéricos (`IllustratedAnimation`, `FILMS`, `--animacion`). La general
+  quedó como una definición más, sin cambiar lo que se ve. El pilar siguiente es un archivo de
+  datos, sus textos, sus ilustraciones y su narración.
+- **Se monta sola en la página de cualquier pilar que tenga la suya** (`PillarArticle`), entre el
+  héroe y el artículo; su final lleva a la práctica de la misma página.
+- **Dos minutos como mucho**, y una prueba lo sostiene. Con la voz, Sueño dura 1:56.
+- **La invitación a ver los cuatro pilares ya no aparece en `/pilares/sueno`.** Competiría con la
+  animación de la página, y con el sonido encendido se oirían las dos. La lista de páginas con
+  animación propia vive aparte de las animaciones (la invitación va en todas las páginas y no debe
+  cargarlas); una prueba comprueba que coinciden.
+- **Voz y música propias.** La voz es Algieba, como la general. La música se generó con Lyria: una
+  canción de cuna que se vuelve amanecer, como la práctica «Del atardecer al amanecer». Su final cae
+  en «Empieza esta noche».
+- **La invitación decía «minuto y medio»**; con voz, la general dura dos y medio. Corregido en los
+  dos idiomas.
+- **El logo ya no abre ninguna animación, solo cierra.** Lo pidió el usuario al ver la general:
+  aparecía en el centro de la primera escena y se iba a la esquina superior derecha, y la cabecera
+  —del sitio y del video— ya lo lleva arriba a la izquierda. Se quitó también de la de Sueño por la
+  misma razón; el del cierre se queda como estaba.
+
+### Tropiezos que conviene recordar
+
+- **Después de un bloque en línea siempre se puede partir la línea.** Cada palabra del subtítulo es
+  un bloque en línea, así que el punto que sigue a la frase clave podía quedarse solo al principio
+  del renglón: «dormíamos» / «. El sol…». Pasarlo a texto normal no sirve (CSS abre un corte después
+  de cualquier bloque en línea). La puntuación pegada a la frase clave se queda ahora dentro de ella,
+  subrayada como con un marcatexto. Pasaba también en el video vertical de la animación general
+  («Volver a la comida real» / «, de temporada…»), que se volvió a exportar.
+- **El video horizontal usaba la ilustración de 960 px.** El `sizes` de la web
+  (`(min-width: 1024px) 960px`) valía también en la composición a 1920 px, así que la imagen salía
+  al doble de su tamaño. Ahora la composición pide el ancho de su escenario.
+- **Decodificada no es pintada.** Al saltar de golpe a una escena, la captura salía antes de que
+  Chrome terminara de dibujar la ilustración nueva: solo se veían los resplandores sobre negro. La
+  composición espera un poco más la primera vez que aparece cada ilustración. En los videos, que se
+  graban cuadro a cuadro, no llegó a notarse; en la revisión con saltos, sí.
+- **Nombres de más de una palabra.** `prepare-illustrations.mjs` solo aceptaba ids como `intro-1`;
+  ahora acepta `sleep-cost-2`.
+
+### Archivos
+
+- Historia de Sueño: `stories/pillarStory.ts`, `stories/sleepStory.ts`, `stories/pillarStories.ts`
+  (+ prueba), `stories/PillarStoryAnimation.tsx`; textos en `pillarAnimations.sleep`.
+- Genérico: `IllustratedAnimation.tsx`, `sceneTimings.ts`, `animationMessages.ts`;
+  `PillarsOverviewAnimation.tsx` y `overviewTimings.ts` sobre ellos.
+- Página: `PillarArticle.tsx` (la animación bajo el héroe); `inviteRoutes.ts` (+ prueba).
+- Video: `social/films.ts`, `social/socialCuts.ts` (+ prueba), `social/SocialComposition.tsx`,
+  `app/[locale]/animaciones/video/page.tsx` (`?animacion=`); `scenes/IllustratedScene.tsx`
+  (`sizes`).
+- Subtítulos: `captionMarkup.ts` (+ prueba).
+- Scripts: `render-video.mjs` (`--animacion`), `generate-narration.mjs` (`--seccion`),
+  `generate-music.mjs` (propuesta `nocturna`), `prepare-illustrations.mjs`;
+  `pillar-sleep.manifest.json`.
+- Recursos: 39 WebP de Sueño (2,6 MB) y `sonido-sueno-{es,en}.mp3` (1,9 MB cada una).
+- Pruebas: `animacionDelPilar.feature` y `.spec.ts` (nuevas), `invitacionPilares.*`,
+  `animacionesPilares.*`, `testUtils/animationPlayer.ts` (ayudantes compartidos).
+- Docs: roadmap (guion de Sueño), guías de ilustraciones y de sonido.
+
+### Validación
+
+- `pnpm run test:run`: **3172 pruebas** en verde (300 archivos); `typecheck` sin errores y `lint`
+  limpio (1319 archivos).
+- Playwright de las animaciones y de todas las páginas que ahora montan la de Sueño —11 archivos,
+  **121 pruebas**, en 8 tramos con `.next` borrado antes de cada uno—: 119 en verde a la primera.
+  Los 2 fallos, ambos de `atomicSleepChallenge`, fueron uno real de la prueba (el título de
+  Movimiento, buscado sin `exact`, chocaba con una publicación de la comunidad: corregido) y uno
+  intermitente (compartir), que pasó solo y en el archivo completo (**19/19**). Se dejó fuera
+  `practicasPropias`, que ya fallaba antes por no borrar lo que publica.
+- La corrida se cortó una vez en el tramo 6 porque la máquina se quedó sin memoria; se cerraron el
+  `next dev` huérfano y los navegadores de Playwright, y se retomó donde iba con permiso del
+  usuario.
+- Revisión en movimiento: un cuadro por subtítulo desde la página de render, y la página real en
+  escritorio y en teléfono (arranca sola, bajo el héroe, con el punto pegado a su frase).
+
+### Recap
+
+La animación de Sueño vive bajo el héroe de `/pilares/sueno`: 1:56 narrados por Algieba, con
+música propia de la noche al amanecer, trece ilustraciones y su final en la práctica. El
+reproductor, la exportación y la mezcla ya sirven para cualquier pilar, y el logo solo cierra.
+Alimentación, Movimiento y Mente y espíritu tienen guion, ilustraciones revisadas, música y
+definición, a falta de su voz, que espera la cuota diaria de Gemini TTS.
+
+### Próximos pasos (opciones)
+
+1. **Volver a exportar los videos** que llevaban el logo de apertura: los tres de Sueño y los tres
+   completos de la general, más el corte vertical de Alimentación (tenía una coma suelta).
+2. **Slices 4–6** en cuanto se renueve la cuota de voz (hacia las 18:00): narrar por escena, medir,
+   llevar los textos al catálogo, mezclar, probar y exportar.
+3. **Pendiente del usuario:** revisar los guiones (en el roadmap) y escuchar la mezcla; registrar
+   en GA4 la dimensión `state`.
+4. **Deuda que apareció otra vez:** `practicasPropias` deja publicaciones en la base compartida, y
+   rompen pruebas de otros archivos (aquí, el título de Movimiento).
