@@ -1,13 +1,7 @@
 import { Fragment, type ReactNode } from "react";
 import { parseCaption } from "./captionMarkup";
+import { MARK_LAG_MS, wordStaggerFor } from "./kineticTiming";
 import styles from "./PillarAnimation.module.css";
-
-/** Cuánto espera cada palabra a la anterior: lo bastante para leerse como voz, no como parpadeo. */
-const WORD_STAGGER_MS = 55;
-/** …pero la frase entera entra en poco más de un segundo, por larga que sea. */
-const MAX_STAGGER_TOTAL_MS = 1100;
-/** El subrayado de la frase clave llega cuando sus palabras ya están en su sitio. */
-const MARK_LAG_MS = 450;
 
 /**
  * Un subtítulo que se escribe palabra por palabra, con la frase clave subrayada en el color del
@@ -30,10 +24,7 @@ export default function KineticCaption({
       count + segment.text.split(/\s+/).filter(Boolean).length,
     0,
   );
-  const stagger = Math.min(
-    WORD_STAGGER_MS,
-    MAX_STAGGER_TOTAL_MS / Math.max(wordCount, 1),
-  );
+  const stagger = wordStaggerFor(wordCount);
   let wordIndex = 0;
   const segments = parsed.map((segment, segmentIndex) => {
     const firstWord = wordIndex;

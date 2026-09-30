@@ -3,6 +3,7 @@ import { useTranslations } from "next-intl";
 import { buttonVariants } from "~/presentation/design_system/buttons/buttonVariants";
 import { type AnimationPlacement, trackAnimation } from "./animationAnalytics";
 import { OVERVIEW_ARTS, OVERVIEW_SCENES } from "./overviewScenes";
+import { OVERVIEW_TIMINGS } from "./overviewTimings";
 import PillarAnimationPlayer, {
   type PlayerEvent,
   type PlayerLabels,
@@ -14,27 +15,8 @@ import {
   type OverviewSceneId,
   PILLARS_OVERVIEW_SCRIPT,
 } from "./pillarsOverviewScript";
-import { sceneStartMs } from "./playhead";
 import { ART_SIZES, artSources } from "./scenes/artSources";
 import IllustratedScene from "./scenes/IllustratedScene";
-import type { SceneTiming } from "./scenes/useSceneTimeline";
-
-/** Los tiempos de cada escena, sacados del guion una sola vez: las escenas los reciben estables. */
-const TIMINGS: readonly SceneTiming[] = PILLARS_OVERVIEW_SCRIPT.map(
-  (scene, index) => {
-    const beatsSec: number[] = [];
-    let cursor = 0;
-    for (const ms of scene.beatDurationsMs) {
-      beatsSec.push(cursor);
-      cursor += ms / 1000;
-    }
-    return {
-      startMs: sceneStartMs(PILLARS_OVERVIEW_SCRIPT, index),
-      beatsSec,
-      durationSec: cursor,
-    };
-  },
-);
 
 /**
  * El acento de cada escena fuera del escenario. El subrayado usa los tokens del tema (se lee en
@@ -138,7 +120,7 @@ export default function PillarsOverviewAnimation({
           <IllustratedScene
             beats={scene.beats}
             logo={scene.logo}
-            timing={TIMINGS[sceneIndex]}
+            timing={OVERVIEW_TIMINGS[sceneIndex]}
             active={active}
             steps={steps}
             feed={feed}

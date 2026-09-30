@@ -122,11 +122,41 @@ Característica: Una animación explica los pilares antes de pedir que se lean
     Cuando abro "/pilares/sueno"
     Entonces su animación está debajo del héroe y se reproduce sola
 
-  @slice-7 @future
-  Escenario: El guion se exporta a video para redes
+  # Slice 7 — exportar a video. Es una herramienta, no una pantalla: la ejecuta el script
+  # `scripts/animations/render-video.mjs` contra `/animaciones/video` (solo en desarrollo) y se
+  # comprueba con `ffprobe` sobre el archivo. Las reglas de tiempo están cubiertas por Vitest
+  # (`social/socialCuts.test.ts` y `social/captionFrame.test.ts`).
+  @slice-7 @manual
+  Esquema del escenario: Cada pieza se exporta a video para redes
     Dado el guion de los cuatro pilares
-    Cuando se exporta
-    Entonces hay un video vertical y uno cuadrado con las mismas escenas
+    Cuando exporto la pieza "<pieza>" en formato "<formato>"
+    Entonces obtengo un MP4 H.264 de <ancho>×<alto> a 30 cuadros por segundo
+    Y dura lo que su parte del guion más 3 s de cierre con el logo y la dirección del sitio
+
+    Ejemplos:
+      | pieza        | formato    | ancho | alto |
+      | completo     | vertical   | 1080  | 1920 |
+      | sueno        | vertical   | 1080  | 1920 |
+      | alimentacion | cuadrado   | 1080  | 1080 |
+      | completo     | horizontal | 1920  | 1080 |
+
+  @slice-7 @component
+  Esquema del escenario: Cada corte de pilar es exactamente la escena de su pilar
+    Dado el corte "<pieza>"
+    Entonces empieza donde empieza la escena de "<pilar>" y termina donde termina
+
+    Ejemplos:
+      | pieza        | pilar      |
+      | sueno        | sleep      |
+      | alimentacion | nutrition  |
+      | movimiento   | movement   |
+      | mente        | mindSpirit |
+
+  @slice-7 @component
+  Escenario: El subtítulo del video sale igual en cada exportación
+    Dado un subtítulo con su frase clave marcada
+    Cuando se dibuja en el mismo instante dos veces
+    Entonces cada palabra y el subrayado están en el mismo punto
 
   @slice-8 @future
   Escenario: La voz acompaña a cada escena sin arrancar sola

@@ -1149,6 +1149,9 @@
       "resume": "Continuar",
       "sceneOf": "Escena {current} de {total}",
       "stepsNote": "Tu dispositivo pide menos movimiento: avanza escena por escena, a tu ritmo."
+    },
+    "social": {
+      "outroTitle": "Los cuatro pilares de una vida sana"
     }
   },
   "pillarLocal": {
