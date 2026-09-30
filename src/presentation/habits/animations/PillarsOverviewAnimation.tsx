@@ -1,8 +1,10 @@
 "use client";
 import { useTranslations } from "next-intl";
 import { buttonVariants } from "~/presentation/design_system/buttons/buttonVariants";
+import { type AnimationPlacement, trackAnimation } from "./animationAnalytics";
 import { OVERVIEW_ARTS, OVERVIEW_SCENES } from "./overviewScenes";
 import PillarAnimationPlayer, {
+  type PlayerEvent,
   type PlayerLabels,
   type SceneLook,
 } from "./PillarAnimationPlayer";
@@ -73,10 +75,15 @@ const LOOKS: Record<OverviewSceneId, Omit<SceneLook, "chip">> = {
   },
 };
 
+const ANIMATION_ID = "pillars-overview";
+
 export default function PillarsOverviewAnimation({
   practicesHref,
+  placement = "page",
 }: {
   practicesHref: string;
+  /** Dónde se ve: en `/pilares` o abierta desde la invitación de otra página. Va en cada evento. */
+  placement?: AnimationPlacement;
 }) {
   const t = useTranslations("pillarAnimations");
   const tInvitation = useTranslations("habitCommunity.invitation");
@@ -103,9 +110,24 @@ export default function PillarsOverviewAnimation({
     stepsNote: t("player.stepsNote"),
   };
 
+  const measure = (event: PlayerEvent) => {
+    if (event.type === "play") {
+      trackAnimation(ANIMATION_ID, "animation_play", placement, {
+        trigger: event.trigger,
+      });
+    } else if (event.type === "scene") {
+      trackAnimation(ANIMATION_ID, "animation_scene", placement, {
+        scene: event.scene,
+      });
+    } else {
+      trackAnimation(ANIMATION_ID, "animation_complete", placement);
+    }
+  };
+
   return (
     <PillarAnimationPlayer
-      animationId="pillars-overview"
+      animationId={ANIMATION_ID}
+      onEvent={measure}
       scenes={PILLARS_OVERVIEW_SCRIPT}
       captions={captions}
       looks={looks}
@@ -141,6 +163,9 @@ export default function PillarsOverviewAnimation({
         <a
           href={practicesHref}
           data-testid="animation-cta"
+          onClick={() =>
+            trackAnimation(ANIMATION_ID, "animation_cta", placement)
+          }
           className={`${buttonVariants({ color: "orange", size: "lg" })} self-start`}
         >
           {tInvitation("cta")}

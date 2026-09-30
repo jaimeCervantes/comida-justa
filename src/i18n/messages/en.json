@@ -1092,6 +1092,15 @@
     "viewOrder": "View order"
   },
   "pillarAnimations": {
+    "invite": {
+      "body": "Watch it in a minute and a half: where they come from and how to get back to them.",
+      "close": "Close",
+      "dialogLabel": "The four pillars, animated",
+      "label": "Invitation to watch the four pillars",
+      "later": "Not now",
+      "title": "What are the four pillars?",
+      "watch": "Watch now"
+    },
     "overview": {
       "closing": {
         "b1": "<hl>The four hold each other up</hl>: moving by day calls for sleep at night; a table without screens feeds body and mind.",

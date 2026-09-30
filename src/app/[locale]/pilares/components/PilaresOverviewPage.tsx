@@ -12,6 +12,7 @@ import CommunityHabitGarden from "~/presentation/habits/CommunityHabitGarden";
 import PillarHero from "~/presentation/habits/PillarHero";
 import PracticeInvitation from "~/presentation/habits/PracticeInvitation";
 import PublicHabitCelebrationList from "~/presentation/habits/PublicHabitCelebrationList";
+import { PILLARS_OVERVIEW_PRACTICES_ANCHOR } from "~/presentation/habits/pillarPageAnchors";
 import { getPillarTheme } from "~/presentation/habits/pillarThemes";
 import type { PublicHabitCelebration } from "~/use_cases/habits/ports/HabitChallengeRepository";
 import { setHabitCelebrationReaction } from "../../habitCommunityActions";
@@ -28,7 +29,7 @@ import {
  * lleva a la lista que ya está debajo. `scroll-mt` deja aire para el header fijo, que si no tapa la
  * primera tarjeta justo al llegar.
  */
-const PRACTICES_ANCHOR = "practicas";
+const PRACTICES_ANCHOR = PILLARS_OVERVIEW_PRACTICES_ANCHOR;
 
 export default function PilaresOverviewPage({
   celebrations,

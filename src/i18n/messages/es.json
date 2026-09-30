@@ -1092,6 +1092,15 @@
     "viewOrder": "Ver el pedido"
   },
   "pillarAnimations": {
+    "invite": {
+      "body": "Míralo en minuto y medio: de dónde vienen y cómo volver a ellos.",
+      "close": "Cerrar",
+      "dialogLabel": "Los cuatro pilares, en animación",
+      "label": "Invitación a ver los cuatro pilares",
+      "later": "Ahora no",
+      "title": "¿Qué son los cuatro pilares?",
+      "watch": "Ver ahora"
+    },
     "overview": {
       "closing": {
         "b1": "<hl>Los cuatro se sostienen entre sí</hl>: moverte de día llama al sueño de noche; una mesa sin pantallas alimenta el cuerpo y la mente.",

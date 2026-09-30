@@ -45,6 +45,19 @@ export interface SceneLook {
   glow: readonly [string, string, string];
 }
 
+/**
+ * Lo que el reproductor cuenta que pasó, para quien quiera medirlo. No sabe adónde va: eso lo
+ * decide quien lo monta.
+ */
+export type PlayerEvent =
+  | {
+      type: "play";
+      /** Sola al verse por primera vez, con el botón, al continuar una pausa o al repetir. */
+      trigger: "auto" | "button" | "resume" | "replay";
+    }
+  | { type: "scene"; scene: number }
+  | { type: "complete" };
+
 export interface SceneRenderProps {
   sceneIndex: number;
   active: boolean;
@@ -68,6 +81,7 @@ interface PillarAnimationPlayerProps {
    * quien nunca le da a reproducir no descarga nada de más.
    */
   preload?: ReactNode;
+  onEvent?: (event: PlayerEvent) => void;
 }
 
 /**
@@ -88,6 +102,7 @@ export default function PillarAnimationPlayer({
   renderScene,
   finale,
   preload,
+  onEvent,
 }: PillarAnimationPlayerProps) {
   const clock = useAnimationClock(scenes);
   const seen = useHasSeenAnimation(animationId);
@@ -96,6 +111,27 @@ export default function PillarAnimationPlayer({
   const regionRef = useRef<HTMLElement>(null);
   const { play } = clock;
 
+  /* El último aviso que se dio, en una ref: `onEvent` cambia de identidad en cada render de quien
+     lo pasa, y los efectos de abajo no deben volver a disparar por eso. */
+  const onEventRef = useRef(onEvent);
+  useEffect(() => {
+    onEventRef.current = onEvent;
+  });
+  const reportedSceneRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (clock.status !== "playing") return;
+    if (reportedSceneRef.current === clock.sceneIndex) return;
+    reportedSceneRef.current = clock.sceneIndex;
+    onEventRef.current?.({ type: "scene", scene: clock.sceneIndex + 1 });
+  }, [clock.status, clock.sceneIndex]);
+
+  useEffect(() => {
+    if (clock.status !== "finished") return;
+    reportedSceneRef.current = null;
+    onEventRef.current?.({ type: "complete" });
+  }, [clock.status]);
+
   useEffect(() => {
     if (seen || steps) return;
     const region = regionRef.current;
@@ -103,6 +139,7 @@ export default function PillarAnimationPlayer({
     const start = () => {
       markAnimationSeen(animationId);
       play();
+      onEventRef.current?.({ type: "play", trigger: "auto" });
     };
     if (typeof IntersectionObserver === "undefined") {
       start();
@@ -258,7 +295,20 @@ export default function PillarAnimationPlayer({
             <button
               type="button"
               data-testid="animation-play-toggle"
-              onClick={playing ? clock.pause : clock.play}
+              onClick={
+                playing
+                  ? clock.pause
+                  : () => {
+                      const trigger =
+                        clock.status === "finished"
+                          ? "replay"
+                          : clock.started
+                            ? "resume"
+                            : "button";
+                      clock.play();
+                      onEventRef.current?.({ type: "play", trigger });
+                    }
+              }
               className={buttonVariants({ color: "green", size: "md" })}
             >
               <ToggleIcon aria-hidden className="mr-2 size-6 shrink-0" />

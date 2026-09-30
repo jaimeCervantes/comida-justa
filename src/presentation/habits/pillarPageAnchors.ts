@@ -17,3 +17,10 @@ export const PILLAR_PRACTICE_ANCHOR = "practica";
 
 /** Lo que hay cerca de este pilar: tiendas y publicaciones de su categoría. */
 export const PILLAR_LOCAL_ANCHOR = "cerca";
+
+/**
+ * Las tarjetas de los cuatro pilares en `/pilares`. Lleva a ellas el héroe de la portada, la
+ * invitación del cierre de la animación y, desde cualquier página, la animación abierta desde la
+ * invitación de la primera visita.
+ */
+export const PILLARS_OVERVIEW_PRACTICES_ANCHOR = "practicas";

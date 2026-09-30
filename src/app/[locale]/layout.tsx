@@ -14,6 +14,7 @@ import { readThemePreference } from "~/infra/theme/readThemePreference";
 import BottomNav from "~/presentation/chrome/BottomNav/BottomNav";
 import NearbyBar from "~/presentation/chrome/NearbyBar/NearbyBar";
 import SiteCelebrationMessage from "~/presentation/chrome/SiteMessage/SiteCelebrationMessage";
+import PillarsInvite from "~/presentation/habits/animations/PillarsInvite";
 import LocationRefresher from "~/presentation/location/LocationRefresher";
 
 /**
@@ -139,6 +140,10 @@ export default async function RootLayout({
                 que es donde la barra de escritorio se esconde: nunca se ven las dos. */}
             <BottomNav />
           </div>
+          {/* La invitación a ver los cuatro pilares: aparece una sola vez por navegador, en la
+              página por la que se entre (salvo compras, cuenta y `/pilares`). Va aquí para no
+              depender de qué página sea la de entrada. */}
+          <PillarsInvite />
         </NextIntlClientProvider>
       </body>
       {process.env.NODE_ENV === "production" && gaId && (

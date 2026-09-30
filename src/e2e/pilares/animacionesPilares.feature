@@ -113,18 +113,8 @@ Característica: Una animación explica los pilares antes de pedir que se lean
 
   # ── Slices futuros (esqueletos) ──────────────────────────────────────────────────────────────
 
-  @slice-2 @future
-  Escenario: La primera visita a cualquier página invita a ver los cuatro pilares
-    Dado que nunca he visitado el sitio
-    Cuando abro cualquier página que no sea "/pilares" ni una compra
-    Entonces veo una invitación discreta a ver la animación
-    Y al aceptarla se reproduce sin salir de la página
-
-  @slice-2 @future
-  Escenario: La invitación no vuelve una vez cerrada o vista
-    Dado que cerré o vi la invitación
-    Cuando abro otra página
-    Entonces no vuelve a aparecer
+  # El slice 2 (invitación en la primera visita y medición) tiene su propio par:
+  # invitacionPilares.feature / invitacionPilares.spec.ts.
 
   @slice-3 @future
   Escenario: La primera visita a un pilar reproduce su propia animación
