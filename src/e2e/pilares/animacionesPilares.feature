@@ -9,7 +9,7 @@ Característica: Una animación explica los pilares antes de pedir que se lean
   - Por qué: captar gente nueva y reutilizar la misma animación como video para redes.
 
   Como alguien que llega por primera vez
-  Quiero ver en minuto y medio qué son los cuatro pilares y por qué existen
+  Quiero ver en dos minutos y medio qué son los cuatro pilares y por qué existen
   Para entender el proyecto sin leer cuatro artículos
 
   # ── Slice 1: la animación de los cuatro pilares en /pilares ──────────────────────────────────
