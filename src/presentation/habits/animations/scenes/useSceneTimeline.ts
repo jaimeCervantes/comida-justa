@@ -60,7 +60,7 @@ export interface SceneBuilder {
  * cuadro por cuadro: el dibujo es una función del tiempo, igual que el guion.
  */
 export function useSceneTimeline(
-  scope: RefObject<SVGSVGElement | null>,
+  scope: RefObject<Element | null>,
   { timing, active, steps, feed }: SceneProps,
   build: (builder: SceneBuilder) => void,
 ): void {

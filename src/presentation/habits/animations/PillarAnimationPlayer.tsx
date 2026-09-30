@@ -62,6 +62,12 @@ interface PillarAnimationPlayerProps {
   renderScene: (props: SceneRenderProps) => ReactNode;
   /** Lo que se ofrece en la última escena (la invitación a practicar). */
   finale?: ReactNode;
+  /**
+   * Lo que conviene descargar en cuanto empieza a reproducirse (las ilustraciones de las escenas
+   * siguientes), para que ninguna aparezca a medio cargar. Se monta oculto y solo tras arrancar:
+   * quien nunca le da a reproducir no descarga nada de más.
+   */
+  preload?: ReactNode;
 }
 
 /**
@@ -81,6 +87,7 @@ export default function PillarAnimationPlayer({
   labels,
   renderScene,
   finale,
+  preload,
 }: PillarAnimationPlayerProps) {
   const clock = useAnimationClock(scenes);
   const seen = useHasSeenAnimation(animationId);
@@ -279,6 +286,11 @@ export default function PillarAnimationPlayer({
       </div>
 
       {steps && <p className="text-sm text-text-muted">{labels.stepsNote}</p>}
+      {clock.started && preload && (
+        <div hidden aria-hidden="true">
+          {preload}
+        </div>
+      )}
     </section>
   );
 }

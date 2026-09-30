@@ -1,7 +1,7 @@
 "use client";
 import { useTranslations } from "next-intl";
-import type { ComponentType } from "react";
 import { buttonVariants } from "~/presentation/design_system/buttons/buttonVariants";
+import { OVERVIEW_ARTS, OVERVIEW_SCENES } from "./overviewScenes";
 import PillarAnimationPlayer, {
   type PlayerLabels,
   type SceneLook,
@@ -13,22 +13,9 @@ import {
   PILLARS_OVERVIEW_SCRIPT,
 } from "./pillarsOverviewScript";
 import { sceneStartMs } from "./playhead";
-import ClosingScene from "./scenes/ClosingScene";
-import IntroScene from "./scenes/IntroScene";
-import MindSpiritScene from "./scenes/MindSpiritScene";
-import MovementScene from "./scenes/MovementScene";
-import NutritionScene from "./scenes/NutritionScene";
-import SleepScene from "./scenes/SleepScene";
-import type { SceneProps, SceneTiming } from "./scenes/useSceneTimeline";
-
-const SCENES: Record<OverviewSceneId, ComponentType<SceneProps>> = {
-  intro: IntroScene,
-  sleep: SleepScene,
-  nutrition: NutritionScene,
-  movement: MovementScene,
-  mindSpirit: MindSpiritScene,
-  closing: ClosingScene,
-};
+import { ART_SIZES, artSources } from "./scenes/artSources";
+import IllustratedScene from "./scenes/IllustratedScene";
+import type { SceneTiming } from "./scenes/useSceneTimeline";
 
 /** Los tiempos de cada escena, sacados del guion una sola vez: las escenas los reciben estables. */
 const TIMINGS: readonly SceneTiming[] = PILLARS_OVERVIEW_SCRIPT.map(
@@ -124,9 +111,11 @@ export default function PillarsOverviewAnimation({
       looks={looks}
       labels={labels}
       renderScene={({ sceneIndex, active, steps, feed }) => {
-        const Scene = SCENES[PILLARS_OVERVIEW_SCRIPT[sceneIndex].id];
+        const scene = OVERVIEW_SCENES[PILLARS_OVERVIEW_SCRIPT[sceneIndex].id];
         return (
-          <Scene
+          <IllustratedScene
+            beats={scene.beats}
+            logo={scene.logo}
             timing={TIMINGS[sceneIndex]}
             active={active}
             steps={steps}
@@ -134,6 +123,20 @@ export default function PillarsOverviewAnimation({
           />
         );
       }}
+      preload={OVERVIEW_ARTS.map((art) => {
+        const sources = artSources(art);
+        return (
+          // biome-ignore lint/performance/noImgElement: precarga con el mismo srcSet que usará la escena, para que el navegador elija y guarde el mismo archivo.
+          <img
+            key={art}
+            src={sources.src}
+            srcSet={sources.srcSet}
+            sizes={ART_SIZES}
+            alt=""
+            loading="eager"
+          />
+        );
+      })}
       finale={
         <a
           href={practicesHref}
