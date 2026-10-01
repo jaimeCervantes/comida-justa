@@ -77,11 +77,9 @@ Característica: Cada pilar se explica con su propia animación, bajo el héroe 
     Y cada subtítulo tiene su ilustración, publicada en sus tres anchos, y su texto en español e inglés
     Y el logo solo cierra
 
-  # ── Slices futuros (esqueletos) ──────────────────────────────────────────────────────────────
-
   # ── Slices 4, 5 y 6: los otros tres pilares, con la plantilla de Sueño ──────────────────────
-  # Van con texto y sin sonido: su voz se narra al final, y entonces se miden los tiempos (hoy
-  # estimados con la velocidad del narrador), se mezcla su pista y se exportan sus videos.
+  # Primero llegaron con texto y la voz se agregó al final: con ella se midieron los tiempos de
+  # cada subtítulo, se mezcló su pista y se exportaron sus videos.
 
   @slice-4 @slice-5 @slice-6
   Esquema del escenario: La primera visita a cada pilar reproduce su propia animación
@@ -107,8 +105,14 @@ Característica: Cada pilar se explica con su propia animación, bajo el héroe 
       | Movimiento       | /pilares/movimiento     |
       | Mente y espíritu | /pilares/mente-espiritu |
 
-  @slice-4 @slice-5 @slice-6 @future
-  Escenario: La voz de los otros tres pilares llega al final
-    Dado que ya está narrada la animación de un pilar
-    Cuando se reproduce en su página
-    Entonces tiene botón de sonido y su pista en el idioma de quien mira
+  @slice-4 @slice-5 @slice-6
+  Esquema del escenario: Cada pilar suena con su propia pista, y solo si se pide
+    Dado que la animación de "<pilar>" se reproduce en "<ruta>"
+    Cuando activo el sonido
+    Entonces suena la pista "<pista>"
+
+    Ejemplos:
+      | pilar            | ruta                    | pista                                          |
+      | Alimentación     | /pilares/alimentacion   | /animations/pilares/sonido-alimentacion-es.mp3 |
+      | Movimiento       | /pilares/movimiento     | /animations/pilares/sonido-movimiento-es.mp3   |
+      | Mente y espíritu | /pilares/mente-espiritu | /animations/pilares/sonido-mente-es.mp3        |

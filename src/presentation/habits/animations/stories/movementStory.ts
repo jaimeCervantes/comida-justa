@@ -13,29 +13,27 @@ const MOVEMENT_LOOK = {
  * práctica— sin ningún dato nuevo. El guion completo está en
  * `docs/features/wellbeing/028-2026-09-29-animaciones-de-los-pilares.md`.
  *
- * **Las duraciones están estimadas**, porque su voz llega al final: lo que tardaría el narrador en
- * decir cada frase según la velocidad a la que lee (medida en las 84 frases ya narradas), con la
- * misma regla que las demás (ver `sleepStory.ts`) y 0,25 s de margen. Al narrarla se miden y se
- * ajustan, y hasta entonces va sin sonido. Las ilustraciones las genera
- * `scripts/animations/pillar-movement.manifest.json`.
+ * **Cada duración sale de la narración**, con la misma regla que las demás (ver `sleepStory.ts`).
+ * Su voz es la de Gemini 2.5 Flash TTS (ver `scripts/animations/generate-narration.mjs`). Las
+ * ilustraciones las genera `scripts/animations/pillar-movement.manifest.json`.
  */
 export const MOVEMENT_STORY: PillarStory = {
   pillar: "movement",
   animationId: "pillar-movement",
   slug: "movimiento",
   script: [
-    { id: "before", pillar: "movement", beatDurationsMs: [9750, 7500] },
-    { id: "change", pillar: "movement", beatDurationsMs: [11500, 9000] },
-    { id: "cost", pillar: "movement", beatDurationsMs: [9250, 10750, 8500] },
+    { id: "before", pillar: "movement", beatDurationsMs: [10750, 7750] },
+    { id: "change", pillar: "movement", beatDurationsMs: [11250, 9000] },
+    { id: "cost", pillar: "movement", beatDurationsMs: [9000, 10250, 8250] },
     {
       id: "counterweight",
       pillar: "movement",
-      beatDurationsMs: [10750, 7750, 8250],
+      beatDurationsMs: [11000, 7750, 8000],
     },
     {
       id: "practice",
       pillar: "movement",
-      beatDurationsMs: [10750, 7500, 6750],
+      beatDurationsMs: [10000, 8250, 7250],
     },
   ],
   scenes: {
@@ -368,4 +366,5 @@ export const MOVEMENT_STORY: PillarStory = {
     practice: { ...MOVEMENT_LOOK, glow: ["#22c55e", "#fb923c", "#facc15"] },
   },
   videoAccent: "#4ade80",
+  soundtrackBase: "/animations/pilares/sonido-movimiento",
 };

@@ -196,6 +196,10 @@ Todo sale de la página del pilar; ningún dato nuevo. Entre corchetes, la frase
   diaria de voz se agotó a media producción). Sin voz, cada subtítulo dura lo que tardaría el
   narrador según la velocidad a la que ya lee Algieba (84 frases medidas, más 0,25 s de margen);
   al narrar se miden de verdad y se ajustan, y entonces llegan el botón de sonido y los videos.
+- **La voz llegó el mismo día**, con Gemini 2.5 Flash TTS y la misma voz Algieba: la cuota de Pro
+  no se renovó a tiempo y el usuario prefirió no esperar. Con los tiempos medidos duran 117,5 s
+  (Alimentación), 118,5 s (Movimiento) y 117,25 s (Mente y espíritu). Cómo se hizo y por qué
+  suena un poco distinta de Sueño: `028-2026-09-29-animaciones-de-los-pilares-sonido.md`.
 - La invitación a ver los cuatro pilares ya no aparece en ninguna página de pilar: todas tienen
   su propia animación.
 

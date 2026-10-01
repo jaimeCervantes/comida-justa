@@ -728,3 +728,92 @@ pilares ya no aparece en ninguna página de pilar.
 3. **Pendiente del usuario:** revisar los cuatro guiones en el roadmap; registrar en GA4 la
    dimensión `state`.
 4. **Deuda:** `practicasPropias` sigue dejando publicaciones en la base compartida.
+
+## 2026-09-30 — Slices 4, 5 y 6: la voz de Alimentación, Movimiento y Mente y espíritu
+
+### Objetivo
+
+El último paso de los tres pilares que llegaron con texto: narrarlos, medir cada subtítulo con su
+voz, darles su pista de sonido en la web y su prueba, y exportar sus videos.
+
+### Decisiones y por qué
+
+- **Gemini 2.5 Flash TTS en vez de esperar a Pro.** La cuota de Pro no se renovó a la hora
+  prevista: a las 18:12 dejó pasar cinco pedidos y luego pidió esperar 23 h 46 min. Alcanzaron para
+  dos escenas de Mente y espíritu. El usuario eligió narrar ya con Flash, que tiene su propia
+  cuota, con la misma voz (Algieba) y la misma dirección, sabiendo que puede sonar un poco
+  distinto de Sueño y de la general.
+- **Una animación, un modelo.** Las dos escenas de Mente y espíritu narradas con Pro se rehicieron
+  con Flash, para que la voz no cambie a media pieza. Las tomas de Pro quedaron aparte
+  (`out/narration/{alimentacion,mente}-pro/`) por si algún día se renarra con Pro.
+- **Cada toma se revisa por su voz, no por su largo.** Flash entregó tomas de uno a cinco minutos y
+  medio para una sola frase, una pista muda de 11 s y pausas de 1,5 s a media frase. `generate-narration.mjs` ahora mide
+  la voz real de cada toma (entre 0,055 y 0,12 s por letra) y su pausa más larga a media frase (no
+  más de 1,2 s); la que no cuadra se pide otra vez, hasta tres. También espera cuando topa con el
+  límite por minuto (10 pedidos en Flash), en vez de cortar la corrida.
+- **Tope de 120 s sin recortar texto.** Flash lee más lento que Pro: con sus primeras tomas,
+  Alimentación medía 121,25 s y Movimiento unos 125 s. Se volvieron a narrar siete tomas —las
+  cuatro más lentas y las tres defectuosas de Movimiento— y de cada par se quedó la más ágil que
+  sonara bien.
+  Quedan en **117,5 s** (Alimentación), **118,5 s** (Movimiento) y **117,25 s** (Mente y espíritu).
+- **Su pista y su prueba.** Cada historia declara `soundtrackBase`, y la mezcla de la web (−16 LUFS,
+  3 s de cola, su música propia debajo) queda en `public/animations/pilares/sonido-<pilar>-<idioma>.mp3`.
+  El escenario `@future` de la voz pasa a un esquema real, con la pista de cada pilar en sus
+  ejemplos; las tres pruebas unitarias que se saltaban sin voz ahora corren.
+
+### Tropiezos que conviene recordar
+
+- **La cuota de Pro no se renueva a una hora fija que se pueda programar.** El trabajo agendado para
+  las 18:12 encontró solo cinco pedidos libres.
+- **Flash casi nunca deja pausas claras entre párrafos**, así que narrar por escena le sirve poco:
+  la mayoría de las escenas se narraron frase por frase.
+- **La primera auditoría medía el largo de cada toma, no su voz**, y daba por buena una pista muda
+  de 11 s. La revisión se rehizo midiendo la voz y las pausas, y así quedó en el script.
+
+### Archivos
+
+- Voz: `scripts/animations/generate-narration.mjs` (revisión de tomas, espera por minuto, nota de
+  Flash).
+- Historias: `stories/nutritionStory.ts`, `stories/movementStory.ts`, `stories/mindSpiritStory.ts`
+  (tiempos medidos y `soundtrackBase`).
+- Pistas: `public/animations/pilares/sonido-{alimentacion,movimiento,mente}-{es,en}.mp3`.
+- Pruebas: `animacionDelPilar.feature` y `.spec.ts`.
+- Docs: roadmap (la voz llegó) y la guía de sonido (Flash, su música, cómo bajar de 120 s).
+- Sin versionar: `out/narration/{alimentacion,movimiento,mente}/` y los videos
+  `out/videos/pilar-{alimentacion,movimiento,mente}-{vertical,cuadrado,horizontal}-es.mp4`.
+
+### Validación
+
+- `pnpm run test:run`: **3207/3207** en 300 archivos, ya sin omitidas; `typecheck` sin errores y
+  `lint` limpio (1322 archivos).
+- Auditoría de las 78 tomas finales (3 pilares × 13 frases × 2 idiomas): todas entre 0,058 y
+  0,095 s de voz por letra, y ninguna pausa a media frase pasa de 1,01 s.
+- Mezcla: las seis pistas a −16 LUFS, con picos entre −1,85 y −2,5 dBTP.
+- Revisión en movimiento: un cuadro por subtítulo de cada una (39 cuadros, desde un `next dev`
+  propio en el 3200 con el 3000 libre): subtítulos completos, ilustración de cada uno, etiqueta de
+  la escena correcta y logo solo al cierre.
+- Playwright de las animaciones y de todas las páginas de pilar —11 archivos, **130 pruebas**, en
+  9 tramos con `.next` borrado antes de cada uno y el 3000 libre—: **130/130** a la primera. En el
+  último tramo el servidor registró una vez «Failed to load external module pg-…» (Turbopack, con
+  `.next` recién borrado), sin que fallara ninguna prueba.
+- Videos: los tres de Alimentación (vertical, cuadrado y horizontal, en español) se exportaron
+  antes de integrar. Los de Movimiento y Mente y espíritu se pausaron para correr las pruebas del
+  navegador, porque comparten `.next`, y se retoman después de empujar a `dev`.
+
+### Recap
+
+Los cuatro pilares tienen su animación bajo el héroe de su página, con voz, música propia y botón de
+sonido. Sueño y la general van con la voz de Pro; Alimentación, Movimiento y Mente y espíritu, con
+la de Flash. Los videos de Sueño y de Alimentación están listos; los de Movimiento y Mente y
+espíritu se están exportando.
+
+### Próximos pasos (opciones)
+
+1. **Escuchar las tres pistas o sus videos.** Si la voz de Flash desentona junto a Sueño, se pueden
+   renarrar con Pro cuando su cuota lo permita (unos 10 pedidos por pilar narrando por escena) y
+   volver a medir.
+2. **Terminar los videos** de Movimiento y Mente y espíritu (seis, ya en marcha).
+3. **Videos en inglés**, si se van a publicar: el mismo comando con `--idioma=en`.
+4. **Pendiente del usuario:** revisar los cuatro guiones en el roadmap; registrar en GA4 la
+   dimensión `state`. La animación con Veo (slice 9) sigue esperando su autorización.
+5. **Deuda:** `practicasPropias` sigue dejando publicaciones en la base compartida.

@@ -13,33 +13,31 @@ const MIND_LOOK = {
  * práctica— sin ningún dato nuevo. El guion completo está en
  * `docs/features/wellbeing/028-2026-09-29-animaciones-de-los-pilares.md`.
  *
- * **Las duraciones están estimadas**, porque su voz llega al final: lo que tardaría el narrador en
- * decir cada frase según la velocidad a la que lee (medida en las 84 frases ya narradas), con la
- * misma regla que las demás (ver `sleepStory.ts`) y 0,25 s de margen. Al narrarla se miden y se
- * ajustan, y hasta entonces va sin sonido. Las ilustraciones las genera
- * `scripts/animations/pillar-mind-spirit.manifest.json`.
+ * **Cada duración sale de la narración**, con la misma regla que las demás (ver `sleepStory.ts`).
+ * Su voz es la de Gemini 2.5 Flash TTS (ver `scripts/animations/generate-narration.mjs`). Las
+ * ilustraciones las genera `scripts/animations/pillar-mind-spirit.manifest.json`.
  */
 export const MIND_SPIRIT_STORY: PillarStory = {
   pillar: "mindSpirit",
   animationId: "pillar-mind-spirit",
   slug: "mente-espiritu",
   script: [
-    { id: "before", pillar: "mindSpirit", beatDurationsMs: [8000, 9500] },
-    { id: "change", pillar: "mindSpirit", beatDurationsMs: [11000, 8250] },
+    { id: "before", pillar: "mindSpirit", beatDurationsMs: [8250, 10250] },
+    { id: "change", pillar: "mindSpirit", beatDurationsMs: [10750, 8000] },
     {
       id: "cost",
       pillar: "mindSpirit",
-      beatDurationsMs: [11250, 9750, 8250],
+      beatDurationsMs: [11750, 10250, 8250],
     },
     {
       id: "counterweight",
       pillar: "mindSpirit",
-      beatDurationsMs: [9750, 7500, 8500],
+      beatDurationsMs: [9000, 8500, 8750],
     },
     {
       id: "practice",
       pillar: "mindSpirit",
-      beatDurationsMs: [9750, 8000, 4250],
+      beatDurationsMs: [10250, 8500, 4750],
     },
   ],
   scenes: {
@@ -376,4 +374,5 @@ export const MIND_SPIRIT_STORY: PillarStory = {
     practice: { ...MIND_LOOK, glow: ["#0ea5e9", "#14b8a6", "#fbbf24"] },
   },
   videoAccent: "#38bdf8",
+  soundtrackBase: "/animations/pilares/sonido-mente",
 };

@@ -128,8 +128,8 @@ test.describe("La animación de Sueño en /pilares/sueno", () => {
 
 /**
  * Los otros tres pilares (slices 4–6) usan la plantilla de Sueño: aquí se comprueba lo que cambia
- * de un pilar a otro —que su página la monte, que arranque y adónde lleva—; el resto del
- * reproductor ya lo cubren las pruebas de Sueño. Van sin sonido hasta que llegue su voz.
+ * de un pilar a otro —que su página la monte, que arranque, adónde lleva y qué pista suena—; el
+ * resto del reproductor ya lo cubren las pruebas de Sueño.
  */
 for (const story of [NUTRITION_STORY, MOVEMENT_STORY, MIND_SPIRIT_STORY]) {
   const path = `/pilares/${story.slug}`;
@@ -161,6 +161,16 @@ for (const story of [NUTRITION_STORY, MOVEMENT_STORY, MIND_SPIRIT_STORY]) {
       await player(page).getByTestId("animation-cta").click();
 
       await expect(page.locator(`#${PILLAR_PRACTICE_ANCHOR}`)).toBeInViewport();
+    });
+
+    test("activar el sonido reproduce su propia pista", async ({ page }) => {
+      await openPlayingAnimation(page, path);
+
+      await turnSoundOn(page);
+
+      expect((await soundtrack(page)).path).toBe(
+        `${story.soundtrackBase}-es.mp3`,
+      );
     });
   });
 }
