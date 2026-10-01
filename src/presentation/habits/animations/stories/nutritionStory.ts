@@ -12,32 +12,31 @@ const NUTRITION_LOOK = {
  * la temporada y la cercanía, la cocción limpia y las dos anclas de su práctica— sin ningún dato
  * nuevo. El guion completo está en `docs/features/wellbeing/028-2026-09-29-animaciones-de-los-pilares.md`.
  *
- * Cada duración sale de la narración, con la misma regla que las demás (ver `sleepStory.ts`), salvo
- * las dos últimas del cierre, que en inglés aún no están narradas y van estimadas con la velocidad
- * del narrador. Va sin sonido hasta que llegue su voz completa. Las ilustraciones las genera
- * `scripts/animations/pillar-nutrition.manifest.json`.
+ * **Cada duración sale de la narración**, con la misma regla que las demás (ver `sleepStory.ts`).
+ * Su voz es la de Gemini 2.5 Flash TTS (ver `scripts/animations/generate-narration.mjs`). Las
+ * ilustraciones las genera `scripts/animations/pillar-nutrition.manifest.json`.
  */
 export const NUTRITION_STORY: PillarStory = {
   pillar: "nutrition",
   animationId: "pillar-nutrition",
   slug: "alimentacion",
   script: [
-    { id: "before", pillar: "nutrition", beatDurationsMs: [10000, 5250] },
-    { id: "change", pillar: "nutrition", beatDurationsMs: [11500, 7750] },
+    { id: "before", pillar: "nutrition", beatDurationsMs: [11250, 5000] },
+    { id: "change", pillar: "nutrition", beatDurationsMs: [10500, 8000] },
     {
       id: "cost",
       pillar: "nutrition",
-      beatDurationsMs: [9750, 7500, 8750],
+      beatDurationsMs: [11250, 7500, 9750],
     },
     {
       id: "counterweight",
       pillar: "nutrition",
-      beatDurationsMs: [9750, 5750, 10500],
+      beatDurationsMs: [9500, 6500, 11000],
     },
     {
       id: "practice",
       pillar: "nutrition",
-      beatDurationsMs: [7500, 12500, 5000],
+      beatDurationsMs: [9500, 12500, 5250],
     },
   ],
   scenes: {
@@ -362,4 +361,5 @@ export const NUTRITION_STORY: PillarStory = {
     practice: { ...NUTRITION_LOOK, glow: ["#fb923c", "#f472b6", "#84cc16"] },
   },
   videoAccent: "#fb923c",
+  soundtrackBase: "/animations/pilares/sonido-alimentacion",
 };
