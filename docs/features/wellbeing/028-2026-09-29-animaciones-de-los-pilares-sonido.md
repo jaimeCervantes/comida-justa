@@ -37,6 +37,12 @@
     `generate-music.mjs` escucha cada pieza con Gemini (`gemini-3.1-pro-preview`) antes de
     guardarla: la que trae voces se pide otra vez. Las cuatro se regeneraron; la cálida de la
     general no tenía voces.
+  - **Un pad de sintetizador también puede sonar a coro** («aah»), y en las piezas lentas con
+    cuerdas Lyria lo pone aunque no se le pida. Por eso nocturna y presencia son de piano solo, y la
+    escucha va en ventanas de 15 s traslapadas: con la pieza entera, a Gemini se le escapan las
+    texturas tenues. Esa detección no es estable (el mismo tramo se marca o no según el corte), y
+    gemini-3.8-flash no sirve de juez: describe instrumentos que no están. Escuchar cada pieza
+    cuesta unos 20 pedidos de los 250 diarios de 3.1 Pro.
   - Lleva la marca de agua SynthID de Google.
 
 ## El guion se mide con la voz

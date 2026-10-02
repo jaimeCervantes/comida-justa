@@ -948,3 +948,61 @@ estaba limpia, y las cuatro de cada pilar, con música nueva sin voces.
    Alimentación (los demás ya salen con la nueva).
 3. **Pendiente del usuario:** revisar los cuatro guiones en el roadmap; registrar en GA4 la
    dimensión `state`. La animación con Veo (slice 9) sigue esperando su autorización.
+
+## 2026-10-01 — Lo que faltaba de la música: pads tipo coro en Sueño y Mente y espíritu
+
+### Objetivo
+
+Comprobar que las piezas nuevas no suenen a voces de ninguna forma, no solo que no traigan habla.
+
+### Decisiones y por qué
+
+- **Escuchar por tramos, no la pieza entera.** Escuchadas completas, las cuatro piezas nuevas
+  salieron limpias; por tramos, 3.1 Pro oyó en la nocturna un pad de sintetizador que imita un
+  «aah» (sin voz real) y en presencia, con cortes de 12 s, «un coro aah» hacia el 1:00. Cocina y
+  caminata salieron limpias con todos los cortes (15 y 12 s), y la cálida también.
+- **Esa detección no es estable.** En las piezas lentas, el mismo modelo marca o no «tipo coro»
+  según dónde caiga el corte, y gemini-3.8-flash describe en cocina un coro y hasta «Twinkle,
+  Twinkle, Little Star», que 3.1 Pro no oye: no sirve de juez. El habla clara sí la detectan
+  todos, como prueban los controles con las piezas viejas.
+- **Las piezas lentas pasan a piano solo** (nocturna y presencia): sin cuerdas sostenidas ni pads,
+  no hay nada que pueda sonar a voces. Antes se probaron dos arreglos con cuerdas, y en los dos
+  aparecieron marcas.
+- **La escucha del script va en ventanas de 15 s traslapadas a la mitad**, rechaza también lo que
+  suene a voces aunque sea sintético y, si no puede escuchar (por ejemplo, sin cuota), no da la
+  pieza por buena: deja el borrador sin revisar.
+
+### Tropiezos que conviene recordar
+
+- **La cuota diaria de `gemini-3.1-pro-preview` es de 250 pedidos** y se agotó con las escuchas
+  por tramos (cada pieza son unos 20). La nocturna de piano solo quedó generada pero sin revisar
+  (`out/music/nueva/nocturna-150s.borrador.mp3`) y la de presencia, sin generar.
+
+### Archivos
+
+- `scripts/animations/generate-music.mjs`: ventanas traslapadas, rechazo de texturas vocales
+  sintéticas, piano solo para nocturna y presencia, y alto si no puede escuchar.
+- Docs: guía de sonido y esta bitácora.
+- Sin versionar: los candidatos descartados, en `out/music/con-coro/`.
+
+### Validación
+
+- Cocina y caminata: limpias en todas las escuchas (pieza entera, tramos de 15 s y de 12 s).
+- Nocturna y presencia, las de las pistas del commit `6711dde`: sin habla, pero con marcas «tipo
+  coro» en algunos cortes.
+- `lint` limpio.
+
+### Recap
+
+Lo que el usuario oyó —un hombre hablando en la música, y un coro en Mente y espíritu— ya no está
+en ninguna pista nueva. Alimentación y Movimiento quedaron limpios del todo. Sueño y Mente y
+espíritu llevan una pieza que en algunos tramos puede sonar a un pad tipo coro; su versión de piano
+solo queda para cuando haya cuota de escucha.
+
+### Próximos pasos (opciones)
+
+1. **Con cuota de 3.1 Pro** (al día siguiente): revisar la nocturna de piano solo, generar la de
+   presencia, mezclar las pistas de Sueño y Mente y espíritu y resonorizar sus seis videos.
+2. **Empujar a `dev`** cuando el usuario lo pida: hoy `dev` todavía tiene la música con un hombre
+   hablando.
+3. **Que el usuario escuche** Sueño y Mente y espíritu: su oído decide si el pad molesta.
