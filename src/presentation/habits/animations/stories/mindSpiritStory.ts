@@ -14,30 +14,29 @@ const MIND_LOOK = {
  * `docs/features/wellbeing/028-2026-09-29-animaciones-de-los-pilares.md`.
  *
  * **Cada duración sale de la narración**, con la misma regla que las demás (ver `sleepStory.ts`).
- * Su voz es la de Gemini 2.5 Flash TTS (ver `scripts/animations/generate-narration.mjs`). Las
- * ilustraciones las genera `scripts/animations/pillar-mind-spirit.manifest.json`.
+ * Las ilustraciones las genera `scripts/animations/pillar-mind-spirit.manifest.json`.
  */
 export const MIND_SPIRIT_STORY: PillarStory = {
   pillar: "mindSpirit",
   animationId: "pillar-mind-spirit",
   slug: "mente-espiritu",
   script: [
-    { id: "before", pillar: "mindSpirit", beatDurationsMs: [8250, 10250] },
-    { id: "change", pillar: "mindSpirit", beatDurationsMs: [10750, 8000] },
+    { id: "before", pillar: "mindSpirit", beatDurationsMs: [7750, 8250] },
+    { id: "change", pillar: "mindSpirit", beatDurationsMs: [8500, 6750] },
     {
       id: "cost",
       pillar: "mindSpirit",
-      beatDurationsMs: [11750, 10250, 8250],
+      beatDurationsMs: [11500, 10500, 8250],
     },
     {
       id: "counterweight",
       pillar: "mindSpirit",
-      beatDurationsMs: [9000, 8500, 8750],
+      beatDurationsMs: [8250, 7750, 8500],
     },
     {
       id: "practice",
       pillar: "mindSpirit",
-      beatDurationsMs: [10250, 8500, 4750],
+      beatDurationsMs: [9500, 7250, 4750],
     },
   ],
   scenes: {
