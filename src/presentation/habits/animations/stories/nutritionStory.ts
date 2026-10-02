@@ -13,30 +13,29 @@ const NUTRITION_LOOK = {
  * nuevo. El guion completo está en `docs/features/wellbeing/028-2026-09-29-animaciones-de-los-pilares.md`.
  *
  * **Cada duración sale de la narración**, con la misma regla que las demás (ver `sleepStory.ts`).
- * Su voz es la de Gemini 2.5 Flash TTS (ver `scripts/animations/generate-narration.mjs`). Las
- * ilustraciones las genera `scripts/animations/pillar-nutrition.manifest.json`.
+ * Las ilustraciones las genera `scripts/animations/pillar-nutrition.manifest.json`.
  */
 export const NUTRITION_STORY: PillarStory = {
   pillar: "nutrition",
   animationId: "pillar-nutrition",
   slug: "alimentacion",
   script: [
-    { id: "before", pillar: "nutrition", beatDurationsMs: [11250, 5000] },
-    { id: "change", pillar: "nutrition", beatDurationsMs: [10500, 8000] },
+    { id: "before", pillar: "nutrition", beatDurationsMs: [10000, 5250] },
+    { id: "change", pillar: "nutrition", beatDurationsMs: [11500, 7750] },
     {
       id: "cost",
       pillar: "nutrition",
-      beatDurationsMs: [11250, 7500, 9750],
+      beatDurationsMs: [9750, 7500, 8750],
     },
     {
       id: "counterweight",
       pillar: "nutrition",
-      beatDurationsMs: [9500, 6500, 11000],
+      beatDurationsMs: [9750, 5750, 10500],
     },
     {
       id: "practice",
       pillar: "nutrition",
-      beatDurationsMs: [9500, 12500, 5250],
+      beatDurationsMs: [8000, 11750, 4750],
     },
   ],
   scenes: {

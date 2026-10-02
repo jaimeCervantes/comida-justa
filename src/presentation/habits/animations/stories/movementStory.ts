@@ -14,26 +14,25 @@ const MOVEMENT_LOOK = {
  * `docs/features/wellbeing/028-2026-09-29-animaciones-de-los-pilares.md`.
  *
  * **Cada duración sale de la narración**, con la misma regla que las demás (ver `sleepStory.ts`).
- * Su voz es la de Gemini 2.5 Flash TTS (ver `scripts/animations/generate-narration.mjs`). Las
- * ilustraciones las genera `scripts/animations/pillar-movement.manifest.json`.
+ * Las ilustraciones las genera `scripts/animations/pillar-movement.manifest.json`.
  */
 export const MOVEMENT_STORY: PillarStory = {
   pillar: "movement",
   animationId: "pillar-movement",
   slug: "movimiento",
   script: [
-    { id: "before", pillar: "movement", beatDurationsMs: [10750, 7750] },
-    { id: "change", pillar: "movement", beatDurationsMs: [11250, 9000] },
-    { id: "cost", pillar: "movement", beatDurationsMs: [9000, 10250, 8250] },
+    { id: "before", pillar: "movement", beatDurationsMs: [9500, 7250] },
+    { id: "change", pillar: "movement", beatDurationsMs: [9500, 7500] },
+    { id: "cost", pillar: "movement", beatDurationsMs: [8750, 10000, 7750] },
     {
       id: "counterweight",
       pillar: "movement",
-      beatDurationsMs: [11000, 7750, 8000],
+      beatDurationsMs: [10000, 7500, 8250],
     },
     {
       id: "practice",
       pillar: "movement",
-      beatDurationsMs: [10000, 8250, 7250],
+      beatDurationsMs: [10250, 8750, 5750],
     },
   ],
   scenes: {
