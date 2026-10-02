@@ -42,9 +42,10 @@ fs.mkdirSync(outDir, { recursive: true });
  * una y otra. Va delante del texto con la forma «Say …:», que Gemini 2.5 Pro TTS interpreta como
  * dirección y no lee. (Gemini 3.8 Flash TTS la leía en voz alta y no acepta instrucción de
  * sistema; por eso el modelo por omisión es el 2.5 Pro.) Gemini 2.5 Flash TTS
- * (`--modelo=gemini-2.5-flash-preview-tts`) sí la entiende, y tiene su propia cuota: con él se
- * narraron Alimentación, Movimiento y Mente y espíritu cuando la de Pro se agotó. Una animación se
- * narra entera con un solo modelo, para que la voz suene pareja.
+ * (`--modelo=gemini-2.5-flash-preview-tts`) sí la entiende y tiene su propia cuota, pero suena
+ * distinto y más lento: se probó en Alimentación, Movimiento y Mente y espíritu cuando la cuota de
+ * Pro se agotó, no convenció, y se volvieron a narrar con Pro. Una animación se narra entera con un
+ * solo modelo, para que la voz suene pareja.
  *
  * El acento sale latinoamericano neutro, el de muchos locutores en México: pedir «acento mexicano»
  * no lo vuelve más regional.
@@ -89,25 +90,36 @@ function wav(pcm, sampleRate = 24000) {
 }
 
 async function speak(text, direction = `${DIRECTION}:`, attempt = 1) {
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`,
-    {
-      method: "POST",
-      headers: {
-        "x-goog-api-key": readKey(),
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: `${direction} ${text}` }] }],
-        generationConfig: {
-          responseModalities: ["AUDIO"],
-          speechConfig: {
-            voiceConfig: { prebuiltVoiceConfig: { voiceName: voice } },
-          },
+  let response;
+  try {
+    response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`,
+      {
+        method: "POST",
+        headers: {
+          "x-goog-api-key": readKey(),
+          "content-type": "application/json",
         },
-      }),
-    },
-  );
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: `${direction} ${text}` }] }],
+          generationConfig: {
+            responseModalities: ["AUDIO"],
+            speechConfig: {
+              voiceConfig: { prebuiltVoiceConfig: { voiceName: voice } },
+            },
+          },
+        }),
+      },
+    );
+  } catch (error) {
+    /* Si el servicio tarda más de 5 min en contestar, `fetch` se rinde (es su espera en Node): se
+       vuelve a pedir, hasta tres veces. */
+    if (attempt >= 3) throw error;
+    console.log(
+      `sin respuesta (${error.cause?.code ?? error.message}); se vuelve a pedir`,
+    );
+    return speak(text, direction, attempt + 1);
+  }
   const json = await response.json();
   if (json.error) {
     /* El límite por minuto (Flash TTS: 10 pedidos) dice cuánto esperar: se espera y se vuelve a
