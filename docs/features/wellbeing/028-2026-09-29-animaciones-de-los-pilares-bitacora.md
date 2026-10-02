@@ -869,8 +869,10 @@ al usuario no le gustó cómo sonaban con Flash.
 - Revisión en movimiento: un cuadro por subtítulo de cada una (39 cuadros, desde un `next dev`
   propio en el 3200 con el 3000 libre): subtítulos completos, ilustración de cada uno, etiqueta de
   la escena correcta y logo solo al cierre.
-- Playwright acotado (11 archivos, 130 pruebas, en 9 tramos): **seguía corriendo cuando se integró
-  a `dev`**, porque el usuario pidió no esperarlo; su resultado va en el commit siguiente.
+- Playwright de las animaciones y de todas las páginas de pilar —11 archivos, **130 pruebas**, en
+  9 tramos con `.next` borrado antes de cada uno y el 3000 libre—: **130/130** a la primera. Terminó
+  después de integrar a `dev`, porque el usuario pidió no esperarlo, y su resultado llegó en un
+  commit aparte.
 - Los nueve videos se vuelven a exportar con la voz de Pro después de este commit.
 
 ### Recap
