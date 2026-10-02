@@ -13,13 +13,13 @@
     lo vuelve más regional. Si algún día se quiere un acento claramente mexicano, es locutor humano.
   - Gemini 3.8 Flash TTS no sirve para esto: lee la dirección en voz alta y no acepta instrucción
     de sistema («Developer instruction is not enabled for this model»).
-  - **Alimentación, Movimiento y Mente y espíritu se narraron con Gemini 2.5 Flash TTS**
-    (`--modelo=gemini-2.5-flash-preview-tts`), con la misma voz y la misma dirección: la cuota
-    diaria de Pro (50 pedidos) se agotó y el usuario prefirió no esperar otro día. Flash tiene su
-    propia cuota (10 pedidos por minuto; el script espera solo) y suena un poco distinto: lee algo
-    más lento y a veces entrega tomas que no sirven —minutos de audio por una frase, una pista muda,
-    una pausa de 1,5 s a media frase—, que el script detecta y vuelve a pedir. Cada animación se
-    narra entera con un solo modelo, para que la voz no cambie a media pieza.
+  - **Gemini 2.5 Flash TTS no convenció.** Con él se narraron primero Alimentación, Movimiento y
+    Mente y espíritu (`--modelo=gemini-2.5-flash-preview-tts`, misma voz y misma dirección), cuando
+    la cuota diaria de Pro se agotó. Suena distinto y más lento, y a veces entrega tomas que no
+    sirven —minutos de audio por una frase, una pista muda, una pausa de 1,5 s a media frase—. Al
+    usuario no le gustó, y al día siguiente se volvieron a narrar con Pro. **La voz final es Pro**:
+    si su cuota (50 pedidos al día, se renueva a las 00:00 UTC) se agota, se espera.
+  - Cada animación se narra entera con un solo modelo, para que la voz no cambie a media pieza.
 - **La música:** original, de **Lyria 3.5** (API de Interactions de Gemini), no de un catálogo. Para
   la general se generaron tres propuestas (`calida`, `folk`, `ambiental`) y va la **cálida**: piano
   de fieltro, cuerdas suaves, 78 BPM, re mayor. La de Sueño tiene la suya, **nocturna**: una canción
@@ -54,17 +54,18 @@ distinta y hay que volver a medir**. Lo que se publica en la web sí se versiona
    (y `--idioma=en`). `--seccion` es la animación dentro de `pillarAnimations` en el catálogo
    (`overview` por omisión). Una pista por subtítulo, `<escena>.b<n>.wav`, leída del catálogo sin
    las marcas `<hl>`. `--claves=cost.b2` rehace solo esa frase. Con `--por-escena` narra cada
-   escena en un solo pedido y la corta en sus pausas (rinde la cuota; Flash casi nunca deja pausas
-   claras y cae a frase por frase). Cada toma se revisa: entre 0,055 y 0,12 s de voz por letra y
-   ninguna pausa de más de 1,2 s a media frase; la que no cuadra se pide otra vez, hasta tres.
+   escena en un solo pedido y la corta en sus pausas; la escena que no se deja cortar va frase por
+   frase. Cada toma se revisa: entre 0,055 y 0,12 s de voz por letra y ninguna pausa de más de
+   1,2 s a media frase; la que no cuadra se pide otra vez, hasta tres. Si el servicio tarda más de
+   5 min en contestar, también se vuelve a pedir.
 2. **Preparar y medir:** `node scripts/animations/prepare-narration.mjs --origen=out/narration/sueno`
    quita los silencios de los bordes, acelera la voz un 7 % (el narrador sintético lee pausado; así
    suena natural sin cambiar el tono), deja las pistas en `<origen>/<idioma>-final/` e imprime la
    duración de cada subtítulo con la regla de arriba. Esos números van en el guion
    (`pillarsOverviewScript.ts` o la `PillarStory` del pilar). **Si la animación pasa de 120 s**,
    antes de recortar texto se vuelven a narrar sus tomas más lentas (`--claves`, a otra `--salida`)
-   y se queda la más ágil de cada par que suene bien: así bajaron Alimentación (de 121,25 a 117,5 s)
-   y Movimiento (de ~125 a 118,5 s).
+   y se queda la más ágil de cada par que suene bien: así bajaron, con la voz de Flash, Alimentación
+   (de 121,25 a 117,5 s) y Movimiento (de ~125 a 118,5 s). Con Pro no hizo falta.
 3. **Música:** `node scripts/animations/generate-music.mjs --propuestas=nocturna --duracion=150`
    (unos segundos más de lo que dura la animación con su cierre). El script de exportación sabe qué
    música va con cada animación.
@@ -108,4 +109,6 @@ distinta y hay que volver a medir**. Lo que se publica en la web sí se versiona
 Centavos: la narración de 17 frases en dos idiomas con Gemini TTS, más las muestras de voces, y
 cuatro piezas de Lyria a 0,08 USD cada una (tres propuestas y la versión larga). La de Sueño: 13
 frases en dos idiomas y una pieza de Lyria. Las otras tres: unos 85 pedidos a Flash TTS, contando
-las tomas repetidas, y tres piezas de Lyria (0,24 USD).
+las tomas repetidas, que no se usaron; unos 33 a Pro el segundo día, más las tomas de Pro que ya se
+tenían del primero (casi toda Alimentación y dos escenas de Mente y espíritu), y tres piezas de
+Lyria (0,24 USD).

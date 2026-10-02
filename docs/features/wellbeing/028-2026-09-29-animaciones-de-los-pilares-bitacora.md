@@ -817,3 +817,73 @@ espíritu se están exportando.
 4. **Pendiente del usuario:** revisar los cuatro guiones en el roadmap; registrar en GA4 la
    dimensión `state`. La animación con Veo (slice 9) sigue esperando su autorización.
 5. **Deuda:** `practicasPropias` sigue dejando publicaciones en la base compartida.
+
+## 2026-10-01 — Slices 4, 5 y 6: la voz de Pro para Alimentación, Movimiento y Mente y espíritu
+
+### Objetivo
+
+Volver a narrar los tres pilares con Gemini 2.5 Pro TTS, la voz de Sueño y de la animación general:
+al usuario no le gustó cómo sonaban con Flash.
+
+### Decisiones y por qué
+
+- **Pro, aunque haya que esperar.** El usuario escuchó las tres pistas de Flash y no le gustaron;
+  prefirió esperar a que se renovara la cuota de Pro (a las 00:00 UTC, las 18:00 aquí) antes que
+  probar otro camino, y pidió dejar la voz de Flash en `dev` mientras tanto.
+- **Solo se narró lo que faltaba.** Alimentación ya tenía con Pro 24 de sus 26 tomas y Mente y
+  espíritu sus dos primeras escenas, guardadas aparte el día anterior. Faltaban dos frases de
+  Alimentación, tres escenas de Mente y espíritu y Movimiento completo: unos 33 pedidos de los
+  50 del día.
+- **Los tiempos se vuelven a medir con Pro**, con la misma regla: 111 s (Alimentación), 110,75 s
+  (Movimiento) y 107,5 s (Mente y espíritu), entre 6,5 y casi 10 s menos que con Flash, porque Pro
+  lee más ágil.
+- Las tomas de Flash quedan aparte, sin versionar, en `out/narration/<pilar>-flash/`.
+
+### Tropiezos que conviene recordar
+
+- **Una escena se quedó más de 5 minutos sin respuesta** y `fetch` se rindió
+  (`UND_ERR_HEADERS_TIMEOUT`, la espera de Node). El script ahora vuelve a pedir en ese caso, hasta
+  tres veces; al reintentar, salió a la primera.
+- **Pro tampoco deja siempre pausas claras:** 5 de las 17 escenas no se dejaron cortar y se
+  narraron frase por frase. Aun así cupo de sobra en la cuota del día.
+
+### Archivos
+
+- Historias: `stories/nutritionStory.ts`, `stories/movementStory.ts`, `stories/mindSpiritStory.ts`
+  (tiempos medidos con Pro; su comentario ya no dice Flash).
+- Pistas: `public/animations/pilares/sonido-{alimentacion,movimiento,mente}-{es,en}.mp3`, mezcladas
+  de nuevo.
+- Voz: `scripts/animations/generate-narration.mjs` (vuelve a pedir si el servicio no contesta en
+  5 min; su nota sobre Flash).
+- Docs: roadmap y guía de sonido (Flash no convenció; la voz final es Pro).
+- Sin versionar: `out/narration/{alimentacion,movimiento,mente}/` y los nueve videos
+  `out/videos/pilar-{alimentacion,movimiento,mente}-{vertical,cuadrado,horizontal}-es.mp4`.
+
+### Validación
+
+- `pnpm run test:run`: **3207/3207** en 300 archivos; `typecheck` sin errores y `lint` limpio (1322
+  archivos).
+- Auditoría de las 78 tomas: entre 0,056 y 0,087 s de voz por letra, y ninguna pausa a media frase
+  pasa de 0,99 s.
+- Mezcla: las seis pistas entre −16,05 y −16,11 LUFS, con picos entre −1,61 y −2,41 dBTP.
+- Revisión en movimiento: un cuadro por subtítulo de cada una (39 cuadros, desde un `next dev`
+  propio en el 3200 con el 3000 libre): subtítulos completos, ilustración de cada uno, etiqueta de
+  la escena correcta y logo solo al cierre.
+- Playwright acotado (11 archivos, 130 pruebas, en 9 tramos): **seguía corriendo cuando se integró
+  a `dev`**, porque el usuario pidió no esperarlo; su resultado va en el commit siguiente.
+- Los nueve videos se vuelven a exportar con la voz de Pro después de este commit.
+
+### Recap
+
+Los cuatro pilares tienen su animación bajo el héroe de su página, todas con la voz de Pro
+(Algieba), música propia y botón de sonido. En `dev` sigue la voz de Flash de los tres pilares
+hasta que se empuje este cambio, y sus videos se están rehaciendo con la voz de Pro.
+
+### Próximos pasos (opciones)
+
+1. **Empujar a `dev`** cuando el usuario lo pida: reemplaza en el sitio la voz de Flash.
+2. **Terminar los nueve videos** con la voz de Pro (en marcha).
+3. **Videos en inglés**, si se van a publicar: el mismo comando con `--idioma=en`.
+4. **Pendiente del usuario:** revisar los cuatro guiones en el roadmap; registrar en GA4 la
+   dimensión `state`. La animación con Veo (slice 9) sigue esperando su autorización.
+5. **Deuda:** `practicasPropias` sigue dejando publicaciones en la base compartida.
