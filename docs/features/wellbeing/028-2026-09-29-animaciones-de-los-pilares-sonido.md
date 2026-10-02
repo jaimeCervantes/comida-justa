@@ -30,6 +30,19 @@
   la animación (170 s; salió de 163 s) y la mezcla **alinea su final con el final del video**: el
   cierre de la música es el cierre de la pieza.
   - El filtro de Lyria bloquea «Mexican folk» sin decir por qué; los instrumentos ya dan el color.
+  - **Lyria mete voces si el prompt las evoca**, aunque se le pida instrumental. Con «documentary
+    narrated by a male voice» puso a un hombre hablando en nocturna, cocina y caminata, y con
+    «community… neighbours gathering» un coro en presencia: el usuario lo oyó en la web como un
+    «ruido de voz de fondo» (2026-10-01). Ningún prompt nombra ya voces, narración ni gente, y
+    `generate-music.mjs` escucha cada pieza con Gemini (`gemini-3.1-pro-preview`) antes de
+    guardarla: la que trae voces se pide otra vez. Las cuatro se regeneraron; la cálida de la
+    general no tenía voces.
+  - **Un pad de sintetizador también puede sonar a coro** («aah»), y en las piezas lentas con
+    cuerdas Lyria lo pone aunque no se le pida. Por eso nocturna y presencia son de piano solo, y la
+    escucha va en ventanas de 15 s traslapadas: con la pieza entera, a Gemini se le escapan las
+    texturas tenues. Esa detección no es estable (el mismo tramo se marca o no según el corte), y
+    gemini-3.8-flash no sirve de juez: describe instrumentos que no están. Escuchar cada pieza
+    cuesta unos 20 pedidos de los 250 diarios de 3.1 Pro.
   - Lleva la marca de agua SynthID de Google.
 
 ## El guion se mide con la voz
@@ -67,7 +80,8 @@ distinta y hay que volver a medir**. Lo que se publica en la web sí se versiona
    y se queda la más ágil de cada par que suene bien: así bajaron, con la voz de Flash, Alimentación
    (de 121,25 a 117,5 s) y Movimiento (de ~125 a 118,5 s). Con Pro no hizo falta.
 3. **Música:** `node scripts/animations/generate-music.mjs --propuestas=nocturna --duracion=150`
-   (unos segundos más de lo que dura la animación con su cierre). El script de exportación sabe qué
+   (unos segundos más de lo que dura la animación con su cierre). Cada pieza la escucha Gemini
+   antes de guardarse, y la que trae voces se pide otra vez. El script de exportación sabe qué
    música va con cada animación.
 4. **Mezclar para la web:** con un `next dev` levantado,
    `node scripts/animations/render-video.mjs --solo-sonido --animacion=sueno --idioma=es` (y `en`)
@@ -111,4 +125,5 @@ cuatro piezas de Lyria a 0,08 USD cada una (tres propuestas y la versión larga)
 frases en dos idiomas y una pieza de Lyria. Las otras tres: unos 85 pedidos a Flash TTS, contando
 las tomas repetidas, que no se usaron; unos 33 a Pro el segundo día, más las tomas de Pro que ya se
 tenían del primero (casi toda Alimentación y dos escenas de Mente y espíritu), y tres piezas de
-Lyria (0,24 USD).
+Lyria (0,24 USD). Quitar las voces de la música costó cuatro piezas más (0,32 USD) y unas cuantas
+escuchas de Gemini.
