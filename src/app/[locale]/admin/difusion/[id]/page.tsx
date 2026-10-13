@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { Link } from "~/i18n/navigation";
 import { enterOutreachAdmin, outreachMetadata } from "../adminGate";
+import OutreachBreadcrumbs from "../ui/OutreachBreadcrumbs";
 import { lastPublishedLabel } from "./lastPublishedLabel";
 import { loadOutreachText } from "./loadOutreachText";
 import ChannelLinks from "./ui/ChannelLinks";
@@ -34,14 +35,9 @@ export default async function DifusionKitPage({
 
   return (
     <main>
-      <Link
-        href="/admin/difusion"
-        className="text-sm text-text-support hover:text-highlight"
-      >
-        {t("backToList")}
-      </Link>
+      <OutreachBreadcrumbs steps={[{ label: text.name }]} />
 
-      <div className="mt-2 mb-4 flex flex-wrap items-center justify-between gap-3">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-xl font-bold">{text.name}</h1>
         <div className="flex gap-4">
           <Link

@@ -1095,8 +1095,6 @@
   "outreach": {
     "addProduct": "Add",
     "alreadyAdded": "Already in this post",
-    "backToGroups": "All groups",
-    "backToList": "All posts",
     "channelSummary": "{format} · {days, plural, =0 {no limit} one {every # day} other {every # days}}",
     "closingHint": "Contact details, location and links. It goes after the list, one blank line below.",
     "closingLabel": "Text after the list",

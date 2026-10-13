@@ -1095,8 +1095,6 @@
   "outreach": {
     "addProduct": "Agregar",
     "alreadyAdded": "Ya está en la publicación",
-    "backToGroups": "Todos los grupos",
-    "backToList": "Todas las publicaciones",
     "channelSummary": "{format} · {days, plural, =0 {sin límite} one {cada # día} other {cada # días}}",
     "closingHint": "Contacto, ubicación y enlaces. Va después de la lista, separado por un renglón.",
     "closingLabel": "Texto después de la lista",

@@ -6,6 +6,7 @@ import { createOutreachChannelRepository } from "~/infra/dataAccess/outreach/fac
 import { buttonVariants } from "~/presentation/design_system/buttons/buttonVariants";
 import ListOutreachChannelsUseCase from "~/use_cases/outreach/listOutreachChannelsUseCase";
 import { enterOutreachAdmin } from "../adminGate";
+import OutreachBreadcrumbs from "../ui/OutreachBreadcrumbs";
 import { channelSummary } from "./channelSummary";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -32,14 +33,9 @@ export default async function GruposDifusionPage({
 
   return (
     <main>
-      <Link
-        href="/admin/difusion"
-        className="text-sm text-text-support hover:text-highlight"
-      >
-        {t("backToList")}
-      </Link>
+      <OutreachBreadcrumbs inGroups />
 
-      <h1 className="mt-2 text-xl font-bold mb-2">{t("groupsHeading")}</h1>
+      <h1 className="text-xl font-bold mb-2">{t("groupsHeading")}</h1>
       <p className="mb-6 text-text-support">{t("groupsIntro")}</p>
 
       <Link

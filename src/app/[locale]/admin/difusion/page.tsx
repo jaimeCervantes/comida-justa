@@ -4,6 +4,7 @@ import { createOutreachTextRepository } from "~/infra/dataAccess/outreach/factor
 import { buttonVariants } from "~/presentation/design_system/buttons/buttonVariants";
 import ListOutreachTextsUseCase from "~/use_cases/outreach/listOutreachTextsUseCase";
 import { enterOutreachAdmin, outreachMetadata } from "./adminGate";
+import OutreachBreadcrumbs from "./ui/OutreachBreadcrumbs";
 
 export const generateMetadata = outreachMetadata;
 
@@ -21,6 +22,7 @@ export default async function DifusionPage({
 
   return (
     <main>
+      <OutreachBreadcrumbs />
       <h1 className="text-xl font-bold mb-2">{t("listHeading")}</h1>
 
       <p className="mb-6 text-text-support">

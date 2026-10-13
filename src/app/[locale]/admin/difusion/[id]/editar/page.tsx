@@ -2,6 +2,7 @@ import { getTranslations } from "next-intl/server";
 import { routing } from "~/i18n/routing";
 import { createOutreachProductCatalog } from "~/infra/dataAccess/outreach/factory";
 import { enterOutreachAdmin, outreachMetadata } from "../../adminGate";
+import OutreachBreadcrumbs from "../../ui/OutreachBreadcrumbs";
 import OutreachTextForm from "../../ui/OutreachTextForm";
 import { loadOutreachText } from "../loadOutreachText";
 
@@ -27,6 +28,15 @@ export default async function EditarDifusionPage({
 
   return (
     <main>
+      <OutreachBreadcrumbs
+        steps={[
+          {
+            label: text.name,
+            href: { pathname: "/admin/difusion/[id]", params: { id: text.id } },
+          },
+          { label: t("edit") },
+        ]}
+      />
       <h1 className="text-xl font-bold mb-4">{heading}</h1>
       <OutreachTextForm
         label={heading}
