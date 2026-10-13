@@ -216,6 +216,18 @@ mínimos y el historial. En compraventa sugiere qué producto toca hoy en cada g
 más tiempo sin publicarse ahí. Avisa al llegar a un tope de publicaciones por día; avisa, no
 bloquea. Sin migración.
 
+**Criterios de aceptación.**
+
+1. Cada grupo dice «Ya le toca» o «Todavía no: en N días» («mañana» si falta uno), contando desde
+   lo último que se publicó **ahí, de cualquier texto**, contra sus días mínimos. 0 es sin límite;
+   lo que nunca recibió nada no espera.
+2. Cada grupo de compraventa sugiere «Hoy toca: …»: el pan disponible que lleva más tiempo sin
+   publicarse ahí; lo que nunca se publicó va primero y, entre iguales, manda el orden del texto.
+3. Arriba de la publicación: «Hoy llevas N de 10 publicaciones en grupos», contando todas las de
+   hoy en hora de México. Al llegar a 10 lo dice como aviso, y marcar sigue funcionando.
+4. El tope (10) es un valor prudente, no una cifra de Meta —que no publica ninguna—, y vive en una
+   sola constante (`DAILY_OUTREACH_LIMIT`, `src/domain/outreach/rhythm.ts`).
+
 ### Slice 5 — Pie compartido y versiones que se turnan (migración C, opcional)
 
 **Alcance.** El pie de contacto (ubicación, WhatsApp, bot, pilares) se escribe una vez y lo

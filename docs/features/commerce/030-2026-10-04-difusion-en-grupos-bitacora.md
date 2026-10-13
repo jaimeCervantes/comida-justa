@@ -462,3 +462,59 @@ subir un nivel. Lo demás no cambió.
 
 1. **Slice 4** (sin migración): el ritmo entre grupos.
 2. Integrar a `dev` y empujar, como el resto de la feature.
+
+## 2026-10-13 — Slice 4: el ritmo
+
+### Objetivo
+
+Lo que de verdad evita el bloqueo: que cada grupo diga si ya le toca recibir otra publicación, que
+en compraventa se sugiera qué pan toca hoy en cada grupo, y que el día avise al llegar a un tope.
+
+### Decisiones y por qué
+
+- **El turno cuenta desde lo último publicado en el grupo, de cualquier texto.** La regla de un
+  grupo es «una publicación tuya cada N días», no una por texto. Por eso el repositorio ganó
+  `lastByChannel`, aparte del historial por texto que ya existía.
+- **La sugerencia reparte los panes entre días:** el que lleva más tiempo sin publicarse ahí, con
+  lo nunca publicado primero y el orden del texto como desempate. Solo entre los disponibles: lo
+  agotado no se sugiere, igual que no se anuncia.
+- **El tope es 10 y no es una cifra de Facebook.** Meta no publica ninguna; es un valor prudente
+  para una cuenta personal que publica a mano, en una sola constante para moverlo. Avisa y no
+  impide: el botón de marcar sigue encendido.
+- **«Hoy» se cuenta en hora de México en los dos lados:** el caso de uso recibe la hora y la zona
+  (`KitClock`) en vez de leer el reloj por su cuenta, y la consulta del conteo compara
+  `published_at AT TIME ZONE` contra la fecha de México. Vercel corre en UTC: a las 19:00 de
+  México, contar en UTC partiría la tarde en dos días.
+- **`calendarDate` salió de `lastPublished.ts`** para que el conteo y los días transcurridos usen la
+  misma fecha de calendario.
+- **El e2e del tope afirma «10 o más de 10»**, no «exactamente 10»: cuenta todo lo de hoy en la base
+  compartida, incluidas las publicaciones reales que alguien haya marcado.
+
+### Archivos tocados
+
+- **Dominio:** `rhythm.ts` (turno, sugerencia, conteo) y su prueba; `calendarDate` en
+  `lastPublished.ts`.
+- **Casos de uso:** `getOutreachKitUseCase` con `KitClock`, turnos, sugerencias y conteo; el
+  puerto del historial con `lastByChannel` y `countOn`, y su repositorio en memoria.
+- **Infra:** las dos consultas nuevas en `PostgresOutreachPublicationRepository`.
+- **App:** `ChannelLinks` con el turno y la sugerencia; `DailyPaceNotice`; `loadOutreachText` con
+  la hora de la página y `COMMUNITY_TIME_ZONE`.
+- **Textos:** 5 claves en `outreach`.
+- **E2E:** tres escenarios y `seedOutreachPublication`, que siembra historia con fecha.
+
+### Resultados
+
+- **Vitest del área:** 16 archivos, 147 pruebas. **Suite completa: 316 archivos, 3 360 pruebas.**
+- **Playwright:** **19 de 19** a la primera, en 4.9 min (33 rutas calientes en 95 s).
+- **`typecheck` y `lint`** (1 405 archivos): limpios.
+
+### Recap
+
+La difusión ya lleva el ritmo: cada grupo dice si le toca, cada grupo de compraventa sugiere el pan
+del día y el día avisa al llegar a 10. Solo queda en el roadmap el slice 5, con migración.
+
+### Próximos pasos (opciones)
+
+1. Integrar a `dev` y empujar, como el resto.
+2. **Slice 5** (migración C): pie compartido y versiones del texto que se turnan.
+3. Borrar publicaciones y grupos, que hoy solo se crean y se corrigen.
