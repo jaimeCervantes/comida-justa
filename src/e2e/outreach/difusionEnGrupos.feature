@@ -176,23 +176,58 @@ Feature: Difusión en grupos de Facebook
   # Slice 2 — Artículos de compraventa y fotos
   # ---------------------------------------------------------------------------------------------
 
-  @slice-2 @future
-  Scenario: Cada pan disponible es un artículo de compraventa
-    Given la publicación "Masa madre" ya está guardada
-    When como administrador abro su formato de compraventa
-    Then veo un artículo por pan disponible, con su título, su precio y la descripción de la línea
+  # En un grupo de compraventa Facebook pide un artículo con título, precio y descripción, y al
+  # terminar deja elegir más grupos de compraventa. El precio es uno solo, así que se publica un
+  # artículo por pan: «$96» en un artículo donde casi todo cuesta $125 se siente engañoso.
 
-  @slice-2 @future
-  Scenario: Copio cada campo del artículo por separado
+  # Lo agotado no genera artículo: es la misma regla de la lista, no otra.
+  @slice-2
+  Scenario: Cada pan disponible es un artículo de compraventa con su precio exacto
     Given la publicación "Masa madre" ya está guardada
-    When copio el título, el precio y la descripción de "Pan de Masa Madre de Chocolate"
-    Then cada uno llega al portapapeles tal cual lo pide Facebook
+    And "Pan de masa madre de canela" se queda sin existencias
+    When como administrador la abro
+    Then para grupos de compraventa veo estos artículos, en el orden de la publicación:
+      | título                         | precio |
+      | Pan de Masa Madre Natural      | 96     |
+      | Pan de Masa Madre con Semillas | 125    |
+      | Pan de masa madre de arándanos | 125    |
+      | Pan de Masa Madre de Chocolate | 136    |
+    And la descripción que se ofrece para todos es el texto para grupos
 
-  @slice-2 @future
-  Scenario: Veo y guardo las fotos de cada pan
+  @slice-2
+  Scenario: Copio el título y el precio de un artículo, cada uno por separado
+    Given la publicación "Masa madre" ya está guardada
+    When como administrador la abro y copio el título de "Pan de Masa Madre de Chocolate"
+    Then el portapapeles tiene "Pan de Masa Madre de Chocolate"
+    When copio su precio
+    Then el portapapeles tiene "136"
+
+  @slice-2
+  Scenario: Las fotos de cada pan están a la mano para subirlas
     Given la publicación "Masa madre" ya está guardada
     When como administrador la abro
-    Then veo las fotos de cada pan disponible y puedo guardarlas
+    Then cada artículo enseña las fotos de su pan
+    And cada foto se abre en grande, en otra pestaña, para guardarla
+
+  # El campo de precio de Facebook es un número: sin «$» ni comas, que no siempre acepta.
+  @slice-2 @component
+  Scenario Outline: El precio va como lo pide el campo de Facebook
+    Given un pan disponible a <precio>
+    When se arman sus artículos de compraventa
+    Then su precio se copia como "<se copia>"
+
+    Examples:
+      | precio | se copia |
+      | 96     | 96       |
+      | 140.00 | 140      |
+      | 96.50  | 96.50    |
+      | 1250   | 1250     |
+
+  @slice-2 @component
+  Scenario: Sin nada disponible no hay artículos
+    Given una publicación cuyos panes se agotaron todos
+    When se arman sus artículos de compraventa
+    Then no hay ninguno
 
   # ---------------------------------------------------------------------------------------------
   # Slice 3 — Los grupos y dónde quedó publicada

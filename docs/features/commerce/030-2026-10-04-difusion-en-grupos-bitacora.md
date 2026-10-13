@@ -217,3 +217,76 @@ puede escribir sus textos y copiar el de cada línea con la lista de hoy.
    agente no integra ni empuja sin que se le pida).
 3. **Slice 3** (migración B): los grupos y el historial de dónde quedó publicada. Necesita las URLs
    de los grupos, aunque se pueden dar de alta desde la pantalla cuando exista.
+
+## 2026-10-13 — Slice 2: artículos de compraventa y fotos
+
+### Objetivo
+
+Que la misma publicación sirva para un grupo de compraventa: un artículo por pan disponible, con
+título, precio y descripción listos para copiar campo por campo, y las fotos de cada producto a la
+mano para subirlas.
+
+### Decisiones y por qué
+
+- **Un artículo por producto, derivado del mismo texto.** El artículo de Facebook admite un solo
+  precio, así que la línea entera en un artículo obligaría a anunciar el más barato. Quien escribe
+  sigue escribiendo un solo texto: el título y el precio salen del producto, y la descripción es el
+  texto completo de la línea.
+- **La descripción se ofrece una vez, no en cada tarjeta.** Es la misma en todas; repetir su botón
+  cinco veces alargaba la página sin darle nada a quien publica.
+- **Qué genera artículo lo decide `decideListing`**, la misma regla de la lista: lo que no se
+  anuncia junto tampoco se vende suelto.
+- **`formatPriceField` no es `formatListPrice`.** Una escribe un letrero para leerse («$1,250»); la
+  otra llena un campo numérico («1250»), donde la coma de miles no siempre se acepta.
+- **Las fotos se leen en la misma consulta** (`json_agg` sobre `post_media`, solo `image`, en
+  `sort_order`): diez videos del catálogo quedan fuera porque un artículo pide fotos. Cada
+  miniatura abre la original en otra pestaña; no hay «descargar» porque el atributo `download` no
+  funciona con archivos de otro dominio.
+- **`CopyOutreachText` pasó a `CopyText`**, con una variante discreta para los campos: en la página
+  hay un botón por pan y por campo.
+- **El «Copiar» del texto completo se busca dentro de su sección y con `exact`.** Con «Copiar
+  título», «Copiar precio» y «Copiar descripción» en la misma página, el nombre por subcadena del
+  slice 1 se volvió ambiguo. Fue la prueba encontrando un cambio real de la pantalla, no
+  fragilidad.
+
+### Archivos tocados
+
+- **Dominio:** `src/domain/outreach/listingArticles.ts` y su prueba.
+- **Casos de uso:** `getOutreachKitUseCase.ts` devuelve también `articles`; el puerto toma
+  `ListingSource` (título y fotos) como producto guardado.
+- **Infra:** fotos en `PostgresOutreachTextRepository.productsOf`.
+- **App:** `[id]/page.tsx` en dos secciones (grupos normales y compraventa), `ui/CopyText.tsx`,
+  `ui/ListingArticles.tsx`, `ui/ProductPhotos.tsx` (sobre `Thumbnail`).
+- **Textos:** 13 claves nuevas en `outreach`; `textHeading` se fue con su sección.
+- **E2E:** tres escenarios nuevos y la página con los artículos.
+
+### Comandos clave
+
+```sh
+pnpm exec vitest run src/domain/outreach src/use_cases/outreach "src/app/[locale]/admin/difusion" src/i18n
+rm -rf .next && pnpm exec playwright test src/e2e/outreach --reporter=line   # puerto 3000 libre
+pnpm run lint && pnpm run test:run
+```
+
+### Resultados
+
+- **Vitest del área:** 11 archivos, 90 pruebas. **Suite completa:** 308 archivos en verde.
+- **Playwright:** **10 de 10** a la primera (los 7 del slice 1 y los 3 nuevos), en 3.5 min.
+- **`typecheck` y `lint`:** limpios.
+
+### Desviaciones del roadmap
+
+- El grupo normal enseña la primera foto de cada producto; el roadmap decía «las fotos» sin más.
+
+### Recap
+
+La misma publicación ya sirve para los dos tipos de grupo: el texto completo para uno normal y un
+artículo por pan para uno de compraventa, con su precio exacto y sus fotos. Falta lo que evita el
+bloqueo de verdad: saber en qué grupos ya se publicó y cuándo.
+
+### Próximos pasos (opciones)
+
+1. **Slice 3** (migración B, `0061`): los grupos con su tipo y su ritmo, abrirlos desde la
+   publicación y marcar dónde quedó. La migración ya está escrita en `hazlo-sano-bot`; aplicarla
+   necesita autorización.
+2. Integrar `feat/outreach-texts` a `main` en `hazlo-sano-bot`.

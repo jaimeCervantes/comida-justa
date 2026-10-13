@@ -162,8 +162,15 @@ producto), precio (el de la base) y descripción (el texto completo de la línea
 propio «Copiar». Las fotos de cada producto se ven y se pueden guardar, en los dos formatos. Sin
 migración.
 
-**Criterios (por detallar).** Un artículo por producto disponible, con su precio exacto; lo
-agotado no genera artículo.
+**Criterios de aceptación.**
+
+1. Un artículo por producto disponible, en el orden del texto; lo que queda fuera de la lista
+   tampoco genera artículo (la misma `decideListing`).
+2. El precio va como lo pide el campo de Facebook: `136`, `96.50`, `1250`; sin `$` ni comas.
+3. Título y precio se copian cada uno con su botón; la descripción es el texto completo de la línea
+   y se ofrece una sola vez para todos.
+4. Cada artículo enseña las fotos de su producto (solo imágenes, en su orden) y cada una abre la
+   original en otra pestaña para guardarla. El grupo normal enseña la primera de cada producto.
 
 ### Slice 3 — Los grupos y dónde quedó publicada (migración B)
 

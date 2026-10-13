@@ -108,12 +108,76 @@ export default class OutreachAdmin {
     return (await this.text().textContent()) ?? "";
   }
 
+  /** Lo de un grupo normal: el texto completo, su «Copiar» y sus fotos. */
+  groupPost(): Locator {
+    return this.page.getByTestId("outreach-group-post");
+  }
+
+  /**
+   * El «Copiar» del texto completo. `exact`, y dentro de su sección: en la misma página están
+   * «Copiar título», «Copiar precio» y «Copiar descripción», y el nombre se compara por subcadena.
+   */
   copyButton(): Locator {
-    return this.page.getByRole("button", { name: t.copy });
+    return this.groupPost().getByRole("button", { name: t.copy, exact: true });
   }
 
   copyFeedback(): Locator {
-    return this.page.getByTestId("outreach-copy-feedback");
+    return this.groupPost().getByTestId("outreach-copy-feedback");
+  }
+
+  listings(): Locator {
+    return this.page.getByTestId("outreach-listings");
+  }
+
+  listing(title: string): Locator {
+    return this.listings()
+      .getByTestId("outreach-listing")
+      .filter({ hasText: title });
+  }
+
+  /** Los artículos de compraventa como se leen: título y precio, en su orden. */
+  async readListings(): Promise<Array<{ title: string; price: string }>> {
+    const cards = this.listings().getByTestId("outreach-listing");
+    const result: Array<{ title: string; price: string }> = [];
+
+    for (const card of await cards.all()) {
+      result.push({
+        title:
+          (await card.getByTestId("outreach-listing-title").textContent()) ??
+          "",
+        price:
+          (await card.getByTestId("outreach-listing-price").textContent()) ??
+          "",
+      });
+    }
+
+    return result;
+  }
+
+  async copyListingTitle(title: string): Promise<void> {
+    await this.listing(title)
+      .getByRole("button", { name: t.copyTitle })
+      .click();
+  }
+
+  async copyListingPrice(title: string): Promise<void> {
+    await this.listing(title)
+      .getByRole("button", { name: t.copyPrice })
+      .click();
+  }
+
+  async copyListingDescription(): Promise<void> {
+    await this.listings()
+      .getByTestId("outreach-listing-description")
+      .getByRole("button", { name: t.copyDescription })
+      .click();
+  }
+
+  /** Los enlaces a las fotos de un artículo: cada uno abre la original en otra pestaña. */
+  listingPhotoLinks(title: string): Locator {
+    return this.listing(title).getByRole("link", {
+      name: t.openPhoto.replace("{title}", title),
+    });
   }
 
   /**

@@ -15,6 +15,7 @@ function pan(postId: string, title: string, price: number): CatalogProduct {
     isAvailable: true,
     stockQuantity: 5,
     moderationStatus: "published",
+    photos: [{ url: `https://fotos.example/${postId}.jpg`, alt: title }],
   };
 }
 
@@ -75,6 +76,31 @@ describe("GetOutreachKitUseCase", () => {
     expect(view?.kit.text).not.toContain("Canela");
     expect(view?.kit.excluded).toEqual([
       expect.objectContaining({ label: "Canela", reason: "out-of-stock" }),
+    ]);
+  });
+
+  it("ofrece un artículo de compraventa por pan disponible, con sus fotos", async () => {
+    const { catalog, id, useCase } = await setup();
+    catalog.set("pan-canela", {
+      ...pan("pan-canela", "Pan de masa madre de canela", 125),
+      stockQuantity: 0,
+      isAvailable: false,
+    });
+
+    const view = await useCase.execute(id, LOCALES);
+
+    expect(view?.articles).toEqual([
+      {
+        postId: "pan-natural",
+        title: "Pan de Masa Madre Natural",
+        price: "96",
+        photos: [
+          {
+            url: "https://fotos.example/pan-natural.jpg",
+            alt: "Pan de Masa Madre Natural",
+          },
+        ],
+      },
     ]);
   });
 

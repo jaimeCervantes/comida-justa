@@ -7,13 +7,30 @@ import { Button } from "~/presentation/design_system/buttons/Button";
 
 type Feedback = "copied" | "failed";
 
+interface CopyTextProps {
+  /** Lo que se copia, exacto. */
+  text: string;
+  /** Lo que dice el botón: «Copiar», «Copiar título»… */
+  label: string;
+  /**
+   * `main` es el texto completo de un grupo normal: botón verde y aviso largo. `field` es un campo
+   * de un artículo de compraventa: discreto, porque en una página hay uno por pan y por campo.
+   */
+  variant?: "main" | "field";
+}
+
 /**
  * Copia el texto exacto que se ve. Es el único paso entre la app y el grupo: lo demás lo hace la
  * persona en Facebook, que es lo que mantiene su cuenta a salvo.
  */
-export default function CopyOutreachText({ text }: { text: string }) {
+export default function CopyText({
+  text,
+  label,
+  variant = "main",
+}: CopyTextProps) {
   const t = useTranslations("outreach");
   const [feedback, setFeedback] = useState<Feedback | null>(null);
+  const isMain = variant === "main";
 
   const copy = async (): Promise<void> => {
     try {
@@ -29,11 +46,12 @@ export default function CopyOutreachText({ text }: { text: string }) {
   return (
     <div className="flex flex-wrap items-center gap-3">
       <Button
-        color="green"
+        color={isMain ? "green" : "default"}
+        size={isMain ? "md" : "sm"}
         startIcon={<MdContentCopy aria-hidden />}
         onClick={copy}
       >
-        {t("copy")}
+        {label}
       </Button>
       {feedback ? (
         <p
@@ -41,7 +59,11 @@ export default function CopyOutreachText({ text }: { text: string }) {
           role="status"
           className="text-sm text-text-support"
         >
-          {feedback === "copied" ? t("copied") : t("copyFailed")}
+          {feedback === "failed"
+            ? t("copyFailed")
+            : isMain
+              ? t("copied")
+              : t("copiedShort")}
         </p>
       ) : null}
     </div>

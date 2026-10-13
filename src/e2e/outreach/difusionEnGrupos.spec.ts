@@ -5,6 +5,7 @@ import {
   deleteTestOutreachTexts,
   outreachTablesExist,
 } from "../testUtils/outreachTexts";
+import { readPostMediaBySlug } from "../testUtils/readPostMedia";
 import { seedPrice } from "../testUtils/seedPrice";
 import { seedStock } from "../testUtils/seedStock";
 import {
@@ -25,7 +26,8 @@ import {
 import OutreachAdmin from "./OutreachAdmin";
 
 /**
- * Slice 1 de `difusionEnGrupos.feature`: la publicación para grupos normales.
+ * Slices 1 y 2 de `difusionEnGrupos.feature`: la publicación para grupos normales y los
+ * artículos de compraventa que salen de ella.
  *
  * Nada de esto publica en Facebook —ninguna app puede ya—: se comprueba que el texto que se copia
  * es exactamente el que anuncia lo que hay hoy, al precio de hoy.
@@ -156,6 +158,72 @@ test.describe("Difusión en grupos de Facebook", () => {
     await admin.save(form);
 
     expect(await admin.readText()).toContain("🍫 Chocolate — $136");
+  });
+
+  // --- Slice 2: artículos de compraventa y fotos ---------------------------------------------
+
+  test("Cada pan disponible es un artículo de compraventa con su precio exacto", async ({
+    page,
+  }) => {
+    await page
+      .context()
+      .grantPermissions(["clipboard-read", "clipboard-write"]);
+    const id = await seedMasaMadreText(breads);
+    await seedStock(breadOf(breads, "canela").slug, 0);
+    const admin = new OutreachAdmin(page);
+
+    await admin.open(id);
+
+    expect(await admin.readListings()).toEqual([
+      { title: breadOf(breads, "natural").title, price: "96" },
+      { title: breadOf(breads, "semillas").title, price: "125" },
+      { title: breadOf(breads, "arandanos").title, price: "125" },
+      { title: breadOf(breads, "chocolate").title, price: "136" },
+    ]);
+
+    await admin.copyListingDescription();
+    expect(await admin.readClipboard()).toBe(await admin.readText());
+  });
+
+  test("Copio el título y el precio de un artículo, cada uno por separado", async ({
+    page,
+  }) => {
+    await page
+      .context()
+      .grantPermissions(["clipboard-read", "clipboard-write"]);
+    const id = await seedMasaMadreText(breads);
+    const chocolate = breadOf(breads, "chocolate");
+    const admin = new OutreachAdmin(page);
+    await admin.open(id);
+
+    await admin.copyListingTitle(chocolate.title);
+    await expect(
+      admin.listing(chocolate.title).getByTestId("outreach-copy-feedback"),
+    ).toHaveText(t.copiedShort);
+    expect(await admin.readClipboard()).toBe(chocolate.title);
+
+    await admin.copyListingPrice(chocolate.title);
+    await expect.poll(() => admin.readClipboard()).toBe("136");
+  });
+
+  test("Las fotos de cada pan están a la mano para subirlas", async ({
+    page,
+  }) => {
+    const id = await seedMasaMadreText(breads);
+    const admin = new OutreachAdmin(page);
+
+    await admin.open(id);
+
+    for (const bread of breads) {
+      const stored = await readPostMediaBySlug(bread.slug);
+      const links = admin.listingPhotoLinks(bread.title);
+
+      await expect(links).toHaveCount(stored.length);
+      for (const [index, media] of stored.entries()) {
+        await expect(links.nth(index)).toHaveAttribute("href", media.url);
+        await expect(links.nth(index)).toHaveAttribute("target", "_blank");
+      }
+    }
   });
 
   test("Quien no es administrador no la encuentra", async ({

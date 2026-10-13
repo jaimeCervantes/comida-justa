@@ -1,5 +1,5 @@
+import type { ListingSource } from "~/domain/outreach/listingArticles";
 import type { OutreachTextDraft } from "~/domain/outreach/outreachTextDraft";
-import type { OutreachListedProduct } from "~/domain/outreach/priceList";
 
 /** En qué idioma van los títulos de los productos, y a cuál caer si falta. */
 export interface TitleLocales {
@@ -15,10 +15,11 @@ export interface OutreachTextSummary {
   updatedAt: Date;
 }
 
-/** Un producto del texto con su título, que el formulario necesita y la lista de precios no. */
-export interface StoredOutreachProduct extends OutreachListedProduct {
-  title: string;
-}
+/**
+ * Un producto del texto con su título y sus fotos: los necesitan el formulario y los artículos de
+ * compraventa, no la lista de precios. Las fotos son solo imágenes, en su orden.
+ */
+export type StoredOutreachProduct = ListingSource;
 
 /**
  * Un texto de difusión con sus productos **como están hoy**: precio, inventario y moderación se

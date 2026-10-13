@@ -31,6 +31,8 @@ interface ProductRow {
   stock_quantity: number | null;
   moderation_status: string;
   title: string | null;
+  /** Ya convertido por `pg`: `json_agg` llega como arreglo, no como texto. */
+  photos: Array<{ url: string; alt: string | null }>;
 }
 
 /**
@@ -146,7 +148,8 @@ export default class PostgresOutreachTextRepository
         p.is_available,
         p.stock_quantity,
         p.moderation_status,
-        t.title
+        t.title,
+        m.photos
       FROM outreach_text_items i
       JOIN posts p ON p.id = i.post_id
       LEFT JOIN LATERAL (
@@ -156,6 +159,15 @@ export default class PostgresOutreachTextRepository
         ORDER BY (locale = ${locale}) DESC, (locale = ${fallbackLocale}) DESC
         LIMIT 1
       ) t ON TRUE
+      -- Solo imágenes: un artículo de compraventa pide fotos, y los videos van por otro lado.
+      LEFT JOIN LATERAL (
+        SELECT coalesce(
+          json_agg(json_build_object('url', pm.url, 'alt', pm.alt) ORDER BY pm.sort_order, pm.id),
+          '[]'::json
+        ) AS photos
+        FROM post_media pm
+        WHERE pm.post_id = p.id AND pm.type = 'image'
+      ) m ON TRUE
       WHERE i.outreach_text_id = ${id}::uuid
       ORDER BY i.position ASC
     `);
@@ -172,6 +184,7 @@ export default class PostgresOutreachTextRepository
       moderationStatus: row.moderation_status,
       // Sin traducción en ningún idioma, la etiqueta es lo único legible que queda.
       title: row.title ?? row.label,
+      photos: row.photos,
     }));
   }
 }
