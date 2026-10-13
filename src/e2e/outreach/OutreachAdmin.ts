@@ -245,4 +245,35 @@ export default class OutreachAdmin {
     }
     await scope.getByRole("button", { name: submit }).click();
   }
+
+  /** El botón de marcar la línea entera: el tope del día avisa, pero no lo apaga. */
+  markPostButton(): Locator {
+    return this.groupPost().getByRole("button", {
+      name: t.markPostPublished,
+    });
+  }
+
+  // --- El ritmo -----------------------------------------------------------------------------
+
+  private channelRow(section: Locator, name: string): Locator {
+    return section
+      .getByTestId("outreach-channel-link")
+      .filter({ hasText: name });
+  }
+
+  /** «Ya le toca» o «Todavía no: en N días», junto al enlace del grupo. */
+  channelTurn(section: Locator, name: string): Locator {
+    return this.channelRow(section, name).getByTestId("outreach-channel-turn");
+  }
+
+  /** «Hoy toca: …», solo en los grupos de compraventa. */
+  channelSuggestion(name: string): Locator {
+    return this.channelRow(this.listings(), name).getByTestId(
+      "outreach-channel-suggestion",
+    );
+  }
+
+  dailyPace(): Locator {
+    return this.page.getByTestId("outreach-daily-pace");
+  }
 }

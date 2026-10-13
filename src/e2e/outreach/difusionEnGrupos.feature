@@ -348,23 +348,74 @@ Feature: Difusión en grupos de Facebook
   # Slice 4 — El ritmo
   # ---------------------------------------------------------------------------------------------
 
-  @slice-4 @future
+  # El ritmo es lo que de verdad evita el bloqueo: un grupo saca a quien publica más seguido de lo
+  # que sus reglas permiten, y Facebook toma por spam muchas publicaciones el mismo día. Nada de esto
+  # impide publicar: avisa, y la persona decide.
+
+  # El turno de un grupo cuenta desde lo último que se publicó ahí, sea del texto que sea: la regla
+  # del grupo es «una publicación tuya cada N días», no una por texto.
+  @slice-4
   Scenario: Me dice a qué grupos ya les toca
-    Given un grupo que acepta una publicación cada 7 días y en el que publiqué hace 3
-    When abro la publicación
-    Then ese grupo aparece como "todavía no"
+    Given están dados de alta los grupos normales "Mamás de Orizaba" y "Emprendedores de Orizaba", cada uno acepta una publicación cada 7 días
+    And en "Mamás de Orizaba" publiqué hace 3 días y en "Emprendedores de Orizaba" hace 8
+    And la publicación "Masa madre" ya está guardada
+    When como administrador la abro
+    Then "Mamás de Orizaba" dice "Todavía no: en 4 días"
+    And "Emprendedores de Orizaba" dice "Ya le toca"
 
-  @slice-4 @future
+  @slice-4
   Scenario: En compraventa me sugiere qué pan toca hoy en cada grupo
-    Given en un grupo de compraventa ya publiqué el Natural y las Semillas
-    When abro la publicación para ese grupo
-    Then me sugiere el pan que lleva más tiempo sin publicarse ahí
+    Given está dado de alta el grupo de compraventa "Compra Venta Orizaba"
+    And ahí publiqué el Natural hace 2 días y las Semillas ayer
+    And la publicación "Masa madre" ya está guardada
+    When como administrador la abro
+    Then "Compra Venta Orizaba" sugiere "Hoy toca: Pan de masa madre de arándanos"
 
-  @slice-4 @future
-  Scenario: Me avisa al llegar al tope del día
-    Given hoy ya llegué al tope de publicaciones
-    When abro una publicación
-    Then se me avisa, sin impedirme publicar
+  # El conteo es de todas las publicaciones de hoy, en hora de México, en cualquier grupo.
+  @slice-4
+  Scenario: Me avisa al llegar al tope del día, sin impedirme publicar
+    Given hoy ya marqué 10 publicaciones en grupos
+    And la publicación "Masa madre" ya está guardada
+    When como administrador la abro
+    Then se me avisa que hoy ya llevo 10 de 10 y que mejor siga mañana
+    And sigo pudiendo marcarla publicada
+
+  @slice-4 @component
+  Scenario Outline: A un grupo le toca según cada cuántos días acepta una publicación
+    Given un grupo que acepta una publicación cada <cada> días
+    And la última publicación ahí fue <cuándo>
+    Then se lee "<se lee>"
+
+    Examples:
+      | cada | cuándo      | se lee                 | por qué                                  |
+      | 7    | hace 3 días | Todavía no: en 4 días  | faltan 4 para cumplir los 7              |
+      | 7    | hace 7 días | Ya le toca             | se cumplieron justo                      |
+      | 7    | nunca       | Ya le toca             | nada que esperar                         |
+      | 1    | hoy         | Todavía no: mañana     | una al día y ya hubo hoy                 |
+      | 1    | ayer        | Ya le toca             | una al día y la de ayer ya cuenta        |
+      | 0    | hoy         | Ya le toca             | 0 es sin límite                          |
+
+  @slice-4 @component
+  Scenario Outline: El pan que toca es el que lleva más tiempo sin publicarse en ese grupo
+    Given en un grupo de compraventa la última vez de cada pan disponible fue: <historial>
+    Then hoy toca "<toca>"
+
+    Examples:
+      | historial                                                  | toca      | por qué                                         |
+      | Natural hace 2 días, Semillas ayer, Arándanos nunca        | Arándanos | lo que nunca se publicó va primero              |
+      | Natural hace 5 días, Semillas hace 2 días                  | Natural   | si todo se publicó, el de hace más tiempo       |
+      | Natural nunca, Semillas nunca                              | Natural   | empate: manda el orden de la publicación        |
+
+  @slice-4 @component
+  Scenario Outline: El conteo del día avisa al llegar al tope
+    Given hoy ya marqué <llevas> publicaciones en grupos
+    Then se lee "<se lee>"
+
+    Examples:
+      | llevas | se lee                                                                                       |
+      | 3      | Hoy llevas 3 de 10 publicaciones en grupos.                                                  |
+      | 10     | Hoy ya llevas 10 de 10. Más publicaciones el mismo día se parecen a spam: mejor sigue mañana. |
+      | 12     | Hoy ya llevas 12 de 10. Más publicaciones el mismo día se parecen a spam: mejor sigue mañana. |
 
   # ---------------------------------------------------------------------------------------------
   # Slice 5 — Pie compartido y versiones que se turnan
