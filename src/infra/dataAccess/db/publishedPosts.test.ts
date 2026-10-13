@@ -57,6 +57,11 @@ const ALLOWED: ReadonlyArray<{ file: string; reason: string }> = [
       "Mueve el inventario de un pedido ya hecho. Filtrar aquí sería lo contrario de lo correcto: lo que se pidió se descuenta aunque la publicación se bajara después, y saltárselo dejaría el número mintiendo. No lee para enseñar nada.",
   },
   {
+    file: "outreach/PostgresOutreachTextRepository.ts",
+    reason:
+      "Es el panel de difusión del admin: un pan bajado sigue ligado a su texto y la pantalla tiene que avisar que quedó fuera por eso. Quién sale en la lista lo decide decideListing en el dominio, y nada de esta lectura llega al sitio público.",
+  },
+  {
     file: "posts/PostgresPostQueryRepository.ts",
     reason:
       "Filtra de verdad, pero en el embudo (getPaginatedPosts) y en los reportes de admin, que cuentan TODO a propósito. Cubierto por sus propias pruebas.",

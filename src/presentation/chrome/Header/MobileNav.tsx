@@ -401,10 +401,11 @@ export default function MobileNav({
           </nav>
 
           <div className="flex flex-col gap-3 px-2 pb-6 border-t border-separator pt-6 mt-4">
-            {/* Las mismas dos entradas de administración que ofrece el menú del avatar en
-                escritorio: quien cambie de tamaño de pantalla encuentra lo mismo. */}
+            {/* Las entradas de administración que ofrece el menú del avatar en escritorio: quien
+                cambie de tamaño de pantalla encuentra lo mismo. `flex-wrap` porque ya son tres y
+                en un teléfono no caben en un renglón. */}
             {isAdmin ? (
-              <div className="flex gap-4">
+              <div className="flex flex-wrap gap-x-4 gap-y-2">
                 <Link
                   href="/admin/catalogo"
                   onClick={closeMenu}
@@ -418,6 +419,13 @@ export default function MobileNav({
                   className="text-base text-text-support hover:text-highlight transition-colors"
                 >
                   {t("report")}
+                </Link>
+                <Link
+                  href="/admin/difusion"
+                  onClick={closeMenu}
+                  className="text-base text-text-support hover:text-highlight transition-colors"
+                >
+                  {t("outreach")}
                 </Link>
               </div>
             ) : null}

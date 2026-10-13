@@ -116,6 +116,31 @@ export const pathnames = {
   "/admin/catalogo": { es: "/admin/catalogo", en: "/admin/catalog" },
   "/admin/productos": { es: "/admin/productos", en: "/admin/products" },
   "/admin/moderacion": { es: "/admin/moderacion", en: "/admin/moderation" },
+  "/admin/difusion": { es: "/admin/difusion", en: "/admin/outreach" },
+  "/admin/difusion/nueva": {
+    es: "/admin/difusion/nueva",
+    en: "/admin/outreach/new",
+  },
+  "/admin/difusion/[id]": {
+    es: "/admin/difusion/[id]",
+    en: "/admin/outreach/[id]",
+  },
+  "/admin/difusion/[id]/editar": {
+    es: "/admin/difusion/[id]/editar",
+    en: "/admin/outreach/[id]/edit",
+  },
+  "/admin/difusion/grupos": {
+    es: "/admin/difusion/grupos",
+    en: "/admin/outreach/groups",
+  },
+  "/admin/difusion/grupos/nuevo": {
+    es: "/admin/difusion/grupos/nuevo",
+    en: "/admin/outreach/groups/new",
+  },
+  "/admin/difusion/grupos/[id]/editar": {
+    es: "/admin/difusion/grupos/[id]/editar",
+    en: "/admin/outreach/groups/[id]/edit",
+  },
 
   /* Iguales en los dos idiomas, cada una por su motivo:
      - `/[slug]` y `/page/[page]` son la publicación y la paginación del inicio; el slug se queda
