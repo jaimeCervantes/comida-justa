@@ -1,10 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
   isTestCategoryKey,
+  isTestOutreachName,
   isTestSlug,
   TEST_CATEGORY_PREFIX,
   TEST_SLUG_PREFIX,
   testCategoryKey,
+  testOutreachName,
   testPost,
   testSlug,
 } from "./testSlug";
@@ -127,6 +129,24 @@ describe("isTestCategoryKey", () => {
     "%j is NOT test data",
     (key) => {
       expect(isTestCategoryKey(key)).toBe(false);
+    },
+  );
+});
+
+describe("testOutreachName", () => {
+  it("marca el nombre interno y lo hace único", () => {
+    const a = testOutreachName("Masa madre");
+
+    expect(a).toMatch(/^E2E Masa madre \d+$/);
+    expect(testOutreachName("Masa madre")).not.toBe(a);
+    expect(isTestOutreachName(a)).toBe(true);
+  });
+
+  // El barrido corre sobre la base donde viven los textos reales de quien vende.
+  it.each(["Masa madre", "e2e masa madre", "E2Emasa", "", null])(
+    "no reconoce %j como de prueba",
+    (name) => {
+      expect(isTestOutreachName(name)).toBe(false);
     },
   );
 });

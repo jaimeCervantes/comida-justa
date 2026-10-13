@@ -1,5 +1,9 @@
 import { sql } from "drizzle-orm";
 import { db } from "~/infra/dataAccess/db/connection";
+import {
+  countTestOutreachTexts,
+  deleteTestOutreachTexts,
+} from "./outreachTexts";
 import { SUITE_ACCOUNT_EMAIL } from "./suiteAccount";
 import { TEST_CATEGORY_PREFIX, TEST_SLUG_PREFIX } from "./testSlug";
 
@@ -12,6 +16,8 @@ export interface TestDataCount {
   usernames: number;
   eventAttendances: number;
   habits: number;
+  /** Textos de difusión con el marcador de `testOutreachName`. */
+  outreachTexts: number;
   /** Cuentas que la suite sí crea, las de `@example.com`. */
   accounts: number;
 }
@@ -73,6 +79,10 @@ const TEST_SELLER_IDS = sql`SELECT id FROM sellers WHERE ${TEST_SELLER_MATCH}`;
  * también tiene publicaciones reales del catálogo, y son de la cuenta, no de la corrida.
  */
 export async function sweepTestData(): Promise<TestDataCount> {
+  /* Los textos de difusión ANTES que las publicaciones: sus productos caerían igual por cascada al
+     borrar los panes sembrados, pero el texto se quedaría vacío y sin nadie que lo barra. */
+  const outreachTexts = await deleteTestOutreachTexts();
+
   const eventAttendances = await db.execute(sql`
     DELETE FROM event_attendances
     WHERE user_id IN (SELECT id FROM users WHERE email = ${SUITE_ACCOUNT_EMAIL})
@@ -176,6 +186,7 @@ export async function sweepTestData(): Promise<TestDataCount> {
     usernames: usernames.rowCount ?? 0,
     eventAttendances: eventAttendances.rowCount ?? 0,
     habits: habits.rowCount ?? 0,
+    outreachTexts,
     accounts: accounts.rowCount ?? 0,
   };
 }
@@ -201,7 +212,10 @@ export async function countTestData(): Promise<TestDataCount> {
         WHERE email LIKE ${TEST_ACCOUNT_EMAIL_PATTERN}) AS accounts
   `);
 
-  return result.rows[0] as unknown as TestDataCount;
+  return {
+    ...(result.rows[0] as unknown as Omit<TestDataCount, "outreachTexts">),
+    outreachTexts: await countTestOutreachTexts(),
+  };
 }
 
 /**
@@ -217,7 +231,8 @@ export function describeTestData(count: TestDataCount): string {
     `${count.posts} publicación(es), ${count.categories} categoría(s), ` +
     `${count.branches} sucursal(es), ${count.sellers} tienda(s), ` +
     `${count.usernames} dirección(es) personal(es), ` +
-    `${count.eventAttendances} asistencia(s), ${count.habits} reto(s) y ` +
+    `${count.eventAttendances} asistencia(s), ${count.habits} reto(s), ` +
+    `${count.outreachTexts} texto(s) de difusión y ` +
     `${count.accounts} cuenta(s) de prueba`
   );
 }

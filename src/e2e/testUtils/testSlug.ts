@@ -22,6 +22,13 @@ export const TEST_SLUG_PREFIX = "e2e-";
 /** Las claves de categoría no admiten guion medio: el CHECK de la base exige guion bajo. */
 export const TEST_CATEGORY_PREFIX = "e2e_";
 
+/**
+ * Los textos de difusión no tienen slug: se marcan en el **nombre interno**, que nunca se publica.
+ * Con espacio y en mayúsculas, como el título de `testPost`, para que un texto real que empiece por
+ * «e2e» por casualidad no caiga en el barrido.
+ */
+export const TEST_OUTREACH_PREFIX = "E2E ";
+
 /** Contador para que dos llamadas en el mismo milisegundo no produzcan el mismo slug. */
 let counter = 0;
 
@@ -75,6 +82,15 @@ export function testStore(name: string): {
     handle: generateSellerHandle(storeName),
     phone: `2789${stamp.slice(-6)}`,
   };
+}
+
+/** El nombre interno de un texto de difusión que se crea desde la UI o se siembra. */
+export function testOutreachName(name: string): string {
+  return `${TEST_OUTREACH_PREFIX}${name} ${unique()}`;
+}
+
+export function isTestOutreachName(name: string | null | undefined): boolean {
+  return typeof name === "string" && name.startsWith(TEST_OUTREACH_PREFIX);
 }
 
 export function isTestSlug(slug: string | null | undefined): boolean {
