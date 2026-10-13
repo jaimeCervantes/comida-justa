@@ -203,6 +203,11 @@ export default function UserMenu({
                   {t("moderation")}
                 </Link>
               </DropdownMenu.Item>
+              <DropdownMenu.Item asChild>
+                <Link href="/admin/difusion" className={ITEM_CLASS}>
+                  {t("outreach")}
+                </Link>
+              </DropdownMenu.Item>
             </>
           ) : null}
 

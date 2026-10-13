@@ -93,6 +93,7 @@ describe("When a signed-in visitor opens the avatar menu", () => {
     expect(hrefFor(es.nav.myHabits)).toBe("/habitos");
     expect(hrefFor(es.nav.catalog)).toBe("/admin/catalogo");
     expect(hrefFor(es.nav.report)).toBe("/admin/productos");
+    expect(hrefFor(es.nav.outreach)).toBe("/admin/difusion");
   });
 });
 
