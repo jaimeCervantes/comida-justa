@@ -179,8 +179,20 @@ acepta una publicación tuya y notas de sus reglas. Desde la publicación se abr
 terminar se marcan **todos** los grupos donde quedó, incluidos los que se eligieron en el selector
 «más grupos» de Facebook. Eso es el historial.
 
-**Criterios (por detallar).** El tipo del grupo decide qué formato ofrece la publicación; se
-marcan varios grupos a la vez.
+**Criterios de aceptación.**
+
+1. La migración B (`0061`) existe y está aplicada; el espejo Drizzle se comprueba contra la base.
+2. En `/admin/difusion/grupos` se da de alta y se corrige un grupo: nombre, dirección, tipo, cada
+   cuántos días acepta una publicación (0 = sin límite, hasta 365) y sus reglas. La dirección sin
+   `https://` se completa; cualquier otro esquema (`javascript:`, `data:`) se rechaza, porque se
+   pinta como enlace.
+3. El tipo decide dónde aparece cada grupo en la publicación: el normal junto al texto completo y
+   el de compraventa junto a los artículos, cada uno con su enlace para abrirlo en otra pestaña y
+   sus reglas a la vista.
+4. Se marcan varios grupos de una vez: en los normales, la línea entera; en los de compraventa,
+   cada pan por su lado. Mezclar los formatos se rechaza.
+5. Cada grupo dice la última vez que recibió eso: «hoy», «ayer», «hace N días» o «nunca», en días
+   de calendario de México. En compraventa la última vez es por pan, venga del texto que venga.
 
 ### Slice 4 — El ritmo
 
@@ -229,7 +241,40 @@ Calcada de `0055_2026-09-07_add_post_reactions.py`. Escrita el 2026-10-13 como
 - Sin `CHECK` de longitud ni de vacío: la validación vive en el dominio, que sabe decir por qué.
 - `downgrade`: borrar el índice, luego `outreach_text_items`, luego `outreach_texts`.
 
-Las migraciones B (grupos e historial) y C (pie y versiones) se especifican al llegar a su slice.
+## Especificación de la migración B (para `hazlo-sano-bot`)
+
+Escrita el 2026-10-13 como `alembic/versions/0061_2026-10-13_add_outreach_channels.py` (revisión
+`0061_2026_10_13`, sobre `0060_2026_10_13`), en la misma rama `feat/outreach-texts`.
+
+### `outreach_channels`
+
+| Columna            | Tipo          | Restricciones                   | Para qué                                          |
+| ------------------ | ------------- | ------------------------------- | ------------------------------------------------- |
+| `id`               | `UUID`        | PK, `DEFAULT gen_random_uuid()` |                                                   |
+| `name`             | `TEXT`        | `NOT NULL`                      | Como lo reconoce quien publica.                   |
+| `url`              | `TEXT`        | `NOT NULL`                      | La dirección del grupo.                           |
+| `format`           | `TEXT`        | `NOT NULL`                      | `post` o `listing`; sin `CHECK`, como `posts.kind`. |
+| `min_days_between` | `INTEGER`     | `NOT NULL DEFAULT 7`            | Cada cuántos días acepta una publicación tuya.    |
+| `notes`            | `TEXT`        | `NOT NULL DEFAULT ''`           | Las reglas del grupo.                             |
+| `created_at`       | `TIMESTAMPTZ` | `NOT NULL DEFAULT now()`        |                                                   |
+| `updated_at`       | `TIMESTAMPTZ` | `NOT NULL DEFAULT now()`        | Lo escribe la web al guardar.                     |
+
+### `outreach_publications`
+
+| Columna            | Tipo          | Restricciones                                             | Para qué                                     |
+| ------------------ | ------------- | --------------------------------------------------------- | -------------------------------------------- |
+| `id`               | `UUID`        | PK, `DEFAULT gen_random_uuid()`                           |                                              |
+| `outreach_text_id` | `UUID`        | `NOT NULL`, FK `outreach_texts.id` `ON DELETE CASCADE`    |                                              |
+| `channel_id`       | `UUID`        | `NOT NULL`, FK `outreach_channels.id` `ON DELETE CASCADE` |                                              |
+| `post_id`          | `TEXT`        | `NULL`, FK `posts.id` `ON DELETE CASCADE`                 | El pan vendido suelto; nulo, la línea entera. |
+| `published_at`     | `TIMESTAMPTZ` | `NOT NULL DEFAULT now()`                                  |                                              |
+
+- Índices: `(channel_id, published_at DESC)` para «la última vez en este grupo»,
+  `(outreach_text_id)` y `(post_id)` para los borrados en cascada.
+- Borrar el texto, el grupo o el producto borra su historial: un registro de algo que ya no existe
+  no ayuda a decidir nada.
+
+La migración C (pie y versiones) se especifica al llegar a su slice.
 
 ## Pendientes del usuario
 

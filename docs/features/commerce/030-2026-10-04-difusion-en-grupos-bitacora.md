@@ -290,3 +290,130 @@ bloqueo de verdad: saber en qué grupos ya se publicó y cuándo.
    publicación y marcar dónde quedó. La migración ya está escrita en `hazlo-sano-bot`; aplicarla
    necesita autorización.
 2. Integrar `feat/outreach-texts` a `main` en `hazlo-sano-bot`.
+
+## 2026-10-13 — Slice 3: los grupos y dónde quedó publicada (código listo, migración `0061` sin aplicar)
+
+### Objetivo
+
+Que los grupos sean datos —nombre, dirección, tipo, cada cuántos días aceptan una publicación y sus
+reglas— y que después de publicar se marque en la app dónde quedó cada cosa: la línea entera en
+los grupos normales, cada pan en los de compraventa. Es el historial que evita repetirse.
+
+### Decisiones y por qué
+
+- **El tipo es del grupo y decide dónde aparece.** Un grupo normal sale junto al texto completo y
+  uno de compraventa junto a los artículos. Marcar la línea entera en un grupo de compraventa, o un
+  pan suelto en uno normal, se rechaza: sería un historial que miente.
+- **La última vez de un pan en compraventa cuenta desde cualquier texto.** A un grupo le da igual
+  desde qué publicación se vendió el chocolate; lo que cuenta es que ya lo vio. La de la línea
+  entera sí es del texto.
+- **«Hoy», «ayer» y «hace N días» en días de calendario de México**, contados en el servidor con
+  `COMMUNITY_TIME_ZONE`: lo publicado a las 23:50 fue «ayer» a las 00:10. La función vive en
+  `src/domain/outreach/lastPublished.ts` y **no** importa `localDateAt` de `src/domain/habits/`:
+  difusión es núcleo y hábitos, un módulo del vertical; la dependencia al revés sería la fuga que
+  `AGENTS.md` prohíbe.
+- **La dirección sin `https://` se completa y cualquier otro esquema se rechaza.** Se pinta como
+  enlace: un `javascript:` ahí correría código en la sesión del administrador. Por eso el campo es
+  `type="text"` con `inputMode="url"`, y no `type="url"`, que rechazaría `facebook.com/groups/…`.
+- **Marcar vuelve a la misma página** en vez de actualizar el estado del formulario: lo que se ve
+  después es lo que dice la base.
+- **El kit lee las tablas nuevas**, así que desde este slice **la página de una publicación no
+  funciona sin la `0061`**. El e2e entero se salta mientras falte cualquiera de las dos tablas, y
+  este código no puede integrarse antes que la migración.
+
+### Archivos tocados
+
+- **Migración (otro repo):** `hazlo-sano-bot/alembic/versions/0061_2026-10-13_add_outreach_channels.py`,
+  en `feat/outreach-texts`, **sin commit ni aplicar**.
+- **Dominio:** `channelFormats.ts`, `outreachChannelDraft.ts`, `lastPublished.ts` y sus pruebas.
+- **Casos de uso:** `saveOutreachChannelUseCase`, `listOutreachChannelsUseCase`,
+  `recordOutreachPublicationsUseCase`; `getOutreachKitUseCase` con grupos e historial; dos puertos
+  y sus repositorios en memoria, y `__fakes__/masaMadreWorld.ts`, el mundo mínimo compartido.
+- **Infra:** espejo de las dos tablas y `PostgresOutreachChannelRepository`,
+  `PostgresOutreachPublicationRepository`.
+- **App:** `/admin/difusion/grupos` (lista, `nuevo`, `[id]/editar`) con su acción; en el kit,
+  `ChannelLinks`, `MarkPublishedForm`, `lastPublishedLabel` y la acción `markOutreachPublished`.
+- **Rutas y textos:** tres rutas nuevas (`/en/admin/outreach/groups…`) y 42 claves en `outreach`.
+- **E2E:** cuatro escenarios, `OutreachGroups`, `testUtils/outreachChannels.ts`, barrido de grupos
+  de prueba con guarda de tabla, `labelled.ts` compartido.
+
+### Resultados (antes de aplicar la `0061`)
+
+- **Vitest del área:** dominio, casos de uso y app en verde (174 + 11 de las acciones nuevas).
+  **Suite completa: 314 archivos, 3 334 pruebas, todas en verde.**
+- **`typecheck`, `lint`, `check:directives`:** limpios. **`check:i18n`:** solo el aviso que ya
+  estaba en `publishPracticeDayPost.ts`.
+- **SQL de la `0061` en modo offline:** crea las dos tablas, las tres llaves foráneas con
+  `ON DELETE CASCADE` y los tres índices; `alembic heads` da `0061_2026_10_13` como única cabeza.
+- **Playwright:** 14 escenarios listados, **sin ejecutar**: necesitan la `0061`.
+
+### Recap
+
+El slice 3 está escrito de punta a punta y en verde en todo lo que no necesita las tablas nuevas.
+Para usarlo, y para correr su e2e, hay que aplicar la `0061` en la base compartida, lo que requiere
+autorización explícita.
+
+### Próximos pasos (opciones)
+
+1. **Autorizar la `0061`** (`uv run alembic upgrade head` en `hazlo-sano-bot`): después, comprobar el
+   espejo, correr los 14 escenarios y hacer los commits del slice 3 en los dos repos.
+2. **Slice 4** (sin migración): «ya toca / todavía no» con los días mínimos de cada grupo, el pan
+   que toca hoy en compraventa y el aviso del tope diario.
+
+## 2026-10-13 — Slice 3: la `0061` aplicada, el e2e en verde y el backend integrado
+
+### Objetivo
+
+Cerrar el slice 3: aplicar la `0061`, comprobar el espejo, correr el e2e e integrar las dos
+migraciones a `main` en `hazlo-sano-bot`.
+
+### Decisiones y por qué
+
+- **El usuario autorizó las dos cosas explícitamente** («aplica la migración 0061 e integra y sube
+  la rama de hazlo-sano-bot a main»). Antes se comprobó que la `0061` fuera la única pendiente.
+- **Integración en avance rápido** (`merge --ff-only`): `main` no se había movido, y la historia del
+  backend es lineal. Antes de empujar se corrieron sus validaciones.
+- **Ruff marca 5 errores y 18 archivos sin formato en el backend, todos de antes**: los errores son
+  de `2026_04_19_1424-b2e05c09c374_add_logo_url_to_seller.py` y el formato, de archivos como
+  `app/infrastructure/db/repositories/product.py`. Las dos migraciones nuevas pasan limpias. No se
+  tocó lo ajeno.
+
+### Comandos clave
+
+```sh
+# hazlo-sano-bot
+uv run alembic current && uv run alembic upgrade head        # 0060 -> 0061
+uv run pytest -q                                             # 204 passed
+uv run ruff check alembic/versions/006*.py && uv run ruff format --check alembic/versions/006*.py
+git checkout main && git merge --ff-only feat/outreach-texts && git push origin main
+
+# comida-justa (puerto 3000 libre comprobado)
+rm -rf .next && pnpm exec playwright test src/e2e/outreach --reporter=line
+```
+
+### Resultados
+
+- **Espejo:** coincide con la base en las dos tablas, las tres llaves foráneas con
+  `ON DELETE CASCADE` y los tres índices, el `published_at DESC` incluido.
+- **Playwright: 14 de 14 a la primera**, en 4.4 min (33 rutas calientes en 99 s). El
+  `globalTeardown` no encontró residuos.
+- **Backend:** `pytest` 204 en verde; `main` empujado (`36929d7..9b6f9ba`).
+
+### Escrito en recursos compartidos
+
+- **Base compartida:** la `0061` creó `outreach_channels` y `outreach_publications`, vacías. Se
+  deshace con `uv run alembic downgrade 0060_2026_10_13`, que las borra con lo que tengan.
+- **GitHub:** `hazlo-sano-bot/main` lleva los commits `f59e090` (`0060`) y `9b6f9ba` (`0061`).
+
+### Recap
+
+Los tres primeros slices están terminados y en uso: el texto para grupos normales, los artículos de
+compraventa y los grupos con el historial de dónde quedó cada cosa. Las dos migraciones están
+aplicadas y en `main` del backend.
+
+### Próximos pasos (opciones)
+
+1. **Slice 4** (sin migración): «ya toca / todavía no» con los días mínimos de cada grupo, el pan
+   que toca hoy en compraventa y el aviso del tope diario.
+2. **Dar de alta los grupos reales** en `/admin/difusion/grupos`.
+3. **Slice 5** (migración C): pie compartido y versiones del texto que se turnan.
