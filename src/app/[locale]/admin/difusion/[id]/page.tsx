@@ -1,10 +1,13 @@
 import { getTranslations } from "next-intl/server";
 import { Link } from "~/i18n/navigation";
 import { enterOutreachAdmin, outreachMetadata } from "../adminGate";
+import { lastPublishedLabel } from "./lastPublishedLabel";
 import { loadOutreachText } from "./loadOutreachText";
+import ChannelLinks from "./ui/ChannelLinks";
 import CopyText from "./ui/CopyText";
 import ExcludedProducts from "./ui/ExcludedProducts";
 import ListingArticles from "./ui/ListingArticles";
+import MarkPublishedForm from "./ui/MarkPublishedForm";
 import ProductPhotos from "./ui/ProductPhotos";
 
 export const generateMetadata = outreachMetadata;
@@ -24,7 +27,10 @@ export default async function DifusionKitPage({
   const { locale: rawLocale, id } = await params;
   const locale = await enterOutreachAdmin(rawLocale);
   const t = await getTranslations("outreach");
-  const { text, kit, articles } = await loadOutreachText(id, locale);
+  const { text, kit, articles, postChannels, listingChannels } =
+    await loadOutreachText(id, locale);
+  // Una sola hora para toda la página: «hoy» no puede cambiar de un grupo al siguiente.
+  const now = new Date();
 
   return (
     <main>
@@ -37,12 +43,20 @@ export default async function DifusionKitPage({
 
       <div className="mt-2 mb-4 flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-xl font-bold">{text.name}</h1>
-        <Link
-          href={{ pathname: "/admin/difusion/[id]/editar", params: { id } }}
-          className="font-semibold hover:text-highlight"
-        >
-          {t("edit")}
-        </Link>
+        <div className="flex gap-4">
+          <Link
+            href="/admin/difusion/grupos"
+            className="font-semibold hover:text-highlight"
+          >
+            {t("groupsLink")}
+          </Link>
+          <Link
+            href={{ pathname: "/admin/difusion/[id]/editar", params: { id } }}
+            className="font-semibold hover:text-highlight"
+          >
+            {t("edit")}
+          </Link>
+        </div>
       </div>
 
       <section data-testid="outreach-group-post">
@@ -74,6 +88,41 @@ export default async function DifusionKitPage({
                 />
               ))}
             </div>
+
+            <h3 className="mt-6 mb-2 font-semibold">
+              {t("postGroupsHeading")}
+            </h3>
+            {postChannels.length === 0 ? (
+              <p className="text-sm text-text-support">
+                {t("noPostGroups")}{" "}
+                <Link href="/admin/difusion/grupos" className="font-semibold">
+                  {t("groupsLink")}
+                </Link>
+              </p>
+            ) : (
+              <>
+                <ChannelLinks
+                  channels={postChannels.map(({ channel }) => channel)}
+                />
+                <MarkPublishedForm
+                  outreachTextId={text.id}
+                  postId={null}
+                  hint={t("markPostHint")}
+                  submitLabel={t("markPostPublished")}
+                  channels={postChannels.map(
+                    ({ channel, lastPublishedAt }) => ({
+                      id: channel.id,
+                      name: channel.name,
+                      lastPublished: lastPublishedLabel(
+                        t,
+                        lastPublishedAt,
+                        now,
+                      ),
+                    }),
+                  )}
+                />
+              </>
+            )}
           </>
         ) : (
           <p data-testid="outreach-nothing" className="text-text-support">
@@ -83,7 +132,13 @@ export default async function DifusionKitPage({
       </section>
 
       {kit.text ? (
-        <ListingArticles articles={articles} description={kit.text} />
+        <ListingArticles
+          outreachTextId={text.id}
+          articles={articles}
+          channels={listingChannels}
+          description={kit.text}
+          now={now}
+        />
       ) : null}
 
       <ExcludedProducts excluded={kit.excluded} />

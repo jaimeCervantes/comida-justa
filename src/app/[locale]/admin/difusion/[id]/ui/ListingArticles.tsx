@@ -1,23 +1,36 @@
 import { getTranslations } from "next-intl/server";
-import type { ListingArticle } from "~/domain/outreach/listingArticles";
+import { Link } from "~/i18n/navigation";
+import type { ListingArticleView } from "~/use_cases/outreach/getOutreachKitUseCase";
+import type { OutreachChannel } from "~/use_cases/outreach/ports/IOutreachChannelRepository";
+import { lastPublishedLabel } from "../lastPublishedLabel";
+import ChannelLinks from "./ChannelLinks";
 import CopyText from "./CopyText";
+import MarkPublishedForm from "./MarkPublishedForm";
 import ProductPhotos from "./ProductPhotos";
 
 interface ListingArticlesProps {
-  articles: readonly ListingArticle[];
+  outreachTextId: string;
+  articles: readonly ListingArticleView[];
+  /** Los grupos de compraventa, para abrirlos; cada artículo lleva su historial en ellos. */
+  channels: readonly OutreachChannel[];
   /** El texto completo de la línea: es la descripción de todos los artículos. */
   description: string;
+  /** La hora con la que se cuenta «hoy»: una sola para toda la página. */
+  now: Date;
 }
 
 /**
  * Lo que pide «Vender artículo» en un grupo de compraventa, un pan por tarjeta.
  *
- * La descripción se ofrece **una sola vez**, encima de las tarjetas: es la misma en todas, y
- * repetirla con su botón en cada una alargaría la página sin darle nada nuevo a quien publica.
+ * La descripción y los grupos se ofrecen **una sola vez**, encima de las tarjetas: son los mismos
+ * para todas. Lo que cambia por pan es el título, el precio, las fotos y dónde quedó ya cada uno.
  */
 export default async function ListingArticles({
+  outreachTextId,
   articles,
+  channels,
   description,
+  now,
 }: ListingArticlesProps) {
   if (articles.length === 0) return null;
 
@@ -27,6 +40,18 @@ export default async function ListingArticles({
     <section data-testid="outreach-listings" className="mt-8">
       <h2 className="text-lg font-semibold mb-1">{t("listingsHeading")}</h2>
       <p className="mb-3 text-sm text-text-support">{t("listingsHint")}</p>
+
+      <h3 className="mb-2 font-semibold">{t("listingGroupsHeading")}</h3>
+      {channels.length === 0 ? (
+        <p className="mb-4 text-sm text-text-support">
+          {t("noListingGroups")}{" "}
+          <Link href="/admin/difusion/grupos" className="font-semibold">
+            {t("groupsLink")}
+          </Link>
+        </p>
+      ) : (
+        <ChannelLinks channels={channels} />
+      )}
 
       <div data-testid="outreach-listing-description" className="mb-4">
         <p className="mb-2 text-sm">{t("listingDescription")}</p>
@@ -84,6 +109,28 @@ export default async function ListingArticles({
             </dl>
 
             <ProductPhotos title={article.title} photos={article.photos} />
+
+            {article.channels.length > 0 ? (
+              <div className="mt-4">
+                <MarkPublishedForm
+                  outreachTextId={outreachTextId}
+                  postId={article.postId}
+                  hint={t("markListingHint")}
+                  submitLabel={t("markListingPublished")}
+                  channels={article.channels.map(
+                    ({ channel, lastPublishedAt }) => ({
+                      id: channel.id,
+                      name: channel.name,
+                      lastPublished: lastPublishedLabel(
+                        t,
+                        lastPublishedAt,
+                        now,
+                      ),
+                    }),
+                  )}
+                />
+              </div>
+            ) : null}
           </li>
         ))}
       </ol>

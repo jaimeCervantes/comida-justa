@@ -27,12 +27,20 @@ export default async function DifusionPage({
         {t.rich("listIntro", { b: (chunks) => <strong>{chunks}</strong> })}
       </p>
 
-      <Link
-        href="/admin/difusion/nueva"
-        className={`${buttonVariants({ color: "green" })} mb-6`}
-      >
-        {t("newText")}
-      </Link>
+      <div className="mb-6 flex flex-wrap items-center gap-4">
+        <Link
+          href="/admin/difusion/nueva"
+          className={buttonVariants({ color: "green" })}
+        >
+          {t("newText")}
+        </Link>
+        <Link
+          href="/admin/difusion/grupos"
+          className="font-semibold hover:text-highlight"
+        >
+          {t("groupsLink")}
+        </Link>
+      </div>
 
       {texts.length === 0 ? (
         <p className="text-text-support">{t("emptyList")}</p>

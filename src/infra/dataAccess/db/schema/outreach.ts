@@ -63,3 +63,57 @@ export const outreachTextItems = pgTable(
     ),
   ],
 );
+
+/**
+ * Los grupos donde se difunde. Espejo de la migración `0061_2026_10_13` de `hazlo-sano-bot`.
+ *
+ * `format` es `post` (grupo normal) o `listing` (compraventa): la lista vive en
+ * `src/domain/outreach/channelFormats.ts` y la base no lleva `CHECK`, como `posts.kind`.
+ */
+export const outreachChannels = pgTable("outreach_channels", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  name: text("name").notNull(),
+  url: text("url").notNull(),
+  format: text("format").notNull(),
+  /** Cada cuántos días acepta una publicación de la misma persona. 0 = sin límite. */
+  minDaysBetween: integer("min_days_between").notNull().default(7),
+  /** Las reglas del grupo, tal cual las escribió quien publica. */
+  notes: text("notes").notNull().default(""),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  /** Lo escribe la web al guardar: la base no tiene trigger. */
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+/**
+ * Dónde quedó publicado cada texto, y cuándo. Lo marca la persona después de publicar; nada lo
+ * escribe solo. `postId` es el pan vendido suelto en un grupo de compraventa; nulo, la línea entera.
+ */
+export const outreachPublications = pgTable(
+  "outreach_publications",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    outreachTextId: uuid("outreach_text_id")
+      .notNull()
+      .references(() => outreachTexts.id, { onDelete: "cascade" }),
+    channelId: uuid("channel_id")
+      .notNull()
+      .references(() => outreachChannels.id, { onDelete: "cascade" }),
+    postId: text("post_id").references(() => posts.id, { onDelete: "cascade" }),
+    publishedAt: timestamp("published_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    /* En la base es `(channel_id, published_at DESC)`; Drizzle solo espeja su existencia. */
+    index("ix_outreach_publications_channel_published").on(
+      table.channelId,
+      table.publishedAt,
+    ),
+    index("ix_outreach_publications_text_id").on(table.outreachTextId),
+    index("ix_outreach_publications_post_id").on(table.postId),
+  ],
+);
