@@ -1,12 +1,8 @@
 import { expect, type Locator, type Page } from "@playwright/test";
 import es from "~/i18n/messages/es.json";
+import { labelled } from "./labelled";
 
 const t = es.outreach;
-
-/** Una etiqueta de campo seguida, quizá, del `*` de obligatorio. */
-function labelled(text: string): RegExp {
-  return new RegExp(`^${text}`);
-}
 
 /**
  * `/admin/difusion` visto por quien la usa: el formulario, el texto para grupos y sus avisos.
@@ -199,5 +195,54 @@ export default class OutreachAdmin {
 
   nothingToAnnounce(): Locator {
     return this.page.getByTestId("outreach-nothing");
+  }
+
+  // --- Los grupos y el historial ----------------------------------------------------------
+
+  /** El enlace que abre un grupo, dentro de la sección de su tipo. */
+  channelLink(section: Locator, name: string): Locator {
+    return section
+      .getByTestId("outreach-channel-link")
+      .filter({ hasText: name })
+      .getByRole("link");
+  }
+
+  /** Un grupo en un formulario de «marcar como publicada»: su casilla y su última vez. */
+  private markable(scope: Locator, name: string): Locator {
+    return scope.getByTestId("outreach-channel").filter({ hasText: name });
+  }
+
+  postChannelLast(name: string): Locator {
+    return this.markable(this.groupPost(), name).getByTestId(
+      "outreach-channel-last",
+    );
+  }
+
+  listingChannelLast(title: string, name: string): Locator {
+    return this.markable(this.listing(title), name).getByTestId(
+      "outreach-channel-last",
+    );
+  }
+
+  async markPostPublished(names: readonly string[]): Promise<void> {
+    await this.mark(this.groupPost(), names, t.markPostPublished);
+  }
+
+  async markListingPublished(
+    title: string,
+    names: readonly string[],
+  ): Promise<void> {
+    await this.mark(this.listing(title), names, t.markListingPublished);
+  }
+
+  private async mark(
+    scope: Locator,
+    names: readonly string[],
+    submit: string,
+  ): Promise<void> {
+    for (const name of names) {
+      await this.markable(scope, name).getByRole("checkbox").check();
+    }
+    await scope.getByRole("button", { name: submit }).click();
   }
 }

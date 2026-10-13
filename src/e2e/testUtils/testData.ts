@@ -1,6 +1,10 @@
 import { sql } from "drizzle-orm";
 import { db } from "~/infra/dataAccess/db/connection";
 import {
+  countTestOutreachChannels,
+  deleteTestOutreachChannels,
+} from "./outreachChannels";
+import {
   countTestOutreachTexts,
   deleteTestOutreachTexts,
 } from "./outreachTexts";
@@ -18,6 +22,8 @@ export interface TestDataCount {
   habits: number;
   /** Textos de difusión con el marcador de `testOutreachName`. */
   outreachTexts: number;
+  /** Grupos de difusión con el mismo marcador; su historial cae con ellos. */
+  outreachChannels: number;
   /** Cuentas que la suite sí crea, las de `@example.com`. */
   accounts: number;
 }
@@ -82,6 +88,7 @@ export async function sweepTestData(): Promise<TestDataCount> {
   /* Los textos de difusión ANTES que las publicaciones: sus productos caerían igual por cascada al
      borrar los panes sembrados, pero el texto se quedaría vacío y sin nadie que lo barra. */
   const outreachTexts = await deleteTestOutreachTexts();
+  const outreachChannels = await deleteTestOutreachChannels();
 
   const eventAttendances = await db.execute(sql`
     DELETE FROM event_attendances
@@ -187,6 +194,7 @@ export async function sweepTestData(): Promise<TestDataCount> {
     eventAttendances: eventAttendances.rowCount ?? 0,
     habits: habits.rowCount ?? 0,
     outreachTexts,
+    outreachChannels,
     accounts: accounts.rowCount ?? 0,
   };
 }
@@ -213,8 +221,12 @@ export async function countTestData(): Promise<TestDataCount> {
   `);
 
   return {
-    ...(result.rows[0] as unknown as Omit<TestDataCount, "outreachTexts">),
+    ...(result.rows[0] as unknown as Omit<
+      TestDataCount,
+      "outreachTexts" | "outreachChannels"
+    >),
     outreachTexts: await countTestOutreachTexts(),
+    outreachChannels: await countTestOutreachChannels(),
   };
 }
 
@@ -232,7 +244,8 @@ export function describeTestData(count: TestDataCount): string {
     `${count.branches} sucursal(es), ${count.sellers} tienda(s), ` +
     `${count.usernames} dirección(es) personal(es), ` +
     `${count.eventAttendances} asistencia(s), ${count.habits} reto(s), ` +
-    `${count.outreachTexts} texto(s) de difusión y ` +
+    `${count.outreachTexts} texto(s) de difusión, ` +
+    `${count.outreachChannels} grupo(s) de difusión y ` +
     `${count.accounts} cuenta(s) de prueba`
   );
 }

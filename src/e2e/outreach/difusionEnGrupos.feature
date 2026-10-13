@@ -233,22 +233,78 @@ Feature: Difusión en grupos de Facebook
   # Slice 3 — Los grupos y dónde quedó publicada
   # ---------------------------------------------------------------------------------------------
 
-  @slice-3 @future
+  # Los grupos son datos: se dan de alta desde la pantalla con su dirección, su tipo y cada cuántos
+  # días aceptan una publicación de la misma persona. Nada se publica solo: después de publicar en
+  # Facebook se marca en la app dónde quedó, incluidos los grupos que se eligieron en «más grupos».
+
+  @slice-3
   Scenario: Doy de alta un grupo con su tipo y su ritmo
-    When como administrador doy de alta un grupo con su URL, su tipo y cada cuántos días acepta publicaciones
-    Then aparece en la lista de grupos
+    When como administrador doy de alta este grupo:
+      | campo             | valor                                              |
+      | nombre            | Compra Venta Orizaba                               |
+      | dirección         | https://www.facebook.com/groups/compraventaorizaba |
+      | tipo              | compraventa                                        |
+      | cada cuántos días | 7                                                  |
+      | reglas            | Solo los sábados, con foto y precio                |
+    Then la lista de grupos lo enseña como "Compraventa · cada 7 días"
+    And su nombre abre "https://www.facebook.com/groups/compraventaorizaba" en otra pestaña
 
-  @slice-3 @future
-  Scenario: El tipo del grupo decide el formato que me ofrece
-    Given un grupo normal y uno de compraventa
-    When abro la publicación "Masa madre" para cada uno
-    Then al normal le ofrece el texto completo y al de compraventa los artículos
+  @slice-3
+  Scenario: El tipo del grupo decide en qué formato se ofrece
+    Given están dados de alta el grupo normal "Mamás de Orizaba" y el de compraventa "Compra Venta Orizaba"
+    And la publicación "Masa madre" ya está guardada
+    When como administrador la abro
+    Then "Mamás de Orizaba" aparece junto al texto para grupos normales, con su enlace para abrirlo
+    And "Compra Venta Orizaba" aparece junto a los artículos de compraventa, con su enlace para abrirlo
 
-  @slice-3 @future
-  Scenario: Marco en qué grupos quedó publicada, varios a la vez
-    Given publiqué un artículo y en el selector de Facebook elegí dos grupos más
-    When marco los tres grupos en la app
-    Then el historial de cada grupo dice qué se publicó y cuándo
+  @slice-3
+  Scenario: Marco en qué grupos normales quedó publicada, varios a la vez
+    Given están dados de alta los grupos normales "Mamás de Orizaba" y "Emprendedores de Orizaba"
+    And la publicación "Masa madre" ya está guardada
+    When como administrador la marco publicada en los dos
+    Then cada uno dice que la última vez fue "hoy"
+    And quedan registradas estas publicaciones:
+      | grupo                    | producto           |
+      | Mamás de Orizaba         | (la línea entera)  |
+      | Emprendedores de Orizaba | (la línea entera)  |
+
+  @slice-3
+  Scenario: Marco un artículo publicado en los grupos de compraventa que elegí en Facebook
+    Given están dados de alta los grupos de compraventa "Compra Venta Orizaba" y "Vendo y Compro Córdoba"
+    And la publicación "Masa madre" ya está guardada
+    When como administrador marco el artículo de "Pan de Masa Madre de Chocolate" publicado en los dos
+    Then en su artículo cada grupo dice que la última vez fue "hoy"
+    And en el artículo de "Pan de Masa Madre Natural" los dos siguen en "nunca"
+
+  @slice-3 @component
+  Scenario Outline: Un grupo se guarda solo con lo que Facebook entiende
+    When guardo un grupo con nombre "<nombre>", dirección "<dirección>" y cada "<días>" días
+    Then <resultado>
+
+    Examples:
+      | nombre               | dirección                                          | días | resultado                                                        |
+      | Compra Venta Orizaba | https://www.facebook.com/groups/compraventaorizaba | 7    | se guarda                                                        |
+      | Compra Venta Orizaba | facebook.com/groups/compraventaorizaba             | 7    | se guarda como "https://facebook.com/groups/compraventaorizaba"  |
+      |                      | https://www.facebook.com/groups/compraventaorizaba | 7    | se pide el nombre                                                |
+      | Compra Venta Orizaba | compra venta                                       | 7    | se pide una dirección válida                                     |
+      | Compra Venta Orizaba | javascript:alert(1)                                | 7    | se pide una dirección válida                                     |
+      | Compra Venta Orizaba | https://www.facebook.com/groups/compraventaorizaba | -1   | se piden los días: de 0 a 365                                    |
+      | Compra Venta Orizaba | https://www.facebook.com/groups/compraventaorizaba | 0    | se guarda: 0 es sin límite                                       |
+
+  # «Hoy», «ayer» y «hace N días» se cuentan en días de calendario de México, no en horas: lo
+  # publicado a las 23:50 fue «ayer» a las 00:10.
+  @slice-3 @component
+  Scenario Outline: La última vez se dice en días de calendario
+    Given la última publicación en un grupo fue el "<cuándo>"
+    When se mira el "<ahora>"
+    Then se lee "<se lee>"
+
+    Examples:
+      | cuándo                    | ahora                     | se lee      |
+      | 2026-10-13 09:00 (México) | 2026-10-13 18:00 (México) | hoy         |
+      | 2026-10-12 23:50 (México) | 2026-10-13 00:10 (México) | ayer        |
+      | 2026-10-06 12:00 (México) | 2026-10-13 12:00 (México) | hace 7 días |
+      | (nunca)                   | 2026-10-13 12:00 (México) | nunca       |
 
   # ---------------------------------------------------------------------------------------------
   # Slice 4 — El ritmo
