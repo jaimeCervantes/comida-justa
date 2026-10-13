@@ -122,12 +122,16 @@ export async function seedBreads(seeded: string[]): Promise<SeededBread[]> {
   return breads;
 }
 
-/** «La publicación "Masa madre" ya está guardada». Devuelve su identidad. */
+/**
+ * «La publicación "Masa madre" ya está guardada». Devuelve su identidad. El nombre se puede fijar
+ * cuando el escenario lo afirma; si no, sale de `testOutreachName`, con el marcador del barrido.
+ */
 export async function seedMasaMadreText(
   breads: readonly SeededBread[],
+  name: string = testOutreachName("Masa madre"),
 ): Promise<string> {
   const draft: OutreachTextDraft = {
-    name: testOutreachName("Masa madre"),
+    name,
     opening: OPENING,
     closing: CLOSING,
     items: breads.map((bread) => ({

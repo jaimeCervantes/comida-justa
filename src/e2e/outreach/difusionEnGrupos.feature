@@ -307,6 +307,44 @@ Feature: Difusión en grupos de Facebook
       | (nunca)                   | 2026-10-13 12:00 (México) | nunca       |
 
   # ---------------------------------------------------------------------------------------------
+  # Slice 3.1 — Migas de pan
+  # ---------------------------------------------------------------------------------------------
+
+  # Salió de probarlo: dentro de una publicación o de un grupo no había forma de saber dónde se
+  # estaba ni de subir un nivel, más que el enlace de «volver» de cada pantalla. Las migas usan el
+  # mismo componente que el catálogo y el detalle de una publicación.
+
+  @slice-3-1
+  Scenario: Las migas de pan dicen dónde estoy y me suben un nivel
+    Given la publicación "Masa madre" ya está guardada
+    When como administrador la abro
+    Then las migas de pan dicen "Inicio / Difusión en grupos / Masa madre"
+    When pulso "Difusión en grupos" en ellas
+    Then estoy en la lista de publicaciones para grupos
+
+  @slice-3-1
+  Scenario: Desde el alta de un grupo vuelvo a la lista de grupos
+    When como administrador abro el alta de un grupo
+    Then las migas de pan dicen "Inicio / Difusión en grupos / Grupos / Nuevo grupo"
+    When pulso "Grupos" en ellas
+    Then estoy en la lista de grupos
+
+  @slice-3-1 @component
+  Scenario Outline: Cada pantalla de difusión tiene su camino
+    When abro <pantalla>
+    Then las migas de pan dicen "<camino>"
+
+    Examples:
+      | pantalla                             | camino                                                      |
+      | la lista de publicaciones            | Inicio / Difusión en grupos                                 |
+      | una publicación nueva                | Inicio / Difusión en grupos / Nueva publicación             |
+      | la publicación "Masa madre"          | Inicio / Difusión en grupos / Masa madre                    |
+      | la edición de "Masa madre"           | Inicio / Difusión en grupos / Masa madre / Editar           |
+      | la lista de grupos                   | Inicio / Difusión en grupos / Grupos                        |
+      | el alta de un grupo                  | Inicio / Difusión en grupos / Grupos / Nuevo grupo          |
+      | la edición de "Compra Venta Orizaba" | Inicio / Difusión en grupos / Grupos / Compra Venta Orizaba |
+
+  # ---------------------------------------------------------------------------------------------
   # Slice 4 — El ritmo
   # ---------------------------------------------------------------------------------------------
 
