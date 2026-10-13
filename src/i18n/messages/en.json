@@ -1105,6 +1105,8 @@
     "copyFailed": "Couldn't copy. Select the text and copy it by hand.",
     "copyPrice": "Copy price",
     "copyTitle": "Copy title",
+    "dailyPace": "Today you have {count} of {limit} group posts.",
+    "dailyPaceReached": "You already have {count} of {limit} today. More posts on the same day look like spam: better continue tomorrow.",
     "edit": "Edit",
     "editGroup": "Edit",
     "editGroupHeading": "Edit “{name}”",
@@ -1192,6 +1194,9 @@
     "saving": "Saving…",
     "searchLabel": "Search product",
     "searchPlaceholder": "For example, sourdough",
+    "suggestedToday": "Up today: {title}",
+    "turnDue": "Its turn now",
+    "turnWait": "{days, plural, =1 {Not yet: tomorrow} other {Not yet: in # days}}",
     "whenDays": "{days, plural, =0 {today} =1 {yesterday} other {# days ago}}",
     "whenNever": "never"
   },

@@ -1,4 +1,7 @@
-import type { PublicationStamp } from "~/domain/outreach/lastPublished";
+import {
+  calendarDate,
+  type PublicationStamp,
+} from "~/domain/outreach/lastPublished";
 import type IOutreachPublicationRepository from "../ports/IOutreachPublicationRepository";
 import type { NewOutreachPublication } from "../ports/IOutreachPublicationRepository";
 
@@ -43,5 +46,27 @@ export default class InMemoryOutreachPublicationRepository
         postId: publication.postId,
         lastPublishedAt: publication.publishedAt,
       }));
+  }
+
+  async lastByChannel(): Promise<Map<string, Date>> {
+    const last = new Map<string, Date>();
+
+    for (const { channelId, publishedAt } of this.recorded) {
+      const known = last.get(channelId);
+      if (!known || known < publishedAt) last.set(channelId, publishedAt);
+    }
+
+    return last;
+  }
+
+  async countOn(date: string, timeZone: string): Promise<number> {
+    return this.recorded.filter(
+      ({ publishedAt }) => calendarDate(publishedAt, timeZone) === date,
+    ).length;
+  }
+
+  /** Una publicación con su hora, para sembrar historia que la prueba necesita en el pasado. */
+  recordAt(publication: NewOutreachPublication, publishedAt: Date): void {
+    this.recorded.push({ ...publication, publishedAt });
   }
 }

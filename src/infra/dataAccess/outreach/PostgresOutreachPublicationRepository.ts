@@ -44,4 +44,36 @@ export default class PostgresOutreachPublicationRepository
       lastPublishedAt: new Date(row.last_published_at),
     }));
   }
+
+  /** Lo usa el índice `(channel_id, published_at DESC)` de la migración `0061`. */
+  async lastByChannel(): Promise<Map<string, Date>> {
+    const raw = await db.execute(sql`
+      SELECT channel_id, max(published_at) AS last_published_at
+      FROM outreach_publications
+      GROUP BY channel_id
+    `);
+
+    return new Map(
+      (
+        raw.rows as unknown as Array<{
+          channel_id: string;
+          last_published_at: Date | string;
+        }>
+      ).map((row) => [row.channel_id, new Date(row.last_published_at)]),
+    );
+  }
+
+  /**
+   * El día se compara en la zona de quien publica, no en UTC: a las 19:00 de México ya es mañana
+   * en UTC, y contar en UTC partiría la tarde de hoy en dos días.
+   */
+  async countOn(date: string, timeZone: string): Promise<number> {
+    const raw = await db.execute(sql`
+      SELECT count(*)::int AS total
+      FROM outreach_publications
+      WHERE (published_at AT TIME ZONE ${timeZone})::date = ${date}::date
+    `);
+
+    return (raw.rows as Array<{ total: number }>)[0]?.total ?? 0;
+  }
 }

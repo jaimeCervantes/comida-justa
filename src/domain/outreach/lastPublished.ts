@@ -8,18 +8,23 @@ export interface PublicationStamp {
 
 const DAY_MS = 86_400_000;
 
-/** El día de calendario de un instante en esa zona, como número de días desde 1970. */
-function calendarDay(instant: Date, timeZone: string): number {
+/** La fecha de calendario de un instante en esa zona: `2026-10-13`. */
+export function calendarDate(instant: Date, timeZone: string): string {
   const parts = new Intl.DateTimeFormat("en-US", {
     timeZone,
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
   }).formatToParts(instant);
-  const read = (type: Intl.DateTimeFormatPartTypes): number =>
-    Number(parts.find((part) => part.type === type)?.value);
+  const read = (type: Intl.DateTimeFormatPartTypes): string =>
+    parts.find((part) => part.type === type)?.value ?? "";
 
-  return Date.UTC(read("year"), read("month") - 1, read("day")) / DAY_MS;
+  return `${read("year")}-${read("month")}-${read("day")}`;
+}
+
+/** El día de calendario de un instante en esa zona, como número de días desde 1970. */
+function calendarDay(instant: Date, timeZone: string): number {
+  return Date.parse(`${calendarDate(instant, timeZone)}T00:00:00Z`) / DAY_MS;
 }
 
 /**

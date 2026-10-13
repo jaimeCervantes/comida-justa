@@ -1,14 +1,24 @@
 import { getTranslations } from "next-intl/server";
+import type { ChannelTurn } from "~/domain/outreach/rhythm";
 import type { OutreachChannel } from "~/use_cases/outreach/ports/IOutreachChannelRepository";
 
+/** Un grupo para abrir: su turno y, en compraventa, el pan que toca hoy ahí. */
+export interface ChannelLinkItem {
+  channel: OutreachChannel;
+  turn: ChannelTurn;
+  /** Solo en compraventa; nulo si no queda nada disponible que sugerir. */
+  suggestionTitle?: string | null;
+}
+
 /**
- * Los grupos de un tipo, para abrirlos y publicar a mano. Cada uno lleva sus reglas a la vista: es
- * lo que hay que respetar para que el grupo no saque a quien publica.
+ * Los grupos de un tipo, para abrirlos y publicar a mano. Cada uno lleva a la vista lo que hay que
+ * respetar para que el grupo no saque a quien publica: su turno —«ya le toca» o cuántos días
+ * faltan— y sus reglas. El turno avisa y no impide nada.
  */
 export default async function ChannelLinks({
-  channels,
+  items,
 }: {
-  channels: readonly OutreachChannel[];
+  items: readonly ChannelLinkItem[];
 }) {
   const t = await getTranslations("outreach");
 
@@ -17,7 +27,7 @@ export default async function ChannelLinks({
       data-testid="outreach-channel-links"
       className="mb-4 flex flex-col gap-2"
     >
-      {channels.map((channel) => (
+      {items.map(({ channel, turn, suggestionTitle }) => (
         <li
           key={channel.id}
           data-testid="outreach-channel-link"
@@ -33,6 +43,24 @@ export default async function ChannelLinks({
           >
             {t("openGroup")}
           </a>
+          <span
+            data-testid="outreach-channel-turn"
+            className={
+              turn.due
+                ? "text-sm font-semibold text-pw-green"
+                : "text-sm text-text-support"
+            }
+          >
+            {turn.due ? t("turnDue") : t("turnWait", { days: turn.inDays })}
+          </span>
+          {suggestionTitle ? (
+            <span
+              data-testid="outreach-channel-suggestion"
+              className="w-full text-sm"
+            >
+              {t("suggestedToday", { title: suggestionTitle })}
+            </span>
+          ) : null}
           {channel.notes ? (
             <span className="w-full whitespace-pre-line text-sm text-text-support">
               {channel.notes}
