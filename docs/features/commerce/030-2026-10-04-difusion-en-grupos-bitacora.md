@@ -417,3 +417,48 @@ aplicadas y en `main` del backend.
    que toca hoy en compraventa y el aviso del tope diario.
 2. **Dar de alta los grupos reales** en `/admin/difusion/grupos`.
 3. **Slice 5** (migración C): pie compartido y versiones del texto que se turnan.
+
+## 2026-10-13 — Slice 3.1: migas de pan
+
+### Objetivo
+
+Que cada pantalla de difusión diga dónde se está y deje subir un nivel. Lo pidió el usuario al
+probarlo: «creo que nos faltan breadcrumbs para estas funcionalidades».
+
+### Decisiones y por qué
+
+- **El mismo componente que el catálogo**, `Breadcrumbs`, con las mismas etiquetas comunes
+  (`common.home`, `common.breadcrumb`). Un segundo componente de migas sería la duplicación que
+  `AGENTS.md` prohíbe.
+- **El camino se arma en una sola función** (`outreachTrail` y `groupsTrail`) y un componente de
+  servidor (`OutreachBreadcrumbs`) pone el tramo común: cada página solo dice su final, así las siete
+  no pueden contradecirse.
+- **Las migas sustituyen a los enlaces de «Todas las publicaciones»** del kit y de la lista de
+  grupos; sus claves (`backToList`, y `backToGroups`, que nunca se usó) salieron del catálogo.
+- **Sin JSON-LD**: `/admin` no se indexa (`robots: noindex`), así que no hay `BreadcrumbList` que
+  declarar.
+- **Antes de correr el e2e se comprobó el 3000**, y que los «cuatro procesos `next dev`» que
+  aparecían eran la propia consulta de PowerShell, cuyo comando contenía esas palabras.
+
+### Archivos tocados
+
+- `src/app/[locale]/admin/difusion/outreachTrail.ts` y su prueba; `ui/OutreachBreadcrumbs.tsx`.
+- Las siete páginas de `/admin/difusion`; claves fuera en `es.json`/`en.json`.
+- E2E: `src/e2e/outreach/breadcrumbs.ts`, dos escenarios, y `seedMasaMadreText` acepta un nombre.
+
+### Resultados
+
+- **Vitest del área:** 8 archivos, 54 pruebas (8 de la corrida de escritorio de los caminos).
+  **Suite completa: 315 archivos, 3 342 pruebas, todas en verde.**
+- **Playwright:** **16 de 16** en 4.7 min (33 rutas calientes en 98 s).
+- **`typecheck` y `lint`:** limpios.
+
+### Recap
+
+Las pantallas de difusión ya se recorren como el resto del sitio: cada una dice su camino y deja
+subir un nivel. Lo demás no cambió.
+
+### Próximos pasos (opciones)
+
+1. **Slice 4** (sin migración): el ritmo entre grupos.
+2. Integrar a `dev` y empujar, como el resto de la feature.
