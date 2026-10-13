@@ -194,6 +194,21 @@ terminar se marcan **todos** los grupos donde quedó, incluidos los que se eligi
 5. Cada grupo dice la última vez que recibió eso: «hoy», «ayer», «hace N días» o «nunca», en días
    de calendario de México. En compraventa la última vez es por pan, venga del texto que venga.
 
+### Slice 3.1 — Migas de pan
+
+**De dónde sale.** De probarlo: dentro de una publicación o de un grupo no había forma de saber dónde
+se estaba ni de subir un nivel, más que el enlace de «volver» de cada pantalla.
+
+**Alcance.** Las siete pantallas de difusión llevan migas de pan con el mismo componente que el
+catálogo (`src/presentation/navigation/Breadcrumbs.tsx`), y sustituyen a los enlaces de «volver».
+
+**Criterios de aceptación.**
+
+1. Cada pantalla dice su camino (corrida de escritorio en el `.feature`): `Inicio / Difusión en
+   grupos / …` y, bajo los grupos, `Inicio / Difusión en grupos / Grupos / …`.
+2. Cada tramo común lleva a su lista; el último es la página que se ve y no lleva enlace.
+3. Sin datos estructurados: `/admin` no se indexa, así que no hay `BreadcrumbList` que declarar.
+
 ### Slice 4 — El ritmo
 
 **Alcance.** La publicación dice a qué grupos ya les toca y a cuáles todavía no, por sus días

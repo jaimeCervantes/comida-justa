@@ -20,6 +20,7 @@ import {
   simulateLogin,
 } from "../testUtils/simulateLogin";
 import { testOutreachName } from "../testUtils/testSlug";
+import { breadcrumbLink, readBreadcrumbs } from "./breadcrumbs";
 import {
   breadOf,
   CLOSING,
@@ -368,5 +369,42 @@ test.describe("Difusión en grupos de Facebook", () => {
         admin.listingChannelLast(natural.title, group.name),
       ).toHaveText(LAST_NEVER);
     }
+  });
+  // --- Slice 3.1: migas de pan -------------------------------------------------------------
+
+  test("Las migas de pan dicen dónde estoy y me suben un nivel", async ({
+    page,
+  }) => {
+    const name = testOutreachName("Masa madre");
+    const admin = new OutreachAdmin(page);
+    await admin.open(await seedMasaMadreText(breads, name));
+
+    expect(await readBreadcrumbs(page)).toBe(
+      `${es.common.home} / ${t.listHeading} / ${name}`,
+    );
+
+    await breadcrumbLink(page, t.listHeading).click();
+
+    await expect(page).toHaveURL(/\/admin\/difusion$/);
+    await expect(
+      page.getByRole("heading", { level: 1, name: t.listHeading }),
+    ).toBeVisible();
+  });
+
+  test("Desde el alta de un grupo vuelvo a la lista de grupos", async ({
+    page,
+  }) => {
+    await new OutreachGroups(page).openNew();
+
+    expect(await readBreadcrumbs(page)).toBe(
+      `${es.common.home} / ${t.listHeading} / ${t.groupsHeading} / ${t.newGroup}`,
+    );
+
+    await breadcrumbLink(page, t.groupsHeading).click();
+
+    await expect(page).toHaveURL(/\/admin\/difusion\/grupos$/);
+    await expect(
+      page.getByRole("heading", { level: 1, name: t.groupsHeading }),
+    ).toBeVisible();
   });
 });
