@@ -518,3 +518,58 @@ del día y el día avisa al llegar a 10. Solo queda en el roadmap el slice 5, co
 1. Integrar a `dev` y empujar, como el resto.
 2. **Slice 5** (migración C): pie compartido y versiones del texto que se turnan.
 3. Borrar publicaciones y grupos, que hoy solo se crean y se corrigen.
+
+## 2026-10-13 — Slice 4.1: la pausa entre publicaciones, y el ritmo configurable
+
+### Objetivo
+
+Lo pidió el usuario al revisar el slice 4: una pausa sugerida entre publicaciones, porque el tope
+del día no dice nada si las primeras ocho van en cinco minutos; que el tope siga en 10, y que los
+dos valores se cambien «por configuración y/o variable de entorno».
+
+### Decisiones y por qué
+
+- **La pausa cuenta desde lo último marcado en cualquier grupo**: publicar en ráfaga es un patrón de
+  la cuenta, no de un grupo. Sale de `lastByChannel`, sin consulta nueva.
+- **Minutos enteros ya transcurridos**, sin redondear hacia arriba lo que falta, y nunca negativos:
+  la hora de lo marcado la pone la base, y un reloj de servidor atrasado no puede dar «hace −1».
+- **Avisa y no impide**, igual que el tope: el botón de marcar sigue encendido.
+- **Configuración en dos capas.** Los valores por omisión y la validación viven en el dominio
+  (`rhythmConfig.ts`); leer `process.env` vive en infra (`src/infra/config/outreachRhythm.ts`),
+  y el caso de uso recibe el ritmo como parámetro. El dominio no lee el entorno.
+- **No se usó `Number(x) || omisión`**, el patrón de `src/infra/constants`: ahí un 0 cae al valor
+  por omisión, y una pausa de 0 es justo la forma de apagarla. Lo inválido («10m», «diez», 500) se
+  ignora y se avisa **una vez** en el registro, para que una errata no pase en silencio ni lo llene.
+- **Las frases del aviso salieron a `paceMessages.ts`** y se prueban con el traductor de next-intl
+  y el catálogo de verdad, contra las frases exactas de la corrida de escritorio.
+- **El e2e de la pausa siembra lo marcado justo antes de abrir**, para que sea lo último de la base
+  compartida aunque alguien haya marcado algo real ese día.
+
+### Archivos tocados
+
+- **Dominio:** `rhythmConfig.ts` y su prueba; `pauseStatus` en `rhythm.ts`, y `dailyPace` pide
+  el tope (ya no hay constante fija).
+- **Infra:** `src/infra/config/outreachRhythm.ts` y su prueba.
+- **Casos de uso:** `getOutreachKitUseCase` recibe el ritmo y devuelve `pause`.
+- **App:** `paceMessages.ts` y su prueba; `DailyPaceNotice` con la pausa; `loadOutreachText` lee
+  la configuración.
+- **Textos:** `pauseJustPosted` y `pauseWait`, con plurales.
+- **E2E:** un escenario y `pauseNotice` en la página.
+
+### Resultados
+
+- **Vitest del área:** 20 archivos, 177 pruebas. **Suite completa: 319 archivos, 3 388 pruebas.**
+- **Playwright:** **20 de 20** en 5.9 min.
+- **`typecheck` y `lint`** (1 411 archivos): limpios.
+
+### Recap
+
+El ritmo queda completo: turno por grupo, pan del día, tope diario y pausa entre publicaciones, los
+dos últimos configurables por entorno. Todo avisa; nada impide publicar.
+
+### Próximos pasos (opciones)
+
+1. Integrar a `dev` y empujar.
+2. Si se quieren otros valores en producción: `OUTREACH_DAILY_LIMIT` y `OUTREACH_PAUSE_MINUTES` en
+   el panel del despliegue.
+3. **Slice 5** (migración C): pie compartido y versiones del texto que se turnan.
