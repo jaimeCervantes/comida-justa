@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { COMMUNITY_TIME_ZONE } from "~/domain/schedule/timezone";
 import { type AppLocale, routing } from "~/i18n/routing";
+import { readOutreachRhythm } from "~/infra/config/outreachRhythm";
 import {
   createOutreachChannelRepository,
   createOutreachPublicationRepository,
@@ -29,6 +30,7 @@ export async function loadOutreachText(
     id,
     { locale, fallbackLocale: routing.defaultLocale },
     { now, timeZone: COMMUNITY_TIME_ZONE },
+    readOutreachRhythm(),
   );
 
   if (!view) notFound();

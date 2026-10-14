@@ -31,7 +31,7 @@ export default async function DifusionKitPage({
   const t = await getTranslations("outreach");
   // Una sola hora para toda la página: «hoy» no puede cambiar de un grupo al siguiente.
   const now = new Date();
-  const { text, kit, articles, postChannels, listingChannels, pace } =
+  const { text, kit, articles, postChannels, listingChannels, pace, pause } =
     await loadOutreachText(id, locale, now);
 
   return (
@@ -56,7 +56,7 @@ export default async function DifusionKitPage({
         </div>
       </div>
 
-      <DailyPaceNotice pace={pace} />
+      <DailyPaceNotice pace={pace} pause={pause} />
 
       <section data-testid="outreach-group-post">
         <h2 className="text-lg font-semibold mb-1">{t("groupPostHeading")}</h2>

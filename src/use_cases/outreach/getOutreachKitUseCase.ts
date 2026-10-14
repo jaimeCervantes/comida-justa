@@ -15,8 +15,11 @@ import {
   channelTurn,
   type DailyPace,
   dailyPace,
+  type PauseStatus,
+  pauseStatus,
   suggestNextListing,
 } from "~/domain/outreach/rhythm";
+import type { OutreachRhythm } from "~/domain/outreach/rhythmConfig";
 import type IOutreachChannelRepository from "./ports/IOutreachChannelRepository";
 import type { OutreachChannel } from "./ports/IOutreachChannelRepository";
 import type IOutreachPublicationRepository from "./ports/IOutreachPublicationRepository";
@@ -66,6 +69,8 @@ export interface OutreachKitView {
   articles: ListingArticleView[];
   /** Cuántas se marcaron hoy en cualquier grupo, contra el tope. */
   pace: DailyPace;
+  /** Si conviene esperar antes de la siguiente, contando desde lo último marcado en cualquier grupo. */
+  pause: PauseStatus;
 }
 
 /**
@@ -89,6 +94,8 @@ export default class GetOutreachKitUseCase {
     id: string,
     locales: TitleLocales,
     clock: KitClock,
+    /** El tope del día y la pausa; los lee `src/infra/config` del entorno. */
+    rhythm: OutreachRhythm,
   ): Promise<OutreachKitView | null> {
     const text = await this.texts.findById(id, locales);
 
@@ -151,7 +158,23 @@ export default class GetOutreachKitUseCase {
           lastPublishedAt: history.lastPublishedAt(channel.id, article.postId),
         })),
       })),
-      pace: dailyPace(todayCount),
+      pace: dailyPace(todayCount, rhythm.dailyLimit),
+      pause: pauseStatus(
+        latestOf(lastByChannel),
+        clock.now,
+        rhythm.pauseMinutes,
+      ),
     };
   }
+}
+
+/** Lo último que se marcó en cualquier grupo: la pausa no distingue de qué grupo fue. */
+function latestOf(lastByChannel: ReadonlyMap<string, Date>): Date | null {
+  let latest: Date | null = null;
+
+  for (const at of lastByChannel.values()) {
+    if (!latest || at > latest) latest = at;
+  }
+
+  return latest;
 }

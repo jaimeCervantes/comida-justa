@@ -1,13 +1,6 @@
 import { daysSincePublished } from "./lastPublished";
 
-/**
- * Cuántas publicaciones en grupos al día, antes de avisar.
- *
- * **No es una cifra de Facebook**: Meta no publica ningún límite, y lo que dispara su detección de
- * spam depende de la cuenta. Es un tope prudente para una cuenta personal que publica a mano, y vive
- * en un solo sitio para poder moverlo cuando la experiencia diga otra cosa. Avisa; no impide nada.
- */
-export const DAILY_OUTREACH_LIMIT = 10;
+const MINUTE_MS = 60_000;
 
 /** Si a un grupo ya le toca recibir otra publicación tuya, o cuántos días faltan. */
 export type ChannelTurn = { due: true } | { due: false; inDays: number };
@@ -64,9 +57,41 @@ export interface DailyPace {
   reached: boolean;
 }
 
-export function dailyPace(
-  count: number,
-  limit: number = DAILY_OUTREACH_LIMIT,
-): DailyPace {
+/** El tope sale de la configuración (`OutreachRhythm.dailyLimit`): avisa al llegar, no impide. */
+export function dailyPace(count: number, limit: number): DailyPace {
   return { count, limit, reached: count >= limit };
+}
+
+/** Si conviene esperar antes de la siguiente publicación, y cuánto. */
+export type PauseStatus =
+  | { waiting: false }
+  | { waiting: true; minutesSince: number; minutesLeft: number };
+
+/**
+ * La pausa entre publicaciones, contada desde lo último que se marcó **en cualquier grupo**.
+ *
+ * El tope del día no dice nada si las primeras ocho van en cinco minutos, y publicar en ráfaga es
+ * otra de las cosas que Facebook toma por spam. Se cuenta en minutos enteros ya transcurridos; un
+ * reloj un poco desfasado entre la base y el servidor —la hora de lo marcado la pone la base— no
+ * puede dar minutos negativos. 0 minutos de pausa la apaga. Como el tope, avisa y no impide.
+ */
+export function pauseStatus(
+  lastPublishedAt: Date | null,
+  now: Date,
+  pauseMinutes: number,
+): PauseStatus {
+  if (pauseMinutes <= 0 || !lastPublishedAt) return { waiting: false };
+
+  const minutesSince = Math.max(
+    0,
+    Math.floor((now.getTime() - lastPublishedAt.getTime()) / MINUTE_MS),
+  );
+
+  if (minutesSince >= pauseMinutes) return { waiting: false };
+
+  return {
+    waiting: true,
+    minutesSince,
+    minutesLeft: pauseMinutes - minutesSince,
+  };
 }
