@@ -269,6 +269,25 @@ turna cuál toca, para no repetir el mismo texto en grupos distintos el mismo d�
 6. El pie es un registro y no un ajuste global: la suite crea los suyos con el marcador «E2E » y
    nunca toca el de verdad.
 
+### Slice 6 — Borrar lo que ya no se usa (migración D)
+
+**Alcance.** Publicaciones, grupos y pies se borran desde su edición. Borrar no se puede deshacer:
+el botón primero pregunta, y la pregunta dice qué más se va con lo que se borra.
+
+**Criterios de aceptación.**
+
+1. Cada pantalla de edición —publicación, grupo y pie— termina con su «Borrar …». Pulsarlo no
+   borra: pregunta, con «Sí, borrar» y «Cancelar», y cancelar no manda nada.
+2. Borrar una publicación se lleva sus productos y sus versiones, pero **no** su historial: los
+   grupos siguen recordando cuándo se publicó, para su turno, el tope del día y la pausa. Es lo
+   que trae la migración D (`0063`); sin ella las fechas se iban con el texto y esos grupos
+   volvían a ofrecerse como nunca publicados.
+3. Borrar un grupo se lleva su historial y deja de ofrecerse en todas las publicaciones.
+4. Borrar un pie deja sin pie a las publicaciones que lo llevaban; ellas siguen ahí.
+5. Si otra persona lo borró antes, se dice con su nombre («Este grupo ya no existe…») en vez de
+   fallar, y quien no es admin no borra nada aunque llame a la acción directamente.
+6. Al borrar se vuelve a la lista, aunque quede vacía.
+
 ## Configuración
 
 | Variable                 | Por omisión | Acepta                      | Para qué                                              |
@@ -381,10 +400,28 @@ no borra sus textos.
 Con índice `ix_outreach_text_versions_text_id`. No se guarda ningún turno: sale de la fecha y del
 orden de los grupos.
 
+## Especificación de la migración D (para `hazlo-sano-bot`)
+
+Escrita el 2026-10-14 como
+`alembic/versions/0063_2026-10-14_keep_outreach_history_on_text_delete.py` (revisión
+`0063_2026_10_14`, sobre `0062_2026_10_13`), en la rama `feat/outreach-keep-history`.
+
+### `outreach_publications.outreach_text_id`
+
+Pasa de `NOT NULL` con FK `ON DELETE CASCADE` a nulable con `ON DELETE SET NULL`; la llave
+conserva su nombre, `outreach_publications_outreach_text_id_fkey`. Borrar un texto deja sus fechas
+con el texto en nulo, y el turno de cada grupo (`lastByChannel`), el tope del día (`countOn`) y la
+pausa siguen contándolas porque no miran el texto. `channel_id` no cambia: borrar un grupo sigue
+borrando su historial, y así las pruebas, que borran sus grupos al terminar, no dejan fechas
+sueltas contando en el tope del día.
+
+El `downgrade` borra las filas con texto nulo antes de volver a `NOT NULL`.
+
 ## Pendientes del usuario
 
-1. Escribir y aplicar la migración A en `hazlo-sano-bot`. También puedo escribir yo el archivo
-   allí para que lo revises; aplicarla sigue siendo tuyo.
+1. Decidir la migración D (`0063`): sin ella, borrar una publicación también borra cuándo se
+   publicó en cada grupo. Las A, B y C (`0060` a `0062`) ya están aplicadas.
 2. Si Integral, Ajo, Dátiles con Nuez y Queso Parmesano con Aceitunas se siguen vendiendo, darlos
    de alta: con la lista generada, lo que no está en la base no se anuncia.
-3. Para el slice 3: las URLs de los grupos, su tipo y cada cuánto aceptan publicaciones.
+3. Dar de alta los grupos (dirección, tipo y cada cuánto aceptan publicaciones) y el pie real, y
+   quitar de cada publicación el bloque de contacto que repite el pie.

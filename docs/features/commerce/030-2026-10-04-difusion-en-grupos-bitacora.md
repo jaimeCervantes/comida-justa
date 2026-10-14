@@ -703,3 +703,99 @@ configurables— y ahora el pie compartido y las versiones que se turnan. Las tr
 2. Borrar publicaciones, grupos y pies, que hoy solo se crean y se corrigen.
 3. Dar de alta el pie real de Hazlo Sano y elegirlo en las publicaciones que ya existan, quitando de
    su texto «después de la lista» el bloque de contacto repetido.
+
+## 2026-10-14 — Slice 6: borrar publicaciones, grupos y pies (código listo, `0063` sin aplicar)
+
+### Objetivo
+
+Poder borrar lo que ya no se usa —una publicación de temporada, un grupo que cerró, un pie viejo—
+sin que el ritmo pierda la memoria de dónde y cuándo se publicó.
+
+### Decisiones y por qué
+
+- **Borrar una publicación no borra su historial.** Las llaves de la `0061` eran `CASCADE`: borrar
+  un texto se llevaba cuándo se publicó en cada grupo, y esos grupos volvían a ofrecerse como
+  nunca publicados, que es lo contrario de lo que el ritmo existe para evitar. La `0063` pasa
+  `outreach_text_id` a nulable con `SET NULL`. El turno, el tope y la pausa no miran el texto
+  (`lastByChannel`, `countOn`), así que siguen contando esas fechas sin tocar su código.
+- **Borrar un grupo sí se lleva su historial** (`channel_id` sigue en `CASCADE`): sin el grupo su
+  turno no sirve, y las pruebas, que borran sus grupos al terminar, no dejan fechas sueltas
+  contando en el tope del día de la base compartida.
+- **Un solo caso de uso para los tres** (`DeleteOutreachRecordUseCase`): la regla es la misma, y lo
+  que se va con cada uno lo deciden las llaves de la base. Una sola ayuda de servidor
+  (`deleteRecord.ts`) con el gate de admin, y una acción corta por pantalla.
+- **Confirmar en la página, no con `window.confirm`**: `ConfirmDelete` pregunta en el idioma de
+  la persona, se lee en el teléfono y dice qué más se va.
+- **«Ya no existe» con su propio nombre.** Grupos y pies decían «Esta publicación ya no existe»
+  al guardar algo que otra persona había borrado; ahora `groupNotFound` y `footerNotFound`, también
+  al borrar.
+- **En un worktree aparte** (`../comida-justa-borrar`, rama `feat/difusion-borrar` desde `dev`): el
+  usuario iba a dar de alta grupos mientras tanto. Lo hace en producción, que usa la misma base
+  que las pruebas (mismo proyecto de Supabase que el bot); la limpieza solo borra lo que empieza
+  con «E2E », y el escenario de borrar una publicación siembra su historial hace dos días, no hoy,
+  para no mover el tope ni la pausa de quien use la base a la vez.
+
+### Archivos tocados
+
+- **Casos de uso:** `deleteOutreachRecordUseCase.ts` y su prueba; `delete` en los puertos de
+  textos, grupos y pies y en sus dobles en memoria.
+- **Infra:** `delete` en los tres repositorios de Postgres; en el espejo,
+  `outreach_publications.outreach_text_id` nulable con `set null`.
+- **App:** `ui/ConfirmDelete.tsx` y su prueba, `deleteRecord.ts`, una acción de borrar en cada
+  `actions.ts` (con sus pruebas), las tres páginas de edición y 11 mensajes en `es.json` y
+  `en.json`.
+- **E2E:** `confirmDelete.ts`, métodos de borrar en los tres page objects,
+  `outreachHistoryOutlivesTexts` y tres escenarios; el `.feature` explica por qué el historial se
+  queda.
+- **`hazlo-sano-bot`:** `0063_2026-10-14_keep_outreach_history_on_text_delete.py` en
+  `feat/outreach-keep-history`, sin commit y sin aplicar.
+
+### Comandos clave
+
+```sh
+# hazlo-sano-bot: nada de esto toca la base
+uv run alembic upgrade 0062_2026_10_13:0063_2026_10_14 --sql
+uv run alembic downgrade 0063_2026_10_14:0062_2026_10_13 --sql
+uv run ruff check <0063> && uv run pytest -q
+
+# comida-justa, en el worktree (3000 libre comprobado y `.next` borrado antes de cada tramo)
+pnpm exec vitest run && pnpm run lint && pnpm run check:i18n && pnpm run check:directives
+pnpm exec playwright test src/e2e/outreach --shard=1/2 --reporter=line
+pnpm exec playwright test src/e2e/outreach --shard=2/2 --reporter=line
+```
+
+### Resultados
+
+- **Vitest:** 325 archivos y 3,437 pruebas en verde; el área de difusión, 24 archivos y 221.
+- **`tsc`:** limpio, salvo los errores que ya estaban en `delivery.test.ts` y
+  `placeOrderUseCase.test.ts:62`.
+- **Lint:** 1,437 archivos sin cambios. `check:directives` en orden; `check:i18n` solo señala
+  `publishPracticeDayPost.ts`, que ya fallaba.
+- **Playwright:** 25 escenarios en dos tramos: 24 en verde y 1 omitido a propósito, el de borrar
+  una publicación, que espera la `0063`. El de borrar un pie falló la primera vez por un dato de
+  la prueba: el pie repetía el renglón de WhatsApp que el texto sembrado ya trae como «después de
+  la lista». Con el renglón de ubicación, y comprobando antes que el texto lo lleva, pasa.
+- **Backend:** `ruff` limpio, `pytest` 204 en verde y una sola cabeza (`0063_2026_10_14`); la
+  vista previa da los tres `ALTER` esperados.
+
+### Escrito en recursos compartidos
+
+- **Base compartida:** solo datos de prueba con el marcador «E2E », borrados al terminar cada
+  escenario. Nada de esquema: la `0063` no se aplicó. Se leyeron, sin escribir, las llaves de
+  `outreach_publications` y unos conteos: 0 publicaciones, 0 grupos y 0 textos reales.
+- **GitHub:** nada empujado.
+
+### Recap
+
+Publicaciones, grupos y pies se borran desde su edición, con una pregunta que dice qué más se va.
+Grupos y pies funcionan ya con la base como está. Borrar una publicación también funciona, pero
+hasta aplicar la `0063` se lleva su historial; con ella, los grupos siguen recordando cuándo se
+publicó. El código está en `feat/difusion-borrar`, en el worktree `../comida-justa-borrar`.
+
+### Próximos pasos (opciones)
+
+1. Con el sí del usuario: aplicar la `0063`, hacer su commit, integrarla a `main` del backend y
+   empujar; correr el escenario que hoy se omite.
+2. Después, integrar `feat/difusion-borrar` a `dev` y empujar: en ese orden, para que la pregunta
+   de borrar una publicación diga la verdad desde el primer día.
+3. Quitar el worktree `../comida-justa-borrar` al integrar.
