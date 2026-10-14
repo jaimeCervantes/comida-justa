@@ -66,10 +66,28 @@ describe("saveOutreachText", () => {
         { postId: "pan-natural", label: "Natural", emoji: "🌾" },
         { postId: "pan-semillas", label: "Semillas", emoji: null },
       ],
+      versions: [],
+      footerId: null,
     });
     expect(redirectKeepingLocale).toHaveBeenCalledWith(
       { pathname: "/admin/difusion/[id]", params: { id: "texto-nuevo" } },
       "es",
+    );
+  });
+
+  it("guarda las otras versiones en orden, sin las vacías, y el pie elegido", async () => {
+    const data = masaMadre({ footerId: "pie-hazlo-sano" });
+    for (const version of ["Hecha aquí:", "  ", "Sin levadura industrial:"]) {
+      data.append("versions", version);
+    }
+
+    await saveOutreachText({ errors: {} }, data);
+
+    expect(create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        versions: ["Hecha aquí:", "Sin levadura industrial:"],
+        footerId: "pie-hazlo-sano",
+      }),
     );
   });
 

@@ -8,6 +8,8 @@ export interface ChannelLinkItem {
   turn: ChannelTurn;
   /** Solo en compraventa; nulo si no queda nada disponible que sugerir. */
   suggestionTitle?: string | null;
+  /** Solo en grupos normales con varias versiones: la que le toca hoy, contando desde 1. */
+  versionNumber?: number;
 }
 
 /**
@@ -27,7 +29,7 @@ export default async function ChannelLinks({
       data-testid="outreach-channel-links"
       className="mb-4 flex flex-col gap-2"
     >
-      {items.map(({ channel, turn, suggestionTitle }) => (
+      {items.map(({ channel, turn, suggestionTitle, versionNumber }) => (
         <li
           key={channel.id}
           data-testid="outreach-channel-link"
@@ -53,6 +55,14 @@ export default async function ChannelLinks({
           >
             {turn.due ? t("turnDue") : t("turnWait", { days: turn.inDays })}
           </span>
+          {versionNumber ? (
+            <span
+              data-testid="outreach-channel-version"
+              className="text-sm font-semibold"
+            >
+              {t("versionTurn", { n: versionNumber })}
+            </span>
+          ) : null}
           {suggestionTitle ? (
             <span
               data-testid="outreach-channel-suggestion"

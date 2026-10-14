@@ -42,6 +42,12 @@ export default async function DifusionPage({
         >
           {t("groupsLink")}
         </Link>
+        <Link
+          href="/admin/difusion/pies"
+          className="font-semibold hover:text-highlight"
+        >
+          {t("footersLink")}
+        </Link>
       </div>
 
       {texts.length === 0 ? (

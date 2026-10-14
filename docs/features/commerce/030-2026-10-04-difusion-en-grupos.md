@@ -252,6 +252,23 @@ pausa y que el tope y la pausa se puedan cambiar por configuración o variable d
 comparten todas las publicaciones. Una publicación puede tener varias versiones del texto y la app
 turna cuál toca, para no repetir el mismo texto en grupos distintos el mismo día.
 
+**Criterios de aceptación.**
+
+1. La migración C (`0062`) existe y está aplicada; el espejo se comprueba contra la base.
+2. En `/admin/difusion/pies` se da de alta y se corrige un pie: nombre interno y texto, los dos
+   obligatorios. Cada publicación elige el suyo —o ninguno— y uno nuevo arranca con el único que
+   haya.
+3. El pie va al final del texto, después de lo de después, como su propio párrafo. Corregirlo cambia
+   el final de todas las publicaciones que lo llevan, sin tocarlas.
+4. Una publicación puede tener otras versiones de lo que va antes de la lista. Con más de una, la
+   pantalla enseña el texto armado de cada versión con su «Copiar», y cada grupo normal dice «Le
+   toca la versión N».
+5. El turno es `(día + lugar del grupo) mod versiones`, con el día de México: grupos vecinos reciben
+   versiones distintas el mismo día y cada grupo cambia de versión al día siguiente. La descripción
+   de compraventa usa la versión del día.
+6. El pie es un registro y no un ajuste global: la suite crea los suyos con el marcador «E2E » y
+   nunca toca el de verdad.
+
 ## Configuración
 
 | Variable                 | Por omisión | Acepta                      | Para qué                                              |
@@ -331,7 +348,38 @@ Escrita el 2026-10-13 como `alembic/versions/0061_2026-10-13_add_outreach_channe
 - Borrar el texto, el grupo o el producto borra su historial: un registro de algo que ya no existe
   no ayuda a decidir nada.
 
-La migración C (pie y versiones) se especifica al llegar a su slice.
+## Especificación de la migración C (para `hazlo-sano-bot`)
+
+Escrita el 2026-10-13 como `alembic/versions/0062_2026-10-13_add_outreach_footers_and_versions.py`
+(revisión `0062_2026_10_13`, sobre `0061_2026_10_13`), en la rama `feat/outreach-footers`.
+
+### `outreach_footers`
+
+| Columna      | Tipo          | Restricciones                   | Para qué                                     |
+| ------------ | ------------- | ------------------------------- | -------------------------------------------- |
+| `id`         | `UUID`        | PK, `DEFAULT gen_random_uuid()` |                                              |
+| `name`       | `TEXT`        | `NOT NULL`                      | Nombre interno («Hazlo Sano»). No se publica. |
+| `body`       | `TEXT`        | `NOT NULL`                      | Lo que se pega al final de cada texto.       |
+| `created_at` | `TIMESTAMPTZ` | `NOT NULL DEFAULT now()`        |                                              |
+| `updated_at` | `TIMESTAMPTZ` | `NOT NULL DEFAULT now()`        | Lo escribe la web al guardar.                |
+
+### `outreach_texts.footer_id`
+
+`UUID NULL`, FK `outreach_footers.id` `ON DELETE SET NULL`, con índice
+`ix_outreach_texts_footer_id`. Nulable: los textos que ya existen arrancan sin pie, y borrar un pie
+no borra sus textos.
+
+### `outreach_text_versions`
+
+| Columna            | Tipo      | Restricciones                                          | Para qué                           |
+| ------------------ | --------- | ------------------------------------------------------ | ---------------------------------- |
+| `id`               | `UUID`    | PK, `DEFAULT gen_random_uuid()`                        |                                    |
+| `outreach_text_id` | `UUID`    | `NOT NULL`, FK `outreach_texts.id` `ON DELETE CASCADE` |                                    |
+| `opening`          | `TEXT`    | `NOT NULL`                                             | Otra forma de empezar.             |
+| `position`         | `INTEGER` | `NOT NULL`                                             | La 2, la 3…; la 1 es `opening`.   |
+
+Con índice `ix_outreach_text_versions_text_id`. No se guarda ningún turno: sale de la fecha y del
+orden de los grupos.
 
 ## Pendientes del usuario
 

@@ -30,8 +30,16 @@ const PANES: readonly OutreachProductOption[] = [
   { postId: "jugo-verde", title: "Jugo Verde", price: 40 },
 ];
 
-function renderForm() {
-  renderWithIntl(<OutreachTextForm label={t.newHeading} products={PANES} />);
+const PIES = [{ id: "pie-hazlo-sano", name: "Hazlo Sano" }];
+
+function renderForm(footers = PIES) {
+  renderWithIntl(
+    <OutreachTextForm
+      label={t.newHeading}
+      products={PANES}
+      footers={footers}
+    />,
+  );
 }
 
 function picker() {
@@ -136,5 +144,55 @@ describe("OutreachTextForm", () => {
     await search("jugo{Enter}");
 
     expect(saveSpy).not.toHaveBeenCalled();
+  });
+
+  describe("el pie y las versiones", () => {
+    function footerSelect() {
+      return screen.getByRole("combobox", {
+        name: new RegExp(t.footerLabel),
+      });
+    }
+
+    // Es el caso de casi siempre: un solo pie, el de la tienda.
+    it("un texto nuevo arranca con el pie si solo hay uno", () => {
+      renderForm();
+
+      expect(footerSelect()).toHaveValue("pie-hazlo-sano");
+    });
+
+    it("con varios pies no elige ninguno por su cuenta", () => {
+      renderForm([...PIES, { id: "pie-mm", name: "MM Naturalmente" }]);
+
+      expect(footerSelect()).toHaveValue("");
+    });
+
+    it("quitar una versión no deja su texto pegado en la que sigue", async () => {
+      renderForm();
+      const versions = within(screen.getByTestId("outreach-versions"));
+
+      await userEvent.click(
+        versions.getByRole("button", { name: t.addVersion }),
+      );
+      await userEvent.click(
+        versions.getByRole("button", { name: t.addVersion }),
+      );
+      await userEvent.type(
+        versions.getByRole("textbox", { name: /Versión 2/ }),
+        "Hecha aquí",
+      );
+      await userEvent.type(
+        versions.getByRole("textbox", { name: /Versión 3/ }),
+        "Sin levadura industrial",
+      );
+
+      await userEvent.click(
+        versions.getByRole("button", { name: "Quitar la versión 2" }),
+      );
+
+      expect(versions.getAllByRole("textbox")).toHaveLength(1);
+      expect(versions.getByRole("textbox", { name: /Versión 2/ })).toHaveValue(
+        "Sin levadura industrial",
+      );
+    });
   });
 });

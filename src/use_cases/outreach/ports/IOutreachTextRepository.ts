@@ -29,9 +29,20 @@ export interface StoredOutreachText {
   id: string;
   name: string;
   opening: string;
+  /** Las otras versiones de lo que va antes de la lista, en orden; vacío si solo hay una. */
+  versions: string[];
   closing: string;
+  /** El pie compartido que lleva, como está hoy; nulo si no lleva ninguno. */
+  footer: StoredOutreachFooter | null;
   /** En el orden del texto. */
   products: StoredOutreachProduct[];
+}
+
+/** Un pie compartido, ya guardado. */
+export interface StoredOutreachFooter {
+  id: string;
+  name: string;
+  body: string;
 }
 
 export default interface IOutreachTextRepository {

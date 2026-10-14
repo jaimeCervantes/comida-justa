@@ -1,6 +1,7 @@
 import { expect, type Locator, type Page } from "@playwright/test";
 import type { OutreachChannelFormat } from "~/domain/outreach/channelFormats";
 import es from "~/i18n/messages/es.json";
+import { fillWhenHydrated } from "../testUtils/fillWhenHydrated";
 import { labelled } from "./labelled";
 
 const t = es.outreach;
@@ -29,21 +30,25 @@ export default class OutreachGroups {
   async fill(fields: GroupFields): Promise<void> {
     const form = this.form();
 
-    await form
-      .getByRole("textbox", { name: labelled(t.groupName) })
-      .fill(fields.name);
-    await form
-      .getByRole("textbox", { name: labelled(t.groupUrl) })
-      .fill(fields.url);
+    await fillWhenHydrated(
+      form.getByRole("textbox", { name: labelled(t.groupName) }),
+      fields.name,
+    );
+    await fillWhenHydrated(
+      form.getByRole("textbox", { name: labelled(t.groupUrl) }),
+      fields.url,
+    );
     await form
       .getByRole("combobox", { name: labelled(t.groupFormat) })
       .selectOption(fields.format);
-    await form
-      .getByRole("spinbutton", { name: labelled(t.groupMinDays) })
-      .fill(String(fields.minDaysBetween));
-    await form
-      .getByRole("textbox", { name: labelled(t.groupNotes) })
-      .fill(fields.notes);
+    await fillWhenHydrated(
+      form.getByRole("spinbutton", { name: labelled(t.groupMinDays) }),
+      String(fields.minDaysBetween),
+    );
+    await fillWhenHydrated(
+      form.getByRole("textbox", { name: labelled(t.groupNotes) }),
+      fields.notes,
+    );
   }
 
   async save(): Promise<void> {

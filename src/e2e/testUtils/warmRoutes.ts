@@ -108,7 +108,7 @@ const RUTAS = [
      ver una publicación. El slug no existe ni tiene que existir. */
   "/editar/e2e-calentar",
 
-  /* Difusión en grupos: siete segmentos y tres acciones de servidor que solo pisa `difusionEnGrupos`.
+  /* Difusión en grupos: diez segmentos y cuatro acciones de servidor que solo pisa `difusionEnGrupos`.
      Sin sesión de admin las cuatro responden 404, y eso basta: lo que se busca es compilar el
      segmento, no ver un texto. El uuid de ceros no existe ni existirá. */
   "/admin/difusion",
@@ -118,6 +118,9 @@ const RUTAS = [
   "/admin/difusion/grupos",
   "/admin/difusion/grupos/nuevo",
   "/admin/difusion/grupos/00000000-0000-0000-0000-000000000000/editar",
+  "/admin/difusion/pies",
+  "/admin/difusion/pies/nuevo",
+  "/admin/difusion/pies/00000000-0000-0000-0000-000000000000/editar",
 ] as const;
 
 /** Compilar una ruta pesada en frío pasa de largo cualquier plazo corto. */

@@ -7,6 +7,7 @@ const LABELS = {
   home: es.common.home,
   outreach: es.outreach.listHeading,
   groups: es.outreach.groupsHeading,
+  footers: es.outreach.footersHeading,
 };
 
 function read(crumbs: readonly Crumb[]): string {

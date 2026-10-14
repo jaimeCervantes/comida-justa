@@ -262,6 +262,67 @@ describe("GetOutreachKitUseCase", () => {
     });
   });
 
+  describe("el pie y las versiones", () => {
+    it("el texto lleva el pie que eligió, como está hoy", async () => {
+      const { footers, texts, textId, useCase } = await setup();
+      const footerId = await footers.create({
+        name: "Hazlo Sano",
+        body: "📲 Pedidos WhatsApp: https://wa.me/522781126948",
+      });
+      const draft = texts.saved.get(textId);
+      if (!draft) throw new Error("falta el texto");
+      texts.saved.set(textId, { ...draft, footerId });
+      // Cambiar el pie después cambia el texto: lo que se lee es el pie de hoy.
+      await footers.update(footerId, {
+        name: "Hazlo Sano",
+        body: "📲 Pedidos WhatsApp: https://wa.me/522781000000",
+      });
+
+      const view = await useCase.execute(textId, LOCALES, CLOCK, RHYTHM);
+
+      expect(view?.kit.text).toBe(
+        [
+          "Pasa por el tuyo a Hazlo Sano:",
+          "🌾 Natural — $96",
+          "Canela — $125",
+          "",
+          "📲 Pedidos WhatsApp: https://wa.me/522781000000",
+        ].join("\n"),
+      );
+    });
+
+    it("a cada grupo normal le toca una versión distinta el mismo día", async () => {
+      const { channels, texts, textId, useCase } = await setup();
+      await channels.create(grupo("Emprendedores de Orizaba", "post"));
+      await channels.create(grupo("Mamás de Orizaba", "post"));
+      const draft = texts.saved.get(textId);
+      if (!draft) throw new Error("falta el texto");
+      texts.saved.set(textId, {
+        ...draft,
+        versions: ["Masa madre de verdad, hecha aquí:"],
+      });
+
+      const view = await useCase.execute(textId, LOCALES, CLOCK, RHYTHM);
+
+      expect(view?.kit.versions).toHaveLength(2);
+      const turns = view?.postChannels.map(({ version }) => version) ?? [];
+      expect(new Set(turns)).toEqual(new Set([0, 1]));
+      // La descripción de compraventa usa la versión del día, que es la del primer grupo.
+      expect(view?.descriptionVersion).toBe(turns[0]);
+    });
+
+    it("con una sola versión todos reciben la primera", async () => {
+      const { channels, textId, useCase } = await setup();
+      await channels.create(grupo("Emprendedores de Orizaba", "post"));
+      await channels.create(grupo("Mamás de Orizaba", "post"));
+
+      const view = await useCase.execute(textId, LOCALES, CLOCK, RHYTHM);
+
+      expect(view?.postChannels.map(({ version }) => version)).toEqual([0, 0]);
+      expect(view?.descriptionVersion).toBe(0);
+    });
+  });
+
   it("un texto que no existe no tiene kit", async () => {
     const { useCase } = await setup();
 

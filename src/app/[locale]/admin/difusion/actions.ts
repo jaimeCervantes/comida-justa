@@ -106,6 +106,10 @@ export async function saveOutreachText(
         opening: text(formData, "opening"),
         closing: text(formData, "closing"),
         items: parseItems(text(formData, "items")),
+        versions: formData
+          .getAll("versions")
+          .filter((value): value is string => typeof value === "string"),
+        footerId: text(formData, "footerId") || null,
       },
     });
   } catch (error) {

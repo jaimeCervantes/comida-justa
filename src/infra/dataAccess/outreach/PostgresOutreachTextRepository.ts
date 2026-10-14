@@ -1,12 +1,14 @@
-import { count, desc, eq, sql } from "drizzle-orm";
+import { asc, count, desc, eq, sql } from "drizzle-orm";
 import type {
   OutreachTextDraft,
   OutreachTextDraftItem,
 } from "~/domain/outreach/outreachTextDraft";
 import { db } from "~/infra/dataAccess/db/connection";
 import {
+  outreachFooters,
   outreachTextItems,
   outreachTexts,
+  outreachTextVersions,
 } from "~/infra/dataAccess/db/schema/outreach";
 import type IOutreachTextRepository from "~/use_cases/outreach/ports/IOutreachTextRepository";
 import type {
@@ -79,14 +81,32 @@ export default class PostgresOutreachTextRepository
         name: outreachTexts.name,
         opening: outreachTexts.opening,
         closing: outreachTexts.closing,
+        footerId: outreachFooters.id,
+        footerName: outreachFooters.name,
+        footerBody: outreachFooters.body,
       })
       .from(outreachTexts)
+      .leftJoin(outreachFooters, eq(outreachFooters.id, outreachTexts.footerId))
       .where(eq(outreachTexts.id, id))
       .limit(1);
 
     if (!text) return null;
 
-    return { ...text, products: await this.productsOf(id, locales) };
+    const [versions, products] = await Promise.all([
+      this.versionsOf(id),
+      this.productsOf(id, locales),
+    ]);
+    const { footerId, footerName, footerBody, ...rest } = text;
+
+    return {
+      ...rest,
+      versions,
+      footer:
+        footerId && footerName !== null && footerBody !== null
+          ? { id: footerId, name: footerName, body: footerBody }
+          : null,
+      products,
+    };
   }
 
   async create(draft: OutreachTextDraft): Promise<string> {
@@ -97,16 +117,21 @@ export default class PostgresOutreachTextRepository
           name: draft.name,
           opening: draft.opening,
           closing: draft.closing,
+          footerId: draft.footerId ?? null,
         })
         .returning({ id: outreachTexts.id });
 
       await insertItems(tx, created.id, draft.items);
+      await insertVersions(tx, created.id, draft.versions ?? []);
 
       return created.id;
     });
   }
 
-  /** Reemplaza los productos en vez de reconciliarlos: son pocos, y el orden es parte del dato. */
+  /**
+   * Reemplaza los productos y las versiones en vez de reconciliarlos: son pocos, y el orden es parte
+   * del dato.
+   */
   async update(id: string, draft: OutreachTextDraft): Promise<boolean> {
     if (!UUID_SHAPE.test(id)) return false;
 
@@ -117,6 +142,7 @@ export default class PostgresOutreachTextRepository
           name: draft.name,
           opening: draft.opening,
           closing: draft.closing,
+          footerId: draft.footerId ?? null,
           updatedAt: new Date(),
         })
         .where(eq(outreachTexts.id, id))
@@ -128,9 +154,23 @@ export default class PostgresOutreachTextRepository
         .delete(outreachTextItems)
         .where(eq(outreachTextItems.outreachTextId, id));
       await insertItems(tx, id, draft.items);
+      await tx
+        .delete(outreachTextVersions)
+        .where(eq(outreachTextVersions.outreachTextId, id));
+      await insertVersions(tx, id, draft.versions ?? []);
 
       return true;
     });
+  }
+
+  private async versionsOf(id: string): Promise<string[]> {
+    const rows = await db
+      .select({ opening: outreachTextVersions.opening })
+      .from(outreachTextVersions)
+      .where(eq(outreachTextVersions.outreachTextId, id))
+      .orderBy(asc(outreachTextVersions.position));
+
+    return rows.map((row) => row.opening);
   }
 
   private async productsOf(
@@ -206,6 +246,23 @@ async function insertItems(
       label: item.label,
       emoji: item.emoji,
       position,
+    })),
+  );
+}
+
+/** La versión 2 en adelante: la primera vive en `outreach_texts.opening`. */
+async function insertVersions(
+  tx: Transaction,
+  outreachTextId: string,
+  versions: readonly string[],
+): Promise<void> {
+  if (versions.length === 0) return;
+
+  await tx.insert(outreachTextVersions).values(
+    versions.map((opening, index) => ({
+      outreachTextId,
+      opening,
+      position: index + 2,
     })),
   );
 }

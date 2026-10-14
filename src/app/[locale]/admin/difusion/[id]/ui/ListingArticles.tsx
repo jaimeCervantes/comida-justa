@@ -15,8 +15,10 @@ interface ListingArticlesProps {
   articles: readonly ListingArticleView[];
   /** Los grupos de compraventa con su turno y el pan que toca; cada artículo lleva su historial. */
   channels: readonly ListingChannelStatus[];
-  /** El texto completo de la línea: es la descripción de todos los artículos. */
+  /** El texto completo de la línea —la versión de hoy—: es la descripción de todos los artículos. */
   description: string;
+  /** Si el texto tiene varias versiones, cuál toca hoy en la descripción, contando desde 1. */
+  descriptionVersionNumber?: number;
   /** La hora con la que se cuenta «hoy»: una sola para toda la página. */
   now: Date;
 }
@@ -32,6 +34,7 @@ export default async function ListingArticles({
   articles,
   channels,
   description,
+  descriptionVersionNumber,
   now,
 }: ListingArticlesProps) {
   if (articles.length === 0) return null;
@@ -62,7 +65,11 @@ export default async function ListingArticles({
       )}
 
       <div data-testid="outreach-listing-description" className="mb-4">
-        <p className="mb-2 text-sm">{t("listingDescription")}</p>
+        <p className="mb-2 text-sm">
+          {descriptionVersionNumber
+            ? t("listingDescriptionVersion", { n: descriptionVersionNumber })
+            : t("listingDescription")}
+        </p>
         <CopyText
           text={description}
           label={t("copyDescription")}

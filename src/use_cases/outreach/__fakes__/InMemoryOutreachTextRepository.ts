@@ -2,6 +2,7 @@ import type { OutreachTextDraft } from "~/domain/outreach/outreachTextDraft";
 import type IOutreachTextRepository from "../ports/IOutreachTextRepository";
 import type {
   OutreachTextSummary,
+  StoredOutreachFooter,
   StoredOutreachProduct,
   StoredOutreachText,
 } from "../ports/IOutreachTextRepository";
@@ -24,6 +25,10 @@ export default class InMemoryOutreachTextRepository
 
   constructor(
     private readonly catalog: Map<string, CatalogProduct> = new Map(),
+    /** Los pies que existen, para resolver `footerId` como lo haría el `JOIN` real. */
+    private readonly footers: (
+      id: string,
+    ) => StoredOutreachFooter | null = () => null,
   ) {}
 
   async list(): Promise<OutreachTextSummary[]> {
@@ -44,7 +49,9 @@ export default class InMemoryOutreachTextRepository
       id,
       name: draft.name,
       opening: draft.opening,
+      versions: draft.versions ?? [],
       closing: draft.closing,
+      footer: draft.footerId ? this.footers(draft.footerId) : null,
       products: draft.items.flatMap((item, position) => {
         const product = this.catalog.get(item.postId);
 

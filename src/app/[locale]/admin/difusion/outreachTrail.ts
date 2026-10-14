@@ -5,6 +5,7 @@ export interface OutreachTrailLabels {
   home: string;
   outreach: string;
   groups: string;
+  footers: string;
 }
 
 /**
@@ -32,6 +33,18 @@ export function groupsTrail(
   return outreachTrail(
     labels,
     { label: labels.groups, href: "/admin/difusion/grupos" },
+    ...steps,
+  );
+}
+
+/** `Inicio / Difusión en grupos / Pies compartidos / …`. */
+export function footersTrail(
+  labels: OutreachTrailLabels,
+  ...steps: Crumb[]
+): Crumb[] {
+  return outreachTrail(
+    labels,
+    { label: labels.footers, href: "/admin/difusion/pies" },
     ...steps,
   );
 }

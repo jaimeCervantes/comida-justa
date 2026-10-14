@@ -1,5 +1,6 @@
 import {
   calendarDate,
+  calendarDay,
   PublicationHistory,
 } from "~/domain/outreach/lastPublished";
 import {
@@ -20,6 +21,7 @@ import {
   suggestNextListing,
 } from "~/domain/outreach/rhythm";
 import type { OutreachRhythm } from "~/domain/outreach/rhythmConfig";
+import { versionForGroup, versionOfTheDay } from "~/domain/outreach/versions";
 import type IOutreachChannelRepository from "./ports/IOutreachChannelRepository";
 import type { OutreachChannel } from "./ports/IOutreachChannelRepository";
 import type IOutreachPublicationRepository from "./ports/IOutreachPublicationRepository";
@@ -41,9 +43,13 @@ export interface ChannelStatus {
   lastPublishedAt: Date | null;
 }
 
-/** Un grupo normal: la última vez que recibió esta línea, y si ya le toca otra publicación tuya. */
+/**
+ * Un grupo normal: la última vez que recibió esta línea, si ya le toca otra publicación tuya, y qué
+ * versión del texto le toca hoy (desde 0, sobre `kit.versions`).
+ */
 export interface PostChannelStatus extends ChannelStatus {
   turn: ChannelTurn;
+  version: number;
 }
 
 /** Un grupo de compraventa: si ya le toca, y qué pan toca hoy ahí. */
@@ -71,6 +77,8 @@ export interface OutreachKitView {
   pace: DailyPace;
   /** Si conviene esperar antes de la siguiente, contando desde lo último marcado en cualquier grupo. */
   pause: PauseStatus;
+  /** La versión de hoy para la descripción de los artículos, que es una para todos (desde 0). */
+  descriptionVersion: number;
 }
 
 /**
@@ -136,15 +144,28 @@ export default class GetOutreachKitUseCase {
       return article ? { postId: article.postId, title: article.title } : null;
     };
 
+    const kit = buildOutreachKit(
+      {
+        opening: text.opening,
+        versions: text.versions,
+        closing: text.closing,
+        footer: text.footer?.body ?? null,
+      },
+      text.products,
+    );
+    // El turno de versiones cambia a medianoche de México: es el mismo día que cuenta el tope.
+    const today = calendarDay(clock.now, clock.timeZone);
+
     return {
       text,
-      kit: buildOutreachKit(text, text.products),
+      kit,
       postChannels: channels
         .filter((channel) => channel.format === "post")
-        .map((channel) => ({
+        .map((channel, index) => ({
           channel,
           lastPublishedAt: history.lastPublishedAt(channel.id, null),
           turn: turnOf(channel),
+          version: versionForGroup(today, index, kit.versions.length),
         })),
       listingChannels: listingChannels.map((channel) => ({
         channel,
@@ -164,6 +185,7 @@ export default class GetOutreachKitUseCase {
         clock.now,
         rhythm.pauseMinutes,
       ),
+      descriptionVersion: versionOfTheDay(today, kit.versions.length),
     };
   }
 }

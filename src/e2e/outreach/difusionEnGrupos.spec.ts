@@ -9,8 +9,11 @@ import {
   seedOutreachPublication,
 } from "../testUtils/outreachChannels";
 import {
+  deleteTestOutreachFooters,
   deleteTestOutreachTexts,
+  outreachFootersTableExists,
   outreachTablesExist,
+  seedOutreachFooter,
 } from "../testUtils/outreachTexts";
 import { readPostMediaBySlug } from "../testUtils/readPostMedia";
 import { seedPrice } from "../testUtils/seedPrice";
@@ -32,6 +35,7 @@ import {
   seedMasaMadreText,
 } from "./masaMadre";
 import OutreachAdmin from "./OutreachAdmin";
+import OutreachFooters from "./OutreachFooters";
 import OutreachGroups from "./OutreachGroups";
 
 /**
@@ -82,8 +86,10 @@ test.describe("Difusión en grupos de Facebook", () => {
   /* El kit lee los grupos y el historial desde el slice 3: sin la 0061 no se pinta ni el texto. */
   test.beforeAll(async () => {
     test.skip(
-      !(await outreachTablesExist()) || !(await outreachChannelsTableExists()),
-      "Las migraciones 0060 y 0061 de hazlo-sano-bot no están aplicadas en esta base",
+      !(await outreachTablesExist()) ||
+        !(await outreachChannelsTableExists()) ||
+        !(await outreachFootersTableExists()),
+      "Las migraciones 0060 a 0062 de hazlo-sano-bot no están aplicadas en esta base",
     );
   });
 
@@ -99,6 +105,7 @@ test.describe("Difusión en grupos de Facebook", () => {
   test.afterEach(async () => {
     await deleteTestOutreachTexts();
     await deleteTestOutreachChannels();
+    await deleteTestOutreachFooters();
 
     for (const slug of seeded.splice(0)) {
       await deleteOnePostBySlug(slug);
@@ -511,6 +518,67 @@ test.describe("Difusión en grupos de Facebook", () => {
       "Acabas de publicar: espera unos 10 minutos antes de la siguiente.",
     );
     await expect(admin.markPostButton()).toBeEnabled();
+  });
+
+  // --- Slice 5: el pie compartido y las versiones -----------------------------------------
+
+  test("El pie es uno para todas las publicaciones que lo llevan", async ({
+    page,
+  }) => {
+    const ubicacion = "📍 Ubicación: https://maps.app.goo.gl/rp6RjiBQniCgKmbr8";
+    const footerId = await seedOutreachFooter({
+      name: testOutreachName("Hazlo Sano"),
+      body: `${ubicacion}\n📲 Pedidos WhatsApp: https://wa.me/522781126948`,
+    });
+    const ids = [
+      await seedMasaMadreText(breads, testOutreachName("Masa madre"), {
+        footerId,
+      }),
+      await seedMasaMadreText(
+        breads,
+        testOutreachName("Masa madre de temporada"),
+        { footerId },
+      ),
+    ];
+    const nuevo = `${ubicacion}\n📲 Pedidos WhatsApp: https://wa.me/522781000000`;
+    const footers = new OutreachFooters(page);
+
+    await footers.openEdit(footerId);
+    await footers.replaceBody(nuevo);
+    await footers.save();
+
+    const admin = new OutreachAdmin(page);
+    // El final del texto, con su renglón vacío delante: el pie va al último, como su propio párrafo.
+    const ending = `\n\n${nuevo}`;
+    for (const id of ids) {
+      await admin.open(id);
+      expect((await admin.readText()).slice(-ending.length)).toBe(ending);
+    }
+  });
+
+  /* Los dos grupos de prueba llevan el marcador «E2E » y quedan juntos en la lista, que va por
+     nombre: grupos vecinos reciben versiones distintas el mismo día. */
+  test("Las versiones del texto se turnan entre grupos", async ({ page }) => {
+    const mamas = await seedGroup("Mamás de Orizaba", "post");
+    const emprendedores = await seedGroup("Emprendedores de Orizaba", "post");
+    const id = await seedMasaMadreText(breads, undefined, {
+      versions: ["Masa madre de verdad, hecha aquí. Pasa por el tuyo:"],
+    });
+    const admin = new OutreachAdmin(page);
+
+    await admin.open(id);
+
+    await expect(admin.versionTexts()).toHaveCount(2);
+    for (const n of [1, 2]) {
+      await expect(
+        admin.groupPost().getByRole("button", { name: `Copiar versión ${n}` }),
+      ).toBeVisible();
+    }
+    const turns = [
+      await admin.versionTurn(mamas.name).textContent(),
+      await admin.versionTurn(emprendedores.name).textContent(),
+    ].sort();
+    expect(turns).toEqual(["Le toca la versión 1", "Le toca la versión 2"]);
   });
 });
 
