@@ -57,4 +57,15 @@ export default class PostgresOutreachFooterRepository
 
     return updated.length > 0;
   }
+
+  async delete(id: string): Promise<boolean> {
+    if (!UUID_SHAPE.test(id)) return false;
+
+    const removed = await db
+      .delete(outreachFooters)
+      .where(eq(outreachFooters.id, id))
+      .returning({ id: outreachFooters.id });
+
+    return removed.length > 0;
+  }
 }

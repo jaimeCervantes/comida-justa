@@ -40,4 +40,8 @@ export default class InMemoryOutreachFooterRepository
 
     return true;
   }
+
+  async delete(id: string): Promise<boolean> {
+    return this.saved.delete(id);
+  }
 }

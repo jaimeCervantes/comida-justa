@@ -163,6 +163,17 @@ export default class PostgresOutreachTextRepository
     });
   }
 
+  async delete(id: string): Promise<boolean> {
+    if (!UUID_SHAPE.test(id)) return false;
+
+    const removed = await db
+      .delete(outreachTexts)
+      .where(eq(outreachTexts.id, id))
+      .returning({ id: outreachTexts.id });
+
+    return removed.length > 0;
+  }
+
   private async versionsOf(id: string): Promise<string[]> {
     const rows = await db
       .select({ opening: outreachTextVersions.opening })

@@ -4,7 +4,9 @@ import {
   createOutreachFooterRepository,
   createOutreachProductCatalog,
 } from "~/infra/dataAccess/outreach/factory";
+import { deleteOutreachText } from "../../actions";
 import { enterOutreachAdmin, outreachMetadata } from "../../adminGate";
+import ConfirmDelete from "../../ui/ConfirmDelete";
 import OutreachBreadcrumbs from "../../ui/OutreachBreadcrumbs";
 import OutreachTextForm from "../../ui/OutreachTextForm";
 import { loadOutreachText } from "../loadOutreachText";
@@ -60,6 +62,12 @@ export default async function EditarDifusionPage({
             emoji: product.emoji ?? "",
           })),
         }}
+      />
+      <ConfirmDelete
+        action={deleteOutreachText}
+        id={text.id}
+        triggerLabel={t("deleteText")}
+        question={t("deleteTextQuestion", { name: text.name })}
       />
     </main>
   );

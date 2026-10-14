@@ -2,7 +2,9 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { createOutreachFooterRepository } from "~/infra/dataAccess/outreach/factory";
 import { enterOutreachAdmin, outreachMetadata } from "../../../adminGate";
+import ConfirmDelete from "../../../ui/ConfirmDelete";
 import OutreachBreadcrumbs from "../../../ui/OutreachBreadcrumbs";
+import { deleteOutreachFooter } from "../../actions";
 import FooterForm from "../../ui/FooterForm";
 
 export const generateMetadata = outreachMetadata;
@@ -27,6 +29,12 @@ export default async function EditarPiePage({
       <OutreachBreadcrumbs inFooters steps={[{ label: footer.name }]} />
       <h1 className="text-xl font-bold mb-4">{heading}</h1>
       <FooterForm label={heading} id={footer.id} initial={footer} />
+      <ConfirmDelete
+        action={deleteOutreachFooter}
+        id={footer.id}
+        triggerLabel={t("deleteFooter")}
+        question={t("deleteFooterQuestion", { name: footer.name })}
+      />
     </main>
   );
 }

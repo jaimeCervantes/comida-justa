@@ -14,6 +14,8 @@ import { auth } from "~/infra/auth";
 import { isAdmin } from "~/infra/auth/isAdmin";
 import { createOutreachTextRepository } from "~/infra/dataAccess/outreach/factory";
 import SaveOutreachTextUseCase from "~/use_cases/outreach/saveOutreachTextUseCase";
+import { deleteOutreachRecord } from "./deleteRecord";
+import type { DeleteState } from "./ui/ConfirmDelete";
 
 export interface OutreachFormState {
   errors: {
@@ -130,4 +132,14 @@ export async function saveOutreachText(
     { pathname: "/admin/difusion/[id]", params: { id: result.id } },
     resolveLocale(await getLocale()),
   );
+}
+
+export async function deleteOutreachText(
+  _state: DeleteState,
+  formData: FormData,
+): Promise<DeleteState> {
+  return deleteOutreachRecord(createOutreachTextRepository(), formData, {
+    backTo: "/admin/difusion",
+    gone: "notFound",
+  });
 }

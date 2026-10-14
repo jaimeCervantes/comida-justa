@@ -11,6 +11,8 @@ import { auth } from "~/infra/auth";
 import { isAdmin } from "~/infra/auth/isAdmin";
 import { createOutreachChannelRepository } from "~/infra/dataAccess/outreach/factory";
 import SaveOutreachChannelUseCase from "~/use_cases/outreach/saveOutreachChannelUseCase";
+import { deleteOutreachRecord } from "../deleteRecord";
+import type { DeleteState } from "../ui/ConfirmDelete";
 
 export interface ChannelFormState {
   errors: {
@@ -72,10 +74,22 @@ export async function saveOutreachChannel(
   if (result.status === "invalid") {
     return { errors: translateErrors(result.errors, t) };
   }
-  if (result.status === "not-found") return { errors: { form: t("notFound") } };
+  if (result.status === "not-found") {
+    return { errors: { form: t("groupNotFound") } };
+  }
 
   redirectKeepingLocale(
     "/admin/difusion/grupos",
     resolveLocale(await getLocale()),
   );
+}
+
+export async function deleteOutreachChannel(
+  _state: DeleteState,
+  formData: FormData,
+): Promise<DeleteState> {
+  return deleteOutreachRecord(createOutreachChannelRepository(), formData, {
+    backTo: "/admin/difusion/grupos",
+    gone: "groupNotFound",
+  });
 }

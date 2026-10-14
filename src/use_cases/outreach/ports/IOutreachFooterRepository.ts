@@ -9,4 +9,8 @@ export default interface IOutreachFooterRepository {
   create(footer: OutreachFooterDraft): Promise<string>;
   /** `false` si ya no existe. */
   update(id: string, footer: OutreachFooterDraft): Promise<boolean>;
+  /**
+   * Borra el pie; los textos que lo llevaban se quedan sin pie (`ON DELETE SET NULL`). `false` si ya no existía, o si `id` no tiene forma de identidad.
+   */
+  delete(id: string): Promise<boolean>;
 }
