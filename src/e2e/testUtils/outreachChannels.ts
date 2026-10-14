@@ -1,7 +1,10 @@
 import { sql } from "drizzle-orm";
 import type { OutreachChannelInput } from "~/domain/outreach/outreachChannelDraft";
 import { db } from "~/infra/dataAccess/db/connection";
-import { outreachChannels } from "~/infra/dataAccess/db/schema/outreach";
+import {
+  outreachChannels,
+  outreachPublications,
+} from "~/infra/dataAccess/db/schema/outreach";
 import { TEST_OUTREACH_PREFIX } from "./testSlug";
 
 const NAME_PATTERN = `${TEST_OUTREACH_PREFIX}%`;
@@ -79,4 +82,17 @@ export async function readOutreachPublications(
       post_id: string | null;
     }>
   ).map((row) => ({ channelId: row.channel_id, postId: row.post_id }));
+}
+
+/**
+ * Una publicación ya marcada, con la hora que pida el escenario («hace 3 días», «ayer»). Sin esto,
+ * probar un turno obligaría a esperar días de verdad. Cae con su texto o su grupo de prueba.
+ */
+export async function seedOutreachPublication(publication: {
+  outreachTextId: string;
+  channelId: string;
+  postId: string | null;
+  publishedAt: Date;
+}): Promise<void> {
+  await db.insert(outreachPublications).values(publication);
 }

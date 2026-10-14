@@ -216,11 +216,53 @@ mínimos y el historial. En compraventa sugiere qué producto toca hoy en cada g
 más tiempo sin publicarse ahí. Avisa al llegar a un tope de publicaciones por día; avisa, no
 bloquea. Sin migración.
 
+**Criterios de aceptación.**
+
+1. Cada grupo dice «Ya le toca» o «Todavía no: en N días» («mañana» si falta uno), contando desde
+   lo último que se publicó **ahí, de cualquier texto**, contra sus días mínimos. 0 es sin límite;
+   lo que nunca recibió nada no espera.
+2. Cada grupo de compraventa sugiere «Hoy toca: …»: el pan disponible que lleva más tiempo sin
+   publicarse ahí; lo que nunca se publicó va primero y, entre iguales, manda el orden del texto.
+3. Arriba de la publicación: «Hoy llevas N de 10 publicaciones en grupos», contando todas las de
+   hoy en hora de México. Al llegar a 10 lo dice como aviso, y marcar sigue funcionando.
+4. El tope (10) es un valor prudente, no una cifra de Meta —que no publica ninguna—; desde el
+   slice 4.1 se cambia por variable de entorno (ver «Configuración»).
+
+### Slice 4.1 — La pausa entre publicaciones, y el ritmo configurable
+
+**De dónde sale.** De revisarlo con el usuario: el tope del día no dice nada si las primeras ocho
+van en cinco minutos, y publicar en ráfaga es otra de las cosas que Facebook toma por spam. Pidió la
+pausa y que el tope y la pausa se puedan cambiar por configuración o variable de entorno.
+
+**Criterios de aceptación.**
+
+1. Arriba de la publicación, si lo último que se marcó en cualquier grupo fue hace menos de la
+   pausa: «Acabas de publicar: espera unos 10 minutos antes de la siguiente» o «Tu última
+   publicación fue hace 4 minutos: espera unos 6 minutos más antes de la siguiente». Avisa y no
+   impide.
+2. Minutos enteros ya transcurridos; un reloj desfasado no da minutos negativos; 0 minutos apaga la
+   pausa.
+3. `OUTREACH_DAILY_LIMIT` y `OUTREACH_PAUSE_MINUTES` cambian los dos valores sin tocar código. Lo
+   que no es un entero en rango se ignora —se usa el valor por omisión— y se avisa una vez en el
+   registro del servidor.
+
 ### Slice 5 — Pie compartido y versiones que se turnan (migración C, opcional)
 
 **Alcance.** El pie de contacto (ubicación, WhatsApp, bot, pilares) se escribe una vez y lo
 comparten todas las publicaciones. Una publicación puede tener varias versiones del texto y la app
 turna cuál toca, para no repetir el mismo texto en grupos distintos el mismo día.
+
+## Configuración
+
+| Variable                 | Por omisión | Acepta                      | Para qué                                              |
+| ------------------------ | ----------- | --------------------------- | ----------------------------------------------------- |
+| `OUTREACH_DAILY_LIMIT`   | `10`        | entero de 1 a 200           | Cuántas publicaciones en grupos al día antes de avisar. |
+| `OUTREACH_PAUSE_MINUTES` | `10`        | entero de 0 a 240 (0 apaga) | Cuántos minutos esperar entre una y otra.             |
+
+Solo las lee el servidor, al armar la página (sin `NEXT_PUBLIC_`): se cambian en el panel del
+despliegue sin recompilar. Sin ellas valen los de omisión, que viven en
+`src/domain/outreach/rhythmConfig.ts`; la lectura está en `src/infra/config/outreachRhythm.ts`. Ni
+uno ni otro son cifras de Facebook, que no publica ninguna.
 
 ## Especificación de la migración A (para `hazlo-sano-bot`)
 

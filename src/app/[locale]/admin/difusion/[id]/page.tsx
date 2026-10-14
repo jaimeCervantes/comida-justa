@@ -6,6 +6,7 @@ import { lastPublishedLabel } from "./lastPublishedLabel";
 import { loadOutreachText } from "./loadOutreachText";
 import ChannelLinks from "./ui/ChannelLinks";
 import CopyText from "./ui/CopyText";
+import DailyPaceNotice from "./ui/DailyPaceNotice";
 import ExcludedProducts from "./ui/ExcludedProducts";
 import ListingArticles from "./ui/ListingArticles";
 import MarkPublishedForm from "./ui/MarkPublishedForm";
@@ -28,10 +29,10 @@ export default async function DifusionKitPage({
   const { locale: rawLocale, id } = await params;
   const locale = await enterOutreachAdmin(rawLocale);
   const t = await getTranslations("outreach");
-  const { text, kit, articles, postChannels, listingChannels } =
-    await loadOutreachText(id, locale);
   // Una sola hora para toda la página: «hoy» no puede cambiar de un grupo al siguiente.
   const now = new Date();
+  const { text, kit, articles, postChannels, listingChannels, pace, pause } =
+    await loadOutreachText(id, locale, now);
 
   return (
     <main>
@@ -54,6 +55,8 @@ export default async function DifusionKitPage({
           </Link>
         </div>
       </div>
+
+      <DailyPaceNotice pace={pace} pause={pause} />
 
       <section data-testid="outreach-group-post">
         <h2 className="text-lg font-semibold mb-1">{t("groupPostHeading")}</h2>
@@ -97,9 +100,7 @@ export default async function DifusionKitPage({
               </p>
             ) : (
               <>
-                <ChannelLinks
-                  channels={postChannels.map(({ channel }) => channel)}
-                />
+                <ChannelLinks items={postChannels} />
                 <MarkPublishedForm
                   outreachTextId={text.id}
                   postId={null}

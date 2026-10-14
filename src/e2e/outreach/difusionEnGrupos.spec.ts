@@ -6,6 +6,7 @@ import {
   outreachChannelsTableExists,
   readOutreachPublications,
   seedOutreachChannel,
+  seedOutreachPublication,
 } from "../testUtils/outreachChannels";
 import {
   deleteTestOutreachTexts,
@@ -34,8 +35,9 @@ import OutreachAdmin from "./OutreachAdmin";
 import OutreachGroups from "./OutreachGroups";
 
 /**
- * Slices 1 a 3 de `difusionEnGrupos.feature`: la publicación para grupos normales, los artículos
- * de compraventa que salen de ella, y los grupos con el historial de dónde quedó cada cosa.
+ * Slices 1 a 4 de `difusionEnGrupos.feature`: la publicación para grupos normales, los artículos
+ * de compraventa que salen de ella, los grupos con el historial de dónde quedó cada cosa, y el ritmo
+ * entre ellos.
  *
  * Nada de esto publica en Facebook —ninguna app puede ya—: se comprueba que el texto que se copia
  * es exactamente el que anuncia lo que hay hoy, al precio de hoy.
@@ -407,4 +409,112 @@ test.describe("Difusión en grupos de Facebook", () => {
       page.getByRole("heading", { level: 1, name: t.groupsHeading }),
     ).toBeVisible();
   });
+
+  // --- Slice 4: el ritmo -----------------------------------------------------------------
+
+  test("Me dice a qué grupos ya les toca", async ({ page }) => {
+    const mamas = await seedGroup("Mamás de Orizaba", "post");
+    const emprendedores = await seedGroup("Emprendedores de Orizaba", "post");
+    const id = await seedMasaMadreText(breads);
+    await seedOutreachPublication({
+      outreachTextId: id,
+      channelId: mamas.id,
+      postId: null,
+      publishedAt: daysAgo(3),
+    });
+    await seedOutreachPublication({
+      outreachTextId: id,
+      channelId: emprendedores.id,
+      postId: null,
+      publishedAt: daysAgo(8),
+    });
+    const admin = new OutreachAdmin(page);
+
+    await admin.open(id);
+
+    await expect(admin.channelTurn(admin.groupPost(), mamas.name)).toHaveText(
+      "Todavía no: en 4 días",
+    );
+    await expect(
+      admin.channelTurn(admin.groupPost(), emprendedores.name),
+    ).toHaveText(t.turnDue);
+  });
+
+  test("En compraventa me sugiere qué pan toca hoy en cada grupo", async ({
+    page,
+  }) => {
+    const compraventa = await seedGroup("Compra Venta Orizaba", "listing");
+    const id = await seedMasaMadreText(breads);
+    for (const [key, days] of [
+      ["natural", 2],
+      ["semillas", 1],
+    ] as const) {
+      await seedOutreachPublication({
+        outreachTextId: id,
+        channelId: compraventa.id,
+        postId: breadOf(breads, key).postId,
+        publishedAt: daysAgo(days),
+      });
+    }
+    const admin = new OutreachAdmin(page);
+
+    await admin.open(id);
+
+    await expect(admin.channelSuggestion(compraventa.name)).toHaveText(
+      `Hoy toca: ${breadOf(breads, "arandanos").title}`,
+    );
+  });
+
+  /* El conteo es de todo lo de hoy en la base compartida, incluidas las publicaciones reales que
+     alguien haya marcado: por eso se afirma «10 o más de 10», no «exactamente 10». */
+  test("Me avisa al llegar al tope del día, sin impedirme publicar", async ({
+    page,
+  }) => {
+    const mamas = await seedGroup("Mamás de Orizaba", "post");
+    const id = await seedMasaMadreText(breads);
+    for (let i = 0; i < 10; i++) {
+      await seedOutreachPublication({
+        outreachTextId: id,
+        channelId: mamas.id,
+        postId: null,
+        publishedAt: new Date(),
+      });
+    }
+    const admin = new OutreachAdmin(page);
+
+    await admin.open(id);
+
+    await expect(admin.dailyPace()).toHaveText(
+      /^Hoy ya llevas (1\d|[2-9]\d|\d{3,}) de 10\. .*mejor sigue mañana\.$/,
+    );
+    await expect(admin.markPostButton()).toBeEnabled();
+  });
+
+  // --- Slice 4.1: la pausa entre publicaciones -------------------------------------------
+
+  /* El servidor de la suite corre sin `OUTREACH_PAUSE_MINUTES`, así que la pausa es la de omisión:
+     10 minutos. Lo marcado se siembra justo antes de abrir, para que sea lo último de la base. */
+  test("Me sugiere una pausa después de publicar", async ({ page }) => {
+    const mamas = await seedGroup("Mamás de Orizaba", "post");
+    const id = await seedMasaMadreText(breads);
+    await seedOutreachPublication({
+      outreachTextId: id,
+      channelId: mamas.id,
+      postId: null,
+      publishedAt: new Date(),
+    });
+    const admin = new OutreachAdmin(page);
+
+    await admin.open(id);
+
+    await expect(admin.pauseNotice()).toHaveText(
+      "Acabas de publicar: espera unos 10 minutos antes de la siguiente.",
+    );
+    await expect(admin.markPostButton()).toBeEnabled();
+  });
 });
+
+/** Hace tantos días, a esta misma hora: los turnos se cuentan en días de calendario. */
+function daysAgo(days: number): Date {
+  return new Date(Date.now() - days * 86_400_000);
+}

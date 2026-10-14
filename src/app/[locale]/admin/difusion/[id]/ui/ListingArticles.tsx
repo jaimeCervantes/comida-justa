@@ -1,7 +1,9 @@
 import { getTranslations } from "next-intl/server";
 import { Link } from "~/i18n/navigation";
-import type { ListingArticleView } from "~/use_cases/outreach/getOutreachKitUseCase";
-import type { OutreachChannel } from "~/use_cases/outreach/ports/IOutreachChannelRepository";
+import type {
+  ListingArticleView,
+  ListingChannelStatus,
+} from "~/use_cases/outreach/getOutreachKitUseCase";
 import { lastPublishedLabel } from "../lastPublishedLabel";
 import ChannelLinks from "./ChannelLinks";
 import CopyText from "./CopyText";
@@ -11,8 +13,8 @@ import ProductPhotos from "./ProductPhotos";
 interface ListingArticlesProps {
   outreachTextId: string;
   articles: readonly ListingArticleView[];
-  /** Los grupos de compraventa, para abrirlos; cada artículo lleva su historial en ellos. */
-  channels: readonly OutreachChannel[];
+  /** Los grupos de compraventa con su turno y el pan que toca; cada artículo lleva su historial. */
+  channels: readonly ListingChannelStatus[];
   /** El texto completo de la línea: es la descripción de todos los artículos. */
   description: string;
   /** La hora con la que se cuenta «hoy»: una sola para toda la página. */
@@ -50,7 +52,13 @@ export default async function ListingArticles({
           </Link>
         </p>
       ) : (
-        <ChannelLinks channels={channels} />
+        <ChannelLinks
+          items={channels.map(({ channel, turn, suggestion }) => ({
+            channel,
+            turn,
+            suggestionTitle: suggestion?.title ?? null,
+          }))}
+        />
       )}
 
       <div data-testid="outreach-listing-description" className="mb-4">

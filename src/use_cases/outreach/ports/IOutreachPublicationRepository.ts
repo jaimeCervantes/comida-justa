@@ -17,4 +17,11 @@ export default interface IOutreachPublicationRepository {
    * compraventa le da igual desde qué publicación se vendió el pan.
    */
   stampsFor(outreachTextId: string): Promise<PublicationStamp[]>;
+  /**
+   * Lo último que se publicó en cada grupo, **de cualquier texto**: es lo que cuenta para el turno,
+   * porque la regla de un grupo es «una publicación tuya cada N días», no una por texto.
+   */
+  lastByChannel(): Promise<Map<string, Date>>;
+  /** Cuántas se marcaron en ese día de calendario (`2026-10-13`) de esa zona, en cualquier grupo. */
+  countOn(date: string, timeZone: string): Promise<number>;
 }
