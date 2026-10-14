@@ -573,3 +573,133 @@ dos últimos configurables por entorno. Todo avisa; nada impide publicar.
 2. Si se quieren otros valores en producción: `OUTREACH_DAILY_LIMIT` y `OUTREACH_PAUSE_MINUTES` en
    el panel del despliegue.
 3. **Slice 5** (migración C): pie compartido y versiones del texto que se turnan.
+
+## 2026-10-13 — Slice 5: pie compartido y versiones que se turnan (código listo, migración `0062` sin aplicar)
+
+### Objetivo
+
+Que el bloque de contacto se escriba una vez y lo compartan las publicaciones, y que una publicación
+pueda tener varias versiones de lo que va antes de la lista, repartidas entre los grupos para que
+Facebook no vea el mismo texto en varios el mismo día.
+
+### Decisiones y por qué
+
+- **El pie es un registro propio (`outreach_footers`) y no un ajuste global.** Cada texto elige el
+  suyo con `footer_id`. Además de permitir otro pie para otra marca, es lo que deja a la suite crear
+  los suyos con el marcador «E2E »: con un ajuste único, cada corrida tendría que pisar y restaurar
+  el pie de verdad en la base compartida, y una corrida cortada lo dejaría cambiado.
+- **Borrar un pie deja a sus textos sin pie** (`ON DELETE SET NULL`), no los borra.
+- **La primera versión sigue en `outreach_texts.opening`**; las demás van en
+  `outreach_text_versions`, en orden. Así los textos que ya existen no cambian.
+- **El turno no se guarda: sale de la fecha y del orden de los grupos.** El grupo `i` recibe la
+  versión `(día + i) mod n`, con el día de México. Grupos vecinos reciben versiones distintas el
+  mismo día y cada grupo cambia al día siguiente; con más grupos que versiones se reparten parejo.
+  La descripción de compraventa, que es una para todos, usa la versión del día.
+- **Una versión en blanco se descarta al guardar**, igual que un emoji vacío: arrancaría el texto
+  directo en la lista.
+- **Desde este slice, guardar un texto requiere la `0062`**, no solo leerlo: Drizzle nombra todas
+  las columnas al insertar, `footer_id` incluida. Este código no puede integrarse antes que la
+  migración.
+- **El e2e se salta entero mientras falte cualquiera de las tres migraciones** (`0060` a `0062`).
+
+### Archivos tocados
+
+- **Migración (otro repo):** `hazlo-sano-bot/alembic/versions/0062_2026-10-13_add_outreach_footers_and_versions.py`,
+  rama `feat/outreach-footers`, **sin commit ni aplicar**.
+- **Dominio:** `versions.ts` (el turno), `footerDraft.ts`, el pie y las versiones en
+  `outreachText.ts` y `outreachTextDraft.ts`, `calendarDay` exportado; sus pruebas.
+- **Casos de uso:** `saveOutreachFooterUseCase`, `listOutreachFootersUseCase`, el puerto de pies, y
+  `getOutreachKitUseCase` con versiones, turno por grupo y versión de la descripción.
+- **Infra:** espejo de `outreach_footers`, `outreach_text_versions` y `footer_id`;
+  `PostgresOutreachFooterRepository`; versiones y pie en `PostgresOutreachTextRepository`.
+- **App:** `/admin/difusion/pies` (lista, alta y edición) con su acción y `FooterForm`; en el
+  formulario del texto, `OpeningVersions` y el selector de pie; en la publicación,
+  `GroupPostTexts` y «Le toca la versión N»; migas de los pies.
+- **Rutas y textos:** tres rutas (`/en/admin/outreach/footers…`) y 28 claves.
+- **E2E:** dos escenarios, `OutreachFooters`, siembra y barrido de pies con guarda de tabla.
+
+### Resultados (antes de aplicar la `0062`)
+
+- **Vitest del área:** 24 archivos, 209 pruebas. **Suite completa: 323 archivos, 3 420 pruebas.**
+- **`typecheck` y `lint`** (1 430 archivos): limpios.
+- **SQL de la `0062` en modo offline:** crea la tabla de pies, la columna con su llave foránea e
+  índice, y la tabla de versiones; el `downgrade` lo quita en orden inverso. `alembic heads` da
+  `0062_2026_10_13` como única cabeza.
+- **Playwright:** 22 escenarios listados, **sin ejecutar**: necesitan la `0062`.
+
+### Recap
+
+El slice 5 está escrito de punta a punta y en verde en todo lo que no necesita las tablas nuevas.
+Falta aplicar la `0062` en la base compartida, lo que requiere autorización explícita; sin ella, el
+texto no se puede guardar ni abrir.
+
+### Próximos pasos (opciones)
+
+1. **Autorizar la `0062`**: después, comprobar el espejo, correr los 22 escenarios (en dos tramos),
+   hacer los commits, integrar `feat/outreach-footers` a `main` en `hazlo-sano-bot` y, si se pide,
+   esta rama a `dev`.
+2. Borrar publicaciones, grupos y pies, que hoy solo se crean y se corrigen.
+
+## 2026-10-14 — Slice 5: la `0062` aplicada, el e2e en verde y el backend integrado
+
+### Objetivo
+
+Cerrar el slice 5: aplicar la `0062`, comprobar el espejo, correr el e2e e integrar la migración a
+`main` en `hazlo-sano-bot`.
+
+### Decisiones y por qué
+
+- **El usuario autorizó las dos cosas** («sí, adelante», a la pregunta de aplicar la `0062` e
+  integrar y subir su rama). Antes se comprobó que fuera la única pendiente: `0061` → `0062`.
+- **El escenario del pie falló la primera vez por la prueba, no por la app.** Un diagnóstico
+  temporal (borrado al terminar) mostró que `fill` sobre el texto del pie, que ya venía escrito,
+  dejó «NUEVO…VIEJO…»: cayó mientras React hidrataba el formulario, perdió la selección y pegó lo
+  nuevo delante. Se guardó tal cual, y lo que falló fue la comparación del final del texto. En los
+  formularios vacíos no se nota porque no hay nada detrás.
+- **Arreglo: `fillWhenHydrated`** en `src/e2e/testUtils/`, hermano de `selectWhenHydrated`: escribe y
+  comprueba que quedó exactamente eso, reintentando con `toPass`. Los tres page objects de difusión
+  lo usan en sus once campos, también en los que hoy empiezan vacíos.
+
+### Comandos clave
+
+```sh
+# hazlo-sano-bot
+uv run alembic current && uv run alembic upgrade head        # 0061 -> 0062
+uv run pytest -q                                             # 204 passed
+git checkout main && git merge --ff-only feat/outreach-footers && git push origin main
+
+# comida-justa (puerto 3000 libre comprobado antes de cada tramo, y `.next` borrado)
+pnpm exec playwright test src/e2e/outreach --shard=1/2 --reporter=line
+pnpm exec playwright test src/e2e/outreach --shard=2/2 --reporter=line
+```
+
+### Resultados
+
+- **Espejo:** coincide con la base en `outreach_footers`, `outreach_text_versions` y
+  `outreach_texts.footer_id`, con sus llaves (`SET NULL` y `CASCADE`) y sus dos índices.
+- **Playwright, primera corrida:** 21 de 22; falló el del pie (ver Decisiones).
+- **Playwright, con `fillWhenHydrated`: 22 de 22**, en dos tramos de 11 (4.5 y 4.4 min).
+- **Backend:** `pytest` 204 en verde; `main` empujado (`9b6f9ba..2f665ee`).
+
+### Escrito en recursos compartidos
+
+- **Base compartida:** la `0062` creó `outreach_footers` y `outreach_text_versions` (vacías) y la
+  columna `outreach_texts.footer_id` (nula en los textos que ya existían). Se deshace con
+  `uv run alembic downgrade 0061_2026_10_13` en `hazlo-sano-bot`.
+- **GitHub:** `hazlo-sano-bot/main` lleva `2f665ee` (`0062`).
+- **Datos de prueba:** pies, textos, grupos y panes con el marcador «E2E », borrados al terminar
+  cada escenario y comprobado por el barrido final.
+
+### Recap
+
+El roadmap de difusión está completo: texto para grupos normales, artículos de compraventa con
+fotos, grupos con su historial, migas de pan, el ritmo —turno, pan del día, tope y pausa
+configurables— y ahora el pie compartido y las versiones que se turnan. Las tres migraciones
+(`0060` a `0062`) están aplicadas y en `main` del backend.
+
+### Próximos pasos (opciones)
+
+1. Integrar esta rama a `dev` y empujar.
+2. Borrar publicaciones, grupos y pies, que hoy solo se crean y se corrigen.
+3. Dar de alta el pie real de Hazlo Sano y elegirlo en las publicaciones que ya existan, quitando de
+   su texto «después de la lista» el bloque de contacto repetido.
