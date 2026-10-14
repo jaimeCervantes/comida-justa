@@ -5,9 +5,9 @@ import OutreachBreadcrumbs from "../ui/OutreachBreadcrumbs";
 import { lastPublishedLabel } from "./lastPublishedLabel";
 import { loadOutreachText } from "./loadOutreachText";
 import ChannelLinks from "./ui/ChannelLinks";
-import CopyText from "./ui/CopyText";
 import DailyPaceNotice from "./ui/DailyPaceNotice";
 import ExcludedProducts from "./ui/ExcludedProducts";
+import GroupPostTexts from "./ui/GroupPostTexts";
 import ListingArticles from "./ui/ListingArticles";
 import MarkPublishedForm from "./ui/MarkPublishedForm";
 import ProductPhotos from "./ui/ProductPhotos";
@@ -31,8 +31,18 @@ export default async function DifusionKitPage({
   const t = await getTranslations("outreach");
   // Una sola hora para toda la página: «hoy» no puede cambiar de un grupo al siguiente.
   const now = new Date();
-  const { text, kit, articles, postChannels, listingChannels, pace, pause } =
-    await loadOutreachText(id, locale, now);
+  const {
+    text,
+    kit,
+    articles,
+    postChannels,
+    listingChannels,
+    pace,
+    pause,
+    descriptionVersion,
+  } = await loadOutreachText(id, locale, now);
+  // Con una sola versión no hay turno que anunciar.
+  const turnsVersions = kit.versions.length > 1;
 
   return (
     <main>
@@ -66,15 +76,7 @@ export default async function DifusionKitPage({
             <p className="mb-3 text-sm text-text-support">
               {t("groupPostHint")}
             </p>
-            {/* `pre-wrap` y no `pre`: conserva los renglones tal cual se pegarán, sin obligar a
-                desplazarse de lado en un teléfono. */}
-            <pre
-              data-testid="outreach-text"
-              className="mb-3 whitespace-pre-wrap break-words rounded-card border border-separator bg-surface-elevation-1 p-4 font-sans"
-            >
-              {kit.text}
-            </pre>
-            <CopyText text={kit.text} label={t("copy")} />
+            <GroupPostTexts versions={kit.versions} />
 
             {/* Una foto por producto: en un grupo normal la línea entera va en una publicación. */}
             <h3 className="mt-4 mb-2 font-semibold">{t("photosHeading")}</h3>
@@ -100,7 +102,14 @@ export default async function DifusionKitPage({
               </p>
             ) : (
               <>
-                <ChannelLinks items={postChannels} />
+                <ChannelLinks
+                  items={postChannels.map((status) => ({
+                    ...status,
+                    versionNumber: turnsVersions
+                      ? status.version + 1
+                      : undefined,
+                  }))}
+                />
                 <MarkPublishedForm
                   outreachTextId={text.id}
                   postId={null}
@@ -133,7 +142,10 @@ export default async function DifusionKitPage({
           outreachTextId={text.id}
           articles={articles}
           channels={listingChannels}
-          description={kit.text}
+          description={kit.versions[descriptionVersion] ?? kit.text}
+          descriptionVersionNumber={
+            turnsVersions ? descriptionVersion + 1 : undefined
+          }
           now={now}
         />
       ) : null}

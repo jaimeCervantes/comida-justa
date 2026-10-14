@@ -16,14 +16,16 @@ import { posts } from "./posts";
  * **Solo lo que está aquí se publica.** La descripción del producto en el sitio no se usa, aunque
  * hoy la de los panes empiece igual. Ver `docs/features/commerce/030-2026-10-04-difusion-en-grupos.md`.
  */
-export const outreachTexts = pgTable("outreach_texts", {
+/**
+ * Los pies compartidos: el bloque de contacto que va al final de cada texto que lo lleva. Espejo de
+ * la migración `0062_2026_10_13`. Un registro propio y no un ajuste global: cada texto elige el suyo.
+ */
+export const outreachFooters = pgTable("outreach_footers", {
   id: uuid("id").defaultRandom().primaryKey(),
-  /** Nombre interno («Masa madre»). Nunca se publica. */
+  /** Nombre interno («Hazlo Sano»). Nunca se publica: sirve para elegirlo. */
   name: text("name").notNull(),
-  /** Lo que va antes de la lista de precios, tal cual se escribió. */
-  opening: text("opening").notNull().default(""),
-  /** Lo que va después de la lista. */
-  closing: text("closing").notNull().default(""),
+  /** Lo que se pega al final, tal cual se escribió. */
+  body: text("body").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
@@ -32,6 +34,52 @@ export const outreachTexts = pgTable("outreach_texts", {
     .notNull()
     .defaultNow(),
 });
+
+export const outreachTexts = pgTable(
+  "outreach_texts",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    /** Nombre interno («Masa madre»). Nunca se publica. */
+    name: text("name").notNull(),
+    /** Lo que va antes de la lista de precios, tal cual se escribió: la primera versión. */
+    opening: text("opening").notNull().default(""),
+    /** Lo que va después de la lista. */
+    closing: text("closing").notNull().default(""),
+    /** El pie que lleva (`0062`). Borrar el pie lo deja en nulo, no borra el texto. */
+    footerId: uuid("footer_id").references(() => outreachFooters.id, {
+      onDelete: "set null",
+    }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    /** Lo escribe la web al guardar: la base no tiene trigger. */
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [index("ix_outreach_texts_footer_id").on(table.footerId)],
+);
+
+/**
+ * Las otras versiones de lo que va antes de la lista (`0062`); la primera sigue en
+ * `outreach_texts.opening`. A qué grupo le toca cuál lo decide la web, por día y por grupo: aquí no
+ * se guarda ningún turno.
+ */
+export const outreachTextVersions = pgTable(
+  "outreach_text_versions",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    outreachTextId: uuid("outreach_text_id")
+      .notNull()
+      .references(() => outreachTexts.id, { onDelete: "cascade" }),
+    opening: text("opening").notNull(),
+    /** Orden de las versiones: la 2, la 3… */
+    position: integer("position").notNull(),
+  },
+  (table) => [
+    index("ix_outreach_text_versions_text_id").on(table.outreachTextId),
+  ],
+);
 
 /**
  * Qué productos lleva cada texto, con qué etiqueta, emoji y orden.

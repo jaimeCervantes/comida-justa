@@ -141,6 +141,18 @@ export const pathnames = {
     es: "/admin/difusion/grupos/[id]/editar",
     en: "/admin/outreach/groups/[id]/edit",
   },
+  "/admin/difusion/pies": {
+    es: "/admin/difusion/pies",
+    en: "/admin/outreach/footers",
+  },
+  "/admin/difusion/pies/nuevo": {
+    es: "/admin/difusion/pies/nuevo",
+    en: "/admin/outreach/footers/new",
+  },
+  "/admin/difusion/pies/[id]/editar": {
+    es: "/admin/difusion/pies/[id]/editar",
+    en: "/admin/outreach/footers/[id]/edit",
+  },
 
   /* Iguales en los dos idiomas, cada una por su motivo:
      - `/[slug]` y `/page/[page]` son la publicación y la paginación del inicio; el slug se queda

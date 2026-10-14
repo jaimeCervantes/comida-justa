@@ -1,5 +1,6 @@
 import type { OutreachChannelInput } from "~/domain/outreach/outreachChannelDraft";
 import InMemoryOutreachChannelRepository from "./InMemoryOutreachChannelRepository";
+import InMemoryOutreachFooterRepository from "./InMemoryOutreachFooterRepository";
 import InMemoryOutreachPublicationRepository from "./InMemoryOutreachPublicationRepository";
 import InMemoryOutreachTextRepository, {
   type CatalogProduct,
@@ -38,7 +39,7 @@ export function grupo(
 }
 
 /**
- * Los tres repositorios sin base, con el texto «Masa madre» de dos panes ya guardado: el mundo
+ * Los repositorios sin base, con el texto «Masa madre» de dos panes ya guardado: el mundo
  * mínimo en que se pueden contar todas las historias de la difusión.
  *
  * `now` es la hora que la prueba controla para el historial, como la pondría el `DEFAULT now()`.
@@ -48,7 +49,10 @@ export async function masaMadreWorld(now: () => Date = () => new Date()) {
     ["pan-natural", pan("pan-natural", "Pan de Masa Madre Natural", 96)],
     ["pan-canela", pan("pan-canela", "Pan de masa madre de canela", 125)],
   ]);
-  const texts = new InMemoryOutreachTextRepository(catalog);
+  const footers = new InMemoryOutreachFooterRepository();
+  const texts = new InMemoryOutreachTextRepository(catalog, (id) =>
+    footers.lookup(id),
+  );
   const channels = new InMemoryOutreachChannelRepository();
   const publications = new InMemoryOutreachPublicationRepository(now, (id) =>
     (texts.saved.get(id)?.items ?? []).map((item) => item.postId),
@@ -63,5 +67,5 @@ export async function masaMadreWorld(now: () => Date = () => new Date()) {
     ],
   });
 
-  return { catalog, texts, channels, publications, textId };
+  return { catalog, texts, footers, channels, publications, textId };
 }

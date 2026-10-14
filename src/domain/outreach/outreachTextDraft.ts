@@ -16,6 +16,10 @@ export interface OutreachTextDraft {
   opening: string;
   closing: string;
   items: OutreachTextDraftItem[];
+  /** Las otras versiones de lo que va antes de la lista, en orden. Las vacías se descartan. */
+  versions?: string[];
+  /** El pie compartido que lleva; nulo o ausente, ninguno. */
+  footerId?: string | null;
 }
 
 /**
@@ -29,7 +33,7 @@ export interface OutreachTextErrors {
 
 /**
  * El borrador tal como debe guardarse: sin espacios en los extremos, con saltos de renglón `\n`,
- * sin emojis vacíos y sin un mismo producto dos veces.
+ * sin emojis vacíos, sin versiones vacías y sin un mismo producto dos veces.
  *
  * El duplicado se descarta en vez de rechazarse porque el formulario no deja agregarlo: si llega,
  * es una petición armada a mano, y la base lo rechazaría con un `UNIQUE` que nadie sabría leer.
@@ -55,6 +59,10 @@ export function normalizeOutreachTextDraft(
     opening: normalizeNewlines(draft.opening).trim(),
     closing: normalizeNewlines(draft.closing).trim(),
     items,
+    versions: (draft.versions ?? [])
+      .map((version) => normalizeNewlines(version).trim())
+      .filter(Boolean),
+    footerId: draft.footerId?.trim() || null,
   };
 }
 

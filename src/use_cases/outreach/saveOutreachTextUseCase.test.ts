@@ -35,6 +35,8 @@ describe("SaveOutreachTextUseCase", () => {
         { postId: "pan-natural", label: "Natural", emoji: "🌾" },
         { postId: "pan-semillas", label: "Semillas", emoji: null },
       ],
+      versions: [],
+      footerId: null,
     });
   });
 

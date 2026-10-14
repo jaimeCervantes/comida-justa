@@ -85,7 +85,27 @@ describe("el borrador se guarda limpio", () => {
       opening: "Hay pan:",
       closing: "Pedidos\npor WhatsApp",
       items: [{ postId: "a", label: "Natural", emoji: null }],
+      versions: [],
+      footerId: null,
     });
+  });
+
+  it("las otras versiones se guardan limpias, y las vacías se descartan", () => {
+    expect(
+      normalizeOutreachTextDraft({
+        name: "Masa madre",
+        opening: "Hay pan:",
+        closing: "",
+        items: [],
+        versions: ["  ", "Masa madre de verdad:\r\n", ""],
+        footerId: " pie-1 ",
+      }),
+    ).toEqual(
+      expect.objectContaining({
+        versions: ["Masa madre de verdad:"],
+        footerId: "pie-1",
+      }),
+    );
   });
 
   it("un mismo producto dos veces se queda con el primero", () => {

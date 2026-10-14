@@ -1,12 +1,14 @@
 import { getTranslations } from "next-intl/server";
 import Breadcrumbs, { type Crumb } from "~/presentation/navigation/Breadcrumbs";
-import { groupsTrail, outreachTrail } from "../outreachTrail";
+import { footersTrail, groupsTrail, outreachTrail } from "../outreachTrail";
 
 interface OutreachBreadcrumbsProps {
   /** Lo que sigue al tramo común; el último paso es la página que se ve. */
   steps?: Crumb[];
   /** Si la pantalla cuelga de «Grupos». */
   inGroups?: boolean;
+  /** Si la pantalla cuelga de «Pies compartidos». */
+  inFooters?: boolean;
 }
 
 /**
@@ -16,6 +18,7 @@ interface OutreachBreadcrumbsProps {
 export default async function OutreachBreadcrumbs({
   steps = [],
   inGroups = false,
+  inFooters = false,
 }: OutreachBreadcrumbsProps) {
   const [tCommon, t] = await Promise.all([
     getTranslations("common"),
@@ -25,15 +28,17 @@ export default async function OutreachBreadcrumbs({
     home: tCommon("home"),
     outreach: t("listHeading"),
     groups: t("groupsHeading"),
+    footers: t("footersHeading"),
   };
+  const trail = inFooters
+    ? footersTrail
+    : inGroups
+      ? groupsTrail
+      : outreachTrail;
 
   return (
     <Breadcrumbs
-      items={
-        inGroups
-          ? groupsTrail(labels, ...steps)
-          : outreachTrail(labels, ...steps)
-      }
+      items={trail(labels, ...steps)}
       ariaLabel={tCommon("breadcrumb")}
       className="mb-3"
     />

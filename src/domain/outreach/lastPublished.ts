@@ -22,8 +22,11 @@ export function calendarDate(instant: Date, timeZone: string): string {
   return `${read("year")}-${read("month")}-${read("day")}`;
 }
 
-/** El día de calendario de un instante en esa zona, como número de días desde 1970. */
-function calendarDay(instant: Date, timeZone: string): number {
+/**
+ * El día de calendario de un instante en esa zona, como número de días desde 1970. Es el reloj del
+ * turno de versiones: cambia a medianoche de México, no de UTC.
+ */
+export function calendarDay(instant: Date, timeZone: string): number {
   return Date.parse(`${calendarDate(instant, timeZone)}T00:00:00Z`) / DAY_MS;
 }
 

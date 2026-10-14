@@ -3,11 +3,13 @@
 import { useTranslations } from "next-intl";
 import { useActionState, useState } from "react";
 import { Button } from "~/presentation/design_system/buttons/Button";
+import { Select } from "~/presentation/design_system/forms/Select";
 import { TextArea } from "~/presentation/design_system/forms/TextArea";
 import { TextField } from "~/presentation/design_system/forms/TextField";
 import { ValidatedForm } from "~/presentation/forms/ValidatedForm";
 import type { OutreachProductOption } from "~/use_cases/outreach/ports/IOutreachProductCatalog";
 import { type OutreachFormState, saveOutreachText } from "../actions";
+import OpeningVersions from "./OpeningVersions";
 import OutreachItemRow, { type OutreachFormItem } from "./OutreachItemRow";
 import ProductPicker from "./ProductPicker";
 
@@ -20,8 +22,17 @@ const TEXT_MAX_LENGTH = 5000;
 export interface OutreachTextFormValues {
   name: string;
   opening: string;
+  /** Las otras versiones de lo que va antes de la lista, de la 2 en adelante. */
+  versions: string[];
   closing: string;
+  footerId: string | null;
   items: OutreachFormItem[];
+}
+
+/** Un pie que se puede elegir: con su nombre basta. */
+export interface FooterOption {
+  id: string;
+  name: string;
 }
 
 interface OutreachTextFormProps {
@@ -31,12 +42,15 @@ interface OutreachTextFormProps {
   id?: string;
   initial?: OutreachTextFormValues;
   products: readonly OutreachProductOption[];
+  footers: readonly FooterOption[];
 }
 
 const EMPTY: OutreachTextFormValues = {
   name: "",
   opening: "",
+  versions: [],
   closing: "",
+  footerId: null,
   items: [],
 };
 
@@ -51,6 +65,7 @@ export default function OutreachTextForm({
   id,
   initial = EMPTY,
   products,
+  footers,
 }: OutreachTextFormProps) {
   const t = useTranslations("outreach");
   const [state, action, isPending] = useActionState<
@@ -60,6 +75,9 @@ export default function OutreachTextForm({
   const [items, setItems] = useState<OutreachFormItem[]>(initial.items);
 
   const addedIds = new Set(items.map((item) => item.postId));
+  // Un texto nuevo arranca con el pie si solo hay uno: es el caso de casi siempre.
+  const defaultFooterId =
+    initial.footerId ?? (!id && footers.length === 1 ? footers[0].id : "");
 
   // La etiqueta arranca con el título entero: así nunca nace vacía, y acortarla es borrar.
   const add = (product: OutreachProductOption): void =>
@@ -139,6 +157,8 @@ export default function OutreachTextForm({
         containerClassName="mb-4"
       />
 
+      <OpeningVersions initial={initial.versions} maxLength={TEXT_MAX_LENGTH} />
+
       <section className="mb-4">
         <h2 className="text-lg font-semibold mb-1">{t("productsHeading")}</h2>
         <p className="mb-3 text-sm text-text-support">{t("productsHint")}</p>
@@ -172,8 +192,23 @@ export default function OutreachTextForm({
         defaultValue={initial.closing}
         maxLength={TEXT_MAX_LENGTH}
         rows={5}
-        containerClassName="mb-6"
+        containerClassName="mb-4"
       />
+
+      <Select
+        name="footerId"
+        label={t("footerLabel")}
+        hint={t("footerHint")}
+        defaultValue={defaultFooterId}
+        containerClassName="mb-6 max-w-md"
+      >
+        <option value="">{t("footerNone")}</option>
+        {footers.map((footer) => (
+          <option key={footer.id} value={footer.id}>
+            {footer.name}
+          </option>
+        ))}
+      </Select>
 
       <Button
         type="submit"

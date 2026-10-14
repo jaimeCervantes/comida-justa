@@ -79,6 +79,65 @@ describe("el texto para grupos", () => {
 
   /* El escenario principal del slice 1, entero: el texto de masa madre con los cinco panes
      sembrados. Si esta prueba y la de Playwright difieren, una de las dos lee mal el `.feature`. */
+  /** La corrida de escritorio del slice 5: la versión, la lista, lo de después y el pie. */
+  describe("se arma con su versión, la lista, lo de después y el pie", () => {
+    it.each([
+      {
+        despues: "MM Naturalmente",
+        pie: "📲 Pedidos WhatsApp",
+        texto:
+          "Hay pan:⏎🌾 Natural — $96⏎⏎MM Naturalmente⏎⏎📲 Pedidos WhatsApp",
+      },
+      {
+        despues: "",
+        pie: "📲 Pedidos WhatsApp",
+        texto: "Hay pan:⏎🌾 Natural — $96⏎⏎📲 Pedidos WhatsApp",
+      },
+      {
+        despues: "MM Naturalmente",
+        pie: "",
+        texto: "Hay pan:⏎🌾 Natural — $96⏎⏎MM Naturalmente",
+      },
+    ])('después "$despues", pie "$pie"', ({ despues, pie, texto }) => {
+      expect(
+        composeOutreachText(
+          { opening: "Hay pan:", closing: despues, footer: pie },
+          LIST,
+        ),
+      ).toBe(lines(texto));
+    });
+
+    it("cada versión comparte la lista, lo de después y el pie", () => {
+      const kit = buildOutreachKit(
+        {
+          opening: "¿Te inflama el pan comercial?",
+          versions: ["Masa madre de verdad, hecha aquí."],
+          closing: "MM Naturalmente",
+          footer: "📲 Pedidos WhatsApp",
+        },
+        addedInOrder([{ label: "Natural", emoji: "🌾", price: 96 }]),
+      );
+
+      expect(kit.versions).toEqual([
+        "¿Te inflama el pan comercial?\n🌾 Natural — $96\n\nMM Naturalmente\n\n📲 Pedidos WhatsApp",
+        "Masa madre de verdad, hecha aquí.\n🌾 Natural — $96\n\nMM Naturalmente\n\n📲 Pedidos WhatsApp",
+      ]);
+      expect(kit.text).toBe(kit.versions[0]);
+    });
+
+    it("sin nada disponible no hay ninguna versión que copiar", () => {
+      const kit = buildOutreachKit(
+        { opening: "Hay pan:", versions: ["Otra"], closing: "" },
+        addedInOrder([
+          { label: "Canela", price: 125, stockQuantity: 0, isAvailable: false },
+        ]),
+      );
+
+      expect(kit.versions).toEqual([]);
+      expect(kit.text).toBeNull();
+    });
+  });
+
   it("arma el texto de masa madre tal cual lo pide el escenario principal", () => {
     const kit = buildOutreachKit(
       {
