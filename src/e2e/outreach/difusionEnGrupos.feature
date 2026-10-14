@@ -418,6 +418,51 @@ Feature: Difusión en grupos de Facebook
       | 12     | Hoy ya llevas 12 de 10. Más publicaciones el mismo día se parecen a spam: mejor sigue mañana. |
 
   # ---------------------------------------------------------------------------------------------
+  # Slice 4.1 — La pausa entre publicaciones, y el ritmo configurable
+  # ---------------------------------------------------------------------------------------------
+
+  # Salió de probarlo: el tope del día no dice nada si las primeras ocho van en cinco minutos, y
+  # publicar en ráfaga es otra de las cosas que Facebook toma por spam. La pausa cuenta desde lo
+  # último que se marcó en cualquier grupo y, como el tope, avisa sin impedir nada. Los dos valores
+  # se cambian por variable de entorno, sin tocar código.
+
+  @slice-4-1
+  Scenario: Me sugiere una pausa después de publicar
+    Given acabo de marcar una publicación en un grupo
+    And la publicación "Masa madre" ya está guardada
+    When como administrador la abro
+    Then se me dice "Acabas de publicar: espera unos 10 minutos antes de la siguiente."
+    And sigo pudiendo marcarla publicada
+
+  @slice-4-1 @component
+  Scenario Outline: La pausa cuenta desde lo último que se marcó, en cualquier grupo
+    Given la pausa entre publicaciones es de <pausa> minutos
+    And lo último que marqué fue <cuándo>
+    Then se lee "<se lee>"
+
+    Examples:
+      | pausa | cuándo           | se lee                                                                                |
+      | 10    | hace un momento  | Acabas de publicar: espera unos 10 minutos antes de la siguiente.                      |
+      | 10    | hace 4 minutos   | Tu última publicación fue hace 4 minutos: espera unos 6 minutos más antes de la siguiente. |
+      | 10    | hace 9 minutos   | Tu última publicación fue hace 9 minutos: espera un minuto más antes de la siguiente.  |
+      | 10    | hace 10 minutos  | (nada: ya pasó la pausa)                                                              |
+      | 10    | nunca            | (nada: no hay de qué descansar)                                                       |
+      | 0     | hace un momento  | (nada: la pausa está apagada)                                                         |
+
+  @slice-4-1 @component
+  Scenario Outline: El tope y la pausa se cambian por variable de entorno, y lo inválido se ignora
+    Given OUTREACH_DAILY_LIMIT vale "<tope>" y OUTREACH_PAUSE_MINUTES vale "<pausa>"
+    Then el tope del día queda en <tope queda> y la pausa en <pausa queda> minutos
+
+    Examples:
+      | tope   | pausa | tope queda | pausa queda | por qué                                   |
+      |        |       | 10         | 10          | sin variables, los valores por omisión    |
+      | 15     | 5     | 15         | 5           | lo que diga el entorno                    |
+      | 0      | 0     | 10         | 0           | un tope de 0 no sirve; una pausa de 0 la apaga |
+      | diez   | 10m   | 10         | 10          | lo que no es un número entero se ignora   |
+      | 500    | 300   | 10         | 10          | fuera de rango se ignora                  |
+
+  # ---------------------------------------------------------------------------------------------
   # Slice 5 — Pie compartido y versiones que se turnan
   # ---------------------------------------------------------------------------------------------
 

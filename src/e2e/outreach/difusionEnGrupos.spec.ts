@@ -489,6 +489,29 @@ test.describe("Difusión en grupos de Facebook", () => {
     );
     await expect(admin.markPostButton()).toBeEnabled();
   });
+
+  // --- Slice 4.1: la pausa entre publicaciones -------------------------------------------
+
+  /* El servidor de la suite corre sin `OUTREACH_PAUSE_MINUTES`, así que la pausa es la de omisión:
+     10 minutos. Lo marcado se siembra justo antes de abrir, para que sea lo último de la base. */
+  test("Me sugiere una pausa después de publicar", async ({ page }) => {
+    const mamas = await seedGroup("Mamás de Orizaba", "post");
+    const id = await seedMasaMadreText(breads);
+    await seedOutreachPublication({
+      outreachTextId: id,
+      channelId: mamas.id,
+      postId: null,
+      publishedAt: new Date(),
+    });
+    const admin = new OutreachAdmin(page);
+
+    await admin.open(id);
+
+    await expect(admin.pauseNotice()).toHaveText(
+      "Acabas de publicar: espera unos 10 minutos antes de la siguiente.",
+    );
+    await expect(admin.markPostButton()).toBeEnabled();
+  });
 });
 
 /** Hace tantos días, a esta misma hora: los turnos se cuentan en días de calendario. */

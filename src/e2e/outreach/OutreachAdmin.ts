@@ -276,4 +276,9 @@ export default class OutreachAdmin {
   dailyPace(): Locator {
     return this.page.getByTestId("outreach-daily-pace");
   }
+
+  /** «Acabas de publicar: espera…»: solo aparece dentro de la pausa. */
+  pauseNotice(): Locator {
+    return this.page.getByTestId("outreach-pause");
+  }
 }
