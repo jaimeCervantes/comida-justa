@@ -1,5 +1,6 @@
 import { expect, type Locator, type Page } from "@playwright/test";
 import es from "~/i18n/messages/es.json";
+import { fillWhenHydrated } from "../testUtils/fillWhenHydrated";
 import { labelled } from "./labelled";
 
 const t = es.outreach;
@@ -52,13 +53,18 @@ export default class OutreachAdmin {
       closing,
     }: { name: string; opening: string; closing: string },
   ): Promise<void> {
-    await form.getByRole("textbox", { name: labelled(t.nameLabel) }).fill(name);
-    await form
-      .getByRole("textbox", { name: labelled(t.openingLabel) })
-      .fill(opening);
-    await form
-      .getByRole("textbox", { name: labelled(t.closingLabel) })
-      .fill(closing);
+    await fillWhenHydrated(
+      form.getByRole("textbox", { name: labelled(t.nameLabel) }),
+      name,
+    );
+    await fillWhenHydrated(
+      form.getByRole("textbox", { name: labelled(t.openingLabel) }),
+      opening,
+    );
+    await fillWhenHydrated(
+      form.getByRole("textbox", { name: labelled(t.closingLabel) }),
+      closing,
+    );
   }
 
   /** Busca el producto por su título, lo agrega y le pone la etiqueta y el emoji de la lista. */
@@ -66,7 +72,10 @@ export default class OutreachAdmin {
     form: Locator,
     { title, label, emoji }: { title: string; label: string; emoji: string },
   ): Promise<void> {
-    await form.getByRole("searchbox", { name: t.searchLabel }).fill(title);
+    await fillWhenHydrated(
+      form.getByRole("searchbox", { name: t.searchLabel }),
+      title,
+    );
     await form
       .getByTestId("outreach-product-match")
       .filter({ hasText: title })
@@ -83,9 +92,15 @@ export default class OutreachAdmin {
   ): Promise<void> {
     const row = form.getByTestId("outreach-item").filter({ hasText: title });
 
-    await row.getByRole("textbox", { name: labelled(t.itemLabel) }).fill(label);
+    await fillWhenHydrated(
+      row.getByRole("textbox", { name: labelled(t.itemLabel) }),
+      label,
+    );
     if (emoji !== undefined) {
-      await row.getByRole("textbox", { name: t.itemEmoji }).fill(emoji);
+      await fillWhenHydrated(
+        row.getByRole("textbox", { name: t.itemEmoji }),
+        emoji,
+      );
     }
   }
 
@@ -275,6 +290,20 @@ export default class OutreachAdmin {
 
   dailyPace(): Locator {
     return this.page.getByTestId("outreach-daily-pace");
+  }
+
+  // --- Las versiones ------------------------------------------------------------------------
+
+  /** El texto armado de cada versión, en orden: solo aparecen si hay más de una. */
+  versionTexts(): Locator {
+    return this.groupPost().getByTestId("outreach-version-text");
+  }
+
+  /** «Le toca la versión 2», junto al enlace de un grupo normal. */
+  versionTurn(name: string): Locator {
+    return this.channelRow(this.groupPost(), name).getByTestId(
+      "outreach-channel-version",
+    );
   }
 
   /** «Acabas de publicar: espera…»: solo aparece dentro de la pausa. */

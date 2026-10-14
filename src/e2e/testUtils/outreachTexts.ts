@@ -2,8 +2,10 @@ import { sql } from "drizzle-orm";
 import type { OutreachTextDraft } from "~/domain/outreach/outreachTextDraft";
 import { db } from "~/infra/dataAccess/db/connection";
 import {
+  outreachFooters,
   outreachTextItems,
   outreachTexts,
+  outreachTextVersions,
 } from "~/infra/dataAccess/db/schema/outreach";
 import { TEST_OUTREACH_PREFIX } from "./testSlug";
 
@@ -30,6 +32,7 @@ export async function seedOutreachText(
       name: draft.name,
       opening: draft.opening,
       closing: draft.closing,
+      footerId: draft.footerId ?? null,
     })
     .returning({ id: outreachTexts.id });
 
@@ -45,7 +48,72 @@ export async function seedOutreachText(
     );
   }
 
+  const versions = draft.versions ?? [];
+  if (versions.length > 0) {
+    await db.insert(outreachTextVersions).values(
+      versions.map((opening, index) => ({
+        outreachTextId: created.id,
+        opening,
+        position: index + 2,
+      })),
+    );
+  }
+
   return created.id;
+}
+
+/**
+ * Un pie compartido, directo en la base. Con el marcador en el nombre, como los textos: así la
+ * suite nunca toca el pie de verdad, que vive en la misma tabla.
+ */
+export async function seedOutreachFooter(footer: {
+  name: string;
+  body: string;
+}): Promise<string> {
+  if (!footer.name.startsWith(TEST_OUTREACH_PREFIX)) {
+    throw new Error(
+      `[e2e] «${footer.name}» no lleva el marcador ${TEST_OUTREACH_PREFIX}: el barrido no lo vería.`,
+    );
+  }
+
+  const [created] = await db
+    .insert(outreachFooters)
+    .values(footer)
+    .returning({ id: outreachFooters.id });
+
+  return created.id;
+}
+
+/** ¿Existe ya la tabla de pies? La crea la migración `0062_2026_10_13`. */
+export async function outreachFootersTableExists(): Promise<boolean> {
+  const result = await db.execute(
+    sql`SELECT to_regclass('public.outreach_footers') IS NOT NULL AS present`,
+  );
+
+  return Boolean(
+    (result.rows[0] as { present?: boolean } | undefined)?.present,
+  );
+}
+
+/** Borra los pies de prueba; los textos que los llevaban se quedan sin pie (`ON DELETE SET NULL`). */
+export async function deleteTestOutreachFooters(): Promise<number> {
+  if (!(await outreachFootersTableExists())) return 0;
+
+  const removed = await db.execute(
+    sql`DELETE FROM outreach_footers WHERE name LIKE ${NAME_PATTERN}`,
+  );
+
+  return removed.rowCount ?? 0;
+}
+
+export async function countTestOutreachFooters(): Promise<number> {
+  if (!(await outreachFootersTableExists())) return 0;
+
+  const result = await db.execute(
+    sql`SELECT count(*)::int AS total FROM outreach_footers WHERE name LIKE ${NAME_PATTERN}`,
+  );
+
+  return (result.rows[0] as { total: number }).total;
 }
 
 /**

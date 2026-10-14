@@ -129,8 +129,10 @@ export async function seedBreads(seeded: string[]): Promise<SeededBread[]> {
 export async function seedMasaMadreText(
   breads: readonly SeededBread[],
   name: string = testOutreachName("Masa madre"),
+  extras: Pick<OutreachTextDraft, "versions" | "footerId"> = {},
 ): Promise<string> {
   const draft: OutreachTextDraft = {
+    ...extras,
     name,
     opening: OPENING,
     closing: CLOSING,

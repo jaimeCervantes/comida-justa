@@ -5,7 +5,9 @@ import {
   deleteTestOutreachChannels,
 } from "./outreachChannels";
 import {
+  countTestOutreachFooters,
   countTestOutreachTexts,
+  deleteTestOutreachFooters,
   deleteTestOutreachTexts,
 } from "./outreachTexts";
 import { SUITE_ACCOUNT_EMAIL } from "./suiteAccount";
@@ -24,6 +26,8 @@ export interface TestDataCount {
   outreachTexts: number;
   /** Grupos de difusión con el mismo marcador; su historial cae con ellos. */
   outreachChannels: number;
+  /** Pies compartidos con el mismo marcador. */
+  outreachFooters: number;
   /** Cuentas que la suite sí crea, las de `@example.com`. */
   accounts: number;
 }
@@ -89,6 +93,8 @@ export async function sweepTestData(): Promise<TestDataCount> {
      borrar los panes sembrados, pero el texto se quedaría vacío y sin nadie que lo barra. */
   const outreachTexts = await deleteTestOutreachTexts();
   const outreachChannels = await deleteTestOutreachChannels();
+  // Después de los textos: así ninguno de prueba queda apuntando a un pie que ya no existe.
+  const outreachFooters = await deleteTestOutreachFooters();
 
   const eventAttendances = await db.execute(sql`
     DELETE FROM event_attendances
@@ -195,6 +201,7 @@ export async function sweepTestData(): Promise<TestDataCount> {
     habits: habits.rowCount ?? 0,
     outreachTexts,
     outreachChannels,
+    outreachFooters,
     accounts: accounts.rowCount ?? 0,
   };
 }
@@ -223,10 +230,11 @@ export async function countTestData(): Promise<TestDataCount> {
   return {
     ...(result.rows[0] as unknown as Omit<
       TestDataCount,
-      "outreachTexts" | "outreachChannels"
+      "outreachTexts" | "outreachChannels" | "outreachFooters"
     >),
     outreachTexts: await countTestOutreachTexts(),
     outreachChannels: await countTestOutreachChannels(),
+    outreachFooters: await countTestOutreachFooters(),
   };
 }
 
@@ -245,7 +253,8 @@ export function describeTestData(count: TestDataCount): string {
     `${count.usernames} dirección(es) personal(es), ` +
     `${count.eventAttendances} asistencia(s), ${count.habits} reto(s), ` +
     `${count.outreachTexts} texto(s) de difusión, ` +
-    `${count.outreachChannels} grupo(s) de difusión y ` +
+    `${count.outreachChannels} grupo(s) de difusión, ` +
+    `${count.outreachFooters} pie(s) compartido(s) y ` +
     `${count.accounts} cuenta(s) de prueba`
   );
 }

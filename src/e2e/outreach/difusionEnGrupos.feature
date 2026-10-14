@@ -466,14 +466,68 @@ Feature: Difusión en grupos de Facebook
   # Slice 5 — Pie compartido y versiones que se turnan
   # ---------------------------------------------------------------------------------------------
 
-  @slice-5 @future
-  Scenario: El pie es uno para todas las publicaciones
-    Given cambio el WhatsApp del pie compartido
-    When abro cualquier publicación
-    Then su texto lleva el WhatsApp nuevo
+  # El pie es el bloque de contacto que hoy se repite al final de cada texto. Es un registro propio
+  # y no un ajuste global: cada publicación elige el suyo, y así la suite crea los suyos sin tocar
+  # nunca el de verdad en la base compartida.
 
-  @slice-5 @future
-  Scenario: Las versiones del texto se turnan
-    Given "Masa madre" tiene dos versiones de su texto
-    When la publico en dos grupos el mismo día
-    Then cada grupo recibe una versión distinta
+  @slice-5
+  Scenario: El pie es uno para todas las publicaciones que lo llevan
+    Given está dado de alta el pie "Hazlo Sano" con:
+      """
+      📍 Ubicación: https://maps.app.goo.gl/rp6RjiBQniCgKmbr8
+      📲 Pedidos WhatsApp: https://wa.me/522781126948
+      """
+    And las publicaciones "Masa madre" y "Masa madre de temporada" ya están guardadas con ese pie
+    When como administrador cambio el WhatsApp del pie a "https://wa.me/522781000000"
+    Then el texto para grupos de las dos termina con:
+      """
+      📍 Ubicación: https://maps.app.goo.gl/rp6RjiBQniCgKmbr8
+      📲 Pedidos WhatsApp: https://wa.me/522781000000
+      """
+
+  # Con dos versiones y dos grupos, cada grupo recibe una distinta el mismo día, y al día siguiente
+  # se intercambian: Facebook no ve el mismo texto en dos grupos, ni el mismo grupo dos días.
+  @slice-5
+  Scenario: Las versiones del texto se turnan entre grupos
+    Given están dados de alta los grupos normales "Mamás de Orizaba" y "Emprendedores de Orizaba"
+    And la publicación "Masa madre" ya está guardada con una segunda versión del texto antes de la lista
+    When como administrador la abro
+    Then veo el texto armado de cada versión, cada uno con su «Copiar»
+    And a cada grupo le toca una versión distinta
+
+  @slice-5 @component
+  Scenario Outline: El texto se arma con su versión, la lista, lo de después y el pie
+    Given una publicación con texto antes "<antes>", texto después "<después>", el pie "<pie>" y la lista "🌾 Natural — $96"
+    When se arma el texto para grupos
+    Then el texto es "<texto>"
+
+    Examples:
+      | antes    | después   | pie                  | texto                                                        |
+      | Hay pan: | MM Naturalmente | 📲 Pedidos WhatsApp | Hay pan:⏎🌾 Natural — $96⏎⏎MM Naturalmente⏎⏎📲 Pedidos WhatsApp |
+      | Hay pan: |           | 📲 Pedidos WhatsApp  | Hay pan:⏎🌾 Natural — $96⏎⏎📲 Pedidos WhatsApp               |
+      | Hay pan: | MM Naturalmente |                | Hay pan:⏎🌾 Natural — $96⏎⏎MM Naturalmente                   |
+
+  @slice-5 @component
+  Scenario Outline: A cada grupo le toca una versión, y se turnan día con día
+    Given una publicación con <versiones> versiones y los grupos normales en orden "<grupos>"
+    When se miran el día <día>
+    Then a cada grupo le toca "<le toca>"
+
+    Examples:
+      | versiones | grupos     | día | le toca                 | por qué                                  |
+      | 2         | Mamás, Emprendedores | 0 | versión 1, versión 2 | el mismo día, dos grupos, dos versiones |
+      | 2         | Mamás, Emprendedores | 1 | versión 2, versión 1 | al día siguiente se intercambian        |
+      | 3         | A, B, C    | 0   | versión 1, versión 2, versión 3 | tantas versiones como grupos: todas distintas |
+      | 2         | A, B, C    | 0   | versión 1, versión 2, versión 1 | más grupos que versiones: se reparten parejo |
+      | 1         | A, B       | 5   | versión 1, versión 1    | con una sola versión no hay qué turnar   |
+
+  @slice-5 @component
+  Scenario Outline: Un pie se guarda solo con su nombre y algo que decir
+    When guardo un pie con nombre "<nombre>" y texto "<texto>"
+    Then <resultado>
+
+    Examples:
+      | nombre     | texto                       | resultado              |
+      | Hazlo Sano | 📲 Pedidos WhatsApp: wa.me/… | se guarda              |
+      |            | 📲 Pedidos WhatsApp: wa.me/… | se pide el nombre      |
+      | Hazlo Sano |                             | se pide el texto       |
