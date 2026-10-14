@@ -2,6 +2,7 @@ import { expect, type Locator, type Page } from "@playwright/test";
 import type { OutreachChannelFormat } from "~/domain/outreach/channelFormats";
 import es from "~/i18n/messages/es.json";
 import { fillWhenHydrated } from "../testUtils/fillWhenHydrated";
+import { deleteAndConfirm } from "./confirmDelete";
 import { labelled } from "./labelled";
 
 const t = es.outreach;
@@ -68,5 +69,15 @@ export default class OutreachGroups {
   /** El nombre del grupo es el enlace que lo abre en Facebook. */
   link(name: string): Locator {
     return this.group(name).getByRole("link", { name, exact: true });
+  }
+
+  async openEdit(id: string): Promise<void> {
+    await this.page.goto(`/admin/difusion/grupos/${id}/editar`);
+    await expect(this.page.getByRole("heading", { level: 1 })).toBeVisible();
+  }
+
+  /** Desde su edición: confirma y vuelve a la lista de grupos. */
+  async deleteGroup(): Promise<void> {
+    await deleteAndConfirm(this.page, t.deleteGroup, t.groupsHeading);
   }
 }

@@ -1,6 +1,7 @@
 import { expect, type Locator, type Page } from "@playwright/test";
 import es from "~/i18n/messages/es.json";
 import { fillWhenHydrated } from "../testUtils/fillWhenHydrated";
+import { deleteAndConfirm } from "./confirmDelete";
 import { labelled } from "./labelled";
 
 const t = es.outreach;
@@ -35,5 +36,14 @@ export default class OutreachFooters {
     await this.editForm().getByRole("button", { name: t.saveFooter }).click();
     // Guardar lleva a la lista de pies: hasta que se ve, la acción no terminó.
     await expect(this.page.getByTestId("outreach-footers")).toBeVisible();
+  }
+
+  /** Desde su edición: confirma y vuelve a la lista de pies. */
+  async deleteFooter(): Promise<void> {
+    await deleteAndConfirm(this.page, t.deleteFooter, t.footersHeading);
+  }
+
+  footer(name: string): Locator {
+    return this.page.getByTestId("outreach-footer").filter({ hasText: name });
   }
 }

@@ -1,6 +1,7 @@
 import { expect, type Locator, type Page } from "@playwright/test";
 import es from "~/i18n/messages/es.json";
 import { fillWhenHydrated } from "../testUtils/fillWhenHydrated";
+import { deleteAndConfirm } from "./confirmDelete";
 import { labelled } from "./labelled";
 
 const t = es.outreach;
@@ -309,5 +310,17 @@ export default class OutreachAdmin {
   /** «Acabas de publicar: espera…»: solo aparece dentro de la pausa. */
   pauseNotice(): Locator {
     return this.page.getByTestId("outreach-pause");
+  }
+
+  /** Desde su edición: confirma y vuelve a la lista de publicaciones. */
+  async deleteText(): Promise<void> {
+    await deleteAndConfirm(this.page, t.deleteText, t.listHeading);
+  }
+
+  /** Una publicación en la lista; `exact` porque «Masa madre» es principio de otros nombres. */
+  listedText(name: string): Locator {
+    return this.page
+      .getByTestId("outreach-texts")
+      .getByRole("link", { name, exact: true });
   }
 }
