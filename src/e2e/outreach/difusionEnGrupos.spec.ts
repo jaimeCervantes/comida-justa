@@ -585,7 +585,11 @@ test.describe("Difusión en grupos de Facebook", () => {
   // --- Slice 6: borrar lo que ya no se usa ----------------------------------------------
 
   /* Sin la 0063 la llave era `CASCADE` y el historial se iba con el texto: no hay qué comprobar. Se
-     siembra hace dos días y no hoy para no mover el tope ni la pausa de quien use la base a la vez. */
+     siembra hace dos días y no hoy para no mover el tope ni la pausa de quien use la base a la vez.
+
+     La memoria se mira en el turno, que cuenta lo publicado con cualquier texto. «Última vez aquí»
+     no sirve: es de cada publicación, y «Pan de temporada» nunca se publicó en ese grupo. Con el
+     historial borrado, el turno diría «Ya le toca». */
   test("Borro una publicación que ya no uso, y los grupos recuerdan cuándo se publicó", async ({
     page,
   }) => {
@@ -613,8 +617,9 @@ test.describe("Difusión en grupos de Facebook", () => {
 
     await expect(admin.listedText(vieja)).toHaveCount(0);
     await admin.open(otraId);
-    await expect(admin.postChannelLast(mamas.name)).toHaveText(
-      t.lastPublished.replace("{when}", "hace 2 días"),
+    // Cada 7 días y publicado hace 2: faltan 5.
+    await expect(admin.channelTurn(admin.groupPost(), mamas.name)).toHaveText(
+      "Todavía no: en 5 días",
     );
   });
 

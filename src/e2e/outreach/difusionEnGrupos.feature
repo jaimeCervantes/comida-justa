@@ -546,6 +546,9 @@ Feature: Difusión en grupos de Facebook
   # Facebook bloquee. Para eso es la migración 0063 de hazlo-sano-bot. Borrar un grupo sí se lleva
   # su historial: sin el grupo, su turno ya no le sirve a nadie.
 
+  # La memoria está en el turno, que cuenta lo publicado con cualquier texto: el grupo acepta una
+  # cada 7 días y se publicó hace 2, así que le faltan 5. Sin ella diría «Ya le toca». «Última vez
+  # aquí» no sirve para esto: es de cada publicación, y "Pan de temporada" nunca se publicó ahí.
   @slice-6
   Scenario: Borro una publicación que ya no uso, y los grupos recuerdan cuándo se publicó
     Given la publicación "Masa madre" ya está guardada
@@ -553,7 +556,7 @@ Feature: Difusión en grupos de Facebook
     And la publicación "Pan de temporada" también está guardada
     When como administrador borro "Masa madre" desde su edición y lo confirmo
     Then ya no aparece en la lista de publicaciones para grupos
-    And en "Pan de temporada" el grupo "Mamás de Orizaba" dice "Última vez aquí: hace 2 días"
+    And en "Pan de temporada" el grupo "Mamás de Orizaba" dice "Todavía no: en 5 días"
 
   @slice-6
   Scenario: Borro un grupo que cerró, y deja de ofrecerse
