@@ -799,3 +799,66 @@ publicó. El código está en `feat/difusion-borrar`, en el worktree `../comida-
 2. Después, integrar `feat/difusion-borrar` a `dev` y empujar: en ese orden, para que la pregunta
    de borrar una publicación diga la verdad desde el primer día.
 3. Quitar el worktree `../comida-justa-borrar` al integrar.
+
+## 2026-10-14 — Slice 6: la `0063` aplicada, el escenario que esperaba en verde y todo integrado
+
+### Objetivo
+
+Aplicar la `0063`, correr el escenario de borrar una publicación, que se omitía sin ella, e
+integrar el slice a `dev`.
+
+### Decisiones y por qué
+
+- **El usuario lo autorizó en este orden** («first migration, then run the remaining scenario and
+  merge everything into dev»): la pregunta de borrar una publicación promete que el historial se
+  queda, y eso solo es cierto con la `0063` aplicada.
+- **El escenario falló la primera vez por la prueba, no por la app.** Afirmaba «Última vez aquí:
+  hace 2 días» en la otra publicación, pero esa etiqueta es de cada publicación (`stampsFor`), y
+  «Pan de temporada» nunca se publicó en ese grupo: «nunca» era lo correcto. La memoria del grupo
+  está en su turno, que cuenta lo publicado con cualquier texto (`lastByChannel`). Ahora se afirma
+  «Todavía no: en 5 días» —acepta una cada 7 y se publicó hace 2—, que sin la `0063` diría «Ya le
+  toca».
+
+### Comandos clave
+
+```sh
+# hazlo-sano-bot
+uv run alembic current && uv run alembic upgrade head        # 0062 -> 0063
+git checkout main && git merge --ff-only feat/outreach-keep-history && git push origin main
+
+# comida-justa, en el worktree (3000 libre comprobado y `.next` borrado antes de cada corrida)
+pnpm exec playwright test src/e2e/outreach -g "Borro" --reporter=line
+```
+
+### Resultados
+
+- **Base:** `outreach_publications_outreach_text_id_fkey` es `ON DELETE SET NULL` y
+  `outreach_text_id` admite nulo, como en el espejo; la llave de `channel_id` sigue en `CASCADE`.
+- **Playwright:** los tres escenarios de borrar en verde, el de la publicación después de corregir
+  su afirmación. Con los 22 que no tocan el borrado, de la corrida anterior, 25 de 25.
+- **Residuo:** 0 publicaciones en la base al terminar. La fecha que se quedó sin texto se fue con
+  el grupo de prueba, como prevé la `0063`.
+- **Backend:** `main` empujado (`2f665ee..e5b9ca5`).
+
+### Escrito en recursos compartidos
+
+- **Base compartida:** la `0063` cambió la llave y la nulabilidad de
+  `outreach_publications.outreach_text_id`, sin filas que tocar. Se deshace con
+  `uv run alembic downgrade 0062_2026_10_13` en `hazlo-sano-bot`, que antes borra las fechas que
+  hayan quedado sin texto.
+- **GitHub:** `hazlo-sano-bot/main` lleva `e5b9ca5` (`0063`), y `comida-justa/dev` recibe este
+  slice.
+
+### Recap
+
+La difusión en grupos queda completa, borrado incluido: publicaciones, grupos y pies se borran
+desde su edición con una pregunta que dice qué más se va, y borrar una publicación no le quita
+memoria al ritmo. Las cuatro migraciones (`0060` a `0063`) están aplicadas y en `main` del
+backend.
+
+### Próximos pasos (opciones)
+
+1. Del usuario: dar de alta sus grupos y su pie real en producción, y quitar de cada publicación
+   el bloque de contacto que repita el pie.
+2. Si Integral, Ajo, Dátiles con Nuez y Queso Parmesano con Aceitunas se siguen vendiendo, darlos
+   de alta: la lista solo anuncia lo que está en la base.

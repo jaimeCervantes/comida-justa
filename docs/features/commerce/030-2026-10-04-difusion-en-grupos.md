@@ -404,7 +404,8 @@ orden de los grupos.
 
 Escrita el 2026-10-14 como
 `alembic/versions/0063_2026-10-14_keep_outreach_history_on_text_delete.py` (revisión
-`0063_2026_10_14`, sobre `0062_2026_10_13`), en la rama `feat/outreach-keep-history`.
+`0063_2026_10_14`, sobre `0062_2026_10_13`), en la rama `feat/outreach-keep-history`. Aplicada el
+mismo día e integrada a `main`.
 
 ### `outreach_publications.outreach_text_id`
 
@@ -419,9 +420,7 @@ El `downgrade` borra las filas con texto nulo antes de volver a `NOT NULL`.
 
 ## Pendientes del usuario
 
-1. Decidir la migración D (`0063`): sin ella, borrar una publicación también borra cuándo se
-   publicó en cada grupo. Las A, B y C (`0060` a `0062`) ya están aplicadas.
-2. Si Integral, Ajo, Dátiles con Nuez y Queso Parmesano con Aceitunas se siguen vendiendo, darlos
+1. Si Integral, Ajo, Dátiles con Nuez y Queso Parmesano con Aceitunas se siguen vendiendo, darlos
    de alta: con la lista generada, lo que no está en la base no se anuncia.
-3. Dar de alta los grupos (dirección, tipo y cada cuánto aceptan publicaciones) y el pie real, y
+2. Dar de alta los grupos (dirección, tipo y cada cuánto aceptan publicaciones) y el pie real, y
    quitar de cada publicación el bloque de contacto que repite el pie.
