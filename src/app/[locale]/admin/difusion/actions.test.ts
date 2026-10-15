@@ -1,14 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { auth, isAdmin, create, update, redirectKeepingLocale } = vi.hoisted(
-  () => ({
+const { auth, isAdmin, create, update, remove, redirectKeepingLocale } =
+  vi.hoisted(() => ({
     auth: vi.fn(),
     isAdmin: vi.fn(),
     create: vi.fn(),
     update: vi.fn(),
+    remove: vi.fn(),
     redirectKeepingLocale: vi.fn(),
-  }),
-);
+  }));
 
 /* La acción resuelve sus mensajes con el catálogo; aquí basta con que devuelva la clave, porque lo
    que se afirma es qué hace la acción, no cómo está redactado el aviso. */
@@ -20,10 +20,10 @@ vi.mock("~/infra/auth", () => ({ auth }));
 vi.mock("~/infra/auth/isAdmin", () => ({ isAdmin }));
 vi.mock("~/i18n/redirectKeepingLocale", () => ({ redirectKeepingLocale }));
 vi.mock("~/infra/dataAccess/outreach/factory", () => ({
-  createOutreachTextRepository: () => ({ create, update }),
+  createOutreachTextRepository: () => ({ create, update, delete: remove }),
 }));
 
-import { saveOutreachText } from "./actions";
+import { deleteOutreachText, saveOutreachText } from "./actions";
 
 const MASA_MADRE = [
   { postId: "pan-natural", label: "Natural", emoji: "🌾" },
@@ -161,5 +161,41 @@ describe("saveOutreachText", () => {
     await saveOutreachText({ errors: {} }, masaMadre({ items }));
 
     expect(create).toHaveBeenCalledWith(expect.objectContaining({ items: [] }));
+  });
+});
+
+describe("deleteOutreachText", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    auth.mockResolvedValue({ user: { email: "admin@hazlosano.com" } });
+    isAdmin.mockReturnValue(true);
+    remove.mockResolvedValue(true);
+  });
+
+  it("borra la publicación y vuelve a la lista", async () => {
+    await deleteOutreachText({}, form({ id: "texto-1" }));
+
+    expect(remove).toHaveBeenCalledWith("texto-1");
+    expect(redirectKeepingLocale).toHaveBeenCalledWith("/admin/difusion", "es");
+  });
+
+  // Una Server Action se puede invocar directamente: el gate de la página no basta.
+  it("quien no es admin no borra nada", async () => {
+    isAdmin.mockReturnValue(false);
+
+    expect(await deleteOutreachText({}, form({ id: "texto-1" }))).toEqual({
+      error: "noPermission",
+    });
+    expect(remove).not.toHaveBeenCalled();
+  });
+
+  // Lo borró otra persona entre que se abrió la pantalla y se confirmó.
+  it("si ya no existía, lo dice sin volver a la lista", async () => {
+    remove.mockResolvedValue(false);
+
+    expect(await deleteOutreachText({}, form({ id: "texto-1" }))).toEqual({
+      error: "notFound",
+    });
+    expect(redirectKeepingLocale).not.toHaveBeenCalled();
   });
 });

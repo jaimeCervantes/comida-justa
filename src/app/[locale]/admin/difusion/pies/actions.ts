@@ -10,6 +10,8 @@ import { auth } from "~/infra/auth";
 import { isAdmin } from "~/infra/auth/isAdmin";
 import { createOutreachFooterRepository } from "~/infra/dataAccess/outreach/factory";
 import SaveOutreachFooterUseCase from "~/use_cases/outreach/saveOutreachFooterUseCase";
+import { deleteOutreachRecord } from "../deleteRecord";
+import type { DeleteState } from "../ui/ConfirmDelete";
 
 export interface FooterFormState {
   errors: {
@@ -52,10 +54,22 @@ export async function saveOutreachFooter(
       },
     };
   }
-  if (result.status === "not-found") return { errors: { form: t("notFound") } };
+  if (result.status === "not-found") {
+    return { errors: { form: t("footerNotFound") } };
+  }
 
   redirectKeepingLocale(
     "/admin/difusion/pies",
     resolveLocale(await getLocale()),
   );
+}
+
+export async function deleteOutreachFooter(
+  _state: DeleteState,
+  formData: FormData,
+): Promise<DeleteState> {
+  return deleteOutreachRecord(createOutreachFooterRepository(), formData, {
+    backTo: "/admin/difusion/pies",
+    gone: "footerNotFound",
+  });
 }

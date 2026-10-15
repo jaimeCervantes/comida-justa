@@ -96,3 +96,19 @@ export async function seedOutreachPublication(publication: {
 }): Promise<void> {
   await db.insert(outreachPublications).values(publication);
 }
+
+/**
+ * Si borrar un texto deja sus fechas en el historial: lo trae la `0063` de `hazlo-sano-bot`. Antes
+ * de ella la llave era `CASCADE`, y el escenario que lo comprueba no tendría nada que comprobar.
+ */
+export async function outreachHistoryOutlivesTexts(): Promise<boolean> {
+  const result = await db.execute(sql`
+    SELECT is_nullable = 'YES' AS outlives
+    FROM information_schema.columns
+    WHERE table_name = 'outreach_publications' AND column_name = 'outreach_text_id'
+  `);
+
+  return Boolean(
+    (result.rows[0] as { outlives?: boolean } | undefined)?.outlives,
+  );
+}

@@ -531,3 +531,51 @@ Feature: Difusión en grupos de Facebook
       | Hazlo Sano | 📲 Pedidos WhatsApp: wa.me/… | se guarda              |
       |            | 📲 Pedidos WhatsApp: wa.me/… | se pide el nombre      |
       | Hazlo Sano |                             | se pide el texto       |
+
+  # ---------------------------------------------------------------------------------------------
+  # Slice 6 — Borrar lo que ya no se usa
+  # ---------------------------------------------------------------------------------------------
+
+  # Salió de usarlo: un grupo que cerró, una publicación de temporada o un pie viejo se quedaban en
+  # las listas para siempre. Borrar no se puede deshacer, así que cada botón pide confirmación y dice
+  # qué más se va con lo que se borra.
+  #
+  # Borrar una publicación NO borra cuándo se publicó en cada grupo: esas fechas son la memoria del
+  # ritmo —el turno de cada grupo, el tope del día, la pausa—, y perderlas haría que los grupos
+  # donde se publicó volvieran a ofrecerse como nunca publicados, que es justo lo que hace que
+  # Facebook bloquee. Para eso es la migración 0063 de hazlo-sano-bot. Borrar un grupo sí se lleva
+  # su historial: sin el grupo, su turno ya no le sirve a nadie.
+
+  # La memoria está en el turno, que cuenta lo publicado con cualquier texto: el grupo acepta una
+  # cada 7 días y se publicó hace 2, así que le faltan 5. Sin ella diría «Ya le toca». «Última vez
+  # aquí» no sirve para esto: es de cada publicación, y "Pan de temporada" nunca se publicó ahí.
+  @slice-6
+  Scenario: Borro una publicación que ya no uso, y los grupos recuerdan cuándo se publicó
+    Given la publicación "Masa madre" ya está guardada
+    And la marqué publicada hace 2 días en el grupo normal "Mamás de Orizaba"
+    And la publicación "Pan de temporada" también está guardada
+    When como administrador borro "Masa madre" desde su edición y lo confirmo
+    Then ya no aparece en la lista de publicaciones para grupos
+    And en "Pan de temporada" el grupo "Mamás de Orizaba" dice "Todavía no: en 5 días"
+
+  @slice-6
+  Scenario: Borro un grupo que cerró, y deja de ofrecerse
+    Given está dado de alta el grupo normal "Mamás de Orizaba"
+    And la publicación "Masa madre" ya está guardada
+    When como administrador lo borro desde su edición y lo confirmo
+    Then ya no aparece en la lista de grupos
+    And la publicación "Masa madre" ya no lo ofrece para publicar
+
+  @slice-6
+  Scenario: Borro un pie, y las publicaciones que lo llevaban se quedan sin él
+    Given está dado de alta el pie "Hazlo Sano" con "📍 Ubicación: https://maps.app.goo.gl/rp6RjiBQniCgKmbr8"
+    And la publicación "Masa madre" ya está guardada con ese pie
+    When como administrador lo borro desde su edición y lo confirmo
+    Then ya no aparece en la lista de pies
+    And la publicación "Masa madre" sigue ahí, y su texto ya no termina con el pie
+
+  @slice-6 @component
+  Scenario: Sin confirmar no se borra nada
+    When pulso «Borrar» y después «Cancelar»
+    Then no se manda nada a borrar
+    And vuelve a ofrecerse «Borrar»

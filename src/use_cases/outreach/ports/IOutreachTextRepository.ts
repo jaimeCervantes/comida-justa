@@ -60,4 +60,8 @@ export default interface IOutreachTextRepository {
    * entre que se abrió el formulario y se guardó.
    */
   update(id: string, draft: OutreachTextDraft): Promise<boolean>;
+  /**
+   * Borra el texto; sus productos, versiones e historial caen por cascada. `false` si ya no existía, o si `id` no tiene forma de identidad.
+   */
+  delete(id: string): Promise<boolean>;
 }

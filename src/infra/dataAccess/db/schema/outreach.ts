@@ -139,14 +139,19 @@ export const outreachChannels = pgTable("outreach_channels", {
 /**
  * Dónde quedó publicado cada texto, y cuándo. Lo marca la persona después de publicar; nada lo
  * escribe solo. `postId` es el pan vendido suelto en un grupo de compraventa; nulo, la línea entera.
+ *
+ * Es la memoria de cada grupo —su turno, el tope del día y la pausa—, así que borrar un texto deja
+ * aquí sus fechas con `outreachTextId` nulo (migración `0063`): si se las llevara, los grupos donde
+ * se publicó volverían a ofrecerse como nunca publicados. Borrar un grupo sí se lleva las suyas.
  */
 export const outreachPublications = pgTable(
   "outreach_publications",
   {
     id: uuid("id").defaultRandom().primaryKey(),
-    outreachTextId: uuid("outreach_text_id")
-      .notNull()
-      .references(() => outreachTexts.id, { onDelete: "cascade" }),
+    outreachTextId: uuid("outreach_text_id").references(
+      () => outreachTexts.id,
+      { onDelete: "set null" },
+    ),
     channelId: uuid("channel_id")
       .notNull()
       .references(() => outreachChannels.id, { onDelete: "cascade" }),

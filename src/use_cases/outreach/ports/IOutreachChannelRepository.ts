@@ -13,4 +13,8 @@ export default interface IOutreachChannelRepository {
   create(channel: OutreachChannelInput): Promise<string>;
   /** `false` si ya no existe. */
   update(id: string, channel: OutreachChannelInput): Promise<boolean>;
+  /**
+   * Borra el grupo; su historial de publicaciones cae por cascada. `false` si ya no existía, o si `id` no tiene forma de identidad.
+   */
+  delete(id: string): Promise<boolean>;
 }

@@ -86,4 +86,15 @@ export default class PostgresOutreachChannelRepository
 
     return updated.length > 0;
   }
+
+  async delete(id: string): Promise<boolean> {
+    if (!UUID_SHAPE.test(id)) return false;
+
+    const removed = await db
+      .delete(outreachChannels)
+      .where(eq(outreachChannels.id, id))
+      .returning({ id: outreachChannels.id });
+
+    return removed.length > 0;
+  }
 }

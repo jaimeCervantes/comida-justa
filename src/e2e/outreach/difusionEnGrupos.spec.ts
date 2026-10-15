@@ -4,6 +4,7 @@ import { deleteOnePostBySlug } from "../testUtils/deleteOnePost";
 import {
   deleteTestOutreachChannels,
   outreachChannelsTableExists,
+  outreachHistoryOutlivesTexts,
   readOutreachPublications,
   seedOutreachChannel,
   seedOutreachPublication,
@@ -39,9 +40,9 @@ import OutreachFooters from "./OutreachFooters";
 import OutreachGroups from "./OutreachGroups";
 
 /**
- * Slices 1 a 4 de `difusionEnGrupos.feature`: la publicación para grupos normales, los artículos
- * de compraventa que salen de ella, los grupos con el historial de dónde quedó cada cosa, y el ritmo
- * entre ellos.
+ * Slices 1 a 6 de `difusionEnGrupos.feature`: la publicación para grupos normales, los artículos
+ * de compraventa que salen de ella, los grupos con el historial de dónde quedó cada cosa, el ritmo
+ * entre ellos, el pie compartido con sus versiones, y borrar lo que ya no se usa.
  *
  * Nada de esto publica en Facebook —ninguna app puede ya—: se comprueba que el texto que se copia
  * es exactamente el que anuncia lo que hay hoy, al precio de hoy.
@@ -579,6 +580,89 @@ test.describe("Difusión en grupos de Facebook", () => {
       await admin.versionTurn(emprendedores.name).textContent(),
     ].sort();
     expect(turns).toEqual(["Le toca la versión 1", "Le toca la versión 2"]);
+  });
+
+  // --- Slice 6: borrar lo que ya no se usa ----------------------------------------------
+
+  /* Sin la 0063 la llave era `CASCADE` y el historial se iba con el texto: no hay qué comprobar. Se
+     siembra hace dos días y no hoy para no mover el tope ni la pausa de quien use la base a la vez.
+
+     La memoria se mira en el turno, que cuenta lo publicado con cualquier texto. «Última vez aquí»
+     no sirve: es de cada publicación, y «Pan de temporada» nunca se publicó en ese grupo. Con el
+     historial borrado, el turno diría «Ya le toca». */
+  test("Borro una publicación que ya no uso, y los grupos recuerdan cuándo se publicó", async ({
+    page,
+  }) => {
+    test.skip(
+      !(await outreachHistoryOutlivesTexts()),
+      "La migración 0063 de hazlo-sano-bot no está aplicada en esta base",
+    );
+    const mamas = await seedGroup("Mamás de Orizaba", "post");
+    const vieja = testOutreachName("Masa madre");
+    const viejaId = await seedMasaMadreText(breads, vieja);
+    const otraId = await seedMasaMadreText(
+      breads,
+      testOutreachName("Pan de temporada"),
+    );
+    await seedOutreachPublication({
+      outreachTextId: viejaId,
+      channelId: mamas.id,
+      postId: null,
+      publishedAt: daysAgo(2),
+    });
+    const admin = new OutreachAdmin(page);
+
+    await admin.openEdit(viejaId);
+    await admin.deleteText();
+
+    await expect(admin.listedText(vieja)).toHaveCount(0);
+    await admin.open(otraId);
+    // Cada 7 días y publicado hace 2: faltan 5.
+    await expect(admin.channelTurn(admin.groupPost(), mamas.name)).toHaveText(
+      "Todavía no: en 5 días",
+    );
+  });
+
+  test("Borro un grupo que cerró, y deja de ofrecerse", async ({ page }) => {
+    const mamas = await seedGroup("Mamás de Orizaba", "post");
+    const id = await seedMasaMadreText(breads);
+    const admin = new OutreachAdmin(page);
+    const groups = new OutreachGroups(page);
+    await admin.open(id);
+    await expect(
+      admin.channelLink(admin.groupPost(), mamas.name),
+    ).toBeVisible();
+
+    await groups.openEdit(mamas.id);
+    await groups.deleteGroup();
+
+    await expect(groups.group(mamas.name)).toHaveCount(0);
+    await admin.open(id);
+    await expect(admin.channelLink(admin.groupPost(), mamas.name)).toHaveCount(
+      0,
+    );
+  });
+
+  test("Borro un pie, y las publicaciones que lo llevaban se quedan sin él", async ({
+    page,
+  }) => {
+    const name = testOutreachName("Hazlo Sano");
+    /* Un renglón que el texto sembrado no trae por su cuenta: su «después de la lista» ya es el de
+       WhatsApp, y un pie con ese mismo renglón seguiría «apareciendo» después de borrarlo. */
+    const body = "📍 Ubicación: https://maps.app.goo.gl/rp6RjiBQniCgKmbr8";
+    const footerId = await seedOutreachFooter({ name, body });
+    const id = await seedMasaMadreText(breads, undefined, { footerId });
+    const admin = new OutreachAdmin(page);
+    const footers = new OutreachFooters(page);
+    await admin.open(id);
+    expect(await admin.readText()).toContain(body);
+
+    await footers.openEdit(footerId);
+    await footers.deleteFooter();
+
+    await expect(footers.footer(name)).toHaveCount(0);
+    await admin.open(id);
+    expect(await admin.readText()).not.toContain(body);
   });
 });
 

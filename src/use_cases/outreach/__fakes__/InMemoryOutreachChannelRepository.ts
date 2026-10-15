@@ -35,4 +35,8 @@ export default class InMemoryOutreachChannelRepository
 
     return true;
   }
+
+  async delete(id: string): Promise<boolean> {
+    return this.saved.delete(id);
+  }
 }
