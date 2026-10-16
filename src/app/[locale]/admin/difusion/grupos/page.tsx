@@ -8,6 +8,12 @@ import { Heading } from "~/presentation/design_system/typography/Heading";
 import ListOutreachChannelsUseCase from "~/use_cases/outreach/listOutreachChannelsUseCase";
 import { enterOutreachAdmin } from "../adminGate";
 import OutreachBreadcrumbs from "../ui/OutreachBreadcrumbs";
+import {
+  OutreachListPagination,
+  OutreachNothingFound,
+} from "../ui/OutreachListPages";
+import OutreachListSearch from "../ui/OutreachListSearch";
+import { readOutreachListParams } from "../ui/outreachListHref";
 import { channelSummary } from "./channelSummary";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -22,15 +28,22 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function GruposDifusionPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   await enterOutreachAdmin((await params).locale);
   const t = await getTranslations("outreach");
+  const query = readOutreachListParams(await searchParams);
 
-  const channels = await new ListOutreachChannelsUseCase(
+  const {
+    items: channels,
+    total,
+    page,
+  } = await new ListOutreachChannelsUseCase(
     createOutreachChannelRepository(),
-  ).execute();
+  ).execute(query);
 
   return (
     <main>
@@ -48,8 +61,27 @@ export default async function GruposDifusionPage({
         {t("newGroup")}
       </Link>
 
+      {total > 0 || query.term ? (
+        <OutreachListSearch
+          pathname="/admin/difusion/grupos"
+          term={query.term}
+          label={t("groupsSearchLabel")}
+          placeholder={t("groupsSearchPlaceholder")}
+          testId="outreach-groups-search"
+        />
+      ) : null}
+
       {channels.length === 0 ? (
-        <p className="text-text-support">{t("emptyGroups")}</p>
+        query.term ? (
+          <OutreachNothingFound
+            pathname="/admin/difusion/grupos"
+            message={t("groupsNothingFound", { term: query.term })}
+            clearLabel={t("clearSearch")}
+            testId="outreach-groups-nothing-found"
+          />
+        ) : (
+          <p className="text-text-support">{t("emptyGroups")}</p>
+        )
       ) : (
         <ul data-testid="outreach-groups" className="flex flex-col gap-3">
           {channels.map((channel) => (
@@ -92,6 +124,14 @@ export default async function GruposDifusionPage({
           ))}
         </ul>
       )}
+
+      <OutreachListPagination
+        pathname="/admin/difusion/grupos"
+        term={query.term}
+        page={page}
+        total={total}
+        testId="outreach-groups-pagination"
+      />
     </main>
   );
 }
