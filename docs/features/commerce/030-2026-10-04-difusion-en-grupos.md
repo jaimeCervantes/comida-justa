@@ -330,12 +330,23 @@ ranking y rescate semántico cuando el texto no encuentra nada), quedándose sol
 vende. Cada resultado enseña precio y foto. **Paginación numérica**, 10 por página, con botones
 dentro del formulario (no enlaces: cambiar de página no sale del formulario a medio llenar).
 
-**Criterios de aceptación** (se detallan al empezar el slice).
+**Criterios de aceptación.**
 
-1. «pan chocolate» encuentra «Pan de Masa Madre de Chocolate»; sin acentos también encuentra.
-2. Solo se ofrecen productos que se venden; un servicio o un evento no salen aunque coincidan.
-3. Con más de 10 resultados aparecen los números de página; cambiar de página no envía el
-   formulario ni pierde lo escrito.
+1. «pan chocolate» encuentra «Pan de Masa Madre de Chocolate», con su precio, y se agrega desde
+   ahí.
+2. Solo se ofrece lo que se vende (`SELLABLE_KINDS`: productos y servicios), igual que la lista de
+   la publicación. Eventos, anuncios y prácticas no salen aunque coincidan. El filtro va **en la
+   consulta**, no después: filtrar tras paginar dejaría páginas cortas y un total falso.
+3. Diez por página. Con más de diez aparecen hasta cinco números, centrados en la página actual
+   (corrida de escritorio en el `.feature`). Cambiar de página no envía el formulario ni pierde lo
+   escrito.
+4. Buscar desde aquí no se mide como búsqueda del sitio: el administrador armando una publicación
+   no es un visitante.
+
+**Lo que no promete.** Los acentos: la búsqueda del sitio usa los diccionarios `spanish` y
+`english` sin `unaccent`, así que «arandanos» solo encuentra «arándanos» si lo rescata el sentido.
+Arreglarlo es una migración de los índices de texto en el backend y vale para todo el sitio; queda
+como seguimiento.
 
 ### Slice 9 — Buscar y paginar publicaciones y grupos
 

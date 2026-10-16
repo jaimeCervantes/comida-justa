@@ -641,17 +641,54 @@ Feature: Difusión en grupos de Facebook
   # Slice 8 — Buscar productos como en la búsqueda principal
   # ---------------------------------------------------------------------------------------------
 
-  @slice-8 @future
+  # El selector usa la misma búsqueda que el sitio: texto completo con ranking y, si el texto no
+  # encuentra nada, el rescate por sentido. Antes comparaba letras del título y se quedaba con 8, así
+  # que «pan chocolate» no encontraba «Pan de Masa Madre de Chocolate».
+
+  @slice-8
   Scenario: Encuentro un pan con palabras sueltas, como en el buscador del sitio
     Given como administrador abro una publicación nueva
     When busco "pan chocolate"
-    Then entre los resultados está "Pan de Masa Madre de Chocolate" con su precio y su foto
+    Then entre los resultados está "Pan de Masa Madre de Chocolate" a "$136.00"
+    And lo puedo agregar a la publicación
 
-  @slice-8 @future
-  Scenario: Con muchos resultados, los recorro por número de página sin perder lo escrito
-    Given como administrador escribí el nombre de una publicación nueva
-    When busco "masa madre" y voy a la página 2
-    Then veo los resultados de la página 2 y el nombre sigue escrito
+  # Solo se ofrece lo que se puede anunciar con precio: lo mismo que la lista de la publicación.
+  @slice-8 @component
+  Scenario Outline: Solo se ofrece lo que se vende
+    Given una publicación de tipo "<tipo>" que coincide con lo que busco
+    Then <se ofrece>
+
+    Examples:
+      | tipo     | se ofrece       |
+      | producto | se ofrece       |
+      | servicio | se ofrece       |
+      | evento   | no se ofrece    |
+      | anuncio  | no se ofrece    |
+      | practica | no se ofrece    |
+
+  # Diez por página. Se ven hasta cinco números, centrados en la página actual.
+  @slice-8 @component
+  Scenario Outline: Los números de página según cuántos resultados hay
+    Given la búsqueda encontró <resultados> productos
+    When estoy en la página <página>
+    Then se ven los números "<números>"
+
+    Examples:
+      | resultados | página | números   | por qué                              |
+      | 8          | 1      |           | cabe en una página: no hay números   |
+      | 25         | 1      | 1 2 3     | tres páginas, todas a la vista       |
+      | 75         | 1      | 1 2 3 4 5 | ocho páginas: las cinco primeras     |
+      | 75         | 6      | 4 5 6 7 8 | centrada en la actual, sin pasarse   |
+      | 75         | 8      | 4 5 6 7 8 | en la última se ven las cinco finales |
+
+  # Los números son botones dentro del formulario, no enlaces: cambiar de página no sale de él.
+  @slice-8 @component
+  Scenario: Cambiar de página no envía el formulario ni pierde lo escrito
+    Given escribí el nombre "Masa madre" de una publicación nueva
+    And busqué "masa madre" y hay 25 resultados
+    When voy a la página 2
+    Then veo los resultados de la página 2
+    And el formulario no se envió y el nombre sigue siendo "Masa madre"
 
   # ---------------------------------------------------------------------------------------------
   # Slice 9 — Buscar y paginar publicaciones y grupos
