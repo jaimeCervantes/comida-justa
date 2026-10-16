@@ -288,6 +288,68 @@ el botón primero pregunta, y la pregunta dice qué más se va con lo que se bor
    fallar, y quien no es admin no borra nada aunque llame a la acción directamente.
 6. Al borrar se vuelve a la lista, aunque quede vacía.
 
+### Slice 7 — Que la publicación se entienda de un vistazo
+
+**De dónde sale.** De usarlo (2026-10-16): los títulos de sección no se distinguen entre sí —todos
+son negritas de 16 a 20 px escritas a mano, sin el `Heading` del sistema de diseño— y cada grupo
+aparece **dos veces** en la publicación: una para abrirlo, con su turno y sus reglas, y otra más
+abajo para marcar dónde quedó. Hay que unir las dos listas de memoria.
+
+- **Problem:** la pantalla no dice de un vistazo qué hacer ni dónde; se lee entera cada vez.
+- **Savings:** segundos por grupo y menos errores al marcar (marcar el grupo que no era, o
+  olvidarse de uno). Que se publique más seguido porque cuesta menos.
+- **Why:** la difusión vale si se hace constante, y lo constante tiene que ser fácil.
+
+**Alcance.** Sin migración. Las siete pantallas usan `Heading` con niveles reales. La publicación
+se ordena en pasos, y en grupos normales cada grupo es **un solo renglón** con todo: abrirlo, su
+turno, su versión, sus reglas y la casilla para marcarlo. Arriba, un resumen de cuántos grupos
+están listos hoy.
+
+**Criterios de aceptación.**
+
+1. Cada pantalla tiene un solo `h1`; las secciones son `h2` y lo de dentro `h3`, con el tamaño que
+   el sistema de diseño da a cada nivel (corrida de escritorio en el `.feature`).
+2. La publicación tiene, para grupos normales, dos pasos numerados: «1. Copia el texto y las
+   fotos» y «2. Publica en cada grupo y márcalo». Compraventa va en su propia sección, después.
+3. En el paso 2 cada grupo normal sale **una vez**, con su enlace, su turno, su versión si hay
+   varias, sus reglas, la última vez y su casilla. Un solo botón marca los elegidos.
+4. El turno se ve como insignia: verde «Ya le toca», neutra «Todavía no: en N días».
+5. Arriba de la publicación: «Hoy les toca a N de M grupos», junto al conteo del día y la pausa.
+   Cuenta los grupos de los dos tipos.
+6. Lo que no entra en la lista sigue diciéndose, como aviso arriba y no al final: es lo primero que
+   hay que arreglar.
+
+### Slice 8 — Buscar productos como en la búsqueda principal
+
+**De dónde sale.** El selector compara letras del título y se queda con 8: «pan chocolate» no
+encuentra «Pan de Masa Madre de Chocolate», y lo que la búsqueda del sitio sí encuentra aquí no
+aparece.
+
+**Alcance.** El selector usa la misma búsqueda del sitio (`SearchPostsUseCase`: texto completo con
+ranking y rescate semántico cuando el texto no encuentra nada), quedándose solo con lo que se
+vende. Cada resultado enseña precio y foto. **Paginación numérica**, 10 por página, con botones
+dentro del formulario (no enlaces: cambiar de página no sale del formulario a medio llenar).
+
+**Criterios de aceptación** (se detallan al empezar el slice).
+
+1. «pan chocolate» encuentra «Pan de Masa Madre de Chocolate»; sin acentos también encuentra.
+2. Solo se ofrecen productos que se venden; un servicio o un evento no salen aunque coincidan.
+3. Con más de 10 resultados aparecen los números de página; cambiar de página no envía el
+   formulario ni pierde lo escrito.
+
+### Slice 9 — Buscar y paginar publicaciones y grupos
+
+**Alcance.** La lista de publicaciones y la de grupos tienen un buscador sencillo por texto (nombre,
+y en grupos también la dirección) y se paginan de 20 en 20 con «Anterior / Siguiente»
+(`QueryPagination`). La página y lo buscado viajan en la dirección, para volver al mismo lugar
+después de editar.
+
+**Criterios de aceptación** (se detallan al empezar el slice).
+
+1. Buscar «orizaba» deja solo los grupos con «Orizaba» en el nombre; sin acentos y sin mayúsculas.
+2. Con más de 20, «Siguiente» lleva a la página 2 y la búsqueda se conserva.
+3. Sin coincidencias, se dice y se ofrece borrar la búsqueda.
+
 ## Configuración
 
 | Variable                 | Por omisión | Acepta                      | Para qué                                              |
@@ -417,6 +479,21 @@ borrando su historial, y así las pruebas, que borran sus grupos al terminar, no
 sueltas contando en el tope del día.
 
 El `downgrade` borra las filas con texto nulo antes de volver a `NOT NULL`.
+
+## Pendiente: publicar solo en la Página de Facebook
+
+**De dónde sale.** El usuario esperaba que la difusión fuera automática (2026-10-16). En grupos no
+se puede (ver «Por qué la app prepara y la persona publica»), pero en una **Página** sí: la Graph
+API sigue permitiendo publicar en las Páginas que uno administra (`pages_manage_posts`).
+
+**La idea.** La app publica en la Página de la tienda el texto armado, con la lista al día y sus
+fotos, sin que nadie dé el clic. A los grupos se llega compartiendo esa publicación desde la Página,
+a mano y con el ritmo de siempre. Quedan por decidir: cada cuándo publica, qué texto y versión usa,
+y si lo dispara un horario o un botón.
+
+**Lo que pide antes de empezar.** Una app de Meta con revisión para `pages_manage_posts`, un token de
+Página guardado como secreto y, con «Facebook» ya en la lista cerrada de redes, un canal de tipo
+«página» junto a los de grupo. Sin roadmap todavía: se planea cuando el usuario lo pida.
 
 ## Pendientes del usuario
 

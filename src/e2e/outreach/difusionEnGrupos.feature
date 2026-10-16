@@ -579,3 +579,92 @@ Feature: Difusión en grupos de Facebook
     When pulso «Borrar» y después «Cancelar»
     Then no se manda nada a borrar
     And vuelve a ofrecerse «Borrar»
+
+  # ---------------------------------------------------------------------------------------------
+  # Slice 7 — Que la publicación se entienda de un vistazo
+  # ---------------------------------------------------------------------------------------------
+
+  # Salió de usarlo: los títulos de sección no se distinguían entre sí, y cada grupo aparecía dos
+  # veces —una para abrirlo, otra para marcarlo—. Ahora la publicación se lee en pasos, y cada grupo
+  # normal es un solo renglón con todo lo que hace falta para publicar ahí.
+
+  @slice-7
+  Scenario: Cada grupo normal sale una sola vez, con todo lo que necesito para publicar ahí
+    Given están dados de alta los grupos normales "Mamás de Orizaba" y "Emprendedores de Orizaba", cada uno acepta una publicación cada 7 días
+    And en "Mamás de Orizaba" publiqué hace 3 días y en "Emprendedores de Orizaba" hace 8
+    And la publicación "Masa madre" ya está guardada
+    When como administrador la abro
+    Then el paso "2. Publica en cada grupo y márcalo" enseña cada grupo una sola vez:
+      | grupo                    | turno                 | última vez                   |
+      | Mamás de Orizaba         | Todavía no: en 4 días | Última vez aquí: hace 3 días |
+      | Emprendedores de Orizaba | Ya le toca            | Última vez aquí: hace 8 días |
+    And cada uno tiene su enlace para abrirlo y su casilla para marcarlo
+    When marco "Emprendedores de Orizaba" y confirmo
+    Then "Emprendedores de Orizaba" dice "Todavía no: en 7 días" y "Última vez aquí: hoy"
+
+  @slice-7
+  Scenario: Arriba me dice a cuántos grupos les toca hoy
+    Given están dados de alta los grupos normales "Mamás de Orizaba" y "Emprendedores de Orizaba", cada uno acepta una publicación cada 7 días
+    And está dado de alta el grupo de compraventa "Compra Venta Orizaba"
+    And en "Mamás de Orizaba" publiqué hace 3 días y en "Emprendedores de Orizaba" hace 8
+    And la publicación "Masa madre" ya está guardada
+    When como administrador la abro
+    Then arriba se lee "Hoy les toca a 2 de 3 grupos"
+
+  @slice-7
+  Scenario Outline: Los títulos de la publicación dicen qué contiene a qué
+    Given están dados de alta el grupo normal "Mamás de Orizaba" y el de compraventa "Compra Venta Orizaba"
+    And la publicación "Masa madre" ya está guardada
+    When como administrador la abro
+    Then "<título>" es un encabezado de nivel <nivel>
+
+    Examples:
+      | título                              | nivel | por qué                                  |
+      | Masa madre                          | 1     | la página: hay uno solo                  |
+      | Para grupos normales                | 2     | una sección por tipo de grupo            |
+      | 1. Copia el texto y las fotos       | 3     | los pasos están dentro de su sección     |
+      | 2. Publica en cada grupo y márcalo  | 3     |                                          |
+      | Para grupos de compraventa          | 2     |                                          |
+
+  @slice-7 @component
+  Scenario Outline: El turno se ve como insignia, verde solo cuando ya le toca
+    Given un grupo cuyo turno es "<turno>"
+    Then su insignia dice "<turno>" en tono "<tono>"
+
+    Examples:
+      | turno                 | tono    |
+      | Ya le toca            | verde   |
+      | Todavía no: mañana    | neutro  |
+      | Todavía no: en 4 días | neutro  |
+
+  # ---------------------------------------------------------------------------------------------
+  # Slice 8 — Buscar productos como en la búsqueda principal
+  # ---------------------------------------------------------------------------------------------
+
+  @slice-8 @future
+  Scenario: Encuentro un pan con palabras sueltas, como en el buscador del sitio
+    Given como administrador abro una publicación nueva
+    When busco "pan chocolate"
+    Then entre los resultados está "Pan de Masa Madre de Chocolate" con su precio y su foto
+
+  @slice-8 @future
+  Scenario: Con muchos resultados, los recorro por número de página sin perder lo escrito
+    Given como administrador escribí el nombre de una publicación nueva
+    When busco "masa madre" y voy a la página 2
+    Then veo los resultados de la página 2 y el nombre sigue escrito
+
+  # ---------------------------------------------------------------------------------------------
+  # Slice 9 — Buscar y paginar publicaciones y grupos
+  # ---------------------------------------------------------------------------------------------
+
+  @slice-9 @future
+  Scenario: Busco un grupo por su nombre
+    Given están dados de alta los grupos "Mamás de Orizaba", "Emprendedores de Orizaba" y "Ventas Córdoba"
+    When como administrador busco "orizaba" en la lista de grupos
+    Then solo veo "Mamás de Orizaba" y "Emprendedores de Orizaba"
+
+  @slice-9 @future
+  Scenario: Paso a la siguiente página y la búsqueda se conserva
+    Given hay 25 grupos con "Orizaba" en el nombre
+    When como administrador busco "orizaba" y voy a "Siguiente"
+    Then veo los grupos 21 a 25 y el buscador sigue diciendo "orizaba"
