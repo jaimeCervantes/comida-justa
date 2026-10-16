@@ -40,9 +40,10 @@ import OutreachFooters from "./OutreachFooters";
 import OutreachGroups from "./OutreachGroups";
 
 /**
- * Slices 1 a 6 de `difusionEnGrupos.feature`: la publicación para grupos normales, los artículos
+ * Slices 1 a 8 de `difusionEnGrupos.feature`: la publicación para grupos normales, los artículos
  * de compraventa que salen de ella, los grupos con el historial de dónde quedó cada cosa, el ritmo
- * entre ellos, el pie compartido con sus versiones, y borrar lo que ya no se usa.
+ * entre ellos, el pie compartido con sus versiones, borrar lo que ya no se usa, la publicación que
+ * se entiende de un vistazo y el buscador de productos del sitio.
  *
  * Nada de esto publica en Facebook —ninguna app puede ya—: se comprueba que el texto que se copia
  * es exactamente el que anuncia lo que hay hoy, al precio de hoy.
@@ -753,6 +754,28 @@ test.describe("Difusión en grupos de Facebook", () => {
     ).map(Number);
     expect(total - due).toBeGreaterThanOrEqual(1);
     expect(due).toBeGreaterThanOrEqual(2);
+  });
+
+  // --- Slice 8: buscar productos como en el buscador del sitio --------------------------------
+
+  /* Palabras sueltas: la búsqueda vieja comparaba letras seguidas del título y no lo encontraba.
+     Puede salir también el pan de verdad, que se llama igual; basta con que esté el nuestro. */
+  test("Encuentro un pan con palabras sueltas, como en el buscador del sitio", async ({
+    page,
+  }) => {
+    const chocolate = breadOf(breads, "chocolate");
+    const admin = new OutreachAdmin(page);
+    await admin.openNew();
+    const form = admin.form(t.newHeading);
+
+    await admin.searchProducts(form, "pan chocolate");
+
+    const match = admin.productMatch(form, chocolate.title);
+    await expect(match).toContainText("$136.00");
+    await match.getByRole("button", { name: t.addProduct }).click();
+    await expect(
+      form.getByTestId("outreach-item").filter({ hasText: chocolate.title }),
+    ).toHaveCount(1);
   });
 
   for (const { title, level } of [

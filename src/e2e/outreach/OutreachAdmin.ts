@@ -96,6 +96,19 @@ export default class OutreachAdmin {
     await this.setItem(form, title, { label, emoji });
   }
 
+  /** Escribe en el buscador del formulario; los resultados llegan del servidor al dejar de teclear. */
+  async searchProducts(form: Locator, term: string): Promise<void> {
+    await fillWhenHydrated(
+      form.getByRole("searchbox", { name: t.searchLabel }),
+      term,
+    );
+  }
+
+  /** Un resultado del buscador por lo que dice: título y precio. */
+  productMatch(form: Locator, text: string): Locator {
+    return form.getByTestId("outreach-product-match").filter({ hasText: text });
+  }
+
   async setItem(
     form: Locator,
     title: string,
