@@ -129,6 +129,7 @@ test.describe("Difusión en grupos de Facebook", () => {
       opening: OPENING,
       closing: CLOSING,
     });
+    await admin.chooseNoFooter(form);
     for (const bread of breads) {
       await admin.addProduct(form, bread);
     }
@@ -664,6 +665,119 @@ test.describe("Difusión en grupos de Facebook", () => {
     await admin.open(id);
     expect(await admin.readText()).not.toContain(body);
   });
+
+  // --- Slice 7: que se entienda de un vistazo ------------------------------------------------
+
+  test("Cada grupo normal sale una sola vez, con todo lo que necesito para publicar ahí", async ({
+    page,
+  }) => {
+    const mamas = await seedGroup("Mamás de Orizaba", "post");
+    const emprendedores = await seedGroup("Emprendedores de Orizaba", "post");
+    const id = await seedMasaMadreText(breads);
+    await seedOutreachPublication({
+      outreachTextId: id,
+      channelId: mamas.id,
+      postId: null,
+      publishedAt: daysAgo(3),
+    });
+    await seedOutreachPublication({
+      outreachTextId: id,
+      channelId: emprendedores.id,
+      postId: null,
+      publishedAt: daysAgo(8),
+    });
+    const admin = new OutreachAdmin(page);
+
+    await admin.open(id);
+
+    /* Una vez cada uno, no «dos renglones»: en la base compartida puede haber grupos de verdad. */
+    for (const group of [mamas, emprendedores]) {
+      await expect(admin.publishRow(group.name)).toHaveCount(1);
+    }
+    for (const { group, turn, last } of [
+      { group: mamas, turn: "Todavía no: en 4 días", last: "hace 3 días" },
+      { group: emprendedores, turn: t.turnDue, last: "hace 8 días" },
+    ]) {
+      const row = admin.publishRow(group.name);
+      await expect(row.getByTestId("outreach-channel-turn")).toHaveText(turn);
+      await expect(row.getByTestId("outreach-channel-last")).toHaveText(
+        t.lastPublished.replace("{when}", last),
+      );
+      await expect(row.getByRole("link")).toHaveAttribute("href", group.url);
+      await expect(row.getByRole("checkbox")).toBeVisible();
+    }
+    // Ya no hay una segunda lista de los mismos grupos más arriba.
+    await expect(
+      admin.groupPost().getByTestId("outreach-channel-link"),
+    ).toHaveCount(0);
+
+    await admin.markPostPublished([emprendedores.name]);
+
+    const marked = admin.publishRow(emprendedores.name);
+    await expect(marked.getByTestId("outreach-channel-turn")).toHaveText(
+      "Todavía no: en 7 días",
+    );
+    await expect(marked.getByTestId("outreach-channel-last")).toHaveText(
+      LAST_TODAY,
+    );
+  });
+
+  test("Arriba me dice a cuántos grupos les toca hoy", async ({ page }) => {
+    const mamas = await seedGroup("Mamás de Orizaba", "post");
+    const emprendedores = await seedGroup("Emprendedores de Orizaba", "post");
+    await seedGroup("Compra Venta Orizaba", "listing");
+    const id = await seedMasaMadreText(breads);
+    await seedOutreachPublication({
+      outreachTextId: id,
+      channelId: mamas.id,
+      postId: null,
+      publishedAt: daysAgo(3),
+    });
+    await seedOutreachPublication({
+      outreachTextId: id,
+      channelId: emprendedores.id,
+      postId: null,
+      publishedAt: daysAgo(8),
+    });
+    const admin = new OutreachAdmin(page);
+
+    await admin.open(id);
+
+    /* Cuenta todos los grupos dados de alta, no solo los de prueba: en la base compartida puede
+       haber de verdad. Lo que se afirma es la frase y que los nuestros sumaron lo que debían. */
+    await expect(admin.dueChannels()).toHaveText(
+      /^Hoy les? toca a \d+ de \d+ grupos?\.$/,
+    );
+    const [due, total] = (
+      (await admin.dueChannels().textContent())?.match(/\d+/g) ?? []
+    ).map(Number);
+    expect(total - due).toBeGreaterThanOrEqual(1);
+    expect(due).toBeGreaterThanOrEqual(2);
+  });
+
+  for (const { title, level } of [
+    { title: "Masa madre", level: 1 },
+    { title: t.groupPostHeading, level: 2 },
+    { title: t.stepCopyHeading, level: 3 },
+    { title: t.stepPublishHeading, level: 3 },
+    { title: t.listingsHeading, level: 2 },
+  ]) {
+    test(`Los títulos de la publicación: «${title}» es de nivel ${level}`, async ({
+      page,
+    }) => {
+      await seedGroup("Mamás de Orizaba", "post");
+      await seedGroup("Compra Venta Orizaba", "listing");
+      const id = await seedMasaMadreText(breads);
+      const admin = new OutreachAdmin(page);
+
+      await admin.open(id);
+
+      // El nombre sembrado lleva el marcador de prueba: se busca por su principio.
+      await expect(
+        page.getByRole("heading", { level, name: title }),
+      ).toHaveCount(1);
+    });
+  }
 });
 
 /** Hace tantos días, a esta misma hora: los turnos se cuentan en días de calendario. */
