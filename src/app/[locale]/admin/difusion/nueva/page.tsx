@@ -1,9 +1,5 @@
 import { getTranslations } from "next-intl/server";
-import { routing } from "~/i18n/routing";
-import {
-  createOutreachFooterRepository,
-  createOutreachProductCatalog,
-} from "~/infra/dataAccess/outreach/factory";
+import { createOutreachFooterRepository } from "~/infra/dataAccess/outreach/factory";
 import { Heading } from "~/presentation/design_system/typography/Heading";
 import { enterOutreachAdmin, outreachMetadata } from "../adminGate";
 import OutreachBreadcrumbs from "../ui/OutreachBreadcrumbs";
@@ -16,16 +12,10 @@ export default async function NuevaDifusionPage({
 }: {
   params: Promise<{ locale: string }>;
 }) {
-  const locale = await enterOutreachAdmin((await params).locale);
+  await enterOutreachAdmin((await params).locale);
   const t = await getTranslations("outreach");
 
-  const [products, footers] = await Promise.all([
-    createOutreachProductCatalog().listProducts({
-      locale,
-      fallbackLocale: routing.defaultLocale,
-    }),
-    createOutreachFooterRepository().list(),
-  ]);
+  const footers = await createOutreachFooterRepository().list();
 
   return (
     <main>
@@ -33,11 +23,7 @@ export default async function NuevaDifusionPage({
       <Heading level={1} className="mb-4">
         {t("newHeading")}
       </Heading>
-      <OutreachTextForm
-        label={t("newHeading")}
-        products={products}
-        footers={footers}
-      />
+      <OutreachTextForm label={t("newHeading")} footers={footers} />
     </main>
   );
 }

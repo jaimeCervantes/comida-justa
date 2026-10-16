@@ -1,9 +1,5 @@
 import { getTranslations } from "next-intl/server";
-import { routing } from "~/i18n/routing";
-import {
-  createOutreachFooterRepository,
-  createOutreachProductCatalog,
-} from "~/infra/dataAccess/outreach/factory";
+import { createOutreachFooterRepository } from "~/infra/dataAccess/outreach/factory";
 import { Heading } from "~/presentation/design_system/typography/Heading";
 import { deleteOutreachText } from "../../actions";
 import { enterOutreachAdmin, outreachMetadata } from "../../adminGate";
@@ -23,12 +19,8 @@ export default async function EditarDifusionPage({
   const locale = await enterOutreachAdmin(rawLocale);
   const t = await getTranslations("outreach");
 
-  const [{ text }, products, footers] = await Promise.all([
+  const [{ text }, footers] = await Promise.all([
     loadOutreachText(id, locale),
-    createOutreachProductCatalog().listProducts({
-      locale,
-      fallbackLocale: routing.defaultLocale,
-    }),
     createOutreachFooterRepository().list(),
   ]);
   const heading = t("editHeading", { name: text.name });
@@ -50,7 +42,6 @@ export default async function EditarDifusionPage({
       <OutreachTextForm
         label={heading}
         id={text.id}
-        products={products}
         footers={footers}
         initial={{
           name: text.name,

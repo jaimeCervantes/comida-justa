@@ -1,14 +1,22 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { auth, isAdmin, create, update, remove, redirectKeepingLocale } =
-  vi.hoisted(() => ({
-    auth: vi.fn(),
-    isAdmin: vi.fn(),
-    create: vi.fn(),
-    update: vi.fn(),
-    remove: vi.fn(),
-    redirectKeepingLocale: vi.fn(),
-  }));
+const {
+  auth,
+  isAdmin,
+  create,
+  update,
+  remove,
+  redirectKeepingLocale,
+  searchPosts,
+} = vi.hoisted(() => ({
+  auth: vi.fn(),
+  isAdmin: vi.fn(),
+  create: vi.fn(),
+  update: vi.fn(),
+  remove: vi.fn(),
+  redirectKeepingLocale: vi.fn(),
+  searchPosts: vi.fn(),
+}));
 
 /* La acción resuelve sus mensajes con el catálogo; aquí basta con que devuelva la clave, porque lo
    que se afirma es qué hace la acción, no cómo está redactado el aviso. */
@@ -23,7 +31,22 @@ vi.mock("~/infra/dataAccess/outreach/factory", () => ({
   createOutreachTextRepository: () => ({ create, update, delete: remove }),
 }));
 
-import { deleteOutreachText, saveOutreachText } from "./actions";
+vi.mock("~/infra/dataAccess/searchPosts/factory", () => ({
+  createSearchPostRepository: () => ({
+    search: searchPosts,
+    searchByVector: vi.fn().mockResolvedValue({ results: [], total: 0 }),
+    countByCategory: vi.fn().mockResolvedValue({}),
+  }),
+}));
+vi.mock("~/infra/services/factory", () => ({
+  createEmbeddingService: () => ({ generateEmbedding: vi.fn() }),
+}));
+
+import {
+  deleteOutreachText,
+  saveOutreachText,
+  searchOutreachProducts,
+} from "./actions";
 
 const MASA_MADRE = [
   { postId: "pan-natural", label: "Natural", emoji: "🌾" },
@@ -197,5 +220,52 @@ describe("deleteOutreachText", () => {
       error: "notFound",
     });
     expect(redirectKeepingLocale).not.toHaveBeenCalled();
+  });
+});
+
+describe("searchOutreachProducts", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    auth.mockResolvedValue({ user: { email: "admin@hazlosano.com" } });
+    isAdmin.mockReturnValue(true);
+    searchPosts.mockResolvedValue({
+      results: [
+        {
+          id: "pan-chocolate",
+          title: "Pan de Masa Madre de Chocolate",
+          price: 136,
+          media: [],
+        },
+      ],
+      total: 1,
+    });
+  });
+
+  it("busca en el catálogo con la búsqueda del sitio, solo lo que se vende", async () => {
+    const page = await searchOutreachProducts("pan chocolate", 1);
+
+    expect(page.matches.map((match) => match.title)).toEqual([
+      "Pan de Masa Madre de Chocolate",
+    ]);
+    const [query, , , , , , , kinds] = searchPosts.mock.calls[0];
+    expect(query).toBe("pan chocolate");
+    expect(kinds).toEqual(["producto", "servicio"]);
+  });
+
+  // Una acción de servidor se puede invocar directamente: el gate es el de la página.
+  it("quien no es admin no busca nada", async () => {
+    isAdmin.mockReturnValue(false);
+
+    const page = await searchOutreachProducts("pan", 1);
+
+    expect(page.matches).toEqual([]);
+    expect(searchPosts).not.toHaveBeenCalled();
+  });
+
+  it("lo que no tiene forma de búsqueda no llega a la base", async () => {
+    const page = await searchOutreachProducts(42 as never, "dos" as never);
+
+    expect(page.matches).toEqual([]);
+    expect(searchPosts).not.toHaveBeenCalled();
   });
 });

@@ -1,50 +1,87 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { type KeyboardEvent, useState } from "react";
+import { type KeyboardEvent, useEffect, useRef, useState } from "react";
 import { Button } from "~/presentation/design_system/buttons/Button";
 import { TextField } from "~/presentation/design_system/forms/TextField";
-import type { OutreachProductOption } from "~/use_cases/outreach/ports/IOutreachProductCatalog";
+import Thumbnail from "~/presentation/media/Thumbnail/Thumbnail";
+import AmountCurrency from "~/presentation/money/CurrencyAmount";
+import PageButtons from "~/presentation/navigation/PageButtons";
+import type {
+  OutreachProductOption,
+  OutreachProductPage,
+} from "~/use_cases/outreach/searchOutreachProductsUseCase";
+import { searchOutreachProducts } from "../actions";
 
-/** Cuántas coincidencias se enseñan: con más, lo que hay que hacer es escribir otra letra. */
-const MAX_MATCHES = 8;
+/** Lo que se espera a que se deje de teclear antes de preguntar: una ida al servidor por palabra, no por letra. */
+const TYPING_PAUSE_MS = 300;
 
 interface ProductPickerProps {
-  products: readonly OutreachProductOption[];
   addedIds: ReadonlySet<string>;
   onAdd: (product: OutreachProductOption) => void;
 }
 
-/** «arandanos» encuentra «arándanos»: nadie teclea los acentos en un buscador. */
-function searchable(text: string): string {
-  return text
-    .normalize("NFD")
-    .replace(/\p{Diacritic}/gu, "")
-    .toLowerCase();
-}
-
 /**
- * El buscador del formulario: filtra en el navegador, porque el catálogo cabe entero (unos
- * cuatrocientos títulos) y una ida al servidor por letra haría esperar a quien teclea.
+ * El buscador del formulario: **la búsqueda del sitio**, limitada a lo que se vende y de diez en
+ * diez, con números de página.
+ *
+ * Antes filtraba en el navegador comparando letras del título, y se quedaba con ocho: «pan
+ * chocolate» no encontraba «Pan de Masa Madre de Chocolate». Ahora pregunta al servidor
+ * (`searchOutreachProducts`), que busca por palabras con ranking y, si no encuentra nada, por
+ * sentido.
+ *
+ * Los números son botones (`PageButtons`), no enlaces: el buscador vive dentro de un formulario a
+ * medio llenar, y cambiar de página no puede salir de él. Si llegan dos respuestas, solo cuenta la
+ * de lo último que se pidió: una búsqueda vieja que tarda más no puede pisar a la nueva.
  */
-export default function ProductPicker({
-  products,
-  addedIds,
-  onAdd,
-}: ProductPickerProps) {
+export default function ProductPicker({ addedIds, onAdd }: ProductPickerProps) {
   const t = useTranslations("outreach");
   const [term, setTerm] = useState("");
-  const wanted = searchable(term.trim());
-  const matches = wanted
-    ? products
-        .filter((product) => searchable(product.title).includes(wanted))
-        .slice(0, MAX_MATCHES)
-    : [];
+  const [result, setResult] = useState<OutreachProductPage | null>(null);
+  const [isSearching, setIsSearching] = useState(false);
+  const [failed, setFailed] = useState(false);
+  const latest = useRef(0);
+
+  const fetchPage = (wanted: string, page: number): void => {
+    const request = ++latest.current;
+    setIsSearching(true);
+
+    searchOutreachProducts(wanted, page)
+      .then((next) => {
+        if (request !== latest.current) return;
+        setResult(next);
+        setFailed(false);
+      })
+      .catch(() => {
+        if (request === latest.current) setFailed(true);
+      })
+      .finally(() => {
+        if (request === latest.current) setIsSearching(false);
+      });
+  };
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: solo cambia con lo escrito; `fetchPage` se rehace en cada render.
+  useEffect(() => {
+    const wanted = term.trim();
+
+    if (!wanted) {
+      latest.current++;
+      setResult(null);
+      setIsSearching(false);
+      setFailed(false);
+      return;
+    }
+
+    const timer = setTimeout(() => fetchPage(wanted, 1), TYPING_PAUSE_MS);
+    return () => clearTimeout(timer);
+  }, [term]);
 
   // Un Enter en el buscador enviaría el formulario entero a medio llenar.
   const keepFormOpen = (event: KeyboardEvent<HTMLInputElement>): void => {
     if (event.key === "Enter") event.preventDefault();
   };
+
+  const totalPages = result ? Math.ceil(result.total / result.pageSize) : 0;
 
   return (
     <div data-testid="outreach-product-picker" className="mb-4">
@@ -58,34 +95,75 @@ export default function ProductPicker({
         containerClassName="mb-2"
       />
 
-      {wanted && matches.length === 0 ? (
-        <p className="text-sm text-text-support">{t("noMatches")}</p>
-      ) : null}
+      <p
+        role="status"
+        data-testid="outreach-product-status"
+        className="mb-2 text-sm text-text-support"
+      >
+        {failed
+          ? t("searchFailed")
+          : isSearching
+            ? t("searching")
+            : result && term.trim()
+              ? result.total === 0
+                ? t("noMatches")
+                : t("searchCount", { count: result.total })
+              : null}
+      </p>
 
-      <ul className="flex flex-col gap-1">
-        {matches.map((product) => {
-          const added = addedIds.has(product.postId);
-
-          return (
-            <li
-              key={product.postId}
-              data-testid="outreach-product-match"
-              className="flex items-center justify-between gap-3"
-            >
-              <span>{product.title}</span>
-              {added ? (
-                <span className="text-sm text-text-support">
-                  {t("alreadyAdded")}
+      {result && term.trim() ? (
+        <>
+          <ul className="flex flex-col gap-2">
+            {result.matches.map((product) => (
+              <li
+                key={product.postId}
+                data-testid="outreach-product-match"
+                className="flex items-center gap-3"
+              >
+                <Thumbnail url={product.photoUrl} size={40} />
+                <span className="flex min-w-0 flex-1 flex-col">
+                  <span className="break-words">{product.title}</span>
+                  <AmountCurrency
+                    value={product.price}
+                    className="text-sm font-sans text-text-support"
+                  />
                 </span>
-              ) : (
-                <Button size="sm" onClick={() => onAdd(product)}>
-                  {t("addProduct")}
-                </Button>
-              )}
-            </li>
-          );
-        })}
-      </ul>
+                {addedIds.has(product.postId) ? (
+                  <span className="text-sm text-text-support">
+                    {t("alreadyAdded")}
+                  </span>
+                ) : (
+                  <Button
+                    size="sm"
+                    onClick={() =>
+                      onAdd({
+                        postId: product.postId,
+                        title: product.title,
+                        price: product.price,
+                      })
+                    }
+                  >
+                    {t("addProduct")}
+                  </Button>
+                )}
+              </li>
+            ))}
+          </ul>
+
+          <PageButtons
+            page={result.page}
+            totalPages={totalPages}
+            onSelect={(page) => fetchPage(term.trim(), page)}
+            disabled={isSearching}
+            labels={{
+              navigation: t("searchPages"),
+              previous: t("searchPrevious"),
+              next: t("searchNext"),
+            }}
+            testId="outreach-product-pages"
+          />
+        </>
+      ) : null}
     </div>
   );
 }

@@ -8,7 +8,7 @@ import { TextArea } from "~/presentation/design_system/forms/TextArea";
 import { TextField } from "~/presentation/design_system/forms/TextField";
 import { Heading } from "~/presentation/design_system/typography/Heading";
 import { ValidatedForm } from "~/presentation/forms/ValidatedForm";
-import type { OutreachProductOption } from "~/use_cases/outreach/ports/IOutreachProductCatalog";
+import type { OutreachProductOption } from "~/use_cases/outreach/searchOutreachProductsUseCase";
 import { type OutreachFormState, saveOutreachText } from "../actions";
 import OpeningVersions from "./OpeningVersions";
 import OutreachItemRow, { type OutreachFormItem } from "./OutreachItemRow";
@@ -42,7 +42,6 @@ interface OutreachTextFormProps {
   /** Sin identidad, el formulario crea; con ella, reemplaza ese texto. */
   id?: string;
   initial?: OutreachTextFormValues;
-  products: readonly OutreachProductOption[];
   footers: readonly FooterOption[];
 }
 
@@ -65,7 +64,6 @@ export default function OutreachTextForm({
   label,
   id,
   initial = EMPTY,
-  products,
   footers,
 }: OutreachTextFormProps) {
   const t = useTranslations("outreach");
@@ -166,7 +164,7 @@ export default function OutreachTextForm({
         </Heading>
         <p className="mb-3 text-sm text-text-support">{t("productsHint")}</p>
 
-        <ProductPicker products={products} addedIds={addedIds} onAdd={add} />
+        <ProductPicker addedIds={addedIds} onAdd={add} />
 
         {items.length === 0 ? (
           <p className="text-sm text-text-support">{t("noProductsYet")}</p>
