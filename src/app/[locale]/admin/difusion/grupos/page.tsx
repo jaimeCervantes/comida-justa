@@ -4,6 +4,7 @@ import { Link } from "~/i18n/navigation";
 import { PUBLIC_BRAND_NAME } from "~/infra/constants";
 import { createOutreachChannelRepository } from "~/infra/dataAccess/outreach/factory";
 import { buttonVariants } from "~/presentation/design_system/buttons/buttonVariants";
+import { Heading } from "~/presentation/design_system/typography/Heading";
 import ListOutreachChannelsUseCase from "~/use_cases/outreach/listOutreachChannelsUseCase";
 import { enterOutreachAdmin } from "../adminGate";
 import OutreachBreadcrumbs from "../ui/OutreachBreadcrumbs";
@@ -35,7 +36,9 @@ export default async function GruposDifusionPage({
     <main>
       <OutreachBreadcrumbs inGroups />
 
-      <h1 className="text-xl font-bold mb-2">{t("groupsHeading")}</h1>
+      <Heading level={1} className="mb-2">
+        {t("groupsHeading")}
+      </Heading>
       <p className="mb-6 text-text-support">{t("groupsIntro")}</p>
 
       <Link

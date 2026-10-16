@@ -4,6 +4,7 @@ import {
   createOutreachFooterRepository,
   createOutreachProductCatalog,
 } from "~/infra/dataAccess/outreach/factory";
+import { Heading } from "~/presentation/design_system/typography/Heading";
 import { deleteOutreachText } from "../../actions";
 import { enterOutreachAdmin, outreachMetadata } from "../../adminGate";
 import ConfirmDelete from "../../ui/ConfirmDelete";
@@ -43,7 +44,9 @@ export default async function EditarDifusionPage({
           { label: t("edit") },
         ]}
       />
-      <h1 className="text-xl font-bold mb-4">{heading}</h1>
+      <Heading level={1} className="mb-4">
+        {heading}
+      </Heading>
       <OutreachTextForm
         label={heading}
         id={text.id}

@@ -1,4 +1,5 @@
 import { getTranslations } from "next-intl/server";
+import { Heading } from "~/presentation/design_system/typography/Heading";
 import { enterOutreachAdmin, outreachMetadata } from "../../adminGate";
 import OutreachBreadcrumbs from "../../ui/OutreachBreadcrumbs";
 import FooterForm from "../ui/FooterForm";
@@ -16,7 +17,9 @@ export default async function NuevoPiePage({
   return (
     <main>
       <OutreachBreadcrumbs inFooters steps={[{ label: t("newFooter") }]} />
-      <h1 className="text-xl font-bold mb-4">{t("newFooterHeading")}</h1>
+      <Heading level={1} className="mb-4">
+        {t("newFooterHeading")}
+      </Heading>
       <FooterForm label={t("newFooterHeading")} />
     </main>
   );

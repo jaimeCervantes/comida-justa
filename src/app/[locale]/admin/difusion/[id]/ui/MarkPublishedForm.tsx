@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useActionState } from "react";
+import { type ReactNode, useActionState } from "react";
 import { Button } from "~/presentation/design_system/buttons/Button";
 import { type MarkPublishedState, markOutreachPublished } from "../actions";
 
@@ -11,6 +11,11 @@ export interface MarkableChannel {
   name: string;
   /** «Última vez aquí: hoy», ya traducido: la fecha se cuenta en el servidor, en hora de México. */
   lastPublished: string;
+  /**
+   * Lo que hace falta para publicar ahí —enlace, turno, reglas—, ya pintado en el servidor. En
+   * grupos normales va en el mismo renglón que la casilla: un grupo, un renglón.
+   */
+  details?: ReactNode;
 }
 
 interface MarkPublishedFormProps {
@@ -18,7 +23,8 @@ interface MarkPublishedFormProps {
   /** El pan vendido suelto; nulo es la línea entera en grupos normales. */
   postId: string | null;
   channels: readonly MarkableChannel[];
-  hint: string;
+  /** Sin él, lo explica quien envuelve el formulario (el paso 2 de grupos normales). */
+  hint?: string;
   submitLabel: string;
 }
 
@@ -44,12 +50,16 @@ export default function MarkPublishedForm({
       <input type="hidden" name="outreachTextId" value={outreachTextId} />
       <input type="hidden" name="postId" value={postId ?? ""} />
 
-      <p className="mb-2 text-sm text-text-support">{hint}</p>
+      {hint ? <p className="mb-2 text-sm text-text-support">{hint}</p> : null}
 
       <ul className="mb-3 flex flex-col gap-2">
         {channels.map((channel) => (
-          <li key={channel.id} data-testid="outreach-channel">
-            <label className="flex cursor-pointer items-start gap-3 rounded-card border border-separator bg-surface-elevation-1 p-3 focus-within:ring-2 focus-within:ring-(--focus-ring)">
+          <li
+            key={channel.id}
+            data-testid="outreach-channel"
+            className="rounded-card border border-separator bg-surface-elevation-1 p-3 focus-within:ring-2 focus-within:ring-(--focus-ring)"
+          >
+            <label className="flex cursor-pointer items-start gap-3">
               <input
                 type="checkbox"
                 name="channelIds"
@@ -66,6 +76,11 @@ export default function MarkPublishedForm({
                 </span>
               </span>
             </label>
+            {channel.details ? (
+              <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 pl-8">
+                {channel.details}
+              </div>
+            ) : null}
           </li>
         ))}
       </ul>

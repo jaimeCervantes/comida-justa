@@ -3,6 +3,7 @@ import { calendarDate } from "./lastPublished";
 import {
   channelTurn,
   dailyPace,
+  dueChannels,
   pauseStatus,
   suggestNextListing,
 } from "./rhythm";
@@ -179,5 +180,18 @@ describe("calendarDate", () => {
     expect(calendarDate(new Date("2026-10-13T06:10:00Z"), MEXICO)).toBe(
       "2026-10-13",
     );
+  });
+});
+
+/** El resumen de arriba del slice 7: «Hoy les toca a 2 de 3 grupos». */
+describe("a cuántos grupos les toca hoy", () => {
+  it("cuenta los que ya les toca entre todos, de los dos tipos", () => {
+    expect(
+      dueChannels([{ due: false, inDays: 4 }, { due: true }, { due: true }]),
+    ).toEqual({ due: 2, total: 3 });
+  });
+
+  it("sin grupos no hay nada que contar", () => {
+    expect(dueChannels([])).toEqual({ due: 0, total: 0 });
   });
 });

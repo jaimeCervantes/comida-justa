@@ -2,6 +2,7 @@ import { getTranslations } from "next-intl/server";
 import { Link } from "~/i18n/navigation";
 import { createOutreachTextRepository } from "~/infra/dataAccess/outreach/factory";
 import { buttonVariants } from "~/presentation/design_system/buttons/buttonVariants";
+import { Heading } from "~/presentation/design_system/typography/Heading";
 import ListOutreachTextsUseCase from "~/use_cases/outreach/listOutreachTextsUseCase";
 import { enterOutreachAdmin, outreachMetadata } from "./adminGate";
 import OutreachBreadcrumbs from "./ui/OutreachBreadcrumbs";
@@ -23,7 +24,9 @@ export default async function DifusionPage({
   return (
     <main>
       <OutreachBreadcrumbs />
-      <h1 className="text-xl font-bold mb-2">{t("listHeading")}</h1>
+      <Heading level={1} className="mb-2">
+        {t("listHeading")}
+      </Heading>
 
       <p className="mb-6 text-text-support">
         {t.rich("listIntro", { b: (chunks) => <strong>{chunks}</strong> })}

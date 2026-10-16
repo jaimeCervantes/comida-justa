@@ -1,4 +1,5 @@
 import { getTranslations } from "next-intl/server";
+import { Heading } from "~/presentation/design_system/typography/Heading";
 import CopyText from "./CopyText";
 
 const TEXT_BOX =
@@ -41,9 +42,9 @@ export default async function GroupPostTexts({
           data-testid="outreach-version"
           data-version={index + 1}
         >
-          <h3 className="mb-1 font-semibold">
+          <Heading level={4} className="mb-1">
             {t("versionHeading", { n: index + 1 })}
-          </h3>
+          </Heading>
           <pre data-testid="outreach-version-text" className={TEXT_BOX}>
             {text}
           </pre>

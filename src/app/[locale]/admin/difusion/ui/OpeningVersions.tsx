@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { useRef, useState } from "react";
 import { Button } from "~/presentation/design_system/buttons/Button";
 import { TextArea } from "~/presentation/design_system/forms/TextArea";
+import { Heading } from "~/presentation/design_system/typography/Heading";
 
 interface OpeningVersionsProps {
   /** Las versiones que ya tiene el texto, de la 2 en adelante. */
@@ -43,7 +44,9 @@ export default function OpeningVersions({
 
   return (
     <section data-testid="outreach-versions" className="mb-4">
-      <h2 className="text-lg font-semibold mb-1">{t("versionsHeading")}</h2>
+      <Heading level={2} className="mb-1">
+        {t("versionsHeading")}
+      </Heading>
       <p className="mb-3 text-sm text-text-support">{t("versionsHint")}</p>
 
       {versions.map((version, index) => (

@@ -4,6 +4,7 @@ import {
   createOutreachFooterRepository,
   createOutreachProductCatalog,
 } from "~/infra/dataAccess/outreach/factory";
+import { Heading } from "~/presentation/design_system/typography/Heading";
 import { enterOutreachAdmin, outreachMetadata } from "../adminGate";
 import OutreachBreadcrumbs from "../ui/OutreachBreadcrumbs";
 import OutreachTextForm from "../ui/OutreachTextForm";
@@ -29,7 +30,9 @@ export default async function NuevaDifusionPage({
   return (
     <main>
       <OutreachBreadcrumbs steps={[{ label: t("newText") }]} />
-      <h1 className="text-xl font-bold mb-4">{t("newHeading")}</h1>
+      <Heading level={1} className="mb-4">
+        {t("newHeading")}
+      </Heading>
       <OutreachTextForm
         label={t("newHeading")}
         products={products}

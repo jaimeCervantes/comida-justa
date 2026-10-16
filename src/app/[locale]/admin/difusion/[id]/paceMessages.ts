@@ -23,3 +23,18 @@ export function pauseMessage(t: Translate, pause: PauseStatus): string | null {
     ? t("pauseJustPosted", { left: pause.minutesLeft })
     : t("pauseWait", { since: pause.minutesSince, left: pause.minutesLeft });
 }
+
+/**
+ * «Hoy les toca a 2 de 3 grupos.», o nulo sin grupos: entonces cada sección ya dice que no hay y
+ * enlaza al alta, y un «0 de 0» arriba solo sería ruido.
+ */
+export function dueChannelsMessage(
+  t: Translate,
+  { due, total }: { due: number; total: number },
+): string | null {
+  if (total === 0) return null;
+
+  return due === 0
+    ? t("dueChannelsNone", { total })
+    : t("dueChannels", { due, total });
+}

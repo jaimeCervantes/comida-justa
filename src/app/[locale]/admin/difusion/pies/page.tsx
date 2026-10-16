@@ -4,6 +4,7 @@ import { Link } from "~/i18n/navigation";
 import { PUBLIC_BRAND_NAME } from "~/infra/constants";
 import { createOutreachFooterRepository } from "~/infra/dataAccess/outreach/factory";
 import { buttonVariants } from "~/presentation/design_system/buttons/buttonVariants";
+import { Heading } from "~/presentation/design_system/typography/Heading";
 import ListOutreachFootersUseCase from "~/use_cases/outreach/listOutreachFootersUseCase";
 import { enterOutreachAdmin } from "../adminGate";
 import OutreachBreadcrumbs from "../ui/OutreachBreadcrumbs";
@@ -34,7 +35,9 @@ export default async function PiesDifusionPage({
     <main>
       <OutreachBreadcrumbs inFooters />
 
-      <h1 className="text-xl font-bold mb-2">{t("footersHeading")}</h1>
+      <Heading level={1} className="mb-2">
+        {t("footersHeading")}
+      </Heading>
       <p className="mb-6 text-text-support">{t("footersIntro")}</p>
 
       <Link
