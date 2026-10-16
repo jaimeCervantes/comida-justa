@@ -58,6 +58,33 @@ export default class OutreachGroups {
     await expect(this.page.getByTestId("outreach-groups")).toBeVisible();
   }
 
+  async open(): Promise<void> {
+    await this.page.goto("/admin/difusion/grupos");
+    await expect(this.page.getByRole("heading", { level: 1 })).toBeVisible();
+  }
+
+  /** El buscador de la lista: filtra mientras se escribe, sin Enter. */
+  searchField(): Locator {
+    return this.page.getByTestId("outreach-groups-search");
+  }
+
+  async search(term: string): Promise<void> {
+    await fillWhenHydrated(this.searchField(), term);
+  }
+
+  /** «Siguientes», debajo de la lista. */
+  nextPage(): Locator {
+    return this.page.getByTestId("outreach-groups-pagination-next");
+  }
+
+  nothingFound(): Locator {
+    return this.page.getByTestId("outreach-groups-nothing-found");
+  }
+
+  rows(): Locator {
+    return this.page.getByTestId("outreach-group");
+  }
+
   group(name: string): Locator {
     return this.page.getByTestId("outreach-group").filter({ hasText: name });
   }

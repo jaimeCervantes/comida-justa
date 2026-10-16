@@ -362,6 +362,18 @@ export default class OutreachAdmin {
     await deleteAndConfirm(this.page, t.deleteText, t.listHeading);
   }
 
+  async openList(): Promise<void> {
+    await this.page.goto("/admin/difusion");
+    await expect(this.page.getByRole("heading", { level: 1 })).toBeVisible();
+  }
+
+  async searchTexts(term: string): Promise<void> {
+    await fillWhenHydrated(
+      this.page.getByTestId("outreach-texts-search"),
+      term,
+    );
+  }
+
   /** Una publicación en la lista; `exact` porque «Masa madre» es principio de otros nombres. */
   listedText(name: string): Locator {
     return this.page

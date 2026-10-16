@@ -40,10 +40,10 @@ import OutreachFooters from "./OutreachFooters";
 import OutreachGroups from "./OutreachGroups";
 
 /**
- * Slices 1 a 8 de `difusionEnGrupos.feature`: la publicación para grupos normales, los artículos
+ * Slices 1 a 9 de `difusionEnGrupos.feature`: la publicación para grupos normales, los artículos
  * de compraventa que salen de ella, los grupos con el historial de dónde quedó cada cosa, el ritmo
  * entre ellos, el pie compartido con sus versiones, borrar lo que ya no se usa, la publicación que
- * se entiende de un vistazo y el buscador de productos del sitio.
+ * se entiende de un vistazo, el buscador de productos del sitio y las listas buscadas y en páginas.
  *
  * Nada de esto publica en Facebook —ninguna app puede ya—: se comprueba que el texto que se copia
  * es exactamente el que anuncia lo que hay hoy, al precio de hoy.
@@ -776,6 +776,84 @@ test.describe("Difusión en grupos de Facebook", () => {
     await expect(
       form.getByTestId("outreach-item").filter({ hasText: chocolate.title }),
     ).toHaveCount(1);
+  });
+
+  // --- Slice 9: buscar y paginar publicaciones y grupos ------------------------------------
+
+  /* En la base compartida hay grupos y publicaciones de verdad, y alguno puede llamarse igual:
+     se afirma que los nuestros aparecen o no, nunca cuántos hay en total. */
+  test("Busco un grupo por su nombre, sin acentos ni mayúsculas", async ({
+    page,
+  }) => {
+    const mamas = await seedGroup("Mamás de Orizaba", "post");
+    const emprendedores = await seedGroup("Emprendedores de Orizaba", "post");
+    const cordoba = await seedGroup("Ventas Córdoba", "post");
+    const groups = new OutreachGroups(page);
+    await groups.open();
+
+    await groups.search("MAMAS");
+
+    await expect(groups.group(mamas.name)).toBeVisible();
+    await expect(groups.group(emprendedores.name)).toHaveCount(0);
+    await expect(groups.group(cordoba.name)).toHaveCount(0);
+  });
+
+  test("Busco una publicación por su nombre", async ({ page }) => {
+    const masa = testOutreachName("Masa madre");
+    const jugos = testOutreachName("Jugos verdes");
+    await seedMasaMadreText(breads, masa);
+    await seedMasaMadreText(breads, jugos);
+    const admin = new OutreachAdmin(page);
+    await admin.openList();
+
+    await admin.searchTexts("masa");
+
+    await expect(admin.listedText(masa)).toBeVisible();
+    await expect(admin.listedText(jugos)).toHaveCount(0);
+  });
+
+  /* «orizaba» a secas podría traer los grupos de verdad de la tienda y mover el corte de página:
+     los 25 llevan una marca de esta corrida y se busca por ella. La regla es la misma. */
+  test("Paso a la siguiente página y la búsqueda se conserva", async ({
+    page,
+  }) => {
+    const mark = `orizaba${Date.now().toString(36)}`;
+    for (let index = 1; index <= 25; index++) {
+      await seedGroup(`${mark} ${String(index).padStart(2, "0")}`, "post");
+    }
+    const groups = new OutreachGroups(page);
+    await groups.open();
+    await groups.search(mark);
+    /* Hasta que la búsqueda está en la dirección no se ha filtrado: la lista sin filtrar también
+       puede tener 20 renglones, y pasar de página antes deja que la búsqueda pendiente la pise. */
+    await expect(page).toHaveURL(new RegExp(`q=${mark}`));
+    await expect(groups.rows()).toHaveCount(20);
+
+    await groups.nextPage().click();
+
+    await expect(page).toHaveURL(/pagina=2/);
+    await expect(groups.rows()).toHaveCount(5);
+    await expect(groups.searchField()).toHaveValue(mark);
+  });
+
+  test("Sin coincidencias me lo dice y me deja borrar la búsqueda", async ({
+    page,
+  }) => {
+    await seedGroup("Mamás de Orizaba", "post");
+    const groups = new OutreachGroups(page);
+    await groups.open();
+
+    await groups.search("zzz");
+
+    await expect(groups.nothingFound()).toContainText(
+      t.groupsNothingFound.replace("{term}", "zzz"),
+    );
+    await groups
+      .nothingFound()
+      .getByRole("link", { name: t.clearSearch })
+      .click();
+    await expect(groups.searchField()).toHaveValue("");
+    await expect(groups.rows().first()).toBeVisible();
   });
 
   for (const { title, level } of [
