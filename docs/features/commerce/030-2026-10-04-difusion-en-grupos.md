@@ -343,23 +343,27 @@ dentro del formulario (no enlaces: cambiar de página no sale del formulario a m
 4. Buscar desde aquí no se mide como búsqueda del sitio: el administrador armando una publicación
    no es un visitante.
 
-**Lo que no promete.** Los acentos: la búsqueda del sitio usa los diccionarios `spanish` y
-`english` sin `unaccent`, así que «arandanos» solo encuentra «arándanos» si lo rescata el sentido.
-Arreglarlo es una migración de los índices de texto en el backend y vale para todo el sitio; queda
-como seguimiento.
+**Lo que no promete** (corregido el 2026-10-16, medido en la base). El diccionario `spanish` ya
+quita los acentos de las vocales al cortar las palabras: «arandanos», «cafe», «jamon» o «platano»
+encuentran lo acentuado. No iguala la ñ ni la ü («pina» no encuentra «piña»), algunos acentos en la
+última sílaba («mamas» frente a «Mamás») ni las palabras vacías («te» frente a «té»). Esos casos
+dependen del rescate por sentido.
 
 ### Slice 9 — Buscar y paginar publicaciones y grupos
 
 **Alcance.** La lista de publicaciones y la de grupos tienen un buscador sencillo por texto (nombre,
-y en grupos también la dirección) y se paginan de 20 en 20 con «Anterior / Siguiente»
-(`QueryPagination`). La página y lo buscado viajan en la dirección, para volver al mismo lugar
-después de editar.
+y en grupos también la dirección) y se paginan de 20 en 20 con «Anteriores / Siguientes»
+(`QueryPagination`). La página y lo buscado viajan en la dirección (`q`, `pagina`), para volver al
+mismo lugar después de editar.
 
-**Criterios de aceptación** (se detallan al empezar el slice).
+**Criterios de aceptación.**
 
-1. Buscar «orizaba» deja solo los grupos con «Orizaba» en el nombre; sin acentos y sin mayúsculas.
-2. Con más de 20, «Siguiente» lleva a la página 2 y la búsqueda se conserva.
-3. Sin coincidencias, se dice y se ofrece borrar la búsqueda.
+1. Lo escrito se busca **contenido** en el nombre (y en grupos, en la dirección), sin acentos ni
+   mayúsculas y sin comodines (corrida de escritorio en el `.feature`).
+2. Con más de 20, «Siguientes» lleva a la página 2 y la búsqueda se conserva.
+3. Sin coincidencias se dice, y «Borrar la búsqueda» devuelve la lista completa.
+4. Se filtra en memoria, en el caso de uso: son decenas de registros y así la regla vive en una
+   sola función (`matchesListTerm`). Si un día son miles, se baja a la consulta.
 
 ## Configuración
 

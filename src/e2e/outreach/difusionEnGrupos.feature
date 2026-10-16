@@ -694,14 +694,47 @@ Feature: Difusión en grupos de Facebook
   # Slice 9 — Buscar y paginar publicaciones y grupos
   # ---------------------------------------------------------------------------------------------
 
-  @slice-9 @future
-  Scenario: Busco un grupo por su nombre
-    Given están dados de alta los grupos "Mamás de Orizaba", "Emprendedores de Orizaba" y "Ventas Córdoba"
-    When como administrador busco "orizaba" en la lista de grupos
-    Then solo veo "Mamás de Orizaba" y "Emprendedores de Orizaba"
+  # Las listas se recorren buscando una publicación o un grupo para entrar: un buscador por texto y
+  # «Anterior / Siguiente» de 20 en 20. Lo buscado y la página viajan en la dirección, para volver
+  # al mismo sitio después de editar.
 
-  @slice-9 @future
+  @slice-9
+  Scenario: Busco un grupo por su nombre, sin acentos ni mayúsculas
+    Given están dados de alta los grupos "Mamás de Orizaba", "Emprendedores de Orizaba" y "Ventas Córdoba"
+    When como administrador busco "MAMAS" en la lista de grupos
+    Then veo "Mamás de Orizaba"
+    And no veo "Emprendedores de Orizaba" ni "Ventas Córdoba"
+
+  @slice-9
+  Scenario: Busco una publicación por su nombre
+    Given están guardadas las publicaciones "Masa madre" y "Jugos verdes"
+    When como administrador busco "masa" en la lista de publicaciones
+    Then veo "Masa madre" y no veo "Jugos verdes"
+
+  @slice-9
   Scenario: Paso a la siguiente página y la búsqueda se conserva
     Given hay 25 grupos con "Orizaba" en el nombre
     When como administrador busco "orizaba" y voy a "Siguiente"
-    Then veo los grupos 21 a 25 y el buscador sigue diciendo "orizaba"
+    Then estoy en la página 2 con los grupos que no cupieron en la primera
+    And el buscador sigue diciendo "orizaba"
+
+  @slice-9
+  Scenario: Sin coincidencias me lo dice y me deja borrar la búsqueda
+    When como administrador busco "zzz" en la lista de grupos
+    Then se lee "Ningún grupo coincide con «zzz»."
+    And "Borrar la búsqueda" me devuelve la lista completa
+
+  @slice-9 @component
+  Scenario Outline: Lo que busco coincide con el nombre, y en los grupos también con su dirección
+    Given un grupo "Mamás de Orizaba" con dirección "https://www.facebook.com/groups/mamasorizaba"
+    When busco "<busco>"
+    Then <resultado>
+
+    Examples:
+      | busco         | resultado        | por qué                                  |
+      | mamas         | aparece          | sin acentos                              |
+      | ORIZABA       | aparece          | sin mayúsculas                           |
+      | de oriz       | aparece          | contiene, no «empieza con»               |
+      | mamasorizaba  | aparece          | también la dirección                     |
+      | córdoba       | no aparece       | no coincide                              |
+      | 100%          | no aparece       | el % no es comodín                       |
