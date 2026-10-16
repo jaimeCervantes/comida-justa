@@ -956,3 +956,99 @@ roadmap.
 2. **Slice 9:** buscador por texto y «Anterior / Siguiente» en publicaciones y grupos.
 3. Del usuario: abrir una publicación y decir si la jerarquía y el renglón único se entienden, o
    qué falta. Sigue pendiente quitar de cada publicación el bloque de contacto que repite el pie.
+
+## 2026-10-16 — Slice 8: buscar productos como en la búsqueda principal
+
+### Objetivo
+
+Que el selector de productos de una publicación encuentre lo mismo que la búsqueda del sitio,
+solo entre lo que se vende y con paginación numérica.
+
+### Decisiones y por qué
+
+- **Se reutiliza `SearchPostsUseCase` y no se escribe otra búsqueda.** Texto completo con ranking
+  y rescate por sentido cuando el texto no encuentra nada. `SearchOutreachProductsUseCase` solo la
+  limita y traduce cada resultado a lo que pinta el selector: título en el idioma del panel,
+  precio y primera foto.
+- **Tipos de publicación en el núcleo de la búsqueda** (`kinds` en `ISearchPostDTO`, el puerto y
+  las tres consultas de Postgres). Es genérico —cualquier vertical puede pedir solo ciertos
+  tipos— y va **en la consulta**: filtrar después de paginar dejaba páginas cortas y un total
+  falso. La difusión pide `SELLABLE_KINDS`, lo mismo que antes ofrecía su catálogo.
+- **De paso, el rescate semántico respeta «solo disponibles».** No se lo pasaba, así que con el
+  filtro puesto el rescate podía devolver lo agotado. Salió al tener que pasarle `kinds`, que va
+  detrás.
+- **Una acción de servidor y no `/api/search`.** Necesita el gate de administrador y devuelve lo
+  que pinta el selector, no la publicación entera. No se mide: un administrador armando una
+  publicación no es un visitante buscando.
+- **Números de página como botones** (`PageButtons` en `src/presentation/navigation/`): el
+  buscador vive dentro de un formulario a medio llenar, y un enlace navegaría. La cuenta de qué
+  números se ven (`pageWindow`) es la que ya hacía `Pagination` por dentro; ahora la comparten.
+- **Se pregunta al dejar de teclear (300 ms)** y solo cuenta la respuesta de lo último que se
+  pidió: una búsqueda vieja que tarda más no pisa a la nueva.
+- **Se borra el catálogo completo** (`IOutreachProductCatalog` y su repositorio Postgres). El alta
+  y la edición ya no cargan unos 400 títulos para filtrarlos en el navegador.
+- **Los acentos no se prometen.** La búsqueda del sitio usa `spanish`/`english` sin `unaccent`, y
+  arreglarlo es una migración de los índices en el backend que vale para todo el sitio. Antes el
+  selector sí los ignoraba; ahora «arandanos» depende del rescate por sentido.
+
+### Archivos tocados
+
+- Núcleo de búsqueda: `ISearchPostDTO`, `ISearchPostRepository`, `SearchPostsUseCase` y su prueba,
+  `PostgresSearchPostRepository` (`kindWhere`).
+- Difusión: `searchOutreachProductsUseCase` y su prueba (nuevos); `actions.ts`
+  (`searchOutreachProducts`) y su prueba; `ProductPicker`; `OutreachTextForm` y su prueba; las
+  páginas `nueva` y `[id]/editar`. Se borran `IOutreachProductCatalog` y
+  `PostgresOutreachProductCatalog`, y se limpia `factory.ts`.
+- Presentación: `pageWindow` y `PageButtons` con sus pruebas (nuevos); `Pagination` usa
+  `pageWindow`.
+- Catálogos `es`/`en`. E2E: el `.feature` del slice 8, `.spec.ts` y `OutreachAdmin.ts`. Roadmap:
+  criterios del slice 8.
+
+### Comandos clave
+
+```sh
+pnpm run test:run && pnpm run typecheck && pnpm run lint && pnpm run check:directives
+# 3000 libre comprobado, `.next` borrado antes de cada tramo y el servidor del tramo cerrado al terminar
+pnpm exec playwright test src/e2e/outreach --shard=1/3 --reporter=line   # luego 2/3 y 3/3
+```
+
+### Resultados
+
+- **Vitest:** 329 archivos, 3468 pruebas en verde. Nuevas: 5 del caso de uso, 6 de
+  `pageWindow`, 4 de `PageButtons`, 2 de `SearchPostsUseCase` con tipos y 3 de la acción. En el
+  formulario, el escenario de cambiar de página sin enviar.
+- **Typecheck, lint y directivas** limpios.
+- **Playwright:** 33 de 33 en tres tramos de 11 (5.0, 4.8 y 5.2 min). Incluye las pruebas viejas
+  que agregan panes desde el buscador: ahora buscan el título completo por palabras, en el
+  servidor.
+
+### Desviaciones
+
+- **Siete pruebas de `SearchPostsUseCase` afirmaban la lista exacta de argumentos** y hubo que
+  agregarles el de `kinds`. El cambio de firma era real, no fragilidad. Las nuevas leen solo la
+  posición que les importa.
+- **El precio se lee «$136.00»**, como lo escribe `AmountCurrency`, y no «$136» como decía el
+  primer borrador del escenario.
+- **El primer intento de e2e no corrió:** el usuario tenía su `next dev` en el 3000. Se esperó a
+  que lo detuviera en vez de cerrarlo.
+
+### Escrito en recursos compartidos
+
+- **Base compartida:** solo los registros de prueba con marcador `E2E`, que borraron sus
+  `afterEach` y `globalTeardown`.
+
+### Recap
+
+El selector de productos busca como el sitio: palabras sueltas con ranking y rescate por sentido,
+solo entre lo que se vende, diez por página con números que no envían el formulario, y cada
+resultado con foto y precio. El núcleo de búsqueda acepta filtrar por tipo de publicación, y el
+rescate semántico ya respeta «solo disponibles».
+
+### Próximos pasos (opciones)
+
+1. **Slice 9:** buscador por texto y «Anterior / Siguiente» en las listas de publicaciones y
+   grupos.
+2. **Búsqueda sin acentos en todo el sitio:** `unaccent` en los diccionarios y los índices de
+   texto. Es una migración en `hazlo-sano-bot`.
+3. Del usuario: probar el buscador con los nombres con los que realmente busca y decir si algo no
+   aparece.
