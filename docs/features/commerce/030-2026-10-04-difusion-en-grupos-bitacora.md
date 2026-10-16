@@ -862,3 +862,97 @@ backend.
    el bloque de contacto que repita el pie.
 2. Si Integral, Ajo, Dátiles con Nuez y Queso Parmesano con Aceitunas se siguen vendiendo, darlos
    de alta: la lista solo anuncia lo que está en la base.
+
+## 2026-10-16 — Slice 7: que la publicación se entienda de un vistazo
+
+### Objetivo
+
+Que la publicación se lea en el orden en que se trabaja y que cada grupo normal sea un solo
+renglón. Además, anotar como pendiente la publicación automática en la Página de Facebook.
+
+### Decisiones y por qué
+
+- **Un grupo, un renglón.** Antes cada grupo normal salía dos veces: en «Tus grupos normales»,
+  con enlace, turno y reglas, y otra vez más abajo con su casilla. Ahora el renglón de marcar
+  (`MarkPublishedForm`) recibe los detalles ya pintados en el servidor (`details: ReactNode`). En
+  compraventa la lista de grupos sigue arriba, porque ahí se marca por pan.
+- **`ChannelDetails` sale de `ChannelLinks`.** Enlace, turno, versión, sugerencia y reglas son lo
+  mismo en los dos tipos de grupo. Solo cambia dónde va el nombre: en la casilla o como título.
+- **Pasos numerados como regiones con nombre** (`OutreachStep`, `aria-labelledby`). Quien usa
+  lector de pantalla salta de paso en paso, y la prueba encuentra «2. Publica en cada grupo y
+  márcalo» por lo que dice y no por cómo está hecho.
+- **`Heading` en las siete pantallas.** El nivel lo da la estructura y el tamaño lo da el sistema
+  de diseño (h1 serif `lg`, h2 `md`, h3 `sm`, versiones en h4). Lo de antes eran negritas de
+  16 a 20 px escritas a mano.
+- **El turno como insignia** (`TurnBadge`): tono de marca y `strong` si ya le toca, neutro si no.
+  La frase sigue ahí, para quien no distingue el color. La prueba lee `data-tone` y no las clases.
+- **«Hoy les toca a N de M grupos»** cuenta los dos tipos (`dueChannels` en el dominio): responde
+  «¿dónde puedo publicar hoy?». Sin grupos no dice nada, porque cada sección ya enlaza al alta.
+- **Lo que queda fuera de la lista sube a aviso**, con los tokens de `warning`. Es lo primero
+  que hay que arreglar antes de copiar.
+- **Se van `postGroupsHeading` y `markPostHint`**: el paso 2 los reemplaza con su título y su
+  explicación.
+
+### Archivos tocados
+
+- Dominio: `src/domain/outreach/rhythm.ts` (`dueChannels`) y su prueba.
+- Pantalla de la publicación: `[id]/page.tsx`, `paceMessages.ts`; en `[id]/ui/`, los nuevos
+  `ChannelDetails`, `OutreachStep` y `TurnBadge`, y los cambiados `ChannelLinks`,
+  `MarkPublishedForm`, `DailyPaceNotice`, `ExcludedProducts`, `ListingArticles` y
+  `GroupPostTexts`.
+- Otras pantallas: los ocho `page.tsx` de lista, alta y edición, `OutreachTextForm` y
+  `OpeningVersions`.
+- Catálogos `es`/`en`. E2E: `difusionEnGrupos.feature` (slices 7 a 9), `.spec.ts` y
+  `OutreachAdmin.ts`.
+- Roadmap: slices 7 a 9 y el pendiente de la Página de Facebook.
+
+### Comandos clave
+
+```sh
+pnpm run test:run && pnpm run typecheck && pnpm run lint
+# 3000 libre comprobado y `.next` borrado antes de cada tramo
+pnpm exec playwright test src/e2e/outreach --shard=1/3 --reporter=line   # luego 2/3 y 3/3
+pnpm exec playwright test src/e2e/outreach -g "sale una sola vez|Armo la publicación de masa madre"
+```
+
+### Resultados
+
+- **Vitest:** 326 archivos, 3447 pruebas en verde (nuevas: `dueChannels`, `dueChannelsMessage`
+  con 5 casos y `TurnBadge` con 3).
+- **Typecheck y lint** limpios.
+- **Playwright:** 32 de 32. Los tramos dieron 10/11, 11/11 y 9/10; los dos que fallaron pasaron
+  al repetirlos después de corregirlos.
+
+### Desviaciones
+
+- **Dos pruebas suponían una base sin datos reales**, y el usuario ya dio de alta grupos y un pie:
+  - «Armo la publicación…» esperaba el texto sin pie. Una publicación nueva toma sola el único pie
+    que haya (slice 5), así que ahora la prueba elige «sin pie» (`chooseNoFooter`).
+  - La prueba nueva contaba 2 grupos y salieron 3. Ahora afirma que cada grupo sembrado sale una
+    sola vez.
+
+  El resumen «N de M» ya se había escrito sin números fijos por lo mismo.
+- **Un `next dev` huérfano del tramo 2** se quedó escuchando en el 3000 (Playwright en Windows no
+  siempre cierra el hijo). Se identificó por su hora de arranque, la misma de `.next`, y se cerró
+  con `taskkill /T` antes del tramo 3.
+
+### Escrito en recursos compartidos
+
+- **Base compartida:** solo los registros de prueba con marcador `E2E`, que borraron sus
+  `afterEach` y el barrido de `globalTeardown`. No se tocaron los grupos ni el pie reales.
+
+### Recap
+
+La publicación se lee en el orden de trabajo: cómo va el día («Hoy les toca a N de M grupos», el
+tope y la pausa), qué quedó fuera de la lista y, por tipo de grupo, sus pasos. En grupos normales
+cada grupo es un renglón con enlace, turno en insignia, versión, reglas, última vez y casilla. Las
+siete pantallas usan `Heading`. El pendiente de publicar solo en la Página de Facebook está en el
+roadmap.
+
+### Próximos pasos (opciones)
+
+1. **Slice 8:** el selector de productos con la búsqueda del sitio (texto completo y rescate
+   semántico), solo productos que se venden, con precio, foto y paginación numérica.
+2. **Slice 9:** buscador por texto y «Anterior / Siguiente» en publicaciones y grupos.
+3. Del usuario: abrir una publicación y decir si la jerarquía y el renglón único se entienden, o
+   qué falta. Sigue pendiente quitar de cada publicación el bloque de contacto que repite el pie.
