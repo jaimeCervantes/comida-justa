@@ -1052,3 +1052,90 @@ rescate semántico ya respeta «solo disponibles».
    texto. Es una migración en `hazlo-sano-bot`.
 3. Del usuario: probar el buscador con los nombres con los que realmente busca y decir si algo no
    aparece.
+
+## 2026-10-16 — Slice 9: buscar y paginar publicaciones y grupos
+
+### Objetivo
+
+Que las listas de publicaciones y de grupos se puedan buscar por texto y recorrer de 20 en 20,
+sin perder la búsqueda al cambiar de página ni al volver de editar.
+
+### Decisiones y por qué
+
+- **Se filtra en memoria, en el caso de uso.** Son decenas de registros, y la publicación ya carga
+  todos los grupos para calcular los turnos. Así la regla vive en una sola función de dominio
+  (`matchesListTerm`) y la corrida de escritorio la prueba de verdad. En SQL habría dos versiones,
+  la consulta y el doble falso de las pruebas, y para ignorar acentos sin `unaccent` habría hecho
+  falta un `translate` escrito a mano.
+- **«Contiene», sin acentos ni mayúsculas, y sin comodines.** Un grupo se busca por la palabra que
+  uno recuerda, que suele ir al final («… de Orizaba»). En grupos también cuenta la dirección.
+- **Se reutiliza lo de pedidos e inventario:** `ListSearchField` (filtra mientras se escribe,
+  `replace` y no `push`, Enter sin JavaScript), `QueryPagination` y `normalizeListTerm`. Los
+  parámetros son los mismos: `q` y `pagina`.
+- **Una página de más se vuelve la última** (`pageOf`): una dirección vieja o tecleada a mano no
+  deja una lista vacía con «Anteriores» como única salida.
+- **«Ninguno coincide» no es «no hay ninguno».** El primero ofrece «Borrar la búsqueda»; el
+  segundo sigue invitando a dar de alta el primero. El buscador no aparece en una lista vacía de
+  verdad.
+
+### Archivos tocados
+
+- Dominio: `src/domain/search/listPage.ts` (`matchesListTerm`, `pageOf`) y su prueba.
+- Casos de uso: `listOutreachChannelsUseCase` y `listOutreachTextsUseCase` reciben la búsqueda y
+  la página; sus pruebas son nuevas.
+- Pantallas: `admin/difusion/page.tsx` y `grupos/page.tsx`. En `ui/`, nuevos: `OutreachListSearch`,
+  `OutreachListPages` y `outreachListHref` con su prueba.
+- Catálogos `es`/`en`. E2E: el `.feature` del slice 9, `.spec.ts`, `OutreachAdmin.ts` y
+  `OutreachGroups.ts`. Roadmap: criterios del slice 9 y la corrección de los acentos del slice 8.
+
+### Comandos clave
+
+```sh
+pnpm run test:run && pnpm run typecheck && pnpm run lint
+pnpm exec playwright test src/e2e/outreach --shard=1/3 --reporter=line   # luego 2/3 y 3/3
+pnpm exec playwright test src/e2e/outreach -g "siguiente página|Busco un grupo|Sin coincidencias" --repeat-each=2
+```
+
+### Resultados
+
+- **Vitest:** 333 archivos, 3488 pruebas en verde. Nuevas: 11 de `listPage`, 5 de los casos de uso
+  y 4 de `outreachListHref`.
+- **Typecheck y lint** limpios.
+- **Playwright:** 38 de 39 en tres tramos (13, 13 y 10 de 11). El que falló se corrigió y pasó dos
+  veces seguidas junto con los otros dos de búsqueda en la lista: 6 de 6.
+
+### Desviaciones
+
+- **«Paso a la siguiente página…» falló por la prueba.** Esperaba 20 renglones para dar la búsqueda
+  por hecha, pero la lista sin filtrar también tenía 20, porque en la base hay más grupos. Pasaba de
+  página antes de tiempo, y la búsqueda pendiente (300 ms) reemplazaba la dirección. Ahora espera a
+  que `q` esté en la dirección.
+- **La prueba busca por una marca de la corrida y no por «orizaba» a secas.** En la base compartida
+  hay grupos de verdad con ese nombre, y moverían el corte de página.
+- **Corrección del slice 8.** Dije que la búsqueda del sitio no ignoraba los acentos. Medido en la
+  base, `spanish` ya los quita de las vocales: «arandanos», «cafe», «jamon» y «platano» encuentran
+  lo acentuado. No iguala la ñ, la ü, algunos acentos en la última sílaba («mamas» frente a
+  «Mamás») ni «te» frente a «té». El roadmap ya lo dice así.
+
+### Escrito en recursos compartidos
+
+- **Base compartida:** registros de prueba con marcador `E2E` (hasta 25 grupos por corrida), que
+  borran `afterEach` y `globalTeardown`. Además, dos lecturas con
+  `SET default_transaction_read_only = on` sobre `pg_extension`, `pg_ts_config`, `pg_indexes` y
+  `searches`, para medir lo de los acentos.
+
+### Recap
+
+La difusión completa sus tres slices de UI. La publicación se lee en pasos; el selector de
+productos busca como el sitio, con paginación numérica; y las listas de publicaciones y grupos se
+buscan sin acentos ni mayúsculas y se recorren de 20 en 20 sin perder la búsqueda.
+
+### Próximos pasos (opciones)
+
+1. **«La búsqueda que se queda sin resultados»**, propuesta al usuario en lugar de la migración de
+   acentos. En 90 días, 213 de 1498 búsquedas quedaron vacías:
+   - «pan» (24 veces), «suero» (10) y «proteina» (9): averiguar qué las filtró de más.
+   - Palabras a medias («prote», «pla», «galle»): la búsqueda solo reconoce palabras completas.
+   - La ñ y la ü: esto sí es una migración pequeña en `hazlo-sano-bot`.
+2. Del usuario: probar los buscadores de las dos listas.
+3. Pendiente desde el slice 7: publicar solo en la Página de Facebook.
