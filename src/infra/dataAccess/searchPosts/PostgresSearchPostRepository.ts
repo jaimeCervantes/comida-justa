@@ -1,5 +1,9 @@
 import { inArray, sql } from "drizzle-orm";
-import { DEFAULT_POST_KIND, isValidKind } from "~/domain/entities/post/kind";
+import {
+  DEFAULT_POST_KIND,
+  isValidKind,
+  type PostKind,
+} from "~/domain/entities/post/kind";
 import { isValidOrigin } from "~/domain/entities/post/origin";
 import type { PostMediaFile } from "~/domain/entities/post/types";
 import type { Coordinates } from "~/domain/entities/seller/coordinates";
@@ -214,6 +218,17 @@ function availableWhere(onlyAvailable: boolean | undefined) {
   return onlyAvailable ? sql`p.is_available IS TRUE` : sql`TRUE`;
 }
 
+/** Solo los tipos pedidos, si se pidieron: `undefined` no filtra, y una lista vacía no deja nada. */
+function kindWhere(kinds: readonly PostKind[] | undefined) {
+  if (kinds === undefined) return sql`TRUE`;
+  if (kinds.length === 0) return sql`FALSE`;
+
+  return sql`p.kind IN (${sql.join(
+    kinds.map((kind) => sql`${kind}`),
+    sql`, `,
+  )})`;
+}
+
 function categoryWhere(categoryKeys: readonly string[] | undefined) {
   if (categoryKeys === undefined) return sql`TRUE`;
   if (categoryKeys.length === 0) return sql`FALSE`;
@@ -236,6 +251,7 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
     near: Coordinates | null = null,
     categoryKeys?: readonly string[],
     onlyAvailable?: boolean,
+    kinds?: readonly PostKind[],
   ): Promise<{ results: ISearchPostResultDTO[]; total: number }> {
     const trimmed = query?.trim() ?? "";
     const { matches, total } = trimmed
@@ -247,6 +263,7 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
           near,
           categoryKeys,
           onlyAvailable,
+          kinds,
         )
       : await this.newestFirst(
           page,
@@ -254,6 +271,7 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
           near,
           categoryKeys,
           onlyAvailable,
+          kinds,
         );
 
     if (matches.length === 0) return { results: [], total };
@@ -269,6 +287,7 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
     near: Coordinates | null = null,
     categoryKeys?: readonly string[],
     onlyAvailable?: boolean,
+    kinds?: readonly PostKind[],
   ): Promise<{ results: ISearchPostResultDTO[]; total: number }> {
     const { matches, total } = await this.semanticMatches(
       embedding,
@@ -278,6 +297,7 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
       near,
       categoryKeys,
       onlyAvailable,
+      kinds,
     );
 
     if (matches.length === 0) return { results: [], total };
@@ -331,6 +351,7 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
     near: Coordinates | null,
     categoryKeys: readonly string[] | undefined,
     onlyAvailable: boolean | undefined,
+    kinds: readonly PostKind[] | undefined,
   ): Promise<{ matches: RankedMatch[]; total: number }> {
     const offset = Math.max(0, (page - 1) * pageSize);
 
@@ -364,7 +385,7 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
         FROM post_translations t
         WHERE t.post_id = p.id AND ${matchesQuery(query)}
       ) r ON r.relevance IS NOT NULL
-      WHERE ${PUBLISHED_POSTS} AND ${categoryWhere(categoryKeys)} AND ${availableWhere(onlyAvailable)}
+      WHERE ${PUBLISHED_POSTS} AND ${categoryWhere(categoryKeys)} AND ${availableWhere(onlyAvailable)} AND ${kindWhere(kinds)}
       ORDER BY
         r.own_relevance DESC NULLS LAST,
         r.relevance DESC,
@@ -405,6 +426,7 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
     near: Coordinates | null,
     categoryKeys: readonly string[] | undefined,
     onlyAvailable: boolean | undefined,
+    kinds: readonly PostKind[] | undefined,
   ): Promise<{ matches: RankedMatch[]; total: number }> {
     const offset = Math.max(0, (page - 1) * pageSize);
     const vector = `[${embedding.join(",")}]`;
@@ -428,6 +450,7 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
         AND v.dist <= ${maxDistance}
         AND ${categoryWhere(categoryKeys)}
         AND ${availableWhere(onlyAvailable)}
+        AND ${kindWhere(kinds)}
       ORDER BY v.dist ASC, p.id
       LIMIT ${pageSize} OFFSET ${offset}
     `);
@@ -490,6 +513,7 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
     near: Coordinates | null,
     categoryKeys: readonly string[] | undefined,
     onlyAvailable: boolean | undefined,
+    kinds: readonly PostKind[] | undefined,
   ): Promise<{ matches: RankedMatch[]; total: number }> {
     const offset = Math.max(0, (page - 1) * pageSize);
 
@@ -499,7 +523,7 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
         ${distanceColumn(near)} AS distance_meters,
         COUNT(*) OVER()::int AS total_count
       FROM posts p
-      WHERE ${PUBLISHED_POSTS} AND ${categoryWhere(categoryKeys)} AND ${availableWhere(onlyAvailable)}
+      WHERE ${PUBLISHED_POSTS} AND ${categoryWhere(categoryKeys)} AND ${availableWhere(onlyAvailable)} AND ${kindWhere(kinds)}
       ORDER BY
         distance_meters ASC NULLS LAST,
         p.created_at DESC,

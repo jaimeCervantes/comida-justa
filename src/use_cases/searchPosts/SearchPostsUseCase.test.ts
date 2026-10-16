@@ -61,6 +61,7 @@ describe("SearchPostsUseCase", () => {
       null,
       undefined,
       undefined,
+      undefined,
     );
     expect(result).toEqual({
       results: mockResults,
@@ -89,6 +90,7 @@ describe("SearchPostsUseCase", () => {
       near,
       undefined,
       undefined,
+      undefined,
     );
   });
 
@@ -103,6 +105,7 @@ describe("SearchPostsUseCase", () => {
       6,
       undefined,
       null,
+      undefined,
       undefined,
       undefined,
     );
@@ -125,6 +128,7 @@ describe("SearchPostsUseCase", () => {
       undefined,
       null,
       ["sueno_y_descanso", "rituales_de_sueno"],
+      undefined,
       undefined,
     );
   });
@@ -162,6 +166,7 @@ describe("SearchPostsUseCase y el idioma de quien busca", () => {
       6,
       "en",
       null,
+      undefined,
       undefined,
       undefined,
     );
@@ -230,6 +235,8 @@ describe("SearchPostsUseCase y el rescate semántico", () => {
       SEMANTIC_MAX_DISTANCE,
       null,
       undefined,
+      undefined,
+      undefined,
     );
     expect(result.total).toBe(1);
   });
@@ -292,6 +299,58 @@ describe("SearchPostsUseCase y el rescate semántico", () => {
       counts: null,
     });
     expect(repository.searchByVector).not.toHaveBeenCalled();
+  });
+});
+
+/**
+ * Los tipos de publicación que entran: el selector de la difusión pide solo lo que se vende. Van
+ * **a la consulta** —la de texto y la de sentido—, no se filtran después: filtrar tras paginar
+ * dejaría páginas cortas y un total que no corresponde.
+ */
+describe("SearchPostsUseCase y los tipos de publicación", () => {
+  const sinResultados = { results: [], total: 0 };
+
+  it("le pasa los tipos al texto y al sentido", async () => {
+    const repository = {
+      search: vi.fn().mockResolvedValue(sinResultados),
+      searchByVector: vi.fn().mockResolvedValue(sinResultados),
+      countByCategory: vi.fn().mockResolvedValue({}),
+    };
+    const embedder = { generateEmbedding: vi.fn().mockResolvedValue([0.1]) };
+
+    await new SearchPostsUseCase(repository, embedder).execute({
+      query: "pan chocolate",
+      page: 2,
+      pageSize: 10,
+      kinds: ["producto", "servicio"],
+    });
+
+    expect(repository.search.mock.calls[0][7]).toEqual([
+      "producto",
+      "servicio",
+    ]);
+    expect(repository.searchByVector.mock.calls[0][7]).toEqual([
+      "producto",
+      "servicio",
+    ]);
+  });
+
+  it("y el rescate respeta también «solo disponibles», como el texto", async () => {
+    const repository = {
+      search: vi.fn().mockResolvedValue(sinResultados),
+      searchByVector: vi.fn().mockResolvedValue(sinResultados),
+      countByCategory: vi.fn().mockResolvedValue({}),
+    };
+    const embedder = { generateEmbedding: vi.fn().mockResolvedValue([0.1]) };
+
+    await new SearchPostsUseCase(repository, embedder).execute({
+      query: "miel",
+      page: 1,
+      pageSize: 6,
+      onlyAvailable: true,
+    });
+
+    expect(repository.searchByVector.mock.calls[0][6]).toBe(true);
   });
 });
 
@@ -477,6 +536,7 @@ describe("SearchPostsUseCase y las facetas", () => {
       null,
       undefined,
       true,
+      undefined,
     );
     expect(repository.countByCategory).toHaveBeenCalledWith("miel", true);
   });

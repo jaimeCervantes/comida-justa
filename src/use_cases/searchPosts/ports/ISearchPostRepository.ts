@@ -1,3 +1,4 @@
+import type { PostKind } from "~/domain/entities/post/kind";
 import type { Coordinates } from "~/domain/entities/seller/coordinates";
 import type { ISearchPostResultDTO } from "../dtos/ISearchPostResultDTO";
 
@@ -20,6 +21,8 @@ export interface ISearchPostRepository {
     categoryKeys?: readonly string[],
     /** `true` deja fuera lo agotado. `undefined` no filtra: es el estado por omisión. */
     onlyAvailable?: boolean,
+    /** Los tipos que entran. `undefined` no filtra. */
+    kinds?: readonly PostKind[],
   ): Promise<{ results: ISearchPostResultDTO[]; total: number }>;
 
   /**
@@ -58,5 +61,6 @@ export interface ISearchPostRepository {
     near?: Coordinates | null,
     categoryKeys?: readonly string[],
     onlyAvailable?: boolean,
+    kinds?: readonly PostKind[],
   ): Promise<{ results: ISearchPostResultDTO[]; total: number }>;
 }
