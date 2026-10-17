@@ -738,3 +738,42 @@ Feature: Difusión en grupos de Facebook
       | mamasorizaba  | aparece          | también la dirección                     |
       | córdoba       | no aparece       | no coincide                              |
       | 100%          | no aparece       | el % no es comodín                       |
+
+  # ---------------------------------------------------------------------------------------------
+  # Slice 10 — Encontrar el producto por las palabras que uno recuerda
+  # ---------------------------------------------------------------------------------------------
+
+  # Para armar una publicación se busca un producto que uno ya sabe que existe, por los pedazos de
+  # nombre que recuerda. Primero se buscan las palabras sueltas, contenidas en el título; si eso no
+  # encuentra nada, responde la búsqueda del sitio (slice 8), con su rescate por sentido.
+
+  @slice-10
+  Scenario Outline: Encuentro el pan con las palabras que recuerdo
+    Given como administrador abro una publicación nueva
+    When busco "<escribo>"
+    Then entre los resultados está "<pan>"
+
+    Examples:
+      | escribo                  | pan                            | por qué                                |
+      | chocolate pan            | Pan de Masa Madre de Chocolate | palabras sueltas, en cualquier orden   |
+      | madr canel               | Pan de masa madre de canela    | palabras a medias                      |
+      | MASA MADRE DE ARANDANOS  | Pan de masa madre de arándanos | sin acentos ni mayúsculas              |
+
+  @slice-10 @component
+  Scenario Outline: Lo escrito se compara sin acentos, ñ, ü ni mayúsculas
+    Given escribo "<escribo>"
+    Then se buscan las palabras "<palabras>"
+
+    Examples:
+      | escribo           | palabras         |
+      | Piña  colada      | pina colada      |
+      | JALAPEÑO          | jalapeno         |
+      | güera             | guera            |
+      | 100% natural      | 100% natural     |
+      |                   |                  |
+
+  @slice-10 @component
+  Scenario: Si las palabras no encuentran nada, responde la búsqueda del sitio
+    Given ningún título contiene "algo", "para" y "dormir"
+    When busco "algo para dormir"
+    Then responde la búsqueda del sitio, con su rescate por sentido

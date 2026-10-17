@@ -365,6 +365,34 @@ mismo lugar después de editar.
 4. Se filtra en memoria, en el caso de uso: son decenas de registros y así la regla vive en una
    sola función (`matchesListTerm`). Si un día son miles, se baja a la consulta.
 
+### Slice 10 — Encontrar el producto por las palabras que uno recuerda
+
+**De dónde sale.** De usar el selector del slice 8 (2026-10-16). La búsqueda del sitio solo
+reconoce palabras completas («prote» no encuentra «Proteína») y no iguala la ñ («pina» no
+encuentra «piña»). La de la página de la tienda busca la frase entera tal cual, y «pan chocolate»
+tampoco encuentra «Pan de Masa Madre de Chocolate». Para armar una publicación se busca un producto
+**que uno ya sabe que existe**, por los pedazos de nombre que recuerda.
+
+- **Problem:** el producto existe y el selector no lo da, o lo da en la página 3.
+- **Savings:** no tener que adivinar cómo se llama exactamente cada producto.
+- **Why:** sin encontrar el producto no hay publicación.
+
+**Alcance.** Sin migración. El selector busca primero **por palabras sueltas contenidas**: cada
+palabra escrita tiene que estar en el título, en cualquier orden, aunque sea a medias, y sin importar
+acentos, ñ ni mayúsculas. Si eso no encuentra nada, cae a la búsqueda del sitio del slice 8 (palabras
+completas y luego sentido). Siguen los diez por página con números.
+
+**Criterios de aceptación.**
+
+1. Cada palabra debe estar **contenida** en el mismo título, en cualquiera de sus idiomas
+   (corrida de escritorio en el `.feature`).
+2. Sin acentos, ñ, ü ni mayúsculas, a los dos lados: lo que se escribe y el título.
+3. Orden: primero los títulos que empiezan con la primera palabra, luego los más cortos (los más
+   parecidos a lo escrito) y luego por orden alfabético.
+4. Solo lo que se vende, igual que el slice 8. Si las palabras no encuentran nada, responde la
+   búsqueda del sitio, con su rescate por sentido.
+5. Sin comodines: un `%` o un `_` escritos son ese carácter.
+
 ## Configuración
 
 | Variable                 | Por omisión | Acepta                      | Para qué                                              |
