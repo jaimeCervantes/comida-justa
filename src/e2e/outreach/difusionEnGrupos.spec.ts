@@ -40,10 +40,10 @@ import OutreachFooters from "./OutreachFooters";
 import OutreachGroups from "./OutreachGroups";
 
 /**
- * Slices 1 a 9 de `difusionEnGrupos.feature`: la publicación para grupos normales, los artículos
+ * Slices 1 a 10 de `difusionEnGrupos.feature`: la publicación para grupos normales, los artículos
  * de compraventa que salen de ella, los grupos con el historial de dónde quedó cada cosa, el ritmo
  * entre ellos, el pie compartido con sus versiones, borrar lo que ya no se usa, la publicación que
- * se entiende de un vistazo, el buscador de productos del sitio y las listas buscadas y en páginas.
+ * se entiende de un vistazo, el buscador de productos por palabras y las listas buscadas y en páginas.
  *
  * Nada de esto publica en Facebook —ninguna app puede ya—: se comprueba que el texto que se copia
  * es exactamente el que anuncia lo que hay hoy, al precio de hoy.
@@ -777,6 +777,29 @@ test.describe("Difusión en grupos de Facebook", () => {
       form.getByTestId("outreach-item").filter({ hasText: chocolate.title }),
     ).toHaveCount(1);
   });
+
+  // --- Slice 10: las palabras que uno recuerda -----------------------------------------------
+
+  /* Los panes sembrados se llaman como los de verdad más el marcador, así que también salen los
+     reales: basta con que esté el nuestro entre los diez primeros. */
+  for (const { escribo, pan } of [
+    { escribo: "chocolate pan", pan: "chocolate" },
+    { escribo: "madr canel", pan: "canela" },
+    { escribo: "MASA MADRE DE ARANDANOS", pan: "arandanos" },
+  ] as const) {
+    test(`Encuentro el pan con las palabras que recuerdo: «${escribo}»`, async ({
+      page,
+    }) => {
+      const bread = breadOf(breads, pan);
+      const admin = new OutreachAdmin(page);
+      await admin.openNew();
+      const form = admin.form(t.newHeading);
+
+      await admin.searchProducts(form, escribo);
+
+      await expect(admin.productMatch(form, bread.title)).toBeVisible();
+    });
+  }
 
   // --- Slice 9: buscar y paginar publicaciones y grupos ------------------------------------
 
