@@ -29,6 +29,10 @@ vi.mock("~/infra/auth/isAdmin", () => ({ isAdmin }));
 vi.mock("~/i18n/redirectKeepingLocale", () => ({ redirectKeepingLocale }));
 vi.mock("~/infra/dataAccess/outreach/factory", () => ({
   createOutreachTextRepository: () => ({ create, update, delete: remove }),
+  /* Sin nada por palabras, para que responda la búsqueda del sitio y se vea qué le llega. */
+  createOutreachProductFinder: () => ({
+    findByWords: vi.fn().mockResolvedValue({ matches: [], total: 0 }),
+  }),
 }));
 
 vi.mock("~/infra/dataAccess/searchPosts/factory", () => ({

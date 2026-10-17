@@ -1,8 +1,10 @@
 import { SELLABLE_KINDS } from "~/domain/entities/post/kind";
 import { resolvePostTranslation } from "~/domain/entities/post/translations";
+import { searchWords } from "~/domain/search/searchWords";
 import type { ISearchPostDTO } from "~/use_cases/searchPosts/dtos/ISearchPostDTO";
 import type { ISearchPostResultDTO } from "~/use_cases/searchPosts/dtos/ISearchPostResultDTO";
 import type { SearchPostsResult } from "~/use_cases/searchPosts/SearchPostsUseCase";
+import type IOutreachProductFinder from "./ports/IOutreachProductFinder";
 import type { TitleLocales } from "./ports/IOutreachTextRepository";
 
 /** Diez: la página cabe en la pantalla del formulario sin empujar lo de abajo. */
@@ -51,29 +53,37 @@ function toMatch(
 }
 
 /**
- * El buscador del formulario de difusión: **la misma búsqueda que el sitio** —texto completo con
- * ranking y, si el texto no encuentra nada, el rescate por sentido—, limitada a lo que se vende.
+ * El buscador del formulario de difusión, en dos tiempos y siempre entre lo que se vende.
  *
- * Antes comparaba letras del título en el navegador y se quedaba con ocho: «pan chocolate» no
- * encontraba «Pan de Masa Madre de Chocolate», y lo que el buscador del sitio sí encontraba aquí no
- * salía. Lo que se vende se filtra en la consulta, no después, para que el total y las páginas
- * digan la verdad.
+ * **Primero, las palabras sueltas contenidas en el título** (slice 10): aquí se busca un producto
+ * que uno ya sabe que existe, por los pedazos de nombre que recuerda. «madr canel» encuentra «Pan de
+ * masa madre de canela» y «pina» encuentra «piña», que la búsqueda del sitio no da: solo reconoce
+ * palabras completas y no iguala la ñ.
+ *
+ * **Si las palabras no encuentran nada, la búsqueda del sitio** (slice 8): palabras completas con
+ * ranking y, si tampoco, el rescate por sentido. Es lo que deja buscar «algo para dormir».
+ *
+ * Los dos filtran lo que se vende en la consulta, no después, para que el total y las páginas digan
+ * la verdad.
  *
  * Quien la construye no le pasa medición: el administrador armando una publicación no es un
  * visitante buscando, y contarlo ensuciaría lo que se aprende de las búsquedas del sitio.
  */
 export default class SearchOutreachProductsUseCase {
-  constructor(private readonly search: PostSearch) {}
+  constructor(
+    private readonly finder: IOutreachProductFinder,
+    private readonly search: PostSearch,
+  ) {}
 
   async execute(
     term: string,
     page: number,
     locales: TitleLocales,
   ): Promise<OutreachProductPage> {
-    const query = term.trim();
+    const words = searchWords(term);
     const wanted = Number.isInteger(page) && page >= 1 ? page : 1;
 
-    if (!query) {
+    if (words.length === 0) {
       return {
         matches: [],
         total: 0,
@@ -82,8 +92,20 @@ export default class SearchOutreachProductsUseCase {
       };
     }
 
+    const byWords = await this.finder.findByWords(
+      words,
+      wanted,
+      OUTREACH_SEARCH_PAGE_SIZE,
+      locales,
+      SELLABLE_KINDS,
+    );
+
+    if (byWords.total > 0) {
+      return { ...byWords, page: wanted, pageSize: OUTREACH_SEARCH_PAGE_SIZE };
+    }
+
     const { results, total } = await this.search.execute({
-      query,
+      query: term.trim(),
       page: wanted,
       pageSize: OUTREACH_SEARCH_PAGE_SIZE,
       locale: locales.locale,

@@ -19,6 +19,11 @@ function searchReturning(result: Partial<SearchPostsResult>) {
   };
 }
 
+/** El buscador por palabras, que no encuentra nada: responde la búsqueda del sitio. */
+function nothingByWords() {
+  return { findByWords: vi.fn().mockResolvedValue({ matches: [], total: 0 }) };
+}
+
 /** Un resultado de la búsqueda del sitio, con lo que el selector lee de él. */
 const chocolate = {
   id: "pan-chocolate",
@@ -34,12 +39,65 @@ const chocolate = {
   ],
 } as never;
 
-/** Slice 8 de `difusionEnGrupos.feature`: el selector busca como el buscador del sitio. */
-describe("SearchOutreachProductsUseCase", () => {
+const CANELA = {
+  postId: "pan-canela",
+  title: "Pan de masa madre de canela",
+  price: 125,
+  photoUrl: null,
+};
+
+/** Slice 10 de `difusionEnGrupos.feature`: primero las palabras que uno recuerda. */
+describe("SearchOutreachProductsUseCase, primero por palabras", () => {
+  it("busca las palabras dobladas, solo lo que se vende y de diez en diez", async () => {
+    const finder = {
+      findByWords: vi.fn().mockResolvedValue({ matches: [CANELA], total: 1 }),
+    };
+    const search = searchReturning({});
+
+    const page = await new SearchOutreachProductsUseCase(
+      finder,
+      search,
+    ).execute("Madr  CANEL", 1, LOCALES);
+
+    expect(finder.findByWords).toHaveBeenCalledWith(
+      ["madr", "canel"],
+      1,
+      OUTREACH_SEARCH_PAGE_SIZE,
+      LOCALES,
+      SELLABLE_KINDS,
+    );
+    expect(page).toEqual({
+      matches: [CANELA],
+      total: 1,
+      page: 1,
+      pageSize: OUTREACH_SEARCH_PAGE_SIZE,
+    });
+    // Con lo que encontraron las palabras basta: no se paga la búsqueda del sitio.
+    expect(search.execute).not.toHaveBeenCalled();
+  });
+
+  // Escenario «Si las palabras no encuentran nada, responde la búsqueda del sitio».
+  it("si las palabras no encuentran nada, responde la búsqueda del sitio", async () => {
+    const search = searchReturning({ results: [chocolate], total: 1 });
+
+    const page = await new SearchOutreachProductsUseCase(
+      nothingByWords(),
+      search,
+    ).execute("algo para dormir", 1, LOCALES);
+
+    expect(search.execute).toHaveBeenCalledWith(
+      expect.objectContaining({ query: "algo para dormir" }),
+    );
+    expect(page.total).toBe(1);
+  });
+});
+
+/** Slice 8 de `difusionEnGrupos.feature`: cuando responde la búsqueda del sitio. */
+describe("SearchOutreachProductsUseCase, con la búsqueda del sitio", () => {
   it("busca con la búsqueda del sitio, solo lo que se vende y de diez en diez", async () => {
     const search = searchReturning({});
 
-    await new SearchOutreachProductsUseCase(search).execute(
+    await new SearchOutreachProductsUseCase(nothingByWords(), search).execute(
       "pan chocolate",
       2,
       LOCALES,
@@ -60,11 +118,10 @@ describe("SearchOutreachProductsUseCase", () => {
   it("cada resultado lleva su título en el idioma del panel, su precio y su primera foto", async () => {
     const search = searchReturning({ results: [chocolate], total: 23 });
 
-    const page = await new SearchOutreachProductsUseCase(search).execute(
-      "pan chocolate",
-      1,
-      LOCALES,
-    );
+    const page = await new SearchOutreachProductsUseCase(
+      nothingByWords(),
+      search,
+    ).execute("pan chocolate", 1, LOCALES);
 
     expect(page).toEqual({
       matches: [
@@ -87,11 +144,10 @@ describe("SearchOutreachProductsUseCase", () => {
       total: 1,
     });
 
-    const { matches } = await new SearchOutreachProductsUseCase(search).execute(
-      "kombucha",
-      1,
-      LOCALES,
-    );
+    const { matches } = await new SearchOutreachProductsUseCase(
+      nothingByWords(),
+      search,
+    ).execute("kombucha", 1, LOCALES);
 
     expect(matches[0]).toMatchObject({ price: null, photoUrl: null });
   });
@@ -99,11 +155,10 @@ describe("SearchOutreachProductsUseCase", () => {
   it("sin nada escrito no busca", async () => {
     const search = searchReturning({});
 
-    const page = await new SearchOutreachProductsUseCase(search).execute(
-      "   ",
-      3,
-      LOCALES,
-    );
+    const page = await new SearchOutreachProductsUseCase(
+      nothingByWords(),
+      search,
+    ).execute("   ", 3, LOCALES);
 
     expect(search.execute).not.toHaveBeenCalled();
     expect(page).toMatchObject({ matches: [], total: 0, page: 1 });
@@ -112,7 +167,11 @@ describe("SearchOutreachProductsUseCase", () => {
   it("una página imposible se vuelve la primera", async () => {
     const search = searchReturning({});
 
-    await new SearchOutreachProductsUseCase(search).execute("pan", 0, LOCALES);
+    await new SearchOutreachProductsUseCase(nothingByWords(), search).execute(
+      "pan",
+      0,
+      LOCALES,
+    );
 
     expect(search.execute).toHaveBeenCalledWith(
       expect.objectContaining({ page: 1 }),

@@ -6,7 +6,7 @@ export interface ListPage<T> {
 }
 
 /** Sin acentos ni mayúsculas: «Mamás» y «mamas» se escriben igual para quien busca. */
-function fold(text: string): string {
+export function foldForSearch(text: string): string {
   return text
     .normalize("NFD")
     .replace(/\p{Diacritic}/gu, "")
@@ -24,10 +24,10 @@ export function matchesListTerm(
   term: string,
   fields: readonly string[],
 ): boolean {
-  const wanted = fold(term.trim());
+  const wanted = foldForSearch(term.trim());
   if (!wanted) return true;
 
-  return fields.some((field) => fold(field).includes(wanted));
+  return fields.some((field) => foldForSearch(field).includes(wanted));
 }
 
 /**

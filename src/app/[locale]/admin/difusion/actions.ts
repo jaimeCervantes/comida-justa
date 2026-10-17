@@ -12,7 +12,10 @@ import { redirectKeepingLocale } from "~/i18n/redirectKeepingLocale";
 import { resolveLocale, routing } from "~/i18n/routing";
 import { auth } from "~/infra/auth";
 import { isAdmin } from "~/infra/auth/isAdmin";
-import { createOutreachTextRepository } from "~/infra/dataAccess/outreach/factory";
+import {
+  createOutreachProductFinder,
+  createOutreachTextRepository,
+} from "~/infra/dataAccess/outreach/factory";
 import { createSearchPostRepository } from "~/infra/dataAccess/searchPosts/factory";
 import { createEmbeddingService } from "~/infra/services/factory";
 import SaveOutreachTextUseCase from "~/use_cases/outreach/saveOutreachTextUseCase";
@@ -159,7 +162,8 @@ const NO_PRODUCTS: OutreachProductPage = {
 };
 
 /**
- * El buscador del formulario: la búsqueda del sitio, limitada a lo que se vende y de diez en diez.
+ * El buscador del formulario: primero las palabras sueltas contenidas en el título y, si no
+ * encuentran nada, la búsqueda del sitio. Solo lo que se vende, de diez en diez.
  *
  * Es una acción y no `/api/search` porque necesita el gate de administrador y porque devuelve lo
  * que el selector pinta —título, precio, foto—, no la publicación entera. No se mide: el
@@ -175,6 +179,7 @@ export async function searchOutreachProducts(
   const locale = resolveLocale(await getLocale());
 
   return new SearchOutreachProductsUseCase(
+    createOutreachProductFinder(),
     new SearchPostsUseCase(
       createSearchPostRepository(),
       createEmbeddingService(),
