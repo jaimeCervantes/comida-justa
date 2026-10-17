@@ -5,6 +5,7 @@ import {
   Link,
   type PaginatedPathname,
 } from "~/i18n/navigation";
+import { pageWindow } from "./pageWindow";
 
 type CommonPaginationProps = {
   currentPage: number;
@@ -69,15 +70,7 @@ export default function Pagination({
   const t = useTranslations("feed");
   if (totalPages <= 1) return null;
 
-  // Calculate page range (max 5 pages, centered)
-  let start = Math.max(1, currentPage - 2);
-  const end = Math.min(totalPages, start + 4);
-  if (end - start < 4) start = Math.max(1, end - 4);
-
-  const pages: number[] = [];
-  for (let i = start; i <= end; i++) {
-    pages.push(i);
-  }
+  const pages = pageWindow(currentPage, totalPages);
 
   /* El cast es la única costura: TypeScript no puede comprobar que estos `params` son los que pide
      *esta* ruta concreta, porque `pathname` llega como unión. Lo que sí queda garantizado por el

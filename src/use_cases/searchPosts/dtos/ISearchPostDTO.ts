@@ -1,3 +1,4 @@
+import type { PostKind } from "~/domain/entities/post/kind";
 import type { Coordinates } from "~/domain/entities/seller/coordinates";
 
 export interface ISearchPostDTO {
@@ -26,4 +27,10 @@ export interface ISearchPostDTO {
    * un modelo de datos desde la interfaz.
    */
   onlyAvailable?: boolean;
+  /**
+   * Los tipos de publicación que entran. `undefined` no filtra, que es lo del buscador del sitio;
+   * la difusión pide solo lo que se vende (`SELLABLE_KINDS`). Va a la consulta, no después: filtrar
+   * tras paginar dejaría páginas cortas y un total que no corresponde.
+   */
+  kinds?: readonly PostKind[];
 }

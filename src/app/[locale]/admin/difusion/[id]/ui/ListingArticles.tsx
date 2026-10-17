@@ -1,5 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { Link } from "~/i18n/navigation";
+import { cn } from "~/presentation/design_system/styling/merge-class-names";
+import { Heading } from "~/presentation/design_system/typography/Heading";
 import type {
   ListingArticleView,
   ListingChannelStatus,
@@ -21,6 +23,7 @@ interface ListingArticlesProps {
   descriptionVersionNumber?: number;
   /** La hora con la que se cuenta «hoy»: una sola para toda la página. */
   now: Date;
+  className?: string;
 }
 
 /**
@@ -36,17 +39,22 @@ export default async function ListingArticles({
   description,
   descriptionVersionNumber,
   now,
+  className,
 }: ListingArticlesProps) {
   if (articles.length === 0) return null;
 
   const t = await getTranslations("outreach");
 
   return (
-    <section data-testid="outreach-listings" className="mt-8">
-      <h2 className="text-lg font-semibold mb-1">{t("listingsHeading")}</h2>
-      <p className="mb-3 text-sm text-text-support">{t("listingsHint")}</p>
+    <section data-testid="outreach-listings" className={cn(className)}>
+      <Heading level={2} className="mb-1">
+        {t("listingsHeading")}
+      </Heading>
+      <p className="mb-4 text-sm text-text-support">{t("listingsHint")}</p>
 
-      <h3 className="mb-2 font-semibold">{t("listingGroupsHeading")}</h3>
+      <Heading level={3} className="mb-2">
+        {t("listingGroupsHeading")}
+      </Heading>
       {channels.length === 0 ? (
         <p className="mb-4 text-sm text-text-support">
           {t("noListingGroups")}{" "}

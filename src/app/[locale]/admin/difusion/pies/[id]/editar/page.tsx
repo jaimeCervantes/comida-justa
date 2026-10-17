@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { createOutreachFooterRepository } from "~/infra/dataAccess/outreach/factory";
+import { Heading } from "~/presentation/design_system/typography/Heading";
 import { enterOutreachAdmin, outreachMetadata } from "../../../adminGate";
 import ConfirmDelete from "../../../ui/ConfirmDelete";
 import OutreachBreadcrumbs from "../../../ui/OutreachBreadcrumbs";
@@ -27,7 +28,9 @@ export default async function EditarPiePage({
   return (
     <main>
       <OutreachBreadcrumbs inFooters steps={[{ label: footer.name }]} />
-      <h1 className="text-xl font-bold mb-4">{heading}</h1>
+      <Heading level={1} className="mb-4">
+        {heading}
+      </Heading>
       <FooterForm label={heading} id={footer.id} initial={footer} />
       <ConfirmDelete
         action={deleteOutreachFooter}

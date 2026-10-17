@@ -9,11 +9,21 @@ import type {
   OutreachTextErrors,
 } from "~/domain/outreach/outreachTextDraft";
 import { redirectKeepingLocale } from "~/i18n/redirectKeepingLocale";
-import { resolveLocale } from "~/i18n/routing";
+import { resolveLocale, routing } from "~/i18n/routing";
 import { auth } from "~/infra/auth";
 import { isAdmin } from "~/infra/auth/isAdmin";
-import { createOutreachTextRepository } from "~/infra/dataAccess/outreach/factory";
+import {
+  createOutreachProductFinder,
+  createOutreachTextRepository,
+} from "~/infra/dataAccess/outreach/factory";
+import { createSearchPostRepository } from "~/infra/dataAccess/searchPosts/factory";
+import { createEmbeddingService } from "~/infra/services/factory";
 import SaveOutreachTextUseCase from "~/use_cases/outreach/saveOutreachTextUseCase";
+import SearchOutreachProductsUseCase, {
+  OUTREACH_SEARCH_PAGE_SIZE,
+  type OutreachProductPage,
+} from "~/use_cases/outreach/searchOutreachProductsUseCase";
+import { SearchPostsUseCase } from "~/use_cases/searchPosts/SearchPostsUseCase";
 import { deleteOutreachRecord } from "./deleteRecord";
 import type { DeleteState } from "./ui/ConfirmDelete";
 
@@ -142,4 +152,37 @@ export async function deleteOutreachText(
     backTo: "/admin/difusion",
     gone: "notFound",
   });
+}
+
+const NO_PRODUCTS: OutreachProductPage = {
+  matches: [],
+  total: 0,
+  page: 1,
+  pageSize: OUTREACH_SEARCH_PAGE_SIZE,
+};
+
+/**
+ * El buscador del formulario: primero las palabras sueltas contenidas en el título y, si no
+ * encuentran nada, la búsqueda del sitio. Solo lo que se vende, de diez en diez.
+ *
+ * Es una acción y no `/api/search` porque necesita el gate de administrador y porque devuelve lo
+ * que el selector pinta —título, precio, foto—, no la publicación entera. No se mide: el
+ * administrador armando una publicación no es un visitante buscando.
+ */
+export async function searchOutreachProducts(
+  term: string,
+  page: number,
+): Promise<OutreachProductPage> {
+  if (typeof term !== "string" || typeof page !== "number") return NO_PRODUCTS;
+  if (!(await requireAdmin())) return NO_PRODUCTS;
+
+  const locale = resolveLocale(await getLocale());
+
+  return new SearchOutreachProductsUseCase(
+    createOutreachProductFinder(),
+    new SearchPostsUseCase(
+      createSearchPostRepository(),
+      createEmbeddingService(),
+    ),
+  ).execute(term, page, { locale, fallbackLocale: routing.defaultLocale });
 }

@@ -579,3 +579,201 @@ Feature: Difusión en grupos de Facebook
     When pulso «Borrar» y después «Cancelar»
     Then no se manda nada a borrar
     And vuelve a ofrecerse «Borrar»
+
+  # ---------------------------------------------------------------------------------------------
+  # Slice 7 — Que la publicación se entienda de un vistazo
+  # ---------------------------------------------------------------------------------------------
+
+  # Salió de usarlo: los títulos de sección no se distinguían entre sí, y cada grupo aparecía dos
+  # veces —una para abrirlo, otra para marcarlo—. Ahora la publicación se lee en pasos, y cada grupo
+  # normal es un solo renglón con todo lo que hace falta para publicar ahí.
+
+  @slice-7
+  Scenario: Cada grupo normal sale una sola vez, con todo lo que necesito para publicar ahí
+    Given están dados de alta los grupos normales "Mamás de Orizaba" y "Emprendedores de Orizaba", cada uno acepta una publicación cada 7 días
+    And en "Mamás de Orizaba" publiqué hace 3 días y en "Emprendedores de Orizaba" hace 8
+    And la publicación "Masa madre" ya está guardada
+    When como administrador la abro
+    Then el paso "2. Publica en cada grupo y márcalo" enseña cada grupo una sola vez:
+      | grupo                    | turno                 | última vez                   |
+      | Mamás de Orizaba         | Todavía no: en 4 días | Última vez aquí: hace 3 días |
+      | Emprendedores de Orizaba | Ya le toca            | Última vez aquí: hace 8 días |
+    And cada uno tiene su enlace para abrirlo y su casilla para marcarlo
+    When marco "Emprendedores de Orizaba" y confirmo
+    Then "Emprendedores de Orizaba" dice "Todavía no: en 7 días" y "Última vez aquí: hoy"
+
+  @slice-7
+  Scenario: Arriba me dice a cuántos grupos les toca hoy
+    Given están dados de alta los grupos normales "Mamás de Orizaba" y "Emprendedores de Orizaba", cada uno acepta una publicación cada 7 días
+    And está dado de alta el grupo de compraventa "Compra Venta Orizaba"
+    And en "Mamás de Orizaba" publiqué hace 3 días y en "Emprendedores de Orizaba" hace 8
+    And la publicación "Masa madre" ya está guardada
+    When como administrador la abro
+    Then arriba se lee "Hoy les toca a 2 de 3 grupos"
+
+  @slice-7
+  Scenario Outline: Los títulos de la publicación dicen qué contiene a qué
+    Given están dados de alta el grupo normal "Mamás de Orizaba" y el de compraventa "Compra Venta Orizaba"
+    And la publicación "Masa madre" ya está guardada
+    When como administrador la abro
+    Then "<título>" es un encabezado de nivel <nivel>
+
+    Examples:
+      | título                              | nivel | por qué                                  |
+      | Masa madre                          | 1     | la página: hay uno solo                  |
+      | Para grupos normales                | 2     | una sección por tipo de grupo            |
+      | 1. Copia el texto y las fotos       | 3     | los pasos están dentro de su sección     |
+      | 2. Publica en cada grupo y márcalo  | 3     |                                          |
+      | Para grupos de compraventa          | 2     |                                          |
+
+  @slice-7 @component
+  Scenario Outline: El turno se ve como insignia, verde solo cuando ya le toca
+    Given un grupo cuyo turno es "<turno>"
+    Then su insignia dice "<turno>" en tono "<tono>"
+
+    Examples:
+      | turno                 | tono    |
+      | Ya le toca            | verde   |
+      | Todavía no: mañana    | neutro  |
+      | Todavía no: en 4 días | neutro  |
+
+  # ---------------------------------------------------------------------------------------------
+  # Slice 8 — Buscar productos como en la búsqueda principal
+  # ---------------------------------------------------------------------------------------------
+
+  # El selector usa la misma búsqueda que el sitio: texto completo con ranking y, si el texto no
+  # encuentra nada, el rescate por sentido. Antes comparaba letras del título y se quedaba con 8, así
+  # que «pan chocolate» no encontraba «Pan de Masa Madre de Chocolate».
+
+  @slice-8
+  Scenario: Encuentro un pan con palabras sueltas, como en el buscador del sitio
+    Given como administrador abro una publicación nueva
+    When busco "pan chocolate"
+    Then entre los resultados está "Pan de Masa Madre de Chocolate" a "$136.00"
+    And lo puedo agregar a la publicación
+
+  # Solo se ofrece lo que se puede anunciar con precio: lo mismo que la lista de la publicación.
+  @slice-8 @component
+  Scenario Outline: Solo se ofrece lo que se vende
+    Given una publicación de tipo "<tipo>" que coincide con lo que busco
+    Then <se ofrece>
+
+    Examples:
+      | tipo     | se ofrece       |
+      | producto | se ofrece       |
+      | servicio | se ofrece       |
+      | evento   | no se ofrece    |
+      | anuncio  | no se ofrece    |
+      | practica | no se ofrece    |
+
+  # Diez por página. Se ven hasta cinco números, centrados en la página actual.
+  @slice-8 @component
+  Scenario Outline: Los números de página según cuántos resultados hay
+    Given la búsqueda encontró <resultados> productos
+    When estoy en la página <página>
+    Then se ven los números "<números>"
+
+    Examples:
+      | resultados | página | números   | por qué                              |
+      | 8          | 1      |           | cabe en una página: no hay números   |
+      | 25         | 1      | 1 2 3     | tres páginas, todas a la vista       |
+      | 75         | 1      | 1 2 3 4 5 | ocho páginas: las cinco primeras     |
+      | 75         | 6      | 4 5 6 7 8 | centrada en la actual, sin pasarse   |
+      | 75         | 8      | 4 5 6 7 8 | en la última se ven las cinco finales |
+
+  # Los números son botones dentro del formulario, no enlaces: cambiar de página no sale de él.
+  @slice-8 @component
+  Scenario: Cambiar de página no envía el formulario ni pierde lo escrito
+    Given escribí el nombre "Masa madre" de una publicación nueva
+    And busqué "masa madre" y hay 25 resultados
+    When voy a la página 2
+    Then veo los resultados de la página 2
+    And el formulario no se envió y el nombre sigue siendo "Masa madre"
+
+  # ---------------------------------------------------------------------------------------------
+  # Slice 9 — Buscar y paginar publicaciones y grupos
+  # ---------------------------------------------------------------------------------------------
+
+  # Las listas se recorren buscando una publicación o un grupo para entrar: un buscador por texto y
+  # «Anterior / Siguiente» de 20 en 20. Lo buscado y la página viajan en la dirección, para volver
+  # al mismo sitio después de editar.
+
+  @slice-9
+  Scenario: Busco un grupo por su nombre, sin acentos ni mayúsculas
+    Given están dados de alta los grupos "Mamás de Orizaba", "Emprendedores de Orizaba" y "Ventas Córdoba"
+    When como administrador busco "MAMAS" en la lista de grupos
+    Then veo "Mamás de Orizaba"
+    And no veo "Emprendedores de Orizaba" ni "Ventas Córdoba"
+
+  @slice-9
+  Scenario: Busco una publicación por su nombre
+    Given están guardadas las publicaciones "Masa madre" y "Jugos verdes"
+    When como administrador busco "masa" en la lista de publicaciones
+    Then veo "Masa madre" y no veo "Jugos verdes"
+
+  @slice-9
+  Scenario: Paso a la siguiente página y la búsqueda se conserva
+    Given hay 25 grupos con "Orizaba" en el nombre
+    When como administrador busco "orizaba" y voy a "Siguiente"
+    Then estoy en la página 2 con los grupos que no cupieron en la primera
+    And el buscador sigue diciendo "orizaba"
+
+  @slice-9
+  Scenario: Sin coincidencias me lo dice y me deja borrar la búsqueda
+    When como administrador busco "zzz" en la lista de grupos
+    Then se lee "Ningún grupo coincide con «zzz»."
+    And "Borrar la búsqueda" me devuelve la lista completa
+
+  @slice-9 @component
+  Scenario Outline: Lo que busco coincide con el nombre, y en los grupos también con su dirección
+    Given un grupo "Mamás de Orizaba" con dirección "https://www.facebook.com/groups/mamasorizaba"
+    When busco "<busco>"
+    Then <resultado>
+
+    Examples:
+      | busco         | resultado        | por qué                                  |
+      | mamas         | aparece          | sin acentos                              |
+      | ORIZABA       | aparece          | sin mayúsculas                           |
+      | de oriz       | aparece          | contiene, no «empieza con»               |
+      | mamasorizaba  | aparece          | también la dirección                     |
+      | córdoba       | no aparece       | no coincide                              |
+      | 100%          | no aparece       | el % no es comodín                       |
+
+  # ---------------------------------------------------------------------------------------------
+  # Slice 10 — Encontrar el producto por las palabras que uno recuerda
+  # ---------------------------------------------------------------------------------------------
+
+  # Para armar una publicación se busca un producto que uno ya sabe que existe, por los pedazos de
+  # nombre que recuerda. Primero se buscan las palabras sueltas, contenidas en el título; si eso no
+  # encuentra nada, responde la búsqueda del sitio (slice 8), con su rescate por sentido.
+
+  @slice-10
+  Scenario Outline: Encuentro el pan con las palabras que recuerdo
+    Given como administrador abro una publicación nueva
+    When busco "<escribo>"
+    Then entre los resultados está "<pan>"
+
+    Examples:
+      | escribo                  | pan                            | por qué                                |
+      | chocolate pan            | Pan de Masa Madre de Chocolate | palabras sueltas, en cualquier orden   |
+      | madr canel               | Pan de masa madre de canela    | palabras a medias                      |
+      | MASA MADRE DE ARANDANOS  | Pan de masa madre de arándanos | sin acentos ni mayúsculas              |
+
+  @slice-10 @component
+  Scenario Outline: Lo escrito se compara sin acentos, ñ, ü ni mayúsculas
+    Given escribo "<escribo>"
+    Then se buscan las palabras "<palabras>"
+
+    Examples:
+      | escribo           | palabras         |
+      | Piña  colada      | pina colada      |
+      | JALAPEÑO          | jalapeno         |
+      | güera             | guera            |
+      | 100% natural      | 100% natural     |
+      |                   |                  |
+
+  @slice-10 @component
+  Scenario: Si las palabras no encuentran nada, responde la búsqueda del sitio
+    Given ningún título contiene "algo", "para" y "dormir"
+    When busco "algo para dormir"
+    Then responde la búsqueda del sitio, con su rescate por sentido

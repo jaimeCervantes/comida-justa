@@ -50,6 +50,20 @@ export function suggestNextListing(
   return oldest?.postId ?? null;
 }
 
+/**
+ * A cuántos grupos les toca hoy, de cuántos: el resumen que se lee antes de bajar a los grupos.
+ * Recibe los turnos de los dos tipos juntos, porque la pregunta es «¿dónde puedo publicar hoy?».
+ */
+export function dueChannels(turns: readonly ChannelTurn[]): {
+  due: number;
+  total: number;
+} {
+  return {
+    due: turns.filter((turn) => turn.due).length,
+    total: turns.length,
+  };
+}
+
 /** Cuántas van hoy, contra el tope. */
 export interface DailyPace {
   count: number;

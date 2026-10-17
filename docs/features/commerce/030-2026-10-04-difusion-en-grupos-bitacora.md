@@ -862,3 +862,370 @@ backend.
    el bloque de contacto que repita el pie.
 2. Si Integral, Ajo, Dátiles con Nuez y Queso Parmesano con Aceitunas se siguen vendiendo, darlos
    de alta: la lista solo anuncia lo que está en la base.
+
+## 2026-10-16 — Slice 7: que la publicación se entienda de un vistazo
+
+### Objetivo
+
+Que la publicación se lea en el orden en que se trabaja y que cada grupo normal sea un solo
+renglón. Además, anotar como pendiente la publicación automática en la Página de Facebook.
+
+### Decisiones y por qué
+
+- **Un grupo, un renglón.** Antes cada grupo normal salía dos veces: en «Tus grupos normales»,
+  con enlace, turno y reglas, y otra vez más abajo con su casilla. Ahora el renglón de marcar
+  (`MarkPublishedForm`) recibe los detalles ya pintados en el servidor (`details: ReactNode`). En
+  compraventa la lista de grupos sigue arriba, porque ahí se marca por pan.
+- **`ChannelDetails` sale de `ChannelLinks`.** Enlace, turno, versión, sugerencia y reglas son lo
+  mismo en los dos tipos de grupo. Solo cambia dónde va el nombre: en la casilla o como título.
+- **Pasos numerados como regiones con nombre** (`OutreachStep`, `aria-labelledby`). Quien usa
+  lector de pantalla salta de paso en paso, y la prueba encuentra «2. Publica en cada grupo y
+  márcalo» por lo que dice y no por cómo está hecho.
+- **`Heading` en las siete pantallas.** El nivel lo da la estructura y el tamaño lo da el sistema
+  de diseño (h1 serif `lg`, h2 `md`, h3 `sm`, versiones en h4). Lo de antes eran negritas de
+  16 a 20 px escritas a mano.
+- **El turno como insignia** (`TurnBadge`): tono de marca y `strong` si ya le toca, neutro si no.
+  La frase sigue ahí, para quien no distingue el color. La prueba lee `data-tone` y no las clases.
+- **«Hoy les toca a N de M grupos»** cuenta los dos tipos (`dueChannels` en el dominio): responde
+  «¿dónde puedo publicar hoy?». Sin grupos no dice nada, porque cada sección ya enlaza al alta.
+- **Lo que queda fuera de la lista sube a aviso**, con los tokens de `warning`. Es lo primero
+  que hay que arreglar antes de copiar.
+- **Se van `postGroupsHeading` y `markPostHint`**: el paso 2 los reemplaza con su título y su
+  explicación.
+
+### Archivos tocados
+
+- Dominio: `src/domain/outreach/rhythm.ts` (`dueChannels`) y su prueba.
+- Pantalla de la publicación: `[id]/page.tsx`, `paceMessages.ts`; en `[id]/ui/`, los nuevos
+  `ChannelDetails`, `OutreachStep` y `TurnBadge`, y los cambiados `ChannelLinks`,
+  `MarkPublishedForm`, `DailyPaceNotice`, `ExcludedProducts`, `ListingArticles` y
+  `GroupPostTexts`.
+- Otras pantallas: los ocho `page.tsx` de lista, alta y edición, `OutreachTextForm` y
+  `OpeningVersions`.
+- Catálogos `es`/`en`. E2E: `difusionEnGrupos.feature` (slices 7 a 9), `.spec.ts` y
+  `OutreachAdmin.ts`.
+- Roadmap: slices 7 a 9 y el pendiente de la Página de Facebook.
+
+### Comandos clave
+
+```sh
+pnpm run test:run && pnpm run typecheck && pnpm run lint
+# 3000 libre comprobado y `.next` borrado antes de cada tramo
+pnpm exec playwright test src/e2e/outreach --shard=1/3 --reporter=line   # luego 2/3 y 3/3
+pnpm exec playwright test src/e2e/outreach -g "sale una sola vez|Armo la publicación de masa madre"
+```
+
+### Resultados
+
+- **Vitest:** 326 archivos, 3447 pruebas en verde (nuevas: `dueChannels`, `dueChannelsMessage`
+  con 5 casos y `TurnBadge` con 3).
+- **Typecheck y lint** limpios.
+- **Playwright:** 32 de 32. Los tramos dieron 10/11, 11/11 y 9/10; los dos que fallaron pasaron
+  al repetirlos después de corregirlos.
+
+### Desviaciones
+
+- **Dos pruebas suponían una base sin datos reales**, y el usuario ya dio de alta grupos y un pie:
+  - «Armo la publicación…» esperaba el texto sin pie. Una publicación nueva toma sola el único pie
+    que haya (slice 5), así que ahora la prueba elige «sin pie» (`chooseNoFooter`).
+  - La prueba nueva contaba 2 grupos y salieron 3. Ahora afirma que cada grupo sembrado sale una
+    sola vez.
+
+  El resumen «N de M» ya se había escrito sin números fijos por lo mismo.
+- **Un `next dev` huérfano del tramo 2** se quedó escuchando en el 3000 (Playwright en Windows no
+  siempre cierra el hijo). Se identificó por su hora de arranque, la misma de `.next`, y se cerró
+  con `taskkill /T` antes del tramo 3.
+
+### Escrito en recursos compartidos
+
+- **Base compartida:** solo los registros de prueba con marcador `E2E`, que borraron sus
+  `afterEach` y el barrido de `globalTeardown`. No se tocaron los grupos ni el pie reales.
+
+### Recap
+
+La publicación se lee en el orden de trabajo: cómo va el día («Hoy les toca a N de M grupos», el
+tope y la pausa), qué quedó fuera de la lista y, por tipo de grupo, sus pasos. En grupos normales
+cada grupo es un renglón con enlace, turno en insignia, versión, reglas, última vez y casilla. Las
+siete pantallas usan `Heading`. El pendiente de publicar solo en la Página de Facebook está en el
+roadmap.
+
+### Próximos pasos (opciones)
+
+1. **Slice 8:** el selector de productos con la búsqueda del sitio (texto completo y rescate
+   semántico), solo productos que se venden, con precio, foto y paginación numérica.
+2. **Slice 9:** buscador por texto y «Anterior / Siguiente» en publicaciones y grupos.
+3. Del usuario: abrir una publicación y decir si la jerarquía y el renglón único se entienden, o
+   qué falta. Sigue pendiente quitar de cada publicación el bloque de contacto que repite el pie.
+
+## 2026-10-16 — Slice 8: buscar productos como en la búsqueda principal
+
+### Objetivo
+
+Que el selector de productos de una publicación encuentre lo mismo que la búsqueda del sitio,
+solo entre lo que se vende y con paginación numérica.
+
+### Decisiones y por qué
+
+- **Se reutiliza `SearchPostsUseCase` y no se escribe otra búsqueda.** Texto completo con ranking
+  y rescate por sentido cuando el texto no encuentra nada. `SearchOutreachProductsUseCase` solo la
+  limita y traduce cada resultado a lo que pinta el selector: título en el idioma del panel,
+  precio y primera foto.
+- **Tipos de publicación en el núcleo de la búsqueda** (`kinds` en `ISearchPostDTO`, el puerto y
+  las tres consultas de Postgres). Es genérico —cualquier vertical puede pedir solo ciertos
+  tipos— y va **en la consulta**: filtrar después de paginar dejaba páginas cortas y un total
+  falso. La difusión pide `SELLABLE_KINDS`, lo mismo que antes ofrecía su catálogo.
+- **De paso, el rescate semántico respeta «solo disponibles».** No se lo pasaba, así que con el
+  filtro puesto el rescate podía devolver lo agotado. Salió al tener que pasarle `kinds`, que va
+  detrás.
+- **Una acción de servidor y no `/api/search`.** Necesita el gate de administrador y devuelve lo
+  que pinta el selector, no la publicación entera. No se mide: un administrador armando una
+  publicación no es un visitante buscando.
+- **Números de página como botones** (`PageButtons` en `src/presentation/navigation/`): el
+  buscador vive dentro de un formulario a medio llenar, y un enlace navegaría. La cuenta de qué
+  números se ven (`pageWindow`) es la que ya hacía `Pagination` por dentro; ahora la comparten.
+- **Se pregunta al dejar de teclear (300 ms)** y solo cuenta la respuesta de lo último que se
+  pidió: una búsqueda vieja que tarda más no pisa a la nueva.
+- **Se borra el catálogo completo** (`IOutreachProductCatalog` y su repositorio Postgres). El alta
+  y la edición ya no cargan unos 400 títulos para filtrarlos en el navegador.
+- **Los acentos no se prometen.** La búsqueda del sitio usa `spanish`/`english` sin `unaccent`, y
+  arreglarlo es una migración de los índices en el backend que vale para todo el sitio. Antes el
+  selector sí los ignoraba; ahora «arandanos» depende del rescate por sentido.
+
+### Archivos tocados
+
+- Núcleo de búsqueda: `ISearchPostDTO`, `ISearchPostRepository`, `SearchPostsUseCase` y su prueba,
+  `PostgresSearchPostRepository` (`kindWhere`).
+- Difusión: `searchOutreachProductsUseCase` y su prueba (nuevos); `actions.ts`
+  (`searchOutreachProducts`) y su prueba; `ProductPicker`; `OutreachTextForm` y su prueba; las
+  páginas `nueva` y `[id]/editar`. Se borran `IOutreachProductCatalog` y
+  `PostgresOutreachProductCatalog`, y se limpia `factory.ts`.
+- Presentación: `pageWindow` y `PageButtons` con sus pruebas (nuevos); `Pagination` usa
+  `pageWindow`.
+- Catálogos `es`/`en`. E2E: el `.feature` del slice 8, `.spec.ts` y `OutreachAdmin.ts`. Roadmap:
+  criterios del slice 8.
+
+### Comandos clave
+
+```sh
+pnpm run test:run && pnpm run typecheck && pnpm run lint && pnpm run check:directives
+# 3000 libre comprobado, `.next` borrado antes de cada tramo y el servidor del tramo cerrado al terminar
+pnpm exec playwright test src/e2e/outreach --shard=1/3 --reporter=line   # luego 2/3 y 3/3
+```
+
+### Resultados
+
+- **Vitest:** 329 archivos, 3468 pruebas en verde. Nuevas: 5 del caso de uso, 6 de
+  `pageWindow`, 4 de `PageButtons`, 2 de `SearchPostsUseCase` con tipos y 3 de la acción. En el
+  formulario, el escenario de cambiar de página sin enviar.
+- **Typecheck, lint y directivas** limpios.
+- **Playwright:** 33 de 33 en tres tramos de 11 (5.0, 4.8 y 5.2 min). Incluye las pruebas viejas
+  que agregan panes desde el buscador: ahora buscan el título completo por palabras, en el
+  servidor.
+
+### Desviaciones
+
+- **Siete pruebas de `SearchPostsUseCase` afirmaban la lista exacta de argumentos** y hubo que
+  agregarles el de `kinds`. El cambio de firma era real, no fragilidad. Las nuevas leen solo la
+  posición que les importa.
+- **El precio se lee «$136.00»**, como lo escribe `AmountCurrency`, y no «$136» como decía el
+  primer borrador del escenario.
+- **El primer intento de e2e no corrió:** el usuario tenía su `next dev` en el 3000. Se esperó a
+  que lo detuviera en vez de cerrarlo.
+
+### Escrito en recursos compartidos
+
+- **Base compartida:** solo los registros de prueba con marcador `E2E`, que borraron sus
+  `afterEach` y `globalTeardown`.
+
+### Recap
+
+El selector de productos busca como el sitio: palabras sueltas con ranking y rescate por sentido,
+solo entre lo que se vende, diez por página con números que no envían el formulario, y cada
+resultado con foto y precio. El núcleo de búsqueda acepta filtrar por tipo de publicación, y el
+rescate semántico ya respeta «solo disponibles».
+
+### Próximos pasos (opciones)
+
+1. **Slice 9:** buscador por texto y «Anterior / Siguiente» en las listas de publicaciones y
+   grupos.
+2. **Búsqueda sin acentos en todo el sitio:** `unaccent` en los diccionarios y los índices de
+   texto. Es una migración en `hazlo-sano-bot`.
+3. Del usuario: probar el buscador con los nombres con los que realmente busca y decir si algo no
+   aparece.
+
+## 2026-10-16 — Slice 9: buscar y paginar publicaciones y grupos
+
+### Objetivo
+
+Que las listas de publicaciones y de grupos se puedan buscar por texto y recorrer de 20 en 20,
+sin perder la búsqueda al cambiar de página ni al volver de editar.
+
+### Decisiones y por qué
+
+- **Se filtra en memoria, en el caso de uso.** Son decenas de registros, y la publicación ya carga
+  todos los grupos para calcular los turnos. Así la regla vive en una sola función de dominio
+  (`matchesListTerm`) y la corrida de escritorio la prueba de verdad. En SQL habría dos versiones,
+  la consulta y el doble falso de las pruebas, y para ignorar acentos sin `unaccent` habría hecho
+  falta un `translate` escrito a mano.
+- **«Contiene», sin acentos ni mayúsculas, y sin comodines.** Un grupo se busca por la palabra que
+  uno recuerda, que suele ir al final («… de Orizaba»). En grupos también cuenta la dirección.
+- **Se reutiliza lo de pedidos e inventario:** `ListSearchField` (filtra mientras se escribe,
+  `replace` y no `push`, Enter sin JavaScript), `QueryPagination` y `normalizeListTerm`. Los
+  parámetros son los mismos: `q` y `pagina`.
+- **Una página de más se vuelve la última** (`pageOf`): una dirección vieja o tecleada a mano no
+  deja una lista vacía con «Anteriores» como única salida.
+- **«Ninguno coincide» no es «no hay ninguno».** El primero ofrece «Borrar la búsqueda»; el
+  segundo sigue invitando a dar de alta el primero. El buscador no aparece en una lista vacía de
+  verdad.
+
+### Archivos tocados
+
+- Dominio: `src/domain/search/listPage.ts` (`matchesListTerm`, `pageOf`) y su prueba.
+- Casos de uso: `listOutreachChannelsUseCase` y `listOutreachTextsUseCase` reciben la búsqueda y
+  la página; sus pruebas son nuevas.
+- Pantallas: `admin/difusion/page.tsx` y `grupos/page.tsx`. En `ui/`, nuevos: `OutreachListSearch`,
+  `OutreachListPages` y `outreachListHref` con su prueba.
+- Catálogos `es`/`en`. E2E: el `.feature` del slice 9, `.spec.ts`, `OutreachAdmin.ts` y
+  `OutreachGroups.ts`. Roadmap: criterios del slice 9 y la corrección de los acentos del slice 8.
+
+### Comandos clave
+
+```sh
+pnpm run test:run && pnpm run typecheck && pnpm run lint
+pnpm exec playwright test src/e2e/outreach --shard=1/3 --reporter=line   # luego 2/3 y 3/3
+pnpm exec playwright test src/e2e/outreach -g "siguiente página|Busco un grupo|Sin coincidencias" --repeat-each=2
+```
+
+### Resultados
+
+- **Vitest:** 333 archivos, 3488 pruebas en verde. Nuevas: 11 de `listPage`, 5 de los casos de uso
+  y 4 de `outreachListHref`.
+- **Typecheck y lint** limpios.
+- **Playwright:** 38 de 39 en tres tramos (13, 13 y 10 de 11). El que falló se corrigió y pasó dos
+  veces seguidas junto con los otros dos de búsqueda en la lista: 6 de 6.
+
+### Desviaciones
+
+- **«Paso a la siguiente página…» falló por la prueba.** Esperaba 20 renglones para dar la búsqueda
+  por hecha, pero la lista sin filtrar también tenía 20, porque en la base hay más grupos. Pasaba de
+  página antes de tiempo, y la búsqueda pendiente (300 ms) reemplazaba la dirección. Ahora espera a
+  que `q` esté en la dirección.
+- **La prueba busca por una marca de la corrida y no por «orizaba» a secas.** En la base compartida
+  hay grupos de verdad con ese nombre, y moverían el corte de página.
+- **Corrección del slice 8.** Dije que la búsqueda del sitio no ignoraba los acentos. Medido en la
+  base, `spanish` ya los quita de las vocales: «arandanos», «cafe», «jamon» y «platano» encuentran
+  lo acentuado. No iguala la ñ, la ü, algunos acentos en la última sílaba («mamas» frente a
+  «Mamás») ni «te» frente a «té». El roadmap ya lo dice así.
+
+### Escrito en recursos compartidos
+
+- **Base compartida:** registros de prueba con marcador `E2E` (hasta 25 grupos por corrida), que
+  borran `afterEach` y `globalTeardown`. Además, dos lecturas con
+  `SET default_transaction_read_only = on` sobre `pg_extension`, `pg_ts_config`, `pg_indexes` y
+  `searches`, para medir lo de los acentos.
+
+### Recap
+
+La difusión completa sus tres slices de UI. La publicación se lee en pasos; el selector de
+productos busca como el sitio, con paginación numérica; y las listas de publicaciones y grupos se
+buscan sin acentos ni mayúsculas y se recorren de 20 en 20 sin perder la búsqueda.
+
+### Próximos pasos (opciones)
+
+1. **«La búsqueda que se queda sin resultados»**, propuesta al usuario en lugar de la migración de
+   acentos. En 90 días, 213 de 1498 búsquedas quedaron vacías:
+   - «pan» (24 veces), «suero» (10) y «proteina» (9): averiguar qué las filtró de más.
+   - Palabras a medias («prote», «pla», «galle»): la búsqueda solo reconoce palabras completas.
+   - La ñ y la ü: esto sí es una migración pequeña en `hazlo-sano-bot`.
+2. Del usuario: probar los buscadores de las dos listas.
+3. Pendiente desde el slice 7: publicar solo en la Página de Facebook.
+
+## 2026-10-16 — Slice 10: encontrar el producto por las palabras que uno recuerda
+
+### Objetivo
+
+Que el selector de productos encuentre lo que uno sabe que existe a partir de pedazos de su nombre:
+palabras a medias, en cualquier orden, sin acentos, ñ ni mayúsculas. Se mantiene la paginación
+numérica.
+
+### Decisiones y por qué
+
+- **Dos tiempos.** Primero las palabras sueltas contenidas en el título y, si no encuentran nada,
+  la búsqueda del sitio del slice 8 (palabras completas y luego sentido). La primera da lo que se
+  busca al armar una publicación: un producto concreto, por el nombre que uno recuerda. La segunda
+  sigue cubriendo «algo para dormir».
+- **Ni la búsqueda del sitio ni la de la tienda bastaban solas.** La del sitio solo reconoce
+  palabras completas («prote» no da «Proteína») y no iguala la ñ. La de la tienda busca la frase
+  entera tal cual («pan chocolate» no da «Pan de Masa Madre de Chocolate») y no ignora acentos.
+- **Todas las palabras en el mismo título, en cualquiera de sus idiomas.** Se enseña el título del
+  idioma del panel. Se ordena con el título que casó: primero los que empiezan con la primera
+  palabra, luego los más cortos (los más parecidos a lo escrito), luego alfabético y por `id`, para
+  que dos páginas no repitan ni pierdan un renglón.
+- **`translate` y no `unaccent`** (`sqlFold`). La extensión no está instalada, y son unos 400
+  títulos que se recorren enteros. La tabla de letras vive en un solo archivo, y `sqlFold.test.ts`
+  comprueba letra por letra que dobla igual que `foldForSearch` del dominio.
+- **`strpos` y no `LIKE`:** un `%` escrito es un `%` y no hay nada que escapar.
+- **`searchWords`** es la regla de cómo se parte lo escrito: doblado, sin repetir, en orden y hasta
+  8 palabras. Vive en el dominio, con su corrida de escritorio.
+
+### Archivos tocados
+
+- Dominio: `src/domain/search/searchWords.ts` y su prueba (nuevos). `listPage.ts` exporta
+  `foldForSearch`.
+- Casos de uso: el puerto `IOutreachProductFinder` (nuevo). `searchOutreachProductsUseCase` busca
+  en dos tiempos, y su prueba lo cubre.
+- Infra: `PostgresOutreachProductFinder` (nuevo) y `db/sqlFold.ts` con su prueba (nuevos);
+  `outreach/factory.ts`.
+- Acción: `searchOutreachProducts` usa el buscador por palabras; su prueba se actualizó.
+- E2E: el `.feature` del slice 10 y `.spec.ts`. Roadmap: el slice 10.
+
+### Comandos clave
+
+```sh
+pnpm run test:run && pnpm run typecheck && pnpm run lint && pnpm run check:directives
+# La consulta contra la base real, solo lectura (un SELECT), antes del e2e:
+node --env-file=.env.development node_modules/tsx/dist/cli.mjs --tsconfig tsconfig.json <scratchpad>/finder-check.mts
+pnpm exec playwright test src/e2e/outreach --shard=1/3 --reporter=line   # luego 2/3 y 3/3
+```
+
+### Resultados
+
+- **Vitest:** 335 archivos, 3523 pruebas en verde. Nuevas: 9 de `searchWords`, 25 de `sqlFold` y 2
+  del caso de uso en dos tiempos.
+- **Typecheck, lint y directivas** limpios.
+- **La consulta en la base real:**
+  - «prote»: 50 resultados, el primero «Proteína de Soya Aislada».
+  - «pan chocolate» y «chocolate pan»: «Pan de Masa Madre de Chocolate».
+  - «madr canel»: «Pan de masa madre de canela».
+  - «pina»: 5 productos de piña.
+  - «MASA MADRE DE ARANDANOS»: «Pan de masa madre de arándanos».
+  - «masa madre»: 6.
+  - «algo para dormir»: 0 por palabras, así que responde la búsqueda del sitio.
+- **Playwright:** 40 de 40 en tres tramos (14, 14 y 12; 5.9, 5.4 y 4.9 min). Incluye los tres
+  ejemplos nuevos: «chocolate pan», «madr canel» y «MASA MADRE DE ARANDANOS».
+
+### Desviaciones
+
+- **Corrección a la entrada del slice 9:** la corrida tenía 37 escenarios (13, 13 y 11), no 39, y
+  pasaron 36. El que falló se corrigió ahí mismo. Ahora son 40 con los 3 nuevos.
+- **La consulta se probó contra la base antes del e2e,** con un script de solo lectura, para no
+  gastar 18 minutos de navegador en un error de SQL.
+
+### Escrito en recursos compartidos
+
+- **Base compartida:** solo los registros de prueba con marcador `E2E`, que borran `afterEach` y
+  `globalTeardown`. El script de comprobación solo hizo `SELECT`.
+
+### Recap
+
+El selector de productos encuentra por las palabras que uno recuerda: a medias, en cualquier orden y
+sin acentos, ñ ni mayúsculas. Si eso no da nada, responde la búsqueda del sitio con su rescate por
+sentido. Diez por página, con números. Con esto la difusión cierra sus slices de UI (7 a 10).
+
+### Próximos pasos (opciones)
+
+1. **La búsqueda del sitio que se queda sin resultados:** «pan» (24 veces), «suero» y «proteina» sin
+   resultados en 90 días, y las palabras a medias en la barra de arriba. El buscador por palabras de
+   este slice podría servir también ahí.
+2. Del usuario: probar el selector con sus búsquedas de siempre.
+3. Pendiente desde el slice 7: publicar solo en la Página de Facebook.

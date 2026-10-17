@@ -288,6 +288,111 @@ el botón primero pregunta, y la pregunta dice qué más se va con lo que se bor
    fallar, y quien no es admin no borra nada aunque llame a la acción directamente.
 6. Al borrar se vuelve a la lista, aunque quede vacía.
 
+### Slice 7 — Que la publicación se entienda de un vistazo
+
+**De dónde sale.** De usarlo (2026-10-16): los títulos de sección no se distinguen entre sí —todos
+son negritas de 16 a 20 px escritas a mano, sin el `Heading` del sistema de diseño— y cada grupo
+aparece **dos veces** en la publicación: una para abrirlo, con su turno y sus reglas, y otra más
+abajo para marcar dónde quedó. Hay que unir las dos listas de memoria.
+
+- **Problem:** la pantalla no dice de un vistazo qué hacer ni dónde; se lee entera cada vez.
+- **Savings:** segundos por grupo y menos errores al marcar (marcar el grupo que no era, o
+  olvidarse de uno). Que se publique más seguido porque cuesta menos.
+- **Why:** la difusión vale si se hace constante, y lo constante tiene que ser fácil.
+
+**Alcance.** Sin migración. Las siete pantallas usan `Heading` con niveles reales. La publicación
+se ordena en pasos, y en grupos normales cada grupo es **un solo renglón** con todo: abrirlo, su
+turno, su versión, sus reglas y la casilla para marcarlo. Arriba, un resumen de cuántos grupos
+están listos hoy.
+
+**Criterios de aceptación.**
+
+1. Cada pantalla tiene un solo `h1`; las secciones son `h2` y lo de dentro `h3`, con el tamaño que
+   el sistema de diseño da a cada nivel (corrida de escritorio en el `.feature`).
+2. La publicación tiene, para grupos normales, dos pasos numerados: «1. Copia el texto y las
+   fotos» y «2. Publica en cada grupo y márcalo». Compraventa va en su propia sección, después.
+3. En el paso 2 cada grupo normal sale **una vez**, con su enlace, su turno, su versión si hay
+   varias, sus reglas, la última vez y su casilla. Un solo botón marca los elegidos.
+4. El turno se ve como insignia: verde «Ya le toca», neutra «Todavía no: en N días».
+5. Arriba de la publicación: «Hoy les toca a N de M grupos», junto al conteo del día y la pausa.
+   Cuenta los grupos de los dos tipos.
+6. Lo que no entra en la lista sigue diciéndose, como aviso arriba y no al final: es lo primero que
+   hay que arreglar.
+
+### Slice 8 — Buscar productos como en la búsqueda principal
+
+**De dónde sale.** El selector compara letras del título y se queda con 8: «pan chocolate» no
+encuentra «Pan de Masa Madre de Chocolate», y lo que la búsqueda del sitio sí encuentra aquí no
+aparece.
+
+**Alcance.** El selector usa la misma búsqueda del sitio (`SearchPostsUseCase`: texto completo con
+ranking y rescate semántico cuando el texto no encuentra nada), quedándose solo con lo que se
+vende. Cada resultado enseña precio y foto. **Paginación numérica**, 10 por página, con botones
+dentro del formulario (no enlaces: cambiar de página no sale del formulario a medio llenar).
+
+**Criterios de aceptación.**
+
+1. «pan chocolate» encuentra «Pan de Masa Madre de Chocolate», con su precio, y se agrega desde
+   ahí.
+2. Solo se ofrece lo que se vende (`SELLABLE_KINDS`: productos y servicios), igual que la lista de
+   la publicación. Eventos, anuncios y prácticas no salen aunque coincidan. El filtro va **en la
+   consulta**, no después: filtrar tras paginar dejaría páginas cortas y un total falso.
+3. Diez por página. Con más de diez aparecen hasta cinco números, centrados en la página actual
+   (corrida de escritorio en el `.feature`). Cambiar de página no envía el formulario ni pierde lo
+   escrito.
+4. Buscar desde aquí no se mide como búsqueda del sitio: el administrador armando una publicación
+   no es un visitante.
+
+**Lo que no promete** (corregido el 2026-10-16, medido en la base). El diccionario `spanish` ya
+quita los acentos de las vocales al cortar las palabras: «arandanos», «cafe», «jamon» o «platano»
+encuentran lo acentuado. No iguala la ñ ni la ü («pina» no encuentra «piña»), algunos acentos en la
+última sílaba («mamas» frente a «Mamás») ni las palabras vacías («te» frente a «té»). Esos casos
+dependen del rescate por sentido.
+
+### Slice 9 — Buscar y paginar publicaciones y grupos
+
+**Alcance.** La lista de publicaciones y la de grupos tienen un buscador sencillo por texto (nombre,
+y en grupos también la dirección) y se paginan de 20 en 20 con «Anteriores / Siguientes»
+(`QueryPagination`). La página y lo buscado viajan en la dirección (`q`, `pagina`), para volver al
+mismo lugar después de editar.
+
+**Criterios de aceptación.**
+
+1. Lo escrito se busca **contenido** en el nombre (y en grupos, en la dirección), sin acentos ni
+   mayúsculas y sin comodines (corrida de escritorio en el `.feature`).
+2. Con más de 20, «Siguientes» lleva a la página 2 y la búsqueda se conserva.
+3. Sin coincidencias se dice, y «Borrar la búsqueda» devuelve la lista completa.
+4. Se filtra en memoria, en el caso de uso: son decenas de registros y así la regla vive en una
+   sola función (`matchesListTerm`). Si un día son miles, se baja a la consulta.
+
+### Slice 10 — Encontrar el producto por las palabras que uno recuerda
+
+**De dónde sale.** De usar el selector del slice 8 (2026-10-16). La búsqueda del sitio solo
+reconoce palabras completas («prote» no encuentra «Proteína») y no iguala la ñ («pina» no
+encuentra «piña»). La de la página de la tienda busca la frase entera tal cual, y «pan chocolate»
+tampoco encuentra «Pan de Masa Madre de Chocolate». Para armar una publicación se busca un producto
+**que uno ya sabe que existe**, por los pedazos de nombre que recuerda.
+
+- **Problem:** el producto existe y el selector no lo da, o lo da en la página 3.
+- **Savings:** no tener que adivinar cómo se llama exactamente cada producto.
+- **Why:** sin encontrar el producto no hay publicación.
+
+**Alcance.** Sin migración. El selector busca primero **por palabras sueltas contenidas**: cada
+palabra escrita tiene que estar en el título, en cualquier orden, aunque sea a medias, y sin importar
+acentos, ñ ni mayúsculas. Si eso no encuentra nada, cae a la búsqueda del sitio del slice 8 (palabras
+completas y luego sentido). Siguen los diez por página con números.
+
+**Criterios de aceptación.**
+
+1. Cada palabra debe estar **contenida** en el mismo título, en cualquiera de sus idiomas
+   (corrida de escritorio en el `.feature`).
+2. Sin acentos, ñ, ü ni mayúsculas, a los dos lados: lo que se escribe y el título.
+3. Orden: primero los títulos que empiezan con la primera palabra, luego los más cortos (los más
+   parecidos a lo escrito) y luego por orden alfabético.
+4. Solo lo que se vende, igual que el slice 8. Si las palabras no encuentran nada, responde la
+   búsqueda del sitio, con su rescate por sentido.
+5. Sin comodines: un `%` o un `_` escritos son ese carácter.
+
 ## Configuración
 
 | Variable                 | Por omisión | Acepta                      | Para qué                                              |
@@ -417,6 +522,21 @@ borrando su historial, y así las pruebas, que borran sus grupos al terminar, no
 sueltas contando en el tope del día.
 
 El `downgrade` borra las filas con texto nulo antes de volver a `NOT NULL`.
+
+## Pendiente: publicar solo en la Página de Facebook
+
+**De dónde sale.** El usuario esperaba que la difusión fuera automática (2026-10-16). En grupos no
+se puede (ver «Por qué la app prepara y la persona publica»), pero en una **Página** sí: la Graph
+API sigue permitiendo publicar en las Páginas que uno administra (`pages_manage_posts`).
+
+**La idea.** La app publica en la Página de la tienda el texto armado, con la lista al día y sus
+fotos, sin que nadie dé el clic. A los grupos se llega compartiendo esa publicación desde la Página,
+a mano y con el ritmo de siempre. Quedan por decidir: cada cuándo publica, qué texto y versión usa,
+y si lo dispara un horario o un botón.
+
+**Lo que pide antes de empezar.** Una app de Meta con revisión para `pages_manage_posts`, un token de
+Página guardado como secreto y, con «Facebook» ya en la lista cerrada de redes, un canal de tipo
+«página» junto a los de grupo. Sin roadmap todavía: se planea cuando el usuario lo pida.
 
 ## Pendientes del usuario
 

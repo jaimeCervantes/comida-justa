@@ -1,7 +1,11 @@
 import { createTranslator } from "next-intl";
 import { describe, expect, it } from "vitest";
 import es from "~/i18n/messages/es.json";
-import { dailyPaceMessage, pauseMessage } from "./paceMessages";
+import {
+  dailyPaceMessage,
+  dueChannelsMessage,
+  pauseMessage,
+} from "./paceMessages";
 
 /** El catálogo de verdad: si alguien cambia una frase, esta prueba lo dice. */
 const t = createTranslator({
@@ -58,5 +62,21 @@ describe("los avisos del ritmo", () => {
     expect(
       dailyPaceMessage(t, { count: llevas, limit: 10, reached: llevas >= 10 }),
     ).toBe(seLee);
+  });
+});
+
+/** El resumen de arriba del slice 7. */
+describe("a cuántos grupos les toca hoy", () => {
+  it.each([
+    { due: 2, total: 3, seLee: "Hoy les toca a 2 de 3 grupos." },
+    { due: 1, total: 3, seLee: "Hoy le toca a 1 de 3 grupos." },
+    { due: 0, total: 2, seLee: "Hoy no le toca a ninguno de tus 2 grupos." },
+    { due: 1, total: 1, seLee: "Hoy le toca a 1 de 1 grupo." },
+  ])("$due de $total", ({ due, total, seLee }) => {
+    expect(dueChannelsMessage(t, { due, total })).toBe(seLee);
+  });
+
+  it("sin grupos no dice nada: lo dice cada sección, con su enlace para darlos de alta", () => {
+    expect(dueChannelsMessage(t, { due: 0, total: 0 })).toBeNull();
   });
 });

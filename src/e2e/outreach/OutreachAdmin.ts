@@ -68,6 +68,16 @@ export default class OutreachAdmin {
     );
   }
 
+  /**
+   * Sin pie. Una publicación nueva arranca con el único pie que haya, y en la base compartida puede
+   * estar el de verdad: quien quiere el texto sin pie lo dice, no lo supone.
+   */
+  async chooseNoFooter(form: Locator): Promise<void> {
+    await form
+      .getByRole("combobox", { name: labelled(t.footerLabel) })
+      .selectOption({ label: t.footerNone });
+  }
+
   /** Busca el producto por su título, lo agrega y le pone la etiqueta y el emoji de la lista. */
   async addProduct(
     form: Locator,
@@ -84,6 +94,19 @@ export default class OutreachAdmin {
       .click();
 
     await this.setItem(form, title, { label, emoji });
+  }
+
+  /** Escribe en el buscador del formulario; los resultados llegan del servidor al dejar de teclear. */
+  async searchProducts(form: Locator, term: string): Promise<void> {
+    await fillWhenHydrated(
+      form.getByRole("searchbox", { name: t.searchLabel }),
+      term,
+    );
+  }
+
+  /** Un resultado del buscador por lo que dice: título y precio. */
+  productMatch(form: Locator, text: string): Locator {
+    return form.getByTestId("outreach-product-match").filter({ hasText: text });
   }
 
   async setItem(
@@ -217,10 +240,24 @@ export default class OutreachAdmin {
 
   /** El enlace que abre un grupo, dentro de la sección de su tipo. */
   channelLink(section: Locator, name: string): Locator {
-    return section
-      .getByTestId("outreach-channel-link")
-      .filter({ hasText: name })
-      .getByRole("link");
+    return this.channelRow(section, name).getByRole("link");
+  }
+
+  /** «2. Publica en cada grupo y márcalo»: los grupos normales, uno por renglón. */
+  publishStep(): Locator {
+    return this.groupPost().getByRole("region", {
+      name: t.stepPublishHeading,
+    });
+  }
+
+  /** El renglón de un grupo normal: su enlace, su turno, sus reglas, su última vez y su casilla. */
+  publishRow(name: string): Locator {
+    return this.markable(this.publishStep(), name);
+  }
+
+  /** «Hoy les toca a 2 de 3 grupos.», arriba de la publicación. */
+  dueChannels(): Locator {
+    return this.page.getByTestId("outreach-due-channels");
   }
 
   /** Un grupo en un formulario de «marcar como publicada»: su casilla y su última vez. */
@@ -271,9 +308,17 @@ export default class OutreachAdmin {
 
   // --- El ritmo -----------------------------------------------------------------------------
 
+  /**
+   * El renglón de un grupo con su turno. En grupos normales es el mismo que se marca
+   * (`outreach-channel`, desde el slice 7); en compraventa, el de la lista de grupos de arriba
+   * (`outreach-channel-link`), porque ahí se marca por pan. Los renglones de marcar de cada pan no
+   * llevan turno ni enlace, así que lo que se busca dentro de este solo aparece una vez.
+   */
   private channelRow(section: Locator, name: string): Locator {
     return section
-      .getByTestId("outreach-channel-link")
+      .locator(
+        '[data-testid="outreach-channel-link"], [data-testid="outreach-channel"]',
+      )
       .filter({ hasText: name });
   }
 
@@ -315,6 +360,18 @@ export default class OutreachAdmin {
   /** Desde su edición: confirma y vuelve a la lista de publicaciones. */
   async deleteText(): Promise<void> {
     await deleteAndConfirm(this.page, t.deleteText, t.listHeading);
+  }
+
+  async openList(): Promise<void> {
+    await this.page.goto("/admin/difusion");
+    await expect(this.page.getByRole("heading", { level: 1 })).toBeVisible();
+  }
+
+  async searchTexts(term: string): Promise<void> {
+    await fillWhenHydrated(
+      this.page.getByTestId("outreach-texts-search"),
+      term,
+    );
   }
 
   /** Una publicación en la lista; `exact` porque «Masa madre» es principio de otros nombres. */

@@ -1,4 +1,5 @@
 import { getTranslations } from "next-intl/server";
+import { Heading } from "~/presentation/design_system/typography/Heading";
 import { enterOutreachAdmin, outreachMetadata } from "../../adminGate";
 import OutreachBreadcrumbs from "../../ui/OutreachBreadcrumbs";
 import ChannelForm from "../ui/ChannelForm";
@@ -16,7 +17,9 @@ export default async function NuevoGrupoPage({
   return (
     <main>
       <OutreachBreadcrumbs inGroups steps={[{ label: t("newGroup") }]} />
-      <h1 className="text-xl font-bold mb-4">{t("newGroupHeading")}</h1>
+      <Heading level={1} className="mb-4">
+        {t("newGroupHeading")}
+      </Heading>
       <ChannelForm label={t("newGroupHeading")} />
     </main>
   );

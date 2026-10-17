@@ -82,6 +82,7 @@ export class SearchPostsUseCase {
         dto.near ?? null,
         dto.categoryKeys,
         dto.onlyAvailable,
+        dto.kinds,
       ),
       this.countByCategory(dto),
     ]);
@@ -171,6 +172,8 @@ export class SearchPostsUseCase {
         SEMANTIC_MAX_DISTANCE,
         dto.near ?? null,
         dto.categoryKeys,
+        dto.onlyAvailable,
+        dto.kinds,
       );
     } catch {
       return empty;

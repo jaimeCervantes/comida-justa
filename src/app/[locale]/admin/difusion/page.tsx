@@ -2,28 +2,44 @@ import { getTranslations } from "next-intl/server";
 import { Link } from "~/i18n/navigation";
 import { createOutreachTextRepository } from "~/infra/dataAccess/outreach/factory";
 import { buttonVariants } from "~/presentation/design_system/buttons/buttonVariants";
+import { Heading } from "~/presentation/design_system/typography/Heading";
 import ListOutreachTextsUseCase from "~/use_cases/outreach/listOutreachTextsUseCase";
 import { enterOutreachAdmin, outreachMetadata } from "./adminGate";
 import OutreachBreadcrumbs from "./ui/OutreachBreadcrumbs";
+import {
+  OutreachListPagination,
+  OutreachNothingFound,
+} from "./ui/OutreachListPages";
+import OutreachListSearch from "./ui/OutreachListSearch";
+import { readOutreachListParams } from "./ui/outreachListHref";
 
 export const generateMetadata = outreachMetadata;
 
 export default async function DifusionPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   await enterOutreachAdmin((await params).locale);
   const t = await getTranslations("outreach");
+  const query = readOutreachListParams(await searchParams);
 
-  const texts = await new ListOutreachTextsUseCase(
+  const {
+    items: texts,
+    total,
+    page,
+  } = await new ListOutreachTextsUseCase(
     createOutreachTextRepository(),
-  ).execute();
+  ).execute(query);
 
   return (
     <main>
       <OutreachBreadcrumbs />
-      <h1 className="text-xl font-bold mb-2">{t("listHeading")}</h1>
+      <Heading level={1} className="mb-2">
+        {t("listHeading")}
+      </Heading>
 
       <p className="mb-6 text-text-support">
         {t.rich("listIntro", { b: (chunks) => <strong>{chunks}</strong> })}
@@ -50,8 +66,27 @@ export default async function DifusionPage({
         </Link>
       </div>
 
+      {total > 0 || query.term ? (
+        <OutreachListSearch
+          pathname="/admin/difusion"
+          term={query.term}
+          label={t("textsSearchLabel")}
+          placeholder={t("textsSearchPlaceholder")}
+          testId="outreach-texts-search"
+        />
+      ) : null}
+
       {texts.length === 0 ? (
-        <p className="text-text-support">{t("emptyList")}</p>
+        query.term ? (
+          <OutreachNothingFound
+            pathname="/admin/difusion"
+            message={t("textsNothingFound", { term: query.term })}
+            clearLabel={t("clearSearch")}
+            testId="outreach-texts-nothing-found"
+          />
+        ) : (
+          <p className="text-text-support">{t("emptyList")}</p>
+        )
       ) : (
         <ul data-testid="outreach-texts" className="flex flex-col gap-2">
           {texts.map((text) => (
@@ -72,6 +107,14 @@ export default async function DifusionPage({
           ))}
         </ul>
       )}
+
+      <OutreachListPagination
+        pathname="/admin/difusion"
+        term={query.term}
+        page={page}
+        total={total}
+        testId="outreach-texts-pagination"
+      />
     </main>
   );
 }

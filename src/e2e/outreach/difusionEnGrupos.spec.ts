@@ -40,9 +40,10 @@ import OutreachFooters from "./OutreachFooters";
 import OutreachGroups from "./OutreachGroups";
 
 /**
- * Slices 1 a 6 de `difusionEnGrupos.feature`: la publicación para grupos normales, los artículos
+ * Slices 1 a 10 de `difusionEnGrupos.feature`: la publicación para grupos normales, los artículos
  * de compraventa que salen de ella, los grupos con el historial de dónde quedó cada cosa, el ritmo
- * entre ellos, el pie compartido con sus versiones, y borrar lo que ya no se usa.
+ * entre ellos, el pie compartido con sus versiones, borrar lo que ya no se usa, la publicación que
+ * se entiende de un vistazo, el buscador de productos por palabras y las listas buscadas y en páginas.
  *
  * Nada de esto publica en Facebook —ninguna app puede ya—: se comprueba que el texto que se copia
  * es exactamente el que anuncia lo que hay hoy, al precio de hoy.
@@ -129,6 +130,7 @@ test.describe("Difusión en grupos de Facebook", () => {
       opening: OPENING,
       closing: CLOSING,
     });
+    await admin.chooseNoFooter(form);
     for (const bread of breads) {
       await admin.addProduct(form, bread);
     }
@@ -664,6 +666,242 @@ test.describe("Difusión en grupos de Facebook", () => {
     await admin.open(id);
     expect(await admin.readText()).not.toContain(body);
   });
+
+  // --- Slice 7: que se entienda de un vistazo ------------------------------------------------
+
+  test("Cada grupo normal sale una sola vez, con todo lo que necesito para publicar ahí", async ({
+    page,
+  }) => {
+    const mamas = await seedGroup("Mamás de Orizaba", "post");
+    const emprendedores = await seedGroup("Emprendedores de Orizaba", "post");
+    const id = await seedMasaMadreText(breads);
+    await seedOutreachPublication({
+      outreachTextId: id,
+      channelId: mamas.id,
+      postId: null,
+      publishedAt: daysAgo(3),
+    });
+    await seedOutreachPublication({
+      outreachTextId: id,
+      channelId: emprendedores.id,
+      postId: null,
+      publishedAt: daysAgo(8),
+    });
+    const admin = new OutreachAdmin(page);
+
+    await admin.open(id);
+
+    /* Una vez cada uno, no «dos renglones»: en la base compartida puede haber grupos de verdad. */
+    for (const group of [mamas, emprendedores]) {
+      await expect(admin.publishRow(group.name)).toHaveCount(1);
+    }
+    for (const { group, turn, last } of [
+      { group: mamas, turn: "Todavía no: en 4 días", last: "hace 3 días" },
+      { group: emprendedores, turn: t.turnDue, last: "hace 8 días" },
+    ]) {
+      const row = admin.publishRow(group.name);
+      await expect(row.getByTestId("outreach-channel-turn")).toHaveText(turn);
+      await expect(row.getByTestId("outreach-channel-last")).toHaveText(
+        t.lastPublished.replace("{when}", last),
+      );
+      await expect(row.getByRole("link")).toHaveAttribute("href", group.url);
+      await expect(row.getByRole("checkbox")).toBeVisible();
+    }
+    // Ya no hay una segunda lista de los mismos grupos más arriba.
+    await expect(
+      admin.groupPost().getByTestId("outreach-channel-link"),
+    ).toHaveCount(0);
+
+    await admin.markPostPublished([emprendedores.name]);
+
+    const marked = admin.publishRow(emprendedores.name);
+    await expect(marked.getByTestId("outreach-channel-turn")).toHaveText(
+      "Todavía no: en 7 días",
+    );
+    await expect(marked.getByTestId("outreach-channel-last")).toHaveText(
+      LAST_TODAY,
+    );
+  });
+
+  test("Arriba me dice a cuántos grupos les toca hoy", async ({ page }) => {
+    const mamas = await seedGroup("Mamás de Orizaba", "post");
+    const emprendedores = await seedGroup("Emprendedores de Orizaba", "post");
+    await seedGroup("Compra Venta Orizaba", "listing");
+    const id = await seedMasaMadreText(breads);
+    await seedOutreachPublication({
+      outreachTextId: id,
+      channelId: mamas.id,
+      postId: null,
+      publishedAt: daysAgo(3),
+    });
+    await seedOutreachPublication({
+      outreachTextId: id,
+      channelId: emprendedores.id,
+      postId: null,
+      publishedAt: daysAgo(8),
+    });
+    const admin = new OutreachAdmin(page);
+
+    await admin.open(id);
+
+    /* Cuenta todos los grupos dados de alta, no solo los de prueba: en la base compartida puede
+       haber de verdad. Lo que se afirma es la frase y que los nuestros sumaron lo que debían. */
+    await expect(admin.dueChannels()).toHaveText(
+      /^Hoy les? toca a \d+ de \d+ grupos?\.$/,
+    );
+    const [due, total] = (
+      (await admin.dueChannels().textContent())?.match(/\d+/g) ?? []
+    ).map(Number);
+    expect(total - due).toBeGreaterThanOrEqual(1);
+    expect(due).toBeGreaterThanOrEqual(2);
+  });
+
+  // --- Slice 8: buscar productos como en el buscador del sitio --------------------------------
+
+  /* Palabras sueltas: la búsqueda vieja comparaba letras seguidas del título y no lo encontraba.
+     Puede salir también el pan de verdad, que se llama igual; basta con que esté el nuestro. */
+  test("Encuentro un pan con palabras sueltas, como en el buscador del sitio", async ({
+    page,
+  }) => {
+    const chocolate = breadOf(breads, "chocolate");
+    const admin = new OutreachAdmin(page);
+    await admin.openNew();
+    const form = admin.form(t.newHeading);
+
+    await admin.searchProducts(form, "pan chocolate");
+
+    const match = admin.productMatch(form, chocolate.title);
+    await expect(match).toContainText("$136.00");
+    await match.getByRole("button", { name: t.addProduct }).click();
+    await expect(
+      form.getByTestId("outreach-item").filter({ hasText: chocolate.title }),
+    ).toHaveCount(1);
+  });
+
+  // --- Slice 10: las palabras que uno recuerda -----------------------------------------------
+
+  /* Los panes sembrados se llaman como los de verdad más el marcador, así que también salen los
+     reales: basta con que esté el nuestro entre los diez primeros. */
+  for (const { escribo, pan } of [
+    { escribo: "chocolate pan", pan: "chocolate" },
+    { escribo: "madr canel", pan: "canela" },
+    { escribo: "MASA MADRE DE ARANDANOS", pan: "arandanos" },
+  ] as const) {
+    test(`Encuentro el pan con las palabras que recuerdo: «${escribo}»`, async ({
+      page,
+    }) => {
+      const bread = breadOf(breads, pan);
+      const admin = new OutreachAdmin(page);
+      await admin.openNew();
+      const form = admin.form(t.newHeading);
+
+      await admin.searchProducts(form, escribo);
+
+      await expect(admin.productMatch(form, bread.title)).toBeVisible();
+    });
+  }
+
+  // --- Slice 9: buscar y paginar publicaciones y grupos ------------------------------------
+
+  /* En la base compartida hay grupos y publicaciones de verdad, y alguno puede llamarse igual:
+     se afirma que los nuestros aparecen o no, nunca cuántos hay en total. */
+  test("Busco un grupo por su nombre, sin acentos ni mayúsculas", async ({
+    page,
+  }) => {
+    const mamas = await seedGroup("Mamás de Orizaba", "post");
+    const emprendedores = await seedGroup("Emprendedores de Orizaba", "post");
+    const cordoba = await seedGroup("Ventas Córdoba", "post");
+    const groups = new OutreachGroups(page);
+    await groups.open();
+
+    await groups.search("MAMAS");
+
+    await expect(groups.group(mamas.name)).toBeVisible();
+    await expect(groups.group(emprendedores.name)).toHaveCount(0);
+    await expect(groups.group(cordoba.name)).toHaveCount(0);
+  });
+
+  test("Busco una publicación por su nombre", async ({ page }) => {
+    const masa = testOutreachName("Masa madre");
+    const jugos = testOutreachName("Jugos verdes");
+    await seedMasaMadreText(breads, masa);
+    await seedMasaMadreText(breads, jugos);
+    const admin = new OutreachAdmin(page);
+    await admin.openList();
+
+    await admin.searchTexts("masa");
+
+    await expect(admin.listedText(masa)).toBeVisible();
+    await expect(admin.listedText(jugos)).toHaveCount(0);
+  });
+
+  /* «orizaba» a secas podría traer los grupos de verdad de la tienda y mover el corte de página:
+     los 25 llevan una marca de esta corrida y se busca por ella. La regla es la misma. */
+  test("Paso a la siguiente página y la búsqueda se conserva", async ({
+    page,
+  }) => {
+    const mark = `orizaba${Date.now().toString(36)}`;
+    for (let index = 1; index <= 25; index++) {
+      await seedGroup(`${mark} ${String(index).padStart(2, "0")}`, "post");
+    }
+    const groups = new OutreachGroups(page);
+    await groups.open();
+    await groups.search(mark);
+    /* Hasta que la búsqueda está en la dirección no se ha filtrado: la lista sin filtrar también
+       puede tener 20 renglones, y pasar de página antes deja que la búsqueda pendiente la pise. */
+    await expect(page).toHaveURL(new RegExp(`q=${mark}`));
+    await expect(groups.rows()).toHaveCount(20);
+
+    await groups.nextPage().click();
+
+    await expect(page).toHaveURL(/pagina=2/);
+    await expect(groups.rows()).toHaveCount(5);
+    await expect(groups.searchField()).toHaveValue(mark);
+  });
+
+  test("Sin coincidencias me lo dice y me deja borrar la búsqueda", async ({
+    page,
+  }) => {
+    await seedGroup("Mamás de Orizaba", "post");
+    const groups = new OutreachGroups(page);
+    await groups.open();
+
+    await groups.search("zzz");
+
+    await expect(groups.nothingFound()).toContainText(
+      t.groupsNothingFound.replace("{term}", "zzz"),
+    );
+    await groups
+      .nothingFound()
+      .getByRole("link", { name: t.clearSearch })
+      .click();
+    await expect(groups.searchField()).toHaveValue("");
+    await expect(groups.rows().first()).toBeVisible();
+  });
+
+  for (const { title, level } of [
+    { title: "Masa madre", level: 1 },
+    { title: t.groupPostHeading, level: 2 },
+    { title: t.stepCopyHeading, level: 3 },
+    { title: t.stepPublishHeading, level: 3 },
+    { title: t.listingsHeading, level: 2 },
+  ]) {
+    test(`Los títulos de la publicación: «${title}» es de nivel ${level}`, async ({
+      page,
+    }) => {
+      await seedGroup("Mamás de Orizaba", "post");
+      await seedGroup("Compra Venta Orizaba", "listing");
+      const id = await seedMasaMadreText(breads);
+      const admin = new OutreachAdmin(page);
+
+      await admin.open(id);
+
+      // El nombre sembrado lleva el marcador de prueba: se busca por su principio.
+      await expect(
+        page.getByRole("heading", { level, name: title }),
+      ).toHaveCount(1);
+    });
+  }
 });
 
 /** Hace tantos días, a esta misma hora: los turnos se cuentan en días de calendario. */
