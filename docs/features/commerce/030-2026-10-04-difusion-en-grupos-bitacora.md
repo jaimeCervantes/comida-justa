@@ -1139,3 +1139,93 @@ buscan sin acentos ni mayúsculas y se recorren de 20 en 20 sin perder la búsqu
    - La ñ y la ü: esto sí es una migración pequeña en `hazlo-sano-bot`.
 2. Del usuario: probar los buscadores de las dos listas.
 3. Pendiente desde el slice 7: publicar solo en la Página de Facebook.
+
+## 2026-10-16 — Slice 10: encontrar el producto por las palabras que uno recuerda
+
+### Objetivo
+
+Que el selector de productos encuentre lo que uno sabe que existe a partir de pedazos de su nombre:
+palabras a medias, en cualquier orden, sin acentos, ñ ni mayúsculas. Se mantiene la paginación
+numérica.
+
+### Decisiones y por qué
+
+- **Dos tiempos.** Primero las palabras sueltas contenidas en el título y, si no encuentran nada,
+  la búsqueda del sitio del slice 8 (palabras completas y luego sentido). La primera da lo que se
+  busca al armar una publicación: un producto concreto, por el nombre que uno recuerda. La segunda
+  sigue cubriendo «algo para dormir».
+- **Ni la búsqueda del sitio ni la de la tienda bastaban solas.** La del sitio solo reconoce
+  palabras completas («prote» no da «Proteína») y no iguala la ñ. La de la tienda busca la frase
+  entera tal cual («pan chocolate» no da «Pan de Masa Madre de Chocolate») y no ignora acentos.
+- **Todas las palabras en el mismo título, en cualquiera de sus idiomas.** Se enseña el título del
+  idioma del panel. Se ordena con el título que casó: primero los que empiezan con la primera
+  palabra, luego los más cortos (los más parecidos a lo escrito), luego alfabético y por `id`, para
+  que dos páginas no repitan ni pierdan un renglón.
+- **`translate` y no `unaccent`** (`sqlFold`). La extensión no está instalada, y son unos 400
+  títulos que se recorren enteros. La tabla de letras vive en un solo archivo, y `sqlFold.test.ts`
+  comprueba letra por letra que dobla igual que `foldForSearch` del dominio.
+- **`strpos` y no `LIKE`:** un `%` escrito es un `%` y no hay nada que escapar.
+- **`searchWords`** es la regla de cómo se parte lo escrito: doblado, sin repetir, en orden y hasta
+  8 palabras. Vive en el dominio, con su corrida de escritorio.
+
+### Archivos tocados
+
+- Dominio: `src/domain/search/searchWords.ts` y su prueba (nuevos). `listPage.ts` exporta
+  `foldForSearch`.
+- Casos de uso: el puerto `IOutreachProductFinder` (nuevo). `searchOutreachProductsUseCase` busca
+  en dos tiempos, y su prueba lo cubre.
+- Infra: `PostgresOutreachProductFinder` (nuevo) y `db/sqlFold.ts` con su prueba (nuevos);
+  `outreach/factory.ts`.
+- Acción: `searchOutreachProducts` usa el buscador por palabras; su prueba se actualizó.
+- E2E: el `.feature` del slice 10 y `.spec.ts`. Roadmap: el slice 10.
+
+### Comandos clave
+
+```sh
+pnpm run test:run && pnpm run typecheck && pnpm run lint && pnpm run check:directives
+# La consulta contra la base real, solo lectura (un SELECT), antes del e2e:
+node --env-file=.env.development node_modules/tsx/dist/cli.mjs --tsconfig tsconfig.json <scratchpad>/finder-check.mts
+pnpm exec playwright test src/e2e/outreach --shard=1/3 --reporter=line   # luego 2/3 y 3/3
+```
+
+### Resultados
+
+- **Vitest:** 335 archivos, 3523 pruebas en verde. Nuevas: 9 de `searchWords`, 25 de `sqlFold` y 2
+  del caso de uso en dos tiempos.
+- **Typecheck, lint y directivas** limpios.
+- **La consulta en la base real:**
+  - «prote»: 50 resultados, el primero «Proteína de Soya Aislada».
+  - «pan chocolate» y «chocolate pan»: «Pan de Masa Madre de Chocolate».
+  - «madr canel»: «Pan de masa madre de canela».
+  - «pina»: 5 productos de piña.
+  - «MASA MADRE DE ARANDANOS»: «Pan de masa madre de arándanos».
+  - «masa madre»: 6.
+  - «algo para dormir»: 0 por palabras, así que responde la búsqueda del sitio.
+- **Playwright:** 40 de 40 en tres tramos (14, 14 y 12; 5.9, 5.4 y 4.9 min). Incluye los tres
+  ejemplos nuevos: «chocolate pan», «madr canel» y «MASA MADRE DE ARANDANOS».
+
+### Desviaciones
+
+- **Corrección a la entrada del slice 9:** la corrida tenía 37 escenarios (13, 13 y 11), no 39, y
+  pasaron 36. El que falló se corrigió ahí mismo. Ahora son 40 con los 3 nuevos.
+- **La consulta se probó contra la base antes del e2e,** con un script de solo lectura, para no
+  gastar 18 minutos de navegador en un error de SQL.
+
+### Escrito en recursos compartidos
+
+- **Base compartida:** solo los registros de prueba con marcador `E2E`, que borran `afterEach` y
+  `globalTeardown`. El script de comprobación solo hizo `SELECT`.
+
+### Recap
+
+El selector de productos encuentra por las palabras que uno recuerda: a medias, en cualquier orden y
+sin acentos, ñ ni mayúsculas. Si eso no da nada, responde la búsqueda del sitio con su rescate por
+sentido. Diez por página, con números. Con esto la difusión cierra sus slices de UI (7 a 10).
+
+### Próximos pasos (opciones)
+
+1. **La búsqueda del sitio que se queda sin resultados:** «pan» (24 veces), «suero» y «proteina» sin
+   resultados en 90 días, y las palabras a medias en la barra de arriba. El buscador por palabras de
+   este slice podría servir también ahí.
+2. Del usuario: probar el selector con sus búsquedas de siempre.
+3. Pendiente desde el slice 7: publicar solo en la Página de Facebook.
