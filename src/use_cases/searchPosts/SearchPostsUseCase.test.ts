@@ -17,6 +17,8 @@ describe("SearchPostsUseCase", () => {
       searchByVector: vi.fn(),
       // Y un tercero desde las facetas: cuántos resultados caen en cada pilar.
       countByCategory: vi.fn().mockResolvedValue({}),
+      searchByPrefix: vi.fn().mockResolvedValue({ results: [], total: 0 }),
+      countByCategoryByPrefix: vi.fn().mockResolvedValue({}),
     };
     useCase = new SearchPostsUseCase(mockRepository);
   });
@@ -148,6 +150,8 @@ describe("SearchPostsUseCase y el idioma de quien busca", () => {
     const repository: Mocked<ISearchPostRepository> = {
       search: vi.fn().mockResolvedValue({ results: [], total: 0 }),
       countByCategory: vi.fn().mockResolvedValue({}),
+      searchByPrefix: vi.fn().mockResolvedValue({ results: [], total: 0 }),
+      countByCategoryByPrefix: vi.fn().mockResolvedValue({}),
       // Este escenario no llega al rescate semántico, pero el puerto lo exige: sin él, el doble no
       // es un repositorio de búsqueda y `tsc` deja de poder comprobar la llamada de abajo.
       searchByVector: vi.fn(),
@@ -192,6 +196,8 @@ describe("SearchPostsUseCase y el rescate semántico", () => {
       search: vi.fn().mockResolvedValue(textual),
       searchByVector: vi.fn().mockResolvedValue(vectorial),
       countByCategory: vi.fn().mockResolvedValue({}),
+      searchByPrefix: vi.fn().mockResolvedValue({ results: [], total: 0 }),
+      countByCategoryByPrefix: vi.fn().mockResolvedValue({}),
     };
   }
 
@@ -315,6 +321,8 @@ describe("SearchPostsUseCase y los tipos de publicación", () => {
       search: vi.fn().mockResolvedValue(sinResultados),
       searchByVector: vi.fn().mockResolvedValue(sinResultados),
       countByCategory: vi.fn().mockResolvedValue({}),
+      searchByPrefix: vi.fn().mockResolvedValue({ results: [], total: 0 }),
+      countByCategoryByPrefix: vi.fn().mockResolvedValue({}),
     };
     const embedder = { generateEmbedding: vi.fn().mockResolvedValue([0.1]) };
 
@@ -340,6 +348,8 @@ describe("SearchPostsUseCase y los tipos de publicación", () => {
       search: vi.fn().mockResolvedValue(sinResultados),
       searchByVector: vi.fn().mockResolvedValue(sinResultados),
       countByCategory: vi.fn().mockResolvedValue({}),
+      searchByPrefix: vi.fn().mockResolvedValue({ results: [], total: 0 }),
+      countByCategoryByPrefix: vi.fn().mockResolvedValue({}),
     };
     const embedder = { generateEmbedding: vi.fn().mockResolvedValue([0.1]) };
 
@@ -364,6 +374,8 @@ describe("SearchPostsUseCase y la medición", () => {
       search: vi.fn().mockResolvedValue(textual),
       searchByVector: vi.fn().mockResolvedValue(vectorial),
       countByCategory: vi.fn().mockResolvedValue({}),
+      searchByPrefix: vi.fn().mockResolvedValue({ results: [], total: 0 }),
+      countByCategoryByPrefix: vi.fn().mockResolvedValue({}),
     };
   }
 
@@ -449,6 +461,8 @@ describe("SearchPostsUseCase y las facetas", () => {
         counts instanceof Error
           ? vi.fn().mockRejectedValue(counts)
           : vi.fn().mockResolvedValue(counts),
+      searchByPrefix: vi.fn().mockResolvedValue(sinResultados),
+      countByCategoryByPrefix: vi.fn().mockResolvedValue({}),
     };
   }
 
@@ -539,5 +553,218 @@ describe("SearchPostsUseCase y las facetas", () => {
       undefined,
     );
     expect(repository.countByCategory).toHaveBeenCalledWith("miel", true);
+  });
+});
+
+/** Slice 1 de `docs/features/search/006-2026-10-17-palabras-a-medias.md`. */
+describe("SearchPostsUseCase y las palabras a medias", () => {
+  const unResultado = {
+    results: [{ id: "1" }] as unknown as ISearchPostResultDTO[],
+    total: 1,
+  };
+  const sinResultados = { results: [], total: 0 };
+
+  function makeRepo({
+    textual = sinResultados,
+    byPrefix = sinResultados,
+    counts = {},
+    prefixCounts = {},
+  }: {
+    textual?: typeof sinResultados;
+    byPrefix?: typeof sinResultados;
+    counts?: Record<string, number>;
+    prefixCounts?: Record<string, number>;
+  } = {}): Mocked<ISearchPostRepository> {
+    return {
+      search: vi.fn().mockResolvedValue(textual),
+      searchByVector: vi.fn().mockResolvedValue(unResultado),
+      countByCategory: vi.fn().mockResolvedValue(counts),
+      searchByPrefix: vi.fn().mockResolvedValue(byPrefix),
+      countByCategoryByPrefix: vi.fn().mockResolvedValue(prefixCounts),
+    };
+  }
+
+  const embedder = () => ({
+    generateEmbedding: vi.fn().mockResolvedValue([0.1]),
+  });
+
+  it("si las palabras completas no encontraron nada, busca por inicio de palabra", async () => {
+    const repository = makeRepo({
+      byPrefix: unResultado,
+      prefixCounts: { alimentacion: 1 },
+    });
+    const semantic = embedder();
+
+    const result = await new SearchPostsUseCase(repository, semantic).execute({
+      query: "Barra de PROT",
+      page: 2,
+      pageSize: 6,
+      locale: "es",
+      onlyAvailable: true,
+    });
+
+    expect(repository.searchByPrefix).toHaveBeenCalledWith(
+      ["barra", "de", "prot"],
+      2,
+      6,
+      "es",
+      null,
+      undefined,
+      true,
+      undefined,
+    );
+    expect(repository.countByCategoryByPrefix).toHaveBeenCalledWith(
+      ["barra", "de", "prot"],
+      true,
+    );
+    /* Es búsqueda de texto: las facetas enseñan los números del inicio de palabra. */
+    expect(result).toMatchObject({
+      total: 1,
+      strategy: "text",
+      counts: { alimentacion: 1 },
+    });
+    expect(semantic.generateEmbedding).not.toHaveBeenCalled();
+  });
+
+  it("no busca por inicio cuando las palabras completas ya encontraron algo", async () => {
+    const repository = makeRepo({ textual: unResultado });
+
+    await new SearchPostsUseCase(repository).execute({
+      query: "pan",
+      page: 1,
+      pageSize: 6,
+    });
+
+    expect(repository.searchByPrefix).not.toHaveBeenCalled();
+  });
+
+  it("si el inicio tampoco encontró nada, pregunta por el sentido", async () => {
+    const repository = makeRepo();
+
+    const result = await new SearchPostsUseCase(repository, embedder()).execute(
+      { query: "algo para dormir", page: 1, pageSize: 6 },
+    );
+
+    expect(repository.searchByPrefix).toHaveBeenCalled();
+    expect(result.strategy).toBe("semantic");
+  });
+
+  it("sin palabras que sirvan de inicio, va directo al sentido", async () => {
+    const repository = makeRepo();
+
+    await new SearchPostsUseCase(repository, embedder()).execute({
+      query: "a",
+      page: 1,
+      pageSize: 6,
+    });
+
+    expect(repository.searchByPrefix).not.toHaveBeenCalled();
+    expect(repository.searchByVector).toHaveBeenCalled();
+  });
+
+  /*
+   * «pan» en el pilar Mente: la palabra existe, solo que en otro pilar. Rescatar sería enseñar
+   * algo que nadie pidió en lugar de la respuesta honesta, que es cero. Las facetas dicen dónde sí.
+   */
+  it("un pilar vacío es una respuesta: si la palabra existe en otro pilar, no rescata", async () => {
+    const repository = makeRepo({ counts: { alimentacion: 29 } });
+    const semantic = embedder();
+
+    const result = await new SearchPostsUseCase(repository, semantic).execute({
+      query: "pan",
+      page: 1,
+      pageSize: 6,
+      categoryKeys: ["mente_y_espiritu"],
+    });
+
+    expect(result).toEqual({
+      results: [],
+      total: 0,
+      strategy: "none",
+      counts: { alimentacion: 29 },
+    });
+    expect(repository.searchByPrefix).not.toHaveBeenCalled();
+    expect(semantic.generateEmbedding).not.toHaveBeenCalled();
+  });
+
+  it("pero con el pilar puesto sí rescata la palabra que no existe en ninguno", async () => {
+    const repository = makeRepo({ byPrefix: unResultado });
+
+    const result = await new SearchPostsUseCase(repository).execute({
+      query: "prote",
+      page: 1,
+      pageSize: 6,
+      categoryKeys: ["movimiento_y_ejercicio"],
+    });
+
+    expect(repository.searchByPrefix.mock.calls[0][5]).toEqual([
+      "movimiento_y_ejercicio",
+    ]);
+    expect(result.total).toBe(1);
+  });
+});
+
+/**
+ * El registro mide qué escribe la gente y si se fue con las manos vacías. Picar un pilar o «solo
+ * disponibles» no es escribir otra búsqueda: contarlo hacía que «pan» pareciera fallar 24 veces.
+ */
+describe("SearchPostsUseCase y la medición con filtros", () => {
+  const unResultado = { results: [{ id: "1" }] as never[], total: 1 };
+  const sinResultados = { results: [], total: 0 };
+
+  function makeRepo(textual = sinResultados) {
+    return {
+      search: vi.fn().mockResolvedValue(textual),
+      searchByVector: vi.fn().mockResolvedValue(sinResultados),
+      countByCategory: vi.fn().mockResolvedValue({ alimentacion: 29 }),
+      searchByPrefix: vi.fn().mockResolvedValue(sinResultados),
+      countByCategoryByPrefix: vi.fn().mockResolvedValue({}),
+    };
+  }
+
+  it.each([
+    { filtro: "el pilar Mente", dto: { categoryKeys: ["mente_y_espiritu"] } },
+    { filtro: "«solo disponibles»", dto: { onlyAvailable: true } },
+  ])("con $filtro puesto no se registra", async ({ dto }) => {
+    const reporter = { record: vi.fn() };
+
+    await new SearchPostsUseCase(makeRepo(), undefined, reporter).execute({
+      query: "pan",
+      page: 1,
+      pageSize: 6,
+      ...dto,
+    });
+
+    expect(reporter.record).not.toHaveBeenCalled();
+  });
+
+  it("ni cuando encontró algo: los filtros no son otra búsqueda", async () => {
+    const reporter = { record: vi.fn() };
+
+    await new SearchPostsUseCase(
+      makeRepo(unResultado),
+      undefined,
+      reporter,
+    ).execute({
+      query: "pan",
+      page: 1,
+      pageSize: 6,
+      categoryKeys: ["alimentacion"],
+    });
+
+    expect(reporter.record).not.toHaveBeenCalled();
+  });
+
+  it("sin filtros sí se registra", async () => {
+    const reporter = { record: vi.fn() };
+
+    await new SearchPostsUseCase(makeRepo(), undefined, reporter).execute({
+      query: "pan",
+      page: 1,
+      pageSize: 6,
+      onlyAvailable: false,
+    });
+
+    expect(reporter.record).toHaveBeenCalledTimes(1);
   });
 });

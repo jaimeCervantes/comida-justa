@@ -53,6 +53,33 @@ export interface ISearchPostRepository {
     onlyAvailable?: boolean,
   ): Promise<Readonly<Record<string, number>>>;
 
+  /**
+   * Lo mismo que `search`, pero cada palabra cuenta también como **inicio** de palabra: «prote»
+   * encuentra «Proteína». Mismo orden por relevancia y mismos filtros.
+   *
+   * Es un paso aparte y no una opción de `search` porque abre la búsqueda: «pan» como inicio
+   * también trae «panela». Solo se pregunta cuando las palabras completas no encontraron nada. Ver
+   * `docs/features/search/006-2026-10-17-palabras-a-medias.md`.
+   *
+   * `words` llega ya partido por `prefixWords`: solo letras y números.
+   */
+  searchByPrefix(
+    words: readonly string[],
+    page: number,
+    pageSize: number,
+    locale?: string,
+    near?: Coordinates | null,
+    categoryKeys?: readonly string[],
+    onlyAvailable?: boolean,
+    kinds?: readonly PostKind[],
+  ): Promise<{ results: ISearchPostResultDTO[]; total: number }>;
+
+  /** `countByCategory` para cuando respondió `searchByPrefix`. */
+  countByCategoryByPrefix(
+    words: readonly string[],
+    onlyAvailable?: boolean,
+  ): Promise<Readonly<Record<string, number>>>;
+
   searchByVector(
     embedding: readonly number[],
     page: number,
