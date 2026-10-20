@@ -68,6 +68,7 @@ export const CLOSING = "📲 Pedidos WhatsApp: https://wa.me/522781126948";
 export const EXPECTED_TEXT = [
   "¿Te inflama el pan comercial? Pásate a la Masa Madre en Hazlo Sano. 📲2781126948",
   "🛒 DISPONIBLES EN TIENDA (1 kg). Pasa por el tuyo a Hazlo Sano:",
+  "",
   "🌾 Natural — $96",
   "🌻 Semillas / Arándanos / Canela — $125",
   "🍫 Chocolate Orgánico — $136",

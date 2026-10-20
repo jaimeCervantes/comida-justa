@@ -15,7 +15,7 @@ describe("el texto para grupos", () => {
       {
         antes: "Hay pan:",
         despues: "Pedidos por WhatsApp",
-        texto: "Hay pan:⏎🌾 Natural — $96⏎⏎Pedidos por WhatsApp",
+        texto: "Hay pan:⏎⏎🌾 Natural — $96⏎⏎Pedidos por WhatsApp",
       },
       {
         antes: "",
@@ -25,7 +25,7 @@ describe("el texto para grupos", () => {
       {
         antes: "Hay pan:",
         despues: "",
-        texto: "Hay pan:⏎🌾 Natural — $96",
+        texto: "Hay pan:⏎⏎🌾 Natural — $96",
       },
     ])('antes "$antes", después "$despues"', ({ antes, despues, texto }) => {
       expect(
@@ -47,7 +47,7 @@ describe("el texto para grupos", () => {
         { opening: "¿Te inflama el pan comercial?\r\nHay pan:", closing: "\r" },
         LIST,
       ),
-    ).toBe("¿Te inflama el pan comercial?\nHay pan:\n🌾 Natural — $96");
+    ).toBe("¿Te inflama el pan comercial?\nHay pan:\n\n🌾 Natural — $96");
   });
 
   // Lo que sobra en los extremos es del formulario; lo de dentro es de quien escribió.
@@ -60,7 +60,7 @@ describe("el texto para grupos", () => {
         },
         LIST,
       ),
-    ).toBe("✅ Digestión Ligera\n\n✅ 100% Natural\n🌾 Natural — $96");
+    ).toBe("✅ Digestión Ligera\n\n✅ 100% Natural\n\n🌾 Natural — $96");
   });
 
   it("el kit dice qué quedó fuera aunque el texto no tenga nada que anunciar", () => {
@@ -86,17 +86,17 @@ describe("el texto para grupos", () => {
         despues: "MM Naturalmente",
         pie: "📲 Pedidos WhatsApp",
         texto:
-          "Hay pan:⏎🌾 Natural — $96⏎⏎MM Naturalmente⏎⏎📲 Pedidos WhatsApp",
+          "Hay pan:⏎⏎🌾 Natural — $96⏎⏎MM Naturalmente⏎⏎📲 Pedidos WhatsApp",
       },
       {
         despues: "",
         pie: "📲 Pedidos WhatsApp",
-        texto: "Hay pan:⏎🌾 Natural — $96⏎⏎📲 Pedidos WhatsApp",
+        texto: "Hay pan:⏎⏎🌾 Natural — $96⏎⏎📲 Pedidos WhatsApp",
       },
       {
         despues: "MM Naturalmente",
         pie: "",
-        texto: "Hay pan:⏎🌾 Natural — $96⏎⏎MM Naturalmente",
+        texto: "Hay pan:⏎⏎🌾 Natural — $96⏎⏎MM Naturalmente",
       },
     ])('después "$despues", pie "$pie"', ({ despues, pie, texto }) => {
       expect(
@@ -119,8 +119,8 @@ describe("el texto para grupos", () => {
       );
 
       expect(kit.versions).toEqual([
-        "¿Te inflama el pan comercial?\n🌾 Natural — $96\n\nMM Naturalmente\n\n📲 Pedidos WhatsApp",
-        "Masa madre de verdad, hecha aquí.\n🌾 Natural — $96\n\nMM Naturalmente\n\n📲 Pedidos WhatsApp",
+        "¿Te inflama el pan comercial?\n\n🌾 Natural — $96\n\nMM Naturalmente\n\n📲 Pedidos WhatsApp",
+        "Masa madre de verdad, hecha aquí.\n\n🌾 Natural — $96\n\nMM Naturalmente\n\n📲 Pedidos WhatsApp",
       ]);
       expect(kit.text).toBe(kit.versions[0]);
     });
@@ -164,6 +164,7 @@ describe("el texto para grupos", () => {
       [
         "¿Te inflama el pan comercial? Pásate a la Masa Madre en Hazlo Sano. 📲2781126948",
         "🛒 DISPONIBLES EN TIENDA (1 kg). Pasa por el tuyo a Hazlo Sano:",
+        "",
         "🌾 Natural — $96",
         "🌻 Semillas / Arándanos / Canela — $125",
         "🍫 Chocolate Orgánico — $136",

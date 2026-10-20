@@ -39,11 +39,12 @@ export function normalizeNewlines(text: string): string {
 }
 
 /**
- * El texto completo para un grupo: lo de antes, la lista, y después cada párrafo que haya —lo de
- * después y el pie—, separados por un renglón vacío.
+ * El texto completo para un grupo: lo de antes, la lista, lo de después y el pie, cada parte
+ * separada de la siguiente por un renglón vacío.
  *
- * Lo de antes termina en la presentación de la lista («Pasa por el tuyo a Hazlo Sano:»), así que la
- * lista va pegada a ella. Sin renglones no hay texto: un anuncio sin nada que vender no se publica.
+ * La lista iba pegada a lo de antes, porque lo de antes termina presentándola («Pasa por el tuyo a
+ * Hazlo Sano:»); en el grupo se leía como un solo bloque. Sin renglones no hay texto: un anuncio
+ * sin nada que vender no se publica.
  */
 export function composeOutreachText(
   content: OutreachTextContent,
@@ -51,13 +52,13 @@ export function composeOutreachText(
 ): string | null {
   if (lines.length === 0) return null;
 
-  const opening = normalizeNewlines(content.opening).trim();
-  const body = [opening, lines.join("\n")].filter(Boolean).join("\n");
-  const after = [content.closing, content.footer ?? ""]
-    .map((paragraph) => normalizeNewlines(paragraph).trim())
-    .filter(Boolean);
+  const [opening, ...after] = [
+    content.opening,
+    content.closing,
+    content.footer ?? "",
+  ].map((paragraph) => normalizeNewlines(paragraph).trim());
 
-  return [body, ...after].join("\n\n");
+  return [opening, lines.join("\n"), ...after].filter(Boolean).join("\n\n");
 }
 
 /**
