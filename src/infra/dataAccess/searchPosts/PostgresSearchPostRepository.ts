@@ -1,4 +1,4 @@
-import { inArray, sql } from "drizzle-orm";
+import { inArray, type SQL, sql } from "drizzle-orm";
 import {
   DEFAULT_POST_KIND,
   isValidKind,
@@ -115,6 +115,42 @@ export const FTS_INDEXED_DOCUMENTS: Readonly<Record<string, string>> =
   );
 
 /**
+ * Lo que se pregunta: las palabras completas tal cual se escribieron, o cada palabra como inicio.
+ *
+ * Las palabras completas van por `websearch_to_tsquery`, que entiende comillas y signos y nunca
+ * lanza. Los inicios van por `to_tsquery` con `:*`, que sí tiene sintaxis propia: por eso solo
+ * le llegan letras y números (`prefixWords`, y `prefixTsQuery` lo vuelve a comprobar).
+ */
+type TextQuestion =
+  | { kind: "words"; text: string }
+  | { kind: "prefix"; text: string };
+
+/** Solo letras y números: cualquier otra cosa sería sintaxis de `to_tsquery`, no un dato. */
+const PREFIX_WORD = /^[\p{L}\p{N}]+$/u;
+
+/**
+ * Los inicios de palabra como `tsquery`: `barra de prot` → `barra:* & de:* & prot:*`.
+ *
+ * El diccionario de cada idioma los normaliza igual que al texto —«prote» queda en `prot`— y
+ * descarta las vacías como «de». Un `:*` sobre un lexema lo puede servir el mismo índice GIN.
+ */
+function prefixTsQuery(words: readonly string[]): TextQuestion {
+  return {
+    kind: "prefix",
+    text: words
+      .filter((word) => PREFIX_WORD.test(word))
+      .map((word) => `${word}:*`)
+      .join(" & "),
+  };
+}
+
+function tsQuery(question: TextQuestion, config: SQL): SQL {
+  return question.kind === "prefix"
+    ? sql`to_tsquery(${config}, ${question.text})`
+    : sql`websearch_to_tsquery(${config}, ${question.text})`;
+}
+
+/**
  * El filtro, **partido por idioma para que pueda usar un índice**.
  *
  * La forma corta —un solo `@@` con el `CASE` de arriba a los dos lados— es la que estaba aquí, y
@@ -137,20 +173,20 @@ export const FTS_INDEXED_DOCUMENTS: Readonly<Record<string, string>> =
  * **Esto y la migración van atados.** Si se desalinean no falla nada: la búsqueda sigue devolviendo
  * lo correcto y solo deja de usar el índice, en silencio. Lo vigila `rowConfigMatchesIndex.test.ts`.
  */
-function matchesQuery(query: string) {
+function matchesQuery(question: TextQuestion) {
   const known = Object.keys(TEXT_SEARCH_CONFIG).map(literal).join(", ");
 
   const branches = Object.entries(TEXT_SEARCH_CONFIG).map(
     ([locale, config]) =>
       sql`(t.locale = ${sql.raw(literal(locale))} AND (${sql.raw(
         weightedDocument(literal(config)),
-      )}) @@ websearch_to_tsquery(${sql.raw(literal(config))}, ${query}))`,
+      )}) @@ ${tsQuery(question, sql.raw(literal(config)))})`,
   );
 
   branches.push(
     sql`(t.locale NOT IN (${sql.raw(known)}) AND (${sql.raw(
       weightedDocument(literal(NEUTRAL_CONFIG)),
-    )}) @@ websearch_to_tsquery(${sql.raw(literal(NEUTRAL_CONFIG))}, ${query}))`,
+    )}) @@ ${tsQuery(question, sql.raw(literal(NEUTRAL_CONFIG)))})`,
   );
 
   return sql`(${sql.join(branches, sql` OR `)})`;
@@ -256,7 +292,7 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
     const trimmed = query?.trim() ?? "";
     const { matches, total } = trimmed
       ? await this.rankedMatches(
-          trimmed,
+          { kind: "words", text: trimmed },
           page,
           pageSize,
           locale,
@@ -273,6 +309,35 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
           onlyAvailable,
           kinds,
         );
+
+    if (matches.length === 0) return { results: [], total };
+
+    return { results: await this.hydrate(matches), total };
+  }
+
+  async searchByPrefix(
+    words: readonly string[],
+    page: number,
+    pageSize: number,
+    locale: string = "es",
+    near: Coordinates | null = null,
+    categoryKeys?: readonly string[],
+    onlyAvailable?: boolean,
+    kinds?: readonly PostKind[],
+  ): Promise<{ results: ISearchPostResultDTO[]; total: number }> {
+    const question = prefixTsQuery(words);
+    if (!question.text) return { results: [], total: 0 };
+
+    const { matches, total } = await this.rankedMatches(
+      question,
+      page,
+      pageSize,
+      locale,
+      near,
+      categoryKeys,
+      onlyAvailable,
+      kinds,
+    );
 
     if (matches.length === 0) return { results: [], total };
 
@@ -344,7 +409,7 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
    * sería el peor fallo posible.
    */
   private async rankedMatches(
-    query: string,
+    query: TextQuestion,
     page: number,
     pageSize: number,
     locale: string,
@@ -369,7 +434,7 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
       setweight(to_tsvector(${ROW_CONFIG}, coalesce(t.title, '')), 'A') ||
       setweight(to_tsvector(${ROW_CONFIG}, coalesce(t.content, '')), 'B')
     )`;
-    const question = sql`websearch_to_tsquery(${ROW_CONFIG}, ${query})`;
+    const question = tsQuery(query, ROW_CONFIG);
 
     const raw = await db.execute(sql`
       SELECT
@@ -479,13 +544,34 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
     const trimmed = query?.trim() ?? "";
     if (!trimmed) return {};
 
+    return this.countMatchesByCategory(
+      { kind: "words", text: trimmed },
+      onlyAvailable,
+    );
+  }
+
+  async countByCategoryByPrefix(
+    words: readonly string[],
+    onlyAvailable?: boolean,
+  ): Promise<Readonly<Record<string, number>>> {
+    const question = prefixTsQuery(words);
+    if (!question.text) return {};
+
+    return this.countMatchesByCategory(question, onlyAvailable);
+  }
+
+  /** `countByCategory` con la pregunta ya armada, sea de palabras completas o de inicios. */
+  private async countMatchesByCategory(
+    question: TextQuestion,
+    onlyAvailable: boolean | undefined,
+  ): Promise<Readonly<Record<string, number>>> {
     const raw = await db.execute(sql`
       SELECT p.category AS category, COUNT(*)::int AS total
       FROM posts p
       JOIN LATERAL (
         SELECT 1
         FROM post_translations t
-        WHERE t.post_id = p.id AND ${matchesQuery(trimmed)}
+        WHERE t.post_id = p.id AND ${matchesQuery(question)}
         LIMIT 1
       ) r ON TRUE
       WHERE ${PUBLISHED_POSTS} AND ${availableWhere(onlyAvailable)}

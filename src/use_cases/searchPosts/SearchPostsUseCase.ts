@@ -1,3 +1,4 @@
+import { prefixWords } from "~/domain/search/prefixWords";
 import {
   buildSearchEvent,
   type SearchStrategy,
@@ -92,12 +93,67 @@ export class SearchPostsUseCase {
       return { ...textual, strategy: "text", counts };
     }
 
+    if (foundInAnotherPillar(dto, counts)) {
+      this.report(dto, "none", 0);
+      return { results: [], total: 0, strategy: "none", counts };
+    }
+
+    const byPrefix = await this.searchByPrefix(dto);
+    if (byPrefix && byPrefix.total > 0) {
+      this.report(dto, "text", byPrefix.total);
+      return {
+        results: byPrefix.results,
+        total: byPrefix.total,
+        strategy: "text",
+        counts: byPrefix.counts,
+      };
+    }
+
     const rescued = await this.rescueSemantically(dto);
     const strategy: SearchStrategy = rescued.total > 0 ? "semantic" : "none";
     this.report(dto, strategy, rescued.total);
 
     /* Con el rescate semántico las cuentas del texto no describen estos resultados. Se callan. */
     return { ...rescued, strategy, counts: null };
+  }
+
+  /**
+   * El segundo tiempo: cada palabra también como **inicio** de palabra, para quien no terminó de
+   * escribir. «prote» encuentra «Proteína».
+   *
+   * Va después de las palabras completas y no en su lugar: como inicio, «pan» también trae
+   * «panela», así que abrirlo siempre cambiaría lo que ya funciona. Y va antes del sentido porque
+   * un pedazo de palabra casi no tiene sentido que comparar, y no cuesta ninguna llamada al
+   * proveedor. Cuenta como búsqueda de texto: sus facetas sí describen lo que salió.
+   *
+   * `null` cuando no queda ninguna palabra que sirva de inicio («a», «%»).
+   */
+  private async searchByPrefix(dto: ISearchPostDTO): Promise<
+    | (Awaited<ReturnType<ISearchPostRepository["searchByPrefix"]>> & {
+        counts: Readonly<Record<string, number>> | null;
+      })
+    | null
+  > {
+    const words = prefixWords(dto.query);
+    if (words.length === 0) return null;
+
+    const [found, counts] = await Promise.all([
+      this.postRepository.searchByPrefix(
+        words,
+        dto.page,
+        dto.pageSize,
+        dto.locale,
+        dto.near ?? null,
+        dto.categoryKeys,
+        dto.onlyAvailable,
+        dto.kinds,
+      ),
+      this.postRepository
+        .countByCategoryByPrefix(words, dto.onlyAvailable)
+        .catch(() => null),
+    ]);
+
+    return { ...found, counts };
   }
 
   /** Nunca interrumpe: una faceta sin números sigue siendo un filtro que funciona. */
@@ -127,6 +183,7 @@ export class SearchPostsUseCase {
     resultCount: number,
   ): void {
     if (!this.reporter) return;
+    if (isFiltered(dto)) return;
 
     try {
       this.reporter.record(
@@ -179,4 +236,32 @@ export class SearchPostsUseCase {
       return empty;
     }
   }
+}
+
+/**
+ * Con un pilar puesto, ¿la palabra sí existe en otro? Entonces el cero es la respuesta: «pan» en
+ * el pilar Mente no tiene que rescatar nada, y las facetas dicen dónde sí hay pan.
+ *
+ * Sin cuentas —si contar falló— no se puede afirmar, y se rescata como siempre.
+ */
+function foundInAnotherPillar(
+  dto: ISearchPostDTO,
+  counts: Readonly<Record<string, number>> | null,
+): boolean {
+  if (dto.categoryKeys === undefined || !counts) return false;
+
+  return Object.values(counts).some((total) => total > 0);
+}
+
+/**
+ * Una búsqueda con un pilar o «solo disponibles» puestos **no se registra**.
+ *
+ * El registro mide qué escribe la gente y si se fue con las manos vacías. Picar un filtro sobre la
+ * misma búsqueda no es escribir otra, y como `searches` no guarda los filtros, sus ceros se
+ * contaban como búsquedas fallidas: «pan» parecía fallar 24 veces en 90 días y da 29 resultados.
+ * Guardar los filtros sería mejor, pero pide una migración en el backend. Ver
+ * `docs/features/search/006-2026-10-17-palabras-a-medias.md`.
+ */
+function isFiltered(dto: ISearchPostDTO): boolean {
+  return dto.categoryKeys !== undefined || dto.onlyAvailable === true;
 }
