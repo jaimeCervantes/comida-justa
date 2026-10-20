@@ -133,4 +133,15 @@ describe("OrdersSearchField", () => {
     expect(form?.querySelector('input[name="estado"]')).toHaveValue("closed");
     expect(form?.querySelector('input[name="vista"]')).toHaveValue("received");
   });
+
+  /* Era un `<input>` suelto con el borde decorativo, y en la tienda y la difusión no se veía a la
+     primera. El contorno de un campo lo pone `InputShell`, que es quien marca su estado. */
+  it("se ve como un campo del sistema, con su contorno", () => {
+    render(<OrdersSearchField current={enLoAbierto} />);
+
+    expect(field().closest("[data-state]")).toHaveAttribute(
+      "data-state",
+      "idle",
+    );
+  });
 });
