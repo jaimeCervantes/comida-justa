@@ -1,22 +1,12 @@
-import { type SQL, sql } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 import type { PostKind } from "~/domain/entities/post/kind";
 import { db } from "~/infra/dataAccess/db/connection";
 import { PUBLISHED_POSTS } from "~/infra/dataAccess/db/publishedPosts";
 import { sqlFold } from "~/infra/dataAccess/db/sqlFold";
+import { containsAllWords } from "~/infra/dataAccess/db/titleWords";
 import type IOutreachProductFinder from "~/use_cases/outreach/ports/IOutreachProductFinder";
 import type { TitleLocales } from "~/use_cases/outreach/ports/IOutreachTextRepository";
 import type { OutreachProductMatch } from "~/use_cases/outreach/searchOutreachProductsUseCase";
-
-/**
- * Que el título contenga **todas** las palabras. `strpos` y no `LIKE`: un `%` o un `_` escritos son
- * ese carácter, no comodines, y así no hay nada que escapar.
- */
-function containsAll(words: readonly string[]): SQL {
-  return sql.join(
-    words.map((word) => sql`strpos(${sqlFold(sql`t.title`)}, ${word}) > 0`),
-    sql` AND `,
-  );
-}
 
 interface MatchRow {
   id: string;
@@ -71,7 +61,7 @@ export default class PostgresOutreachProductFinder
       JOIN LATERAL (
         SELECT ${sqlFold(sql`t.title`)} AS title
         FROM post_translations t
-        WHERE t.post_id = p.id AND ${containsAll(words)}
+        WHERE t.post_id = p.id AND ${containsAllWords(sql`t.title`, words)}
         ORDER BY (t.locale = ${locale}) DESC, length(t.title)
         LIMIT 1
       ) matched ON TRUE

@@ -11,6 +11,10 @@ import {
   PUBLISHED_POSTS,
   publishedOrOwnedBy,
 } from "~/infra/dataAccess/db/publishedPosts";
+import {
+  firstWordFirst,
+  titleHasAllWords,
+} from "~/infra/dataAccess/db/titleWords";
 import type {
   IPostQueryRepository,
   NearbySummary,
@@ -270,25 +274,14 @@ function emptyPage(page: number): PaginatedPostsResult {
 }
 
 /**
- * El filtro por título de un listado, en **cualquiera** de sus idiomas.
- *
- * `EXISTS` sobre `post_translations` y no una comparación con el título ya elegido: quien teclea
- * «masa madre» lo espera aunque esté mirando en inglés, y una publicación tiene un título por
- * idioma. Con `EXISTS` basta que uno case, y no multiplica la fila como haría un `JOIN`.
- *
- * **`strpos` y no `ILIKE`**: lo que se busca es «contiene», y en un `LIKE` el `%` y el `_` que
- * alguien teclee serían comodines que hay que escapar —un guion bajo en un título es de lo más
- * normal—. Sin comodines no hay nada que escapar. Esto **no** es la búsqueda del sitio: `/buscar`
- * es semántica y global, y esto filtra una lista que ya se está mirando.
+ * El orden de un listado. Con término, primero lo que empieza con la primera palabra escrita
+ * (`firstWordFirst`) y después el orden de siempre.
  */
-function termWhere(term: string | undefined): SQL {
-  if (!term) return sql`TRUE`;
-
-  return sql`EXISTS (
-    SELECT 1 FROM post_translations pt
-    WHERE pt.post_id = p.id
-      AND strpos(lower(pt.title), lower(${term})) > 0
-  )`;
+function listingOrder(options: ListingOptions, near: Coordinates | null): SQL {
+  return firstWordFirst(
+    options.term ?? "",
+    options.order ?? orderClause(near, options.sortByDistance ?? false),
+  );
 }
 
 function categoryWhere(categoryKeys: readonly string[] | undefined): SQL {
@@ -580,8 +573,8 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
         COUNT(*) OVER()::int AS total_count
       ${POST_JOINS}
       WHERE ${visibility} AND ${where} AND ${categoryWhere(options.categoryKeys)}
-        AND ${termWhere(options.term)}
-      ORDER BY ${options.order ?? orderClause(near, options.sortByDistance ?? false)}
+        AND ${titleHasAllWords(options.term ?? "")}
+      ORDER BY ${listingOrder(options, near)}
       LIMIT ${pageSize} OFFSET ${offset}
     `);
     const rows = raw.rows as unknown as PostRow[];
