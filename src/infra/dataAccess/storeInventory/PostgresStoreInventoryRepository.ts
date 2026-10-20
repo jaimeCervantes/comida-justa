@@ -3,6 +3,10 @@ import { PRODUCT_KIND } from "~/domain/entities/post/hazloSanoProduct";
 import type { InventoryScope } from "~/domain/entities/post/inventoryScope";
 import { db } from "~/infra/dataAccess/db/connection";
 import { PUBLISHED_POSTS } from "~/infra/dataAccess/db/publishedPosts";
+import {
+  firstWordFirst,
+  titleHasAllWords,
+} from "~/infra/dataAccess/db/titleWords";
 import type {
   InventoryItem,
   InventoryPage,
@@ -19,26 +23,11 @@ interface InventoryRow {
   is_available: boolean;
 }
 
-/**
- * El filtro por título, en **cualquiera** de sus idiomas.
- *
- * `EXISTS` sobre `post_translations` y no una comparación con el título ya elegido: quien teclea
- * «masa madre» lo espera aunque esté mirando el panel en inglés, y una publicación tiene un título
- * por idioma. Con `EXISTS` basta que uno case, y no multiplica la fila como haría un `JOIN`.
- *
- * **`strpos` y no `ILIKE`**: lo que se busca es «contiene», y en un `LIKE` el `%` y el `_` que
- * alguien teclee son comodines. Habría que escaparlos —un guion bajo en un título es de lo más
- * normal— y ese escapado es justo la clase de detalle que se escribe mal una vez y nadie vuelve a
- * mirar. Sin comodines no hay nada que escapar, y el término entra parametrizado igual.
- */
+/** El filtro por título: todas las palabras, en cualquier idioma (`titleHasAllWords`). */
 function termCondition(term: string) {
   if (term === "") return sql``;
 
-  return sql`AND EXISTS (
-    SELECT 1 FROM post_translations pt
-    WHERE pt.post_id = p.id
-      AND strpos(lower(pt.title), lower(${term})) > 0
-  )`;
+  return sql`AND ${titleHasAllWords(term)}`;
 }
 
 /**
@@ -111,10 +100,12 @@ export class PostgresStoreInventoryRepository
    * entre 418 renglones, y por orden alfabético la página en la que está algo es adivinable. El
    * `p.id` de desempate mantiene la paginación estable entre dos productos que se llamen igual —los
    * hay: seis "Barra de Proteína … — Pieza individual" comparten casi todo el nombre.
+   *
+   * Con término, antes va lo que empieza con la primera palabra (`firstWordFirst`).
    */
   private async pageWhere(
     where: ReturnType<typeof sql>,
-    { page, pageSize, locale, fallbackLocale }: InventoryQuery,
+    { page, pageSize, locale, fallbackLocale, term }: InventoryQuery,
   ): Promise<InventoryItem[]> {
     const raw = await db.execute(sql`
       SELECT
@@ -133,7 +124,7 @@ export class PostgresStoreInventoryRepository
         LIMIT 1
       ) t ON TRUE
       WHERE ${where}
-      ORDER BY t.title ASC, p.id ASC
+      ORDER BY ${firstWordFirst(term, sql`t.title ASC, p.id ASC`)}
       LIMIT ${pageSize} OFFSET ${(page - 1) * pageSize}
     `);
 
