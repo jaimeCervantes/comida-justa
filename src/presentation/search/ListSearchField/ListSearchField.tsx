@@ -1,11 +1,13 @@
 "use client";
 import type { ReactNode } from "react";
 import { useEffect, useRef, useState, useTransition } from "react";
+import { MdSearch } from "react-icons/md";
 import {
   LIST_TERM_MAX_LENGTH,
   normalizeListTerm,
 } from "~/domain/search/listTerm";
 import { useRouter } from "~/i18n/navigation";
+import { TextField } from "~/presentation/design_system/forms/TextField";
 
 /**
  * La dirección que este campo puede pedir, **derivada del propio router**.
@@ -51,6 +53,11 @@ export interface ListSearchLabels {
  *
  * No lee el catálogo: las frases entran ya traducidas, porque el namespace es de la lista que lo
  * monta.
+ *
+ * Se pinta con el `TextField` del sistema y su lupa, como el buscador de arriba. Era un `<input>`
+ * suelto con el borde de `--separator`, que es decorativo y casi no se distingue del fondo: el
+ * buscador de una tienda o de la difusión no se veía a la primera. `--border-field` es el que
+ * delimita un control.
  */
 export default function ListSearchField({
   term: currentTerm,
@@ -107,7 +114,7 @@ export default function ListSearchField({
   return (
     <form method="get" className={className}>
       {hiddenFields}
-      <input
+      <TextField
         type="search"
         name="q"
         value={term}
@@ -119,7 +126,10 @@ export default function ListSearchField({
            de que hay algo en camino sin que le muevan el foco. */
         aria-busy={isPending}
         data-testid={testId}
-        className="min-w-40 grow rounded-control border border-separator bg-transparent px-3 py-1"
+        enterKeyHint="search"
+        icon={<MdSearch aria-hidden />}
+        containerClassName="min-w-40 grow"
+        shellClassName="h-10"
       />
     </form>
   );
