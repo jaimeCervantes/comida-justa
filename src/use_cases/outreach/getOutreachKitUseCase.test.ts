@@ -38,7 +38,7 @@ describe("GetOutreachKitUseCase", () => {
 
     expect(view?.text.name).toBe("Masa madre");
     expect(view?.kit.text).toBe(
-      "Pasa por el tuyo a Hazlo Sano:\n🌾 Natural — $96\nCanela — $125",
+      "Pasa por el tuyo a Hazlo Sano:\n\n🌾 Natural — $96\nCanela — $125",
     );
   });
 
@@ -283,6 +283,7 @@ describe("GetOutreachKitUseCase", () => {
       expect(view?.kit.text).toBe(
         [
           "Pasa por el tuyo a Hazlo Sano:",
+          "",
           "🌾 Natural — $96",
           "Canela — $125",
           "",

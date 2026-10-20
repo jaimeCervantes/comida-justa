@@ -53,6 +53,7 @@ Feature: Difusión en grupos de Facebook
       """
       ¿Te inflama el pan comercial? Pásate a la Masa Madre en Hazlo Sano. 📲2781126948
       🛒 DISPONIBLES EN TIENDA (1 kg). Pasa por el tuyo a Hazlo Sano:
+
       🌾 Natural — $96
       🌻 Semillas / Arándanos / Canela — $125
       🍫 Chocolate Orgánico — $136
@@ -156,10 +157,10 @@ Feature: Difusión en grupos de Facebook
     Then el texto es "<texto>"
 
     Examples:
-      | antes    | después              | texto                                          |
-      | Hay pan: | Pedidos por WhatsApp | Hay pan:⏎🌾 Natural — $96⏎⏎Pedidos por WhatsApp |
-      |          | Pedidos por WhatsApp | 🌾 Natural — $96⏎⏎Pedidos por WhatsApp          |
-      | Hay pan: |                      | Hay pan:⏎🌾 Natural — $96                       |
+      | antes    | después              | texto                                            |
+      | Hay pan: | Pedidos por WhatsApp | Hay pan:⏎⏎🌾 Natural — $96⏎⏎Pedidos por WhatsApp |
+      |          | Pedidos por WhatsApp | 🌾 Natural — $96⏎⏎Pedidos por WhatsApp           |
+      | Hay pan: |                      | Hay pan:⏎⏎🌾 Natural — $96                       |
 
   @slice-1 @component
   Scenario Outline: Lo que falta se rechaza sin guardar nada
@@ -503,9 +504,9 @@ Feature: Difusión en grupos de Facebook
 
     Examples:
       | antes    | después   | pie                  | texto                                                        |
-      | Hay pan: | MM Naturalmente | 📲 Pedidos WhatsApp | Hay pan:⏎🌾 Natural — $96⏎⏎MM Naturalmente⏎⏎📲 Pedidos WhatsApp |
-      | Hay pan: |           | 📲 Pedidos WhatsApp  | Hay pan:⏎🌾 Natural — $96⏎⏎📲 Pedidos WhatsApp               |
-      | Hay pan: | MM Naturalmente |                | Hay pan:⏎🌾 Natural — $96⏎⏎MM Naturalmente                   |
+      | Hay pan: | MM Naturalmente | 📲 Pedidos WhatsApp | Hay pan:⏎⏎🌾 Natural — $96⏎⏎MM Naturalmente⏎⏎📲 Pedidos WhatsApp |
+      | Hay pan: |           | 📲 Pedidos WhatsApp  | Hay pan:⏎⏎🌾 Natural — $96⏎⏎📲 Pedidos WhatsApp               |
+      | Hay pan: | MM Naturalmente |                | Hay pan:⏎⏎🌾 Natural — $96⏎⏎MM Naturalmente                   |
 
   @slice-5 @component
   Scenario Outline: A cada grupo le toca una versión, y se turnan día con día

@@ -1229,3 +1229,57 @@ sentido. Diez por página, con números. Con esto la difusión cierra sus slices
    este slice podría servir también ahí.
 2. Del usuario: probar el selector con sus búsquedas de siempre.
 3. Pendiente desde el slice 7: publicar solo en la Página de Facebook.
+
+## 2026-10-20 — Ajuste: un renglón vacío entre lo de antes y la lista
+
+### Objetivo
+
+Que la lista de precios no quede pegada a lo de antes. El usuario lo pidió al ver el texto armado:
+en el grupo se leía como un solo bloque.
+
+### Decisiones y por qué
+
+- **El texto se arma como párrafos parejos:** lo de antes, la lista, lo de después y el pie, cada
+  parte separada de la siguiente por un renglón vacío. Antes la lista iba pegada a lo de antes
+  porque lo de antes la presenta («Pasa por el tuyo a Hazlo Sano:»), pero visualmente no se separaba.
+- **Se cambia en `composeOutreachText`, no en cada texto guardado:** así vale para todas las
+  versiones y los textos ya escritos, sin tocar la base.
+
+### Archivos tocados
+
+- Dominio: `src/domain/outreach/outreachText.ts` y su prueba.
+- Casos de uso: `getOutreachKitUseCase.test.ts`.
+- E2E: `difusionEnGrupos.feature` (el escenario principal y las dos tablas que arman el texto) y
+  `masaMadre.ts` (`EXPECTED_TEXT`).
+
+### Comandos clave
+
+```sh
+pnpm run test:run && pnpm run typecheck && pnpm run lint
+pnpm exec playwright test src/e2e/outreach --shard=1/3 --reporter=line   # …2/3 y 3/3, con rm -rf .next antes de cada uno
+```
+
+### Resultados
+
+- **Vitest:** 335 archivos, 3523 pruebas en verde. **Typecheck y lint** limpios.
+- **Playwright:** los 40 escenarios de la difusión en tres tramos (14, 14 y 12), 40 de 40.
+
+### Desviaciones
+
+- Ninguna. El e2e esperó a que el usuario detuviera su servidor del 3000.
+
+### Escrito en recursos compartidos
+
+- **Base compartida:** solo los registros de prueba con marcador `E2E`, que borran `afterEach` y
+  `globalTeardown`.
+
+### Recap
+
+El texto para grupos separa la lista de lo de antes con un renglón vacío, igual que ya separaba lo de
+después y el pie. Aplica a todos los textos y versiones sin tocar lo guardado.
+
+### Próximos pasos (opciones)
+
+1. Del usuario: copiar un texto desde `/admin/difusion` y ver cómo queda en el grupo.
+2. Llevar `fix/difusion-renglon-antes-de-la-lista` a `dev`, junto con `feat/busqueda-palabras-a-medias`.
+3. Pendiente desde el slice 7: publicar solo en la Página de Facebook.
