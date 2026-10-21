@@ -49,6 +49,8 @@ export async function getProducts(
   page: number,
   locale: string,
   currentPillar: PublicationPillar | null,
+  /** Solo lo que tiene promoción vigente. Ver `ON_SALE_QUERY_PARAM`. */
+  onSale = false,
 ): Promise<ProductsPageData> {
   const pageNum = Math.max(PAGINATION_INIT_PAGE, page);
   const postRepo = createPostQueryRepository();
@@ -60,6 +62,7 @@ export async function getProducts(
     near,
     {
       categoryKeys: await categoryKeysForActivePublicationPillar(currentPillar),
+      onSale,
     },
   );
 

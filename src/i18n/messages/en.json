@@ -1972,7 +1972,11 @@
     "empty": "No products or services have been published yet.",
     "emptyBody": "The catalogue is made by whoever sells: if you cook, grow, coach or accompany, your listing opens the section.",
     "emptyCta": "Publish mine",
+    "emptyOnSale": "Nothing is on sale right now.",
+    "emptyOnSaleBody": "When a store marks down a product or a service, it will show up here.",
+    "onSaleFilter": "On sale",
     "pagedTitle": "{title} - Page {page}",
+    "seeAll": "See the whole catalog",
     "title": "Products and services"
   },
   "profile": {

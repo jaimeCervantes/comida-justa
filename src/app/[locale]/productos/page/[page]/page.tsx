@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import {
+  ON_SALE_QUERY_PARAM,
+  parseOnSaleFilter,
+} from "~/domain/entities/post/promotion";
 import { parsePublicationPillar } from "~/domain/entities/post/publicationPillars";
 import { Link } from "~/i18n/navigation";
 import { resolveLocale } from "~/i18n/routing";
@@ -13,7 +17,7 @@ import ProductsList from "../../ui/ProductsList";
 
 type Props = {
   params: Promise<{ locale: string; page: string }>;
-  searchParams: Promise<{ pillar?: string }>;
+  searchParams: Promise<{ pillar?: string; [ON_SALE_QUERY_PARAM]?: string }>;
 };
 
 function parsePage(value: string): number | null {
@@ -33,9 +37,10 @@ export default async function ProductosPaginatedPage({
   searchParams,
 }: Props) {
   const { page: pageStr, locale: rawLocale } = await params;
-  const { pillar } = await searchParams;
+  const { pillar, [ON_SALE_QUERY_PARAM]: onSaleParam } = await searchParams;
   const locale = resolveLocale(rawLocale);
   const currentPillar = parsePublicationPillar(pillar);
+  const onSale = parseOnSaleFilter(onSaleParam);
   setRequestLocale(locale);
   const viewerId = await readViewerId();
   const t = await getTranslations("products");
@@ -47,7 +52,7 @@ export default async function ProductosPaginatedPage({
   }
 
   const { products, totalPages, nothingNearby, visitor, storesToMap } =
-    await getProducts(page, locale, currentPillar);
+    await getProducts(page, locale, currentPillar, onSale);
 
   if (products.length === 0 && page > 1) {
     notFound();
@@ -79,6 +84,7 @@ export default async function ProductosPaginatedPage({
         currentPage={page}
         totalPages={totalPages}
         currentPillar={currentPillar}
+        onSale={onSale}
       />
 
       <div className="text-center mt-4">

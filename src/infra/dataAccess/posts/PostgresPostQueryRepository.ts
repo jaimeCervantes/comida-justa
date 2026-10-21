@@ -20,6 +20,7 @@ import type {
   NearbySummary,
   PaginatedPostsResult,
   PostData,
+  PostListingFilters,
 } from "./IPostQueryRepository";
 
 interface PostRow {
@@ -258,6 +259,8 @@ interface ListingOptions {
    */
   visibility?: SQL;
   categoryKeys?: readonly string[];
+  /** Solo lo que tiene una promoción vigente. Ver `onSaleWhere`. */
+  onSale?: boolean;
   /** Filtra por título en cualquier idioma. Vacío o ausente = no filtrar. */
   term?: string;
   /** Quién mira: solo decide `viewerReacted`, no filtra el listado. */
@@ -300,6 +303,23 @@ function categoryWhere(categoryKeys: readonly string[] | undefined): SQL {
   return sql`(p.category IN (${keys}) OR p.sub_category IN (${keys}))`;
 }
 
+/**
+ * La vigencia de `isPromotionActive` (`domain/entities/post/promotion.ts`), escrita en SQL para
+ * poder filtrar y paginar en la base. Las dos tienen que decir lo mismo: si una cambia, cambia la
+ * otra. `now()` es la hora de la consulta, igual que el `new Date()` con el que pinta la tarjeta.
+ *
+ * `sale_price IS NOT NULL` va primero porque es la condición del índice parcial
+ * `posts_on_sale_idx`.
+ */
+function onSaleWhere(onSale: boolean | undefined): SQL {
+  if (!onSale) return sql`TRUE`;
+
+  return sql`(p.sale_price IS NOT NULL
+    AND p.sale_price > 0
+    AND p.sale_price < p.price
+    AND (p.sale_ends_at IS NULL OR p.sale_ends_at > now()))`;
+}
+
 export class PostgresPostQueryRepository implements IPostQueryRepository {
   async getMultiplePosts(
     page: number,
@@ -321,12 +341,13 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
     page: number,
     pageSize: number,
     near: Coordinates | null = null,
-    filters: { categoryKeys?: readonly string[] } = {},
+    filters: PostListingFilters = {},
   ): Promise<PaginatedPostsResult> {
     return this.getPaginatedPosts(PRODUCTS_WHERE, page, pageSize, {
       near,
       sortByDistance: true,
       categoryKeys: filters.categoryKeys,
+      onSale: filters.onSale,
     });
   }
 
@@ -577,6 +598,7 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
         COUNT(*) OVER()::int AS total_count
       ${POST_JOINS}
       WHERE ${visibility} AND ${where} AND ${categoryWhere(options.categoryKeys)}
+        AND ${onSaleWhere(options.onSale)}
         AND ${titleHasAllWords(options.term ?? "")}
       ORDER BY ${listingOrder(options, near)}
       LIMIT ${pageSize} OFFSET ${offset}

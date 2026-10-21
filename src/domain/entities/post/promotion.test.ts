@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   currentPrice,
   isPromotionActive,
+  parseOnSaleFilter,
   validatePromotion,
 } from "./promotion";
 
@@ -145,5 +146,18 @@ describe("validatePromotion", () => {
     expect(
       validatePromotion({ price: 180, salePrice: 150, saleEndsAt: "mañana" }),
     ).toBe("invalid-sale-end");
+  });
+});
+
+describe("parseOnSaleFilter", () => {
+  it.each([
+    ["1", true],
+    [undefined, false],
+    ["", false],
+    ["0", false],
+    ["si", false],
+    [["1"], false],
+  ])("%j → %s", (value, expected) => {
+    expect(parseOnSaleFilter(value)).toBe(expected);
   });
 });
