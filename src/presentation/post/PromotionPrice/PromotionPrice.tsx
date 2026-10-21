@@ -6,6 +6,17 @@ import { Badge } from "~/presentation/design_system/badges/Badge";
 import { cn } from "~/presentation/design_system/styling/merge-class-names";
 import CurrencyAmount from "~/presentation/money/CurrencyAmount";
 
+/**
+ * El tachado del precio normal, centrado en las cifras.
+ *
+ * No es el `line-through` del navegador: ese lo dibuja la fuente de `<del>`, y la cifra va en la
+ * fuente de exhibición (`font-display`), así que la raya caía casi en la base de los números y no
+ * se leía como «ya no es el precio». Una raya de 2px a media altura de la cifra sí. `<del>` se
+ * conserva por lo que dice a un lector de pantalla.
+ */
+export const STRUCK_PRICE =
+  "relative inline-block no-underline after:pointer-events-none after:absolute after:inset-x-[-2px] after:top-[55%] after:h-[2px] after:-translate-y-1/2 after:rounded-full after:bg-current after:content-['']";
+
 type Props = {
   price?: number | null;
   salePrice?: number | null;
@@ -65,7 +76,10 @@ export default function PromotionPrice({
     >
       {/* `<del>` y no solo `line-through`: un lector de pantalla también tiene que saber que ese
           precio ya no es el que se cobra. */}
-      <del data-testid="promotion-regular-price" className="text-text-support">
+      <del
+        data-testid="promotion-regular-price"
+        className={cn(STRUCK_PRICE, "text-text-support")}
+      >
         <span className="sr-only">{t("saleRegularPrice")}: </span>
         <CurrencyAmount
           value={current.regularPrice}
