@@ -24,6 +24,7 @@ import PillarBadge from "~/presentation/post/PillarBadge/PillarBadge";
 import PostReactionButton from "~/presentation/post/PostReaction/PostReactionButton";
 import PracticeCover from "~/presentation/post/PracticeCover/PracticeCover";
 import PromotionPrice from "~/presentation/post/PromotionPrice/PromotionPrice";
+import PromotionRibbon from "~/presentation/post/PromotionRibbon/PromotionRibbon";
 import ProvenanceBadge, {
   showsProvenanceBadge,
 } from "~/presentation/post/ProvenanceBadge";
@@ -177,6 +178,19 @@ export default function CardForList(
           <PillarBadge
             category={typeof category === "string" ? category : null}
             className="absolute left-2 top-2"
+          />
+
+          {/* La oferta, sobre la foto: es lo primero que se mira en un listado. Abajo a la izquierda
+              porque arriba están el pilar y el contador, y abajo a la derecha, compartir. */}
+          <PromotionRibbon
+            price={typeof price === "number" ? price : null}
+            salePrice={typeof salePrice === "number" ? salePrice : null}
+            saleEndsAt={
+              saleEndsAt instanceof Date || typeof saleEndsAt === "string"
+                ? saleEndsAt
+                : null
+            }
+            className="absolute bottom-2 left-0"
           />
 
           {/* Cuántos hay, sin tener que abrir la ficha. La portada sigue siendo `media[0]` —el de
