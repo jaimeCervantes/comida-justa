@@ -287,3 +287,34 @@ describe("PostValidator — el servicio y su duración", () => {
     ).not.toThrow();
   });
 });
+
+describe("PostValidator — la promoción", () => {
+  const validator = new PostValidator();
+  const miel = { kind: "producto", price: 180, origin: "productor" } as const;
+
+  it("acepta una rebaja menor al precio, con fecha de fin", () => {
+    expect(() =>
+      validator.validate(
+        makePost({
+          ...miel,
+          salePrice: 150,
+          saleEndsAt: new Date("2026-11-30T23:59:00Z"),
+        }),
+      ),
+    ).not.toThrow();
+  });
+
+  it("rechaza una rebaja que no es menor al precio normal", () => {
+    expect(() =>
+      validator.validate(makePost({ ...miel, salePrice: 180 })),
+    ).toThrow(/menor al precio normal/i);
+  });
+
+  it("rechaza una fecha de fin sin rebaja", () => {
+    expect(() =>
+      validator.validate(
+        makePost({ ...miel, saleEndsAt: new Date("2026-11-30T23:59:00Z") }),
+      ),
+    ).toThrow(/primero pon el precio de promoción/i);
+  });
+});
