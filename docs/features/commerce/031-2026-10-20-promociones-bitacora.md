@@ -107,3 +107,55 @@ precio vigente, y una promoción vencida deja de aplicar sola. La migración ya 
   `feat/promociones`; ya está aplicada) y de este slice aquí.
 - Slice 2: insignia en tarjetas y búsqueda.
 - Atender los seguimientos del importador del proveedor y de la difusión.
+
+## 2026-10-21 — Slice 2: insignia en tarjetas y búsqueda, y el carrito tachado
+
+### Objetivo
+
+Que una oferta se note sin abrir la ficha: la tarjeta de un listado o de un resultado de búsqueda
+enseña el precio normal tachado, el rebajado y `-N%`. Se sumó el seguimiento del carrito que dejó el
+slice 1.
+
+### Decisiones
+
+- **La tarjeta reutiliza `PromotionPrice`, sin la fecha de fin.** Ganó dos opciones: `showEnds` (la
+  tarjeta la apaga; en una fila de insignias no cabe y la ficha ya la dice) y `amountClassName`
+  (la tarjeta agranda el precio en modo renglón, con o sin promoción).
+- **La promoción viaja cruda hasta la tarjeta**, como `startsAt`: `mapOnePostToCard` copia
+  `salePrice` y `saleEndsAt`, y la vigencia se decide al pintar. Una página cacheada no anuncia una
+  oferta vencida.
+- **Dos fuentes, nada más.** Todas las tarjetas salen de `PostgresPostQueryRepository` (una sola
+  proyección, `postColumns`) o de `PostgresSearchPostRepository`. La búsqueda ya traía las columnas
+  (`select().from(posts)`); solo faltaba nombrarlas en el DTO.
+- **El carrito tacha el importe del renglón, no el unitario**: `regularUnitPrice × cantidad`, junto
+  a lo que suma. Lo agotado no lo enseña, porque no suma nada.
+
+### Archivos
+
+- `presentation/post/PromotionPrice` (+ prueba), `presentation/post/CardForList/CardForList.tsx`.
+- `infra/UI/mappers/posts/mapPostsToCards.ts` (+ pruebas).
+- `infra/dataAccess/posts/PostgresPostQueryRepository.ts` e `IPostQueryRepository.ts`,
+  `infra/dataAccess/searchPosts/PostgresSearchPostRepository.ts`.
+- `app/[locale]/carrito/ui/CartLineRow.tsx`.
+- e2e: cuatro escenarios `@slice-2` en `promociones.feature` y su spec. El título del producto de
+  prueba lleva una palabra única (`mielpromo…`) para buscarlo sin competir con el catálogo real.
+
+### Validación
+
+- e2e `src/e2e/promociones`: 10 de 10 en verde (6 del slice 1 y 4 nuevos).
+- e2e de lo que rodea el cambio (`home/feedCard`, `orders/cartFromSearch`, `orders/cart`,
+  `busquedaEnTienda`, `unifiedCatalog`, `busquedaRelevante`): 42 de 42 en verde. Los avisos
+  `[translations] ... NO se guardó` vienen de la limpieza de las pruebas, como en el slice 1.
+- Suite completa de vitest: 339 archivos y 3595 pruebas en verde. `tsc` y `typecheck:tests` limpios.
+
+### Recap
+
+Slice 2 terminado. La tienda, los listados y la búsqueda enseñan la oferta en la tarjeta, y el
+carrito deja ver cuánto se ahorra en cada renglón. Una promoción vencida no aparece en ninguno.
+
+### Próximos pasos (opciones)
+
+- Slice 3: filtro «En promoción».
+- Slice 4: JSON-LD con el precio vigente y `priceValidUntil`.
+- Seguimientos abiertos: el importador del proveedor (el `CHECK` puede hacer fallar la
+  actualización de precio) y la difusión en grupos.
