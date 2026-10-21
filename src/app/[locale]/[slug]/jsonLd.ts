@@ -45,6 +45,11 @@ export function buildPostStructuredData(
     description: buildMetaDescription(content),
     isProduct: post.kind === PRODUCT_KIND,
     price: post.price ?? null,
+    salePrice: typeof post.salePrice === "number" ? post.salePrice : null,
+    saleEndsAt:
+      post.saleEndsAt instanceof Date || typeof post.saleEndsAt === "string"
+        ? post.saleEndsAt
+        : null,
     currency: SITE_CURRENCY,
     isAvailable: post.isAvailable !== false,
     publishedAt:
