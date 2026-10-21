@@ -53,6 +53,7 @@ Feature: Promociones con precio rebajado
     Given "Miel de abeja 500 g" tiene precio de promoción 150
     When un visitante abre la tienda
     Then la tarjeta de "Miel de abeja 500 g" muestra 180 tachado, 150 y "-17%"
+    And la foto de la tarjeta lleva el cintillo "Promoción · -17%"
 
   @slice-2
   Scenario: La tarjeta de un resultado de búsqueda muestra la insignia de descuento
@@ -64,7 +65,7 @@ Feature: Promociones con precio rebajado
   Scenario: Una tarjeta no anuncia una promoción vencida
     Given "Miel de abeja 500 g" tuvo precio de promoción 150 que terminó ayer
     When un visitante abre la tienda
-    Then la tarjeta de "Miel de abeja 500 g" muestra solo 180, sin insignia
+    Then la tarjeta de "Miel de abeja 500 g" muestra solo 180, sin insignia ni cintillo
 
   @slice-2
   Scenario: El carrito tacha lo que habría costado sin la promoción
@@ -85,7 +86,7 @@ Feature: Promociones con precio rebajado
     When un visitante filtra los productos por "En promoción"
     Then no aparece "Miel de abeja 500 g"
 
-  @slice-4 @future
+  @slice-4
   Scenario: Los buscadores reciben el precio de oferta
-    Given "Miel de abeja 500 g" tiene precio de promoción 150 que termina el 2026-11-30
-    Then el JSON-LD de la ficha declara price 150 y priceValidUntil 2026-11-30
+    Given "Miel de abeja 500 g" tiene precio de promoción 150 que termina el 2030-11-30 a las 23:00
+    Then el JSON-LD de la ficha declara price 150 y priceValidUntil 2030-11-30
