@@ -130,3 +130,15 @@ export function readSalePrice(raw: unknown): number | null {
 
   return Number(raw);
 }
+
+/**
+ * El parámetro de la dirección que deja un listado solo con lo que está en promoción
+ * (`/productos?promocion=1`). Vive en la dirección y no en un estado de la pantalla para que el
+ * filtro se comparta, se guarde y vuelva con el botón de atrás.
+ */
+export const ON_SALE_QUERY_PARAM = "promocion";
+
+/** Solo `"1"` enciende el filtro: cualquier otra cosa es el listado completo, no un error. */
+export function parseOnSaleFilter(value: unknown): boolean {
+  return value === "1";
+}

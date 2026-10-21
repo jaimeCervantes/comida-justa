@@ -76,6 +76,11 @@ export interface PaginatedPostsResult {
 export interface PostListingFilters {
   /** Claves de taxonomía permitidas; `[]` significa "no hay ninguna activa", no "sin filtro". */
   categoryKeys?: readonly string[];
+  /**
+   * Solo lo que tiene una promoción vigente ahora. Ausente o `false` = no filtrar.
+   * Ver `domain/entities/post/promotion.ts`.
+   */
+  onSale?: boolean;
 }
 
 /** Qué hay cerca de quien mira: cuánto, y a qué distancia lo primero. */

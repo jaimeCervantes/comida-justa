@@ -110,3 +110,65 @@ describe("When the products and services list is rendered", () => {
     );
   });
 });
+
+/** Slice 3 de `docs/features/commerce/031-2026-10-20-promociones.md`. */
+describe("El filtro «En promoción» del catálogo", () => {
+  it("se ofrece apagado y lleva al listado filtrado, desde la página 1", () => {
+    const { getByTestId } = render(
+      <ProductsList
+        products={[product]}
+        currentPage={2}
+        totalPages={3}
+        currentPillar={null}
+      />,
+    );
+
+    const chip = getByTestId("products-on-sale-filter");
+
+    expect(chip).toHaveTextContent("En promoción");
+    expect(chip).toHaveAttribute("aria-pressed", "false");
+    expect(chip).toHaveAttribute("href", "/productos?promocion=1");
+  });
+
+  it("encendido, se marca, se quita conservando el pilar y la paginación lo conserva", () => {
+    const { getByTestId, getByRole } = render(
+      <ProductsList
+        products={[product]}
+        currentPage={1}
+        totalPages={3}
+        currentPillar="movement"
+        onSale
+      />,
+    );
+
+    const chip = getByTestId("products-on-sale-filter");
+
+    expect(chip).toHaveAttribute("aria-pressed", "true");
+    expect(chip).toHaveAttribute("href", "/productos?pillar=movement");
+    expect(getByRole("link", { name: "Siguiente" })).toHaveAttribute(
+      "href",
+      "/productos/page/2?pillar=movement&promocion=1",
+    );
+  });
+
+  it("sin ofertas no invita a publicar: dice que no hay y ofrece volver al catálogo", () => {
+    const { getByTestId, queryByTestId, getByRole } = render(
+      <ProductsList
+        products={[]}
+        currentPage={1}
+        totalPages={0}
+        currentPillar={null}
+        onSale
+      />,
+    );
+
+    expect(getByTestId("products-on-sale-empty")).toHaveTextContent(
+      "Ahora no hay nada en promoción.",
+    );
+    expect(queryByTestId("products-empty")).not.toBeInTheDocument();
+    expect(getByRole("link", { name: "Ver todo el catálogo" })).toHaveAttribute(
+      "href",
+      "/productos",
+    );
+  });
+});

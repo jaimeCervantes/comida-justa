@@ -1972,7 +1972,11 @@
     "empty": "Aún no hay productos ni servicios publicados.",
     "emptyBody": "El catálogo lo hace quien vende: si cocinas, cultivas, entrenas o acompañas, tu publicación abre la sección.",
     "emptyCta": "Publicar lo mío",
+    "emptyOnSale": "Ahora no hay nada en promoción.",
+    "emptyOnSaleBody": "Cuando una tienda rebaje un producto o un servicio, aparecerá aquí.",
+    "onSaleFilter": "En promoción",
     "pagedTitle": "{title} - Página {page}",
+    "seeAll": "Ver todo el catálogo",
     "title": "Productos y servicios"
   },
   "profile": {
