@@ -72,11 +72,18 @@ Feature: Promociones con precio rebajado
     When un comprador agrega 2 al carrito
     Then el renglón muestra 360 tachado y suma 300
 
-  @slice-3 @future
+  @slice-3
   Scenario: El filtro "En promoción" muestra solo lo rebajado
-    Given "Miel de abeja 500 g" tiene promoción y otro producto no
-    When un visitante filtra por "En promoción"
-    Then solo aparece "Miel de abeja 500 g"
+    Given "Miel de abeja 500 g" tiene precio de promoción 150 y "Panela 1 kg" no tiene promoción
+    When un visitante abre los productos y elige "En promoción"
+    Then aparece "Miel de abeja 500 g"
+    And no aparece "Panela 1 kg"
+
+  @slice-3
+  Scenario: Una promoción vencida no entra al filtro
+    Given "Miel de abeja 500 g" tuvo precio de promoción 150 que terminó ayer
+    When un visitante filtra los productos por "En promoción"
+    Then no aparece "Miel de abeja 500 g"
 
   @slice-4 @future
   Scenario: Los buscadores reciben el precio de oferta

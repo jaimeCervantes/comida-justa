@@ -12,7 +12,7 @@ import {
 import { testSlug } from "../testUtils/testSlug";
 
 /**
- * Slices 1 y 2 de `docs/features/commerce/031-2026-10-20-promociones.md`. Escenarios en
+ * Slices 1 a 3 de `docs/features/commerce/031-2026-10-20-promociones.md`. Escenarios en
  * `promociones.feature`.
  *
  * La tienda se siembra con handle fijo y se borra antes y después de cada prueba, igual que en
@@ -266,5 +266,56 @@ test.describe("Promociones en tarjetas y en el carrito", () => {
       "360",
     );
     await expect(page.getByTestId("cart-group-subtotal")).toContainText("300");
+  });
+});
+
+test.describe("El filtro «En promoción» de los productos", () => {
+  test("El filtro «En promoción» muestra solo lo rebajado", async ({
+    page,
+  }) => {
+    const panela = {
+      title: `E2E Panela 1 kg ${token}`,
+      slug: testSlug("panela-1-kg"),
+    };
+
+    await seedPost({
+      ...panela,
+      kind: "producto",
+      origin: "productor",
+      price: 90,
+      sellerHandle: TIENDA.handle,
+    });
+    await setPromotion(150);
+
+    await page.goto("/productos");
+    await page.getByTestId("products-on-sale-filter").click();
+    await page.waitForURL(/[?&]promocion=1/);
+
+    const grid = page.getByTestId("products-grid");
+
+    await expect(page.getByTestId("products-on-sale-filter")).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    await expect(
+      grid.locator("article").filter({ hasText: miel.title }),
+    ).toBeVisible();
+    await expect(
+      grid.locator("article").filter({ hasText: panela.title }),
+    ).toHaveCount(0);
+  });
+
+  test("Una promoción vencida no entra al filtro", async ({ page }) => {
+    await setPromotion(150, new Date(Date.now() - DAY_MS));
+
+    await page.goto("/productos?promocion=1");
+
+    await expect(page.getByTestId("products-on-sale-filter")).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    await expect(
+      page.locator("article").filter({ hasText: miel.title }),
+    ).toHaveCount(0);
   });
 });
