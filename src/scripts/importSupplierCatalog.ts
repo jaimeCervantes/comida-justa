@@ -926,6 +926,7 @@ async function main(): Promise<void> {
         content: postTranslations.content,
         tags: postTranslations.tags,
         price: posts.price,
+        salePrice: posts.salePrice,
         sellerId: posts.sellerId,
         userId: posts.userId,
         category: posts.category,
@@ -950,6 +951,12 @@ async function main(): Promise<void> {
     let retexted = 0;
     let retagged = 0;
     let repriced = 0;
+    /* Las promociones que el precio nuevo del proveedor dejó sin sentido. Se nombran al final:
+       quien vende las puso a mano y tiene que enterarse de que se quitaron. */
+    const unpromoted: string[] = [];
+    const { promotionSurvivesPrice } = await import(
+      "~/domain/entities/post/promotion"
+    );
     let reassigned = 0;
     let reshelved = 0;
     let addedImages = 0;
@@ -1038,10 +1045,26 @@ async function main(): Promise<void> {
         repriced++;
         changed = true;
 
+        /* Si el proveedor bajó el precio hasta la promoción o por debajo, la promoción se quita en
+           el mismo `UPDATE`: la base no acepta una rebaja que no sea menor al precio, y el
+           comprador ya paga menos con el precio nuevo. Ver `promotionSurvivesPrice`. */
+        const salePrice = row.salePrice === null ? null : Number(row.salePrice);
+        const keepsPromotion = promotionSurvivesPrice(salePrice, product.price);
+
+        if (!keepsPromotion) unpromoted.push(row.slug);
+
         if (!options.dryRun) {
           await db
             .update(posts)
-            .set({ price: product.price.toString() })
+            .set(
+              keepsPromotion
+                ? { price: product.price.toString() }
+                : {
+                    price: product.price.toString(),
+                    salePrice: null,
+                    saleEndsAt: null,
+                  },
+            )
             .where(eq(posts.id, row.id));
         }
       }
@@ -1131,6 +1154,10 @@ async function main(): Promise<void> {
     console.log(
       `  precios ${options.dryRun ? "a corregir" : "corregidos"}:          ${repriced}`,
     );
+    console.log(
+      `  promociones ${options.dryRun ? "a quitar" : "quitadas"}:       ${unpromoted.length}`,
+    );
+    for (const slug of unpromoted) console.log(`    - ${slug}`);
     console.log(
       `  dueño ${options.dryRun ? "a reasignar" : "reasignado"}:           ${reassigned}`,
     );
