@@ -77,7 +77,8 @@ describe("PublishForm — la moneda del precio", () => {
     await chooseKind("producto");
     await openStepOf("price");
 
-    expect(screen.getByText(SITE_CURRENCY)).toBeInTheDocument();
+    // Dos: el precio y el de promoción, que también se escribe en pesos.
+    expect(screen.getAllByText(SITE_CURRENCY)).toHaveLength(2);
   });
 });
 

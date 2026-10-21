@@ -41,6 +41,8 @@ describe("CreatePostUseCase", () => {
         contactInfo: samplePostInfo.contactInfo,
         slug: expectedSlug,
         price: null,
+        salePrice: null,
+        saleEndsAt: null,
         kind: "anuncio",
         startsAt: null,
         endsAt: null,
@@ -94,6 +96,30 @@ describe("CreatePostUseCase", () => {
         category: "alimentacion",
         subCategory: "jugos",
       }),
+      "es",
+    );
+  });
+
+  it("guarda la promoción con la que se publicó", async () => {
+    const saleEndsAt = new Date("2026-11-30T23:59:00Z");
+
+    mockPostValidator.validate.mockReturnValue(undefined);
+    mockPostRepository.createUniqueSlug.mockResolvedValue("miel");
+    mockPostRepository.save.mockResolvedValue("post123");
+
+    await createPostUseCase.execute(
+      {
+        ...samplePostInfo,
+        kind: "producto",
+        price: 180,
+        salePrice: 150,
+        saleEndsAt,
+      },
+      "es",
+    );
+
+    expect(mockPostRepository.save).toHaveBeenCalledWith(
+      expect.objectContaining({ price: 180, salePrice: 150, saleEndsAt }),
       "es",
     );
   });
@@ -191,6 +217,8 @@ describe("CreatePostUseCase", () => {
         contactInfo: samplePostInfo.contactInfo,
         slug: expectedSlug,
         price: null,
+        salePrice: null,
+        saleEndsAt: null,
         kind: "anuncio",
         startsAt: null,
         endsAt: null,

@@ -33,6 +33,7 @@ import EventTimeZoneField, {
   useBrowserTimeZone,
 } from "~/presentation/post/EventTimeZone/EventTimeZoneField";
 import RouteFileField from "~/presentation/post/RouteFileField/RouteFileField";
+import SalePriceFields from "~/presentation/post/SalePriceFields/SalePriceFields";
 import { usePostValidationMessages } from "~/presentation/post/usePostValidationMessages";
 import { publishRequiresPrice, publishShowsPrice } from "./publishChecklist";
 import { PUBLISH_KIND_OPTIONS, publishKindTestId } from "./publishKinds";
@@ -377,6 +378,10 @@ export default function PublishForm({
                   validationMessages={fieldMessages.price}
                   containerClassName="mb-6"
                 />
+              ) : null}
+
+              {requiresPrice ? (
+                <SalePriceFields timeZone={timeZone} errors={state?.errors} />
               ) : null}
             </div>
 

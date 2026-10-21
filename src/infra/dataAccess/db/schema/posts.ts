@@ -24,6 +24,13 @@ export const posts = pgTable(
     id: text("id").primaryKey(),
     userId: text("user_id").notNull(),
     price: numeric("price"),
+    /**
+     * El precio rebajado y cuándo deja de aplicar. Nulo = sin promoción / sin fecha de fin. La base
+     * exige `sale_price > 0 AND sale_price < price` (`posts_sale_price_below_price`, migración
+     * `0064_2026_10_20` de `hazlo-sano-bot`). Ver `src/domain/entities/post/promotion.ts`.
+     */
+    salePrice: numeric("sale_price"),
+    saleEndsAt: timestamp("sale_ends_at", { withTimezone: true }),
     kind: text("kind").notNull().default("anuncio"),
     origin: text("origin"),
     /** Claves de allowlist (`alimentacion`, `jugos`), nunca etiquetas traducidas. */
@@ -85,6 +92,8 @@ export const posts = pgTable(
     /* Parcial en la base sobre `<> 'published'`: sirve al panel de moderación, no al feed. Drizzle
        solo espeja su existencia; la definición real vive en la migración. */
     index("ix_posts_moderation_pending").on(table.moderationStatus),
+    /* Parcial en la base sobre `sale_price IS NOT NULL`: sirve al filtro «En promoción». */
+    index("posts_on_sale_idx").on(table.saleEndsAt),
   ],
 );
 

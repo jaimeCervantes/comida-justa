@@ -17,6 +17,10 @@ export interface EditablePost {
   content: string;
   contactPhone: string | null;
   price: number | null;
+  /** `posts.sale_price`. Nulo = sin promoción. */
+  salePrice: number | null;
+  /** `posts.sale_ends_at`. Nulo = la promoción dura hasta que se quite. */
+  saleEndsAt: Date | null;
   kind: string;
   origin: string | null;
   category: string | null;
@@ -44,6 +48,9 @@ export interface PostContentUpdate {
   content: string;
   contactPhone: string;
   price: number | null;
+  /** Viaja junto con `price`: la base exige que sea menor, y en la misma fila. */
+  salePrice: number | null;
+  saleEndsAt: Date | null;
   /** Ya resuelta contra el rol de quien edita: el gate de admin vive en la capa de aplicación. */
   origin: string | null;
   category: string | null;

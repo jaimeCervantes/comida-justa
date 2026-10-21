@@ -17,6 +17,8 @@ const EVENT_POST: EditablePostValues = {
   content: "Salida comunitaria",
   contactPhone: "2781092116",
   price: null,
+  salePrice: null,
+  saleEndsAt: null,
   kind: "evento",
   origin: null,
   category: null,

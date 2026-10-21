@@ -9,6 +9,10 @@ import {
 import { parsePostMediaPayload } from "~/domain/entities/post/mediaPayload";
 import { resolveOriginForUser } from "~/domain/entities/post/origin";
 import {
+  readSalePrice,
+  validatePromotion,
+} from "~/domain/entities/post/promotion";
+import {
   type RouteFieldChange,
   readRouteField,
 } from "~/domain/entities/post/routeFile";
@@ -29,6 +33,7 @@ import { createPostAdminRepository } from "~/infra/dataAccess/managePost/factory
 import { createReviewPostContentUseCase } from "~/infra/dataAccess/moderatePost/factory";
 import { createRouteRepository } from "~/infra/dataAccess/routes/factory";
 import { ROUTE_FILE_ERROR_KEYS } from "~/infra/UI/labels/routeFileErrorKeys";
+import { promotionFieldErrors } from "~/presentation/post/promotionFieldErrors";
 import UpdateOnePostUseCase from "~/use_cases/managePost/updateOnePostUseCase";
 
 export type EditPostState = {
@@ -42,6 +47,8 @@ export type EditPostState = {
     endsAt?: string | null;
     durationMinutes?: string | null;
     price?: string | null;
+    salePrice?: string | null;
+    saleEndsAt?: string | null;
     origin?: string | null;
     phone?: string | null;
     /** Lo que le pasa al `.gpx`: el mismo campo que ya existía al publicar. */
@@ -144,6 +151,15 @@ export async function updatePost(
   const endsAt = parseDateTimeLocalInTimeZone(formData.get("endsAt"), timeZone);
   const durationMinutes = readPositiveInt(formData.get("durationMinutes"));
   const requiresPrice = kind === "producto" || kind === SERVICE_KIND;
+  /* La promoción, solo en lo que se cobra. Vacío es «sin promoción», no un error: borrar el campo
+     es la forma de quitarla. */
+  const salePrice = requiresPrice
+    ? readSalePrice(formData.get("salePrice"))
+    : null;
+  const saleEndsAt = requiresPrice
+    ? parseDateTimeLocalInTimeZone(formData.get("saleEndsAt"), timeZone)
+    : null;
+  const promotionError = validatePromotion({ price, salePrice, saleEndsAt });
 
   /* El recorrido, sólo en un evento. En cualquier otro tipo el campo ni se pinta, así que lo que
      llegara ahí vendría de un formulario manipulado y se ignora en vez de guardarse. */
@@ -173,6 +189,7 @@ export async function updatePost(
         ? null
         : tPublish("errorDurationRequired"),
     price: !requiresPrice || price ? null : tPublish("errorPriceRequired"),
+    ...promotionFieldErrors(promotionError, tPublish),
     origin:
       kind !== "producto" || origin ? null : tPublish("errorOriginRequired"),
     phone: phone ? null : tPublish("errorPhoneRequired"),
@@ -190,6 +207,8 @@ export async function updatePost(
     content: String(formData.get("content") ?? ""),
     contactPhone: phone,
     price: kind === "anuncio" ? null : price,
+    salePrice,
+    saleEndsAt,
     origin,
     category,
     subCategory,

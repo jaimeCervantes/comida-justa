@@ -3,7 +3,11 @@ import {
   PostNotFoundError,
   PostOwnershipError,
 } from "~/domain/entities/post/errors";
-import { EVENT_KIND, SERVICE_KIND } from "~/domain/entities/post/kind";
+import {
+  EVENT_KIND,
+  SELLABLE_KINDS,
+  SERVICE_KIND,
+} from "~/domain/entities/post/kind";
 import type {
   IPostValidator,
   PostMediaFile,
@@ -30,6 +34,10 @@ export interface UpdateOnePostInput {
   startsAt?: Date | null;
   endsAt?: Date | null;
   durationMinutes?: number | null;
+  /** El precio de promoción. Nulo o ausente = sin promoción: así se quita. */
+  salePrice?: number | null;
+  /** Cuándo termina la promoción. Nulo o ausente = hasta que se quite. */
+  saleEndsAt?: Date | null;
   /**
    * Los archivos que la publicación tendrá al guardar, en orden. Lista completa, no un delta.
    *
@@ -103,6 +111,12 @@ export default class UpdateOnePostUseCase {
       post.kind === SERVICE_KIND ? (input.durationMinutes ?? null) : null;
     const price = post.kind === "anuncio" ? null : input.price;
     const origin = post.kind === "producto" ? input.origin : null;
+    /* Solo lo que se cobra admite promoción. En un anuncio o un evento el campo ni se pinta, así
+       que lo que llegara vendría de un formulario manipulado. Una fecha de fin sin rebaja no se
+       descarta en silencio: la rechaza el validador, para que quien la puso sepa que no aplicó. */
+    const sellable = SELLABLE_KINDS.includes(post.kind as never);
+    const salePrice = sellable ? (input.salePrice ?? null) : null;
+    const saleEndsAt = sellable ? (input.saleEndsAt ?? null) : null;
 
     // Se valida con las mismas reglas que al publicar: un producto sigue necesitando precio y
     // procedencia. `kind` no viaja en el formulario —editar no cambia lo que la publicación es—,
@@ -111,6 +125,8 @@ export default class UpdateOnePostUseCase {
       title,
       content,
       price,
+      salePrice,
+      saleEndsAt,
       kind: post.kind as never,
       origin: origin as never,
       startsAt,
@@ -133,6 +149,8 @@ export default class UpdateOnePostUseCase {
       content,
       contactPhone,
       price,
+      salePrice,
+      saleEndsAt,
       origin,
       category: input.category,
       subCategory: input.subCategory,

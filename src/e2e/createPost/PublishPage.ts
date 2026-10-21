@@ -60,7 +60,7 @@ export default class PublishPage {
     /* El tipo ya no es un `combobox`: desde el 5.3 son píldoras. Quien lo elige es
        `choosePublishKind`, que sabe el `data-testid` y no depende del idioma del rótulo. */
     this.origin = this.page.getByRole("combobox", { name: /de dónde viene/i });
-    this.price = this.page.getByRole("spinbutton", { name: /precio/i });
+    this.price = this.page.getByRole("spinbutton", { name: /^precio/i });
     this.description = this.page.getByRole("textbox", {
       name: /descripci[oó]n/i,
     });

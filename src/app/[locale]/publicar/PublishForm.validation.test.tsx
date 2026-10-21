@@ -82,7 +82,7 @@ describe("PublishForm — cada campo dice su razón, y es la del servidor", () =
     await openStepOf("price");
 
     await fillAndLeave(
-      screen.getByRole("spinbutton", { name: /precio/i }),
+      screen.getByRole("spinbutton", { name: /^precio/i }),
       "0",
     );
 

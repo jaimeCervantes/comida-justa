@@ -109,7 +109,7 @@ test.describe("Al publicar, el formulario dice por qué", () => {
     await form
       .getByRole("combobox", { name: /de dónde viene/i })
       .selectOption("reventa_cercana");
-    await form.getByRole("spinbutton", { name: /precio/i }).fill("25");
+    await form.getByRole("spinbutton", { name: /^precio/i }).fill("25");
 
     await openPublishStep(page, "phone");
     await form.getByRole("textbox", { name: /teléfono/i }).fill("2781092116");

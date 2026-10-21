@@ -3,6 +3,8 @@ export type ActionState = Partial<{
     errorMessage?: string;
     title: string | null;
     price: string | null;
+    salePrice: string | null;
+    saleEndsAt: string | null;
     origin: string | null;
     phone: string | null;
     content: string | null;
