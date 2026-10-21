@@ -30,6 +30,7 @@ const STEP_BUTTON =
  */
 export default function CartLineRow({ line }: { line: CartLine }) {
   const t = useTranslations("cart");
+  const tPost = useTranslations("post");
   const [, quantityAction, isUpdating] = useActionState<
     CartActionState,
     FormData
@@ -39,7 +40,7 @@ export default function CartLineRow({ line }: { line: CartLine }) {
     FormData
   >(removeCartLine, {});
 
-  const { product, quantity, amount } = line;
+  const { product, quantity, amount, regularUnitPrice } = line;
   const soldOut = !product.isAvailable;
   const busy = isUpdating || isRemoving;
   const href = { pathname: "/[slug]" as const, params: { slug: product.slug } };
@@ -96,7 +97,23 @@ export default function CartLineRow({ line }: { line: CartLine }) {
             dice que el renglón se contó y no sumó, que es exactamente lo que pasa. El aviso de
             arriba explica por qué, y así los dos cuentan la misma historia.
           */}
-          <span className="ml-auto">
+          {/* Con promoción vigente, lo que habría costado sin ella, tachado: el renglón ya suma con la
+              rebaja (`buildCartLines`), y esto es lo que deja ver que se está ahorrando. Lo agotado
+              no lo enseña porque no suma nada. */}
+          <span className="ml-auto flex items-baseline gap-2">
+            {regularUnitPrice !== null && !soldOut ? (
+              <del
+                data-testid="cart-line-regular-amount"
+                className="text-text-support"
+              >
+                <span className="sr-only">{tPost("saleRegularPrice")}: </span>
+                <CurrencyAmount
+                  value={regularUnitPrice * quantity}
+                  currency={SITE_CURRENCY}
+                  className="text-body text-text-support"
+                />
+              </del>
+            ) : null}
             <CurrencyAmount
               value={soldOut ? 0 : amount}
               currency={SITE_CURRENCY}
