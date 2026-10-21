@@ -119,3 +119,43 @@ describe("buildPostJsonLd", () => {
     }
   });
 });
+
+/** Slice 4 de `docs/features/commerce/031-2026-10-20-promociones.md`. */
+describe("buildPostJsonLd con una promoción", () => {
+  const NOW = new Date("2026-10-21T12:00:00Z");
+  const miel: PostJsonLdInput = {
+    ...jugoVerde,
+    title: "Miel de abeja 500 g",
+    price: 180,
+    salePrice: 150,
+    now: NOW,
+  };
+
+  it("declara el precio rebajado, que es el que se cobra", () => {
+    expect(firstOf(miel).offers).toMatchObject({ price: "150" });
+    expect(firstOf(miel).offers).not.toHaveProperty("priceValidUntil");
+  });
+
+  it("con fecha de fin, declara hasta qué día vale, en la fecha de la comunidad", () => {
+    /* 23:59 del 30 de noviembre en México son las 05:59 del 1 de diciembre en UTC. */
+    const offers = firstOf({
+      ...miel,
+      saleEndsAt: new Date("2026-12-01T05:59:00Z"),
+    }).offers;
+
+    expect(offers).toMatchObject({
+      price: "150",
+      priceValidUntil: "2026-11-30",
+    });
+  });
+
+  it("vencida, declara el precio normal y ninguna fecha", () => {
+    const offers = firstOf({
+      ...miel,
+      saleEndsAt: new Date("2026-10-20T12:00:00Z"),
+    }).offers;
+
+    expect(offers).toMatchObject({ price: "180" });
+    expect(offers).not.toHaveProperty("priceValidUntil");
+  });
+});

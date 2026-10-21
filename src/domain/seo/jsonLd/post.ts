@@ -1,3 +1,5 @@
+import { currentPrice } from "~/domain/entities/post/promotion";
+import { formatCommunityDateTimeLocal } from "~/domain/schedule/localDateTime";
 import { type JsonLdNode, SCHEMA_CONTEXT, withoutEmpty } from "./types";
 
 export const IN_STOCK = "https://schema.org/InStock";
@@ -11,6 +13,11 @@ export interface PostJsonLdInput {
   /** `producto` es lo que se vende; cualquier otra cosa se publica como artículo. */
   isProduct: boolean;
   price?: number | null;
+  /** `posts.sale_price` y `posts.sale_ends_at`. Ver `domain/entities/post/promotion.ts`. */
+  salePrice?: number | null;
+  saleEndsAt?: Date | string | null;
+  /** Contra qué hora se decide si la promoción sigue vigente. Por omisión, la de ahora. */
+  now?: Date;
   currency: string;
   isAvailable: boolean;
   publishedAt?: Date | null;
@@ -60,14 +67,33 @@ function productNode(input: PostJsonLdInput): JsonLdNode {
   });
 }
 
-/** Sin precio no hay oferta que declarar: un `Offer` sin `price` es un dato inválido. */
+/**
+ * Sin precio no hay oferta que declarar: un `Offer` sin `price` es un dato inválido.
+ *
+ * **El precio es el que se cobra hoy** (`currentPrice`), el mismo que enseña la ficha y suma el
+ * carrito: declarar el normal mientras la página enseña el rebajado es justo la discrepancia que un
+ * buscador castiga. Con fecha de fin, `priceValidUntil` dice hasta cuándo, como fecha de la
+ * comunidad: una promoción que acaba a las 23:59 del 30 en México no termina el 1 en UTC.
+ */
 function offerNode(input: PostJsonLdInput): JsonLdNode | undefined {
   if (input.price === null || input.price === undefined) return undefined;
 
+  const current = currentPrice(
+    {
+      price: input.price,
+      salePrice: input.salePrice,
+      saleEndsAt: input.saleEndsAt,
+    },
+    input.now ?? new Date(),
+  );
+
   return withoutEmpty({
     "@type": "Offer",
-    price: String(input.price),
+    price: String(current.price),
     priceCurrency: input.currency,
+    priceValidUntil: current.endsAt
+      ? formatCommunityDateTimeLocal(current.endsAt).slice(0, 10)
+      : undefined,
     availability: input.isAvailable ? IN_STOCK : OUT_OF_STOCK,
     url: input.url,
     seller: personNode(input.authorName),

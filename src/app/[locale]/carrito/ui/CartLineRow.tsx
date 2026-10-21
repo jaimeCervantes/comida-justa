@@ -14,6 +14,7 @@ import {
 import { Button } from "~/presentation/design_system/buttons/Button";
 import Thumbnail from "~/presentation/media/Thumbnail/Thumbnail";
 import CurrencyAmount from "~/presentation/money/CurrencyAmount";
+import { STRUCK_PRICE } from "~/presentation/post/PromotionPrice/PromotionPrice";
 
 const STEP_BUTTON =
   "focus-ring px-3 py-1 text-body-lg leading-none text-text-base transition-colors hover:bg-surface-elevation-2 disabled:opacity-40 disabled:pointer-events-none";
@@ -104,7 +105,7 @@ export default function CartLineRow({ line }: { line: CartLine }) {
             {regularUnitPrice !== null && !soldOut ? (
               <del
                 data-testid="cart-line-regular-amount"
-                className="text-text-support"
+                className={`${STRUCK_PRICE} text-text-support`}
               >
                 <span className="sr-only">{tPost("saleRegularPrice")}: </span>
                 <CurrencyAmount

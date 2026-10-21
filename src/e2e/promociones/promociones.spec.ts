@@ -12,7 +12,7 @@ import {
 import { testSlug } from "../testUtils/testSlug";
 
 /**
- * Slices 1 a 3 de `docs/features/commerce/031-2026-10-20-promociones.md`. Escenarios en
+ * Slices 1 a 4 de `docs/features/commerce/031-2026-10-20-promociones.md`. Escenarios en
  * `promociones.feature`.
  *
  * La tienda se siembra con handle fijo y se borra antes y después de cada prueba, igual que en
@@ -212,6 +212,9 @@ test.describe("Promociones en tarjetas y en el carrito", () => {
     );
     await expect(card.getByTestId("promotion-sale-price")).toContainText("150");
     await expect(card.getByTestId("promotion-discount")).toHaveText("-17%");
+    await expect(card.getByTestId("promotion-ribbon")).toHaveText(
+      "Promoción · -17%",
+    );
   }
 
   test("La tarjeta del catálogo de la tienda muestra la insignia de descuento", async ({
@@ -245,6 +248,7 @@ test.describe("Promociones en tarjetas y en el carrito", () => {
 
     await expect(card).toContainText("180");
     await expect(card.getByTestId("promotion-price")).toHaveCount(0);
+    await expect(card.getByTestId("promotion-ribbon")).toHaveCount(0);
   });
 
   test("El carrito tacha lo que habría costado sin la promoción", async ({
@@ -317,5 +321,33 @@ test.describe("El filtro «En promoción» de los productos", () => {
     await expect(
       page.locator("article").filter({ hasText: miel.title }),
     ).toHaveCount(0);
+  });
+});
+
+test.describe("El precio de oferta para los buscadores", () => {
+  test("Los buscadores reciben el precio de oferta", async ({ page }) => {
+    /* 23:00 en México (UTC-6, sin horario de verano desde 2022): el día que se declara es el de la
+       comunidad, aunque en UTC ya sea el 1 de diciembre. */
+    await setPromotion(150, new Date("2030-11-30T23:00:00-06:00"));
+
+    await page.goto(`/${miel.slug}`);
+
+    const blocks = await page
+      .locator('script[type="application/ld+json"]')
+      .allTextContents();
+    const nodes = blocks.flatMap((block) => {
+      const parsed = JSON.parse(block);
+
+      return Array.isArray(parsed) ? parsed : [parsed];
+    });
+    const product = nodes.find((node) => node["@type"] === "Product");
+
+    expect(product).toMatchObject({
+      offers: {
+        "@type": "Offer",
+        price: "150",
+        priceValidUntil: "2030-11-30",
+      },
+    });
   });
 });

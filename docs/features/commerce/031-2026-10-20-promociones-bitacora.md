@@ -213,3 +213,70 @@ pilar y conservado al paginar. Una promoción vencida no entra.
 - Seguimientos abiertos: el importador del proveedor (el `CHECK` puede hacer fallar la
   actualización de precio) y la difusión en grupos.
 - Si hace falta: llevar el mismo interruptor a la tienda (`/tienda/<handle>`) o a la búsqueda.
+
+## 2026-10-21 — Slice 4: datos estructurados
+
+### Objetivo
+
+Que un buscador lea en la ficha el mismo precio que enseña la página: el `Offer` del JSON-LD
+declara el precio vigente y, si la promoción tiene fecha de fin, `priceValidUntil`.
+
+### Decisiones
+
+- **El `Offer` usa `currentPrice`**, igual que la ficha, el carrito y el pedido. Declarar el precio
+  normal mientras la página enseña el rebajado es la discrepancia que Google marca como error de
+  datos de producto.
+- **`priceValidUntil` es la fecha de la comunidad** (`formatCommunityDateTimeLocal`), no la UTC: una
+  promoción que acaba a las 23:59 del 30 de noviembre en México no se declara como del 1 de
+  diciembre.
+- **No se declara el precio tachado** (`priceSpecification` con `StrikethroughPrice`). El roadmap
+  pedía precio y vigencia, y el precio de referencia tiene reglas propias en Google (debe ser un
+  precio real de los últimos 30 días); queda como opción.
+- **`buildPostJsonLd` recibe `now`**, opcional, para probar la vigencia con un reloj fijo. La ficha
+  se pinta en cada petición (no tiene `revalidate`), así que la hora es la de la visita.
+
+### Archivos
+
+- `domain/seo/jsonLd/post.ts` (+ tres pruebas) y `app/[locale]/[slug]/jsonLd.ts`.
+- e2e: el escenario `@slice-4` de `promociones.feature` y su spec.
+
+### Validación
+
+- e2e `src/e2e/promociones` y `src/e2e/seo/structuredData.spec.ts`: 18 de 18 en verde.
+- Suite completa de vitest: 339 archivos y 3607 pruebas en verde. `tsc`, `typecheck:tests` y
+  `biome check .` limpios.
+
+### Recap
+
+Slice 4 terminado, y con él el roadmap. El JSON-LD de la ficha declara el precio que se cobra y
+hasta qué día vale. Una promoción vencida declara el precio normal.
+
+### Próximos pasos (opciones)
+
+- Seguimientos abiertos: el importador del proveedor (el `CHECK` puede hacer fallar la
+  actualización de precio) y la difusión en grupos.
+- Declarar el precio tachado en el JSON-LD, si se quiere el precio de referencia en Google.
+
+## 2026-10-21 — Ajuste visual: tachado centrado y cintillo en la tarjeta
+
+Pedido del usuario después del slice 4: la raya del precio normal caía muy abajo y no se leía como
+«ya no es el precio», y la tarjeta necesitaba algo sobre la foto que dijera que hay promoción.
+
+### Decisiones
+
+- **La raya ya no es el `line-through` del navegador.** Lo dibujaba la fuente de `<del>`, y la cifra
+  va en `font-display`, así que la raya caía cerca de la base de los números. Ahora es un `::after`
+  de 2px a media altura de la cifra (`STRUCK_PRICE`, en `PromotionPrice.tsx`), compartido por la
+  ficha, la tarjeta y el carrito. `<del>` se conserva por el lector de pantalla.
+- **Cintillo `PromotionRibbon`** («Promoción · -17%») abajo a la izquierda de la foto, pegado al
+  borde como una cinta, en barro de marca (`brand-clay-700` con blanco). Arriba están el pilar y el
+  contador de archivos, y abajo a la derecha, compartir. Es de cliente, como `PromotionPrice`, y una
+  promoción vencida no lo pinta.
+
+### Validación
+
+- Capturas de la ficha, la tarjeta (escritorio y teléfono) y el carrito con un spec temporal, ya
+  borrado.
+- e2e `src/e2e/promociones`: 13 de 13 en verde; los escenarios de tarjeta comprueban el cintillo.
+- Suite completa de vitest: 340 archivos y 3609 pruebas en verde. `tsc`, `typecheck:tests` y
+  `biome check .` limpios.
