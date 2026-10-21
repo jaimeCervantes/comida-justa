@@ -65,6 +65,12 @@ function build(products: CartProduct[]) {
           status: "PENDING",
           createdAt: new Date("2026-08-09T12:00:00Z"),
           updatedAt: new Date("2026-08-09T12:00:00Z"),
+          deliveryLocation: order.deliveryLocation
+            ? {
+                ...order.deliveryLocation,
+                updatedAt: new Date("2026-08-09T12:00:00Z"),
+              }
+            : null,
           /* El repositorio real relee los renglones tras el commit, ya con su slug y su miniatura;
              el doble devuelve los escritos con esos dos campos vacíos. */
           lines: order.lines.map((line) => ({

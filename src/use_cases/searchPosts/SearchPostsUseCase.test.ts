@@ -562,7 +562,10 @@ describe("SearchPostsUseCase y las palabras a medias", () => {
     results: [{ id: "1" }] as unknown as ISearchPostResultDTO[],
     total: 1,
   };
-  const sinResultados = { results: [], total: 0 };
+  const sinResultados: { results: ISearchPostResultDTO[]; total: number } = {
+    results: [],
+    total: 0,
+  };
 
   function makeRepo({
     textual = sinResultados,
