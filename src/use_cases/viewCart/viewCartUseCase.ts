@@ -10,6 +10,8 @@ export interface ViewCartInput {
   selection: readonly CartSelection[];
   locale: string;
   fallbackLocale: string;
+  /** Contra qué hora se decide si una promoción sigue vigente. Por omisión, ahora. */
+  now?: Date;
 }
 
 /**
@@ -26,6 +28,7 @@ export default class ViewCartUseCase {
     selection,
     locale,
     fallbackLocale,
+    now = new Date(),
   }: ViewCartInput): Promise<CartSellerGroup[]> {
     if (selection.length === 0) return [];
 
@@ -35,6 +38,6 @@ export default class ViewCartUseCase {
       fallbackLocale,
     );
 
-    return groupBySeller(buildCartLines(selection, products));
+    return groupBySeller(buildCartLines(selection, products, now));
   }
 }

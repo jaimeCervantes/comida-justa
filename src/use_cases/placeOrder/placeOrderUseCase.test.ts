@@ -178,6 +178,37 @@ describe("PlaceOrderUseCase", () => {
     expect(created[0].lines[0].unitPrice).toBe(40);
   });
 
+  /* El renglón copia lo que se cobra, no `product.price`: con promoción vigente son distintos. */
+  it("copia el precio de promoción vigente, no el normal", async () => {
+    const { useCase, created } = build([{ ...jugoVerde, salePrice: 30 }]);
+
+    await useCase.execute({
+      ...baseInput,
+      selection: [{ postId: jugoVerde.postId, quantity: 2 }],
+      now: new Date("2026-10-20T12:00:00Z"),
+    });
+
+    expect(created[0].lines[0].unitPrice).toBe(30);
+  });
+
+  it("con la promoción vencida copia el precio normal", async () => {
+    const { useCase, created } = build([
+      {
+        ...jugoVerde,
+        salePrice: 30,
+        saleEndsAt: new Date("2026-10-19T12:00:00Z"),
+      },
+    ]);
+
+    await useCase.execute({
+      ...baseInput,
+      selection: [{ postId: jugoVerde.postId, quantity: 1 }],
+      now: new Date("2026-10-20T12:00:00Z"),
+    });
+
+    expect(created[0].lines[0].unitPrice).toBe(40);
+  });
+
   it("deja fuera lo que se agotó, y lo dice para poder vaciar solo lo pedido", async () => {
     const { useCase, created } = build([
       jugoVerde,
