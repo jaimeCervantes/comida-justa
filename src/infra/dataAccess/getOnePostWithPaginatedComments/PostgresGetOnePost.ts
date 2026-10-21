@@ -21,6 +21,8 @@ interface PostRow {
   seller_name: string | null;
   seller_logo_url: string | null;
   price: string | null;
+  sale_price: string | null;
+  sale_ends_at: Date | null;
   kind: string | null;
   origin: string | null;
   category: string | null;
@@ -94,6 +96,8 @@ export async function getPostBySlug(slug: string, viewer: PostViewer = {}) {
          donde se decide. La columna existe desde el slice 6; solo faltaba pedirla aquí. */
       s.logo_url AS seller_logo_url,
       p.price::text,
+      p.sale_price::text,
+      p.sale_ends_at,
       p.kind,
       p.origin,
       p.category,
@@ -273,6 +277,8 @@ export async function getPostBySlug(slug: string, viewer: PostViewer = {}) {
           }
         : null,
     price: row.price ? Number(row.price) : null,
+    salePrice: row.sale_price ? Number(row.sale_price) : null,
+    saleEndsAt: row.sale_ends_at,
     kind: row.kind ?? "anuncio",
     origin: row.origin ?? null,
     category: row.category ?? null,

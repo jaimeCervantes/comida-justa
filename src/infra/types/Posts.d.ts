@@ -15,6 +15,9 @@ export type Post =
         kind: "anuncio" | "producto";
         origin: string | null;
         stockQuantity: number | null;
+        /** `posts.sale_price` y `posts.sale_ends_at`. Ver `domain/entities/post/promotion.ts`. */
+        salePrice: number | null;
+        saleEndsAt: Date | null;
         reactionCount: number;
         viewerReacted: boolean;
         contactInfo: {
