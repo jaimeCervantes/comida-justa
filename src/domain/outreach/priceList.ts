@@ -1,4 +1,5 @@
 import { isPubliclyVisible } from "~/domain/entities/post/moderation";
+import { currentPrice } from "~/domain/entities/post/promotion";
 import { isOutOfStock } from "~/domain/entities/post/stock";
 import type { OutreachExclusionReason } from "./exclusionReasons";
 
@@ -19,6 +20,9 @@ export interface OutreachListedProduct {
   kind: string;
   /** `posts.price` ya convertido a número. Nulo: no tiene precio. */
   price: number | null;
+  /** `posts.sale_price` y `posts.sale_ends_at`. Ver `domain/entities/post/promotion.ts`. */
+  salePrice?: number | null;
+  saleEndsAt?: Date | string | null;
   isAvailable: boolean;
   /** `posts.stock_quantity`. **Nulo no es cero**: es no llevar inventario. */
   stockQuantity: number | null;
@@ -26,7 +30,13 @@ export interface OutreachListedProduct {
 }
 
 export type ListingDecision =
-  | { listed: true; price: number }
+  | {
+      listed: true;
+      /** El que se cobra hoy: el rebajado si hay promoción vigente. */
+      price: number;
+      /** El normal, para tacharlo, solo con promoción vigente. */
+      regularPrice: number | null;
+    }
   | { listed: false; reason: OutreachExclusionReason };
 
 export interface ExcludedProduct {
@@ -48,8 +58,14 @@ export interface PriceList {
  * Los motivos se preguntan en el orden de `OUTREACH_EXCLUSION_REASONS`. «Agotado» va antes que
  * «no disponible» aunque los dos apaguen `is_available`, porque piden cosas distintas a quien lee
  * el aviso: el primero se arregla reponiendo y el segundo encendiéndolo.
+ *
+ * El precio es el de `currentPrice`, el mismo que cobra la tienda: anunciar el normal mientras se
+ * cobra el rebajado escondía la oferta justo donde más se lee.
  */
-export function decideListing(product: OutreachListedProduct): ListingDecision {
+export function decideListing(
+  product: OutreachListedProduct,
+  now: Date = new Date(),
+): ListingDecision {
   if (!isPubliclyVisible(product)) {
     return { listed: false, reason: "not-published" };
   }
@@ -57,7 +73,20 @@ export function decideListing(product: OutreachListedProduct): ListingDecision {
   if (!product.isAvailable) return { listed: false, reason: "unavailable" };
   if (product.price === null) return { listed: false, reason: "no-price" };
 
-  return { listed: true, price: product.price };
+  const current = currentPrice(
+    {
+      price: product.price,
+      salePrice: product.salePrice,
+      saleEndsAt: product.saleEndsAt,
+    },
+    now,
+  );
+
+  return {
+    listed: true,
+    price: current.price,
+    regularPrice: current.regularPrice,
+  };
 }
 
 /**
@@ -81,15 +110,27 @@ export function formatListPrice(price: number): string {
  * Es como ya escribe quien vende —«🌻 Semillas / Integral / Ajo — $125»—, y es lo que hace que seis
  * panes quepan en tres renglones. El renglón lleva el primer emoji que aparezca entre sus productos,
  * en el orden en que se agregaron; repetirlos todos convertiría la lista en una fila de dibujos.
+ *
+ * **Lo rebajado va en su propio renglón**, con el precio normal tachado como lo tacha WhatsApp
+ * (`~$180~ $150`). Juntarlo con lo que cuesta 150 de siempre escondería la oferta; por eso el
+ * renglón se agrupa por los dos precios, no solo por el que se cobra.
  */
 export function buildPriceList(
   products: readonly OutreachListedProduct[],
+  now: Date = new Date(),
 ): PriceList {
-  const byPrice = new Map<number, OutreachListedProduct[]>();
+  const byPrice = new Map<
+    string,
+    {
+      price: number;
+      regularPrice: number | null;
+      group: OutreachListedProduct[];
+    }
+  >();
   const excluded: ExcludedProduct[] = [];
 
   for (const product of [...products].sort((a, b) => a.position - b.position)) {
-    const decision = decideListing(product);
+    const decision = decideListing(product, now);
 
     if (!decision.listed) {
       excluded.push({
@@ -100,25 +141,40 @@ export function buildPriceList(
       continue;
     }
 
-    byPrice.set(decision.price, [
-      ...(byPrice.get(decision.price) ?? []),
-      product,
-    ]);
+    const key = `${decision.price}|${decision.regularPrice ?? ""}`;
+    const line = byPrice.get(key) ?? {
+      price: decision.price,
+      regularPrice: decision.regularPrice,
+      group: [],
+    };
+
+    line.group.push(product);
+    byPrice.set(key, line);
   }
 
-  const lines = [...byPrice.entries()]
-    .sort(([cheaper], [pricier]) => cheaper - pricier)
-    .map(([price, group]) => renderLine(price, group));
+  /* Del más barato al más caro; a igual precio, primero lo rebajado, que es la noticia. */
+  const lines = [...byPrice.values()]
+    .sort(
+      (a, b) =>
+        a.price - b.price ||
+        Number(b.regularPrice !== null) - Number(a.regularPrice !== null),
+    )
+    .map(({ price, regularPrice, group }) =>
+      renderLine(price, regularPrice, group),
+    );
 
   return { lines, excluded };
 }
 
 function renderLine(
   price: number,
+  regularPrice: number | null,
   group: readonly OutreachListedProduct[],
 ): string {
   const emoji = group.map((product) => product.emoji?.trim()).find(Boolean);
   const labels = group.map((product) => product.label.trim()).join(" / ");
+  const struck =
+    regularPrice === null ? "" : `~${formatListPrice(regularPrice)}~ `;
 
-  return `${emoji ? `${emoji} ` : ""}${labels} — ${formatListPrice(price)}`;
+  return `${emoji ? `${emoji} ` : ""}${labels} — ${struck}${formatListPrice(price)}`;
 }

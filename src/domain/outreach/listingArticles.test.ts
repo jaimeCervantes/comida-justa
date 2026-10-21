@@ -87,3 +87,13 @@ describe("los artículos de compraventa", () => {
     ]);
   });
 });
+
+describe("un artículo de compraventa con promoción", () => {
+  it("lleva el precio que se cobra: el campo de Facebook admite uno solo", () => {
+    const [article] = buildListingArticles([
+      bread("Miel de abeja 500 g", { price: 180, salePrice: 150 }),
+    ]);
+
+    expect(article?.price).toBe("150");
+  });
+});

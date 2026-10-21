@@ -13,13 +13,13 @@ describe("la lista de precios de un texto de difusión", () => {
         etiqueta: "Natural",
         estado: "publicado, con 2 existencias",
         producto: { price: 96, stockQuantity: 2 },
-        resultado: { listed: true, price: 96 },
+        resultado: { listed: true, price: 96, regularPrice: null },
       },
       {
         etiqueta: "Semillas",
         estado: "publicado, sin inventario y disponible",
         producto: { price: 125, stockQuantity: null, isAvailable: true },
-        resultado: { listed: true, price: 125 },
+        resultado: { listed: true, price: 125, regularPrice: null },
       },
       {
         etiqueta: "Canela",
@@ -86,7 +86,7 @@ describe("la lista de precios de un texto de difusión", () => {
         decideListing(
           listedProduct({ stockQuantity: null, isAvailable: true }),
         ),
-      ).toEqual({ listed: true, price: 96 });
+      ).toEqual({ listed: true, price: 96, regularPrice: null });
     });
   });
 
@@ -173,5 +173,52 @@ describe("la lista de precios de un texto de difusión", () => {
           .lines[0],
       ).toMatch(new RegExp(`— \\${seLee}$`));
     });
+  });
+});
+
+/** Seguimiento de `docs/features/commerce/031-2026-10-20-promociones.md`. */
+describe("la lista de precios con una promoción", () => {
+  const NOW = new Date("2026-10-21T12:00:00Z");
+
+  it("anuncia el precio que se cobra, con el normal tachado como lo tacha WhatsApp", () => {
+    const miel = listedProduct({
+      label: "Miel",
+      emoji: "🍯",
+      price: 180,
+      salePrice: 150,
+    });
+
+    expect(decideListing(miel, NOW)).toEqual({
+      listed: true,
+      price: 150,
+      regularPrice: 180,
+    });
+    expect(buildPriceList([miel], NOW).lines).toEqual([
+      "🍯 Miel — ~$180~ $150",
+    ]);
+  });
+
+  it("lo rebajado no comparte renglón con lo que cuesta eso de siempre, y va primero", () => {
+    const products = addedInOrder([
+      { label: "Panela", price: 150 },
+      { label: "Miel", price: 180, salePrice: 150 },
+      { label: "Café", price: 150 },
+    ]);
+
+    expect(buildPriceList(products, NOW).lines).toEqual([
+      "Miel — ~$180~ $150",
+      "Panela / Café — $150",
+    ]);
+  });
+
+  it("una promoción vencida se anuncia al precio normal, sin tachar", () => {
+    const miel = listedProduct({
+      label: "Miel",
+      price: 180,
+      salePrice: 150,
+      saleEndsAt: new Date("2026-10-20T12:00:00Z"),
+    });
+
+    expect(buildPriceList([miel], NOW).lines).toEqual(["Miel — $180"]);
   });
 });

@@ -3,6 +3,7 @@ import {
   currentPrice,
   isPromotionActive,
   parseOnSaleFilter,
+  promotionSurvivesPrice,
   validatePromotion,
 } from "./promotion";
 
@@ -159,5 +160,16 @@ describe("parseOnSaleFilter", () => {
     [["1"], false],
   ])("%j → %s", (value, expected) => {
     expect(parseOnSaleFilter(value)).toBe(expected);
+  });
+});
+
+describe("promotionSurvivesPrice", () => {
+  it.each([
+    ["sin promoción", null, 140, true],
+    ["la rebaja sigue debajo del precio nuevo", 150, 200, true],
+    ["el precio nuevo queda igual a la rebaja", 150, 150, false],
+    ["el precio nuevo queda debajo de la rebaja", 150, 140, false],
+  ] as const)("%s", (_why, salePrice, newPrice, expected) => {
+    expect(promotionSurvivesPrice(salePrice, newPrice)).toBe(expected);
   });
 });

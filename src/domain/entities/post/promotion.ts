@@ -119,6 +119,23 @@ export function validatePromotion(
 }
 
 /**
+ * ¿Sigue siendo rebaja si el precio normal cambia a `newPrice`?
+ *
+ * Lo pregunta quien cambia el precio sin pasar por el formulario —el importador del catálogo del
+ * proveedor—. La base exige `sale_price < price` aunque la promoción ya haya vencido, así que aquí
+ * no se mira la fecha: una rebaja que deja de ser menor al precio nuevo se quita junto con el cambio,
+ * o el `UPDATE` falla. Quitarla es lo honesto: el comprador paga el precio nuevo, que ya es menor.
+ */
+export function promotionSurvivesPrice(
+  salePrice: number | null | undefined,
+  newPrice: number,
+): boolean {
+  if (salePrice === null || salePrice === undefined) return true;
+
+  return salePrice < newPrice;
+}
+
+/**
  * Lo que escribió una persona en el campo del precio de promoción.
  *
  * Vacío es «sin promoción», no un error: borrar el campo es la forma de quitarla. Cualquier otra

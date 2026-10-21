@@ -29,6 +29,8 @@ interface ProductRow {
   position: number;
   kind: string;
   price: string | null;
+  sale_price: string | null;
+  sale_ends_at: Date | null;
   is_available: boolean;
   stock_quantity: number | null;
   moderation_status: string;
@@ -196,6 +198,8 @@ export default class PostgresOutreachTextRepository
         i.position,
         p.kind,
         p.price::text AS price,
+        p.sale_price::text AS sale_price,
+        p.sale_ends_at,
         p.is_available,
         p.stock_quantity,
         p.moderation_status,
@@ -230,6 +234,8 @@ export default class PostgresOutreachTextRepository
       position: row.position,
       kind: row.kind,
       price: row.price === null ? null : Number(row.price),
+      salePrice: row.sale_price === null ? null : Number(row.sale_price),
+      saleEndsAt: row.sale_ends_at,
       isAvailable: row.is_available,
       stockQuantity: row.stock_quantity,
       moderationStatus: row.moderation_status,

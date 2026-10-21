@@ -280,3 +280,54 @@ Pedido del usuario después del slice 4: la raya del precio normal caía muy aba
 - e2e `src/e2e/promociones`: 13 de 13 en verde; los escenarios de tarjeta comprueban el cintillo.
 - Suite completa de vitest: 340 archivos y 3609 pruebas en verde. `tsc`, `typecheck:tests` y
   `biome check .` limpios.
+
+## 2026-10-21 — Seguimientos: el importador del proveedor y la difusión en grupos
+
+### Decisiones del usuario
+
+- **Importador:** si el precio nuevo del proveedor queda igual o por debajo de la promoción, se
+  quita la promoción.
+- **Difusión:** lo rebajado se anuncia con el normal tachado al estilo de WhatsApp,
+  `🍯 Miel — ~$180~ $150`, en su propio renglón.
+
+### Decisiones
+
+- **`promotionSurvivesPrice` en el dominio** (`entities/post/promotion.ts`). No mira la fecha: el
+  `CHECK` exige `sale_price < price` aunque la promoción haya vencido, así que una rebaja vencida
+  también se quita si deja de ser menor.
+- **El importador cambia el precio y quita la promoción en el mismo `UPDATE`**, y el reporte del
+  `--sync` dice cuántas promociones quitó y cuáles (por slug): quien vende las puso a mano y tiene
+  que enterarse.
+- **La lista de difusión usa `currentPrice`**, igual que la tienda. Los renglones se agrupan por el
+  precio cobrado *y* el normal, así que lo rebajado no se mezcla con lo que cuesta eso de siempre; a
+  igual precio va primero. Los artículos de compraventa de Facebook llevan el precio rebajado, porque
+  ese campo admite un solo precio.
+
+### Archivos
+
+- Dominio: `entities/post/promotion.ts`, `outreach/priceList.ts` (+ pruebas, también en
+  `listingArticles.test.ts`).
+- Infra: `outreach/PostgresOutreachTextRepository.ts`.
+- Script: `scripts/importSupplierCatalog.ts`.
+
+### Validación
+
+- No hay `catalogo.json` del extractor en esta máquina, así que el `--sync` no se pudo correr. El
+  `UPDATE` del importador se probó contra la base compartida dentro de una transacción revertida:
+  cambiar solo el precio lo rechaza `posts_sale_price_below_price` (el fallo de antes), y precio más
+  promoción quitada se acepta. La base quedó igual.
+- Suite completa de vitest: 340 archivos y 3617 pruebas en verde. `tsc`, `typecheck:tests` y
+  `biome check .` limpios.
+- e2e `src/e2e/outreach`: 40 de 40 en verde.
+
+### Recap
+
+Quedan cerrados los dos seguimientos. Un precio del proveedor que alcanza a la promoción ya no
+rompe la importación: la quita y lo reporta. Y los grupos reciben la oferta tachada, al precio que se
+cobra.
+
+### Próximos pasos (opciones)
+
+- Correr `pnpm run import:catalog -- --sync --dry-run` con el próximo catálogo para ver el renglón
+  «promociones a quitar».
+- Declarar el precio tachado en el JSON-LD, si se quiere el precio de referencia en Google.
