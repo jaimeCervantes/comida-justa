@@ -159,3 +159,57 @@ carrito deja ver cuánto se ahorra en cada renglón. Una promoción vencida no a
 - Slice 4: JSON-LD con el precio vigente y `priceValidUntil`.
 - Seguimientos abiertos: el importador del proveedor (el `CHECK` puede hacer fallar la
   actualización de precio) y la difusión en grupos.
+
+## 2026-10-21 — Slice 3: filtro «En promoción»
+
+### Objetivo
+
+Que quien busca ofertas las encuentre juntas: en `/productos`, un interruptor «En promoción» deja
+solo lo que tiene una promoción vigente.
+
+### Decisiones
+
+- **En `/productos` y no en una sección aparte.** Es el catálogo de lo que se vende; una página
+  nueva habría repetido su mapa, su orden por cercanía y su paginación.
+- **El filtro vive en la dirección (`?promocion=1`)**, como «solo disponibles» en la búsqueda: un
+  enlace con `aria-pressed`, no una casilla. Se comparte, se guarda y vuelve con el botón de atrás.
+  El nombre del parámetro y cómo se lee están en `domain/entities/post/promotion.ts`
+  (`ON_SALE_QUERY_PARAM`, `parseOnSaleFilter`); solo `"1"` lo enciende.
+- **Se suma al pilar.** «En promoción» dentro de Movimiento es lo rebajado de Movimiento. La
+  paginación conserva los dos, y encender o quitar el filtro vuelve a la página 1.
+- **La vigencia se filtra en la base** (`onSaleWhere` en `PostgresPostQueryRepository`), porque hay
+  que paginar. Repite la regla de `isPromotionActive` en SQL, con `now()`; el comentario pide
+  cambiar las dos juntas. Empieza por `sale_price IS NOT NULL`, la condición del índice parcial
+  `posts_on_sale_idx`.
+- **Vacío por el filtro no es un catálogo vacío.** No invita a publicar: dice «Ahora no hay nada en
+  promoción» y ofrece «Ver todo el catálogo», con el interruptor a la vista.
+
+### Archivos
+
+- Dominio: `entities/post/promotion.ts` (+ pruebas).
+- Infra: `posts/IPostQueryRepository.ts` (`PostListingFilters.onSale`) y
+  `posts/PostgresPostQueryRepository.ts`.
+- UI: `productos/data.ts`, `productos/page.tsx`, `productos/page/[page]/page.tsx` y
+  `productos/ui/ProductsList.tsx` (+ pruebas). Mensajes `products.onSaleFilter`, `emptyOnSale`,
+  `emptyOnSaleBody` y `seeAll` en es y en.
+- e2e: dos escenarios `@slice-3` en `promociones.feature` y su spec.
+
+### Validación
+
+- e2e `src/e2e/promociones`: 12 de 12 en verde.
+- e2e de lo que rodea el cambio (`products`, `publicationPillarFilter`,
+  `localProducers/nearbyFirst`, `localProducers/cardControls`, `unifiedCatalog/unifiedCatalog`,
+  `seo/seo`): 21 de 21 en verde.
+- Suite completa de vitest: 339 archivos y 3604 pruebas en verde. `tsc` y `typecheck:tests` limpios.
+
+### Recap
+
+Slice 3 terminado. En `/productos`, «En promoción» deja solo lo rebajado y vigente, combinado con el
+pilar y conservado al paginar. Una promoción vencida no entra.
+
+### Próximos pasos (opciones)
+
+- Slice 4: JSON-LD con el precio vigente y `priceValidUntil`.
+- Seguimientos abiertos: el importador del proveedor (el `CHECK` puede hacer fallar la
+  actualización de precio) y la difusión en grupos.
+- Si hace falta: llevar el mismo interruptor a la tienda (`/tienda/<handle>`) o a la búsqueda.
