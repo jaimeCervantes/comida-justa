@@ -65,6 +65,10 @@ export function mapOnePostToCard(item: Post, context: CardMappingContext) {
     slug,
     title,
     price: item.price,
+    /* Viajan crudas, como `startsAt`: si la promoción sigue vigente lo decide `PromotionPrice` contra
+       el reloj al pintar, por la misma razón que el estado de un evento. */
+    salePrice: item.salePrice ?? null,
+    saleEndsAt: item.saleEndsAt ?? null,
     kind: item.kind,
     origin: item.origin ?? null,
     distanceMeters: item.distanceMeters ?? null,

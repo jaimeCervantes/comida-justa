@@ -27,6 +27,9 @@ export interface PostData {
     logoUrl?: string | null;
   } | null;
   price: number | null;
+  /** `posts.sale_price` y `posts.sale_ends_at`. Ver `domain/entities/post/promotion.ts`. */
+  salePrice?: number | null;
+  saleEndsAt?: Date | null;
   /** Qué es: "anuncio" (default) o "producto". */
   kind?: string;
   /** De dónde/quién viene. `null` = comunidad sin especificar. */

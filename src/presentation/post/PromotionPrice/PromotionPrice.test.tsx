@@ -41,6 +41,20 @@ describe("PromotionPrice", () => {
     );
   });
 
+  it("en una tarjeta se calla la fecha de fin, no la rebaja", () => {
+    render(
+      <PromotionPrice
+        price={180}
+        salePrice={150}
+        saleEndsAt="2026-11-30T18:00:00Z"
+        showEnds={false}
+      />,
+    );
+
+    expect(screen.getByTestId("promotion-discount")).toHaveTextContent("-17%");
+    expect(screen.queryByTestId("promotion-ends")).not.toBeInTheDocument();
+  });
+
   it("vencida, enseña solo el precio normal", () => {
     render(
       <PromotionPrice

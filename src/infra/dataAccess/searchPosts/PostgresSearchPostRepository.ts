@@ -732,6 +732,10 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
         {
           id: row.id,
           price: row.price ? Number(row.price) : null,
+          /* La consulta trae todas las columnas; sin nombrarlas aquí, la tarjeta de un resultado no
+             se enteraba de la promoción. */
+          salePrice: row.salePrice ? Number(row.salePrice) : null,
+          saleEndsAt: row.saleEndsAt ?? null,
           /**
            * Qué es y si queda: **lo que decide si se puede juntar en el carrito.**
            *

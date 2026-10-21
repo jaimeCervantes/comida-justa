@@ -12,7 +12,7 @@ import {
 import { testSlug } from "../testUtils/testSlug";
 
 /**
- * Slice 1 de `docs/features/commerce/031-2026-10-20-promociones.md`. Escenarios en
+ * Slices 1 y 2 de `docs/features/commerce/031-2026-10-20-promociones.md`. Escenarios en
  * `promociones.feature`.
  *
  * La tienda se siembra con handle fijo y se borra antes y después de cada prueba, igual que en
@@ -29,6 +29,9 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 
 let dbSession: DbSession | undefined;
 let miel: { title: string; slug: string };
+/* Una palabra que solo tiene esta publicación, para que la búsqueda no compita con el catálogo real
+   (igual que `orders/cartFromSearch.spec.ts`). */
+let token: string;
 
 async function setPromotion(
   salePrice: number | null,
@@ -74,8 +77,9 @@ function tomorrowLocal(): string {
 test.beforeEach(async ({ page, browserName }) => {
   await deleteTestSellerByHandle(TIENDA.handle);
   await seedStore(TIENDA, null);
+  token = `mielpromo${Date.now()}`;
   miel = {
-    title: `E2E Miel de abeja 500 g ${Date.now()}`,
+    title: `E2E Miel de abeja 500 g ${token}`,
     slug: testSlug("miel-de-abeja-500-g"),
   };
   await seedPost({
@@ -192,5 +196,75 @@ test.describe("Promociones con precio rebajado", () => {
       page.getByTestId("post-detail").getByTestId("promotion-price"),
     ).toHaveCount(0);
     expect((await readPromotion()).sale_price).toBeNull();
+  });
+});
+
+test.describe("Promociones en tarjetas y en el carrito", () => {
+  function cardOf(page: Page) {
+    return page.locator("article").filter({ hasText: miel.title });
+  }
+
+  async function expectSaleBadge(page: Page) {
+    const card = cardOf(page);
+
+    await expect(card.getByTestId("promotion-regular-price")).toContainText(
+      "180",
+    );
+    await expect(card.getByTestId("promotion-sale-price")).toContainText("150");
+    await expect(card.getByTestId("promotion-discount")).toHaveText("-17%");
+  }
+
+  test("La tarjeta del catálogo de la tienda muestra la insignia de descuento", async ({
+    page,
+  }) => {
+    await setPromotion(150, new Date(Date.now() + DAY_MS));
+
+    await page.goto(`/tienda/${TIENDA.handle}`);
+
+    await expectSaleBadge(page);
+    /* La fecha de fin se queda en la ficha: en la tarjeta no cabe. */
+    await expect(cardOf(page).getByTestId("promotion-ends")).toHaveCount(0);
+  });
+
+  test("La tarjeta de un resultado de búsqueda muestra la insignia de descuento", async ({
+    page,
+  }) => {
+    await setPromotion(150);
+
+    await page.goto(`/buscar?q=${token}&page=1`);
+
+    await expectSaleBadge(page);
+  });
+
+  test("Una tarjeta no anuncia una promoción vencida", async ({ page }) => {
+    await setPromotion(150, new Date(Date.now() - DAY_MS));
+
+    await page.goto(`/tienda/${TIENDA.handle}`);
+
+    const card = cardOf(page);
+
+    await expect(card).toContainText("180");
+    await expect(card.getByTestId("promotion-price")).toHaveCount(0);
+  });
+
+  test("El carrito tacha lo que habría costado sin la promoción", async ({
+    page,
+  }) => {
+    await setPromotion(150);
+
+    await page.goto(`/${miel.slug}`);
+    await page.getByTestId("post-detail").getByTestId("add-to-cart").click();
+    await expect(page.getByTestId("cart-count")).toHaveText("1");
+
+    await page.goto("/carrito");
+    await page.getByTestId("cart-increase").click();
+    await expect(page.getByTestId("cart-quantity")).toHaveValue("2");
+
+    const line = page.getByTestId("cart-line");
+
+    await expect(line.getByTestId("cart-line-regular-amount")).toContainText(
+      "360",
+    );
+    await expect(page.getByTestId("cart-group-subtotal")).toContainText("300");
   });
 });
