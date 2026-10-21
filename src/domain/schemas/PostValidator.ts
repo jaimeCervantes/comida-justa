@@ -5,6 +5,10 @@ import {
 } from "~/domain/entities/post/kind";
 import { MAX_POST_MEDIA_FILES } from "~/domain/entities/post/mediaPayload";
 import { isValidOrigin } from "~/domain/entities/post/origin";
+import {
+  type PromotionError,
+  validatePromotion,
+} from "~/domain/entities/post/promotion";
 import type {
   IPostValidator,
   Post,
@@ -13,6 +17,15 @@ import type {
 } from "~/domain/entities/post/types";
 
 /** Una fecha puede llegar como texto desde un formulario; una rota no cuenta como fecha. */
+const PROMOTION_MESSAGES: Record<PromotionError, string> = {
+  "invalid-sale-price": "El precio de promoción debe ser mayor a cero.",
+  "sale-price-not-below-price":
+    "El precio de promoción debe ser menor al precio normal.",
+  "sale-ends-without-sale-price":
+    "Para poner una fecha de fin, primero pon el precio de promoción.",
+  "invalid-sale-end": "La fecha de fin de la promoción no es válida.",
+};
+
 function toEventDate(value: unknown): Date | null {
   if (!value) return null;
 
@@ -32,6 +45,7 @@ export default class PostValidator implements IPostValidator {
       this.MIN_LENGTH_TITLE,
     );
     this.validateNumberOnPost(post.price, "price");
+    this.validatePromotion(post);
     this.validateStringOnPost(
       post.content as string,
       "content",
@@ -78,6 +92,16 @@ export default class PostValidator implements IPostValidator {
         );
       }
     }
+  }
+
+  /**
+   * La rebaja, si la hay. Se contesta aquí para que quien publica lea por qué, en vez de chocar
+   * con el `CHECK` de la base (`posts_sale_price_below_price`), que solo sabe decir que no.
+   */
+  private validatePromotion(post: Post): VoidOrError {
+    const error = validatePromotion(post);
+
+    if (error) throw new PostClassificationError(PROMOTION_MESSAGES[error]);
   }
 
   /**

@@ -137,6 +137,60 @@ describe("UpdateOnePostUseCase", () => {
     });
   });
 
+  it("guarda una promoción con su fecha de fin", async () => {
+    const saleEndsAt = new Date("2026-11-30T23:59:00Z");
+
+    const result = await useCase.execute({
+      ...edit,
+      salePrice: 35,
+      saleEndsAt,
+    });
+
+    expect(result.errorMessage).toBeUndefined();
+    expect(repository.updates[0]).toMatchObject({
+      price: 45,
+      salePrice: 35,
+      saleEndsAt,
+    });
+  });
+
+  /* Borrar el campo es la forma de quitarla: llega nulo y se guarda nulo. */
+  it("quita la promoción cuando el precio de promoción llega vacío", async () => {
+    repository = new FakePostAdminRepository([{ ...jugoVerde, salePrice: 30 }]);
+    useCase = new UpdateOnePostUseCase(repository, new PostValidator());
+
+    await useCase.execute({ ...edit, salePrice: null });
+
+    expect(repository.updates[0]).toMatchObject({
+      salePrice: null,
+      saleEndsAt: null,
+    });
+  });
+
+  it("rechaza una promoción que no es menor al precio normal", async () => {
+    const result = await useCase.execute({ ...edit, salePrice: 45 });
+
+    expect(result.errorMessage).toMatch(/menor al precio normal/i);
+    expect(repository.updates).toHaveLength(0);
+  });
+
+  it("limpia la promoción de un anuncio aunque venga forjada", async () => {
+    repository = new FakePostAdminRepository([anuncio]);
+    useCase = new UpdateOnePostUseCase(repository, new PostValidator());
+
+    await useCase.execute({
+      ...edit,
+      slug: anuncio.slug,
+      salePrice: 10,
+      saleEndsAt: new Date("2026-11-30T23:59:00Z"),
+    });
+
+    expect(repository.updates[0]).toMatchObject({
+      salePrice: null,
+      saleEndsAt: null,
+    });
+  });
+
   it("avisa que el texto NO cambió, para no gastar una llamada al proveedor", async () => {
     const result = await useCase.execute({
       ...edit,

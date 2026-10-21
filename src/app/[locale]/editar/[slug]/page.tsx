@@ -70,6 +70,8 @@ export default async function EditarPage({
         content: post.content,
         contactPhone: post.contactPhone ?? "",
         price: post.price,
+        salePrice: post.salePrice,
+        saleEndsAt: post.saleEndsAt,
         kind: post.kind,
         origin: post.origin,
         category: post.category,

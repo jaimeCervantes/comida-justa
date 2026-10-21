@@ -65,6 +65,12 @@ function build(products: CartProduct[]) {
           status: "PENDING",
           createdAt: new Date("2026-08-09T12:00:00Z"),
           updatedAt: new Date("2026-08-09T12:00:00Z"),
+          deliveryLocation: order.deliveryLocation
+            ? {
+                ...order.deliveryLocation,
+                updatedAt: new Date("2026-08-09T12:00:00Z"),
+              }
+            : null,
           /* El repositorio real relee los renglones tras el commit, ya con su slug y su miniatura;
              el doble devuelve los escritos con esos dos campos vacíos. */
           lines: order.lines.map((line) => ({
@@ -167,6 +173,37 @@ describe("PlaceOrderUseCase", () => {
     await useCase.execute({
       ...baseInput,
       selection: [{ postId: jugoVerde.postId, quantity: 1 }],
+    });
+
+    expect(created[0].lines[0].unitPrice).toBe(40);
+  });
+
+  /* El renglón copia lo que se cobra, no `product.price`: con promoción vigente son distintos. */
+  it("copia el precio de promoción vigente, no el normal", async () => {
+    const { useCase, created } = build([{ ...jugoVerde, salePrice: 30 }]);
+
+    await useCase.execute({
+      ...baseInput,
+      selection: [{ postId: jugoVerde.postId, quantity: 2 }],
+      now: new Date("2026-10-20T12:00:00Z"),
+    });
+
+    expect(created[0].lines[0].unitPrice).toBe(30);
+  });
+
+  it("con la promoción vencida copia el precio normal", async () => {
+    const { useCase, created } = build([
+      {
+        ...jugoVerde,
+        salePrice: 30,
+        saleEndsAt: new Date("2026-10-19T12:00:00Z"),
+      },
+    ]);
+
+    await useCase.execute({
+      ...baseInput,
+      selection: [{ postId: jugoVerde.postId, quantity: 1 }],
+      now: new Date("2026-10-20T12:00:00Z"),
     });
 
     expect(created[0].lines[0].unitPrice).toBe(40);

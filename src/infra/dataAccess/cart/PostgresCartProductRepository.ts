@@ -9,6 +9,8 @@ interface CartProductRow {
   id: string;
   /** `numeric` sale de Postgres como texto para no perder precisión por el camino. */
   price: string | null;
+  sale_price: string | null;
+  sale_ends_at: Date | null;
   is_available: boolean;
   title: string;
   slug: string;
@@ -54,6 +56,10 @@ export class PostgresCartProductRepository implements CartProductRepository {
       SELECT
         p.id,
         p.price::text,
+        /* La promoción se lee cruda: si sigue vigente lo decide buildCartLines contra la hora,
+           con la misma regla que la ficha, para que lo enseñado y lo cobrado no se separen. */
+        p.sale_price::text,
+        p.sale_ends_at,
         p.is_available,
         t.title,
         t.slug,
@@ -109,6 +115,8 @@ function toCartProduct(row: CartProductRow): CartProduct[] {
       title: row.title,
       slug: row.slug,
       price,
+      salePrice: row.sale_price === null ? null : Number(row.sale_price),
+      saleEndsAt: row.sale_ends_at,
       isAvailable: row.is_available,
       imageUrl: row.image_url,
       seller: {

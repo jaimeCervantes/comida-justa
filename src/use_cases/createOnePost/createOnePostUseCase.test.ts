@@ -41,7 +41,12 @@ describe("CreatePostUseCase", () => {
         contactInfo: samplePostInfo.contactInfo,
         slug: expectedSlug,
         price: null,
+        salePrice: null,
+        saleEndsAt: null,
         kind: "anuncio",
+        startsAt: null,
+        endsAt: null,
+        durationMinutes: null,
         origin: null,
         category: null,
         subCategory: null,
@@ -91,6 +96,60 @@ describe("CreatePostUseCase", () => {
         category: "alimentacion",
         subCategory: "jugos",
       }),
+      "es",
+    );
+  });
+
+  it("guarda la promoción con la que se publicó", async () => {
+    const saleEndsAt = new Date("2026-11-30T23:59:00Z");
+
+    mockPostValidator.validate.mockReturnValue(undefined);
+    mockPostRepository.createUniqueSlug.mockResolvedValue("miel");
+    mockPostRepository.save.mockResolvedValue("post123");
+
+    await createPostUseCase.execute(
+      {
+        ...samplePostInfo,
+        kind: "producto",
+        price: 180,
+        salePrice: 150,
+        saleEndsAt,
+      },
+      "es",
+    );
+
+    expect(mockPostRepository.save).toHaveBeenCalledWith(
+      expect.objectContaining({ price: 180, salePrice: 150, saleEndsAt }),
+      "es",
+    );
+  });
+
+  /* Faltaban en el objeto que se guarda: el validador las exigía y luego se perdían. */
+  it("guarda las fechas de un evento y la duración de un servicio", async () => {
+    const startsAt = new Date("2027-09-05T00:30:00Z");
+    const endsAt = new Date("2027-09-05T02:00:00Z");
+
+    mockPostValidator.validate.mockReturnValue(undefined);
+    mockPostRepository.createUniqueSlug.mockResolvedValue("rodada");
+    mockPostRepository.save.mockResolvedValue("post123");
+
+    await createPostUseCase.execute(
+      { ...samplePostInfo, kind: "evento", startsAt, endsAt },
+      "es",
+    );
+    await createPostUseCase.execute(
+      { ...samplePostInfo, kind: "servicio", price: 350, durationMinutes: 45 },
+      "es",
+    );
+
+    expect(mockPostRepository.save).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({ startsAt, endsAt }),
+      "es",
+    );
+    expect(mockPostRepository.save).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ durationMinutes: 45 }),
       "es",
     );
   });
@@ -158,7 +217,12 @@ describe("CreatePostUseCase", () => {
         contactInfo: samplePostInfo.contactInfo,
         slug: expectedSlug,
         price: null,
+        salePrice: null,
+        saleEndsAt: null,
         kind: "anuncio",
+        startsAt: null,
+        endsAt: null,
+        durationMinutes: null,
         origin: null,
         category: null,
         subCategory: null,

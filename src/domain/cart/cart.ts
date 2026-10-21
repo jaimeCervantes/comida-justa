@@ -1,3 +1,4 @@
+import { currentPrice } from "~/domain/entities/post/promotion";
 import type { CartSelection } from "./cartSelection";
 
 /** La tienda a la que se le pide. `phone` es `NOT NULL` en `sellers`, pero la lectura lo permite. */
@@ -15,7 +16,12 @@ export interface CartProduct {
   title: string;
   /** El de la ruta en el idioma que se está leyendo: es el enlace que viaja en el pedido. */
   slug: string;
+  /** El precio normal. Lo que se cobra lo decide `buildCartLines`, que sabe de promociones. */
   price: number;
+  /** `posts.sale_price`. Ausente o nulo = sin promoción. */
+  salePrice?: number | null;
+  /** `posts.sale_ends_at`. Ausente o nulo = la promoción dura hasta que se quite. */
+  saleEndsAt?: Date | null;
   isAvailable: boolean;
   /**
    * Su primera imagen, o `null` si no tiene.
@@ -31,6 +37,13 @@ export interface CartProduct {
 export interface CartLine {
   product: CartProduct;
   quantity: number;
+  /**
+   * Lo que cuesta una pieza **ahora**: la rebaja si hay promoción vigente, el normal si no. Es el
+   * que se suma y el que el pedido copia a `unit_price`.
+   */
+  unitPrice: number;
+  /** El normal, para tacharlo, solo con promoción vigente. */
+  regularUnitPrice: number | null;
   /** Lo que suma este renglón. **Cero cuando el producto ya no está disponible.** */
   amount: number;
 }
@@ -53,10 +66,14 @@ export interface CartSellerGroup {
  * Un `postId` sin producto **desaparece**: la publicación se borró o dejó de ser un producto, y no
  * hay nada que enseñar de ella. Lo agotado es distinto y **se conserva**, con `amount` en cero: quien
  * lo puso en el carrito tiene derecho a ver que ya no está antes de que le desaparezca de la pantalla.
+ *
+ * El precio de cada renglón se decide aquí, contra `now`: una promoción que venció entre que se
+ * añadió el producto y ahora ya no se cobra rebajada.
  */
 export function buildCartLines(
   selection: readonly CartSelection[],
   products: readonly CartProduct[],
+  now: Date = new Date(),
 ): CartLine[] {
   const byId = new Map(products.map((product) => [product.postId, product]));
 
@@ -65,11 +82,15 @@ export function buildCartLines(
 
     if (!product) return [];
 
+    const { price, regularPrice } = currentPrice(product, now);
+
     return [
       {
         product,
         quantity: line.quantity,
-        amount: product.isAvailable ? product.price * line.quantity : 0,
+        unitPrice: price,
+        regularUnitPrice: regularPrice,
+        amount: product.isAvailable ? price * line.quantity : 0,
       },
     ];
   });

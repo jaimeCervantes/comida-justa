@@ -43,6 +43,10 @@ export type Post = {
   content?: string;
   translations?: Record<string, PostTranslation>;
   price?: number | null;
+  /** `posts.sale_price`: el precio rebajado. Nulo = sin promoción. Ver `promotion.ts`. */
+  salePrice?: number | null;
+  /** `posts.sale_ends_at`: cuándo deja de aplicar la rebaja. Nulo = hasta que se quite. */
+  saleEndsAt?: Date | string | null;
   /** Qué es: "anuncio" (default), "producto" (requiere precio) o "evento" (requiere fecha). */
   kind?: PostKind;
   /**

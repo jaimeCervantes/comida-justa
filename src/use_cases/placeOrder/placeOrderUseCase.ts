@@ -34,6 +34,8 @@ export interface PlaceOrderInput {
    * pierde un pedido por no saber a dónde va, eso se sigue arreglando por WhatsApp.
    */
   deliveryLocation?: { lat: number; lng: number } | null;
+  /** Contra qué hora se decide si una promoción sigue vigente. Por omisión, ahora. */
+  now?: Date;
 }
 
 export type PlaceOrderResult =
@@ -73,12 +75,14 @@ export default class PlaceOrderUseCase {
     sellerId,
     checkoutId,
     deliveryLocation,
+    now = new Date(),
   }: PlaceOrderInput): Promise<PlaceOrderResult> {
     const group = await this.findGroup(
       selection,
       locale,
       fallbackLocale,
       sellerId,
+      now,
     );
 
     if (!group) return { error: "empty-for-seller" };
@@ -116,6 +120,7 @@ export default class PlaceOrderUseCase {
     locale: string,
     fallbackLocale: string,
     sellerId: string,
+    now: Date,
   ): Promise<CartSellerGroup | null> {
     if (selection.length === 0) return null;
 
@@ -124,7 +129,7 @@ export default class PlaceOrderUseCase {
       locale,
       fallbackLocale,
     );
-    const groups = groupBySeller(buildCartLines(selection, products));
+    const groups = groupBySeller(buildCartLines(selection, products, now));
 
     return groups.find((group) => group.seller.id === sellerId) ?? null;
   }
@@ -143,14 +148,17 @@ function validDestination(
     : null;
 }
 
-/** El precio de hoy se copia al renglón: a partir de aquí, el pedido ya no cambia de importe. */
+/**
+ * El precio de hoy se copia al renglón: a partir de aquí, el pedido ya no cambia de importe. Es el
+ * del renglón del carrito, con la promoción ya aplicada, no `product.price`, que es el normal.
+ */
 function toOrderLines(group: CartSellerGroup): NewOrderLine[] {
   return group.lines
     .filter((line) => line.product.isAvailable)
     .map((line) => ({
       postId: line.product.postId,
       title: line.product.title,
-      unitPrice: line.product.price,
+      unitPrice: line.unitPrice,
       quantity: line.quantity,
     }));
 }

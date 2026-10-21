@@ -45,6 +45,8 @@ export const PUBLISH_STEPS: readonly PublishStep[] = [
       "route",
       "durationMinutes",
       "price",
+      "salePrice",
+      "saleEndsAt",
     ],
   },
   {

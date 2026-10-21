@@ -10,6 +10,10 @@ import { parsePostMediaPayload } from "~/domain/entities/post/mediaPayload";
 import { resolveOriginForUser } from "~/domain/entities/post/origin";
 import PostEntity from "~/domain/entities/post/Post";
 import {
+  readSalePrice,
+  validatePromotion,
+} from "~/domain/entities/post/promotion";
+import {
   type RouteFieldChange,
   readRouteField,
 } from "~/domain/entities/post/routeFile";
@@ -35,6 +39,7 @@ import { createSellerRepository } from "~/infra/dataAccess/sellers/factory";
 import { createTranslatePostUseCase } from "~/infra/dataAccess/translatePost/factory";
 import type { ActionState } from "~/infra/types/Actions";
 import { ROUTE_FILE_ERROR_KEYS } from "~/infra/UI/labels/routeFileErrorKeys";
+import { promotionFieldErrors } from "~/presentation/post/promotionFieldErrors";
 import CreateOnePostUseCase from "~/use_cases/createOnePost/createOnePostUseCase";
 
 const useCase = new CreateOnePostUseCase(
@@ -234,6 +239,15 @@ export async function createPost(
   const admin = isAdmin(session?.user?.email);
   const origin = resolveOriginForUser(formData.get("origin") as string, admin);
   const requiresPrice = kind === "producto" || kind === "servicio";
+  /* La promoción, solo en lo que se cobra; vacía es «sin promoción». La fecha de fin se escribe en
+     la zona de quien publica, igual que la de un evento. */
+  const salePrice = requiresPrice
+    ? readSalePrice(formData.get("salePrice"))
+    : null;
+  const saleEndsAt = requiresPrice
+    ? parseDateTimeLocalInTimeZone(formData.get("saleEndsAt"), timeZone)
+    : null;
+  const promotionError = validatePromotion({ price, salePrice, saleEndsAt });
 
   // Fuera del catálogo se ignora (queda `null`) en vez de romper la publicación.
   const taxonomy = await getCategoryTaxonomy();
@@ -279,6 +293,7 @@ export async function createPost(
         ? null
         : t("errorDurationRequired"),
     price: !requiresPrice || price ? null : t("errorPriceRequired"),
+    ...promotionFieldErrors(promotionError, t),
     origin: kind !== "producto" || origin ? null : t("errorOriginRequired"),
     content: content ? null : t("errorContentRequired"),
     phone: phone ? null : t("errorPhoneRequired"),
@@ -311,6 +326,8 @@ export async function createPost(
         phone,
       },
       price: kind === "anuncio" ? null : price,
+      salePrice,
+      saleEndsAt,
       kind,
       origin,
       category,

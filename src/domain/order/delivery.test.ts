@@ -49,7 +49,7 @@ describe("deliveryProgress: de qué depende que se pueda mostrar distancia", () 
     ["(ninguno)", "(ninguno)", false, "no hay ninguna de las dos"],
   ] as const)(
     "destino %s, repartidor %s → %s (%s)",
-    (destino, repartidor, shown) => {
+    (destino, repartidor, shown, _why) => {
       const order = shipped({
         deliveryLocation: destino === "guardado" ? deliveryLocation : null,
         courierLocation: repartidor === "en camino" ? courierLocation : null,
@@ -99,7 +99,7 @@ describe("isCourierLocationStale", () => {
     ["1 min 59 s", 119_000, false, "todavía cabe en un tropiezo de red"],
     ["2 min", 120_000, true, "ocho envíos perdidos seguidos: se detuvo"],
     ["30 min", 30 * 60_000, true, "lleva rato sin moverse en la pantalla"],
-  ] as const)("hace %s → vieja: %s (%s)", (_, ageMs, stale) => {
+  ] as const)("hace %s → vieja: %s (%s)", (_, ageMs, stale, _why) => {
     const updatedAt = new Date("2026-09-28T18:00:00Z");
     const now = new Date(updatedAt.getTime() + ageMs);
 
@@ -214,7 +214,7 @@ describe("shouldRequestRoute", () => {
     ["DELIVERED", "guardado", "fresca", false, "ya llegó"],
   ] as const)(
     "%s, destino %s, posición %s → %s (%s)",
-    (status, destino, posicion, expected) => {
+    (status, destino, posicion, expected, _why) => {
       const order = {
         status: status as OrderStatus,
         deliveryLocation: destino === "guardado" ? deliveryLocation : null,

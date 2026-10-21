@@ -9,6 +9,7 @@ import {
   MODERATION_REASONS,
   resolveModerationStatus,
 } from "~/domain/entities/post/moderation";
+import { currentPrice } from "~/domain/entities/post/promotion";
 import { resolvePostTranslation } from "~/domain/entities/post/translations";
 import type { Coordinates } from "~/domain/entities/seller/coordinates";
 import type { MappedStore } from "~/domain/entities/seller/map";
@@ -352,7 +353,17 @@ export default async function Slug({
               postId={String(post.id ?? "")}
               sellerId={String(post.sellerId ?? "")}
               title={title}
-              unitPrice={Number(post.price ?? 0)}
+              /* El que se cobra hoy: con promoción vigente, la cita se agenda rebajada. */
+              unitPrice={
+                currentPrice(
+                  {
+                    price: Number(post.price ?? 0),
+                    salePrice: post.salePrice as number | null | undefined,
+                    saleEndsAt: post.saleEndsAt as Date | null | undefined,
+                  },
+                  new Date(),
+                ).price
+              }
               durationMinutes={Number(post.durationMinutes ?? 0)}
               slots={offeredSlots}
             />

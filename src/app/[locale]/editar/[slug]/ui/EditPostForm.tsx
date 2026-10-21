@@ -28,6 +28,7 @@ import EventTimeZoneField, {
 import RouteFileField, {
   type ExistingRoute,
 } from "~/presentation/post/RouteFileField/RouteFileField";
+import SalePriceFields from "~/presentation/post/SalePriceFields/SalePriceFields";
 import { usePostValidationMessages } from "~/presentation/post/usePostValidationMessages";
 import type { EditPostState } from "../actions";
 
@@ -37,6 +38,8 @@ export type EditablePostValues = {
   content: string;
   contactPhone: string | null;
   price: number | null;
+  salePrice: number | null;
+  saleEndsAt: Date | string | null;
   kind: string;
   origin: string | null;
   category: string | null;
@@ -290,6 +293,15 @@ export default function EditPostForm({
             error={state.errors?.price}
             validationMessages={fieldMessages.price}
             containerClassName="mb-6"
+          />
+        ) : null}
+
+        {isProduct || isService ? (
+          <SalePriceFields
+            timeZone={timeZone}
+            salePrice={post.salePrice}
+            saleEndsAt={post.saleEndsAt}
+            errors={state.errors}
           />
         ) : null}
 

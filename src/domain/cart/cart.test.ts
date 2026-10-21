@@ -110,6 +110,47 @@ describe("buildCartLines", () => {
       "Jugo Verde",
     ]);
   });
+  /* El precio se decide aquí y no en la consulta: es lo que hace que el carrito y el pedido cobren
+     lo mismo, y que una promoción vencida a media compra deje de aplicar sola. */
+  describe("con promoción", () => {
+    const now = new Date("2026-10-20T12:00:00Z");
+    const enOferta: CartProduct = { ...jugoVerde, salePrice: 30 };
+
+    it("suma el precio rebajado y guarda el normal para tacharlo", () => {
+      const [line] = buildCartLines(
+        [{ postId: enOferta.postId, quantity: 2 }],
+        [enOferta],
+        now,
+      );
+
+      expect(line.unitPrice).toBe(30);
+      expect(line.regularUnitPrice).toBe(40);
+      expect(line.amount).toBe(60);
+    });
+
+    it("vencida, vuelve al precio normal", () => {
+      const [line] = buildCartLines(
+        [{ postId: enOferta.postId, quantity: 2 }],
+        [{ ...enOferta, saleEndsAt: new Date("2026-10-19T12:00:00Z") }],
+        now,
+      );
+
+      expect(line.unitPrice).toBe(40);
+      expect(line.regularUnitPrice).toBeNull();
+      expect(line.amount).toBe(80);
+    });
+
+    it("sin promoción no hay nada que tachar", () => {
+      const [line] = buildCartLines(
+        [{ postId: jugoVerde.postId, quantity: 1 }],
+        [jugoVerde],
+        now,
+      );
+
+      expect(line.unitPrice).toBe(40);
+      expect(line.regularUnitPrice).toBeNull();
+    });
+  });
 });
 
 describe("groupBySeller", () => {

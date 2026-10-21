@@ -75,7 +75,7 @@ export default class UnifiedCatalogPage {
     if (publishShowsPrice(values.kind)) {
       await openPublishStep(this.page, "price");
       await this.page
-        .getByRole("spinbutton", { name: /precio/i })
+        .getByRole("spinbutton", { name: /^precio/i })
         .fill(values.price);
     }
 

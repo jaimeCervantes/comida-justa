@@ -4,6 +4,7 @@ import { MdPhone } from "react-icons/md";
 import { canBeOrdered, isSellable } from "~/domain/entities/post/availability";
 import { EVENT_KIND, PRACTICE_POST_KIND } from "~/domain/entities/post/kind";
 import { canManagePost } from "~/domain/entities/post/postPermissions";
+import { currentPrice } from "~/domain/entities/post/promotion";
 import { resolvePostTranslation } from "~/domain/entities/post/translations";
 import type { PostMediaFile } from "~/domain/entities/post/types";
 import { buildWhatsappEventAttendanceLink } from "~/domain/entities/post/whatsappEventAttendance";
@@ -22,7 +23,6 @@ import { Heading } from "~/presentation/design_system/typography/Heading";
 import ShareLocationButton from "~/presentation/location/ShareLocationButton";
 import StoreDistance from "~/presentation/location/StoreDistance";
 import MediaGallery from "~/presentation/media/MediaGallery/MediaGallery";
-import CurrencyAmount from "~/presentation/money/CurrencyAmount";
 import { setAvailability } from "~/presentation/post/availabilityAction";
 import CategoryTag from "~/presentation/post/CategoryTag/CategoryTag";
 import EventAttendanceButton from "~/presentation/post/EventAttendance/EventAttendanceButton";
@@ -32,6 +32,7 @@ import EventDate from "~/presentation/post/EventDate/EventDate";
 import OpenStoreHint from "~/presentation/post/OpenStoreHint";
 import PostReactionButton from "~/presentation/post/PostReaction/PostReactionButton";
 import PracticeCover from "~/presentation/post/PracticeCover/PracticeCover";
+import PromotionPrice from "~/presentation/post/PromotionPrice/PromotionPrice";
 import ProvenanceBadge, {
   showsProvenanceBadge,
 } from "~/presentation/post/ProvenanceBadge";
@@ -140,6 +141,8 @@ export default async function PostDetail({
      acabar en las mismas doce constantes. */
   const {
     price,
+    salePrice,
+    saleEndsAt,
     kind,
     startsAt,
     endsAt,
@@ -211,7 +214,11 @@ export default async function PostDetail({
     canBeOrdered({ kind, isAvailable }) && !isPracticePost
       ? buildWhatsappOrderLink({
           title: String(title ?? ""),
-          price,
+          /* El que se cobra hoy: con promoción, el mensaje no puede pedir al precio normal. */
+          price:
+            typeof price === "number"
+              ? currentPrice({ price, salePrice, saleEndsAt }, new Date()).price
+              : price,
           url: postUrl,
           whatsapp: contactInfo?.whatsapp,
           phone: contactInfo?.phone,
@@ -362,11 +369,16 @@ export default async function PostDetail({
               cuándo, y si todavía se puede ir. */}
           <EventDate kind={kind} startsAt={startsAt} endsAt={endsAt} />
         </p>
-        {/* Sin envoltura propia: `CurrencyAmount` ya es un `span` y se calla solo cuando no hay
+        {/* Sin envoltura propia: `PromotionPrice` acaba en un `span` y se calla solo cuando no hay
             precio —un anuncio no lo tiene—. Dentro de un `<p>` dejaba un párrafo vacío que en esta
             fila con `gap-x-3` se veía como un hueco sin motivo. */}
         {isPracticePost ? null : (
-          <CurrencyAmount value={price} currency={SITE_CURRENCY} />
+          <PromotionPrice
+            price={price}
+            salePrice={salePrice}
+            saleEndsAt={saleEndsAt}
+            currency={SITE_CURRENCY}
+          />
         )}
 
         {/* Hoy las 31 publicaciones traen teléfono, pero nada en el esquema lo garantiza: sin la
