@@ -48,11 +48,29 @@ Feature: Promociones con precio rebajado
     When el vendedor borra el precio de promoción y guarda
     Then la ficha de "Miel de abeja 500 g" muestra solo 180, sin tachar
 
-  @slice-2 @future
-  Scenario: Las tarjetas y la búsqueda muestran la insignia de descuento
+  @slice-2
+  Scenario: La tarjeta del catálogo de la tienda muestra la insignia de descuento
     Given "Miel de abeja 500 g" tiene precio de promoción 150
-    When un visitante busca "miel"
-    Then la tarjeta muestra 180 tachado, 150 y "-17%"
+    When un visitante abre la tienda
+    Then la tarjeta de "Miel de abeja 500 g" muestra 180 tachado, 150 y "-17%"
+
+  @slice-2
+  Scenario: La tarjeta de un resultado de búsqueda muestra la insignia de descuento
+    Given "Miel de abeja 500 g" tiene precio de promoción 150
+    When un visitante busca "Miel de abeja 500 g"
+    Then la tarjeta de "Miel de abeja 500 g" muestra 180 tachado, 150 y "-17%"
+
+  @slice-2
+  Scenario: Una tarjeta no anuncia una promoción vencida
+    Given "Miel de abeja 500 g" tuvo precio de promoción 150 que terminó ayer
+    When un visitante abre la tienda
+    Then la tarjeta de "Miel de abeja 500 g" muestra solo 180, sin insignia
+
+  @slice-2
+  Scenario: El carrito tacha lo que habría costado sin la promoción
+    Given "Miel de abeja 500 g" tiene precio de promoción 150
+    When un comprador agrega 2 al carrito
+    Then el renglón muestra 360 tachado y suma 300
 
   @slice-3 @future
   Scenario: El filtro "En promoción" muestra solo lo rebajado
