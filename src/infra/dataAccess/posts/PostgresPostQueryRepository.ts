@@ -26,6 +26,8 @@ interface PostRow {
   id: string;
   user_id: string;
   price: string | null;
+  sale_price: string | null;
+  sale_ends_at: Date | null;
   kind: string | null;
   origin: string | null;
   category: string | null;
@@ -100,6 +102,8 @@ function postColumns(viewerId?: string | null): SQL {
         p.id,
         p.user_id,
         p.price::text,
+        p.sale_price::text,
+        p.sale_ends_at,
         p.kind,
         p.origin,
         p.category,
@@ -661,6 +665,8 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
               }
             : null,
         price: row.price ? Number(row.price) : null,
+        salePrice: row.sale_price ? Number(row.sale_price) : null,
+        saleEndsAt: row.sale_ends_at,
         kind: row.kind ?? undefined,
         origin: row.origin ?? null,
         category: row.category ?? null,

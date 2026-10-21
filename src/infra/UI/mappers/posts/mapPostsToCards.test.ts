@@ -185,3 +185,23 @@ describe("When the visitor asks for a language", () => {
     expect(mapOnePostToCard(bilingue, es).to).toContain("suero-natural");
   });
 });
+
+describe("When a post is on sale", () => {
+  it("carries the sale price and its end raw, for the card to decide against the clock", () => {
+    const saleEndsAt = new Date("2026-11-30T23:59:00Z");
+    const card = mapOnePostToCard(
+      { ...posts[0], kind: "producto", price: 180, salePrice: 150, saleEndsAt },
+      es,
+    );
+
+    expect(card.salePrice).toBe(150);
+    expect(card.saleEndsAt).toBe(saleEndsAt);
+  });
+
+  it("defaults to no sale for rows that do not bring it", () => {
+    const card = mapOnePostToCard(posts[0], es);
+
+    expect(card.salePrice).toBeNull();
+    expect(card.saleEndsAt).toBeNull();
+  });
+});

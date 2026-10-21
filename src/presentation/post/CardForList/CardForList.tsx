@@ -16,7 +16,6 @@ import type { StoreIdentity } from "~/presentation/identity/StoreIdentity";
 import StoreLogo from "~/presentation/identity/StoreLogo";
 import StoreDistance from "~/presentation/location/StoreDistance";
 import MediaContent from "~/presentation/media/MediaContent/MediaContent";
-import CurrencyAmount from "~/presentation/money/CurrencyAmount";
 import Card from "~/presentation/post/Card";
 import CardOwnerControls from "~/presentation/post/CardOwnerControls";
 import CategoryTag from "~/presentation/post/CategoryTag/CategoryTag";
@@ -24,6 +23,7 @@ import EventDate from "~/presentation/post/EventDate/EventDate";
 import PillarBadge from "~/presentation/post/PillarBadge/PillarBadge";
 import PostReactionButton from "~/presentation/post/PostReaction/PostReactionButton";
 import PracticeCover from "~/presentation/post/PracticeCover/PracticeCover";
+import PromotionPrice from "~/presentation/post/PromotionPrice/PromotionPrice";
 import ProvenanceBadge, {
   showsProvenanceBadge,
 } from "~/presentation/post/ProvenanceBadge";
@@ -95,6 +95,8 @@ export default function CardForList(
     media,
     createdAt,
     price,
+    salePrice,
+    saleEndsAt,
     user,
     to,
     slug,
@@ -265,10 +267,19 @@ export default function CardForList(
             llevara a algún sitio, y no lleva. Ver el docstring de `CurrencyAmount`. */}
         {/* El precio crece cuando la tarjeta es un renglón de lista: es lo que se compara de un
             vistazo entre una y otra, y con el título ya rebajado puede mandar sin gritar. */}
-        <CurrencyAmount
-          value={price}
+        {/* Con promoción vigente, el normal tachado y `-N%` en la misma fila: es lo que hace que una
+            oferta se note sin abrir la ficha. La fecha de fin se queda en la ficha. */}
+        <PromotionPrice
+          price={typeof price === "number" ? price : null}
+          salePrice={typeof salePrice === "number" ? salePrice : null}
+          saleEndsAt={
+            saleEndsAt instanceof Date || typeof saleEndsAt === "string"
+              ? saleEndsAt
+              : null
+          }
           currency={SITE_CURRENCY}
-          className="@min-[320px]:text-heading-sm"
+          amountClassName="@min-[320px]:text-heading-sm"
+          showEnds={false}
         />
       </span>
 

@@ -12,6 +12,13 @@ type Props = {
   saleEndsAt?: Date | string | null;
   currency?: string;
   className?: string;
+  /** Para el precio que se cobra, con o sin promoción: la tarjeta lo agranda en modo renglón. */
+  amountClassName?: string;
+  /**
+   * La tarjeta lo apaga: ahí cabe el precio y la insignia, no la fecha. Quien quiera saber hasta
+   * cuándo abre la ficha, que sí la dice.
+   */
+  showEnds?: boolean;
 };
 
 /**
@@ -29,6 +36,8 @@ export default function PromotionPrice({
   saleEndsAt,
   currency,
   className,
+  amountClassName,
+  showEnds = true,
 }: Props) {
   const t = useTranslations("post");
   const format = useFormatter();
@@ -44,7 +53,7 @@ export default function PromotionPrice({
       <CurrencyAmount
         value={current.price}
         currency={currency}
-        className={className}
+        className={cn(amountClassName, className)}
       />
     );
   }
@@ -65,12 +74,16 @@ export default function PromotionPrice({
         />
       </del>
       <span data-testid="promotion-sale-price">
-        <CurrencyAmount value={current.price} currency={currency} />
+        <CurrencyAmount
+          value={current.price}
+          currency={currency}
+          className={amountClassName}
+        />
       </span>
       <Badge tone="accent" data-testid="promotion-discount">
         {t("saleDiscount", { percent: current.discountPercent ?? 0 })}
       </Badge>
-      {current.endsAt ? (
+      {showEnds && current.endsAt ? (
         <span
           data-testid="promotion-ends"
           className="text-sm text-text-support"
