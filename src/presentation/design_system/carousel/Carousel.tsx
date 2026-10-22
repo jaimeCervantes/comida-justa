@@ -50,9 +50,21 @@ function prefersReducedMotion(): boolean {
 
 /* Discretos: papel translúcido sobre la imagen, no un círculo negro que compita con lo que se mira.
    En escritorio aparecen al pasar el cursor o con foco; en pantallas táctiles, donde no hay cursor,
-   siempre están. */
+   siempre están.
+
+   **Colores fijos, no los del tema.** Van encima de la imagen, no del papel de la página: con
+   `text-text-base` la flecha se volvía clara en modo oscuro sobre un círculo que seguía blanco, y
+   no se veía. Es la misma pareja que ya usa compartir encima de una foto (`ShareMenu` en su variante
+   `onMedia`): fondo oscuro translúcido y flecha blanca, un contraste que no depende ni de la imagen
+   ni del tema. */
 const CONTROL =
-  "focus-ring grid size-9 place-items-center rounded-full bg-white/85 text-text-base shadow-sm backdrop-blur transition-opacity hover:bg-white [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover/carousel:opacity-100 focus-visible:opacity-100";
+  "focus-ring grid size-9 place-items-center rounded-full bg-black/70 text-white shadow-md backdrop-blur transition-opacity hover:bg-black/85 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover/carousel:opacity-100 focus-visible:opacity-100";
+
+/* Los puntos, por la misma razón: blancos con sombra, legibles sobre cualquier imagen y en los dos
+   temas. */
+const DOT_ACTIVE = "w-5 bg-white shadow-[0_0_3px_rgba(0,0,0,0.55)]";
+const DOT_IDLE =
+  "w-1.5 bg-white/60 shadow-[0_0_3px_rgba(0,0,0,0.45)] hover:bg-white/85";
 
 /**
  * Un carrusel de slides que avanza solo, con puntos, flechas y gesto.
@@ -183,9 +195,7 @@ export default function Carousel({
             onClick={() => go(index)}
             className={cn(
               "focus-ring h-1.5 rounded-full transition-all",
-              index === active
-                ? "w-5 bg-text-base"
-                : "w-1.5 bg-text-base/25 hover:bg-text-base/50",
+              index === active ? DOT_ACTIVE : DOT_IDLE,
             )}
           />
         ))}
