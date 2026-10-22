@@ -1,6 +1,7 @@
 "use server";
 import { after } from "next/server";
 import { getLocale, getTranslations } from "next-intl/server";
+import { warmOffersBanners } from "~/app/(home)/warmOffersBanners";
 import {
   BRAND_MAX_LENGTH,
   normalizeBrand,
@@ -42,6 +43,7 @@ import { createReviewPostContentUseCase } from "~/infra/dataAccess/moderatePost/
 import { createRouteRepository } from "~/infra/dataAccess/routes/factory";
 import { createSellerRepository } from "~/infra/dataAccess/sellers/factory";
 import { createTranslatePostUseCase } from "~/infra/dataAccess/translatePost/factory";
+import { requestOrigin } from "~/infra/routing/requestOrigin";
 import type { ActionState } from "~/infra/types/Actions";
 import { ROUTE_FILE_ERROR_KEYS } from "~/infra/UI/labels/routeFileErrorKeys";
 import { promotionFieldErrors } from "~/presentation/post/promotionFieldErrors";
@@ -185,6 +187,23 @@ function reviewAfterResponse(
     }
 
     await Promise.allSettled([indexNow(postId), translateNow(postId)]);
+  });
+}
+
+/**
+ * Calienta el carrusel de ofertas de la portada después de responder (`warmOffersBanners`).
+ *
+ * Solo para lo que se vende: es lo único que puede cambiar una promoción, y con ella la dirección
+ * de alguna imagen del carrusel. El origen se lee aquí, dentro de la petición: dentro de `after()` ya
+ * no hay cabeceras que leer.
+ */
+async function warmOffersAfterResponse(): Promise<void> {
+  const origin = await requestOrigin();
+
+  if (!origin) return;
+
+  after(async () => {
+    await warmOffersBanners(origin);
   });
 }
 
@@ -395,6 +414,8 @@ export async function createPost(
   if (result?.id) {
     reviewAfterResponse(result.id, title, content);
   }
+
+  if (requiresPrice) await warmOffersAfterResponse();
 
   redirectKeepingLocale(
     { pathname: "/[slug]", params: { slug: result?.slug ?? "" } },
