@@ -12,7 +12,7 @@ config({
  * `src/assets/banners/`.
  *
  *   pnpm tsx src/scripts/generateOffersBannerBackgrounds.ts               los dos
- *   pnpm tsx src/scripts/generateOffersBannerBackgrounds.ts fondo-compacto.png   solo uno
+ *   pnpm tsx src/scripts/generateOffersBannerBackgrounds.ts fondo-compacto.jpg   solo uno
  *
  * Se generan fuera de la petición a propósito: un fondo por visita costaría dinero y segundos, y
  * cambiaría de una visita a otra. Y **solo el fondo** sale de la IA: los productos, sus precios y sus
@@ -38,14 +38,14 @@ const STYLE = [
 
 const BACKGROUNDS = [
   {
-    file: "fondo-ancho.png",
+    file: "fondo-ancho.jpg",
     aspectRatio: "21:9",
     width: 1600,
     height: 520,
     framing: "Very wide horizontal composition.",
   },
   {
-    file: "fondo-compacto.png",
+    file: "fondo-compacto.jpg",
     aspectRatio: "4:3",
     width: 1080,
     height: 810,
@@ -107,14 +107,15 @@ async function main() {
       `${STYLE} ${background.framing}`,
       background.aspectRatio,
     );
-    /* Al tamaño exacto del formato: Satori la pinta tal cual, sin recortarla. */
-    const png = await sharp(raw)
+    /* Al tamaño exacto del formato, y en JPEG: Satori la pinta tal cual, y un degradado en PNG
+       pesaba ~1 MB y frenaba cada dibujo; en JPEG son ~20 KB sin diferencia a la vista. */
+    const jpeg = await sharp(raw)
       .resize(background.width, background.height, { fit: "cover" })
-      .png({ compressionLevel: 9 })
+      .jpeg({ quality: 85, mozjpeg: true })
       .toBuffer();
 
-    await writeFile(join(dir, background.file), png);
-    console.log(`${background.file}: ${png.length} bytes`);
+    await writeFile(join(dir, background.file), jpeg);
+    console.log(`${background.file}: ${jpeg.length} bytes`);
   }
 }
 

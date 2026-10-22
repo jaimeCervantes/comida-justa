@@ -18,18 +18,33 @@ export const BANNER_FORMATS = {
     height: 520,
     layout: "row",
     maxProducts: 4,
-    background: "fondo-ancho.png",
+    background: "fondo-ancho.jpg",
   },
   compacto: {
     width: 1080,
     height: 810,
     layout: "stack",
     maxProducts: 3,
-    background: "fondo-compacto.png",
+    background: "fondo-compacto.jpg",
   },
 } as const;
 
 export type BannerFormat = keyof typeof BANNER_FORMATS;
+
+/**
+ * La versión del dibujo. **Súbela cada vez que cambie cómo se ve el banner** (colores, tamaños,
+ * textos, formatos).
+ *
+ * La imagen se guarda para siempre en el navegador y en la CDN, porque su dirección lleva la huella
+ * de lo que pinta. Pero la huella solo mira los datos: sin esta versión, un banner rediseñado
+ * seguiría sirviéndose con el dibujo viejo a quien ya lo tuviera guardado.
+ */
+const BANNER_DESIGN_VERSION = "3";
+
+/** Lo que va en `v=` de la dirección: la versión del dibujo y la huella de lo que se pinta. */
+export function bannerVersion(fingerprint: string): string {
+  return `${BANNER_DESIGN_VERSION}.${fingerprint}`;
+}
 
 export function isBannerFormat(value: unknown): value is BannerFormat {
   return typeof value === "string" && Object.hasOwn(BANNER_FORMATS, value);

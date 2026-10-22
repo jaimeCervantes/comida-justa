@@ -40,8 +40,10 @@ function OffersBanner({
           alt={slide.alt}
           width={compacto.width}
           height={compacto.height}
-          /* El primero es lo primero de la página; los demás esperan a que les toque. */
+          /* El primero es lo más grande de la página al cargarla: se pide antes que nada. Los
+             demás esperan a que les toque. */
           loading={eager ? "eager" : "lazy"}
+          fetchPriority={eager ? "high" : "auto"}
           data-testid="home-offers-banner-image"
           className="block h-auto w-full"
         />
