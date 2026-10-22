@@ -465,3 +465,42 @@ recortadas sobre su sombra y las demás como tarjeta.
 
 - Commit, merge a `dev` y push.
 
+## 2026-10-22 — El carrusel solo anuncia lo que tiene piezas registradas
+
+### Decisión del usuario
+
+De las 150 ofertas vigentes, 128 no llevan inventario (`stock_quantity` nulo: casi todo lo importado
+del proveedor), 22 tienen piezas y 1 está marcada como agotada. El usuario decidió que **el
+carrusel solo anuncie lo que tiene piezas registradas**.
+
+### Decisiones
+
+- `canBeAdvertised` exige ahora `canBeOrdered` y además inventario con al menos una pieza. Un
+  servicio no sale en el carrusel, porque no se cuenta en piezas: su disponibilidad es la agenda.
+- **La lista de ofertas (`/productos?promocion=1`) no cambia**: sigue enseñando todo lo que se puede
+  comprar, también lo que no cuenta piezas. El usuario preguntó solo por el carrusel, así que «Ver
+  ofertas» lleva a más productos de los que anuncia el banner.
+- El filtro va también en la base (`inStock`, `stock_quantity > 0`), así que la consulta del
+  carrusel ya no lee filas para tirarlas.
+- **Error corregido de paso:** el carrusel leía como mucho 60 ofertas. Con 150, el banner decía «60
+  productos rebajados» y una marca cuyas ofertas quedaran más abajo se quedaba sin su slide. Ahora
+  el total sale de la base (`COUNT(*) OVER()`) y se leen hasta 300 para agrupar.
+- e2e: los helpers dejan a la miel de prueba con 10 piezas, y hay un escenario nuevo, «una oferta
+  sin inventario registrado no sale en el carrusel, pero sí en la lista».
+
+### Validación
+
+- Suite completa de vitest: 350 archivos y 3688 pruebas en verde. `tsc`, `typecheck:tests` y
+  `biome check .` limpios.
+- e2e `ofertasEnPortada` + `home` en 2 tramos: 18 en verde y 5 saltados (23).
+
+### Recap
+
+El carrusel anuncia solo productos con piezas registradas (hoy, 22 ofertas) y cuenta bien el total.
+La lista de ofertas sigue completa.
+
+### Próximos pasos (opciones)
+
+- Si se quiere, alinear la lista de ofertas con el carrusel (solo lo que tiene piezas).
+- Commit, merge a `dev` y push.
+

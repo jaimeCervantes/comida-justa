@@ -34,12 +34,15 @@ const PANTALLAS = [
  */
 let miel: { title: string; slug: string };
 
+/** Pone la promoción y deja piezas registradas: el carrusel solo anuncia eso (`canBeAdvertised`). */
 async function setPromotion(
   salePrice: number | null,
   saleEndsAt: Date | null = null,
 ): Promise<void> {
   await db.execute(sql`
-    UPDATE posts SET sale_price = ${salePrice}, sale_ends_at = ${saleEndsAt}
+    UPDATE posts
+    SET sale_price = ${salePrice}, sale_ends_at = ${saleEndsAt},
+        stock_quantity = 10
     WHERE id IN (SELECT post_id FROM post_translations WHERE slug = ${miel.slug})
   `);
 }
@@ -196,4 +199,32 @@ test.describe("Ofertas en la portada", () => {
       await expect(page.getByTestId("products-on-sale-empty")).toBeVisible();
     });
   }
+
+  test("Una oferta sin inventario registrado no sale en el carrusel, pero sí en la lista", async ({
+    page,
+  }) => {
+    await setPromotion(90);
+    await db.execute(sql`
+      UPDATE posts SET stock_quantity = NULL
+      WHERE id IN (SELECT post_id FROM post_translations WHERE slug = ${miel.slug})
+    `);
+
+    await page.goto("/");
+
+    await expect(page.getByRole("heading", { level: 1 })).toBeAttached();
+    await expect(
+      page.locator(
+        `[data-testid="home-offers-banner-image"][alt*="${miel.title}"]`,
+      ),
+    ).toHaveCount(0);
+
+    await page.goto(`/productos?promocion=1&tienda=${TIENDA.handle}`);
+
+    await expect(
+      page
+        .getByTestId("products-grid")
+        .locator("article")
+        .filter({ hasText: miel.title }),
+    ).toBeVisible();
+  });
 });
