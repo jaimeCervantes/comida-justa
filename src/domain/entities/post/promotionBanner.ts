@@ -1,7 +1,7 @@
 import { canBeOrdered } from "./availability";
 import { brandKey } from "./brand";
 import { currentPrice } from "./promotion";
-import { isOutOfStock } from "./stock";
+import { carriesInventory } from "./stock";
 
 /** De quién es una oferta, cuando no tiene marca: la tienda que la vende. */
 export type BannerStore = { handle: string; name: string };
@@ -27,14 +27,22 @@ export type BannerCandidate = {
 };
 
 /**
- * ¿Se puede anunciar como oferta? Solo lo que alguien puede comprar hoy: anunciar un descuento de
- * algo agotado manda al comprador a una ficha donde no puede pedirlo. Son las mismas reglas que
- * apagan el botón de pedir (`canBeOrdered`) y que cuentan el inventario (`isOutOfStock`).
+ * ¿Se puede anunciar en el carrusel? Solo lo que tiene **piezas registradas**: que se pueda pedir
+ * (`canBeOrdered`) y que lleve inventario con al menos una pieza.
+ *
+ * Es más estricto que la lista de ofertas (`onSaleWhere`), que también enseña lo que no cuenta
+ * piezas: lo decidió el usuario el 2026-10-22. El carrusel es lo primero que se ve, y anunciar ahí
+ * algo de lo que nadie sabe si queda es prometer de más. Por eso un servicio no sale en el carrusel:
+ * no se cuenta en piezas, su disponibilidad es la agenda.
  */
 export function canBeAdvertised(
   candidate: Pick<BannerCandidate, "kind" | "isAvailable" | "stockQuantity">,
 ): boolean {
-  return canBeOrdered(candidate) && !isOutOfStock(candidate);
+  return (
+    canBeOrdered(candidate) &&
+    carriesInventory(candidate) &&
+    (candidate.stockQuantity ?? 0) > 0
+  );
 }
 
 /** Un producto ya dentro del banner: lo que se pinta, con la promoción resuelta. */

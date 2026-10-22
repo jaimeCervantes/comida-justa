@@ -25,10 +25,12 @@ import type { PostData } from "~/infra/dataAccess/posts/IPostQueryRepository";
 /**
  * Cuántas promociones vigentes se leen para armar el carrusel.
  *
- * Todas las que razonablemente puede haber: el banner general toma las cuatro de mayor descuento,
- * pero los grupos por marca necesitan ver el resto para saber qué marca junta dos o más.
+ * El banner general toma las cuatro de mayor descuento, pero los grupos por marca necesitan ver el
+ * resto para saber qué marca junta dos o más. Era 60, y con 150 ofertas el banner decía «60
+ * productos rebajados» y una marca podía quedarse sin su slide: ahora el total sale de la base
+ * (`total`), y esta cifra solo acota lo que se agrupa.
  */
-const CANDIDATES_TO_READ = 60;
+const CANDIDATES_TO_READ = 300;
 
 /** Lo que hay en promoción ahora: las del banner general, los grupos y cuántas son en total. */
 export type HomeOffers = {
@@ -95,11 +97,13 @@ export async function loadHomeOffers(
   locale: string,
   now: Date = new Date(),
 ): Promise<HomeOffers> {
-  const { posts } = await createPostQueryRepository().getProducts(
+  /* `inStock` en la base, además de `canBeAdvertised` en el dominio: así el total que cuenta la
+     base es el de lo que el carrusel puede anunciar, y no se leen cientos de filas para tirarlas. */
+  const { posts, total } = await createPostQueryRepository().getProducts(
     1,
     CANDIDATES_TO_READ,
     null,
-    { onSale: true },
+    { onSale: true, inStock: true },
   );
   const candidates = posts.flatMap((post) => {
     const candidate = toCandidate(post, locale);
@@ -111,7 +115,8 @@ export async function loadHomeOffers(
   return {
     general: active.slice(0, BANNER_MAX_PROMOTIONS),
     groups: groupBannerPromotions(active),
-    total: active.length,
+    /* El de la base cuando hay más de las que se leyeron; nunca menos de las que se van a pintar. */
+    total: Math.max(total, active.length),
   };
 }
 
