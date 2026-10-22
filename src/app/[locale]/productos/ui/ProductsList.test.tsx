@@ -137,7 +137,7 @@ describe("El filtro «En promoción» del catálogo", () => {
         currentPage={1}
         totalPages={3}
         currentPillar="movement"
-        onSale
+        filters={{ onSale: true, brand: null, store: null }}
       />,
     );
 
@@ -158,7 +158,7 @@ describe("El filtro «En promoción» del catálogo", () => {
         currentPage={1}
         totalPages={0}
         currentPillar={null}
-        onSale
+        filters={{ onSale: true, brand: null, store: null }}
       />,
     );
 
@@ -169,6 +169,52 @@ describe("El filtro «En promoción» del catálogo", () => {
     expect(getByRole("link", { name: "Ver todo el catálogo" })).toHaveAttribute(
       "href",
       "/productos",
+    );
+  });
+});
+
+/** Slice 2 de `docs/features/commerce/032-2026-10-21-ofertas-en-portada.md`. */
+describe("El filtro por marca del catálogo", () => {
+  it("se ve como un filtro puesto que se quita con ✕, sin perder la promoción", () => {
+    const { getByTestId, getByRole } = render(
+      <ProductsList
+        products={[product]}
+        currentPage={1}
+        totalPages={3}
+        currentPillar={null}
+        filters={{ onSale: true, brand: "Apis", store: null }}
+      />,
+    );
+
+    expect(getByTestId("products-group-filter")).toHaveTextContent("Apis");
+    expect(getByTestId("products-group-filter")).toHaveAttribute(
+      "href",
+      "/productos?promocion=1",
+    );
+    expect(getByRole("link", { name: "Siguiente" })).toHaveAttribute(
+      "href",
+      "/productos/page/2?promocion=1&marca=Apis",
+    );
+    /* Quitar la promoción conserva la marca. */
+    expect(getByTestId("products-on-sale-filter")).toHaveAttribute(
+      "href",
+      "/productos?marca=Apis",
+    );
+  });
+
+  it("sin resultados por marca dice que nada coincide, no que no haya ofertas", () => {
+    const { getByTestId } = render(
+      <ProductsList
+        products={[]}
+        currentPage={1}
+        totalPages={0}
+        currentPillar={null}
+        filters={{ onSale: false, brand: "Apis", store: null }}
+      />,
+    );
+
+    expect(getByTestId("products-on-sale-empty")).toHaveTextContent(
+      "No hay nada con este filtro.",
     );
   });
 });

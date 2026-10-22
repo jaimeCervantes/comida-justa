@@ -31,6 +31,8 @@ export const posts = pgTable(
      */
     salePrice: numeric("sale_price"),
     saleEndsAt: timestamp("sale_ends_at", { withTimezone: true }),
+    /** La marca de lo que se vende. Nulo = sin marca. Migración `0065_2026_10_21`. */
+    brand: text("brand"),
     kind: text("kind").notNull().default("anuncio"),
     origin: text("origin"),
     /** Claves de allowlist (`alimentacion`, `jugos`), nunca etiquetas traducidas. */
@@ -94,6 +96,8 @@ export const posts = pgTable(
     index("ix_posts_moderation_pending").on(table.moderationStatus),
     /* Parcial en la base sobre `sale_price IS NOT NULL`: sirve al filtro «En promoción». */
     index("posts_on_sale_idx").on(table.saleEndsAt),
+    /* En la base es parcial y sobre `lower(brand)`; Drizzle solo espeja su existencia. */
+    index("posts_brand_idx").on(table.brand),
   ],
 );
 

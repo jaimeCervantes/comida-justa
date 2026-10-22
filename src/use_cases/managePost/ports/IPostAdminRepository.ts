@@ -21,6 +21,8 @@ export interface EditablePost {
   salePrice: number | null;
   /** `posts.sale_ends_at`. Nulo = la promoción dura hasta que se quite. */
   saleEndsAt: Date | null;
+  /** `posts.brand`. Nula = sin marca. */
+  brand: string | null;
   kind: string;
   origin: string | null;
   category: string | null;
@@ -51,6 +53,8 @@ export interface PostContentUpdate {
   /** Viaja junto con `price`: la base exige que sea menor, y en la misma fila. */
   salePrice: number | null;
   saleEndsAt: Date | null;
+  /** Ya normalizada (`normalizeBrand`). Nula = sin marca: así se quita. */
+  brand: string | null;
   /** Ya resuelta contra el rol de quien edita: el gate de admin vive en la capa de aplicación. */
   origin: string | null;
   category: string | null;

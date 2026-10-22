@@ -2,6 +2,11 @@
 import { after } from "next/server";
 import { getLocale, getTranslations } from "next-intl/server";
 import {
+  BRAND_MAX_LENGTH,
+  normalizeBrand,
+  validateBrand,
+} from "~/domain/entities/post/brand";
+import {
   DEFAULT_POST_KIND,
   isValidKind,
   type PostKind,
@@ -248,6 +253,8 @@ export async function createPost(
     ? parseDateTimeLocalInTimeZone(formData.get("saleEndsAt"), timeZone)
     : null;
   const promotionError = validatePromotion({ price, salePrice, saleEndsAt });
+  /* La marca, también solo en lo que se cobra; vacía es «sin marca». */
+  const brand = requiresPrice ? normalizeBrand(formData.get("brand")) : null;
 
   // Fuera del catálogo se ignora (queda `null`) en vez de romper la publicación.
   const taxonomy = await getCategoryTaxonomy();
@@ -294,6 +301,9 @@ export async function createPost(
         : t("errorDurationRequired"),
     price: !requiresPrice || price ? null : t("errorPriceRequired"),
     ...promotionFieldErrors(promotionError, t),
+    brand: validateBrand(brand)
+      ? t("errorBrandTooLong", { max: BRAND_MAX_LENGTH })
+      : null,
     origin: kind !== "producto" || origin ? null : t("errorOriginRequired"),
     content: content ? null : t("errorContentRequired"),
     phone: phone ? null : t("errorPhoneRequired"),
@@ -328,6 +338,7 @@ export async function createPost(
       price: kind === "anuncio" ? null : price,
       salePrice,
       saleEndsAt,
+      brand,
       kind,
       origin,
       category,

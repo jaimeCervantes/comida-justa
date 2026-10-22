@@ -29,6 +29,7 @@ interface PostRow {
   price: string | null;
   sale_price: string | null;
   sale_ends_at: Date | null;
+  brand: string | null;
   kind: string | null;
   origin: string | null;
   category: string | null;
@@ -105,6 +106,7 @@ function postColumns(viewerId?: string | null): SQL {
         p.price::text,
         p.sale_price::text,
         p.sale_ends_at,
+        p.brand,
         p.kind,
         p.origin,
         p.category,
@@ -261,6 +263,10 @@ interface ListingOptions {
   categoryKeys?: readonly string[];
   /** Solo lo que tiene una promoción vigente. Ver `onSaleWhere`. */
   onSale?: boolean;
+  /** Solo esta marca. Ver `brandWhere`. */
+  brand?: string | null;
+  /** Solo lo de esta tienda, por su handle. */
+  store?: string | null;
   /** Filtra por título en cualquier idioma. Vacío o ausente = no filtrar. */
   term?: string;
   /** Quién mira: solo decide `viewerReacted`, no filtra el listado. */
@@ -320,6 +326,23 @@ function onSaleWhere(onSale: boolean | undefined): SQL {
     AND (p.sale_ends_at IS NULL OR p.sale_ends_at > now()))`;
 }
 
+/**
+ * Una marca, sin distinguir mayúsculas: la misma comparación que `brandKey` en el dominio y que el
+ * índice parcial `posts_brand_idx`, que va sobre `lower(brand)`.
+ */
+function brandWhere(brand: string | null | undefined): SQL {
+  if (!brand) return sql`TRUE`;
+
+  return sql`(p.brand IS NOT NULL AND lower(p.brand) = lower(${brand}))`;
+}
+
+/** Lo de una tienda, por su handle. `s` es la tienda que ya une `POST_JOINS`. */
+function storeWhere(store: string | null | undefined): SQL {
+  if (!store) return sql`TRUE`;
+
+  return sql`s.slug = ${store}`;
+}
+
 export class PostgresPostQueryRepository implements IPostQueryRepository {
   async getMultiplePosts(
     page: number,
@@ -348,6 +371,8 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
       sortByDistance: true,
       categoryKeys: filters.categoryKeys,
       onSale: filters.onSale,
+      brand: filters.brand,
+      store: filters.store,
     });
   }
 
@@ -599,6 +624,8 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
       ${POST_JOINS}
       WHERE ${visibility} AND ${where} AND ${categoryWhere(options.categoryKeys)}
         AND ${onSaleWhere(options.onSale)}
+        AND ${brandWhere(options.brand)}
+        AND ${storeWhere(options.store)}
         AND ${titleHasAllWords(options.term ?? "")}
       ORDER BY ${listingOrder(options, near)}
       LIMIT ${pageSize} OFFSET ${offset}
@@ -689,6 +716,7 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
         price: row.price ? Number(row.price) : null,
         salePrice: row.sale_price ? Number(row.sale_price) : null,
         saleEndsAt: row.sale_ends_at,
+        brand: row.brand,
         kind: row.kind ?? undefined,
         origin: row.origin ?? null,
         category: row.category ?? null,

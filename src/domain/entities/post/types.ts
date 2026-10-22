@@ -47,6 +47,8 @@ export type Post = {
   salePrice?: number | null;
   /** `posts.sale_ends_at`: cuándo deja de aplicar la rebaja. Nulo = hasta que se quite. */
   saleEndsAt?: Date | string | null;
+  /** `posts.brand`: la marca de lo que se vende. Nulo = sin marca. Ver `brand.ts`. */
+  brand?: string | null;
   /** Qué es: "anuncio" (default), "producto" (requiere precio) o "evento" (requiere fecha). */
   kind?: PostKind;
   /**

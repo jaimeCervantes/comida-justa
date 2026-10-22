@@ -1,4 +1,9 @@
 import {
+  BRAND_MAX_LENGTH,
+  type BrandError,
+  validateBrand,
+} from "~/domain/entities/post/brand";
+import {
   EVENT_KIND,
   isValidKind,
   SERVICE_KIND,
@@ -17,6 +22,10 @@ import type {
 } from "~/domain/entities/post/types";
 
 /** Una fecha puede llegar como texto desde un formulario; una rota no cuenta como fecha. */
+const BRAND_MESSAGES: Record<BrandError, string> = {
+  "brand-too-long": `La marca no puede pasar de ${BRAND_MAX_LENGTH} caracteres.`,
+};
+
 const PROMOTION_MESSAGES: Record<PromotionError, string> = {
   "invalid-sale-price": "El precio de promoción debe ser mayor a cero.",
   "sale-price-not-below-price":
@@ -46,6 +55,7 @@ export default class PostValidator implements IPostValidator {
     );
     this.validateNumberOnPost(post.price, "price");
     this.validatePromotion(post);
+    this.validateBrand(post);
     this.validateStringOnPost(
       post.content as string,
       "content",
@@ -98,6 +108,13 @@ export default class PostValidator implements IPostValidator {
    * La rebaja, si la hay. Se contesta aquí para que quien publica lea por qué, en vez de chocar
    * con el `CHECK` de la base (`posts_sale_price_below_price`), que solo sabe decir que no.
    */
+  /** Ya normalizada: quien la escribe pasa por `normalizeBrand` antes de llegar aquí. */
+  private validateBrand(post: Post): VoidOrError {
+    const error = validateBrand(post.brand ?? null);
+
+    if (error) throw new PostClassificationError(BRAND_MESSAGES[error]);
+  }
+
   private validatePromotion(post: Post): VoidOrError {
     const error = validatePromotion(post);
 

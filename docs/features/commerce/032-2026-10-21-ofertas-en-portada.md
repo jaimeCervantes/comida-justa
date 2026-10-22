@@ -87,10 +87,33 @@ Diseño:
 **Acepta cuando:** los escenarios `@slice-1b` pasan; pruebas de `CardShell`/`Card` (la de siempre
 sigue igual), de `OffersCard` y de los dos formatos.
 
-### Slice 2 — Un slide por producto
+### Slice 2 — Un slide por marca (reemplaza «un slide por producto», 2026-10-21)
 
-Hasta 5 slides, uno por producto en promoción, con su foto, el normal tachado, el rebajado y `-N%`,
-que llevan a su ficha. En los dos carruseles: el del hero y el de la tarjeta de ofertas.
+El usuario preguntó si convenía agrupar el carrusel por categoría, vendedor o marca («las proteínas
+en uno y los smoothies de Amarosana en otro»). Con los datos de hoy no se puede: Hazlo Sano publica
+426 de 428 productos (por tienda sale un solo grupo), proteínas y smoothies comparten
+`alimentacion / abarrotes` (por categoría tampoco), y la marca solo vive dentro del título. El
+catálogo del proveedor sí la trae (`supplierName`), pero el importador no la guardaba. El usuario
+aprobó agrupar **por marca**, y que esto reemplace el slide por producto: con muchas ofertas, uno
+por producto se hace largo, y uno por marca cuenta una historia.
+
+- **Migración `0065_2026_10_21`** (`hazlo-sano-bot`): `posts.brand` text nulo, con un CHECK que no
+  acepta vacía ni solo espacios y un índice parcial sobre `lower(brand)`. Es genérico: cualquier
+  giro vende marcas.
+- **Dominio:** `normalizeBrand` (recorta y junta espacios; vacía es `null`) y
+  `groupBannerPromotions`. Agrupa por marca sin distinguir mayúsculas y, sin marca, por tienda.
+  Solo se forman grupos de **2 o más** ofertas; una marca con una sola oferta sale solo en el banner
+  general. Máximo 4 grupos, del mayor descuento al menor.
+- **Carrusel:** primero el banner general (el de hoy), después uno por grupo, «Ofertas Birdman ·
+  HASTA 21% OFF», con sus productos. Cada slide de grupo lleva a
+  `/productos?promocion=1&marca=Birdman` (o `&tienda=<handle>` cuando el grupo es una tienda).
+- **La ruta de la imagen** gana `marca=` y `tienda=`: dibuja el banner solo con ese grupo.
+- **`/productos?marca=`** filtra por marca, y se suma a `promocion` y al pilar.
+- **El importador** guarda `supplierName` como marca, al dar de alta y en el `--sync`.
+- **Publicar y editar:** un campo «Marca» opcional en productos y servicios.
+
+**Acepta cuando:** los escenarios `@slice-2` pasan; pruebas de `groupBannerPromotions` como corrida
+de escritorio, del validador de marca y del mapeo del importador.
 
 ### Opcional (no planeado)
 
@@ -99,6 +122,8 @@ Reusar la imagen para compartir en grupos o como `og:image` de `/productos?promo
 ## Estado
 
 - Slice 1: terminado el 2026-10-21. El banner salió en 1200×760 y no en 4:3; ver la bitácora.
+- Slice 2 (un slide por marca): implementado el 2026-10-21. Migración `0065_2026_10_21` aplicada.
+  Falta repetir el e2e (lo cortó la falta de memoria del equipo); ver la bitácora.
 - 2026-10-21: el usuario pidió un solo carrusel. El hero volvió a ser el de siempre, y las ofertas
   viven solo en la tarjeta del feed (slice 1b), con un banner minimalista en dos formatos (`ancho` y
   `compacto`). El formato `portada` se quitó. Ver la bitácora.

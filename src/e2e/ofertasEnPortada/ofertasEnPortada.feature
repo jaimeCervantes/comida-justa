@@ -61,15 +61,62 @@ Feature: Ofertas en la portada
     When un visitante abre el inicio
     Then se ve el hero, sin carrusel de ofertas
 
-  @slice-2 @future
-  Scenario: Cada producto en promoción tiene su slide
-    Given "Miel de abeja 500 g" tiene precio de promoción 150
-    When un visitante abre el inicio
-    Then un slide del carrusel de ofertas muestra "Miel de abeja 500 g" con 180 tachado, 150 y "-17%"
-    And ese slide lleva a la ficha de "Miel de abeja 500 g"
+  # Slice 2: un slide por marca. Reemplaza «un slide por producto» (ver el roadmap).
 
-  @slice-2 @future
+  @slice-2 @component
+  Scenario Outline: Las ofertas se agrupan por marca, y sin marca por tienda
+    Given estas ofertas vigentes
+      | producto                 | marca     | tienda     | descuento |
+      | Falcon Protein Vegana    | Birdman   | Hazlo Sano | 21        |
+      | Falcon Golden Vanilla    | birdman   | Hazlo Sano | 20        |
+      | Smoothie Verde Detox     | Amarosana | Hazlo Sano | 15        |
+      | Smoothie Frutos Rojos    | Amarosana | Hazlo Sano | 10        |
+      | Miel de abeja 500 g      | Apis      | Hazlo Sano | 17        |
+      | Pan de masa madre        |           | La Luz     | 12        |
+      | Pan de centeno           |           | La Luz     | 8         |
+    When se arma el carrusel del inicio
+    Then el slide <posición> es "<slide>" con <productos>
+
+    Examples: un grupo por marca o por tienda, solo si junta 2 o más; la marca sin distinguir mayúsculas
+      | posición | slide                    | productos                                 |
+      | 1        | Ofertas (todas)          | las 4 de mayor descuento                  |
+      | 2        | Birdman · hasta 21% OFF  | Falcon Protein Vegana, Falcon Golden Vanilla |
+      | 3        | Amarosana · hasta 15% OFF | Smoothie Verde Detox, Smoothie Frutos Rojos |
+      | 4        | La Luz · hasta 12% OFF   | Pan de masa madre, Pan de centeno         |
+
+  @slice-2
+  Scenario: Una marca con varias ofertas tiene su slide, que lleva a sus ofertas
+    Given "Miel de abeja 500 g" y "Miel de abeja 1 kg" de la marca "E2E Apis" tienen precio de promoción
+    When un visitante abre el inicio
+    Then el carrusel tiene un slide "Ofertas E2E Apis" con su imagen
+    And ese slide lleva a "/productos?promocion=1&marca=E2E Apis"
+
+  @slice-2
+  Scenario: Una marca con una sola oferta no tiene slide propio
+    Given solo "Miel de abeja 500 g" de la marca "E2E Apis" tiene precio de promoción
+    When un visitante abre el inicio
+    Then ningún slide del carrusel es de "E2E Apis"
+
+  @slice-2
+  Scenario: El catálogo se filtra por marca
+    Given "Miel de abeja 500 g" de la marca "E2E Apis" y "Panela 1 kg" sin marca, los dos en promoción
+    When un visitante abre "/productos?promocion=1&marca=E2E Apis"
+    Then aparece "Miel de abeja 500 g"
+    And no aparece "Panela 1 kg"
+
+  @slice-2
+  Scenario: El vendedor pone la marca al editar un producto
+    When el vendedor edita "Miel de abeja 500 g" con la marca "  E2E   Apis "
+    Then la publicación queda con la marca "E2E Apis"
+
+  @slice-2 @component
+  Scenario: El importador guarda la marca que trae el catálogo del proveedor
+    Given un producto del catálogo con supplierName "Birdman"
+    When se importa o se sincroniza
+    Then la publicación queda con la marca "Birdman"
+
+  @slice-2
   Scenario: El carrusel de ofertas se mueve con sus controles
-    Given hay más de un slide en el carrusel de ofertas
-    When un visitante pulsa "siguiente"
+    Given "Miel de abeja 500 g" y "Miel de abeja 1 kg" de la marca "E2E Apis" tienen precio de promoción
+    When un visitante abre el inicio y pulsa "siguiente" en el carrusel
     Then se ve el slide siguiente

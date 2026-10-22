@@ -29,6 +29,7 @@ import { ValidatedForm } from "~/presentation/forms/ValidatedForm";
 import PostMediaField, {
   type PostMediaFieldItem,
 } from "~/presentation/media/PostMediaField/PostMediaField";
+import BrandField from "~/presentation/post/BrandField/BrandField";
 import EventTimeZoneField, {
   useBrowserTimeZone,
 } from "~/presentation/post/EventTimeZone/EventTimeZoneField";
@@ -381,7 +382,10 @@ export default function PublishForm({
               ) : null}
 
               {requiresPrice ? (
-                <SalePriceFields timeZone={timeZone} errors={state?.errors} />
+                <>
+                  <SalePriceFields timeZone={timeZone} errors={state?.errors} />
+                  <BrandField error={state?.errors?.brand} />
+                </>
               ) : null}
             </div>
 

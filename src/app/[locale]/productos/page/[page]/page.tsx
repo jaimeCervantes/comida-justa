@@ -2,6 +2,12 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import {
+  BRAND_QUERY_PARAM,
+  parseBrandFilter,
+  parseStoreFilter,
+  STORE_QUERY_PARAM,
+} from "~/domain/entities/post/catalogFilters";
+import {
   ON_SALE_QUERY_PARAM,
   parseOnSaleFilter,
 } from "~/domain/entities/post/promotion";
@@ -17,7 +23,12 @@ import ProductsList from "../../ui/ProductsList";
 
 type Props = {
   params: Promise<{ locale: string; page: string }>;
-  searchParams: Promise<{ pillar?: string; [ON_SALE_QUERY_PARAM]?: string }>;
+  searchParams: Promise<{
+    pillar?: string;
+    [ON_SALE_QUERY_PARAM]?: string;
+    [BRAND_QUERY_PARAM]?: string;
+    [STORE_QUERY_PARAM]?: string;
+  }>;
 };
 
 function parsePage(value: string): number | null {
@@ -37,10 +48,19 @@ export default async function ProductosPaginatedPage({
   searchParams,
 }: Props) {
   const { page: pageStr, locale: rawLocale } = await params;
-  const { pillar, [ON_SALE_QUERY_PARAM]: onSaleParam } = await searchParams;
+  const {
+    pillar,
+    [ON_SALE_QUERY_PARAM]: onSaleParam,
+    [BRAND_QUERY_PARAM]: brandParam,
+    [STORE_QUERY_PARAM]: storeParam,
+  } = await searchParams;
   const locale = resolveLocale(rawLocale);
   const currentPillar = parsePublicationPillar(pillar);
-  const onSale = parseOnSaleFilter(onSaleParam);
+  const filters = {
+    onSale: parseOnSaleFilter(onSaleParam),
+    brand: parseBrandFilter(brandParam),
+    store: parseStoreFilter(storeParam),
+  };
   setRequestLocale(locale);
   const viewerId = await readViewerId();
   const t = await getTranslations("products");
@@ -52,7 +72,7 @@ export default async function ProductosPaginatedPage({
   }
 
   const { products, totalPages, nothingNearby, visitor, storesToMap } =
-    await getProducts(page, locale, currentPillar, onSale);
+    await getProducts(page, locale, currentPillar, filters);
 
   if (products.length === 0 && page > 1) {
     notFound();
@@ -84,7 +104,7 @@ export default async function ProductosPaginatedPage({
         currentPage={page}
         totalPages={totalPages}
         currentPillar={currentPillar}
-        onSale={onSale}
+        filters={filters}
       />
 
       <div className="text-center mt-4">

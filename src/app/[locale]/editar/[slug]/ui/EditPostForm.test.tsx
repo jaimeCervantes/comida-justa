@@ -19,6 +19,7 @@ const EVENT_POST: EditablePostValues = {
   price: null,
   salePrice: null,
   saleEndsAt: null,
+  brand: null,
   kind: "evento",
   origin: null,
   category: null,

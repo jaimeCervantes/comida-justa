@@ -22,6 +22,7 @@ import { ValidatedForm } from "~/presentation/forms/ValidatedForm";
 import PostMediaField, {
   type PostMediaFieldItem,
 } from "~/presentation/media/PostMediaField/PostMediaField";
+import BrandField from "~/presentation/post/BrandField/BrandField";
 import EventTimeZoneField, {
   useBrowserTimeZone,
 } from "~/presentation/post/EventTimeZone/EventTimeZoneField";
@@ -40,6 +41,7 @@ export type EditablePostValues = {
   price: number | null;
   salePrice: number | null;
   saleEndsAt: Date | string | null;
+  brand: string | null;
   kind: string;
   origin: string | null;
   category: string | null;
@@ -297,12 +299,15 @@ export default function EditPostForm({
         ) : null}
 
         {isProduct || isService ? (
-          <SalePriceFields
-            timeZone={timeZone}
-            salePrice={post.salePrice}
-            saleEndsAt={post.saleEndsAt}
-            errors={state.errors}
-          />
+          <>
+            <SalePriceFields
+              timeZone={timeZone}
+              salePrice={post.salePrice}
+              saleEndsAt={post.saleEndsAt}
+              errors={state.errors}
+            />
+            <BrandField brand={post.brand} error={state.errors?.brand} />
+          </>
         ) : null}
 
         <TextArea

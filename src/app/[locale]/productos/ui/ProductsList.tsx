@@ -1,4 +1,8 @@
 import { useTranslations } from "next-intl";
+import {
+  BRAND_QUERY_PARAM,
+  STORE_QUERY_PARAM,
+} from "~/domain/entities/post/catalogFilters";
 import { ON_SALE_QUERY_PARAM } from "~/domain/entities/post/promotion";
 import {
   PUBLICATION_PILLAR_QUERY_PARAM,
@@ -17,70 +21,98 @@ import { publicationPillarEmptyMessage } from "~/presentation/post/publicationPi
 
 export const PRODUCTS_BASE_PATH = "/productos/page";
 
+/**
+ * Los filtros del catálogo que viajan en la dirección, además del pilar: `?promocion=1`,
+ * `?marca=…` y `?tienda=…`. Se suman entre sí y con el pilar.
+ */
+export type CatalogFilters = {
+  onSale: boolean;
+  brand: string | null;
+  store: string | null;
+};
+
+const NO_FILTERS: CatalogFilters = { onSale: false, brand: null, store: null };
+
 type ProductsListProps = {
   products: Post[];
   currentPage: number;
   totalPages: number;
   currentPillar: PublicationPillar | null;
-  /** Si el listado está filtrado a lo que tiene promoción vigente (`?promocion=1`). */
-  onSale?: boolean;
+  filters?: CatalogFilters;
 };
 
-/**
- * Lo que la dirección tiene que conservar al paginar o al cambiar un filtro. El pilar y la
- * promoción se suman: «En promoción» dentro de un pilar es lo rebajado de ese pilar.
- */
+/** Lo que la dirección tiene que conservar al paginar o al cambiar un filtro. */
 function listingQuery(
   pillar: PublicationPillar | null,
-  onSale: boolean,
+  filters: CatalogFilters,
 ): Record<string, string> | undefined {
   const query: Record<string, string> = {};
 
   if (pillar) query[PUBLICATION_PILLAR_QUERY_PARAM] = pillar;
-  if (onSale) query[ON_SALE_QUERY_PARAM] = "1";
+  if (filters.onSale) query[ON_SALE_QUERY_PARAM] = "1";
+  if (filters.brand) query[BRAND_QUERY_PARAM] = filters.brand;
+  if (filters.store) query[STORE_QUERY_PARAM] = filters.store;
 
   return Object.keys(query).length > 0 ? query : undefined;
 }
 
-/** El listado desde la página 1, con la promoción puesta o quitada: con otro filtro, otra cuenta. */
+/** El listado desde la página 1 con otros filtros: con otro filtro, otra cuenta. */
 function productsHref(
   pillar: PublicationPillar | null,
-  onSale: boolean,
+  filters: CatalogFilters,
 ): AppHref {
   return {
     pathname: "/productos",
-    query: listingQuery(pillar, onSale),
+    query: listingQuery(pillar, filters),
   } as AppHref;
 }
 
+const CHIP_ON = "border-pw-green bg-pw-green text-white";
+const CHIP_OFF =
+  "border-separator bg-surface-elevation-1 text-text-base hover:bg-surface-elevation-2";
+
 /**
- * El interruptor «En promoción». Un enlace y no una casilla, como `facet-only-available` en la
- * búsqueda: el filtro vive en la dirección, así que se comparte y vuelve con el botón de atrás.
+ * Los filtros a la vista: el interruptor «En promoción» y, si se llegó con una marca o una tienda
+ * —desde un slide del carrusel de ofertas—, esa marca o tienda con su ✕ para quitarla.
+ *
+ * Enlaces y no casillas, como `facet-only-available` en la búsqueda: el filtro vive en la
+ * dirección, así que se comparte y vuelve con el botón de atrás.
  */
-function OnSaleFilter({
+function FilterChips({
   pillar,
-  onSale,
+  filters,
+  storeName,
 }: {
   pillar: PublicationPillar | null;
-  onSale: boolean;
+  filters: CatalogFilters;
+  /** El nombre de la tienda filtrada, si se sabe; si no, su handle. */
+  storeName: string | null;
 }) {
   const t = useTranslations("products");
+  const storeLabel = filters.store ? (storeName ?? filters.store) : null;
+  const groupLabel = filters.brand ?? storeLabel;
 
   return (
-    <div className="pt-4">
+    <div className="flex flex-wrap gap-2 pt-4">
       <Link
-        href={productsHref(pillar, !onSale)}
-        aria-pressed={onSale}
+        href={productsHref(pillar, { ...filters, onSale: !filters.onSale })}
+        aria-pressed={filters.onSale}
         data-testid="products-on-sale-filter"
-        className={cn(
-          FILTER_CHIP,
-          onSale
-            ? "border-pw-green bg-pw-green text-white"
-            : "border-separator bg-surface-elevation-1 text-text-base hover:bg-surface-elevation-2",
-        )}
+        className={cn(FILTER_CHIP, filters.onSale ? CHIP_ON : CHIP_OFF)}
       >
         {t("onSaleFilter")}
       </Link>
+      {groupLabel ? (
+        <Link
+          href={productsHref(pillar, { ...filters, brand: null, store: null })}
+          aria-label={t("removeFilter", { label: groupLabel })}
+          data-testid="products-group-filter"
+          className={cn(FILTER_CHIP, CHIP_ON, "gap-2")}
+        >
+          {groupLabel}
+          <span aria-hidden>✕</span>
+        </Link>
+      ) : null}
     </div>
   );
 }
@@ -91,32 +123,45 @@ export default function ProductsList({
   totalPages,
   viewerId,
   currentPillar,
-  onSale = false,
+  filters = NO_FILTERS,
 }: ProductsListProps & { viewerId?: string | null }) {
   const t = useTranslations("products");
   const pillarT = useTranslations("publicationPillars");
+  const filtered =
+    filters.onSale || filters.brand !== null || filters.store !== null;
+  const storeName = filters.store
+    ? (products.find((product) => product.seller?.handle === filters.store)
+        ?.seller?.name ?? null)
+    : null;
+  const chips = (
+    <FilterChips
+      pillar={currentPillar}
+      filters={filters}
+      storeName={storeName}
+    />
+  );
 
   /* Vacío por el filtro no es un catálogo vacío: invitar a publicar sería contestar otra pregunta.
      Se dice que ahora no hay ofertas y se ofrece el camino de vuelta, con el interruptor a la vista
      para quitarlo. */
-  if (products.length === 0 && onSale) {
+  if (products.length === 0 && filtered) {
     return (
       <>
-        <OnSaleFilter pillar={currentPillar} onSale />
+        {chips}
         <EmptyState
           testId="products-on-sale-empty"
           className="mt-4"
-          title={t("emptyOnSale")}
+          title={filters.onSale ? t("emptyOnSale") : t("emptyFiltered")}
           action={
             <Link
-              href={productsHref(currentPillar, false)}
+              href={productsHref(currentPillar, NO_FILTERS)}
               className={buttonVariants({ color: "green", size: "sm" })}
             >
               {t("seeAll")}
             </Link>
           }
         >
-          {t("emptyOnSaleBody")}
+          {filters.onSale ? t("emptyOnSaleBody") : null}
         </EmptyState>
       </>
     );
@@ -148,7 +193,7 @@ export default function ProductsList({
 
   return (
     <>
-      <OnSaleFilter pillar={currentPillar} onSale={onSale} />
+      {chips}
 
       <section data-testid="products-grid" className={`${CARD_MASONRY} pt-6`}>
         {products.map((product: Post) => (
@@ -160,7 +205,7 @@ export default function ProductsList({
         currentPage={currentPage}
         totalPages={totalPages}
         pathname="/productos/page/[page]"
-        query={listingQuery(currentPillar, onSale)}
+        query={listingQuery(currentPillar, filters)}
       />
     </>
   );

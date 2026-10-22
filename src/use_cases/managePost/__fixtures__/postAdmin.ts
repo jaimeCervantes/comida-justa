@@ -35,6 +35,7 @@ export const jugoVerde: EditablePost = {
   // Sin promoción, como todas las publicaciones el día de la migración.
   salePrice: null,
   saleEndsAt: null,
+  brand: null,
   kind: "producto",
   // `EditablePost` lo exige. Faltaba, y llegaba como `undefined` en vez de `null`.
   origin: null,

@@ -2,6 +2,11 @@
 import { after } from "next/server";
 import { getLocale, getTranslations } from "next-intl/server";
 import {
+  BRAND_MAX_LENGTH,
+  normalizeBrand,
+  validateBrand,
+} from "~/domain/entities/post/brand";
+import {
   EVENT_KIND,
   isValidKind,
   SERVICE_KIND,
@@ -49,6 +54,7 @@ export type EditPostState = {
     price?: string | null;
     salePrice?: string | null;
     saleEndsAt?: string | null;
+    brand?: string | null;
     origin?: string | null;
     phone?: string | null;
     /** Lo que le pasa al `.gpx`: el mismo campo que ya existía al publicar. */
@@ -160,6 +166,8 @@ export async function updatePost(
     ? parseDateTimeLocalInTimeZone(formData.get("saleEndsAt"), timeZone)
     : null;
   const promotionError = validatePromotion({ price, salePrice, saleEndsAt });
+  /* La marca, también solo en lo que se cobra. Vacía es «sin marca»: borrarla es quitarla. */
+  const brand = requiresPrice ? normalizeBrand(formData.get("brand")) : null;
 
   /* El recorrido, sólo en un evento. En cualquier otro tipo el campo ni se pinta, así que lo que
      llegara ahí vendría de un formulario manipulado y se ignora en vez de guardarse. */
@@ -190,6 +198,9 @@ export async function updatePost(
         : tPublish("errorDurationRequired"),
     price: !requiresPrice || price ? null : tPublish("errorPriceRequired"),
     ...promotionFieldErrors(promotionError, tPublish),
+    brand: validateBrand(brand)
+      ? tPublish("errorBrandTooLong", { max: BRAND_MAX_LENGTH })
+      : null,
     origin:
       kind !== "producto" || origin ? null : tPublish("errorOriginRequired"),
     phone: phone ? null : tPublish("errorPhoneRequired"),
@@ -209,6 +220,7 @@ export async function updatePost(
     price: kind === "anuncio" ? null : price,
     salePrice,
     saleEndsAt,
+    brand,
     origin,
     category,
     subCategory,

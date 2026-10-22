@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
+  activeBannerPromotions,
   type BannerCandidate,
+  groupBannerPromotions,
   promotionsFingerprint,
   selectBannerPromotions,
 } from "./promotionBanner";
@@ -21,6 +23,8 @@ function candidate(overrides: Partial<BannerCandidate> = {}): BannerCandidate {
     price: 180,
     salePrice: 150,
     saleEndsAt: null,
+    brand: null,
+    store: { handle: "hazlo-sano", name: "Hazlo Sano" },
     ...overrides,
   };
 }
@@ -92,5 +96,77 @@ describe("promotionsFingerprint", () => {
     expect(promotionsFingerprint([miel, cafe])).not.toBe(
       promotionsFingerprint([miel]),
     );
+  });
+});
+
+/**
+ * La corrida de escritorio de `ofertasEnPortada.feature` (@slice-2 @component): las mismas siete
+ * ofertas de la tabla, con su marca, su tienda y su descuento sobre un precio de 100.
+ */
+describe("groupBannerPromotions", () => {
+  const laLuz = { handle: "la-luz", name: "La Luz" };
+  const hazloSano = { handle: "hazlo-sano", name: "Hazlo Sano" };
+  const oferta = (
+    title: string,
+    brand: string | null,
+    store: { handle: string; name: string },
+    discount: number,
+  ) =>
+    candidate({ title, brand, store, price: 100, salePrice: 100 - discount });
+
+  const TABLA = [
+    oferta("Falcon Protein Vegana", "Birdman", hazloSano, 21),
+    oferta("Falcon Golden Vanilla", "birdman", hazloSano, 20),
+    oferta("Smoothie Verde Detox", "Amarosana", hazloSano, 15),
+    oferta("Smoothie Frutos Rojos", "Amarosana", hazloSano, 10),
+    oferta("Miel de abeja 500 g", "Apis", hazloSano, 17),
+    oferta("Pan de masa madre", null, laLuz, 12),
+    oferta("Pan de centeno", null, laLuz, 8),
+  ];
+
+  const slides = () =>
+    groupBannerPromotions(activeBannerPromotions(TABLA, NOW)).map(
+      (group) =>
+        `${group.label}: ${group.promotions.map((p) => p.title).join(", ")}`,
+    );
+
+  it("un slide por marca y, sin marca, por tienda; la marca sin distinguir mayúsculas", () => {
+    expect(slides()).toEqual([
+      "Birdman: Falcon Protein Vegana, Falcon Golden Vanilla",
+      "Amarosana: Smoothie Verde Detox, Smoothie Frutos Rojos",
+      "La Luz: Pan de masa madre, Pan de centeno",
+    ]);
+  });
+
+  it("filtra el catálogo por la marca o por la tienda del grupo", () => {
+    const groups = groupBannerPromotions(activeBannerPromotions(TABLA, NOW));
+
+    expect(groups.map((group) => group.filter)).toEqual([
+      { brand: "Birdman" },
+      { brand: "Amarosana" },
+      { store: "la-luz" },
+    ]);
+  });
+
+  it("un grupo que junta todas las ofertas no tiene slide: repetiría el general", () => {
+    const todasDeHazloSano = [
+      oferta("Falcon Protein Vegana", null, hazloSano, 21),
+      oferta("Falcon Golden Vanilla", null, hazloSano, 20),
+    ];
+
+    expect(
+      groupBannerPromotions(activeBannerPromotions(todasDeHazloSano, NOW)),
+    ).toEqual([]);
+  });
+
+  it("no pasa de cuatro grupos", () => {
+    const muchas = ["A", "B", "C", "D", "E", "F"].flatMap((marca) => [
+      oferta(`${marca} 1`, marca, hazloSano, 20),
+      oferta(`${marca} 2`, marca, hazloSano, 10),
+    ]);
+
+    expect(
+      groupBannerPromotions(activeBannerPromotions(muchas, NOW)),
+    ).toHaveLength(4);
   });
 });

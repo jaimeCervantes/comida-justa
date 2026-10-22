@@ -16,6 +16,7 @@ import { listStoresToMap } from "~/infra/dataAccess/sellers/PostgresNearbyStores
 import { readViewerLocationContext } from "~/infra/location/viewerLocationContext";
 import type { Post } from "~/infra/types/Posts";
 import { mapPostsToCardsForLocale } from "~/infra/UI/mappers/posts/mapPostsToCardsForLocale";
+import type { CatalogFilters } from "./ui/ProductsList";
 
 export type ProductsPageData = {
   products: Post[];
@@ -49,8 +50,8 @@ export async function getProducts(
   page: number,
   locale: string,
   currentPillar: PublicationPillar | null,
-  /** Solo lo que tiene promoción vigente. Ver `ON_SALE_QUERY_PARAM`. */
-  onSale = false,
+  /** `?promocion=1`, `?marca=` y `?tienda=`. Ver `CatalogFilters`. */
+  filters: CatalogFilters = { onSale: false, brand: null, store: null },
 ): Promise<ProductsPageData> {
   const pageNum = Math.max(PAGINATION_INIT_PAGE, page);
   const postRepo = createPostQueryRepository();
@@ -62,7 +63,9 @@ export async function getProducts(
     near,
     {
       categoryKeys: await categoryKeysForActivePublicationPillar(currentPillar),
-      onSale,
+      onSale: filters.onSale,
+      brand: filters.brand,
+      store: filters.store,
     },
   );
 

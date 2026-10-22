@@ -69,6 +69,7 @@ interface EditableRow {
   price: string | null;
   sale_price: string | null;
   sale_ends_at: Date | null;
+  brand: string | null;
   kind: string | null;
   origin: string | null;
   category: string | null;
@@ -141,6 +142,7 @@ export class PostgresPostAdminRepository implements IPostAdminRepository {
         SET price        = ${update.price},
             sale_price   = ${update.salePrice},
             sale_ends_at = ${update.saleEndsAt},
+            brand        = ${update.brand},
             contact_phone = ${update.contactPhone},
             origin       = ${update.origin},
             category     = ${update.category},
@@ -178,6 +180,7 @@ export class PostgresPostAdminRepository implements IPostAdminRepository {
         p.price::text,
         p.sale_price::text,
         p.sale_ends_at,
+        p.brand,
         p.kind,
         p.origin,
         p.category,
@@ -212,6 +215,7 @@ export class PostgresPostAdminRepository implements IPostAdminRepository {
       price: row.price === null ? null : Number(row.price),
       salePrice: row.sale_price === null ? null : Number(row.sale_price),
       saleEndsAt: row.sale_ends_at,
+      brand: row.brand,
       kind: row.kind ?? "anuncio",
       origin: row.origin,
       category: row.category,
