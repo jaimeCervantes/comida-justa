@@ -318,3 +318,24 @@ describe("PostValidator — la promoción", () => {
     ).toThrow(/primero pon el precio de promoción/i);
   });
 });
+
+/* Slice 2 de `docs/features/commerce/032-2026-10-21-ofertas-en-portada.md`. */
+describe("PostValidator — la marca", () => {
+  const validator = new PostValidator();
+  const miel = { kind: "producto", price: 180, origin: "productor" } as const;
+
+  it("acepta un producto con marca y uno sin ella", () => {
+    expect(() =>
+      validator.validate(makePost({ ...miel, brand: "Apis" })),
+    ).not.toThrow();
+    expect(() =>
+      validator.validate(makePost({ ...miel, brand: null })),
+    ).not.toThrow();
+  });
+
+  it("rechaza una marca de más de 60 caracteres", () => {
+    expect(() =>
+      validator.validate(makePost({ ...miel, brand: "a".repeat(61) })),
+    ).toThrow(/marca no puede pasar de 60/i);
+  });
+});
