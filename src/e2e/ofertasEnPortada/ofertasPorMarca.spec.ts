@@ -39,7 +39,8 @@ async function update(
 
   if (values.salePrice !== undefined) {
     await db.execute(
-      sql`UPDATE posts SET sale_price = ${values.salePrice} WHERE id IN ${id}`,
+      /* Con piezas registradas: el carrusel solo anuncia eso (`canBeAdvertised`). */
+      sql`UPDATE posts SET sale_price = ${values.salePrice}, stock_quantity = 10 WHERE id IN ${id}`,
     );
   }
   if (values.brand !== undefined) {
