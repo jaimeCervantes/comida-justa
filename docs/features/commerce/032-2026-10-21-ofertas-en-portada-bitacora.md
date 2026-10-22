@@ -254,3 +254,90 @@ precio, y botón «Ver ofertas». Sin ofertas, el hero de siempre. Todo en verde
 - **Pendiente del usuario:** volver a levantar su servidor (`pnpm dev`); se detuvo para el e2e.
 - Commit, merge a `dev` y push.
 - Slice 2: un slide por producto, que estrena los controles del carrusel.
+
+## 2026-10-21 — Slice 2: un slide por marca
+
+### Objetivo
+
+Que el carrusel cuente una historia por marca —«Ofertas Birdman», «Ofertas Amarosana»— en vez de un
+slide por producto. Lo pidió el usuario al preguntar si convenía agrupar por categoría, vendedor o
+marca.
+
+### Decisiones
+
+- **Por marca, no por tienda ni por categoría.** Con los datos de hoy, por tienda sale un solo grupo
+  (Hazlo Sano publica 426 de 428) y por categoría tampoco se separan proteínas de smoothies (los dos
+  en `alimentacion / abarrotes`). La marca no existía como dato: vivía dentro del título.
+- **Migración `0065_2026_10_21`** en `hazlo-sano-bot` (rama `feat/marca-de-publicacion`), aplicada a
+  la base compartida a pedido del usuario: `posts.brand` text nulo, con el CHECK
+  `posts_brand_not_blank` (sin marca es NULL, nunca vacía) y el índice parcial `posts_brand_idx`
+  sobre `lower(brand)`. Sin relleno: lo llena el siguiente `--sync` del importador.
+- **Dominio genérico:** `entities/post/brand.ts` (`normalizeBrand`, `validateBrand` con tope de 60,
+  `brandKey`) y `catalogFilters.ts` (los parámetros `marca` y `tienda`, y cómo se leen).
+- **`groupBannerPromotions`:**
+  - Agrupa por marca sin distinguir mayúsculas y, sin marca, por tienda.
+  - Solo forma un grupo con 2 o más ofertas, y como mucho 4 grupos, del mayor descuento al menor.
+  - Un grupo que junta todas las ofertas no tiene slide, porque repetiría el general. Es el caso de
+    hoy en producción: las cinco promociones de Falcon son de Hazlo Sano y aún no tienen marca.
+  - `selectBannerPromotions` quedó como el primer corte de `activeBannerPromotions`, que los grupos
+    necesitan completa.
+- **Cada slide tiene su propia imagen y su huella:** `/api/ofertas/banner?…&marca=…` (o `&tienda=`)
+  dibuja solo ese grupo, con la marca en la píldora. Cada slide lleva a
+  `/productos?promocion=1&marca=…`.
+- **`/productos` filtra por `marca` y por `tienda`.** Se suman a la promoción y al pilar, la
+  paginación los conserva, y el filtro puesto se ve como una píldora con ✕. `ProductsList` recibe
+  ahora un solo `filters` en vez de `onSale`.
+- **El importador** guarda `supplierName` como marca al dar de alta y en el `--sync`, que la reporta
+  («marcas a poner»). El mapeo vive en `scripts/catalogBrand.ts`, para poder probarlo sin ejecutar el
+  importador.
+- **Publicar y editar:** un campo «Marca (opcional)» en productos y servicios (`BrandField`), que se
+  normaliza y se valida. En un anuncio o un evento se descarta aunque venga forjada.
+- El primer slide carga de inmediato, y los demás con `loading="lazy"` y dentro de un `hidden`, así
+  que no se descargan hasta que les toca.
+
+### Archivos
+
+- Backend: `alembic/versions/0065_2026-10-21_add_post_brand.py`.
+- Espejo: `db/schema/posts.ts`.
+- Dominio: `entities/post/brand.ts`, `catalogFilters.ts` y `promotionBanner.ts` (+ pruebas), y
+  `schemas/PostValidator.ts` (+ prueba).
+- Casos de uso: `managePost` (puerto, caso de uso, fixture y pruebas) y `createOnePost`.
+- Infra: `posts/PostgresPostQueryRepository.ts` e `IPostQueryRepository.ts`,
+  `managePost/PostgresPostAdminRepository.ts`, `createOnePost/PostgresPostRepository.ts` y
+  `types/Actions.d.ts`.
+- Inicio: `homeOffers.ts`, `OffersCarousel.tsx` (+ pruebas) y `app/[locale]/page.tsx`.
+- Imagen: `api/ofertas/banner/route.tsx`.
+- Catálogo: `productos/data.ts`, las dos páginas y `ui/ProductsList.tsx` (+ pruebas).
+- Formularios: `presentation/post/BrandField`, `publicar/*` y `editar/[slug]/*`.
+- Importador: `scripts/importSupplierCatalog.ts` y `scripts/catalogBrand.ts` (+ prueba).
+- Mensajes `home.offersGroupAlt`, `products.removeFilter` y `emptyFiltered`, y `publish.brand` y
+  `errorBrandTooLong`, en es y en.
+- e2e: `ofertasEnPortada/ofertasPorMarca.spec.ts`, y `ofertasEnPortada.spec.ts` acotado al slide
+  general.
+
+### Validación
+
+- Suite completa de vitest: 348 archivos y 3676 pruebas en verde. `tsc`, `typecheck:tests` y
+  `biome check .` limpios.
+- **e2e incompleto.** Se partió en 3 tramos (42 escenarios). Tramo 1: 9 en verde y 5 saltados.
+  Tramo 2: 11 en verde y 3 fallos, todos del mismo helper de `ofertasEnPortada.spec.ts`. Con la miel
+  sembrada en otra tienda, las ofertas reales de Hazlo Sano formaron su propio slide, y «la imagen
+  del banner» encontraba dos. Era un defecto del spec, no del producto, y se acotó al slide general.
+  El tramo 3 lo detuvo Claude Code por falta de memoria del equipo. Después de eso se mató el
+  `next dev` huérfano del 3100 y se corrió el barrido de datos de prueba: no quedaba nada.
+- **Pendiente:** repetir los 3 tramos.
+
+### Recap
+
+Slice 2 implementado: la marca existe en la base, el importador la llena, se puede escribir al
+publicar y al editar, el catálogo filtra por ella y el carrusel suma un slide por marca (o por
+tienda) que junte dos o más ofertas. Las pruebas unitarias están en verde; falta repetir el e2e.
+
+### Próximos pasos (opciones)
+
+- **Pendiente:** repetir el e2e en 3 tramos (`ofertasEnPortada`, `home`, `promociones`, `products`,
+  `editPublicationTypes` y `publishProduct`).
+- **Pendiente del usuario:** commitear la migración en `hazlo-sano-bot`; ya está aplicada.
+- Correr `pnpm run import:catalog -- --sync` con el próximo catálogo, para que las ofertas reales
+  tengan marca y aparezca su slide («Ofertas Birdman»).
+
