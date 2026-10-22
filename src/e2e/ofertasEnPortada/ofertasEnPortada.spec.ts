@@ -39,9 +39,15 @@ async function setPromotion(
   `);
 }
 
+/**
+ * La imagen del banner **general**. Desde el slice 2 el carrusel puede traer más slides —uno por
+ * marca o por tienda—: con la miel sembrada en otra tienda, las ofertas reales de Hazlo Sano ya
+ * forman su propio grupo. Lo que estos escenarios miran es el general.
+ */
 function bannerImage(page: Page) {
   return page
     .getByTestId("home-offers")
+    .locator('[data-testid="home-offers-banner"][data-slide="general"]')
     .getByTestId("home-offers-banner-image");
 }
 
@@ -105,10 +111,11 @@ test.describe("Ofertas en la portada", () => {
       await expect
         .poll(() => loadedSource(page))
         .toContain(`formato=${formato}`);
-      await expect(offers.getByTestId("home-offers-banner")).toHaveAttribute(
-        "href",
-        "/productos?promocion=1",
-      );
+      await expect(
+        offers.locator(
+          '[data-testid="home-offers-banner"][data-slide="general"]',
+        ),
+      ).toHaveAttribute("href", "/productos?promocion=1");
     });
   }
 
