@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, type Page, test } from "@playwright/test";
 import es from "~/i18n/messages/es.json";
 
 /**
@@ -16,14 +16,32 @@ import es from "~/i18n/messages/es.json";
  * El proyecto corre en `Desktop Chrome` (1280px), que es donde la portada existe. En un teléfono se
  * esconde a propósito y eso tiene su propio bloque abajo.
  */
+/**
+ * Con alguna promoción vigente, el carrusel de ofertas ocupa el lugar del hero
+ * (`ofertasEnPortada.feature`), y estos escenarios no tienen qué mirar. En la base compartida hay
+ * promociones reales, así que se saltan diciendo por qué en vez de fallar; vuelven a correr solos
+ * el día que no haya ofertas. El carrusel tiene sus propios escenarios.
+ */
+async function skipIfOffersTakeTheHeroPlace(page: Page): Promise<void> {
+  test.skip(
+    (await page.getByTestId("home-offers").count()) > 0,
+    "Hay ofertas vigentes: el carrusel de ofertas ocupa el lugar del hero.",
+  );
+}
+
 test.describe("La portada del home", () => {
   test("Se presenta antes de enseñar el catálogo", async ({ page }) => {
     await page.goto("/");
+    await skipIfOffersTakeTheHeroPlace(page);
 
     await expect(page.getByRole("heading", { level: 1 })).toContainText(
       /Cuidar tu salud/i,
     );
-    await expect(page.getByText(/Tezonapa, Veracruz/)).toBeVisible();
+    /* En el rótulo y no en toda la página: un producto real ya se llama «… de Tezonapa, Veracruz», y
+       buscar el texto suelto encontraba también su tarjeta en el feed. */
+    await expect(page.getByTestId("home-eyebrow")).toContainText(
+      /Tezonapa, Veracruz/,
+    );
     await expect(
       page.getByRole("heading", { name: es.feed.latestHeading }),
     ).toBeVisible();
@@ -33,6 +51,7 @@ test.describe("La portada del home", () => {
     page,
   }) => {
     await page.goto("/");
+    await skipIfOffersTakeTheHeroPlace(page);
 
     const titular = page.getByRole("heading", { level: 1 });
     const estilo = await titular.evaluate((node) => {
@@ -59,6 +78,7 @@ test.describe("La portada del home", () => {
     page,
   }) => {
     await page.goto("/");
+    await skipIfOffersTakeTheHeroPlace(page);
 
     const cover = page.getByTestId("home-cover");
 
@@ -79,6 +99,8 @@ test.describe("La portada del home", () => {
   ] as const) {
     test(`Y «${cta}» es un enlace a ${destino}`, async ({ page }) => {
       await page.goto("/");
+      await skipIfOffersTakeTheHeroPlace(page);
+      await skipIfOffersTakeTheHeroPlace(page);
 
       await expect(
         page.getByRole("link", { name: cta, exact: true }),

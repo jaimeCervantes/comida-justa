@@ -5,6 +5,8 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import HomeHero from "~/app/(home)/HomeHero";
 import HomePracticePulse from "~/app/(home)/HomePracticePulse";
 import { homeFeedKey } from "~/app/(home)/homeFeedKey";
+import { buildHomeOffersBanner, loadHomeOffers } from "~/app/(home)/homeOffers";
+import OffersCarousel from "~/app/(home)/OffersCarousel";
 import PostsWithLoadMore from "~/app/(home)/PostsWithLoadMore";
 import {
   type PublicationPillar,
@@ -118,10 +120,16 @@ export default async function Inicio({
     getTranslations({ locale, namespace: "feed" }),
   ]);
   const { visitor } = await readViewerLocationContext();
-  const [{ posts, total, totalPages }, garden] = await Promise.all([
+  const [{ posts, total, totalPages }, garden, offers] = await Promise.all([
     getPosts(locale, visitor, currentPillar, viewerId),
     readCommunityGarden(),
+    loadHomeOffers(locale),
   ]);
+  const offersBanner = buildHomeOffersBanner(offers, locale, {
+    alt: (items) => t("offersBannerAlt", { items }),
+    item: (promotion) =>
+      `${promotion.title} ${t("offersDiscount", { percent: promotion.discountPercent })}`,
+  });
 
   /*
    * Cuánto de lo publicado le queda cerca a quien mira, y a qué distancia lo más cercano.
@@ -161,9 +169,29 @@ export default async function Inicio({
           La cifra sale del `total` que ya trajo la consulta del feed, y `posts[0]` es la más
           reciente porque el home es cronológico por contrato: ninguna de las dos cuesta una lectura
           extra. */}
-      <div className="hidden lg:block lg:space-y-6">
-        <HomeHero publicationCount={total} nearby={nearby} latest={posts[0]} />
-      </div>
+      {/* **Con ofertas vigentes, el carrusel de ofertas ocupa el lugar del hero**, en escritorio y en
+          el teléfono, como el carrusel principal de un marketplace. Sin ofertas, el hero de siempre.
+          Los dos a la vez repetían la portada: el hero ya no dice nada que el feed no diga justo
+          debajo, y una oferta sí. */}
+      {offersBanner ? (
+        <>
+          {/* El titular de la página vivía en el hero. Sin él, el inicio se quedaba sin `h1`, y un
+              lector de pantalla o un buscador no sabían de qué va la página. Lo detectó el e2e. Es
+              el mismo titular del hero, sin su énfasis de color. */}
+          <h1 className="sr-only">
+            {t.rich("heroTitle", { em: (chunks) => chunks })}
+          </h1>
+          <OffersCarousel offers={offersBanner} />
+        </>
+      ) : (
+        <div className="hidden lg:block lg:space-y-6">
+          <HomeHero
+            publicationCount={total}
+            nearby={nearby}
+            latest={posts[0]}
+          />
+        </div>
+      )}
 
       <HomePracticePulse weeklyPractitioners={garden.weeklyPractitioners} />
 
