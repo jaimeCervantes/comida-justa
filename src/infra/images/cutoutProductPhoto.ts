@@ -13,6 +13,12 @@ export type ProductPhoto = {
   png: Buffer;
   /** `true` si se le quitó el fondo; `false` si se devuelve tal cual, para pintarla como tarjeta. */
   isCutout: boolean;
+  /**
+   * El tamaño real de la foto entregada, ya recortada. Quien la pinta lo necesita para ajustarla a
+   * su proporción: con un `contain` a ciegas, un producto bajo quedaba flotando sobre su sombra.
+   */
+  width: number;
+  height: number;
 };
 
 function isNearWhite(data: Buffer, offset: number): boolean {
@@ -59,6 +65,8 @@ export async function cutoutProductPhoto(
         .png()
         .toBuffer(),
       isCutout: false,
+      width,
+      height,
     };
   }
 
@@ -92,11 +100,15 @@ export async function cutoutProductPhoto(
     }
   }
 
+  const trimmed = await sharp(data, { raw: { width, height, channels: 4 } })
+    .trim()
+    .png()
+    .toBuffer({ resolveWithObject: true });
+
   return {
-    png: await sharp(data, { raw: { width, height, channels: 4 } })
-      .trim()
-      .png()
-      .toBuffer(),
+    png: trimmed.data,
     isCutout: true,
+    width: trimmed.info.width,
+    height: trimmed.info.height,
   };
 }

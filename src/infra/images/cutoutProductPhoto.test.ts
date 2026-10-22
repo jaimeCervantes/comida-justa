@@ -38,16 +38,18 @@ async function alphaAt(png: Buffer, x: number, y: number): Promise<number> {
 
 describe("cutoutProductPhoto", () => {
   it("quita el fondo blanco y deja la etiqueta blanca del producto", async () => {
-    const { png, isCutout } = await cutoutProductPhoto(
+    const { png, isCutout, width, height } = await cutoutProductPhoto(
       await photo({ r: 255, g: 255, b: 255 }),
       100,
       100,
     );
-    const { width, height } = await sharp(png).metadata();
+    const real = await sharp(png).metadata();
 
     expect(isCutout).toBe(true);
-    /* El fondo se fue y se recortó al producto: queda el frasco de 20×20. */
+    /* El fondo se fue y se recortó al producto: queda el frasco de 20×20, y el tamaño que devuelve
+       es el de la imagen entregada. */
     expect([width, height]).toEqual([20, 20]);
+    expect([real.width, real.height]).toEqual([20, 20]);
     /* La etiqueta, en (8, 8) del frasco, sigue opaca: no está conectada al borde. */
     expect(await alphaAt(png, 9, 9)).toBe(255);
   });

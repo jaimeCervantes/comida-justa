@@ -55,7 +55,14 @@ const banners = new LruCache<Buffer>(32);
  * Las fotos ya recortadas, por su dirección. Un producto sale en el banner general y en el de su
  * marca, en dos formatos: sin esto se bajaba de Firebase y se recortaba cuatro veces.
  */
-const photos = new LruCache<{ photo: string; isCutout: boolean }>(96);
+type ReadyPhoto = {
+  photo: string;
+  isCutout: boolean;
+  photoWidth: number;
+  photoHeight: number;
+};
+
+const photos = new LruCache<ReadyPhoto>(96);
 
 const ASSETS_DIR = join(process.cwd(), "src", "assets");
 
@@ -112,14 +119,12 @@ function loadBackground(format: BannerFormat): Promise<string | null> {
  * proyecto en 0.35 y Next en 0.34, cada banner fallaba con `colourspace: parameter space not set`.
  * Por eso `package.json` fija `sharp` en la misma versión que pide Next.
  */
-async function cutoutFromUrl(
-  url: string,
-): Promise<{ photo: string; isCutout: boolean }> {
+async function cutoutFromUrl(url: string): Promise<ReadyPhoto> {
   const response = await fetch(url);
 
   if (!response.ok) throw new Error(`La foto respondió ${response.status}`);
 
-  const { png, isCutout } = await cutoutProductPhoto(
+  const { png, isCutout, width, height } = await cutoutProductPhoto(
     Buffer.from(await response.arrayBuffer()),
     PHOTO_MAX,
     PHOTO_MAX,
@@ -128,14 +133,21 @@ async function cutoutFromUrl(
   return {
     photo: `data:image/png;base64,${png.toString("base64")}`,
     isCutout,
+    photoWidth: width,
+    photoHeight: height,
   };
 }
 
 /** Un fallo no se guarda en la caché: la próxima petición vuelve a intentar bajar la foto. */
-function toPhoto(url: string): Promise<{ photo: string; isCutout: boolean }> {
+function toPhoto(url: string): Promise<ReadyPhoto> {
   return photos
     .getOrCreate(url, () => cutoutFromUrl(url))
-    .catch(() => ({ photo: BLANK_PHOTO, isCutout: true }));
+    .catch(() => ({
+      photo: BLANK_PHOTO,
+      isCutout: true,
+      photoWidth: 1,
+      photoHeight: 1,
+    }));
 }
 
 /** Un píxel transparente, para el producto cuya foto no se pudo bajar. */
