@@ -73,6 +73,11 @@ const RUTAS = [
   "/practicas",
   "/habitos",
 
+  /* La imagen del banner de ofertas de la portada (`ofertasEnPortada`). Compila `next/og`, `sharp`
+     y las fuentes: la primera petición en frío tarda varios segundos. Sin promociones vigentes
+     responde 404, y con eso ya se compiló. */
+  "/api/ofertas/banner",
+
   /* Identificarse son **dos unidades de compilación**, y la que muerde es la segunda.
      `/auth/signin` se pinta sola, pero los botones de proveedor no vienen del servidor: los trae
      `getProviders()` desde el navegador contra `/api/auth/providers`, y ese controlador no lo
