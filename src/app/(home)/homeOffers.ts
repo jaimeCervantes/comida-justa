@@ -97,13 +97,14 @@ export async function loadHomeOffers(
   locale: string,
   now: Date = new Date(),
 ): Promise<HomeOffers> {
-  /* `inStock` en la base, además de `canBeAdvertised` en el dominio: así el total que cuenta la
-     base es el de lo que el carrusel puede anunciar, y no se leen cientos de filas para tirarlas. */
+  /* `onSale` ya deja solo lo que tiene piezas registradas, la misma regla que `canBeAdvertised`:
+     así el total que cuenta la base es el de lo que el carrusel puede anunciar, y la lista de
+     ofertas a la que lleva enseña lo mismo. */
   const { posts, total } = await createPostQueryRepository().getProducts(
     1,
     CANDIDATES_TO_READ,
     null,
-    { onSale: true, inStock: true },
+    { onSale: true },
   );
   const candidates = posts.flatMap((post) => {
     const candidate = toCandidate(post, locale);

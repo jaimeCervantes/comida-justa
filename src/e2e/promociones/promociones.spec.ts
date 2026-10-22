@@ -33,12 +33,17 @@ let miel: { title: string; slug: string };
    (igual que `orders/cartFromSearch.spec.ts`). */
 let token: string;
 
+/**
+ * Pone la promoción y deja piezas registradas: la lista de ofertas y el carrusel solo enseñan lo
+ * que tiene inventario (`onSaleWhere`, `canBeAdvertised`).
+ */
 async function setPromotion(
   salePrice: number | null,
   saleEndsAt: Date | null = null,
 ): Promise<void> {
   await db.execute(sql`
-    UPDATE posts SET sale_price = ${salePrice}, sale_ends_at = ${saleEndsAt}
+    UPDATE posts
+    SET sale_price = ${salePrice}, sale_ends_at = ${saleEndsAt}, stock_quantity = 10
     WHERE id IN (SELECT post_id FROM post_translations WHERE slug = ${miel.slug})
   `);
 }

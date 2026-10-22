@@ -504,3 +504,43 @@ La lista de ofertas sigue completa.
 - Si se quiere, alinear la lista de ofertas con el carrusel (solo lo que tiene piezas).
 - Commit, merge a `dev` y push.
 
+## 2026-10-22 — La lista de ofertas igual que el carrusel, y las flechas en modo oscuro
+
+### Pedidos del usuario
+
+- Alinear la lista de ofertas (`/productos?promocion=1`, a donde lleva «Ver ofertas») con el
+  carrusel: solo lo que tiene piezas registradas.
+- «Las flechitas del carrusel en modo oscuro no se logran ver.»
+
+### Decisiones
+
+- **`onSaleWhere` exige piezas registradas** (`stock_quantity IS NOT NULL AND > 0`), la misma
+  regla que `canBeAdvertised`. Un servicio tampoco sale en la lista. Con una sola regla en la base
+  sobra el filtro `inStock` del cambio anterior, y se quitó. El carrusel sigue leyendo con
+  `onSale`, así que el total del banner y la lista cuentan lo mismo.
+- **Flechas y puntos con colores fijos, no los del tema.** Van encima de la imagen, no del papel de
+  la página. Con `text-text-base`, la flecha se volvía clara en modo oscuro sobre un círculo que
+  seguía blanco.
+  - Flechas: la pareja que ya usa compartir encima de una foto (`ShareMenu`, variante `onMedia`),
+    fondo `black/70` y flecha blanca.
+  - Puntos: blancos con sombra.
+- e2e: el `setPromotion` de `promociones.spec.ts` deja 10 piezas. El escenario «sin inventario
+  registrado» ahora comprueba que no sale ni en el carrusel ni en la lista.
+
+### Validación
+
+- Suite completa de vitest: 350 archivos y 3688 pruebas en verde. `tsc`, `typecheck:tests` y
+  `biome check .` limpios.
+- e2e `promociones` + `ofertasEnPortada` + `home` en 3 tramos: 31 en verde y 5 saltados (36).
+- Captura del carrusel en modo oscuro con el cursor encima: flechas y puntos visibles. Hoy hay 4
+  slides (por marca) y «24 productos rebajados».
+
+### Recap
+
+«Ver ofertas» enseña exactamente lo que el carrusel anuncia: lo que tiene piezas registradas. Las
+flechas y los puntos del carrusel se ven en los dos temas.
+
+### Próximos pasos (opciones)
+
+- Commit, merge a `dev` y push.
+

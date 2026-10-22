@@ -200,7 +200,7 @@ test.describe("Ofertas en la portada", () => {
     });
   }
 
-  test("Una oferta sin inventario registrado no sale en el carrusel, pero sí en la lista", async ({
+  test("Una oferta sin inventario registrado no sale ni en el carrusel ni en la lista", async ({
     page,
   }) => {
     await setPromotion(90);
@@ -220,11 +220,6 @@ test.describe("Ofertas en la portada", () => {
 
     await page.goto(`/productos?promocion=1&tienda=${TIENDA.handle}`);
 
-    await expect(
-      page
-        .getByTestId("products-grid")
-        .locator("article")
-        .filter({ hasText: miel.title }),
-    ).toBeVisible();
+    await expect(page.getByTestId("products-on-sale-empty")).toBeVisible();
   });
 });

@@ -267,8 +267,6 @@ interface ListingOptions {
   brand?: string | null;
   /** Solo lo de esta tienda, por su handle. */
   store?: string | null;
-  /** Solo lo que tiene piezas registradas. */
-  inStock?: boolean;
   /** Filtra por título en cualquier idioma. Vacío o ausente = no filtrar. */
   term?: string;
   /** Quién mira: solo decide `viewerReacted`, no filtra el listado. */
@@ -316,9 +314,10 @@ function categoryWhere(categoryKeys: readonly string[] | undefined): SQL {
  * poder filtrar y paginar en la base. Las dos tienen que decir lo mismo: si una cambia, cambia la
  * otra. `now()` es la hora de la consulta, igual que el `new Date()` con el que pinta la tarjeta.
  *
- * Además, **solo lo que se puede comprar hoy**, como `canBeAdvertised` en el carrusel: ni lo que el
- * vendedor marcó como agotado ni un producto con el inventario en cero. Así «Ver ofertas» lleva a la
- * misma lista que anuncia el banner.
+ * Además, **solo lo que tiene piezas registradas**, la misma regla que `canBeAdvertised` en el
+ * carrusel: ni lo que el vendedor marcó como agotado ni lo que no lleva inventario (`stock_quantity`
+ * nulo) o lo tiene en cero. Así «Ver ofertas» lleva a la misma lista que anuncia el banner. Lo decidió
+ * el usuario el 2026-10-22; un servicio no sale, porque no se cuenta en piezas.
  *
  * `sale_price IS NOT NULL` va primero porque es la condición del índice parcial
  * `posts_on_sale_idx`.
@@ -331,7 +330,8 @@ function onSaleWhere(onSale: boolean | undefined): SQL {
     AND p.sale_price < p.price
     AND (p.sale_ends_at IS NULL OR p.sale_ends_at > now())
     AND p.is_available
-    AND (p.kind <> ${PRODUCT_KIND} OR p.stock_quantity IS NULL OR p.stock_quantity > 0))`;
+    AND p.stock_quantity IS NOT NULL
+    AND p.stock_quantity > 0)`;
 }
 
 /**
@@ -342,13 +342,6 @@ function brandWhere(brand: string | null | undefined): SQL {
   if (!brand) return sql`TRUE`;
 
   return sql`(p.brand IS NOT NULL AND lower(p.brand) = lower(${brand}))`;
-}
-
-/** Lo que tiene piezas registradas: el carrusel de ofertas (`canBeAdvertised`). */
-function inStockWhere(inStock: boolean | undefined): SQL {
-  return inStock
-    ? sql`(p.stock_quantity IS NOT NULL AND p.stock_quantity > 0)`
-    : sql`TRUE`;
 }
 
 /** Lo de una tienda, por su handle. `s` es la tienda que ya une `POST_JOINS`. */
@@ -388,7 +381,6 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
       onSale: filters.onSale,
       brand: filters.brand,
       store: filters.store,
-      inStock: filters.inStock,
     });
   }
 
@@ -642,7 +634,6 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
         AND ${onSaleWhere(options.onSale)}
         AND ${brandWhere(options.brand)}
         AND ${storeWhere(options.store)}
-        AND ${inStockWhere(options.inStock)}
         AND ${titleHasAllWords(options.term ?? "")}
       ORDER BY ${listingOrder(options, near)}
       LIMIT ${pageSize} OFFSET ${offset}
