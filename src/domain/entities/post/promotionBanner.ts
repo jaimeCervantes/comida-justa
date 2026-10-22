@@ -30,10 +30,10 @@ export type BannerCandidate = {
  * ¿Se puede anunciar en el carrusel? Solo lo que tiene **piezas registradas**: que se pueda pedir
  * (`canBeOrdered`) y que lleve inventario con al menos una pieza.
  *
- * Es más estricto que la lista de ofertas (`onSaleWhere`), que también enseña lo que no cuenta
- * piezas: lo decidió el usuario el 2026-10-22. El carrusel es lo primero que se ve, y anunciar ahí
- * algo de lo que nadie sabe si queda es prometer de más. Por eso un servicio no sale en el carrusel:
- * no se cuenta en piezas, su disponibilidad es la agenda.
+ * La lista de ofertas (`onSaleWhere`) aplica la misma regla, y las dos tienen que decir lo mismo:
+ * «Ver ofertas» lleva a lo que el banner anuncia. Lo decidió el usuario el 2026-10-22: anunciar algo
+ * de lo que nadie sabe si queda es prometer de más. Por eso un servicio no sale en las ofertas: no
+ * se cuenta en piezas, su disponibilidad es la agenda.
  */
 export function canBeAdvertised(
   candidate: Pick<BannerCandidate, "kind" | "isAvailable" | "stockQuantity">,
