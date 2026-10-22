@@ -25,6 +25,9 @@ function candidate(overrides: Partial<BannerCandidate> = {}): BannerCandidate {
     saleEndsAt: null,
     brand: null,
     store: { handle: "hazlo-sano", name: "Hazlo Sano" },
+    kind: "producto",
+    isAvailable: true,
+    stockQuantity: null,
     ...overrides,
   };
 }
@@ -45,8 +48,19 @@ describe("selectBannerPromotions", () => {
     ["sin promoción", { salePrice: null }],
     ["con la promoción vencida", { saleEndsAt: "2026-10-20T12:00:00Z" }],
     ["sin foto", { imageUrl: null }],
+    ["marcada como agotada", { isAvailable: false }],
+    ["sin existencias", { stockQuantity: 0 }],
   ])("deja fuera una publicación %s", (_why, overrides) => {
     expect(selectBannerPromotions([candidate(overrides)], NOW)).toEqual([]);
+  });
+
+  it("sí anuncia lo que tiene existencias o no lleva inventario", () => {
+    expect(
+      selectBannerPromotions(
+        [candidate({ stockQuantity: 3 }), candidate({ stockQuantity: null })],
+        NOW,
+      ),
+    ).toHaveLength(2);
   });
 
   it("pone primero el descuento más grande y, a igual descuento, respeta el orden de llegada", () => {
