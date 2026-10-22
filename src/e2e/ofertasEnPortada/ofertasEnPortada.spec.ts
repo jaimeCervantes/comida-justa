@@ -27,6 +27,11 @@ const PANTALLAS = [
   { pantalla: "teléfono (390 px)", width: 390, formato: "compacto" },
 ] as const;
 
+/*
+ * La miel va al 50% (180 → 90) en los escenarios que miran el banner general: ese banner pinta las
+ * cuatro de mayor descuento, y en la base compartida hay ofertas reales al 20%. Con el 17% del
+ * ejemplo de promociones, la miel quedaba fuera según lo que hubiera publicado ese día.
+ */
 let miel: { title: string; slug: string };
 
 async function setPromotion(
@@ -82,7 +87,7 @@ test.describe("Ofertas en la portada", () => {
     test(`Con ofertas, el carrusel ocupa el lugar del hero — ${pantalla}`, async ({
       page,
     }) => {
-      await setPromotion(150);
+      await setPromotion(90);
       await page.setViewportSize({ width, height: 900 });
 
       await page.goto("/");
@@ -106,7 +111,7 @@ test.describe("Ofertas en la portada", () => {
 
       await expect(bannerImage(page)).toHaveAttribute(
         "alt",
-        new RegExp(`${miel.title} -17%`),
+        new RegExp(`${miel.title} -50%`),
       );
       await expect
         .poll(() => loadedSource(page))
@@ -128,22 +133,22 @@ test.describe("Ofertas en la portada", () => {
       );
 
       expect(response.status()).toBe(200);
-      expect(response.headers()["content-type"]).toBe("image/png");
-      /* La firma de un PNG: los ocho bytes con los que empieza cualquier archivo PNG. */
-      expect([...(await response.body()).subarray(0, 8)]).toEqual([
-        0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
-      ]);
+      expect(response.headers()["content-type"]).toBe("image/webp");
+      /* La firma de un WebP: «RIFF», cuatro bytes de tamaño y «WEBP». */
+      const body = await response.body();
+      expect(body.subarray(0, 4).toString("ascii")).toBe("RIFF");
+      expect(body.subarray(8, 12).toString("ascii")).toBe("WEBP");
     }
   });
 
   test("El banner cambia de dirección cuando cambia la promoción", async ({
     page,
   }) => {
-    await setPromotion(150);
+    await setPromotion(90);
     await page.goto("/");
     const before = await bannerImage(page).getAttribute("src");
 
-    await setPromotion(140);
+    await setPromotion(80);
     await page.reload();
 
     await expect(bannerImage(page)).not.toHaveAttribute("src", String(before));

@@ -21,10 +21,10 @@ Feature: Ofertas en la portada
 
   @slice-1
   Scenario Outline: Con ofertas, el carrusel ocupa el lugar del hero
-    Given "Miel de abeja 500 g" tiene precio de promoción 150
+    Given "Miel de abeja 500 g" tiene precio de promoción 90
     When un visitante abre el inicio en <pantalla>
     Then arriba de todo hay un carrusel de ofertas a todo el ancho, y no está el hero
-    And su imagen es la de formato "<formato>" y describe "Miel de abeja 500 g" con "-17%"
+    And su imagen es la de formato "<formato>" y describe "Miel de abeja 500 g" con "-50%"
     And el banner lleva a "/productos?promocion=1"
 
     Examples:
@@ -36,13 +36,13 @@ Feature: Ofertas en la portada
   Scenario: Las imágenes del banner son imágenes de verdad
     Given "Miel de abeja 500 g" tiene precio de promoción 150
     When se piden las imágenes del banner en formato "ancho" y "compacto"
-    Then las dos respuestas son imágenes PNG
+    Then las dos respuestas son imágenes WebP
 
   @slice-1
   Scenario: El banner cambia de dirección cuando cambia la promoción
-    Given "Miel de abeja 500 g" tiene precio de promoción 150
+    Given "Miel de abeja 500 g" tiene precio de promoción 90
     And un visitante abrió el inicio
-    When la promoción de "Miel de abeja 500 g" pasa a 140
+    When la promoción de "Miel de abeja 500 g" pasa a 80
     And el visitante vuelve a abrir el inicio
     Then la imagen del banner tiene otra dirección
 

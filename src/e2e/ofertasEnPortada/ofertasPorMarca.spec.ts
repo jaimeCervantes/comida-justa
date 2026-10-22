@@ -125,7 +125,7 @@ test.describe("Ofertas por marca", () => {
       String(await image.getAttribute("src")),
     );
     expect(response.status()).toBe(200);
-    expect(response.headers()["content-type"]).toBe("image/png");
+    expect(response.headers()["content-type"]).toBe("image/webp");
   });
 
   test("Una marca con una sola oferta no tiene slide propio", async ({
