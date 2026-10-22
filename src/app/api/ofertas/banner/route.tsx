@@ -2,6 +2,7 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { ImageResponse } from "next/og";
 import { getTranslations } from "next-intl/server";
+import sharp from "sharp";
 import { type HomeOffers, loadHomeOffers } from "~/app/(home)/homeOffers";
 import { brandKey } from "~/domain/entities/post/brand";
 import {
@@ -10,15 +11,20 @@ import {
   parseStoreFilter,
   STORE_QUERY_PARAM,
 } from "~/domain/entities/post/catalogFilters";
-import type { BannerPromotion } from "~/domain/entities/post/promotionBanner";
+import {
+  type BannerPromotion,
+  promotionsFingerprint,
+} from "~/domain/entities/post/promotionBanner";
 import { FORMATTING_LOCALE } from "~/i18n/formattingLocale";
 import { resolveLocale } from "~/i18n/routing";
+import { LruCache } from "~/infra/cache/LruCache";
 import { SITE_CURRENCY } from "~/infra/constants";
 import { cutoutProductPhoto } from "~/infra/images/cutoutProductPhoto";
 import OffersBannerImage, {
   BANNER_FORMATS,
   type BannerFormat,
   type BannerTile,
+  bannerVersion,
   isBannerFormat,
 } from "./OffersBannerImage";
 
@@ -26,15 +32,30 @@ import OffersBannerImage, {
 export const runtime = "nodejs";
 
 /**
- * Cuánto puede guardar la imagen un navegador o una CDN. Poco, aunque la dirección cambie con la
- * huella: una promoción que **vence** no cambia ningún dato de la base, solo la hora, y la imagen
- * vieja seguiría anunciándola hasta que alguien pidiera la portada de nuevo.
+ * Cuánto se guarda en el navegador y en la CDN.
+ *
+ * **Para siempre** cuando la dirección trae la huella de lo que se pinta (`v`): la misma dirección
+ * es siempre la misma imagen, y cuando cambia una promoción —o vence, que la página ya no la cuenta—
+ * la portada pide otra dirección. Sin huella, o con una vieja, se pinta lo de hoy y se guarda poco.
  */
-const CACHE_SECONDS = 300;
+const IMMUTABLE = "public, max-age=31536000, s-maxage=31536000, immutable";
+const SHORT = "public, max-age=300, s-maxage=300";
 
-/* El tope de la foto de un producto (~200×280 en el banner), con margen para que no se vea
-   borrosa. Más grande solo engordaría el PNG. */
+/* El tope de la foto de un producto (~240×300 en el banner), con margen para que no se vea
+   borrosa. Más grande solo engordaría la imagen. */
 const PHOTO_MAX = 600;
+
+/**
+ * Los banners ya dibujados, por dirección. Dibujar uno cuesta ~1 s entre la base, las fotos y
+ * Satori; servirlo de aquí, nada. Caben los de varios idiomas, formatos y grupos a la vez.
+ */
+const banners = new LruCache<Buffer>(32);
+
+/**
+ * Las fotos ya recortadas, por su dirección. Un producto sale en el banner general y en el de su
+ * marca, en dos formatos: sin esto se bajaba de Firebase y se recortaba cuatro veces.
+ */
+const photos = new LruCache<{ photo: string; isCutout: boolean }>(96);
 
 const ASSETS_DIR = join(process.cwd(), "src", "assets");
 
@@ -70,7 +91,7 @@ function loadBackground(format: BannerFormat): Promise<string | null> {
   const loading = readFile(
     join(ASSETS_DIR, "banners", BANNER_FORMATS[format].background),
   )
-    .then((png) => `data:image/png;base64,${png.toString("base64")}`)
+    .then((jpeg) => `data:image/jpeg;base64,${jpeg.toString("base64")}`)
     .catch(() => null);
 
   backgrounds.set(format, loading);
@@ -91,27 +112,30 @@ function loadBackground(format: BannerFormat): Promise<string | null> {
  * proyecto en 0.35 y Next en 0.34, cada banner fallaba con `colourspace: parameter space not set`.
  * Por eso `package.json` fija `sharp` en la misma versión que pide Next.
  */
-async function toPhoto(
+async function cutoutFromUrl(
   url: string,
 ): Promise<{ photo: string; isCutout: boolean }> {
-  try {
-    const response = await fetch(url);
+  const response = await fetch(url);
 
-    if (!response.ok) return { photo: BLANK_PHOTO, isCutout: true };
+  if (!response.ok) throw new Error(`La foto respondió ${response.status}`);
 
-    const { png, isCutout } = await cutoutProductPhoto(
-      Buffer.from(await response.arrayBuffer()),
-      PHOTO_MAX,
-      PHOTO_MAX,
-    );
+  const { png, isCutout } = await cutoutProductPhoto(
+    Buffer.from(await response.arrayBuffer()),
+    PHOTO_MAX,
+    PHOTO_MAX,
+  );
 
-    return {
-      photo: `data:image/png;base64,${png.toString("base64")}`,
-      isCutout,
-    };
-  } catch {
-    return { photo: BLANK_PHOTO, isCutout: true };
-  }
+  return {
+    photo: `data:image/png;base64,${png.toString("base64")}`,
+    isCutout,
+  };
+}
+
+/** Un fallo no se guarda en la caché: la próxima petición vuelve a intentar bajar la foto. */
+function toPhoto(url: string): Promise<{ photo: string; isCutout: boolean }> {
+  return photos
+    .getOrCreate(url, () => cutoutFromUrl(url))
+    .catch(() => ({ photo: BLANK_PHOTO, isCutout: true }));
 }
 
 /** Un píxel transparente, para el producto cuya foto no se pudo bajar. */
@@ -148,30 +172,18 @@ function pickSlide(
     : null;
 }
 
-/**
- * `GET /api/ofertas/banner?locale=es&formato=ancho[&marca=…|&tienda=…]&v=<huella>` → el banner de
- * ofertas en PNG.
- *
- * `formato` es uno de `BANNER_FORMATS` (`ancho`, `compacto`); sin él, `ancho`. Con `marca` o
- * `tienda`, el banner de ese grupo (`groupBannerPromotions`).
- * `v` no se lee: solo hace que la dirección cambie cuando cambia el conjunto de promociones (ver
- * `promotionsFingerprint`). Sin promociones vigentes no hay banner que dibujar: 404.
- */
-export async function GET(request: Request): Promise<Response> {
-  const params = new URL(request.url).searchParams;
-  const locale = resolveLocale(params.get("locale") ?? "");
-  /* Sin formato, o con uno que no existe, el ancho. */
-  const requested = params.get("formato");
-  const format = isBannerFormat(requested) ? requested : "ancho";
+/** Dibuja un banner y lo entrega en WebP. */
+async function drawBanner(
+  locale: ReturnType<typeof resolveLocale>,
+  format: BannerFormat,
+  slide: {
+    label: string | null;
+    promotions: BannerPromotion[];
+    count: number;
+  },
+): Promise<Buffer> {
   const { width, height, maxProducts } = BANNER_FORMATS[format];
-  const slide = pickSlide(await loadHomeOffers(locale), params);
-
-  if (!slide || slide.promotions.length === 0) {
-    return new Response(null, { status: 404 });
-  }
-
   const { label, promotions, count } = slide;
-
   const t = await getTranslations({ locale, namespace: "home" });
   const money = (amount: number) =>
     new Intl.NumberFormat(FORMATTING_LOCALE[locale], {
@@ -179,9 +191,8 @@ export async function GET(request: Request): Promise<Response> {
       currency: SITE_CURRENCY,
       maximumFractionDigits: Number.isInteger(amount) ? 0 : 2,
     }).format(amount);
-  const shown = promotions.slice(0, maxProducts);
   const tiles: BannerTile[] = await Promise.all(
-    shown.map(async (promotion) => ({
+    promotions.slice(0, maxProducts).map(async (promotion) => ({
       ...promotion,
       ...(await toPhoto(promotion.imageUrl)),
       priceLabel: money(promotion.price),
@@ -189,10 +200,9 @@ export async function GET(request: Request): Promise<Response> {
     })),
   );
   /* El titular presume el descuento más grande: es lo que hace que alguien se detenga. Las
-     promociones ya vienen de mayor a menor (`selectBannerPromotions`). */
+     promociones ya vienen de mayor a menor (`activeBannerPromotions`). */
   const biggest = promotions[0].discountPercent;
-
-  return new ImageResponse(
+  const png = await new ImageResponse(
     <OffersBannerImage
       format={format}
       tiles={tiles}
@@ -206,13 +216,60 @@ export async function GET(request: Request): Promise<Response> {
         discount: (percent) => t("offersDiscount", { percent }),
       }}
     />,
-    {
-      width,
-      height,
-      fonts: await loadFonts(),
-      headers: {
-        "Cache-Control": `public, max-age=${CACHE_SECONDS}, s-maxage=${CACHE_SECONDS}`,
-      },
-    },
+    { width, height, fonts: await loadFonts() },
+  ).arrayBuffer();
+
+  /* `next/og` solo entrega PNG, y con el fondo y las fotos pesaba ~1 MB. En WebP queda en ~60 KB
+     sin diferencia a la vista: es lo que más se nota en un teléfono. */
+  return sharp(Buffer.from(png)).webp({ quality: 82 }).toBuffer();
+}
+
+function webpResponse(body: Buffer, cacheControl: string): Response {
+  return new Response(new Uint8Array(body), {
+    headers: { "Content-Type": "image/webp", "Cache-Control": cacheControl },
+  });
+}
+
+/**
+ * `GET /api/ofertas/banner?locale=es&formato=ancho[&marca=…|&tienda=…]&v=<huella>` → el banner de
+ * ofertas en WebP.
+ *
+ * `formato` es uno de `BANNER_FORMATS` (`ancho`, `compacto`); sin él, `ancho`. Con `marca` o
+ * `tienda`, el banner de ese grupo (`groupBannerPromotions`). `v` es la huella de lo que se pinta
+ * (`bannerVersion`): con ella, la imagen se guarda para siempre y en el servidor ni se vuelve a
+ * leer la base. Sin promociones vigentes no hay banner que dibujar: 404.
+ */
+export async function GET(request: Request): Promise<Response> {
+  const params = new URL(request.url).searchParams;
+  const locale = resolveLocale(params.get("locale") ?? "");
+  /* Sin formato, o con uno que no existe, el ancho. */
+  const requested = params.get("formato");
+  const format = isBannerFormat(requested) ? requested : "ancho";
+  const brand = parseBrandFilter(params.get(BRAND_QUERY_PARAM));
+  const store = parseStoreFilter(params.get(STORE_QUERY_PARAM));
+  const keyFor = (version: string) =>
+    [locale, format, brand ? brandKey(brand) : "", store ?? "", version].join(
+      "|",
+    );
+  const requestedVersion = params.get("v");
+
+  /* Lo ya dibujado para esta misma dirección: sin base, sin fotos, sin Satori. */
+  const cached = requestedVersion
+    ? banners.get(keyFor(requestedVersion))
+    : undefined;
+
+  if (cached) return webpResponse(await cached, IMMUTABLE);
+
+  const slide = pickSlide(await loadHomeOffers(locale), params);
+
+  if (!slide || slide.promotions.length === 0) {
+    return new Response(null, { status: 404 });
+  }
+
+  const version = bannerVersion(promotionsFingerprint(slide.promotions));
+  const body = await banners.getOrCreate(keyFor(version), () =>
+    drawBanner(locale, format, slide),
   );
+
+  return webpResponse(body, requestedVersion === version ? IMMUTABLE : SHORT);
 }

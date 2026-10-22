@@ -65,7 +65,7 @@ describe("buildHomeOffersSlides", () => {
       catalogQuery: { promocion: "1" },
     });
     expect(general.images.ancho).toMatch(
-      /^\/api\/ofertas\/banner\?locale=en&formato=ancho&v=\w+$/,
+      /^\/api\/ofertas\/banner\?locale=en&formato=ancho&v=\w+\.\w+$/,
     );
     expect(grupo).toMatchObject({
       key: "brand:apis",

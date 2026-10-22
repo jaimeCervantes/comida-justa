@@ -341,3 +341,68 @@ tienda) que junte dos o más ofertas. Las pruebas unitarias están en verde; fal
 - Correr `pnpm run import:catalog -- --sync` con el próximo catálogo, para que las ofertas reales
   tengan marca y aparezca su slide («Ofertas Birdman»).
 
+## 2026-10-22 — El banner tardaba en cargar
+
+### Qué se midió
+
+El usuario notó que la imagen del banner tardaba. Se cronometró cada paso con los datos reales
+(fuera del servidor):
+
+| Paso | Antes |
+|---|---|
+| Base de datos | ~1 s (incluye abrir la conexión) |
+| Bajar 4 fotos de Firebase | 0.7 s, **en cada petición** |
+| Recortarlas | 0.2 s, **en cada petición** |
+| Dibujar | 0.5–1 s (el fondo de IA pesaba 0.8–1.2 MB de PNG dentro de cada dibujo) |
+| **Resultado** | **PNG de 957 KB a 1.2 MB** |
+
+### Decisiones
+
+- **WebP en vez de PNG.** `next/og` solo entrega PNG; se convierte con `sharp` (el mismo de Next).
+  Pasa de ~1 MB a **53 KB** sin diferencia a la vista.
+- **Nunca se dibuja dos veces el mismo banner.** La dirección ya llevaba la huella de lo que pinta,
+  así que la misma dirección es siempre la misma imagen:
+  - En el servidor, `LruCache` (`infra/cache/`, 32 banners) los guarda por dirección. Un acierto ni
+    siquiera lee la base.
+  - En el navegador y la CDN, `Cache-Control: immutable` de un año cuando `v` coincide con lo que se
+    pinta hoy. Sin `v`, o con uno viejo, se pinta lo de hoy y se guarda 5 minutos.
+  - `v` lleva además una **versión del dibujo** (`bannerVersion`, hoy `3`). La huella solo mira los
+    datos: sin esa versión, un rediseño se seguiría sirviendo con el dibujo viejo a quien lo tuviera
+    guardado. Hay que subirla cada vez que cambie cómo se ve el banner.
+- **Las fotos recortadas se guardan por su dirección** (96 entradas). Un producto sale en el general
+  y en el de su marca, en dos formatos: antes se bajaba y recortaba hasta cuatro veces. Un fallo no
+  se guarda, para que la siguiente petición reintente.
+- **Fondos de IA en JPEG**: de 837 KB y 1.2 MB a **12 KB y 22 KB**, sin bandas visibles. El script
+  generador ya escribe JPEG.
+- **`fetchPriority="high"`** en la imagen del primer slide: es lo más grande de la página al cargar.
+
+### Validación
+
+- Medido otra vez: dibujar más convertir a WebP toma 0.4–0.9 s **la primera vez**; desde la segunda
+  se sirve de la caché. Revisado a ojo.
+- Suite completa de vitest: 349 archivos y 3680 pruebas en verde (incluye `LruCache`). `tsc`,
+  `typecheck:tests` y `biome check .` limpios.
+- Los e2e que esperaban PNG ahora esperan WebP (`RIFF…WEBP`).
+- **e2e en 3 tramos**, en primer plano y con `.next` borrado antes de cada uno (`ofertasEnPortada`,
+  `home`, `promociones`, `products`, `editPublicationTypes` y `publishProduct`, 42 escenarios): 37
+  en verde y 5 saltados (los de escritorio del hero, porque hay ofertas). De paso se cierra la
+  corrida del slice 2 que había cortado la falta de memoria.
+- Dos specs dependían de cuánto hubiera publicado ese día, y fallaron cuando aparecieron ofertas
+  reales al 20% (Açaí Glow, Dona Chocolate Keto, dos barras de proteína):
+  - El banner general pinta las cuatro de mayor descuento, y la miel de prueba al 17% quedó fuera.
+    Esos escenarios ahora la ponen al 50% (180 → 90), y el `.feature` se ajustó igual.
+  - `/productos?promocion=1` ya tiene tantas ofertas que la miel caía después de la primera página.
+    El escenario sigue pulsando el filtro, pero mira el resultado dentro de la tienda de prueba
+    (`&tienda=`).
+
+### Recap
+
+El banner pesa 53 KB en vez de ~1 MB, se dibuja una sola vez por dirección y el navegador lo guarda
+para siempre. Solo la primera visita después de un cambio de promociones paga el dibujo.
+
+### Próximos pasos (opciones)
+
+- Opcional: «calentar» el banner al guardar una promoción, para que ni esa primera visita espere.
+- Visto en la medición: una foto de producto que no está sobre blanco (el açaí de $230) se pinta
+  como cuadro y su sombra queda separada. Se podría ajustar la sombra para ese caso.
+

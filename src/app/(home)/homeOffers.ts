@@ -1,4 +1,7 @@
-import type { BannerFormat } from "~/app/api/ofertas/banner/OffersBannerImage";
+import {
+  type BannerFormat,
+  bannerVersion,
+} from "~/app/api/ofertas/banner/OffersBannerImage";
 import { normalizeBrand } from "~/domain/entities/post/brand";
 import {
   BRAND_QUERY_PARAM,
@@ -145,7 +148,7 @@ export function buildHomeOffersSlides(
         locale,
         formato: format,
         ...filter,
-        v: promotionsFingerprint(promotions),
+        v: bannerVersion(promotionsFingerprint(promotions)),
       }).toString()}`;
 
     return {

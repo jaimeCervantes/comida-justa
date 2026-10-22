@@ -295,12 +295,18 @@ test.describe("El filtro «En promoción» de los productos", () => {
     await page.getByTestId("products-on-sale-filter").click();
     await page.waitForURL(/[?&]promocion=1/);
 
-    const grid = page.getByTestId("products-grid");
-
     await expect(page.getByTestId("products-on-sale-filter")).toHaveAttribute(
       "aria-pressed",
       "true",
     );
+
+    /* Lo filtrado se mira dentro de la tienda de prueba (`?tienda=`): en la base compartida ya hay
+       tantas ofertas reales que la miel podía caer fuera de la primera página. La panela, de la
+       misma tienda y sin promoción, es la que demuestra el filtro. */
+    await page.goto(`/productos?promocion=1&tienda=${TIENDA.handle}`);
+
+    const grid = page.getByTestId("products-grid");
+
     await expect(
       grid.locator("article").filter({ hasText: miel.title }),
     ).toBeVisible();
