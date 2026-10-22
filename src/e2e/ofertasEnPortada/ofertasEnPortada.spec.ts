@@ -168,4 +168,32 @@ test.describe("Ofertas en la portada", () => {
       ),
     ).toHaveCount(0);
   });
+
+  for (const { estado, cambio } of [
+    { estado: "marcada como agotada", cambio: sql`is_available = false` },
+    { estado: "con 0 piezas en inventario", cambio: sql`stock_quantity = 0` },
+  ]) {
+    test(`Lo que no se puede comprar no entra a las ofertas — ${estado}`, async ({
+      page,
+    }) => {
+      await setPromotion(90);
+      await db.execute(sql`
+        UPDATE posts SET ${cambio}
+        WHERE id IN (SELECT post_id FROM post_translations WHERE slug = ${miel.slug})
+      `);
+
+      await page.goto("/");
+
+      await expect(page.getByRole("heading", { level: 1 })).toBeAttached();
+      await expect(
+        page.locator(
+          `[data-testid="home-offers-banner-image"][alt*="${miel.title}"]`,
+        ),
+      ).toHaveCount(0);
+
+      await page.goto(`/productos?promocion=1&tienda=${TIENDA.handle}`);
+
+      await expect(page.getByTestId("products-on-sale-empty")).toBeVisible();
+    });
+  }
 });

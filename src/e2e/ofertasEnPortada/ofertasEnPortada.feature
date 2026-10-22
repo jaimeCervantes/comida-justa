@@ -52,6 +52,19 @@ Feature: Ofertas en la portada
     When un visitante abre el inicio
     Then el banner de ofertas no menciona "Miel de abeja 500 g"
 
+  # Pedido del usuario el 2026-10-22: lo que no se puede comprar no se anuncia como oferta.
+  @slice-1
+  Scenario Outline: Lo que no se puede comprar no entra a las ofertas
+    Given "Miel de abeja 500 g" tiene precio de promoción 90
+    And "Miel de abeja 500 g" <estado>
+    When un visitante abre el inicio y la lista de ofertas
+    Then ni el carrusel ni la lista de ofertas mencionan "Miel de abeja 500 g"
+
+    Examples:
+      | estado                         |
+      | está marcada como agotada      |
+      | tiene 0 piezas en inventario   |
+
   # @component (Vitest): en la base compartida hay promociones reales, así que "no hay ninguna" no se
   # puede sembrar sin tocar datos ajenos. `buildHomeOffersBanner` devuelve `null` sin ofertas
   # (homeOffers.test.ts), y sin banner la página monta el hero en vez de `OffersCarousel`.
