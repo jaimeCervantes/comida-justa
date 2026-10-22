@@ -1,6 +1,12 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import {
+  BRAND_QUERY_PARAM,
+  parseBrandFilter,
+  parseStoreFilter,
+  STORE_QUERY_PARAM,
+} from "~/domain/entities/post/catalogFilters";
+import {
   ON_SALE_QUERY_PARAM,
   parseOnSaleFilter,
 } from "~/domain/entities/post/promotion";
@@ -29,19 +35,33 @@ export default async function ProductosPage({
   searchParams,
 }: {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ pillar?: string; [ON_SALE_QUERY_PARAM]?: string }>;
+  searchParams: Promise<{
+    pillar?: string;
+    [ON_SALE_QUERY_PARAM]?: string;
+    [BRAND_QUERY_PARAM]?: string;
+    [STORE_QUERY_PARAM]?: string;
+  }>;
 }) {
   const { locale: rawLocale } = await params;
-  const { pillar, [ON_SALE_QUERY_PARAM]: onSaleParam } = await searchParams;
+  const {
+    pillar,
+    [ON_SALE_QUERY_PARAM]: onSaleParam,
+    [BRAND_QUERY_PARAM]: brandParam,
+    [STORE_QUERY_PARAM]: storeParam,
+  } = await searchParams;
   const locale = resolveLocale(rawLocale);
   const currentPillar = parsePublicationPillar(pillar);
-  const onSale = parseOnSaleFilter(onSaleParam);
+  const filters = {
+    onSale: parseOnSaleFilter(onSaleParam),
+    brand: parseBrandFilter(brandParam),
+    store: parseStoreFilter(storeParam),
+  };
   setRequestLocale(locale);
   const viewerId = await readViewerId();
   const t = await getTranslations("products");
   const tDistance = await getTranslations("distance");
   const { products, totalPages, nothingNearby, visitor, storesToMap } =
-    await getProducts(PAGINATION_INIT_PAGE, locale, currentPillar, onSale);
+    await getProducts(PAGINATION_INIT_PAGE, locale, currentPillar, filters);
 
   return (
     <main>
@@ -71,7 +91,7 @@ export default async function ProductosPage({
         currentPage={PAGINATION_INIT_PAGE}
         totalPages={totalPages}
         currentPillar={currentPillar}
-        onSale={onSale}
+        filters={filters}
       />
     </main>
   );

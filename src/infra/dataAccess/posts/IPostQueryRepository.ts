@@ -30,6 +30,8 @@ export interface PostData {
   /** `posts.sale_price` y `posts.sale_ends_at`. Ver `domain/entities/post/promotion.ts`. */
   salePrice?: number | null;
   saleEndsAt?: Date | null;
+  /** `posts.brand`. Nula = sin marca. */
+  brand?: string | null;
   /** Qué es: "anuncio" (default) o "producto". */
   kind?: string;
   /** De dónde/quién viene. `null` = comunidad sin especificar. */
@@ -81,6 +83,10 @@ export interface PostListingFilters {
    * Ver `domain/entities/post/promotion.ts`.
    */
   onSale?: boolean;
+  /** Solo esta marca, sin distinguir mayúsculas. Ver `domain/entities/post/brand.ts`. */
+  brand?: string | null;
+  /** Solo lo de esta tienda, por su handle (`sellers.slug`). */
+  store?: string | null;
 }
 
 /** Qué hay cerca de quien mira: cuánto, y a qué distancia lo primero. */
