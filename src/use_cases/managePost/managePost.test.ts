@@ -191,6 +191,31 @@ describe("UpdateOnePostUseCase", () => {
     });
   });
 
+  /* Slice 2 de `docs/features/commerce/032-2026-10-21-ofertas-en-portada.md`. */
+  it("guarda la marca sin los espacios de más con que se escribió", async () => {
+    await useCase.execute({ ...edit, brand: "  E2E   Apis " });
+
+    expect(repository.updates[0]).toMatchObject({ brand: "E2E Apis" });
+  });
+
+  it("quita la marca cuando llega vacía", async () => {
+    repository = new FakePostAdminRepository([{ ...jugoVerde, brand: "Apis" }]);
+    useCase = new UpdateOnePostUseCase(repository, new PostValidator());
+
+    await useCase.execute({ ...edit, brand: "   " });
+
+    expect(repository.updates[0]).toMatchObject({ brand: null });
+  });
+
+  it("limpia la marca de un anuncio aunque venga forjada", async () => {
+    repository = new FakePostAdminRepository([anuncio]);
+    useCase = new UpdateOnePostUseCase(repository, new PostValidator());
+
+    await useCase.execute({ ...edit, slug: anuncio.slug, brand: "Apis" });
+
+    expect(repository.updates[0]).toMatchObject({ brand: null });
+  });
+
   it("avisa que el texto NO cambió, para no gastar una llamada al proveedor", async () => {
     const result = await useCase.execute({
       ...edit,

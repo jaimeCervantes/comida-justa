@@ -21,7 +21,13 @@ const FORM = readFileSync("src/app/[locale]/publicar/PublishForm.tsx", "utf8");
  * Los que se declaran en un componente compartido y no en `PublishForm`: la media la arma
  * `PostMediaField`, el recorrido `RouteFileField` y la promoción `SalePriceFields`.
  */
-const NOT_IN_THE_FORM_SOURCE = ["media", "route", "salePrice", "saleEndsAt"];
+const NOT_IN_THE_FORM_SOURCE = [
+  "media",
+  "route",
+  "salePrice",
+  "saleEndsAt",
+  "brand",
+];
 
 function fieldNamesInForm(): string[] {
   const declared = [...FORM.matchAll(/name="([a-zA-Z]+)"/g)].map(([, n]) => n);

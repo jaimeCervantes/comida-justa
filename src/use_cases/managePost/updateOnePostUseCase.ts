@@ -1,3 +1,4 @@
+import { normalizeBrand } from "~/domain/entities/post/brand";
 import {
   PostAdminError,
   PostNotFoundError,
@@ -38,6 +39,8 @@ export interface UpdateOnePostInput {
   salePrice?: number | null;
   /** Cuándo termina la promoción. Nulo o ausente = hasta que se quite. */
   saleEndsAt?: Date | null;
+  /** La marca, como la escribió quien edita. Vacía o ausente = sin marca: así se quita. */
+  brand?: string | null;
   /**
    * Los archivos que la publicación tendrá al guardar, en orden. Lista completa, no un delta.
    *
@@ -117,6 +120,8 @@ export default class UpdateOnePostUseCase {
     const sellable = SELLABLE_KINDS.includes(post.kind as never);
     const salePrice = sellable ? (input.salePrice ?? null) : null;
     const saleEndsAt = sellable ? (input.saleEndsAt ?? null) : null;
+    /* La marca, también solo en lo que se vende: un anuncio o un evento no tienen marca. */
+    const brand = sellable ? normalizeBrand(input.brand) : null;
 
     // Se valida con las mismas reglas que al publicar: un producto sigue necesitando precio y
     // procedencia. `kind` no viaja en el formulario —editar no cambia lo que la publicación es—,
@@ -127,6 +132,7 @@ export default class UpdateOnePostUseCase {
       price,
       salePrice,
       saleEndsAt,
+      brand,
       kind: post.kind as never,
       origin: origin as never,
       startsAt,
@@ -151,6 +157,7 @@ export default class UpdateOnePostUseCase {
       price,
       salePrice,
       saleEndsAt,
+      brand,
       origin,
       category: input.category,
       subCategory: input.subCategory,
