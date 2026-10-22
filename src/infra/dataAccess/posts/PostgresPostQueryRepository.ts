@@ -314,6 +314,10 @@ function categoryWhere(categoryKeys: readonly string[] | undefined): SQL {
  * poder filtrar y paginar en la base. Las dos tienen que decir lo mismo: si una cambia, cambia la
  * otra. `now()` es la hora de la consulta, igual que el `new Date()` con el que pinta la tarjeta.
  *
+ * Además, **solo lo que se puede comprar hoy**, como `canBeAdvertised` en el carrusel: ni lo que el
+ * vendedor marcó como agotado ni un producto con el inventario en cero. Así «Ver ofertas» lleva a la
+ * misma lista que anuncia el banner.
+ *
  * `sale_price IS NOT NULL` va primero porque es la condición del índice parcial
  * `posts_on_sale_idx`.
  */
@@ -323,7 +327,9 @@ function onSaleWhere(onSale: boolean | undefined): SQL {
   return sql`(p.sale_price IS NOT NULL
     AND p.sale_price > 0
     AND p.sale_price < p.price
-    AND (p.sale_ends_at IS NULL OR p.sale_ends_at > now()))`;
+    AND (p.sale_ends_at IS NULL OR p.sale_ends_at > now())
+    AND p.is_available
+    AND (p.kind <> ${PRODUCT_KIND} OR p.stock_quantity IS NULL OR p.stock_quantity > 0))`;
 }
 
 /**

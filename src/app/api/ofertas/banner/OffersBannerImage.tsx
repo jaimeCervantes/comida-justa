@@ -39,7 +39,7 @@ export type BannerFormat = keyof typeof BANNER_FORMATS;
  * de lo que pinta. Pero la huella solo mira los datos: sin esta versión, un banner rediseñado
  * seguiría sirviéndose con el dibujo viejo a quien ya lo tuviera guardado.
  */
-const BANNER_DESIGN_VERSION = "3";
+const BANNER_DESIGN_VERSION = "4";
 
 /** Lo que va en `v=` de la dirección: la versión del dibujo y la huella de lo que se pinta. */
 export function bannerVersion(fingerprint: string): string {
@@ -65,6 +65,9 @@ export type BannerTile = BannerPromotion & {
   photo: string;
   /** `true` si la foto flota sin fondo; `false` si se pinta como tarjeta redondeada. */
   isCutout: boolean;
+  /** El tamaño real de la foto, para pintarla a su proporción. */
+  photoWidth: number;
+  photoHeight: number;
   /** Los precios ya formateados en el idioma de quien mira. */
   priceLabel: string;
   regularPriceLabel: string;
@@ -78,8 +81,33 @@ export type BannerTexts = {
   discount: (percent: number) => string;
 };
 
+/** El tamaño de la foto dentro de su hueco, respetando su proporción. */
+function fitPhoto(
+  photo: { width: number; height: number },
+  box: { width: number; height: number },
+): { width: number; height: number } {
+  const scale = Math.min(
+    box.width / Math.max(1, photo.width),
+    box.height / Math.max(1, photo.height),
+  );
+
+  return {
+    width: Math.round(photo.width * scale),
+    height: Math.round(photo.height * scale),
+  };
+}
+
 /**
- * Un producto: la foto flotando con su sombra, el sello del descuento y la etiqueta del precio.
+ * Un producto: la foto con su sombra, el sello del descuento y la etiqueta del precio.
+ *
+ * La foto se pinta **a su proporción real** y apoyada abajo. Con un `contain` sobre el hueco entero,
+ * un producto bajo quedaba flotando muy por encima de su sombra.
+ *
+ * - **Recortada** (era de estudio, sobre blanco): flota sobre el fondo, con una sombra difusa en el
+ *   piso.
+ * - **Sin recortar** (la foto trae su propio fondo, como una mesa o un color): se pinta como una
+ *   tarjeta pequeña con borde redondeado y su propia sombra. Así se lee como una foto y no como un
+ *   cuadro pegado.
  */
 function Product({
   tile,
@@ -93,6 +121,13 @@ function Product({
   texts: BannerTexts;
 }) {
   const sticker = Math.round(width * 0.36);
+  /* El recortado puede ocupar casi todo el hueco; la tarjeta deja aire para que se vea su sombra. */
+  const fitted = fitPhoto(
+    { width: tile.photoWidth, height: tile.photoHeight },
+    tile.isCutout
+      ? { width: width * 0.86, height: photoHeight * 0.92 }
+      : { width: width * 0.8, height: photoHeight * 0.8 },
+  );
 
   return (
     <div
@@ -113,31 +148,49 @@ function Product({
           position: "relative",
         }}
       >
-        {/* La sombra en el piso: una elipse difusa, que es lo que hace que el producto flote en vez
-            de verse pegado. Satori no tiene `filter: blur`, pero sí degradados radiales. */}
+        {tile.isCutout ? (
+          /* La sombra en el piso, del ancho del producto: una elipse difusa, que es lo que hace que
+             flote en vez de verse pegado. Satori no tiene `filter: blur`, pero sí degradados
+             radiales. */
+          <div
+            style={{
+              position: "absolute",
+              bottom: -10,
+              left: (width - fitted.width * 0.9) / 2,
+              width: fitted.width * 0.9,
+              height: 34,
+              borderRadius: 999,
+              backgroundImage:
+                "radial-gradient(closest-side, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0))",
+            }}
+          />
+        ) : null}
+        {/* Los estilos de tarjeta **solo** en la foto sin recortar. Con `boxShadow: "none"` y fondo
+            transparente en la recortada, Satori pintaba su silueta en negro en la esquina superior
+            izquierda del banner, del tamaño exacto del producto. El marco blanco es relleno del
+            contenedor y el redondeo va en la propia imagen. */}
         <div
-          style={{
-            position: "absolute",
-            bottom: -10,
-            left: width * 0.12,
-            width: width * 0.76,
-            height: 34,
-            borderRadius: 999,
-            backgroundImage:
-              "radial-gradient(closest-side, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0))",
-          }}
-        />
-        {/* biome-ignore lint/performance/noImgElement: Satori dibuja con <img>; en una ImageResponse no hay next/image. */}
-        <img
-          src={tile.photo}
-          alt=""
-          width={width * 0.86}
-          height={photoHeight * 0.92}
-          style={{
-            objectFit: "contain",
-            borderRadius: tile.isCutout ? 0 : 24,
-          }}
-        />
+          style={
+            tile.isCutout
+              ? { display: "flex" }
+              : {
+                  display: "flex",
+                  padding: 5,
+                  borderRadius: 22,
+                  backgroundColor: WHITE,
+                  boxShadow: "0 14px 30px rgba(0, 0, 0, 0.30)",
+                }
+          }
+        >
+          {/* biome-ignore lint/performance/noImgElement: Satori dibuja con <img>; en una ImageResponse no hay next/image. */}
+          <img
+            src={tile.photo}
+            alt=""
+            width={fitted.width}
+            height={fitted.height}
+            style={tile.isCutout ? {} : { borderRadius: 17 }}
+          />
+        </div>
         <div
           style={{
             position: "absolute",

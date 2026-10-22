@@ -406,3 +406,62 @@ para siempre. Solo la primera visita después de un cambio de promociones paga e
 - Visto en la medición: una foto de producto que no está sobre blanco (el açaí de $230) se pinta
   como cuadro y su sombra queda separada. Se podría ajustar la sombra para ese caso.
 
+## 2026-10-22 — Lo agotado no se anuncia, el banner se calienta al guardar, y la sombra
+
+### Pedidos del usuario
+
+- Adelante con las dos optimizaciones que quedaron pendientes: calentar el banner al guardar y
+  arreglar la sombra de las fotos que no son de estudio.
+- A mitad del trabajo: «si no tiene stock, no debe aparecer en ofertas».
+
+### Decisiones
+
+- **Lo que no se puede comprar no es oferta.**
+  - `canBeAdvertised` (`promotionBanner.ts`) usa las reglas que ya existían: `canBeOrdered` (no
+    marcado como agotado) y `isOutOfStock` (inventario en cero, solo en productos que llevan
+    inventario; nulo no es cero).
+  - `onSaleWhere` las repite en SQL, así que `/productos?promocion=1` —a donde lleva «Ver
+    ofertas»— cuenta lo mismo que el banner.
+- **El banner se calienta al guardar.**
+  - Publicar o editar algo que se vende agenda en `after()` a `warmOffersBanners`, que pide por HTTP
+    todas las imágenes del carrusel (cada slide, en los dos formatos y los dos idiomas).
+  - Va por HTTP y no llamando a la función que dibuja, porque en producción la acción y la ruta
+    pueden correr en procesos distintos: solo pidiéndola se llenan la caché de la ruta y la de la
+    CDN.
+  - El origen sale de la petición (`requestOrigin`, que lee `x-forwarded-*` detrás de Vercel), así
+    que en local o en un e2e calienta ese servidor y nunca producción.
+  - Una dirección ya dibujada responde de la caché sin costo. Nunca falla: lo que no se calentó, se
+    dibuja cuando alguien lo pide.
+- **Cada foto a su proporción real**, apoyada sobre su sombra.
+  - `cutoutProductPhoto` devuelve el tamaño de la foto entregada, y el dibujo la ajusta con
+    `fitPhoto`.
+  - La foto recortada lleva una sombra en el piso de su ancho. La que no está sobre blanco va como
+    una tarjeta con marco blanco, redondeo y su propia sombra.
+  - Hallazgo al revisar el dibujo: con `boxShadow: "none"` y fondo transparente en el contenedor de
+    la foto recortada, **Satori pintaba la silueta del producto en negro en la esquina superior
+    izquierda del banner**. Los estilos de tarjeta solo se ponen en la que no está recortada.
+  - `BANNER_DESIGN_VERSION` sube a `4`.
+
+### Validación
+
+- Dibujado con los datos reales (60 ofertas vigentes hoy) y revisado a ojo en los dos formatos.
+- Suite completa de vitest: 350 archivos en verde, incluidas las pruebas nuevas de
+  `canBeAdvertised`, `warmOffersBanners` y el tamaño del recorte. `tsc`, `typecheck:tests` y
+  `biome check .` limpios.
+  - `editar/[slug]/actions.test.ts` ahora simula el origen y el calentado, como ya simulaba `after`
+    y los repositorios.
+- e2e en 3 tramos, con `.next` borrado antes de cada uno: 39 en verde y 5 saltados (44), incluidos
+  los dos escenarios nuevos de lo agotado: «marcada como agotada» y «0 piezas».
+- El calentado no tiene escenario e2e: lo que garantiza es tiempo, y un e2e que mida tiempos sería
+  frágil. Lo cubren sus pruebas unitarias.
+
+### Recap
+
+El carrusel y la lista de ofertas ya no anuncian lo agotado. Guardar un producto o un servicio deja
+el banner dibujado antes de que llegue la primera visita. Las fotos se pintan a su proporción: las
+recortadas sobre su sombra y las demás como tarjeta.
+
+### Próximos pasos (opciones)
+
+- Commit, merge a `dev` y push.
+

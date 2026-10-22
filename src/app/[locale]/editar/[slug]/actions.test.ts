@@ -12,6 +12,14 @@ const { auth, isAdmin, updateOnePost, saveRoute, removeRoute } = vi.hoisted(
 );
 
 vi.mock("next/server", () => ({ after: vi.fn() }));
+/* Calentar el carrusel de ofertas lee las cabeceras de la petición, que en Vitest no existen. Lo
+   que se prueba aquí es la edición; el calentado tiene sus propias pruebas. */
+vi.mock("~/infra/routing/requestOrigin", () => ({
+  requestOrigin: vi.fn(async () => "http://localhost:3100"),
+}));
+vi.mock("~/app/(home)/warmOffersBanners", () => ({
+  warmOffersBanners: vi.fn(async () => 0),
+}));
 vi.mock("next-intl/server", () => ({
   getLocale: async () => "es",
   getTranslations: async () => (key: string) =>

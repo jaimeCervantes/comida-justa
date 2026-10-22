@@ -1,5 +1,7 @@
+import { canBeOrdered } from "./availability";
 import { brandKey } from "./brand";
 import { currentPrice } from "./promotion";
+import { isOutOfStock } from "./stock";
 
 /** De quién es una oferta, cuando no tiene marca: la tienda que la vende. */
 export type BannerStore = { handle: string; name: string };
@@ -17,7 +19,23 @@ export type BannerCandidate = {
   /** `posts.brand`, ya normalizada. Nula = sin marca. */
   brand: string | null;
   store: BannerStore | null;
+  kind: string;
+  /** `posts.is_available`: el vendedor la marcó como agotada si es `false`. */
+  isAvailable: boolean;
+  /** `posts.stock_quantity`. Nulo no es cero: es no llevar inventario. */
+  stockQuantity: number | null;
 };
+
+/**
+ * ¿Se puede anunciar como oferta? Solo lo que alguien puede comprar hoy: anunciar un descuento de
+ * algo agotado manda al comprador a una ficha donde no puede pedirlo. Son las mismas reglas que
+ * apagan el botón de pedir (`canBeOrdered`) y que cuentan el inventario (`isOutOfStock`).
+ */
+export function canBeAdvertised(
+  candidate: Pick<BannerCandidate, "kind" | "isAvailable" | "stockQuantity">,
+): boolean {
+  return canBeOrdered(candidate) && !isOutOfStock(candidate);
+}
 
 /** Un producto ya dentro del banner: lo que se pinta, con la promoción resuelta. */
 export type BannerPromotion = {
@@ -64,7 +82,7 @@ export const MAX_BANNER_GROUPS = 4;
  * Todas las promociones vigentes y con foto, de mayor a menor descuento.
  *
  * **Solo las vigentes**, decididas con `currentPrice` —la misma regla de la ficha, el carrito y el
- * filtro—, y **solo con foto**: el banner es una imagen hecha de fotos, y un hueco ahí se lee como
+ * filtro—, **solo lo que se puede comprar** (`canBeAdvertised`) y **solo con foto**: el banner es una imagen hecha de fotos, y un hueco ahí se lee como
  * un error, no como una oferta. Primero el descuento más grande, que es lo que hace que alguien se
  * detenga; a igual descuento manda el orden en que llegaron.
  */
@@ -74,7 +92,7 @@ export function activeBannerPromotions(
 ): BannerPromotion[] {
   return candidates
     .flatMap((candidate, index) => {
-      if (!candidate.imageUrl) return [];
+      if (!candidate.imageUrl || !canBeAdvertised(candidate)) return [];
 
       const current = currentPrice(candidate, now);
 

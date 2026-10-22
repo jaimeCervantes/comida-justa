@@ -75,6 +75,9 @@ function toCandidate(post: PostData, locale: string): BannerCandidate | null {
     store: post.seller
       ? { handle: post.seller.handle, name: post.seller.name }
       : null,
+    kind: post.kind ?? "",
+    isAvailable: post.isAvailable !== false,
+    stockQuantity: post.stockQuantity ?? null,
   };
 }
 

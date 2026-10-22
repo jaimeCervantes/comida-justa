@@ -1,6 +1,7 @@
 "use server";
 import { after } from "next/server";
 import { getLocale, getTranslations } from "next-intl/server";
+import { warmOffersBanners } from "~/app/(home)/warmOffersBanners";
 import {
   BRAND_MAX_LENGTH,
   normalizeBrand,
@@ -37,6 +38,7 @@ import { createIndexPostEmbeddingUseCase } from "~/infra/dataAccess/indexPostEmb
 import { createPostAdminRepository } from "~/infra/dataAccess/managePost/factory";
 import { createReviewPostContentUseCase } from "~/infra/dataAccess/moderatePost/factory";
 import { createRouteRepository } from "~/infra/dataAccess/routes/factory";
+import { requestOrigin } from "~/infra/routing/requestOrigin";
 import { ROUTE_FILE_ERROR_KEYS } from "~/infra/UI/labels/routeFileErrorKeys";
 import { promotionFieldErrors } from "~/presentation/post/promotionFieldErrors";
 import UpdateOnePostUseCase from "~/use_cases/managePost/updateOnePostUseCase";
@@ -83,6 +85,24 @@ function readPositiveNumber(value: FormDataEntryValue | null): number | null {
  * conteste: si falla, la edición ya está guardada y la publicación queda pendiente de indexar,
  * que es justo lo que el backfill recoge.
  */
+
+/**
+ * Calienta el carrusel de ofertas de la portada después de responder (`warmOffersBanners`).
+ *
+ * Solo para lo que se vende: es lo único que puede cambiar una promoción, y con ella la dirección
+ * de alguna imagen del carrusel. El origen se lee aquí, dentro de la petición: dentro de `after()` ya
+ * no hay cabeceras que leer.
+ */
+async function warmOffersAfterResponse(): Promise<void> {
+  const origin = await requestOrigin();
+
+  if (!origin) return;
+
+  after(async () => {
+    await warmOffersBanners(origin);
+  });
+}
+
 export async function updatePost(
   _prevState: EditPostState,
   formData: FormData,
@@ -249,6 +269,8 @@ export async function updatePost(
       String(formData.get("content") ?? ""),
     );
   }
+
+  if (requiresPrice) await warmOffersAfterResponse();
 
   redirectKeepingLocale(
     {
