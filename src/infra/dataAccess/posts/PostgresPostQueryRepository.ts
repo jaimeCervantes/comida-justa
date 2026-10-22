@@ -267,6 +267,8 @@ interface ListingOptions {
   brand?: string | null;
   /** Solo lo de esta tienda, por su handle. */
   store?: string | null;
+  /** Solo lo que tiene piezas registradas. */
+  inStock?: boolean;
   /** Filtra por título en cualquier idioma. Vacío o ausente = no filtrar. */
   term?: string;
   /** Quién mira: solo decide `viewerReacted`, no filtra el listado. */
@@ -342,6 +344,13 @@ function brandWhere(brand: string | null | undefined): SQL {
   return sql`(p.brand IS NOT NULL AND lower(p.brand) = lower(${brand}))`;
 }
 
+/** Lo que tiene piezas registradas: el carrusel de ofertas (`canBeAdvertised`). */
+function inStockWhere(inStock: boolean | undefined): SQL {
+  return inStock
+    ? sql`(p.stock_quantity IS NOT NULL AND p.stock_quantity > 0)`
+    : sql`TRUE`;
+}
+
 /** Lo de una tienda, por su handle. `s` es la tienda que ya une `POST_JOINS`. */
 function storeWhere(store: string | null | undefined): SQL {
   if (!store) return sql`TRUE`;
@@ -379,6 +388,7 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
       onSale: filters.onSale,
       brand: filters.brand,
       store: filters.store,
+      inStock: filters.inStock,
     });
   }
 
@@ -632,6 +642,7 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
         AND ${onSaleWhere(options.onSale)}
         AND ${brandWhere(options.brand)}
         AND ${storeWhere(options.store)}
+        AND ${inStockWhere(options.inStock)}
         AND ${titleHasAllWords(options.term ?? "")}
       ORDER BY ${listingOrder(options, near)}
       LIMIT ${pageSize} OFFSET ${offset}

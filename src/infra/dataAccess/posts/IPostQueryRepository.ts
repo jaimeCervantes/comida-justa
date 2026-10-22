@@ -87,6 +87,8 @@ export interface PostListingFilters {
   brand?: string | null;
   /** Solo lo de esta tienda, por su handle (`sellers.slug`). */
   store?: string | null;
+  /** Solo lo que tiene piezas registradas (`stock_quantity > 0`). Nulo no cuenta: es no llevar inventario. */
+  inStock?: boolean;
 }
 
 /** Qué hay cerca de quien mira: cuánto, y a qué distancia lo primero. */
