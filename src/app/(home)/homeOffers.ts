@@ -1,39 +1,53 @@
 import type { BannerFormat } from "~/app/api/ofertas/banner/OffersBannerImage";
+import { normalizeBrand } from "~/domain/entities/post/brand";
 import {
+  BRAND_QUERY_PARAM,
+  STORE_QUERY_PARAM,
+} from "~/domain/entities/post/catalogFilters";
+import { ON_SALE_QUERY_PARAM } from "~/domain/entities/post/promotion";
+import {
+  activeBannerPromotions,
+  BANNER_MAX_PROMOTIONS,
   type BannerCandidate,
+  type BannerGroup,
   type BannerPromotion,
+  groupBannerPromotions,
   promotionsFingerprint,
-  selectBannerPromotions,
 } from "~/domain/entities/post/promotionBanner";
 import { resolvePostTranslation } from "~/domain/entities/post/translations";
 import { routing } from "~/i18n/routing";
 import { createPostQueryRepository } from "~/infra/dataAccess/getMultiplePosts";
 import type { PostData } from "~/infra/dataAccess/posts/IPostQueryRepository";
 
-/** Lo que la página sabe del banner antes de pedir la imagen. Lo arma `buildHomeOffersBanner`. */
-export type HomeOffersBanner = {
-  /**
-   * Una dirección por formato (`/api/ofertas/banner?locale=…&formato=…&v=<huella>`). Cambian cuando
-   * cambia el conjunto de promociones.
-   */
-  images: Record<BannerFormat, string>;
-  /** Qué dice la imagen, para quien no la ve: cada producto con su descuento. */
-  alt: string;
-  count: number;
+/**
+ * Cuántas promociones vigentes se leen para armar el carrusel.
+ *
+ * Todas las que razonablemente puede haber: el banner general toma las cuatro de mayor descuento,
+ * pero los grupos por marca necesitan ver el resto para saber qué marca junta dos o más.
+ */
+const CANDIDATES_TO_READ = 60;
+
+/** Lo que hay en promoción ahora: las del banner general, los grupos y cuántas son en total. */
+export type HomeOffers = {
+  general: BannerPromotion[];
+  groups: BannerGroup[];
+  total: number;
 };
 
 /**
- * Cuántas promociones vigentes se piden a la base para elegir las del banner.
- *
- * Más que las cuatro que caben: `selectBannerPromotions` descarta las que no tienen foto y ordena por
- * descuento, y si se pidieran cuatro justas, una sin foto dejaría un hueco que otra podía llenar.
+ * Un slide del carrusel de ofertas, antes de pedir su imagen. Lo arma `buildHomeOffersSlides`.
  */
-const CANDIDATES_TO_READ = 12;
-
-/** Las promociones del banner de ofertas y la huella que va en la dirección de su imagen. */
-export type HomeOffers = {
-  promotions: BannerPromotion[];
-  fingerprint: string;
+export type OffersSlide = {
+  /** `general`, o la llave del grupo (`brand:birdman`, `store:la-luz`). */
+  key: string;
+  /** La marca o la tienda del slide; `null` en el general. */
+  label: string | null;
+  /** Una dirección por formato. Cambia cuando cambia lo que el slide pinta. */
+  images: Record<BannerFormat, string>;
+  /** Qué dice la imagen, para quien no la ve: cada producto con su descuento. */
+  alt: string;
+  /** A dónde lleva: el catálogo filtrado a esas mismas ofertas. */
+  catalogQuery: Record<string, string>;
 };
 
 function toCandidate(post: PostData, locale: string): BannerCandidate | null {
@@ -54,18 +68,22 @@ function toCandidate(post: PostData, locale: string): BannerCandidate | null {
     price: post.price,
     salePrice: post.salePrice ?? null,
     saleEndsAt: post.saleEndsAt ?? null,
+    brand: normalizeBrand(post.brand),
+    store: post.seller
+      ? { handle: post.seller.handle, name: post.seller.name }
+      : null,
   };
 }
 
 /**
- * Lo que está en promoción ahora, listo para el banner.
+ * Lo que está en promoción ahora, listo para el carrusel.
  *
- * Lo leen **dos** sitios: la página de inicio, para decidir si hay tarjeta de ofertas y armar la dirección de la
- * imagen, y la ruta que pinta esa imagen. Las dos preguntan lo mismo con la misma función, así que
- * el `alt` que lee la página describe exactamente la imagen que dibuja la ruta.
+ * Lo leen **dos** sitios: la página de inicio, para decidir si hay carrusel y armar la dirección de
+ * cada imagen, y la ruta que pinta esas imágenes. Las dos preguntan lo mismo con la misma función,
+ * así que el `alt` que lee la página describe exactamente la imagen que dibuja la ruta.
  *
  * El filtro de la base (`onSale`) es el de `/productos?promocion=1`; la decisión final, con la hora,
- * la toma `selectBannerPromotions`.
+ * la toma `activeBannerPromotions`.
  */
 export async function loadHomeOffers(
   locale: string,
@@ -82,41 +100,67 @@ export async function loadHomeOffers(
 
     return candidate ? [candidate] : [];
   });
-  const promotions = selectBannerPromotions(candidates, now);
+  const active = activeBannerPromotions(candidates, now);
 
-  return { promotions, fingerprint: promotionsFingerprint(promotions) };
+  return {
+    general: active.slice(0, BANNER_MAX_PROMOTIONS),
+    groups: groupBannerPromotions(active),
+    total: active.length,
+  };
+}
+
+/** Lo que el slide pide al catálogo, y a la ruta de la imagen, para quedarse con su grupo. */
+function groupQuery(group: BannerGroup): Record<string, string> {
+  return "brand" in group.filter
+    ? { [BRAND_QUERY_PARAM]: group.filter.brand }
+    : { [STORE_QUERY_PARAM]: group.filter.store };
 }
 
 /**
- * Lo que la tarjeta de ofertas necesita para pintar el banner, o `null` si no hay ninguna oferta
- * vigente.
+ * Los slides del carrusel: el general primero y después uno por grupo. Vacío si no hay ninguna
+ * oferta vigente, y entonces la página pinta el hero.
  *
- * La dirección lleva el idioma —los títulos y los precios de la imagen salen en el de quien mira— y
- * la huella, para que una promoción nueva no se tape con la imagen vieja de la caché.
+ * La dirección de cada imagen lleva el idioma —los títulos y los precios salen en el de quien
+ * mira—, el grupo y la huella de lo que pinta, para que una promoción nueva no se tape con la imagen
+ * vieja de la caché.
  */
-export function buildHomeOffersBanner(
+export function buildHomeOffersSlides(
   offers: HomeOffers,
   locale: string,
   texts: {
-    alt: (items: string) => string;
+    alt: (items: string, label: string | null) => string;
     item: (promotion: BannerPromotion) => string;
   },
-): HomeOffersBanner | null {
-  if (offers.promotions.length === 0) return null;
+): OffersSlide[] {
+  if (offers.general.length === 0) return [];
 
-  const imageFor = (format: BannerFormat): string =>
-    `/api/ofertas/banner?${new URLSearchParams({
-      locale,
-      formato: format,
-      v: offers.fingerprint,
-    }).toString()}`;
+  const slide = (
+    key: string,
+    label: string | null,
+    promotions: readonly BannerPromotion[],
+    filter: Record<string, string>,
+  ): OffersSlide => {
+    const imageFor = (format: BannerFormat): string =>
+      `/api/ofertas/banner?${new URLSearchParams({
+        locale,
+        formato: format,
+        ...filter,
+        v: promotionsFingerprint(promotions),
+      }).toString()}`;
 
-  return {
-    images: {
-      ancho: imageFor("ancho"),
-      compacto: imageFor("compacto"),
-    },
-    alt: texts.alt(offers.promotions.map(texts.item).join(", ")),
-    count: offers.promotions.length,
+    return {
+      key,
+      label,
+      images: { ancho: imageFor("ancho"), compacto: imageFor("compacto") },
+      alt: texts.alt(promotions.map(texts.item).join(", "), label),
+      catalogQuery: { [ON_SALE_QUERY_PARAM]: "1", ...filter },
+    };
   };
+
+  return [
+    slide("general", null, offers.general, {}),
+    ...offers.groups.map((group) =>
+      slide(group.key, group.label, group.promotions, groupQuery(group)),
+    ),
+  ];
 }

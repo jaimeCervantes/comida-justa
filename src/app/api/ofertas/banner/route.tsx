@@ -2,7 +2,15 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { ImageResponse } from "next/og";
 import { getTranslations } from "next-intl/server";
-import { loadHomeOffers } from "~/app/(home)/homeOffers";
+import { type HomeOffers, loadHomeOffers } from "~/app/(home)/homeOffers";
+import { brandKey } from "~/domain/entities/post/brand";
+import {
+  BRAND_QUERY_PARAM,
+  parseBrandFilter,
+  parseStoreFilter,
+  STORE_QUERY_PARAM,
+} from "~/domain/entities/post/catalogFilters";
+import type { BannerPromotion } from "~/domain/entities/post/promotionBanner";
 import { FORMATTING_LOCALE } from "~/i18n/formattingLocale";
 import { resolveLocale } from "~/i18n/routing";
 import { SITE_CURRENCY } from "~/infra/constants";
@@ -111,9 +119,41 @@ const BLANK_PHOTO =
   "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='1' height='1'/>";
 
 /**
- * `GET /api/ofertas/banner?locale=es&formato=ancho&v=<huella>` → el banner de ofertas en PNG.
+ * Qué pinta el banner pedido: el general, o un grupo si la dirección trae `marca` o `tienda`.
+ * `null` si se pidió un grupo que no existe (ya no junta dos ofertas, o nunca existió).
+ */
+function pickSlide(
+  offers: HomeOffers,
+  params: URLSearchParams,
+): {
+  label: string | null;
+  promotions: BannerPromotion[];
+  count: number;
+} | null {
+  const brand = parseBrandFilter(params.get(BRAND_QUERY_PARAM));
+  const store = parseStoreFilter(params.get(STORE_QUERY_PARAM));
+
+  if (!brand && !store) {
+    return { label: null, promotions: offers.general, count: offers.total };
+  }
+
+  const group = offers.groups.find((candidate) =>
+    "brand" in candidate.filter
+      ? brand !== null && brandKey(candidate.filter.brand) === brandKey(brand)
+      : candidate.filter.store === store,
+  );
+
+  return group
+    ? { label: group.label, promotions: group.promotions, count: group.count }
+    : null;
+}
+
+/**
+ * `GET /api/ofertas/banner?locale=es&formato=ancho[&marca=…|&tienda=…]&v=<huella>` → el banner de
+ * ofertas en PNG.
  *
- * `formato` es uno de `BANNER_FORMATS` (`ancho`, `compacto`); sin él, `ancho`.
+ * `formato` es uno de `BANNER_FORMATS` (`ancho`, `compacto`); sin él, `ancho`. Con `marca` o
+ * `tienda`, el banner de ese grupo (`groupBannerPromotions`).
  * `v` no se lee: solo hace que la dirección cambie cuando cambia el conjunto de promociones (ver
  * `promotionsFingerprint`). Sin promociones vigentes no hay banner que dibujar: 404.
  */
@@ -124,11 +164,13 @@ export async function GET(request: Request): Promise<Response> {
   const requested = params.get("formato");
   const format = isBannerFormat(requested) ? requested : "ancho";
   const { width, height, maxProducts } = BANNER_FORMATS[format];
-  const { promotions } = await loadHomeOffers(locale);
+  const slide = pickSlide(await loadHomeOffers(locale), params);
 
-  if (promotions.length === 0) {
+  if (!slide || slide.promotions.length === 0) {
     return new Response(null, { status: 404 });
   }
+
+  const { label, promotions, count } = slide;
 
   const t = await getTranslations({ locale, namespace: "home" });
   const money = (amount: number) =>
@@ -156,9 +198,10 @@ export async function GET(request: Request): Promise<Response> {
       tiles={tiles}
       background={await loadBackground(format)}
       texts={{
-        eyebrow: t("offersBannerEyebrow"),
+        /* En un grupo, la marca o la tienda va en la píldora: es lo que distingue ese slide. */
+        eyebrow: label ?? t("offersBannerEyebrow"),
         headline: t("offersBannerHeadline", { percent: biggest }),
-        subtitle: t("offersBannerSubtitle", { count: promotions.length }),
+        subtitle: t("offersBannerSubtitle", { count }),
         cta: t("offersBannerCta"),
         discount: (percent) => t("offersDiscount", { percent }),
       }}

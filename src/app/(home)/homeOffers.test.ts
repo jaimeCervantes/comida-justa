@@ -5,8 +5,11 @@ vi.mock("~/infra/dataAccess/getMultiplePosts", () => ({
   createPostQueryRepository: vi.fn(),
 }));
 
-import type { BannerPromotion } from "~/domain/entities/post/promotionBanner";
-import { buildHomeOffersBanner } from "./homeOffers";
+import type {
+  BannerGroup,
+  BannerPromotion,
+} from "~/domain/entities/post/promotionBanner";
+import { buildHomeOffersSlides } from "./homeOffers";
 
 const miel: BannerPromotion = {
   postId: "miel",
@@ -17,42 +20,79 @@ const miel: BannerPromotion = {
   regularPrice: 180,
   discountPercent: 17,
   endsAt: null,
+  brand: "Apis",
+  store: { handle: "hazlo-sano", name: "Hazlo Sano" },
+};
+const miel1kg: BannerPromotion = {
+  ...miel,
+  postId: "miel-1kg",
+  title: "Miel 1 kg",
 };
 
 const texts = {
-  alt: (items: string) => `Ofertas: ${items}`,
+  alt: (items: string, label: string | null) =>
+    label ? `Ofertas de ${label}: ${items}` : `Ofertas: ${items}`,
   item: (promotion: BannerPromotion) =>
     `${promotion.title} -${promotion.discountPercent}%`,
 };
 
-describe("buildHomeOffersBanner", () => {
-  it("sin ofertas no hay banner", () => {
+const apis: BannerGroup = {
+  key: "brand:apis",
+  label: "Apis",
+  filter: { brand: "Apis" },
+  promotions: [miel, miel1kg],
+  count: 2,
+};
+
+describe("buildHomeOffersSlides", () => {
+  it("sin ofertas no hay slides, y la página pinta el hero", () => {
     expect(
-      buildHomeOffersBanner({ promotions: [], fingerprint: "x" }, "es", texts),
-    ).toBeNull();
+      buildHomeOffersSlides({ general: [], groups: [], total: 0 }, "es", texts),
+    ).toEqual([]);
   });
 
-  it("la dirección lleva el idioma y la huella, y el alt nombra cada oferta", () => {
-    const cafe = {
-      ...miel,
-      postId: "cafe",
-      title: "Café",
-      discountPercent: 50,
-    };
+  it("el general primero, y después uno por grupo que lleva al catálogo de esa marca", () => {
+    const [general, grupo] = buildHomeOffersSlides(
+      { general: [miel], groups: [apis], total: 3 },
+      "en",
+      texts,
+    );
 
-    expect(
-      buildHomeOffersBanner(
-        { promotions: [cafe, miel], fingerprint: "k3x9" },
-        "en",
-        texts,
-      ),
-    ).toEqual({
-      images: {
-        ancho: "/api/ofertas/banner?locale=en&formato=ancho&v=k3x9",
-        compacto: "/api/ofertas/banner?locale=en&formato=compacto&v=k3x9",
-      },
-      alt: "Ofertas: Café -50%, Miel de abeja 500 g -17%",
-      count: 2,
+    expect(general).toMatchObject({
+      key: "general",
+      label: null,
+      alt: "Ofertas: Miel de abeja 500 g -17%",
+      catalogQuery: { promocion: "1" },
     });
+    expect(general.images.ancho).toMatch(
+      /^\/api\/ofertas\/banner\?locale=en&formato=ancho&v=\w+$/,
+    );
+    expect(grupo).toMatchObject({
+      key: "brand:apis",
+      label: "Apis",
+      alt: "Ofertas de Apis: Miel de abeja 500 g -17%, Miel 1 kg -17%",
+      catalogQuery: { promocion: "1", marca: "Apis" },
+    });
+    expect(grupo.images.compacto).toContain("formato=compacto&marca=Apis&v=");
+  });
+
+  it("cada slide tiene su propia huella: cambia la de uno sin tocar la del otro", () => {
+    const antes = buildHomeOffersSlides(
+      { general: [miel], groups: [apis], total: 3 },
+      "es",
+      texts,
+    );
+    const despues = buildHomeOffersSlides(
+      {
+        general: [miel],
+        groups: [{ ...apis, promotions: [miel, { ...miel1kg, price: 140 }] }],
+        total: 3,
+      },
+      "es",
+      texts,
+    );
+
+    expect(despues[0].images.ancho).toBe(antes[0].images.ancho);
+    expect(despues[1].images.ancho).not.toBe(antes[1].images.ancho);
   });
 });
