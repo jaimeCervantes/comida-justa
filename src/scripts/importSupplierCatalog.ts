@@ -2,6 +2,7 @@ import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { config } from "dotenv";
 import sharp from "sharp";
+import { catalogBrand } from "./catalogBrand";
 
 config({
   path: resolve(process.cwd(), `.env.${process.env.NODE_ENV || "development"}`),
@@ -927,6 +928,7 @@ async function main(): Promise<void> {
         tags: postTranslations.tags,
         price: posts.price,
         salePrice: posts.salePrice,
+        brand: posts.brand,
         sellerId: posts.sellerId,
         userId: posts.userId,
         category: posts.category,
@@ -958,6 +960,7 @@ async function main(): Promise<void> {
       "~/domain/entities/post/promotion"
     );
     let reassigned = 0;
+    let rebranded = 0;
     let reshelved = 0;
     let addedImages = 0;
     let touched = 0;
@@ -1081,6 +1084,20 @@ async function main(): Promise<void> {
         }
       }
 
+      /* La marca sale del proveedor (`supplierName`) y no se guardaba: vivía solo dentro del texto
+         («Lo surte Birdman»). Se pone al día aquí para que el carrusel del inicio pueda agrupar las
+         ofertas por marca. */
+      const brand = catalogBrand(product);
+
+      if (brand !== row.brand) {
+        rebranded++;
+        changed = true;
+
+        if (!options.dryRun) {
+          await db.update(posts).set({ brand }).where(eq(posts.id, row.id));
+        }
+      }
+
       /* La tienda va junto al dueño porque es suya: si la ficha cambió de cuenta —o entró sin
          tienda, como las 106 del 26 de agosto—, quedaría colgando de la anterior. */
       if (seller && row.sellerId !== seller) {
@@ -1158,6 +1175,9 @@ async function main(): Promise<void> {
       `  promociones ${options.dryRun ? "a quitar" : "quitadas"}:       ${unpromoted.length}`,
     );
     for (const slug of unpromoted) console.log(`    - ${slug}`);
+    console.log(
+      `  marcas ${options.dryRun ? "a poner" : "puestas"}:            ${rebranded}`,
+    );
     console.log(
       `  dueño ${options.dryRun ? "a reasignar" : "reasignado"}:           ${reassigned}`,
     );
@@ -1314,6 +1334,7 @@ async function main(): Promise<void> {
       slug,
       content: contentFor(product),
       price: product.price,
+      brand: catalogBrand(product),
       kind: "producto",
       origin: ORIGIN,
       category: product.category,
