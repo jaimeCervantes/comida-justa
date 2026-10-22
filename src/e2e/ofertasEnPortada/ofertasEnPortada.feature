@@ -65,14 +65,13 @@ Feature: Ofertas en la portada
       | está marcada como agotada      |
       | tiene 0 piezas en inventario   |
 
-  # Decisión del usuario el 2026-10-22: el carrusel solo anuncia lo que tiene piezas registradas. La
-  # lista de ofertas sigue enseñando todo lo que se puede comprar.
+  # Decisión del usuario el 2026-10-22: el carrusel y la lista de ofertas solo enseñan lo que tiene
+  # piezas registradas.
   @slice-1
-  Scenario: Una oferta sin inventario registrado no sale en el carrusel, pero sí en la lista
+  Scenario: Una oferta sin inventario registrado no sale ni en el carrusel ni en la lista
     Given "Miel de abeja 500 g" tiene precio de promoción 90 y nadie lleva su inventario
     When un visitante abre el inicio y la lista de ofertas
-    Then el carrusel no menciona "Miel de abeja 500 g"
-    And la lista de ofertas sí la muestra
+    Then ni el carrusel ni la lista de ofertas mencionan "Miel de abeja 500 g"
 
   # @component (Vitest): en la base compartida hay promociones reales, así que "no hay ninguna" no se
   # puede sembrar sin tocar datos ajenos. `buildHomeOffersBanner` devuelve `null` sin ofertas
