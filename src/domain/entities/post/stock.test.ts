@@ -4,7 +4,9 @@ import {
   canTrackStock,
   carriesInventory,
   isOutOfStock,
+  parseStockField,
   parseStockQuantity,
+  stockUpdate,
 } from "./stock";
 
 describe("carriesInventory", () => {
@@ -87,5 +89,29 @@ describe("parseStockQuantity", () => {
     expect(parseStockQuantity("9999999999")).toEqual({
       error: "invalid-stock",
     });
+  });
+});
+
+/** Slice 8 de `docs/features/commerce/004-2026-09-03-inventario-de-existencias.md`. */
+describe("el campo de existencias de un formulario", () => {
+  it.each([
+    ["12", { quantity: 12 }],
+    ["0", { quantity: 0 }],
+    ["", { quantity: null }],
+    ["   ", { quantity: null }],
+    [null, { quantity: null }],
+    ["-2", { error: "invalid-stock" }],
+    ["1.5", { error: "invalid-stock" }],
+    ["muchas", { error: "invalid-stock" }],
+  ])("%j → %j", (raw, expected) => {
+    expect(parseStockField(raw)).toEqual(expected);
+  });
+
+  it.each([
+    [12, { stockQuantity: 12, isAvailable: true }],
+    [0, { stockQuantity: 0, isAvailable: false }],
+    [null, { stockQuantity: null, isAvailable: null }],
+  ])("guardar %j escribe %j", (quantity, expected) => {
+    expect(stockUpdate(quantity)).toEqual(expected);
   });
 });

@@ -78,3 +78,38 @@ export function parseStockQuantity(raw: unknown): ParsedStock {
 
   return { quantity };
 }
+
+export type StockField =
+  | { quantity: number | null; error?: undefined }
+  | { quantity?: undefined; error: "invalid-stock" };
+
+/**
+ * El campo de existencias de un formulario (publicar, editar).
+ *
+ * A diferencia de la tarjeta (`parseStockQuantity`), **vacío es válido** y significa «no llevo
+ * inventario» (`null`): el formulario es el único lugar donde se puede dejar de contar. Cualquier
+ * otra cosa se valida igual que en la tarjeta.
+ */
+export function parseStockField(raw: unknown): StockField {
+  if (raw === null || raw === undefined) return { quantity: null };
+  if (typeof raw === "string" && raw.trim() === "") return { quantity: null };
+
+  const parsed = parseStockQuantity(raw);
+
+  return parsed.error ? parsed : { quantity: parsed.quantity };
+}
+
+/**
+ * Qué escribir al guardar un formulario con existencias: el número y, si lo hay, la disponibilidad
+ * que se deriva de él (`availabilityForStock`). Sin número —no se lleva inventario— la
+ * disponibilidad no se toca: vuelve a mandar el interruptor manual.
+ */
+export function stockUpdate(quantity: number | null): {
+  stockQuantity: number | null;
+  isAvailable: boolean | null;
+} {
+  return {
+    stockQuantity: quantity,
+    isAvailable: quantity === null ? null : availabilityForStock(quantity),
+  };
+}
