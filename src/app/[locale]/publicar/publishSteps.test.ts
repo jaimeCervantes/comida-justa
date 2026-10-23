@@ -27,6 +27,7 @@ const NOT_IN_THE_FORM_SOURCE = [
   "salePrice",
   "saleEndsAt",
   "brand",
+  "stockQuantity",
 ];
 
 function fieldNamesInForm(): string[] {

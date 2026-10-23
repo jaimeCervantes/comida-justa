@@ -35,6 +35,7 @@ import EventTimeZoneField, {
 } from "~/presentation/post/EventTimeZone/EventTimeZoneField";
 import RouteFileField from "~/presentation/post/RouteFileField/RouteFileField";
 import SalePriceFields from "~/presentation/post/SalePriceFields/SalePriceFields";
+import StockField from "~/presentation/post/StockField/StockField";
 import { usePostValidationMessages } from "~/presentation/post/usePostValidationMessages";
 import { publishRequiresPrice, publishShowsPrice } from "./publishChecklist";
 import { PUBLISH_KIND_OPTIONS, publishKindTestId } from "./publishKinds";
@@ -385,6 +386,9 @@ export default function PublishForm({
                 <>
                   <SalePriceFields timeZone={timeZone} errors={state?.errors} />
                   <BrandField error={state?.errors?.brand} />
+                  {isProduct ? (
+                    <StockField error={state?.errors?.stockQuantity} />
+                  ) : null}
                 </>
               ) : null}
             </div>

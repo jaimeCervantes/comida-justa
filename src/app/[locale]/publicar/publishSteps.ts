@@ -48,6 +48,7 @@ export const PUBLISH_STEPS: readonly PublishStep[] = [
       "salePrice",
       "saleEndsAt",
       "brand",
+      "stockQuantity",
     ],
   },
   {

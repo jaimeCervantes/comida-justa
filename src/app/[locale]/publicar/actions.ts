@@ -23,6 +23,7 @@ import {
   type RouteFieldChange,
   readRouteField,
 } from "~/domain/entities/post/routeFile";
+import { parseStockField, stockUpdate } from "~/domain/entities/post/stock";
 import { resolveKeyStrict } from "~/domain/entities/post/taxonomy";
 import type { User } from "~/domain/entities/post/types";
 import { parseDateTimeLocalInTimeZone } from "~/domain/schedule/localDateTime";
@@ -274,6 +275,13 @@ export async function createPost(
   const promotionError = validatePromotion({ price, salePrice, saleEndsAt });
   /* La marca, también solo en lo que se cobra; vacía es «sin marca». */
   const brand = requiresPrice ? normalizeBrand(formData.get("brand")) : null;
+  /* Las existencias, solo en un producto. Vacío es «no llevo inventario»; con un número, el
+     inventario decide si nace disponible. */
+  const stock =
+    kind === "producto"
+      ? parseStockField(formData.get("stockQuantity"))
+      : { quantity: null, error: undefined };
+  const stockFields = stockUpdate(stock.quantity ?? null);
 
   // Fuera del catálogo se ignora (queda `null`) en vez de romper la publicación.
   const taxonomy = await getCategoryTaxonomy();
@@ -323,6 +331,7 @@ export async function createPost(
     brand: validateBrand(brand)
       ? t("errorBrandTooLong", { max: BRAND_MAX_LENGTH })
       : null,
+    stockQuantity: stock.error ? t("errorStockInvalid") : null,
     origin: kind !== "producto" || origin ? null : t("errorOriginRequired"),
     content: content ? null : t("errorContentRequired"),
     phone: phone ? null : t("errorPhoneRequired"),
@@ -358,6 +367,8 @@ export async function createPost(
       salePrice,
       saleEndsAt,
       brand,
+      stockQuantity: stockFields.stockQuantity,
+      isAvailable: stockFields.isAvailable ?? true,
       kind,
       origin,
       category,

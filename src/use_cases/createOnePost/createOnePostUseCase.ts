@@ -70,6 +70,8 @@ export default class CreateOnePostUseCase {
       salePrice: postInfo.salePrice ?? null,
       saleEndsAt: postInfo.saleEndsAt ?? null,
       brand: postInfo.brand ?? null,
+      stockQuantity: postInfo.stockQuantity ?? null,
+      isAvailable: postInfo.isAvailable ?? true,
       kind: postInfo.kind ?? "anuncio",
       /* Se copian campo por campo, así que lo que no se nombra aquí no llega a la base. Las fechas
          de un evento y la duración de un servicio faltaban: el validador las exigía y luego se
