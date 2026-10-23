@@ -214,6 +214,35 @@ está mirando.
 6. Con JavaScript apagado, el `<form>` sigue funcionando con Enter en las tres pantallas.
 7. Pedidos sigue comportándose exactamente igual: su suite entera vuelve a pasar.
 
+### Slice 8 — Las existencias al publicar y al editar (2026-10-22)
+
+- **Problem:** las existencias solo se cambian desde la tarjeta. Quien edita una publicación —el
+  lugar donde corrige todo lo demás— no las encuentra, y quien publica un producto nuevo no puede
+  darle piezas desde el primer día. Desde el 2026-10-22 eso pesa más: el carrusel y la lista de
+  ofertas **solo anuncian lo que tiene piezas registradas**
+  (`docs/features/commerce/032-2026-10-21-ofertas-en-portada.md`).
+- **Savings:** un paso en vez de dos (guardar y luego buscar la tarjeta), y un producto en
+  promoción que entra a las ofertas desde que se publica.
+- **Why:** el inventario solo se mantiene si mantenerlo es barato, y el formulario es donde ya se
+  mantiene todo lo demás.
+
+Decisiones del usuario:
+
+- **Al publicar y al editar**, solo en productos (`canTrackStock`): un servicio no se cuenta en
+  piezas.
+- **Vacío es «no llevo inventario»** (`stock_quantity` nulo). Es la única forma de dejar de contar,
+  que la tarjeta no ofrece. El formulario avisa que sin piezas registradas el producto no sale en
+  las ofertas.
+
+Modelo: el mismo de la tarjeta (slice 4). `parseStockQuantity` valida, y con un número el
+inventario manda sobre la disponibilidad (`availabilityForStock`: 0 la marca agotada, más de 0 la
+enciende). Vacío deja la disponibilidad como esté: vuelve el interruptor manual.
+
+**Acepta cuando:** los escenarios `@slice-8` pasan, con pruebas del caso de uso de editar
+(número, vacío, inválido, y un servicio que no se cuenta) y de publicar.
+
+**Estado:** terminado el 2026-10-22; ver la bitácora.
+
 ## Riesgos
 
 - **La base es compartida.** La migración la administra Alembic en el backend Python
