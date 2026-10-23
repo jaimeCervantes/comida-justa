@@ -55,6 +55,13 @@ export interface PostContentUpdate {
   saleEndsAt: Date | null;
   /** Ya normalizada (`normalizeBrand`). Nula = sin marca: así se quita. */
   brand: string | null;
+  /** Las existencias que quedan. Nulas = no se lleva inventario. */
+  stockQuantity: number | null;
+  /**
+   * La disponibilidad que se deriva de ellas (`stockUpdate`), o `null` para dejar la que haya: sin
+   * inventario manda el interruptor manual.
+   */
+  isAvailable: boolean | null;
   /** Ya resuelta contra el rol de quien edita: el gate de admin vive en la capa de aplicación. */
   origin: string | null;
   category: string | null;

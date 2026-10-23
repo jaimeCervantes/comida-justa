@@ -216,6 +216,65 @@ describe("UpdateOnePostUseCase", () => {
     expect(repository.updates[0]).toMatchObject({ brand: null });
   });
 
+  /* Slice 8 de `docs/features/commerce/004-2026-09-03-inventario-de-existencias.md`: la corrida de
+     escritorio de `inventario.feature`. */
+  it.each([
+    [
+      "5 → 12: queda disponible",
+      5,
+      12,
+      { stockQuantity: 12, isAvailable: true },
+    ],
+    ["5 → 0: queda agotado", 5, 0, { stockQuantity: 0, isAvailable: false }],
+    [
+      "5 → vacío: deja de contar, la disponibilidad como esté",
+      5,
+      null,
+      { stockQuantity: null, isAvailable: null },
+    ],
+    [
+      "sin inventario → 3: empieza a contar",
+      null,
+      3,
+      { stockQuantity: 3, isAvailable: true },
+    ],
+  ] as const)("existencias %s", async (_caso, antes, escribo, guarda) => {
+    repository = new FakePostAdminRepository([
+      { ...jugoVerde, stockQuantity: antes },
+    ]);
+    useCase = new UpdateOnePostUseCase(repository, new PostValidator());
+
+    await useCase.execute({ ...edit, stockQuantity: escribo });
+
+    expect(repository.updates[0]).toMatchObject(guarda);
+  });
+
+  it("sin el campo de existencias no las toca: otro llamador no borra el inventario", async () => {
+    repository = new FakePostAdminRepository([
+      { ...jugoVerde, stockQuantity: 5 },
+    ]);
+    useCase = new UpdateOnePostUseCase(repository, new PostValidator());
+
+    await useCase.execute({ ...edit });
+
+    expect(repository.updates[0]).toMatchObject({
+      stockQuantity: 5,
+      isAvailable: null,
+    });
+  });
+
+  it("un anuncio no se cuenta en piezas aunque le manden existencias", async () => {
+    repository = new FakePostAdminRepository([anuncio]);
+    useCase = new UpdateOnePostUseCase(repository, new PostValidator());
+
+    await useCase.execute({ ...edit, slug: anuncio.slug, stockQuantity: 9 });
+
+    expect(repository.updates[0]).toMatchObject({
+      stockQuantity: anuncio.stockQuantity,
+      isAvailable: null,
+    });
+  });
+
   it("avisa que el texto NO cambió, para no gastar una llamada al proveedor", async () => {
     const result = await useCase.execute({
       ...edit,

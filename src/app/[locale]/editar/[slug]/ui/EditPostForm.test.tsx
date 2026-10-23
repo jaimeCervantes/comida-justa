@@ -20,6 +20,7 @@ const EVENT_POST: EditablePostValues = {
   salePrice: null,
   saleEndsAt: null,
   brand: null,
+  stockQuantity: null,
   kind: "evento",
   origin: null,
   category: null,
@@ -194,5 +195,26 @@ describe("EditPostForm — campos por tipo", () => {
     expect(
       screen.queryByRole("combobox", { name: /de dónde viene/i }),
     ).not.toBeInTheDocument();
+  });
+});
+
+/** Slice 8 de `docs/features/commerce/004-2026-09-03-inventario-de-existencias.md`. */
+describe("EditPostForm — existencias", () => {
+  it("un producto edita sus existencias, con las que tiene guardadas", () => {
+    renderForm({ ...PRODUCT_POST, stockQuantity: 5 });
+
+    expect(screen.getByLabelText(/existencias/i)).toHaveValue(5);
+  });
+
+  it("un producto sin inventario deja el campo vacío, no en cero", () => {
+    renderForm({ ...PRODUCT_POST, stockQuantity: null });
+
+    expect(screen.getByLabelText(/existencias/i)).toHaveValue(null);
+  });
+
+  it("un servicio no se cuenta en piezas: no ofrece existencias", () => {
+    renderForm(SERVICE_POST);
+
+    expect(screen.queryByLabelText(/existencias/i)).not.toBeInTheDocument();
   });
 });

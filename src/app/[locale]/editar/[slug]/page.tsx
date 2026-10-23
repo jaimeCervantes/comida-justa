@@ -73,6 +73,7 @@ export default async function EditarPage({
         salePrice: post.salePrice,
         saleEndsAt: post.saleEndsAt,
         brand: post.brand,
+        stockQuantity: post.stockQuantity,
         kind: post.kind,
         origin: post.origin,
         category: post.category,

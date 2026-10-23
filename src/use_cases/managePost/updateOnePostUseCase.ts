@@ -9,6 +9,7 @@ import {
   SELLABLE_KINDS,
   SERVICE_KIND,
 } from "~/domain/entities/post/kind";
+import { canTrackStock, stockUpdate } from "~/domain/entities/post/stock";
 import type {
   IPostValidator,
   PostMediaFile,
@@ -41,6 +42,11 @@ export interface UpdateOnePostInput {
   saleEndsAt?: Date | null;
   /** La marca, como la escribió quien edita. Vacía o ausente = sin marca: así se quita. */
   brand?: string | null;
+  /**
+   * Las existencias del formulario. `null` = dejar de llevar inventario; **ausente = no tocarlas**,
+   * para que otro llamador no borre el inventario por no mandarlo.
+   */
+  stockQuantity?: number | null;
   /**
    * Los archivos que la publicación tendrá al guardar, en orden. Lista completa, no un delta.
    *
@@ -122,6 +128,12 @@ export default class UpdateOnePostUseCase {
     const saleEndsAt = sellable ? (input.saleEndsAt ?? null) : null;
     /* La marca, también solo en lo que se vende: un anuncio o un evento no tienen marca. */
     const brand = sellable ? normalizeBrand(input.brand) : null;
+    /* Solo un producto se cuenta en piezas. Con un número, el inventario manda sobre «agotado»; sin
+       él, vuelve el interruptor manual. Ver `stockUpdate`. */
+    const stock =
+      canTrackStock(post) && input.stockQuantity !== undefined
+        ? stockUpdate(input.stockQuantity)
+        : { stockQuantity: post.stockQuantity, isAvailable: null };
 
     // Se valida con las mismas reglas que al publicar: un producto sigue necesitando precio y
     // procedencia. `kind` no viaja en el formulario —editar no cambia lo que la publicación es—,
@@ -158,6 +170,8 @@ export default class UpdateOnePostUseCase {
       salePrice,
       saleEndsAt,
       brand,
+      stockQuantity: stock.stockQuantity,
+      isAvailable: stock.isAvailable,
       origin,
       category: input.category,
       subCategory: input.subCategory,

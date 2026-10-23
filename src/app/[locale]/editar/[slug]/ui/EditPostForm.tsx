@@ -30,6 +30,7 @@ import RouteFileField, {
   type ExistingRoute,
 } from "~/presentation/post/RouteFileField/RouteFileField";
 import SalePriceFields from "~/presentation/post/SalePriceFields/SalePriceFields";
+import StockField from "~/presentation/post/StockField/StockField";
 import { usePostValidationMessages } from "~/presentation/post/usePostValidationMessages";
 import type { EditPostState } from "../actions";
 
@@ -42,6 +43,8 @@ export type EditablePostValues = {
   salePrice: number | null;
   saleEndsAt: Date | string | null;
   brand: string | null;
+  /** Nulas = no lleva inventario. */
+  stockQuantity: number | null;
   kind: string;
   origin: string | null;
   category: string | null;
@@ -307,6 +310,12 @@ export default function EditPostForm({
               errors={state.errors}
             />
             <BrandField brand={post.brand} error={state.errors?.brand} />
+            {isProduct ? (
+              <StockField
+                stockQuantity={post.stockQuantity}
+                error={state.errors?.stockQuantity}
+              />
+            ) : null}
           </>
         ) : null}
 
