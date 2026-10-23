@@ -622,3 +622,58 @@ buscador de pedidos y la regla del término. Todo verde: 2644 unitarias y 105 e2
 
 **Pendiente de tu parte:** elegir. Y sigue en pie lo del backend: la migración `0048` vive sólo en
 `feat/post-stock-quantity` mientras la base compartida ya está en ella.
+
+## 2026-10-22 — Slice 8: las existencias al publicar y al editar
+
+### Objetivo
+
+Lo pidió el usuario: al editar una publicación no se podían cambiar las existencias, solo desde la
+tarjeta. Desde el mismo día pesa más, porque el carrusel y la lista de ofertas solo anuncian lo que
+tiene piezas registradas.
+
+### Decisiones
+
+- **Del usuario:** el campo va al publicar y al editar, y **vacío es «no llevo inventario»**
+  (`stock_quantity` nulo). Es la única forma de dejar de contar, que la tarjeta no ofrece.
+- **Solo en productos** (`canTrackStock`): un servicio no se cuenta en piezas.
+- **La misma regla que la tarjeta**, en el dominio (`stock.ts`):
+  - `parseStockField` acepta el vacío y valida igual que `parseStockQuantity`.
+  - `stockUpdate` deriva la disponibilidad: 0 la marca agotada y más de 0 la enciende. Sin número
+    devuelve `null`, y el repositorio deja `is_available` como esté
+    (`COALESCE(${isAvailable}, is_available)`): vuelve a mandar el interruptor manual.
+- **En el caso de uso de editar, ausente no es nulo:** sin el campo, las existencias no se tocan,
+  para que otro llamador no borre el inventario por no mandarlo. Nulo sí es dejar de contar.
+- **Al publicar**, con un número el producto nace disponible o agotado según él; sin número, nace
+  disponible como siempre.
+- **`StockField`** (`presentation/post/`), compartido por los dos formularios, con un aviso: sin
+  piezas registradas el producto no sale en las ofertas, y con 0 queda agotado. El navegador frena un
+  negativo o un decimal (`min`, `step`) con la misma frase que devuelve el servidor.
+
+### Archivos
+
+- Dominio: `entities/post/stock.ts` (+ pruebas).
+- Editar: `managePost` (puerto y caso de uso, + pruebas), `PostgresPostAdminRepository`, la acción,
+  la página y el formulario de `/editar` (+ pruebas).
+- Publicar: la acción, `PublishForm`, `publishSteps` (+ prueba), `createOnePost` (+ prueba),
+  `PostgresPostRepository` y `Actions.d.ts`.
+- `presentation/post/StockField`. Mensajes `publish.stockQuantity`, `stockHint` y
+  `errorStockInvalid` en es y en.
+- e2e: `inventory/existenciasEnFormularios.spec.ts`, y `PublishProductPage` ahora sabe llenar las
+  existencias.
+
+### Validación
+
+- Suite completa de vitest: 350 archivos y 3708 pruebas en verde. `tsc`, `typecheck:tests` y
+  `biome check .` limpios.
+- e2e `inventory`, `editPublicationTypes`, `publishProduct` y `createPost` en 4 tramos, con `.next`
+  borrado antes de cada uno: 52 en verde y 1 saltado, que ya estaba saltado (53).
+
+### Recap
+
+Las existencias se cambian al editar y se ponen al publicar, con la misma regla que la tarjeta.
+Vaciar el campo deja de contar. Un servicio no ofrece el campo.
+
+### Próximos pasos (opciones)
+
+- Commit, merge a `dev` y push.
+

@@ -22,6 +22,7 @@ import {
   type RouteFieldChange,
   readRouteField,
 } from "~/domain/entities/post/routeFile";
+import { parseStockField } from "~/domain/entities/post/stock";
 import { resolveKeyStrict } from "~/domain/entities/post/taxonomy";
 import type { User } from "~/domain/entities/post/types";
 import { parseDateTimeLocalInTimeZone } from "~/domain/schedule/localDateTime";
@@ -57,6 +58,7 @@ export type EditPostState = {
     salePrice?: string | null;
     saleEndsAt?: string | null;
     brand?: string | null;
+    stockQuantity?: string | null;
     origin?: string | null;
     phone?: string | null;
     /** Lo que le pasa al `.gpx`: el mismo campo que ya existía al publicar. */
@@ -188,6 +190,11 @@ export async function updatePost(
   const promotionError = validatePromotion({ price, salePrice, saleEndsAt });
   /* La marca, también solo en lo que se cobra. Vacía es «sin marca»: borrarla es quitarla. */
   const brand = requiresPrice ? normalizeBrand(formData.get("brand")) : null;
+  /* Las existencias, solo en un producto. Vacío es «no llevo inventario». */
+  const stock =
+    kind === "producto"
+      ? parseStockField(formData.get("stockQuantity"))
+      : { quantity: undefined, error: undefined };
 
   /* El recorrido, sólo en un evento. En cualquier otro tipo el campo ni se pinta, así que lo que
      llegara ahí vendría de un formulario manipulado y se ignora en vez de guardarse. */
@@ -221,6 +228,7 @@ export async function updatePost(
     brand: validateBrand(brand)
       ? tPublish("errorBrandTooLong", { max: BRAND_MAX_LENGTH })
       : null,
+    stockQuantity: stock.error ? tPublish("errorStockInvalid") : null,
     origin:
       kind !== "producto" || origin ? null : tPublish("errorOriginRequired"),
     phone: phone ? null : tPublish("errorPhoneRequired"),
@@ -241,6 +249,7 @@ export async function updatePost(
     salePrice,
     saleEndsAt,
     brand,
+    stockQuantity: stock.quantity,
     origin,
     category,
     subCategory,

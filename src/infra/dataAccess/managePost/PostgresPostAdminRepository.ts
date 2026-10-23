@@ -143,6 +143,9 @@ export class PostgresPostAdminRepository implements IPostAdminRepository {
             sale_price   = ${update.salePrice},
             sale_ends_at = ${update.saleEndsAt},
             brand        = ${update.brand},
+            stock_quantity = ${update.stockQuantity},
+            /* Nula = dejar la que haya: sin inventario manda el interruptor manual. */
+            is_available = COALESCE(${update.isAvailable}, is_available),
             contact_phone = ${update.contactPhone},
             origin       = ${update.origin},
             category     = ${update.category},

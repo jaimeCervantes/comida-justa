@@ -6,6 +6,7 @@ export type ActionState = Partial<{
     salePrice: string | null;
     saleEndsAt: string | null;
     brand: string | null;
+    stockQuantity: string | null;
     origin: string | null;
     phone: string | null;
     content: string | null;
