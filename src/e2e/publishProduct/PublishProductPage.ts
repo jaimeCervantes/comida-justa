@@ -15,6 +15,8 @@ type PublishProductValues = {
    * un vendedor ve las tres de la comunidad. Un anuncio no la pregunta, así que se omite.
    */
   origin?: string;
+  /** Las existencias, solo en un producto. Sin ellas, el campo se deja vacío. */
+  stockQuantity?: string;
 };
 
 /**
@@ -57,6 +59,11 @@ export default class PublishProductPage {
         // redacta de nuevo cada vez que se afina el tono. El id es el contrato del campo.
         .locator("#origin")
         .selectOption(values.origin);
+    }
+    if (values.stockQuantity !== undefined) {
+      await this.page
+        .getByRole("spinbutton", { name: /existencias/i })
+        .fill(values.stockQuantity);
     }
 
     await openPublishStep(this.page, "phone");

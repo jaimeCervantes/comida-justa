@@ -383,3 +383,41 @@ Feature: Inventario de existencias
     Given un producto mío aparece en los resultados de búsqueda
     When guardo un nuevo número de existencias desde su tarjeta
     Then una búsqueda nueva arranca mostrando ese mismo número
+
+  # ---------------------------------------------------------------------------------------------
+  # Slice 8 — Las existencias al publicar y al editar
+  # ---------------------------------------------------------------------------------------------
+
+  # Lo pidió el usuario el 2026-10-22: al editar no se podían cambiar las existencias, solo desde la
+  # tarjeta. Vacío es «no llevo inventario», y el formulario lo usa con la misma regla que la tarjeta.
+
+  @slice-8
+  Scenario Outline: El vendedor cambia las existencias al editar un producto
+    Given un producto mío "Miel de abeja 500 g" a 180 con <antes> existencias
+    When lo edito y dejo el campo de existencias en "<escribo>"
+    Then el producto queda con <despues> existencias y <estado>
+
+    Examples: el número manda sobre «agotado»; vacío es dejar de contar
+      | antes | escribo | despues          | estado            |
+      | 5     | 12      | 12               | disponible        |
+      | 5     | 0       | 0                | marcado agotado   |
+      | 5     |         | sin inventario   | como estaba       |
+      | nulo  | 3       | 3                | disponible        |
+
+  @slice-8
+  Scenario: Un número inválido no se guarda
+    Given un producto mío "Miel de abeja 500 g" a 180 con 5 existencias
+    When lo edito y dejo el campo de existencias en "-2"
+    Then el formulario dice que las existencias deben ser un número entero de cero o más
+    And el producto sigue con 5 existencias
+
+  @slice-8
+  Scenario: Un producto nuevo se publica con existencias
+    When publico el producto "Miel de abeja 500 g" a 180 con 10 existencias
+    Then el producto queda con 10 existencias y disponible
+
+  @slice-8 @component
+  Scenario: Un servicio no tiene campo de existencias
+    When edito un servicio mío
+    Then el formulario no ofrece existencias
+
