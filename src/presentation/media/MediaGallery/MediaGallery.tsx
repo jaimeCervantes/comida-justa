@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useCallback, useRef, useState } from "react";
+import { type ReactNode, useCallback, useRef, useState } from "react";
 import { MdChevronLeft, MdChevronRight } from "react-icons/md";
 import { cn } from "~/presentation/design_system/styling/merge-class-names";
 import MediaContent, {
@@ -25,6 +25,7 @@ export default function MediaGallery({
   items,
   className,
   preload = false,
+  overlay,
 }: {
   items: readonly MediaItem[];
   className?: string;
@@ -36,6 +37,14 @@ export default function MediaGallery({
    * no la llevan: son de 64 px y están al lado, no delante.
    */
   preload?: boolean;
+  /**
+   * Lo que se lee sobre la foto grande, como el cintillo de una promoción. Va en la foto y no en la
+   * galería entera: posicionado contra todo, abajo caería entre las miniaturas.
+   *
+   * Con un solo archivo, `className` pasa a la envoltura: sobre la foto, un margen suyo dejaría el
+   * cintillo flotando en el hueco de abajo.
+   */
+  overlay?: ReactNode;
 }) {
   const t = useTranslations("post");
   const [active, setActive] = useState(0);
@@ -59,17 +68,28 @@ export default function MediaGallery({
     [items.length],
   );
 
-  if (items.length === 0)
-    return <MediaContent media={undefined} className={className} />;
+  if (items.length <= 1) {
+    /* Sin nada encima no gana envoltura: las publicaciones de un archivo se quedan como estaban. */
+    const contentClassName = overlay ? undefined : className;
+    const content =
+      items.length === 0 ? (
+        <MediaContent media={undefined} className={contentClassName} />
+      ) : (
+        <MediaContent
+          media={items[0]}
+          className={contentClassName}
+          preload={preload}
+          fetchPriority={preload ? "high" : undefined}
+        />
+      );
 
-  if (items.length === 1) {
+    if (!overlay) return content;
+
     return (
-      <MediaContent
-        media={items[0]}
-        className={className}
-        preload={preload}
-        fetchPriority={preload ? "high" : undefined}
-      />
+      <div className={cn("relative", className)}>
+        {content}
+        {overlay}
+      </div>
     );
   }
 
@@ -113,6 +133,8 @@ export default function MediaGallery({
           label={t("galleryNext")}
           onClick={() => show(active + 1)}
         />
+
+        {overlay}
       </div>
 
       <div className="mt-2 flex flex-wrap items-center gap-2">

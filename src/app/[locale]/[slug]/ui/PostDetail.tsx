@@ -33,6 +33,7 @@ import OpenStoreHint from "~/presentation/post/OpenStoreHint";
 import PostReactionButton from "~/presentation/post/PostReaction/PostReactionButton";
 import PracticeCover from "~/presentation/post/PracticeCover/PracticeCover";
 import PromotionPrice from "~/presentation/post/PromotionPrice/PromotionPrice";
+import PromotionRibbon from "~/presentation/post/PromotionRibbon/PromotionRibbon";
 import ProvenanceBadge, {
   showsProvenanceBadge,
 } from "~/presentation/post/ProvenanceBadge";
@@ -302,7 +303,21 @@ export default async function PostDetail({
           className="mb-4 h-72"
         />
       ) : (
-        <MediaGallery items={media} className="mb-4" preload />
+        <MediaGallery
+          items={media}
+          className="mb-4"
+          preload
+          /* El mismo cintillo que la tarjeta y en la misma esquina: quien entra desde una oferta
+             tiene que seguir viéndola en la foto, que es lo primero que mira aquí también. */
+          overlay={
+            <PromotionRibbon
+              price={price}
+              salePrice={salePrice}
+              saleEndsAt={saleEndsAt}
+              className="absolute bottom-2 left-0"
+            />
+          }
+        />
       )}
 
       {/* Todo lo que se mira para decidir, en un solo bloque bajo la imagen: de quién es, qué es, a

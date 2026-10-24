@@ -168,3 +168,42 @@ describe("MediaGallery — con varios archivos", () => {
     expect(container.querySelector("video[controls]")).not.toBeNull();
   });
 });
+
+describe("MediaGallery — lo que va encima de la foto", () => {
+  const overlay = <span data-testid="overlay">Promoción · -20%</span>;
+
+  it.each([0, 1, 3])("lo pinta una sola vez con %i archivos", (count) => {
+    renderWithIntl(<MediaGallery items={images(count)} overlay={overlay} />);
+
+    expect(screen.getAllByTestId("overlay")).toHaveLength(1);
+  });
+
+  it("va en la foto grande, no entre las miniaturas", () => {
+    renderWithIntl(<MediaGallery items={images(3)} overlay={overlay} />);
+
+    const thumbnails = screen.getAllByTestId("media-gallery-thumbnail");
+    const row = thumbnails[0].parentElement;
+
+    expect(row?.contains(screen.getByTestId("overlay"))).toBe(false);
+    expect(screen.getByTestId("overlay").parentElement?.className).toContain(
+      "relative",
+    );
+  });
+
+  it("sin nada encima, un solo archivo se pinta como antes", () => {
+    renderWithIntl(<MediaGallery items={images(1)} className="mb-4" />);
+
+    expect(screen.getByRole("img").className).toContain("mb-4");
+  });
+
+  it("con algo encima, el espacio de afuera lo lleva la envoltura y no la foto", () => {
+    renderWithIntl(
+      <MediaGallery items={images(1)} className="mb-4" overlay={overlay} />,
+    );
+
+    expect(screen.getByRole("img").className).not.toContain("mb-4");
+    expect(screen.getByTestId("overlay").parentElement?.className).toContain(
+      "mb-4",
+    );
+  });
+});
