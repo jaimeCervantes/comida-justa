@@ -12,7 +12,7 @@ import {
 import { testSlug } from "../testUtils/testSlug";
 
 /**
- * Slices 1 a 4 de `docs/features/commerce/031-2026-10-20-promociones.md`. Escenarios en
+ * Slices 1 a 5 de `docs/features/commerce/031-2026-10-20-promociones.md`. Escenarios en
  * `promociones.feature`.
  *
  * La tienda se siembra con handle fijo y se borra antes y después de cada prueba, igual que en
@@ -360,5 +360,53 @@ test.describe("El precio de oferta para los buscadores", () => {
         priceValidUntil: "2030-11-30",
       },
     });
+  });
+});
+
+test.describe("El cintillo de la promoción en la ficha", () => {
+  /**
+   * El cintillo cae dentro de la foto grande. Se mide contra la caja de la imagen y no contra una
+   * envoltura: lo que promete el escenario es que se lee sobre la foto, no cómo se arma.
+   */
+  async function expectRibbonOverPhoto(page: Page): Promise<void> {
+    const detail = page.getByTestId("post-detail");
+    const ribbon = detail.getByTestId("promotion-ribbon");
+
+    await expect(ribbon).toHaveText("Promoción · -17%");
+
+    const ribbonBox = await ribbon.boundingBox();
+    const photoBox = await detail.locator("img").first().boundingBox();
+
+    expect(ribbonBox).not.toBeNull();
+    expect(photoBox).not.toBeNull();
+    if (!ribbonBox || !photoBox) return;
+
+    expect(ribbonBox.y).toBeGreaterThanOrEqual(photoBox.y);
+    expect(ribbonBox.y + ribbonBox.height).toBeLessThanOrEqual(
+      photoBox.y + photoBox.height,
+    );
+  }
+
+  test("La foto de la ficha lleva el cintillo de la promoción", async ({
+    page,
+  }) => {
+    await setPromotion(150);
+
+    await page.goto(`/${miel.slug}`);
+
+    await expectRibbonOverPhoto(page);
+  });
+
+  test("La ficha no anuncia en la foto una promoción vencida", async ({
+    page,
+  }) => {
+    await setPromotion(150, new Date(Date.now() - DAY_MS));
+
+    await page.goto(`/${miel.slug}`);
+
+    const detail = page.getByTestId("post-detail");
+
+    await expect(detail).toContainText("180");
+    await expect(detail.getByTestId("promotion-ribbon")).toHaveCount(0);
   });
 });

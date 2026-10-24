@@ -90,3 +90,15 @@ Feature: Promociones con precio rebajado
   Scenario: Los buscadores reciben el precio de oferta
     Given "Miel de abeja 500 g" tiene precio de promoción 150 que termina el 2030-11-30 a las 23:00
     Then el JSON-LD de la ficha declara price 150 y priceValidUntil 2030-11-30
+
+  @slice-5
+  Scenario: La foto de la ficha lleva el cintillo de la promoción
+    Given "Miel de abeja 500 g" tiene precio de promoción 150
+    When un visitante abre la ficha de "Miel de abeja 500 g"
+    Then la foto de la ficha lleva el cintillo "Promoción · -17%"
+
+  @slice-5
+  Scenario: La ficha no anuncia en la foto una promoción vencida
+    Given "Miel de abeja 500 g" tuvo precio de promoción 150 que terminó ayer
+    When un visitante abre la ficha de "Miel de abeja 500 g"
+    Then la foto de la ficha no lleva cintillo
