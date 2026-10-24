@@ -331,3 +331,47 @@ cobra.
 - Correr `pnpm run import:catalog -- --sync --dry-run` con el próximo catálogo para ver el renglón
   «promociones a quitar».
 - Declarar el precio tachado en el JSON-LD, si se quiere el precio de referencia en Google.
+
+## 2026-10-23 — Slice 5: el cintillo en la foto de la ficha
+
+**Objetivo:** que la ficha anuncie la promoción sobre la foto, como la tarjeta. Quien entraba desde
+una tarjeta con «Promoción · -20%» llegaba a una foto sin aviso y solo veía la oferta si leía el
+precio tachado.
+
+### Decisiones
+
+- Se reutiliza `PromotionRibbon` tal cual, en la misma esquina que en la tarjeta
+  (`absolute bottom-2 left-0`). Sin componente nuevo.
+- `MediaGallery` gana un `overlay` que se pinta **sobre la foto grande**, no sobre la galería entera:
+  posicionado contra todo, el cintillo caía entre las miniaturas. Con un solo archivo y sin `overlay`
+  el marcado no cambia. Con `overlay`, el `className` pasa a la envoltura, porque un margen en la
+  foto dejaba el cintillo flotando en el hueco de abajo.
+- La vigencia se sigue decidiendo en el cliente, contra el reloj de quien mira, igual que en la
+  tarjeta.
+- El e2e mide que el cintillo caiga dentro de la caja de la imagen, en vez de exigir una envoltura
+  concreta: lo que promete el escenario es que se lee sobre la foto.
+
+### Archivos
+
+- `src/presentation/media/MediaGallery/MediaGallery.tsx` y su prueba (cinco casos nuevos).
+- `src/app/[locale]/[slug]/ui/PostDetail.tsx`.
+- `src/e2e/promociones/promociones.feature` y `promociones.spec.ts` (dos escenarios `@slice-5`).
+- Roadmap `031-2026-10-20-promociones.md`.
+
+### Validación
+
+- e2e `src/e2e/promociones/promociones.spec.ts`: 15 de 15 en verde. Antes del cambio, el escenario
+  del cintillo fallaba («element(s) not found»).
+- Suite completa de vitest: 350 archivos y 3714 pruebas en verde. `tsc`, `typecheck:tests` y
+  `biome check .` limpios.
+
+### Recap
+
+La oferta se anuncia igual en el listado y en la ficha: el mismo cintillo, en la misma esquina de la
+foto, y se calla cuando la promoción venció.
+
+### Próximos pasos (opciones)
+
+- Abrir la ficha de un smoothie de Amorasana en el teléfono para ver que el cintillo no tape nada en
+  fotos con fondo claro.
+- Mergear `feat/cintillo-en-detalle` a `dev` cuando el usuario lo apruebe.
