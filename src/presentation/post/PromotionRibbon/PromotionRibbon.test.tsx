@@ -37,4 +37,27 @@ describe("PromotionRibbon", () => {
 
     expect(container).toBeEmptyDOMElement();
   });
+
+  it("en la esquina se lee igual, en una banda dentro de un marco que la recorta", () => {
+    render(<PromotionRibbon price={75} salePrice={60} variant="corner" />);
+
+    const ribbon = screen.getByTestId("promotion-ribbon");
+
+    expect(ribbon).toHaveTextContent("Promoción · -20%");
+    /* El marco recorta la banda: sin esto, lo girado se sale de la foto. */
+    expect(ribbon.className).toContain("overflow-hidden");
+  });
+
+  it("vencida tampoco pinta la esquina", () => {
+    const { container } = render(
+      <PromotionRibbon
+        price={75}
+        salePrice={60}
+        saleEndsAt="2026-10-20T12:00:00Z"
+        variant="corner"
+      />,
+    );
+
+    expect(container).toBeEmptyDOMElement();
+  });
 });

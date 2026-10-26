@@ -307,14 +307,14 @@ export default async function PostDetail({
           items={media}
           className="mb-4"
           preload
-          /* El mismo cintillo que la tarjeta y en la misma esquina: quien entra desde una oferta
-             tiene que seguir viéndola en la foto, que es lo primero que mira aquí también. */
+          /* Quien entra desde una oferta tiene que seguir viéndola en la foto, que es lo primero que
+             mira aquí también. En diagonal y arriba: en la ficha esa esquina está libre. */
           overlay={
             <PromotionRibbon
               price={price}
               salePrice={salePrice}
               saleEndsAt={saleEndsAt}
-              className="absolute bottom-2 left-0"
+              variant="corner"
             />
           }
         />

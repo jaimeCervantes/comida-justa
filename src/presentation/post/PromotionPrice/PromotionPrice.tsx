@@ -1,5 +1,3 @@
-"use client";
-
 import { useFormatter, useTranslations } from "next-intl";
 import { currentPrice } from "~/domain/entities/post/promotion";
 import { Badge } from "~/presentation/design_system/badges/Badge";
