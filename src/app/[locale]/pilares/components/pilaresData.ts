@@ -5,7 +5,6 @@
  * —añadir un pilar es editar esta lista— y la redacción es traducción. Cada pilar apunta a su
  * clave del catálogo y el texto lo pone quien traduce.
  */
-import type { HabitChallengeExperienceKey } from "~/domain/habits/habitChallengeExperiences";
 import type { PillarKey } from "~/domain/pillars/pillarKey";
 
 /** Reexportada: el tipo vive en el dominio desde que la tabla `pillars` y su caso de uso lo usan. */
@@ -27,23 +26,13 @@ export const PILLARS: PillarData[] = [
 ];
 
 /**
- * El mismo pilar visto desde el reto (`mind`) y desde la presentación (`mindSpirit`).
- *
- * Son dos vocabularios de verdad —el dominio de hábitos nombra el reto, esta lista nombra el
- * artículo— y solo difieren en el cuarto. Hasta ahora cada página resolvía la equivalencia a mano
- * pasando las dos claves como literales (`challenge="mind"` junto a `pillar="mindSpirit"`), que
- * funciona mientras nadie se equivoque de fila. Escrita una vez, un componente que reciba el reto
- * puede sacar el color sin que quien lo monte tenga que acordarse.
+ * Reexportadas: la equivalencia entre reto y pilar es dominio desde que el repositorio de prácticas
+ * la usa. Ver `src/domain/pillars/pillarByChallenge.ts`.
  */
-export const PILLAR_KEY_BY_CHALLENGE: Record<
-  HabitChallengeExperienceKey,
-  PillarKey
-> = {
-  sleep: "sleep",
-  nutrition: "nutrition",
-  movement: "movement",
-  mind: "mindSpirit",
-};
+export {
+  CHALLENGE_KEY_BY_PILLAR,
+  PILLAR_KEY_BY_CHALLENGE,
+} from "~/domain/pillars/pillarByChallenge";
 
 /**
  * Reexportados: el color vive en `presentation/` desde que una segunda ruta lo pinta. Ver
@@ -53,21 +42,3 @@ export {
   type PillarColorClasses,
   pillarColorClasses,
 } from "~/presentation/habits/pillarColors";
-
-/**
- * El camino de vuelta: de un pilar a su reto.
- *
- * **Se deriva, no se escribe.** `PILLAR_KEY_BY_CHALLENGE` ya es la única fuente de la equivalencia
- * —y existe justamente para que nadie vuelva a emparejarlas a mano—; una segunda tabla escrita en
- * el otro sentido sería la copia que aquella vino a evitar, y se desincronizaría el día que entre un
- * quinto pilar. Lo comprueba `pilaresData.test.ts` recorriendo los cuatro de ida y vuelta.
- *
- * Lo necesita la portada de `/pilares`: el 5.10 pide que cada tarjeta enseñe **su práctica**, y el
- * nombre de la práctica vive bajo la clave del reto (`atomicChallenges.<reto>.title`).
- */
-export const CHALLENGE_KEY_BY_PILLAR = Object.fromEntries(
-  Object.entries(PILLAR_KEY_BY_CHALLENGE).map(([challenge, pillar]) => [
-    pillar,
-    challenge,
-  ]),
-) as Record<PillarKey, HabitChallengeExperienceKey>;

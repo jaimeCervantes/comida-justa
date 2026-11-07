@@ -1,8 +1,8 @@
 import { sql } from "drizzle-orm";
 import { cache } from "react";
-import { PILLAR_KEY_BY_CHALLENGE } from "~/app/[locale]/pilares/components/pilaresData";
 import type { LocalDate } from "~/domain/habits/habitChallenge";
 import { findHabitChallengeExperience } from "~/domain/habits/habitChallengeExperiences";
+import { PILLAR_KEY_BY_CHALLENGE } from "~/domain/pillars/pillarByChallenge";
 import type { PillarKey } from "~/domain/pillars/pillarKey";
 import type {
   PracticeAdoption,
