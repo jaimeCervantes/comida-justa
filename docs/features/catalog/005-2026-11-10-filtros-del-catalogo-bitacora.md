@@ -291,3 +291,61 @@ perfil.
 1. **Slice 5**: búsqueda por palabras en el perfil / «Mis publicaciones».
 2. Abrir el PR de `feat/filtros-catalogo` hacia `dev` (cuando el usuario lo pida).
 3. Pendiente aparte (decide el usuario): volver robusto `tarjetaCompacta.spec.ts:37`.
+
+## 2026-11-11 — Slice 5: búsqueda por palabras en el perfil
+
+### Objetivo
+
+Lo pidió el usuario: «en mi perfil o Mis publicaciones no tiene búsqueda como en mi Tienda».
+«Mis publicaciones» es el mismo `/u/[username]` visto por su dueño, así que un solo buscador sirve
+a los dos.
+
+### Decisiones
+
+- **Un buscador para los listados públicos, no dos copias.** `StoreSearchField` se convierte en
+  `presentation/post/ListingFilters/ListingSearchField`, que recibe la ruta y sus parámetros: busca
+  en el mismo listado, conserva pilar, existencia y promoción (en la dirección y ocultos en el
+  formulario, para Enter sin JavaScript) y vuelve a la página 1. La tienda y el perfil lo montan;
+  el comportamiento de tecleo sigue en `ListSearchField`.
+- **El mismo criterio de palabras que la tienda**: `getPostsByUser` acepta `term` y lo pasa a
+  `getPaginatedPosts`, igual que `getPostsBySeller`.
+- **Buscar y no encontrar ≠ no haber publicado nada**: con término, `profile.nothingFound`. El texto
+  es neutral («estas publicaciones») porque lo lee tanto el visitante como el dueño.
+- **E2E en la cuenta de la suite**, con una dirección prestada y una palabra de la corrida en los
+  títulos, porque esa cuenta puede tener publicaciones de otras pruebas.
+
+### Archivos
+
+- Presentación: `ListingFilters/ListingSearchField.tsx` (nuevo, + test); se borra
+  `tienda/[slug]/ui/StoreSearchField.tsx`.
+- Infra: `IPostQueryRepository.ts`, `PostgresPostQueryRepository.ts` (`getPostsByUser` + `term`).
+- Perfil: `u/[username]/{data.ts,page.tsx,page/[page]/page.tsx,ui/ProfilePublications.tsx}`.
+- Tienda: `ui/StoreCatalog.tsx`.
+- i18n: `profile.nothingFound`, `profile.searchLabel`, `profile.searchPlaceholder` (es/en).
+- E2E: `filtrosDelCatalogo.feature` (slice 5 detallado), `filtrosDelCatalogo/busquedaEnPerfil.spec.ts`
+  (nuevo).
+
+### Comandos y resultados
+
+- `pnpm run test:run` → **3744/3744**, más las 2 nuevas de `ListingSearchField` corridas aparte (verdes).
+- `pnpm run typecheck` → limpio. `pnpm run lint` → 1522 archivos, sin cambios.
+- `pnpm exec playwright test src/e2e/filtrosDelCatalogo src/e2e/busquedaEnTienda
+  src/e2e/inventory/busquedaEnListas.spec.ts src/e2e/inventory/existenciasEnLaTarjeta.spec.ts` en
+  3 tramos: **34/34** (12 + 11 + 11).
+
+### Desviaciones
+
+- Ninguna.
+
+### Recap
+
+Los seis listados comparten pilar, «Solo con existencia» y «En promoción», y los dos listados de
+una persona o negocio (tienda y perfil / «Mis publicaciones») comparten además la búsqueda por
+palabras, que conserva esos filtros. El roadmap de `005-2026-11-10-filtros-del-catalogo.md` está
+completo.
+
+### Próximos pasos (opciones)
+
+1. Abrir el PR de `feat/filtros-catalogo` hacia `dev` (cuando el usuario lo pida).
+2. Pendiente aparte (decide el usuario): volver robusto `tarjetaCompacta.spec.ts:37`, que depende de
+   que la primera proteína de la base compartida tenga existencia.
