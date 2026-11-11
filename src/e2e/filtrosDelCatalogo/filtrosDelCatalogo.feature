@@ -92,16 +92,30 @@ Feature: Un solo conjunto de filtros para todos los listados
     When elijo el pilar "Alimentación" en la barra de arriba
     Then la dirección lleva "pillar=nutrition" y "promocion=1"
 
-  @future @slice-4
-  Scenario Outline: «En promoción» en cada listado
-    When abro "<listado>" y enciendo "En promoción"
-    Then solo aparece lo que tiene una promoción vigente
+  # Una promoción vigente exige piezas registradas: «En promoción» ya deja fuera lo agotado.
 
-    Examples:
-      | listado                         |
-      | /categoria/salsas_y_aderezos    |
-      | /buscar?q=miel                  |
-      | /                               |
+  @slice-4
+  Scenario: En una categoría, «En promoción» deja solo lo que tiene oferta vigente
+    Given en "salsas_y_aderezos", "Salsa macha de cacahuate" baja de 85 a 70 y "Aderezo de chipotle" no tiene oferta
+    When abro la categoría y enciendo "En promoción"
+    Then veo "Salsa macha de cacahuate"
+    And no veo "Aderezo de chipotle"
+    And la dirección lleva "promocion=1"
+
+  @slice-4
+  Scenario: En la búsqueda, «En promoción» es una faceta más y se quita desde el resumen
+    Given "Salsa macha de cacahuate" con oferta y "Aderezo de chipotle" sin ella
+    When busco "salsas_y_aderezos" por el nombre de las dos y enciendo "En promoción"
+    Then solo aparece "Salsa macha de cacahuate"
+    When quito "En promoción" desde el resumen de la búsqueda
+    Then vuelven a aparecer las dos
+
+  @slice-4
+  Scenario: En la tienda, «En promoción» se combina con «Solo con existencia»
+    Given la tienda de prueba con "Mermelada de fresa" en oferta y "Miel de abeja melipona" sin ella, las dos con piezas
+    When abro la tienda con "Solo con existencia" y enciendo "En promoción"
+    Then veo solo "Mermelada de fresa"
+    And la dirección lleva "disponibles=1" y "promocion=1"
 
   @future @slice-5
   Scenario: El perfil se busca por palabras, como la tienda

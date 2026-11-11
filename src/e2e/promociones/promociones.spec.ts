@@ -297,13 +297,10 @@ test.describe("El filtro «En promoción» de los productos", () => {
     await setPromotion(150);
 
     await page.goto("/productos");
-    await page.getByTestId("products-on-sale-filter").click();
+    await onSaleChip(page).click();
     await page.waitForURL(/[?&]promocion=1/);
 
-    await expect(page.getByTestId("products-on-sale-filter")).toHaveAttribute(
-      "aria-pressed",
-      "true",
-    );
+    await expect(onSaleChip(page)).toHaveAttribute("aria-pressed", "true");
 
     /* Lo filtrado se mira dentro de la tienda de prueba (`?tienda=`): en la base compartida ya hay
        tantas ofertas reales que la miel podía caer fuera de la primera página. La panela, de la
@@ -325,10 +322,7 @@ test.describe("El filtro «En promoción» de los productos", () => {
 
     await page.goto("/productos?promocion=1");
 
-    await expect(page.getByTestId("products-on-sale-filter")).toHaveAttribute(
-      "aria-pressed",
-      "true",
-    );
+    await expect(onSaleChip(page)).toHaveAttribute("aria-pressed", "true");
     await expect(
       page.locator("article").filter({ hasText: miel.title }),
     ).toHaveCount(0);
@@ -410,3 +404,12 @@ test.describe("El cintillo de la promoción en la ficha", () => {
     await expect(detail.getByTestId("promotion-ribbon")).toHaveCount(0);
   });
 });
+
+/**
+ * «En promoción», en la barra de cercanía del chrome. Vivía como chip propio de `/productos`
+ * (`products-on-sale-filter`) hasta el slice 4 de
+ * `docs/features/catalog/005-2026-11-10-filtros-del-catalogo.md`.
+ */
+function onSaleChip(page: Page) {
+  return page.getByTestId("nearby-bar").getByTestId("filter-on-sale");
+}
