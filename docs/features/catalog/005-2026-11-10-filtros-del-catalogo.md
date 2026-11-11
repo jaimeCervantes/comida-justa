@@ -73,12 +73,31 @@ palabras); el perfil monta la barra.
 
 ### Slice 3 - Home y productos (la barra del chrome)
 
-Scope: `NearbyPillarFilter` pasa a montar la barra única en `/` y `/productos`. El home lleva el
-filtro también a «Cargar más» (`/api/posts/…`). En `/productos`, elegir un pilar deja de soltar
-`promocion`.
+Scope: `NearbyPillarFilter` pasa a montar la fila de chips de la barra única
+(`ListingFilterChips`, la misma que pinta `ListingFilterBar` dentro de su superficie) en `/` y
+`/productos`, y cada enlace parte de **toda** la dirección. El home lleva el filtro también a
+«Cargar más» (`/api/posts/…`) y a su paginado `/page/[page]`; `/productos` y su paginado lo pasan a
+`getProducts`. En `/productos`, elegir un pilar deja de soltar `promocion`, `marca` y `tienda`.
+
+Acceptance criteria:
+- En `/` con un producto recién sembrado y agotado («Miel de abeja melipona», 0 piezas): sin el
+  filtro se ve con su insignia; al encenderlo desaparece, ninguna tarjeta del feed lleva la insignia
+  de agotado, y la petición de «Cargar más» lleva `disponibles=1`.
+- En `/productos` al encender el filtro, ninguna tarjeta lleva la insignia de agotado.
+- En `/productos?promocion=1`, elegir «Alimentación» deja `pillar=nutrition` y `promocion=1`.
 
 ### Slice 4 - «En promoción» en la barra, para todos
 
 Scope: el interruptor entra en la barra; `onSale` llega a categoría, tienda, perfil y home (el
 listado común ya lo sabe filtrar) y a la búsqueda (otro repositorio, misma vigencia que
 `onSaleWhere`). `/productos` deja su chip propio y usa el de la barra.
+
+### Slice 5 - Búsqueda por palabras en el perfil
+
+Pedido el 2026-11-11: «en mi perfil o Mis publicaciones no tiene búsqueda como en mi Tienda».
+«Mis publicaciones» es el mismo `/u/[username]` visto por su dueño, así que es una sola pantalla.
+
+Scope: el perfil gana el buscador de la tienda (`ListSearchField`, `?q=`), con el mismo criterio
+de palabras que ya usa `getPostsBySeller` (`term`), combinable con pilar y existencia, y que viaja
+al paginar. Sin resultados por el término, un mensaje propio que no diga que la persona no ha
+publicado nada.

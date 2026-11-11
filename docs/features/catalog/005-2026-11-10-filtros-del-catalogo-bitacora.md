@@ -147,3 +147,70 @@ por palabras y con el pilar, también al paginar y al buscar con Enter. Faltan h
    «Cargar más»; arregla que elegir pilar en `/productos` suelte `promocion`.
 2. **Slice 4**: «En promoción» en la barra para todos.
 3. Pendiente aparte (decide el usuario): volver robusto `tarjetaCompacta.spec.ts:37`.
+
+## 2026-11-11 — Slice 3: home y productos (la barra del chrome)
+
+### Objetivo
+
+Que `/` y `/productos` tengan «Solo con existencia» donde ya tenían el pilar —la barra de cercanía
+del chrome— y que elegir un pilar en `/productos` deje de soltar `promocion`.
+
+### Decisiones
+
+- **La barra se parte en chips y superficie.** `ListingFilterChips` (rótulos, pilares, separador,
+  interruptor) es lo compartido; `ListingFilterBar` lo envuelve en su tarjeta para las pantallas que
+  lo montan bajo su título, y `NearbyPillarFilter` lo monta tal cual en la fila del chrome, que ya
+  tiene su propio `overflow-x`. Las pruebas de «una sola fila» de `nearbyBar.spec.ts` siguen verdes.
+- **El chrome parte de toda la dirección** (`Object.fromEntries(searchParams)`), no solo de
+  `pillar`: así elegir un pilar en `/productos` conserva `promocion`, `marca` y `tienda`.
+- **El feed del home lleva el filtro a todas partes**: a `getMultiplePosts`, a `/api/posts/…`
+  («Cargar más»), a los enlaces SEO de paginación y a `/page/[page]`, que cambia su filtro de
+  pilares suelto por `ListingFilterBar`. `homeFeedKey` incluye el filtro: otro filtro, otra lista,
+  sin tarjetas del anterior. Los filtros del fetch salen de una función fuera del componente para no
+  recrear el observador del scroll en cada render.
+- **`/productos`**: `CatalogFilters.onlyAvailable` llega a `getProducts`; la lista lo conserva al
+  paginar y al cambiar sus chips, y su `listingQuery` local ahora usa el compartido. Vacío solo por
+  existencia → `listingFilters.nothingInStock`.
+- **E2E por forma, no por contenido**: home y productos enseñan lo que publique la comunidad, así
+  que se afirma que ninguna tarjeta lleva la insignia de agotado; en el home, además, que un
+  producto agotado recién sembrado desaparece y que la petición de la página 2 lleva
+  `disponibles=1`.
+- **Nuevo slice 5** en el roadmap, a pedido del usuario: búsqueda por palabras en el perfil
+  («Mis publicaciones» es el mismo `/u/[username]`).
+
+### Archivos
+
+- Presentación: `ListingFilters/ListingFilterChips.tsx` (nuevo), `ListingFilterBar.tsx`,
+  `location/NearbyPillarFilter.tsx` (+ test).
+- Infra: `PostgresPostQueryRepository.ts` (`getMultiplePosts`, `getProducts`).
+- Home: `[locale]/page.tsx`, `[locale]/page/[page]/page.tsx`, `(home)/PostsWithLoadMore.tsx`
+  (+ test), `(home)/homeFeedKey.ts`, `api/posts/[...pagination]/route.ts`.
+- Productos: `productos/{data.ts,page.tsx,page/[page]/page.tsx,ui/ProductsList.tsx}`.
+- Docs/E2E: roadmap (slice 3 detallado, slice 5 nuevo), `filtrosDelCatalogo.feature`,
+  `filtrosDelCatalogo/homeYProductos.spec.ts` (nuevo).
+
+### Comandos y resultados
+
+- `pnpm run test:run` → 352 archivos, **3731/3731** (5 nuevas).
+- `pnpm run typecheck` → limpio. `pnpm run lint` → 1514 archivos, sin cambios.
+- `pnpm exec playwright test src/e2e/filtrosDelCatalogo src/e2e/chrome/nearbyBar.spec.ts
+  src/e2e/publicationPillarFilter src/e2e/promociones` en 4 tramos: **50/50** (15 + 11 + 12 + 12).
+
+### Desviaciones
+
+- Primera corrida: el `next dev` del usuario tomó el 3000 a mitad y ningún tramo arrancó. El script
+  esperaba 2 min y luego **borraba `.next` igual**, con su servidor vivo; se le avisó. La corrida
+  buena aborta sin tocar `.next` si el puerto está ocupado.
+
+### Recap
+
+Los seis listados usan los mismos chips: categoría, búsqueda, tienda y perfil dentro de
+`ListingFilterBar`; home y `/productos` en la barra del chrome. «Solo con existencia» llega a todos,
+incluido «Cargar más» del home, y en `/productos` cambiar de pilar ya no suelta los demás filtros.
+Falta «En promoción» en la barra (slice 4) y la búsqueda en el perfil (slice 5).
+
+### Próximos pasos (opciones)
+
+1. **Slice 4**: «En promoción» en la barra para todos.
+2. **Slice 5**: búsqueda por palabras en el perfil / «Mis publicaciones».
+3. Pendiente aparte (decide el usuario): volver robusto `tarjetaCompacta.spec.ts:37`.
