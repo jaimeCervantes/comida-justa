@@ -214,3 +214,80 @@ Falta «En promoción» en la barra (slice 4) y la búsqueda en el perfil (slice
 1. **Slice 4**: «En promoción» en la barra para todos.
 2. **Slice 5**: búsqueda por palabras en el perfil / «Mis publicaciones».
 3. Pendiente aparte (decide el usuario): volver robusto `tarjetaCompacta.spec.ts:37`.
+
+## 2026-11-11 — Slice 4: «En promoción» en la barra, para todos
+
+### Objetivo
+
+Que «En promoción» (`?promocion=1`) esté en la barra de los seis listados, como el pilar y «Solo
+con existencia», y que `/productos` deje su chip propio.
+
+### Decisiones
+
+- **Un solo estado de filtros en el dominio** (`domain/entities/post/listingFilters.ts`):
+  `parseListingFilters` lee pilar, `disponibles` y `promocion` de la dirección y
+  `listingFilterParams` los escribe de vuelta. Con un tercer interruptor, cada página habría
+  repetido tres parámetros; ahora las doce páginas leen una sola cosa y la pasan entera
+  (`filters: ListingFilterState`) a sus datos, a la barra y a la paginación.
+- **`ListingToggles` (`onlyAvailable`, `onSale`)** es lo que reciben los repositorios.
+  `PostListingFilters` lo extiende; `getPostsBySeller` lo acepta; la búsqueda cambia su booleano
+  posicional `onlyAvailable` por `toggles` en el puerto, el caso de uso y el repositorio.
+- **Una regla SQL por interruptor**: `onSaleWhere` sale de `PostgresPostQueryRepository` a su archivo,
+  junto a `inStockWhere`, y la búsqueda usa las dos (`togglesWhere`). La vigencia sigue siendo la de
+  `isPromotionActive`, con piezas registradas.
+- **`resolveListingFilters`** (infra) traduce el estado a `PostListingFilters`, pilar resuelto
+  incluido, para que ningún `data.ts` se olvide de un interruptor.
+- **Vacío por interruptor**: `filteredEmptyMessage` elige el mensaje, y la promoción manda sobre la
+  existencia porque es la más estrecha. La categoría conserva su vacío con botón, y ahora también
+  lo usa para la promoción.
+- **La búsqueda** gana el chip «En promoción ✕» en su resumen, y una búsqueda con promoción tampoco
+  se registra (`isFiltered`), igual que con pilar o existencia.
+- **`/productos`**: el interruptor pasa a la barra del chrome (`filter-on-sale`). `promociones.spec.ts`
+  apunta ahí. La lista solo conserva el chip de marca o tienda.
+- **El home**: `homeFeedKey` incluye la promoción, y «Cargar más» manda los filtros como una cadena
+  estable para no volver a montar el observador del scroll.
+
+### Archivos
+
+- Dominio: `listingFilters.ts` (+ test).
+- Casos de uso: `searchPosts/{SearchPostsUseCase.ts,dtos/ISearchPostDTO.ts,ports/ISearchPostRepository.ts}` (+ test).
+- Infra: `posts/onSaleWhere.ts` (nuevo), `posts/resolveListingFilters.ts` (nuevo),
+  `IPostQueryRepository.ts`, `PostgresPostQueryRepository.ts`,
+  `searchPosts/PostgresSearchPostRepository.ts`.
+- Presentación: `ListingFilterChips.tsx`, `ListingFilterBar.tsx` (+ test), `filteredEmptyMessage.ts`
+  (nuevo), `NearbyPillarFilter.tsx` (+ test).
+- Rutas: `buscar/{page,data,ui/SearchSummary}`, `categoria/[key]/{data,page,page/[page]/page,ui/CategoryPosts}`,
+  `tienda/[slug]/{data,page,page/[page]/page,ui/StoreCatalog,ui/StoreSearchField}`,
+  `u/[username]/{data,page,page/[page]/page,ui/ProfilePublications}`, `[locale]/page.tsx`,
+  `[locale]/page/[page]/page.tsx`, `(home)/{PostsWithLoadMore,homeFeedKey}` (+ test),
+  `api/posts/[...pagination]/route.ts`, `productos/ui/ProductsList.tsx` (+ test).
+- i18n: `listingFilters.onSale`, `listingFilters.nothingOnSale` (es/en).
+- E2E: `filtrosDelCatalogo.feature` (slice 4 detallado), `filtrosDelCatalogo/enPromocion.spec.ts`
+  (nuevo), `testUtils/seedPromotion.ts` (nuevo), `promociones/promociones.spec.ts`.
+
+### Comandos y resultados
+
+- `pnpm run test:run` → 353 archivos, **3744/3744**.
+- `pnpm run typecheck` → limpio. `pnpm run lint` → 1521 archivos, sin cambios.
+- `pnpm exec playwright test src/e2e/filtrosDelCatalogo src/e2e/promociones src/e2e/busquedaFacetada
+  src/e2e/chrome/nearbyBar.spec.ts src/e2e/publicationPillarFilter
+  src/e2e/inventory/busquedaEnListas.spec.ts` en 5 tramos: **67/67** (14 + 14 + 13 + 13 + 13).
+
+### Desviaciones
+
+- El alcance creció un poco a propósito: además del interruptor, las páginas pasaron a leer los
+  filtros con `parseListingFilters`. Era la forma de no copiar un tercer parámetro en doce sitios.
+
+### Recap
+
+Los seis listados comparten el conjunto completo: pilar, «Solo con existencia» y «En promoción».
+Se leen de la dirección con una sola función del dominio, se aplican con una regla SQL por
+interruptor (también en la búsqueda) y se pintan con los mismos chips, dentro de `ListingFilterBar`
+o en la barra del chrome en `/` y `/productos`. Queda el slice 5: búsqueda por palabras en el
+perfil.
+
+### Próximos pasos (opciones)
+
+1. **Slice 5**: búsqueda por palabras en el perfil / «Mis publicaciones».
+2. Abrir el PR de `feat/filtros-catalogo` hacia `dev` (cuando el usuario lo pida).
+3. Pendiente aparte (decide el usuario): volver robusto `tarjetaCompacta.spec.ts:37`.
