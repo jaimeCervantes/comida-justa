@@ -117,8 +117,23 @@ Feature: Un solo conjunto de filtros para todos los listados
     Then veo solo "Mermelada de fresa"
     And la dirección lleva "disponibles=1" y "promocion=1"
 
-  @future @slice-5
-  Scenario: El perfil se busca por palabras, como la tienda
-    When abro un perfil y busco "mermelada"
-    Then solo veo lo suyo cuyo título lleva esa palabra
-    And la búsqueda se combina con "Solo con existencia"
+  # «Mis publicaciones» es el mismo perfil visto por su dueño: un solo buscador sirve a los dos.
+
+  @slice-5
+  Scenario: El perfil se busca por palabras y la búsqueda se combina con los filtros
+    Given el perfil de la cuenta de la suite con estos productos
+      | título                 | piezas |
+      | Mermelada de fresa     | 5      |
+      | Mermelada de zarzamora | 0      |
+      | Miel de abeja melipona | 5      |
+    When busco "mermelada" en el perfil
+    Then veo "Mermelada de fresa" y "Mermelada de zarzamora", y no "Miel de abeja melipona"
+    When enciendo "Solo con existencia"
+    Then veo solo "Mermelada de fresa"
+    And la dirección lleva "q=" y "disponibles=1"
+
+  @slice-5
+  Scenario: Buscar y no encontrar no dice que el perfil esté vacío
+    Given el perfil de la cuenta de la suite con "Mermelada de fresa"
+    When busco "gazpacho" en el perfil
+    Then se me dice que nada coincide, no que no haya publicado nada
