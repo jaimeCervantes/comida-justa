@@ -44,18 +44,28 @@ Feature: Un solo conjunto de filtros para todos los listados
     Then veo que no hay nada con existencia en "Salsas y Aderezos"
     And puedo volver a ver toda la categoría
 
-  @future @slice-2
-  Scenario: La tienda enseña lo agotado y deja filtrarlo
-    Given una tienda con un producto con existencia y otro agotado
-    When un visitante abre la tienda
-    Then ve los dos, el agotado con su insignia
-    When enciende "Solo con existencia"
-    Then ve solo el que tiene existencia
+  # La tienda y el perfil no son una categoría: siembran su propio catálogo (una tienda de prueba
+  # y la cuenta de la suite con una dirección prestada), no el Background.
 
-  @future @slice-2
-  Scenario: El perfil deja filtrar por existencia
-    When abro un perfil y enciendo "Solo con existencia"
-    Then no aparece nada agotado
+  @slice-2
+  Scenario: La tienda enseña lo agotado a quien visita
+    Given la tienda de prueba con "Mermelada de fresa" (5 piezas) y "Miel de abeja melipona" (0)
+    When un visitante sin sesión abre la tienda
+    Then ve las dos, y "Miel de abeja melipona" con su insignia de agotado
+
+  @slice-2
+  Scenario: En la tienda, el filtro y la búsqueda se combinan
+    Given la tienda de prueba con "Mermelada de fresa" (5), "Mermelada de zarzamora" (0) y "Miel de abeja melipona" (5)
+    When un visitante busca "mermelada" y enciende "Solo con existencia"
+    Then ve solo "Mermelada de fresa"
+    And la dirección lleva "q=mermelada" y "disponibles=1"
+
+  @slice-2
+  Scenario: En el perfil, el filtro deja fuera lo agotado
+    Given el perfil de la cuenta de la suite con "Mermelada de fresa" (5) y "Miel de abeja melipona" (0)
+    When abro el perfil y enciendo "Solo con existencia"
+    Then veo "Mermelada de fresa"
+    And no veo "Miel de abeja melipona"
 
   @future @slice-3
   Scenario: El home filtra por existencia también al cargar más
