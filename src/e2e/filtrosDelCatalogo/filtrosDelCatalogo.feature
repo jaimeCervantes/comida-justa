@@ -67,16 +67,30 @@ Feature: Un solo conjunto de filtros para todos los listados
     Then veo "Mermelada de fresa"
     And no veo "Miel de abeja melipona"
 
-  @future @slice-3
-  Scenario: El home filtra por existencia también al cargar más
-    When abro "/" con "Solo con existencia" y pido cargar más
-    Then ninguna tarjeta nueva está agotada
+  # El home y /productos no tienen barra propia: los filtros viven en la barra de cercanía del
+  # chrome, la que está en todas las páginas.
 
-  @future @slice-3
+  @slice-3
+  Scenario: El home filtra por existencia también al cargar más
+    Given el producto recién publicado "Miel de abeja melipona" con 0 piezas
+    And abrí "/" y lo veo con su insignia de agotado
+    When enciendo "Solo con existencia" en la barra de arriba
+    Then "Miel de abeja melipona" ya no aparece
+    And ninguna tarjeta del feed está agotada
+    When pido cargar más
+    Then la petición lleva "disponibles=1"
+
+  @slice-3
+  Scenario: En productos, el filtro deja fuera lo agotado
+    When abro "/productos" y enciendo "Solo con existencia" en la barra de arriba
+    Then la dirección lleva "disponibles=1"
+    And ninguna tarjeta está agotada
+
+  @slice-3
   Scenario: En productos, elegir un pilar no suelta la promoción
     Given abrí "/productos?promocion=1"
-    When elijo un pilar
-    Then la dirección sigue llevando "promocion=1"
+    When elijo el pilar "Alimentación" en la barra de arriba
+    Then la dirección lleva "pillar=nutrition" y "promocion=1"
 
   @future @slice-4
   Scenario Outline: «En promoción» en cada listado
@@ -88,3 +102,9 @@ Feature: Un solo conjunto de filtros para todos los listados
       | /categoria/salsas_y_aderezos    |
       | /buscar?q=miel                  |
       | /                               |
+
+  @future @slice-5
+  Scenario: El perfil se busca por palabras, como la tienda
+    When abro un perfil y busco "mermelada"
+    Then solo veo lo suyo cuyo título lleva esa palabra
+    And la búsqueda se combina con "Solo con existencia"
