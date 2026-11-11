@@ -38,7 +38,7 @@ export interface ListingFilterChipsProps {
  */
 const IN_A_SINGLE_ROW = "shrink-0 flex-nowrap py-0";
 
-/** El rótulo en versalitas: dice de qué va cada mitad sin gastar un renglón, y se calla donde el ancho es caro. */
+/** El rótulo en versalitas de los pilares: dice de qué van sin gastar un renglón, y se calla donde el ancho es caro. */
 const EYEBROW =
   "hidden shrink-0 text-label font-medium uppercase tracking-[0.14em] text-text-muted sm:inline";
 
@@ -85,9 +85,9 @@ export default function ListingFilterChips({
         className={IN_A_SINGLE_ROW}
       />
 
+      {/* Sin rótulo del lado de los interruptores: «Solo con existencia» y «En promoción» ya dicen
+          lo que hacen, y el separador basta para leer dónde acaban los pilares. */}
       <span aria-hidden className="h-6 w-px shrink-0 bg-separator" />
-
-      <span className={EYEBROW}>{t("availability")}</span>
 
       <ToggleFilterChip
         href={toggled(ONLY_AVAILABLE_QUERY_PARAM, onlyAvailable)}
