@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { parseOnlyAvailableFilter } from "~/domain/entities/post/catalogFilters";
 import { parsePublicationPillar } from "~/domain/entities/post/publicationPillars";
 import { buildProfileJsonLd } from "~/domain/seo/jsonLd/site";
 import { resolveLocale } from "~/i18n/routing";
@@ -19,7 +20,7 @@ import ProfileSharedPractices from "./ui/ProfileSharedPractices";
 
 type Props = {
   params: Promise<{ locale: string; username: string }>;
-  searchParams: Promise<{ pillar?: string }>;
+  searchParams: Promise<{ pillar?: string; disponibles?: string }>;
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -31,7 +32,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function ProfilePage({ params, searchParams }: Props) {
   const { username, locale: rawLocale } = await params;
-  const { pillar } = await searchParams;
+  const { pillar, disponibles } = await searchParams;
+  const onlyAvailable = parseOnlyAvailableFilter(disponibles);
   const locale = resolveLocale(rawLocale);
   const currentPillar = parsePublicationPillar(pillar);
   setRequestLocale(locale);
@@ -45,6 +47,7 @@ export default async function ProfilePage({ params, searchParams }: Props) {
     locale,
     viewerId,
     currentPillar,
+    onlyAvailable,
   );
 
   if (!data) {
@@ -93,6 +96,7 @@ export default async function ProfilePage({ params, searchParams }: Props) {
         currentPage={PAGINATION_INIT_PAGE}
         totalPages={data.totalPages}
         currentPillar={currentPillar}
+        onlyAvailable={onlyAvailable}
       />
     </main>
   );

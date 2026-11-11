@@ -438,19 +438,20 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
     page: number,
     pageSize: number,
     options?: {
-      includeSoldOut?: boolean;
+      onlyAvailable?: boolean;
       categoryKeys?: readonly string[];
       term?: string;
     },
   ): Promise<PaginatedPostsResult> {
-    // Un anuncio no se agota, así que el filtro solo aplica a los productos.
-    const availability = inStockWhere(!options?.includeSoldOut);
-
     return this.getPaginatedPosts(
-      sql`p.seller_id = ${sellerId}::uuid AND ${availability}`,
+      sql`p.seller_id = ${sellerId}::uuid`,
       page,
       pageSize,
-      { categoryKeys: options?.categoryKeys, term: options?.term },
+      {
+        categoryKeys: options?.categoryKeys,
+        term: options?.term,
+        onlyAvailable: options?.onlyAvailable,
+      },
     );
   }
 
@@ -466,11 +467,12 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
     page: number,
     pageSize: number,
     viewerId?: string | null,
-    filters: { categoryKeys?: readonly string[] } = {},
+    filters: PostListingFilters = {},
   ): Promise<PaginatedPostsResult> {
     return this.getPaginatedPosts(sql`p.user_id = ${userId}`, page, pageSize, {
       visibility: publishedOrOwnedBy(viewerId === userId ? viewerId : null),
       categoryKeys: filters.categoryKeys,
+      onlyAvailable: filters.onlyAvailable,
       viewerId,
     });
   }

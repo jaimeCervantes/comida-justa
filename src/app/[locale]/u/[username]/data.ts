@@ -35,6 +35,8 @@ export async function getProfileByUsername(
   /** Quién mira. Si es su propio perfil, también ve lo que se le bajó. */
   viewerId?: string | null,
   currentPillar: PublicationPillar | null = null,
+  /** `?disponibles=1`: deja fuera los productos agotados; lo que no se agota se queda. */
+  onlyAvailable = false,
 ): Promise<ProfilePageData | null> {
   const profile = await createUserProfileRepository().findByUsername(username);
 
@@ -51,6 +53,7 @@ export async function getProfileByUsername(
       {
         categoryKeys:
           await categoryKeysForActivePublicationPillar(currentPillar),
+        onlyAvailable,
       },
     ),
     createSellerRepository().findByUserId(profile.id),

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { parseOnlyAvailableFilter } from "~/domain/entities/post/catalogFilters";
 import { parsePublicationPillar } from "~/domain/entities/post/publicationPillars";
 import { normalizeListTerm } from "~/domain/search/listTerm";
 import { Link } from "~/i18n/navigation";
@@ -16,7 +17,7 @@ import StoreHeader from "../../ui/StoreHeader";
 
 type Props = {
   params: Promise<{ locale: string; slug: string; page: string }>;
-  searchParams: Promise<{ pillar?: string; q?: string }>;
+  searchParams: Promise<{ pillar?: string; q?: string; disponibles?: string }>;
 };
 
 function parsePage(value: string): number | null {
@@ -39,7 +40,8 @@ export default async function StorePaginatedPage({
   searchParams,
 }: Props) {
   const { slug, locale: rawLocale, page: pageStr } = await params;
-  const { pillar, q } = await searchParams;
+  const { pillar, q, disponibles } = await searchParams;
+  const onlyAvailable = parseOnlyAvailableFilter(disponibles);
   const term = normalizeListTerm(q);
   const locale = resolveLocale(rawLocale);
   const currentPillar = parsePublicationPillar(pillar);
@@ -56,9 +58,9 @@ export default async function StorePaginatedPage({
     slug,
     page,
     locale,
-    viewerId,
     currentPillar,
     term,
+    onlyAvailable,
   );
 
   if (!store || (store.catalog.length === 0 && page > 1)) {
@@ -97,6 +99,7 @@ export default async function StorePaginatedPage({
         totalPages={store.totalPages}
         currentPillar={currentPillar}
         term={term}
+        onlyAvailable={onlyAvailable}
       />
 
       <div className="text-center mt-4">

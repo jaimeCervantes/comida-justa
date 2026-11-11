@@ -881,6 +881,7 @@
   "listingFilters": {
     "availability": "Disponibilidad",
     "label": "Filtros",
+    "nothingInStock": "No hay nada con existencia por ahora. Apaga «Solo con existencia» para ver también lo agotado.",
     "onlyAvailable": "Solo con existencia",
     "pillar": "Pilar"
   },

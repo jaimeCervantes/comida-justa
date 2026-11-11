@@ -1,8 +1,12 @@
 "use client";
 import { useTranslations } from "next-intl";
 import { useCallback } from "react";
-import type { PublicationPillar } from "~/domain/entities/post/publicationPillars";
-import { PUBLICATION_PILLAR_QUERY_PARAM } from "~/domain/entities/post/publicationPillars";
+import { ONLY_AVAILABLE_QUERY_PARAM } from "~/domain/entities/post/catalogFilters";
+import {
+  PUBLICATION_PILLAR_QUERY_PARAM,
+  type PublicationPillar,
+} from "~/domain/entities/post/publicationPillars";
+import { listingQuery } from "~/presentation/post/ListingFilters/listingQuery";
 import ListSearchField from "~/presentation/search/ListSearchField/ListSearchField";
 
 /**
@@ -19,10 +23,12 @@ export default function StoreSearchField({
   handle,
   term,
   currentPillar,
+  onlyAvailable = false,
 }: {
   handle: string;
   term: string;
   currentPillar: PublicationPillar | null;
+  onlyAvailable?: boolean;
 }) {
   const t = useTranslations("store");
 
@@ -30,14 +36,13 @@ export default function StoreSearchField({
     (next: string) => ({
       pathname: "/tienda/[slug]" as const,
       params: { slug: handle },
-      query: {
-        ...(currentPillar
-          ? { [PUBLICATION_PILLAR_QUERY_PARAM]: currentPillar }
-          : {}),
-        ...(next ? { q: next } : {}),
-      },
+      query: listingQuery({
+        [PUBLICATION_PILLAR_QUERY_PARAM]: currentPillar,
+        [ONLY_AVAILABLE_QUERY_PARAM]: onlyAvailable ? "1" : undefined,
+        q: next,
+      }),
     }),
-    [handle, currentPillar],
+    [handle, currentPillar, onlyAvailable],
   );
 
   return (
@@ -48,15 +53,20 @@ export default function StoreSearchField({
         placeholder: t("searchPlaceholder"),
         label: t("searchLabel"),
       }}
-      /* El pilar viaja oculto para no perderse cuando el envío lo hace el navegador. */
+      /* Los filtros viajan ocultos para no perderse cuando el envío lo hace el navegador. */
       hiddenFields={
-        currentPillar ? (
-          <input
-            type="hidden"
-            name={PUBLICATION_PILLAR_QUERY_PARAM}
-            value={currentPillar}
-          />
-        ) : null
+        <>
+          {currentPillar ? (
+            <input
+              type="hidden"
+              name={PUBLICATION_PILLAR_QUERY_PARAM}
+              value={currentPillar}
+            />
+          ) : null}
+          {onlyAvailable ? (
+            <input type="hidden" name={ONLY_AVAILABLE_QUERY_PARAM} value="1" />
+          ) : null}
+        </>
       }
       testId="store-search"
       className="mb-4 flex items-center gap-2"

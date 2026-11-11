@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { parseOnlyAvailableFilter } from "~/domain/entities/post/catalogFilters";
 import { parsePublicationPillar } from "~/domain/entities/post/publicationPillars";
 import { Link } from "~/i18n/navigation";
 import { resolveLocale } from "~/i18n/routing";
@@ -17,7 +18,7 @@ import ProfileSharedPractices from "../../ui/ProfileSharedPractices";
 
 type Props = {
   params: Promise<{ locale: string; username: string; page: string }>;
-  searchParams: Promise<{ pillar?: string }>;
+  searchParams: Promise<{ pillar?: string; disponibles?: string }>;
 };
 
 function parsePage(value: string): number | null {
@@ -40,7 +41,8 @@ export default async function ProfilePaginatedPage({
   searchParams,
 }: Props) {
   const { username, locale: rawLocale, page: pageStr } = await params;
-  const { pillar } = await searchParams;
+  const { pillar, disponibles } = await searchParams;
+  const onlyAvailable = parseOnlyAvailableFilter(disponibles);
   const locale = resolveLocale(rawLocale);
   const currentPillar = parsePublicationPillar(pillar);
   setRequestLocale(locale);
@@ -58,6 +60,7 @@ export default async function ProfilePaginatedPage({
     locale,
     viewerId,
     currentPillar,
+    onlyAvailable,
   );
 
   if (!data || (data.publications.length === 0 && page > 1)) {
@@ -97,6 +100,7 @@ export default async function ProfilePaginatedPage({
         currentPage={page}
         totalPages={data.totalPages}
         currentPillar={currentPillar}
+        onlyAvailable={onlyAvailable}
       />
 
       <div className="text-center mt-4">

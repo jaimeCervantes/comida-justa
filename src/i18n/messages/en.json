@@ -881,6 +881,7 @@
   "listingFilters": {
     "availability": "Availability",
     "label": "Filters",
+    "nothingInStock": "Nothing in stock right now. Turn off “In stock only” to see sold-out items too.",
     "onlyAvailable": "In stock only",
     "pillar": "Pillar"
   },

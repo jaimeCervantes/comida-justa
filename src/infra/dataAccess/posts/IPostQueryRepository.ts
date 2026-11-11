@@ -166,14 +166,15 @@ export interface IPostQueryRepository {
   /**
    * El catálogo de una tienda: lo que se publicó con su `seller_id`.
    *
-   * Lo agotado se oculta salvo que mire su dueño, que necesita verlo para volver a ofrecerlo.
+   * Lo agotado se enseña a todos —con su insignia— salvo que se pida `onlyAvailable`: es quien
+   * mira quien decide, no la tienda por él.
    */
   getPostsBySeller(
     sellerId: string,
     page: number,
     pageSize: number,
     options?: {
-      includeSoldOut?: boolean;
+      onlyAvailable?: boolean;
       categoryKeys?: readonly string[];
       /** Filtra el catálogo por título, en cualquiera de sus idiomas. */
       term?: string;

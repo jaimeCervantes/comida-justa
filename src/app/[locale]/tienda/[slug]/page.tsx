@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { parseOnlyAvailableFilter } from "~/domain/entities/post/catalogFilters";
 import { parsePublicationPillar } from "~/domain/entities/post/publicationPillars";
-import type { User } from "~/domain/entities/post/types";
 import { normalizeListTerm } from "~/domain/search/listTerm";
 import { resolveLocale } from "~/i18n/routing";
-import { auth } from "~/infra/auth";
 import { readViewerId } from "~/infra/auth/readViewerId";
 import { CANONICAL_URL, PAGINATION_INIT_PAGE } from "~/infra/constants";
 import { readFollowState } from "~/infra/dataAccess/follows/readFollowState";
@@ -22,7 +21,7 @@ import StoreHeader from "./ui/StoreHeader";
 
 type Props = {
   params: Promise<{ locale: string; slug: string }>;
-  searchParams: Promise<{ pillar?: string; q?: string }>;
+  searchParams: Promise<{ pillar?: string; q?: string; disponibles?: string }>;
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -34,14 +33,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function StorePage({ params, searchParams }: Props) {
   const { slug, locale: rawLocale } = await params;
-  const { pillar, q } = await searchParams;
+  const { pillar, q, disponibles } = await searchParams;
+  const onlyAvailable = parseOnlyAvailableFilter(disponibles);
   const term = normalizeListTerm(q);
   const locale = resolveLocale(rawLocale);
   const currentPillar = parsePublicationPillar(pillar);
   setRequestLocale(locale);
   const viewerId = await readViewerId();
   const t = await getTranslations("store");
-  const session = await auth();
 
   // Se resuelve fuera de cualquier `<Suspense>`: una tienda inexistente debe salir con status 404
   // y no con un 200 que solo "parece" un 404.
@@ -49,9 +48,9 @@ export default async function StorePage({ params, searchParams }: Props) {
     slug,
     PAGINATION_INIT_PAGE,
     locale,
-    (session?.user as User | undefined)?.id,
     currentPillar,
     term,
+    onlyAvailable,
   );
 
   if (!store) {
@@ -113,6 +112,7 @@ export default async function StorePage({ params, searchParams }: Props) {
         totalPages={store.totalPages}
         currentPillar={currentPillar}
         term={term}
+        onlyAvailable={onlyAvailable}
       />
     </>
   );

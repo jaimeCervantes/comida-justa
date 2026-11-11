@@ -37,17 +37,19 @@ export async function getStoreByHandle(
   handle: string,
   page: number,
   locale: string,
-  /** Quién mira. Su dueño ve lo agotado —lo necesita para volver a ofrecerlo—; el resto no. */
-  viewerId?: string | null,
   currentPillar: PublicationPillar | null = null,
   /** Filtra el catálogo por título. Vacío = no filtrar. Lo ve cualquiera: es un catálogo público. */
   term = "",
+  /**
+   * `?disponibles=1`. Sin él la tienda enseña también lo agotado, a su dueño y a quien visita: el
+   * catálogo es el mismo para todos y es quien mira quien decide esconderlo.
+   */
+  onlyAvailable = false,
 ): Promise<StorePageData | null> {
   const seller = await createSellerRepository().findByHandle(handle);
 
   if (!seller) return null;
 
-  const isOwner = Boolean(viewerId) && seller.userId === viewerId;
   const pageNum = Math.max(PAGINATION_INIT_PAGE, page);
 
   // Catálogo, sucursales y distancia son independientes entre sí: se piden a la vez para no
@@ -58,7 +60,7 @@ export async function getStoreByHandle(
       pageNum,
       PAGINATION_PAGE_SIZE,
       {
-        includeSoldOut: isOwner,
+        onlyAvailable,
         categoryKeys:
           await categoryKeysForActivePublicationPillar(currentPillar),
         term,
