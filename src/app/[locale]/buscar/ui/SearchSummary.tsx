@@ -1,11 +1,11 @@
 import { getTranslations } from "next-intl/server";
+import { ONLY_AVAILABLE_QUERY_PARAM } from "~/domain/entities/post/catalogFilters";
 import {
   PUBLICATION_PILLAR_QUERY_PARAM,
   type PublicationPillar,
 } from "~/domain/entities/post/publicationPillars";
 import { type AppHref, Link } from "~/i18n/navigation";
 import { Alert } from "~/presentation/design_system/feedback/Alert";
-import { ONLY_AVAILABLE_PARAM } from "./SearchFacets";
 
 interface SummaryProps {
   query: string;
@@ -24,7 +24,7 @@ function hrefWith(
   const params: Record<string, string> = { q: query };
 
   if (pillar) params[PUBLICATION_PILLAR_QUERY_PARAM] = pillar;
-  if (onlyAvailable) params[ONLY_AVAILABLE_PARAM] = "1";
+  if (onlyAvailable) params[ONLY_AVAILABLE_QUERY_PARAM] = "1";
 
   return { pathname: "/buscar", query: params } as AppHref;
 }

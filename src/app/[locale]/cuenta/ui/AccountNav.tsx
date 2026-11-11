@@ -16,7 +16,7 @@ const ITEM_CLASS =
 /**
  * La tarjeta que envuelve el renglón en el teléfono, y que desaparece en escritorio.
  *
- * Es el mismo trato que ya usan `SearchFacets` y `NearbyPillarFilter`: una tira que se arrastra
+ * Es el mismo trato que ya usan `ListingFilterBar` y `NearbyPillarFilter`: una tira que se arrastra
  * necesita su propia superficie (`surface-elevation-1`) para que el desvanecido de `scroll-hint-x`
  * —que toma ese color de fondo— no se note contra el fondo de la página, que es un tono distinto
  * (`surface-background`). En `lg:` no hace falta: ahí no hay nada que arrastrar.
@@ -27,7 +27,7 @@ const NAV_CLASS =
 /**
  * El renglón que se desliza en el teléfono y se apila en escritorio.
  *
- * Mismas tres piezas que `NearbyBar`/`SearchFacets` — `overflow-x-auto`, `no-scrollbar` y
+ * Mismas tres piezas que `NearbyBar`/`ListingFilterBar` — `overflow-x-auto`, `no-scrollbar` y
  * `scroll-hint-x` sobre una fila `flex` sin salto de línea— y por el mismo motivo: es la fila
  * entera la que se arrastra con el dedo, no cada enlace por su cuenta. `items-center` centra el
  * texto de una fila; en la columna de `lg:` hay que devolver el `items-stretch` que un `flex-col`

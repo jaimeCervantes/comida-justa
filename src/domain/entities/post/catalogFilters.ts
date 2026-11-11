@@ -20,3 +20,14 @@ export function parseBrandFilter(value: unknown): string | null {
 export function parseStoreFilter(value: unknown): string | null {
   return typeof value === "string" && STORE_HANDLE.test(value) ? value : null;
 }
+
+/**
+ * «Solo con existencia»: deja fuera lo agotado. Es el mismo parámetro en todos los listados —la
+ * búsqueda lo estrenó—, así que un enlace copiado de una pantalla significa lo mismo en otra.
+ */
+export const ONLY_AVAILABLE_QUERY_PARAM = "disponibles";
+
+/** Cualquier valor no vacío lo enciende: es un interruptor, no un dato. */
+export function parseOnlyAvailableFilter(value: unknown): boolean {
+  return typeof value === "string" && value.trim() !== "";
+}

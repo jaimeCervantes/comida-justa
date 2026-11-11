@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import {
+  ONLY_AVAILABLE_QUERY_PARAM,
+  parseOnlyAvailableFilter,
+} from "~/domain/entities/post/catalogFilters";
 import { parsePublicationPillar } from "~/domain/entities/post/publicationPillars";
 import { buildBreadcrumbJsonLd } from "~/domain/seo/jsonLd/breadcrumbs";
 import { resolveLocale } from "~/i18n/routing";
@@ -16,7 +20,10 @@ import CategoryPosts from "./ui/CategoryPosts";
 
 type Props = {
   params: Promise<{ locale: string; key: string }>;
-  searchParams: Promise<{ pillar?: string }>;
+  searchParams: Promise<{
+    pillar?: string;
+    [ONLY_AVAILABLE_QUERY_PARAM]?: string;
+  }>;
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -37,7 +44,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function CategoryPage({ params, searchParams }: Props) {
   const { key, locale: rawLocale } = await params;
-  const { pillar } = await searchParams;
+  const { pillar, [ONLY_AVAILABLE_QUERY_PARAM]: onlyAvailableParam } =
+    await searchParams;
+  const onlyAvailable = parseOnlyAvailableFilter(onlyAvailableParam);
   const locale = resolveLocale(rawLocale);
   const currentPillar = parsePublicationPillar(pillar);
   setRequestLocale(locale);
@@ -50,6 +59,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
     PAGINATION_INIT_PAGE,
     locale,
     currentPillar,
+    onlyAvailable,
   );
 
   /* Una clave que no existe (o que se desactivó desde `/admin/catalogo`) es un 404, no una lista
@@ -89,6 +99,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
         currentPage={PAGINATION_INIT_PAGE}
         totalPages={data.totalPages}
         currentPillar={currentPillar}
+        onlyAvailable={onlyAvailable}
       />
     </main>
   );

@@ -39,6 +39,8 @@ export async function getPostsByCategory(
   page: number,
   locale: string,
   currentPillar: PublicationPillar | null,
+  /** `?disponibles=1`: deja fuera el producto agotado. */
+  onlyAvailable = false,
 ): Promise<CategoryPageData | null> {
   const taxonomy = await getCategoryTaxonomy();
 
@@ -53,6 +55,7 @@ export async function getPostsByCategory(
     visitor,
     {
       categoryKeys: await categoryKeysForActivePublicationPillar(currentPillar),
+      onlyAvailable,
     },
   );
 

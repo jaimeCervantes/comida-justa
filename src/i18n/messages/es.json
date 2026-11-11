@@ -674,10 +674,13 @@
     "empty": "Todavía no hay nada publicado en {category}.",
     "emptyBody": "Las categorías se llenan solas conforme la comunidad publica. Mientras tanto, el catálogo completo sí tiene cosas.",
     "emptyCta": "Ver todo el catálogo",
+    "emptyOnlyAvailable": "Ahora no hay nada con existencia en {category}.",
+    "emptyOnlyAvailableBody": "Lo agotado sigue en la categoría: quita el filtro para verlo y volver cuando se resurta.",
     "heading": "{category}",
     "metaDescription": "Explora {category} en {brand}: lo que publica la comunidad y lo que vendemos, en un solo lugar.",
     "metaTitle": "{category} - {brand}",
-    "pagedTitle": "{title} - Página {page}"
+    "pagedTitle": "{title} - Página {page}",
+    "seeAllCategory": "Ver toda la categoría"
   },
   "comments": {
     "empty": "No hay comentarios aún.",
@@ -874,6 +877,12 @@
     },
     "publishCta": "Publicar lo mío",
     "title": "❤️💚 Hazlo sano: Cuando cuidas tu salud, también estás cuidando lo más valioso que tienes: tu tiempo. Tu recurso máximo no renovable."
+  },
+  "listingFilters": {
+    "availability": "Disponibilidad",
+    "label": "Filtros",
+    "onlyAvailable": "Solo con existencia",
+    "pillar": "Pilar"
   },
   "moderation": {
     "commentInReviewBody": "Todavía no se ha revisado, así que ahora mismo solo lo ves tú.",
@@ -2124,9 +2133,6 @@
   "search": {
     "clearFilters": "Limpiar todo",
     "empty": "Sin resultados",
-    "facetAvailability": "Disponibilidad",
-    "facetOnlyAvailable": "Solo con existencia",
-    "facetPillar": "Pilar",
     "facetsLabel": "Filtros de la búsqueda",
     "filterAvailable": "Solo con existencia",
     "filterQuery": "«{term}»",

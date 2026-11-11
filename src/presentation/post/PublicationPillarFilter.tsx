@@ -7,8 +7,8 @@ import {
 import { type AppHref, type AppPathname, Link } from "~/i18n/navigation";
 import { BadgeCounter } from "~/presentation/design_system/badges/Badge";
 import { cn } from "~/presentation/design_system/styling/merge-class-names";
-
-type QueryValue = string | number | null | undefined;
+import { CHIP_OFF, CHIP_ON, FILTER_CHIP } from "./ListingFilters/filterChip";
+import { listingQuery, type QueryValue } from "./ListingFilters/listingQuery";
 
 interface PublicationPillarFilterProps {
   currentPillar: PublicationPillar | null;
@@ -38,26 +38,6 @@ interface PublicationPillarFilterProps {
   testIdPrefix?: string;
 }
 
-/**
- * La forma de un chip de filtro: una sola, para que los que van en la misma fila se lean como un
- * grupo y no como dos controles que coincidieron.
- *
- * Se exporta porque la búsqueda pone «Solo con existencia» junto a estos cinco. El color y el
- * estado los decide cada uno; lo que no se decide dos veces es el alto, el radio y el relleno —que
- * es justo lo que se nota cuando difiere—.
- *
- * `shrink-0` para el montaje de la barra del chrome, que los pone en una fila deslizable: sin él
- * los cinco se comprimirían hasta partir su etiqueta en vez de salirse y dejarse arrastrar. Donde
- * la fila se parte (las otras cuatro rutas) no cambia nada: ahí nunca les falta ancho.
- */
-export const FILTER_CHIP =
-  "focus-ring inline-flex min-h-10 shrink-0 items-center rounded-full border px-4 py-2 text-sm font-semibold transition-colors";
-
-const ALL_ACTIVE = "border-pw-green bg-pw-green text-white";
-
-const ALL_INACTIVE =
-  "border-separator bg-surface-elevation-1 text-text-base hover:bg-surface-elevation-2";
-
 const PILLAR_CLASSES: Record<
   PublicationPillar,
   { active: string; inactive: string }
@@ -85,30 +65,6 @@ const PILLAR_CLASSES: Record<
   },
 };
 
-function queryForPillar(
-  query: Record<string, QueryValue> | undefined,
-  pillar: PublicationPillar | null,
-): Record<string, string> | undefined {
-  const next = new Map<string, string>();
-
-  for (const [key, value] of Object.entries(query ?? {})) {
-    if (
-      key === PUBLICATION_PILLAR_QUERY_PARAM ||
-      key === "page" ||
-      value === null ||
-      value === undefined ||
-      value === ""
-    ) {
-      continue;
-    }
-    next.set(key, String(value));
-  }
-
-  if (pillar) next.set(PUBLICATION_PILLAR_QUERY_PARAM, pillar);
-
-  return next.size > 0 ? Object.fromEntries(next) : undefined;
-}
-
 function hrefForPillar({
   pathname,
   params,
@@ -120,7 +76,7 @@ function hrefForPillar({
   return {
     pathname,
     params,
-    query: queryForPillar(query, pillar),
+    query: listingQuery(query, { [PUBLICATION_PILLAR_QUERY_PARAM]: pillar }),
   } as AppHref;
 }
 
@@ -151,9 +107,7 @@ export default function PublicationPillarFilter({
         })}
         aria-current={currentPillar === null ? "page" : undefined}
         data-testid={testIdPrefix ? `${testIdPrefix}-all` : undefined}
-        className={`${FILTER_CHIP} ${
-          currentPillar === null ? ALL_ACTIVE : ALL_INACTIVE
-        }`}
+        className={cn(FILTER_CHIP, currentPillar === null ? CHIP_ON : CHIP_OFF)}
       >
         {t("all")}
       </Link>

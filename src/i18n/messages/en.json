@@ -674,10 +674,13 @@
     "empty": "Nothing has been published under {category} yet.",
     "emptyBody": "Categories fill up on their own as the community publishes. In the meantime, the full catalogue does have things.",
     "emptyCta": "See the whole catalogue",
+    "emptyOnlyAvailable": "Nothing in {category} is in stock right now.",
+    "emptyOnlyAvailableBody": "Sold-out items are still in the category: remove the filter to see them and come back when they are restocked.",
     "heading": "{category}",
     "metaDescription": "Browse {category} at {brand}: what the community publishes and what we sell, all in one place.",
     "metaTitle": "{category} - {brand}",
-    "pagedTitle": "{title} - Page {page}"
+    "pagedTitle": "{title} - Page {page}",
+    "seeAllCategory": "See the whole category"
   },
   "comments": {
     "empty": "No comments yet.",
@@ -874,6 +877,12 @@
     },
     "publishCta": "Publish mine",
     "title": "❤️💚 Just Health: When you take care of your health, you're also protecting the most valuable thing you have: your time. Your ultimate non-renewable resource."
+  },
+  "listingFilters": {
+    "availability": "Availability",
+    "label": "Filters",
+    "onlyAvailable": "In stock only",
+    "pillar": "Pillar"
   },
   "moderation": {
     "commentInReviewBody": "It has not been reviewed yet, so right now you are the only one who sees it.",
@@ -2124,9 +2133,6 @@
   "search": {
     "clearFilters": "Clear all",
     "empty": "No results",
-    "facetAvailability": "Availability",
-    "facetOnlyAvailable": "In stock only",
-    "facetPillar": "Pillar",
     "facetsLabel": "Search filters",
     "filterAvailable": "In stock only",
     "filterQuery": "“{term}”",

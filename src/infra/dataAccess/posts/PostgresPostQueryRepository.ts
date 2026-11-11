@@ -22,6 +22,7 @@ import type {
   PostData,
   PostListingFilters,
 } from "./IPostQueryRepository";
+import { inStockWhere } from "./inStockWhere";
 
 interface PostRow {
   id: string;
@@ -263,6 +264,8 @@ interface ListingOptions {
   categoryKeys?: readonly string[];
   /** Solo lo que tiene una promoción vigente. Ver `onSaleWhere`. */
   onSale?: boolean;
+  /** Deja fuera el producto agotado. Ver `inStockWhere`. */
+  onlyAvailable?: boolean;
   /** Solo esta marca. Ver `brandWhere`. */
   brand?: string | null;
   /** Solo lo de esta tienda, por su handle. */
@@ -405,7 +408,7 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
     page: number,
     pageSize: number,
     near: Coordinates | null = null,
-    filters: { categoryKeys?: readonly string[] } = {},
+    filters: PostListingFilters = {},
   ): Promise<PaginatedPostsResult> {
     // Una clave desconocida llega aquí como lista vacía. Un `IN ()` es un error de sintaxis en
     // Postgres, así que se corta antes de consultar: sin resultados es la respuesta correcta.
@@ -421,7 +424,12 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
       sql`(p.category IN (${keys}) OR p.sub_category IN (${keys}))`,
       page,
       pageSize,
-      { near, sortByDistance: true, categoryKeys: filters.categoryKeys },
+      {
+        near,
+        sortByDistance: true,
+        categoryKeys: filters.categoryKeys,
+        onlyAvailable: filters.onlyAvailable,
+      },
     );
   }
 
@@ -436,9 +444,7 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
     },
   ): Promise<PaginatedPostsResult> {
     // Un anuncio no se agota, así que el filtro solo aplica a los productos.
-    const availability = options?.includeSoldOut
-      ? sql`TRUE`
-      : sql`(p.kind <> ${PRODUCT_KIND} OR p.is_available)`;
+    const availability = inStockWhere(!options?.includeSoldOut);
 
     return this.getPaginatedPosts(
       sql`p.seller_id = ${sellerId}::uuid AND ${availability}`,
@@ -632,6 +638,7 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
       ${POST_JOINS}
       WHERE ${visibility} AND ${where} AND ${categoryWhere(options.categoryKeys)}
         AND ${onSaleWhere(options.onSale)}
+        AND ${inStockWhere(options.onlyAvailable)}
         AND ${brandWhere(options.brand)}
         AND ${storeWhere(options.store)}
         AND ${titleHasAllWords(options.term ?? "")}

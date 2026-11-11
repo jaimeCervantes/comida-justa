@@ -83,6 +83,11 @@ export interface PostListingFilters {
    * Ver `domain/entities/post/promotion.ts`.
    */
   onSale?: boolean;
+  /**
+   * Deja fuera el producto agotado; lo que no se vende por piezas se queda. Ausente o `false` = no
+   * filtrar. Es `?disponibles=1` (`domain/entities/post/catalogFilters.ts`).
+   */
+  onlyAvailable?: boolean;
   /** Solo esta marca, sin distinguir mayúsculas. Ver `domain/entities/post/brand.ts`. */
   brand?: string | null;
   /** Solo lo de esta tienda, por su handle (`sellers.slug`). */

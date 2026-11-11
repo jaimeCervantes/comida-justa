@@ -16,6 +16,7 @@ import {
   postTranslations,
 } from "~/infra/dataAccess/db/schema/posts";
 import { sellers } from "~/infra/dataAccess/db/schema/sellers";
+import { inStockWhere } from "~/infra/dataAccess/posts/inStockWhere";
 import type {
   ISearchPostResultDTO,
   SearchStoreIdentity,
@@ -244,15 +245,12 @@ function toMatches(rows: RankedRow[]): {
 }
 
 /**
- * Deja fuera lo agotado, si se pidió.
+ * Deja fuera lo agotado, si se pidió: la misma regla que los listados (`inStockWhere`).
  *
- * `is_available` es la única faceta de disponibilidad que la base sostiene. Por omisión **no
- * filtra**: quien busca «miel» por su nombre quiere ver la miel agotada también, aunque sea para
- * enterarse de que existe y volver luego.
+ * Por omisión **no filtra**: quien busca «miel» por su nombre quiere ver la miel agotada también,
+ * aunque sea para enterarse de que existe y volver luego.
  */
-function availableWhere(onlyAvailable: boolean | undefined) {
-  return onlyAvailable ? sql`p.is_available IS TRUE` : sql`TRUE`;
-}
+const availableWhere = inStockWhere;
 
 /** Solo los tipos pedidos, si se pidieron: `undefined` no filtra, y una lista vacía no deja nada. */
 function kindWhere(kinds: readonly PostKind[] | undefined) {

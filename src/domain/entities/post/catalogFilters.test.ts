@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { parseBrandFilter, parseStoreFilter } from "./catalogFilters";
+import {
+  parseBrandFilter,
+  parseOnlyAvailableFilter,
+  parseStoreFilter,
+} from "./catalogFilters";
 
 describe("los filtros del catálogo en la dirección", () => {
   it.each([
@@ -19,5 +23,16 @@ describe("los filtros del catálogo en la dirección", () => {
     [undefined, null],
   ])("tienda %j → %j", (value, expected) => {
     expect(parseStoreFilter(value)).toBe(expected);
+  });
+
+  it.each([
+    ["1", true],
+    ["si", true],
+    ["", false],
+    ["   ", false],
+    [undefined, false],
+    [["1"], false],
+  ])("disponibles %j → %j", (value, expected) => {
+    expect(parseOnlyAvailableFilter(value)).toBe(expected);
   });
 });

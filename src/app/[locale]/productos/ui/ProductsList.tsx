@@ -16,7 +16,11 @@ import { cn } from "~/presentation/design_system/styling/merge-class-names";
 import { CARD_MASONRY } from "~/presentation/design_system/surfaces/cardList";
 import Pagination from "~/presentation/navigation/Pagination";
 import CardForList from "~/presentation/post/CardForList/CardForList";
-import { FILTER_CHIP } from "~/presentation/post/PublicationPillarFilter";
+import {
+  CHIP_ON,
+  FILTER_CHIP,
+} from "~/presentation/post/ListingFilters/filterChip";
+import ToggleFilterChip from "~/presentation/post/ListingFilters/ToggleFilterChip";
 import { publicationPillarEmptyMessage } from "~/presentation/post/publicationPillarEmptyMessage";
 
 export const PRODUCTS_BASE_PATH = "/productos/page";
@@ -67,16 +71,12 @@ function productsHref(
   } as AppHref;
 }
 
-const CHIP_ON = "border-pw-green bg-pw-green text-white";
-const CHIP_OFF =
-  "border-separator bg-surface-elevation-1 text-text-base hover:bg-surface-elevation-2";
-
 /**
  * Los filtros a la vista: el interruptor «En promoción» y, si se llegó con una marca o una tienda
  * —desde un slide del carrusel de ofertas—, esa marca o tienda con su ✕ para quitarla.
  *
- * Enlaces y no casillas, como `facet-only-available` en la búsqueda: el filtro vive en la
- * dirección, así que se comparte y vuelve con el botón de atrás.
+ * El interruptor es el `ToggleFilterChip` de todos los listados; el slice 4 de
+ * `docs/features/catalog/005-2026-11-10-filtros-del-catalogo.md` lo muda a `ListingFilterBar`.
  */
 function FilterChips({
   pillar,
@@ -94,14 +94,13 @@ function FilterChips({
 
   return (
     <div className="flex flex-wrap gap-2 pt-4">
-      <Link
+      <ToggleFilterChip
         href={productsHref(pillar, { ...filters, onSale: !filters.onSale })}
-        aria-pressed={filters.onSale}
-        data-testid="products-on-sale-filter"
-        className={cn(FILTER_CHIP, filters.onSale ? CHIP_ON : CHIP_OFF)}
+        pressed={filters.onSale}
+        testId="products-on-sale-filter"
       >
         {t("onSaleFilter")}
-      </Link>
+      </ToggleFilterChip>
       {groupLabel ? (
         <Link
           href={productsHref(pillar, { ...filters, brand: null, store: null })}

@@ -1,5 +1,9 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import {
+  ONLY_AVAILABLE_QUERY_PARAM,
+  parseOnlyAvailableFilter,
+} from "~/domain/entities/post/catalogFilters";
+import {
   PUBLICATION_PILLAR_QUERY_PARAM,
   parsePublicationPillar,
 } from "~/domain/entities/post/publicationPillars";
@@ -13,9 +17,9 @@ import { CARD_MASONRY } from "~/presentation/design_system/surfaces/cardList";
 import { Heading } from "~/presentation/design_system/typography/Heading";
 import Pagination from "~/presentation/navigation/Pagination";
 import CardForList from "~/presentation/post/CardForList/CardForList";
+import ListingFilterBar from "~/presentation/post/ListingFilters/ListingFilterBar";
 import { publicationPillarEmptyMessage } from "~/presentation/post/publicationPillarEmptyMessage";
 import { SEARCH_PAGE_SIZE, searchPosts } from "./data";
-import SearchFacets, { ONLY_AVAILABLE_PARAM } from "./ui/SearchFacets";
 import SearchSummary from "./ui/SearchSummary";
 
 /**
@@ -40,7 +44,7 @@ export default async function SearchPage({
   const { q = "", page = "1", pillar, disponibles } = await searchParams;
   /* La faceta vive en la dirección, así que se comparte, se guarda y vuelve con el botón de atrás.
      Cualquier valor la enciende: es un interruptor, no un dato. */
-  const onlyAvailable = Boolean(disponibles);
+  const onlyAvailable = parseOnlyAvailableFilter(disponibles);
   const { locale: rawLocale } = await params;
   const locale = resolveLocale(rawLocale);
   const currentPillar = parsePublicationPillar(pillar);
@@ -93,13 +97,20 @@ export default async function SearchPage({
           había que recorrer antes de ver el primer resultado. Ver el slice 1 de
           `docs/features/platform/039-2026-09-10-listados-compactos.md`. */}
       <div className="mt-4">
-        {/* Las facetas solo tienen sentido con algo que filtrar. */}
+        {/* Las facetas solo tienen sentido con algo que filtrar. Son la barra de todos los listados;
+            lo que la búsqueda añade —las cuentas por pilar— viaja como prop. Sin deslizador de
+            distancia a propósito: esconder algo que alguien pidió por su nombre sería el peor fallo
+            posible; la distancia desempata el orden, no recorta la lista. */}
         {q ? (
-          <SearchFacets
-            query={q}
+          <ListingFilterBar
+            pathname="/buscar"
+            query={{ q }}
             currentPillar={currentPillar}
             onlyAvailable={onlyAvailable}
             counts={data.counts}
+            testIdPrefix="facet"
+            testId="search-facets"
+            ariaLabel={t("facetsLabel")}
           />
         ) : null}
 
@@ -145,7 +156,7 @@ export default async function SearchPage({
         query={{
           q,
           [PUBLICATION_PILLAR_QUERY_PARAM]: currentPillar ?? undefined,
-          [ONLY_AVAILABLE_PARAM]: onlyAvailable ? "1" : undefined,
+          [ONLY_AVAILABLE_QUERY_PARAM]: onlyAvailable ? "1" : undefined,
         }}
       />
     </>
