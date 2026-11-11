@@ -2,6 +2,10 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import {
+  ONLY_AVAILABLE_QUERY_PARAM,
+  parseOnlyAvailableFilter,
+} from "~/domain/entities/post/catalogFilters";
+import {
   PUBLICATION_PILLAR_QUERY_PARAM,
   type PublicationPillar,
   parsePublicationPillar,
@@ -26,12 +30,13 @@ import { CARD_MASONRY } from "~/presentation/design_system/surfaces/cardList";
 import { Heading } from "~/presentation/design_system/typography/Heading";
 import Pagination from "~/presentation/navigation/Pagination";
 import CardForList from "~/presentation/post/CardForList/CardForList";
-import PublicationPillarFilter from "~/presentation/post/PublicationPillarFilter";
+import ListingFilterBar from "~/presentation/post/ListingFilters/ListingFilterBar";
+import { listingQuery } from "~/presentation/post/ListingFilters/listingQuery";
 import { publicationPillarEmptyMessage } from "~/presentation/post/publicationPillarEmptyMessage";
 
 type Props = {
   params: Promise<{ locale: string; page: string }>;
-  searchParams: Promise<{ pillar?: string }>;
+  searchParams: Promise<{ pillar?: string; disponibles?: string }>;
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -70,6 +75,7 @@ async function getPosts(
   page: number,
   locale: string,
   currentPillar: PublicationPillar | null,
+  onlyAvailable: boolean,
   viewerId?: string | null,
 ) {
   const pageNum = Math.max(PAGINATION_INIT_PAGE, page);
@@ -81,6 +87,7 @@ async function getPosts(
     await readVisitorLocation(),
     {
       categoryKeys: await categoryKeysForActivePublicationPillar(currentPillar),
+      onlyAvailable,
     },
     viewerId,
   );
@@ -94,13 +101,15 @@ async function getPosts(
 
 export default async function PaginatedPage({ params, searchParams }: Props) {
   const { page: pageStr, locale: rawLocale } = await params;
-  const { pillar } = await searchParams;
+  const { pillar, disponibles } = await searchParams;
+  const onlyAvailable = parseOnlyAvailableFilter(disponibles);
   const locale = resolveLocale(rawLocale);
   const currentPillar = parsePublicationPillar(pillar);
   setRequestLocale(locale);
   const viewerId = await readViewerId();
   const t = await getTranslations("feed");
   const pillarT = await getTranslations("publicationPillars");
+  const filtersT = await getTranslations("listingFilters");
   const page = parseInt(pageStr, 10);
 
   // Validar que la página sea válida
@@ -112,6 +121,7 @@ export default async function PaginatedPage({ params, searchParams }: Props) {
     page,
     locale,
     currentPillar,
+    onlyAvailable,
     viewerId,
   );
 
@@ -126,16 +136,24 @@ export default async function PaginatedPage({ params, searchParams }: Props) {
         {t("pageHeading", { brand: PUBLIC_BRAND_NAME })}
       </Heading>
 
-      <PublicationPillarFilter currentPillar={currentPillar} pathname="/" />
+      {/* Lleva de vuelta al home con los filtros: la página N de un filtro nuevo puede no existir. */}
+      <ListingFilterBar
+        pathname="/"
+        currentPillar={currentPillar}
+        onlyAvailable={onlyAvailable}
+        className="mt-4"
+      />
 
       <section className={`${CARD_MASONRY} pt-6`}>
         {posts.length === 0 ? (
           <p>
-            {publicationPillarEmptyMessage({
-              currentPillar,
-              fallback: t("emptyPage"),
-              t: pillarT,
-            })}
+            {onlyAvailable
+              ? filtersT("nothingInStock")
+              : publicationPillarEmptyMessage({
+                  currentPillar,
+                  fallback: t("emptyPage"),
+                  t: pillarT,
+                })}
           </p>
         ) : (
           posts.map((post: Post) => {
@@ -158,11 +176,10 @@ export default async function PaginatedPage({ params, searchParams }: Props) {
         currentPage={page}
         totalPages={totalPages}
         pathname="/page/[page]"
-        query={
-          currentPillar
-            ? { [PUBLICATION_PILLAR_QUERY_PARAM]: currentPillar }
-            : undefined
-        }
+        query={listingQuery({
+          [PUBLICATION_PILLAR_QUERY_PARAM]: currentPillar,
+          [ONLY_AVAILABLE_QUERY_PARAM]: onlyAvailable ? "1" : undefined,
+        })}
       />
 
       {/* Enlace para volver a la página principal si no estamos en ella */}

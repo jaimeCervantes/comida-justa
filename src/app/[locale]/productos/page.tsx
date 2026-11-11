@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import {
   BRAND_QUERY_PARAM,
+  ONLY_AVAILABLE_QUERY_PARAM,
   parseBrandFilter,
+  parseOnlyAvailableFilter,
   parseStoreFilter,
   STORE_QUERY_PARAM,
 } from "~/domain/entities/post/catalogFilters";
@@ -40,6 +42,7 @@ export default async function ProductosPage({
     [ON_SALE_QUERY_PARAM]?: string;
     [BRAND_QUERY_PARAM]?: string;
     [STORE_QUERY_PARAM]?: string;
+    [ONLY_AVAILABLE_QUERY_PARAM]?: string;
   }>;
 }) {
   const { locale: rawLocale } = await params;
@@ -48,6 +51,7 @@ export default async function ProductosPage({
     [ON_SALE_QUERY_PARAM]: onSaleParam,
     [BRAND_QUERY_PARAM]: brandParam,
     [STORE_QUERY_PARAM]: storeParam,
+    [ONLY_AVAILABLE_QUERY_PARAM]: onlyAvailableParam,
   } = await searchParams;
   const locale = resolveLocale(rawLocale);
   const currentPillar = parsePublicationPillar(pillar);
@@ -55,6 +59,7 @@ export default async function ProductosPage({
     onSale: parseOnSaleFilter(onSaleParam),
     brand: parseBrandFilter(brandParam),
     store: parseStoreFilter(storeParam),
+    onlyAvailable: parseOnlyAvailableFilter(onlyAvailableParam),
   };
   setRequestLocale(locale);
   const viewerId = await readViewerId();

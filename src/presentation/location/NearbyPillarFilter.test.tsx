@@ -74,4 +74,36 @@ describe("NearbyPillarFilter", () => {
       screen.getByRole("link", { name: es.publicationPillars.all }),
     ).toHaveAttribute("aria-current", "page");
   });
+
+  /* El fallo que trajo el slice 3 de `005-2026-11-10-filtros-del-catalogo.md`: el filtro solo
+     conocía `pillar`, así que elegir uno en `/productos` soltaba la promoción y la marca. */
+  it("elegir un pilar conserva lo demás de la dirección", () => {
+    renderAt("/productos", "promocion=1&marca=Falcon");
+
+    const href = screen
+      .getByRole("link", { name: es.publicationPillars.nutrition })
+      .getAttribute("href");
+
+    expect(href).toContain("pillar=nutrition");
+    expect(href).toContain("promocion=1");
+    expect(href).toContain("marca=Falcon");
+  });
+
+  it("ofrece «Solo con existencia» y al encenderlo conserva el pilar", () => {
+    renderAt("/", "pillar=movement");
+
+    const chip = screen.getByTestId("filter-only-available");
+
+    expect(chip).toHaveAttribute("aria-pressed", "false");
+    expect(chip).toHaveAttribute("href", "/?pillar=movement&disponibles=1");
+  });
+
+  it("con `?disponibles=1` llega encendido y su enlace lo apaga", () => {
+    renderAt("/productos", "disponibles=1&promocion=1");
+
+    const chip = screen.getByTestId("filter-only-available");
+
+    expect(chip).toHaveAttribute("aria-pressed", "true");
+    expect(chip).toHaveAttribute("href", "/productos?promocion=1");
+  });
 });

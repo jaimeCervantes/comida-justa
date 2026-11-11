@@ -2,11 +2,15 @@
 
 import { useSearchParams } from "next/navigation";
 import {
+  ONLY_AVAILABLE_QUERY_PARAM,
+  parseOnlyAvailableFilter,
+} from "~/domain/entities/post/catalogFilters";
+import {
   PUBLICATION_PILLAR_QUERY_PARAM,
   parsePublicationPillar,
 } from "~/domain/entities/post/publicationPillars";
 import { usePathname } from "~/i18n/navigation";
-import PublicationPillarFilter from "~/presentation/post/PublicationPillarFilter";
+import ListingFilterChips from "~/presentation/post/ListingFilters/ListingFilterChips";
 
 /**
  * El filtro de pilares dentro de la barra de cercanía, del `@slice-4` de `chrome.feature`.
@@ -20,28 +24,16 @@ import PublicationPillarFilter from "~/presentation/post/PublicationPillarFilter
  * **Solo en las rutas de esta lista, y no en cualquiera.** El filtro construye enlaces que se
  * quedan en la misma página (`pathname` fijo); montarlo sin condición en el layout lo pondría
  * también en `/cuenta`, el detalle de una publicación o el carrito, rutas sin nada que filtrar. El
- * roadmap habla de "cualquier ruta que lo entienda" — hoy son dos; el resto de rutas que hoy montan
- * `PublicationPillarFilter` a mano (categoría, directorio, perfil, tienda) se quedan como estaban,
- * para un slice posterior.
+ * roadmap habla de "cualquier ruta que lo entienda" — hoy son dos; categoría, tienda, perfil y
+ * búsqueda montan su propia `ListingFilterBar` bajo su título.
  *
- * **La forma la decide quien lo aloja, y por eso viaja como `className`.** Ver `IN_A_SINGLE_ROW`.
+ * **Monta los chips de la barra única** (`ListingFilterChips`), los mismos que categoría, tienda,
+ * perfil y búsqueda pintan dentro de su tarjeta: pilar y «Solo con existencia». Cada enlace parte
+ * de **toda** la dirección, así que en `/productos` elegir un pilar ya no suelta `promocion`,
+ * `marca` ni `tienda`, que es lo que pasaba cuando este filtro solo conocía `pillar` (slice 3 de
+ * `docs/features/catalog/005-2026-11-10-filtros-del-catalogo.md`).
  */
 const FILTERABLE_ROUTES = ["/", "/productos"] as const;
-
-/**
- * Cinco filtros que no se parten, porque la barra entera es un renglón que se desliza.
- *
- * Dentro de la barra los cinco son la pieza ancha (~620 px): partidos se llevaban dos y tres
- * renglones del chrome de **todas** las rutas, que es lo que el `@slice-5` vino a quitar. Las otras
- * cuatro rutas que montan `PublicationPillarFilter` van debajo de un título y con sitio de sobra:
- * por eso esto es una clase de **este** montaje y no un cambio del componente.
- *
- * **El `overflow-x` no está aquí, y es a propósito.** Vive en `NearbyBar`, sobre la fila completa,
- * para que un solo gesto arrastre la barra entera —rótulo, ubicación y filtros— en vez de dejar el
- * scroll encerrado en la mitad ancha. Aquí solo queda no partirse (`flex-nowrap`), no comprimirse
- * (`shrink-0`) y ceder el relleno vertical (`py-0`) a quien ahora manda: la fila que lo contiene.
- */
-const IN_A_SINGLE_ROW = "shrink-0 flex-nowrap py-0";
 
 export default function NearbyPillarFilter(): React.ReactNode {
   const pathname = usePathname();
@@ -53,11 +45,16 @@ export default function NearbyPillarFilter(): React.ReactNode {
     searchParams.get(PUBLICATION_PILLAR_QUERY_PARAM),
   );
 
+  /* La forma de una sola fila la pone `ListingFilterChips`; el `overflow-x` vive en `NearbyBar`,
+     sobre la fila completa, para que un solo gesto arrastre la barra entera. */
   return (
-    <PublicationPillarFilter
-      currentPillar={currentPillar}
+    <ListingFilterChips
       pathname={pathname}
-      className={IN_A_SINGLE_ROW}
+      query={Object.fromEntries(searchParams.entries())}
+      currentPillar={currentPillar}
+      onlyAvailable={parseOnlyAvailableFilter(
+        searchParams.get(ONLY_AVAILABLE_QUERY_PARAM) ?? undefined,
+      )}
     />
   );
 }

@@ -50,7 +50,7 @@ export async function getProducts(
   page: number,
   locale: string,
   currentPillar: PublicationPillar | null,
-  /** `?promocion=1`, `?marca=` y `?tienda=`. Ver `CatalogFilters`. */
+  /** `?promocion=1`, `?marca=`, `?tienda=` y `?disponibles=1`. Ver `CatalogFilters`. */
   filters: CatalogFilters = { onSale: false, brand: null, store: null },
 ): Promise<ProductsPageData> {
   const pageNum = Math.max(PAGINATION_INIT_PAGE, page);
@@ -66,6 +66,7 @@ export async function getProducts(
       onSale: filters.onSale,
       brand: filters.brand,
       store: filters.store,
+      onlyAvailable: filters.onlyAvailable,
     },
   );
 

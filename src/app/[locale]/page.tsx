@@ -8,6 +8,7 @@ import { homeFeedKey } from "~/app/(home)/homeFeedKey";
 import { buildHomeOffersSlides, loadHomeOffers } from "~/app/(home)/homeOffers";
 import OffersCarousel from "~/app/(home)/OffersCarousel";
 import PostsWithLoadMore from "~/app/(home)/PostsWithLoadMore";
+import { parseOnlyAvailableFilter } from "~/domain/entities/post/catalogFilters";
 import {
   type PublicationPillar,
   parsePublicationPillar,
@@ -82,6 +83,7 @@ async function getPosts(
   locale: string,
   near: Coordinates | null,
   currentPillar: PublicationPillar | null,
+  onlyAvailable: boolean,
   viewerId?: string | null,
 ) {
   const postRepo = createPostQueryRepository();
@@ -92,6 +94,7 @@ async function getPosts(
     near,
     {
       categoryKeys: await categoryKeysForActivePublicationPillar(currentPillar),
+      onlyAvailable,
     },
     viewerId,
   );
@@ -107,10 +110,11 @@ export default async function Inicio({
   searchParams,
 }: {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ pillar?: string }>;
+  searchParams: Promise<{ pillar?: string; disponibles?: string }>;
 }) {
   const { locale: rawLocale } = await params;
-  const { pillar } = await searchParams;
+  const { pillar, disponibles } = await searchParams;
+  const onlyAvailable = parseOnlyAvailableFilter(disponibles);
   const locale = resolveLocale(rawLocale);
   const currentPillar = parsePublicationPillar(pillar);
   setRequestLocale(locale);
@@ -121,7 +125,7 @@ export default async function Inicio({
   ]);
   const { visitor } = await readViewerLocationContext();
   const [{ posts, total, totalPages }, garden, offers] = await Promise.all([
-    getPosts(locale, visitor, currentPillar, viewerId),
+    getPosts(locale, visitor, currentPillar, onlyAvailable, viewerId),
     readCommunityGarden(),
     loadHomeOffers(locale),
   ]);
@@ -205,10 +209,10 @@ export default async function Inicio({
       </div>
 
       {/* La `key` cubre lo que invalida el estado acumulado del feed: desde dónde se miden las
-          distancias y qué pilar se pidió. El feed guarda páginas en cliente; sin remount, cambiar
+          distancias y qué filtros se pidieron. El feed guarda páginas en cliente; sin remount, cambiar
           `?pillar=` deja visibles tarjetas del filtro anterior. */}
       <PostsWithLoadMore
-        key={homeFeedKey(visitor, currentPillar)}
+        key={homeFeedKey(visitor, currentPillar, onlyAvailable)}
         viewerId={viewerId}
         reactionSignInHref={signInPathFor(locale, "/")}
         initialPosts={posts}
@@ -216,6 +220,7 @@ export default async function Inicio({
         totalPages={totalPages}
         locale={locale}
         currentPillar={currentPillar}
+        onlyAvailable={onlyAvailable}
       />
     </main>
   );

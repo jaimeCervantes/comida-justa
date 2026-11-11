@@ -359,7 +359,7 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
     page: number,
     pageSize: number,
     near: Coordinates | null = null,
-    filters: { categoryKeys?: readonly string[] } = {},
+    filters: PostListingFilters = {},
     viewerId?: string | null,
   ): Promise<PaginatedPostsResult> {
     // El home es un feed: gana la distancia, conserva el orden cronológico.
@@ -367,6 +367,7 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
       near,
       sortByDistance: false,
       categoryKeys: filters.categoryKeys,
+      onlyAvailable: filters.onlyAvailable,
       viewerId,
     });
   }
@@ -384,6 +385,7 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
       onSale: filters.onSale,
       brand: filters.brand,
       store: filters.store,
+      onlyAvailable: filters.onlyAvailable,
     });
   }
 

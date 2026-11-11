@@ -1,4 +1,8 @@
 import {
+  ONLY_AVAILABLE_QUERY_PARAM,
+  parseOnlyAvailableFilter,
+} from "~/domain/entities/post/catalogFilters";
+import {
   PUBLICATION_PILLAR_QUERY_PARAM,
   parsePublicationPillar,
 } from "~/domain/entities/post/publicationPillars";
@@ -28,8 +32,13 @@ export async function GET(
 
   try {
     const postRepo = createPostQueryRepository();
+    const search = new URL(request.url).searchParams;
     const currentPillar = parsePublicationPillar(
-      new URL(request.url).searchParams.get(PUBLICATION_PILLAR_QUERY_PARAM),
+      search.get(PUBLICATION_PILLAR_QUERY_PARAM),
+    );
+    // Los mismos filtros que la primera página, o «Cargar más» traería lo que el filtro escondió.
+    const onlyAvailable = parseOnlyAvailableFilter(
+      search.get(ONLY_AVAILABLE_QUERY_PARAM) ?? undefined,
     );
 
     // La misma ubicación que usó el primer render: si la página 2 llegara sin ella, las tarjetas
@@ -41,6 +50,7 @@ export async function GET(
       {
         categoryKeys:
           await categoryKeysForActivePublicationPillar(currentPillar),
+        onlyAvailable,
       },
       await readViewerId(),
     );

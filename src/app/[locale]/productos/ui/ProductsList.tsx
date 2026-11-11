@@ -1,6 +1,7 @@
 import { useTranslations } from "next-intl";
 import {
   BRAND_QUERY_PARAM,
+  ONLY_AVAILABLE_QUERY_PARAM,
   STORE_QUERY_PARAM,
 } from "~/domain/entities/post/catalogFilters";
 import { ON_SALE_QUERY_PARAM } from "~/domain/entities/post/promotion";
@@ -20,6 +21,7 @@ import {
   CHIP_ON,
   FILTER_CHIP,
 } from "~/presentation/post/ListingFilters/filterChip";
+import { listingQuery as mergeListingQuery } from "~/presentation/post/ListingFilters/listingQuery";
 import ToggleFilterChip from "~/presentation/post/ListingFilters/ToggleFilterChip";
 import { publicationPillarEmptyMessage } from "~/presentation/post/publicationPillarEmptyMessage";
 
@@ -27,12 +29,16 @@ export const PRODUCTS_BASE_PATH = "/productos/page";
 
 /**
  * Los filtros del catálogo que viajan en la dirección, además del pilar: `?promocion=1`,
- * `?marca=…` y `?tienda=…`. Se suman entre sí y con el pilar.
+ * `?marca=…`, `?tienda=…` y `?disponibles=1`. Se suman entre sí y con el pilar.
+ *
+ * «Solo con existencia» no se pinta aquí sino en la barra de cercanía del chrome, junto al pilar;
+ * esta lista solo lo necesita para conservarlo al paginar y al cambiar los suyos.
  */
 export type CatalogFilters = {
   onSale: boolean;
   brand: string | null;
   store: string | null;
+  onlyAvailable?: boolean;
 };
 
 const NO_FILTERS: CatalogFilters = { onSale: false, brand: null, store: null };
@@ -50,14 +56,13 @@ function listingQuery(
   pillar: PublicationPillar | null,
   filters: CatalogFilters,
 ): Record<string, string> | undefined {
-  const query: Record<string, string> = {};
-
-  if (pillar) query[PUBLICATION_PILLAR_QUERY_PARAM] = pillar;
-  if (filters.onSale) query[ON_SALE_QUERY_PARAM] = "1";
-  if (filters.brand) query[BRAND_QUERY_PARAM] = filters.brand;
-  if (filters.store) query[STORE_QUERY_PARAM] = filters.store;
-
-  return Object.keys(query).length > 0 ? query : undefined;
+  return mergeListingQuery({
+    [PUBLICATION_PILLAR_QUERY_PARAM]: pillar,
+    [ON_SALE_QUERY_PARAM]: filters.onSale ? "1" : undefined,
+    [BRAND_QUERY_PARAM]: filters.brand,
+    [STORE_QUERY_PARAM]: filters.store,
+    [ONLY_AVAILABLE_QUERY_PARAM]: filters.onlyAvailable ? "1" : undefined,
+  });
 }
 
 /** El listado desde la página 1 con otros filtros: con otro filtro, otra cuenta. */
@@ -125,9 +130,13 @@ export default function ProductsList({
   filters = NO_FILTERS,
 }: ProductsListProps & { viewerId?: string | null }) {
   const t = useTranslations("products");
+  const filtersT = useTranslations("listingFilters");
   const pillarT = useTranslations("publicationPillars");
   const filtered =
-    filters.onSale || filters.brand !== null || filters.store !== null;
+    filters.onSale ||
+    filters.brand !== null ||
+    filters.store !== null ||
+    Boolean(filters.onlyAvailable);
   const storeName = filters.store
     ? (products.find((product) => product.seller?.handle === filters.store)
         ?.seller?.name ?? null)
@@ -150,7 +159,13 @@ export default function ProductsList({
         <EmptyState
           testId="products-on-sale-empty"
           className="mt-4"
-          title={filters.onSale ? t("emptyOnSale") : t("emptyFiltered")}
+          title={
+            filters.onSale
+              ? t("emptyOnSale")
+              : filters.onlyAvailable && !filters.brand && !filters.store
+                ? filtersT("nothingInStock")
+                : t("emptyFiltered")
+          }
           action={
             <Link
               href={productsHref(currentPillar, NO_FILTERS)}

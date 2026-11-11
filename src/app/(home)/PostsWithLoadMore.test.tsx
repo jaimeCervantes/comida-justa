@@ -295,4 +295,35 @@ describe("El feed del home", () => {
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
     expect(fetchMock.mock.calls[0][0]).toContain("pillar=movement");
   });
+
+  it("con «Solo con existencia», cargar más tampoco trae lo agotado", async () => {
+    const fetchMock = vi.fn(async (_url: string) => ({
+      ok: true,
+      status: 200,
+      headers: new Headers({ "content-type": "application/json" }),
+      json: async () => ({ posts: [tarjeta("dos", 2500)], nextPage: null }),
+    }));
+    vi.stubGlobal("fetch", fetchMock);
+    renderWithIntl(
+      <PostsWithLoadMore
+        initialPosts={[tarjeta("uno", 2000)]}
+        totalPosts={2}
+        totalPages={1}
+        locale="es"
+        currentPillar="nutrition"
+        onlyAvailable
+      />,
+    );
+
+    await userEvent.click(screen.getByRole("button", { name: "Cargar más" }));
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+    const url = new URL(fetchMock.mock.calls[0][0], "http://localhost");
+    expect(url.searchParams.get("disponibles")).toBe("1");
+    expect(url.searchParams.get("pillar")).toBe("nutrition");
+  });
+
+  it("otro filtro es otra lista: la `key` cambia al encender la existencia", () => {
+    expect(homeFeedKey(null, null, true)).not.toBe(homeFeedKey(null, null));
+  });
 });
