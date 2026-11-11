@@ -1,9 +1,10 @@
 import { useTranslations } from "next-intl";
 import { ONLY_AVAILABLE_QUERY_PARAM } from "~/domain/entities/post/catalogFilters";
 import {
-  PUBLICATION_PILLAR_QUERY_PARAM,
-  type PublicationPillar,
-} from "~/domain/entities/post/publicationPillars";
+  type ListingFilterState,
+  listingFilterParams,
+} from "~/domain/entities/post/listingFilters";
+import { ON_SALE_QUERY_PARAM } from "~/domain/entities/post/promotion";
 import type { AppHref, AppPathname } from "~/i18n/navigation";
 import PublicationPillarFilter from "~/presentation/post/PublicationPillarFilter";
 import { listingQuery, type QueryValue } from "./listingQuery";
@@ -17,20 +18,20 @@ export interface ListingFilterChipsProps {
    * `marca`…—. Cada enlace lo conserva.
    */
   query?: Readonly<Record<string, QueryValue>>;
-  currentPillar: PublicationPillar | null;
-  onlyAvailable: boolean;
+  /** Pilar, «Solo con existencia» y «En promoción», como los leyó `parseListingFilters`. */
+  filters: ListingFilterState;
   /** Resultados por pilar, cuando se pueden afirmar. Ver `PublicationPillarFilter`. */
   counts?: Readonly<Record<string, number>> | null;
   /**
-   * Prefijo de los `data-testid` de cada chip: `<prefijo>-pillar-<clave>` y
-   * `<prefijo>-only-available`. La búsqueda pasa `facet`, que es el nombre que ya conocían sus
+   * Prefijo de los `data-testid` de cada chip: `<prefijo>-pillar-<clave>`,
+   * `<prefijo>-only-available` y `<prefijo>-on-sale`. La búsqueda pasa `facet`, que es el nombre que ya conocían sus
    * pruebas.
    */
   testIdPrefix?: string;
 }
 
 /**
- * Cinco filtros y un interruptor que no se parten: la fila entera se desliza.
+ * Cinco filtros y dos interruptores que no se parten: la fila entera se desliza.
  *
  * El `overflow-x` no vive aquí sino en quien aloja la fila, para que un solo gesto arrastre todo
  * —rótulos incluidos— en vez de dejar el desplazamiento encerrado en la parte ancha.
@@ -55,17 +56,20 @@ export default function ListingFilterChips({
   pathname,
   params,
   query,
-  currentPillar,
-  onlyAvailable,
+  filters,
   counts,
   testIdPrefix = "filter",
 }: ListingFilterChipsProps): React.ReactElement {
   const t = useTranslations("listingFilters");
-  const current = {
-    ...query,
-    [PUBLICATION_PILLAR_QUERY_PARAM]: currentPillar,
-    [ONLY_AVAILABLE_QUERY_PARAM]: onlyAvailable ? "1" : undefined,
-  };
+  const { currentPillar, onlyAvailable, onSale } = filters;
+  const current = { ...query, ...listingFilterParams(filters) };
+  /** El mismo listado con un interruptor volteado y todo lo demás como estaba. */
+  const toggled = (param: string, on: boolean): AppHref =>
+    ({
+      pathname,
+      params,
+      query: listingQuery(current, { [param]: on ? undefined : "1" }),
+    }) as AppHref;
 
   return (
     <>
@@ -86,19 +90,19 @@ export default function ListingFilterChips({
       <span className={EYEBROW}>{t("availability")}</span>
 
       <ToggleFilterChip
-        href={
-          {
-            pathname,
-            params,
-            query: listingQuery(current, {
-              [ONLY_AVAILABLE_QUERY_PARAM]: onlyAvailable ? undefined : "1",
-            }),
-          } as AppHref
-        }
+        href={toggled(ONLY_AVAILABLE_QUERY_PARAM, onlyAvailable)}
         pressed={onlyAvailable}
         testId={`${testIdPrefix}-only-available`}
       >
         {t("onlyAvailable")}
+      </ToggleFilterChip>
+
+      <ToggleFilterChip
+        href={toggled(ON_SALE_QUERY_PARAM, onSale)}
+        pressed={onSale}
+        testId={`${testIdPrefix}-on-sale`}
+      >
+        {t("onSale")}
       </ToggleFilterChip>
     </>
   );

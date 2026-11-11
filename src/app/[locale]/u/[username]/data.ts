@@ -1,9 +1,12 @@
-import type { PublicationPillar } from "~/domain/entities/post/publicationPillars";
+import {
+  type ListingFilterState,
+  NO_LISTING_FILTERS,
+} from "~/domain/entities/post/listingFilters";
 import type { Seller } from "~/domain/entities/seller/types";
 import type { UserProfile } from "~/domain/entities/user/types";
 import { PAGINATION_INIT_PAGE, PAGINATION_PAGE_SIZE } from "~/infra/constants";
 import { createPostQueryRepository } from "~/infra/dataAccess/getMultiplePosts";
-import { categoryKeysForActivePublicationPillar } from "~/infra/dataAccess/posts/publicationPillarFilter";
+import { resolveListingFilters } from "~/infra/dataAccess/posts/resolveListingFilters";
 import { PostgresPracticeAdoption } from "~/infra/dataAccess/practices/PostgresPracticeAdoption";
 import { PostgresPracticeCatalog } from "~/infra/dataAccess/practices/PostgresPracticeCatalog";
 import { createSellerRepository } from "~/infra/dataAccess/sellers/factory";
@@ -34,9 +37,8 @@ export async function getProfileByUsername(
   locale: string,
   /** Quién mira. Si es su propio perfil, también ve lo que se le bajó. */
   viewerId?: string | null,
-  currentPillar: PublicationPillar | null = null,
-  /** `?disponibles=1`: deja fuera los productos agotados; lo que no se agota se queda. */
-  onlyAvailable = false,
+  /** Pilar, existencia y promoción. Ver `parseListingFilters`. */
+  filters: ListingFilterState = NO_LISTING_FILTERS,
 ): Promise<ProfilePageData | null> {
   const profile = await createUserProfileRepository().findByUsername(username);
 
@@ -50,11 +52,7 @@ export async function getProfileByUsername(
       pageNum,
       PAGINATION_PAGE_SIZE,
       viewerId,
-      {
-        categoryKeys:
-          await categoryKeysForActivePublicationPillar(currentPillar),
-        onlyAvailable,
-      },
+      await resolveListingFilters(filters),
     ),
     createSellerRepository().findByUserId(profile.id),
     new PracticeAdoptionUseCase(new PostgresPracticeAdoption()).sharedActiveFor(

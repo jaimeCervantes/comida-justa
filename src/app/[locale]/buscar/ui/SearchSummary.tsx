@@ -1,32 +1,27 @@
 import { getTranslations } from "next-intl/server";
-import { ONLY_AVAILABLE_QUERY_PARAM } from "~/domain/entities/post/catalogFilters";
 import {
-  PUBLICATION_PILLAR_QUERY_PARAM,
-  type PublicationPillar,
-} from "~/domain/entities/post/publicationPillars";
+  type ListingFilterState,
+  listingFilterParams,
+  NO_LISTING_FILTERS,
+} from "~/domain/entities/post/listingFilters";
 import { type AppHref, Link } from "~/i18n/navigation";
 import { Alert } from "~/presentation/design_system/feedback/Alert";
+import { listingQuery } from "~/presentation/post/ListingFilters/listingQuery";
 
 interface SummaryProps {
   query: string;
   total: number;
-  currentPillar: PublicationPillar | null;
-  onlyAvailable: boolean;
+  filters: ListingFilterState;
   /** `true` cuando respondió el rescate semántico y no la coincidencia de palabras. */
   isSemantic: boolean;
 }
 
-function hrefWith(
-  query: string,
-  pillar: PublicationPillar | null,
-  onlyAvailable: boolean,
-): AppHref {
-  const params: Record<string, string> = { q: query };
-
-  if (pillar) params[PUBLICATION_PILLAR_QUERY_PARAM] = pillar;
-  if (onlyAvailable) params[ONLY_AVAILABLE_QUERY_PARAM] = "1";
-
-  return { pathname: "/buscar", query: params } as AppHref;
+/** La misma búsqueda con otros filtros. */
+function hrefWith(query: string, filters: ListingFilterState): AppHref {
+  return {
+    pathname: "/buscar",
+    query: listingQuery({ q: query, ...listingFilterParams(filters) }),
+  } as AppHref;
 }
 
 const CHIP =
@@ -48,13 +43,14 @@ const CHIP =
 export default async function SearchSummary({
   query,
   total,
-  currentPillar,
-  onlyAvailable,
+  filters,
   isSemantic,
 }: SummaryProps): Promise<React.ReactElement> {
   const t = await getTranslations("search");
   const pillarT = await getTranslations("publicationPillars");
-  const hasFilters = currentPillar !== null || onlyAvailable;
+  const filtersT = await getTranslations("listingFilters");
+  const { currentPillar, onlyAvailable, onSale } = filters;
+  const hasFilters = currentPillar !== null || onlyAvailable || onSale;
 
   return (
     <div className="flex flex-col gap-3">
@@ -65,7 +61,7 @@ export default async function SearchSummary({
 
         {currentPillar ? (
           <Link
-            href={hrefWith(query, null, onlyAvailable)}
+            href={hrefWith(query, { ...filters, currentPillar: null })}
             data-testid="chip-pillar"
             className={CHIP}
           >
@@ -76,7 +72,7 @@ export default async function SearchSummary({
 
         {onlyAvailable ? (
           <Link
-            href={hrefWith(query, currentPillar, false)}
+            href={hrefWith(query, { ...filters, onlyAvailable: false })}
             data-testid="chip-available"
             className={CHIP}
           >
@@ -85,9 +81,20 @@ export default async function SearchSummary({
           </Link>
         ) : null}
 
+        {onSale ? (
+          <Link
+            href={hrefWith(query, { ...filters, onSale: false })}
+            data-testid="chip-on-sale"
+            className={CHIP}
+          >
+            {filtersT("onSale")}
+            <span aria-hidden>✕</span>
+          </Link>
+        ) : null}
+
         {hasFilters ? (
           <Link
-            href={hrefWith(query, null, false)}
+            href={hrefWith(query, NO_LISTING_FILTERS)}
             data-testid="chip-clear"
             className="focus-ring rounded-chip px-2 py-1 text-label font-semibold text-highlight underline underline-offset-4"
           >

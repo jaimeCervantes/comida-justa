@@ -2,11 +2,11 @@
 
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ONLY_AVAILABLE_QUERY_PARAM } from "~/domain/entities/post/catalogFilters";
 import {
-  PUBLICATION_PILLAR_QUERY_PARAM,
-  type PublicationPillar,
-} from "~/domain/entities/post/publicationPillars";
+  type ListingFilterState,
+  listingFilterParams,
+  NO_LISTING_FILTERS,
+} from "~/domain/entities/post/listingFilters";
 import { Link } from "~/i18n/navigation";
 import { PAGINATION_INIT_PAGE, PAGINATION_PAGE_SIZE } from "~/infra/constants";
 import type { Post } from "~/infra/types/Posts";
@@ -14,6 +14,7 @@ import { buttonVariants } from "~/presentation/design_system/buttons/buttonVaria
 import { EmptyState } from "~/presentation/design_system/feedback/EmptyState";
 import MasonryColumns from "~/presentation/design_system/surfaces/MasonryColumns";
 import CardForList from "~/presentation/post/CardForList/CardForList";
+import { filteredEmptyMessage } from "~/presentation/post/ListingFilters/filteredEmptyMessage";
 import { listingQuery } from "~/presentation/post/ListingFilters/listingQuery";
 import { publicationPillarEmptyMessage } from "~/presentation/post/publicationPillarEmptyMessage";
 
@@ -37,17 +38,6 @@ async function readPostsPage(response: Response): Promise<PostsPageResponse> {
   return (await response.json()) as PostsPageResponse;
 }
 
-/** Los filtros de la dirección, tal como los entienden el endpoint y `/page/[page]`. */
-function feedFilters(
-  currentPillar: PublicationPillar | null,
-  onlyAvailable: boolean,
-): Record<string, string> | undefined {
-  return listingQuery({
-    [PUBLICATION_PILLAR_QUERY_PARAM]: currentPillar,
-    [ONLY_AVAILABLE_QUERY_PARAM]: onlyAvailable ? "1" : undefined,
-  });
-}
-
 /**
  * El feed del home: la primera página la pinta el servidor y el resto la pide este componente.
  *
@@ -65,8 +55,7 @@ export default function PostsWithLoadMore({
   locale,
   viewerId,
   reactionSignInHref,
-  currentPillar,
-  onlyAvailable = false,
+  filters = NO_LISTING_FILTERS,
 }: {
   initialPosts: Post[];
   /** Quién mira: decide si sus propias publicaciones le ofrecen editar y marcar agotado. */
@@ -79,10 +68,14 @@ export default function PostsWithLoadMore({
   totalPages: number;
   /** Viaja al endpoint para que las páginas siguientes traigan la etiqueta en el mismo idioma. */
   locale: string;
-  currentPillar: PublicationPillar | null;
-  /** `?disponibles=1`. Viaja a cada «Cargar más» y a los enlaces de paginación. */
-  onlyAvailable?: boolean;
+  /** Pilar, existencia y promoción. Viajan a cada «Cargar más» y a los enlaces de paginación. */
+  filters?: ListingFilterState;
 }) {
+  /* Una cadena y no un objeto: es la dependencia de `loadMorePosts`, y un objeto nuevo en cada render
+     volvería a montar el observador del scroll cada vez. */
+  const filterSearch = new URLSearchParams(
+    listingQuery(listingFilterParams(filters)),
+  ).toString();
   const t = useTranslations("feed");
   const filtersT = useTranslations("listingFilters");
   const pillarT = useTranslations("publicationPillars");
@@ -118,10 +111,8 @@ export default function PostsWithLoadMore({
       setLoading(true);
       const nextPage = currentPage + 1;
 
-      const query = new URLSearchParams({
-        locale,
-        ...feedFilters(currentPillar, onlyAvailable),
-      });
+      const query = new URLSearchParams(filterSearch);
+      query.set("locale", locale);
       const response = await fetch(
         `/api/posts/page/${nextPage}/pageSize/${PAGINATION_PAGE_SIZE}?${query.toString()}`,
       );
@@ -141,7 +132,7 @@ export default function PostsWithLoadMore({
     } finally {
       setLoading(false);
     }
-  }, [currentPage, hasMore, loading, locale, currentPillar, onlyAvailable]);
+  }, [currentPage, hasMore, loading, locale, filterSearch]);
 
   useEffect(() => {
     if (!loaderRef.current || !hasMore) return;
@@ -173,13 +164,12 @@ export default function PostsWithLoadMore({
           testId="feed-empty"
           className="mt-3"
           title={
-            onlyAvailable
-              ? filtersT("nothingInStock")
-              : publicationPillarEmptyMessage({
-                  currentPillar,
-                  fallback: t("empty"),
-                  t: pillarT,
-                })
+            filteredEmptyMessage(filters, filtersT) ??
+            publicationPillarEmptyMessage({
+              currentPillar: filters.currentPillar,
+              fallback: t("empty"),
+              t: pillarT,
+            })
           }
           action={
             <Link
@@ -236,7 +226,7 @@ export default function PostsWithLoadMore({
                 href={{
                   pathname: "/page/[page]",
                   params: { page: String(page) },
-                  query: feedFilters(currentPillar, onlyAvailable),
+                  query: listingQuery(listingFilterParams(filters)),
                 }}
               >
                 {t("page", { page })}

@@ -1,14 +1,7 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import {
-  ONLY_AVAILABLE_QUERY_PARAM,
-  parseOnlyAvailableFilter,
-} from "~/domain/entities/post/catalogFilters";
-import {
-  PUBLICATION_PILLAR_QUERY_PARAM,
-  parsePublicationPillar,
-} from "~/domain/entities/post/publicationPillars";
+import { parseListingFilters } from "~/domain/entities/post/listingFilters";
 import { usePathname } from "~/i18n/navigation";
 import ListingFilterChips from "~/presentation/post/ListingFilters/ListingFilterChips";
 
@@ -28,7 +21,7 @@ import ListingFilterChips from "~/presentation/post/ListingFilters/ListingFilter
  * búsqueda montan su propia `ListingFilterBar` bajo su título.
  *
  * **Monta los chips de la barra única** (`ListingFilterChips`), los mismos que categoría, tienda,
- * perfil y búsqueda pintan dentro de su tarjeta: pilar y «Solo con existencia». Cada enlace parte
+ * perfil y búsqueda pintan dentro de su tarjeta: pilar, «Solo con existencia» y «En promoción». Cada enlace parte
  * de **toda** la dirección, así que en `/productos` elegir un pilar ya no suelta `promocion`,
  * `marca` ni `tienda`, que es lo que pasaba cuando este filtro solo conocía `pillar` (slice 3 de
  * `docs/features/catalog/005-2026-11-10-filtros-del-catalogo.md`).
@@ -41,20 +34,15 @@ export default function NearbyPillarFilter(): React.ReactNode {
 
   if (!isFilterableRoute(pathname)) return null;
 
-  const currentPillar = parsePublicationPillar(
-    searchParams.get(PUBLICATION_PILLAR_QUERY_PARAM),
-  );
+  const query = Object.fromEntries(searchParams.entries());
 
   /* La forma de una sola fila la pone `ListingFilterChips`; el `overflow-x` vive en `NearbyBar`,
      sobre la fila completa, para que un solo gesto arrastre la barra entera. */
   return (
     <ListingFilterChips
       pathname={pathname}
-      query={Object.fromEntries(searchParams.entries())}
-      currentPillar={currentPillar}
-      onlyAvailable={parseOnlyAvailableFilter(
-        searchParams.get(ONLY_AVAILABLE_QUERY_PARAM) ?? undefined,
-      )}
+      query={query}
+      filters={parseListingFilters(query)}
     />
   );
 }

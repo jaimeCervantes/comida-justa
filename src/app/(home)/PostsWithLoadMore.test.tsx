@@ -25,6 +25,7 @@ vi.mock("~/presentation/post/PostReaction/postReactionAction", () => ({
   setPostReaction: vi.fn(),
 }));
 
+import { NO_LISTING_FILTERS } from "~/domain/entities/post/listingFilters";
 import type { PublicationPillar } from "~/domain/entities/post/publicationPillars";
 import type { Coordinates } from "~/domain/entities/seller/coordinates";
 import { renderWithIntl } from "~/infra/test-utils/renderWithIntl";
@@ -61,12 +62,12 @@ function feed(
 ) {
   return (
     <PostsWithLoadMore
-      key={homeFeedKey(visitor, currentPillar)}
+      key={homeFeedKey(visitor, { ...NO_LISTING_FILTERS, currentPillar })}
       initialPosts={initialPosts}
       totalPosts={totalPosts}
       totalPages={1}
       locale="es"
-      currentPillar={currentPillar}
+      filters={{ ...NO_LISTING_FILTERS, currentPillar }}
     />
   );
 }
@@ -188,7 +189,6 @@ describe("El feed del home", () => {
         totalPages={1}
         locale="es"
         viewerId="user-1"
-        currentPillar={null}
       />,
     );
 
@@ -286,7 +286,7 @@ describe("El feed del home", () => {
         totalPosts={2}
         totalPages={1}
         locale="es"
-        currentPillar="movement"
+        filters={{ ...NO_LISTING_FILTERS, currentPillar: "movement" }}
       />,
     );
 
@@ -310,8 +310,11 @@ describe("El feed del home", () => {
         totalPosts={2}
         totalPages={1}
         locale="es"
-        currentPillar="nutrition"
-        onlyAvailable
+        filters={{
+          currentPillar: "nutrition",
+          onlyAvailable: true,
+          onSale: false,
+        }}
       />,
     );
 
@@ -323,7 +326,15 @@ describe("El feed del home", () => {
     expect(url.searchParams.get("pillar")).toBe("nutrition");
   });
 
-  it("otro filtro es otra lista: la `key` cambia al encender la existencia", () => {
-    expect(homeFeedKey(null, null, true)).not.toBe(homeFeedKey(null, null));
-  });
+  it.each([
+    { filtro: "la existencia", cambio: { onlyAvailable: true } },
+    { filtro: "la promoción", cambio: { onSale: true } },
+  ])(
+    "otro filtro es otra lista: la `key` cambia al encender $filtro",
+    ({ cambio }) => {
+      expect(homeFeedKey(null, { ...NO_LISTING_FILTERS, ...cambio })).not.toBe(
+        homeFeedKey(null, NO_LISTING_FILTERS),
+      );
+    },
+  );
 });

@@ -62,7 +62,7 @@ describe("SearchPostsUseCase", () => {
       undefined,
       null,
       undefined,
-      undefined,
+      { onlyAvailable: undefined, onSale: undefined },
       undefined,
     );
     expect(result).toEqual({
@@ -91,7 +91,7 @@ describe("SearchPostsUseCase", () => {
       undefined,
       near,
       undefined,
-      undefined,
+      { onlyAvailable: undefined, onSale: undefined },
       undefined,
     );
   });
@@ -108,7 +108,7 @@ describe("SearchPostsUseCase", () => {
       undefined,
       null,
       undefined,
-      undefined,
+      { onlyAvailable: undefined, onSale: undefined },
       undefined,
     );
   });
@@ -130,7 +130,7 @@ describe("SearchPostsUseCase", () => {
       undefined,
       null,
       ["sueno_y_descanso", "rituales_de_sueno"],
-      undefined,
+      { onlyAvailable: undefined, onSale: undefined },
       undefined,
     );
   });
@@ -171,7 +171,7 @@ describe("SearchPostsUseCase y el idioma de quien busca", () => {
       "en",
       null,
       undefined,
-      undefined,
+      { onlyAvailable: undefined, onSale: undefined },
       undefined,
     );
   });
@@ -241,7 +241,7 @@ describe("SearchPostsUseCase y el rescate semántico", () => {
       SEMANTIC_MAX_DISTANCE,
       null,
       undefined,
-      undefined,
+      { onlyAvailable: undefined, onSale: undefined },
       undefined,
     );
     expect(result.total).toBe(1);
@@ -360,7 +360,10 @@ describe("SearchPostsUseCase y los tipos de publicación", () => {
       onlyAvailable: true,
     });
 
-    expect(repository.searchByVector.mock.calls[0][6]).toBe(true);
+    expect(repository.searchByVector.mock.calls[0][6]).toEqual({
+      onlyAvailable: true,
+      onSale: undefined,
+    });
   });
 });
 
@@ -493,7 +496,10 @@ describe("SearchPostsUseCase y las facetas", () => {
       categoryKeys: ["sueno_y_descanso"],
     });
 
-    expect(repository.countByCategory).toHaveBeenCalledWith("miel", undefined);
+    expect(repository.countByCategory).toHaveBeenCalledWith("miel", {
+      onlyAvailable: undefined,
+      onSale: undefined,
+    });
   });
 
   /*
@@ -549,10 +555,34 @@ describe("SearchPostsUseCase y las facetas", () => {
       undefined,
       null,
       undefined,
-      true,
+      { onlyAvailable: true, onSale: undefined },
       undefined,
     );
-    expect(repository.countByCategory).toHaveBeenCalledWith("miel", true);
+    expect(repository.countByCategory).toHaveBeenCalledWith("miel", {
+      onlyAvailable: true,
+      onSale: undefined,
+    });
+  });
+
+  /* Slice 4 de `docs/features/catalog/005-2026-11-10-filtros-del-catalogo.md`. */
+  it("y «en promoción» viaja igual, a la búsqueda y a sus cuentas", async () => {
+    const repository = makeRepo();
+
+    await new SearchPostsUseCase(repository).execute({
+      query: "miel",
+      page: 1,
+      pageSize: 6,
+      onSale: true,
+    });
+
+    expect(repository.search.mock.calls[0][6]).toEqual({
+      onlyAvailable: undefined,
+      onSale: true,
+    });
+    expect(repository.countByCategory).toHaveBeenCalledWith("miel", {
+      onlyAvailable: undefined,
+      onSale: true,
+    });
   });
 });
 
@@ -613,12 +643,12 @@ describe("SearchPostsUseCase y las palabras a medias", () => {
       "es",
       null,
       undefined,
-      true,
+      { onlyAvailable: true, onSale: undefined },
       undefined,
     );
     expect(repository.countByCategoryByPrefix).toHaveBeenCalledWith(
       ["barra", "de", "prot"],
-      true,
+      { onlyAvailable: true, onSale: undefined },
     );
     /* Es búsqueda de texto: las facetas enseñan los números del inicio de palabra. */
     expect(result).toMatchObject({
@@ -728,6 +758,7 @@ describe("SearchPostsUseCase y la medición con filtros", () => {
   it.each([
     { filtro: "el pilar Mente", dto: { categoryKeys: ["mente_y_espiritu"] } },
     { filtro: "«solo disponibles»", dto: { onlyAvailable: true } },
+    { filtro: "«en promoción»", dto: { onSale: true } },
   ])("con $filtro puesto no se registra", async ({ dto }) => {
     const reporter = { record: vi.fn() };
 

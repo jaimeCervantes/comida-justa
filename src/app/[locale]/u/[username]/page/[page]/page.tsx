@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { parseOnlyAvailableFilter } from "~/domain/entities/post/catalogFilters";
-import { parsePublicationPillar } from "~/domain/entities/post/publicationPillars";
+import { parseListingFilters } from "~/domain/entities/post/listingFilters";
 import { Link } from "~/i18n/navigation";
 import { resolveLocale } from "~/i18n/routing";
 import { readViewerId } from "~/infra/auth/readViewerId";
@@ -18,7 +17,8 @@ import ProfileSharedPractices from "../../ui/ProfileSharedPractices";
 
 type Props = {
   params: Promise<{ locale: string; username: string; page: string }>;
-  searchParams: Promise<{ pillar?: string; disponibles?: string }>;
+  /** Pilar, `disponibles` y `promocion`. */
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
 function parsePage(value: string): number | null {
@@ -41,10 +41,8 @@ export default async function ProfilePaginatedPage({
   searchParams,
 }: Props) {
   const { username, locale: rawLocale, page: pageStr } = await params;
-  const { pillar, disponibles } = await searchParams;
-  const onlyAvailable = parseOnlyAvailableFilter(disponibles);
+  const filters = parseListingFilters(await searchParams);
   const locale = resolveLocale(rawLocale);
-  const currentPillar = parsePublicationPillar(pillar);
   setRequestLocale(locale);
   const viewerId = await readViewerId();
   const t = await getTranslations("profile");
@@ -59,8 +57,7 @@ export default async function ProfilePaginatedPage({
     page,
     locale,
     viewerId,
-    currentPillar,
-    onlyAvailable,
+    filters,
   );
 
   if (!data || (data.publications.length === 0 && page > 1)) {
@@ -99,8 +96,7 @@ export default async function ProfilePaginatedPage({
         username={username}
         currentPage={page}
         totalPages={data.totalPages}
-        currentPillar={currentPillar}
-        onlyAvailable={onlyAvailable}
+        filters={filters}
       />
 
       <div className="text-center mt-4">

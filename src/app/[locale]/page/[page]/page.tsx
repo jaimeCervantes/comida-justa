@@ -2,14 +2,10 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import {
-  ONLY_AVAILABLE_QUERY_PARAM,
-  parseOnlyAvailableFilter,
-} from "~/domain/entities/post/catalogFilters";
-import {
-  PUBLICATION_PILLAR_QUERY_PARAM,
-  type PublicationPillar,
-  parsePublicationPillar,
-} from "~/domain/entities/post/publicationPillars";
+  type ListingFilterState,
+  listingFilterParams,
+  parseListingFilters,
+} from "~/domain/entities/post/listingFilters";
 import { Link } from "~/i18n/navigation";
 import { resolveLocale } from "~/i18n/routing";
 import { readViewerId } from "~/infra/auth/readViewerId";
@@ -21,7 +17,7 @@ import {
   PUBLIC_BRAND_NAME,
 } from "~/infra/constants";
 import { createPostQueryRepository } from "~/infra/dataAccess/getMultiplePosts";
-import { categoryKeysForActivePublicationPillar } from "~/infra/dataAccess/posts/publicationPillarFilter";
+import { resolveListingFilters } from "~/infra/dataAccess/posts/resolveListingFilters";
 import { readVisitorLocation } from "~/infra/location/visitorLocation";
 import type { Post } from "~/infra/types/Posts";
 import { mapPostsToCardsForLocale } from "~/infra/UI/mappers/posts/mapPostsToCardsForLocale";
@@ -30,13 +26,15 @@ import { CARD_MASONRY } from "~/presentation/design_system/surfaces/cardList";
 import { Heading } from "~/presentation/design_system/typography/Heading";
 import Pagination from "~/presentation/navigation/Pagination";
 import CardForList from "~/presentation/post/CardForList/CardForList";
+import { filteredEmptyMessage } from "~/presentation/post/ListingFilters/filteredEmptyMessage";
 import ListingFilterBar from "~/presentation/post/ListingFilters/ListingFilterBar";
 import { listingQuery } from "~/presentation/post/ListingFilters/listingQuery";
 import { publicationPillarEmptyMessage } from "~/presentation/post/publicationPillarEmptyMessage";
 
 type Props = {
   params: Promise<{ locale: string; page: string }>;
-  searchParams: Promise<{ pillar?: string; disponibles?: string }>;
+  /** Pilar, `disponibles` y `promocion`. */
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -74,8 +72,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 async function getPosts(
   page: number,
   locale: string,
-  currentPillar: PublicationPillar | null,
-  onlyAvailable: boolean,
+  filters: ListingFilterState,
   viewerId?: string | null,
 ) {
   const pageNum = Math.max(PAGINATION_INIT_PAGE, page);
@@ -85,10 +82,7 @@ async function getPosts(
     pageNum,
     PAGINATION_PAGE_SIZE,
     await readVisitorLocation(),
-    {
-      categoryKeys: await categoryKeysForActivePublicationPillar(currentPillar),
-      onlyAvailable,
-    },
+    await resolveListingFilters(filters),
     viewerId,
   );
 
@@ -101,10 +95,8 @@ async function getPosts(
 
 export default async function PaginatedPage({ params, searchParams }: Props) {
   const { page: pageStr, locale: rawLocale } = await params;
-  const { pillar, disponibles } = await searchParams;
-  const onlyAvailable = parseOnlyAvailableFilter(disponibles);
+  const filters = parseListingFilters(await searchParams);
   const locale = resolveLocale(rawLocale);
-  const currentPillar = parsePublicationPillar(pillar);
   setRequestLocale(locale);
   const viewerId = await readViewerId();
   const t = await getTranslations("feed");
@@ -117,13 +109,7 @@ export default async function PaginatedPage({ params, searchParams }: Props) {
     notFound();
   }
 
-  const { posts, totalPages } = await getPosts(
-    page,
-    locale,
-    currentPillar,
-    onlyAvailable,
-    viewerId,
-  );
+  const { posts, totalPages } = await getPosts(page, locale, filters, viewerId);
 
   // Si la página no tiene contenido y está fuera de rango, mostrar 404
   if (posts.length === 0 && page > 1 && page > totalPages) {
@@ -137,23 +123,17 @@ export default async function PaginatedPage({ params, searchParams }: Props) {
       </Heading>
 
       {/* Lleva de vuelta al home con los filtros: la página N de un filtro nuevo puede no existir. */}
-      <ListingFilterBar
-        pathname="/"
-        currentPillar={currentPillar}
-        onlyAvailable={onlyAvailable}
-        className="mt-4"
-      />
+      <ListingFilterBar pathname="/" filters={filters} className="mt-4" />
 
       <section className={`${CARD_MASONRY} pt-6`}>
         {posts.length === 0 ? (
           <p>
-            {onlyAvailable
-              ? filtersT("nothingInStock")
-              : publicationPillarEmptyMessage({
-                  currentPillar,
-                  fallback: t("emptyPage"),
-                  t: pillarT,
-                })}
+            {filteredEmptyMessage(filters, filtersT) ??
+              publicationPillarEmptyMessage({
+                currentPillar: filters.currentPillar,
+                fallback: t("emptyPage"),
+                t: pillarT,
+              })}
           </p>
         ) : (
           posts.map((post: Post) => {
@@ -176,10 +156,7 @@ export default async function PaginatedPage({ params, searchParams }: Props) {
         currentPage={page}
         totalPages={totalPages}
         pathname="/page/[page]"
-        query={listingQuery({
-          [PUBLICATION_PILLAR_QUERY_PARAM]: currentPillar,
-          [ONLY_AVAILABLE_QUERY_PARAM]: onlyAvailable ? "1" : undefined,
-        })}
+        query={listingQuery(listingFilterParams(filters))}
       />
 
       {/* Enlace para volver a la página principal si no estamos en ella */}

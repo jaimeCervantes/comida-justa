@@ -1,13 +1,14 @@
 import { useTranslations } from "next-intl";
-import { ONLY_AVAILABLE_QUERY_PARAM } from "~/domain/entities/post/catalogFilters";
 import {
-  PUBLICATION_PILLAR_QUERY_PARAM,
-  type PublicationPillar,
-} from "~/domain/entities/post/publicationPillars";
+  type ListingFilterState,
+  listingFilterParams,
+  NO_LISTING_FILTERS,
+} from "~/domain/entities/post/listingFilters";
 import type { Post } from "~/infra/types/Posts";
 import { CARD_MASONRY } from "~/presentation/design_system/surfaces/cardList";
 import Pagination from "~/presentation/navigation/Pagination";
 import CardForList from "~/presentation/post/CardForList/CardForList";
+import { filteredEmptyMessage } from "~/presentation/post/ListingFilters/filteredEmptyMessage";
 import ListingFilterBar from "~/presentation/post/ListingFilters/ListingFilterBar";
 import { listingQuery } from "~/presentation/post/ListingFilters/listingQuery";
 import { publicationPillarEmptyMessage } from "~/presentation/post/publicationPillarEmptyMessage";
@@ -20,19 +21,17 @@ export default function StoreCatalog({
   totalPages,
   viewerId,
   viewerSellerId,
-  currentPillar,
+  filters = NO_LISTING_FILTERS,
   term,
-  onlyAvailable = false,
 }: {
   catalog: Post[];
   handle: string;
   currentPage: number;
   totalPages: number;
-  currentPillar: PublicationPillar | null;
+  /** Pilar, existencia y promoción. Sin `disponibles`, lo agotado sale con su insignia. */
+  filters?: ListingFilterState;
   /** Lo que se está buscando ahora mismo, ya normalizado. Vacío = no se está filtrando. */
   term: string;
-  /** `?disponibles=1`. Sin él, el catálogo enseña también lo agotado, con su insignia. */
-  onlyAvailable?: boolean;
   /** Quién mira: decide si sus propias publicaciones le ofrecen editar y marcar agotado. */
   viewerId?: string | null;
   /**
@@ -49,26 +48,16 @@ export default function StoreCatalog({
   const params = { slug: handle };
   /* Los filtros y la búsqueda viajan juntos: pasar de página, cambiar un filtro o buscar otra cosa
      no puede tirar lo que se estaba mirando. */
-  const query = listingQuery({
-    [PUBLICATION_PILLAR_QUERY_PARAM]: currentPillar,
-    [ONLY_AVAILABLE_QUERY_PARAM]: onlyAvailable ? "1" : undefined,
-    q: term,
-  });
+  const query = listingQuery({ ...listingFilterParams(filters), q: term });
 
   const controls = (
     <>
-      <StoreSearchField
-        handle={handle}
-        term={term}
-        currentPillar={currentPillar}
-        onlyAvailable={onlyAvailable}
-      />
+      <StoreSearchField handle={handle} term={term} filters={filters} />
       <ListingFilterBar
         pathname="/tienda/[slug]"
         params={params}
         query={{ q: term }}
-        currentPillar={currentPillar}
-        onlyAvailable={onlyAvailable}
+        filters={filters}
       />
     </>
   );
@@ -82,13 +71,12 @@ export default function StoreCatalog({
               arregla borrando el término, lo segundo apagando el filtro y lo tercero publicando. */}
           {term
             ? t("nothingFound")
-            : onlyAvailable
-              ? filtersT("nothingInStock")
-              : publicationPillarEmptyMessage({
-                  currentPillar,
-                  fallback: t("empty"),
-                  t: pillarT,
-                })}
+            : (filteredEmptyMessage(filters, filtersT) ??
+              publicationPillarEmptyMessage({
+                currentPillar: filters.currentPillar,
+                fallback: t("empty"),
+                t: pillarT,
+              }))}
         </p>
       </>
     );

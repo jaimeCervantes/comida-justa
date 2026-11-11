@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { parseOnlyAvailableFilter } from "~/domain/entities/post/catalogFilters";
-import { parsePublicationPillar } from "~/domain/entities/post/publicationPillars";
+import { parseListingFilters } from "~/domain/entities/post/listingFilters";
 import { normalizeListTerm } from "~/domain/search/listTerm";
 import { Link } from "~/i18n/navigation";
 import { resolveLocale } from "~/i18n/routing";
@@ -17,7 +16,8 @@ import StoreHeader from "../../ui/StoreHeader";
 
 type Props = {
   params: Promise<{ locale: string; slug: string; page: string }>;
-  searchParams: Promise<{ pillar?: string; q?: string; disponibles?: string }>;
+  /** `q`, pilar, `disponibles` y `promocion`. */
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
 function parsePage(value: string): number | null {
@@ -40,11 +40,10 @@ export default async function StorePaginatedPage({
   searchParams,
 }: Props) {
   const { slug, locale: rawLocale, page: pageStr } = await params;
-  const { pillar, q, disponibles } = await searchParams;
-  const onlyAvailable = parseOnlyAvailableFilter(disponibles);
-  const term = normalizeListTerm(q);
+  const rawSearchParams = await searchParams;
+  const filters = parseListingFilters(rawSearchParams);
+  const term = normalizeListTerm(rawSearchParams.q);
   const locale = resolveLocale(rawLocale);
-  const currentPillar = parsePublicationPillar(pillar);
   setRequestLocale(locale);
   const viewerId = await readViewerId();
   const t = await getTranslations("store");
@@ -54,14 +53,7 @@ export default async function StorePaginatedPage({
     notFound();
   }
 
-  const store = await getStoreByHandle(
-    slug,
-    page,
-    locale,
-    currentPillar,
-    term,
-    onlyAvailable,
-  );
+  const store = await getStoreByHandle(slug, page, locale, filters, term);
 
   if (!store || (store.catalog.length === 0 && page > 1)) {
     notFound();
@@ -97,9 +89,8 @@ export default async function StorePaginatedPage({
         handle={slug}
         currentPage={page}
         totalPages={store.totalPages}
-        currentPillar={currentPillar}
+        filters={filters}
         term={term}
-        onlyAvailable={onlyAvailable}
       />
 
       <div className="text-center mt-4">

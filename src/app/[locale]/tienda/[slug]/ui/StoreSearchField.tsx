@@ -1,11 +1,10 @@
 "use client";
 import { useTranslations } from "next-intl";
 import { useCallback } from "react";
-import { ONLY_AVAILABLE_QUERY_PARAM } from "~/domain/entities/post/catalogFilters";
 import {
-  PUBLICATION_PILLAR_QUERY_PARAM,
-  type PublicationPillar,
-} from "~/domain/entities/post/publicationPillars";
+  type ListingFilterState,
+  listingFilterParams,
+} from "~/domain/entities/post/listingFilters";
 import { listingQuery } from "~/presentation/post/ListingFilters/listingQuery";
 import ListSearchField from "~/presentation/search/ListSearchField/ListSearchField";
 
@@ -22,27 +21,22 @@ import ListSearchField from "~/presentation/search/ListSearchField/ListSearchFie
 export default function StoreSearchField({
   handle,
   term,
-  currentPillar,
-  onlyAvailable = false,
+  filters,
 }: {
   handle: string;
   term: string;
-  currentPillar: PublicationPillar | null;
-  onlyAvailable?: boolean;
+  filters: ListingFilterState;
 }) {
+  const filterParams = listingFilterParams(filters);
   const t = useTranslations("store");
 
   const hrefForTerm = useCallback(
     (next: string) => ({
       pathname: "/tienda/[slug]" as const,
       params: { slug: handle },
-      query: listingQuery({
-        [PUBLICATION_PILLAR_QUERY_PARAM]: currentPillar,
-        [ONLY_AVAILABLE_QUERY_PARAM]: onlyAvailable ? "1" : undefined,
-        q: next,
-      }),
+      query: listingQuery({ ...listingFilterParams(filters), q: next }),
     }),
-    [handle, currentPillar, onlyAvailable],
+    [handle, filters],
   );
 
   return (
@@ -54,20 +48,11 @@ export default function StoreSearchField({
         label: t("searchLabel"),
       }}
       /* Los filtros viajan ocultos para no perderse cuando el envío lo hace el navegador. */
-      hiddenFields={
-        <>
-          {currentPillar ? (
-            <input
-              type="hidden"
-              name={PUBLICATION_PILLAR_QUERY_PARAM}
-              value={currentPillar}
-            />
-          ) : null}
-          {onlyAvailable ? (
-            <input type="hidden" name={ONLY_AVAILABLE_QUERY_PARAM} value="1" />
-          ) : null}
-        </>
-      }
+      hiddenFields={Object.entries(filterParams).map(([name, value]) =>
+        value ? (
+          <input key={name} type="hidden" name={name} value={value} />
+        ) : null,
+      )}
       testId="store-search"
       className="mb-4 flex items-center gap-2"
     />

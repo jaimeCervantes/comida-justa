@@ -1,3 +1,4 @@
+import type { ListingToggles } from "~/domain/entities/post/listingFilters";
 import { prefixWords } from "~/domain/search/prefixWords";
 import {
   buildSearchEvent,
@@ -82,7 +83,7 @@ export class SearchPostsUseCase {
         dto.locale,
         dto.near ?? null,
         dto.categoryKeys,
-        dto.onlyAvailable,
+        togglesOf(dto),
         dto.kinds,
       ),
       this.countByCategory(dto),
@@ -145,11 +146,11 @@ export class SearchPostsUseCase {
         dto.locale,
         dto.near ?? null,
         dto.categoryKeys,
-        dto.onlyAvailable,
+        togglesOf(dto),
         dto.kinds,
       ),
       this.postRepository
-        .countByCategoryByPrefix(words, dto.onlyAvailable)
+        .countByCategoryByPrefix(words, togglesOf(dto))
         .catch(() => null),
     ]);
 
@@ -163,7 +164,7 @@ export class SearchPostsUseCase {
     try {
       return await this.postRepository.countByCategory(
         dto.query,
-        dto.onlyAvailable,
+        togglesOf(dto),
       );
     } catch {
       return null;
@@ -229,7 +230,7 @@ export class SearchPostsUseCase {
         SEMANTIC_MAX_DISTANCE,
         dto.near ?? null,
         dto.categoryKeys,
-        dto.onlyAvailable,
+        togglesOf(dto),
         dto.kinds,
       );
     } catch {
@@ -254,7 +255,7 @@ function foundInAnotherPillar(
 }
 
 /**
- * Una búsqueda con un pilar o «solo disponibles» puestos **no se registra**.
+ * Una búsqueda con un pilar, «solo disponibles» o «en promoción» puestos **no se registra**.
  *
  * El registro mide qué escribe la gente y si se fue con las manos vacías. Picar un filtro sobre la
  * misma búsqueda no es escribir otra, y como `searches` no guarda los filtros, sus ceros se
@@ -263,5 +264,14 @@ function foundInAnotherPillar(
  * `docs/features/search/006-2026-10-17-palabras-a-medias.md`.
  */
 function isFiltered(dto: ISearchPostDTO): boolean {
-  return dto.categoryKeys !== undefined || dto.onlyAvailable === true;
+  return (
+    dto.categoryKeys !== undefined ||
+    dto.onlyAvailable === true ||
+    dto.onSale === true
+  );
+}
+
+/** Los interruptores de la búsqueda, tal como los aplica cualquier listado. */
+function togglesOf(dto: ISearchPostDTO): ListingToggles {
+  return { onlyAvailable: dto.onlyAvailable, onSale: dto.onSale };
 }

@@ -1,16 +1,9 @@
-import {
-  ONLY_AVAILABLE_QUERY_PARAM,
-  parseOnlyAvailableFilter,
-} from "~/domain/entities/post/catalogFilters";
-import {
-  PUBLICATION_PILLAR_QUERY_PARAM,
-  parsePublicationPillar,
-} from "~/domain/entities/post/publicationPillars";
+import { parseListingFilters } from "~/domain/entities/post/listingFilters";
 import { routing } from "~/i18n/routing";
 import { readViewerId } from "~/infra/auth/readViewerId";
 import { PAGINATION_INIT_PAGE, PAGINATION_PAGE_SIZE } from "~/infra/constants";
 import { createPostQueryRepository } from "~/infra/dataAccess/getMultiplePosts";
-import { categoryKeysForActivePublicationPillar } from "~/infra/dataAccess/posts/publicationPillarFilter";
+import { resolveListingFilters } from "~/infra/dataAccess/posts/resolveListingFilters";
 import { readVisitorLocation } from "~/infra/location/visitorLocation";
 import { mapPostsToCardsForLocale } from "~/infra/UI/mappers/posts/mapPostsToCardsForLocale";
 
@@ -32,13 +25,9 @@ export async function GET(
 
   try {
     const postRepo = createPostQueryRepository();
-    const search = new URL(request.url).searchParams;
-    const currentPillar = parsePublicationPillar(
-      search.get(PUBLICATION_PILLAR_QUERY_PARAM),
-    );
     // Los mismos filtros que la primera página, o «Cargar más» traería lo que el filtro escondió.
-    const onlyAvailable = parseOnlyAvailableFilter(
-      search.get(ONLY_AVAILABLE_QUERY_PARAM) ?? undefined,
+    const filters = parseListingFilters(
+      Object.fromEntries(new URL(request.url).searchParams.entries()),
     );
 
     // La misma ubicación que usó el primer render: si la página 2 llegara sin ella, las tarjetas
@@ -47,11 +36,7 @@ export async function GET(
       page,
       pageSize,
       await readVisitorLocation(),
-      {
-        categoryKeys:
-          await categoryKeysForActivePublicationPillar(currentPillar),
-        onlyAvailable,
-      },
+      await resolveListingFilters(filters),
       await readViewerId(),
     );
 

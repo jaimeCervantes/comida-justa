@@ -4,6 +4,7 @@ import {
   isValidKind,
   type PostKind,
 } from "~/domain/entities/post/kind";
+import type { ListingToggles } from "~/domain/entities/post/listingFilters";
 import { isValidOrigin } from "~/domain/entities/post/origin";
 import type { PostMediaFile } from "~/domain/entities/post/types";
 import type { Coordinates } from "~/domain/entities/seller/coordinates";
@@ -17,6 +18,7 @@ import {
 } from "~/infra/dataAccess/db/schema/posts";
 import { sellers } from "~/infra/dataAccess/db/schema/sellers";
 import { inStockWhere } from "~/infra/dataAccess/posts/inStockWhere";
+import { onSaleWhere } from "~/infra/dataAccess/posts/onSaleWhere";
 import type {
   ISearchPostResultDTO,
   SearchStoreIdentity,
@@ -245,12 +247,15 @@ function toMatches(rows: RankedRow[]): {
 }
 
 /**
- * Deja fuera lo agotado, si se pidió: la misma regla que los listados (`inStockWhere`).
+ * Los interruptores de la búsqueda —«Solo con existencia» y «En promoción»—, con las mismas reglas
+ * que los listados (`inStockWhere`, `onSaleWhere`).
  *
- * Por omisión **no filtra**: quien busca «miel» por su nombre quiere ver la miel agotada también,
+ * Por omisión **no filtran**: quien busca «miel» por su nombre quiere ver la miel agotada también,
  * aunque sea para enterarse de que existe y volver luego.
  */
-const availableWhere = inStockWhere;
+function togglesWhere(toggles: ListingToggles | undefined): SQL {
+  return sql`${inStockWhere(toggles?.onlyAvailable)} AND ${onSaleWhere(toggles?.onSale)}`;
+}
 
 /** Solo los tipos pedidos, si se pidieron: `undefined` no filtra, y una lista vacía no deja nada. */
 function kindWhere(kinds: readonly PostKind[] | undefined) {
@@ -284,7 +289,7 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
     locale: string = "es",
     near: Coordinates | null = null,
     categoryKeys?: readonly string[],
-    onlyAvailable?: boolean,
+    toggles?: ListingToggles,
     kinds?: readonly PostKind[],
   ): Promise<{ results: ISearchPostResultDTO[]; total: number }> {
     const trimmed = query?.trim() ?? "";
@@ -296,7 +301,7 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
           locale,
           near,
           categoryKeys,
-          onlyAvailable,
+          toggles,
           kinds,
         )
       : await this.newestFirst(
@@ -304,7 +309,7 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
           pageSize,
           near,
           categoryKeys,
-          onlyAvailable,
+          toggles,
           kinds,
         );
 
@@ -320,7 +325,7 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
     locale: string = "es",
     near: Coordinates | null = null,
     categoryKeys?: readonly string[],
-    onlyAvailable?: boolean,
+    toggles?: ListingToggles,
     kinds?: readonly PostKind[],
   ): Promise<{ results: ISearchPostResultDTO[]; total: number }> {
     const question = prefixTsQuery(words);
@@ -333,7 +338,7 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
       locale,
       near,
       categoryKeys,
-      onlyAvailable,
+      toggles,
       kinds,
     );
 
@@ -349,7 +354,7 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
     maxDistance: number,
     near: Coordinates | null = null,
     categoryKeys?: readonly string[],
-    onlyAvailable?: boolean,
+    toggles?: ListingToggles,
     kinds?: readonly PostKind[],
   ): Promise<{ results: ISearchPostResultDTO[]; total: number }> {
     const { matches, total } = await this.semanticMatches(
@@ -359,7 +364,7 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
       maxDistance,
       near,
       categoryKeys,
-      onlyAvailable,
+      toggles,
       kinds,
     );
 
@@ -413,7 +418,7 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
     locale: string,
     near: Coordinates | null,
     categoryKeys: readonly string[] | undefined,
-    onlyAvailable: boolean | undefined,
+    toggles: ListingToggles | undefined,
     kinds: readonly PostKind[] | undefined,
   ): Promise<{ matches: RankedMatch[]; total: number }> {
     const offset = Math.max(0, (page - 1) * pageSize);
@@ -448,7 +453,7 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
         FROM post_translations t
         WHERE t.post_id = p.id AND ${matchesQuery(query)}
       ) r ON r.relevance IS NOT NULL
-      WHERE ${PUBLISHED_POSTS} AND ${categoryWhere(categoryKeys)} AND ${availableWhere(onlyAvailable)} AND ${kindWhere(kinds)}
+      WHERE ${PUBLISHED_POSTS} AND ${categoryWhere(categoryKeys)} AND ${togglesWhere(toggles)} AND ${kindWhere(kinds)}
       ORDER BY
         r.own_relevance DESC NULLS LAST,
         r.relevance DESC,
@@ -488,7 +493,7 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
     maxDistance: number,
     near: Coordinates | null,
     categoryKeys: readonly string[] | undefined,
-    onlyAvailable: boolean | undefined,
+    toggles: ListingToggles | undefined,
     kinds: readonly PostKind[] | undefined,
   ): Promise<{ matches: RankedMatch[]; total: number }> {
     const offset = Math.max(0, (page - 1) * pageSize);
@@ -512,7 +517,7 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
       WHERE ${PUBLISHED_POSTS}
         AND v.dist <= ${maxDistance}
         AND ${categoryWhere(categoryKeys)}
-        AND ${availableWhere(onlyAvailable)}
+        AND ${togglesWhere(toggles)}
         AND ${kindWhere(kinds)}
       ORDER BY v.dist ASC, p.id
       LIMIT ${pageSize} OFFSET ${offset}
@@ -537,31 +542,31 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
    */
   async countByCategory(
     query: string,
-    onlyAvailable?: boolean,
+    toggles?: ListingToggles,
   ): Promise<Readonly<Record<string, number>>> {
     const trimmed = query?.trim() ?? "";
     if (!trimmed) return {};
 
     return this.countMatchesByCategory(
       { kind: "words", text: trimmed },
-      onlyAvailable,
+      toggles,
     );
   }
 
   async countByCategoryByPrefix(
     words: readonly string[],
-    onlyAvailable?: boolean,
+    toggles?: ListingToggles,
   ): Promise<Readonly<Record<string, number>>> {
     const question = prefixTsQuery(words);
     if (!question.text) return {};
 
-    return this.countMatchesByCategory(question, onlyAvailable);
+    return this.countMatchesByCategory(question, toggles);
   }
 
   /** `countByCategory` con la pregunta ya armada, sea de palabras completas o de inicios. */
   private async countMatchesByCategory(
     question: TextQuestion,
-    onlyAvailable: boolean | undefined,
+    toggles: ListingToggles | undefined,
   ): Promise<Readonly<Record<string, number>>> {
     const raw = await db.execute(sql`
       SELECT p.category AS category, COUNT(*)::int AS total
@@ -572,7 +577,7 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
         WHERE t.post_id = p.id AND ${matchesQuery(question)}
         LIMIT 1
       ) r ON TRUE
-      WHERE ${PUBLISHED_POSTS} AND ${availableWhere(onlyAvailable)}
+      WHERE ${PUBLISHED_POSTS} AND ${togglesWhere(toggles)}
       GROUP BY p.category
     `);
 
@@ -596,7 +601,7 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
     pageSize: number,
     near: Coordinates | null,
     categoryKeys: readonly string[] | undefined,
-    onlyAvailable: boolean | undefined,
+    toggles: ListingToggles | undefined,
     kinds: readonly PostKind[] | undefined,
   ): Promise<{ matches: RankedMatch[]; total: number }> {
     const offset = Math.max(0, (page - 1) * pageSize);
@@ -607,7 +612,7 @@ export class PostgresSearchPostRepository implements ISearchPostRepository {
         ${distanceColumn(near)} AS distance_meters,
         COUNT(*) OVER()::int AS total_count
       FROM posts p
-      WHERE ${PUBLISHED_POSTS} AND ${categoryWhere(categoryKeys)} AND ${availableWhere(onlyAvailable)} AND ${kindWhere(kinds)}
+      WHERE ${PUBLISHED_POSTS} AND ${categoryWhere(categoryKeys)} AND ${togglesWhere(toggles)} AND ${kindWhere(kinds)}
       ORDER BY
         distance_meters ASC NULLS LAST,
         p.created_at DESC,

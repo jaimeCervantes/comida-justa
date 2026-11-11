@@ -27,6 +27,8 @@ export interface ISearchPostDTO {
    * un modelo de datos desde la interfaz.
    */
   onlyAvailable?: boolean;
+  /** `?promocion=1`: solo lo que tiene una promoción vigente. */
+  onSale?: boolean;
   /**
    * Los tipos de publicación que entran. `undefined` no filtra, que es lo del buscador del sitio;
    * la difusión pide solo lo que se vende (`SELLABLE_KINDS`). Va a la consulta, no después: filtrar

@@ -1,12 +1,8 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import {
-  ONLY_AVAILABLE_QUERY_PARAM,
-  parseOnlyAvailableFilter,
-} from "~/domain/entities/post/catalogFilters";
-import {
-  PUBLICATION_PILLAR_QUERY_PARAM,
-  parsePublicationPillar,
-} from "~/domain/entities/post/publicationPillars";
+  listingFilterParams,
+  parseListingFilters,
+} from "~/domain/entities/post/listingFilters";
 import { Link } from "~/i18n/navigation";
 import { resolveLocale } from "~/i18n/routing";
 import { readViewerId } from "~/infra/auth/readViewerId";
@@ -17,6 +13,7 @@ import { CARD_MASONRY } from "~/presentation/design_system/surfaces/cardList";
 import { Heading } from "~/presentation/design_system/typography/Heading";
 import Pagination from "~/presentation/navigation/Pagination";
 import CardForList from "~/presentation/post/CardForList/CardForList";
+import { filteredEmptyMessage } from "~/presentation/post/ListingFilters/filteredEmptyMessage";
 import ListingFilterBar from "~/presentation/post/ListingFilters/ListingFilterBar";
 import { publicationPillarEmptyMessage } from "~/presentation/post/publicationPillarEmptyMessage";
 import { SEARCH_PAGE_SIZE, searchPosts } from "./data";
@@ -38,27 +35,31 @@ export default async function SearchPage({
     page?: string;
     pillar?: string;
     disponibles?: string;
+    promocion?: string;
   }>;
   params: Promise<{ locale: string }>;
 }) {
-  const { q = "", page = "1", pillar, disponibles } = await searchParams;
-  /* La faceta vive en la dirección, así que se comparte, se guarda y vuelve con el botón de atrás.
-     Cualquier valor la enciende: es un interruptor, no un dato. */
-  const onlyAvailable = parseOnlyAvailableFilter(disponibles);
+  const rawSearchParams = await searchParams;
+  const { q = "", page = "1" } = rawSearchParams;
+  /* Las facetas viven en la dirección, así que se comparten, se guardan y vuelven con el botón de
+     atrás. */
+  const filters = parseListingFilters(rawSearchParams);
+  const { currentPillar } = filters;
   const { locale: rawLocale } = await params;
   const locale = resolveLocale(rawLocale);
-  const currentPillar = parsePublicationPillar(pillar);
   setRequestLocale(locale);
   const viewerId = await readViewerId();
   const t = await getTranslations("search");
   const pillarT = await getTranslations("publicationPillars");
+  const filtersT = await getTranslations("listingFilters");
   const pageInt = parseInt(page || "1", 10);
   const data = await searchPosts(
     q,
     pageInt,
     locale,
     currentPillar,
-    onlyAvailable,
+    filters.onlyAvailable,
+    filters.onSale,
   );
   const cards = await mapPostsToCardsForLocale(data.results, locale);
   const totalPages = Math.ceil(data.total / SEARCH_PAGE_SIZE);
@@ -86,8 +87,7 @@ export default async function SearchPage({
         <SearchSummary
           query={q}
           total={data.total}
-          currentPillar={currentPillar}
-          onlyAvailable={onlyAvailable}
+          filters={filters}
           isSemantic={data.strategy === "semantic"}
         />
       ) : null}
@@ -105,8 +105,7 @@ export default async function SearchPage({
           <ListingFilterBar
             pathname="/buscar"
             query={{ q }}
-            currentPillar={currentPillar}
-            onlyAvailable={onlyAvailable}
+            filters={filters}
             counts={data.counts}
             testIdPrefix="facet"
             testId="search-facets"
@@ -118,11 +117,14 @@ export default async function SearchPage({
           <EmptyState
             testId="search-empty"
             className="mt-6"
-            title={publicationPillarEmptyMessage({
-              currentPillar,
-              fallback: t("noResults"),
-              t: pillarT,
-            })}
+            title={
+              filteredEmptyMessage(filters, filtersT) ??
+              publicationPillarEmptyMessage({
+                currentPillar,
+                fallback: t("noResults"),
+                t: pillarT,
+              })
+            }
             action={
               <Link
                 href="/productos"
@@ -151,13 +153,9 @@ export default async function SearchPage({
         totalPages={totalPages}
         pathname="/buscar"
         pageQueryParam="page"
-        /* La faceta de existencias viaja con la paginación: sin ella, pasar de página soltaba el
-           filtro y la página 2 enseñaba resultados que la 1 había escondido. */
-        query={{
-          q,
-          [PUBLICATION_PILLAR_QUERY_PARAM]: currentPillar ?? undefined,
-          [ONLY_AVAILABLE_QUERY_PARAM]: onlyAvailable ? "1" : undefined,
-        }}
+        /* Las facetas viajan con la paginación: sin ellas, pasar de página soltaba el filtro y la
+           página 2 enseñaba resultados que la 1 había escondido. */
+        query={{ q, ...listingFilterParams(filters) }}
       />
     </>
   );

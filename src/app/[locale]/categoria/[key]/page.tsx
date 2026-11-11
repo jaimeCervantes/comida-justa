@@ -1,11 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import {
-  ONLY_AVAILABLE_QUERY_PARAM,
-  parseOnlyAvailableFilter,
-} from "~/domain/entities/post/catalogFilters";
-import { parsePublicationPillar } from "~/domain/entities/post/publicationPillars";
+import { parseListingFilters } from "~/domain/entities/post/listingFilters";
 import { buildBreadcrumbJsonLd } from "~/domain/seo/jsonLd/breadcrumbs";
 import { resolveLocale } from "~/i18n/routing";
 import { readViewerId } from "~/infra/auth/readViewerId";
@@ -20,21 +16,14 @@ import CategoryPosts from "./ui/CategoryPosts";
 
 type Props = {
   params: Promise<{ locale: string; key: string }>;
-  searchParams: Promise<{
-    pillar?: string;
-    [ONLY_AVAILABLE_QUERY_PARAM]?: string;
-  }>;
+  /** Pilar, `disponibles` y `promocion`. Ver `parseListingFilters`. */
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { key, locale: rawLocale } = await params;
   const locale = resolveLocale(rawLocale);
-  const data = await getPostsByCategory(
-    key,
-    PAGINATION_INIT_PAGE,
-    locale,
-    null,
-  );
+  const data = await getPostsByCategory(key, PAGINATION_INIT_PAGE, locale);
 
   // Sin categoría no hay metadata que construir: la página va a responder 404.
   return data
@@ -44,11 +33,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function CategoryPage({ params, searchParams }: Props) {
   const { key, locale: rawLocale } = await params;
-  const { pillar, [ONLY_AVAILABLE_QUERY_PARAM]: onlyAvailableParam } =
-    await searchParams;
-  const onlyAvailable = parseOnlyAvailableFilter(onlyAvailableParam);
+  const filters = parseListingFilters(await searchParams);
   const locale = resolveLocale(rawLocale);
-  const currentPillar = parsePublicationPillar(pillar);
   setRequestLocale(locale);
   const viewerId = await readViewerId();
   const t = await getTranslations("category");
@@ -58,8 +44,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
     key,
     PAGINATION_INIT_PAGE,
     locale,
-    currentPillar,
-    onlyAvailable,
+    filters,
   );
 
   /* Una clave que no existe (o que se desactivó desde `/admin/catalogo`) es un 404, no una lista
@@ -98,8 +83,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
         label={data.label}
         currentPage={PAGINATION_INIT_PAGE}
         totalPages={data.totalPages}
-        currentPillar={currentPillar}
-        onlyAvailable={onlyAvailable}
+        filters={filters}
       />
     </main>
   );

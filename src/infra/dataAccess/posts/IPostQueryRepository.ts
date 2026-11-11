@@ -1,4 +1,5 @@
 import type { IndexingCounts } from "~/domain/entities/post/indexingReport";
+import type { ListingToggles } from "~/domain/entities/post/listingFilters";
 import type { OriginCount } from "~/domain/entities/post/originReport";
 import type { PostMediaFile } from "~/domain/entities/post/types";
 import type { Coordinates } from "~/domain/entities/seller/coordinates";
@@ -75,19 +76,13 @@ export interface PaginatedPostsResult {
   totalPages: number;
 }
 
-export interface PostListingFilters {
+/**
+ * Los filtros de un listado: los interruptores comunes (`ListingToggles`: existencia y promoción,
+ * con la vigencia de `domain/entities/post/promotion.ts`) más los propios del catálogo.
+ */
+export interface PostListingFilters extends ListingToggles {
   /** Claves de taxonomía permitidas; `[]` significa "no hay ninguna activa", no "sin filtro". */
   categoryKeys?: readonly string[];
-  /**
-   * Solo lo que tiene una promoción vigente ahora. Ausente o `false` = no filtrar.
-   * Ver `domain/entities/post/promotion.ts`.
-   */
-  onSale?: boolean;
-  /**
-   * Deja fuera el producto agotado; lo que no se vende por piezas se queda. Ausente o `false` = no
-   * filtrar. Es `?disponibles=1` (`domain/entities/post/catalogFilters.ts`).
-   */
-  onlyAvailable?: boolean;
   /** Solo esta marca, sin distinguir mayúsculas. Ver `domain/entities/post/brand.ts`. */
   brand?: string | null;
   /** Solo lo de esta tienda, por su handle (`sellers.slug`). */
@@ -173,8 +168,7 @@ export interface IPostQueryRepository {
     sellerId: string,
     page: number,
     pageSize: number,
-    options?: {
-      onlyAvailable?: boolean;
+    options?: ListingToggles & {
       categoryKeys?: readonly string[];
       /** Filtra el catálogo por título, en cualquiera de sus idiomas. */
       term?: string;

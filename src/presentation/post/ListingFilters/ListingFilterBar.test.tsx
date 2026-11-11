@@ -9,8 +9,7 @@ describe("La barra de filtros de los listados", () => {
       <ListingFilterBar
         pathname="/categoria/[key]"
         params={{ key: "salsas_y_aderezos" }}
-        currentPillar={null}
-        onlyAvailable={false}
+        filters={{ currentPillar: null, onlyAvailable: false, onSale: false }}
       />,
     );
 
@@ -29,8 +28,11 @@ describe("La barra de filtros de los listados", () => {
       <ListingFilterBar
         pathname="/buscar"
         query={{ q: "salsa", page: "3" }}
-        currentPillar="nutrition"
-        onlyAvailable
+        filters={{
+          currentPillar: "nutrition",
+          onlyAvailable: true,
+          onSale: false,
+        }}
       />,
     );
 
@@ -55,8 +57,7 @@ describe("La barra de filtros de los listados", () => {
       <ListingFilterBar
         pathname="/categoria/[key]"
         params={{ key: "salsas_y_aderezos" }}
-        currentPillar={null}
-        onlyAvailable
+        filters={{ currentPillar: null, onlyAvailable: true, onSale: false }}
       />,
     );
 
@@ -74,13 +75,31 @@ describe("La barra de filtros de los listados", () => {
       <ListingFilterBar
         pathname="/buscar"
         query={{ q: "salsa" }}
-        currentPillar={null}
-        onlyAvailable={false}
+        filters={{ currentPillar: null, onlyAvailable: false, onSale: false }}
         testIdPrefix="facet"
       />,
     );
 
     expect(screen.getByTestId("facet-only-available")).toBeInTheDocument();
     expect(screen.getByTestId("facet-pillar-sleep")).toBeInTheDocument();
+  });
+
+  it("«En promoción» se enciende conservando la existencia y el término", () => {
+    renderWithIntl(
+      <ListingFilterBar
+        pathname="/buscar"
+        query={{ q: "miel" }}
+        filters={{ currentPillar: null, onlyAvailable: true, onSale: false }}
+      />,
+    );
+
+    const chip = screen.getByTestId("filter-on-sale");
+
+    expect(chip).toHaveTextContent("En promoción");
+    expect(chip).toHaveAttribute("aria-pressed", "false");
+    expect(chip).toHaveAttribute(
+      "href",
+      "/buscar?q=miel&disponibles=1&promocion=1",
+    );
   });
 });

@@ -1,9 +1,12 @@
-import type { PublicationPillar } from "~/domain/entities/post/publicationPillars";
+import {
+  type ListingFilterState,
+  NO_LISTING_FILTERS,
+} from "~/domain/entities/post/listingFilters";
 import type { Branch, Seller } from "~/domain/entities/seller/types";
 import { PAGINATION_INIT_PAGE, PAGINATION_PAGE_SIZE } from "~/infra/constants";
 import { createBranchRepository } from "~/infra/dataAccess/branches/factory";
 import { createPostQueryRepository } from "~/infra/dataAccess/getMultiplePosts";
-import { categoryKeysForActivePublicationPillar } from "~/infra/dataAccess/posts/publicationPillarFilter";
+import { resolveListingFilters } from "~/infra/dataAccess/posts/resolveListingFilters";
 import { createSellerRepository } from "~/infra/dataAccess/sellers/factory";
 import { createUserProfileRepository } from "~/infra/dataAccess/users/factory";
 import { readVisitorLocation } from "~/infra/location/visitorLocation";
@@ -37,14 +40,14 @@ export async function getStoreByHandle(
   handle: string,
   page: number,
   locale: string,
-  currentPillar: PublicationPillar | null = null,
+  /**
+   * Pilar, existencia y promoción. Sin `disponibles` la tienda enseña también lo agotado, a su
+   * dueño y a quien visita: el catálogo es el mismo para todos y es quien mira quien decide
+   * esconderlo.
+   */
+  filters: ListingFilterState = NO_LISTING_FILTERS,
   /** Filtra el catálogo por título. Vacío = no filtrar. Lo ve cualquiera: es un catálogo público. */
   term = "",
-  /**
-   * `?disponibles=1`. Sin él la tienda enseña también lo agotado, a su dueño y a quien visita: el
-   * catálogo es el mismo para todos y es quien mira quien decide esconderlo.
-   */
-  onlyAvailable = false,
 ): Promise<StorePageData | null> {
   const seller = await createSellerRepository().findByHandle(handle);
 
@@ -59,12 +62,7 @@ export async function getStoreByHandle(
       seller.id,
       pageNum,
       PAGINATION_PAGE_SIZE,
-      {
-        onlyAvailable,
-        categoryKeys:
-          await categoryKeysForActivePublicationPillar(currentPillar),
-        term,
-      },
+      { ...(await resolveListingFilters(filters)), term },
     ),
     createBranchRepository().listBySeller(seller.id),
     // Un vendedor puede existir sin cuenta (alta manual de proveedor local): entonces no hay perfil.

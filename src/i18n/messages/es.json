@@ -882,7 +882,9 @@
     "availability": "Disponibilidad",
     "label": "Filtros",
     "nothingInStock": "No hay nada con existencia por ahora. Apaga «Solo con existencia» para ver también lo agotado.",
+    "nothingOnSale": "No hay nada en promoción por ahora. Apaga «En promoción» para ver todo.",
     "onlyAvailable": "Solo con existencia",
+    "onSale": "En promoción",
     "pillar": "Pilar"
   },
   "moderation": {

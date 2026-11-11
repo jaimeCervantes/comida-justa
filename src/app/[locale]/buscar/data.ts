@@ -41,6 +41,8 @@ export const searchPosts = cache(async function searchPosts(
   locale: string,
   currentPillar: PublicationPillar | null,
   onlyAvailable = false,
+  /** `?promocion=1`. Primitivos y no un objeto: `cache` memoriza por identidad de argumentos. */
+  onSale = false,
 ): Promise<SearchPostsResult> {
   if (!query) {
     return { results: [], total: 0, strategy: "none", counts: null };
@@ -60,5 +62,6 @@ export const searchPosts = cache(async function searchPosts(
     near: await readVisitorLocation(),
     categoryKeys: await categoryKeysForActivePublicationPillar(currentPillar),
     onlyAvailable,
+    onSale,
   });
 });

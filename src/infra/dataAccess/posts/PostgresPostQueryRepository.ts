@@ -2,6 +2,7 @@ import { type SQL, sql } from "drizzle-orm";
 import { PRODUCT_KIND } from "~/domain/entities/post/hazloSanoProduct";
 import type { IndexingCounts } from "~/domain/entities/post/indexingReport";
 import { EVENT_KIND, SELLABLE_KINDS } from "~/domain/entities/post/kind";
+import type { ListingToggles } from "~/domain/entities/post/listingFilters";
 import { HAZLO_SANO_ORIGIN_PREFIX } from "~/domain/entities/post/origin";
 import type { OriginCount } from "~/domain/entities/post/originReport";
 import type { PostMediaFile } from "~/domain/entities/post/types";
@@ -23,6 +24,7 @@ import type {
   PostListingFilters,
 } from "./IPostQueryRepository";
 import { inStockWhere } from "./inStockWhere";
+import { onSaleWhere } from "./onSaleWhere";
 
 interface PostRow {
   id: string;
@@ -313,31 +315,6 @@ function categoryWhere(categoryKeys: readonly string[] | undefined): SQL {
 }
 
 /**
- * La vigencia de `isPromotionActive` (`domain/entities/post/promotion.ts`), escrita en SQL para
- * poder filtrar y paginar en la base. Las dos tienen que decir lo mismo: si una cambia, cambia la
- * otra. `now()` es la hora de la consulta, igual que el `new Date()` con el que pinta la tarjeta.
- *
- * Además, **solo lo que tiene piezas registradas**, la misma regla que `canBeAdvertised` en el
- * carrusel: ni lo que el vendedor marcó como agotado ni lo que no lleva inventario (`stock_quantity`
- * nulo) o lo tiene en cero. Así «Ver ofertas» lleva a la misma lista que anuncia el banner. Lo decidió
- * el usuario el 2026-10-22; un servicio no sale, porque no se cuenta en piezas.
- *
- * `sale_price IS NOT NULL` va primero porque es la condición del índice parcial
- * `posts_on_sale_idx`.
- */
-function onSaleWhere(onSale: boolean | undefined): SQL {
-  if (!onSale) return sql`TRUE`;
-
-  return sql`(p.sale_price IS NOT NULL
-    AND p.sale_price > 0
-    AND p.sale_price < p.price
-    AND (p.sale_ends_at IS NULL OR p.sale_ends_at > now())
-    AND p.is_available
-    AND p.stock_quantity IS NOT NULL
-    AND p.stock_quantity > 0)`;
-}
-
-/**
  * Una marca, sin distinguir mayúsculas: la misma comparación que `brandKey` en el dominio y que el
  * índice parcial `posts_brand_idx`, que va sobre `lower(brand)`.
  */
@@ -368,6 +345,7 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
       sortByDistance: false,
       categoryKeys: filters.categoryKeys,
       onlyAvailable: filters.onlyAvailable,
+      onSale: filters.onSale,
       viewerId,
     });
   }
@@ -431,6 +409,7 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
         sortByDistance: true,
         categoryKeys: filters.categoryKeys,
         onlyAvailable: filters.onlyAvailable,
+        onSale: filters.onSale,
       },
     );
   }
@@ -439,8 +418,7 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
     sellerId: string,
     page: number,
     pageSize: number,
-    options?: {
-      onlyAvailable?: boolean;
+    options?: ListingToggles & {
       categoryKeys?: readonly string[];
       term?: string;
     },
@@ -453,6 +431,7 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
         categoryKeys: options?.categoryKeys,
         term: options?.term,
         onlyAvailable: options?.onlyAvailable,
+        onSale: options?.onSale,
       },
     );
   }
@@ -475,6 +454,7 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
       visibility: publishedOrOwnedBy(viewerId === userId ? viewerId : null),
       categoryKeys: filters.categoryKeys,
       onlyAvailable: filters.onlyAvailable,
+      onSale: filters.onSale,
       viewerId,
     });
   }

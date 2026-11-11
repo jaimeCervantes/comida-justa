@@ -1,9 +1,10 @@
 import { useTranslations } from "next-intl";
-import { ONLY_AVAILABLE_QUERY_PARAM } from "~/domain/entities/post/catalogFilters";
 import {
-  PUBLICATION_PILLAR_QUERY_PARAM,
-  type PublicationPillar,
-} from "~/domain/entities/post/publicationPillars";
+  hasActiveToggle,
+  type ListingFilterState,
+  listingFilterParams,
+  NO_LISTING_FILTERS,
+} from "~/domain/entities/post/listingFilters";
 import { type AppHref, Link } from "~/i18n/navigation";
 import type { Post } from "~/infra/types/Posts";
 import { buttonVariants } from "~/presentation/design_system/buttons/buttonVariants";
@@ -21,9 +22,8 @@ type CategoryPostsProps = {
   label: string;
   currentPage: number;
   totalPages: number;
-  currentPillar: PublicationPillar | null;
-  /** `?disponibles=1`. */
-  onlyAvailable?: boolean;
+  /** Pilar, existencia y promoción. Ver `parseListingFilters`. */
+  filters?: ListingFilterState;
 };
 
 export default function CategoryPosts({
@@ -33,46 +33,50 @@ export default function CategoryPosts({
   currentPage,
   totalPages,
   viewerId,
-  currentPillar,
-  onlyAvailable = false,
+  filters = NO_LISTING_FILTERS,
 }: CategoryPostsProps & { viewerId?: string | null }) {
   const t = useTranslations("category");
+  const filtersT = useTranslations("listingFilters");
   const pillarT = useTranslations("publicationPillars");
+  const { currentPillar } = filters;
   const params = { key: categoryKey };
-  const query = listingQuery({
-    [PUBLICATION_PILLAR_QUERY_PARAM]: currentPillar,
-    [ONLY_AVAILABLE_QUERY_PARAM]: onlyAvailable ? "1" : undefined,
-  });
-  const filters = (
+  const query = listingQuery(listingFilterParams(filters));
+  const filterBar = (
     <ListingFilterBar
       pathname="/categoria/[key]"
       params={params}
-      currentPillar={currentPillar}
-      onlyAvailable={onlyAvailable}
+      filters={filters}
       className="mt-4"
     />
   );
 
-  /* Vacío por el filtro no es una categoría vacía: invitar al catálogo completo sería contestar otra
-     pregunta. Lo agotado sigue ahí, así que el camino de vuelta es esta misma categoría sin el
-     filtro —con el pilar que se eligió—. */
-  if (posts.length === 0 && onlyAvailable) {
+  /* Vacío por un interruptor no es una categoría vacía: invitar al catálogo completo sería contestar
+     otra pregunta. Lo escondido sigue ahí, así que el camino de vuelta es esta misma categoría sin
+     los interruptores —con el pilar que se eligió—. */
+  if (posts.length === 0 && hasActiveToggle(filters)) {
     return (
       <>
-        {filters}
+        {filterBar}
         <EmptyState
           testId="category-empty-only-available"
           className="mt-4"
-          title={t("emptyOnlyAvailable", { category: label })}
+          title={
+            filters.onSale
+              ? filtersT("nothingOnSale")
+              : t("emptyOnlyAvailable", { category: label })
+          }
           action={
             <Link
               href={
                 {
                   pathname: "/categoria/[key]",
                   params,
-                  query: listingQuery(query, {
-                    [ONLY_AVAILABLE_QUERY_PARAM]: undefined,
-                  }),
+                  query: listingQuery(
+                    listingFilterParams({
+                      ...NO_LISTING_FILTERS,
+                      currentPillar,
+                    }),
+                  ),
                 } as AppHref
               }
               className={buttonVariants({ color: "default", size: "sm" })}
@@ -81,7 +85,7 @@ export default function CategoryPosts({
             </Link>
           }
         >
-          {t("emptyOnlyAvailableBody")}
+          {filters.onSale ? null : t("emptyOnlyAvailableBody")}
         </EmptyState>
       </>
     );
@@ -90,7 +94,7 @@ export default function CategoryPosts({
   if (posts.length === 0) {
     return (
       <>
-        {filters}
+        {filterBar}
         <EmptyState
           testId="category-empty"
           className="mt-4"
@@ -118,7 +122,7 @@ export default function CategoryPosts({
 
   return (
     <>
-      {filters}
+      {filterBar}
       <section data-testid="category-grid" className={`${CARD_MASONRY} pt-6`}>
         {posts.map((post: Post) => (
           <CardForList {...post} viewerId={viewerId} key={post.id} />

@@ -106,4 +106,15 @@ describe("NearbyPillarFilter", () => {
     expect(chip).toHaveAttribute("aria-pressed", "true");
     expect(chip).toHaveAttribute("href", "/productos?promocion=1");
   });
+
+  /* «En promoción» se mudó aquí desde la lista de `/productos` (slice 4). */
+  it("ofrece «En promoción» y quitarla conserva la marca con la que se llegó", () => {
+    renderAt("/productos", "promocion=1&marca=Apis");
+
+    const chip = screen.getByTestId("filter-on-sale");
+
+    expect(chip).toHaveTextContent(es.listingFilters.onSale);
+    expect(chip).toHaveAttribute("aria-pressed", "true");
+    expect(chip).toHaveAttribute("href", "/productos?marca=Apis");
+  });
 });

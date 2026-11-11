@@ -113,25 +113,10 @@ describe("When the products and services list is rendered", () => {
 
 /** Slice 3 de `docs/features/commerce/031-2026-10-20-promociones.md`. */
 describe("El filtro «En promoción» del catálogo", () => {
-  it("se ofrece apagado y lleva al listado filtrado, desde la página 1", () => {
-    const { getByTestId } = render(
-      <ProductsList
-        products={[product]}
-        currentPage={2}
-        totalPages={3}
-        currentPillar={null}
-      />,
-    );
-
-    const chip = getByTestId("products-on-sale-filter");
-
-    expect(chip).toHaveTextContent("En promoción");
-    expect(chip).toHaveAttribute("aria-pressed", "false");
-    expect(chip).toHaveAttribute("href", "/productos?promocion=1");
-  });
-
-  it("encendido, se marca, se quita conservando el pilar y la paginación lo conserva", () => {
-    const { getByTestId, getByRole } = render(
+  /* El interruptor está en la barra del chrome (`NearbyPillarFilter`); aquí queda que la lista lo
+     conserve al paginar. */
+  it("encendido, la paginación lo conserva junto con el pilar", () => {
+    const { getByRole, queryByTestId } = render(
       <ProductsList
         products={[product]}
         currentPage={1}
@@ -141,10 +126,7 @@ describe("El filtro «En promoción» del catálogo", () => {
       />,
     );
 
-    const chip = getByTestId("products-on-sale-filter");
-
-    expect(chip).toHaveAttribute("aria-pressed", "true");
-    expect(chip).toHaveAttribute("href", "/productos?pillar=movement");
+    expect(queryByTestId("products-on-sale-filter")).not.toBeInTheDocument();
     expect(getByRole("link", { name: "Siguiente" })).toHaveAttribute(
       "href",
       "/productos/page/2?pillar=movement&promocion=1",
@@ -194,11 +176,6 @@ describe("El filtro por marca del catálogo", () => {
     expect(getByRole("link", { name: "Siguiente" })).toHaveAttribute(
       "href",
       "/productos/page/2?promocion=1&marca=Apis",
-    );
-    /* Quitar la promoción conserva la marca. */
-    expect(getByTestId("products-on-sale-filter")).toHaveAttribute(
-      "href",
-      "/productos?marca=Apis",
     );
   });
 

@@ -22,7 +22,6 @@ import {
   FILTER_CHIP,
 } from "~/presentation/post/ListingFilters/filterChip";
 import { listingQuery as mergeListingQuery } from "~/presentation/post/ListingFilters/listingQuery";
-import ToggleFilterChip from "~/presentation/post/ListingFilters/ToggleFilterChip";
 import { publicationPillarEmptyMessage } from "~/presentation/post/publicationPillarEmptyMessage";
 
 export const PRODUCTS_BASE_PATH = "/productos/page";
@@ -31,8 +30,8 @@ export const PRODUCTS_BASE_PATH = "/productos/page";
  * Los filtros del catálogo que viajan en la dirección, además del pilar: `?promocion=1`,
  * `?marca=…`, `?tienda=…` y `?disponibles=1`. Se suman entre sí y con el pilar.
  *
- * «Solo con existencia» no se pinta aquí sino en la barra de cercanía del chrome, junto al pilar;
- * esta lista solo lo necesita para conservarlo al paginar y al cambiar los suyos.
+ * «En promoción» y «Solo con existencia» no se pintan aquí sino en la barra de cercanía del chrome,
+ * junto al pilar; esta lista solo los necesita para conservarlos al paginar y al quitar la marca.
  */
 export type CatalogFilters = {
   onSale: boolean;
@@ -77,11 +76,12 @@ function productsHref(
 }
 
 /**
- * Los filtros a la vista: el interruptor «En promoción» y, si se llegó con una marca o una tienda
- * —desde un slide del carrusel de ofertas—, esa marca o tienda con su ✕ para quitarla.
+ * La marca o la tienda con la que se llegó —desde un slide del carrusel de ofertas—, con su ✕ para
+ * quitarla. No es un filtro que se elija, así que no está en la barra.
  *
- * El interruptor es el `ToggleFilterChip` de todos los listados; el slice 4 de
- * `docs/features/catalog/005-2026-11-10-filtros-del-catalogo.md` lo muda a `ListingFilterBar`.
+ * «En promoción» vivía aquí; desde el slice 4 de
+ * `docs/features/catalog/005-2026-11-10-filtros-del-catalogo.md` está en la barra de cercanía del
+ * chrome, junto al pilar y a «Solo con existencia», como en el resto de los listados.
  */
 function FilterChips({
   pillar,
@@ -97,15 +97,10 @@ function FilterChips({
   const storeLabel = filters.store ? (storeName ?? filters.store) : null;
   const groupLabel = filters.brand ?? storeLabel;
 
+  if (!groupLabel) return null;
+
   return (
     <div className="flex flex-wrap gap-2 pt-4">
-      <ToggleFilterChip
-        href={productsHref(pillar, { ...filters, onSale: !filters.onSale })}
-        pressed={filters.onSale}
-        testId="products-on-sale-filter"
-      >
-        {t("onSaleFilter")}
-      </ToggleFilterChip>
       {groupLabel ? (
         <Link
           href={productsHref(pillar, { ...filters, brand: null, store: null })}

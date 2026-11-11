@@ -1,4 +1,5 @@
 import type { PostKind } from "~/domain/entities/post/kind";
+import type { ListingToggles } from "~/domain/entities/post/listingFilters";
 import type { Coordinates } from "~/domain/entities/seller/coordinates";
 import type { ISearchPostResultDTO } from "../dtos/ISearchPostResultDTO";
 
@@ -20,7 +21,7 @@ export interface ISearchPostRepository {
     near?: Coordinates | null,
     categoryKeys?: readonly string[],
     /** `true` deja fuera lo agotado. `undefined` no filtra: es el estado por omisión. */
-    onlyAvailable?: boolean,
+    toggles?: ListingToggles,
     /** Los tipos que entran. `undefined` no filtra. */
     kinds?: readonly PostKind[],
   ): Promise<{ results: ISearchPostResultDTO[]; total: number }>;
@@ -50,7 +51,7 @@ export interface ISearchPostRepository {
    */
   countByCategory(
     query: string,
-    onlyAvailable?: boolean,
+    toggles?: ListingToggles,
   ): Promise<Readonly<Record<string, number>>>;
 
   /**
@@ -70,14 +71,14 @@ export interface ISearchPostRepository {
     locale?: string,
     near?: Coordinates | null,
     categoryKeys?: readonly string[],
-    onlyAvailable?: boolean,
+    toggles?: ListingToggles,
     kinds?: readonly PostKind[],
   ): Promise<{ results: ISearchPostResultDTO[]; total: number }>;
 
   /** `countByCategory` para cuando respondió `searchByPrefix`. */
   countByCategoryByPrefix(
     words: readonly string[],
-    onlyAvailable?: boolean,
+    toggles?: ListingToggles,
   ): Promise<Readonly<Record<string, number>>>;
 
   searchByVector(
@@ -87,7 +88,7 @@ export interface ISearchPostRepository {
     maxDistance: number,
     near?: Coordinates | null,
     categoryKeys?: readonly string[],
-    onlyAvailable?: boolean,
+    toggles?: ListingToggles,
     kinds?: readonly PostKind[],
   ): Promise<{ results: ISearchPostResultDTO[]; total: number }>;
 }

@@ -8,11 +8,10 @@ import { homeFeedKey } from "~/app/(home)/homeFeedKey";
 import { buildHomeOffersSlides, loadHomeOffers } from "~/app/(home)/homeOffers";
 import OffersCarousel from "~/app/(home)/OffersCarousel";
 import PostsWithLoadMore from "~/app/(home)/PostsWithLoadMore";
-import { parseOnlyAvailableFilter } from "~/domain/entities/post/catalogFilters";
 import {
-  type PublicationPillar,
-  parsePublicationPillar,
-} from "~/domain/entities/post/publicationPillars";
+  type ListingFilterState,
+  parseListingFilters,
+} from "~/domain/entities/post/listingFilters";
 import type { Coordinates } from "~/domain/entities/seller/coordinates";
 import { SUSTAINABLE_RADIUS_METERS } from "~/domain/entities/seller/proximity";
 import { buildSiteJsonLd } from "~/domain/seo/jsonLd/site";
@@ -29,7 +28,7 @@ import {
   PUBLIC_BRAND_NAME,
 } from "~/infra/constants";
 import { createPostQueryRepository } from "~/infra/dataAccess/getMultiplePosts";
-import { categoryKeysForActivePublicationPillar } from "~/infra/dataAccess/posts/publicationPillarFilter";
+import { resolveListingFilters } from "~/infra/dataAccess/posts/resolveListingFilters";
 import { readCommunityGarden } from "~/infra/habits/readCommunityGarden";
 import { readViewerLocationContext } from "~/infra/location/viewerLocationContext";
 import { mapPostsToCardsForLocale } from "~/infra/UI/mappers/posts/mapPostsToCardsForLocale";
@@ -82,8 +81,7 @@ export async function generateMetadata({
 async function getPosts(
   locale: string,
   near: Coordinates | null,
-  currentPillar: PublicationPillar | null,
-  onlyAvailable: boolean,
+  filters: ListingFilterState,
   viewerId?: string | null,
 ) {
   const postRepo = createPostQueryRepository();
@@ -92,10 +90,7 @@ async function getPosts(
     PAGINATION_INIT_PAGE,
     PAGINATION_PAGE_SIZE,
     near,
-    {
-      categoryKeys: await categoryKeysForActivePublicationPillar(currentPillar),
-      onlyAvailable,
-    },
+    await resolveListingFilters(filters),
     viewerId,
   );
 
@@ -110,13 +105,12 @@ export default async function Inicio({
   searchParams,
 }: {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ pillar?: string; disponibles?: string }>;
+  /** Pilar, `disponibles` y `promocion`. */
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { locale: rawLocale } = await params;
-  const { pillar, disponibles } = await searchParams;
-  const onlyAvailable = parseOnlyAvailableFilter(disponibles);
+  const filters = parseListingFilters(await searchParams);
   const locale = resolveLocale(rawLocale);
-  const currentPillar = parsePublicationPillar(pillar);
   setRequestLocale(locale);
   const viewerId = await readViewerId();
   const [t, tFeed] = await Promise.all([
@@ -125,7 +119,7 @@ export default async function Inicio({
   ]);
   const { visitor } = await readViewerLocationContext();
   const [{ posts, total, totalPages }, garden, offers] = await Promise.all([
-    getPosts(locale, visitor, currentPillar, onlyAvailable, viewerId),
+    getPosts(locale, visitor, filters, viewerId),
     readCommunityGarden(),
     loadHomeOffers(locale),
   ]);
@@ -212,15 +206,14 @@ export default async function Inicio({
           distancias y qué filtros se pidieron. El feed guarda páginas en cliente; sin remount, cambiar
           `?pillar=` deja visibles tarjetas del filtro anterior. */}
       <PostsWithLoadMore
-        key={homeFeedKey(visitor, currentPillar, onlyAvailable)}
+        key={homeFeedKey(visitor, filters)}
         viewerId={viewerId}
         reactionSignInHref={signInPathFor(locale, "/")}
         initialPosts={posts}
         totalPosts={total}
         totalPages={totalPages}
         locale={locale}
-        currentPillar={currentPillar}
-        onlyAvailable={onlyAvailable}
+        filters={filters}
       />
     </main>
   );
