@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { parseListingFilters } from "~/domain/entities/post/listingFilters";
+import { normalizeListTerm } from "~/domain/search/listTerm";
 import { buildProfileJsonLd } from "~/domain/seo/jsonLd/site";
 import { resolveLocale } from "~/i18n/routing";
 import { readViewerId } from "~/infra/auth/readViewerId";
@@ -19,7 +20,7 @@ import ProfileSharedPractices from "./ui/ProfileSharedPractices";
 
 type Props = {
   params: Promise<{ locale: string; username: string }>;
-  /** Pilar, `disponibles` y `promocion`. */
+  /** `q`, pilar, `disponibles` y `promocion`. */
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
@@ -32,7 +33,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function ProfilePage({ params, searchParams }: Props) {
   const { username, locale: rawLocale } = await params;
-  const filters = parseListingFilters(await searchParams);
+  const rawSearchParams = await searchParams;
+  const filters = parseListingFilters(rawSearchParams);
+  const term = normalizeListTerm(rawSearchParams.q);
   const locale = resolveLocale(rawLocale);
   setRequestLocale(locale);
   const viewerId = await readViewerId();
@@ -45,6 +48,7 @@ export default async function ProfilePage({ params, searchParams }: Props) {
     locale,
     viewerId,
     filters,
+    term,
   );
 
   if (!data) {
@@ -93,6 +97,7 @@ export default async function ProfilePage({ params, searchParams }: Props) {
         currentPage={PAGINATION_INIT_PAGE}
         totalPages={data.totalPages}
         filters={filters}
+        term={term}
       />
     </main>
   );

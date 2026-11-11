@@ -220,7 +220,8 @@ export interface IPostQueryRepository {
      * a esa persona: es por donde se entera, porque el sitio no manda correos.
      */
     viewerId?: string | null,
-    filters?: PostListingFilters,
+    /** Además de los filtros, `term` busca por título como en la tienda (`getPostsBySeller`). */
+    filters?: PostListingFilters & { term?: string },
   ): Promise<PaginatedPostsResult>;
   getTotalPosts(): Promise<number>;
   /** Cuántos productos hay por `origin` (`null` incluido). Base del reporte de procedencia. */

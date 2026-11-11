@@ -448,11 +448,12 @@ export class PostgresPostQueryRepository implements IPostQueryRepository {
     page: number,
     pageSize: number,
     viewerId?: string | null,
-    filters: PostListingFilters = {},
+    filters: PostListingFilters & { term?: string } = {},
   ): Promise<PaginatedPostsResult> {
     return this.getPaginatedPosts(sql`p.user_id = ${userId}`, page, pageSize, {
       visibility: publishedOrOwnedBy(viewerId === userId ? viewerId : null),
       categoryKeys: filters.categoryKeys,
+      term: filters.term,
       onlyAvailable: filters.onlyAvailable,
       onSale: filters.onSale,
       viewerId,

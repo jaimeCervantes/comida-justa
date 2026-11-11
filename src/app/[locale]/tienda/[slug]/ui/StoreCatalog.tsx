@@ -10,9 +10,9 @@ import Pagination from "~/presentation/navigation/Pagination";
 import CardForList from "~/presentation/post/CardForList/CardForList";
 import { filteredEmptyMessage } from "~/presentation/post/ListingFilters/filteredEmptyMessage";
 import ListingFilterBar from "~/presentation/post/ListingFilters/ListingFilterBar";
+import ListingSearchField from "~/presentation/post/ListingFilters/ListingSearchField";
 import { listingQuery } from "~/presentation/post/ListingFilters/listingQuery";
 import { publicationPillarEmptyMessage } from "~/presentation/post/publicationPillarEmptyMessage";
-import StoreSearchField from "./StoreSearchField";
 
 export default function StoreCatalog({
   catalog,
@@ -52,7 +52,17 @@ export default function StoreCatalog({
 
   const controls = (
     <>
-      <StoreSearchField handle={handle} term={term} filters={filters} />
+      <ListingSearchField
+        pathname="/tienda/[slug]"
+        params={params}
+        term={term}
+        filters={filters}
+        labels={{
+          placeholder: t("searchPlaceholder"),
+          label: t("searchLabel"),
+        }}
+        testId="store-search"
+      />
       <ListingFilterBar
         pathname="/tienda/[slug]"
         params={params}

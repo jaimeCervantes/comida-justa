@@ -39,6 +39,8 @@ export async function getProfileByUsername(
   viewerId?: string | null,
   /** Pilar, existencia y promoción. Ver `parseListingFilters`. */
   filters: ListingFilterState = NO_LISTING_FILTERS,
+  /** Busca por título, como en la tienda. Vacío = no buscar. */
+  term = "",
 ): Promise<ProfilePageData | null> {
   const profile = await createUserProfileRepository().findByUsername(username);
 
@@ -52,7 +54,7 @@ export async function getProfileByUsername(
       pageNum,
       PAGINATION_PAGE_SIZE,
       viewerId,
-      await resolveListingFilters(filters),
+      { ...(await resolveListingFilters(filters)), term },
     ),
     createSellerRepository().findByUserId(profile.id),
     new PracticeAdoptionUseCase(new PostgresPracticeAdoption()).sharedActiveFor(

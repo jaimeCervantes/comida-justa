@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { parseListingFilters } from "~/domain/entities/post/listingFilters";
+import { normalizeListTerm } from "~/domain/search/listTerm";
 import { Link } from "~/i18n/navigation";
 import { resolveLocale } from "~/i18n/routing";
 import { readViewerId } from "~/infra/auth/readViewerId";
@@ -17,7 +18,7 @@ import ProfileSharedPractices from "../../ui/ProfileSharedPractices";
 
 type Props = {
   params: Promise<{ locale: string; username: string; page: string }>;
-  /** Pilar, `disponibles` y `promocion`. */
+  /** `q`, pilar, `disponibles` y `promocion`. */
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
@@ -41,7 +42,9 @@ export default async function ProfilePaginatedPage({
   searchParams,
 }: Props) {
   const { username, locale: rawLocale, page: pageStr } = await params;
-  const filters = parseListingFilters(await searchParams);
+  const rawSearchParams = await searchParams;
+  const filters = parseListingFilters(rawSearchParams);
+  const term = normalizeListTerm(rawSearchParams.q);
   const locale = resolveLocale(rawLocale);
   setRequestLocale(locale);
   const viewerId = await readViewerId();
@@ -58,6 +61,7 @@ export default async function ProfilePaginatedPage({
     locale,
     viewerId,
     filters,
+    term,
   );
 
   if (!data || (data.publications.length === 0 && page > 1)) {
@@ -97,6 +101,7 @@ export default async function ProfilePaginatedPage({
         currentPage={page}
         totalPages={data.totalPages}
         filters={filters}
+        term={term}
       />
 
       <div className="text-center mt-4">
