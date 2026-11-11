@@ -84,3 +84,66 @@ usa el mismo chip para «En promoción», pero todavía no la barra.
 4. Pendiente aparte (decide el usuario): volver robusto `tarjetaCompacta.spec.ts:37`, que hoy
    depende de que la primera proteína de la base compartida tenga existencia — por ejemplo,
    sembrando su propio producto con piezas.
+
+## 2026-11-11 — Slice 2: tienda y perfil
+
+### Objetivo
+
+Que la tienda enseñe todo su catálogo a quien visita —lo agotado con su insignia— y deje decidir
+con la misma barra; y que el perfil tenga esa barra también.
+
+### Decisiones
+
+- **La tienda ya no decide por quien mira.** `getPostsBySeller` cambia `includeSoldOut` (que valía
+  `true` solo para el dueño) por `onlyAvailable`, que viene de la dirección. Con eso
+  `getStoreByHandle` deja de necesitar `viewerId`, y `tienda/[slug]/page.tsx` deja de llamar a
+  `auth()` solo para eso.
+- **Tienda y perfil pasan el filtro a `getPaginatedPosts`**, la misma vía que la categoría, en vez
+  de pegar `inStockWhere` a su `WHERE`: una sola entrada para la regla.
+- **Búsqueda por palabras y filtros viajan juntos.** La barra recibe `query={{ q: term }}`;
+  `StoreSearchField` arma su dirección con `listingQuery` y manda `disponibles` oculto para el envío
+  con Enter; la paginación lleva pilar, filtro y término.
+- **Vacío por filtro**: tienda y perfil dicen `listingFilters.nothingInStock` («Apaga «Solo con
+  existencia» para ver también lo agotado»). Sin botón propio, a diferencia de la categoría: el chip
+  de la barra, justo encima, ya es el camino de vuelta. Si hay término, gana «no hay nada que
+  coincida».
+- **E2E con dueño ajeno**: la tienda es de otra cuenta, así que quien la abre sin sesión es un
+  visitante de verdad. El perfil es el de la cuenta de la suite con una dirección prestada y
+  devuelta en `afterEach`.
+
+### Archivos
+
+- Infra: `IPostQueryRepository.ts`, `PostgresPostQueryRepository.ts`.
+- Tienda: `tienda/[slug]/{data.ts,page.tsx,page/[page]/page.tsx,ui/StoreCatalog.tsx,ui/StoreSearchField.tsx}`.
+- Perfil: `u/[username]/{data.ts,page.tsx,page/[page]/page.tsx,ui/ProfilePublications.tsx}`.
+- i18n: `listingFilters.nothingInStock` (es/en).
+- E2E: `filtrosDelCatalogo.feature` (escenarios del slice 2 detallados) y
+  `filtrosDelCatalogo/tiendaYPerfil.spec.ts` (nuevo).
+
+### Comandos y resultados
+
+- `pnpm run test:run` → 352 archivos, **3726/3726**.
+- `pnpm run typecheck` → limpio. `pnpm run lint` → 1512 archivos, sin cambios.
+- `pnpm exec playwright test src/e2e/filtrosDelCatalogo src/e2e/busquedaEnTienda
+  src/e2e/inventory/busquedaEnListas.spec.ts src/e2e/inventory/existenciasEnLaTarjeta.spec.ts
+  src/e2e/publicationPillarFilter` en 2 tramos, limpiando `.next` antes de cada uno: **29/29**
+  (15 + 14), incluidos los 3 nuevos.
+
+### Desviaciones
+
+- La primera vez el 3000 estaba ocupado por el `next dev` del usuario; no se tocó `.next` ni se
+  levantó Playwright hasta que lo detuvo.
+
+### Recap
+
+`ListingFilterBar` ya está en categoría, búsqueda, tienda y perfil. La tienda enseña lo agotado a
+todos y «Solo con existencia» (`?disponibles=1`) lo esconde; en la tienda se combina con la búsqueda
+por palabras y con el pilar, también al paginar y al buscar con Enter. Faltan home y `/productos`
+(barra del chrome) y «En promoción» en la barra.
+
+### Próximos pasos (opciones)
+
+1. **Slice 3**: home y productos vía la barra del chrome (`NearbyPillarFilter`), con el filtro en
+   «Cargar más»; arregla que elegir pilar en `/productos` suelte `promocion`.
+2. **Slice 4**: «En promoción» en la barra para todos.
+3. Pendiente aparte (decide el usuario): volver robusto `tarjetaCompacta.spec.ts:37`.
